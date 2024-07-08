@@ -1,0 +1,19 @@
+<a
+    href="javascript:void(0)"
+    class="parent-dropdown-action-handler"
+    id="targetlist_listview"
+    onclick="
+        sListView.send_form(
+            true,
+            '{$module_name}',
+            'index.php?entryPoint=sendConfirmOptInEmail&method=confirmOptInSelected',
+            '{$APP.LBL_LISTVIEW_NO_SELECTED}',
+            null,
+            '',
+            true,
+            {literal}
+            function (resp) {
+                alert(resp);
+            }
+            {/literal}
+        );">{$APP.LBL_SEND_CONFIRM_OPT_IN_EMAIL}</a>

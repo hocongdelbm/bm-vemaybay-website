@@ -1,0 +1,1431 @@
+$(document).ready(function () {
+	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').addClass('allow-number-only');
+	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').css({ 'text-align': 'right' });
+
+	var cal_date_format = $('#cal_date_format').val();
+	var dec_seperator = $('#dec_seperator').val();
+	var grp_seperator = $('#grp_seperator').val();
+	var sig_digits = $('#sig_digits').val();
+
+	$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+
+	// Not allow enter
+	$('input:text').bind("keypress", function (e) {
+		if (e.keyCode == 13) return false;
+	});
+
+	// Not allow number
+	$('.datetime_h, .datetime_m').on('keydown', function (event) {
+		$(this).allowNumberOnly(event);
+	});
+
+	$('.datetime_h').on('blur', function () {
+		var hour = parseInt($(this).val());
+		if (hour < 0 || hour > 23) {
+			alert('Giờ phải nằm trong khoảng từ 0 - 23');
+			$(this).val('00');
+			$(this).focus();
+			$(this).select();
+			return false;
+		}
+		if (hour < 10) {
+			$(this).val('0' + hour);
+			hour = '0' + hour;
+		}
+		var ele_id = $(this).attr('id');
+		ele_id = ele_id.substr(0, ele_id.length - 2);
+		var date = $.trim($('#' + ele_id + '_date').val());
+		var minute = $.trim($('#' + ele_id + '_m').val());
+		$('#' + ele_id).val(date + ' ' + hour + ':' + minute);
+	});
+
+	$('.datetime_m').on('blur', function () {
+		var minute = parseInt($(this).val());
+		if (minute < 0 || minute > 59) {
+			alert('Phút phải nằm trong khoảng từ 0 - 59');
+			$(this).val('00');
+			$(this).focus();
+			$(this).select();
+			return false;
+		}
+		if (minute < 10) {
+			$(this).val('0' + minute);
+			minute = '0' + minute;
+		}
+		var ele_id = $(this).attr('id');
+		ele_id = ele_id.substr(0, ele_id.length - 2);
+		var date = $.trim($('#' + ele_id + '_date').val());
+		var hour = $.trim($('#' + ele_id + '_h').val());
+		$('#' + ele_id).val(date + ' ' + hour + ':' + minute);
+	});
+
+	$('.bkd_select_supplier').select2();
+	$('.psg_luggage_purchase_select').select2();
+
+	// Xử lý khi tạo booking thì không hiện field booking_name
+	if ($.trim($('.edit-view-row-item[data-field="name"] div[type="name"]').html()) == '') {
+		$('.edit-view-row-item[data-field="name"] .label').remove();
+		$('.edit-view-row-item[data-field="name"] .edit-view-field').remove();
+	}
+
+	// Init calendar for date ticket issue
+	Calendar.setup({
+		inputField: 'date_ticket_issue',
+		daFormat: cal_date_format,
+		button: 'date_ticket_issue_trigger',
+		singleClick: true,
+		dateStr: '',
+		step: 1,
+		weekNumbers: false
+	});
+
+	// When check is ticket exported
+	$('#chk_is_ticket_exported').change(function () {
+		if ($(this).is(':checked')) {
+			$('#is_ticket_exported').val(1);
+			$('span.date_ticket_issue').show();
+		} else {
+			$('#date_ticket_issue_outbound').val('');
+			$('#is_ticket_exported').val(0);
+			$('span.date_ticket_issue').hide();
+		}
+	});
+
+	// Set calendar for itineraries
+	$('input:text[name="iti_departure_date[]"]').each(function (index, element) {
+		Calendar.setup({
+			inputField: 'iti_departure_date' + index,
+			daFormat: cal_date_format,
+			button: 'iti_departure_date_trigger' + index,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+		Calendar.setup({
+			inputField: 'iti_arrival_date' + index,
+			daFormat: cal_date_format,
+			button: 'iti_arrival_date_trigger' + index,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+		Calendar.setup({
+			inputField: 'iti_time_limit_date' + index,
+			daFormat: cal_date_format,
+			button: 'iti_time_limit_date_trigger' + index,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+	});
+
+	// Set calendar for passengers
+	$('input:text[name="psg_birthday[]"]').each(function (index, element) {
+		Calendar.setup({
+			inputField: 'psg_birthday' + index,
+			daFormat: cal_date_format,
+			button: 'psg_birthday_trigger' + index,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+	});
+
+	// Mã số thuế
+	$("input#tax_code").on("keydown.autocomplete", function () {
+		$(this).mcautocomplete({
+			// These next two options are what this plugin adds to the autocomplete widget.
+			showHeader: true,
+			columns: [{
+				name: 'Mã KH',
+				width: '120px',
+				valueField: 'ticker_symbol'
+			}, {
+				name: 'Tên KH',
+				width: '200px',
+				valueField: 'label'
+			}, {
+				name: 'MST',
+				width: '100px',
+				valueField: 'sic_code'
+			}, {
+				name: 'Địa chỉ',
+				width: '300px',
+				valueField: 'address'
+			}],
+			source: "index.php?entryPoint=entryPointEC_HoaDonBan&for=getAccountInf",
+			position: {
+				my: "right top",
+				at: "right bottom",
+			},
+			minLength: 2,
+			select: function (event, ui) {
+				event.preventDefault();
+				if (ui.item.address != '' && typeof ui.item.address != 'undefined' && ui.item.address != null) {
+					$('#company_name').val(ui.item.label);
+				} else {
+					$('#iv_account_name').val(ui.item.label);
+				}
+				$('#company_address').val(ui.item.address);
+				$('#iv_email').val(ui.item.email);
+				$('#tax_code').val(ui.item.sic_code);
+			}
+		});
+	});
+
+	// Kiểm tra lại giá 
+	for (var i = 0; i < $('input[name="psg_luggage_purchase[]"]').length; i++) {
+		if ($("#psg_deleted" + i).val() == 0) {
+			if ($("#psg_luggage_purchase" + i).val() > 0) {
+				calculateLugPurchasePrice(i, 0);
+			}
+			if ($("#psg_luggage_purchase_inbound" + i).val() > 0) {
+				calculateLugPurchasePrice(i, 1);
+			}
+		}
+	}
+
+	// Kiểm tra lại giá mua hành lý nếu có (Nội địa)
+	if ($('#ticket_type :selected').val() != '2') {
+		for (var i = 0; i < $("select[name=\'bkd_direction[]\']").length; i++) {
+			if ($("#bkd_deleted" + i).val() == 0) {
+				var is_cal_admin = is_cal_tax = 0;
+
+				// Bổ sung phí admin
+				if (unformatNumber($("#bkd_admin_fee_no_vat" + i).val()) == 0) {
+					is_cal_admin = 1;
+				}
+
+				// Chỉnh sửa thuế nếu tiền thuế = 8% giá cơ bản
+				if ((unformatNumber($("#bkd_tax_and_fee" + i).val()) / unformatNumber($("#bkd_unit_price" + i).val())) == 0.08) {
+					is_cal_tax = 1;
+				}
+
+				calculateLineTotal(i, is_cal_admin, is_cal_tax);
+			}
+		}
+	}
+
+	// Check flight type
+	if($('#flight_type').val() == 1){
+		$(".date_ticket_issue_inbound").addClass('d-none');
+		$(".airline-wrap__inbound").addClass('d-none');
+	} else {
+		$(".date_ticket_issue_inbound").removeClass('d-none');
+		$(".airline-wrap__inbound").removeClass('d-none');
+	}
+
+	// Change flight type
+	$('#flight_type').change(function () {
+		if ($('#flight_type :selected').val() == '1') {
+			$('#airline_inbound').val('');
+			$('#date_ticket_issue_inbound').val('');
+
+			$(".airline-wrap__inbound").addClass('d-none');
+			$(".date_ticket_issue_inbound").addClass('d-none');
+		} else {
+			$(".airline-wrap__inbound").removeClass('d-none');
+			$(".date_ticket_issue_inbound").removeClass('d-none');
+		}
+	});
+
+	// Change discount percent
+	$('#discount_percent').change(function () {
+		calculateTotal();
+	});
+
+	// Change total fields
+	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').blur(function () {
+		calculateTotal();
+	});
+
+	// SETUP AUTOCOMPLETE FOR AIRPORT AND AIRLINE
+	$('input.ac').on('keydown.autocomplete', function () {
+		var type = '';
+		if ($(this).hasClass('airline')) {
+			type = 'airline';
+		} else if ($(this).hasClass('airport')) {
+			type = 'airport';
+		}
+		$(this).autocomplete({
+			source: 'index.php?entryPoint=entryPointGetAirportAndAirline&type=' + type,
+			minLength: 2,
+			select: function (event, ui) {
+				var eleid = $(this).attr('id');
+				$('#' + eleid).val(ui.item.code);
+				event.preventDefault();
+			}
+		});
+	});
+
+	// Add itineraries
+	$('#btnItineraryAddRow').click(function () {
+		var ln = parseInt($('#iti_row_count').val());
+		$('#iti_last_row').before(insertItineraryLine(ln));
+		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+		$('#iti_airline_code' + ln).focus();
+
+		// SETUP DATETIME
+		Calendar.setup({
+			inputField: 'iti_departure_date' + ln,
+			daFormat: cal_date_format,
+			button: 'iti_departure_date_trigger' + ln,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+		Calendar.setup({
+			inputField: 'iti_arrival_date' + ln,
+			daFormat: cal_date_format,
+			button: 'iti_arrival_date_trigger' + ln,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+		Calendar.setup({
+			inputField: 'iti_time_limit_date' + ln,
+			daFormat: cal_date_format,
+			button: 'iti_time_limit_date_trigger' + ln,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+
+		ln++;
+		$('#iti_row_count').val(ln);
+		$('#lbl_iti_row_count').text(parseInt($('#lbl_iti_row_count').text()) + 1);
+	});
+
+	// Add details
+	$('#btnDetailAddRow').click(function () {
+		var ln = parseInt($('#bkd_row_count').val());
+		$('#bkd_last_row').before(insertDetailLine(ln));
+		calculateLineTotal(ln);
+		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+		$('#bkd_direction' + ln).focus();
+
+		ln++;
+		$('#bkd_row_count').val(ln);
+		$('#lbl_bkd_row_count').text(parseInt($('#lbl_bkd_row_count').text()) + 1);
+	});
+
+	// Add passengers
+	$('#btnPassengerAddRow').click(function () {
+		let ln = $('input[name="psg_id[]"]').length;
+
+		$('#psg_last_row').before(insertPassengerLine(ln));
+		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
+		$('#psg_traveller_type' + ln).focus();
+
+		Calendar.setup({
+			inputField: 'psg_birthday' + ln,
+			daFormat: cal_date_format,
+			button: 'psg_birthday_trigger' + ln,
+			singleClick: true,
+			dateStr: '',
+			step: 1,
+			weekNumbers: false
+		});
+
+		ln++;
+		$('#psg_row_count').val(ln);
+		$('#lbl_psg_row_count').text(parseInt($('#lbl_psg_row_count').text()) + 1);
+	});
+
+	// Check is agent
+	$('#chk_is_agent').change(function () {
+		if ($(this).is(':checked')) {
+			$('#is_agent').val(1);
+			// $('#agent_id_chosen').show();
+			$('#agent_id').next('span').show();
+		} else {
+			$('#is_agent').val(0);
+			$('#agent_id').hide();
+			$('#agent_id').val('');
+			// $('#agent_id_chosen').hide();
+			$('#agent_id').next('span').css({ "display": "none" });;
+		}
+	});
+
+	// Submit event
+	$('#EditView').submit(function () {
+		var action = $('#EditView input:hidden[name="action"]').val();
+		var flight_type = $('#flight_type :selected').val();
+		var airline_inbound = $('#airline_inbound :selected').val();
+		var contact_name = $.trim($('#contact_name').val());
+		var email = $.trim($('#email').val());
+		var email_regex = /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/;
+		var phone = $.trim($('#phone').val());
+		var phone_regex = /^[0-9-+]+$/;
+		var is_agent = $('#is_agent').val();
+		var agent_id = $('#agent_id :selected').val();
+		var is_ticket_exported = $('#is_ticket_exported').val();
+		var current_date = new Date().getTime();
+		var dti_arr = $('#date_ticket_issue_outbound').val().split('-');
+		var date_ticket_issue = new Date(dti_arr[1] + '/' + dti_arr[0] + '/' + dti_arr[2]).getTime();
+		let is_edit_voucher = $('#is_edit_voucher').val();
+
+		if (action == 'Save') {
+			if (is_ticket_exported == 1 && $.trim($('#date_ticket_issue_outbound').val()) == '') {
+				alert('Ngày xuất vé không được trống');
+				$('#date_ticket_issue_outbound').focus();
+				return false;
+			}
+			if (is_ticket_exported == 1 && date_ticket_issue > current_date) {
+				alert('Ngày xuất vé phải nhỏ hơn hoặc bằng ngày hiện tại');
+				$('#date_ticket_issue_outbound').focus();
+				return false;
+			}
+			if (is_agent == '1' && agent_id == '') {
+				alert('Vui lòng chọn đại lý');
+				$('#agent_id').focus();
+				return false;
+			}
+			if (flight_type == '0' && airline_inbound == '') {
+				alert('Vui lòng chọn hãng bay chiều về');
+				$('#airline_inbound').focus();
+				return false;
+			}
+			if (contact_name.length < 5) {
+				alert('Người liên hệ không hợp lệ');
+				$('#contact_name').focus();
+				return false;
+			}
+			if (email != '' && !email_regex.test(email)) {
+				alert('Email không hợp lệ');
+				$('#email').focus();
+				return false;
+			}
+			if (phone.length < 10 || phone.length > 18 || !phone_regex.test(phone)) {
+				alert('Điện thoại không hợp lệ');
+				$('#phone').focus();
+				return false;
+			}
+			if (!checkLineItems()) {
+				return false;
+			}
+
+			if (is_edit_voucher == 1) {
+				let booking_id = $('input[type="hidden"][name="record"]').val();
+				let voucher_id = $('#voucher_id').val();
+				let voucher = $('#voucher').val();
+				let applied_id = $('#applied_id').val();
+
+				// check Voucher
+				$.ajax({
+					url: "index.php?entryPoint=entryPointGetInfoVoucher",
+					type: "POST",
+					data: {
+						booking_id: booking_id,
+						voucher: voucher,
+						voucher_id: voucher_id,
+						applied_id: applied_id,
+						for: "saveVoucher"
+					},
+					success: function (res) {
+						console.log(res);
+					}
+				});
+			}
+
+			return true;
+		}
+	});
+
+	$("#discount_amount").on('click', function () {
+		let text_warning = 'Vui lòng nhập mã voucher và nhấn nút "Áp dụng"';
+		showToastWarning(text_warning);
+	});
+	$('#discount_amount').prop('readonly', true);
+	$('#discount_amount').bind("cut copy paste", function (e) {
+		e.preventDefault();
+	});
+	$('#discount_amount').on('keydown', function (e) {
+		e.preventDefault();
+	});
+	$("#discount_amount").on('input', function (e) {
+		e.preventDefault();
+	});
+	$('#discount_amount').on('contextmenu', function(e) {
+		e.preventDefault();
+	});
+
+	// Apply voucher
+	$("#apply_voucher").on('click', function () {
+		let applied_id = $('#applied_id').val();
+		let code_voucher = $('#voucher').val().trim();
+		let discount = parseInt($('#discount_amount').val().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ""));
+		let total_amount = parseInt($('#total_amount').val().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ""));
+		let wayflight = $('#flight_type').val();
+		let total_qty = $('#total_qty').val();
+		let ticket_type = $('#ticket_type').val();
+		let journey = $('#journey').val();
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointGetInfoVoucher",
+			type: "POST",
+			data: {
+				applied_id: applied_id,
+				code_voucher: code_voucher,
+				discount: discount,
+				wayflight: wayflight,
+				total_qty: total_qty,
+				total_amount: total_amount,
+				ticket_type: ticket_type,
+				journey: journey,
+				for: "checkValidVoucher"
+			},
+			success: function (res) {
+				res = JSON.parse(res);
+				let reduce_amount = parseInt(res['value']);
+				let voucher_id = res['id'];
+
+				if (res['status'] == '2') {
+					// remove voucher
+					$("#voucher_id").val(voucher_id);
+					$("#discount_amount").val(0);
+					$("#total_amount").val(total_amount + reduce_amount);
+					$("#has_voucher").val(0);
+
+					$('#is_edit_voucher').val(1);
+				} else if (res['status'] == '1') {
+					$("#voucher_id").val(voucher_id);
+					$("#has_voucher").val(1);
+					$("#discount_amount").val(reduce_amount);
+					$("#total_amount").val(total_amount - reduce_amount + discount);
+
+					$('#is_edit_voucher').val(1);
+				} else if (res['status'] == '0') {
+					if (res['content']) {
+						let text_warning = res['content'];
+						showToastWarning(text_warning);
+					} else {
+						let text_warning = 'Voucher không tồn tại';
+						showToastWarning(text_warning);
+					}
+				}
+			}
+		});
+
+	});
+
+	// Autocomplete Location Booking (Field country)
+	$(function () {
+		var location = [
+			{ label: "Hồ Chí Minh", value: "Hồ Chí Minh" },
+			{ label: "Ho Chi Minh", value: "Hồ Chí Minh" },
+			{ label: "TP Hồ Chí Minh", value: "Hồ Chí Minh" },
+
+			{ label: "Phú Quốc", value: "Phú Quốc" },
+			{ label: "Phu Quoc", value: "Phú Quốc" },
+			{ label: "Cần Thơ", value: "Cần Thơ" },
+			{ label: "Can Tho", value: "Cần Thơ" },
+			{ label: "Côn Đảo", value: "Côn Đảo" },
+			{ label: "Con Dao", value: "Côn Đảo" },
+			{ label: "Rạch Giá", value: "Rạch Giá" },
+			{ label: "Rach Gia", value: "Rạch Giá" },
+			{ label: "Cà Mau", value: "Cà Mau" },
+			{ label: "Ca Mau", value: "Cà Mau" },
+
+			{ label: "Đà Nẵng", value: "Đà Nẵng" },
+			{ label: "Da Nang", value: "Đà Nẵng" },
+			{ label: "Huế", value: "Huế" },
+			{ label: "Hue", value: "Huế" },
+			{ label: "Thừa Thiên - Huế", value: "Huế" },
+			{ label: "Thua Thien - Hue", value: "Huế" },
+
+			{ label: "Thanh Hóa", value: "Thanh Hóa" },
+			{ label: "Thanh Hoa", value: "Thanh Hóa" },
+			{ label: "Đồng Hới", value: "Đồng Hới" },
+			{ label: "Dong Hoi", value: "Đồng Hới" },
+			{ label: "Quy Nhơn", value: "Quy Nhơn" },
+			{ label: "Quy Nhon", value: "Quy Nhơn" },
+			{ label: "Tuy Hòa", value: "Tuy Hòa" },
+			{ label: "Tuy Hoa", value: "Tuy Hòa" },
+			{ label: "Ban Mê Thuột", value: "Ban Mê Thuột" },
+			{ label: "Ban Me Thuot", value: "Ban Mê Thuột" },
+			{ label: "Đà Lạt", value: "Đà Lạt" },
+			{ label: "Da Lat", value: "Đà Lạt" },
+			{ label: "Vinh", value: "Vinh" },
+			{ label: "Chu Lai", value: "Chu Lai" },
+			{ label: "Nha Trang", value: "Nha Trang" },
+			{ label: "Pleiku", value: "Pleiku" },
+
+			{ label: "Hà Nội", value: "Hà Nội" },
+			{ label: "Ha Noi", value: "Hà Nội" },
+			{ label: "Hải Phòng", value: "Hải Phòng" },
+			{ label: "Hai Phong", value: "Hải Phòng" },
+			{ label: "Vân Đồn", value: "Vân Đồn" },
+			{ label: "Van Don", value: "Vân Đồn" },
+			{ label: "Điện Biên", value: "Điện Biên" },
+			{ label: "Dien Bien", value: "Điện Biên" },
+
+			// More
+			{ label: "Bà Rịa Vũng Tàu", value: "Bà Rịa Vũng Tàu" },
+			{ label: "Ba Ria Vung Tau", value: "Bà Rịa Vũng Tàu" },
+			{ label: "Bình Dương", value: "Bình Dương" },
+			{ label: "Binh Duong", value: "Bình Dương" },
+			{ label: "Bình Phước", value: "Bình Phước" },
+			{ label: "Binh Phuoc", value: "Bình Phước" },
+			{ label: "Đồng Nai", value: "Đồng Nai" },
+			{ label: "Dong Nai", value: "Đồng Nai" },
+			{ label: "Tây Ninh", value: "Tây Ninh" },
+			{ label: "Tay Ninh", value: "Tây Ninh" },
+			{ label: "An Giang", value: "An Giang" },
+			{ label: "Bạc Liêu", value: "Bạc Liêu" },
+			{ label: "Bac Lieu", value: "Bạc Liêu" },
+			{ label: "Bến Tre", value: "Bến Tre" },
+			{ label: "Ben Tre", value: "Bến Tre" },
+			{ label: "Cà Mau", value: "Cà Mau" },
+			{ label: "Ca Mau", value: "Cà Mau" },
+			{ label: "Đồng Tháp", value: "Đồng Tháp" },
+			{ label: "Dong Thap", value: "Đồng Tháp" },
+			{ label: "Hậu Giang", value: "Hậu Giang" },
+			{ label: "Hau Giang", value: "Hậu Giang" },
+			{ label: "Kiên Giang", value: "Kiên Giang" },
+			{ label: "Kien Giang", value: "Kiên Giang" },
+			{ label: "Long An", value: "Long An" },
+			{ label: "Sóc Trăng", value: "Sóc Trăng" },
+			{ label: "Soc Trang", value: "Sóc Trăng" },
+			{ label: "Tiền Giang", value: "Tiền Giang" },
+			{ label: "Tien Giang", value: "Tiền Giang" },
+			{ label: "Trà Vinh", value: "Trà Vinh" },
+			{ label: "Tra Vinh", value: "Trà Vinh" },
+			{ label: "Vĩnh Long", value: "Vĩnh Long" },
+			{ label: "Vinh Long", value: "Vĩnh Long" },
+
+			{ label: "Nghệ An", value: "Nghệ An" },
+			{ label: "Nghe An", value: "Nghệ An" },
+			{ label: "Hà Tĩnh", value: "Hà Tĩnh" },
+			{ label: "Ha Tinh", value: "Hà Tĩnh" },
+			{ label: "Quảng Bình", value: "Quảng Bình" },
+			{ label: "Quang Binh", value: "Quảng Bình" },
+			{ label: "Quảng Trị", value: "Quảng Trị" },
+			{ label: "Quang Tri", value: "Quảng Trị" },
+			{ label: "Quảng Nam", value: "Quảng Nam" },
+			{ label: "Quang Nam", value: "Quảng Nam" },
+			{ label: "Quảng Ngãi", value: "Quảng Ngãi" },
+			{ label: "Quang Ngãi", value: "Quảng Ngãi" },
+			{ label: "Bình Định", value: "Bình Định" },
+			{ label: "Binh Dinh", value: "Bình Định" },
+			{ label: "Phú Yên", value: "Phú Yên" },
+			{ label: "Phu Yen", value: "Phú Yên" },
+			{ label: "Khánh Hòa", value: "Khánh Hòa" },
+			{ label: "Khanh Hoa", value: "Khánh Hòa" },
+			{ label: "Ninh Thuận", value: "Ninh Thuận" },
+			{ label: "Ninh Thuan", value: "Ninh Thuận" },
+			{ label: "Bình Thuận", value: "Bình Thuận" },
+			{ label: "Binh Thuan", value: "Bình Thuận" },
+			{ label: "Kon Tum", value: "Kon Tum" },
+			{ label: "Gia Lai", value: "Gia Lai" },
+			{ label: "Đắk Lắk", value: "Đắk Lắk" },
+			{ label: "Đak Lak", value: "Đắk Lắk" },
+			{ label: "Lâm Đồng", value: "Lâm Đồng" },
+			{ label: "Lam Đong", value: "Lâm Đồng" },
+
+			{ label: "Hòa Bình", value: "Hòa Bình" },
+			{ label: "Hoa Binh", value: "Hòa Bình" },
+			{ label: "Sơn La", value: "Sơn La" },
+			{ label: "Son La", value: "Sơn La" },
+			{ label: "Lai Châu", value: "Lai Châu" },
+			{ label: "Lai Chau", value: "Lai Châu" },
+			{ label: "Lào Cai", value: "Lào Cai" },
+			{ label: "Lao Cai", value: "Lào Cai" },
+			{ label: "Yên Bái", value: "Yên Bái" },
+			{ label: "Yen Bai", value: "Yên Bái" },
+			{ label: "Phú Thọ", value: "Phú Thọ" },
+			{ label: "Phu Tho", value: "Phú Thọ" },
+			{ label: "Hà Giang", value: "Hà Giang" },
+			{ label: "Ha Giang", value: "Hà Giang" },
+			{ label: "Tuyên Quang", value: "Tuyên Quang" },
+			{ label: "Tuyen Quang", value: "Tuyên Quang" },
+			{ label: "Cao Bằng", value: "Cao Bằng" },
+			{ label: "Cao Bang", value: "Cao Bằng" },
+			{ label: "Bắc Kạn", value: "Bắc Kạn" },
+			{ label: "Bac Kan", value: "Bắc Kạn" },
+			{ label: "Thái Nguyên", value: "Thái Nguyên" },
+			{ label: "Thai Nguyen", value: "Thái Nguyên" },
+			{ label: "Lạng Sơn", value: "Lạng Sơn" },
+			{ label: "Lang Son", value: "Lạng Sơn" },
+			{ label: "Bắc Giang", value: "Bắc Giang" },
+			{ label: "Bac Giang", value: "Bắc Giang" },
+			{ label: "Quảng Ninh", value: "Quảng Ninh" },
+			{ label: "Quang Ninh", value: "Quảng Ninh" },
+			{ label: "Bắc Ninh", value: "Bắc Ninh" },
+			{ label: "Bac Ninh", value: "Bắc Ninh" },
+			{ label: "Hà Nam", value: "Hà Nam" },
+			{ label: "Ha Nam", value: "Hà Nam" },
+			{ label: "Hải Dương", value: "Hải Dương" },
+			{ label: "Hai Duong", value: "Hải Dương" },
+			{ label: "Hưng Yên", value: "Hưng Yên" },
+			{ label: "Hung Yen", value: "Hưng Yên" },
+			{ label: "Nam Định", value: "Nam Định" },
+			{ label: "Nam Dinh", value: "Nam Định" },
+			{ label: "Thái Bình", value: "Thái Bình" },
+			{ label: "Thai Binh", value: "Thái Bình" },
+			{ label: "Vĩnh Phúc", value: "Vĩnh Phúc" },
+			{ label: "Vinh Phuc", value: "Vĩnh Phúc" },
+			{ label: "Ninh Bình", value: "Ninh Bình" },
+			{ label: "Ninh Binh", value: "Ninh Bình" },
+		];
+		$("#location_booking").autocomplete({
+			source: location,
+			autofocus: true,
+			minLength: 1
+		});
+	});
+});
+
+function insertItineraryLine(ln) {
+	var direction_list = $('#direction_list').val();
+	var html = '';
+
+	html += `<tr id="iti_line_${ln}">
+			<td data-label="Chiều"><select onchange="getAirlineCode(${ln})" id="iti_direction${ln}" name="iti_direction[]" class="w-100">${direction_list}</select></td>
+			<td data-label="Mã hãng"><input autocomplete="off" class="ac airline" type="text" maxlength="255" name="iti_airline_code[]" id="iti_airline_code${ln}" value="" /></td>
+			<td data-label="Số hiệu"><input type="text" maxlength="10" name="iti_flight_number[]" id="iti_flight_number${ln}" value="" /></td>
+			<td data-label="Hạng vé"><input type="text" maxlength="100" name="iti_ticket_class[]" id="iti_ticket_class${ln}" value="" /></td>
+			<td data-label="Nơi đi"><input autocomplete="off" class="ac airport" type="text" maxlength="255" name="iti_departure[]" id="iti_departure${ln}" value="" /></td>
+			<td data-label="Nơi đến"><input autocomplete="off" class="ac airport" type="text" maxlength="255" name="iti_arrival[]" id="iti_arrival${ln}" value="" /></td>`;
+
+	html += `<td data-label="Ngày giờ đi">
+			<div class="d-flex align-items-center gap-1 align-middle">
+				<div class="date-wrap d-flex w-65 gap-1">
+					<input maxlength="10" type="text" name="iti_departure_date[]" id="iti_departure_date${ln}" value="" />
+					<img border="0" class="cursor-pointer" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="iti_departure_date_trigger${ln}" align="absmiddle" />
+				</div>
+				<div class="time-wrap d-flex flex-fill align-items-center">
+					<input class="datetime_h text-center w-25-px" type="text" name="iti_departure_h[]" id="iti_departure_h${ln}" value="00" maxlength="2" />
+					<span>:</span>
+					<input class="datetime_m text-center w-25-px" type="text" name="iti_departure_m[]" id="iti_departure_m${ln}" value="00" maxlength="2" />
+				</div>
+			</div>
+		</td>
+		<td data-label="Ngày giờ đến">
+			<div class="d-flex align-items-center gap-1 align-middle">
+				<div class="date-wrap d-flex w-65 gap-1">
+					<input maxlength="10" type="text" name="iti_arrival_date[]" id="iti_arrival_date${ln}" value="" />
+					<img border="0" class="cursor-pointer" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="iti_arrival_date_trigger${ln}" align="absmiddle" />
+				</div>
+				<div class="time-wrap d-flex flex-fill align-items-center">
+					<input class="datetime_h text-center w-25-px" type="text" name="iti_arrival_h[]" id="iti_arrival_h${ln}" value="00" maxlength="2" />
+					<span>:</span>
+					<input class="datetime_m text-center w-25-px" type="text" name="iti_arrival_m[]" id="iti_arrival_m${ln}" value="00" maxlength="2" />
+				</div>
+			</div>
+		</td>`;
+
+	html += '<td data-label="Hạn giữ chỗ">\
+		<div class="d-flex align-items-center gap-1 align-middle">\
+			<div class="date-wrap d-flex w-65 gap-1">\
+				<input maxlength="10" type="text" name="iti_time_limit_date[]" id="iti_time_limit_date'+ ln + '" value="" />\
+				<img border="0" class="cursor-pointer" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="iti_time_limit_date_trigger'+ ln + '" align="absmiddle" />\
+			</div>\
+			<div class="time-wrap d-flex flex-fill align-items-center">\
+				<input class="datetime_h text-center w-25-px" type="text" name="iti_time_limit_h[]" id="iti_time_limit_h'+ ln + '" value="00" maxlength="2" />\
+				<span>:</span>\
+				<input class="datetime_m text-center w-25-px" type="text" name="iti_time_limit_m[]" id="iti_time_limit_m'+ ln + '" value="00" maxlength="2" />\
+			</div>\
+		</div>\
+	</td>';
+
+	html += `<td data-label="Giá cơ bản"><input class="allow-number-only text-end" type="text" maxlength="20" name="iti_base_price[]" id="iti_base_price${ln}" value="0" /></td>`;
+
+	html += '<td data-label="Transit" class="align-middle text-center">\
+		<input type="checkbox" name="iti_is_layover_chk[]" id="iti_is_layover_chk'+ ln + '" onchange="checkActive(\'iti_is_layover_chk' + ln + '\', \'iti_is_layover' + ln + '\')" />\
+		<input type="hidden" name="iti_is_layover[]" id="iti_is_layover'+ ln + '" value="0" />\
+	</td>';
+
+	html += `<td data-label="Xóa dòng" class="align-middle text-center">
+				<button title="Xóa" type="button" class="button-remove-in-edit" onclick="markItineraryRowDeleted(${ln})">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+				</button>
+				<input type="hidden" value="0" name="iti_deleted[]" id="iti_deleted${ln}" />
+				<input type="hidden" name="iti_detail_id[]" id="iti_detail_id${ln}" value="" />
+			</td></tr>`;
+
+	return html;
+}
+
+function insertDetailLine(ln) {
+	var direction_list = $('#direction_list').val();
+	var passenger_type_list = $('#passenger_type_list').val();
+	var supplier_list = $('#supplier_list').val();
+	var html = '';
+
+	html += `<tr id="bkd_line_${ln}" class="bkd_line fw-semibold">
+				<td data-label="Chiều"><select class="w-100" name="bkd_direction[]" id="bkd_direction${ln}" >${direction_list}</select></td>
+				<td data-label="Loại HK"><select class="w-100" name="bkd_passenger_type[]" id="bkd_passenger_type${ln}">${passenger_type_list}</select></td>
+				<td data-label="SL"><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" type="text" name="bkd_quantity[]" id="bkd_quantity${ln}" value="1" maxlength="3" /></td>
+				<td data-label="Giá cơ bản"><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" onkeyup="calculateLineTotal(${ln}, 0, 1)" type="text" name="bkd_unit_price[]" id="bkd_unit_price${ln}" value="0" maxlength="25" /></td>
+				<td data-label="VAT"><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" type="text" name="bkd_tax_and_fee[]" id="bkd_tax_and_fee${ln}" value="0" maxlength="25" /></td>
+				<td data-label="Phí sân bay"><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" type="text" name="bkd_airport_fee[]" id="bkd_airport_fee${ln}" value="0" maxlength="25" /></td>
+				<td data-label="Phí admin"><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln}, 1)" type="text" name="bkd_admin_fee[]" id="bkd_admin_fee${ln}" value="0" maxlength="25" /></td>
+				<td data-label="Phí dịch vụ"><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" type="text" name="bkd_service_fee[]" id="bkd_service_fee${ln}" value="0" maxlength="25" /></td>
+				<td data-label="Thành tiền"><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" type="text" name="bkd_total_price[]" id="bkd_total_price${ln}" value="0" maxlength="25" /></td>
+				<td data-label="Giá mua"><input onblur="calculateTotal()" class="allow-number-only text-center" type="text" name="bkd_total_bought_price[]" id="bkd_total_bought_price${ln}" value="0" maxlength="25" /></td>
+				<td data-label="Chiết khấu"><input onblur="calculateLineTotal(${ln})" class="allow-number-only text-center" type="text" name="bkd_supplier_discount[]" id="bkd_supplier_discount${ln}" value="0" maxlength="25" /></td>
+				<td data-label="Phí xuất vé"><input onblur="calculateLineTotal(${ln})" class="allow-number-only text-center" type="text" name="bkd_supplier_ticketing_fee[]" id="bkd_supplier_ticketing_fee${ln}" value="0" maxlength="25" /></td>
+				<td data-label="NCC"><select class="box-select w-100 bkd_select_supplier" id="bkd_supplier_id${ln}" name="bkd_supplier_id[]"><option value=""></option>${supplier_list}</select></td>
+				<td data-label="Xóa dòng" class="align-middle text-center">
+					<button title="Xóa" type="button" class="button-remove-in-edit" onclick="markDetailRowDeleted(${ln})" >
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+					</button>
+					<input type="hidden" value="0" name="bkd_deleted[]" id="bkd_deleted${ln}" />
+					<input type="hidden" name="bkd_detail_id[]" id="bkd_detail_id${ln}" value="" />
+				</td>
+			</tr>`;
+
+	// thêm dòng phí admin chưa VAT
+	html += `<tr id="bkd_admin_line_${ln}">
+				<td data-label="Chi tiết phí Admin" colspan="15">
+					<div class="addmin-fee-wrap d-flex gap-3 align-items-center">
+						<div class="d-flex gap-1 align-items-center admin-fee-not-vat">
+							<span class="text-label">Phí admin chưa VAT: </span>
+							<input type="text" class="psg_luggage_purchase_input allow-number-only" name="bkd_admin_fee_no_vat[]" id="bkd_admin_fee_no_vat${ln}" onkeyup="calculateRelateAdminFee$(${ln});" onpaste="setTimeout(function(){calculateRelateAdminFee(${ln});}, 10);"/> 
+						</div>
+						<div class="d-flex gap-1 align-items-center admin-fee-vat">
+							<span class="text-label">VAT admin: </span>
+							<input type="text" class="psg_luggage_purchase_input allow-number-only" name="bkd_vat_admin[]" id="bkd_vat_admin${ln}" onkeyup="calculateRelateAdminFee(${ln});" onpaste="setTimeout(function(){calculateRelateAdminFee(${ln});}, 10);"/>
+						</div>
+					</div>
+				</td>
+			</tr>`;
+	return html;
+}
+
+function calculateRelateAdminFee(ln, is_vat = 0) {
+	var admin_fee_vat = unformatNumber($("#bkd_admin_fee" + ln).val());
+	var vat_admin = unformatNumber($("#bkd_vat_admin" + ln).val());
+	var admin_fee = unformatNumber($("#bkd_admin_fee_no_vat" + ln).val());
+	if (is_vat) {
+		$("#bkd_admin_fee_no_vat" + ln).val(admin_fee_vat - vat_admin);
+	} else {
+		$("#bkd_vat_admin" + ln).val(admin_fee_vat - admin_fee);
+	}
+}
+
+function insertPassengerLine(ln) {
+	let supplier_list = $('#supplier_list').val();
+	let passenger_type_list = $('#passenger_type_list').val();
+	let passenger_salutation_list = $('#passenger_salutation_list').val();
+	let aircode_out = $('#airline').val().toLowerCase();
+	let aircode_in = $('#airline_inbound').val().toLowerCase();
+
+	switch (aircode_out) {
+		case 'vj': aircode_out = 'vja'; break;
+		case 'vn': aircode_out = 'vna'; break;
+		case 'bl': aircode_out = 'vnp'; break;
+		case 'qh': aircode_out = 'bba'; break;
+		case 'vu': aircode_out = 'vta'; break;
+	}
+	switch (aircode_in) {
+		case 'vj': aircode_in = 'vja'; break;
+		case 'vn': aircode_in = 'vna'; break;
+		case 'bl': aircode_in = 'vnp'; break;
+		case 'qh': aircode_in = 'bba'; break;
+		case 'vu': aircode_in = 'vta'; break;
+	}
+
+	let psg_luggage_price_out = $('#' + aircode_out + '_luggage_price_list').val();
+	let psg_luggage_price_in = $('#' + aircode_in + '_luggage_price_list').val();
+
+	if ($.trim(psg_luggage_price_out) == '')
+		psg_luggage_price_out = '<option value="0">-- Không --</option>';
+	if ($.trim(psg_luggage_price_in) == '')
+		psg_luggage_price_in = '<option value="0">-- Không --</option>';
+
+
+	let html = '';
+	/**********  Line 1  **********/
+	html += `<tr id="psg_line_${ln}" class="psg_line">`;
+
+	// Loại khách hàng
+	html += `<td data-label="Loại HK">
+				<select name="psg_traveller_type[]" id="psg_traveller_type${ln}" class="w-100">
+					${passenger_type_list}
+				</select>
+			</td>`;
+
+	// Danh xưng
+	html += `<td data-label="Danh xưng">
+				<select name="psg_salutation[]" id="psg_salutation${ln}" class="w-100">
+					${passenger_salutation_list}
+				</select>
+			</td>`;
+
+	// Họ tên
+	html += `<td data-label="Họ tên">
+				<input type="text" name="psg_full_name[]" id="psg_full_name${ln}" value="" class="text-start" maxlength="128" />
+			</td>`;
+
+	// Ngày sinh
+	html += `<td data-label="Ngày sinh">
+				<div class="d-flex align-items-center gap-1">
+					<input type="text" class="w-80" name="psg_birthday[]" id="psg_birthday${ln}" value="" maxlength="10" />
+					<img class="cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger${ln}" align="absmiddle" />
+				</div>
+			</td>`;
+
+	// Số vé lượt đi
+	html += `<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
+	// Số vé lượt về
+	html += `<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
+	// PNR lượt đi
+	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
+	// PNR lượt về
+	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_inbound[]" id="psg_pnr_inbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
+
+	// Hành lý lượt đi
+	html += `<td data-label="HL lượt đi">
+				<select name="psg_luggage_price[]" id="psg_luggage_price${ln}" class="box-select text-start w-100" onchange="calculateLuggagePrice()">
+					${psg_luggage_price_out}
+				</select>
+			</td>`;
+
+	// Hành lý lượt về
+	html += `<td data-label="HL lượt về">
+				<select name="psg_luggage_price_inbound[]" id="psg_luggage_price_inbound${ln}" class="box-select text-start w-100" onchange="calculateLuggagePrice()">
+					${psg_luggage_price_in}
+				</select>
+			</td>`;
+
+	// Nút xóa
+	html += `<td data-label="Xóa dòng" class="align-middle text-center">
+				<button type="button" title="Xóa" class="button-remove-in-edit" onclick="markPassengerRowDeleted(${ln})" >
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+				</button>
+				<input type="hidden" name="psg_deleted[]" id="psg_deleted${ln}" value="0" />
+				<input type="hidden" name="psg_id[]" id="psg_id${ln}" value="" />
+			</td>`;
+
+	html += '</tr>';
+
+
+	/**********  Line 2 (Hành lý đi nếu có)  **********/
+	html += `<tr id="psg_line_desc_psg_line_desc_${ln}">
+		<td data-label="Thông tin HL đi" class="row_psg_price" colspan="12">
+			<div class="psg_price-wrap d-flex gap-2 align-items-center">
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">Giá mua HL lượt đi (VAT): </span>
+					<input type="text" name="psg_luggage_purchase[]" id="psg_luggage_purchase${ln}" class="psg_luggage_purchase_input allow-number-only"
+						value="0"
+						maxlength="25"
+						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
+						onpaste="calculateLugPurchasePrice(${ln}, 0);"
+					/>
+				</div>
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">NCC HL lượt đi: </span>
+					<select name="psg_luggage_supplier[]" id="psg_luggage_supplier${ln}" class="psg_luggage_purchase_select">
+						<option value=""></option>
+						${supplier_list}
+					</select>
+				</div>
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">Giá mua HL lượt đi: </span>
+					<input type="text" name="psg_detail_lug_pur_no_vat[]" id="psg_detail_lug_pur_no_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
+						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
+					/>
+				</div>
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">VAT giá mua HL lượt đi: </span>
+					<input type="text" name="psg_detail_lug_pur_vat[]" id="psg_detail_lug_pur_vat${ln}"  class="psg_luggage_purchase_input allow-number-only"
+						onkeyup="calculateLugPurchasePrice(${ln}, 0);"
+					/>
+				</div>
+			</div>
+		</td>
+	</tr>`;
+
+
+	/**********  Line 3 (Hành lý về nếu có)  **********/
+	html += `<tr id="psg_line_lug_${ln}">
+		<td data-label="Thông tin HL về" class="row_psg_price" colspan="12">
+			<div class="psg_price-wrap d-flex gap-2 align-items-center">
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">Giá mua HL lượt về (VAT): </span>
+					<input type="text" name="psg_luggage_purchase_inbound[]" id="psg_luggage_purchase_inbound${ln}" class="psg_luggage_purchase_input allow-number-only"
+						value="0"
+						maxlength="25"
+						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
+						onpaste="calculateLugPurchasePrice(${ln}, 1);"
+					/>
+				</div>
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">NCC HL lượt về: </span>
+					<select name="psg_luggage_supplier_inbound[]" id="psg_luggage_supplier_inbound${ln}" class="psg_luggage_purchase_select">
+						<option value=""></option>
+						${supplier_list}
+					</select>
+				</div>
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">Giá mua HL lượt về: </span>
+					<input type="text" name="psg_detail_lug_pur_ib_no_vat[]" id="psg_detail_lug_pur_ib_no_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
+						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
+					/>
+				</div>
+				<div class="col_psg_price flex-fill">
+					<span class="text-label">VAT giá mua HL lượt về: </span>
+					<input type="text" name="psg_detail_lug_pur_ib_vat[]" id="psg_detail_lug_pur_ib_vat${ln}" class="psg_luggage_purchase_input allow-number-only"
+						onkeyup="calculateLugPurchasePrice(${ln}, 1);"
+					/>
+				</div>
+			</div>
+		</td>
+	</tr>`;
+
+	return html;
+}
+
+function calculateLugPurchasePrice(ln, direction) {
+	if (direction == 0) {
+		var luggage_purchase = unformatNumber($("#psg_luggage_purchase" + ln).val());
+		var lug_no_vat = Math.round(luggage_purchase / 1.08);
+		$("#psg_detail_lug_pur_no_vat" + ln).val(lug_no_vat);
+		$("#psg_detail_lug_pur_vat" + ln).val(luggage_purchase - lug_no_vat);
+	} else if (direction == 1) {
+		var luggage_purchase_ib = unformatNumber($("#psg_luggage_purchase_inbound" + ln).val());
+		var lug_no_vat_ib = Math.round(luggage_purchase_ib / 1.08);
+		$("#psg_detail_lug_pur_ib_no_vat" + ln).val(lug_no_vat_ib);
+		$("#psg_detail_lug_pur_ib_vat" + ln).val(luggage_purchase_ib - lug_no_vat_ib);
+	}
+}
+
+function markItineraryRowDeleted(ln) {
+	$('#iti_line_' + ln).hide();
+	$('#iti_line_desc_' + ln).hide();
+	$('#iti_deleted' + ln).val(1);
+	$('#lbl_iti_row_count').text(parseInt($('#lbl_iti_row_count').text()) - 1);
+}
+
+function markDetailRowDeleted(ln) {
+	$('#bkd_line_' + ln).hide();
+	$('#bkd_admin_line_' + ln).hide();
+	$('#bkd_deleted' + ln).val(1);
+	$('#lbl_bkd_row_count').text(parseInt($('#lbl_bkd_row_count').text()) - 1);
+	calculateLineTotal(ln);
+}
+
+function markPassengerRowDeleted(ln) {
+	$('#psg_line_' + ln).hide();
+	$('#psg_line_desc_' + ln).hide();
+	$('#psg_line_lug_' + ln).hide();
+	$('#psg_deleted' + ln).val(1);
+
+	var luggage_fee = unformatNumber($('#luggage_fee').val());
+	var luggage_price_outbound = unformatNumber($('#psg_luggage_price' + ln).val());
+	var luggage_price_inbound = unformatNumber($('#psg_luggage_price_inbound' + ln).val());
+	luggage_fee -= (luggage_price_outbound + luggage_price_inbound);
+	$('#luggage_fee').val(luggage_fee);
+
+	$('#lbl_psg_row_count').text(parseInt($('#lbl_psg_row_count').text()) - 1);
+
+	calculateLuggagePrice();
+}
+
+// Check ncc
+function setPhiXuatVeHNH(ln) {
+	var supplier_fee = $('#bkd_supplier_id' + ln + ' :selected').val();
+	var quantity = unformatNumber($('#bkd_quantity' + ln).val());
+
+	var supplier_ticketing_fee = 0;
+	if (supplier_fee == 'ebdf163a-7b85-30bf-62be-5a4af5a1166c') // ncc hong ngoc ha
+	{
+		supplier_ticketing_fee = 5000 * quantity;                // phi xuat ve HNH 07/2020 5k/1ve
+	}
+	$('#bkd_supplier_ticketing_fee' + ln).val(supplier_ticketing_fee);
+	calculateLineTotal(ln);
+}
+
+function calculateLineTotal(ln, is_cal_admin = 0, is_cal_tax = 0) {
+	var ticket_type = $('#ticket_type :selected').val();
+	var qty = unformatNumber($('#bkd_quantity' + ln).val());
+	var price = unformatNumber($('#bkd_unit_price' + ln).val());
+	var tax_fee = unformatNumber($('#bkd_tax_and_fee' + ln).val());
+	var admin_fee = unformatNumber($('#bkd_admin_fee' + ln).val());
+	var vat_admin = admin_fee_no_vat = 0;
+
+	// chỉ tính vat và phí admin đối với vé nội địa
+	if (ticket_type != '2') {
+		if (is_cal_tax) {
+			tax_fee = price * 8 / 100;
+		}
+
+		// nếu là thuế của VNA hay VNP thì làm tròn từ ngày 06-04-2022
+		var bk_create_time = $("#bk_date_entered").val() * 1000;
+		// lấy hãng bay lượt đi / về
+		var airline_inf = getAirLineInf();
+		// làm tròn thuế lượt đi / về
+		if (
+			((airline_inf[0] == 'VNA' || airline_inf[0] == 'VNP' || airline_inf[0] == 'BBA') && bk_create_time >= Date.parse('2022-04-06 00:00:00') && $("#bkd_direction" + ln).val() == 0) // lượt đi
+			|| ((airline_inf[1] == 'VNA' || airline_inf[1] == 'VNP' || airline_inf[1] == 'BBA') && bk_create_time >= Date.parse('2022-04-06 00:00:00') && $("#bkd_direction" + ln).val() == 1) // lượt về
+		) {
+			if (is_cal_tax) {
+				tax_fee = Math.ceil(tax_fee / 1000) * 1000;
+			}
+			vat_admin = 0;
+		}
+
+		if ((airline_inf[0] != 'VNA' && airline_inf[0] != 'VNP' && $("#bkd_direction" + ln).val() == 0) || (airline_inf[1] != 'VNA' && airline_inf[1] != 'VNP' && $("#bkd_direction" + ln).val() == 1) && is_cal_admin) {
+			vat_admin = Math.round(admin_fee / 1.08 * 0.08);
+		}
+	}
+
+	var service_fee = unformatNumber($('#bkd_service_fee' + ln).val());
+	var airport_fee = unformatNumber($('#bkd_airport_fee' + ln).val());
+	var supplier_discount = unformatNumber($('#bkd_supplier_discount' + ln).val());
+	var supplier_ticketing_fee = unformatNumber($('#bkd_supplier_ticketing_fee' + ln).val());
+	var total_price = 0;
+	var total_bought_price = 0;
+
+	// VE QUOC TE
+	// if(ticket_type == '2') {
+	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
+	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
+	// } else {
+	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
+	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+	// }
+
+	if (supplier_discount != 0) {
+		total_bought_price = Math.abs(total_bought_price - supplier_discount);
+	}
+
+	if (supplier_ticketing_fee != 0) {
+		total_bought_price = Math.abs(total_bought_price + supplier_ticketing_fee);
+	}
+
+	$('#bkd_quantity' + ln).val(qty);
+	$('#bkd_unit_price' + ln).val(price);
+	$('#bkd_airport_fee' + ln).val(airport_fee);
+	$('#bkd_admin_fee' + ln).val(admin_fee);
+	$('#bkd_service_fee' + ln).val(service_fee);
+	$('#bkd_total_price' + ln).val(total_price);
+	$('#bkd_total_bought_price' + ln).val(total_bought_price);
+	$('#bkd_tax_and_fee' + ln).val(tax_fee);
+	if (is_cal_admin) {
+		$('#bkd_vat_admin' + ln).val(vat_admin);
+		$('#bkd_admin_fee_no_vat' + ln).val(admin_fee - vat_admin);
+	}
+	calculateTotal();
+}
+
+function calculateTotal() {
+	var arr = document.getElementsByName('bkd_deleted[]');
+	var qty = document.getElementsByName('bkd_quantity[]');
+	var total_price = document.getElementsByName('bkd_total_price[]');
+	var total_bought_price = document.getElementsByName('bkd_total_bought_price[]');
+	var total_qty = 0;
+	var subtotal_amt = 0;
+	var total_bought_amt = 0;
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i].value == '0') {
+			total_qty += unformatNumber(qty[i].value);
+			subtotal_amt += unformatNumber(total_price[i].value);
+			total_bought_amt += unformatNumber(total_bought_price[i].value);
+		}
+	}
+
+	var luggage_fee = unformatNumber($('#luggage_fee').val());
+	var other_fee = unformatNumber($('#other_fee').val());
+	var thuephi_quocte = unformatNumber($('#thuephi_quocte').val());
+	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
+
+	var discount_percent = unformatNumber($('#discount_percent :selected').val());
+	var discount_amount = unformatNumber($('#discount_amount').val());
+	if (discount_percent > 0) {
+		discount_amount = total_amount * discount_percent / 100;
+	}
+	total_amount -= discount_amount;
+
+	$('#discount_amount').val(discount_amount);
+	$('#total_qty').val(formatNumber(total_qty));
+	$('#subtotal_amount').val(formatNumber(subtotal_amt));
+	$('#total_bought_amount').val(formatNumber(total_bought_amt));
+	$('#total_amount').val(total_amount);
+}
+
+function calculateLuggagePrice() {
+	var luggage_ob_price_lines = $("select[name='psg_luggage_price[]']");
+	var luggage_index_price = vja_luggage_index_list;
+	var luggage_fee = 0;
+	luggage_ob_price_lines.each(function (idx, el) {
+		if ($("#psg_deleted" + idx).val() == 0) {
+			var luggage_ob_price = unformatNumber($(this).val());
+			var luggage_ib_price = unformatNumber($("#psg_luggage_price_inbound" + idx).val());
+			if (luggage_ob_price < 1000) {
+				luggage_ob_price = luggage_index_price[luggage_ob_price] || 0;
+			}
+			if (luggage_ib_price < 1000) {
+				luggage_ib_price = luggage_index_price[luggage_ib_price] || 0;
+			}
+			luggage_fee += parseInt(luggage_ob_price) + parseInt(luggage_ib_price);
+		}
+	});
+	// var luggage_price = unformatNumber($('#psg_luggage_price' + ln).val());
+	// var luggage_fee = unformatNumber($('#luggage_fee').val());
+	// if (luggage_price_outbound < 1000) {
+	// 	var luggage_price_idx = JSON.parse($('#vja_index_luggage_price_list' + ln).val());
+	// }
+	// luggage_fee += luggage_price;
+	$('#luggage_fee').val(formatNumber(luggage_fee));
+	calculateTotal();
+}
+
+// function calculateLuggageInbound(ln){
+// 	var luggage_price = unformatNumber($('#psg_luggage_price_inbound' + ln).val());
+// 	var luggage_fee = unformatNumber($('#luggage_fee').val());
+// 	luggage_fee += luggage_price;
+// 	$('#luggage_fee').val(formatNumber(luggage_fee));
+// 	calculateTotal();
+// }
+
+function checkActive(id_chk, id_hidden) {
+	if ($('#' + id_chk).is(':checked')) {
+		$('#' + id_hidden).val(1);
+	} else {
+		$('#' + id_hidden).val(0);
+	}
+}
+
+function getAirLineInf() {
+	var iti_airline = {};
+
+	for (var i = 0; i < $('.airline').length; i++) {
+		var airline_name = $("#iti_airline_code" + i).val();
+		if ($("#iti_direction" + i).val() == 0 && $("#iti_deleted" + i).val() == 0) {
+			if (!iti_airline.hasOwnProperty(0)) {
+				iti_airline[0] = airline_name;
+			} else continue;
+		} else if ($("#iti_direction" + i).val() == 1 && $("#iti_deleted" + i).val() == 0) {
+			if (!iti_airline.hasOwnProperty(1)) {
+				iti_airline[1] = airline_name;
+			} else continue;
+		}
+	}
+	return iti_airline;
+}
+
+function getAirlineCode(ln) {
+	var direction = $('#iti_direction' + ln + ' :selected').val();
+	let airline_code = '';
+	if (direction == 1) {
+		airline_code = $('#airline_inbound').val();
+	}
+	else {
+		airline_code = $('#airline').val();
+	}
+	$('#iti_airline_code' + ln).val(airline_code);
+}
+
+function checkLineItems() {
+	var iti_arr = document.getElementsByName('iti_deleted[]');
+	var bkd_arr = document.getElementsByName('bkd_deleted[]');
+	var psg_arr = document.getElementsByName('psg_deleted[]');
+	if (iti_arr.length > 0) {
+		for (var i = 0; i < iti_arr.length; i++) {
+			if (iti_arr[i].value == '0' && $.trim($('#iti_airline_code' + i).val()) == '') {
+				alert('Mã hãng không được trống');
+				$('#iti_airline_code' + i).focus();
+				$('#iti_airline_code' + i).select();
+				return false;
+			}
+			if (iti_arr[i].value == '0' && $.trim($('#iti_flight_number' + i).val()) == '') {
+				alert('Số hiệu không được trống');
+				$('#iti_flight_number' + i).focus();
+				$('#iti_flight_number' + i).select();
+				return false;
+			}
+			if (iti_arr[i].value == '0' && $.trim($('#iti_departure' + i).val()) == '') {
+				alert('Nơi đi không được trống');
+				$('#iti_departure' + i).focus();
+				$('#iti_departure' + i).select();
+				return false;
+			}
+			if (iti_arr[i].value == '0' && $.trim($('#iti_arrival' + i).val()) == '') {
+				alert('Nơi đến không được trống');
+				$('#iti_arrival' + i).focus();
+				$('#iti_arrival' + i).select();
+				return false;
+			}
+			// chưa có hàm isValidDate
+			// if(iti_arr[i].value == '0' && !isValidDate($('#iti_departure_date' + i).val())){
+			//  alert('Định dạng ngày đi không hợp lệ');
+			//  $('#iti_departure_date' + i).focus();
+			//  $('#iti_departure_date' + i).select();
+			//  return false;
+			// }
+			if (iti_arr[i].value == '0' && (parseInt($('#iti_departure_h' + i).val()) < 0 || parseInt($('#iti_departure_h' + i).val()) > 23)) {
+				alert('Giờ phải >= 0 và < 24');
+				$('#iti_departure_h' + i).focus();
+				$('#iti_departure_h' + i).select();
+				return false;
+			}
+			if (iti_arr[i].value == '0' && (parseInt($('#iti_departure_m' + i).val()) < 0 || parseInt($('#iti_departure_m' + i).val()) > 59)) {
+				alert('Phút phải >= 0 và < 60');
+				$('#iti_departure_m' + i).focus();
+				$('#iti_departure_m' + i).select();
+				return false;
+			}
+			// chưa có hàm isValidDate
+			// if(iti_arr[i].value == '0' && !isValidDate($('#iti_arrival_date' + i).val())){
+			//  alert('Định dạng ngày đến không hợp lệ');
+			//  $('#iti_arrival_date' + i).focus();
+			//  $('#iti_arrival_date' + i).select();
+			//  return false;
+			// }
+			if (iti_arr[i].value == '0' && (parseInt($('#iti_arrival_h' + i).val()) < 0 || parseInt($('#iti_arrival_h' + i).val()) > 23)) {
+				alert('Giờ phải >= 0 và < 24');
+				$('#iti_arrival_h' + i).focus();
+				$('#iti_arrival_h' + i).select();
+				return false;
+			}
+			if (iti_arr[i].value == '0' && (parseInt($('#iti_arrival_m' + i).val()) < 0 || parseInt($('#iti_arrival_m' + i).val()) > 59)) {
+				alert('Phút phải >= 0 và < 60');
+				$('#iti_arrival_m' + i).focus();
+				$('#iti_arrival_m' + i).select();
+				return false;
+			}
+			// if(iti_arr[i].value == '0' && unformatNumber($('#iti_base_price' + i).val()) <= 0){
+			//  alert('Giá cơ bản phải lớn hơn 0');
+			//  $('#iti_base_price' + i).focus();
+			//  $('#iti_base_price' + i).select();
+			//  return false;
+			// }
+		}
+	}// end if
+	var bkd_has_supplier_inb = [
+		['0', 0],
+		['1', 0],
+		['2', 0]
+	];
+	var bkd_has_supplier_outb = [
+		['0', 0],
+		['1', 0],
+		['2', 0]
+	];
+	if (bkd_arr.length > 0) {
+		for (var i = 0; i < bkd_arr.length; i++) {
+			if (bkd_arr[i].value == '0' && unformatNumber($('#bkd_quantity' + i).val()) <= 0) {
+				alert('Số lượng phải lớn hơn 0');
+				$('#bkd_quantity' + i).focus();
+				$('#bkd_quantity' + i).select();
+				return false;
+			}
+			if (bkd_arr[i].value == '0' && unformatNumber($('#bkd_total_price' + i).val()) <= 0) {
+				alert('Thành tiền phải lớn hơn 0');
+				$('#bkd_total_price' + i).focus();
+				$('#bkd_total_price' + i).select();
+				return false;
+			}
+
+			// booking ở trạng thái xác nhận
+			// lấy số lượng chi tiết vé đã nhập NCC
+			if ($("#booking_status").val() == '3') {
+				if (bkd_arr[i].value == '0') {
+					// lượt đi
+					if ($('#bkd_supplier_id' + i).val() != '' && $('#bkd_direction' + i).val() == '0') {
+						bkd_has_supplier_outb[$('#bkd_passenger_type' + i).val()] += parseInt($('#bkd_quantity' + i).val());
+					}
+
+					// lượt về nếu là khứ hồi
+					if ($('#flight_type').val() == '0') {
+						if ($('#bkd_supplier_id' + i).val() != '' && $('#bkd_direction' + i).val() == '1') {
+							bkd_has_supplier_inb[$('#bkd_passenger_type' + i).val()] += parseInt($('#bkd_quantity' + i).val());
+						}
+					}
+				}
+			}
+		}
+	}// end if
+	if (psg_arr.length > 0) {
+		var psg_has_eticket_outb = [
+			['0', 0],
+			['1', 0],
+			['2', 0]
+		];
+		var psg_has_eticket_inb = [
+			['0', 0],
+			['1', 0],
+			['2', 0]
+		];
+		for (var i = 0; i < psg_arr.length; i++) {
+			if (psg_arr[i].value == '0' && ($.trim($('#psg_full_name' + i).val()) == '' || $.trim($('#psg_full_name' + i).val()).length < 5)) {
+				alert('Họ tên hành khách không hợp lệ');
+				$('#psg_full_name' + i).focus();
+				$('#psg_full_name' + i).select();
+				return false;
+			}
+			// chưa có hàm isValidDate
+			// if(psg_arr[i].value == '0' && !isValidDate($('#psg_birthday' + i).val())){
+			// 	alert('Định dạng ngày không hợp lệ');
+			// 	$('#psg_birthday' + i).focus();
+			// 	$('#psg_birthday' + i).select();
+			// 	return false;
+			// }
+
+			if (psg_arr[i].value == '0' && $.trim($('#psg_eticket_outbound' + i).val()) != '' && $.trim($('#psg_eticket_outbound' + i).val()).length < 5) {
+				alert('Số vé chiều đi không hợp lệ');
+				$('#psg_eticket_outbound' + i).focus();
+				$('#psg_eticket_outbound' + i).select();
+				return false;
+			}
+
+			if (psg_arr[i].value == '0' && $.trim($('#psg_eticket_inbound' + i).val()) != '' && $.trim($('#psg_eticket_inbound' + i).val()).length < 5) {
+				alert('Số vé chiều về không hợp lệ');
+				$('#psg_eticket_inbound' + i).focus();
+				$('#psg_eticket_inbound' + i).select();
+				return false;
+			}
+
+			if (psg_arr[i].value == '0' && $.trim($('#psg_pnr_outbound' + i).val()) != '' && $.trim($('#psg_pnr_outbound' + i).val()).length < 5) {
+				alert('PNR chiều đi không hợp lệ');
+				$('#psg_pnr_outbound' + i).focus();
+				$('#psg_pnr_outbound' + i).select();
+				return false;
+			}
+
+			if (psg_arr[i].value == '0' && $.trim($('#psg_pnr_inbound' + i).val()) != '' && $.trim($('#psg_pnr_inbound' + i).val()).length < 5) {
+				alert('PNR chiều về không hợp lệ');
+				$('#psg_pnr_inbound' + i).focus();
+				$('#psg_pnr_inbound' + i).select();
+				return false;
+			}
+
+			// booking ở trạng thái xác nhận
+			// lấy số lượng hành khách có code vé
+			if ($("#booking_status").val() == '3') {
+				if (psg_arr[i].value == '0') {
+					// lượt đi
+
+					if ($('#psg_eticket_outbound' + i).val() != '') {
+						psg_has_eticket_outb[$('#psg_traveller_type' + i).val()] += 1;
+					}
+
+					//lượt về nếu là khứ hồi
+					if ($('#flight_type').val() == '0') {
+						if ($('#psg_eticket_inbound' + i).val() != '') {
+							psg_has_eticket_inb[$('#psg_traveller_type' + i).val()] += 1;
+						}
+					}
+				}
+			}
+		}
+
+		// kiểm tra sl nhà cung cấp tương ứng với số vé của hành khách
+		// lượt đi
+		if ((psg_has_eticket_outb[0] > bkd_has_supplier_outb[0] || psg_has_eticket_outb[1] > bkd_has_supplier_outb[1] || psg_has_eticket_outb[2] > bkd_has_supplier_outb[2] || psg_has_eticket_inb[0] > bkd_has_supplier_inb[0] || psg_has_eticket_inb[1] > bkd_has_supplier_inb[1] || psg_has_eticket_inb[2] > bkd_has_supplier_inb[2]) && psg_has_eticket_outb[0] > 0) {
+			alert("Xuất vé lượt nào vui lòng chọn nhà cung cấp tương ứng cho lượt đó.");
+			return false;
+		}
+	}// end if
+	return true;
+}

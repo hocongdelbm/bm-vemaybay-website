@@ -1,0 +1,53 @@
+<?php
+
+$mod_strings = array (
+  'LBL_ASSIGNED_TO_ID' => 'Assigned User Id',
+  'LBL_ASSIGNED_TO_NAME' => 'Assigned to',
+  'LBL_SECURITYGROUPS' => 'Security Groups',
+  'LBL_SECURITYGROUPS_SUBPANEL_TITLE' => 'Security Groups',
+  'LBL_ID' => 'ID',
+  'LBL_DATE_ENTERED' => 'Date Created',
+  'LBL_DATE_MODIFIED' => 'Date Modified',
+  'LBL_MODIFIED' => 'Modified By',
+  'LBL_MODIFIED_NAME' => 'Modified By Name',
+  'LBL_CREATED' => 'Created By',
+  'LBL_DESCRIPTION' => 'Description',
+  'LBL_DELETED' => 'Deleted',
+  'LBL_NAME' => 'Name',
+  'LBL_CREATED_USER' => 'Created by User',
+  'LBL_MODIFIED_USER' => 'Modified by User',
+
+  'LBL_LIST_NAME' => 'Name',
+  'LBL_EDIT_BUTTON' => 'Edit',
+  'LBL_REMOVE' => 'Remove',
+  'LBL_ASCENDING' => 'Ascending',
+  'LBL_DESCENDING' => 'Descending',
+  'LBL_OPT_IN' => 'Opt In',
+  'LBL_OPT_IN_PENDING_EMAIL_NOT_SENT' => 'Pending Confirm opt in, Confirm opt in not sent',
+  'LBL_OPT_IN_PENDING_EMAIL_SENT' => 'Pending Confirm opt in, Confirm opt in sent',
+  'LBL_OPT_IN_CONFIRMED' => 'Opted in',
+
+  'LBL_LIST_FORM_TITLE' => 'Payment Type List',
+  'LBL_MODULE_NAME' => 'Payment Type',
+  'LBL_MODULE_TITLE' => 'Payment Type',
+  'LBL_HOMEPAGE_TITLE' => 'My Payment Type',
+  'LNK_NEW_RECORD' => 'Create Payment Type',
+  'LNK_LIST' => 'Payment Type',
+
+  'LNK_IMPORT_EC_PAYMENT_TYPES' => 'Nhập ',
+  'LBL_HISTORY_SUBPANEL_TITLE' => 'View History',
+  'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Activities',
+  'LBL_EC_PAYMENT_TYPES_SUBPANEL_TITLE' => NULL,
+
+  'LBL_SEARCH_FORM_TITLE' => 'Search Payment Type',
+  'LBL_TT_PAYMENT_TYPES_SUBPANEL_TITLE' => 'Payment Type',
+  'LBL_NEW_FORM_TITLE' => 'New Payment Type',
+  'LBL_IS_PAYMENT_DEBT' => 'Công nợ phải trả',
+  'LBL_IS_RECEIPT_DEBT' => 'Công nợ phải thu',
+  'LBL_IS_OTHER_AMOUNT' => 'Không tính vào lợi nhuận',
+
+  'LBL_IS_REPORT' => 'Lên báo cáo',
+  'LBL_DESCRIPTION' => 'Diễn giải',
+  'LBL_NAME' => 'Tên loại',
+  'LBL_AIRCODE' => 'Hãng áp dụng',
+);

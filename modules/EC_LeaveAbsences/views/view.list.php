@@ -1,0 +1,19 @@
+<?php
+if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+require_once('include/MVC/View/views/view.list.php');
+
+class EC_LeaveAbsencesViewList extends ViewList {
+	function listViewPrepare() {
+		if (empty($_REQUEST['orderBy']) || isset($_REQUEST['query'])) {
+			$_REQUEST['orderBy'] = 'date_entered';
+			$_REQUEST['sortOrder'] = 'desc';
+		}
+		parent::listViewPrepare();
+	}
+	
+	function display(){	
+		parent::display();
+	}
+}
+
+?>

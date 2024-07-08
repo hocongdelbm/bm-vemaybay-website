@@ -1,0 +1,23 @@
+.edit-view-field[field='receipt_type'] {
+     display: flex;
+     gap: 5px;
+     align-items: center;
+}
+
+
+/* ================= RESPONSIVE TABLE ================ */
+/* =================================================== */
+@media screen and (max-width: 600px) {
+
+     .loai_thu--wrap,
+     .edit-view-field[field='receipt_type'] {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start !important;
+     }
+
+     .edit-view-row .select2-container{
+          width: 100% !important;
+     }
+
+}

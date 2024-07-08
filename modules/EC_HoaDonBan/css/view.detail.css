@@ -1,0 +1,45 @@
+/**********  DIALOG  **********/
+.dialog-create-invoice, .dialog-sign-invoice, .dialog-remove-invoice {
+    border: none;
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
+}
+
+.dialog-create-invoice .card-header {
+    position: relative;
+    text-align: center;
+}
+.dialog-create-invoice .card-header .title {
+    color: red;
+    text-transform: uppercase;
+    font-size: 16px;
+    font-weight: 600;
+}
+.dialog-create-invoice .card-header .invDate, .dialog-create-invoice .card-header .invRef {
+    font-size: 12px;
+}
+.dialog-create-invoice .card-header .invRef {
+    position: absolute;
+    left: 10px;
+    bottom: 7px;
+}
+.dialog-create-invoice form p {
+    font-size: 13px;
+    padding-bottom: 5px;
+}
+
+.dialog-create-invoice table.items-detail {
+    margin-top: 18px;
+    margin-bottom: 0;
+}
+.dialog-create-invoice table.items-detail thead tr th {
+    border: 1px solid #dee2e6;
+}
+
+.dialog-create-invoice .text-confirm {
+    color: red;
+    font-size: 15px;
+    padding: 15px 0 0 5px;
+    font-weight: 500;
+    font-style: italic;
+}

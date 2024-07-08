@@ -1,0 +1,42 @@
+<!-- BEGIN: main -->
+{PRETABLE}
+<div class="box-section">
+	<table cellpadding="0" cellspacing="0" width="100%" border="0"
+		class="list view table-details__booking table-listview__currencies">
+		<thead>
+			<tr>
+				<th width="1%">{CHECKALL}</th>
+				<th width="20%" nowrap><span>{MOD.LBL_LIST_NAME}</span></th>
+				<th width="10%" nowrap><span>{MOD.LBL_LIST_ISO4217}</span></th>
+				<th width="10%" nowrap><span>{MOD.LBL_LIST_SYMBOL}</span></th>
+				<th width="10%" nowrap><span>{MOD.LBL_LIST_RATE}</span></th>
+				<th width="10%" nowrap><span>{MOD.LBL_LIST_STATUS}</span></th>
+				<th width="8%"><span>&nbsp;</span></th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr height="20" class="{ROW_COLOR}S1">
+				<td>{PREROW}</td>
+				<td scope="row" valign="TOP">
+					<span>{CURRENCY.HIDE}<a
+							href="{URL_PREFIX}index.php?action=index&module=Currencies&record={CURRENCY.ID}">{CURRENCY.UNHIDE}{CURRENCY.NAME}{CURRENCY.HIDE}</a>{CURRENCY.UNHIDE}</span>
+				</td>
+				<td valign="TOP"><span>{CURRENCY.ISO4217}</span></td>
+				<td valign="TOP"><span>{CURRENCY.SYMBOL}</span></td>
+				<td valign="TOP"><span>{CURRENCY.CONVERSION_RATE}</span></td>
+				<td valign="TOP"><span>{CURRENCY.STATUS}</span></td>
+				<td nowrap align="center" valign="TOP">
+					<span>
+						{CURRENCY.HIDE}
+						<a class="listViewTdToolsS1" onclick="return confirm('{MOD.NTC_DELETE_CONFIRMATION}')" href="{URL_PREFIX}index.php?action=Delete&module=Currencies&record={CURRENCY.ID}&return_module=Currencies&return_action=index&return_id=">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+						</a>
+						{CURRENCY.UNHIDE}
+					</span>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+{POSTTABLE}
+<!-- END: main -->

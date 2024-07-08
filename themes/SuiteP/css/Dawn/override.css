@@ -1,0 +1,249 @@
+.btn-primary {
+    --bs-btn-color: var(--white-color);
+    --bs-btn-bg: var(--primary-color);
+    --bs-btn-border-color: var(--primary-color);
+
+    --bs-btn-hover-color: var(--white-color);
+    --bs-btn-hover-bg: var(--primary-hover-color);
+    --bs-btn-hover-border-color: var(--primary-hover-border-color);
+
+    --bs-btn-active-color: var(--white-color);
+    --bs-btn-active-bg: var(--primary-active-color);
+    --bs-btn-active-border-color: var(--primary-active-border-color);
+
+    --bs-btn-disabled-color: var(--white-color);
+    --bs-btn-disabled-bg: var(--primary-disabled-color);
+    --bs-btn-disabled-border-color: var(--primary-disabled-border-color);
+}
+
+.btn-secondary {
+    /* --bs-btn-color: #717171;
+-   -bs-btn-bg: rgb(240, 238, 241);
+    --bs-btn-border-color: rgb(240, 238, 241); */
+    --bs-btn-bg: rgb(210 210 210);
+    --bs-btn-border-color: rgb(210 210 210);
+    --bs-btn-color: #000000;
+
+    --bs-btn-hover-color: #2e3138;
+    --bs-btn-hover-bg: rgb(213, 215, 221);
+    --bs-btn-hover-border-color: rgb(213, 215, 221);
+
+    /* --bs-btn-color: #2e3138;
+    --bs-btn-bg: rgba(213, 215, 221, 1);
+    --bs-btn-border-color: rgba(213, 215, 221, 1);
+
+    --bs-btn-hover-color: #2e3138;
+    --bs-btn-hover-bg: rgba(149, 153, 162, 1);
+    --bs-btn-hover-border-color: rgba(149, 153, 162, 1); */
+}
+
+
+/*=============== LIST VIEW ===============*/
+/* .list-view-rounded-corners table thead tr.pagination-unique {
+    display: none;
+} */
+
+.pagination-notes {
+    display: flex;
+    align-items: center;
+    color: var(--text-primary-color);
+    font-style: italic;
+    font-weight: 600;
+}
+
+
+.list #pagination td .paginationTable .paginationActionButtons {
+    background-color: #fff !important;
+}
+
+/* .list-view-rounded-corners table tfoot tr.pagination-bottom td.paginationActionButtons {
+    background-color: #fff !important;
+} */
+
+.list-view-rounded-corners table tr.pagination-unique,
+.list-view-rounded-corners table tfoot tr.pagination-bottom {
+    border-color: #dee2e6;
+}
+
+.list-view-rounded-corners tfoot table.paginationTable tbody tr td.paginationChangeButtons:nth-child(2) {
+    background-color: #fff !important;
+}
+
+.paginationActionButtons .columnsFilterLink {
+    display: none
+}
+
+.paginationActionButtons .suitepicon-action-caret {
+    margin: 0 5px;
+}
+
+.selectActionsDisabled {
+    background-color: #f0eef1;
+}
+
+
+
+/* LIBRARY JQUERY-UI  */
+.ui-dialog {
+    padding: 0;
+    border-radius: 8px !important;
+    overflow: hidden;
+    border: none !important;
+    min-width: 500px;
+    box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+}
+
+.ui-dialog .ui-dialog-titlebar {
+    background: var(--primary-color);
+    color: var(--white-color);
+    font-size: 16px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: unset;
+    padding: 0 10px !important;
+    border: none;
+    margin: 0 !important;
+}
+
+.ui-dialog .ui-dialog-titlebar .ui-dialog-titlebar-close {
+    position: relative;
+    background: transparent;
+    outline: none;
+    margin: 0;
+    border: none;
+
+}
+
+.ui-dialog .ui-dialog-titlebar .ui-dialog-titlebar-close::before {
+    content: '✕';
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    color: var(--white-color);
+}
+
+.ui-dialog .ui-dialog-content {
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-color);
+    min-height: 60px !important;
+    height: unset !important;
+    padding: 10px !important;
+    overflow: hidden;
+}
+
+.ready-install textarea,
+.ui-dialog textarea {
+    width: 100%;
+    font-size: 14px;
+    line-height: 20px;
+    padding: 10px;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    outline: none;
+
+    resize: none;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.ready-install h2 {
+    font-size: 18px;
+    line-height: 24px;
+    color: var(--text-primary-color);
+    font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
+
+}
+
+.ui-widget {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.ui-widget.ui-widget-content {
+    padding: 0;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 50px;
+
+}
+
+.ui-menu.ui-autocomplete {
+    border: none;
+    border-radius: 8px;
+    -webkit-box-shadow: 0px 3px 21px 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 3px 21px 0px rgba(0, 0, 0, 0.2);
+    padding: 1rem 0.75rem;
+    min-width: 220px;
+    max-height: 250px;
+    overflow: auto;
+}
+
+.ui-menu.ui-autocomplete .ui-menu-item {
+    font-size: .875rem;
+    cursor: pointer;
+    width: 100%;
+    color: var(--text-color);
+    outline: none;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-weight: 500;
+    padding: 0.2rem 0.3rem;
+    border-radius: 5px;
+
+}
+
+.ui-menu.ui-autocomplete .ui-menu-item:hover {
+    background: var(--main-bg-color) !important;
+}
+
+.ui-menu.ui-autocomplete .ui-menu-item:hover .ui-menu-item-wrapper {
+    background: var(--primary-color) !important;
+    color: var(--white-color) !important;
+    border: 1px solid var(--primary-color) !important;
+}
+
+.ui-menu.ui-autocomplete .ui-menu-item .ui-menu-item-wrapper.ui-state-actice {
+    all: unset !important;
+}
+
+.ui-widget-header {
+    display: flex;
+}
+
+.ui-menu .ui-menu-item-wrapper {
+    flex: 1;
+    padding: 0;
+}
+
+/* EDIT BOOKING */
+table.table-edit-details__booking input,
+table.table-edit-details__booking select,
+table.table-edit__booking input:not(#btnItineraryAddRow):not(#btnItineraryAddRow),
+table.table-edit__booking select {
+    border: 1px solid var(--border-color) !important;
+    padding: 3px !important;
+    min-height: 30px;
+    border-radius: 5px;
+}
+
+table.table-edit-details__booking input,
+table.table-edit-details__booking select {
+    width: 100%;
+}
+
+table.table-edit__booking select {
+    max-width: 250px;
+}
+
+table.table-edit__booking tbody td {
+    padding: 3px !important;
+}
+
+/* Z-INDEX */
+#EditView_payment_type_results {
+    z-index: 160002;
+}

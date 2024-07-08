@@ -1,0 +1,148 @@
+<?php
+
+if (!defined('sugarEntry') || !sugarEntry) {
+    die('Not A Valid Entry Point');
+}
+
+$module_name = 'EC_Payment_Voucher';
+$listViewDefs[$module_name] =
+    array(
+        'NAME' =>
+        array(
+            'width' => '12%',
+            'label' => 'LBL_NAME',
+            'default' => true,
+            'link' => true,
+        ),
+        'PV_STATUS' =>
+        array(
+            'type' => 'enum',
+            'default' => true,
+            'studio' => 'visible',
+            'label' => 'LBL_PV_STATUS',
+            'width' => '8%',
+            'align' => 'center',
+        ),
+        'AMOUNT' =>
+        array(
+            'type' => 'int',
+            'label' => 'LBL_AMOUNT',
+            'width' => '10%',
+            'default' => true,
+            'currency_format' => true,
+            'align' => 'right',
+        ),
+        'RECEIPENT_NAME' =>
+        array(
+            'type' => 'varchar',
+            'label' => 'LBL_RECEIPENT_NAME',
+            'width' => '20%',
+            'default' => true,
+        ),
+        'DESCRIPTION' =>
+        array(
+            'type' => 'text',
+            'label' => 'LBL_DESCRIPTION',
+            'width' => '25%',
+            'default' => true,
+        ),
+        'PAYMENT_TYPE' =>
+        array(
+            'type' => 'relate',
+            'default' => true,
+            'studio' => 'visible',
+            'label' => 'LBL_PAYMENT_TYPE',
+            'width' => '10%',
+        ),
+        'DATE_ENTERED' =>
+        array(
+            'type' => 'datetime',
+            'label' => 'LBL_DATE_ENTERED',
+            'width' => '13%',
+            'default' => true,
+            'align' => 'center',
+        ),
+        'COM_LOCATION' =>
+        array(
+            'type' => 'relate',
+            'label' => 'LBL_COM_LOCATION',
+            'width' => '10%',
+            'default' => true,
+            'align' => 'center',
+        ),
+        'NGAYCHUNGTU' =>
+        array(
+            'type' => 'date',
+            'label' => 'LBL_NGAYCHUNGTU',
+            'width' => '8%',
+            'default' => true,
+            'align' => 'center',
+        ),
+        'NGAYHACHTOAN' =>
+        array(
+            'type' => 'date',
+            'label' => 'LBL_NGAYHACHTOAN',
+            'width' => '8%',
+            'default' => false,
+        ),
+        'RECEIPENT_PHONE' =>
+        array(
+            'type' => 'varchar',
+            'label' => 'LBL_RECEIPENT_PHONE',
+            'width' => '10%',
+            'default' => false,
+        ),
+        'ASSIGNED_USER_NAME' =>
+        array(
+            'link' => 'assigned_user_link',
+            'type' => 'relate',
+            'label' => 'LBL_ASSIGNED_TO_NAME',
+            'width' => '10%',
+            'default' => false,
+        ),
+        'DEBT_NAME' =>
+        array(
+            'type' => 'relate',
+            'studio' => 'visible',
+            'label' => 'LBL_DEBT_NAME',
+            'width' => '10%',
+            'default' => false,
+        ),
+        'RECEIPENT_PHONE_MOBILE' =>
+        array(
+            'type' => 'varchar',
+            'label' => 'LBL_RECEIPENT_PHONE_MOBILE',
+            'width' => '10%',
+            'default' => false,
+        ),
+        'RECEIPENT_PHONE_FAX' =>
+        array(
+            'type' => 'varchar',
+            'label' => 'LBL_RECEIPENT_PHONE_FAX',
+            'width' => '10%',
+            'default' => false,
+        ),
+        'AMOUNT_TYPE' =>
+        array(
+            'type' => 'enum',
+            'default' => false,
+            'studio' => 'visible',
+            'label' => 'LBL_AMOUNT_TYPE',
+            'width' => '10%',
+        ),
+        'RECEIPENT_ADDRESS' =>
+        array(
+            'type' => 'text',
+            'studio' => 'visible',
+            'label' => 'LBL_RECEIPENT_ADDRESS',
+            'width' => '10%',
+            'default' => false,
+        ),
+        'RECEIPENT_EMAIL' =>
+        array(
+            'type' => 'varchar',
+            'label' => 'LBL_RECEIPENT_EMAIL',
+            'width' => '10%',
+            'default' => false,
+        ),
+    );

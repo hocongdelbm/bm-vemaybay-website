@@ -1,0 +1,76 @@
+/* ==========  GLOBALS  ========== */
+:root {
+    /* --primary-color: #4154f1; */
+    /* --primary-color: #135ca0; */
+    --primary-color: #0a58ca;
+    --white-color: #fff;
+    --black-color: #000000;
+    --green-color: #36ae7c;
+    --red-color: #EB5353;
+    --red-vj-color: #EC2029;
+    --yellow-color: #F9D923;
+    --yellow-bg-color: #fff2cc;
+    --blue-color: #009FBD;
+
+    
+    /**********  TEXT COLOR  **********/
+    --text-color: #444444;
+    --text-primary-color: #012970;
+    --text-primary-2-color: #303030;
+
+
+    /*********** BUTTON ***********/
+    --btn-primary-2-color: rgb(224, 235, 252);
+    --btn-confirm-color: rgb(13, 110, 253);
+    --btn-email-color: rgb(234, 67, 53);
+    
+
+    /**********  HOVER  **********/
+    --primary-hover-color: #0b5ed7;
+    --primary-hover-border-color: #0a58ca;
+
+    --primary-2-hover-color: rgb(185, 214, 255);
+    --primary-2-hover-text-color: rgb(37, 111, 212);
+
+    --confirm-hover-color: rgb(0, 82, 198);
+    --email-hover-color: rgb(225, 34, 21);
+
+
+    /**********  ACTIVE  **********/
+    --primary-active-color: #0a58ca;
+    --primary-active-border-color: #0a53be;
+
+    --primary-2-active-color: rgb(180, 204, 244);
+    --primary-2-active-text-color: rgb(3, 97, 237);
+
+    --confirm-active-color: rgb(0, 43, 102);
+
+
+    /**********  DISABLE  **********/
+    --primary-disabled-color: #d0e0f8;
+    --primary-disabled-border-color: #d0e0f8;
+
+
+
+
+
+    /**********  HEIGHT  **********/
+    --height-header: 45px;
+    --height-footer: 50px;
+    --height-header-bottom: 30px;
+
+    /**********  WIDTH  **********/
+    --width-sidebar: 200px;
+
+
+    /**********  BORDER  **********/
+    --border-color: #dee2e6;
+    --border-focus-color: #088395;
+    --border-radius: 5px;
+
+
+
+    --main-bg-color: #f6f9ff;
+    --bgdecs-color: #f3f7fe;
+    --hidden-color: #7F8487;
+}

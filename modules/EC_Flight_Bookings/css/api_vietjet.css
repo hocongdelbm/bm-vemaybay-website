@@ -1,0 +1,126 @@
+/*========== POPUP ==========*/
+#confirm_reservation_dialog_vja {
+    line-height: 22px;
+    border: none;
+    border-radius: 10px;
+    box-shadow:rgb(14 30 37 / 12%) 0px 2px 4px 0px, rgb(14 30 37 / 32%) 0px 2px 16px 0px; 
+}
+#confirm_reservation_dialog_vja form {min-width: 600px;}
+#confirm_reservation_dialog_vja #vietjet_logo {
+    width: 75px;
+    height: auto;
+    margin: 0px 0 0 3px;
+    vertical-align: text-top;
+}
+#confirm_reservation_dialog_vja hr {
+    border-color: #000;
+    background-color: #000;
+    color: #000;
+    margin: 1.5em 0;
+}
+#confirm_reservation_dialog_vja p b {color:#303030}
+#confirm_reservation_dialog_vja .notes .remind {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 14px;
+    text-align: center;
+    padding: 8px;
+}
+#confirm_reservation_dialog_vja .notes .warning {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 14px;
+    text-align: center;
+    text-transform: uppercase;
+    margin-top: 8px;
+    color: red;
+}
+
+#confirm_reservation_dialog_vja .wrap-journey p,
+#confirm_reservation_dialog_vja .wrap-passenger .passenger p,
+#confirm_reservation_dialog_vja .wrap-contact p  {
+    font-size: 15px;
+    padding: 5px 15px;
+}
+
+#confirm_reservation_dialog_vja .wrap-journey .wrap-for-flex {
+    display: flex;
+    flex-direction: column;
+}
+#confirm_reservation_dialog_vja .wrap-journey .journey {display: none;}
+#confirm_reservation_dialog_vja .wrap-journey .journey .left {
+    width: 50%;
+}
+#confirm_reservation_dialog_vja .wrap-journey .journey .right {
+    flex: 1;
+}
+#confirm_reservation_dialog_vja .wrap-journey #reservation_journey_ret_vja {
+    border-top: 1px dashed #000;
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+
+#confirm_reservation_dialog_vja .wrap-journey .baseprice {
+    font-weight: bold;
+    color: red;
+}
+
+#confirm_reservation_dialog_vja .wrap-passenger .passenger {
+    clear: both;
+}
+#confirm_reservation_dialog_vja .wrap-passenger .passenger .stt {
+    float: left;
+    margin-left: 5px;
+    margin-top: 5px;
+    padding: 0;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 19px;
+    height: 19px;    
+    background-color: #303030;
+    border-radius: 50%;
+    color: #fff;
+}
+#confirm_reservation_dialog_vja .wrap-passenger .passenger .left,
+#confirm_reservation_dialog_vja .wrap-passenger .passenger .right {
+    float: left;
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+#confirm_reservation_dialog_vja .title {
+    font-size: 19px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 4px 4px 12px 4px;
+}
+#confirm_reservation_dialog_vja .subtitle {
+    font-size: 17px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #303030;
+}
+
+#confirm_reservation_dialog_vja .wrap-button {
+    /* float: right;
+    clear: both;
+    margin-top: 10px; */
+    padding: 10px 0 5px 0;
+}
+#confirm_reservation_dialog_vja .wrap-button select {
+    display: inline-block;
+    width: auto;
+}
+
+#confirm_reservation_dialog_vja .wrap-button button#confirm_reservation_vja {
+    float: right;
+    font-size: 15px;
+}
+#confirm_reservation_dialog_vja .wrap-button button#cancel_reservation_vja {
+    float: right;
+    font-size: 15px;
+    margin-left: 8px;
+}

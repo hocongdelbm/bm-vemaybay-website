@@ -1,0 +1,543 @@
+@media screen and (max-width: 575px),
+(orientation: landscape) and (max-width: 950px) {
+
+  /* CUSTOM CLASS */
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .text-overflow-mobile {
+    display: inline-block;
+    width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #waiting-loading {
+    position: absolute;
+    transform: translate(-50%, -50%);
+  }
+
+  /* DISPLAY NONE */
+  .check_infor_customer,
+  .pagination-notes,
+  .header-navbar__bottom,
+  #sidebar-horizontal,
+  #buttontoggle {
+    display: none !important;
+    all: unset;
+  }
+
+  h1.title,
+  .moduleTitle h2 {
+    margin-top: 15px;
+  }
+
+  .moduleTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ui-dialog .ui-dialog-content h2,
+  h2.change-title {
+    font-size: 14px;
+  }
+
+  /* ------------- LOGIN --------------*/
+  .form-login__wrapper {
+    width: 90vw;
+    padding: 1rem 0.75rem;
+  }
+
+  .navbar-menu-wrapper {
+    padding: 0;
+    gap: 10px;
+  }
+
+  /* ------------- MENU -------------- */
+  .header-navbar__top {
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .sidebar {
+    left: unset !important;
+  }
+
+  #sidebar-horizontal-mobile {
+    padding: 5px 0;
+  }
+
+  .sidebar-icon-only .sidebar.sidebar-current .sidebar-nav .nav-item .nav-link svg {
+    margin-right: 8px;
+  }
+
+  #bootstrap-container {
+    padding: 12px;
+    margin: calc(var(--height-footer)) auto;
+  }
+
+  /* LIST BUTTON */
+  /* =========== */
+  #action_buttons--detailview {
+    flex-wrap: wrap;
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  #frmViewedBooking,
+  #btn_view_change_log {
+    position: unset;
+  }
+
+  .detail-view #recheck_status {
+    flex-wrap: wrap;
+  }
+
+  /* TOAST */
+  /* ===== */
+  .toast-warning {
+    min-width: 350px;
+    right: 15px;
+  }
+
+  /* ------------ BOX ------------ */
+  /* ============================= */
+  #globalLinks .box-list,
+  #desktop_notifications .box-list {
+    right: 15px;
+    width: calc(100% - 150px);
+    max-width: 200px;
+    top: calc(var(--height-header) + 10px);
+  }
+
+  .box-list {
+    padding: 0.5rem 0.25rem !important;
+  }
+
+  /* ------------- LINE -----------*/
+  .line-highlight {
+    padding: 5px 0px;
+  }
+
+  .line-highlight span {
+    width: 100%;
+    background: #dceefc;
+    height: 1.5px;
+    border-radius: 5px;
+    display: block;
+  }
+
+  /* =============== EC_FLIGHT_BOOKINGS ================== */
+  /* ===================================================== */
+  /* ===================================================== */
+  form[name="search_form"] {
+    position: fixed;
+    background: #fff;
+    bottom: 0;
+    left: 0;
+    padding: 15px;
+    min-height: 50vh;
+    max-height: 80vh;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
+    z-index: 120;
+    width: 100%;
+    max-width: 100vw;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateY(100%);
+    transition: all linear 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0;
+  }
+
+  form[name="search_form"].active {
+    transform: translateY(0);
+  }
+
+  form[name="search_form"] .action--wrap {
+    margin-top: 1.5rem;
+  }
+
+  form[name="search_form"] .search_form--dash {
+    position: absolute;
+    top: -10px;
+  }
+
+  form[name="search_form"] svg#btnSearch_cancel {
+    position: absolute;
+    right: 15px;
+  }
+
+  .button-action--wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .button-action--wrap input:not([type="checkbox"]) {
+    width: 100%;
+    min-height: 45px;
+    border-radius: 50px;
+    font-size: 16px;
+  }
+
+  .overlay-mobile {
+    width: 100%;
+    height: 100%;
+    background: rgb(10 10 10 / 50%);
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    display: none;
+  }
+
+  .recheckbk--wrap,
+  .action--wrap {
+    flex-wrap: wrap;
+  }
+
+  .box-color__sales {
+    margin: 0 !important;
+  }
+
+  table.table-debtopay {
+    width: 100%;
+  }
+
+  #employee_salary_tbl thead tr th,
+  table.bank-account-list thead tr th,
+  #bkagent_report #bkagent_tbl thead tr th,
+  /* table#iplist_tbl thead tr th, */
+  table#recheck_tbl thead tr th,
+  table#tbl-sms-data thead tr th,
+  table.table-profitreport thead tr th,
+  #total_ticket_report_tbl thead tr th,
+  .detail_bk_tbl thead tr th,
+  .tbl_wrapper thead tr th,
+  table.table-sale_report_tbl thead tr th,
+  #tbl-infor-booking__domestic thead tr th,
+  #tbl-infor-booking__inter thead tr th {
+    top: calc(var(--height-header) - 2px);
+  }
+
+  .checkfly-date__wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .feature-guide {
+    position: unset;
+    margin: 0 0 15px;
+  }
+
+  .color-block__wrap {
+    flex-basis: 200px;
+    flex-grow: unset;
+  }
+
+  /* ---------- DIALOG --------------- */
+  .ui-widget.ui-widget-content {
+    max-width: 90vw;
+  }
+
+  /* ------------ MODULE EC_Employee_Salary -------------- */
+  #employee_salary_tbl input.minusinc_edit,
+  input.extra_amt {
+    max-width: 100px;
+  }
+
+  /* ------------ MODULE EC_HoaDonBan -------------- */
+  table.table-invoice select,
+  table.table-invoice input:not(#import_btn):not(#remove_btn):not(#save_btn) {
+    width: 100% !important;
+  }
+
+  #returnbookingreport,
+  #io_inv,
+  #import_invoice {
+    overflow-x: auto;
+  }
+
+  table.table-details__sticky thead tr th,
+  #output_invoice #output_inv thead tr:first-child th {
+    top: calc(var(--height-header) - 2px);
+  }
+
+  #booking-search,
+  .io_inv_search,
+  .outputinvoice_search {
+    flex-wrap: wrap;
+  }
+
+
+  /* ============== BUTTON =============== */
+  .submitButtons__search-basic input,
+  .search-clear-button--wrap {
+    width: 100%;
+  }
+
+  .bookingqtyreport-note,
+  .currentsales-note {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .hidden-sm {
+    display: none !important;
+  }
+}
+
+/*
+
+
+@media (min-width: 992px) and (max-width: 1199px) {
+     .hidden-md {
+          display: none !important;
+     }
+} 
+
+@media (min-width: 1200px) {
+     .hidden-lg {
+          display: none !important;
+     }
+} */
+
+@media screen and (max-width: 575px) {
+  .hidden-xs {
+    display: none !important;
+  }
+
+  table#tbl-list-agent {
+    font-size: 12px;
+  }
+
+  .panel-heading-text {
+    font-size: 13px;
+  }
+
+  .row>* {
+    padding-right: calc(var(--bs-gutter-x) * 0.3);
+    padding-left: calc(var(--bs-gutter-x) * 0.3);
+  }
+
+  .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link.dropdown-toggle:after {
+    display: none;
+  }
+
+  .navbar .navbar-brand-wrapper .brand-logo-mini {
+    padding-top: 0px;
+  }
+
+  .navbar .navbar-menu-wrapper .navbar-nav {
+    gap: 10px;
+  }
+
+  .navbar .navbar-brand-wrapper {
+    max-width: 140px;
+    width: 100%;
+  }
+
+  .navbar .navbar-brand-wrapper .brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .list-view-rounded-corners {
+    overflow-x: auto;
+  }
+
+  /* ======= EMMAIL ====== */
+  .email-address-options-container {
+    margin-top: 15px;
+  }
+
+  .email-address-lines-container .email-address-option label {
+    position: unset;
+  }
+
+  .email-address-lines-container .email-address-option input {
+    all: unset;
+  }
+
+  /* ====== BUTTON ========== */
+  .action_buttons {
+    flex-wrap: wrap;
+  }
+
+  /* ========== Tabs ========= */
+  .admin_tabs-item {
+    min-width: unset;
+  }
+
+  .content .detail-view .tab-content {
+    padding: 10px;
+  }
+
+
+  /* ========= TABLE ======== */
+  table.table-profile td {
+    padding: 2px;
+  }
+
+  table.table-responsive>tbody>tr>td a.edit-link {
+    display: none;
+  }
+
+  /* table.table-details__booking thead tr th {
+    white-space: nowrap;
+  } */
+
+  .from-to-date--wrap {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .date_trigger--wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: start !important;
+  }
+
+  #employee_salary_tbl thead tr th,
+  table.bank-account-list thead tr th,
+  #bkagent_report #bkagent_tbl thead tr th,
+  /* table#iplist_tbl thead tr th, */
+  table#recheck_tbl thead tr th,
+  table#tbl-sms-data thead tr th,
+  table.table-profitreport thead tr th,
+  #total_ticket_report_tbl thead tr th,
+  .detail_bk_tbl thead tr th,
+  .tbl_wrapper thead tr th,
+  table.table-sale_report_tbl thead tr th,
+  #tbl-infor-booking__domestic thead tr th,
+  #tbl-infor-booking__inter thead tr th {
+    top: calc(var(--height-header) + 5px);
+  }
+
+  .color-block__wrap {
+    all: unset;
+  }
+
+  .optionRadio--wrap {
+    flex-wrap: wrap;
+  }
+
+  table#total_ticket_report_tbl,
+  table#table_total_ticket__report {
+    font-size: 12px;
+  }
+
+  #tbl-doanhsohientai img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-width: 50px;
+  }
+
+  /* ---------- DIALOG --------------- */
+  .ui-widget.ui-widget-content {
+    min-width: 350px !important;
+  }
+
+  .ui-dialog #dlgChonNgonNgu.ui-dialog-content {
+    overflow: hidden !important;
+    height: unset !important;
+  }
+
+
+  /* ============ TABLE VERTICAL IN MPBILE ==============  */
+  /* ==================================================== */
+  /* ==================================================== */
+  table.table-vertical__mobile {
+    font-size: 14px;
+  }
+
+  table.table-vertical__mobile thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+    vertical-align: middle;
+  }
+
+  table.table-vertical__mobile tr:not(.footer-tr) {
+    display: block;
+    margin-bottom: 15px;
+  }
+
+  table.table-vertical__mobile td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 35px;
+  }
+
+  table.table-vertical__mobile td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    min-width: 115px;
+    text-align: left;
+  }
+
+  .table-vertical__mobile tbody tr:hover {
+    background: none;
+  }
+
+}
+
+/* RESPONSIVE CHO MÀN HÌNH NGANG */
+@media screen and (orientation: landscape) and (max-width: 950px) {
+  .hide-landscape {
+    display: none !important;
+  }
+
+  .show-landscape {
+    display: table-cell !important;
+  }
+
+  /* table.table-details__booking .hide-mobile {
+    display: table-cell !important;
+  } */
+
+  #ec_search_form {
+    flex-wrap: wrap;
+  }
+
+  form[name="search_form"] {
+    min-height: 70vh;
+  }
+
+  /* LOGIN */
+  .form-login__wrapper {
+    width: 50vw;
+  }
+
+  /* ========== BUTTON =========== */
+  .button-action--wrap {
+    flex-direction: row;
+  }
+
+  .button-action--wrap input:not([type="checkbox"]) {
+    flex: 1;
+    width: 50%;
+  }
+}

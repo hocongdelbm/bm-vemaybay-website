@@ -1,0 +1,363 @@
+<?php
+$dictionary['EC_Booking_Details'] = array(
+    'table' => 'ec_booking_details',
+    'audited' => true,
+    'inline_edit' => true,
+    'duplicate_merge' => true,
+    'fields' => array(
+        'passenger_type' => array(
+            'name'      => 'passenger_type',
+            'vname'     => 'LBL_PASSENGER_TYPE',
+            'type'      => 'enum',
+            'dbtype'    => 'char',
+            'options'   => 'passenger_type_list',
+            'len'       => 1,
+            'default'   => '0',
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'studio' => 'visible',
+            'dependency' => false,
+        ),
+
+        'quantity' => array(
+            'name'      => 'quantity',
+            'vname'     => 'LBL_QUANTITY',
+            'type'      => 'int',
+            'len'       => 11,
+            'default'   => 0,
+            
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'disable_num_format' => '',
+        ),
+
+        'unit_price' => array(
+            'name'      => 'unit_price',
+            'vname'     => 'LBL_UNIT_PRICE',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+            
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'currency_id' => array(
+            'name'      => 'currency_id',
+            'vname'     => 'LBL_CURRENCY',
+            'type'      => 'id',
+            'len'       => 36,
+            'default'   => '',
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 0,
+            'reportable' => 0,
+            'studio' => 'visible',
+            'function' => array(
+                'name' => 'getCurrencyDropDown',
+                'returns' => 'html',
+            ),
+        ),
+
+        'tax_and_fee' => array(
+            'name'      => 'tax_and_fee',
+            'vname'     => 'LBL_TAX_AND_FEE',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+            
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            
+        ),
+
+        'total_price' => array(
+            'name'      => 'total_price',
+            'vname'     => 'LBL_TOTAL_PRICE',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            
+        ),
+
+        'booking_id' => array(
+            'name'      => 'booking_id',
+            'vname'     => '',
+            'type'      => 'id',
+            'len'       => 36,
+            'default'   => '',
+           
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 0,
+            'reportable' => 0,
+        ),
+
+        'booking' => array(
+            'required' => false,
+            'source' => 'non-db',
+            'name' => 'booking',
+            'vname' => 'LBL_BOOKING',
+            'type' => 'relate',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '255',
+            'id_name' => 'booking_id',
+            'ext2' => 'EC_Flight_Bookings',
+            'module' => 'EC_Flight_Bookings',
+            'rname' => 'name',
+            'quicksearch' => 'enabled',
+            'studio' => 'visible',
+        ),
+
+        'direction' => array(
+            'name'      => 'direction',
+            'vname'     => 'LBL_DIRECTION',
+            'type'      => 'enum',
+            'dbtype'    => 'char',
+            'options'   => 'bk_direction_list',
+            'len'       => 1,
+            'default'   => '0', // Lượt đi
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+            'audited' => 1,
+            'reportable' => 0,
+            'studio' => 'visible',
+            'dependency' => false,
+        ),
+
+        'service_fee' => array(
+            'name'      => 'service_fee',
+            'vname'     => 'LBL_SERVICE_FEE',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+            
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'admin_fee' => array(
+            'name'      => 'admin_fee',
+            'vname'     => 'LBL_ADMIN_FEE',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+            
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'airport_fee' => array(
+            'name'      => 'airport_fee',
+            'vname'     => 'LBL_AIRPORT_FEE',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'tax_bought' => array(
+            'name'      => 'tax_bought',
+            'vname'     => 'LBL_TAX_BOUGHT',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'fee_bought' => array(
+            'name'      => 'fee_bought',
+            'vname'     => 'LBL_FEE_BOUGHT',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+
+        ),
+
+        'total_bought_price' => array(
+            'name'      => 'total_bought_price',
+            'vname'     => 'LBL_TOTAL_BOUGHT_PRICE',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+            
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'discount_amount' => array(
+            'name'      => 'discount_amount',
+            'vname'     => 'LBL_DISCOUNT_AMOUNT',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'is_active' => array(
+            'name'      => 'is_active',
+            'vname'     => 'LBL_IS_ACTIVE',
+            'type'      => 'bool',
+            'default'   => 1,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 0,
+            'reportable' => 0,
+        ),
+
+        'supplier_id' => array(
+            'name'      => 'supplier_id',
+            'vname'     => '',
+            'type'      => 'id',
+            'len'       => 36,
+            'default'   => '',
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 0,
+            'reportable' => 0,
+        ),
+        'supplier' => array(
+            'source'    => 'non-db',
+            'name'      => 'supplier',
+            'vname'     => 'LBL_SUPPLIER',
+            'type'      => 'relate',
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+            'audited' => 1,
+            'reportable' => 0,
+            'id_name' => 'supplier_id',
+            'ext2' => 'Accounts',
+            'module' => 'Accounts',
+            'rname' => 'name',
+            'quicksearch' => 'enabled',
+            'studio' => 'visible',
+        ),
+
+        'supplier_discount' => array(
+            'name'      => 'supplier_discount',
+            'vname'     => 'LBL_SUPPLIER_DISCOUNT',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        // Tiền VAT phí admin
+        'vat_admin' => array(
+            'name'      => 'vat_admin',
+            'vname'     => 'LBL_VAT_ADMIN',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        // Phí admin chưa VAT
+        'admin_fee_no_vat' => array(
+            'name'      => 'admin_fee_no_vat',
+            'vname'     => 'LBL_ADMIN_FEE_NO_VAT',
+            'type'      => 'currency',
+            'len'       => 26,
+            'default'   => 0,
+
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+    ),
+    'indices' => array(
+        array('name' => 'idx_bkd_name', 'type' => 'index', 'fields' => array('name')),
+        array('name' => 'idx_bkd_booking', 'type' => 'index', 'fields' => array('booking_id')),
+        array('name' => 'idx_bkd_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
+        array('name' => 'idx_bkd_supplier', 'type' => 'index', 'fields' => array('supplier_id')),
+        array('name' => 'idx_bkd_psgtype', 'type' => 'index', 'fields' => array('passenger_type')),
+        // array('name' => 'idx_bkd_del', 'type' => 'index', 'fields' => array('deleted')),
+    ),
+    'relationships' => array (),
+    'optimistic_locking' => true,
+    'unified_search' => true,
+);
+
+if (!class_exists('VardefManager')) {
+    require_once('include/SugarObjects/VardefManager.php');
+}
+VardefManager::createVardef('EC_Booking_Details', 'EC_Booking_Details', array('basic','assignable','security_groups'));

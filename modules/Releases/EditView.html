@@ -1,0 +1,24 @@
+<!-- BEGIN: main -->
+<table width="100%" cellspacing="0" cellpadding="0" border="0" class="table-edit table-config table-editview__module-Release">
+    <tr>
+        <td>
+            <table class="table-view table-config" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td width="15%" scope="row"><span>{MOD.LBL_NAME} <span class="required">{APP.LBL_REQUIRED_SYMBOL}</span></span></td>
+                    <td width="85%"><span><input name='name' tabindex='1' size='55' maxlength='50' type="text" value="{NAME}"></span></td>
+                </tr>
+                <tr>
+                    <td scope="row"><span>{MOD.LBL_STATUS} <span class="required">{APP.LBL_REQUIRED_SYMBOL}</span></span></td>
+                    <td><span><select name='status' tabindex='1'>{STATUS_OPTIONS}</select> {MOD.NTC_STATUS}</span></td>
+                </tr>
+                <tr>
+                    <td scope="row"><span>{MOD.LBL_LIST_ORDER} <span class="required">{APP.LBL_REQUIRED_SYMBOL}</span></span></td>
+                    <td><span><input name='list_order' tabindex='1' size='5' maxlength='4' type="text" value="{LIST_ORDER}"> {MOD.NTC_LIST_ORDER}</span></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</form>
+{JAVASCRIPT}
+<!-- END: main -->

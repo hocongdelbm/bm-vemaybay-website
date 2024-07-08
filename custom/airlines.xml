@@ -1,0 +1,7123 @@
+<?xml version="1.0" standalone="yes"?>
+<RECORDS>
+<RECORD>
+<code>1T</code>
+<name>1Time Airline</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>Q5</code>
+<name>40-Mile Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>AN</code>
+<name>Ansett Australia</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>1B</code>
+<name>Abacus International</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>W9</code>
+<name>Abelag Aviation</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>ZI</code>
+<name>Aigle Azur</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>AQ</code>
+<name>Aloha Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>AA</code>
+<name>American Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OZ</code>
+<name>Asiana Airlines</name>
+<country>Republic of Korea</country>
+</RECORD>
+<RECORD>
+<code>4K</code>
+<name>Askari Aviation</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>8U</code>
+<name>Afriqiyah Airways</name>
+<country>Libya</country>
+</RECORD>
+<RECORD>
+<code>Q9</code>
+<name>Afrinat International Airlines</name>
+<country>Gambia</country>
+</RECORD>
+<RECORD>
+<code>G4</code>
+<name>Allegiant Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>K5</code>
+<name>Aban Air</name>
+<country>Iran</country>
+</RECORD>
+<RECORD>
+<code>M3</code>
+<name>ABSA - Aerolinhas Brasileiras</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>GB</code>
+<name>Airborne Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GB</code>
+<name>ABX Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>8V</code>
+<name>Astral Aviation</name>
+<country>Kenya</country>
+</RECORD>
+<RECORD>
+<code>E4</code>
+<name>Aero Asia International</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>YT</code>
+<name>Air Togo</name>
+<country>Togo</country>
+</RECORD>
+<RECORD>
+<code>4G</code>
+<name>Advance Leasing Company</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>7A</code>
+<name>Aztec Worldwide Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>8T</code>
+<name>Air Tindi</name>
+<country>Canadian Territories</country>
+</RECORD>
+<RECORD>
+<code>ZY</code>
+<name>Ada Air</name>
+<country>Albania</country>
+</RECORD>
+<RECORD>
+<code>Z7</code>
+<name>ADC Airlines</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>JP</code>
+<name>Adria Airways</name>
+<country>Slovenia</country>
+</RECORD>
+<RECORD>
+<code>UX</code>
+<name>Air Europa</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>EM</code>
+<name>Aero Benin</name>
+<country>Benin</country>
+</RECORD>
+<RECORD>
+<code>A3</code>
+<name>Aegean Airlines</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>KI</code>
+<name>Air Atlantique</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>PE</code>
+<name>Air Europe</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>KO</code>
+<name>Alaska Central Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>5W</code>
+<name>Astraeus</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>VV</code>
+<name>Aerosvit Airlines</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>I9</code>
+<name>Air Italy</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>WK</code>
+<name>American Falcon</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>QQ</code>
+<name>Alliance Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>FG</code>
+<name>Ariana Afghan Airlines</name>
+<country>Afghanistan</country>
+</RECORD>
+<RECORD>
+<code>SU</code>
+<name>Aeroflot Russian Air</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>JA</code>
+<name>Air Bosna</name>
+<country>Bosnia and Herzegovina</country>
+</RECORD>
+<RECORD>
+<code>AF</code>
+<name>Air France</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>SB</code>
+<name>Air Caledonie International</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>GN</code>
+<name>Air Gabon</name>
+<country>Gabon</country>
+</RECORD>
+<RECORD>
+<code>2O</code>
+<name>Air Salone</name>
+<country>Sierra Leone</country>
+</RECORD>
+<RECORD>
+<code>2Q</code>
+<name>Air Cargo Carriers</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>V7</code>
+<name>Air Senegal International</name>
+<country>Senegal</country>
+</RECORD>
+<RECORD>
+<code>SW</code>
+<name>Air Namibia</name>
+<country>Namibia</country>
+</RECORD>
+<RECORD>
+<code>G8</code>
+<name>Air Service Gabon</name>
+<country>Gabon</country>
+</RECORD>
+<RECORD>
+<code>5D</code>
+<name>Aerolitoral</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>1A</code>
+<name>Amadeus Global Travel Distribution</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>7T</code>
+<name>Air Glaciers</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>PL</code>
+<name>Aeroper</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>8A</code>
+<name>Atlas Blue</name>
+<country>Morocco</country>
+</RECORD>
+<RECORD>
+<code>GD</code>
+<name>Air Alpha Greenland</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>LD</code>
+<name>Air Hong Kong</name>
+<country>Hong Kong</country>
+</RECORD>
+<RECORD>
+<code>HT</code>
+<name>Aeromist-Kharkiv</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>J2</code>
+<name>Azerbaijan Airlines</name>
+<country>Azerbaijan</country>
+</RECORD>
+<RECORD>
+<code>U3</code>
+<name>Avies</name>
+<country>Estonia</country>
+</RECORD>
+<RECORD>
+<code>AP</code>
+<name>Airbus Industrie</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>5A</code>
+<name>Alpine Air Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>ED</code>
+<name>Airblue</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>AB</code>
+<name>Air Berlin</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>AG</code>
+<name>Air Contractors</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>AI</code>
+<name>Air India Limited</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>ZB</code>
+<name>Air Bourbon</name>
+<country>Reunion</country>
+</RECORD>
+<RECORD>
+<code>CC</code>
+<name>Air Atlanta Icelandic</name>
+<country>Iceland</country>
+</RECORD>
+<RECORD>
+<code>RB</code>
+<name>Air Srpska</name>
+<country>Bosnia and Herzegovina</country>
+</RECORD>
+<RECORD>
+<code>TN</code>
+<name>Air Tahiti Nui</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>W4</code>
+<name>Aero Services Executive</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>IZ</code>
+<name>Arkia Israel Airlines</name>
+<country>Israel</country>
+</RECORD>
+<RECORD>
+<code>JM</code>
+<name>Air Jamaica</name>
+<country>Jamaica</country>
+</RECORD>
+<RECORD>
+<code>AP</code>
+<name>Air One</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>S2</code>
+<name>Air Sahara</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>KM</code>
+<name>Air Malta</name>
+<country>Malta</country>
+</RECORD>
+<RECORD>
+<code>M6</code>
+<name>Amerijet International</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>NQ</code>
+<name>Air Japan</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>4A</code>
+<name>Air Kiribati</name>
+<country>Kiribati</country>
+</RECORD>
+<RECORD>
+<code>EH</code>
+<name>Air Nippon Network Co. Ltd.</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>HP</code>
+<name>America West Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>ZW</code>
+<name>Air Wisconsin</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>U9</code>
+<name>Tatarstan Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>VD</code>
+<name>Air Libert</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>TT</code>
+<name>Air Lithuania</name>
+<country>Lithuania</country>
+</RECORD>
+<RECORD>
+<code>QM</code>
+<name>Air Malawi</name>
+<country>Malawi</country>
+</RECORD>
+<RECORD>
+<code>BM</code>
+<name>Air Sicilia</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>NX</code>
+<name>Air Macau</name>
+<country>Macao</country>
+</RECORD>
+<RECORD>
+<code>ZV</code>
+<name>Air Midwest</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HM</code>
+<name>Air Seychelles</name>
+<country>Seychelles</country>
+</RECORD>
+<RECORD>
+<code>AM</code>
+<name>AeroMéxico</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>NH</code>
+<name>All Nippon Airways</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>YW</code>
+<name>Air Nostrum</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>PX</code>
+<name>Air Niugini</name>
+<country>Papua New Guinea</country>
+</RECORD>
+<RECORD>
+<code>G9</code>
+<name>Air Arabia</name>
+<country>United Arab Emirates</country>
+</RECORD>
+<RECORD>
+<code>AC</code>
+<name>Air Canada</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>BT</code>
+<name>Air Baltic</name>
+<country>Latvia</country>
+</RECORD>
+<RECORD>
+<code>EL</code>
+<name>Air Nippon</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>TL</code>
+<name>Airnorth</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>4N</code>
+<name>Air North Charter - Canada</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>IW</code>
+<name>AOM French Airlines</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>NZ</code>
+<name>Air New Zealand</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>J6</code>
+<name>AVCOM</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>2D</code>
+<name>Aero VIP</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>6V</code>
+<name>Air Vegas</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>XM</code>
+<name>Alitalia Express</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>OE</code>
+<name>Asia Overnight Express</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>GV</code>
+<name>Aero Flight</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>JW</code>
+<name>Arrow Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>W3</code>
+<name>Arik Air</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>2B</code>
+<name>Aerocondor</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>4C</code>
+<name>Aires</name>
+<country>S.A.</country>
+</RECORD>
+<RECORD>
+<code>AR</code>
+<name>Aerolineas Argentinas</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>QN</code>
+<name>Air Armenia</name>
+<country>Armenia</country>
+</RECORD>
+<RECORD>
+<code>AS</code>
+<name>Alaska Airlines</name>
+<country>ALASKA</country>
+</RECORD>
+<RECORD>
+<code>4D</code>
+<name>Air Sinai</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>PL</code>
+<name>Airstars</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>EV</code>
+<name>Atlantic Southeast Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OB</code>
+<name>Astrakhan Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>TC</code>
+<name>Air Tanzania</name>
+<country>Tanzania</country>
+</RECORD>
+<RECORD>
+<code>2J</code>
+<name>Air Burkina</name>
+<country>Burkina Faso</country>
+</RECORD>
+<RECORD>
+<code>HC</code>
+<name>Aero-Tropics Air Services</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>FO</code>
+<name>Airlines Of Tasmania</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>PJ</code>
+<name>Air Saint Pierre</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>8C</code>
+<name>Air Transport International</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OS</code>
+<name>Austrian Airlines</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>IQ</code>
+<name>Augsburg Airways</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>RU</code>
+<name>AirBridge Cargo</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>MO</code>
+<name>Abu Dhabi Amiri Flight</name>
+<country>United Arab Emirates</country>
+</RECORD>
+<RECORD>
+<code>5N</code>
+<name>Aeroflot-Nord</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>GR</code>
+<name>Aurigny Air Services</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>NO</code>
+<name>Aus-Air</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>AU</code>
+<name>Austral Lineas Aereas</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>AO</code>
+<name>Australian Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>AV</code>
+<name>Avianca - Aerovias Nacionales de Colombia</name>
+<country>AVIANCA</country>
+</RECORD>
+<RECORD>
+<code>NF</code>
+<name>Air Vanuatu</name>
+<country>Vanuatu</country>
+</RECORD>
+<RECORD>
+<code>K8</code>
+<name>Airlink Zambia</name>
+<country>Zambia</country>
+</RECORD>
+<RECORD>
+<code>B9</code>
+<name>Air Bangladesh</name>
+<country>Bangladesh</country>
+</RECORD>
+<RECORD>
+<code>DR</code>
+<name>Air Mediterranee</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>7E</code>
+<name>Aeroline GmbH</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>6G</code>
+<name>Air Wales</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>TX</code>
+<name>Air Caraïbes</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>IX</code>
+<name>Air India Express</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>HJ</code>
+<name>Asian Express Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>XT</code>
+<name>Air Exel</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>AK</code>
+<name>AirAsia</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>6V</code>
+<name>Axis Airways</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>3G</code>
+<name>Atlant-Soyuz Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>AZ</code>
+<name>Alitalia</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>ZE</code>
+<name>Arcus-Air Logistic</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>Z8</code>
+<name>Amaszonas</name>
+<country>Bolivia</country>
+</RECORD>
+<RECORD>
+<code>UM</code>
+<name>Air Zimbabwe</name>
+<country>Zimbabwe</country>
+</RECORD>
+<RECORD>
+<code>R7</code>
+<name>Aserca Airlines</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>FV</code>
+<name>Rossiya-Russian Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>RX</code>
+<name>Aviaexpress</name>
+<country>Hungary</country>
+</RECORD>
+<RECORD>
+<code>MQ</code>
+<name>American Eagle Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>FF</code>
+<name>Airshop</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>ML</code>
+<name>African Transport Trading and Investment Company</name>
+<country>Sudan</country>
+</RECORD>
+<RECORD>
+<code>VU</code>
+<name>Air Ivoire</name>
+<country>Ivory Coast</country>
+</RECORD>
+<RECORD>
+<code>BP</code>
+<name>Air Botswana</name>
+<country>Botswana</country>
+</RECORD>
+<RECORD>
+<code>GS</code>
+<name>Air Foyle</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>VT</code>
+<name>Air Tahiti</name>
+<country>French Polynesia</country>
+</RECORD>
+<RECORD>
+<code>3N</code>
+<name>Air Urga</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>VL</code>
+<name>Air VIA</name>
+<country>Bulgaria</country>
+</RECORD>
+<RECORD>
+<code>FK</code>
+<name>Africa West</name>
+<country>Togo</country>
+</RECORD>
+<RECORD>
+<code>G2</code>
+<name>Avirex</name>
+<country>Gabon</country>
+</RECORD>
+<RECORD>
+<code>V8</code>
+<name>ATRAN Cargo Airlines</name>
+<country>Russian Federation</country>
+</RECORD>
+<RECORD>
+<code>VE</code>
+<name>Avensa</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>V5</code>
+<name>Avolar Aerolineas</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>CA</code>
+<name>Air China</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>CA</code>
+<name>Air China Intl</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>Q6</code>
+<name>Aero Condor Peru</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>5F</code>
+<name>Arctic Circle Air Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>QC</code>
+<name>Air Corridor</name>
+<country>Mozambique</country>
+</RECORD>
+<RECORD>
+<code>NV</code>
+<name>Air Central</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>CV</code>
+<name>Air Chathams</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>CW</code>
+<name>Air Marshall Islands</name>
+<country>Marshall Islands</country>
+</RECORD>
+<RECORD>
+<code>ZA</code>
+<name>Access Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>AH</code>
+<name>Air Algerie</name>
+<country>Algeria</country>
+</RECORD>
+<RECORD>
+<code>KI</code>
+<name>Adam Air</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>ER</code>
+<name>Astar Air Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HO</code>
+<name>Antinea Airlines</name>
+<country>Algeria</country>
+</RECORD>
+<RECORD>
+<code>EN</code>
+<name>Air Dolomiti</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>D9</code>
+<name>Aeroflot-Don</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>NM</code>
+<name>Air Madrid</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>EE</code>
+<name>Aero Airlines</name>
+<country>Estonia</country>
+</RECORD>
+<RECORD>
+<code>4F</code>
+<name>Air City</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>EI</code>
+<name>Aer Lingus</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>E8</code>
+<name>Alpi Eagles</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>KY</code>
+<name>Air S</name>
+<country>Air S</country>
+</RECORD>
+<RECORD>
+<code>PC</code>
+<name>Air Fiji</name>
+<country>Fiji</country>
+</RECORD>
+<RECORD>
+<code>OF</code>
+<name>Air Finland</name>
+<country>Finland</country>
+</RECORD>
+<RECORD>
+<code>FJ</code>
+<name>Air Pacific</name>
+<country>Fiji</country>
+</RECORD>
+<RECORD>
+<code>RC</code>
+<name>Atlantic Airways</name>
+<country>Faroe Islands</country>
+</RECORD>
+<RECORD>
+<code>QH</code>
+<name>Bamboo Airways</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>BBA</code>
+<name>Bamboo Airways</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>NY</code>
+<name>Air Iceland</name>
+<country>Iceland</country>
+</RECORD>
+<RECORD>
+<code>2P</code>
+<name>Air Philippines</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>ZX</code>
+<name>Air Georgian</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>2U</code>
+<name>Air Guinee Express</name>
+<country>Guinea</country>
+</RECORD>
+<RECORD>
+<code>0A</code>
+<name>Amber Air</name>
+<country>Lithuania</country>
+</RECORD>
+<RECORD>
+<code>DA</code>
+<name>Air Georgia</name>
+<country>Georgia</country>
+</RECORD>
+<RECORD>
+<code>GL</code>
+<name>Air Greenland</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>LL</code>
+<name>Allegro</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>5Y</code>
+<name>Atlas Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GG</code>
+<name>Air Guyane</name>
+<country>French Guiana</country>
+</RECORD>
+<RECORD>
+<code>H9</code>
+<name>Air D&apos;Ayiti</name>
+<country>Haiti</country>
+</RECORD>
+<RECORD>
+<code>GG</code>
+<name>Air Comores International</name>
+<country>Comoros</country>
+</RECORD>
+<RECORD>
+<code>8C</code>
+<name>Air Horizon</name>
+<country>Togo</country>
+</RECORD>
+<RECORD>
+<code>W9</code>
+<name>Air Bagan</name>
+<country>Myanmar</country>
+</RECORD>
+<RECORD>
+<code>IP</code>
+<name>Atyrau Air Ways</name>
+<country>Kazakhstan</country>
+</RECORD>
+<RECORD>
+<code>QK</code>
+<name>Air Canada Jazz</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>KK</code>
+<name>Atlasjet</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>JS</code>
+<name>Air Koryo</name>
+<country>Democratic People&apos;s Republic of Korea</country>
+</RECORD>
+<RECORD>
+<code>KC</code>
+<name>Air Astana</name>
+<country>Kazakhstan</country>
+</RECORD>
+<RECORD>
+<code>LV</code>
+<name>Albanian Airlines</name>
+<country>Albania</country>
+</RECORD>
+<RECORD>
+<code>D4</code>
+<name>Alidaunia</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>CD</code>
+<name>Alliance Air</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>XL</code>
+<name>Aerolane</name>
+<country>Ecuador</country>
+</RECORD>
+<RECORD>
+<code>A6</code>
+<name>Air Alps Aviation</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>TD</code>
+<name>Atlantis European Airways</name>
+<country>Armenia</country>
+</RECORD>
+<RECORD>
+<code>L8</code>
+<name>Air Luxor GB</name>
+<country>Guinea-Bissau</country>
+</RECORD>
+<RECORD>
+<code>LK</code>
+<name>Air Luxor</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>MK</code>
+<name>Air Mauritius</name>
+<country>Mauritius</country>
+</RECORD>
+<RECORD>
+<code>MD</code>
+<name>Air Madagascar</name>
+<country>Madagascar</country>
+</RECORD>
+<RECORD>
+<code>9U</code>
+<name>Air Moldova</name>
+<country>Moldova</country>
+</RECORD>
+<RECORD>
+<code>M0</code>
+<name>Aero Mongolia</name>
+<country>Mongolia</country>
+</RECORD>
+<RECORD>
+<code>A7</code>
+<name>Air Plus Comet</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>QO</code>
+<name>Aeromexpress</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>MR</code>
+<name>Air Mauritanie</name>
+<country>Mauritania</country>
+</RECORD>
+<RECORD>
+<code>3S</code>
+<name>Aeroland Airways</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>8D</code>
+<name>Astair</name>
+<country>Russian Federation</country>
+</RECORD>
+<RECORD>
+<code>F4</code>
+<name>Albarka Air</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>AJ</code>
+<name>Aero Contractors</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>8Y</code>
+<name>Air Burundi</name>
+<country>Burundi</country>
+</RECORD>
+<RECORD>
+<code>OT</code>
+<name>Aeropelican Air Services</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>AD</code>
+<name>Air Paradise International</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>QD</code>
+<name>Air Class Lineas Aereas</name>
+<country>Uruguay</country>
+</RECORD>
+<RECORD>
+<code>QS</code>
+<name>African Safari Airways</name>
+<country>Kenya</country>
+</RECORD>
+<RECORD>
+<code>4Y</code>
+<name>Airbus France</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>MC</code>
+<name>Air Mobility Command</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RE</code>
+<name>Aer Arann</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>UU</code>
+<name>Air Austral</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>6K</code>
+<name>Asian Spirit</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>RK</code>
+<name>Air Afrique</name>
+<country>Ivory Coast</country>
+</RECORD>
+<RECORD>
+<code>A5</code>
+<name>Airlinair</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>QL</code>
+<name>Aero Lanka</name>
+<country>Sri Lanka</country>
+</RECORD>
+<RECORD>
+<code>MV</code>
+<name>Armenian International Airways</name>
+<country>Armenia</country>
+</RECORD>
+<RECORD>
+<code>20</code>
+<name>Air Salone</name>
+<country>Sierra Leone</country>
+</RECORD>
+<RECORD>
+<code>U8</code>
+<name>Armavia</name>
+<country>Armenia</country>
+</RECORD>
+<RECORD>
+<code>BQ</code>
+<name>Aeromar</name>
+<country>Dominican Republic</country>
+</RECORD>
+<RECORD>
+<code>P5</code>
+<name>AeroRep</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>BF</code>
+<name>Aero-Service</name>
+<country>Republic of the Congo</country>
+</RECORD>
+<RECORD>
+<code>5L</code>
+<name>Aerosur</name>
+<country>Bolivia</country>
+</RECORD>
+<RECORD>
+<code>EX</code>
+<name>Air Santo Domingo</name>
+<country>Dominican Republic</country>
+</RECORD>
+<RECORD>
+<code>JR</code>
+<name>Aero California</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>Z3</code>
+<name>Avient Aviation</name>
+<country>Zimbabwe</country>
+</RECORD>
+<RECORD>
+<code>M3</code>
+<name>Air Service</name>
+<country>Macedonia</country>
+</RECORD>
+<RECORD>
+<code>GM</code>
+<name>Air Slovakia</name>
+<country>Slovakia</country>
+</RECORD>
+<RECORD>
+<code>R3</code>
+<name>Aircompany Yakutia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>VW</code>
+<name>Aeromar</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>JY</code>
+<name>Air Turks and Caicos</name>
+<country>Turks and Caicos Islands</country>
+</RECORD>
+<RECORD>
+<code>OR</code>
+<name>Arkefly</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>CG</code>
+<name>Airlines PNG</name>
+<country>Papua New Guinea</country>
+</RECORD>
+<RECORD>
+<code>TY</code>
+<name>Air Cal</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>FL</code>
+<name>AirTran Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>TS</code>
+<name>Air Transat</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>EC</code>
+<name>Avialeasing Aviation Company</name>
+<country>Uzbekistan</country>
+</RECORD>
+<RECORD>
+<code>VO</code>
+<name>Austrian Arrows</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>DW</code>
+<name>Aero-Charter Ukraine</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>6U</code>
+<name>Air Ukraine</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>2K</code>
+<name>Aerolineas Galapagos (Aerogal)</name>
+<country>Ecuador</country>
+</RECORD>
+<RECORD>
+<code>6R</code>
+<name>Alrosa Mirny Air Enterprise</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>8Q</code>
+<name>Baker Aviation</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>BA</code>
+<name>British Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>BG</code>
+<name>Biman Bangladesh Airlines</name>
+<country>Bangladesh</country>
+</RECORD>
+<RECORD>
+<code>BF</code>
+<name>Bluebird Cargo</name>
+<country>Iceland</country>
+</RECORD>
+<RECORD>
+<code>B4</code>
+<name>BACH Flugbetriebsges</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>BZ</code>
+<name>Blue Dart Aviation</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>JA</code>
+<name>B&amp;H Airlines</name>
+<country>Bosnia and Herzegovina</country>
+</RECORD>
+<RECORD>
+<code>J4</code>
+<name>Buffalo Airways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>A8</code>
+<name>Benin Golf Air</name>
+<country>Benin</country>
+</RECORD>
+<RECORD>
+<code>4T</code>
+<name>Belair Airlines</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>UP</code>
+<name>Bahamasair</name>
+<country>Bahamas</country>
+</RECORD>
+<RECORD>
+<code>E6</code>
+<name>Bringer Air Cargo Taxi Aereo</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>LZ</code>
+<name>Balkan Bulgarian Airlines</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>TH</code>
+<name>BA Connect</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>BS</code>
+<name>British International Helicopters</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>B4</code>
+<name>Bankair</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PG</code>
+<name>Bangkok Airways</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>KF</code>
+<name>Blue1</name>
+<country>Finland</country>
+</RECORD>
+<RECORD>
+<code>JV</code>
+<name>Bearskin Lake Air Service</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>B3</code>
+<name>Bellview Airlines</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>BD</code>
+<name>bmi</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>WW</code>
+<name>bmibaby</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>CH</code>
+<name>Bemidji Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>5Z</code>
+<name>Bismillah Airlines</name>
+<country>Bangladesh</country>
+</RECORD>
+<RECORD>
+<code>BO</code>
+<name>Bouraq Indonesia Airlines</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>BV</code>
+<name>Blue Panorama Airlines</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>7R</code>
+<name>BRA-Transportes Aereos</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>8E</code>
+<name>Bering Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>B2</code>
+<name>Belavia Belarusian Airlines</name>
+<country>Belarus</country>
+</RECORD>
+<RECORD>
+<code>K6</code>
+<name>Bravo Air Congo</name>
+<country>Democratic Republic of the Congo</country>
+</RECORD>
+<RECORD>
+<code>BN</code>
+<name>Braniff International Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GQ</code>
+<name>Big Sky Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>V9</code>
+<name>BAL Bashkirian Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>7P</code>
+<name>Metro Batavia</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>J8</code>
+<name>Berjaya Air</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>QW</code>
+<name>Blue Wings</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>8W</code>
+<name>BAX Global</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>BM</code>
+<name>Bayu Indonesia Air</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>DB</code>
+<name>Brit Air</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>E9</code>
+<name>Boston-Maine Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>SN</code>
+<name>Brussels Airlines</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>NT</code>
+<name>Binter Canarias</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>0B</code>
+<name>Blue Air</name>
+<country>Romania</country>
+</RECORD>
+<RECORD>
+<code>KJ</code>
+<name>British Mediterranean Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>FB</code>
+<name>Bulgaria Air</name>
+<country>Bulgaria</country>
+</RECORD>
+<RECORD>
+<code>8N</code>
+<name>Barents AirLink</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>5C</code>
+<name>CAL Cargo Air Lines</name>
+<country>Israel</country>
+</RECORD>
+<RECORD>
+<code>AW</code>
+<name>CHC Airways</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>XG</code>
+<name>Calima Aviacion</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>MO</code>
+<name>Calm Air</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>R9</code>
+<name>Camai Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>UY</code>
+<name>Cameroon Airlines</name>
+<country>Cameroon</country>
+</RECORD>
+<RECORD>
+<code>C6</code>
+<name>CanJet</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>CP</code>
+<name>Canadian Airlines</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>5T</code>
+<name>Canadian North</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>W2</code>
+<name>Canadian Western Airlines</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>9K</code>
+<name>Cape Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PT</code>
+<name>Capital Cargo International Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GG</code>
+<name>Cargo 360</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>2G</code>
+<name>Cargoitalia</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>W8</code>
+<name>Cargojet Airways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>CV</code>
+<name>Cargolux</name>
+<country>Luxembourg</country>
+</RECORD>
+<RECORD>
+<code>BW</code>
+<name>Caribbean Airlines</name>
+<country>Trinidad and Tobago</country>
+</RECORD>
+<RECORD>
+<code>8B</code>
+<name>Caribbean Star Airlines</name>
+<country>Antigua and Barbuda</country>
+</RECORD>
+<RECORD>
+<code>V3</code>
+<name>Carpatair</name>
+<country>Romania</country>
+</RECORD>
+<RECORD>
+<code>RV</code>
+<name>Caspian Airlines</name>
+<country>Iran</country>
+</RECORD>
+<RECORD>
+<code>CX</code>
+<name>Cathay Pacific Airways</name>
+<country>Hong Kong SAR of China</country>
+</RECORD>
+<RECORD>
+<code>KX</code>
+<name>Cayman Airways</name>
+<country>Cayman Islands</country>
+</RECORD>
+<RECORD>
+<code>5J</code>
+<name>Cebu Pacific</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>7N</code>
+<name>Centavia</name>
+<country>Serbia</country>
+</RECORD>
+<RECORD>
+<code>C0</code>
+<name>Centralwings</name>
+<country>Poland</country>
+</RECORD>
+<RECORD>
+<code>J7</code>
+<name>Centre-Avia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>WE</code>
+<name>Centurion Air Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OP</code>
+<name>Chalk&apos;s Ocean Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>MG</code>
+<name>Champion Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>2Z</code>
+<name>Changan Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>S8</code>
+<name>Chari Aviation Services</name>
+<country>Chad</country>
+</RECORD>
+<RECORD>
+<code>RP</code>
+<name>Chautauqua Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>C8</code>
+<name>Chicago Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>CI</code>
+<name>China Airlines</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>CK</code>
+<name>China Cargo Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>MU</code>
+<name>China Eastern Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>CJ</code>
+<name>China Northern Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>WH</code>
+<name>China Northwest Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>8Y</code>
+<name>China Postal Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>CZ</code>
+<name>China Southern Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>HR</code>
+<name>China United Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>XO</code>
+<name>China Xinhua Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>3Q</code>
+<name>Yunnan Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>X7</code>
+<name>Chitaavia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>A2</code>
+<name>Cielos Airlines</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>QI</code>
+<name>Cimber Air</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>C9</code>
+<name>Cirrus Airlines</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>CF</code>
+<name>City Airline</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>G3</code>
+<name>City Connexion Airlines</name>
+<country>Burundi</country>
+</RECORD>
+<RECORD>
+<code>WX</code>
+<name>CityJet</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>CJ</code>
+<name>BA CityFlyer</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>CT</code>
+<name>Civil Air Transport</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>6P</code>
+<name>Club Air</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>BX</code>
+<name>Coast Air</name>
+<country>Norway</country>
+</RECORD>
+<RECORD>
+<code>DQ</code>
+<name>Coastal Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>9L</code>
+<name>Colgan Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OH</code>
+<name>Comair</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>MN</code>
+<name>Comair</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>C5</code>
+<name>CommutAir</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>KR</code>
+<name>Comores Airlines</name>
+<country>Comoros</country>
+</RECORD>
+<RECORD>
+<code>GJ</code>
+<name>Compania Mexicargo</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>CP</code>
+<name>Compass Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>DE</code>
+<name>Condor Flugdienst</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>6A</code>
+<name>Consorcio Aviaxsa</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>C3</code>
+<name>Contact Air</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>CO</code>
+<name>Continental Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PC</code>
+<name>Continental Airways</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>CO</code>
+<name>Continental Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>CS</code>
+<name>Continental Micronesia</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>V0</code>
+<name>Conviasa</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>CM</code>
+<name>Copa Airlines</name>
+<country>Panama</country>
+</RECORD>
+<RECORD>
+<code>SS</code>
+<name>Corsairfly</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>XK</code>
+<name>Corse-Mediterranee</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>F5</code>
+<name>Cosmic Air</name>
+<country>Nepal</country>
+</RECORD>
+<RECORD>
+<code>OU</code>
+<name>Croatia Airlines</name>
+<country>Croatia</country>
+</RECORD>
+<RECORD>
+<code>QE</code>
+<name>Crossair Europe</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>CU</code>
+<name>Cubana de Aviación</name>
+<country>Cuba</country>
+</RECORD>
+<RECORD>
+<code>CY</code>
+<name>Cyprus Airways</name>
+<country>Cyprus</country>
+</RECORD>
+<RECORD>
+<code>YK</code>
+<name>Cyprus Turkish Airlines</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>OK</code>
+<name>CSA Czech Airlines</name>
+<country>Czech Republic</country>
+</RECORD>
+<RECORD>
+<code>WD</code>
+<name>DAS Air Cargo</name>
+<country>Uganda</country>
+</RECORD>
+<RECORD>
+<code>DX</code>
+<name>DAT Danish Air Transport</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>ES</code>
+<name>DHL International</name>
+<country>Bahrain</country>
+</RECORD>
+<RECORD>
+<code>L3</code>
+<name>DHL de Guatemala</name>
+<country>Guatemala</country>
+</RECORD>
+<RECORD>
+<code>D3</code>
+<name>Daallo Airlines</name>
+<country>Djibouti</country>
+</RECORD>
+<RECORD>
+<code>N2</code>
+<name>Dagestan Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>H8</code>
+<name>Dalavia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>0D</code>
+<name>Darwin Airline</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>D5</code>
+<name>Dauair</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>DL</code>
+<name>Delta Air Lines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>DL</code>
+<name>Delta Air Lines Inc</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>2A</code>
+<name>Deutsche Bahn</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>1I</code>
+<name>Deutsche Rettungsflugwacht</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>D7</code>
+<name>Dinar</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>AW</code>
+<name>Dirgantara Air Service</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>DH</code>
+<name>Discovery Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>D8</code>
+<name>Djibouti Airlines</name>
+<country>Djibouti</country>
+</RECORD>
+<RECORD>
+<code>DO</code>
+<name>Dominicana de Aviaci</name>
+<country>Dominican Republic</country>
+</RECORD>
+<RECORD>
+<code>E3</code>
+<name>Domodedovo Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>5D</code>
+<name>DonbassAero</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>KA</code>
+<name>Dragonair</name>
+<country>DRAGON</country>
+</RECORD>
+<RECORD>
+<code>KB</code>
+<name>Druk Air</name>
+<country>Bhutan</country>
+</RECORD>
+<RECORD>
+<code>DI</code>
+<name>dba</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>1C</code>
+<name>Electronic Data Systems</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>VE</code>
+<name>EUjet</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>BR</code>
+<name>Eva Airways</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>H7</code>
+<name>Eagle Air</name>
+<country>Uganda</country>
+</RECORD>
+<RECORD>
+<code>QU</code>
+<name>East African</name>
+<country>Uganda</country>
+</RECORD>
+<RECORD>
+<code>S9</code>
+<name>East African Safari Air</name>
+<country>Kenya</country>
+</RECORD>
+<RECORD>
+<code>T3</code>
+<name>Eastern Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>DK</code>
+<name>Eastland Air</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>W9</code>
+<name>Eastwind Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>WK</code>
+<name>Edelweiss Air</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>MS</code>
+<name>Egyptair</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>LY</code>
+<name>El Al Israel Airlines</name>
+<country>Israel</country>
+</RECORD>
+<RECORD>
+<code>UZ</code>
+<name>El-Buraq Air Transport</name>
+<country>Libya</country>
+</RECORD>
+<RECORD>
+<code>EK</code>
+<name>Emirates Airlines</name>
+<country>United Arab Emirates</country>
+</RECORD>
+<RECORD>
+<code>EM</code>
+<name>Empire Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>EU</code>
+<name>Empresa Ecuatoriana De Aviacion</name>
+<country>Ecuador</country>
+</RECORD>
+<RECORD>
+<code>G8</code>
+<name>Enkor JSC</name>
+<country>Russia]]</country>
+</RECORD>
+<RECORD>
+<code>E0</code>
+<name>Eos Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>B8</code>
+<name>Eritrean Airlines</name>
+<country>Eritrea</country>
+</RECORD>
+<RECORD>
+<code>E7</code>
+<name>Estafeta Carga Aerea</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>OV</code>
+<name>Estonian Air</name>
+<country>Estonia</country>
+</RECORD>
+<RECORD>
+<code>ET</code>
+<name>Ethiopian Airlines</name>
+<country>Ethiopia</country>
+</RECORD>
+<RECORD>
+<code>EY</code>
+<name>Etihad Airways</name>
+<country>United Arab Emirates</country>
+</RECORD>
+<RECORD>
+<code>RZ</code>
+<name>Euro Exec Express</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>MM</code>
+<name>EuroAtlantic Airways</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>UI</code>
+<name>Eurocypria Airlines</name>
+<country>Cyprus</country>
+</RECORD>
+<RECORD>
+<code>GJ</code>
+<name>Eurofly Service</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>K2</code>
+<name>Eurolot</name>
+<country>Poland</country>
+</RECORD>
+<RECORD>
+<code>3W</code>
+<name>Euromanx Airways</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>EA</code>
+<name>European Air Express</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>QY</code>
+<name>European Air Transport</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>E7</code>
+<name>European Aviation Air Charter</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>EW</code>
+<name>Eurowings</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>EZ</code>
+<name>Evergreen International Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>JN</code>
+<name>Excel Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>MB</code>
+<name>Execair Aviation</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>OW</code>
+<name>Executive Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>8D</code>
+<name>Expo Aviation</name>
+<country>Sri Lanka</country>
+</RECORD>
+<RECORD>
+<code>EO</code>
+<name>Express One International</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>XE</code>
+<name>ExpressJet</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>U2</code>
+<name>easyJet</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>IH</code>
+<name>Falcon Aviation</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>EF</code>
+<name>Far Eastern Air Transport</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>F6</code>
+<name>Faroejet</name>
+<country>Faroe Islands</country>
+</RECORD>
+<RECORD>
+<code>F3</code>
+<name>Faso Airways</name>
+<country>Burkina Faso</country>
+</RECORD>
+<RECORD>
+<code>FX</code>
+<name>Federal Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>N8</code>
+<name>Fika Salaama Airlines</name>
+<country>Uganda</country>
+</RECORD>
+<RECORD>
+<code>4S</code>
+<name>Finalair Congo</name>
+<country>Republic of the Congo</country>
+</RECORD>
+<RECORD>
+<code>AY</code>
+<name>Finnair</name>
+<country>Finland</country>
+</RECORD>
+<RECORD>
+<code>FC</code>
+<name>Finncomm Airlines</name>
+<country>Finland</country>
+</RECORD>
+<RECORD>
+<code>FY</code>
+<name>Firefly</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>7F</code>
+<name>First Air</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>DP</code>
+<name>First Choice Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>8F</code>
+<name>Fischer Air</name>
+<country>Czech Republic</country>
+</RECORD>
+<RECORD>
+<code>B5</code>
+<name>Flightline</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>PA</code>
+<name>Florida Coastal Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RF</code>
+<name>Florida West International Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>F2</code>
+<name>Fly Air</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>SH</code>
+<name>Fly Me Sweden</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>D7</code>
+<name>AirAsia X</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>TE</code>
+<name>FlyLal</name>
+<country>Lithuania</country>
+</RECORD>
+<RECORD>
+<code>LF</code>
+<name>FlyNordic</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>F7</code>
+<name>Flybaboo</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>BE</code>
+<name>Flybe</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>B4</code>
+<name>Flyglobespan</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>VY</code>
+<name>Formosa Airlines</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>BN</code>
+<name>Forward Air International Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HK</code>
+<name>Four Star Aviation / Four Star Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>FP</code>
+<name>Freedom Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>F9</code>
+<name>Frontier Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>2F</code>
+<name>Frontier Flying Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>FH</code>
+<name>Futura International Airways</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>GT</code>
+<name>GB Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>7O</code>
+<name>Galaxy Air</name>
+<country>Kyrgyzstan</country>
+</RECORD>
+<RECORD>
+<code>1G</code>
+<name>Galileo International</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GC</code>
+<name>Gambia International Airlines</name>
+<country>Gambia</country>
+</RECORD>
+<RECORD>
+<code>G7</code>
+<name>Gandalf Airlines</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>GA</code>
+<name>Garuda Indonesia</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>4G</code>
+<name>Gazpromavia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>GR</code>
+<name>Gemini Air Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>A9</code>
+<name>Georgian Airways</name>
+<country>Georgia</country>
+</RECORD>
+<RECORD>
+<code>QB</code>
+<name>Georgian National Airlines</name>
+<country>Georgia</country>
+</RECORD>
+<RECORD>
+<code>ST</code>
+<name>Germania</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>4U</code>
+<name>Germanwings</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>GP</code>
+<name>Gestair</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>G0</code>
+<name>Ghana International Airlines</name>
+<country>Ghana</country>
+</RECORD>
+<RECORD>
+<code>G8</code>
+<name>Go Air</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>GK</code>
+<name>Go One Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>G7</code>
+<name>GoJet Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>G3</code>
+<name>Gol Transportes Aéreos</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>DC</code>
+<name>Golden Air</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>G1</code>
+<name>Gorkha Airlines</name>
+<country>Nepal</country>
+</RECORD>
+<RECORD>
+<code>GS</code>
+<name>Grant Aviation</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>ZK</code>
+<name>Great Lakes Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>IJ</code>
+<name>Great Wall Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>TA</code>
+<name>Grupo TACA</name>
+<country>Costa Rica</country>
+</RECORD>
+<RECORD>
+<code>G6</code>
+<name>Guine Bissaur Airlines</name>
+<country>Guinea-Bissau</country>
+</RECORD>
+<RECORD>
+<code>J9</code>
+<name>Guinee Airlines</name>
+<country>Guinea</country>
+</RECORD>
+<RECORD>
+<code>G8</code>
+<name>Gujarat Airways</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>GF</code>
+<name>Gulf Air Bahrain</name>
+<country>Bahrain</country>
+</RECORD>
+<RECORD>
+<code>GY</code>
+<name>Guyana Airways 2000</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>H6</code>
+<name>Hageland Aviation Services</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HR</code>
+<name>Hahn Air</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>HU</code>
+<name>Hainan Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>1R</code>
+<name>Hainan Phoenix Information Systems</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>2T</code>
+<name>Haiti Ambassador Airlines</name>
+<country>Haiti</country>
+</RECORD>
+<RECORD>
+<code>4R</code>
+<name>Hamburg International</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>X3</code>
+<name>TUIfly</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>HF</code>
+<name>Hapagfly</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>HB</code>
+<name>Harbor Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HQ</code>
+<name>Harmony Airways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>HA</code>
+<name>Hawaiian Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HP</code>
+<name>Hawaiian Pacific Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>BH</code>
+<name>Hawkair</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>HN</code>
+<name>Heavylift Cargo Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>8H</code>
+<name>Heli France</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>JB</code>
+<name>Helijet</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>ZU</code>
+<name>Helios Airways</name>
+<country>Cyprus</country>
+</RECORD>
+<RECORD>
+<code>T4</code>
+<name>Hellas Jet</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>HW</code>
+<name>Hello</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>2L</code>
+<name>Helvetic Airways</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>DU</code>
+<name>Hemus Air</name>
+<country>Bulgaria</country>
+</RECORD>
+<RECORD>
+<code>EO</code>
+<name>Hewa Bora Airways</name>
+<country>Democratic Republic of the Congo</country>
+</RECORD>
+<RECORD>
+<code>UD</code>
+<name>Hex&apos;Air</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>5K</code>
+<name>Hi Fly</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>HD</code>
+<name>Hokkaido International Airlines</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>H5</code>
+<name>Hola Airlines</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>HX</code>
+<name>Hong Kong Airlines</name>
+<country>Hong Kong SAR of China</country>
+</RECORD>
+<RECORD>
+<code>UO</code>
+<name>Hong Kong Express Airways</name>
+<country>Hong Kong SAR of China</country>
+</RECORD>
+<RECORD>
+<code>HH</code>
+<name>Hope Air</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>QX</code>
+<name>Horizon Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>BN</code>
+<name>Horizon Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>H4</code>
+<name>Héli Sécurité Helicopter Airlines</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>II</code>
+<name>IBC Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>C3</code>
+<name>ICAR Airlines</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>1F</code>
+<name>INFINI Travel Information</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>1U</code>
+<name>ITA Software</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>IB</code>
+<name>Iberia Airlines</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>TY</code>
+<name>Iberworld</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>FW</code>
+<name>Ibex Airlines</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>FI</code>
+<name>Icelandair</name>
+<country>Iceland</country>
+</RECORD>
+<RECORD>
+<code>IK</code>
+<name>Imair Airlines</name>
+<country>Azerbaijan</country>
+</RECORD>
+<RECORD>
+<code>DH</code>
+<name>Independence Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>6E</code>
+<name>IndiGo Airlines</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>IC</code>
+<name>Indian Airlines</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>I9</code>
+<name>Indigo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>QZ</code>
+<name>Indonesia AirAsia</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>IO</code>
+<name>Indonesian Airlines</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>IJ</code>
+<name>InteliJet Airways</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>H4</code>
+<name>Inter Islands Airlines</name>
+<country>Cape Verde</country>
+</RECORD>
+<RECORD>
+<code>D6</code>
+<name>Interair South Africa</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>ZA</code>
+<name>Interavia Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>RS</code>
+<name>Intercontinental de Aviaci</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>ID</code>
+<name>Interlink Airlines</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>6I</code>
+<name>International Business Air</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>3L</code>
+<name>Intersky</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>I4</code>
+<name>Interstate Airline</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>IR</code>
+<name>Iran Air</name>
+<country>Iran</country>
+</RECORD>
+<RECORD>
+<code>EP</code>
+<name>Iran Aseman Airlines</name>
+<country>Iran</country>
+</RECORD>
+<RECORD>
+<code>IA</code>
+<name>Iraqi Airways</name>
+<country>Iraq</country>
+</RECORD>
+<RECORD>
+<code>IS</code>
+<name>Island Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>2S</code>
+<name>Island Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>8L</code>
+<name>Cargo Plus Aviation</name>
+<country>United Arab Emirates</country>
+</RECORD>
+<RECORD>
+<code>CN</code>
+<name>Islands Nationair</name>
+<country>Papua New Guinea</country>
+</RECORD>
+<RECORD>
+<code>IF</code>
+<name>Islas Airways</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>WC</code>
+<name>Islena De Inversiones</name>
+<country>Honduras</country>
+</RECORD>
+<RECORD>
+<code>6H</code>
+<name>Israir</name>
+<country>Israel</country>
+</RECORD>
+<RECORD>
+<code>9X</code>
+<name>Itali Airlines</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>GI</code>
+<name>Itek Air</name>
+<country>Kyrgyzstan</country>
+</RECORD>
+<RECORD>
+<code>H9</code>
+<name>Izair</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>JC</code>
+<name>JAL Express</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>JO</code>
+<name>JALways</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>1M</code>
+<name>JSC Transport Automated Information Systems</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>JL</code>
+<name>Japan Airlines</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>JL</code>
+<name>Japan Airlines Co Ltd</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>JL</code>
+<name>Japan Airlines Domestic</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>EG</code>
+<name>Japan Asia Airways</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>NU</code>
+<name>Japan Transocean Air</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>JU</code>
+<name>Jat Airways</name>
+<country>Serbia</country>
+</RECORD>
+<RECORD>
+<code>J9</code>
+<name>Jazeera Airways</name>
+<country>Kuwait</country>
+</RECORD>
+<RECORD>
+<code>7C</code>
+<name>Jeju Air</name>
+<country>Republic of Korea</country>
+</RECORD>
+<RECORD>
+<code>9W</code>
+<name>Jet Airways</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>QJ</code>
+<name>Jet Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>0J</code>
+<name>Jetclub</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>3K</code>
+<name>Jetstar Asia Airways</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>LS</code>
+<name>Jet2.com</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>8J</code>
+<name>Jet4You</name>
+<country>Morocco</country>
+</RECORD>
+<RECORD>
+<code>B6</code>
+<name>JetBlue Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>JF</code>
+<name>Jetairfly</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>0J</code>
+<name>Jetclub</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>SG</code>
+<name>JetsGo</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>JQ</code>
+<name>Jetstar Airways</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>JX</code>
+<name>Jett8 Airlines Cargo</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>GX</code>
+<name>Jetx Airlines</name>
+<country>Iceland</country>
+</RECORD>
+<RECORD>
+<code>R5</code>
+<name>Jordan Aviation</name>
+<country>Jordan</country>
+</RECORD>
+<RECORD>
+<code>HO</code>
+<name>Juneyao Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>KD</code>
+<name>KD Avia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>WA</code>
+<name>KLM Cityhopper</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>KL</code>
+<name>Klm Royal Dutch Airlines</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>N2</code>
+<name>Kabo Air</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>K4</code>
+<name>Kalitta Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RQ</code>
+<name>Kam Air</name>
+<country>Afghanistan</country>
+</RECORD>
+<RECORD>
+<code>E2</code>
+<name>Kampuchea Airlines</name>
+<country>Cambodia</country>
+</RECORD>
+<RECORD>
+<code>V2</code>
+<name>Karat</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>KV</code>
+<name>Kavminvodyavia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>M5</code>
+<name>Kenmore Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>KQ</code>
+<name>Kenya Airways</name>
+<country>Kenya</country>
+</RECORD>
+<RECORD>
+<code>BZ</code>
+<name>Keystone Air Services</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>IT</code>
+<name>Kingfisher Airlines</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>Y9</code>
+<name>Kish Air</name>
+<country>Iran</country>
+</RECORD>
+<RECORD>
+<code>KP</code>
+<name>Kiwi International Air Lines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>7K</code>
+<name>Kogalymavia Air Company</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>8J</code>
+<name>Komiinteravia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>KE</code>
+<name>Korean Air</name>
+<country>Republic of Korea</country>
+</RECORD>
+<RECORD>
+<code>7B</code>
+<name>Krasnojarsky Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>K9</code>
+<name>Krylo Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>GW</code>
+<name>Kuban Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>VD</code>
+<name>Kunpeng Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>KU</code>
+<name>Kuwait Airways</name>
+<country>Kuwait</country>
+</RECORD>
+<RECORD>
+<code>GO</code>
+<name>Kuzu Airlines Cargo</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>N5</code>
+<name>Kyrgyz Airlines</name>
+<country>Kyrgyzstan</country>
+</RECORD>
+<RECORD>
+<code>R8</code>
+<name>Kyrgyzstan Airlines</name>
+<country>Kyrgyzstan</country>
+</RECORD>
+<RECORD>
+<code>KY</code>
+<name>Kibris T</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>JF</code>
+<name>L.A.B. Flying Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>LR</code>
+<name>LACSA</name>
+<country>Costa Rica</country>
+</RECORD>
+<RECORD>
+<code>KG</code>
+<name>LAI - Linea Aerea IAACA</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>LA</code>
+<name>LAN Airlines</name>
+<country>Chile</country>
+</RECORD>
+<RECORD>
+<code>4M</code>
+<name>LAN Argentina</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>LU</code>
+<name>LAN Express</name>
+<country>Chile</country>
+</RECORD>
+<RECORD>
+<code>LP</code>
+<name>LAN Peru</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>LO</code>
+<name>LOT Polish Airlines</name>
+<country>Poland</country>
+</RECORD>
+<RECORD>
+<code>XO</code>
+<name>LTE International Airways</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>L3</code>
+<name>LTU Austria</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>LT</code>
+<name>LTU International</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>N6</code>
+<name>Lagun Air</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>IK</code>
+<name>Lankair</name>
+<country>Sri Lanka</country>
+</RECORD>
+<RECORD>
+<code>QV</code>
+<name>Lao Airlines</name>
+<country>Lao Peoples Democratic Republic</country>
+</RECORD>
+<RECORD>
+<code>L7</code>
+<name>Laoag International Airlines</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>NG</code>
+<name>Lauda Air</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>LQ</code>
+<name>Lebanese Air Transport</name>
+<country>Lebanon</country>
+</RECORD>
+<RECORD>
+<code>LI</code>
+<name>Leeward Islands Air Transport</name>
+<country>Antigua and Barbuda</country>
+</RECORD>
+<RECORD>
+<code>LN</code>
+<name>Libyan Arab Airlines</name>
+<country>Libya</country>
+</RECORD>
+<RECORD>
+<code>L7</code>
+<name>Linea Aerea SAPSA</name>
+<country>Chile</country>
+</RECORD>
+<RECORD>
+<code>8z</code>
+<name>Linea Aerea de Servicio Ejecutivo Regional</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>LD</code>
+<name>Linea Turistica Aerotuy</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>ZE</code>
+<name>Lineas Aereas Azteca</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>LM</code>
+<name>Linhas A</name>
+<country>Mozambique</country>
+</RECORD>
+<RECORD>
+<code>JT</code>
+<name>Lion Mentari Airlines</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>LM</code>
+<name>Livingston</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>LB</code>
+<name>Lloyd Aereo Boliviano</name>
+<country>Bolivia</country>
+</RECORD>
+<RECORD>
+<code>HE</code>
+<name>Luftfahrtgesellschaft Walter</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>LH</code>
+<name>Lufthansa</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>LH</code>
+<name>Lufthansa Cargo</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>CL</code>
+<name>Lufthansa CityLine</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>L1</code>
+<name>Lufthansa Systems</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>DV</code>
+<name>Lufttaxi Fluggesellschaft</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>L5</code>
+<name>Lufttransport</name>
+<country>Norway</country>
+</RECORD>
+<RECORD>
+<code>LG</code>
+<name>Luxair</name>
+<country>Luxembourg</country>
+</RECORD>
+<RECORD>
+<code>5V</code>
+<name>Lviv Airlines</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>L2</code>
+<name>Lynden Air Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>MJ</code>
+<name>L</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>M7</code>
+<name>MasAir</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>IN</code>
+<name>MAT Macedonian Airlines</name>
+<country>Macedonia</country>
+</RECORD>
+<RECORD>
+<code>OM</code>
+<name>MIAT Mongolian Airlines</name>
+<country>Mongolia</country>
+</RECORD>
+<RECORD>
+<code>MB</code>
+<name>MNG Airlines</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>CC</code>
+<name>Macair Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>DM</code>
+<name>Maersk</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>W5</code>
+<name>Mahan Air</name>
+<country>Iran</country>
+</RECORD>
+<RECORD>
+<code>M2</code>
+<name>Mahfooz Aviation</name>
+<country>Gambia</country>
+</RECORD>
+<RECORD>
+<code>MH</code>
+<name>Malaysia Airlines</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>TF</code>
+<name>Malmö Aviation</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>R5</code>
+<name>Malta Air Charter</name>
+<country>Malta</country>
+</RECORD>
+<RECORD>
+<code>MA</code>
+<name>Malév</name>
+<country>Hungary</country>
+</RECORD>
+<RECORD>
+<code>RI</code>
+<name>Mandala Airlines</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>AE</code>
+<name>Mandarin Airlines</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>JE</code>
+<name>Mango</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>6V</code>
+<name>Mars RK</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>M7</code>
+<name>Marsland Aviation</name>
+<country>Sudan</country>
+</RECORD>
+<RECORD>
+<code>MP</code>
+<name>Martinair</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>Q4</code>
+<name>Mastertop Linhas Aereas</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>H5</code>
+<name>Mavial Magadan Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>8M</code>
+<name>Maxair</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>MY</code>
+<name>Maxjet Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>MW</code>
+<name>Maya Island Air</name>
+<country>Belize</country>
+</RECORD>
+<RECORD>
+<code>IM</code>
+<name>Menajet</name>
+<country>Lebanon</country>
+</RECORD>
+<RECORD>
+<code>IG</code>
+<name>Meridiana</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>MZ</code>
+<name>Merpati Nusantara Airlines</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>YV</code>
+<name>Mesa Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>XJ</code>
+<name>Mesaba Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>MX</code>
+<name>Mexicana de Aviaci</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>GL</code>
+<name>Miami Air International</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>ME</code>
+<name>Middle East Airlines</name>
+<country>Lebanon</country>
+</RECORD>
+<RECORD>
+<code>JI</code>
+<name>Midway Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>YX</code>
+<name>Midwest Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>MY</code>
+<name>Midwest Airlines (Egypt)</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>2M</code>
+<name>Moldavian Airlines</name>
+<country>Moldova</country>
+</RECORD>
+<RECORD>
+<code>ZB</code>
+<name>Monarch Airlines</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>8I</code>
+<name>Myway Airlines</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>YM</code>
+<name>Montenegro Airlines</name>
+<country>Montenegro</country>
+</RECORD>
+<RECORD>
+<code>3R</code>
+<name>Moskovia Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>M9</code>
+<name>Motor Sich</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>NM</code>
+<name>Mount Cook Airlines</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>N4</code>
+<name>Mountain Air Company</name>
+<country>Sierra Leone</country>
+</RECORD>
+<RECORD>
+<code>VZ</code>
+<name>MyTravel Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>UB</code>
+<name>Myanma Airways</name>
+<country>Myanmar</country>
+</RECORD>
+<RECORD>
+<code>8M</code>
+<name>Myanmar Airways International</name>
+<country>Myanmar</country>
+</RECORD>
+<RECORD>
+<code>DV</code>
+<name>Nantucket Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>P9</code>
+<name>Nas Air</name>
+<country>Mali</country>
+</RECORD>
+<RECORD>
+<code>UE</code>
+<name>Nasair</name>
+<country>Eritrea</country>
+</RECORD>
+<RECORD>
+<code>N4</code>
+<name>National Airlines</name>
+<country>Chile</country>
+</RECORD>
+<RECORD>
+<code>N7</code>
+<name>National Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>NA</code>
+<name>National Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>9O</code>
+<name>National Airways Cameroon</name>
+<country>Cameroon</country>
+</RECORD>
+<RECORD>
+<code>NC</code>
+<name>National Jet Systems</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>CE</code>
+<name>Nationwide Airlines</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>ON</code>
+<name>Nauru Air Corporation</name>
+<country>Nauru</country>
+</RECORD>
+<RECORD>
+<code>1N</code>
+<name>Navitaire</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RA</code>
+<name>Nepal Airlines</name>
+<country>Nepal</country>
+</RECORD>
+<RECORD>
+<code>NO</code>
+<name>Neos</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>1I</code>
+<name>NetJets</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>EJ</code>
+<name>New England Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>2N</code>
+<name>NextJet</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>HG</code>
+<name>Niki</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>KZ</code>
+<name>Nippon Cargo Airlines</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>DD</code>
+<name>Nok Air</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>JH</code>
+<name>Nordeste Linhas Aereas Regionais</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>6N</code>
+<name>Nordic Regional</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>N9</code>
+<name>North Coast Aviation</name>
+<country>Papua New Guinea</country>
+</RECORD>
+<RECORD>
+<code>M3</code>
+<name>North Flying</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>HW</code>
+<name>North-Wright Airways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>NC</code>
+<name>Northern Air Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>U7</code>
+<name>Northern Dene Airways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>NW</code>
+<name>Northwest Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>FY</code>
+<name>Northwest Regional Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>J3</code>
+<name>Northwestern Air</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>DY</code>
+<name>Norwegian Air Shuttle</name>
+<country>Norway</country>
+</RECORD>
+<RECORD>
+<code>BJ</code>
+<name>Nouvel Air Tunisie</name>
+<country>Tunisia</country>
+</RECORD>
+<RECORD>
+<code>M4</code>
+<name>Nova Airline</name>
+<country>Sudan</country>
+</RECORD>
+<RECORD>
+<code>1I</code>
+<name>Novair</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>N6</code>
+<name>Nuevo Continente</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>XY</code>
+<name>Nas Air</name>
+<country>Saudi Arabia</country>
+</RECORD>
+<RECORD>
+<code>UQ</code>
+<name>O&apos;Connor Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>CR</code>
+<name>OAG</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>O8</code>
+<name>Oasis Hong Kong Airlines</name>
+<country>Hong Kong</country>
+</RECORD>
+<RECORD>
+<code>VC</code>
+<name>Ocean Airlines</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>O6</code>
+<name>Oceanair</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>O2</code>
+<name>Oceanic Airlines</name>
+<country>Guinea</country>
+</RECORD>
+<RECORD>
+<code>OA</code>
+<name>Olympic Airlines</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>WY</code>
+<name>Oman Air</name>
+<country>Oman</country>
+</RECORD>
+<RECORD>
+<code>OY</code>
+<name>Omni Air International</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>N3</code>
+<name>Omskavia Airline</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>8Q</code>
+<name>Onur Air</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>R2</code>
+<name>Orenburg Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>OX</code>
+<name>Orient Thai Airlines</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>QO</code>
+<name>Origin Pacific Airways</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>OL</code>
+<name>Ostfriesische Lufttransport</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>ON</code>
+<name>Our Airline</name>
+<country>Nauru</country>
+</RECORD>
+<RECORD>
+<code>OJ</code>
+<name>Overland Airways</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>OZ</code>
+<name>Ozark Air Lines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>O7</code>
+<name>Ozjet Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>PV</code>
+<name>PAN Air</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>9Q</code>
+<name>PB Air</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>PU</code>
+<name>PLUNA</name>
+<country>Uruguay</country>
+</RECORD>
+<RECORD>
+<code>U4</code>
+<name>PMTair</name>
+<country>Cambodia</country>
+</RECORD>
+<RECORD>
+<code>Y5</code>
+<name>Pace Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>BL</code>
+<name>Pacific Airlines</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>VNP</code>
+<name>Pacific Airlines</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>DJ</code>
+<name>Pacific Blue</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>8P</code>
+<name>Pacific Coastal Airline</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>Q8</code>
+<name>Pacific East Asia Cargo Airlines</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>PS</code>
+<name>Pacific Southwest Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>LW</code>
+<name>Pacific Wings</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GX</code>
+<name>Pacificair</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>PK</code>
+<name>Pakistan International Airlines</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>GP</code>
+<name>Palau Trans Pacific Airline</name>
+<country>Palau</country>
+</RECORD>
+<RECORD>
+<code>PF</code>
+<name>Palestinian Airlines</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>NR</code>
+<name>Pamir Airways</name>
+<country>Afghanistan</country>
+</RECORD>
+<RECORD>
+<code>PA</code>
+<name>Pan American Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PA</code>
+<name>Pan American World Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PQ</code>
+<name>Panafrican Airways</name>
+<country>Ivory Coast</country>
+</RECORD>
+<RECORD>
+<code>P8</code>
+<name>Pantanal Linhas Aéreas</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>I7</code>
+<name>Paramount Airways</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>HP</code>
+<name>Pearl Airways</name>
+<country>Haiti</country>
+</RECORD>
+<RECORD>
+<code>PC</code>
+<name>Pegasus Airlines</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>1I</code>
+<name>Pegasus Hava Tasimaciligi</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>KS</code>
+<name>Peninsula Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>P9</code>
+<name>Perm Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>PR</code>
+<name>Philippine Airlines</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>HP</code>
+<name>Phoenix Airways</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>9R</code>
+<name>Phuket Air</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>PI</code>
+<name>Piedmont Airlines (1948-1989)</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>9E</code>
+<name>Pinnacle Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PO</code>
+<name>Polar Air Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PH</code>
+<name>Polynesian Airlines</name>
+<country>Samoa</country>
+</RECORD>
+<RECORD>
+<code>DJ</code>
+<name>Polynesian Blue</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>1U</code>
+<name>Polyot Sirena</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>PD</code>
+<name>Porter Airlines</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>NI</code>
+<name>Portugalia</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>BK</code>
+<name>Potomac Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>PW</code>
+<name>Precision Air</name>
+<country>Tanzania</country>
+</RECORD>
+<RECORD>
+<code>TO</code>
+<name>President Airlines</name>
+<country>Cambodia</country>
+</RECORD>
+<RECORD>
+<code>FE</code>
+<name>Primaris Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>8Q</code>
+<name>Princess Air</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>8W</code>
+<name>Private Wings Flugcharter</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>P0</code>
+<name>Proflight Commuter Services</name>
+<country>Zambia</country>
+</RECORD>
+<RECORD>
+<code>QF</code>
+<name>Qantas Airways</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>QR</code>
+<name>Qatar Airways</name>
+<country>Qatar</country>
+</RECORD>
+<RECORD>
+<code>R6</code>
+<name>RACSA</name>
+<country>Guatemala</country>
+</RECORD>
+<RECORD>
+<code>1D</code>
+<name>Radixx Solutions International</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>8L</code>
+<name>Redhill Aviation</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>V4</code>
+<name>Reem Air</name>
+<country>Kyrgyzstan</country>
+</RECORD>
+<RECORD>
+<code>FN</code>
+<name>Regional Airlines</name>
+<country>Morocco</country>
+</RECORD>
+<RECORD>
+<code>ZL</code>
+<name>Regional Express</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>3C</code>
+<name>RegionsAir</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>QQ</code>
+<name>Reno Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RW</code>
+<name>Republic Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RH</code>
+<name>Republic Express Airlines</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>C7</code>
+<name>Rico Linhas A</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>E2</code>
+<name>Rio Grande Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>SL</code>
+<name>Rio Sul Servi</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>R4</code>
+<name>Rossiya</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>GZ</code>
+<name>Air Rarotonga</name>
+<country>Cook Islands</country>
+</RECORD>
+<RECORD>
+<code>RR</code>
+<name>Royal Air Force</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>RS</code>
+<name>Royal Air Force of Oman</name>
+<country>Oman</country>
+</RECORD>
+<RECORD>
+<code>AT</code>
+<name>Royal Air Maroc</name>
+<country>Morocco</country>
+</RECORD>
+<RECORD>
+<code>R0</code>
+<name>Royal Airlines</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>V5</code>
+<name>Royal Aruban Airline</name>
+<country>Aruba</country>
+</RECORD>
+<RECORD>
+<code>BI</code>
+<name>Royal Brunei Airlines</name>
+<country>Brunei</country>
+</RECORD>
+<RECORD>
+<code>RJ</code>
+<name>Royal Jordanian</name>
+<country>Jordan</country>
+</RECORD>
+<RECORD>
+<code>RK</code>
+<name>Royal Khmer Airlines</name>
+<country>Cambodia</country>
+</RECORD>
+<RECORD>
+<code>RA</code>
+<name>Royal Nepal Airlines</name>
+<country>Nepal</country>
+</RECORD>
+<RECORD>
+<code>WR</code>
+<name>Royal Tongan Airlines</name>
+<country>Tonga</country>
+</RECORD>
+<RECORD>
+<code>P7</code>
+<name>Russian Sky Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>WB</code>
+<name>Rwandair Express</name>
+<country>Rwanda</country>
+</RECORD>
+<RECORD>
+<code>RD</code>
+<name>Ryan International Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>FR</code>
+<name>Ryanair</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>YS</code>
+<name>Régional</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>S4</code>
+<name>SATA International</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>SA</code>
+<name>South African Airways</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>NL</code>
+<name>Shaheen Air International</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>MM</code>
+<name>SAM Colombia</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>SK</code>
+<name>Scandinavian Airlines System</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>S7</code>
+<name>S7 Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>BB</code>
+<name>Seaborne Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>UL</code>
+<name>SriLankan Airlines</name>
+<country>Sri Lanka</country>
+</RECORD>
+<RECORD>
+<code>SY</code>
+<name>Sun Country Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>G3</code>
+<name>Sky Express</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>SG</code>
+<name>Spicejet</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>I6</code>
+<name>Sky Eyes</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>EH</code>
+<name>SAETA</name>
+<country>Ecuador</country>
+</RECORD>
+<RECORD>
+<code>7G</code>
+<name>Star Flyer</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>FA</code>
+<name>Safair</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>N5</code>
+<name>Skagway Air Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>SP</code>
+<name>SATA Air Acores</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>8S</code>
+<name>Scorpio Aviation</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>SQ</code>
+<name>Singapore Airlines</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>5M</code>
+<name>Sibaviatrans</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>SI</code>
+<name>Skynet Airlines</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>XS</code>
+<name>SITA</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>SJ</code>
+<name>Sriwijaya Air</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>ZS</code>
+<name>Sama Airlines</name>
+<country>Saudi Arabia</country>
+</RECORD>
+<RECORD>
+<code>SQ</code>
+<name>Singapore Airlines Cargo</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>FT</code>
+<name>Siem Reap Airways</name>
+<country>Cambodia</country>
+</RECORD>
+<RECORD>
+<code>SX</code>
+<name>Sky Work Airlines</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>SM</code>
+<name>Swedline Express</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>DG</code>
+<name>South East Asian Airlines</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>VD</code>
+<name>SwedJet Airways</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>5G</code>
+<name>Skyservice Airlines</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>FS</code>
+<name>Servicios de Transportes A</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>SD</code>
+<name>Sudan Airways</name>
+<country>Sudan</country>
+</RECORD>
+<RECORD>
+<code>PI</code>
+<name>Sun Air (Fiji)</name>
+<country>Fiji</country>
+</RECORD>
+<RECORD>
+<code>EZ</code>
+<name>Sun Air of Scandinavia</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>SV</code>
+<name>Saudi Arabian Airlines</name>
+<country>Saudi Arabia</country>
+</RECORD>
+<RECORD>
+<code>WN</code>
+<name>Southwest Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>A4</code>
+<name>Southern Winds Airlines</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>WG</code>
+<name>Sunwing Airlines</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>LX</code>
+<name>Swiss</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>SR</code>
+<name>Swissair</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>WV</code>
+<name>Swe Fly</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>S8</code>
+<name>Shovkoviy Shlyah</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>XQ</code>
+<name>SunExpress</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>RB</code>
+<name>Syrian Arab Airlines</name>
+<country>Syrian Arab Republic</country>
+</RECORD>
+<RECORD>
+<code>AL</code>
+<name>Skywalk Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>ZP</code>
+<name>Silk Way Airlines</name>
+<country>Azerbaijan</country>
+</RECORD>
+<RECORD>
+<code>E5</code>
+<name>Samara Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>SC</code>
+<name>Shandong Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>9S</code>
+<name>Spring Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>3U</code>
+<name>Sichuan Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>FM</code>
+<name>Shanghai Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>ZH</code>
+<name>Shenzhen Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>8C</code>
+<name>Shanxi Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>7L</code>
+<name>Sun D&apos;Or</name>
+<country>Israel</country>
+</RECORD>
+<RECORD>
+<code>NE</code>
+<name>SkyEurope</name>
+<country>Slovakia</country>
+</RECORD>
+<RECORD>
+<code>CQ</code>
+<name>Sunshine Express Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>SO</code>
+<name>Superior Aviation</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>JK</code>
+<name>Spanair</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>2G</code>
+<name>San Juan Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>1Z</code>
+<name>Sabre Pacific</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>1S</code>
+<name>Sabre</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>1I</code>
+<name>Sierra Nevada Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>1H</code>
+<name>Siren-Travel</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>1Q</code>
+<name>Sirena</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>1I</code>
+<name>Sky Trek International Airlines</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>1K</code>
+<name>Southern Cross Distribution</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>1K</code>
+<name>Sutra</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>2C</code>
+<name>SNCF</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>2S</code>
+<name>Star Equatorial Airlines</name>
+<country>Guinea</country>
+</RECORD>
+<RECORD>
+<code>NK</code>
+<name>Spirit Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>9R</code>
+<name>SATENA</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>S0</code>
+<name>Slok Air Gambia</name>
+<country>Gambia</country>
+</RECORD>
+<RECORD>
+<code>SO</code>
+<name>Sosoliso Airlines</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>1I</code>
+<name>Sky Trek International Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>SX</code>
+<name>Skybus Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RU</code>
+<name>SkyKing Turks and Caicos Airways</name>
+<country>Turks and Caicos Islands</country>
+</RECORD>
+<RECORD>
+<code>S3</code>
+<name>Santa Barbara Airlines</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>H2</code>
+<name>Sky Airline</name>
+<country>Chile</country>
+</RECORD>
+<RECORD>
+<code>OO</code>
+<name>SkyWest</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>JZ</code>
+<name>Skyways Express</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>BC</code>
+<name>Skymark Airlines</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>LJ</code>
+<name>Sierra National Airlines</name>
+<country>Sierra Leone</country>
+</RECORD>
+<RECORD>
+<code>MI</code>
+<name>SilkAir</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>6Q</code>
+<name>Slovak Airlines</name>
+<country>Slovakia</country>
+</RECORD>
+<RECORD>
+<code>PY</code>
+<name>Surinam Airways</name>
+<country>Suriname</country>
+</RECORD>
+<RECORD>
+<code>8D</code>
+<name>Servant Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>NB</code>
+<name>Sterling Airlines</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>6J</code>
+<name>Skynet Asia Airways</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>IE</code>
+<name>Solomon Airlines</name>
+<country>Solomon Islands</country>
+</RECORD>
+<RECORD>
+<code>6W</code>
+<name>Saratov Aviation Division</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>HZ</code>
+<name>Sat Airlines</name>
+<country>Kazakhstan</country>
+</RECORD>
+<RECORD>
+<code>S5</code>
+<name>Shuttle America</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>DV</code>
+<name>Scat Air</name>
+<country>Kazakhstan</country>
+</RECORD>
+<RECORD>
+<code>R1</code>
+<name>Sirin</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>S6</code>
+<name>Star Air</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>EQ</code>
+<name>TAME</name>
+<country>Ecuador</country>
+</RECORD>
+<RECORD>
+<code>JJ</code>
+<name>TAM Brazilian Airlines</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>TP</code>
+<name>TAP Portugal</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>TU</code>
+<name>Tunisair</name>
+<country>Tunisia</country>
+</RECORD>
+<RECORD>
+<code>3V</code>
+<name>TNT Airways</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>M7</code>
+<name>Tropical Airways</name>
+<country>Haiti</country>
+</RECORD>
+<RECORD>
+<code>T2</code>
+<name>Thai Air Cargo</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>FQ</code>
+<name>Thomas Cook Airlines</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>MT</code>
+<name>Thomas Cook Airlines</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>TQ</code>
+<name>Tandem Aero</name>
+<country>Moldova</country>
+</RECORD>
+<RECORD>
+<code>L9</code>
+<name>Teamline Air</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>UE</code>
+<name>Transeuropean Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>ZT</code>
+<name>Titan Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>TR</code>
+<name>Tiger Airways</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>TT</code>
+<name>Tiger Airways Australia</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>TG</code>
+<name>Thai Airways Intl Ltd</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>FD</code>
+<name>Thai AirAsia</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>TK</code>
+<name>Turkish Airlines</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>T7</code>
+<name>Twin Jet</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>9I</code>
+<name>Thai Sky Airlines</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>TD</code>
+<name>Tulip Air</name>
+<country>Netherland</country>
+</RECORD>
+<RECORD>
+<code>TL</code>
+<name>Trans Mediterranean Airlines</name>
+<country>Lebanon</country>
+</RECORD>
+<RECORD>
+<code>GY</code>
+<name>Tri-MG Intra Asia Airlines</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>3P</code>
+<name>Tiara Air</name>
+<country>Aruba</country>
+</RECORD>
+<RECORD>
+<code>7T</code>
+<name>Tobruk Air</name>
+<country>Libya</country>
+</RECORD>
+<RECORD>
+<code>TI</code>
+<name>Tol-Air Services</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>BY</code>
+<name>Thomsonfly</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>PM</code>
+<name>Tropic Air</name>
+<country>Belize</country>
+</RECORD>
+<RECORD>
+<code>FF</code>
+<name>Tower Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>QT</code>
+<name>TAMPA</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>GE</code>
+<name>TransAsia Airways</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>HV</code>
+<name>Transavia Holland</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>VR</code>
+<name>TACV</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>T9</code>
+<name>TransMeridian Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>TH</code>
+<name>Transmile Air Services</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>S5</code>
+<name>Trast Aero</name>
+<country>Kyrgyzstan</country>
+</RECORD>
+<RECORD>
+<code>9T</code>
+<name>Transwest Air</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>UN</code>
+<name>Transaero Arlns</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>T9</code>
+<name>Thai Star Airlines</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>T5</code>
+<name>Turkmenistan Airlines</name>
+<country>Turkmenistan</country>
+</RECORD>
+<RECORD>
+<code>UG</code>
+<name>Tuninter</name>
+<country>Tunisia</country>
+</RECORD>
+<RECORD>
+<code>T6</code>
+<name>Tavrey Airlines</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>QS</code>
+<name>Travel Service</name>
+<country>Czech Republic</country>
+</RECORD>
+<RECORD>
+<code>TW</code>
+<name>Trans World Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>AL</code>
+<name>Transaviaexport</name>
+<country>Belarus</country>
+</RECORD>
+<RECORD>
+<code>6B</code>
+<name>TUIfly Nordic</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>DT</code>
+<name>TAAG Angola Airlines</name>
+<country>Angola</country>
+</RECORD>
+<RECORD>
+<code>SF</code>
+<name>Tassili Airlines</name>
+<country>Algeria</country>
+</RECORD>
+<RECORD>
+<code>PZ</code>
+<name>TAM Mercosur</name>
+<country>Paraguay</country>
+</RECORD>
+<RECORD>
+<code>AX</code>
+<name>Trans States Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>1E</code>
+<name>Travelsky Technology</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>2H</code>
+<name>Thalys</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>1L</code>
+<name>Open Skies Consultative Commission</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>RO</code>
+<name>Tarom</name>
+<country>Romania</country>
+</RECORD>
+<RECORD>
+<code>3T</code>
+<name>Turan Air</name>
+<country>Azerbaijan</country>
+</RECORD>
+<RECORD>
+<code>8R</code>
+<name>TRIP Linhas A</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>OF</code>
+<name>Transports et Travaux A</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>U5</code>
+<name>USA3000 Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>UA</code>
+<name>United Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>U2</code>
+<name>United Feeder Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>U7</code>
+<name>USA Jet Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>U6</code>
+<name>Ural Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>UF</code>
+<name>UM Airlines</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>6Z</code>
+<name>Ukrainian Cargo Airways</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>5X</code>
+<name>United Parcel Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>US</code>
+<name>US Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>UT</code>
+<name>UTair Aviation</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>HY</code>
+<name>Uzbekistan Airways</name>
+<country>Uzbekistan</country>
+</RECORD>
+<RECORD>
+<code>PS</code>
+<name>Ukraine International Airlines</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>UH</code>
+<name>US Helicopter Corporation</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>VA</code>
+<name>V Australia Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>VF</code>
+<name>Valuair</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>VC</code>
+<name>Voyageur Airways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>NN</code>
+<name>VIM Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>2R</code>
+<name>VIA Rail Canada</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>VA</code>
+<name>Viasa</name>
+<country>Venezuela</country>
+</RECORD>
+<RECORD>
+<code>Y4</code>
+<name>Volaris</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>VI</code>
+<name>Volga-Dnepr Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>VX</code>
+<name>Virgin America</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>TV</code>
+<name>Virgin Express</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>VK</code>
+<name>Virgin Nigeria Airways</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>VS</code>
+<name>Virgin Atlantic Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>ZG</code>
+<name>Viva Macau</name>
+<country>Macao</country>
+</RECORD>
+<RECORD>
+<code>VE</code>
+<name>Volare Airlines</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>VY</code>
+<name>Vueling Airlines</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>XF</code>
+<name>Vladivostok Air</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>LC</code>
+<name>Varig Log</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>VM</code>
+<name>Viaggio Air</name>
+<country>Bulgaria</country>
+</RECORD>
+<RECORD>
+<code>VA</code>
+<name>Virgin Australia</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>DJ</code>
+<name>Virgin Blue</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>RG</code>
+<name>VRG Linhas Aereas</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>VP</code>
+<name>VASP</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>VG</code>
+<name>VLM Airlines</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>7W</code>
+<name>Wayraper</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>WJ</code>
+<name>WebJet Linhas A</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>2W</code>
+<name>Welcome Air</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>PT</code>
+<name>West Air Sweden</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>8O</code>
+<name>West Coast Air</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>WS</code>
+<name>WestJet</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>WA</code>
+<name>Western Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>CN</code>
+<name>Westward Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>WF</code>
+<name>Widerøe</name>
+<country>Norway</country>
+</RECORD>
+<RECORD>
+<code>IV</code>
+<name>Wind Jet</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>IW</code>
+<name>Wings Air</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>K5</code>
+<name>Wings of Alaska</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>W6</code>
+<name>Wizz Air</name>
+<country>Hungary</country>
+</RECORD>
+<RECORD>
+<code>8Z</code>
+<name>Wizz Air Hungary</name>
+<country>Bulgaria</country>
+</RECORD>
+<RECORD>
+<code>WO</code>
+<name>World Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>1P</code>
+<name>Worldspan</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>8V</code>
+<name>Wright Air Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>SE</code>
+<name>XL Airways France</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>MF</code>
+<name>Xiamen Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>XP</code>
+<name>Xtra Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>YL</code>
+<name>Yamal Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>Y8</code>
+<name>Yangtze River Express</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>IY</code>
+<name>Yemenia</name>
+<country>Yemen</country>
+</RECORD>
+<RECORD>
+<code>Q3</code>
+<name>Zambian Airways</name>
+<country>Zambia</country>
+</RECORD>
+<RECORD>
+<code>3J</code>
+<name>Zip</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>C4</code>
+<name>Zimex Aviation</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>Z4</code>
+<name>Zoom Airlines</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>UK</code>
+<name>buzz</name>
+<country></country>
+</RECORD>
+<RECORD>
+<code>8Q</code>
+<name>Maldivian Air Taxi</name>
+<country>Maldives</country>
+</RECORD>
+<RECORD>
+<code>Y0</code>
+<name>Yellow Air Taxi</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>6T</code>
+<name>Air Mandalay</name>
+<country>Burma</country>
+</RECORD>
+<RECORD>
+<code>SH</code>
+<name>TAN-SAHSA</name>
+<country>Honduras</country>
+</RECORD>
+<RECORD>
+<code>BX</code>
+<name>Air Busan</name>
+<country>Republic of Korea</country>
+</RECORD>
+<RECORD>
+<code>TB</code>
+<name>TUI Airlines Belgium</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>XW</code>
+<name>Sky Express</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>BU</code>
+<name>Braathens</name>
+<country>Norway</country>
+</RECORD>
+<RECORD>
+<code>GH</code>
+<name>Globus</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>9Y</code>
+<name>Air Kazakhstan</name>
+<country>Kazakhstan</country>
+</RECORD>
+<RECORD>
+<code>JD</code>
+<name>Japan Air System</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>ZQ</code>
+<name>Annsett New Zealand (NZA)</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>DS</code>
+<name>EasyJet (DS)</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>2I</code>
+<name>Star Peru (2I)</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>KW</code>
+<name>Carnival Air Lines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>4H</code>
+<name>United Airways</name>
+<country>Bangladesh</country>
+</RECORD>
+<RECORD>
+<code>M8</code>
+<name>Trans Maldivian Airways</name>
+<country>Maldives</country>
+</RECORD>
+<RECORD>
+<code>5H</code>
+<name>Fly540</name>
+<country>Kenya</country>
+</RECORD>
+<RECORD>
+<code>TO</code>
+<name>Transavia France</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>WP</code>
+<name>Island Air (WP)</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OG</code>
+<name>1-2-go</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>B7</code>
+<name>Uni Air</name>
+<country>Taiwan</country>
+</RECORD>
+<RECORD>
+<code>YD</code>
+<name>Gomelavia</name>
+<country>Belarus</country>
+</RECORD>
+<RECORD>
+<code>WZ</code>
+<name>Red Wings</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>11</code>
+<name>TUIfly (X3)</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>FU</code>
+<name>Felix Airways</name>
+<country>Yemen</country>
+</RECORD>
+<RECORD>
+<code>K1</code>
+<name>Kostromskie avialinii</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>XX</code>
+<name>Greenfly</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>7J</code>
+<name>Tajik Air</name>
+<country>Tajikistan</country>
+</RECORD>
+<RECORD>
+<code>TM</code>
+<name>Air Mozambique</name>
+<country>Mozambique</country>
+</RECORD>
+<RECORD>
+<code>--</code>
+<name>ELK Airways</name>
+<country>Estonia</country>
+</RECORD>
+<RECORD>
+<code>GY</code>
+<name>Gabon Airlines</name>
+<country>Gabon</country>
+</RECORD>
+<RECORD>
+<code>ML</code>
+<name>Maldivo Airlines</name>
+<country>Maldives</country>
+</RECORD>
+<RECORD>
+<code>VH</code>
+<name>Virgin Pacific</name>
+<country>Fiji</country>
+</RECORD>
+<RECORD>
+<code>Z2</code>
+<name>Zest Air</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>HK</code>
+<name>Yangon Airways</name>
+<country>Burma</country>
+</RECORD>
+<RECORD>
+<code>IJ</code>
+<name>Transport Aérien Transrégional</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>N4</code>
+<name>Minerva Airlines</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>ZE</code>
+<name>Eastar Jet</name>
+<country>South Korea</country>
+</RECORD>
+<RECORD>
+<code>LJ</code>
+<name>Jin Air</name>
+<country>South Korea</country>
+</RECORD>
+<RECORD>
+<code>SH</code>
+<name>Aéris (Priv)</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>3O</code>
+<name>Air Arabia Maroc</name>
+<country>Morocco</country>
+</RECORD>
+<RECORD>
+<code>B1</code>
+<name>Baltic Air lines</name>
+<country>Latvia</country>
+</RECORD>
+<RECORD>
+<code>YC</code>
+<name>Ciel Canadien</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>CN</code>
+<name>Canadian National Airways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>FA</code>
+<name>Epic Holiday</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>3I</code>
+<name>Air Comet Chile</name>
+<country>Chile</country>
+</RECORD>
+<RECORD>
+<code>-.</code>
+<name>Nazca</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>DN</code>
+<name>Voronezhskie Airlanes</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>L8</code>
+<name>Line Blue</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>BU</code>
+<name>Blue Sky America</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>XS</code>
+<name>Texas Spirit</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>IL</code>
+<name>Illinois Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>SZ</code>
+<name>Salzburg arrows</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>TQ</code>
+<name>Texas Wings</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>KT</code>
+<name>California Western</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>DH</code>
+<name>Dennis Sky</name>
+<country>Israel</country>
+</RECORD>
+<RECORD>
+<code>ZZ</code>
+<name>Zz</name>
+<country>Belgium</country>
+</RECORD>
+<RECORD>
+<code>A1</code>
+<name>Atifly</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>UK</code>
+<name>Air UK</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>CB</code>
+<name>Suckling Airways</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>RY</code>
+<name>Reno Sky</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>99</code>
+<name>Ciao Air</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>VB</code>
+<name>Birmingham European</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>5P</code>
+<name>Pal airlines</name>
+<country>Chile</country>
+</RECORD>
+<RECORD>
+<code>C1</code>
+<name>CanXpress</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>V5</code>
+<name>Danube Wings (V5)</name>
+<country>Slovakia</country>
+</RECORD>
+<RECORD>
+<code>SH</code>
+<name>Sharp Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>C2</code>
+<name>CanXplorer</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>QA</code>
+<name>Click (Mexicana)</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>W1</code>
+<name>World Experience Airline</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>J4</code>
+<name>ALAK</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>E9</code>
+<name>AJT Air International</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>3E</code>
+<name>Air Choice One</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>KN</code>
+<name>China United</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>ZQ</code>
+<name>Locair</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>4Q</code>
+<name>Safi Airlines</name>
+<country>Afghanistan</country>
+</RECORD>
+<RECORD>
+<code>K5</code>
+<name>SeaPort Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>S6</code>
+<name>Salmon Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>IL</code>
+<name>Fly Illi</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>V9</code>
+<name>Star1 Airlines</name>
+<country>Lithuania</country>
+</RECORD>
+<RECORD>
+<code>6D</code>
+<name>Pelita</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>E8</code>
+<name>Alpi Eagles (E8)</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>J5</code>
+<name>Alaska Seaplane Service</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>T8</code>
+<name>TAN</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>I6</code>
+<name>MexicanaLink</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>IP</code>
+<name>Island Spirit</name>
+<country>Iceland</country>
+</RECORD>
+<RECORD>
+<code>T0</code>
+<name>TACA Peru</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>7Q</code>
+<name>Pan Am World Airways Dominicana</name>
+<country>Dominican Republic</country>
+</RECORD>
+<RECORD>
+<code>PF</code>
+<name>Primera Air</name>
+<country>Iceland</country>
+</RECORD>
+<RECORD>
+<code>3S</code>
+<name>Air Antilles Express</name>
+<country>Guadeloupe</country>
+</RECORD>
+<RECORD>
+<code>P7</code>
+<name>Regional Paraguaya</name>
+<country>Paraguay</country>
+</RECORD>
+<RECORD>
+<code>V6</code>
+<name>VIP Ecuador</name>
+<country>Ecuador</country>
+</RECORD>
+<RECORD>
+<code>P9</code>
+<name>Peruvian Airlines</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>OC</code>
+<name>Catovair</name>
+<country>Mauritius</country>
+</RECORD>
+<RECORD>
+<code>7Z</code>
+<name>Halcyonair</name>
+<country>Cape Verde</country>
+</RECORD>
+<RECORD>
+<code>4P</code>
+<name>Business Aviation</name>
+<country>Congo (Kinshasa)</country>
+</RECORD>
+<RECORD>
+<code>E9</code>
+<name>Compagnie Africaine d\\&apos;Aviation</name>
+<country>Congo (Kinshasa)</country>
+</RECORD>
+<RECORD>
+<code>K8</code>
+<name>Zambia Skyways</name>
+<country>Zambia</country>
+</RECORD>
+<RECORD>
+<code>UJ</code>
+<name>AlMasria Universal Airlines</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>6Y</code>
+<name>SmartLynx Airlines</name>
+<country>Latvia</country>
+</RECORD>
+<RECORD>
+<code>K7</code>
+<name>KoralBlue Airlines</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>E4</code>
+<name>Elysian Airlines</name>
+<country>Cameroon</country>
+</RECORD>
+<RECORD>
+<code>HT</code>
+<name>Hellenic Imperial Airways</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>WD</code>
+<name>Amsterdam Airlines</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>Q9</code>
+<name>Arik Niger</name>
+<country>Niger</country>
+</RECORD>
+<RECORD>
+<code>DA</code>
+<name>Dana Air</name>
+<country>Nigeria</country>
+</RECORD>
+<RECORD>
+<code>8F</code>
+<name>STP Airways</name>
+<country>Sao Tome and Principe</country>
+</RECORD>
+<RECORD>
+<code>7Y</code>
+<name>Med Airways</name>
+<country>Lebanon</country>
+</RECORD>
+<RECORD>
+<code>UQ</code>
+<name>Skyjet Airlines</name>
+<country>Uganda</country>
+</RECORD>
+<RECORD>
+<code>G6</code>
+<name>Air Volga</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>RL</code>
+<name>Royal Falcon</name>
+<country>Jordan</country>
+</RECORD>
+<RECORD>
+<code>4L</code>
+<name>Euroline</name>
+<country>Georgia</country>
+</RECORD>
+<RECORD>
+<code>WG</code>
+<name>Worldways</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>ZF</code>
+<name>Athens Airways</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>VQ</code>
+<name>Viking Hellas</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>DZ</code>
+<name>Starline.kz</name>
+<country>Kazakhstan</country>
+</RECORD>
+<RECORD>
+<code>EH</code>
+<name>Euro Harmony</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>L7</code>
+<name>Lugansk Airlines</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>6P</code>
+<name>Gryphon Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GP</code>
+<name>Gadair European Airlines</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>SM</code>
+<name>Spirit of Manila Airlines</name>
+<country>Philippines</country>
+</RECORD>
+<RECORD>
+<code>OQ</code>
+<name>Chongqing Airlines</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>PN</code>
+<name>West Air China</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>IH</code>
+<name>Falcon Air (IH)</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>C3</code>
+<name>QatXpress</name>
+<country>Qatar</country>
+</RECORD>
+<RECORD>
+<code>1C</code>
+<name>OneChina</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>Y7</code>
+<name>NordStar Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>JR</code>
+<name>Joy Air</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>CD</code>
+<name>Air India Regional</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>9H</code>
+<name>MDLR Airlines</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>Q2</code>
+<name>Maldivian</name>
+<country>Maldives</country>
+</RECORD>
+<RECORD>
+<code>XN</code>
+<name>Xpressair</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>VC</code>
+<name>Strategic Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>NA</code>
+<name>Al-Naser Airlines</name>
+<country>Iraq</country>
+</RECORD>
+<RECORD>
+<code>JH</code>
+<name>Fuji Dream Airlines</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>5E</code>
+<name>SGA Airlines</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>F8</code>
+<name>Air2there</name>
+<country>New Zealand</country>
+</RECORD>
+<RECORD>
+<code>AO</code>
+<name>Avianova (Russia)</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>PA</code>
+<name>Parmiss Airlines (IPV)</name>
+<country>Iran</country>
+</RECORD>
+<RECORD>
+<code>ES</code>
+<name>EuropeSky</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>GB</code>
+<name>BRAZIL AIR</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>MR</code>
+<name>Homer Air</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>??</code>
+<name>Court Line</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>??</code>
+<name>South West Africa Territory Force</name>
+<country>Namibia</country>
+</RECORD>
+<RECORD>
+<code>++</code>
+<name>Lombards Air</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>-+</code>
+<name>U.S. Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GM</code>
+<name>Flitestar</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>\\</code>
+<name>Jayrow</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>::</code>
+<name>Llloyd Helicopters</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>;;</code>
+<name>Wilderness Air</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>^^</code>
+<name>Whitaker Air</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>WQ</code>
+<name>PanAm World Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>YY</code>
+<name>Virginwings</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>KY</code>
+<name>KSY</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>BQ</code>
+<name>Buquebus Líneas Aéreas</name>
+<country>Uruguay</country>
+</RECORD>
+<RECORD>
+<code>CQ</code>
+<name>SOCHI AIR</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>WU</code>
+<name>Wizz Air Ukraine</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>47</code>
+<name>88</name>
+<country>Cyprus</country>
+</RECORD>
+<RECORD>
+<code>LQ</code>
+<name>LCM AIRLINES</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>BZ</code>
+<name>Aero Brazil</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>K6</code>
+<name>Cambodia Angkor Air (K6)</name>
+<country>Cambodia</country>
+</RECORD>
+<RECORD>
+<code>D5</code>
+<name>Skyline nepc</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>H3</code>
+<name>THREE</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>69</code>
+<name>Royal European Airlines</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>&amp;T</code>
+<name>Tom\\&apos;s &amp; co airliners</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>AD</code>
+<name>Azul</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>PQ</code>
+<name>LSM Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>C4</code>
+<name>LionXpress</name>
+<country>Cameroon</country>
+</RECORD>
+<RECORD>
+<code>X1</code>
+<name>Nik Airways</name>
+<country>Saudi Arabia</country>
+</RECORD>
+<RECORD>
+<code>GK</code>
+<name>Genesis</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>XZ</code>
+<name>Congo Express</name>
+<country>Congo (Kinshasa)</country>
+</RECORD>
+<RECORD>
+<code>FZ</code>
+<name>Fly Dubai</name>
+<country>United Arab Emirates</country>
+</RECORD>
+<RECORD>
+<code>D1</code>
+<name>Domenican Airlines</name>
+<country>Dominican Republic</country>
+</RECORD>
+<RECORD>
+<code>9A</code>
+<name>Air Atlantic</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>CR</code>
+<name>Air Ops</name>
+<country>Sweden</country>
+</RECORD>
+<RECORD>
+<code>JY</code>
+<name>Aereonautica militare</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>YZ</code>
+<name>LSM AIRLINES</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>YP</code>
+<name>Aero Lloyd (YP)</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>UR</code>
+<name>UTair-Express</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>G5</code>
+<name>Huaxia</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>ZP</code>
+<name>Zabaykalskii Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>M4</code>
+<name>Marysya Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>N1</code>
+<name>N1</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>4Z</code>
+<name>Airlink (SAA)</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>3B</code>
+<name>JobAir</name>
+<country>Czech Republic</country>
+</RECORD>
+<RECORD>
+<code>BZ</code>
+<name>Black Stallion Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GM</code>
+<name>German International Air Lines</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>TB</code>
+<name>TrasBrasil</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>TH</code>
+<name>TransBrasil Airlines</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>9C</code>
+<name>China SSS</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>NJ</code>
+<name>Nihon.jet</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>TJ</code>
+<name>Transportes Aéreos Nacionales de Selva</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>P8</code>
+<name>Air Mekong</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>H3</code>
+<name>Harbour Air (Priv)</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>HH</code>
+<name>Air Hamburg (AHO)</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>Z6</code>
+<name>ZABAIKAL AIRLINES</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>TI</code>
+<name>TransHolding</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>YT</code>
+<name>Yeti Airways</name>
+<country>Nepal</country>
+</RECORD>
+<RECORD>
+<code>Y1</code>
+<name>Yellowstone Club Private Shuttle</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>NS</code>
+<name>Caucasus Airlines</name>
+<country>Georgia</country>
+</RECORD>
+<RECORD>
+<code>S1</code>
+<name>Serbian Airlines</name>
+<country>Serbia</country>
+</RECORD>
+<RECORD>
+<code>WM</code>
+<name>Windward Islands Airways</name>
+<country>Netherlands Antilles</country>
+</RECORD>
+<RECORD>
+<code>YO</code>
+<name>TransHolding System</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>CB</code>
+<name>CCML Airlines</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>SF</code>
+<name>Air Charter International</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>F1</code>
+<name>Fly Brasil</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>1F</code>
+<name>CB Airways UK ( Interliging Flights )</name>
+<country>United Kingdom</country>
+</RECORD>
+<RECORD>
+<code>3F</code>
+<name>Fly Colombia ( Interliging Flights )</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>T6</code>
+<name>Trans Pas Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HC</code>
+<name>Himalayan Airlines</name>
+<country>Nepal</country>
+</RECORD>
+<RECORD>
+<code>G1</code>
+<name>Indya Airline Group</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>WG</code>
+<name>Sunwing</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>ZX</code>
+<name>Japan Regio</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>N0</code>
+<name>Norte Lineas Aereas</name>
+<country>Argentina</country>
+</RECORD>
+<RECORD>
+<code>W7</code>
+<name>Austral Brasil</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>H9</code>
+<name>PEGASUS AIRLINES-</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>IJ</code>
+<name>AirLiberté</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>QC</code>
+<name>Camair-co</name>
+<country>Cameroon</country>
+</RECORD>
+<RECORD>
+<code>N6</code>
+<name>Aerocontinente (Priv)</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>RS</code>
+<name>Sky Regional</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>YI</code>
+<name>TUR Avrupa Hava YollarÄ±</name>
+<country>Turkey</country>
+</RECORD>
+<RECORD>
+<code>II</code>
+<name>LSM International</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>BU</code>
+<name>Baikotovitchestrian Airlines</name>
+<country>American Samoa</country>
+</RECORD>
+<RECORD>
+<code>L4</code>
+<name>Luchsh Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>Z7</code>
+<name>Zimbabwean Airlines</name>
+<country>Zimbabwe</country>
+</RECORD>
+<RECORD>
+<code>6U</code>
+<name>Air Cargo Germany</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>7M</code>
+<name>Mongolian International Air Lines</name>
+<country>Mongolia</country>
+</RECORD>
+<RECORD>
+<code>2D</code>
+<name>Alaniya Airlines</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>TW</code>
+<name>Tway Airlines</name>
+<country>South Korea</country>
+</RECORD>
+<RECORD>
+<code>HI</code>
+<name>Papillon Grand Canyon Helicopters</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>JX</code>
+<name>Jusur airways</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>XB</code>
+<name>NEXT Brasil</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>W4</code>
+<name>AeroWorld</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>KH</code>
+<name>Cook Island Air</name>
+<country>Cook Islands</country>
+</RECORD>
+<RECORD>
+<code>E8</code>
+<name>US Africa Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>GN</code>
+<name>GNB Linhas Aereas</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>E1</code>
+<name>Usa Sky Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>HN</code>
+<name>Hankook Airline</name>
+<country>South Korea</country>
+</RECORD>
+<RECORD>
+<code>RR</code>
+<name>Red Jet America</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>Z7</code>
+<name>REDjet</name>
+<country>Barbados</country>
+</RECORD>
+<RECORD>
+<code>1H</code>
+<name>Hellenic Airways</name>
+<country>Greece</country>
+</RECORD>
+<RECORD>
+<code>PT</code>
+<name>Red Jet Andes</name>
+<country>Peru</country>
+</RECORD>
+<RECORD>
+<code>QY</code>
+<name>Red Jet Canada</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>4X</code>
+<name>Red Jet Mexico</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>Y8</code>
+<name>Marusya Airways</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>7H</code>
+<name>Era Alaska</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>R8</code>
+<name>AirRussia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>H1</code>
+<name>Hankook Air US</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>D5</code>
+<name>NEPC Airlines</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>10</code>
+<name>Canadian World</name>
+<country>Canada</country>
+</RECORD>
+<RECORD>
+<code>H5</code>
+<name>I-Fly</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>IJ</code>
+<name>T.A.T</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>DN</code>
+<name>Alinord</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>VB</code>
+<name>Pacific Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>KT</code>
+<name>VickJet</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>XV</code>
+<name>BVI Airways</name>
+<country>British Virgin Islands</country>
+</RECORD>
+<RECORD>
+<code>SO</code>
+<name>Salsa d\\&apos;Haiti</name>
+<country>Haiti</country>
+</RECORD>
+<RECORD>
+<code>ZJ</code>
+<name>Zambezi Airlines (ZMA)</name>
+<country>Zambia</country>
+</RECORD>
+<RECORD>
+<code>YQ</code>
+<name>Polet Airlines (Priv)</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>T1</code>
+<name>TROPICAL LINHAS AEREAS</name>
+<country>Brazil</country>
+</RECORD>
+<RECORD>
+<code>12</code>
+<name>12 North</name>
+<country>India</country>
+</RECORD>
+<RECORD>
+<code>L6</code>
+<name>Mauritania Airlines International</name>
+<country>Mauritania</country>
+</RECORD>
+<RECORD>
+<code>6F</code>
+<name>MAT Airways</name>
+<country>Macedonia</country>
+</RECORD>
+<RECORD>
+<code>AW</code>
+<name>Asian Wings Airways</name>
+<country>Burma</country>
+</RECORD>
+<RECORD>
+<code>E5</code>
+<name>Air Arabia Egypt</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>CT</code>
+<name>Alitalia Cityliner</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>OI</code>
+<name>Orchid Airlines</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>Y5</code>
+<name>Asia Wings</name>
+<country>Kazakhstan</country>
+</RECORD>
+<RECORD>
+<code>XR</code>
+<name>Skywest Australia</name>
+<country>Australia</country>
+</RECORD>
+<RECORD>
+<code>NP</code>
+<name>Nile Air</name>
+<country>Egypt</country>
+</RECORD>
+<RECORD>
+<code>DN</code>
+<name>Senegal Airlines</name>
+<country>Senegal</country>
+</RECORD>
+<RECORD>
+<code>6I</code>
+<name>Fly 6ix</name>
+<country>Sierra Leone</country>
+</RECORD>
+<RECORD>
+<code>S9</code>
+<name>Starbow Airlines</name>
+<country>Ghana</country>
+</RECORD>
+<RECORD>
+<code>0X</code>
+<name>Copenhagen Express</name>
+<country>Denmark</country>
+</RECORD>
+<RECORD>
+<code>8B</code>
+<name>BusinessAir</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>YR</code>
+<name>SENIC AIRLINES</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>C7</code>
+<name>Sky Wing Pacific</name>
+<country>South Korea</country>
+</RECORD>
+<RECORD>
+<code>PP</code>
+<name>Air Indus</name>
+<country>Pakistan</country>
+</RECORD>
+<RECORD>
+<code>U1</code>
+<name>AirOne Polska</name>
+<country>Poland</country>
+</RECORD>
+<RECORD>
+<code>MM</code>
+<name>Peach Aviation</name>
+<country>Japan</country>
+</RECORD>
+<RECORD>
+<code>U1</code>
+<name>Aviabus</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>DF</code>
+<name>Michael Airlines</name>
+<country>Puerto Rico</country>
+</RECORD>
+<RECORD>
+<code>ZC</code>
+<name>Korongo Airlines</name>
+<country>Congo (Kinshasa)</country>
+</RECORD>
+<RECORD>
+<code>I5</code>
+<name>Indonesia Sky</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>9P</code>
+<name>Pelangi</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>B0</code>
+<name>Aws express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>76</code>
+<name>Southjet</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>77</code>
+<name>Southjet connect</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>KP</code>
+<name>Air Cape</name>
+<country>South Africa</country>
+</RECORD>
+<RECORD>
+<code>78</code>
+<name>Southjet cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>I2</code>
+<name>Iberia Express</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>4O</code>
+<name>Interjet (ABC Aerolineas)</name>
+<country>Mexico</country>
+</RECORD>
+<RECORD>
+<code>OG</code>
+<name>AirOnix</name>
+<country>Ukraine</country>
+</RECORD>
+<RECORD>
+<code>NJ</code>
+<name>Nordic Global Airlines</name>
+<country>Finland</country>
+</RECORD>
+<RECORD>
+<code>TZ</code>
+<name>Scoot</name>
+<country>Singapore</country>
+</RECORD>
+<RECORD>
+<code>SX</code>
+<name>Starling Airlines Spain</name>
+<country>Spain</country>
+</RECORD>
+<RECORD>
+<code>5K</code>
+<name>Hi Fly (5K)</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>WH</code>
+<name>China Northwest Airlines (WH)</name>
+<country>China</country>
+</RECORD>
+<RECORD>
+<code>ZN</code>
+<name>Zenith International Airline</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>O1</code>
+<name>Orbit Airlines Azerbaijan</name>
+<country>Azerbaijan</country>
+</RECORD>
+<RECORD>
+<code>A6</code>
+<name>Air Alps Aviation (A6)</name>
+<country>Austria</country>
+</RECORD>
+<RECORD>
+<code>VJ</code>
+<name>VietjetAir</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>P4</code>
+<name>Patriot Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>V2</code>
+<name>Vision Airlines (V2)</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>C8</code>
+<name>Chicago Express (C8)</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>5Q</code>
+<name>BQB Lineas Aereas</name>
+<country>Uruguay</country>
+</RECORD>
+<RECORD>
+<code>YE</code>
+<name>Yellowtail</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>KG</code>
+<name>Royal Airways</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>FH</code>
+<name>FlyHigh Airlines Ireland (FH)</name>
+<country>Ireland</country>
+</RECORD>
+<RECORD>
+<code>2D</code>
+<name>Aero VIP (2D)</name>
+<country>Portugal</country>
+</RECORD>
+<RECORD>
+<code>YH</code>
+<name>Yangon Airways Ltd.</name>
+<country>Burma</country>
+</RECORD>
+<RECORD>
+<code>TJ</code>
+<name>T.J. Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>SX</code>
+<name>SkyWork Airlines</name>
+<country>Switzerland</country>
+</RECORD>
+<RECORD>
+<code>J7</code>
+<name>ValueJet</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>W2</code>
+<name>Maastricht Airlines</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>WL</code>
+<name>CheapFlyingInternational</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>E6</code>
+<name>Aviaexpresscruise</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>24</code>
+<name>Euro Jet</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>HQ</code>
+<name>HQ- Business Express</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>R1</code>
+<name>Royal Southern Airlines.</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>Q3</code>
+<name>SOCHI AIR CHATER</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>J7</code>
+<name>Denim Air</name>
+<country>Norway</country>
+</RECORD>
+<RECORD>
+<code>OE</code>
+<name>WestAir</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OE</code>
+<name>WestAir Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OE</code>
+<name>WestAir Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>NO</code>
+<name>North Pacific Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>OD</code>
+<name>Malindo Airways</name>
+<country>Malaysia</country>
+</RECORD>
+<RECORD>
+<code>9F</code>
+<name>Tramm Airlines</name>
+<country>Netherlands Antilles</country>
+</RECORD>
+<RECORD>
+<code>GC</code>
+<name>Lina Congo</name>
+<country>Congo (Brazzaville)</country>
+</RECORD>
+<RECORD>
+<code>Z9</code>
+<name>Flightlink Tanzania</name>
+<country>Tanzania</country>
+</RECORD>
+<RECORD>
+<code>I8</code>
+<name>IzAvia</name>
+<country>Russia</country>
+</RECORD>
+<RECORD>
+<code>3V</code>
+<name>3 Valleys Airlines</name>
+<country>France</country>
+</RECORD>
+<RECORD>
+<code>M1</code>
+<name>Maryland Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>7I</code>
+<name>Insel Air (7I/INC) (Priv)</name>
+<country>Netherlands Antilles</country>
+</RECORD>
+<RECORD>
+<code>5Z</code>
+<name>VivaColombia</name>
+<country>Colombia</country>
+</RECORD>
+<RECORD>
+<code>ZM</code>
+<name>Apache Air</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>M2</code>
+<name>MHS Aviation GmbH</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>NR</code>
+<name>Jettor Airlines</name>
+<country>Hong Kong</country>
+</RECORD>
+<RECORD>
+<code>GD</code>
+<name>GoDutch</name>
+<country>Netherlands</country>
+</RECORD>
+<RECORD>
+<code>SL</code>
+<name>Thai Lion Air</name>
+<country>Thailand</country>
+</RECORD>
+<RECORD>
+<code>DW</code>
+<name>Deutsche Luftverkehrsgesellschaft</name>
+<country>Germany</country>
+</RECORD>
+<RECORD>
+<code>N8</code>
+<name>National Air Cargo</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>13</code>
+<name>Eastern Atlantic Virtual Airlines</name>
+<country>United States</country>
+</RECORD>
+<RECORD>
+<code>QG</code>
+<name>Citilink Indonesia</name>
+<country>Indonesia</country>
+</RECORD>
+<RECORD>
+<code>GU</code>
+<name>Gulisano airways</name>
+<country>Italy</country>
+</RECORD>
+<RECORD>
+<code>VJA</code>
+<name>VietJet Air</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>JET</code>
+<name>Jetstar Pacific</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>VNA</code>
+<name>Vietnam Airlines</name>
+<country>Vietnam</country>
+</RECORD>
+<RECORD>
+<code>VTA</code>
+<name>Vietravel Airlines</name>
+<country>Vietnam</country>
+</RECORD>
+</RECORDS>

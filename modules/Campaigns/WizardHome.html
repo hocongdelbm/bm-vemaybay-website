@@ -1,0 +1,69 @@
+<form id="wizform" name="wizform" method="POST" action="index.php">
+	<input type="hidden" id="module" name="module" value="Campaigns" />
+	<input type="hidden" id="action" name="action" value="WizardHome" />
+	<input type="hidden" id="process_form" name="process_form" value="false" />
+	<input type="hidden" id="return_module" name="return_module" value="{$RETURN_MODULE}" />
+	<input type="hidden" id="return_id" name="return_id" value="{$RETURN_ID}" />
+	<input type="hidden" id="return_action" name="return_action" value="{$RETURN_ACTION}"/>
+	<input type="hidden" id="record" name="record" value="{$ID}" />
+	<input type="hidden" id="direct_step" name="direct_step" value="1" />
+	<input type="hidden" id="campaign_id" name="campaign_id" value="" />
+	<input type="hidden" id="wiz_mass" name="wiz_mass" value="" />
+	<input type="hidden" id="mode" name="mode" value="" />
+
+	<div class="box-section box-WizardHome">
+		<table class="other view" cellspacing="1">
+		<tr>
+			<td rowspan="2" width="10%" scope="row" style="vertical-align: top">
+			<div id="nav">{$NAV_ITEMS}</div>
+			</td>
+
+			<td class="edit view" rowspan="2" width="100%">
+			{$CAMPAIGN_DIAGNOSTIC_LINK}
+			<p></p>
+			<table width="100%" border="0" cellspacing="1" cellpadding="0">
+				<tr>
+				<td>
+				<div id="campaign_summary">{$CAMPAIGN_TBL}</div>
+				<p></p>
+				</td>
+				</tr>
+				<tr>
+				<td>&nbsp;</td>
+				</tr>
+				<tr>
+				<td>
+				<p></p>
+				<div id="campaign_trackers">{$TRACKERS_TBL}</div>
+				</td>
+				</tr>
+				<tr>
+				<td>&nbsp;</td>
+				</tr>
+				<tr>
+				<td>
+				<p></p>
+				<div id="campaign_targets">{$TARGETS_TBL}</div>
+				</td>
+				</tr>
+				<tr>
+				<td>&nbsp;</td>
+				</tr>
+				<tr>
+				<td>
+				<p></p>
+				<div id="campaign_marketing">{$MARKETING_TBL}</div>
+				</td>
+				</tr>
+			</table>
+			</td>
+		</tr>
+		</table>
+	</div>
+
+	<script>
+	{
+		$MSG_SCRIPT;
+	}
+	</script>
+</form>

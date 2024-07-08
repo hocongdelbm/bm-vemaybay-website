@@ -1,0 +1,13 @@
+<?php
+$action_view_map['bookingqtyreport']    = 'bookingqtyreport'; //Doanh số booking
+$action_view_map['currentsales']        = 'currentsales'; //Doanh số xuất vé
+$action_view_map['ticketreport']        = 'ticketreport'; //Doanh thu bán vé
+$action_view_map['addbonus']            = 'addbonus';
+$action_view_map['employeekpi']         = 'employeekpi';
+$action_view_map['cashflow']            = 'cashflow';
+$action_view_map['yearlyreport']        = 'yearlyreport';
+$action_view_map['profitreport']        = 'profitreport';
+
+$action_view_map['iplist'] = 'iplist';
+$action_view_map['analytics'] = 'analytics';
+

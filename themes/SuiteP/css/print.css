@@ -1,0 +1,16 @@
+/* Custome by Haihugn - 05/06/2023 */
+#ajaxHeader{
+    display: none;
+}
+
+#bootstrap-container{
+    margin-top: 0px;
+    margin-left: 0px;
+}
+
+
+/* CSS OLD */
+#header, #mass_update_table, #massupdate_form, #massupdate_header, #leftHandle, .subpanelTablist, .toast-warning,
+.listViewPaginationTdS1, .listViewButtons, .search_form, .tablist, .utilsLink, .button, .tabForm {
+    display: none;
+}

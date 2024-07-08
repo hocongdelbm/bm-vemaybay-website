@@ -1,0 +1,72 @@
+<?php
+if (!defined('sugarEntry') || !sugarEntry) {
+    die('Not A Valid Entry Point');
+}
+
+$module_name = 'EC_ChuyenTienNoiBo';
+$listViewDefs[$module_name] = array(
+    'NGAYCHUNGTU' => array(
+        'type' => 'date',
+        'label' => 'LBL_NGAYCHUNGTU',
+        'width' => '10%',
+        'default' => true,
+    ),
+    'NAME' => array(
+        'width' => '12%',
+        'label' => 'LBL_NAME',
+        'default' => true,
+        'link' => true,
+    ),
+ 
+    'TUTKNGANHANG' => array(
+        'type' => 'relate',
+        'studio' => 'visible',
+        'label' => 'LBL_TUTKNGANHANG',
+        'width' => '15%',
+        'default' => true,
+    ),
+    'DENTKNGANHANG' => array(
+        'type' => 'relate',
+        'studio' => 'visible',
+        'label' => 'LBL_DENTKNGANHANG',
+        'width' => '15%',
+        'default' => true,
+    ),
+    'SOTIEN' => array(
+        'type' => 'currency',
+        'label' => 'LBL_SOTIEN',
+        'currency_format' => true,
+        'width' => '15%',
+        'default' => true,
+    ),
+    'DESCRIPTION' => array(
+        'type' => 'text',
+        'label' => 'LBL_DESCRIPTION',
+        'width' => '30%',
+        'default' => true,
+    ),
+    'DATE_ENTERED' => array(
+        'type' => 'datetime',
+        'label' => 'LBL_DATE_ENTERED',
+        'width' => '13%',
+        'default' => true,
+    ),
+    'NGAYHACHTOAN' => array(
+        'type' => 'date',
+        'label' => 'LBL_NGAYHACHTOAN',
+        'width' => '10%',
+        'default' => false,
+    ),
+    'MUCTHUCHI' => array(
+        'type' => 'relate',
+        'studio' => 'visible',
+        'label' => 'LBL_MUCTHUCHI',
+        'width' => '10%',
+        'default' => false,
+    ),
+    'ASSIGNED_USER_NAME' => array(
+        'width' => '9%',
+        'label' => 'LBL_ASSIGNED_TO_NAME',
+        'default' => false,
+    ),
+);

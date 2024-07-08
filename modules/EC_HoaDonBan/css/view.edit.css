@@ -1,0 +1,34 @@
+.ln_error {
+    background-color: red;
+}
+.err_text {
+    color: red;
+}
+
+.edit-view-row select {
+    width: 100%;
+}
+
+
+.wrap-masothue {
+    position: relative;
+}
+.wrap-masothue .icon-search {
+    background-color: #dee2e6;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.wrap-masothue .mst-active, .wrap-masothue .mst-alert {
+    display: none;
+    position: absolute;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+}

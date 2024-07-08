@@ -1,0 +1,150 @@
+.status-process {
+	padding-left: 20px;
+	position: relative;
+}
+
+.checkout-bar {
+	margin: 40px 0;
+	background-size: 35px 35px;
+	background-color: #C0C0C0;
+	border-radius: 15px;
+	height: 10px;
+	padding: 0;
+	position: relative;
+	width: 95%;
+}
+
+ul.checkout-bar li::before {
+	height: 16px;
+	left: 0;
+	line-height: 45px;
+	position: absolute;
+	top: -53px;
+	width: 16px;
+	background: #C0C0C0;
+	border-radius: 50%;
+	color: #fff;
+	font-size: 16px;
+	font-weight: 700;
+	text-align: center;
+	text-shadow: 1px 1px rgba(0, 0, 0, .2);
+	z-index: 2;
+	content: "";
+}
+
+ul.checkout-bar li.completed::before {
+	background: #4e8ccf;
+}
+
+ul.checkout-bar li.active::before {
+	background: #fff;
+	border: 4px solid #4e8ccf;
+	height: 14px;
+	width: 14px;
+	top: -55px;
+	z-index: 1;
+}
+
+ul.checkout-bar li:not(:last-child)::after {
+	content: "";
+	height: 10px;
+	position: absolute;
+	top: -50px;
+	width: 100%;
+	left: 2px;
+}
+
+ul.checkout-bar li.completed::after {
+	background-color: #4e8ccf;
+}
+
+ul.checkout-bar li {
+	display: inline-block;
+	margin: 50px 0 0;
+	padding: 0;
+	color: #202020;
+	font-size: 13px;
+	font-weight: 400;
+	position: relative;
+	width: 16.5%;
+}
+
+ul.checkout-bar li:last-child {
+	width: 0;
+}
+
+ul.checkout-bar li span {
+	display: block;
+	position: absolute;
+	bottom: 10px;
+	left: -40px;
+	width: 100px;
+	text-align: center;
+	background-color: inherit;
+}
+
+ul.checkout-bar li.active span {
+	color: #4e8ccf;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+ul.checkout-bar li.completed {
+	background: 0 0;
+}
+
+ul.checkout-bar li .distance {
+	width: 100%;
+	border-top: 1px dashed #000;
+	height: 70px;
+	position: absolute;
+	border-radius: 50%;
+	top: -80px;
+	left: 8px;
+	text-align: center;
+	padding-top: 10px;
+	color: red;
+}
+
+#view-detail {
+	position: absolute;
+	left: 0;
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+}
+
+#view-detail.show {
+	background: url('../../../custom/themes/default/images/details_open.png') no-repeat center;
+}
+
+#view-detail.hide {
+	background: url('../../../custom/themes/default/images/details_close.png') no-repeat center;
+}
+
+#tbl-detail {
+	display: none;
+}
+
+#status-detail {
+	background-color: #fff;
+}
+
+#status-detail td {
+	padding: 10px 0;
+	border-color: #fff;
+	font-size: 13px;
+}
+
+#status-detail td:not(:last-child) {
+	text-align: center;
+}
+
+#status-detail>tbody>tr:first-child {
+	font-weight: bold;
+	font-size: 13px;
+}
+
+.loading {
+	cursor: progress;
+}
