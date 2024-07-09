@@ -1271,7 +1271,7 @@ class SearchForm
                                     // $stringFormatParams = array(0 => $field_value, 1 => $GLOBALS['current_user']->id);
                                     // $where .= "{$db_field} $in (" . string_format($parms['subquery'], $stringFormatParams) . ")";
 
-                                    if($parms['fld_type'] == 'date') {
+                                    if(isset($parms['fld_type']) && $parms['fld_type'] == 'date') {
                                         $field_val_arr = explode(',',  $field_value);
                                     } else $field_val_arr = array($field_value);
 

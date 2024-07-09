@@ -77,10 +77,11 @@ class SugarLogger implements LoggerTemplate
     public static $filename_suffix = array(
         //bug#50265: Added none option for previous version users
         "" => "None",
+        "%y_%m_%d" => "Year_Month_Day",
+        "%m_%d_%y" => "Month_Day_Year",
         "%m_%Y"    => "Month_Year",
         "%d_%m"    => "Day_Month",
-        "%m_%d_%y" => "Month_Day_Year",
-        );
+    );
 
     /**
      * Let's us know if we've initialized the logger file
