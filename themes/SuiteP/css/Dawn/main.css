@@ -262,11 +262,11 @@ select::-webkit-scrollbar {
     align-items: center;
 }
 
-.navbar .navbar-brand-wrapper .brand-logo img{
-    max-width: 135px;
+.navbar .navbar-brand-wrapper .brand-logo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    max-height: 30px;
 }
 
 .navbar .navbar-brand-wrapper {
