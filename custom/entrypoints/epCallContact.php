@@ -75,6 +75,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $data['info_booking'] = get_booking_info($phone_lh);
 
         /**********  4. Get call info of contact via phone **********/
+        $data['info_refund_ticket'] = get_booking_refund($phone_lh);
+
+        /**********  5. Get call info of contact via phone **********/
         $data['info_call'] = get_call_info($phone_lh);
 
         // Return
@@ -597,6 +600,55 @@ function get_booking_info($phone) {
     }
     $html .= '</tbody></table>';
 
+    return $html;
+}
+
+function get_booking_refund($phone){
+    if(is_null($phone) || empty($phone)) return '';
+    global $db, $app_list_strings;
+    $html = '<table id="table-voicehv__booking" class="table-details__booking">
+                <caption class="caption-voicehv__booking" align="top">THÔNG TIN HOÀN VÉ GẦN ĐÂY</caption>
+                <thead>
+                    <th>STT</th>
+                    <th>Phiếu hoàn</th>
+                    <th>Trạng thái</th>
+                    <th>Booking</th>
+                    <th>Diễn giải</th>
+                    <th>Hoàn tiền khách</th>
+                    <th>Đã chi tiền</th>
+                </thead>
+                <tbody>';
+
+    $sql_hv = 'SELECT hv.id, hv.name, hv.tinhtrang, hv.description, bk.name as booking, hv.booking_id as booking_id, hv.tongtienkhach,
+                        (
+                            SELECT SUM(IFNULL(p.amount, 0)) 
+                            FROM ec_payment_voucher p
+                            WHERE p.hoanve_id = hv.id 
+                            AND p.pv_status = "3"
+                            AND p.deleted = 0
+                        ) as refunded
+                FROM ec_hoanve hv
+                LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id AND bk.deleted = 0
+                WHERE bk.phone = "'.$phone.'" AND hv.deleted = 0
+                ORDER BY hv.date_entered DESC
+                LIMIT 5';
+
+    $res = $db->query($sql_hv);
+    $i = 1;
+    while($row = $db->fetchByAssoc($res)){
+        $html .= '<tr>
+                    <td align="center" class="fw-bold">'.$i.'</td>
+                    <td align="left" class="fw-bold hv_name"><a target="_blank" href="index.php?module=EC_HoanVe&return_module=EC_HoanVe&action=DetailView&record='.$row['id'].'">'.$row['name'].'</a></td>
+                    <td align="center" class="fw-bold hv_status">'.$app_list_strings['tinhtranghoanve_list'][$row['tinhtrang']].'</td>
+                    <td align="left" class="fw-bold bk_name"><a target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record='.$row['booking_id'].'">'.$row['booking'].'</a></td>
+                    <td align="center" class="fw-bold hv_description" style="max-width: 300px;">'.$row['description'].'</td>
+                    <td align="center" class="fw-bold hv_htk">'.$row['tongtienkhach'].'</td>
+                    <td align="center" class="fw-bold hv_refunded">'.$row['refunded'].'</td>
+                </tr>';
+        $i++;
+    }
+
+    $html .= '</tbody></table>';
     return $html;
 }
 

@@ -441,8 +441,9 @@ $(document).ready(function () {
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
                         let info_booking = data.info_booking;
+                        let info_refund_ticket = data.info_refund_ticket;
                         let info_call = data.info_call;
-                        let activity_contact = info_booking + info_call;
+                        let activity_contact = info_booking + info_refund_ticket + info_call;
 
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);
@@ -553,8 +554,9 @@ $(document).ready(function () {
                         let avatar = obj.data.avatar ? obj.data.avatar.replace(/\\/g, "") : "";
 
                         let info_booking = data.info_booking;
+                        let info_refund_ticket = data.info_refund_ticket;
                         let info_call = data.info_call;
-                        let activity_contact = info_booking + info_call;
+                        let activity_contact = info_booking + info_refund_ticket + info_call;
 
                         // Make a call
                         if (!ua || !ua.isConnected() || !ua.isRegistered()) {
@@ -997,8 +999,9 @@ if ('serviceWorker' in navigator) {
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
                         let info_booking = data.info_booking;
+                        let info_refund_ticket = data.info_refund_ticket;
                         let info_call = data.info_call;
-                        let activity_contact = info_booking + info_call;
+                        let activity_contact = info_booking + info_refund_ticket + info_call;
 
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);
@@ -1098,8 +1101,9 @@ $(document).on('click', '.toast__main', function () {
                     let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
                     let info_booking = data.info_booking;
+                    let info_refund_ticket = data.info_refund_ticket;
                     let info_call = data.info_call;
-                    let activity_contact = info_booking + info_call;
+                    let activity_contact = info_booking + info_refund_ticket + info_call;
 
                     $('#popup-inforbooking').html(activity_contact);
                     $('input[name="voiceip-contact-id"]').val(contact_id);
