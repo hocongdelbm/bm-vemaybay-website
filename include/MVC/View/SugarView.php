@@ -1209,7 +1209,7 @@ EOHTML;
                                                 <h4 class="transfer-title">Nhập số SIP để chuyển tiếp cuộc gọi</h4>
                                             </div>
                                             <div class="transfer-body">
-                                                <input type="text" onkeyup="onSearch(this)" name="transfer-phone" class="load-data__transfer" id="transfer-phone" autocomplete="off"  placeholder="'.$current_user->td_sip.'">
+                                                <input type="text" onkeyup="onSearch()" name="transfer-phone" class="load-data__transfer" id="transfer-phone" autocomplete="off"  placeholder="">
                                                 <a class="btn btn-primary" id="transfer-submit">Chuyển</a>
                                                 <ul id="offer-transfer-list"></ul>
                                             </div>

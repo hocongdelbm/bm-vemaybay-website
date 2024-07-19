@@ -5,6 +5,7 @@ $(document).ready(function() {
 
     $(document).on('click', '.btn-add-luggage', function(e) {
         let pnr             = $("#pnr").text();
+        let supplier_id     = $("#supplier_id").val();
         let re_key          = $(this).attr('re_key');
         let pass_key        = $(this).attr('pass_key');
         let td_name         = $(this).parent().parent().find('.td_name').html();
@@ -33,6 +34,7 @@ $(document).ready(function() {
                 action : "add_ancillary",
                 type : "get",
                 pnr : pnr,
+                supplier_id : supplier_id,
                 re_key : re_key,
                 pass_key : pass_key,
                 direction : direction
@@ -61,9 +63,7 @@ $(document).ready(function() {
                             currency: 'VND'
                         }).replaceAll('.', ','),
                         purchase_key    : opt['purchase_key'],
-                        journey_href    : opt['journey_href'],
                         journey_key     : opt['journey_key'],
-                        passenger_href  : opt['passenger_href'],
                         passenger_key   : opt['passenger_key'],
                         booking_key     : opt['booking_key'],
                         re_key          : re_key,
@@ -77,13 +77,14 @@ $(document).ready(function() {
     });
 
     $('#btn-add-luggage').click(function() {
+        let supplier_id = $("#supplier_id").val();
         let option      = $('select#add-luggage').find(":selected");
         let booking_id  = $("#booking_id").val();
         let pnr         = '';
         let status_pnr  = $("#status_pnr").attr('value');
 
         if(status_pnr == '2'){
-            let is_confirm = confirm("PNR đã xuất. Thao tác sẽ trừ tiền trực tiếp vào tài khoản đại lý.");
+            let is_confirm = confirm("PNR đã thanh toán. Thao tác sẽ trừ tiền trực tiếp vào tài khoản đại lý.");
             if (!is_confirm) {
                 return false;
             } 
@@ -104,11 +105,10 @@ $(document).ready(function() {
             data: {
                 action          : "add_ancillary",
                 type            : "add",
+                supplier_id     : supplier_id,
                 value           : option.val(),
                 purchase_key    : option.attr('purchase_key'),
-                journey_href    : option.attr('journey_href'),
                 journey_key     : option.attr('journey_key'),
-                passenger_href  : option.attr('passenger_href'),
                 passenger_key   : option.attr('passenger_key'),
                 booking_key     : option.attr('booking_key'),
                 re_key          : option.attr('re_key'),
@@ -123,12 +123,10 @@ $(document).ready(function() {
 
                 $('.container-waiting').hide();
                 if (data['error'] === true) {
-                    // showModalError(data['code'], data['message']);
                     showModalNotify('error',data['message'], data['code']);
                     return;
                 }
                 else if (data['error'] == 'warning') {
-                    // showModalWarning(data['message']);
                     showModalNotify('warning', data['message']);
                     return;
                 }
