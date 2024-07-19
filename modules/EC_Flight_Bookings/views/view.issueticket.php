@@ -5,11 +5,11 @@ class Viewissueticket extends SugarView {
 	function display() {
         $this->displayStyle();
 
-		if(is_admin($GLOBALS['current_user'])) {
+		// if(is_admin($GLOBALS['current_user'])) {
 			$smarty = new Sugar_Smarty();
 			$this->populateContent($smarty);
 			$smarty->display('modules/'.$this->bean->module_dir.'/tpls/view_issueticket.tpl');
-		}
+		// }
 	}
 
 	function displayStyle() {

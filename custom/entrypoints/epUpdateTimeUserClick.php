@@ -4,6 +4,14 @@ global $current_user, $db;
 
 // Loại trừ user Booker - 493ad5e5-ffea-a84f-96d7-6577fed623d6
 
+$array_admin = [
+     '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
+     '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
+     '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
+     '9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
+     '1', //DDuc
+];
+
 // TRUYỀN VÀO USER_ID => ONL / OFF
 if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
      $current_user_id    = $current_user->id;
@@ -11,7 +19,16 @@ if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
 	$temp_files         = scandir($path);
 	natsort($temp_files);
 	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hour')));
+     $agent  = isset($_POST['agent']) ? $_POST['agent'].'@td.timchuyenbay.net' : "";
 
+     if(in_array($current_user_id, $array_admin)){
+          // Luôn online
+          agent_change_status($agent, 'Available');
+          echo 1;
+          exit();
+     }
+
+     $is_busy = 0; //Không bận
      foreach ($temp_files as $file) {
           $info               = pathinfo($file);
           $file_name          = basename($file,'.'.$info['extension']);
@@ -24,19 +41,89 @@ if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
                $diffInSeconds  	= abs($timestamp_now - $strtotime_user);
 
                if(trim($data_user['busy']) == 1){
+                    $status = 'Logged Out';
+                    $is_busy = 1;
+               } else {
+                    if($diffInSeconds > 150){ //2 phút rữ
+                         $status = 'Logged Out';
+                         $is_busy = 1;
+                    } else {
+                         $is_busy = 0;
+                         $status = 'Available';
+                    }
+               }
+               
+               // Change agent status
+               agent_change_status($agent, $status);
+
+               if($is_busy == 1){
                     echo 0;
                     exit();
                } else {
-                    if($diffInSeconds > 120){
-                         echo 0;
-                         exit();
-                    } else {
-                         echo 1;
-                         exit();
-                    }
+                    echo 1;
+                    exit();
                }
           }
      }  
+}
+
+
+if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
+     $agent  = isset($_POST['agent']) ? trim($_POST['agent']).'@td.timchuyenbay.net' : '';
+     $status = isset($_POST['status']) ? trim($_POST['status']) : '';
+
+     agent_change_status($agent, $status);
+}
+
+function agent_change_status($agent, $status){
+     if(empty($agent) || empty($status)) {
+          $response['success'] = array(
+               'code' => 400,
+               'title' => 'agent status bad request',
+           );
+          echo json_encode($response);
+          exit();
+     }
+
+     $toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
+     $body_request = array(
+          'agent' => $agent,
+          'status' => $status,
+          'token' => $toten,
+     );
+
+     try {
+          $curl = curl_init();
+          if ($curl === false) {
+               echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
+          }
+
+          curl_setopt_array($curl, array(
+               CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
+               CURLOPT_RETURNTRANSFER => true,
+               CURLOPT_FOLLOWLOCATION => true,
+               CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
+               CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
+               CURLOPT_TIMEOUT        => 0,
+               CURLOPT_CUSTOMREQUEST   => 'POST',
+               CURLOPT_POSTFIELDS      => $body_request,
+          ));
+     
+          $json = curl_exec($curl);
+          $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+          curl_close($curl);
+          $arr = json_decode($json, true);
+
+          // if($arr['success']['code'] == 200){
+          //      echo 1;
+          //      exit();
+          // } 
+
+          // echo 0;
+          // exit();
+     } catch(Exception $e) {
+          return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
+     }
 }
 
 // Check trạng thái người dùng

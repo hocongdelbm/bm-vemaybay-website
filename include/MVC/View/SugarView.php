@@ -1218,6 +1218,32 @@ EOHTML;
 
                                 </div>
                             </div>
+                            <div class="calc-dtmf__wrap">
+                                <div id="calc-dtmf">
+                                    <div class="item" id="display_dtmf"></div>
+                                    <div class="item" id="calc-layout">
+                                        <div id="numPad" class="calc-section">
+                                            <div class="calc-button calc-number" dtmf="7" id="seven" style="grid-area: seven;">7</div>
+                                            <div class="calc-button calc-number" dtmf="8" id="eight" style="grid-area: eight;">8</div>
+                                            <div class="calc-button calc-number" dtmf="9" id="nine" style="grid-area: nine;">9</div>
+                                            <div class="calc-button calc-number" dtmf="4" id="four" style="grid-area: four;">4</div>
+                                            <div class="calc-button calc-number" dtmf="5" id="five" style="grid-area: five;">5</div>
+                                            <div class="calc-button calc-number" dtmf="6" id="six" style="grid-area: six;">6</div>
+                                            <div class="calc-button calc-number" dtmf="1" id="one" style="grid-area: one;">1</div>
+                                            <div class="calc-button calc-number" dtmf="2" id="two" style="grid-area: two;">2</div>
+                                            <div class="calc-button calc-number" dtmf="3" id="three" style="grid-area: three;">3</div>
+                                            <div class="calc-button" id="clear_dtmf" style="grid-area: clear_dtmf;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" class="bi bi-backspace" viewBox="0 0 16 16">
+                                                    <path d="M5.83 5.146a.5.5 0 0 0 0 .708L7.975 8l-2.147 2.146a.5.5 0 0 0 .707.708l2.147-2.147 2.146 2.147a.5.5 0 0 0 .707-.708L9.39 8l2.146-2.146a.5.5 0 0 0-.707-.708L8.683 7.293 6.536 5.146a.5.5 0 0 0-.707 0z"></path>
+                                                    <path d="M13.683 1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7.08a2 2 0 0 1-1.519-.698L.241 8.65a1 1 0 0 1 0-1.302L5.084 1.7A2 2 0 0 1 6.603 1zm-7.08 1a1 1 0 0 0-.76.35L1 8l4.844 5.65a1 1 0 0 0 .759.35h7.08a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="calc-button calc-number" dtmf="0" id="zero" style="grid-area: zero;">0</div>
+                                            <div class="calc-button" id="submit_dtmf" style="grid-area: submit_dtmf;">*</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="voiceip-footer">
                             <div class="voiceip-action">
@@ -1278,6 +1304,12 @@ EOHTML;
                                     </button>
                                     <div class="voiceip-button__desc">Tắt âm</div>
                                 </div>
+                                <div class="voiceip-button voiceip-dtmf">
+                                    <button class="btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="2"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="6" cy="12" r="2"></circle><circle cx="18" cy="12" r="2"></circle><circle cx="12" cy="18" r="2"></circle></svg>
+                                    </button>
+                                    <div class="voiceip-button__desc">Bàn phím</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1286,7 +1318,7 @@ EOHTML;
             ';
             
             $css = '
-                <link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=2.1">
+                <link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=2.4">
             ';
 
             // if($current_user->id == '1' || $current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6' || $current_user->id = '168889bb-54c2-59c7-8b3f-649102530d3c')

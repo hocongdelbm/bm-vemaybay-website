@@ -18,6 +18,13 @@
     --text-primary-color: #012970;
     --text-primary-2-color: #303030;
 
+    --success-color: #82ce34;
+    --warning-color: #ffc107;
+    --danger-color: #ec2029;
+    --success-text-color: #444;
+    --warning-text-color: #000;
+    --danger-text-color: #fff;
+
 
     /*********** BUTTON ***********/
     --btn-primary-2-color: rgb(224, 235, 252);
