@@ -9,7 +9,12 @@ class VietjetAPIHelper {
         if($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') { // Minh Hồng Võ
             // $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2";
             $this->ENDPOINT = "https://apivj4.timchuyenbay.net/api/v2";
-        } else $this->ENDPOINT = $supplier_id;
+        }
+        elseif($supplier_id == '7df1cbf9-21b6-4f45-7cc5-62011601a951') { // Travelpass
+            // $this->ENDPOINT = "https://apivj.timchuyenbay.net/api/v1";
+            $this->ENDPOINT = "https://apivj2.timchuyenbay.net/api/v2";
+        }
+        else $this->ENDPOINT = $supplier_id;
 
         $this->API_KEY_LIST = [
             'auth'              => 'mK_F6_flYV6Y1GmCNQ+Pm18c9n66xQrzDPj_8RwUAjG3P8zF6O',

@@ -147,7 +147,7 @@ $(document).ready(function () {
         const request = {
             "username": $("#reservation_form_vja input[name=reservation_username]").val(),
             "email": $("#reservation_form_vja input[name=reservation_email]").val(),
-            "api_key": "fV5yHvzHDCuscL2lpLNrkbOi7hGNFJwZe9MJ_QJ4DN1IQIbHrs",
+            "api_key": "1G4$vaEYghZv$I9JIj40U6D$oBqTEVHl6hBhqU$9EAfV6RB+Rq",
             "arr_passengers": JSON.stringify(array_passenger)
         }
         if (id_journey_dep.length > 0) {
@@ -225,52 +225,11 @@ $(document).ready(function () {
         let id_journey_dep = $(this).attr("id_journey_dep");
         let id_journey_ret = $(this).attr("id_journey_ret");
 
-        let ticket_class_dep = $(this).attr("ticket_class_dep");
-        let ticket_class_ret = $(this).attr("ticket_class_ret");
-
         let array_id_pass = $(this).attr("array_id_pass");
         let booking_id = $("#reservation_form_vja input[name=reservation_booking_id]").val();
         let check_passenger = $(".passenger")[0];
         let email = $('input[name="reservation_email"]').val();
         let supplier_id = $('select[name="supplier_booking"]').val();
-
-        // ECO, DELUX, SKYPOSS
-        let arr_class_vj = [
-            'eco',
-            'delux',
-            'skyposs',
-            'business',
-        ];
-        let class_valid = false;
-        if (ticket_class_dep.length > 0) {
-            for (let i = 0; i < arr_class_vj.length; i++) {
-                if (ticket_class_dep.toLowerCase().includes(arr_class_vj[i].toLowerCase())) {
-                    class_valid = true;
-                }
-            }
-
-            if (class_valid == false) {
-                // Class không hợp lệ
-                $('.container-waiting').hide();
-                alert('Ticket class lượt đi không hợp lệ: ' + ticket_class_dep);
-                return false;
-            }
-        }
-
-        if (ticket_class_ret.length > 0) {
-            for (let i = 0; i < arr_class_vj.length; i++) {
-                if (ticket_class_ret.toLowerCase().includes(arr_class_vj[i].toLowerCase())) {
-                    class_valid = true;
-                }
-            }
-
-            if (class_valid == false) {
-                // Class không hợp lệ
-                $('.container-waiting').hide();
-                alert('Ticket class lượt về không hợp lệ: ' + ticket_class_ret);
-                return false;
-            }
-        }
 
         if (check_passenger === undefined || check_passenger === false || array_id_pass.length == 0) {
             $('.container-waiting').hide();

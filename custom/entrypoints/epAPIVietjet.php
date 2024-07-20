@@ -1,9 +1,6 @@
 <?php
 require_once("modules/EC_Flight_Bookings/VietjetAPIHelper.php");
 
-const ENDPOINT_MHV = "https://apivj3.timchuyenbay.net/api/v2/bookingBM";
-const ENDPOINT_MHV_2 = "https://apivj4.timchuyenbay.net/api/v2/bookingBM";
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     global $db, $current_user; 
     $action = isset($_POST['action']) ? strtoupper($_POST['action']) : "";
@@ -15,8 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $id_journey_ret = isset($_POST['id_journey_ret']) ? $_POST['id_journey_ret'] : "";
         $array_id_pass  = isset($_POST['array_id_pass']) ? str_replace('&quot;', '"', $_POST['array_id_pass']) : [];
         $booking_id     = isset($_POST['booking_id']) ? $_POST['booking_id'] : "";
-        // $supplier_id    = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "7df1cbf9-21b6-4f45-7cc5-62011601a951";
-        $supplier_id    = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "3e414dde-85b6-315b-e0ba-6556c458368f";
+        $supplier_id    = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
 
         if(!empty($body_request) && !is_null($direction) && !empty($array_id_pass) && !empty($booking_id) && !empty($supplier_id)) {
             $array_id_pass = json_decode($array_id_pass, true);
@@ -31,136 +27,131 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             if(!empty($where_in_passenger)) $where_in_passenger = " AND id IN " . $where_in_passenger;
 
+            $VJHelper = new VietjetAPIHelper($supplier_id);
+            $json = $VJHelper->booking(json_decode($body_request, true));
+            $response = json_decode($json, true);
 
-            // MHV
-            if($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') {
-                $VJHelper = new VietjetAPIHelper($supplier_id);
-                $json = $VJHelper->booking(json_decode($body_request, true));
-                $GLOBALS['log']->fatal($json); // Lưu log
-                $response = json_decode($json, true);
+            // Return
+            $result = [];
 
-                // Return
-                $result = [];
+            if (isset($response['error']) && $response['error'] == 0) {
+                $data = $response['data'];
+                $pnr  = $data['pnr'];
 
-                if (isset($response['error']) && $response['error'] == 0) {
-                    $data = $response['data'];
-                    $pnr  = $data['pnr'];
+                // Chuyến đi
+                if($direction == 0) {
+                    // Update PNR
+                    $sql = "UPDATE ec_booking_passengers
+                        SET pnr_outbound = '$pnr'
+                        WHERE booking_id = '$booking_id' $where_in_passenger";
+                    $db->query($sql);
 
-                    // Chuyến đi
-                    if($direction == 0) {
-                        // Update PNR
-                        $sql = "UPDATE ec_booking_passengers
-                            SET pnr_outbound = '$pnr'
-                            WHERE booking_id = '$booking_id' $where_in_passenger";
+                    // Update supplier
+                    $sql = "UPDATE ec_booking_details
+                        SET supplier_id = '$supplier_id'
+                        WHERE booking_id = '$booking_id' AND direction = '$direction'";
+                    $db->query($sql);
+                    
+                    // Update hold time
+                    if($data['status'] == 1) {
+                        $sql = "UPDATE ec_booking_itineraries
+                                SET time_limit = '".$data['hold_time']."'
+                                WHERE id = '$id_journey_dep'";
                         $db->query($sql);
-
-                        // Update supplier
-                        $sql = "UPDATE ec_booking_details
-                            SET supplier_id = '$supplier_id'
-                            WHERE booking_id = '$booking_id' AND direction = '$direction'";
-                        $db->query($sql);
-                        
-                        // Update hold time
-                        if($data['status'] == 1) {
-                            $sql = "UPDATE ec_booking_itineraries
-                                    SET time_limit = '".$data['hold_time']."'
-                                    WHERE id = '$id_journey_dep'";
-                            $db->query($sql);
-                        }
                     }
-                    // Chuyến về
-                    else if($direction == 1) {
-                        // Update PNR
-                        $sql = "UPDATE ec_booking_passengers
-                            SET pnr_inbound = '$pnr'
-                            WHERE booking_id = '$booking_id' $where_in_passenger";
-                        $db->query($sql);
+                }
+                // Chuyến về
+                else if($direction == 1) {
+                    // Update PNR
+                    $sql = "UPDATE ec_booking_passengers
+                        SET pnr_inbound = '$pnr'
+                        WHERE booking_id = '$booking_id' $where_in_passenger";
+                    $db->query($sql);
 
-                        // Update supplier
-                        $sql = "UPDATE ec_booking_details
-                            SET supplier_id = '$supplier_id'
-                            WHERE booking_id = '$booking_id' AND direction = '$direction'";
+                    // Update supplier
+                    $sql = "UPDATE ec_booking_details
+                        SET supplier_id = '$supplier_id'
+                        WHERE booking_id = '$booking_id' AND direction = '$direction'";
+                    $db->query($sql);
+                    
+                    // Update hold time
+                    if($data['status'] == 1) {
+                        $sql = "UPDATE ec_booking_itineraries
+                                SET time_limit = '".$data['hold_time']."'
+                                WHERE id = '$id_journey_ret'";
                         $db->query($sql);
-                        
-                        // Update hold time
-                        if($data['status'] == 1) {
-                            $sql = "UPDATE ec_booking_itineraries
-                                    SET time_limit = '".$data['hold_time']."'
-                                    WHERE id = '$id_journey_ret'";
-                            $db->query($sql);
-                        }
                     }
-                    // Cả hai chuyến
-                    else if($direction == 2) {
-                        // Update PNR
-                        $sql = "UPDATE ec_booking_passengers
-                            SET pnr_outbound = '$pnr', pnr_inbound = '$pnr'
-                            WHERE booking_id = '$booking_id' $where_in_passenger";
-                        $db->query($sql);
+                }
+                // Cả hai chuyến
+                else if($direction == 2) {
+                    // Update PNR
+                    $sql = "UPDATE ec_booking_passengers
+                        SET pnr_outbound = '$pnr', pnr_inbound = '$pnr'
+                        WHERE booking_id = '$booking_id' $where_in_passenger";
+                    $db->query($sql);
 
-                        // Update supplier
-                        $sql = "UPDATE ec_booking_details
-                            SET supplier_id = '$supplier_id'
-                            WHERE booking_id = '$booking_id'";
+                    // Update supplier
+                    $sql = "UPDATE ec_booking_details
+                        SET supplier_id = '$supplier_id'
+                        WHERE booking_id = '$booking_id'";
+                    $db->query($sql);
+                    
+                    // Update hold time
+                    if($data['status'] == 1) {
+                        $sql = "UPDATE ec_booking_itineraries
+                                SET time_limit = '".$data['hold_time']."'
+                                WHERE id = '$id_journey_dep' OR id = '$id_journey_ret'";
                         $db->query($sql);
-                        
-                        // Update hold time
-                        if($data['status'] == 1) {
-                            $sql = "UPDATE ec_booking_itineraries
-                                    SET time_limit = '".$data['hold_time']."'
-                                    WHERE id = '$id_journey_dep' OR id = '$id_journey_ret'";
-                            $db->query($sql);
-                        }
                     }
-    
-                    if($data['status'] == 1)
-                        $result = [
-                            "code"          => 1,
-                            "message"       => "Giữ chỗ thành công (chưa bao gồm hành lý)<br />PNR: <b>$pnr</b>",
-                            "description"   => ""
-                        ];
-                    else if($data['status'] == 2)
-                        $result = [
-                            "code"          => 1,
-                            "message"       => "Xuất vé thành công (chưa bao gồm hành lý)<br />PNR: <b>$pnr</b>",
-                            "description"   => ""
-                        ];
                 }
-                else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 1) {
+
+                if($data['status'] == 1)
                     $result = [
-                        "code"          => 0,
-                        "message"       => "Lỗi 01: Sai thông tin đặt chỗ",
-                        "description"   => $json
+                        "code"          => 1,
+                        "message"       => "Giữ chỗ thành công (chưa bao gồm hành lý)<br />PNR: <b>$pnr</b>",
+                        "description"   => ""
                     ];
-                }
-                else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 2) {
+                else if($data['status'] == 2)
                     $result = [
-                        "code"          => 0,
-                        "message"       => "Lỗi 02: Thông tin chuyến bay đã bị thay đổi, vui lòng kiểm tra lại giá, mã chuyến và thời gian bay",
-                        "description"   => $response
+                        "code"          => 1,
+                        "message"       => "Xuất vé thành công (chưa bao gồm hành lý)<br />PNR: <b>$pnr</b>",
+                        "description"   => ""
                     ];
-                }
-                else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 3) {
-                    $result = [
-                        "code"          => 0,
-                        "message"       => "Lỗi 03: Báo giá đặt chỗ thất bại",
-                        "description"   => $json
-                    ];
-                }
-                else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 4) {
-                    $result = [
-                        "code"          => 0,
-                        "message"       => "Lỗi 04: Đặt chỗ thất bại",
-                        "description"   => $json
-                    ];
-                }
-                else {
-                    $result = [
-                        "code"          => 0,
-                        "message"       => "ERROR",
-                        "description"   => $json
-                    ];
-                }
+            }
+            else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 1) {
+                $result = [
+                    "code"          => 0,
+                    "message"       => "Lỗi 01: Sai thông tin đặt chỗ",
+                    "description"   => $json
+                ];
+            }
+            else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 2) {
+                $result = [
+                    "code"          => 0,
+                    "message"       => "Lỗi 02: Thông tin chuyến bay đã bị thay đổi, vui lòng kiểm tra lại giá, mã chuyến và thời gian bay",
+                    "description"   => $response
+                ];
+            }
+            else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 3) {
+                $result = [
+                    "code"          => 0,
+                    "message"       => "Lỗi 03: Báo giá đặt chỗ thất bại",
+                    "description"   => $json
+                ];
+            }
+            else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 4) {
+                $result = [
+                    "code"          => 0,
+                    "message"       => "Lỗi 04: Đặt chỗ thất bại",
+                    "description"   => $json
+                ];
+            }
+            else {
+                $result = [
+                    "code"          => 0,
+                    "message"       => "ERROR",
+                    "description"   => $json
+                ];
             }
 
             echo json_encode($result);
@@ -175,7 +166,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
     elseif($action == "PAY") {
-        $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "3e414dde-85b6-315b-e0ba-6556c458368f";
+        $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
         $reservation_key = isset($_POST['reservation_key']) ? $_POST['reservation_key'] : '';
         $total_amount = isset($_POST['total_amount']) ? $_POST['total_amount'] : 0;
         $total_amount_processing = isset($_POST['total_amount_processing']) ? $_POST['total_amount_processing'] : 0;
@@ -195,6 +186,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
         $VJHelper = new VietjetAPIHelper($supplier_id);
         $info_payment = json_decode($VJHelper->payBooking($reservation_key, $total_amount, $total_amount_processing), true);
+        
         if (isset($info_payment['error']) && $info_payment['error'] == 0 && !is_null($info_payment['data']) && !empty($info_payment['data'])) {
             echo json_encode([
                 'error'     => false,
@@ -219,7 +211,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         $supplier_id = get_supplier_id_by_pnr($pnr);
-        
+        if(!$supplier_id || empty($supplier_id)) {
+            echo json_encode(['error' => true, 'message' => 'Không tìm thấy nhà cung cấp', 'data' => ['supplier_id' => $supplier_id]]);
+            exit();
+        }
+
         // Init
         $VJHelper = new VietjetAPIHelper($supplier_id);
 
@@ -256,7 +252,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $round_trip = false;
                 foreach($data_key['journeys'] as $index => $j) {
                     $result['journeys'][$index] = [
-                        'href'  => $j['href'],
                         'key'   => $j['key']
                     ];
     
@@ -396,6 +391,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'id' => $supplier_id,
                     'name' => $data_pnr['company']['name']
                 ];
+
+                ##### AGEENCY #####
+                $agency = json_decode($VJHelper->getAgency(), true);
+                if(isset($agency['error']) && $agency['error'] == 0) {
+                    $result['supplier']['iataNumber'] = $agency['data'][0]['iataNumber'];
+                    $result['supplier']['accountNumber'] = $agency['data'][0]['accountNumber'];
+                    $result['supplier']['creditAvailable'] = number_format($agency['data'][0]['creditAvailable'], 0, ',', '.') . ' VND';
+                    $result['supplier']['iataNumber'] = $agency['data'][0]['iataNumber'];
+                    $result['supplier']['name'] = $agency['data'][0]['name'];
+                }
+
                 echo json_encode($result);
                 exit();
             }
@@ -403,13 +409,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['error' => true, 'message' => 'Lấy dữ liệu thất bại']);
             exit();
         }
-    
-        echo json_encode(['error' => true, 'message' => 'Mã PNR không hợp lệ', 'response' => $supplier_id]);
+        echo json_encode(['error' => true, 'message' => 'Mã PNR không hợp lệ', 'data' => $info_pnr]);
         exit();
     }
     else if($action == "ADD_ANCILLARY") {
         $pnr = isset($_POST['pnr']) ? trim($_POST['pnr']) : '';
-        $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "3e414dde-85b6-315b-e0ba-6556c458368f";
+        $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : '';
 
         // Lấy danh sách hành lý của Vietjet theo booking key
         if($_POST['type'] == 'get') {
@@ -417,8 +422,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $passenger_key     = isset($_POST['pass_key']) ? $_POST['pass_key'] : '';
             $direction         = isset($_POST['direction']) ? (int)$_POST['direction'] : null;
     
-            if(empty($reservation_key) || empty($passenger_key) || is_null($direction)){
-                echo json_encode(['error' => true, 'code' => 'Lỗi 02', 'message' => 'Dữ liệu cung cấp không hợp lệ d', 'direction' => $direction]);
+            if(empty($reservation_key) || empty($passenger_key) || empty($supplier_id)|| is_null($direction)){
+                echo json_encode([
+                    'error' => true,
+                    'code' => 'Lỗi 02',
+                    'message' => 'Dữ liệu cung cấp không hợp lệ', 
+                    'data' => [
+                        'pnr'               => $pnr,
+                        'supplier_id'       => $supplier_id,
+                        'reservation_key'   => $reservation_key,
+                        'passenger_key'     => $passenger_key,
+                        'direction'         => $direction
+                    ]
+                ]);
                 exit();
             }
     
@@ -426,7 +442,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $res = json_decode($VJHelper->getBookingByKey($reservation_key, 1), true);
             if(isset($res['error']) && $res['error'] == 0 && !is_null($res['data'])) {
                 $journey = $res['data']['journeys'][$direction];
-                $journey_href   = $journey['href'];
                 $journey_key    = $journey['key'];
      
                 foreach($journey['passengerJourneyDetails'] as $p) {
@@ -440,9 +455,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             foreach($options['data'] as $opt) {
                                 if(strpos($opt['description'], "hành lý") === false) continue;
                                 $result['data'][] = [
-                                    'journey_href'  => $journey['href'],
                                     'journey_key'   => $journey['key'],
-                                    'passenger_href'=> $p['passenger']['href'],
                                     'passenger_key' => $p['passenger']['key'],
                                     'purchase_key'  => $opt['purchaseKey'],
                                     'booking_key'   => $booking_key,
@@ -470,18 +483,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         elseif($_POST['type'] == 'add') {
             $reservation_key   = isset($_POST['re_key']) ? $_POST['re_key'] : '';
             $purchase_key      = isset($_POST['purchase_key']) ? $_POST['purchase_key'] : '';
-            $journey_href      = isset($_POST['journey_href']) ? $_POST['journey_href'] : '';
             $journey_key       = isset($_POST['journey_key']) ? $_POST['journey_key'] : '';
-            $passenger_href    = isset($_POST['passenger_href']) ? $_POST['passenger_href'] : '';
             $passenger_key     = isset($_POST['passenger_key']) ? $_POST['passenger_key'] : '';
             $booking_key       = isset($_POST['booking_key']) ? $_POST['booking_key'] : '';
             $value             = isset($_POST['value']) ? $_POST['value'] : '';
             $username          = $current_user->user_name;
     
-            if(empty($reservation_key) || empty($purchase_key) || empty($journey_href) || empty($journey_key) || empty($passenger_href) || 
-                empty($passenger_key) || empty($booking_key) || empty($pnr) || empty($value) || empty($username)
+            if(empty($reservation_key) || empty($purchase_key) || empty($journey_key) || empty($passenger_key) || empty($booking_key) ||
+                empty($pnr) || empty($supplier_id) || empty($value) || empty($username)
             ) {
-                echo json_encode(['error' => true, 'code' => 'Lỗi 02', 'message' => 'Dữ liệu cung cấp không hợp lệ']);
+                echo json_encode([
+                    'error' => true,
+                    'code' => 'Lỗi 02',
+                    'message' => 'Dữ liệu cung cấp không hợp lệ', 
+                    'data' => [
+                        'pnr'               => $pnr,
+                        'supplier_id'       => $supplier_id,
+                        'reservation_key'   => $reservation_key,
+                        'purchase_key'      => $purchase_key,
+                        'journey_key'       => $journey_key,
+                        'passenger_key'     => $passenger_key,
+                        'booking_key'       => $booking_key,
+                        'value'             => $value,
+                        'username'          => $username
+                    ]
+                ]);
                 exit();
             }
 
@@ -511,9 +537,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $parameters = [
                 'reservation_key'   => $reservation_key,
                 'purchase_key'      => $purchase_key,
-                'passenger_href'    => $passenger_href,
                 'passenger_key'     => $passenger_key,
-                'journey_href'      => $journey_href,
                 'journey_key'       => $journey_key,
                 'booking_key'       => $booking_key,
                 'total'             => $total_new,
@@ -540,8 +564,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $depart         = isset($_POST['depart']) ? trim($_POST['depart']) : '';
         $arrival        = isset($_POST['arrival']) ? trim($_POST['arrival']) : '';
         $date           = isset($_POST['date']) ? date('Y-m-d', strtotime($_POST['date'])) : '';
-        // $supplier_id    = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "7df1cbf9-21b6-4f45-7cc5-62011601a951";
-        $supplier_id    = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "3e414dde-85b6-315b-e0ba-6556c458368f";
+        $supplier_id    = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
 
         // Init
         $VJHelper = new VietjetAPIHelper($supplier_id);
@@ -564,11 +587,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         "description"   => "Check type"
     ]);
     exit();
-}
-
-
-function get_endpoint($supplier_id) {
-    if($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') return ENDPOINT_MHV;
 }
 
 function get_supplier_id_by_pnr($pnr) {
