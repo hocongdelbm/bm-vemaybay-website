@@ -10,6 +10,8 @@ SUGAR.measurements = {
 
 SUGAR.loaded_once = false;
 
+const ROOT_STYLE = getComputedStyle(document.querySelector(':root'));
+
 $(document).ready(function () {
   loadSidebar();
 
@@ -785,3 +787,67 @@ function formatName(name) {
   return formattedName;
 }
 
+/** 
+ * Show toast notify
+ * @param {string} type success, warning, danger
+ * @param {string} content
+ * @return {boolean}
+ */
+function showToastNotify(type = '', content = '') {
+	if (type.length == 0) { alert(content); return false; }
+
+	let color = ROOT_STYLE.getPropertyValue(`--${type}-color`);
+	let html = `
+          <div class="toast__content d-flex align-items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="${color}" viewBox="0 0 256 256">
+              <rect width="256" height="256" fill="none"></rect>
+              <circle cx="128" cy="128" r="96" fill="none" stroke="${color}" stroke-miterlimit="10" stroke-width="16"></circle>
+              <line x1="128" y1="80" x2="128" y2="136" fill="none" stroke="${color}" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line>
+              <circle cx="128" cy="172" r="12"></circle>
+            </svg>
+            <div class="content">${content}</div>
+          </div>
+          <div class="toast__close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="#000" viewBox="0 0 256 256">
+              <rect width="256" height="256" fill="none"></rect>
+              <line x1="200" y1="56" x2="56" y2="200" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line>
+              <line x1="200" y1="200" x2="56" y2="56" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line>
+            </svg>
+          </div>
+          <div class="toast__progress progress">
+            <div class="toast__progress-bar progress-bar" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+    `;
+
+	$('#toast-notify').removeClass();
+	$('#toast-notify').addClass(`toast__container--${type} active`);
+	$('#toast-notify').html(html);
+	$('#toast-notify .progress-bar').animate({ width: "100%" }, 3000);
+	setTimeout(function () {
+		$('#toast-notify').removeClass(`toast-${type} active`);
+	}, 4000);
+
+	return true;
+}
+
+
+/** 
+ * Copy content
+ * @param {string} content
+ * @return {boolean}
+ */
+
+function copyContent(input){
+	const copyValue = input.trim();
+
+	if (copyValue) {
+		navigator.clipboard.writeText(copyValue).then(function() {
+			showToastNotify('success', 'Đã sao chép thành công!')
+		}).catch(function(error) {
+			showToastNotify('danger', 'Không thể sao chép văn bản!')
+		    	console.error('Không thể sao chép văn bản: ', error);
+		});
+	} else {
+		showToastNotify('danger', 'Không có thông tin để sao ché!')
+	}
+}

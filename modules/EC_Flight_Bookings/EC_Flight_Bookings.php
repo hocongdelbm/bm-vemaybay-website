@@ -38,6 +38,7 @@ class EC_Flight_Bookings extends Basic {
 	public $contact_name;
 	public $salutation;
 	public $email;
+	public $email_reservation;
 	public $phone;
 	public $address;
 	public $holding_status;

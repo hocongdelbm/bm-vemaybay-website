@@ -61,6 +61,7 @@ $(document).ready(function() {
                 $("#btn-payment-pnr").hide();
                 $("#payments").html($("#charges").html());
                 $("#payments").attr("data", total_amount);
+                $("#balance_agency").html(data['data']['creditAvailable']); // Update số dư
 
                 showModal(id_modal_payment_success);
                 return;

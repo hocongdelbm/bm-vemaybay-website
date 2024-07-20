@@ -39,6 +39,9 @@
     </div>
 </div>
 
+<!-- TOAST -->
+<div id="toast-notify"></div>
+
 <!-- MODAL -->
 <div id="modal-container">
     <div id="modal-content"></div>

@@ -2173,23 +2173,11 @@ function custom_get_sip_number($key = '') {
         '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
         // Trương Mỹ Nhân
         '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
-        // Lê Tín Nghĩa
-        'ebc40fa1-8878-1a86-000d-5b6949a87e11' => ['user' => '107', 'password' => 'C1UtQnCWTpUmH8C5?9wE'],
+   
         // Nguyễn Duy Đăng
         'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
-        // ['user' => '110', 'password' => '4E%1FKAF?QQFQIjC?fdG'],
-        // ['user' => '111', 'password' => 'aJcMZRY?wXcvevzqXs3a'],
-        // ['user' => '112', 'password' => 'SULRs2QeS94*C7*C1KsN'],
-        // ['user' => '113', 'password' => '^BP4M0YHY*JAPa7LHJcF'],
-        // ['user' => '114', 'password' => 'NGjfhzWwxzvd!9$gFM09'],
-        // ['user' => '115', 'password' => '08ZU*7e!eAi?!e91dtIs'],
-        // ['user' => '116', 'password' => 'Z5ahyvVMvUwkx.Ctb.fN'],
-        // ['user' => '117', 'password' => 'KtH3FB^o$L2J45rPka0S'],
-        // ['user' => '118', 'password' => 'V?A4Pt$dfQch9QLVgJaG'],
-        // ['user' => '119', 'password' => 'nndQA3ZDRHbczNVDtEAe'],
-
 
         /************************  KẾ TOÁN  ************************/
         // Đỗ Thị Kim Ngân
@@ -2198,21 +2186,12 @@ function custom_get_sip_number($key = '') {
         'b4ff32c8-8a1e-0648-b20d-63437ab44554' => ['user' => '121', 'password' => 'gMDB5Gn8tyvg1emav5cb'],
         // Nhân Thanh Chung
         'd61ac0c1-91b3-0dc8-049a-518b21d2deb9' => ['user' => '122', 'password' => 'e5C2FUk3^VbqCBH47Fq1'],
-        // ['user' => '126', 'password' => 'Qf62!n8!fgXjqLU349fL'],
-        // ['user' => '127', 'password' => 'oSIIHYxDJkf^qrF2YkFt'],
-        // ['user' => '128', 'password' => 'EYWYfQLHd?f0G5hZIRPs'],
-        // ['user' => '129', 'password' => 'qBo36Ewcb9iB9VU1CkSM'],
-        
 
         // Booker test
         '493ad5e5-ffea-a84f-96d7-6577fed623d6' => ['user' => '130', 'password' => '24635789'], // Booker
 
 
         /************************  LAPTOP  ************************/
-        // Thiều Tuấn Anh
-        '9f381038-99c2-7515-938f-558939fee19a' => ['user' => '201', 'password' => 'cfqR^sK.gveppeMDqei7'],
-        // Nghiêm Xuân Đức 
-        'd14007fa-aaed-cac7-9a00-62cfccf58d5a' => ['user' => '202', 'password' => 'jIComoUpd9Jd?3S*$c1e'],
         // Phạm Chiến Thắng
         '61b537e5-6bc5-77e5-1102-5ff3dc1e40ee' => ['user' => '203', 'password' => '9$K4V2.8ofNf^jKGoQg4'],
 
@@ -2226,6 +2205,10 @@ function custom_get_sip_number($key = '') {
         'b5523dbd-b9a7-67c0-77b5-533e6ece89b1' => ['user' => '125', 'password' => 'E*UX8bbm8oSyj?jzQySj'],
         // pandapo
         '4f4d7a13-4171-9b7d-251c-64dd8f9885e4' => ['user' => '888', 'password' => '8sfJMj0hDWWPbvtcDg!e'],
+
+        // Tiên TĐ
+        'c57196c6-e211-9856-43d5-6695498f39ae' => ['user' => '998', 'password' => 'Bhq*B1rWSZ%n!dFEBJ$k'],
+
     ];
 
     if(strlen($key) == 3) {

@@ -1964,16 +1964,60 @@ function updateMissingEfforts()
 	return true;
 }
 
+//Cập nhật status agent
+function agent_change_status($agent, $status){
+	$agent  = $agent.'@td.timchuyenbay.net';
+	$toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
+	$body_request = array(
+		'agent' => $agent,
+		'status' => $status,
+		'token' => $toten,
+	);
+
+	try {
+		 $curl = curl_init();
+		 if ($curl === false) {
+			  echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
+		 }
+
+		 curl_setopt_array($curl, array(
+			  CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
+			  CURLOPT_RETURNTRANSFER => true,
+			  CURLOPT_FOLLOWLOCATION => true,
+			  CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
+			  CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
+			  CURLOPT_TIMEOUT        => 0,
+			  CURLOPT_CUSTOMREQUEST   => 'POST',
+			  CURLOPT_POSTFIELDS      => $body_request,
+		 ));
+	
+		 $json = curl_exec($curl);
+		 $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		 curl_close($curl);
+		 $arr = json_decode($json, true);
+	} catch(Exception $e) {
+		 return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
+	}
+}
 
 // Kiểm tra user còn online hay không
 function checkStatusOnlineUser()
 {
-	global $db;
+	global $db, $current_user;
+
+	$array_admin = [
+		'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
+		'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
+		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
+		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
+		'1', //DDuc
+   ];
 
 	$path           = "secure_sessions/check_online_logs/";
 	$temp_files     = scandir($path);
 	natsort($temp_files);
 	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hours')));
+	$status = '';
 
 	foreach ($temp_files as $file) {
 		if ($file != "." && $file != ".." && $file != "Thumbs.db" && $file != basename(__FILE__)) {
@@ -1981,8 +2025,7 @@ function checkStatusOnlineUser()
 			$file_name          = basename($file, '.' . $info['extension']);
 			$user_id            = str_replace('_', '-', $file_name);
 			$json_file          = read_file_logs_online($user_id);
-			$data_user  	     = json_decode($json_file, true);
-
+			$data_user  	    = json_decode($json_file, true);
 
 			$strtotime_user 	= strtotime(date('Y-m-d H:i:s', strtotime($data_user['last_time'])));
 			$last_time_user_7 	= date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
@@ -1990,6 +2033,7 @@ function checkStatusOnlineUser()
 
 			// User đó busy - check 5 phút
 			if (trim($data_user['busy']) == 1) {
+				$status = 'Logged Out';
 				// Kiểm tra sự chênh lệch trong khoảng thời gian 5 phút (300 giây)
 				if ($diffInSeconds > 600) {
 					$sql_offline = '
@@ -2001,14 +2045,16 @@ function checkStatusOnlineUser()
 					';
 					$db->query($sql_offline);
 
-					$_SESSION['busy'] 	= 0;
+					$_SESSION['busy'] = 0;
 					// sendTestTelegram('Nhân viên ' .$user_id. ' đã bị off do bận quá 5 phút');
 				} else {
 					// sendTestTelegram('Nhân viên ' .$user_id. ' vẫn còn đang bận');
 				}
 			} else {
-				// Kiểm tra sự chênh lệch trong khoảng thời gian 2 phút (120 giây)
+				// Kiểm tra sự chênh lệch trong khoảng thời gian 2 phút 30s (150 giây)
 				if ($diffInSeconds > 150) {
+					$status = 'Logged Out';
+
 					$sql_offline = '
 						UPDATE ec_online_report 
 						SET status = 0, last_online = "' . $last_time_user_7 . '"
@@ -2020,6 +2066,9 @@ function checkStatusOnlineUser()
 					$_SESSION['busy'] 	= 0;
 					// sendTestTelegram('Nhân viên ' .$val['name_user']. ' đã bị off vì quá 2 phút không tương tác BM. '.$last_time_user_7.'');
 				} else {
+					//Online 
+					$status = 'Available';
+					
 					$sql_select = '
 								SELECT status
 								FROM ec_online_report
@@ -2045,6 +2094,13 @@ function checkStatusOnlineUser()
 					}
 				}
 			}
+
+			// Change status
+			if(in_array($user_id, $array_admin)){
+				$status = 'Available';
+			}
+			$agent = custom_get_sip_number($user_id);
+			agent_change_status($agent, $status);
 		}
 	}
 

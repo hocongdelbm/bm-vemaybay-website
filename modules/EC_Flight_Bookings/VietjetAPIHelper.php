@@ -5,24 +5,23 @@ class VietjetAPIHelper {
     private $CONNECTTIMEOUT;
     private $TIMEOUT;
 
-    private $endpoint = "https://apivj.timchuyenbay.net/api/v1/"; // Official
-   
     public function __construct($supplier_id) {
-        if($supplier_id == '7df1cbf9-21b6-4f45-7cc5-62011601a951') { // Travelpass
-            $this->ENDPOINT = "https://apivj.timchuyenbay.net/api/v1";
-            // $this->ENDPOINT = "https://apivj2.timchuyenbay.net/api/v1";
+        if($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') { // Minh Hồng Võ
+            // $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2";
+            $this->ENDPOINT = "https://apivj4.timchuyenbay.net/api/v2";
         }
-        elseif($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') { // Minh Hồng Võ
-            $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2";
-            // $this->ENDPOINT = "https://apivj4.timchuyenbay.net/api/v2";
-        }
+        elseif($supplier_id == '7df1cbf9-21b6-4f45-7cc5-62011601a951') { // Travelpass
+            // $this->ENDPOINT = "https://apivj.timchuyenbay.net/api/v1";
+            $this->ENDPOINT = "https://apivj2.timchuyenbay.net/api/v2";
+        } else $this->ENDPOINT = $supplier_id;
 
         $this->API_KEY_LIST = [
-            'auth'              => 'f6syIGPw9G$MbaDlz7OoHb9SWSYTDIPxG7lk$dMxaFCw5HgU9s',
-            'flight'            => 'fPdV_kzqZp74rdTo_xNY7P0HFoCBksw_8CELyQYD$pLSA8E841rigZugrNqzgXe61Z7bnU$Re2P3YdR20QgzxWw7CwVTDbOMEsUs',
-            'info'              => 'fKh5XMFs7bFZs72ZvsL0gjgJtD64kHdKv7ieCLZht7w3fY0D9s',
-            'booking_options'   => 'f2xFs2qDy0KWm7YtRI_hzX3uLRtWCVgQ1HSKDGUuZ4sEGLaqJs',
-            'booking'           => 'fEGJJPoZ$7obQ_Pteg30JhQD5DzaCSAKDjMhSp2OELa8G_ArvCRxIvjS_MZl9XWOB0jmV$sduiEdy_mOOW_3r1YeAa5dK1J9Iy6s',
+            'auth'              => 'mK_F6_flYV6Y1GmCNQ+Pm18c9n66xQrzDPj_8RwUAjG3P8zF6O',
+            'flight'            => 'QoY2+9L7TN8b6_Auq5g2Gx+8o7cwy70LO4irw$V1XgsS5irJS0',
+            'info'              => 'VCVTo505Lni1DW51gzehT0+QC5iw1fQgYfXl9TFptORE+x11wR',
+            'booking_options'   => '47oy72WmePcI2lcLxZFQIw$a6cUgnOLE2075S2iv0UCJeXC2Gj',
+            'booking'           => '96pN9u4yn70+f_3dUTfJXZ$F1isZMgiMuek_rV1+BzlXsQBH1j',
+            'bm'                => '1G4$vaEYghZv$I9JIj40U6D$oBqTEVHl6hBhqU$9EAfV6RB+Rq'
         ];
         $this->CONNECTTIMEOUT = 100;
         $this->TIMEOUT = 300;
@@ -156,7 +155,7 @@ class VietjetAPIHelper {
 
             // Check the return value of curl_exec(), too
             if ($json === false) {
-                return json_encode(['error' => 1, 'code' => 500, 'message' => curl_error($curl), 'data' => null]);
+                return json_encode(['error' => 1, 'code' => 500, 'message' => curl_errno($curl) . ': ' .curl_error($curl), 'data' => $url]);
             }
 
             return $json;
@@ -746,12 +745,54 @@ class VietjetAPIHelper {
         }
     }
 
+    /** Lấy thông tin đại lý
+     * 
+     * @return string json
+     */
+    public function getAgency(){
+        $url = "$this->ENDPOINT/getAgency";
+        $post_data = [
+            'api_key' => $this->getAPIKey('info'),
+        ];
+
+        try {
+            $curl = curl_init();
+
+            // Check if initialization had gone wrong
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'code' => 500, 'message' => 'cURL Failed to initialize', 'data' => null]);
+            }
+
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_POST, TRUE);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
+            curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->CONNECTTIMEOUT);
+            curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);
+            $json = curl_exec($curl);
+
+            // Check the return value of curl_exec(), too
+            if ($json === false) {
+                return json_encode(['error' => 1, 'code' => 500, 'message' => curl_error($curl), 'data' => null]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'code' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage(), 'data' => null]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
 
     // Lấy báo giá cập nhật thông tin hành khách
     public function quoteUpdatePassenger($parameters) {
         if(empty($parameters)) return null;
 
-        $url = $this->endpoint.'quotation_update_passenger';
+        $url = "$this->ENDPOINT/getQuotationUpdatePassenger";
         $post_data = array(
             'api_key'      => $this->getAPIKey('booking_options'),
             'parameters'   => json_encode($parameters)
@@ -763,8 +804,6 @@ class VietjetAPIHelper {
         curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
         curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->CONNECTTIMEOUT);
         curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);
@@ -778,7 +817,7 @@ class VietjetAPIHelper {
     public function updatePassenger($reservation_key, $passenger_key, $body_request) {
         if(empty($reservation_key) || empty($passenger_key) || empty($body_request)) return null;
 
-        $url = $this->endpoint.'update_passenger';
+        $url = "$this->ENDPOINT/updatePassenger";
         $post_data = array(
             'api_key'           => $this->getAPIKey('booking_options'),
             'reservation_key'   => $reservation_key,
@@ -792,8 +831,6 @@ class VietjetAPIHelper {
         curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
         curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->CONNECTTIMEOUT);
         curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);

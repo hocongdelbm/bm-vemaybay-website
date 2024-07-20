@@ -3,12 +3,12 @@
 
 
  // created: 2023-04-26 03:34:19
-$dictionary['Lead']['fields']['jjwg_maps_address_c']['inline_edit']=1;
+$dictionary['Lead']['fields']['jjwg_maps_geocode_status_c']['inline_edit']=1;
 
  
 
  // created: 2023-04-26 03:34:19
-$dictionary['Lead']['fields']['jjwg_maps_geocode_status_c']['inline_edit']=1;
+$dictionary['Lead']['fields']['jjwg_maps_address_c']['inline_edit']=1;
 
  
 

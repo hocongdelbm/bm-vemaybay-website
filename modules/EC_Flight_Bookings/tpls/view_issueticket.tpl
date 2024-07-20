@@ -38,65 +38,66 @@
             <ul class="list-group list-group-flush">
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Nhà cung cấp</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="supplier_name"></div>
+                        <div class="col-md-2 col-4 label">Nhà cung cấp</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-5 col-7 value" id="supplier_name"></div>
+                        <div class="col-md-4 col-12 value text-end fw-bold text-danger mt-3 mt-md-0">Số dư: <span class="fs-5" id="balance_agency">0 VND</span></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">PNR</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="pnr"></div>
+                        <div class="col-md-2 col-4 label">PNR</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="pnr"></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Mã số</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="number"></div>
+                        <div class="col-md-2 col-4 label">Mã số</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="number"></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Khóa đặt chỗ</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="reservation_key" data-rekey=""></div>
+                        <div class="col-md-2 col-4 label">Khóa đặt chỗ</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="reservation_key" data-rekey=""></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Email liên hệ</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="email_booking"></div>
+                        <div class="col-md-2 col-4 label">Email liên hệ</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="email_booking"></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Tình trạng</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="status_pnr" value=""></div>
+                        <div class="col-md-2 col-4 label">Tình trạng</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="status_pnr" value=""></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Giá mua</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="charges" data=""></div>
+                        <div class="col-md-2 col-4 label">Giá mua</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="charges" data=""></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Đã thanh toán</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="payments" data=""></div>
+                        <div class="col-md-2 col-4 label">Đã thanh toán</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="payments" data=""></div>
                     </div>
                 </li>
                 <li class="list-group-item">
                     <div class="row">
-                        <div class="col-2 label">Tiền hoàn lại</div>
-                        <div class="col-1 dot">:</div>
-                        <div class="col-9 value" id="refunds" data=""></div>
+                        <div class="col-md-2 col-4 label">Tiền hoàn lại</div>
+                        <div class="col-md-1 col-1 dot">:</div>
+                        <div class="col-md-9 col-7 value" id="refunds" data=""></div>
                     </div>
                 </li>
             </ul>

@@ -180,13 +180,13 @@ class Viewstatistics extends SugarView
 
                "0968304455" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
                "02866509900" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               "0973834501" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0973891401" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0974015001" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0974091002" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0983171970" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0983103703" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0983129202" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0973834501" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0973891401" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0974015001" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0974091002" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0983171970" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0983103703" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0983129202" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
                
                // 01/07/2024
                "0962768782" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
