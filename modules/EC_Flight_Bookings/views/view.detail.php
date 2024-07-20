@@ -54,7 +54,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// External file
 		$js = '<script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.0"></script>
-			<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet.js?v=1.7"></script>
+			<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet/booking.js?v=1.7"></script>
 			<script src="modules/'.$this->bean->module_dir.'/js/api_zalo.js?v=1.6"></script>
 			<script src="modules/'.$this->bean->module_dir.'/js/api_sms.js?v=1.0"></script>
 		';
@@ -362,18 +362,18 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					<form method="dialog">
 						<div class="wrap-type">
 							<h3 class="subtitle">Chọn mẫu tin nhắn</h3>
-							<div class="wrap-radio d-flex align-items-center">
+							<div class="wrap-radio d-flex align-items-center justify-content-between" style="height:25px; gap:15px;">
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
-									<label for="type_journey" class="form-check-label">Tin hành trình <span class="me-2 text-danger">('.$zns_history['journey'].')</span></label>
+									<label for="type_journey" class="form-check-label">Tin nhắn hành trình <span class="me-2 text-danger">('.$zns_history['journey'].')</span></label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_payment" name="zalo_type" value="payment">
-									<label for="type_payment" class="form-check-label">Tin thanh toán <span class="me-2 text-danger">('.$zns_history['payment'].')</span></label>
+									<label for="type_payment" class="form-check-label">Tin nhắn thanh toán <span class="me-2 text-danger">('.$zns_history['payment'].')</span></label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_code" name="zalo_type" value="code">
-									<label for="type_code" class="form-check-label">Tin code vé <span class="me-2 text-danger">('.$zns_history['code'].')</span></label>
+									<label for="type_code" class="form-check-label">Tin nhắn code vé <span class="me-2 text-danger">('.$zns_history['code'].')</span></label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_after-call-sale" name="zalo_type" value="after-call-sale">
@@ -392,7 +392,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 									$contact_phone .= '
 										<div>
 											<input type="radio" class="form-check-input" id="type_promotion" name="zalo_type" value="promotion">
-											<label for="type_promotion" class="form-check-label color-red">Tin Khuyến mãi</label>
+											<label for="type_promotion" class="form-check-label color-red">Tin nhắn khuyến mãi</label>
 										</div>
 									';
 								}
@@ -407,7 +407,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 						</div>
 
 						<div class="wrap-message mt-3">
-							<h3 class="subtitle" style="text-align:center; text-transform: uppercase;">NỘI DUNG TIN NHẮN GỞI ĐI</h3>
+							<h3 class="subtitle" style="text-align:center">Nội dung</h3>
 							<div id="zalo-message" style="padding: 5px 10px;"></div>
 						</div>
 						
@@ -1153,22 +1153,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 								</div>
 								
 								<div class="wrap-button">
-									daylaphantesttest
+									<label for="supplier_booking" class="form-label">Chọn NCC: </label>
+									<select name="supplier_booking" id="supplier_booking" class="form-select form-select-sm">
+										<option value="7df1cbf9-21b6-4f45-7cc5-62011601a951" selected>Travelpass</option>
+										<option value="3e414dde-85b6-315b-e0ba-6556c458368f">Minh Hồng võ</option>
+									</select>
 									<button id="cancel_reservation_vja" class="btn btn-secondary" value="cancel">Hủy</button>
 									<button id="confirm_reservation_vja" class="btn btn-confirm" value="default">Xác nhận</button>
 								</div>
 							</form>
 						</dialog>';
-
-			if($current_user->id == '1' || $current_user->id == '168889bb-54c2-59c7-8b3f-649102530d3c') {
-				$temp = '<label for="supplier_booking" class="form-label">Chọn NCC: </label>
-					<select name="supplier_booking" id="supplier_booking" class="form-select form-select-sm">
-						<option value="3e414dde-85b6-315b-e0ba-6556c458368f" selected>Vietjet_MHV</option>
-						<option value="7df1cbf9-21b6-4f45-7cc5-62011601a951">Vietjet</option>
-					</select>';
-
-				$dialog = str_replace("daylaphantesttest", $temp, $dialog);
-			} else $dialog = str_replace("daylaphantesttest", "", $dialog);
 
 			$this->ss->assign('RESERVATION_VJA', $form_reservation . $dialog);
 		} else $this->ss->assign('RESERVATION_VJA', '');
@@ -2261,10 +2255,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	function getPassengerAndLuggage($booking_id) {
 		if(is_null($booking_id) || empty($booking_id)) return '';
 
-		$pass_text = '';
 		$adt = $chd = $inf = 0;
 		$luggage = $luggage_inbound = 0;
-		$sql = 'SELECT name, type, luggage_price, luggage_price_inbound
+		$sql = 'SELECT type, luggage_price, luggage_price_inbound
 				FROM ec_booking_passengers
 				WHERE booking_id = "'.$booking_id.'" AND deleted = 0';
 
@@ -2274,29 +2267,25 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			elseif($row['type'] == '1') $chd++;
 			elseif($row['type'] == '2') $inf++;
 
-			if($row['luggage_price'] > 100) $luggage++;
-			if($row['luggage_price_inbound'] > 100) $luggage_inbound++;
-
-			$pass_text .= empty($pass_text) ? $row['name'] : ', ' . $row['name'];
+			if($row['luggage_price'] > 10) $luggage++;
+			if($row['luggage_price_inbound'] > 10) $luggage_inbound++;
 		}
 
-		$pass = "$adt người lớn";
-		if($chd > 0) $pass .= ", $chd trẻ em";
-		if($inf > 0) $pass .= ", $inf em bé";
+		$pass = $adt . ' người lớn';
+		if($chd > 0) $pass .= ', ' . $chd . ' trẻ em';
+		if($inf > 0) $pass .= ', ' . $inf . ' em bé';
 
 		$lug = '';
-		if($luggage > 0) $lug .= "$luggage kiện";
+		if($luggage > 0) $lug .= $luggage . ' kiện đi';
 		if($luggage_inbound > 0) {
-			if(empty($lug)) $lug .= '$luggage_inbound kiện về';
-			else $lug .= " đi, $luggage_inbound kiện về";
+			if(empty($lug)) $lug .= $luggage_inbound.' kiện về';
+			else $lug .= ', '.$luggage_inbound.' kiện về';
 		}
 		if(empty($lug)) $lug = "Không";
 
-		return [
-			'passenger' => strlen($pass_text) > 100 ? $pass : $pass_text, 
-			'luggage' => $lug
-		];
+		return ['passenger' => $pass, 'luggage' => $lug];
 	}
+
 
 	// Get zalo information
 	function getZaloInfo($phone) {

@@ -16,10 +16,6 @@ $(document).ready(function () {
             "margin-top": "8px"
         });
 
-        // Class
-
-
-
         // Thong tin hanh trinh
         let journeys = JSON.parse($("#reservation_form_vja input#journeys_info_vja").val().replace(/'/g, '"'));
         let id_journey_dep = "";
