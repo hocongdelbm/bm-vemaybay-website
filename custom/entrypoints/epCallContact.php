@@ -642,8 +642,8 @@ function get_booking_refund($phone){
                     <td align="center" class="fw-bold hv_status">'.$app_list_strings['tinhtranghoanve_list'][$row['tinhtrang']].'</td>
                     <td align="left" class="fw-bold bk_name"><a target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record='.$row['booking_id'].'">'.$row['booking'].'</a></td>
                     <td align="center" class="fw-bold hv_description" style="max-width: 300px;">'.$row['description'].'</td>
-                    <td align="center" class="fw-bold hv_htk">'.$row['tongtienkhach'].'</td>
-                    <td align="center" class="fw-bold hv_refunded">'.$row['refunded'].'</td>
+                    <td align="center" class="fw-bold hv_htk">'.format_number($row['tongtienkhach']).'</td>
+                    <td align="center" class="fw-bold hv_refunded">'.format_number($row['refunded']).'</td>
                 </tr>';
         $i++;
     }

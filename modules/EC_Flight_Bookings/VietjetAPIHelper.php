@@ -9,10 +9,6 @@ class VietjetAPIHelper {
         if($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') { // Minh Hồng Võ
             // $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2";
             $this->ENDPOINT = "https://apivj4.timchuyenbay.net/api/v2";
-        }
-        elseif($supplier_id == '7df1cbf9-21b6-4f45-7cc5-62011601a951') { // Travelpass
-            // $this->ENDPOINT = "https://apivj.timchuyenbay.net/api/v1";
-            $this->ENDPOINT = "https://apivj2.timchuyenbay.net/api/v2";
         } else $this->ENDPOINT = $supplier_id;
 
         $this->API_KEY_LIST = [
@@ -840,30 +836,6 @@ class VietjetAPIHelper {
         return $results;
     }
 
-    // Lấy báo giá cho đặt chỗ reservation_key
-    public function quotationBooking($body_request) {
-        if (empty($body_request)) return null;
-
-        $url = $this->endpoint.'quotation_booking';
-        $headers = ['Content-Type: application/json'];
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_POST, TRUE);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $body_request);
-        curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->CONNECTTIMEOUT);
-        curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);
-        $json = curl_exec($curl);
-        curl_close($curl);
-        $results = json_decode($json, true);
-        return $results;
-    }
 }
 
 ?>

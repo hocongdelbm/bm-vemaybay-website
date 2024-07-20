@@ -105,9 +105,6 @@
 }
 
 #confirm_reservation_dialog_vja .wrap-button {
-    /* float: right;
-    clear: both;
-    margin-top: 10px; */
     padding: 10px 0 5px 0;
 }
 #confirm_reservation_dialog_vja .wrap-button select {
