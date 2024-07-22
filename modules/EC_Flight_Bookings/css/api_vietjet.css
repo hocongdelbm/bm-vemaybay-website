@@ -19,18 +19,17 @@
     margin: 1.5em 0;
 }
 #confirm_reservation_dialog_vja p b {color:#303030}
-#confirm_reservation_dialog_vja .notes .remind {
+
+#confirm_reservation_dialog_vja .notes {
     font-weight: bold;
     font-style: italic;
     font-size: 14px;
     text-align: center;
     padding: 8px;
 }
+
+#confirm_reservation_dialog_vja .notes .credit_available, 
 #confirm_reservation_dialog_vja .notes .warning {
-    font-weight: bold;
-    font-style: italic;
-    font-size: 14px;
-    text-align: center;
     text-transform: uppercase;
     margin-top: 8px;
     color: red;
