@@ -1804,7 +1804,7 @@ select::-webkit-scrollbar {
     font-size: 14px;
     transform: translateY(-50%);
     color: #4e8ccf;
-    z-index: 1;
+    z-index: 6;
 }
 
 .form-login__wrapper .text-field select,

@@ -362,7 +362,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					<form method="dialog">
 						<div class="wrap-type">
 							<h3 class="subtitle">Chọn mẫu tin nhắn</h3>
-							<div class="wrap-radio d-flex align-items-center justify-content-between" style="height:25px; gap:15px;">
+							<div class="wrap-radio d-flex align-items-center justify-content-between">
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
 									<label for="type_journey" class="form-check-label">Tin nhắn hành trình <span class="me-2 text-danger">('.$zns_history['journey'].')</span></label>

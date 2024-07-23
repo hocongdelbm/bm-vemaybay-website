@@ -165,10 +165,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         ]);
         exit();
     } elseif($action == "PAY") {
-        $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
-        $reservation_key = isset($_POST['reservation_key']) ? $_POST['reservation_key'] : '';
-        $total_amount = isset($_POST['total_amount']) ? $_POST['total_amount'] : 0;
-        $total_amount_processing = isset($_POST['total_amount_processing']) ? $_POST['total_amount_processing'] : 0;
+        $supplier_id                = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
+        $reservation_key            = isset($_POST['reservation_key']) ? $_POST['reservation_key'] : '';
+        $total_amount               = isset($_POST['total_amount']) ? $_POST['total_amount'] : 0;
+        $total_amount_processing    = isset($_POST['total_amount_processing']) ? $_POST['total_amount_processing'] : 0;
+        $pnr                        = isset($_POST['pnr']) ? $_POST['pnr'] : '';
 
         if(empty($reservation_key)) {
             echo json_encode(['error' => true, 'code' => 'Lỗi 01', 'message' => 'Dữ liệu cung cấp không hợp lệ', 'description' => 'Thiếu khóa đặt chỗ']);
@@ -182,9 +183,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['error' => true, 'code' => 'Lỗi 01', 'message' => 'PNR không thể xuất vé', 'description' => 'Đã thanh toán đầy đủ']);
             exit();
         }
+        elseif(empty($pnr)) {
+            echo json_encode(['error' => true, 'code' => 'Lỗi 01', 'message' => 'Dữ liệu cung cấp không hợp lệ', 'description' => 'Thiếu PNR']);
+            exit();
+        }
     
         $VJHelper = new VietjetAPIHelper($supplier_id);
-        $info_payment = json_decode($VJHelper->payBooking($reservation_key, $total_amount, $total_amount_processing), true);
+        $info_payment = json_decode($VJHelper->payBooking($reservation_key, $total_amount, $total_amount_processing, $pnr), true);
         
         if (isset($info_payment['error']) && $info_payment['error'] == 0 && !is_null($info_payment['data']) && !empty($info_payment['data'])) {
             echo json_encode([
