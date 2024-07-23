@@ -119,4 +119,11 @@ $sugar_config['securitysuite_user_popup'] = false;
 $sugar_config['hide_history_contacts_emails']['Cases'] = true;
 $sugar_config['hide_history_contacts_emails']['Accounts'] = false;
 $sugar_config['hide_history_contacts_emails']['Opportunities'] = true;
+$sugar_config['zalo_config']['oa_id'] = '2941581384627345950';
+$sugar_config['zalo_config']['oa_secret'] = '1d37k0CkMuvdVLItxWq1';
+$sugar_config['zalo_config']['app_id'] = '1909878231918719642';
+$sugar_config['zalo_config']['app_secret'] = 'PYj2oUPxiLMVEw6wNXO7';
+$sugar_config['zalo_config']['code_verifier'] = 'QBUvjQjCMtGyGaxyi7GMU8bojrQyWE6zN5a4kniwkvr';
+$sugar_config['zalo_config']['code_challenge'] = 'bcwNTBLemkf_5OZ4ZtMN9Eflp8pzYM3RFWp3jkph-3g';
+$sugar_config['http_referer']['list'][0] = 'oauth.zaloapp.com';
 /***CONFIGURATOR***/

@@ -1,0 +1,373 @@
+<?php
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    require_once("modules/EC_Zalo/Zalo.php");
+    global $current_user, $db;
+
+    $action = isset($_POST['action']) ? $_POST['action'] : "";
+
+    if($action == 'get_recent_messages') {
+        $offset = isset($_POST['offset']) ? $_POST['offset'] : 0;
+        $current_list_user = isset($_POST['current_list_user']) ? array_unique(explode(',', $_POST['current_list_user'])) : []; // array
+
+        try {
+            require_once("modules/EC_Zalo/views/view.chatzalo.php");
+            $view = new Viewchatzalo();
+            echo $view->get_list_user($offset, $current_list_user);
+            exit();
+        }
+        catch(Exception $e) {
+            echo json_encode([
+                "error" => 1,
+                "message" => $e->getMessage(),
+                "data" => ["offset" => $offset]
+            ]);
+            exit();
+        }
+    }
+    elseif($action == 'get_messages') {
+        $Zalo = new Zalo();
+        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+        $offset  = isset($_POST['offset']) ? $_POST['offset'] : 0;
+        $is_get_user_info = isset($_POST['is_get_user_info']) ? (int)$_POST['is_get_user_info'] : 1;
+        $result = [];
+
+        // Message info
+        $json_messages = $Zalo->get_messages($zalo_id, $offset);
+        $result['messages_info'] = json_decode($json_messages, true);
+        $result['messages_info']['offset'] = count($result['messages_info']['data']) + $offset;
+
+        // Quota info
+        $json_quota = $Zalo->get_quota_user($zalo_id);
+        $arr_quota  = json_decode($json_quota, true);
+        if(isset($arr_quota['error']) && $arr_quota['error'] == 0) {
+            $result['quota_info'] = $arr_quota['data'];
+
+            if($result['quota_info']['cs_reply']['remain'] == 0) {
+                $json_quota_oa = $Zalo->get_quota_oa();
+                $arr_quota_oa  = json_decode($json_quota_oa, true);
+                if(isset($arr_quota_oa['error']) && $arr_quota_oa['error'] == 0) {
+                    $result['quota_info']['oa_cs'] = $arr_quota_oa['data'][0]['remain'];
+                }
+            }
+        }
+
+        // User info
+        if($is_get_user_info == 1) {
+            $json_user = $Zalo->get_user($zalo_id);
+            $result['user_info'] = json_decode($json_user, true);
+            $result['user_info']['data']['chat_link'] = $Zalo->get_chat_link($zalo_id);
+        }
+
+        echo json_encode($result);
+        exit();
+    }
+    elseif($action == 'get_user_info') {
+        $Zalo = new Zalo();
+        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+
+        $json = $Zalo->get_user($zalo_id);
+        echo $json;
+        exit();
+    }
+    elseif($action == 'get_list_user') {
+        $Zalo = new Zalo();
+        $offset                     = isset($_POST['offset']) ? $_POST['offset'] : 0;
+        $count                      = isset($_POST['count']) ? $_POST['count'] : 50;
+        $tag_name                   = isset($_POST['tag_name']) ? $_POST['tag_name'] : '';
+        $last_interaction_period    = isset($_POST['last_interaction_period']) ? $_POST['last_interaction_period'] : '';
+        $format_list_chat           = isset($_POST['format_list_chat']) ? $_POST['format_list_chat'] : 0;
+        $value                      = isset($_POST['value']) ? $_POST['value'] : '';
+
+        if($value == 'default') {
+            require_once("modules/EC_Zalo/views/view.chatzalo.php");
+            $view = new Viewchatzalo();
+            echo $view->get_list_user(0, []);
+            exit();
+        }
+        elseif(in_array($value, ['L7D'])) $last_interaction_period = $value;
+        elseif(!empty($value)) $tag_name = $value;
+
+        $json = $Zalo->get_list_user($offset, $count, $last_interaction_period, null, $tag_name);
+        $arr = json_decode($json, true);
+
+        if(isset($arr['error']) && $arr['error'] == 0) {
+            if(empty($arr['data']['users'])) {
+                echo 'No data';
+                exit();
+            }
+
+            if($format_list_chat == 1) {
+                $html = '';
+
+                foreach($arr['data']['users'] as $u) {
+                    $zalo_id = $u['user_id'];
+                    $json_user = $Zalo->get_user($zalo_id);
+                    $arr_user = json_decode($json_user, true);
+
+                    if(isset($arr_user['error']) && $arr_user['error'] == 0) {
+                        $last_interaction = str_replace('/', '-', $arr_user['data']['user_last_interaction_date']); // d-m-Y
+                        $time = '';
+
+                        if($value == 'L7D') {
+                            $current_date = date('d-m-Y');
+                            $count_day = (strtotime($current_date) - strtotime($last_interaction)) / 3600 / 24;
+
+                            if($count_day < 5 || $count_day > 7) continue;
+                            $message = $count_day == 7 ? '<i class="text-danger">Còn 24 giờ</i>' : '<i>Còn '. (7 - $count_day) .' ngày</i>';
+                            $time = strtotime($last_interaction);
+                        }
+                        else $message = '<i>Tương tác cuối vào ' . $arr_user['data']['user_last_interaction_date'] . '</i>';
+
+                        $arr_message = [
+                            'src'  => 1,
+                            'type' => 'text',
+                            'time' => $time,
+                            'message' => $message
+                        ];
+
+                        require_once("modules/EC_Zalo/views/view.chatzalo.php");
+                        $view = new Viewchatzalo();
+                        $html .= $view->create_li_chat($arr_message, $arr_user['data']);
+                    }
+                }
+
+                echo $html;
+                exit();
+            }
+
+            echo $json;
+            exit();
+        }
+
+        echo json_encode([
+            "error" => 1,
+            "message" => "Không tìm thấy kết quả",
+            "data" => $arr
+        ]);
+        exit();
+    }
+    elseif($action == 'send_message') {
+        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+        $type    = isset($_POST['type']) ? $_POST['type'] : "text";
+        $data    = ['text' => isset($_POST['text']) ? $_POST['text'] : ""];
+
+        if(empty($zalo_id) || empty($type)) {
+            echo json_encode([
+                "error" => 1,
+                "message" => "Dữ liệu không hợp lệ",
+                "data" => ["zalo_id" => $zalo_id, "type" => $type]
+            ]);
+            exit();
+        }
+
+        $Zalo = new Zalo();
+
+        // Prepare body request (data)
+        if ($type == 'image') {
+            // Upload
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $image_name = $_FILES['image']['name']; // name.ext
+                $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
+    
+                // Check extension
+                if(!in_array($ext, $Zalo->get_file_extension('image'))) {
+                    echo json_encode([
+                        "error" => 1,
+                        "message" => "Không hỗ trợ định dạng $ext",
+                        "description" => "Chỉ hỗ trợ định dạng " . implode(',', $Zalo->get_file_extension('image'))
+                    ]);
+                    exit();
+                }
+    
+                // Check size
+                if($ext == 'gif' && $_FILES["image"]["size"] > 5000000) {
+                    echo json_encode([
+                        "error" => 1,
+                        "message" => "Dung lượng ảnh quá lớn",
+                        "description" => "Dung lượng tối đa 5MB cho định dạng .gif"
+                    ]);
+                    exit();
+                }
+                elseif($ext != 'gif' && $_FILES["image"]["size"] > 1000000) {
+                    echo json_encode([
+                        "error" => 1,
+                        "message" => "Dung lượng ảnh quá lớn",
+                        "description" => "Dung lượng tối đa 1MB cho định dạng jpg, png"
+                    ]);
+                    exit();
+                }
+                
+                $json_upload = $Zalo->upload($_FILES['image']['tmp_name'], $ext, $image_name);
+                $arr_upload = json_decode($json_upload, true);
+                
+                if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
+                    $attachment_id = isset($arr_upload['data']['attachment_id']) ? $arr_upload['data']['attachment_id'] : '';
+                    $data['element'] = [
+                        "media_type" => $ext == 'gif' ? 'gif' : 'image',
+                        "attachment_id" => $attachment_id
+                    ];
+                }
+                else {
+                    echo json_encode([
+                        'error' => 1,
+                        'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
+                        'data' => $arr_upload
+                    ]);
+                    exit();
+                }
+            }
+            else {
+                echo json_encode([
+                    'error' => 1,
+                    'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
+                    'data' => $_FILES
+                ]);
+                exit();
+            }
+        }
+        elseif ($type == 'file') {
+            // Upload
+            if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+                $file_name = $_FILES['file']['name']; // name.ext
+                $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+    
+                // Check extension
+                if(!in_array($ext, $Zalo->get_file_extension('file'))) {
+                    echo json_encode([
+                        "error" => 1,
+                        "message" => "Không hỗ trợ định dạng $ext",
+                        "description" => "Chỉ hỗ trợ định dạng ". implode(',', $Zalo->get_file_extension('file'))
+                    ]);
+                    exit();
+                }
+    
+                // Check size
+                if($_FILES["file"]["size"] > 5000000) {
+                    echo json_encode([
+                        "error" => 1,
+                        "message" => "Dung lượng file quá lớn",
+                        "description" => "Tối đa 5MB"
+                    ]);
+                    exit();
+                }
+                
+                $json_upload = $Zalo->upload($_FILES["file"]["tmp_name"], $ext, $file_name);
+                $arr_upload = json_decode($json_upload, true);
+                
+                if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
+                    $data['token'] = isset($arr_upload['data']['token']) ? $arr_upload['data']['token'] : '';
+                }
+                else {
+                    echo json_encode([
+                        'error' => 1,
+                        'message' => 'Gửi file thất bại, vui lòng thử lại',
+                        'data' => $arr_upload
+                    ]);
+                    exit();
+                }
+            }
+            else {
+                echo json_encode([
+                    'error' => 1,
+                    'message' => 'Gửi file thất bại, vui lòng thử lại',
+                    'data' => $_FILES
+                ]);
+                exit();
+            }
+        }
+        elseif ($type == 'request_user_info') {
+            $data['element'] = $Zalo->get_template($type);
+        }
+
+        // Tin nhắn text reply
+        if(isset($_POST['quote_message_id'])) $data['quote_message_id'] = $_POST['quote_message_id'];
+
+        // Send
+        echo $Zalo->send_consultation($type, $zalo_id, $data);
+        exit();
+    }
+    elseif($action == 'send_zns') {
+        $phone          = isset($_POST['phone']) ? $_POST['phone'] : "";
+        $type_zns       = isset($_POST['type_zns']) ? $_POST['type_zns'] : "";
+        $parent_id      = isset($_POST['parent_id']) ? $_POST['parent_id'] : "";
+        $template_data  = isset($_POST['template_data']) ? str_replace('&quot;', '"', $_POST['template_data']) : ""; // json
+
+        if(empty($phone) || empty($type_zns) || empty($template_data) || empty($parent_id)) {
+            echo json_encode([
+                "error" => 1,
+                "message" => "Dữ liệu cung cấp không hợp lệ",
+                "data" => [
+                    "phone" => $phone,
+                    "type_zns" => $type_zns,
+                    "parent_id" => $parent_id,
+                    "template_data" => json_decode($template_data, true)
+                ]
+            ]);
+            exit();
+        }
+
+        $Zalo = new Zalo();
+        $template_id = $Zalo->get_template_id_zns($type_zns);
+        $json = $Zalo->send_zns($phone, $template_id, $template_data);
+        $arr  = json_decode($json, true);
+
+        $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
+        $template_data = json_decode($template_data, true);
+        $template_data['template_id'] = $template_id;
+
+        if(isset($arr['error']) && $arr['error'] == 0) {
+            $m = new EC_Messages();
+            $m->send_from       = $Zalo->get_oa_id();
+            $m->send_to         = $phone;
+            $m->content         = $Zalo->get_template_name_zns($template_id);
+            $m->type            = 'zalo_zns';
+            $m->category        = $category;
+            $m->send_time       = date('Y-m-d H:i:s');
+            $m->parent_type     = 'EC_Flight_Bookings';
+            $m->parent_id       = $parent_id;
+            $m->data            = json_encode($template_data);
+            $m->response        = $json;
+            $m->status          = 'done';
+            $m->assigned_user_id = $current_user->id;
+            $m->save();
+
+            echo json_encode([
+                "error"   => 0,
+                "message" => "Gửi tin nhắn thành công",
+                "data"    => $arr
+            ]);
+        }
+        else {
+            $m = new EC_Messages();
+            $m->send_from       = $Zalo->get_oa_id();
+            $m->send_to         = $phone;
+            $m->content         = $Zalo->get_template_name_zns($template_id);
+            $m->type            = 'zalo_zns';
+            $m->category        = $category;
+            $m->send_time       = date('Y-m-d H:i:s');
+            $m->parent_type     = 'EC_Flight_Bookings';
+            $m->parent_id       = $parent_id;
+            $m->data            = json_encode($template_data);
+            $m->response        = $json;
+            $m->status          = 'fail';
+            $m->assigned_user_id = $current_user->id;
+            $m->save();
+
+            $message = "Gửi tin nhắn thất bại";
+            if($arr['message'] && strpos(strtolower($arr['message']), "account not existed") !== false) $message = "Số điện thoại không có Zalo";
+
+            echo json_encode(["error" => 1, "message" => $message, "data" => $arr]);
+        }
+        exit();
+    }
+}
+
+echo json_encode([
+    "error" => 1,
+    "message" => "Method not allowed"
+]);
+header("HTTP/1.0 405 Method Not Allowed");
+exit();
+?>
