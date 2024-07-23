@@ -164,12 +164,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             "description"   => "Check body_request"
         ]);
         exit();
-    }
-    elseif($action == "PAY") {
-        $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
-        $reservation_key = isset($_POST['reservation_key']) ? $_POST['reservation_key'] : '';
-        $total_amount = isset($_POST['total_amount']) ? $_POST['total_amount'] : 0;
-        $total_amount_processing = isset($_POST['total_amount_processing']) ? $_POST['total_amount_processing'] : 0;
+    } elseif($action == "PAY") {
+        $supplier_id                = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
+        $reservation_key            = isset($_POST['reservation_key']) ? $_POST['reservation_key'] : '';
+        $total_amount               = isset($_POST['total_amount']) ? $_POST['total_amount'] : 0;
+        $total_amount_processing    = isset($_POST['total_amount_processing']) ? $_POST['total_amount_processing'] : 0;
+        $pnr                        = isset($_POST['pnr']) ? $_POST['pnr'] : '';
 
         if(empty($reservation_key)) {
             echo json_encode(['error' => true, 'code' => 'Lỗi 01', 'message' => 'Dữ liệu cung cấp không hợp lệ', 'description' => 'Thiếu khóa đặt chỗ']);
@@ -183,9 +183,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['error' => true, 'code' => 'Lỗi 01', 'message' => 'PNR không thể xuất vé', 'description' => 'Đã thanh toán đầy đủ']);
             exit();
         }
+        elseif(empty($pnr)) {
+            echo json_encode(['error' => true, 'code' => 'Lỗi 01', 'message' => 'Dữ liệu cung cấp không hợp lệ', 'description' => 'Thiếu PNR']);
+            exit();
+        }
     
         $VJHelper = new VietjetAPIHelper($supplier_id);
-        $info_payment = json_decode($VJHelper->payBooking($reservation_key, $total_amount, $total_amount_processing), true);
+        $info_payment = json_decode($VJHelper->payBooking($reservation_key, $total_amount, $total_amount_processing, $pnr), true);
         
         if (isset($info_payment['error']) && $info_payment['error'] == 0 && !is_null($info_payment['data']) && !empty($info_payment['data'])) {
             echo json_encode([
@@ -199,8 +203,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['error' => true, 'code' => 'Lỗi 02', 'message' => 'Xuất vé thất bại', 'response' => $info_payment]);
             exit();
         }
-    }
-    else if($action == "SEARCH") {
+    } else if($action == "SEARCH") {
         $pnr = isset($_POST['pnr']) ? trim($_POST['pnr']) : '';
         if(empty($pnr)) {
             echo json_encode([
@@ -411,8 +414,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         echo json_encode(['error' => true, 'message' => 'Mã PNR không hợp lệ', 'data' => $info_pnr]);
         exit();
-    }
-    else if($action == "ADD_ANCILLARY") {
+    } else if($action == "ADD_ANCILLARY") {
         $pnr = isset($_POST['pnr']) ? trim($_POST['pnr']) : '';
         $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : '';
 
@@ -578,6 +580,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         echo json_encode(['error' => true, 'message' => 'Hành trình không hợp lệ', 'response' => $supplier_id]);
+        exit();
+    } else if($action == 'GET_CREDIT_AVAILABLE'){
+        $supplier_id = isset($_POST['supplier_id']) ? $_POST['supplier_id'] : "";
+        if(empty($supplier_id)) {
+            echo json_encode(['error' => true, 'code' => 'Lỗi 01', 'message' => 'Dữ liệu cung cấp không hợp lệ', 'description' => 'Thiếu mã NCC']);
+            exit();
+        }
+
+        $VJHelper = new VietjetAPIHelper($supplier_id);
+        $result = [];
+        ##### AGEENCY #####
+        $agency = json_decode($VJHelper->getAgency(), true);
+        if(isset($agency['error']) && $agency['error'] == 0) {
+            $result['iataNumber'] = $agency['data'][0]['iataNumber'];
+            $result['accountNumber'] = $agency['data'][0]['accountNumber'];
+            $result['creditAvailable'] = number_format($agency['data'][0]['creditAvailable'], 0, ',', '.') . ' VND';
+            $result['iataNumber'] = $agency['data'][0]['iataNumber'];
+            $result['name'] = $agency['data'][0]['name'];
+        }
+
+        echo json_encode($result);
         exit();
     }
     

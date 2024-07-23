@@ -7,8 +7,8 @@ class VietjetAPIHelper {
 
     public function __construct($supplier_id) {
         if($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') { // Minh Hồng Võ
-            // $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2";
-            $this->ENDPOINT = "https://apivj4.timchuyenbay.net/api/v2";
+            $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2";
+            // $this->ENDPOINT = "https://apivj4.timchuyenbay.net/api/v2";
         }
         elseif($supplier_id == '7df1cbf9-21b6-4f45-7cc5-62011601a951') { // Travelpass
             // $this->ENDPOINT = "https://apivj.timchuyenbay.net/api/v1";
@@ -655,15 +655,17 @@ class VietjetAPIHelper {
      * @param int $totalAmountProcessing
      * @return string json
      */
-    public function payBooking($reservation_key, $totalAmount, $totalAmountProcessing = 0) {
+    public function payBooking($reservation_key, $totalAmount, $totalAmountProcessing = 0, $pnr) {
         if(empty($reservation_key)) return json_encode(['error' => 1, 'code' => 400, 'message' => 'Invalid booking key', 'data' => null]);
+        if(empty($pnr)) return json_encode(['error' => 1, 'code' => 400, 'message' => 'Invalid PNR', 'data' => null]);
 
         $url = "$this->ENDPOINT/payBooking";
         $post_data = [
             'api_key' => $this->getAPIKey('booking'),
             'reservation_key' => $reservation_key,
             'totalAmount' => $totalAmount,
-            'totalAmountProcessing' => $totalAmountProcessing
+            'totalAmountProcessing' => $totalAmountProcessing,
+            'pnr' => $pnr,
         ];
 
         try {
