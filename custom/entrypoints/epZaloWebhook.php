@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $oa_secret  = $sugar_config['zalo_config']['oa_secret'] ? $sugar_config['zalo_config']['oa_secret'] : '';
     $mac        = "mac=".hash('sha256', $app_id.$data.$timestamp.$oa_secret);
     $h_mac      = isset($headers['X-Zevent-Signature']) ? $headers['X-Zevent-Signature'] : '';
-
+   
     if($mac === $h_mac) {
         $event = isset($arr['event_name']) ? $arr['event_name'] : '';
 

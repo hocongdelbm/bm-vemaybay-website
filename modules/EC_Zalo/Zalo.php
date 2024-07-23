@@ -184,15 +184,12 @@ class Zalo {
             $expires_at = isset($arr['expires_at']) ? $arr['expires_at'] : 0;
 
             if($type == 'refresh') return $refresh_token;
-            elseif($type == 'access') return $access_token;
-
-            // if($type == 'refresh') return $refresh_token;
-            // elseif($type == 'access' && $expires_at > time()) return $access_token;
-            // else {
-            //     $json = $this->get_new_token($refresh_token);
-            //     $arr2 = json_decode($json, true);
-            //     return isset($arr2['access_token']) ? $arr2['access_token'] : '';
-            // }
+            elseif($type == 'access' && $expires_at > time()) return $access_token;
+            else {
+                $json = $this->get_new_token($refresh_token);
+                $arr2 = json_decode($json, true);
+                return isset($arr2['access_token']) ? $arr2['access_token'] : '';
+            }
 
             return '';
         }
