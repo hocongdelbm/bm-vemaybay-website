@@ -72,6 +72,7 @@ class Contact extends Person implements EmailInterface
     public $note_id;
     public $meeting_id;
     public $call_id;
+    public $zalo_id;
     public $email_id;
     public $assigned_user_name;
     public $accept_status;

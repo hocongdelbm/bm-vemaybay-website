@@ -652,13 +652,17 @@ function get_booking_refund($phone){
     return $html;
 }
 
-// Use with zalp
+// Use with zalo
 function get_phone_by_alias($alias) {
     if(is_null($alias) || empty($alias)) return '';
 
     preg_match_all('!\d+!', $alias, $matches);
     if(isset($matches[0]) && !empty($matches[0])) {
-        return $matches[0][count($matches[0])-1];
+        foreach ($matches[0] as $number) {
+            if (strlen($number) === 10) {
+                return $number;
+            }
+        }
     }
 
     return '';

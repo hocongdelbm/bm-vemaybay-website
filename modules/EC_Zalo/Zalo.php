@@ -969,6 +969,21 @@ class Zalo {
     
         return $phone_format;
     }
+
+    public function get_phone_by_alias($alias) {
+        if(is_null($alias) || empty($alias)) return '';
+    
+        preg_match_all('!\d+!', $alias, $matches);
+        if(isset($matches[0]) && !empty($matches[0])) {
+            foreach ($matches[0] as $number) {
+                if (strlen($number) === 10) {
+                    return $number;
+                }
+            }
+        }
+    
+        return '';
+    }
     
     public function random_string($length) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

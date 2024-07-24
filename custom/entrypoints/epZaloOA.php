@@ -43,8 +43,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $arr_quota  = json_decode($json_quota, true);
         if(isset($arr_quota['error']) && $arr_quota['error'] == 0) {
             $result['quota_info'] = $arr_quota['data'];
+            $last_interaction = (int)$result['quota_info']['last_interaction'] / 1000; // Timestamp in seconds
+            $time_check = (time() - $last_interaction) / 3600 / 24;
 
-            if($result['quota_info']['cs_reply']['remain'] == 0) {
+            if($result['quota_info']['cs_reply']['remain'] == 0 && $time_check < 7) {
                 $json_quota_oa = $Zalo->get_quota_oa();
                 $arr_quota_oa  = json_decode($json_quota_oa, true);
                 if(isset($arr_quota_oa['error']) && $arr_quota_oa['error'] == 0) {
@@ -362,6 +364,66 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
         exit();
     }
+    elseif($action == 'save_contact') {
+        $zalo_id    = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+        $phone      = isset($_POST['phone']) ? $_POST['phone'] : "";
+        $name       = isset($_POST['name']) ? $_POST['name'] : "";
+        $alias      = isset($_POST['alias']) ? $_POST['alias'] : "";
+        $city       = isset($_POST['city']) ? $_POST['city'] : "";
+        $district   = isset($_POST['district']) ? $_POST['district'] : "";
+        $address    = isset($_POST['address']) ? $_POST['address'] : "";
+        
+        if(empty($zalo_id)) {
+            echo json_encode([
+                "error" => 1,
+                "message" => "Không có dữ liệu để lưu",
+                "data" => [
+                    'zalo_id'   => $zalo_id,
+                    'phone'     => $phone,
+                    'name'      => $name,
+                    'alias'     => $alias,
+                    'city'      => $city,
+                    'district'  => $district,
+                    'address'   => $address,
+                ]
+            ]);
+            exit();
+        }
+
+        $Zalo = new Zalo();
+        if(empty($phone)) $phone = $Zalo->get_phone_by_alias($alias);
+
+        // Lấy thông tin liên hệ nếu đã tồn tại
+        $sql_exist = "SELECT id FROM contacts WHERE zalo_id = '$zalo_id' AND deleted = 0 LIMIT 1";
+        $contact_id = $db->getOne($sql_exist);
+        if(!empty($phone) && (!$contact_id || empty($contact_id))) {
+            $sql_exist = "SELECT id FROM contacts WHERE phone_mobile = '$phone' AND deleted = 0 LIMIT 1";
+            $contact_id = $db->getOne($sql_exist);
+        }
+
+        // Lưu thông tin
+        $contact = new Contact();
+        if($contact_id && !empty($contact_id)) {
+            $contact->retrieve($contact_id);
+        }
+        else {
+            $contact->description = "Liên hệ tạo từ Zalo OA";
+            $contact->assigned_user_id = $current_user->id;
+        }
+        $contact->zalo_id = $zalo_id;
+        $contact->phone_mobile = $phone;
+        $contact->last_name = $name;
+        $contact->primary_address_city = $city;
+        $contact->primary_address_state = $district;
+        $contact->primary_address_street = $address;
+        $contact->save();
+
+        echo json_encode([
+            "error" => 0,
+            "message" => "Lưu thành công"
+        ]);
+        exit();
+    }   
 }
 
 echo json_encode([

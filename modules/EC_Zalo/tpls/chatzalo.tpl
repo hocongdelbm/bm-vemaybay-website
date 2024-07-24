@@ -1,50 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=1.0.62">
-
-{literal}
-<style>
-.chat_sidebar .chat-sidebar__top {
-    display: flex;
-    padding: 27px 0;
-    border-bottom: 1px solid #d6d5dd;
-}
-
-.chat_sidebar .chat-sidebar__top .type {
-    width: 85%;
-    padding: 0 12px;
-}
-
-.chat_sidebar .chat-sidebar__top .type .dropdown-menu {
-    font-size: 14px;
-}
-
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown {
-    position: relative;
-    padding: 0 30px 0 0;
-    font-weight: normal;
-    border: none;
-}
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown:focus,
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown:active {
-    border: none;
-    outline: none;
-}
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown .icon_dropdown {
-    position: absolute;
-    top: 0;
-    right: 0;
-}
-
-.chat_sidebar .chat-sidebar__top .input-search-user {
-    width: 85%;
-}
-.chat_sidebar .chat-sidebar__top .search {
-    flex: 1;
-    padding: 0 10px;
-    margin: 0;
-    text-align: center;
-}
-</style>
-{/literal}
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=1.0.66">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
@@ -221,6 +175,9 @@
                                     <dl>
                                         <dt>Địa chỉ:</dt>
                                         <dd id="profile_address">Chưa công khai</dd>
+                                        <input type="hidden" name="profile_address_city" value="">
+                                        <input type="hidden" name="profile_address_district" value="">
+                                        <input type="hidden" name="profile_address_number" value="">
                                     </dl>
                                     <dl>
                                         <dt>Số điện thoại:</dt>
@@ -229,6 +186,7 @@
                                 </div>
                                 <button id="btn_request_user_info" class="btn_info btn btn_bg btn-blue2 mt-2">Gửi yêu cầu chia sẻ thông tin</button>
                                 <button class="btn_info btn btn_bg btn-blue2 mt-2" disabled>Cập nhật thông tin</button>
+                                <button id="btn_save_contact" class="btn_info btn btn_bg btn-blue2 mt-2">Lưu liên hệ</button>
                             </div>
                             <div class="line mt-20"></div>
                             <div class="fun_item func-filter mt-20">
@@ -254,4 +212,4 @@
 <input type="hidden" name="websocket_url" value="{$WEBSOCKET_URL}" readonly />
 <input type="hidden" name="offset_list_user" value="{$OFFSET_LIST_USER}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=1.1.10"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=1.1.21"></script>

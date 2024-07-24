@@ -106,7 +106,7 @@ $(document).ready(function () {
                     else {
                         data_user = data['user_info'];
                         if(data_user['error'] !== 0) {
-                            alert('Người dùng không thể tương tác');
+                            showModalNotify('warning', 'Người dùng không thể tương tác');
                             return false;
                         }
                     }
@@ -114,7 +114,7 @@ $(document).ready(function () {
                     /**********  2. Messages  **********/
                     let data_message = data['messages_info'];
                     if (data_message['error'] !== 0) {
-                        alert('Người dùng không thể tương tác');
+                        showModalNotify('warning', 'Người dùng không thể tương tác');
                         return false;
                     }
 
@@ -126,39 +126,19 @@ $(document).ready(function () {
                     create_chat_box(data_user['data'], data_message['data']);
 
                     /**********  3. Quota  **********/
-                    let quota_html = '';
                     if(data['quota_info']) {
                         let data_quota = data['quota_info'];
-                        let time_check = ~~((Date.now() - parseInt(data_quota['last_interaction'])) / 1000 / 3600 / 24);
-
-                        if(data_quota['cs_reply']['remain'] > 0) {
-                            quota_html = `<div class="noti-mess-feedback noti_green">
-                                <span>Tin nhắn miễn phí</span>
-                            </div>`;
-                        }
-                        else if(data_quota['oa_cs'] && data_quota['oa_cs'] > 0) {
-                            quota_html = `<div class="noti-mess-feedback noti_blue">
-                                <span>Tin nhắn miễn phí</span>
-                            </div>`;
-                        }
-                        else if(time_check < 7) {
-                            quota_html = `<div class="noti-mess-feedback noti_yellow">
-                                <span>Mỗi tin nhắn tiếp theo sẽ tốn 55đ/tin</span>
-                            </div>`;
-                        }
-                        else {
-                            quota_html = `<div class="noti-mess-feedback noti_grey">
-                                <span>Không thể gửi tin. Người dùng đã hết tương tác với OA trong vòng 7 ngày gần nhất</span>
-                            </div>`;
-                        }
+                        let cs = data['quota_info']['cs_reply']['remain'];
+                        let oa_cs = data['quota_info']['oa_cs'] ? data['quota_info']['oa_cs'] : 0;
+                        handle_quota_user(cs, data_quota['last_interaction'], oa_cs);
                     }
-                    $('#quota_content').html(quota_html);
-
+                  
                     // Reset
                     $(`#liuserinfo${zalo_id}`).text('');
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
                     $('.container-waiting').hide();
+                    showModalNotify('error', 'Kết nối thất bại, vui lòng thử lại sau');
                     console.error(XMLHttpRequest);
                     console.error("Status: " + textStatus);
                     console.error("Error: " + errorThrown);
@@ -192,7 +172,7 @@ $(document).ready(function () {
     
                         let data_message = data['messages_info'];
                         if (data_message['error'] !== 0) {
-                            alert('Lỗi lấy dữ liệu');
+                            showModalNotify('error', 'Lỗi lấy dữ liệu');
                             return false;
                         }
 
@@ -441,6 +421,52 @@ $(document).ready(function () {
         $('.content_mess_input').before(quote);
     });
 
+    // Save contact
+    $('#btn_save_contact').click(function () {
+        let zalo_id     = $('#content_chat').attr('zalo_id');
+        let phone       = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
+        let name        = $('#profile_zalo_name').attr('data');
+        let alias       = $('#header_name_chat').text();
+        let city        = $('input[name="profile_address_city"]').val();
+        let district    = $('input[name="profile_address_district"]').val();
+        let address     = $('input[name="profile_address_number"]').val();
+
+        if(zalo_id && zalo_id.length > 0) {
+            $.ajax({
+                url: URL,
+                type: "POST",
+                data: {
+                    action: "save_contact",
+                    zalo_id : zalo_id,
+                    phone : phone,
+                    name : name,
+                    alias : alias,
+                    city : city,
+                    district : district,
+                    address : address
+                },
+                beforeSend: function() {
+                    $('.container-waiting').show();
+                },
+                success: function (response) {
+                    $('.container-waiting').hide();
+
+                    res = JSON.parse(response);
+                    let m = res['message'] ? res['message'] : 'Thao tác thất bại';
+                    let d = res['description'] ? res['description'] : '';
+
+                    if (res['error'] !== 0) showModalNotify('error', m, d);
+                    else showModalNotify(1, m);
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
+                    console.error(XMLHttpRequest);
+                    console.error("Status: " + textStatus);
+                    console.error("Error: " + errorThrown);
+                }
+            });x
+        }
+    });
 
     $('#func-slide').click(function () {
         if($('#zalochat_profile').is(":visible")) {
@@ -543,6 +569,9 @@ function connectWebSocket() {
                 let message_format = create_li_chat(obj, {}, true);
                 $(`#li${sender_id} .lastest_message`).html(message_format);
                 $(`#li${sender_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
+
+                // Update quota user
+                handle_quota_user(8, timestamp);
 
                 scroll_messages_bottom();
             }
@@ -680,7 +709,7 @@ function connectWebSocket() {
             }
 
             if(count_connect_error == 5) {
-                alert('Kết nối thất bại, vui lòng thử lại');
+                showModalNotify('error', 'Kết nối thất bại, vui lòng thử lại');
             }
         }
     };
@@ -745,16 +774,23 @@ function create_chat_box(data_user, data_message, is_return = false) {
         $('#profile_chat_link').attr('href', chat_link);
 
         // DOM address
+        let city = shared_info['city'] && shared_info['city'].length > 0 ? shared_info['city'] : '';
+        let district = shared_info['district'] && shared_info['district'].length > 0 ? shared_info['district'] : '';
+        let address_number = shared_info['address'] ? shared_info['address'] : '';
         let address = '';
-        address += shared_info['address'] ? shared_info['address'] : '';
-        address += shared_info['district'] && shared_info['district'].length > 0 ? ', ' + shared_info['district'] : '';
-        address += shared_info['city'] && shared_info['city'].length > 0 ? ', ' + shared_info['city'] : '';
+        address += address_number;
+        address += district.length == 0 ? '' : `, ${district}`;
+        address += city.length == 0 ? '' : `, ${city}`;
         address = address.length == 0 ? 'Chưa công khai' : address;
         $('#profile_address').text(address);
+        $('input[name="profile_address_city"]').val(city);
+        $('input[name="profile_address_district"]').val(district);
+        $('input[name="profile_address_number"]').val(address_number);
 
         // DOM mobile
-        let mobile = shared_info['phone'] ? shared_info['phone'].toString() : 'Chưa công khai';
-        $('#profile_mobile').text(formatPhoneNumberZalo(mobile));
+        let mobile = shared_info['phone'] ? shared_info['phone'].toString() : '';
+        if(mobile.length == 0) $('#profile_mobile').text('Chưa công khai');
+        else $('#profile_mobile').text(formatPhoneNumberZalo(mobile));
     }
 
     let html = '';
@@ -809,7 +845,7 @@ function create_chat_box(data_user, data_message, is_return = false) {
  * 
  * @param {Object} obj
  * @param {String} ctype load, new
- * @returns 
+ * @returns {String} HTML
  */
 function create_chat_row(obj, ctype = 'load') {
     let mid = obj.message_id ? obj.message_id : '';
@@ -844,6 +880,7 @@ function create_chat_row(obj, ctype = 'load') {
             new_timeline = true;
         }
     }
+    
 
     // Content
     let content = '', classnamepicture = '';
@@ -1017,6 +1054,12 @@ function create_chat_row(obj, ctype = 'load') {
     return html;
 }
 
+/**
+ * Create HTML quote in chat box
+ * 
+ * @param {String} quote_id
+ * @returns {String} HTML
+ */
 function create_quote_content(quote_id) {
     let check = false;
     let name = '', img = '', text = ''; 
@@ -1082,7 +1125,7 @@ function create_quote_content(quote_id) {
  * @param {Object} message_data
  * @param {Object} user_data
  * @param {Boolean} return_only_content 
- * @returns 
+ * @returns {String} HTML
  */
 function create_li_chat(message_data, user_data, return_only_content = false) {
     // Message data
@@ -1329,18 +1372,71 @@ function send_message(data) {
                 if (res['error'] !== 0) {
                     let m = res['message'] ? res['message'] : 'Thao tác thất bại';
                     let d = res['description'] ? res['description'] : '';
-                    alert(m);
+                    showModalNotify('error', m, d);
+                    return false;
                 }
+
+                // Update quota user
+                if(res['data']['quota']) {
+                    let quota = res['data']['quota'];
+                    if(quota['quota_type'] == 'reply') {
+                        handle_quota_user(quota['remain'], '', 0);
+                    }
+                    else if(quota['quota_type'] == 'sub_quota') {
+                        handle_quota_user(0, '', quota['remain']);
+                    }
+                }
+                else handle_quota_user(0, '', 0);
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 $('.loader_send_message').remove();
-                alert('Thao tác thất bại, vui lòng thử lại');
+                showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
                 console.error(XMLHttpRequest);
                 console.error("Status: " + textStatus);
                 console.error("Error: " + errorThrown);
             }
         });
     }
+}
+
+/**
+ * Handle HTML quota for user in chat box and related events
+ * 
+ * @param {int} cs
+ * @param {string} last_interaction
+ * @param {int} oa_cs
+ * @returns
+ */
+function handle_quota_user(cs, last_interaction, oa_cs = 0) {
+    let quota_html = '';
+    let time_check_day = (last_interaction && last_interaction.length > 0) ? ~~((Date.now() - parseInt(last_interaction)) / 1000 / 3600 / 24) : 0;
+
+    if(time_check_day > 6) {
+        quota_html = `<div class="noti-mess-feedback noti_grey">
+            <span>Không thể gửi tin. Người dùng đã hết tương tác với OA trong vòng 7 ngày gần nhất</span>
+        </div>`;
+        disable_send_message();
+    }
+    else if(cs > 0) {
+        enable_send_message();
+        quota_html = `<div class="noti-mess-feedback noti_green">
+            <span>Tin nhắn tiếp theo được miễn phí</span>
+        </div>`;
+    }
+    else if(oa_cs > 0) {
+        enable_send_message();
+        quota_html = `<div class="noti-mess-feedback noti_blue">
+            <span>Tin nhắn tiếp theo được miễn phí (Đặc quyền của OA Premium)</span>
+        </div>`;
+    }
+    else {
+        enable_send_message();
+        quota_html = `<div class="noti-mess-feedback noti_yellow">
+            <span>Mỗi tin nhắn tiếp theo sẽ tốn 55đ/tin</span>
+        </div>`;
+    }
+
+    $('#quota_content').html(quota_html);
 }
 
 /**
@@ -1376,6 +1472,20 @@ function reset_upload_content(type = 'all') {
         $('#preview_file_upload .file-size').text('');
         $('input[name="file_upload"]').val('');
     }
+}
+
+function disable_send_message() {
+    $('textarea[name="message_content"]').attr('readonly', '');
+    $('#send_message').prop('disabled', true);
+    $('#upload_image').prop('disabled', true);
+    $('#upload_file').prop('disabled', true);
+}
+
+function enable_send_message() {
+    $('textarea[name="message_content"]').removeAttr('readonly');
+    $('#send_message').prop('disabled', false);
+    $('#upload_image').prop('disabled', false);
+    $('#upload_file').prop('disabled', false);
 }
 
 function scroll_messages_bottom() {

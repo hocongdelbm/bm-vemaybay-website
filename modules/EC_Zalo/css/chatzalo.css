@@ -29,12 +29,11 @@ i.icon {
   height: calc(100vh - 110px);
 }
 
-.zalochat_profile,
-.zalochat_main,
-.zalochat_sidebar {
-  border: 1px solid #e0e8ef;
-}
 
+
+/*********************************/
+/************ SIDEBAR ************/
+/*********************************/
 #zalochat_sidebar {
   position: relative;
   display: -webkit-box;
@@ -48,8 +47,52 @@ i.icon {
   flex-direction: column;
   width: 300px;
   /* height: calc(100vh - 175px); */
+  border: 1px solid #e0e8ef;
   border-right: 1px solid #d6d5dd;
 }
+
+/********** SIDEBAR TOP **********/
+.chat_sidebar .chat-sidebar__top {
+  display: flex;
+  padding: 27px 0;
+  border-bottom: 1px solid #d6d5dd;
+}
+
+.chat_sidebar .chat-sidebar__top .type {
+  width: 85%;
+  padding: 0 12px;
+}
+.chat_sidebar .chat-sidebar__top .type .dropdown-menu {
+  font-size: 14px;
+}
+
+.chat_sidebar .chat-sidebar__top .type .btn-dropdown {
+  position: relative;
+  padding: 0 30px 0 0;
+  font-weight: normal;
+  border: none;
+}
+.chat_sidebar .chat-sidebar__top .type .btn-dropdown:focus,
+.chat_sidebar .chat-sidebar__top .type .btn-dropdown:active {
+  border: none;
+  outline: none;
+}
+.chat_sidebar .chat-sidebar__top .type .btn-dropdown .icon_dropdown {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.chat_sidebar .chat-sidebar__top .input-search-user {
+  width: 85%;
+}
+.chat_sidebar .chat-sidebar__top .search {
+  flex: 1;
+  padding: 0 10px;
+  margin: 0;
+  text-align: center;
+}
+/*--------- END SIDEBAR TOP ---------*/
 
 #zalochat_sidebar .list_mess {
   /* max-height: calc(100vh - 110px) !important; */
@@ -80,13 +123,11 @@ i.icon {
   -ms-flex-negative: 0;
   flex-shrink: 0;
 }
-
 #zalochat_sidebar .list_mess .item_mess .mess_avt .imgDrop {
   padding-top: 100%;
   border-radius: 50%;
   background: #ddd;
 }
-
 .imgDrop > img {
   position: absolute;
   top: 0;
@@ -105,7 +146,6 @@ i.icon {
   flex: 1 1 0%;
   overflow: hidden;
 }
-
 #zalochat_sidebar .list_mess .item_mess .__content .info_content {
   position: relative;
   width: 100%;
@@ -127,7 +167,6 @@ i.icon {
   -ms-flex-align: center;
   align-items: center;
 }
-
 #zalochat_sidebar .list_mess .item_mess .mess_content .mess_name {
   font-weight: 500;
   white-space: nowrap;
@@ -142,14 +181,12 @@ i.icon {
   position: relative;
   width: auto !important;
 }
-
 #zalochat_sidebar .list_mess .item_mess .mess_more .mess_time {
   color: #8d8d8f;
   font-size: 12px;
   line-height: 16px;
   margin-top: 2px;
 }
-
 #zalochat_sidebar .list_mess .item_mess .mess_more .mess_number {
   margin-top: 3px;
   margin-left: auto;
@@ -180,14 +217,12 @@ i.icon {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 #zalochat_sidebar .list_mess .item_mess .__content .list_tag {
   margin-top: 5px;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
 }
-
 #zalochat_sidebar .list_mess .item_mess .__content .list_tag .tag_item {
   font-size: 12px;
   line-height: 18px;
@@ -214,10 +249,10 @@ i.icon {
 }
 
 
-/* CHAT MAINT */
-/* --------------------------------------------------------- */
-/* --------------------------------------------------------- */
-/* --------------------------------------------------------- */
+
+/***********************************/
+/************ CHAT MAIN ************/
+/***********************************/
 #zalochat_main {
   overflow: inherit;
   width: calc(100% - 600px);
@@ -272,10 +307,8 @@ i.icon {
 #zalochat_main .zalochat_content .group-feed .user-current {
   position: relative;
   z-index: 5;
-
   top: 0;
   left: 0;
-
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -640,12 +673,15 @@ i.icon {
 
 .section-compose-inline .noti-mess-feedback.noti_green {
   background-color: #e7ffe2 !important;
+  color: #28a745;
 }
 .section-compose-inline .noti-mess-feedback.noti_blue {
   background-color: #e9f2ff !important;
+  color: #0000ff;
 }
 .section-compose-inline .noti-mess-feedback.noti_yellow {
   background-color: #fff8e9 !important;
+  color: #cc9900;
 }
 .section-compose-inline .noti-mess-feedback.noti_grey {
   background-color: #dddede !important;
