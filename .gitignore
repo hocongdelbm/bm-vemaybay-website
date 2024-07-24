@@ -9,13 +9,16 @@
 /cache/*
 # Custom configuration should also be ignored.
 /config.php
-/config_override.php 
+/config_override.php
 # Logs files can safely be ignored.
 *.log
 # Ignore the new upload directories.
 /upload/*
 !/upload/index.html
 /upload_backup/
+
+modules/EC_Zalo/images/
+modules/EC_Zalo/json/
 
 secure_sessions/*
 !secure_sessions/logs

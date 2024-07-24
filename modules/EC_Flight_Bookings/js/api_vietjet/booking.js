@@ -312,23 +312,23 @@ $(document).ready(function () {
 
                 if (data['code'] == 1) {
                     let text_modal_success = data['message'];
-                    showModalNotify(1, text_modal_success)
+                    showModalNotify(1, text_modal_success);
                     $('.modal-overlay, .btn-modal-close').addClass('reload');
                 }
                 else if (data['code'] == 0 || data['code'] == -1) {
                     if (data['message'] == "ERROR") {
                         let text_modal_error = data['message'] + '\n' + data['description'];
-                        showModalNotify(0, text_modal_error)
+                        showModalNotify(0, text_modal_error);
                     }
                     else {
                         let text_modal_error = data['message'];
-                        showModalNotify(0, text_modal_error)
+                        showModalNotify(0, text_modal_error);
                     }
                     return false;
                 }
                 else {
                     let text_modal_error = 'ERROR: Vui lòng liên hệ bộ phận IT!';
-                    showModalNotify(0, text_modal_error)
+                    showModalNotify(0, text_modal_error);
                     $('.modal-overlay, .btn-modal-close').addClass('reload');
 
                     console.log(response);
@@ -339,7 +339,7 @@ $(document).ready(function () {
                 $('.container-waiting').hide();
 
                 let text_modal_error = 'ERROR (' + errorThrown + '): Vui lòng liên hệ bộ phận IT.';
-                showModalNotify(0, text_modal_error)
+                showModalNotify(0, text_modal_error);
 
                 console.error(XMLHttpRequest);
                 console.error("Status: " + textStatus);
