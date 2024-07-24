@@ -10,7 +10,7 @@ var zsocket;
 var count_connect_error = 0;
 
 $(document).ready(function () {
-    connectWebSocket();
+    // connectWebSocket();
 
     // Click
     $('.choose_label').click(function () {
@@ -468,6 +468,46 @@ $(document).ready(function () {
         }
     });
 
+    // Call zalo
+    $('#func-call').click(function () {
+        let zalo_id = $('#content_chat').attr('zalo_id');
+        let name    = $('#profile_zalo_name').text();
+        let avatar  = $('#header_avatar_chat').attr('src');
+        let phone   = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
+        if(phone === '') phone = get_phone_by_alias($('#header_name_chat').text());
+        
+        if(zalo_id && zalo_id > 10) {
+            resetPopupVoiceip();
+
+            $('#voiceip-info-zaloid').html(zalo_id);
+            $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+            $('#voiceip-info-name').html(name);
+            display_avatar_zalo(avatar);
+            
+            // Make a call
+            if (!ua || !ua.isConnected() || !ua.isRegistered()) {
+                showModalNotify('warning', 'Không có kết nối');
+                return false;
+            }
+            ua.call(zalo_id, callOptions);
+
+            $(this).css('pointer-events', 'none');
+            setTimeout(function() {
+                $('#func-call').css('pointer-events', 'unset');
+            }, 15000);
+
+            handleButtons('outgoing');
+            $('.voiceip-header__title').html('Đang gọi...');
+            $('.voiceip-timer').hide();
+            $('#popup-voiceip').attr('call_id', session._request.call_id); // New call id
+            $('#popup-voiceip').addClass('show');
+            $('#popup__voiceip--wrap').addClass('show');
+            $('#call-overlay').addClass('opened');
+            return true;
+        }
+    });
+
+    // Slide tab profile
     $('#func-slide').click(function () {
         if($('#zalochat_profile').is(":visible")) {
             $('#zalochat_profile').hide();
@@ -1603,7 +1643,7 @@ function getIcons(key, color = '#000', width = '20px', height = '20px') {
 /**
  * Create timeline from timestamp (Use for load more messages)
  * 
- * @param {Int} timestamp
+ * @param {int} timestamp
  * @return {string} HTML
  */
 function getTimeline(timestamp) {
@@ -1613,6 +1653,30 @@ function getTimeline(timestamp) {
     let timeline        = getSentTimeZalo(sent_time);
     let text_timeline   = `${timeline} ${dateofweek}, ` + sent_time.split(' ')[1];
     return `<div class="_sectionTimestamp" id="_sectionTimestamp${timestamp}"><span>${text_timeline}</span></div>`;
+}
+
+/**
+ * Get phone in alias string
+ * 
+ * @param {int} alias
+ * @return {string}
+ */
+function get_phone_by_alias(alias) {
+    if(!alias || alias === '') return '';
+
+    // Regular expression to match sequences of digits
+    let matches = alias.match(/\d+/g);
+
+    if (matches !== null && matches.length > 0) {
+        for (let i = 0; i < matches.length; i++) {
+            let number = matches[i];
+            if (number.length === 10) {
+                return number;
+            }
+        }
+    }
+
+    return '';
 }
 
 function formatText(text) {
