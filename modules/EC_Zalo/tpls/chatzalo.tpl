@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=1.0.66">
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=1.1">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
@@ -212,4 +212,4 @@
 <input type="hidden" name="websocket_url" value="{$WEBSOCKET_URL}" readonly />
 <input type="hidden" name="offset_list_user" value="{$OFFSET_LIST_USER}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=1.1.27"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=1.2"></script>

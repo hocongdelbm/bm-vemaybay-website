@@ -17,8 +17,8 @@
 !/upload/index.html
 /upload_backup/
 
-modules/EC_Zalo/images/*
-modules/EC_Zalo/json/*
+modules/EC_Zalo/images/
+modules/EC_Zalo/json/
 
 secure_sessions/*
 !secure_sessions/logs
