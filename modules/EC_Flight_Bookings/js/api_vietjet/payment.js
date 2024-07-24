@@ -11,10 +11,11 @@ $(document).ready(function() {
         showModal(id_modal_confirm_payment_pnr);
     });
     $('#confirm-payment-pnr').click(function() {
-        let supplier_id = $('#supplier_id').val();
-        let reservation_key = $('#reservation_key').html();
-        let total_amount = parseInt($('#charges').attr("data"));
+        let supplier_id             = $('#supplier_id').val();
+        let reservation_key         = $('#reservation_key').html();
+        let total_amount            = parseInt($('#charges').attr("data"));
         let total_amount_processing = parseInt($('#payments').attr("data"));
+        let pnr                     = $('#pnr').html();
 
         if (reservation_key.length == 0) {
             showModalNotify('error', 'Không thể thực hiện thao tác');
@@ -33,7 +34,8 @@ $(document).ready(function() {
                 supplier_id : supplier_id,
                 reservation_key : reservation_key,
                 total_amount : total_amount,
-                total_amount_processing : total_amount_processing
+                total_amount_processing : total_amount_processing,
+                pnr : pnr,
             },
             beforeSend: function () {
                 $('.container-waiting').show();

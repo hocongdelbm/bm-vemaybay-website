@@ -338,7 +338,7 @@ function html_segment(direction, obj, journey_key) {
                                 <div class="col-8">${obj.aircraft}</div>
                             </div>
                         </div>
-                        <div class="col-md-2 flex-center">
+                        <div class="col-md-2 flex-center d-none">
                             <button class="btn btn-info btn-update_journey btn-update-journey__${direction}" id="btn-update_journey" data-bs-toggle="modal" data-bs-target="#modal-change-journey">
                                 Thay đổi hành trình ${label_dir}
                             </button>

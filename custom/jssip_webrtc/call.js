@@ -122,10 +122,10 @@ function check_online_for_call() {
 ua.on('newRTCSession', function (ev) {
     // When the previous call is existing
     if (session) {
-        if (ev.session.direction === "incoming"){
+        if (ev.session.direction === "incoming") {
             ev.session.terminate(); // End the call to forward
             ev.session = null;
-        } 
+        }
         incomingCallAudio.autoplay = false;
         incomingCallAudio.pause();
         return;
@@ -157,31 +157,31 @@ ua.on('newRTCSession', function (ev) {
         handleButtons('processing');
         startTimer();
 
-         // session.sendDTMF(4);
-         $(document).on('click', '.calc-number', function () {
+        // session.sendDTMF(4);
+        $(document).on('click', '.calc-number', function () {
             let dtml_value = $("#display_dtmf").html().trim();
             let value_dtmf = $(this).attr('dtmf');
 
             dtml_value += value_dtmf;
             $("#display_dtmf").html(dtml_value);
 
-            if(value_dtmf.length > 0){
+            if (value_dtmf.length > 0) {
                 if (session) {
                     let options = {
                         'duration': 160,
                         'interToneGap': 1200,
                     };
                     session.sendDTMF(value_dtmf, options);
-                } 
-            } 
+                }
+            }
         });
 
-        $('#clear_dtmf').on('click', function() {
+        $('#clear_dtmf').on('click', function () {
             let cur_dtml_value = $("#display_dtmf").html().trim();
             if (cur_dtml_value.length > 0) {
                 cur_dtml_value = cur_dtml_value.slice(0, -1); // Xóa ký tự cuối cùng
                 $('#display_dtmf').html(cur_dtml_value);
-            } 
+            }
         });
     });
 
@@ -212,7 +212,7 @@ ua.on('newRTCSession', function (ev) {
             incomingCallAudio.play();
         }, 100);
         $(document).prop('title', 'Có cuộc gọi đến...');
-        showIncomingCall(call_id, zalo_id, phone, hotline);
+        showToastCall('incoming__call', call_id, zalo_id, phone, hotline)
 
         // Nghe máy
         session.on("accepted", function () {
@@ -234,7 +234,7 @@ ua.on('newRTCSession', function (ev) {
 
         stopTimer();
         handleButtons('completed');
-        
+
         $('.voiceip-content__client').slideDown();
         $('.calc-dtmf__wrap').slideUp();
         $(".voiceip-modal-transfer").hide();
@@ -270,7 +270,7 @@ ua.on('newRTCSession', function (ev) {
                         $('#call-overlay').removeClass('opened');
                         $(`.toast__main[type="incoming__call"][call_id="${call_id}"]`).parent().remove();
 
-                        if (response == 1) showMissedCall(call_id, zalo_id, phone, hotline);
+                        if (response == 1) showToastCall('missed__call', call_id, zalo_id, phone, hotline);
                     }
                 });
             }, 1000);
@@ -283,7 +283,7 @@ ua.on('newRTCSession', function (ev) {
             $('#popup-voiceip').removeClass('show');
             $('#popup__voiceip--wrap').removeClass('show');
             $('#call-overlay').removeClass('opened');
-            showDeclineCall(call_id, zalo_id, phone);
+            showToastCall('decline__call', call_id, zalo_id, phone);
         }
 
         $(document).prop('title', TITLE_PAGE);
@@ -349,7 +349,7 @@ $(document).ready(function () {
     // Checkbox busy
     $('input#busy_stt').change(function () {
         let sip_user = $("#sip_user").val();
-        let status   = '';
+        let status = '';
 
         if ($(this).prop('checked') == true) {
             status = 'Logged Out';
@@ -393,7 +393,7 @@ $(document).ready(function () {
             booking_id = $(this).attr('booking_id');
             booking_name = $(this).attr('booking_name');
             type_call_booking = id == 'btnCalled' ? 'called' : 'recall';
-        } else if(id == 'listview-call_from' || id == 'listview-call_to'){
+        } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             number = $(this).attr('phone');
         }
         else if (id === undefined || id.length == '') {
@@ -509,7 +509,7 @@ $(document).ready(function () {
         if (id == 'btn-voiceip-main-zalo') {
             number = $('#call_voiceip_main_number').val().trim();
             $('#call_voiceip_main_number').val('');
-        } else if(id == 'listview-call_from' || id == 'listview-call_to'){
+        } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             number = $(this).attr('phone');
         }
         else if (id == 'btnCalledZalo' || id == 'btnRecallZalo') {
@@ -661,7 +661,7 @@ $(document).ready(function () {
         let booking_name = $(this).attr('booking_name');
         let type_call_booking = $(this).attr('type_call_booking');
 
-        let regEmailNew  = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        let regEmailNew = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
         if (phone.length == 0 && zalo_id.length == 0) {
             showToastWarning('Vui lòng bổ sung SĐT');
@@ -887,7 +887,7 @@ const sendNotification = (phone) => {
 };
 
 const closeNotification = () => {
-    broadcast.postMessage({ type: 'close_notification'});
+    broadcast.postMessage({ type: 'close_notification' });
 };
 
 const showNotification = async (call_from) => {
@@ -909,7 +909,7 @@ const clearAllNotifications = async () => {
         return;
     }
     try {
-        broadcast.postMessage({ type: 'CLEAR_NOTIFICATIONS'});
+        broadcast.postMessage({ type: 'CLEAR_NOTIFICATIONS' });
     } catch (error) {
         console.error('Error sending clear notifications message:', error);
     }
@@ -1239,32 +1239,13 @@ function toast({ call_id = "", zalo_id = "", phone = "", type = "", hotline = ""
     }
 }
 
-function showIncomingCall(call_id = '', zalo_id = '', phone = '', hotline = '') {
+function showToastCall(type = '', call_id = '', zalo_id = '', phone = '', hotline = '') {
     toast({
         call_id: call_id,
         zalo_id: zalo_id,
         phone: phone,
         hotline: hotline,
-        type: "incoming__call",
-    });
-}
-
-function showMissedCall(call_id = '', zalo_id = '', phone = '', hotline = '') {
-    toast({
-        call_id: call_id,
-        zalo_id: zalo_id,
-        phone: phone,
-        hotline: hotline,
-        type: "missed__call",
-    });
-}
-
-function showDeclineCall(call_id = '', zalo_id = '', phone = '') {
-    toast({
-        call_id: call_id,
-        zalo_id: zalo_id,
-        phone: phone,
-        type: "decline__call",
+        type: type,
     });
 }
 
@@ -1304,12 +1285,6 @@ function extract_hotline(str) {
                 return 'Tìm chuyến bay';
 
             /**********  VIETTEL  **********/
-            // case '0968304455':
-            // case '0973834501':
-            // case '0973891401':
-            // case '0974015001':
-            // case '0974091002':
-            // case '0983171970':
             case '0962768782':
             case '0963323407':
             case '0963498793':
@@ -1385,7 +1360,7 @@ function handleButtons(type) {
         $('.voiceip-mute').show();
         $('.voiceip-unmute').show();
         $('.voiceip-dtmf').show();
-        
+
         let t = $('.voiceip-header__title').html();
         if (t.indexOf("...") !== -1) $('.voiceip-header__title').html('Cuộc gọi');
 
@@ -1454,18 +1429,13 @@ function resetPopupVoiceip() {
 }
 
 function formatPhoneNumber(phoneNumber) {
-    // Loại bỏ các ký tự không phải số
     const cleaned = ('' + phoneNumber).replace(/\D/g, '');
-
-    // Kiểm tra xem có đủ số điện thoại không
     const match = cleaned.match(/^(\d{3})(\d{4})(\d{3})$/);
 
     if (match) {
-        // Nếu có, định dạng số điện thoại
         return match[1] + ' ' + match[2] + ' ' + match[3];
     }
 
-    // Nếu không, trả về số điện thoại không đổi
     return phoneNumber;
 }
 
@@ -1474,7 +1444,7 @@ function formatPhoneNumber(phoneNumber) {
 var call_timer;
 var seconds = 0;
 var minutes = 0;
-var hours = 0;
+var hours   = 0;
 
 function startTimer() {
     $('#voiceip-timer').show();
@@ -1497,6 +1467,7 @@ function startTimer() {
         );
     }, 1000);
 }
+
 function stopTimer() {
     clearInterval(call_timer);
 }
@@ -1632,10 +1603,7 @@ var removeNumber = function () {
     let call_number_val = $("#call_voiceip_main_number").val();
 
     if (call_number_val.length > 0) {
-        // Xóa chữ số cuối cùng
         var newValue = call_number_val.slice(0, -1);
-
-        // Hiển thị giá trị mới
         $('#call_voiceip_main_number').val(newValue);
     }
 };
@@ -1676,7 +1644,6 @@ function isSpamPhoneNumber(phoneNumber) {
 
     return false;
 }
-
 
 // SEARCH - TRANSFER
 function removeAccents(str) {

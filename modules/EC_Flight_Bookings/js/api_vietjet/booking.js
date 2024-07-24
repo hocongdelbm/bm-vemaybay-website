@@ -208,6 +208,28 @@ $(document).ready(function () {
         if (flight_time - current_time >= time_check) $("#confirm_reservation_dialog_vja .notes .warning").html("");
         else $("#confirm_reservation_dialog_vja .notes .warning").html("Đây là vé cận, bấm xác nhận sẽ tiến hành xuất vé");
 
+        
+        let supplier_id = $('select[name="supplier_booking"]').val();
+        $.ajax({
+            url: url,
+            type: "POST",
+            data: {
+                action: "get_credit_available",
+                supplier_id: supplier_id,
+            },
+            success: function (response) {
+                if (response.length > 0 && response != '[]') {
+                    data = JSON.parse(response); // Object
+                    $("#confirm_reservation_dialog_vja .notes .credit_available").html("Số dư hiện tại là: " + data.creditAvailable);
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                console.error(XMLHttpRequest);
+                console.error("Status: " + textStatus);
+                console.error("Error: " + errorThrown);
+            }
+        });
+
         showDialog("confirm_reservation_dialog_vja");
         return;
     });
@@ -262,7 +284,8 @@ $(document).ready(function () {
         }
 
         if ($("#confirm_reservation_dialog_vja .notes .warning").html().length > 0) {
-            if (confirm("Thao tác sẽ trừ tiền vào tài khoản đại lý. Bạn có chắc muốn xuất vé ?")) { }
+            let str_credit_available = $("#confirm_reservation_dialog_vja .notes .credit_available").html();
+            if (confirm("Thao tác sẽ trừ tiền vào tài khoản đại lý. Bạn có chắc muốn xuất vé?\n" + str_credit_available)) { }
             else {
                 $('.container-waiting').hide();
                 return false;
@@ -289,23 +312,23 @@ $(document).ready(function () {
 
                 if (data['code'] == 1) {
                     let text_modal_success = data['message'];
-                    showModalNotify(1, text_modal_success)
+                    showModalNotify(1, text_modal_success);
                     $('.modal-overlay, .btn-modal-close').addClass('reload');
                 }
                 else if (data['code'] == 0 || data['code'] == -1) {
                     if (data['message'] == "ERROR") {
                         let text_modal_error = data['message'] + '\n' + data['description'];
-                        showModalNotify(0, text_modal_error)
+                        showModalNotify(0, text_modal_error);
                     }
                     else {
                         let text_modal_error = data['message'];
-                        showModalNotify(0, text_modal_error)
+                        showModalNotify(0, text_modal_error);
                     }
                     return false;
                 }
                 else {
                     let text_modal_error = 'ERROR: Vui lòng liên hệ bộ phận IT!';
-                    showModalNotify(0, text_modal_error)
+                    showModalNotify(0, text_modal_error);
                     $('.modal-overlay, .btn-modal-close').addClass('reload');
 
                     console.log(response);
@@ -316,7 +339,7 @@ $(document).ready(function () {
                 $('.container-waiting').hide();
 
                 let text_modal_error = 'ERROR (' + errorThrown + '): Vui lòng liên hệ bộ phận IT.';
-                showModalNotify(0, text_modal_error)
+                showModalNotify(0, text_modal_error);
 
                 console.error(XMLHttpRequest);
                 console.error("Status: " + textStatus);

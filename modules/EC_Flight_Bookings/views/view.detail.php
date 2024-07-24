@@ -362,7 +362,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					<form method="dialog">
 						<div class="wrap-type">
 							<h3 class="subtitle">Chọn mẫu tin nhắn</h3>
-							<div class="wrap-radio d-flex align-items-center justify-content-between" style="height:25px; gap:15px;">
+							<div class="wrap-radio d-flex align-items-center justify-content-between">
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
 									<label for="type_journey" class="form-check-label">Tin nhắn hành trình <span class="me-2 text-danger">('.$zns_history['journey'].')</span></label>
@@ -1149,6 +1149,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 								<div class="notes">
 									<p class="warning"></p>
+									<p class="credit_available"></p>
 									<p class="remind">Vui lòng kiểm tra kỹ thông tin trên trước khi xác nhận giữ chỗ</p>
 								</div>
 								
@@ -1156,13 +1157,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 									<label for="supplier_booking" class="form-label">Chọn NCC: </label>
 									<select name="supplier_booking" id="supplier_booking" class="form-select form-select-sm">
 										<option value="3e414dde-85b6-315b-e0ba-6556c458368f" selected>Minh Hồng Võ</option>
-										<option value="7df1cbf9-21b6-4f45-7cc5-62011601a951">Travelpass</option>
 									</select>
 									<button id="cancel_reservation_vja" class="btn btn-secondary" value="cancel">Hủy</button>
 									<button id="confirm_reservation_vja" class="btn btn-confirm" value="default">Xác nhận</button>
 								</div>
 							</form>
 						</dialog>';
+						// <option value="7df1cbf9-21b6-4f45-7cc5-62011601a951">Travelpass</option>
 
 			$this->ss->assign('RESERVATION_VJA', $form_reservation . $dialog);
 		} else $this->ss->assign('RESERVATION_VJA', '');

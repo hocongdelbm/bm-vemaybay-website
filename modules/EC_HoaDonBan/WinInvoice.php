@@ -8,6 +8,7 @@ class WinInvoice extends InvoiceLogs {
     private $TIMEOUT = 30;
 
     function __construct($have_code = 1) {
+        parent::__construct();
         $this->USER           = '0316735473';
         $this->PASSWORD       = 'wcwdcdg34f8jvu8d16adaa807f24f5c852e63cdddfb708c4';
         $this->INVOICE_NUMBER = '1';
