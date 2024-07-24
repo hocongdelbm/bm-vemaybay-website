@@ -1760,11 +1760,13 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
             $luggage_arr = array(
                 '1' => 'Không có hành lý ký gửi ',
                 '0' => '1 kiện 23kg (0 VND/Khách)',
+                '2' => '1 kiện 32kg (0 VND/khách)',
                 '350000'    => '1 kiện 23kg (350.000 VND/Khách)',
                 '700000'    => '2 kiện 23kg (700.000 VND/ Khách)',
                 '1050000'   => '3 kiện 23kg (1.050.000 VND/ Khách)',
                 '1400000'   => '4 kiện 23kg (1.400.000 VND/ Khách)',
                 '1750000'   => '5 kiện 23kg (1.750.000 VND/ Khách)',
+                '190000'    => '1 kiện 10kg (190.000 VND/ Khách)',
                 '220000'    => '1 kiện 10kg (220.000 VND/ Khách)',
                 '440000'    => '2 kiện 10kg (440.000 VND/ Khách)',
                 '660000'    => '3 kiện 10kg (660.000 VND/ Khách)'
