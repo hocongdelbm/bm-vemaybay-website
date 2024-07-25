@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=1.1">
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v={$version}">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
@@ -46,9 +46,22 @@
                                     </div>
                                 </div>
                                 <div class="snippet">
-                                    <div class="sc-fUnNpA gizFVd item-title nickname">
+                                    <div class="form-edit-name">
+                                        <div class="input">
+                                            <input type="text" name="alias_edit" value="" maxlength="250">
+                                            <div class="input_sub"></div>
+                                        </div>
+                                        <button id="cancel_alias_edit" class="btn btn_line btn-blue func-close">Hủy</button>
+                                        <button id="save_alias_edit" class="btn btn_bg btn-blue func-close">Lưu</button>
+                                    </div>
+                                    <div class="item-title nickname">
                                         <div class="u__name">
                                             <span id="header_name_chat" class="name_truncate">Người dùng</span>
+                                            <i id="edit_alias" class="icon icon_edit">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+                                                    <path d="M14.3632 5.65156L15.8431 4.17157C16.6242 3.39052 17.8905 3.39052 18.6716 4.17157L20.0858 5.58579C20.8668 6.36683 20.8668 7.63316 20.0858 8.41421L18.6058 9.8942M14.3632 5.65156L4.74749 15.2672C4.41542 15.5993 4.21079 16.0376 4.16947 16.5054L3.92738 19.2459C3.87261 19.8659 4.39148 20.3848 5.0115 20.33L7.75191 20.0879C8.21972 20.0466 8.65806 19.8419 8.99013 19.5099L18.6058 9.8942M14.3632 5.65156L18.6058 9.8942" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                                </svg>
+                                            </i>
                                         </div>
                                     </div>
                                     <div class="item-message flexBox">
@@ -91,6 +104,12 @@
                                     <div class="section-post">
                                         <input type="hidden" name="offset_load_more_message" value="0" readonly>
                                         <div id="section-message__details" class="section-message__details"></div>
+                                    </div>
+                                </div>
+                                <div class="display-admin-typing">
+                                    <div>
+                                        <b id="admin_typing"></b> đang soạn tin
+                                        <div class="loader_typing"></div>
                                     </div>
                                 </div>
                             </section>
@@ -185,7 +204,7 @@
                                     </dl>
                                 </div>
                                 <button id="btn_request_user_info" class="btn_info btn btn_bg btn-blue2 mt-2">Gửi yêu cầu chia sẻ thông tin</button>
-                                <button class="btn_info btn btn_bg btn-blue2 mt-2" disabled>Cập nhật thông tin</button>
+                                <button id="btn_update_user_info" class="btn_info btn btn_bg btn-blue2 mt-2" data-bs-toggle="modal" data-bs-target="#modal_update_info_user">Cập nhật thông tin</button>
                                 <button id="btn_save_contact" class="btn_info btn btn_bg btn-blue2 mt-2">Lưu liên hệ</button>
                             </div>
                             <div class="line mt-20"></div>
@@ -202,14 +221,64 @@
         </div>
     </div>
 </div>
+
+<div class="modal" id="modal_update_info_user">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Thông tin người dùng</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row pt-3">
+                    <div class="col-3 label">Họ tên</div>
+                    <div class="col-9 input">
+                        <input type="text" name="info_user_name" class="form-control" value="" placeholder="Nhập họ tên">
+                    </div>
+                </div>
+                <div class="row pt-3">
+                    <div class="col-3 label">Số điện thoại</div>
+                    <div class="col-9 input">
+                        <input type="text" name="info_user_phone" class="form-control" value="" placeholder="Nhập số điện thoại">
+                    </div>
+                </div>
+                <div class="row pt-3">
+                    <div class="col-3 label">Tỉnh/Thành</div>
+                    <div class="col-9 input">
+                        <select name="info_user_city" class="form-select"></select>
+                    </div>
+                </div>
+                <div class="row pt-3">
+                    <div class="col-3 label">Quận/Huyện</div>
+                    <div class="col-9 input">
+                        <select name="info_user_district" class="form-select"></select>
+                    </div>
+                </div>
+                <div class="row pt-3">
+                    <div class="col-3 label">Địa chỉ</div>
+                    <div class="col-9 input">
+                        <textarea name="info_user_address" class="form-control" rows="3" placeholder="Nhập địa chỉ"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Lưu</button>
+            </div>
+      </div>
+    </div>
+</div>
+
 {$ICON_TEMPLATE}
 <input type="hidden" name="oa_id" value="{$OA_ID}" readonly />
 <input type="hidden" name="oa_name" value="{$OA_NAME}" readonly />
 <input type="hidden" name="oa_avatar" value="{$OA_AVATAR}" readonly />
+<input type="hidden" name="admin_id" value="{$ADMIN_ID}" readonly />
+<input type="hidden" name="admin_name" value="{$ADMIN_NAME}" readonly />
 <input type="hidden" name="default_avatar" value="{$DEFAULT_AVATAR}" readonly />
 <input type="hidden" name="image_file" value="{$IMAGE_FILE}" readonly />
 <input type="hidden" name="entrypoint" value="{$ENTRYPOINT}" readonly />
 <input type="hidden" name="websocket_url" value="{$WEBSOCKET_URL}" readonly />
 <input type="hidden" name="offset_list_user" value="{$OFFSET_LIST_USER}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=1.2"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v={$version}"></script>

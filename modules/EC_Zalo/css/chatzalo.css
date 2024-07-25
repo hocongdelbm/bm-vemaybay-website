@@ -1,15 +1,55 @@
 @import "loading.css";
 
+/****************************************/
 /***************  RESET  ***************/
 #bootstrap-container {
   padding: 10px 10px 10px 30px !important;
 }
 /***************  END RESET  ***************/
 
+
+/****************************************/
+/***************  GLOBAL  ***************/
+/****************************************/
 i.icon {
   cursor: pointer;
   pointer-events: unset !important;
 }
+
+.btn {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: -ms-flexbox !important;
+  display: flex !important;
+  line-height: 150%;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-radius: 4px;
+}
+
+.btn:not(.btn-sm) {
+  padding: 8px 12px;
+}
+
+.btn_line.btn-blue {
+  border: 1px solid #0068ff;
+  color: #0068ff;
+}
+
+.btn_bg.btn-blue {
+  background-color: #0068ff;
+  color: #fff;
+}
+/****************************************/
+/*************  END GLOBAL  *************/
+/****************************************/
+
 
 .wrap-content.wrap-content-chat {
   position: relative;
@@ -539,12 +579,6 @@ i.icon {
   cursor: pointer;
 }
 
-.user-current .snippet .form-edit-name {
-  position: absolute;
-  display: none;
-  top: -6px;
-}
-
 .user-current .snippet .item-title {
   width: 70%;
   color: #191919;
@@ -569,12 +603,75 @@ i.icon {
 }
 
 .user-current .snippet .u__name {
-  /* position: absolute; */
   display: flex;
   flex-direction: row;
+  gap: 20px;
   overflow: hidden;
-  width: 100%;
+  width: fit-content;
 }
+.user-current .snippet .u__name .icon_edit {
+  display: none;
+}
+.user-current .snippet .u__name:hover .icon_edit {
+  display: inline;
+}
+.user-current .snippet .u__name .icon_edit svg {
+  vertical-align: baseline;
+}
+
+/* Form edit alias */
+.user-current .snippet .form-edit-name {
+  display: none;
+  /* display: flex; */
+  flex-direction: row;
+  padding-bottom: 5px;
+}
+.user-current .snippet .form-edit-name .input {
+  position: relative;
+  width: 255px;
+}
+
+.user-current .snippet .form-edit-name input {
+  height: 26px;
+  width: 100%;
+  border: 1px solid #d2d0d9;
+  border-radius: 2px;
+  color: #343436;
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 8px;
+  padding: 0 45px 0 8px;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.user-current .snippet .form-edit-name .input_sub {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+  right: 8px;
+  font-size: 10px;
+  color: #8d8d8f;
+}
+
+.user-current .snippet .form-edit-name .btn {
+  margin-left: 5px;
+  height: 26px;
+  font-size: 12px;
+}
+.user-current .snippet .form-edit-name .btn_bg:active {
+  background-color: #0068ff;
+  border: 1px solid #0068ff;
+  color: #fff;
+}
+.user-current .snippet .form-edit-name .btn_line:active {
+  background-color: #fff;
+  border: 1px solid #0068ff;
+  color: #0068ff;
+}
+/* End form edit alias */
+
 
 /**********  section-message  **********/
 .zalochat_content .group-feed .section-message .section-post::-webkit-scrollbar {
@@ -634,7 +731,7 @@ i.icon {
   min-width: 100%;
 }
 
-
+/* Quota user */
 .section-compose-inline {
   position: relative;
 }
@@ -686,7 +783,22 @@ i.icon {
 .section-compose-inline .noti-mess-feedback.noti_grey {
   background-color: #dddede !important;
 }
+/* End quota user */
 
+/* Typing */
+.section-message .display-admin-typing {
+  display: none;
+  background: #e7e9eb;
+  border-radius: 4px 0 0 4px;
+  box-shadow: rgba(17, 17, 26, 0.05) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 0px 8px;
+  color: #70707d;
+  position: absolute;
+  bottom: 2px;
+  right: 0;
+  z-index: 10;
+  padding: 3px 8px;
+}
+/*- End typing -*/
 
 .message__list .section-post .section-item {
   position: relative;

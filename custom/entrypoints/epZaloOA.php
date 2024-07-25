@@ -364,6 +364,54 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
         exit();
     }
+    elseif($action == 'update_user_alias') {
+        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+        $alias   = isset($_POST['alias']) ? $_POST['alias'] : "";
+
+        if(empty($zalo_id) || empty($alias)) {
+            echo json_encode([
+                "error" => 1,
+                "message" => "Dữ liệu không hợp lệ",
+                "data" => ["zalo_id" => $zalo_id, "alias" => $alias]
+            ]);
+            exit();
+        }
+
+        $Zalo = new Zalo();
+        echo $Zalo->update_user($zalo_id, $alias);
+        exit();
+    }
+    elseif($action == 'update_user_info') {
+        $zalo_id        = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+        $name           = isset($_POST['info_user_name']) ? $_POST['info_user_name'] : "";
+        $phone          = isset($_POST['info_user_phone']) ? $_POST['info_user_phone'] : "";
+        $address        = isset($_POST['info_user_address']) ? $_POST['info_user_address'] : "";
+        $city_id        = isset($_POST['info_user_city']) ? (int)$_POST['info_user_city'] : 0;
+        $district_id    = isset($_POST['info_user_district']) ? (int)$_POST['info_user_district'] : 0;
+        $shared_info = [
+            "name" => $name,
+            "phone" => $phone,
+            "address" => $address,
+            "city_id" => $city_id,
+            "district_id" => $district_id
+        ];
+
+        if(strlen($zalo_id)*strlen($name)*strlen($phone)*strlen($address)*$district_id*$city_id) {
+            echo json_encode([
+                "error" => 1,
+                "message" => "Dữ liệu không hợp lệ",
+                "data" => [
+                    "zalo_id" => $zalo_id,
+                    $shared_info
+                ]
+            ]);
+            exit();
+        }
+
+        $Zalo = new Zalo();
+        echo $Zalo->update_user($zalo_id, '', $shared_info);
+        exit();
+    }
     elseif($action == 'save_contact') {
         $zalo_id    = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
         $phone      = isset($_POST['phone']) ? $_POST['phone'] : "";

@@ -54,3 +54,22 @@
     50%   {transform:scaleY(-1) rotate(0deg)}
     100%  {transform:scaleY(-1) rotate(-135deg)}
 }
+
+
+/**********  LOADING TYPING  **********/
+/* HTML: <div class="loader_typing"></div> */
+.loader_typing {
+    width: 20px;
+    aspect-ratio: 2;
+    --_g: no-repeat radial-gradient(circle closest-side,#70707d 90%,#0000);
+    background: 
+      var(--_g) 0%   50%,
+      var(--_g) 50%  50%,
+      var(--_g) 100% 50%;
+    background-size: calc(100%/3) 55%;
+    animation: l3 1s infinite linear;
+
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 2px;
+}

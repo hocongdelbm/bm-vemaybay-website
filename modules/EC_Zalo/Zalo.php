@@ -30,6 +30,7 @@ class Zalo {
     }
 
 
+
     /***************  AUTH  ***************/
     /** 
      * Return link to integrate zalo 
@@ -321,6 +322,7 @@ class Zalo {
     }
 
 
+
     /***************  USER  ***************/
     /** 
      * Get list user id
@@ -481,6 +483,56 @@ class Zalo {
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
                 CURLOPT_TIMEOUT        => 0,
                 CURLOPT_HTTPHEADER     => ["access_token: ". $this->get_token()]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /** 
+     * Update user info
+     * 
+     * @param string $zalo_id
+     * @param string $user_alias
+     * @param array $shared_info
+     * @return string json
+     */
+    public function update_user($zalo_id, $user_alias = '', $shared_info = []) {
+        $data = ["user_id" => $zalo_id];
+        if(!empty($user_alias)) $data['user_alias'] = $user_alias;
+        if(!empty($shared_info) && count($shared_info) > 4) $data['shared_info'] = $shared_info;
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v3.0/oa/user/update",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => [
+                    "access_token: ". $this->get_token(),
+                    "Content-Type: application/json"
+                ]
             ]);
             $json = curl_exec($curl);
 

@@ -15,7 +15,7 @@ class Viewchatzalo extends SugarView {
         parent::__construct();
         $this->Zalo = new Zalo();
         $this->entrypoint = 'index.php?entryPoint=entrypointZaloOA';
-        $this->websocket_url = 'wss://'.$_SERVER['SERVER_NAME'].'/chatz/';
+        $this->websocket_url = $_SERVER['SERVER_NAME'] != 'localhost' ? 'wss://'.$_SERVER['SERVER_NAME'].'/chatz/' : 'ws://localhost:8080';
         $this->default_avatar = 'modules/EC_Zalo/images/private/avatar_default.jpg';
         $this->default_banner_request_info = 'modules/EC_Zalo/images/private/request_info_banner.png';
         $this->image_file = [
@@ -44,6 +44,9 @@ class Viewchatzalo extends SugarView {
     }
 
     public function populate_content($smarty) {
+        global $current_user;
+        $fullname = explode(' ', $current_user->name);
+
         $json_info_oa = $this->Zalo->get_info_oa();
         $arr_info_oa = json_decode($json_info_oa, true);
 
@@ -60,6 +63,10 @@ class Viewchatzalo extends SugarView {
         $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode($this->image_file)));
         $smarty->assign('ENTRYPOINT', $this->entrypoint);
         $smarty->assign('WEBSOCKET_URL', $this->websocket_url);
+        $smarty->assign('ADMIN_ID', $current_user->id);
+        $smarty->assign('ADMIN_NAME', end($fullname));
+
+        $smarty->assign('version', date('Y-m-dH:i:s'));
 
         // Get icons
         $list_icons = $this->get_icons(0, '{{color}}');
@@ -99,7 +106,7 @@ class Viewchatzalo extends SugarView {
         $html = '';
         $list_zalo_id = ['interaction' => [], 'no_interaction' => []];
 
-        while(count($list_zalo_id['interaction']) < 21) {
+        while(count($list_zalo_id['interaction']) < 16) {
             $json = $this->Zalo->get_recent_messages($offset);
             $arr = json_decode($json, true);
 

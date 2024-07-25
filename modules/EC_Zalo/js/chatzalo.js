@@ -1,6 +1,8 @@
 const OA_ID = $(`input[name="oa_id"]`).val();
 const OA_NAME = $(`input[name="oa_name"]`).val();
 const OA_AVATAR = $(`input[name="oa_avatar"]`).val();
+const ADMIN_ID = $(`input[name="admin_id"]`).val();
+const ADMIN_NAME = $(`input[name="admin_name"]`).val();
 const URL = $(`input[name="entrypoint"]`).val();
 const DEFAULT_AVATAR = $(`input[name="default_avatar"]`).val();
 const URL_CHAT_WEBSOCKET = $(`input[name="websocket_url"]`).val();
@@ -520,6 +522,112 @@ $(document).ready(function () {
             $('#zalochat_main').css('flex', 'unset');
         }
     });
+
+    // Display typing with other users
+    $('textarea[name="message_content"], input[name="image_upload"], input[name="file_upload"]').on('input', function() {
+        let zalo_id = $('#content_chat').attr('zalo_id');
+        let value = $(this).val();
+
+        if(zalo_id && zalo_id.length > 0 && value && value.length > 0) {
+            let event = {
+                sender : {
+                    id: OA_ID,
+                    admin_id: ADMIN_ID,
+                    admin_name: ADMIN_NAME
+                },
+                recipient : {
+                    id: zalo_id
+                },
+                message : {
+                    msg_id: '',
+                    text: 'đang soạn tin'
+                },
+                event_name: "oa_typing",
+                timestamp: Date.now()
+            }
+
+            if(zsocket) zsocket.send(JSON.stringify(event));
+        }
+    });
+
+    // Edit alias
+    $('#edit_alias').click(function () {
+        $('.item-title.nickname').hide();
+        $('.form-edit-name').css('display', 'flex');
+        let alias = $('#header_name_chat').text();
+        $('input[name="alias_edit"]').val(alias);
+        $('.input_sub').text(`${alias.length}/250`);
+    });
+    $('input[name="alias_edit"]').on('input', function() {
+        if($(this).val().length == 0) $('#save_alias_edit').prop('disabled', true);
+        else $('#save_alias_edit').prop('disabled', false);
+        $('.input_sub').text(`${$(this).val().length}/250`);
+    });
+    $('#cancel_alias_edit').click(function () {
+        $('.form-edit-name').hide();
+        $('.item-title.nickname').css('display', 'flex');
+    });
+    $('#save_alias_edit').click(function () {
+        let zalo_id = $('#content_chat').attr('zalo_id');
+        let alias = $('input[name="alias_edit"]').val().trim();
+
+        if(zalo_id && alias && zalo_id.length > 0 && alias.length > 0) {
+            $.ajax({
+                url: URL,
+                type: "POST",
+                data: {
+                    action : "update_user_alias",
+                    zalo_id : zalo_id,
+                    alias : alias
+                },
+                beforeSend: function() {
+                    $('.container-waiting').show();
+                },
+                success: function (response) {
+                    $('.container-waiting').hide();
+
+                    res = JSON.parse(response); // Object
+        
+                    if(res['error'] === 0) {
+                        $('#header_name_chat').text(alias); // Name chat
+                        $('#profile_zalo_alias').text(alias); // In profile
+                        $(`#li${zalo_id} .info_content .mess_name`).text(alias); // List user
+                    }
+                    else {
+                        let m = res['message'] ? res['message'] : 'Thao tác thất bại';
+                        let d = res['description'] ? res['description'] : '';
+                        showModalNotify('error', m, d);
+                        return false;
+                    }
+
+                    $('.form-edit-name').hide();
+                    $('.item-title.nickname').css('display', 'flex');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('.container-waiting').hide();
+                    showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
+                    console.error(XMLHttpRequest);
+                    console.error("Status: " + textStatus);
+                    console.error("Error: " + errorThrown);
+                }
+            });
+        }
+    });
+
+    // Edit user info
+    $('#btn_update_user_info').click(function () {
+        let current_name = $('#profile_zalo_name').attr('data');
+        let current_phone = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
+        let current_address = $('input[name="profile_address_number"]').val();
+        // let current_city = $('input[name="profile_address_city"]').val();
+        // let current_district = $('input[name="profile_address_district"]').val();
+
+        $('input[name="info_user_name"]').val(current_name);
+        $('input[name="info_user_phone"]').val(current_phone);
+        $('input[name="info_user_address"]').val(current_address);
+        // $('input[name="info_user_city"]').val();
+        // $('input[name="info_user_district"]').val();
+    });
 });
 
 function connectWebSocket() {
@@ -533,12 +641,11 @@ function connectWebSocket() {
     };
     
     zsocket.onmessage = function(e) {
-        console.warn(e.data);
         if(!e.data) return false;
 
         data = JSON.parse(e.data);
         let event = data['event_name'] ? data['event_name'] : '';
-        let mid = data['message']['msg_id'] ?data['message']['msg_id'] : '';
+        let mid = data['message']['msg_id'] ? data['message']['msg_id'] : '';
         let app_id = data['app_id'] ? data['app_id'] : '';
         let sender_id = data['sender']['id'] ? data['sender']['id'] : '';
         let recipient_id = data['recipient']['id'] ? data['recipient']['id'] : '';
@@ -730,6 +837,35 @@ function connectWebSocket() {
             else {
                 if($('input[name="user_type_list"]').val() !== 'default') return false;
                 create_li_chat_new(src, type, message, timestamp, recipient_id);
+            }
+        }
+        /**********  OA EVENT CUSTOM **********/
+        else if(event == 'oa_typing') {
+            let sender_admin_id = data['sender']['admin_id'] ? data['sender']['admin_id'] : '';
+            let current_user_id_chat = $('#content_chat').attr('zalo_id');
+
+            if(sender_admin_id !== ADMIN_ID && recipient_id === current_user_id_chat) {
+                let sender_admin_name = data['sender']['admin_name'] ? data['sender']['admin_name'] : '';
+                let admin_typing = $('#admin_typing').text();
+
+                if(admin_typing.length > 0) {
+                    // Check
+                    let check = true;
+                    let arr_admin_typing = admin_typing.split(',');
+                    arr_admin_typing.forEach(function (item, index) {
+                        if(sender_admin_name === item.trim()) check = false;
+                    });
+
+                    if(check) $('#admin_typing').text(`${admin_typing}, ${sender_admin_name}`);
+                }
+                else $('#admin_typing').text(sender_admin_name);
+                $('.display-admin-typing').show();
+
+                // Hide after 2 seconds
+                setTimeout(function() {
+                    $('#admin_typing').text('');
+                    $('.display-admin-typing').hide();
+                }, 2000);
             }
         }
     };
