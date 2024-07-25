@@ -653,9 +653,10 @@ class VietjetAPIHelper {
      * @param string $reservation_key
      * @param int $totalAmount
      * @param int $totalAmountProcessing
+     * @param string $pnr
      * @return string json
      */
-    public function payBooking($reservation_key, $totalAmount, $totalAmountProcessing = 0, $pnr) {
+    public function payBooking($reservation_key, $totalAmount, $totalAmountProcessing = 0, $pnr = '') {
         if(empty($reservation_key)) return json_encode(['error' => 1, 'code' => 400, 'message' => 'Invalid booking key', 'data' => null]);
         if(empty($pnr)) return json_encode(['error' => 1, 'code' => 400, 'message' => 'Invalid PNR', 'data' => null]);
 

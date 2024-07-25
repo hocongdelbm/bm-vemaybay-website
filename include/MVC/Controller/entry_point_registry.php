@@ -75,9 +75,12 @@ $entry_point_registry = array(
     'entryPointCallContact'                 => array('file' => 'custom/entrypoints/epCallContact.php', 'auth' => true),
     'entryPointWinInvoice'                  => array('file' => 'custom/entrypoints/epWinInvoice.php', 'auth' => true),
     'entryPointSMS'                         => array('file' => 'custom/entrypoints/epSMS.php', 'auth' => true),
-    'entryPointZalo'                        => array('file' => 'custom/entrypoints/epZalo.php', 'auth' => true),
     'entryPointSaveResultSMS'               => array('file' => 'custom/entrypoints/epSaveResultSMS.php', 'auth' => false),
     'entryPointUpdateContact'               => array('file' => 'custom/entrypoints/epUpdateContact.php', 'auth' => false),
+    'entryPointZalo'                => array('file' => 'custom/entrypoints/epZalo.php', 'auth' => true),
+    'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),
+    'entryPointZaloAuthCallback'    => array('file' => 'custom/entrypoints/epZaloAuthCallback.php', 'auth' => false),
+	'entryPointZaloWebhook'         => array('file' => 'custom/entrypoints/epZaloWebhook.php', 'auth' => false),
 
     // Custom by Haihugn
 	'entryPointAbsence'                     => array('file' => 'custom/entrypoints/epAbsence.php', 'auth' => true),
