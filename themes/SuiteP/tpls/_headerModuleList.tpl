@@ -14,8 +14,6 @@
                     if (response == 2) {
                          $("#busy_stt").prop("checked", true);
                          $("#availability-status").addClass("busy");
-
-                         // Use for call.js
                          if(ua) ua.stop();
                          showConnect(false);
                     } else {
@@ -35,21 +33,15 @@
                     url_behavior: currentURL,
                     for: "saveBehaviorUser",
                },
-               success: function(response) {
-                    // console.log(response);
-               }
+               success: function(response) {}
           });
 
           // Checked trạng thái bận của user
           let value_busy = localStorage.getItem('is_busy');
           if(value_busy == 1){
                $('#busy_stt').prop("checked", true);
-               // $("#availability-status").removeClass("online");
-               // $("#availability-status").addClass("busy");
           } else{
                $('#busy_stt').prop("checked", false);
-               // $("#availability-status").removeClass("busy");
-               // $("#availability-status").addClass("online");
           }
 
           $('body').on('click', function(e) {
@@ -70,7 +62,6 @@
                          $("#availability-status").removeClass("online");
                          $("#availability-status").addClass("busy");
                          $('#busy_stt').prop("checked", true);
-
                     } else {
                          $("#availability-status").removeClass("busy");
                          $("#availability-status").addClass("online");
@@ -97,29 +88,9 @@
                               time: currentTime,
                               for: "saveLastClickUser",
                          },
-                         success: function(response) {
-                              if(response == 1){
-                                   // console.log('clicked');
-                              } 
-                         }
+                         success: function(response) {}
                     });
-
-                    // // BEHAVIOR USER
-                    // $.ajax({
-                    //      url: "index.php?entryPoint=entryPointBehaviorUser",
-                    //      type: "POST",
-                    //      cache: false,
-                    //      data: {
-                    //           url_behavior: currentURL,
-                    //           e_target: e_target_class,
-                    //           for: "saveBehaviorUser",
-                    //      },
-                    //      success: function(response) {
-                    //           console.log(response);
-                    //      }
-                    // });
                }
-
           });
      });
 
