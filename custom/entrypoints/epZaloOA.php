@@ -412,6 +412,46 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo $Zalo->update_user($zalo_id, '', $shared_info);
         exit();
     }
+    elseif($action == 'add_tag_user') {
+        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+        $tag_name = isset($_POST['tag_name']) ? $_POST['tag_name'] : "";
+
+        if(empty($zalo_id) || empty($tag_name)) {
+            echo json_encode([
+                "error" => 1,
+                "message" => "Dữ liệu không hợp lệ",
+                "data" => [
+                    "zalo_id" => $zalo_id,
+                    "tag_name" => $tag_name
+                ]
+            ]);
+            exit();
+        }
+
+        $Zalo = new Zalo();
+        echo $Zalo->add_tag_user($zalo_id, $tag_name);
+        exit();
+    }
+    elseif($action == 'remove_tag_user') {
+        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+        $tag_name = isset($_POST['tag_name']) ? $_POST['tag_name'] : "";
+
+        if(empty($zalo_id) || empty($tag_name)) {
+            echo json_encode([
+                "error" => 1,
+                "message" => "Dữ liệu không hợp lệ",
+                "data" => [
+                    "zalo_id" => $zalo_id,
+                    "tag_name" => $tag_name
+                ]
+            ]);
+            exit();
+        }
+
+        $Zalo = new Zalo();
+        echo $Zalo->remove_tag_user($zalo_id, $tag_name);
+        exit();
+    }
     elseif($action == 'save_contact') {
         $zalo_id    = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
         $phone      = isset($_POST['phone']) ? $_POST['phone'] : "";

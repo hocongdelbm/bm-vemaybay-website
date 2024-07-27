@@ -183,14 +183,17 @@ class Zalo {
             $refresh_token = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
             $access_token = isset($arr['access_token']) ? $arr['access_token'] : '';
             $expires_at = isset($arr['expires_at']) ? $arr['expires_at'] : 0;
-
+            
             if($type == 'refresh') return $refresh_token;
-            elseif($type == 'access' && $expires_at > time()) return $access_token;
-            else {
-                $json = $this->get_new_token($refresh_token);
-                $arr2 = json_decode($json, true);
-                return isset($arr2['access_token']) ? $arr2['access_token'] : '';
-            }
+            elseif($type == 'access') return $access_token;
+
+            // if($type == 'refresh') return $refresh_token;
+            // elseif($type == 'access' && $expires_at > time()) return $access_token;
+            // else {
+            //     $json = $this->get_new_token($refresh_token);
+            //     $arr2 = json_decode($json, true);
+            //     return isset($arr2['access_token']) ? $arr2['access_token'] : '';
+            // }
 
             return '';
         }
@@ -522,6 +525,106 @@ class Zalo {
 
             curl_setopt_array($curl, [
                 CURLOPT_URL            => "https://openapi.zalo.me/v3.0/oa/user/update",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => [
+                    "access_token: ". $this->get_token(),
+                    "Content-Type: application/json"
+                ]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /** 
+     * Add tag to user (Each user can only have 1 tag)
+     * 
+     * @param string $zalo_id
+     * @param string $tag_name
+     * @return string json
+     */
+    public function add_tag_user($zalo_id, $tag_name) {
+        $data = [
+            "user_id" => $zalo_id,
+            "tag_name" => $tag_name
+        ];
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v2.0/oa/tag/tagfollower",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CUSTOMREQUEST  => 'POST',
+                CURLOPT_POSTFIELDS     => json_encode($data),
+                CURLOPT_HTTPHEADER     => [
+                    "access_token: ". $this->get_token(),
+                    "Content-Type: application/json"
+                ]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /** 
+     * Remove tag from user
+     * 
+     * @param string $zalo_id
+     * @param string $tag_name
+     * @return string json
+     */
+    public function remove_tag_user($zalo_id, $tag_name) {
+        $data = [
+            "user_id" => $zalo_id,
+            "tag_name" => $tag_name
+        ];
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v2.0/oa/tag/rmfollowerfromtag",
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,

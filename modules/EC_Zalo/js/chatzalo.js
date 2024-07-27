@@ -12,7 +12,7 @@ var zsocket;
 var count_connect_error = 0;
 
 $(document).ready(function () {
-    connectWebSocket();
+    // connectWebSocket();
 
     // Click
     $('.choose_label').click(function () {
@@ -206,7 +206,7 @@ $(document).ready(function () {
 
     // Send message
     $('#send_message').click(function () {
-        if($(`textarea[name="message_content"]`).val().trim().length == 0 && !is_uploading()) return false;
+        if($(`textarea[name="message_content"]`).val().trim().length == 0 && !isUploading()) return false;
         let formData = generate_form_data();
         reset_chat_box();
         send_message(formData);
@@ -228,7 +228,7 @@ $(document).ready(function () {
         }
         else if (e.key === 'Enter' || e.keyCode === 13) {
             e.preventDefault();
-            if($(this).val().trim().length == 0 && !is_uploading()) return false;
+            if($(this).val().trim().length == 0 && !isUploading()) return false;
             let formData = generate_form_data();
             reset_chat_box();
             send_message(formData);
@@ -628,6 +628,17 @@ $(document).ready(function () {
         // $('input[name="info_user_city"]').val();
         // $('input[name="info_user_district"]').val();
     });
+
+    // Choose tag user 
+    $(document).on("click", "#header_tags_chat .item_tag", function() {
+        let zalo_id = $('#content_chat').attr('zalo_id');
+        let checkbox = $(this).find('input[name="checkbox_tag"]');
+
+        if(checkbox.is(":checked")) remove_tag_user(zalo_id, checkbox.val());
+        else add_tag_user(zalo_id, checkbox.val());
+        
+        $('.dropdown_content_label').show();
+    });
 });
 
 function connectWebSocket() {
@@ -908,7 +919,8 @@ function create_chat_box(data_user, data_message, is_return = false) {
         let alias = data_user['user_alias'] ? data_user['user_alias'] : name;
         let is_follower = data_user['user_is_follower'] ? data_user['user_is_follower'] : false;
         let shared_info = data_user['shared_info'] ? data_user['shared_info'] : [];
-        let tags = data_user['tags_and_notes_info']['tag_names'] ? data_user['tags_and_notes_info']['tag_names'] : [];
+        let tags = (data_user['tags_and_notes_info'] && data_user['tags_and_notes_info']['tag_names']) ? data_user['tags_and_notes_info']['tag_names'] : [];
+
 
         /******  1.1 Header chat  ******/
         // DOM avatar
@@ -925,15 +937,13 @@ function create_chat_box(data_user, data_message, is_return = false) {
         $('#header_follow_chat').addClass(is_follower_class);
 
         // DOM tags
-        let tags_html = '';
+        $(`input.checkbox_tag`).prop('checked', false);
         if(tags.length > 0) {
             for (i = 0; i < tags.length; ++i) {
-                tags_html += create_tag(tags[i]);
+                $(`input.checkbox_tag[value="${tags[i]}"]`).prop('checked', true);
+                $(`input.checkbox_tag[value="${tags[i]}"]`).prop('disabled', 'disabled');
             }
-            tags_html = `<ul class="list-tags">${tags_html}</ul>`;   
         }
-        else tags_html = '<p class="none-tags">Không có</p>';
-        $('#header_tags_chat').html(tags_html);
 
 
         /******  1.2 Profile  ******/
@@ -1156,15 +1166,40 @@ function create_chat_row(obj, ctype = 'load') {
             let thumb = link.thumb ? link.thumb : '';
             let description = link.description ? link.description : '';
 
-            content += `
-                <div class="product-container">    
-                    <div class="main-product">
-                        <a class="img" style="background-image: url('${thumb}');" href="${url}" target="_blank"></a>
-                        <h6 class="title mt-2 mb-2 p-0" style="font-size:0.8rem">${title}</h6>
-                        <p class="desc">${description}</p>
+            // Business card
+            if(isJSON(description)) {
+                let card = JSON.parse(description);
+
+                content += `
+                    <div class="card business-card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-8 col-8 left">
+                                    <img class="avatar" src="${thumb}" />
+                                    <div class="info">
+                                        <p>${title}</p>
+                                        <span id="card_phone" class="card-phone">${card.phone}</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4 col-4 right">
+                                    <img class="qrcode" src="${card.qrCodeUrl}" />
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
+            else {
+                content += `
+                    <div class="product-container">    
+                        <div class="main-product">
+                            <a class="img" style="background-image: url('${thumb}');" href="${url}" target="_blank"></a>
+                            <h6 class="title mt-2 mb-2 p-0" style="font-size:0.8rem">${title}</h6>
+                            <p class="desc">${description}</p>
+                        </div>
+                    </div>
+                `;
+            }
         });
     }
     else content = '<i>Tin nhắn chưa hỗ trợ</i>';
@@ -1316,6 +1351,10 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
     let zalo_id = user_data.id ? user_data.id : '';
     let name    = user_data.name ? user_data.name : '';
     let avatar  = user_data.avatar ? user_data.avatar : DEFAULT_AVATAR;
+    let tags    = user_data.tags_and_notes_info ? user_data.tags_and_notes_info.tag_names : [];
+    let html_tags = tags.length > 0 ? '<div class="tag-content mt-1">' : '<div class="tag-content">';
+    $.each(tags , function(index, t) { html_tags += `<div class="tag" data="${t}">${t}</div>`; });
+    html_tags += '</div>';
 
     let content = '';
     if(type == 'text') {
@@ -1412,6 +1451,7 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
                 <div class="box-parent box-lastest_message">
                     ${content}
                 </div>
+                ${html_tags}
             </div>
         </li>
     `;
@@ -1468,21 +1508,6 @@ function create_li_chat_new(src, type, message, timestamp, zalo_id) {
             }
         });
     }
-}
-
-/**
- * Create tag name HTML
- * 
- * @param {string} tag_name 
- * @return {string} HTML
- */
-function create_tag(tag_name) {
-    return `<li>
-        <div class="item_tag">
-            <i class="icon_tag"><svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.333336 1.33333V6.66667C0.333336 7.4 0.933336 8 1.66667 8H9.13334C9.46667 8 9.8 7.86667 10.0667 7.6L13.6667 4L10.0667 0.4C9.8 0.133333 9.46667 0 9.13334 0H1.66667C0.933336 0 0.333336 0.6 0.333336 1.33333Z" fill="#1fb100"></path></svg></i>
-            <span>${tag_name}</span>
-        </div>
-    </li>`;
 }
 
 /**
@@ -1615,6 +1640,105 @@ function handle_quota_user(cs, last_interaction, oa_cs = 0) {
     }
 
     $('#quota_content').html(quota_html);
+}
+
+/**
+ * Add tag name to user
+ * 
+ * @param {string} zalo_id
+ * @param {string} tag_name
+ */
+function add_tag_user(zalo_id, tag_name) {
+    if(zalo_id && tag_name && zalo_id.length > 0 && tag_name.length > 0) {
+        $.ajax({
+            url: URL,
+            type: "POST",
+            data: {
+                action : 'add_tag_user',
+                zalo_id : zalo_id,
+                tag_name : tag_name
+            },
+            beforeSend: function() {
+                $('.container-waiting').show();
+            },
+            success: function (response) {
+                $('.container-waiting').hide();
+
+                // res = JSON.parse(response); // Object
+    
+                // if (res['error'] !== 0) {
+                //     let m = res['message'] ? res['message'] : 'Thao tác thất bại';
+                //     let d = res['description'] ? res['description'] : '';
+                //     showModalNotify('error', m, d);
+                //     return false;
+                // }
+
+                // Reset
+                $(`input.checkbox_tag[value="${tag_name}"]`).removeAttr('disabled');
+                $(`input.checkbox_tag`).prop('checked', false);
+
+                // Recheck
+                $(`input.checkbox_tag[value="${tag_name}"]`).prop('checked', true);
+                $(`input.checkbox_tag[value="${tag_name}"]`).prop('disabled', 'disabled');
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                $('.container-waiting').hide();
+                showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
+                console.error(XMLHttpRequest);
+                console.error("Status: " + textStatus);
+                console.error("Error: " + errorThrown);
+            }
+        });
+    }
+
+    console.warn('ADD');
+}
+
+/**
+ * Remove tag name from user
+ * 
+ * @param {string} zalo_id
+ * @param {string} tag_name
+ */
+function remove_tag_user(zalo_id, tag_name) {
+    if(zalo_id && tag_name && zalo_id.length > 0 && tag_name.length > 0) {
+        $.ajax({
+            url: URL,
+            type: "POST",
+            data: {
+                action : 'remove_tag_user',
+                zalo_id : zalo_id,
+                tag_name : tag_name
+            },
+            beforeSend: function() {
+                $('.container-waiting').show();
+            },
+            success: function (response) {
+                $('.container-waiting').hide();
+                
+                // res = JSON.parse(response); // Object
+    
+                // if (res['error'] !== 0) {
+                //     let m = res['message'] ? res['message'] : 'Thao tác thất bại';
+                //     let d = res['description'] ? res['description'] : '';
+                //     showModalNotify('error', m, d);
+                //     return false;
+                // }
+
+                $(`input.checkbox_tag[value="${tag_name}"]`).removeAttr('disabled');
+                $(`input.checkbox_tag[value="${tag_name}"]`).prop('checked', false);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                $('.container-waiting').hide();
+                showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
+                console.error(XMLHttpRequest);
+                console.error("Status: " + textStatus);
+                console.error("Error: " + errorThrown);
+            }
+        });
+    }
+
+    console.warn('REMOVE');
 }
 
 /**
@@ -1910,7 +2034,16 @@ function map_date_of_week_zalo(num) {
     return name[num];
 }
 
-function is_uploading() {
+function isUploading() {
     if($('input[name="image_upload"]').val().length == 0 && $('input[name="file_upload"]').val().length == 0) return false;
+    return true;
+}
+
+function isJSON(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
     return true;
 }

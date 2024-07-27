@@ -83,7 +83,9 @@ class Viewchatzalo extends SugarView {
         $smarty->assign('OFFSET_LIST_USER', (int)$offset_list_user);
 
         // Get list tag
-        $smarty->assign('LI_TAGS', $this->get_list_tag('html'));
+        $list_tag = $this->get_list_tag(['html_dropdown', 'html_checkbox']);
+        $smarty->assign('LI_TAGS', $list_tag['html_dropdown']);
+        $smarty->assign('CHECKBOX_TAGS', $list_tag['html_checkbox']);
     }
 
     public function populate_content_auth() {
@@ -260,6 +262,12 @@ class Viewchatzalo extends SugarView {
         // Avatar
         $avatar = isset($user_data['avatar']) ? $user_data['avatar'] : '';
         if(empty($avatar)) $avatar = $message_src === 1 ? $message_data['from_avatar'] : $message_data['to_avatar'];
+        
+        // Tags
+        $tags = isset($user_data['tags_and_notes_info']['tag_names']) ? $user_data['tags_and_notes_info']['tag_names'] : [];
+        $html_tags = count($tags) > 0 ? '<div class="tag-content mt-1">' : '<div class="tag-content">';
+        foreach($tags as $t) $html_tags .= '<div class="tag" data="'.$t.'">'.$t.'</div>';
+        $html_tags .= '</div>';
 
         return '
             <li class="item_mess mess_links" id="li'.$zalo_id.'">
@@ -281,6 +289,7 @@ class Viewchatzalo extends SugarView {
                     <div class="box-parent box-lastest_message">
                         '.$message_content.'
                     </div>
+                    '.$html_tags.'
                 </div>
                 <div id="liuserinfo'.$zalo_id.'" style="display:none">'.json_encode($user_data).'</div>
             </li>
@@ -290,17 +299,19 @@ class Viewchatzalo extends SugarView {
     /**
      * Get list user tag
      * 
-     * @param string $return_type json, array, html
-     * @return mixed
+     * @param array $return_type [json, array, html_dropdown, html_checkbox]
+     * @return array
      */
-    public function get_list_tag($return_type = 'json') {
+    public function get_list_tag($return_type = []) {
         $json = $this->Zalo->get_list_tag();
-        if($return_type === 'json') return $json;
-
         $arr = json_decode($json, true);
-        if($return_type === 'array') return $arr;
 
-        if($return_type === 'html') {
+        if($arr['error'] !== 0) return [];
+
+        $result = [];
+        if(in_array('json', $return_type)) $result['json'] = json_encode($arr['data']);
+        if(in_array('array', $return_type)) $result['array'] = $arr['data'];
+        if(in_array('html_dropdown', $return_type)) {
             $tags = $arr['data'];
             array_unshift($tags , 'L7D');
             array_unshift($tags , 'default');
@@ -313,10 +324,27 @@ class Viewchatzalo extends SugarView {
 
                 $html .= '<li><a class="dropdown-item dropdown-item-type-list" data="'.$t.'" href="#">'.$text.'</a></li>';
             }
-            return $html;
+            $result['html_dropdown'] = $html;
+        }
+        if(in_array('html_checkbox', $return_type)) {
+            $tags = $arr['data'];
+
+            $html = '';
+            foreach($tags as $t) {
+                $html .= '
+                    <li>
+                        <div class="item_tag">
+                            <i class="icon icon_tag">'.$this->get_icons('tag', '#8D8D8F', 18, 18).'</i>
+                            <span class="tag-name">'.$t.'</span>
+                            <input type="checkbox" name="checkbox_tag" class="checkbox_tag" value="'.$t.'"/>
+                        </div>
+                    </li>
+                ';
+            }
+            $result['html_checkbox'] = $html;
         }
 
-        return null;
+        return $result;
     }
 
     public function get_number_at_end_string($str) {
@@ -338,6 +366,7 @@ class Viewchatzalo extends SugarView {
             'video'     => '<svg width="'.$width.'" height="'.$height.'" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="'.$color.'" stroke-width="1.5"><path d="M14 12L10.5 14V10L14 12Z" fill="'.$color.'" stroke="'.$color.'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2 12.7075V11.2924C2 8.39705 2 6.94939 2.90549 6.01792C3.81099 5.08645 5.23656 5.04613 8.08769 4.96549C9.43873 4.92728 10.8188 4.8999 12 4.8999C13.1812 4.8999 14.5613 4.92728 15.9123 4.96549C18.7634 5.04613 20.189 5.08645 21.0945 6.01792C22 6.94939 22 8.39705 22 11.2924V12.7075C22 15.6028 22 17.0505 21.0945 17.9819C20.189 18.9134 18.7635 18.9537 15.9124 19.0344C14.5613 19.0726 13.1812 19.1 12 19.1C10.8188 19.1 9.43867 19.0726 8.0876 19.0344C5.23651 18.9537 3.81097 18.9134 2.90548 17.9819C2 17.0505 2 15.6028 2 12.7075Z" stroke="'.$color.'" stroke-width="1.5"></path></svg>',
             'voice'     => '<svg width="'.$width.'" height="'.$height.'" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.44462 5.68223C7.44462 4.25001 8.60524 3.09645 10.0304 3.09645C11.4626 3.09645 12.6162 4.25706 12.6162 5.68223V11.2832L12.6162 11.2861C12.6237 12.7166 11.4642 13.8782 10.0304 13.8782C8.59818 13.8782 7.44462 12.7176 7.44462 11.2924V5.68223ZM10.0304 2C8.00177 2 6.34817 3.64238 6.34817 5.68223V11.2924C6.34817 13.321 7.99055 14.9746 10.0304 14.9746C12.0682 14.9746 13.7226 13.3228 13.7126 11.2818V5.68223C13.7126 3.6536 12.0703 2 10.0304 2ZM5.09645 11.2284C5.09645 10.9257 4.851 10.6802 4.54822 10.6802C4.24545 10.6802 4 10.9257 4 11.2284C4 11.8775 4.10289 12.5029 4.29324 13.0891C4.29632 13.1393 4.30642 13.19 4.32416 13.2398C5.1008 15.42 7.09026 17.0273 9.48223 17.2359V18.9036H8.23048C7.92771 18.9036 7.68226 19.149 7.68226 19.4518C7.68226 19.7546 7.92771 20 8.23048 20H11.8396C12.1424 20 12.3878 19.7546 12.3878 19.4518C12.3878 19.149 12.1424 18.9036 11.8396 18.9036H10.5787V17.2342C13.6495 16.9567 16.0609 14.3708 16.0609 11.2284C16.0609 10.9257 15.8155 10.6802 15.5127 10.6802C15.2099 10.6802 14.9645 10.9257 14.9645 11.2284C14.9645 11.7636 14.8789 12.2792 14.7207 12.7621C14.699 12.7964 14.6807 12.8338 14.6666 12.8738C13.993 14.7879 12.1606 16.1606 10.0165 16.1624C7.30132 16.1549 5.09645 13.9454 5.09645 11.2284Z" fill="'.$color.'"></path></svg>',
             'sticker'   => '<svg width="'.$width.'" height="'.$height.'" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M13.6 17.8C14.264 17.8 14.8 17.264 14.8 16.6V7.44H12.856C12.1448 7.44 11.56 6.864 11.56 6.144V4.2H2.4C1.7448 4.2 1.2 4.736 1.2 5.4V16.6C1.2 17.264 1.7448 17.8 2.4 17.8H13.6ZM12.856 6.23997H14.432L12.76 4.56797V6.14397C12.76 6.19997 12.8088 6.23997 12.856 6.23997ZM14.4088 4.52L14.488 4.6L15.4142 5.52621C15.7893 5.90129 16 6.40999 16 6.94043V16.6C16 17.928 14.928 19 13.6 19H2.4C1.0808 19 0 17.928 0 16.6V5.4C0 4.072 1.0808 3 2.4 3H12.0599C12.5901 3 13.0987 3.21057 13.4737 3.58542L14.4088 4.52ZM10.1869 9.19749C10.1869 9.70069 10.5133 10.1079 10.9149 10.1079C11.3173 10.1079 11.6429 9.70069 11.6429 9.19749C11.6429 8.69509 11.3173 8.28789 10.9149 8.28789C10.5133 8.28789 10.1869 8.69509 10.1869 9.19749ZM5.09148 10.1079C4.68908 10.1079 4.36348 9.70069 4.36348 9.19749C4.36348 8.69509 4.68908 8.28789 5.09148 8.28789C5.49308 8.28789 5.81948 8.69509 5.81948 9.19749C5.81948 9.70069 5.49308 10.1079 5.09148 10.1079ZM5.09592 12.6719C5.09592 13.1679 6.85592 13.5359 7.99992 13.5359C9.14472 13.5359 10.9199 13.1679 10.9199 12.6719C10.9199 12.3426 10.1373 12.4294 9.27623 12.525C8.84046 12.5733 8.3846 12.6239 7.99992 12.6239C7.6149 12.6239 7.16009 12.5732 6.7261 12.5247C5.87059 12.4293 5.09592 12.3428 5.09592 12.6719ZM6.47562 11.7756C6.94567 11.8365 7.46639 11.904 7.99992 11.904C8.53576 11.904 9.0611 11.8347 9.53558 11.7722C10.7683 11.6098 11.6577 11.4927 11.4959 12.752C11.2807 14.504 9.92792 15.504 7.99992 15.504C6.07272 15.504 4.71272 14.48 4.50392 12.752C4.36565 11.5023 5.24778 11.6166 6.47562 11.7756Z" fill="'.$color.'"></path></svg>',
+            'tag'       => '<svg width="'.$width.'" height="'.$height.'" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="'.$color.'" stroke-width="1.5"><path d="M3 17.4V6.6C3 6.26863 3.26863 6 3.6 6H16.6789C16.8795 6 17.0668 6.10026 17.1781 6.26718L20.7781 11.6672C20.9125 11.8687 20.9125 12.1313 20.7781 12.3328L17.1781 17.7328C17.0668 17.8997 16.8795 18 16.6789 18H3.6C3.26863 18 3 17.7314 3 17.4Z" fill="'.$color.'" stroke="'.$color.'" stroke-width="1.5"></path></svg>',
         ];
 
         if($key === 0) return $icons;
