@@ -432,35 +432,6 @@ i.icon {
   position: relative;
 }
 
-.group-feed .user-current .snippet .choose_label .input_choose {
-  cursor: pointer;
-  background: #e7ffe2;
-  border-radius: 4px;
-  height: 24px;
-  padding: 2px 40px 2px 8px;
-  color: #157800;
-  font-size: 14px;
-  line-height: 21px;
-}
-
-.edZhmX {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  flex: 1 1 0%;
-  min-width: 80px;
-  display: flex !important;
-  padding: 4px 8px !important;
-  color: rgb(105, 104, 109) !important;
-  background-color: rgb(232, 231, 236) !important;
-}
-
-.edZhmX .title {
-  margin-right: 8px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .group-feed .user-current .choose_label .user-followed {
   font-size: 12px;
@@ -481,7 +452,21 @@ i.icon {
   border: 1px solid rgb(239, 239, 239);
 }
 
-.group-feed .user-current .choose_label .dropdown_content {
+/* Dropdown tags */
+.dropdown_btn .input_choose {
+  display: flex;
+  gap: 8px;
+  cursor: pointer;
+  background: #e7ffe2;
+  border-radius: 4px;
+  height: 24px;
+  padding: 0 8px;
+  color: #157800;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.dropdown-tags .dropdown-menu {
   min-width: 230px;
   max-width: 270px;
   width: 100%;
@@ -494,34 +479,30 @@ i.icon {
   border-radius: 4px;
 }
 
-
-.group-feed .user-current .choose_label .dropdown_content .list-tags {
-  display: block;
-  white-space: nowrap;
-  margin: 0 8px;
-}
-.group-feed .user-current .choose_label .dropdown_content .list-tags li {
+.dropdown-tags .dropdown-menu li {
+  cursor: pointer;
   width: 100%;
   margin-right: 0;
   margin-bottom: 0;
-  cursor: pointer;
+  padding: 0 7px;
 }
-.group-feed .user-current .choose_label .dropdown_content .list-tags li .item_tag {
+.dropdown-tags .dropdown-menu li .item_tag {
   background: #f4f8f3;
   border-radius: 2px;
   width: fit-content;
   height: 22px;
+  line-height: 0;
   padding: 2px 8px 2px 5px;
   margin-bottom: 5px;
 }
-.group-feed .user-current .choose_label .dropdown_content .list-tags li .item_tag .icon_tag {
+.dropdown-tags .dropdown-menu li .item_tag .icon_tag {
   margin-right: 5px;
 }
-.group-feed .user-current .choose_label .dropdown_content .list-tags li .item_tag .tag-name {
+.dropdown-tags .dropdown-menu li .item_tag .tag-name {
   font-size: 12px;
   color: #000;
 }
-.group-feed .user-current .choose_label .dropdown_content .list-tags li .item_tag input {
+.dropdown-tags .dropdown-menu li .item_tag input {
   width: 15px;
   height: 15px;
   margin-left: 5px;
@@ -533,22 +514,7 @@ input[name="checkbox_tag"]:not(:checked) {
 input[name="checkbox_tag"]:checked:before {
   left: -5px;
 }
-
-.dropdown .dropdown_content,
-.popover .dropdown_content {
-  --neutral_30: #e8e7ec;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  display: none;
-  z-index: 9;
-  min-width: 180px;
-  border-radius: 4px;
-  border: 1px solid var(--neutral_30);
-  padding: 8px;
-  margin-top: 4px;
-  background: #fff;
-}
+/* End dropdown tags */
 
 .dropdown.is-show .dropdown_content,
 .dropdown.is-open .dropdown_content,

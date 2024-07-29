@@ -82,12 +82,27 @@
                                         </div>
                                     </div>
                                     <div class="item-message flexBox">
-                                        <section class="dropdown choose_label">
+                                        <section class="choose_label">
                                             <ul class="list_tag flexBox">
                                                 <span id="header_follow_chat" class="user-unfollowed">Chưa quan tâm</span>
                                             </ul>
                                         </section>
-                                        <section class="dropdown choose_label">
+
+                                        <section class="dropdown dropdown-tags choose_label">
+                                            <div class="dropdown_btn" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                                <div class="input_choose">
+                                                    <div class="title">Nhãn</div>
+                                                    <svg height="20" width="20" color="#69686D" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" style="color: rgb(105, 104, 109);">
+                                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <ul id="header_tags_chat" class="dropdown-menu list-tags">
+                                                {$CHECKBOX_TAGS}
+                                            </ul>
+                                        </section>
+
+                                        <!-- <section class="dropdown choose_label">
                                             <div class="dropdown_btn">
                                                 <div class="edZhmX input_choose">
                                                     <div class="title">Nhãn</div>
@@ -101,7 +116,7 @@
                                                     {$CHECKBOX_TAGS}
                                                 </ul>
                                             </div>
-                                        </section>
+                                        </section> -->
                                     </div>
                                 </div>
                                 <a id="func-call" class="func-call">
