@@ -71,12 +71,8 @@
                                         <div class="u__name">
                                             <span id="header_name_chat" class="name_truncate">Người dùng</span>
                                             <i id="edit_alias" class="icon icon_edit">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" stroke-width="1.5"
-                                                    fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
-                                                    <path
-                                                        d="M14.3632 5.65156L15.8431 4.17157C16.6242 3.39052 17.8905 3.39052 18.6716 4.17157L20.0858 5.58579C20.8668 6.36683 20.8668 7.63316 20.0858 8.41421L18.6058 9.8942M14.3632 5.65156L4.74749 15.2672C4.41542 15.5993 4.21079 16.0376 4.16947 16.5054L3.92738 19.2459C3.87261 19.8659 4.39148 20.3848 5.0115 20.33L7.75191 20.0879C8.21972 20.0466 8.65806 19.8419 8.99013 19.5099L18.6058 9.8942M14.3632 5.65156L18.6058 9.8942"
-                                                        stroke="#000000" stroke-width="1.5" stroke-linecap="round"
-                                                        stroke-linejoin="round"></path>
+                                                <svg width="16" height="16" viewBox="0 0 24 24" color="#000000" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" >
+                                                    <path stroke="#000000" stroke-width="1.5" d="M14.3632 5.65156L15.8431 4.17157C16.6242 3.39052 17.8905 3.39052 18.6716 4.17157L20.0858 5.58579C20.8668 6.36683 20.8668 7.63316 20.0858 8.41421L18.6058 9.8942M14.3632 5.65156L4.74749 15.2672C4.41542 15.5993 4.21079 16.0376 4.16947 16.5054L3.92738 19.2459C3.87261 19.8659 4.39148 20.3848 5.0115 20.33L7.75191 20.0879C8.21972 20.0466 8.65806 19.8419 8.99013 19.5099L18.6058 9.8942M14.3632 5.65156L18.6058 9.8942" stroke-linecap="round" stroke-linejoin="round"></path>
                                                 </svg>
                                             </i>
                                         </div>
@@ -90,7 +86,7 @@
 
                                         <section class="dropdown dropdown-tags choose_label">
                                             <div class="dropdown_btn" role="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                                <div class="input_choose">
+                                                <div id="user_tag_display" class="input_choose tag">
                                                     <div class="title">Nhãn</div>
                                                     <svg height="20" width="20" color="#69686D" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" style="color: rgb(105, 104, 109);">
                                                         <polyline points="6 9 12 15 18 9"></polyline>
@@ -101,22 +97,6 @@
                                                 {$CHECKBOX_TAGS}
                                             </ul>
                                         </section>
-
-                                        <!-- <section class="dropdown choose_label">
-                                            <div class="dropdown_btn">
-                                                <div class="edZhmX input_choose">
-                                                    <div class="title">Nhãn</div>
-                                                    <svg height="20" width="20" color="#69686D" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" style="color: rgb(105, 104, 109);">
-                                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            <div class="dropdown_content dropdown_content_label">
-                                                <ul id="header_tags_chat" class="list-tags">
-                                                    {$CHECKBOX_TAGS}
-                                                </ul>
-                                            </div>
-                                        </section> -->
                                     </div>
                                 </div>
                                 <a id="func-call" class="func-call">

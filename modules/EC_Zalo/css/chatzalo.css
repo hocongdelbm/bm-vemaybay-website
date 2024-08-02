@@ -193,6 +193,7 @@ i.icon {
   flex-direction: row;
 }
 
+/* Header tag user */
 #zalochat_sidebar .list_mess .item_mess .__content .tag-content {
   display: flex;
   gap: 8px;
@@ -205,39 +206,41 @@ i.icon {
   font-size: 12x;
   padding: 1px 5px;
 }
-.tag[data="Hoàn thành"] {
-  background: #1fb1001a;
-  border-color: #1fb1004d;
-  color: #1fb100;
+.tag[data="Hoàn thành"], .tag[data="Hoàn thành"] svg {
+  background: #1fb1001a !important;
+  border-color: #1fb1004d !important;
+  color: #1fb100 !important;
 }
-.tag[data="Khách VIP"] {
-  background: #141414;
-  border-color: #141414;
-  color: #f3bd51;
+.tag[data="Khách VIP"], .tag[data="Khách VIP"] svg {
+  background: linear-gradient(to right, #141414, #505050) !important;
+  border-color: #141414 !important;
+  color: #fff !important;
 }
-.tag[data="Linh tinh"] {
-  background: #f973161a;
-  border-color: #f973164d;
-  color: #f97316;
+.tag[data="Linh tinh"], .tag[data="Linh tinh"] svg {
+  background: #f973161a !important;
+  border-color: #f973164d !important;
+  color: #f97316 !important;
 }
-.tag[data="Có nhu cầu"] {
-  background: #5d94eb1a;
-  border-color: #5d94eb4d;
-  color: #5d94eb;
+.tag[data="Có nhu cầu"], .tag[data="Có nhu cầu"] svg {
+  background: #5d94eb1a !important;
+  border-color: #5d94eb4d !important;
+  color: #5d94eb !important;
 }
-.tag[data="Tham khảo giá"] {
-  background: #e8c43f1a;
-  border-color: #e8c43f4d;
-  color: #e8c43f;
+.tag[data="Tham khảo giá"], .tag[data="Tham khảo giá"] svg {
+  background: #e8c43f1a !important;
+  border-color: #e8c43f4d !important;
+  color: #e8c43f !important;
 }
-.tag[data="EURO"] {
-  background: #6467f21a;
-  border-color: #6467f24d;
-  color: #6467f2;
+.tag[data="EURO"], .tag[data="EURO"] svg {
+  background: #6467f21a !important;
+  border-color: #6467f24d !important;
+  color: #6467f2 !important;
 }
 .tag[data="Spam"] {
-  color: #ff0000;
+  color: #ff0000 !important;
 }
+.tag.input_choose svg {background: unset !important;}
+/* End header tag user */
 
 
 #zalochat_sidebar .list_mess .item_mess .mess_content {
@@ -457,11 +460,12 @@ i.icon {
   display: flex;
   gap: 8px;
   cursor: pointer;
-  background: #e7ffe2;
+  background: #fff;
+  border: 1px solid #cccccc;
   border-radius: 4px;
   height: 24px;
+  align-items: center;
   padding: 0 8px;
-  color: #157800;
   font-size: 14px;
   line-height: 21px;
 }

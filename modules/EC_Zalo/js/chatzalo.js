@@ -633,11 +633,19 @@ $(document).ready(function () {
     $(document).on("click", "#header_tags_chat .item_tag", function() {
         let zalo_id = $('#content_chat').attr('zalo_id');
         let checkbox = $(this).find('input[name="checkbox_tag"]');
+        let tag_name = checkbox.val();
+        let current_tag = $(`#user_tag_display .title`).text();
 
-        if(checkbox.is(":checked")) remove_tag_user(zalo_id, checkbox.val());
-        else add_tag_user(zalo_id, checkbox.val());
-        
-        $('.dropdown_content_label').show();
+        if(tag_name === current_tag) return;
+        if(checkbox.is(":checked")) remove_tag_user(zalo_id, tag_name);
+        else add_tag_user(zalo_id, tag_name);
+
+        // Display new tag in header user
+        $(`#user_tag_display .title`).text(tag_name);
+        $(`#user_tag_display`).attr('data', tag_name);
+        // Display new tag in list user
+        $(`#li${zalo_id} .tag-content .tag`).text(tag_name);
+        $(`#li${zalo_id} .tag-content .tag`).attr('data', tag_name);
     });
 });
 
@@ -942,6 +950,8 @@ function create_chat_box(data_user, data_message, is_return = false) {
             for (i = 0; i < tags.length; ++i) {
                 $(`input.checkbox_tag[value="${tags[i]}"]`).prop('checked', true);
                 $(`input.checkbox_tag[value="${tags[i]}"]`).prop('disabled', 'disabled');
+                $(`#user_tag_display .title`).text(tags[i]);
+                $(`#user_tag_display`).attr('data', tags[i]);
             }
         }
 
