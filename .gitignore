@@ -19,6 +19,7 @@
 
 modules/EC_Zalo/images/
 modules/EC_Zalo/json/
+modules/EC_Zalo/nohup.out
 
 secure_sessions/*
 !secure_sessions/logs

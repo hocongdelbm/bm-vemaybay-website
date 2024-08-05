@@ -14,7 +14,9 @@ class CustomController extends BaseController
 {
     private $IP_WHITELIST = [
         '14.161.31.237', // LBM
-        '157.119.251.18', // timchuyenbay.com (Main site)
+        '119.17.253.63', // timchuyenbay.com (Main site)
+        
+        // '157.119.251.18', // timchuyenbay.com (Main site)
         '157.119.251.220', // timchuyenbay.net
         '157.119.251.12', // timchuyenbay.com.vn
         '157.119.251.225', // timchuyenbay.vn

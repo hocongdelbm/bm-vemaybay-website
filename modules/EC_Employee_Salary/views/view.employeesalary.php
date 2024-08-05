@@ -20,13 +20,23 @@ class Viewemployeesalary extends SugarView {
 
  		if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'effortdetail') {
  			$this->populateEffortDetail($smarty, $user_id, $_POST['detail_type']);
- 		} else if(isset($_POST['saveDetail'])) {
+ 		}
+		else if(isset($_POST['saveDetail'])) {
  			$this->saveDetail();
- 		} else if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'showdetail') {
- 			$this->populateDetail($smarty, $user_id);
- 		} else if(isset($_POST['excelexport']) && $is_special_user) {
+ 		}
+		else if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'showdetail') {
+			if(in_array($current_user->id, ['72ece22c-cb25-8e30-9dea-56f2201cd359', 'b5523dbd-b9a7-67c0-77b5-533e6ece89b1', '9ba5c5a0-a402-02f4-76d3-53ba0481ce45']))
+ 				$this->populateDetail($smarty, $user_id);
+			else {
+				echo "<center>Tính năng đang bảo trì</center>";
+				exit();
+			}
+		}
+		else if(isset($_POST['excelexport']) && $is_special_user) {
  			$this->exportExcel($_POST['month_search'], $_POST['year_search']);
- 		} else {
+ 		}
+		else if(in_array($current_user->id, ['72ece22c-cb25-8e30-9dea-56f2201cd359', 'b5523dbd-b9a7-67c0-77b5-533e6ece89b1', '9ba5c5a0-a402-02f4-76d3-53ba0481ce45'])) {
+
 	 		if(isset($_POST['for']) && $_POST['for'] == 'Save') {
 	 			if(isset($_POST['commission_from_amt'])){
 	 				$this->saveCommission();
@@ -42,6 +52,10 @@ class Viewemployeesalary extends SugarView {
 	 		$this->populateButtons($smarty, $is_special_user);
 	 		$this->populateContent($smarty, $is_special_user);
 	 	}
+		else {
+			echo "<center>Tính năng đang bảo trì</center>";
+			exit();
+		}
  		$smarty->display('modules/EC_Employee_Salary/tpls/view_employeesalary.tpl');	
  	}
 
@@ -1509,7 +1523,7 @@ class Viewemployeesalary extends SugarView {
  		$user = new User;
  		$user->retrieve($user_id);
 
- 		if(!empty($user_id)) {
+		if(!empty($user_id)) {
  			$m_search = $_REQUEST['month'] . '-' . $_REQUEST['year'];
 	 		$month = str_pad($_REQUEST['month'], 2, 0, STR_PAD_LEFT) . '-' . $_REQUEST['year'];
 	 		$today = date('Y-m-d');
@@ -1698,8 +1712,10 @@ class Viewemployeesalary extends SugarView {
  				$smartyobj->assign('ACTUAL_SALARY_HTML', '<tr><td>Thực nhận</td><td class="text-end">' . format_number($row['actual_salary']) . '</td></tr>');
 			}
  			$smartyobj->assign('REVIEW', $row['review']);
-	 	} else {
-	 		$smartyobj->assign('EMPLOYEE_NAME', "Thiếu thông tin nhân viên");
+	 	}
+		else {
+	 		// $smartyobj->assign("EMPLOYEE_NAME", "Thiếu thông tin nhân viên");
+			$smartyobj->assign("EMPLOYEE_NAME", "Tính năng đang bảo trì");
 	 	}
 
 	 	$smartyobj->assign('isDetail', 1);
