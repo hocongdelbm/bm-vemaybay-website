@@ -511,7 +511,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "message" => "Lưu thành công"
         ]);
         exit();
-    }   
+    }
+    elseif($action == 'search_contact') {
+        $search_value = isset($_POST['search_value']) ? $_POST['search_value'] : "";
+
+        if(empty($search_value)) return '';
+
+        $html = "";
+        $sql_search = "";
+        if(is_numeric($search_value)) {
+            $condition = strlen($search_value) < 10 ? "phone_mobile LIKE '%$search_value'" : "phone_mobile = $search_value";
+            $sql_search = "SELECT zalo_id FROM contacts WHERE $condition AND deleted = 0";
+        }
+        else {
+            $sql_search = "SELECT zalo_id FROM contacts WHERE last_name LIKE '%$search_value%' AND deleted = 0";
+        }
+
+        require_once("modules/EC_Zalo/views/view.chatzalo.php");
+        $view = new Viewchatzalo();
+        $Zalo = new Zalo();
+        $res  = $db->query($sql_search);
+        while ($row = $db->fetchByAssoc($res)) {
+            if(!$row['zalo_id'] || empty($row['zalo_id'])) continue;
+
+            $Zalo = new Zalo();
+            $json = $Zalo->get_user($row['zalo_id']);
+            $arr  = json_decode($json, true);
+
+            if(isset($arr['error']) && $arr['error'] == 0) {
+                $arr_message = [
+                    'src'  => 1,
+                    'type' => 'text',
+                    'time' => '',
+                    'message' => 'Tương tác cuối vào ' . $arr['data']['user_last_interaction_date']
+                ];
+
+                $html .= $view->create_li_chat($arr_message, $arr['data']);
+            }
+        }
+
+        echo $html;
+        exit();
+    }
 }
 
 echo json_encode([

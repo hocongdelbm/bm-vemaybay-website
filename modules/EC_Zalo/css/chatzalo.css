@@ -94,7 +94,9 @@ i.icon {
 /********** SIDEBAR TOP **********/
 .chat_sidebar .chat-sidebar__top {
   display: flex;
-  padding: 27px 0;
+  align-content: center;
+  flex-wrap: wrap;
+  height: 77px;
   border-bottom: 1px solid #d6d5dd;
 }
 
@@ -123,13 +125,51 @@ i.icon {
   right: 0;
 }
 
-.chat_sidebar .chat-sidebar__top .input-search-user {
-  width: 85%;
-}
-.chat_sidebar .chat-sidebar__top .search {
+.chat_sidebar .chat-sidebar__top .search-icon {
   flex: 1;
   padding: 0 10px;
   margin: 0;
+  text-align: center;
+}
+
+.chat_sidebar .chat-sidebar__top .search-processing {
+  display: none;
+  width: 100%;
+}
+.chat_sidebar .chat-sidebar__top .search-processing .wrap {
+  display: flex;
+  gap: 8px;
+  position: relative;
+  width: 100%;
+  padding: 0 8px;
+}
+.chat_sidebar .chat-sidebar__top .search-processing .wrap .input-search-user {
+  width: 85%;
+  padding: 0 5px 0 32px;
+  background: #f6f6f7;
+  border: 1px solid #f6f6f7;
+  border-radius: 4px;
+  font-weight: normal;
+}
+.input-search-user:focus {
+  border: 1px solid #0068ff !important;
+}
+.chat_sidebar .chat-sidebar__top .search-processing .wrap .close-search-processing {
+  background: #f6f6f7;
+  border: none;
+  flex: 1;
+  font-weight: normal;
+}
+.chat_sidebar .chat-sidebar__top .search-processing .wrap .icon_search {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#list_mess_search {display: none;}
+.no-results-found {
+  padding: 10px;
   text-align: center;
 }
 /*--------- END SIDEBAR TOP ---------*/
@@ -203,7 +243,7 @@ i.icon {
   border: 1px solid #cccccc;
   border-radius: 3px;
   color: #808080;
-  font-size: 12x;
+  font-size: 12px;
   padding: 1px 5px;
 }
 .tag[data="Hoàn thành"], .tag[data="Hoàn thành"] svg {
@@ -1405,6 +1445,7 @@ input[name="checkbox_tag"]:checked:before {
   width: fit-content;
   position: relative;
   padding-right: 30px;
+  padding-bottom: 2px;
 }
 .preview_upload:hover .icon_close {
   display: block;
@@ -1429,6 +1470,8 @@ input[name="checkbox_tag"]:checked:before {
 .section-compose .add-msg-box .preview-image-upload {
   display: none;
   max-width: 250px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px;
+  border-radius: 3px;
 }
 
 .section-compose .add-msg-box .preview-file-upload {

@@ -41,17 +41,17 @@ $(document).ready(function () {
                 },
                 contentType: "application/x-www-form-urlencoded; charset=utf-8",
                 beforeSend: function() {
-                    $('ul.list_mess').html('<div class="loader_list_user mt-3"></div>');
+                    $('#list_mess_main').html('<div class="loader_list_user mt-3"></div>');
                 },
                 success: function (response) { // html
                     $('.loader_list_user').remove();
 
                     if(response.length > 0) {
-                        $('ul.list_mess').html(response);
+                        $('#list_mess_main').html(response);
                         $('input[name="offset_list_user"]').val(50);
                     }
                     else {
-                        $('ul.list_mess').html('<center><i>Không tìm thấy kết quả</i></center>');
+                        $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -257,10 +257,49 @@ $(document).ready(function () {
         let fileInput = $(this)[0];
         let reader = new FileReader();
         reader.onload = function (e) {
-            $('#preview_image_upload').attr('src', e.target.result);
-            $('#preview_image_upload').show();
+            $('#preview_image_upload').attr('src', e.target.result).show();
         }
         reader.readAsDataURL(fileInput.files[0]);
+    });
+    $(`textarea[name="message_content"]`).bind("paste", function(event){
+        event.preventDefault();
+                
+        const items = event.originalEvent.clipboardData.items;
+        let textContent = $(this).val();
+        let imageBlob = null;
+
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+
+            if (item.kind === 'string' && item.type === 'text/plain') {
+                item.getAsString(text => {
+                    textContent += text;
+                    $(this).val(textContent);
+                });
+            }
+            else if (item.kind === 'file' && item.type.startsWith('image/')) {
+                imageBlob = item.getAsFile();
+            }
+
+            if (imageBlob) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#preview_image_upload').attr('src', e.target.result).show();
+
+                    // Create a new Blob and File object
+                    const blob = new Blob([imageBlob], { type: imageBlob.type });
+                    const newFile = new File([blob], imageBlob.name, { type: imageBlob.type });
+
+                    // Create a DataTransfer object to simulate file input
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(newFile);
+
+                    // Set the files to the file input
+                    $('input[name=image_upload]')[0].files = dataTransfer.files;
+                };
+                reader.readAsDataURL(imageBlob);
+            }
+        }
     });
 
     // Choose file to send
@@ -285,12 +324,12 @@ $(document).ready(function () {
     $('#reset_upload_content').click(function() { reset_upload_content(); });
 
     // Load more user
-    $('.list_mess').on('scroll', function() {
+    $('#list_mess_main').on('scroll', function() {
         if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 10) {
             if(!$('.loader_list_user').length) {
                 let type_load = $('input[name="user_type_list"]').val();
                 let offset = parseInt($('input[name="offset_list_user"]').val());
-                let count_li = $("ul.list_mess").children().length;
+                let count_li = $("#list_mess_main").children().length;
 
                 let current_list_user = '';
                 $('li.item_mess').each(function() {
@@ -308,7 +347,7 @@ $(document).ready(function () {
                             current_list_user: current_list_user
                         },
                         beforeSend: function() {
-                            $('ul.list_mess').append('<div class="loader_list_user"></div>');
+                            $('#list_mess_main').append('<div class="loader_list_user"></div>');
                         },
                         success: function (response) { // html
                             $('.loader_list_user').remove();
@@ -317,7 +356,7 @@ $(document).ready(function () {
                             html = response.slice(0, -offset.length);
     
                             $('input[name="offset_list_user"]').val(offset);
-                            $('ul.list_mess').append(html);
+                            $('#list_mess_main').append(html);
                         },
                         error: function (XMLHttpRequest, textStatus, errorThrown) {
                             $('.loader_list_user').remove();
@@ -340,7 +379,7 @@ $(document).ready(function () {
                             format_list_chat: 1
                         },
                         beforeSend: function() {
-                            $('ul.list_mess').append('<div class="loader_list_user"></div>');
+                            $('#list_mess_main').append('<div class="loader_list_user"></div>');
                         },
                         success: function (response) { // html
                             $('.loader_list_user').remove();
@@ -348,7 +387,7 @@ $(document).ready(function () {
                             if(response == 'No data') offset = -1;
                             else {
                                 offset += 50;
-                                $('ul.list_mess').append(response);
+                                $('#list_mess_main').append(response);
                             }
     
                             $('input[name="offset_list_user"]').val(offset);
@@ -647,6 +686,62 @@ $(document).ready(function () {
         $(`#li${zalo_id} .tag-content .tag`).text(tag_name);
         $(`#li${zalo_id} .tag-content .tag`).attr('data', tag_name);
     });
+
+    // Search user
+    $('#search_user').click(function () {
+        $('.chat-sidebar__top > .type').hide();
+        $('.chat-sidebar__top > .search-icon').hide();
+        $('.chat-sidebar__top > .search-processing').show();
+    });
+    $('.close-search-processing').click(function () {
+        $('.chat-sidebar__top > .type').show();
+        $('.chat-sidebar__top > .search-icon').show();
+        $('.chat-sidebar__top > .search-processing').hide();
+
+        $('#list_mess_main').show();
+        $('#list_mess_search').hide();
+    });
+    $(`input[name="search_user"]`).on('keydown', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            let search_value = $(this).val().trim();
+
+            if(!search_value || search_value.length == 0) return false;
+
+            $.ajax({
+                url: URL,
+                type: "POST",
+                data: {
+                    action: "search_contact",
+                    search_value: search_value
+                },
+                beforeSend: function() {
+                    $('#list_mess_main').hide();
+                    $('#list_mess_search').html('<div class="loader_list_user mt-3"></div>').show();
+                },
+                success: function (response) { // HTML
+                    $('#loader_list_user').remove();
+
+                    if (response && response.length > 0) {
+                        $('#list_mess_search').html(response);
+                    }
+                    else {
+                        $('#list_mess_search').html(`<li class="no-results-found">Không tìm thấy kết quả vui lòng tìm kiếm với từ khóa khác</li>`);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('#loader_list_user').remove();
+                    showModalNotify('error', 'Vui lòng thử lại');
+                    console.error(XMLHttpRequest);
+                    console.error("Status: " + textStatus);
+                }
+            });
+        }
+        // Backspace
+        else if(e.keyCode === 8 && $(this).val().length == 0) {
+            $('#list_mess_main').show();
+            $('#list_mess_search').hide();
+        }
+    });
 });
 
 function connectWebSocket() {
@@ -764,7 +859,7 @@ function connectWebSocket() {
 
                 let li = create_li_chat(messageObj, userObj);
                 sender.remove();
-                $('ul.list_mess').prepend(li);
+                $('#list_mess_main').prepend(li);
             }
             // The event belongs to the new user
             else {
@@ -850,7 +945,7 @@ function connectWebSocket() {
 
                 let li = create_li_chat(messageObj, userObj);
                 recipient.remove();
-                $('ul.list_mess').prepend(li);
+                $('#list_mess_main').prepend(li);
             }
             // The event belongs to the new user
             else {
@@ -1508,7 +1603,7 @@ function create_li_chat_new(src, type, message, timestamp, zalo_id) {
                     };
 
                     let li = create_li_chat(message_data, user_data);
-                    $('ul.list_mess').prepend(li);
+                    $('#list_mess_main').prepend(li);
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {

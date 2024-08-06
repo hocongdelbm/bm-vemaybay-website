@@ -24,8 +24,8 @@
                                 <input type="hidden" name="user_type_list" value="default" />
                             </div>
                         </div>
-                        <!-- <input type="hidden" name="search_user" class="input-search-user" placeholder="Nhập tên" /> -->
-                        <div class="search">
+                        
+                        <div class="search-icon">
                             <i class="icon icon_search" id="search_user">
                                 <svg width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" fill="none"
                                     xmlns="http://www.w3.org/2000/svg" color="#000000">
@@ -38,12 +38,24 @@
                                 </svg>
                             </i>
                         </div>
+
+                        <div class="search-processing">
+                            <div class="wrap">
+                                <i class="icon icon_search">
+                                    <svg width="20px" height="20px" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" color="#939393">
+                                        <path d="M17 17L21 21" stroke="#939393" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                        <path d="M3 11C3 15.4183 6.58172 19 11 19C13.213 19 15.2161 18.1015 16.6644 16.6493C18.1077 15.2022 19 13.2053 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11Z" stroke="#939393" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                </i>
+                                <input type="text" name="search_user" class="input-search-user" placeholder="Nhập tên, số điện thoại" />
+                                <button type="button" class="btn btn-secondary close-search-processing">Đóng</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="chat-sidebar__bottom">
                         <div class="noti_statistics"></div>
-                        <ul class="list_mess">
-                            {$LIST_USER}
-                        </ul>
+                        <ul id="list_mess_main" class="list_mess">{$LIST_USER}</ul>
+                        <ul id="list_mess_search" class="list_mess"></ul>
                     </div>
                 </div>
 
