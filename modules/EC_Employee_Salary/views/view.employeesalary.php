@@ -25,9 +25,9 @@ class Viewemployeesalary extends SugarView {
  			$this->saveDetail();
  		}
 		else if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'showdetail') {
-			if(in_array($current_user->id, ['72ece22c-cb25-8e30-9dea-56f2201cd359', 'b5523dbd-b9a7-67c0-77b5-533e6ece89b1', '9ba5c5a0-a402-02f4-76d3-53ba0481ce45']))
+		   	if(is_admin($current_user)) {
  				$this->populateDetail($smarty, $user_id);
-			else {
+			} else {
 				echo "<center>Tính năng đang bảo trì</center>";
 				exit();
 			}
@@ -35,8 +35,7 @@ class Viewemployeesalary extends SugarView {
 		else if(isset($_POST['excelexport']) && $is_special_user) {
  			$this->exportExcel($_POST['month_search'], $_POST['year_search']);
  		}
-		else if(in_array($current_user->id, ['72ece22c-cb25-8e30-9dea-56f2201cd359', 'b5523dbd-b9a7-67c0-77b5-533e6ece89b1', '9ba5c5a0-a402-02f4-76d3-53ba0481ce45'])) {
-
+		else if(is_admin($current_user)) {
 	 		if(isset($_POST['for']) && $_POST['for'] == 'Save') {
 	 			if(isset($_POST['commission_from_amt'])){
 	 				$this->saveCommission();

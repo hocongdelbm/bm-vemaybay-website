@@ -152,22 +152,25 @@ $(document).ready(function () {
             request['dep_date'] = journeys[id_journey_dep].date;
             request['deptime_dep'] = journeys[id_journey_dep].time;
             request['price_dep'] = journeys[id_journey_dep].price;
-            request['ticket_class'] = journeys[id_journey_dep].ticket_class;
+            request['flightno_dep'] = journeys[id_journey_dep].flightno;
+            // request['ticket_class'] = journeys[id_journey_dep].ticket_class;
         }
         if (id_journey_ret.length > 0) {
             if (id_journey_dep.length > 0) {
-                request['ret_date'] = journeys[id_journey_ret].date;
-                request['deptime_ret'] = journeys[id_journey_ret].time;
-                request['price_ret'] = journeys[id_journey_ret].price;
-                request['ticket_class'] = journeys[id_journey_ret].ticket_class;
+                request['ret_date']         = journeys[id_journey_ret].date;
+                request['deptime_ret']      = journeys[id_journey_ret].time;
+                request['price_ret']        = journeys[id_journey_ret].price;
+                request['flightno_ret']     = journeys[id_journey_ret].flightno;
+                // request['ticket_class'] = journeys[id_journey_ret].ticket_class;
             }
             else {
-                request['dep_code'] = journeys[id_journey_ret].dep_code;
-                request['arv_code'] = journeys[id_journey_ret].arv_code;
-                request['dep_date'] = journeys[id_journey_ret].date;
-                request['deptime_dep'] = journeys[id_journey_ret].time;
-                request['price_dep'] = journeys[id_journey_ret].price;
-                request['ticket_class'] = journeys[id_journey_ret].ticket_class;
+                request['dep_code']     = journeys[id_journey_ret].dep_code;
+                request['arv_code']     = journeys[id_journey_ret].arv_code;
+                request['dep_date']     = journeys[id_journey_ret].date;
+                request['deptime_dep']  = journeys[id_journey_ret].time;
+                request['price_dep']    = journeys[id_journey_ret].price;
+                request['flightno_dep'] = journeys[id_journey_ret].flightno;
+                // request['ticket_class'] = journeys[id_journey_ret].ticket_class;
             }
         }
         $("#confirm_reservation_vja").attr("data", JSON.stringify(request));
