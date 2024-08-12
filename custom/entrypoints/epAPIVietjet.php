@@ -629,7 +629,8 @@ function get_supplier_id_by_pnr($pnr) {
                 ORDER BY p.date_entered DESC
                 LIMIT 1
             )
-            AND supplier_id <> '' 
+            -- AND supplier_id <> ''
+            AND supplier_id IN('3e414dde-85b6-315b-e0ba-6556c458368f', '7df1cbf9-21b6-4f45-7cc5-62011601a951')
             AND deleted = 0 
         ORDER BY d.date_entered DESC
         LIMIT 1";

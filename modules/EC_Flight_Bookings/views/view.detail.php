@@ -573,8 +573,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$nganluong_code = '
 				<div class="nganluong__wrap">
 					<input type="text" value="'.$payment_link.'" id="payment_link_hidden" class="d-none" />
-					<button class="outline-none" id="copy_payment_link"">
+					<button class="outline-none" id="copy_payment_link">
 						<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
+					</button>
+					<button class="outline-none" id="get_qr_code">
+						<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+						<span>QR code</span>
 					</button>
 					<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
@@ -603,7 +607,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 										</div>
 									</div>
 								</div>';
-				} else {
+				}
+				else {
 					// Lịch sử giao dịch
 					$nganluong_info = json_decode(html_entity_decode($this->bean->nganluong_info), true);
 				
@@ -651,6 +656,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 										</div>
 									</div>';
 				}
+
+			$nganluong_code .= $this->generateDialogGetQRCode($this->bean->total_amount, $this->bean->phone);
 		};
 		$this->ss->assign('CUSTOM_NGANLUONG_CODE', $nganluong_code);
 
@@ -2400,5 +2407,40 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		return $result;
+	}
+
+	function generateDialogGetQRCode($amount, $phone) {
+		$addInfo = urlencode("Thanh toan $phone");
+
+		// Lấy những stk đang theo dõi
+		$sql = 'SELECT ba.account_number AS account,
+				ba.account_holder AS owner,
+				b.short_name AS short_name,
+				ba.name 
+			FROM ec_bank_account ba 
+				INNER JOIN ec_banks b ON b.id = ba.bank_id AND is_sms = 1
+			WHERE ba.deleted = 0 AND ba.unfollow = 0
+			ORDER BY IF(ba.sort IS NULL OR ba.sort = "", 100, ba.sort)';
+
+		$options = '<option value="#">Chọn tài khoản ngân hàng</option>';
+		$res = $this->bean->db->query($sql);
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$bankID = str_replace(' ', '', $row['short_name']);
+			$accountNo = $row['account'];
+			$accountName = urlencode($row['owner']);
+
+			$url = "https://api.vietqr.io/image/$bankID-$accountNo-J49B6oY.jpg?amount=$amount&accountName=$accountName&addInfo=$addInfo";
+
+			$options .= '<option value="'.$url.'">'.$row['name'].'</option>';
+		}
+
+		return '
+			<dialog id="dialog_qr_code" class="dialog_qr_code">
+				<h3 class="title">QR thanh toán booking</h3>
+				<select id="select_bank_get_qr_code" class="select_bank">'.$options.'</select>
+				<img id="img_qr_code" class="img_qr_code" src="" />
+				<button class="btn btn-secondary" onclick="closeDialog(\'dialog_qr_code\')">Đóng</button>
+			</dialog
+		';
 	}
 }
