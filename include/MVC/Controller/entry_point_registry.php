@@ -81,6 +81,7 @@ $entry_point_registry = array(
     'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),
     'entryPointZaloAuthCallback'    => array('file' => 'custom/entrypoints/epZaloAuthCallback.php', 'auth' => false),
 	'entryPointZaloWebhook'         => array('file' => 'custom/entrypoints/epZaloWebhook.php', 'auth' => false),
+	'entryPointAddressHandling'     => array('file' => 'custom/entrypoints/epAddressHandling.php', 'auth' => true),
 
     // Custom by Haihugn
 	'entryPointAbsence'                     => array('file' => 'custom/entrypoints/epAbsence.php', 'auth' => true),

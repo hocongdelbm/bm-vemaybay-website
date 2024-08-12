@@ -86,6 +86,9 @@ class Viewchatzalo extends SugarView {
         $list_tag = $this->get_list_tag(['html_dropdown', 'html_checkbox']);
         $smarty->assign('LI_TAGS', $list_tag['html_dropdown']);
         $smarty->assign('CHECKBOX_TAGS', $list_tag['html_checkbox']);
+
+        // Get list city
+        $smarty->assign('OPTION_CITIES', $this->get_list_cities());
     }
 
     public function populate_content_auth() {
@@ -371,6 +374,21 @@ class Viewchatzalo extends SugarView {
 
         if($key === 0) return $icons;
         return isset($icons[$key]) ? $icons[$key] : '';
+    }
+
+    /**
+     * Get list cities option
+     * 
+     * @return string HTML
+     */
+    public function get_list_cities() {
+        $options = '<option>Chọn Tỉnh/Thành phố</option>';
+        $sql = "SELECT id, fullname FROM cities";
+        $res = $this->bean->db->query($sql);
+        while($row = $this->bean->db->fetchByAssoc($res)) {
+            $options .= '<option value="'.$row['id'].'">'.$row['fullname'].'</>';
+        }
+        return $options;
     }
 
     protected function format_display_time($timestamp) {

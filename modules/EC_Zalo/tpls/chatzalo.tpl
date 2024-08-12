@@ -282,6 +282,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <input type="hidden" name="info_user_id" value="">
                 <div class="row pt-3">
                     <div class="col-3 label">Họ tên</div>
                     <div class="col-9 input">
@@ -299,7 +300,9 @@
                 <div class="row pt-3">
                     <div class="col-3 label">Tỉnh/Thành</div>
                     <div class="col-9 input">
-                        <select name="info_user_city" class="form-select"></select>
+                        <select name="info_user_city" class="form-select">
+                            {$OPTION_CITIES}
+                        </select>
                     </div>
                 </div>
                 <div class="row pt-3">
@@ -311,14 +314,13 @@
                 <div class="row pt-3">
                     <div class="col-3 label">Địa chỉ</div>
                     <div class="col-9 input">
-                        <textarea name="info_user_address" class="form-control" rows="3"
-                            placeholder="Nhập địa chỉ"></textarea>
+                        <textarea name="info_user_address" class="form-control" rows="3" placeholder="Nhập địa chỉ"></textarea>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Lưu</button>
+                <button type="button" id="close_save_user_info" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="save_user_info" class="btn btn-primary">Lưu</button>
             </div>
         </div>
     </div>

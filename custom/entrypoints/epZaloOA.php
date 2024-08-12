@@ -396,13 +396,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "district_id" => $district_id
         ];
 
-        if(strlen($zalo_id)*strlen($name)*strlen($phone)*strlen($address)*$district_id*$city_id) {
+        if(strlen($zalo_id)*strlen($name)*strlen($phone)*strlen($address)*$district_id*$city_id == 0) {
             echo json_encode([
                 "error" => 1,
                 "message" => "Dữ liệu không hợp lệ",
                 "data" => [
                     "zalo_id" => $zalo_id,
-                    $shared_info
+                    "name" => $name,
+                    "phone" => $phone,
+                    "address" => $address,
+                    "city_id" => $city_id,
+                    "district_id" => $district_id
                 ]
             ]);
             exit();

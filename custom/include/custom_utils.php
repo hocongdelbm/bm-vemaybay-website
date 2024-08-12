@@ -2535,3 +2535,5 @@ function isSpamPhone($phone){
 
     return false;
 }
+
+require_once 'custom/include/utils/address.php';

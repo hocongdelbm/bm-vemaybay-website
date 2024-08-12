@@ -655,17 +655,111 @@ $(document).ready(function () {
 
     // Edit user info
     $('#btn_update_user_info').click(function () {
-        let current_name = $('#profile_zalo_name').attr('data');
-        let current_phone = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
-        let current_address = $('input[name="profile_address_number"]').val();
-        // let current_city = $('input[name="profile_address_city"]').val();
-        // let current_district = $('input[name="profile_address_district"]').val();
+        let current_name        = $('#profile_zalo_name').attr('data');
+        let current_phone       = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
+        let current_address     = $('input[name="profile_address_number"]').val();
+        let current_city        = $('input[name="profile_address_city"]').val();
 
+        $('input[name="info_user_id"]').val($('#content_chat').attr('zalo_id'));
         $('input[name="info_user_name"]').val(current_name);
         $('input[name="info_user_phone"]').val(current_phone);
-        $('input[name="info_user_address"]').val(current_address);
-        // $('input[name="info_user_city"]').val();
-        // $('input[name="info_user_district"]').val();
+        $('textarea[name="info_user_address"]').val(current_address);
+        $('select[name="info_user_city"] > option').each(function() {
+            if(this.value == current_city || this.text.indexOf(current_city) !== -1) {
+                $('select[name="info_user_city"]').val(this.value);
+                $('select[name="info_user_city"]').change();
+                return false;
+            }
+        });
+    });
+    $('select[name="info_user_city"]').change(function() {
+        let city_id = $(this).val();
+        let current_district = $('input[name="profile_address_district"]').val();
+
+        if(city_id && city_id.length > 0) {
+            $.ajax({
+                url: 'index.php?entryPoint=entryPointAddressHandling',
+                type: "POST",
+                data: {
+                    action: "get_districts",
+                    parent_value: city_id
+                },
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                beforeSend: function () {
+                    $(`select[name="info_user_district"]`).prop("disabled", true);
+                },
+                success: function (response) { // JSON
+                    let obj = JSON.parse(response);
+                    if (obj.error === 0) {
+                        let options = '';
+                        $.each(obj.data, function (key, name) {
+                            if (current_district && (key == current_district || name.indexOf(current_district) !== -1)) options += `<option value="${key}" selected>${name}</option>`;
+                            else options += `<option value="${key}">${name}</option>`
+                        });
+                        $(`select[name="info_user_district"]`).html(options);
+                        $(`select[name="info_user_district"]`).prop("disabled", false);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.error(XMLHttpRequest);
+                }
+            });
+        }
+    });
+    $('#save_user_info').click(function () {
+        let zalo_id     = $('input[name="info_user_id"]').val();
+        let name        = $('input[name="info_user_name"]').val();
+        let phone       = $('input[name="info_user_phone"]').val();
+        let address     = $('textarea[name="info_user_address"]').val();
+        let city_id     = $('select[name="info_user_city"]').val();
+        let district_id = $('select[name="info_user_district"]').val();
+
+        if(name.length*phone.length*address.length*district_id.length*city_id.length == 0) {
+            showModalNotify('warning', 'Vui lòng điền đầy đủ các trường');
+            return;
+        }
+
+        $.ajax({
+            url: URL,
+            type: "POST",
+            data: {
+                action: "update_user_info",
+                zalo_id: zalo_id,
+                info_user_phone: phone,
+                info_user_name: name,
+                info_user_address: address,
+                info_user_city: city_id,
+                info_user_district: district_id,
+            },
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            beforeSend: function () {
+                $('.container-waiting').show();
+            },
+            success: function (response) { // JSON
+                $('.container-waiting').hide();
+                let obj = JSON.parse(response);
+
+                if(obj['error'] === 0) {
+                    $('#close_save_user_info').click();
+                    showModalNotify('success', 'Cập nhật thành công');
+
+                    $('#profile_zalo_name').attr('data', name);
+                    $('#profile_zalo_name').text(`Tên Zalo: ${name}`);
+                    $('#profile_mobile').text(phone);
+                    $('input[name="profile_address_city"]').val(city_id);
+                    $('input[name="profile_address_district"]').val(district_id);
+                    $('input[name="profile_address_number"]').val(address);
+                    let address_full = address + ', ' + $(`option[value="${district_id}"]`).text() + ', ' + $(`option[value="${city_id}"]`).text();
+                    $('#profile_address').text(address_full);
+                }
+                else showModalNotify('error', 'Vui lòng thử lại');
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                $('.container-waiting').hide();
+                showModalNotify('error', 'Vui lòng thử lại');
+                console.error(XMLHttpRequest);
+            }
+        });
     });
 
     // Choose tag user 
@@ -1898,7 +1992,6 @@ function enable_send_message() {
 function scroll_messages_bottom() {
     $('.section-post').scrollTop($('.section-post')[0].scrollHeight);
 }
-
 
 /**
  * Get class name of the message type
