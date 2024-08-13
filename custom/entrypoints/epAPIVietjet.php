@@ -412,7 +412,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo json_encode(['error' => true, 'message' => 'Lấy dữ liệu thất bại']);
             exit();
         }
-        echo json_encode(['error' => true, 'message' => 'Mã PNR không hợp lệ', 'data' => $info_pnr]);
+        echo json_encode(['error' => true, 'message' => 'Mã PNR không hợp lệ', 'supplier_id' => $supplier_id, 'data' => $info_pnr]);
         exit();
     } else if($action == "ADD_ANCILLARY") {
         $pnr = isset($_POST['pnr']) ? trim($_POST['pnr']) : '';
@@ -629,7 +629,8 @@ function get_supplier_id_by_pnr($pnr) {
                 ORDER BY p.date_entered DESC
                 LIMIT 1
             )
-            AND supplier_id <> '' 
+            -- AND supplier_id <> '' 
+            AND supplier_id IN('3e414dde-85b6-315b-e0ba-6556c458368f', '7df1cbf9-21b6-4f45-7cc5-62011601a951')
             AND deleted = 0 
         ORDER BY d.date_entered DESC
         LIMIT 1";

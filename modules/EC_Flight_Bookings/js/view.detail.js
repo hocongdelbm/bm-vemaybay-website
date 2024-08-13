@@ -1094,6 +1094,15 @@ $(document).ready(function () {
 		showToastWarning("Đã sao chép liên kết");
 	});
 
+	// Icon get QR code
+	$('#get_qr_code').on('click', function(){
+		showDialog("dialog_qr_code");
+	});
+	$('#select_bank_get_qr_code').change(function() {
+		let selectedValue = $(this).val();
+		$("#img_qr_code").attr('src', selectedValue);
+	});
+
 	
 	// Handle mapping call with booking
 	$('#btn-mapping-call-booking').click( function() {

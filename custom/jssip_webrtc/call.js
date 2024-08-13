@@ -1291,7 +1291,6 @@ function extract_hotline(str) {
             case '0963678130':
             case '0963986905':
             case '0963987527':
-            case '0964031020':
             case '0964359785':
                 return 'Tìm chuyến bay';
             case '02866509900':
@@ -1530,7 +1529,6 @@ $(function () {
                             <option value="0963678130@103.232.121.103:55000">0963678130</option>
                             <option value="0963986905@103.232.121.103:55000">0963986905</option>
                             <option value="0963987527@103.232.121.103:55000">0963987527</option>
-                            <option value="0964031020@103.232.121.103:55000">0964031020</option>
                             <option value="0964359785@103.232.121.103:55000">0964359785</option>
                         </optgroup>
                         <optgroup label="Mobiphone">
@@ -1540,6 +1538,8 @@ $(function () {
                             <option value="0933026416@103.232.121.103:55000">0933026416</option>
                             <option value="0933611306@103.232.121.103:55000">0933611306</option>
                             <option value="0933297608@103.232.121.103:55000">0933297608</option>
+                            <option value="0937451098@103.232.121.103:55000">0937451098</option>
+                            <option value="0937523198@103.232.121.103:55000">0937523198</option>
                         </optgroup>
                         <optgroup label="Vinaphone">
                             <option value="0913030802@14.238.2.146:5060">0913030802</option>

@@ -170,7 +170,8 @@ class Viewsendconfirm extends SugarView {
 			),
 			array(
 				$subject,
-				'https://drive.google.com/uc?export=view&id=141C4go6xNZDmuxWjuZIBCmsijktcdLmB',
+				// 'https://drive.google.com/uc?export=view&id=141C4go6xNZDmuxWjuZIBCmsijktcdLmB',
+				'https://drive.google.com/uc?export=view&id=15_0lx_uKJcNYiqYTDd6TyyQ0pRc2__OG',
 				'https://drive.google.com/uc?export=view&id=1IEb4HTiMlC_FifewJ0NjF2OV-n2VwYdH',
 				$department_info['notify_fromname'], // short name
 				$department_info['com_hotline1'],
@@ -413,26 +414,27 @@ class Viewsendconfirm extends SugarView {
 
 	function getRouteInfos($booking_id) {
 		global $db, $app_list_strings;
-		$sql 		= "SELECT i.direction
-					  ,i.flight_number
-					  ,i.departure_date
-					  ,i.arrival_date
-					  ,(
-					  	CASE WHEN i.airline_code='VNA' THEN 'VN'
-					   	WHEN i.airline_code='VJA' THEN 'VJ'
-					   	WHEN i.airline_code='JET' THEN 'BL'
-					   	WHEN i.airline_code='VNP' THEN 'BL'
-					   	WHEN i.airline_code='AMK' THEN 'P8'
-					   	WHEN i.airline_code='BBA' THEN 'QH'
-						ELSE i.airline_code END
-					   ) AS airline_code
-					  ,i.departure
-					  ,i.arrival
-					  ,i.ticket_class
-					  ,i.time_limit
+		$sql = "SELECT i.direction,
+					i.flight_number,
+					i.departure_date,
+					i.arrival_date,
+					(
+					CASE 
+						WHEN i.airline_code='VNA' THEN 'VN'
+						WHEN i.airline_code='VJA' THEN 'VJ'
+						WHEN i.airline_code='JET' THEN 'BL'
+						WHEN i.airline_code='VNP' THEN 'BL'
+						WHEN i.airline_code='AMK' THEN 'P8'
+						WHEN i.airline_code='BBA' THEN 'QH'
+						ELSE i.airline_code
+					END
+					) AS airline_code,
+					i.departure,
+					i.arrival,
+					i.ticket_class,
+					i.time_limit
 				FROM ec_booking_itineraries i
-				WHERE i.deleted=0
-				AND i.booking_id='".$booking_id."'
+				WHERE i.booking_id='".$booking_id."' AND i.deleted=0
 				ORDER BY i.direction, i.departure_date, i.date_entered";
 
 				$res 		= $db->query($sql);
@@ -447,9 +449,9 @@ class Viewsendconfirm extends SugarView {
 				$row['airline_code'] = 'VNA';
 			}
 
-			$airline 		= myGetAirlineInfo2(trim($row['airline_code']),'CODE');
+			$airline    = myGetAirlineInfo2(trim($row['airline_code']), 'CODE');
 			$departure 	= myGetAirportInfo2(trim($row['departure']));
-			$arrival 		= myGetAirportInfo2(trim($row['arrival']));
+			$arrival 	= myGetAirportInfo2(trim($row['arrival']));
 
 			if($row['direction'] == '0' && $i == 0){
 				$time_limit 	= $row['time_limit'];

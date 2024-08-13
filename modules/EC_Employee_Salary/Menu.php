@@ -6,7 +6,10 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 global $mod_strings, $app_strings, $sugar_config, $current_user;
 if (ACLController::checkAccess('EC_Employee_Salary', 'view', true)) {
-    $module_menu[] = array("index.php?module=EC_Employee_Salary&action=employeesalary&return_module=EC_Employee_Salary&return_action=DetailView", "Bảng tính lương", "EC_Employee_Salary", 'EC_Employee_Salary');
+
+    if(in_array($current_user->id, ['72ece22c-cb25-8e30-9dea-56f2201cd359', 'b5523dbd-b9a7-67c0-77b5-533e6ece89b1', '9ba5c5a0-a402-02f4-76d3-53ba0481ce45']))
+        $module_menu[] = array("index.php?module=EC_Employee_Salary&action=employeesalary&return_module=EC_Employee_Salary&return_action=DetailView", "Bảng tính lương", "EC_Employee_Salary", 'EC_Employee_Salary');
+    
     $module_menu[] = array("index.php?module=EC_Employee_Salary&action=timesheets&return_module=EC_Employee_Salary&return_action=DetailView", "Bảng chấm công", "EC_Employee_Salary", 'EC_Employee_Salary');
     $module_menu[] = array("index.php?module=EC_Employee_Salary&action=usedleaveday&return_module=EC_Employee_Salary&return_action=DetailView", "Số phép đã sử dụng", "EC_Employee_Salary", 'EC_Employee_Salary');
    
