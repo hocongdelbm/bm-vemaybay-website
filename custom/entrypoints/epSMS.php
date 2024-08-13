@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $m->content     = $message;
             $m->type        = 'sms';
             $m->category    = 'transaction';
-            $m->send_time   = date("Y-m-d H:i:s"); // Lưu xuống db giảm 7 tiếng
+            $m->send_time   = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
             $m->parent_type = $parent_type;
             $m->parent_id   = $parent_id;
             $m->response    = $json;

@@ -326,7 +326,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $m->content         = $Zalo->get_template_name_zns($template_id);
             $m->type            = 'zalo_zns';
             $m->category        = $category;
-            $m->send_time       = date('Y-m-d H:i:s');
+            $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
             $m->parent_type     = 'EC_Flight_Bookings';
             $m->parent_id       = $parent_id;
             $m->data            = json_encode($template_data);
@@ -349,7 +349,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $m->content         = $Zalo->get_template_name_zns($template_id);
             $m->type            = 'zalo_zns';
             $m->category        = $category;
-            $m->send_time       = date('Y-m-d H:i:s');
+            $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
             $m->parent_type     = 'EC_Flight_Bookings';
             $m->parent_id       = $parent_id;
             $m->data            = json_encode($template_data);
