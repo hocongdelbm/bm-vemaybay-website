@@ -2,39 +2,43 @@
 
 <script>
      $(document).ready(function() {
-          $.ajax({
-               url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
-               type: "POST",
-               cache: false,
-               data: {
-                    is_busy: localStorage.getItem('is_busy'),
-                    for: "checkUsrStt",
-               },
-               success: function(response) {
-                    if (response == 2) {
-                         $("#busy_stt").prop("checked", true);
-                         $("#availability-status").addClass("busy");
-                         if(ua) ua.stop();
-                         showConnect(false);
-                    } else {
-                         $('#busy_stt').prop("checked", false);
-                         $("#availability-status").addClass("online");
-                    }
-               }
-          });
-
-          // BEHAVIOR USER
           const currentURL = window.location.href;
-          $.ajax({
-               url: "index.php?entryPoint=entryPointBehaviorUser",
-               type: "POST",
-               cache: false,
-               data: {
-                    url_behavior: currentURL,
-                    for: "saveBehaviorUser",
-               },
-               success: function(response) {}
-          });
+          const currentURLQuery = window.location.search;
+
+          if(currentURLQuery.indexOf('module=EC_Zalo&action=index') === -1) {
+               $.ajax({
+                    url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
+                    type: "POST",
+                    cache: false,
+                    data: {
+                         is_busy: localStorage.getItem('is_busy'),
+                         for: "checkUsrStt",
+                    },
+                    success: function(response) {
+                         if (response == 2) {
+                              $("#busy_stt").prop("checked", true);
+                              $("#availability-status").addClass("busy");
+                              if(ua) ua.stop();
+                              showConnect(false);
+                         } else {
+                              $('#busy_stt').prop("checked", false);
+                              $("#availability-status").addClass("online");
+                         }
+                    }
+               });
+
+               // BEHAVIOR USER
+               $.ajax({
+                    url: "index.php?entryPoint=entryPointBehaviorUser",
+                    type: "POST",
+                    cache: false,
+                    data: {
+                         url_behavior: currentURL,
+                         for: "saveBehaviorUser",
+                    },
+                    success: function(response) {}
+               });
+          }
 
           // Checked trạng thái bận của user
           let value_busy = localStorage.getItem('is_busy');

@@ -615,6 +615,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 function get_supplier_id_by_pnr($pnr) {
     if(empty($pnr)) return $pnr;
 
+    return '3e414dde-85b6-315b-e0ba-6556c458368f';
+
     // Get supplier id
     global $db;
     $sql = "SELECT supplier_id

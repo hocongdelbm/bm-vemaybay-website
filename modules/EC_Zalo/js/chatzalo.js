@@ -6,7 +6,7 @@ const ADMIN_NAME = $(`input[name="admin_name"]`).val();
 const URL = $(`input[name="entrypoint"]`).val();
 const DEFAULT_AVATAR = $(`input[name="default_avatar"]`).val();
 const URL_CHAT_WEBSOCKET = $(`input[name="websocket_url"]`).val();
-const USER_EVENT_LIST = ['user_send_text', 'user_send_image', 'user_send_gif', 'user_send_link', 'user_send_sticker', 'user_send_location', 'user_send_file', 'user_send_audio', 'user_send_video'];
+const USER_EVENT_LIST = ['user_send_text', 'user_send_image', 'user_send_gif', 'user_send_link', 'user_send_sticker', 'user_send_location', 'user_send_file', 'user_send_audio', 'user_send_video', 'user_send_business_card'];
 const OA_EVENT_LIST = ['oa_send_text', 'oa_send_image', 'oa_send_gif', 'oa_send_sticker', 'oa_send_file', 'oa_send_list'];
 var zsocket;
 var count_connect_error = 0;
@@ -875,6 +875,7 @@ function connectWebSocket() {
                 let previous_timestamp = $('#section-message__details .section-item:last').attr('timestamp');
                 
                 // Basic field
+                if(type == 'business_card') type = 'link';
                 let obj = {
                     'src' : src,
                     'time' : timestamp,
@@ -1074,7 +1075,7 @@ function connectWebSocket() {
                 setTimeout(function() {
                     $('#admin_typing').text('');
                     $('.display-admin-typing').hide();
-                }, 2000);
+                }, 3000);
             }
         }
     };
@@ -1371,6 +1372,7 @@ function create_chat_row(obj, ctype = 'load') {
             // Business card
             if(isJSON(description)) {
                 let card = JSON.parse(description);
+                if(title.length == 0) title = message; // Name
 
                 content += `
                     <div class="card business-card bg-primary text-white">

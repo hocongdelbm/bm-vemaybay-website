@@ -53,10 +53,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.0"></script>
-			<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet/booking.js?v=1.8"></script>
-			<script src="modules/'.$this->bean->module_dir.'/js/api_zalo.js?v=1.6"></script>
-			<script src="modules/'.$this->bean->module_dir.'/js/api_sms.js?v=1.0"></script>
+		$js = '<script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.1"></script>
+			<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet/booking.js?v=1.9"></script>
+			<script src="modules/'.$this->bean->module_dir.'/js/api_zalo.js?v=1.7"></script>
+			<script src="modules/'.$this->bean->module_dir.'/js/api_sms.js?v=1.1"></script>
 		';
 
 		$js .= '<script>
@@ -101,8 +101,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	function displayCSS() {
 		$css = '';
 		$css .= '<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=20240226_1450">';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=1.8">';
+		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0">';
+		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=1.9">';
 		echo $css;
 	}
 
@@ -1170,7 +1170,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 								</div>
 							</form>
 						</dialog>';
-						// <option value="7df1cbf9-21b6-4f45-7cc5-62011601a951">Travelpass</option>
 
 			$this->ss->assign('RESERVATION_VJA', $form_reservation . $dialog);
 		} else $this->ss->assign('RESERVATION_VJA', '');
