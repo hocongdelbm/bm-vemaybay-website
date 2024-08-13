@@ -12,7 +12,7 @@ var zsocket;
 var count_connect_error = 0;
 
 $(document).ready(function () {
-    // connectWebSocket();
+    connectWebSocket();
 
     // Click
     $('.choose_label').click(function () {
@@ -83,6 +83,9 @@ $(document).ready(function () {
             $(`#content_chat`).attr('zalo_id', zalo_id);
             $('li.item_mess').removeClass('active');
             $(`#li${zalo_id}`).addClass('active');
+            $('#user_tag_display').attr('data', '');
+            $('#user_tag_display').attr('data', '');
+            $('#user_tag_display .title').text('Nhãn');
             
             $.ajax({
                 url: URL,
@@ -465,7 +468,7 @@ $(document).ready(function () {
     // Save contact
     $('#btn_save_contact').click(function () {
         let zalo_id     = $('#content_chat').attr('zalo_id');
-        let phone       = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
+        let phone       = $('#profile_mobile').attr('data');
         let name        = $('#profile_zalo_name').attr('data');
         let alias       = $('#header_name_chat').text();
         let city        = $('input[name="profile_address_city"]').val();
@@ -514,7 +517,7 @@ $(document).ready(function () {
         let zalo_id = $('#content_chat').attr('zalo_id');
         let name    = $('#profile_zalo_name').text();
         let avatar  = $('#header_avatar_chat').attr('src');
-        let phone   = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
+        let phone   = $('#profile_mobile').attr('data');
         if(phone === '') phone = get_phone_by_alias($('#header_name_chat').text());
         
         if(zalo_id && zalo_id > 10) {
@@ -655,11 +658,12 @@ $(document).ready(function () {
 
     // Edit user info
     $('#btn_update_user_info').click(function () {
-        let current_name        = $('#profile_zalo_name').attr('data');
-        let current_phone       = $('#profile_mobile').text() != 'Chưa công khai' ? $('#profile_mobile').text() : '';
+        let current_phone       = $('#profile_mobile').attr('data');
+        let current_name        = $('input[name="profile_shared_name"]').val();
         let current_address     = $('input[name="profile_address_number"]').val();
         let current_city        = $('input[name="profile_address_city"]').val();
 
+        // Fill info to update modal
         $('input[name="info_user_id"]').val($('#content_chat').attr('zalo_id'));
         $('input[name="info_user_name"]').val(current_name);
         $('input[name="info_user_phone"]').val(current_phone);
@@ -714,8 +718,8 @@ $(document).ready(function () {
         let city_id     = $('select[name="info_user_city"]').val();
         let district_id = $('select[name="info_user_district"]').val();
 
-        if(name.length*phone.length*address.length*district_id.length*city_id.length == 0) {
-            showModalNotify('warning', 'Vui lòng điền đầy đủ các trường');
+        if(zalo_id.length * name.length * phone.length * address.length * district_id.length * city_id.length == 0) {
+            showModalNotify('warning', 'Vui lòng điền đầy đủ thông tin');
             return;
         }
 
@@ -728,8 +732,8 @@ $(document).ready(function () {
                 info_user_phone: phone,
                 info_user_name: name,
                 info_user_address: address,
-                info_user_city: city_id,
                 info_user_district: district_id,
+                info_user_city: city_id,
             },
             contentType: "application/x-www-form-urlencoded; charset=utf-8",
             beforeSend: function () {
@@ -743,14 +747,19 @@ $(document).ready(function () {
                     $('#close_save_user_info').click();
                     showModalNotify('success', 'Cập nhật thành công');
 
-                    $('#profile_zalo_name').attr('data', name);
-                    $('#profile_zalo_name').text(`Tên Zalo: ${name}`);
+                    /***** UPDATE INFO *****/
+                    // Shared name
+                    $('input[name="profile_shared_name"]').val(name);
+                    // Phone
                     $('#profile_mobile').text(phone);
-                    $('input[name="profile_address_city"]').val(city_id);
-                    $('input[name="profile_address_district"]').val(district_id);
+                    $('#profile_mobile').attr('data', phone);
+                    // Address
+                    let city_name = $(`option[value="${city_id}"]`).text();
+                    let district_name = $(`option[value="${district_id}"]`).text();
                     $('input[name="profile_address_number"]').val(address);
-                    let address_full = address + ', ' + $(`option[value="${district_id}"]`).text() + ', ' + $(`option[value="${city_id}"]`).text();
-                    $('#profile_address').text(address_full);
+                    $('input[name="profile_address_district"]').val(district_name);
+                    $('input[name="profile_address_city"]').val(city_name);
+                    $('#profile_address').text(formatFullAddress(address, district_name, city_name));
                 }
                 else showModalNotify('error', 'Vui lòng thử lại');
             },
@@ -769,16 +778,8 @@ $(document).ready(function () {
         let tag_name = checkbox.val();
         let current_tag = $(`#user_tag_display .title`).text();
 
-        if(tag_name === current_tag) return;
-        if(checkbox.is(":checked")) remove_tag_user(zalo_id, tag_name);
+        if(tag_name == current_tag || checkbox.is(":checked")) remove_tag_user(zalo_id, tag_name);
         else add_tag_user(zalo_id, tag_name);
-
-        // Display new tag in header user
-        $(`#user_tag_display .title`).text(tag_name);
-        $(`#user_tag_display`).attr('data', tag_name);
-        // Display new tag in list user
-        $(`#li${zalo_id} .tag-content .tag`).text(tag_name);
-        $(`#li${zalo_id} .tag-content .tag`).attr('data', tag_name);
     });
 
     // Search user
@@ -1149,10 +1150,11 @@ function create_chat_box(data_user, data_message, is_return = false) {
         // DOM avatar
         $('#profile_avatar').attr('src', avatar);
 
-        // DOM alias, name
+        // DOM alias, name, shared name
         $('#profile_zalo_alias').text(alias);
         $('#profile_zalo_name').text(`Tên Zalo: ${name}`);
         $('#profile_zalo_name').attr('data', name);
+        $('input[name="profile_shared_name"]').val(shared_info['name'] ? shared_info['name'] : '');
 
         // DOM zalo id to call
         $('.func-call').attr('zalo-id', data_user['user_id']);
@@ -1161,23 +1163,24 @@ function create_chat_box(data_user, data_message, is_return = false) {
         $('#profile_chat_link').attr('href', chat_link);
 
         // DOM address
-        let city = shared_info['city'] && shared_info['city'].length > 0 ? shared_info['city'] : '';
-        let district = shared_info['district'] && shared_info['district'].length > 0 ? shared_info['district'] : '';
         let address_number = shared_info['address'] ? shared_info['address'] : '';
-        let address = '';
-        address += address_number;
-        address += district.length == 0 ? '' : `, ${district}`;
-        address += city.length == 0 ? '' : `, ${city}`;
-        address = address.length == 0 ? 'Chưa công khai' : address;
-        $('#profile_address').text(address);
-        $('input[name="profile_address_city"]').val(city);
-        $('input[name="profile_address_district"]').val(district);
+        let district = shared_info['district'] && shared_info['district'].length > 0 ? shared_info['district'] : '';
+        let city = shared_info['city'] && shared_info['city'].length > 0 ? shared_info['city'] : '';
+        $('#profile_address').text(formatFullAddress(address_number, district, city));
         $('input[name="profile_address_number"]').val(address_number);
+        $('input[name="profile_address_district"]').val(district);
+        $('input[name="profile_address_city"]').val(city);
 
         // DOM mobile
         let mobile = shared_info['phone'] ? shared_info['phone'].toString() : '';
-        if(mobile.length == 0) $('#profile_mobile').text('Chưa công khai');
-        else $('#profile_mobile').text(formatPhoneNumberZalo(mobile));
+        if(mobile.length == 0) {
+            $('#profile_mobile').text('Chưa công khai');
+            $('#profile_mobile').attr('data', '');
+        }
+        else {
+            $('#profile_mobile').text(formatPhoneNumberZalo(mobile));
+            $('#profile_mobile').attr('data', formatPhoneNumberZalo(mobile));
+        }
     }
 
     let html = '';
@@ -1863,14 +1866,13 @@ function add_tag_user(zalo_id, tag_name) {
             success: function (response) {
                 $('.container-waiting').hide();
 
-                // res = JSON.parse(response); // Object
-    
-                // if (res['error'] !== 0) {
-                //     let m = res['message'] ? res['message'] : 'Thao tác thất bại';
-                //     let d = res['description'] ? res['description'] : '';
-                //     showModalNotify('error', m, d);
-                //     return false;
-                // }
+                res = JSON.parse(response); // Object
+                if (res['error'] !== 0) {
+                    let m = res['message'] ? res['message'] : 'Thao tác thất bại';
+                    let d = res['description'] ? res['description'] : '';
+                    showModalNotify('error', m, d);
+                    return false;
+                }
 
                 // Reset
                 $(`input.checkbox_tag[value="${tag_name}"]`).removeAttr('disabled');
@@ -1879,6 +1881,19 @@ function add_tag_user(zalo_id, tag_name) {
                 // Recheck
                 $(`input.checkbox_tag[value="${tag_name}"]`).prop('checked', true);
                 $(`input.checkbox_tag[value="${tag_name}"]`).prop('disabled', 'disabled');
+
+                // Display new tag in header user
+                $(`#user_tag_display .title`).text(tag_name);
+                $(`#user_tag_display`).attr('data', tag_name);
+                
+                // Display new tag in list user
+                if($(`#li${zalo_id} .tag-content .tag`).length) {
+                    $(`#li${zalo_id} .tag-content .tag`).text(tag_name);
+                    $(`#li${zalo_id} .tag-content .tag`).attr('data', tag_name);
+                }
+                else {
+                    $(`#li${zalo_id} .tag-content`).html(`<div class="tag" data="${tag_name}">${tag_name}</div>`);
+                }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 $('.container-waiting').hide();
@@ -1889,8 +1904,6 @@ function add_tag_user(zalo_id, tag_name) {
             }
         });
     }
-
-    console.warn('ADD');
 }
 
 /**
@@ -1915,17 +1928,23 @@ function remove_tag_user(zalo_id, tag_name) {
             success: function (response) {
                 $('.container-waiting').hide();
                 
-                // res = JSON.parse(response); // Object
-    
-                // if (res['error'] !== 0) {
-                //     let m = res['message'] ? res['message'] : 'Thao tác thất bại';
-                //     let d = res['description'] ? res['description'] : '';
-                //     showModalNotify('error', m, d);
-                //     return false;
-                // }
+                res = JSON.parse(response); // Object
+                if (res['error'] !== 0) {
+                    let m = res['message'] ? res['message'] : 'Thao tác thất bại';
+                    let d = res['description'] ? res['description'] : '';
+                    showModalNotify('error', m, d);
+                    return false;
+                }
 
                 $(`input.checkbox_tag[value="${tag_name}"]`).removeAttr('disabled');
                 $(`input.checkbox_tag[value="${tag_name}"]`).prop('checked', false);
+
+                // Reset tag in header user
+                $(`#user_tag_display .title`).text('Nhãn');
+                $(`#user_tag_display`).attr('data', '');
+                
+                // Remove tag in list user
+                $(`#li${zalo_id} .tag-content .tag[data="${tag_name}"]`).remove();
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 $('.container-waiting').hide();
@@ -1936,8 +1955,6 @@ function remove_tag_user(zalo_id, tag_name) {
             }
         });
     }
-
-    console.warn('REMOVE');
 }
 
 /**
@@ -2225,6 +2242,25 @@ function formatFileSize(bytes) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Format full address
+ * 
+ * @param {string} address Street name
+ * @param {string} district District name
+ * @param {string} city City ​​name
+ * @return {string}
+ */
+function formatFullAddress(address, district, city) {
+    let full_address = '';
+    full_address += address;
+    full_address += district.length == 0 ? '' : `, ${district}`;
+    full_address += city.length == 0 ? '' : `, ${city}`;
+    full_address = full_address.length == 0 ? 'Chưa công khai' : full_address;
+
+    if(full_address.charAt(0) === ',') full_address = full_address.substring(1).trim();
+    return full_address;
 }
 
 function map_date_of_week_zalo(num) {

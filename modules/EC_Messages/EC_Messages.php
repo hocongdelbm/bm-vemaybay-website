@@ -36,6 +36,7 @@ class EC_Messages extends Basic {
     public $parent_id;
     public $parent_type;
     public $status;
+    public $cost;
 	
     public function bean_implements($interface) {
         switch($interface) {

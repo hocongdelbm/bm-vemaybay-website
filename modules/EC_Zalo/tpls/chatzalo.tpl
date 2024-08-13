@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v={$version}">
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=2.0">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
@@ -226,6 +226,7 @@
                                     <div class="username_content">
                                         <div id="profile_zalo_alias" class="user_alias">Người dùng</div>
                                         <div id="profile_zalo_name" class="user_name" data="">Người dùng</div>
+                                        <input type="hidden" name="profile_shared_name" value="">
                                     </div>
                                 </div>
                                 <div class="profile_link mt-12" style="justify-content: space-between;">
@@ -338,4 +339,4 @@
 <input type="hidden" name="websocket_url" value="{$WEBSOCKET_URL}" readonly />
 <input type="hidden" name="offset_list_user" value="{$OFFSET_LIST_USER}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v={$version}"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=2.0"></script>

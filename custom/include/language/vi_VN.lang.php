@@ -63,7 +63,8 @@ $app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
 $app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
 $app_list_strings['moduleList']['EC_Request_Flight']      = 'Yêu cầu';
 $app_list_strings['moduleList']['EC_Debts']               = 'Công nợ';
-$app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn';
+$app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
+$app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
 $app_list_strings['moduleList']['EC_TaiKhoan']            = 'Tài khoản kế toán';
 $app_list_strings['moduleList']['EC_NhomTaiKhoan']        = 'Nhóm tài khoản';
@@ -514,108 +515,27 @@ $GLOBALS['app_list_strings']['sms_logs_status'] = array(
   'done' => 'Đã gửi',
   'fail' => 'Thất bại'
 );
-$GLOBALS['app_list_strings']['list_post_zalo_oa'] = array(
-  '' => '-- Chọn bài viết OA --',
-  'f20c9a251e60f73eae71' => '🔥🔥🔥 Vé máy bay giá rẻ Tháng 3',
-  'f480bbca3f8fd6d18f9e' => '✈️✈️✈️ Du xuân đầu năm, bay Sài Gòn - Nha Trang chỉ từ 49K/chiều',
-);
-$GLOBALS['app_list_strings']['sms_logs_filters'] = array(
-  'gender' => [
-    '0' => 'Tất cả',
-    '1' => 'Nam',
-    '2' => 'Nữ'
-  ],
-  'ages' => [
-    ''  => '--Không--',
-    '0' => 'Dưới 13',
-    '1' => 'Từ 13-17',
-    '2' => 'Từ 18-24',
-    '3' => 'Từ 25-34',
-    '4' => 'Từ 35-44',
-    '5' => 'Từ 45-54',
-    '6' => 'Từ 55-64',
-    '7' => 'Trên 65'
-  ],
-  'platform' => [
-    ''  => '--Không--',
-    '1' => 'IOS',
-    '2' => 'Android',
-    '3' => 'Window Phone'
-  ],
-  'locations' => [
-    ''  => '--Không--',
-    '0' => 'Miền Bắc',
-    '1' => 'Miền Trung',
-    '2' => 'Miền Nam'
-  ],
-  'cities' => [
-    ''  => '--Không--',
-    '0' => 'Đồng Tháp',
-    '1' => 'Bình Phước',
-    '2' => 'Ninh Bình',
-    '3' => 'Bạc Liêu',
-    '4' => 'Hồ Chí Minh',
-    '5' => 'Vĩnh Long',
-    '6' => 'Lâm Đồng',
-    '7' => 'Yên Bái',
-    '8' => 'Hà Nam',
-    '9' => 'Hà Nội',
-    '10' => 'Hải Dương',
-    '11' => 'Hậu Giang',
-    '12' => 'An Giang',
-    '13' => 'Trà Vinh',
-    '14' => 'Tiền Giang',
-    '15' => 'Tây Ninh',
-    '16' => 'Đồng Nai',
-    '17' => 'Đắk Lắk',
-    '18' => 'Bình Định',
-    '19' => 'Kon Tum',
-    '20' => 'Đà Nẵng',
-    '21' => 'Bắc Giang',
-    '22' => 'Bắc Kạn',
-    '23' => 'Điện Biên',
-    '24' => 'Hòa Bình',
-    '25' => 'Thái Bình',
-    '26' => 'Vĩnh Phúc',
-    '27' => 'Hà Giang',
-    '28' => 'Kiên Giang',
-    '29' => 'Bình Dương',
-    '30' => 'Bình Thuận',
-    '31' => 'Đắk Nông',
-    '32' => 'Khánh Hòa',
-    '33' => 'Gia Lai',
-    '34' => 'Quảng Nam',
-    '35' => 'Quảng Trị',
-    '36' => 'Hà Tĩnh',
-    '37' => 'Hưng Yên',
-    '38' => 'Quảng Ninh',
-    '39' => 'Thanh Hóa',
-    '40' => 'Phú Thọ',
-    '41' => 'Lai Châu',
-    '42' => 'Thái Nguyên',
-    '43' => 'Cao Bằng',
-    '44' => 'Cà Mau',
-    '45' => 'Cần Thơ',
-    '46' => 'Sóc Trăng',
-    '47' => 'Bến Tre',
-    '48' => 'Long An',
-    '49' => 'Bà Rịa Vũng Tàu',
-    '50' => 'Ninh Thuận',
-    '51' => 'Phú Yên',
-    '52' => 'Quảng Ngãi',
-    '53' => 'Thừa Thiên Huế',
-    '54' => 'Quảng Bình',
-    '55' => 'Nghệ An',
-    '56' => 'Nam Định',
-    '57' => 'Hải Phòng',
-    '58' => 'Lạng Sơn',
-    '59' => 'Lào Cai',
-    '60' => 'Sơn La',
-    '61' => 'Bắc Ninh',
-    '62' => 'Tuyên Quang',
-    '63' => 'Không Thuộc Việt Nam'
-  ],
-);
+
+/************  EC_Messages  ************/
+$GLOBALS['app_list_strings']['message_type_list'] = [
+  'sms' => 'Gửi SMS',
+  'sms_campaign_static' => 'Gửi chiến dịch SMS',
+  'sms_campaign_dynamic' => 'Gửi chiến dịch SMS (Tùy biến)',
+  'zalo_zns' => 'Gửi ZNS',
+  'zalo_promotion' => 'Gửi khuyến mãi Zalo',
+  'zalo_broadcast' => 'Gửi Broadcast Zalo',
+];
+$GLOBALS['app_list_strings']['message_category_list'] = [
+  'customer_care'  => 'Chăm sóc khách hàng',
+  'transaction'    => 'Giao dịch',
+  'advertisement'  => 'Quảng cáo'
+];
+$GLOBALS['app_list_strings']['message_status'] = [
+  'new' => 'Mới tạo',
+  'scheduled' => 'Đã lên lịch',
+  'done' => 'Đã gửi',
+  'fail' => 'Thất bại'
+];
 
 
 

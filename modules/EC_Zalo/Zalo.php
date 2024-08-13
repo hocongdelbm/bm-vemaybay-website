@@ -896,12 +896,12 @@ class Zalo {
      * @return string json
      */
     public function send_zns($phone, $template_id, $template_data) {
-        $body_request = [
+        $body_request = json_encode([
             'phone'         => $this->format_phone_number($phone, 'zalo'),
             'template_id'   => $template_id,
-            'template_data' => $template_data,
+            'template_data' => json_decode($template_data, true),
             'tracking_id'   => $phone . time()
-        ];
+        ]);
 
         try {
             $curl = curl_init();

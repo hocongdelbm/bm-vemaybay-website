@@ -1,5 +1,5 @@
-const url_zalo_zns = "index.php?entryPoint=entryPointZalo";
-const dia_chi_vp_1 = "65/28 Giải Phóng, P.4, Tân Bình, TP.HCM";
+const url_zalo_zns = "index.php?entryPoint=entrypointZaloOA";
+const dia_chi_vp_1 = "252/12 Nguyễn Thượng Hiền, Phường 1, Q. Gò Vấp, TP. HCM";
 
 $(document).ready(function () {
     $("#send-zalo").click(function () {
@@ -565,8 +565,6 @@ $(document).ready(function () {
                 }
             })
 
-            closeDialogZaloZNS();
-            $('.container-waiting').show();
             $.ajax({
                 url: url_zalo_zns,
                 type: "POST",
@@ -580,30 +578,23 @@ $(document).ready(function () {
                     buttons : button_pro,
                     phone : phone,
                     parent_id : parent_id,
-                    type_zns : type_zns,
                     template_type : template_type,
+                },
+                beforeSend: function() {
+                    closeDialogZaloZNS();
+                    $('.container-waiting').show();
                 },
                 success: function (response) {
                     $('.container-waiting').hide();
     
                     let res_data = JSON.parse(response);
-                    console.log(res_data);
-
-                    if (res_data['code'] == 1) showModalNotify(1, res_data['message']);
-                    else {
-                        showModalNotify(0, res_data['message']);
-                        console.log(response);
-                    }
+                    if (res_data['error'] === 0) showModalNotify(1, res_data['message']);
+                    else showModalNotify(0, res_data['message']);
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
                     $('.container-waiting').hide();
-    
-                    let text_modal_error = 'ERROR (' + errorThrown + '): Vui lòng liên hệ bộ phận IT.';
-                    showModalNotify(0, text_modal_error)
-
+                    showModalNotify(0, 'ERROR (' + errorThrown + '): Vui lòng liên hệ bộ phận IT')
                     console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
-                    console.error("Error: " + errorThrown);
                 }
             });
         }
@@ -632,8 +623,6 @@ $(document).ready(function () {
                 return;
             }
     
-            closeDialogZaloZNS();
-            $('.container-waiting').show();
             $.ajax({
                 url: url_zalo_zns,
                 type: "POST",
@@ -644,25 +633,21 @@ $(document).ready(function () {
                     parent_id : parent_id,
                     template_data : JSON.stringify(template_data)
                 },
+                beforeSend: function() {
+                    closeDialogZaloZNS();
+                    $('.container-waiting').show();
+                },
                 success: function (response) {
                     $('.container-waiting').hide();
     
                     let res_data = JSON.parse(response);
-                    if (res_data['code'] == 1) showModalNotify(1, res_data['message']);
-                    else {
-                        showModalNotify(0, res_data['message']);
-                        console.log(response);
-                    }
+                    if (res_data['error'] === 0) showModalNotify(1, res_data['message']);
+                    else showModalNotify(0, res_data['message']);
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
                     $('.container-waiting').hide();
-    
-                    let text_modal_error = 'ERROR (' + errorThrown + '): Vui lòng liên hệ bộ phận IT.';
-                    showModalNotify(0, text_modal_error)
-    
+                    showModalNotify(0, 'ERROR (' + errorThrown + '): Vui lòng liên hệ IT')
                     console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
-                    console.error("Error: " + errorThrown);
                 }
             });
         }

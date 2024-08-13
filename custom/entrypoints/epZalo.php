@@ -91,10 +91,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $table      = isset($_POST['table']) ? $_POST['table'] : array();
         $text2      = isset($_POST['text2']) ? trim($_POST['text2']) : "";
         $buttons    = isset($_POST['buttons']) ? $_POST['buttons'] : array();
-
         $phone      = isset($_POST['phone']) ? $_POST['phone'] : "";
         $parent_id  = isset($_POST['parent_id']) ? $_POST['parent_id'] : "";
-        $type_zns   = isset($_POST['type_zns']) ? $_POST['type_zns'] : "";
+
         
         $template_type   = isset($_POST['template_type']) ? $_POST['template_type'] : "";
         $template_text = '';

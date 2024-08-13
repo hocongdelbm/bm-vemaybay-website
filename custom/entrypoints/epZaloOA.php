@@ -332,6 +332,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $m->data            = json_encode($template_data);
             $m->response        = $json;
             $m->status          = 'done';
+            $m->cost            = 220;
             $m->assigned_user_id = $current_user->id;
             $m->save();
 
@@ -396,7 +397,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             "district_id" => $district_id
         ];
 
-        if(strlen($zalo_id)*strlen($name)*strlen($phone)*strlen($address)*$district_id*$city_id == 0) {
+        if(strlen($zalo_id)*strlen($name)*strlen($phone)*strlen($address)*$district_id*$city_id === 0) {
             echo json_encode([
                 "error" => 1,
                 "message" => "Dữ liệu không hợp lệ",
@@ -519,16 +520,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     elseif($action == 'search_contact') {
         $search_value = isset($_POST['search_value']) ? $_POST['search_value'] : "";
 
-        if(empty($search_value)) return '';
+        if(empty($search_value)) {
+            echo '';
+            exit();
+        }
 
         $html = "";
         $sql_search = "";
         if(is_numeric($search_value)) {
             $condition = strlen($search_value) < 10 ? "phone_mobile LIKE '%$search_value'" : "phone_mobile = $search_value";
-            $sql_search = "SELECT zalo_id FROM contacts WHERE $condition AND deleted = 0";
+            $sql_search = "SELECT DISTINCT(zalo_id)
+                        FROM contacts
+                        WHERE $condition
+                            AND zalo_id IS NOT NULL
+                            AND zalo_id <> ''
+                            AND deleted = 0";
         }
         else {
-            $sql_search = "SELECT zalo_id FROM contacts WHERE last_name LIKE '%$search_value%' AND deleted = 0";
+            $sql_search = "SELECT DISTINCT(zalo_id)
+                        FROM contacts
+                        WHERE MATCH(last_name) AGAINST('\"$search_value\"')
+                            AND zalo_id IS NOT NULL
+                            AND zalo_id <> ''
+                            AND contacts.deleted = 0";
         }
 
         require_once("modules/EC_Zalo/views/view.chatzalo.php");
@@ -557,6 +571,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo $html;
         exit();
     }
+
+    echo json_encode([
+        "error" => 1,
+        "message" => "Tính năng chưa chỗ trợ"
+    ]);
+    exit();
 }
 
 echo json_encode([

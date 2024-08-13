@@ -8,7 +8,6 @@ class Viewchatzalo extends SugarView {
     private $entrypoint;
     private $websocket_url;
     public $default_avatar;
-    public $default_banner_request_info;
     public $image_file;
 
     public function __construct() {
@@ -17,7 +16,6 @@ class Viewchatzalo extends SugarView {
         $this->entrypoint = 'index.php?entryPoint=entrypointZaloOA';
         $this->websocket_url = $_SERVER['SERVER_NAME'] != 'localhost' ? 'wss://'.$_SERVER['SERVER_NAME'].'/chatz/' : 'ws://localhost:8080';
         $this->default_avatar = 'modules/EC_Zalo/images/private/avatar_default.jpg';
-        $this->default_banner_request_info = 'modules/EC_Zalo/images/private/request_info_banner.png';
         $this->image_file = [
             'excel' => 'modules/EC_Zalo/images/private/files/file_excel.jpg',
             'word' => 'modules/EC_Zalo/images/private/files/file_word.jpg',
@@ -59,14 +57,11 @@ class Viewchatzalo extends SugarView {
         $smarty->assign('OA_AVATAR', isset($arr_info_oa['data']['avatar']) ? $arr_info_oa['data']['avatar'] : '');
         $smarty->assign('OA_NAME', isset($arr_info_oa['data']['name']) ? $arr_info_oa['data']['name'] : '');
         $smarty->assign('DEFAULT_AVATAR', $this->default_avatar);
-        $smarty->assign('DEFAULT_BANNER_REQUEST_INFO', $this->default_banner_request_info);
         $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode($this->image_file)));
         $smarty->assign('ENTRYPOINT', $this->entrypoint);
         $smarty->assign('WEBSOCKET_URL', $this->websocket_url);
         $smarty->assign('ADMIN_ID', $current_user->id);
         $smarty->assign('ADMIN_NAME', end($fullname));
-
-        $smarty->assign('version', date('Y-m-dH:i:s'));
 
         // Get icons
         $list_icons = $this->get_icons(0, '{{color}}');
