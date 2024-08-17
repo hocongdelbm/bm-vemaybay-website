@@ -51,4 +51,23 @@ $searchFields[$module_name] = array(
         'is_date_field' => true
     ),
     //Range Search Support
+
+    'range_send_time' =>
+    array(
+      'query_type' => 'default',
+      'enable_range_search' => true,
+      'is_date_field' => true,
+    ),
+    'start_range_send_time' =>
+    array(
+      'query_type' => 'default',
+      'enable_range_search' => true,
+      'is_date_field' => true,
+    ),
+    'end_range_send_time' =>
+    array(
+      'query_type' => 'default',
+      'enable_range_search' => true,
+      'is_date_field' => true,
+    ),
 );

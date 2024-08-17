@@ -1,5 +1,5 @@
 <?php
-// created: 2024-08-13 10:17:20
+// created: 2024-08-16 04:20:58
 $GLOBALS['tabStructure'] = array (
   'LBL_GROUPTAB3_1684394664' => 
   array (
@@ -14,7 +14,6 @@ $GLOBALS['tabStructure'] = array (
       5 => 'EC_Messages',
       6 => 'EC_HoanVe',
       7 => 'Accounts',
-      8 => 'EC_SMS_Logs',
     ),
   ),
   'LBL_GROUPTAB4_1701142454' => 

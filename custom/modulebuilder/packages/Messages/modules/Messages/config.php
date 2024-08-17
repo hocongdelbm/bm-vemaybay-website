@@ -49,5 +49,5 @@ $config = array (
     'basic' => 1,
   ),
   'label' => 'Messages',
-  'importable' => false,
+  'importable' => true,
 );

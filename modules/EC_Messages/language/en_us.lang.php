@@ -46,4 +46,5 @@ $mod_strings = array (
   'LBL_STATUS' => 'Status',
   'LBL_CONTENT' => 'Content',
   'LBL_PARENT_DETAIL' => 'Parent detail',
+  'LNK_REPORT' => 'Report cost',
 );

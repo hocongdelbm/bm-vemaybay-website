@@ -63,9 +63,9 @@ $manifest = array (
   'icon' => '',
   'is_uninstallable' => true,
   'name' => 'Messages',
-  'published_date' => '2024-07-23 16:41:00',
+  'published_date' => '2024-08-14 03:08:39',
   'type' => 'module',
-  'version' => 1721752861,
+  'version' => 1723604919,
   'remove_tables' => 'prompt',
 );
 

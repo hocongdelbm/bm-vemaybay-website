@@ -46,4 +46,5 @@ $mod_strings = array (
   'LBL_STATUS' => 'Tình trạng',
   'LBL_CONTENT' => 'Nội dung',
   'LBL_PARENT_DETAIL' => 'Liên kết đến',
+  'LNK_REPORT' => 'Báo cáo chi phí',
 );

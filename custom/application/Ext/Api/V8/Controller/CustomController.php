@@ -16,7 +16,8 @@ class CustomController extends BaseController
         '14.161.31.237', // LBM
         '119.17.253.63', // timchuyenbay.com (Main site)
         
-        // '157.119.251.18', // timchuyenbay.com (Main site)
+        '103.160.5.21', // timchuyenbay.com
+        '157.119.251.18', // vietjet.net
         '157.119.251.220', // timchuyenbay.net
         '157.119.251.12', // timchuyenbay.com.vn
         '157.119.251.225', // timchuyenbay.vn

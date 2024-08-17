@@ -114,6 +114,7 @@ class Viewchatzalo extends SugarView {
                 foreach($arr['data'] as $row) {
                     $zalo_id = $row['src'] == 1 ? $row['from_id'] : $row['to_id'];
 
+                    if($row['type'] === 'nosupport' && $row['src'] === 1) continue;
                     if(in_array($zalo_id, $current_list_user)) continue;
                     if(in_array($zalo_id, $list_zalo_id['no_interaction']) || in_array($zalo_id, $list_zalo_id['interaction'])) continue;
 

@@ -566,9 +566,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$datepaid = date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
 		$payment_link = $server_name.'/thanh-toan-online?paymentlink='.$this->bean->nganluong_code.'&datepaid='.$datepaid.'';
 		$array_servername = array(
-			// 'vietjet.net',
+			'vietjet.net',
 			'timchuyenbay.com'
 		);
+
 		if(in_array($server_name, $array_servername)){
 			$nganluong_code = '
 				<div class="nganluong__wrap">
@@ -2376,10 +2377,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 	function getHistoryZNS($phone, $booking_id) {
 		$sql = "SELECT l.content, COUNT(l.id) AS count
-			FROM ec_sms_logs l
+			FROM ec_messages l
 			WHERE l.parent_id = '$booking_id'
 				AND l.parent_type = 'EC_Flight_Bookings'
-				AND l.type = 'send_zalo_zns'
+				AND l.type = 'zalo_zns'
 				AND l.send_to = '$phone'
 				AND l.status = 'done'
 				AND l.deleted = 0
@@ -2397,12 +2398,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		];
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			if($row['content'] == 'Thông tin hành trình') $result['journey'] += $row['count'];
-			elseif($row['content'] == 'Thông tin code vé') $result['code'] += $row['count'];
-			elseif($row['content'] == 'Thông tin thanh toán') $result['payment'] += $row['count'];
-			elseif($row['content'] == 'Chăm sóc khách hàng') $result['callsale'] += $row['count'];
-			elseif($row['content'] == 'Nhắc nhở giờ bay') $result['remind'] += $row['count'];
-			elseif($row['content'] == 'Thông báo delay') $result['delay'] += $row['count'];
+			if(strpos($row['content'], 'Thông tin hành trình') !== false) $result['journey'] += $row['count'];
+			elseif(strpos($row['content'], 'Thông tin code vé') !== false) $result['code'] += $row['count'];
+			elseif(strpos($row['content'], 'Thông tin thanh toán') !== false) $result['payment'] += $row['count'];
+			elseif(strpos($row['content'], 'Chăm sóc khách hàng') !== false) $result['callsale'] += $row['count'];
+			elseif(strpos($row['content'], 'Nhắc nhở giờ bay') !== false) $result['remind'] += $row['count'];
+			elseif(strpos($row['content'], 'Thông báo delay') !== false) $result['delay'] += $row['count'];
 		}
 
 		return $result;

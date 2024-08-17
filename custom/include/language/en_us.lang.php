@@ -343,7 +343,8 @@ $GLOBALS['app_list_strings']['booking_recheck_status_list'] = array(
 
 $GLOBALS['app_list_strings']['company_info_list'] = array(
   'name' => 'CÔNG TY TNHH VMB NAM PHƯƠNG',
-  'address' => '65/28 Đường Giải Phóng, P.4, Q.Tân Bình, TP.HCM',
+  // 'address' => '65/28 Đường Giải Phóng, P.4, Q.Tân Bình, TP.HCM',
+  'address' => '252/12 Nguyễn Thượng Hiền, P.1, Q.Gò Vấp, TP.HCM',
   'taxcode' => '0312253052',
   'tel' => '(08) 6650 9900',
   'hotline' => '091 30 30 802',
