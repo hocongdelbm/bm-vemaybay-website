@@ -21,41 +21,41 @@ class Viewmanage extends SugarView {
                     'label'   => 'Tìm chuyến bay',
                     'brandname'   => 'Travelpass',
                ],
-               '0973834501' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0973891401' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0974015001' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0974091002' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0983171970' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0983103703' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
-               '0983129202' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'GIAO NHANH',
-               ],
+               // '0973834501' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'GIAO NHANH',
+               // ],
+               // '0973891401' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'GIAO NHANH',
+               // ],
+               // '0974015001' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'Travelpass',
+               // ],
+               // '0974091002' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'Travelpass',
+               // ],
+               // '0983171970' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'GIAO NHANH',
+               // ],
+               // '0983103703' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'GIAO NHANH',
+               // ],
+               // '0983129202' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'GIAO NHANH',
+               // ],
                '02866509900' => [
                     'action' => 'inbound-only',
                     'label'   => 'Sữa tươi Úc',
@@ -68,11 +68,11 @@ class Viewmanage extends SugarView {
                     'label'   => 'Tìm chuyến bay',
                     'brandname'   => 'Travelpass',
                ],
-               '0963323407' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
+               // '0963323407' => [
+               //      'action' => 'blocked',
+               //      'label'   => 'Tìm chuyến bay',
+               //      'brandname'   => 'Travelpass',
+               // ],
                '0963498793' => [
                     'action' => 'all',
                     'label'   => 'Tìm chuyến bay',
@@ -153,9 +153,14 @@ class Viewmanage extends SugarView {
                     'label'   => 'Tìm chuyến bay',
                     'brandname'   => 'Travelpass',
                ],
+               // '0914491010' => [
+               //      'action' => 'inbound-only',
+               //      'label'   => 'Sữa tươi Úc',
+               //      'brandname'   => 'Travelpass',
+               // ],
                '0914491010' => [
                     'action' => 'inbound-only',
-                    'label'   => 'Sữa tươi Úc',
+                    'label'   => 'Tìm chuyến bay',
                     'brandname'   => 'Travelpass',
                ],
                '0918038348' => [
@@ -204,6 +209,7 @@ class Viewmanage extends SugarView {
                $row = '';
                foreach($list as $number => $value) {
                     if($value['action'] == 'inbound-only') $text_number = '<b>'.formatPhoneNumber($number) . '</b> <i style="margin-left:15px">(Không gọi ra)</i>';
+                    else if($value['action'] == 'blocked') $text_number = '<b>'.formatPhoneNumber($number) . '</b> <i class="text-danger" style="margin-left:15px">(Blocked)</i>';
                     elseif($carrier == 'HOTLINE') $text_number = '<b>'.$number.'</b>';
                     else $text_number = '<b>'.formatPhoneNumber($number) . '</b>';
 

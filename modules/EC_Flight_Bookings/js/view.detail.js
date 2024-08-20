@@ -1091,7 +1091,7 @@ $(document).ready(function () {
 		// Copy the text inside the text field
 		navigator.clipboard.writeText(copyText.value);
 
-		showToastWarning("Đã sao chép liên kết");
+		showToastNotify('success', 'Đã sao chép thành công!')
 	});
 
 	// Icon get QR code

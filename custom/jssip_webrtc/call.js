@@ -1282,17 +1282,17 @@ function extract_hotline(str) {
             /**********  HOTLINE  **********/
             case '1900636060':
             case '1900636063':
-                return 'Tìm chuyến bay';
+                return 'Vietjet.net';
 
             /**********  VIETTEL  **********/
             case '0962768782':
-            case '0963323407':
             case '0963498793':
             case '0963678130':
             case '0963986905':
             case '0963987527':
             case '0964359785':
-                return 'Tìm chuyến bay';
+            case '0964031020':
+                return 'Vietjet.net';
             case '02866509900':
                 return 'Sữa tươi Úc';
 
@@ -1304,25 +1304,25 @@ function extract_hotline(str) {
             case '0933026416':
             case '0933611306':
             case '0933297608':
-                return 'Tìm chuyến bay';
+                return 'Vietjet.net';
 
             /**********  VINAPHONE  **********/
             case '0913030802':
             case '0918038348':
             case '0919018102':
-                return 'Tìm chuyến bay';
+                return 'Vietjet.net';
             case '0914491010':
                 return 'Sữa tươi Úc'
 
             /**********  VNPT  **********/
             case '02839977788':
-                return 'Tìm chuyến bay';
+                return 'timchuyenbay (.com)';
             case '02839977799':
                 return 'Sanvemaybay (.com.vn)';
 
             /**********  FPT  **********/
             case '02873001886':
-                return 'Tìm chuyến bay';
+                return 'Vietjet.net';
 
             /**********  ZALO  **********/
             case '2941581384627345950101':
@@ -1333,7 +1333,7 @@ function extract_hotline(str) {
                 return 'Khiếu nại';
 
             default:
-                return 'Tìm chuyến bay';
+                return 'Vietjet.net';
         }
     }
     return '';
@@ -1524,7 +1524,6 @@ $(function () {
                         <option value=""></option>
                         <optgroup label="Viettel">
                             <option value="0962768782@103.232.121.103:55000">0962768782</option>
-                            <option value="0963323407@103.232.121.103:55000">0963323407</option>
                             <option value="0963498793@103.232.121.103:55000">0963498793</option>
                             <option value="0963678130@103.232.121.103:55000">0963678130</option>
                             <option value="0963986905@103.232.121.103:55000">0963986905</option>

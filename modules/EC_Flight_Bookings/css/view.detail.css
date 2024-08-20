@@ -117,14 +117,19 @@
 }
 
 .dialog_qr_code {
-    min-width: 300px;
+    min-width: 350px;
     border: none;
     border-radius: 5px;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     padding: 15px;
 }
 .dialog_qr_code .title {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
+    font-size: 18px;
+    line-height: 22px;
+    text-transform: uppercase;
+    color: var(--bs-dark);
+    font-weight: 600;
 }
 .dialog_qr_code .select_bank {
     display: block;
@@ -132,13 +137,17 @@
 }
 .dialog_qr_code .img_qr_code {
     display: block;
-    width: 350px;
+    width: 330px;
     border: 1px solid grey;
     margin: 15px auto;
+
+    border-radius: 18px;
+    padding: 5px;
+    background-image: linear-gradient(144deg, #AF40FF, #5B42F3 50%, var(--primary-color));
 }
 .dialog_qr_code button {
     display: block;
-    float: right;
+    margin: 0 auto;
 }
 
 

@@ -1,5 +1,5 @@
 <?php
-// created: 2024-08-16 04:20:58
+// created: 2024-08-19 08:44:39
 $GLOBALS['tabStructure'] = array (
   'LBL_GROUPTAB3_1684394664' => 
   array (
@@ -46,11 +46,10 @@ $GLOBALS['tabStructure'] = array (
       0 => 'EC_Receipt_Voucher',
       1 => 'EC_Payment_Voucher',
       2 => 'EC_ChuyenTienNoiBo',
-      3 => 'EC_LoaiChungTu',
-      4 => 'EC_Bank_Account',
-      5 => 'EC_Banks',
-      6 => 'EC_Payment_Types',
-      7 => 'EC_HoaDonBan',
+      3 => 'EC_Bank_Account',
+      4 => 'EC_Banks',
+      5 => 'EC_Payment_Types',
+      6 => 'EC_HoaDonBan',
     ),
   ),
   'LBL_GROUPTAB3_1684124846' => 

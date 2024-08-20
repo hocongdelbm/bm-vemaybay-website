@@ -2480,17 +2480,23 @@ function getCallSource($call_to) {
         case '1900636063':
         case '02873001886':
         case '1900636060':
-        case '0974015001':
-        case '0974091002':
         case '0968304455':
-        case '02839977788':
         case '0933799860':
         case '0919018102':
         case '0933296508':
         case '0933297608':
-        case '0973834501':
-        case '0973891401':
         case '0918038348':
+        case '0962768782':
+        case '0963498793':
+        case '0963678130':
+        case '0963986905':
+        case '0963987527':
+        case '0964031020':
+        case '0964359785':
+        case '0914491010':
+            $call_sources = 'vietjet.net';
+            break;
+        case '02839977788':
             $call_sources = 'timchuyenbay.com';
             break;
         case '01388505968':
@@ -2498,7 +2504,6 @@ function getCallSource($call_to) {
             break;
 
         case '02866509900':
-        case '0914491010':
             $call_sources = 'suatuoiuc.vn';
             break;
             // Zalo
@@ -2512,7 +2517,7 @@ function getCallSource($call_to) {
             $call_sources = 'Khiếu nại';
             break;
         default:
-            $call_sources = 'timchuyenbay.com';
+            $call_sources = 'vietjet.net';
     }
 
     return $call_sources;
