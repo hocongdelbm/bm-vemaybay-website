@@ -14,6 +14,19 @@
     padding: 15px 0;
 }
 
+.report .search .wrap-choose-date {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+}
+.wrap-choose-date .label {
+    padding: 0 5px;
+}
+.wrap-choose-date .input-date {
+    width: 200px;
+}
+
 .table-cost tr .td-name {
     font-weight: 600;
 }

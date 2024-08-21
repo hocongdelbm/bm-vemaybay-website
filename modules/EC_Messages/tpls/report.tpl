@@ -11,11 +11,15 @@
                 <option value="30days">30 ngày</option>
                 <option value="90days">90 ngày</option>
                 <option value="year">1 năm</option>
+                <option value="other">Khác (Chọn ngày)</option>
             </select>
-            <!-- <div class="wrap-choose-date d-flex">
-                <input type="text" name="from_date" id="from_date" class="form-control" />
-                <input type="text" name="to_date" id="to_date" class="form-control" />
-            </div> -->
+            <div class="wrap-choose-date">
+                <b class="label">Từ</b>
+                <input type="date" name="from_date" id="from_date" class="form-control input-date" />
+                <b class="label">đến</b>
+                <input type="date" name="to_date" id="to_date" class="form-control input-date" />
+                <button type="submit" id="view_report" class="btn btn-primary ms-2">Xem</button>
+            </div>
         </form>
     </div>
     <div>
