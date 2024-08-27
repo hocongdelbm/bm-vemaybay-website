@@ -14,10 +14,11 @@ class CustomController extends BaseController
 {
     private $IP_WHITELIST = [
         '14.161.31.237', // LBM
-        '119.17.253.63', // timchuyenbay.com (Main site)
-        
+
+        '157.119.251.232', // vietjet.net,
+        '103.160.5.98', // vietjet.net
         '103.160.5.21', // timchuyenbay.com
-        '157.119.251.18', // vietjet.net
+
         '157.119.251.220', // timchuyenbay.net
         '157.119.251.12', // timchuyenbay.com.vn
         '157.119.251.225', // timchuyenbay.vn
@@ -33,6 +34,7 @@ class CustomController extends BaseController
         '157.119.251.106', // vemaybaynamphuong.vn
         '157.119.251.145', // vemaybaynamphuong.com.vn
         '157.119.251.218', // vietjetstar.net
+        '157.119.251.18', // vietjet.net (old)
 
         '119.17.253.171', // vemaybay5s.com ; vemaybaynamphuong.com ; vietjet.net.vn
         '202.151.168.26', // travelpass.vn ; vietjetkhuyenmai.vn

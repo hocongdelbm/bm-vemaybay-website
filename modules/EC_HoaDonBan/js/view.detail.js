@@ -243,6 +243,19 @@ $(document).ready(function () {
 			}
 		});
 	});
+
+	// Chuyển trạng thái sang đã kí
+	$('#frmSignTP').submit(function (e) {
+		let sohoadon = $('input[name="sohoadon"]').val();
+		if(sohoadon.length != 0){
+			$(this).submit();
+		} else {
+			e.preventDefault();
+			let text_warning = 'Vui lòng nhập số hóa đơn!';
+			showToastWarning(text_warning);
+			return false;
+		}
+	});
 })
 
 function format_html_data_error(json) {

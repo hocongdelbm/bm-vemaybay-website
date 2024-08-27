@@ -471,6 +471,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				<input type="hidden" name="return_id" value="'.$this->bean->id.'" />
 				<input type="hidden" name="tinhtrang" value="2" />
 				<input type="hidden" name="is_signed" value="1" />
+				<input type="hidden" name="sohoadon" value="'.$this->bean->sohoadon.'" />
 				<input type="submit" class="btn btn-success" name="btnSignTp" value="Đã kí" title="Đã kí" />
 			</form>';
 		}

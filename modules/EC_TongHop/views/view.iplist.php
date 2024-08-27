@@ -89,7 +89,7 @@ class Viewiplist extends SugarView {
             $html_nav .= '<button class="nav-link '.($is_start ? 'active' : '').'" id="nav-log-'.$site.'-tab" data-bs-toggle="tab" data-bs-target="#nav-log-'.$site.'" type="button" role="tab" aria-controls="nav-log-'.$site.'" aria-selected="'.($is_start ? 'true' : 'false').'">'.$name_tab[$site].'</button>';
 
             // CURL - GET IP - LOOP tab-content
-            $html .= '<div class="tab-pane tab-pane'.$site.' fade '.($is_start ? 'show active' : '').'" id="nav-log-'.$site.'" role="tabpanel" aria-labelledby="nav-log-'.$site.'-tab" tabindex="0">
+            $html .= '<div class="tab-pane tab-pane-'.$site.' fade '.($is_start ? 'show active' : '').'" id="nav-log-'.$site.'" role="tabpanel" aria-labelledby="nav-log-'.$site.'-tab" tabindex="0">
                         <div class="white-list-ip white-list-ip-'.$site.'">
                             <div class="group">
                                 <label for="white-list">White list IP:</label>
@@ -129,6 +129,8 @@ class Viewiplist extends SugarView {
                 'type' => 'get-infor-tcb',
             ];
 
+
+
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_POST, TRUE);
@@ -139,12 +141,27 @@ class Viewiplist extends SugarView {
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
             $json = curl_exec($curl);
-            curl_close($curl);
-            $arr = json_decode(html_entity_decode($json), true);
 
-            // if($GLOBALS['current_user']->user_name == 'hungnh'){
-            //     pr($arr);
-            // }
+            // Lấy mã trạng thái HTTP
+            $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $error_msg = curl_error($curl);
+            curl_close($curl);
+
+            if($GLOBALS['current_user']->user_name == 'hungnh'){
+                echo "url: ";
+                pr($url);
+
+                echo "post_data: ";
+                pr($post_data);
+
+                echo "http_code: ";
+                pr($http_code);
+
+                echo "cURL error: ";
+                pr($error_msg);
+            }
+
+            $arr = json_decode(html_entity_decode($json), true);
 
             if(isset($arr['code']) && $arr['code'] == 200){
                 $total_ip           = $arr['count_file'];

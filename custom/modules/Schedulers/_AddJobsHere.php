@@ -1714,11 +1714,11 @@ function updateEfforts()
 							INNER JOIN ec_flight_bookings b ON b.id = dt.booking_id AND b.deleted = 0
 						WHERE
 							dt.deleted = 0 
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00"
-							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00"
+							AND DATE_ADD(b.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59"
 						GROUP BY b.id
-						HAVING start_process_time >= "'.$fdate.' 00:00:00" 
-							AND start_process_time <= "'.$tdate. ' 23:59:59" 
+						HAVING start_process_time >= "' . $fdate . ' 00:00:00" 
+							AND start_process_time <= "' . $tdate . ' 23:59:59" 
 							AND start_process_time NOT BETWEEN DATE_FORMAT( start_process_time, "%Y-%m-%d 07:31:00") AND DATE_FORMAT( start_process_time, "%Y-%m-%d 20:59:59")
 					) AS o
 					GROUP BY o.assigned_user_id
@@ -1731,8 +1731,8 @@ function updateEfforts()
 						 , p.assigned_user_id 
 					FROM ec_working_process p 
 					INNER JOIN ec_flight_bookings b ON b.id = p.parent_id AND b.deleted = 0
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00" 
-					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "'.$tdate. ' 23:59:59" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00" 
+					AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59" 
 					WHERE p.deleted = 0 AND p.ticket_delivery = 1  
 					GROUP BY p.assigned_user_id
 
@@ -1745,8 +1745,8 @@ function updateEfforts()
 					FROM ec_salary_details
 					WHERE deleted = 0
 					AND type = "bonus"
-					AND voucher_date >= "'.$fdate.'"
-					AND voucher_date <= "'.date('Y-m-d', strtotime($tdate)).'"
+					AND voucher_date >= "' . $fdate . '"
+					AND voucher_date <= "' . date('Y-m-d', strtotime($tdate)) . '"
 					GROUP BY assigned_user_id
 
 					-- Giao thuc pham ben PT
@@ -1759,8 +1759,8 @@ function updateEfforts()
 						, p.assigned_user_id 
 						FROM ec_working_process p 
 						INNER JOIN ec_receipt_voucher rv ON rv.id = p.parent_id AND rv.deleted = 0
-						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "'.$fdate.' 00:00:00" 
-						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "'.$tdate.' 23:59:59" 
+						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) >= "' . $fdate . ' 00:00:00" 
+						AND DATE_ADD(p.date_entered, INTERVAL 7 HOUR) <= "' . $tdate . ' 23:59:59" 
 						WHERE p.deleted = 0 AND p.ticket_delivery = 1  
 					GROUP BY p.assigned_user_id
 				) AS t ON s.assigned_user_id = t.assigned_user_id
@@ -1774,12 +1774,12 @@ function updateEfforts()
 		// cập nhật cột giao vé
 		$sql2 = '
 			UPDATE ec_employee_salary 
-			SET effort = '.(empty($row['amount'])?0:$row['amount']).'
-			, delivery = '.(empty($row['delivery'])?0:$row['delivery']). '
+			SET effort = ' . (empty($row['amount']) ? 0 : $row['amount']) . '
+			, delivery = ' . (empty($row['delivery']) ? 0 : $row['delivery']) . '
 			WHERE deleted = 0 
 			AND assigned_user_id = "' . $row['assigned_user_id'] . '" 
-			AND month = "'.date('n', strtotime($fdate)).'" 
-			AND year = "'.date('Y', strtotime($fdate)).'" 
+			AND month = "' . date('n', strtotime($fdate)) . '" 
+			AND year = "' . date('Y', strtotime($fdate)) . '" 
 			AND is_approved = 0';
 		$db->query($sql2);
 	}
@@ -1965,8 +1965,9 @@ function updateMissingEfforts()
 }
 
 //Cập nhật status agent
-function agent_change_status($agent, $status){
-	$agent  = $agent.'@td.timchuyenbay.net';
+function agent_change_status($agent, $status)
+{
+	$agent  = $agent . '@td.timchuyenbay.net';
 	$toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
 	$body_request = array(
 		'agent' => $agent,
@@ -1975,28 +1976,28 @@ function agent_change_status($agent, $status){
 	);
 
 	try {
-		 $curl = curl_init();
-		 if ($curl === false) {
-			  echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
-		 }
+		$curl = curl_init();
+		if ($curl === false) {
+			echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
+		}
 
-		 curl_setopt_array($curl, array(
-			  CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
-			  CURLOPT_RETURNTRANSFER => true,
-			  CURLOPT_FOLLOWLOCATION => true,
-			  CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
-			  CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
-			  CURLOPT_TIMEOUT        => 0,
-			  CURLOPT_CUSTOMREQUEST   => 'POST',
-			  CURLOPT_POSTFIELDS      => $body_request,
-		 ));
-	
-		 $json = curl_exec($curl);
-		 $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		 curl_close($curl);
-		 $arr = json_decode($json, true);
-	} catch(Exception $e) {
-		 return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
+		curl_setopt_array($curl, array(
+			CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
+			CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
+			CURLOPT_TIMEOUT        => 0,
+			CURLOPT_CUSTOMREQUEST   => 'POST',
+			CURLOPT_POSTFIELDS      => $body_request,
+		));
+
+		$json = curl_exec($curl);
+		$httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		curl_close($curl);
+		$arr = json_decode($json, true);
+	} catch (Exception $e) {
+		return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
 	}
 }
 
@@ -2011,7 +2012,7 @@ function checkStatusOnlineUser()
 		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
 		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
 		'1', //DDuc
-   ];
+	];
 
 	$path           = "secure_sessions/check_online_logs/";
 	$temp_files     = scandir($path);
@@ -2068,7 +2069,7 @@ function checkStatusOnlineUser()
 				} else {
 					//Online 
 					$status = 'Available';
-					
+
 					$sql_select = '
 								SELECT status
 								FROM ec_online_report
@@ -2096,7 +2097,7 @@ function checkStatusOnlineUser()
 			}
 
 			// Change status
-			if(in_array($user_id, $array_admin)){
+			if (in_array($user_id, $array_admin)) {
 				$status = 'Available';
 			}
 			$agent = custom_get_sip_number($user_id);
@@ -2211,10 +2212,10 @@ function checkBookingHandle()
 	// }
 
 	// Giao lại các booking cho user onl khác
-	if (count($reassign_bk_arr) > 0) {
-		foreach ($reassign_bk_arr as $reassign_bk_arr) {
+	if (is_array($reassign_bk_arr) && count($reassign_bk_arr) > 0) {
+		foreach ($reassign_bk_arr as $reassign_bk) {
 			$onl_r = new EC_Online_Report;
-			$user_reassign_id = $onl_r->assignBooking($reassign_bk_arr['booking_id'], $reassign_bk_arr['total_qty']);
+			$user_reassign_id = $onl_r->assignBooking($reassign_bk['booking_id'], $reassign_bk['total_qty']);
 
 			// Thông báo giao lại cho booker tiếp theo
 			$user = new User;
@@ -2222,7 +2223,7 @@ function checkBookingHandle()
 
 			$sendStatus = myTelegramSendMessage(
 				json_encode(array(
-					'text' => 'Booking ' . $reassign_bk_arr['booking_name'] . ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name . '',
+					'text' => 'Booking ' . $reassign_bk['booking_name'] . ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name . '',
 				)),
 				$app_list_strings['system_config_list']['telegram_token_id'],
 				$app_list_strings['system_config_list']['telegram_chat_id'],
@@ -2231,7 +2232,7 @@ function checkBookingHandle()
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
 
-			// sendTestTelegram('Booking ' .$reassign_bk_arr['booking_name']. ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name .'');
+			// sendTestTelegram('Booking ' .$reassign_bk['booking_name']. ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name .'');
 		}
 	}
 
@@ -2264,11 +2265,11 @@ function reAssignBooking()
 		$res = $db->query($sql);
 		$row_count = $db->countRows($res);
 
-		if($row_count > 0){
+		if ($row_count > 0) {
 			while ($row = $db->fetchByAssoc($res)) {
 				$onl_r = new EC_Online_Report;
 				$assgined_user_id = $onl_r->assignBooking($row['id'], $row['total_qty']);
-	
+
 				if ($assgined_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
 					$user = new User;
 					$user->retrieve($assgined_user_id);
@@ -2278,10 +2279,10 @@ function reAssignBooking()
 						WHERE id = "' . $row['id'] . '"
 					';
 					$db->query($sql_upd);
-	
+
 					// lưu lại thông báo lên group
 					$reassign_bk[] = "Booking: " . $row['name'] . ' giao cho: ' . $user->last_name . ' ' . $user->first_name;
-	
+
 					// UPDATE VỀ TRẠNG THÁI BẬN
 					$sql_update_busy = '
 						SELECT id, assigned_user_id
@@ -2304,7 +2305,7 @@ function reAssignBooking()
 					$online->save();
 				}
 			}
-	
+
 			if (count($reassign_bk) > 0) {
 				$sendStatus = myTelegramSendMessage(
 					json_encode(array(
@@ -2319,7 +2320,7 @@ function reAssignBooking()
 				// sendTestTelegram('Thông tin giao lại: ' . implode("\n", $reassign_bk));
 			}
 		}
-	} 
+	}
 	return true;
 }
 

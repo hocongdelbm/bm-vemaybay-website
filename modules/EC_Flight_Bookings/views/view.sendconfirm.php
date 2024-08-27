@@ -784,10 +784,20 @@ class Viewsendconfirm extends SugarView {
 												<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="25%">
 													<table border="0" cellpadding="0" cellspacing="0" class="image_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; " width="100%">
 														<tr>
-															<td class="pad" style="width:100%;padding-right:0px;padding-left:35px">
+															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px">
 																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
 																		MBBank HCM - Số TK : <strong>0000920990898</strong>
+																	</p>
+																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
+																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>
+																	</p>
+																</div>
+															</td>
+															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px;">
+																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
+																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
+																		Agribank - Số TK : <strong>1903201152919</strong>
 																	</p>
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
 																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>

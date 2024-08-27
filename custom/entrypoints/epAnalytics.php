@@ -6,12 +6,12 @@ if (isset($_POST['type']) && $_POST['type'] == 'AnalyticsOnline') {
 
     $arr_site = array(
         'timchuyenbay.com' => 'tcbcom',
-        // 'vietjet.net' => 'bookingvj',
+        'vietjet.net' => 'bookingvj',
     );
 
     $name_tab = array(
         'tcbcom' => 'Tìm chuyến bay',
-        // 'bookingvj' => 'Vietjet',
+        'bookingvj' => 'Vietjet',
     );
 
     $html_nav .= '<nav><div class="nav nav-tabs analytics-nav-tabs mt-3" id="nav-tab" role="tablist">';

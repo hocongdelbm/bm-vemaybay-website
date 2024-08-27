@@ -1524,10 +1524,9 @@ $(function () {
                         <option value=""></option>
                         <optgroup label="Viettel">
                             <option value="0962768782@103.232.121.103:55000">0962768782</option>
-                            <option value="0963498793@103.232.121.103:55000">0963498793</option>
                             <option value="0963986905@103.232.121.103:55000">0963986905</option>
                             <option value="0963987527@103.232.121.103:55000">0963987527</option>
-                            <option value="0964359785@103.232.121.103:55000">0964359785</option>
+                            <option value="0964031020@103.232.121.103:55000">0964031020</option>
                         </optgroup>
                         <optgroup label="Mobiphone">
                             <option value="0933625233@103.199.78.74:65000">0933625233</option>

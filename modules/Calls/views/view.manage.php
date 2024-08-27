@@ -6,54 +6,54 @@ class Viewmanage extends SugarView {
           'HOTLINE' => [
                '1900636060' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                '1900636063' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
           ],
           'VIETTEL' => [
                '0968304455' => [
                     'action' => 'inbound-only',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                // '0973834501' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'GIAO NHANH',
                // ],
                // '0973891401' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'GIAO NHANH',
                // ],
                // '0974015001' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'Travelpass',
                // ],
                // '0974091002' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'Travelpass',
                // ],
                // '0983171970' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'GIAO NHANH',
                // ],
                // '0983103703' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'GIAO NHANH',
                // ],
                // '0983129202' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'GIAO NHANH',
                // ],
                '02866509900' => [
@@ -65,92 +65,92 @@ class Viewmanage extends SugarView {
                // 01/07/2024
                '0962768782' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                // '0963323407' => [
                //      'action' => 'blocked',
-               //      'label'   => 'Tìm chuyến bay',
+               //      'label'   => 'Vietjet (.net)',
                //      'brandname'   => 'Travelpass',
                // ],
-               '0963498793' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963678130' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
+               // '0963498793' => [
+               //      'action' => 'all',
+               //      'label'   => 'Vietjet (.net)',
+               //      'brandname'   => 'Travelpass',
+               // ],
+               // '0963678130' => [
+               //      'action' => 'all',
+               //      'label'   => 'Vietjet (.net)',
+               //      'brandname'   => 'Travelpass',
+               // ],
                '0963986905' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                '0963987527' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                '0964031020' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
-               '0964359785' => [
-                    'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
-                    'brandname'   => 'Travelpass',
-               ],
+               // '0964359785' => [
+               //      'action' => 'all',
+               //      'label'   => 'Vietjet (.net)',
+               //      'brandname'   => 'Travelpass',
+               // ],
 
           ],
           'MOBIFONE' => [
                '0933296508' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'GIAO NHANH',
                ],
                '0933297608' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'GIAO NHANH',
                ],
                '0933026416' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'GIAO NHANH',
                ],
                '0933625233' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                '0933799860' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                '0933611306' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'GIAO NHANH',
                ],
                '0937523198' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                '0937451098' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
           ],
           'VINAPHONE' => [
                '0913030802' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                // '0914491010' => [
@@ -160,17 +160,17 @@ class Viewmanage extends SugarView {
                // ],
                '0914491010' => [
                     'action' => 'inbound-only',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
                '0918038348' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'GIAO NHANH',
                ],
                '0919018102' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'GIAO NHANH',
                ],
           ],
@@ -182,14 +182,14 @@ class Viewmanage extends SugarView {
                ],
                '02839977799' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Sanvemaybay (.com.vn)',
                     'brandname'   => 'Travelpass',
                ],
           ],
           'FPT' => [
                '02873001886' => [
                     'action' => 'all',
-                    'label'   => 'Tìm chuyến bay',
+                    'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ]
           ]
@@ -214,6 +214,7 @@ class Viewmanage extends SugarView {
                     else $text_number = '<b>'.formatPhoneNumber($number) . '</b>';
 
                     if($value['label'] == 'Sữa tươi Úc') $text_label = '<span  class="fw-semibold text-primary">Sữa tươi Úc</span>';
+                    else if($value['label'] == 'Vietjet (.net)') $text_label = '<span  class="fw-semibold text-danger">Vietjet (.net)</span>';
                     else $text_label = $value['label'];
 
                     if($value['label'] == 'Sữa tươi Úc') $website = 'suatuoiuc.vn';
