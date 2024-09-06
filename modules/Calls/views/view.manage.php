@@ -21,41 +21,6 @@ class Viewmanage extends SugarView {
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
-               // '0973834501' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0973891401' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0974015001' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0974091002' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0983171970' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0983103703' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0983129202' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
                '02866509900' => [
                     'action' => 'inbound-only',
                     'label'   => 'Sữa tươi Úc',
@@ -63,26 +28,6 @@ class Viewmanage extends SugarView {
                ],
 
                // 01/07/2024
-               '0962768782' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               // '0963323407' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0963498793' => [
-               //      'action' => 'all',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0963678130' => [
-               //      'action' => 'all',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
                '0963986905' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
@@ -98,12 +43,48 @@ class Viewmanage extends SugarView {
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
-               // '0964359785' => [
-               //      'action' => 'all',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
 
+               // 04/09/2024
+               '0984150870' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
+               '0984175174' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
+               '0984177790' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
+               '0984191015' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
+               '0984195219' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
+               '0984260802' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
+               '0984280718' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
+               '0984343406' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'Travelpass',
+               ],
           ],
           'MOBIFONE' => [
                '0933296508' => [

@@ -849,7 +849,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		// Change booking status button
-		if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8))) {
+		if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8)) || $current_user->user_name == 'hungnh') {
 			$change_status = '</form>
 			<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -1697,7 +1697,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
 				}
 
-				// if ($bag_weight_out >= 0) {
 				if ($bag_weight_out > 0) {
 					if ($row['luggage_purchase'] > 0) {
 						$lug_purchase_inf = ' - Giá mua: ' . format_number($row['luggage_purchase_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase']);

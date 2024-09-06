@@ -1,4 +1,4 @@
 <?php
 // created: 2024-08-27 06:31:26
-$modules_sources = array (
+$searchdefs = array (
 );

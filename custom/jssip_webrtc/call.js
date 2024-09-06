@@ -1292,9 +1292,22 @@ function extract_hotline(str) {
             case '0963987527':
             case '0964359785':
             case '0964031020':
-                return 'Vietjet.net';
             case '02866509900':
-                return 'Sữa tươi Úc';
+                
+            // 04-09-2024
+            case '0984150870':
+            case '0984175174':
+            case '0984177790':
+            case '0984191015':
+            case '0984195219':
+            case '0984260802':
+            case '0984280718':
+            case '0984343406':
+                return 'Vietjet.net';
+
+            case '0911236600':
+            case '01388506538':
+                return 'Laptop Dell';
 
             /**********  MOBIFONE  **********/
             case '0933296508':
@@ -1322,7 +1335,7 @@ function extract_hotline(str) {
 
             /**********  FPT  **********/
             case '02873001886':
-                return 'Vietjet.net';
+                return 'Sữa tươi Úc';
 
             /**********  ZALO  **********/
             case '2941581384627345950101':
@@ -1523,10 +1536,18 @@ $(function () {
     container.append(`<select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100 mt-3">
                         <option value=""></option>
                         <optgroup label="Viettel">
-                            <option value="0962768782@103.232.121.103:55000">0962768782</option>
                             <option value="0963986905@103.232.121.103:55000">0963986905</option>
                             <option value="0963987527@103.232.121.103:55000">0963987527</option>
                             <option value="0964031020@103.232.121.103:55000">0964031020</option>
+                            
+                            <option value="0984150870@103.232.121.103:55000">0984150870</option>
+                            <option value="0984175174@103.232.121.103:55000">0984175174</option>
+                            <option value="0984177790@103.232.121.103:55000">0984177790</option>
+                            <option value="0984191015@103.232.121.103:55000">0984191015</option>
+                            <option value="0984195219@103.232.121.103:55000">0984195219</option>
+                            <option value="0984260802@103.232.121.103:55000">0984260802</option>
+                            <option value="0984280718@103.232.121.103:55000">0984280718</option>
+                            <option value="0984343406@103.232.121.103:55000">0984343406</option>
                         </optgroup>
                         <optgroup label="Mobiphone">
                             <option value="0933625233@103.199.78.74:65000">0933625233</option>
@@ -1542,6 +1563,7 @@ $(function () {
                             <option value="0913030802@14.238.2.146:5060">0913030802</option>
                             <option value="0918038348@103.232.121.103:55000">0918038348</option>
                             <option value="0919018102@103.232.121.103:55000">0919018102</option>
+                            <!-- <option value="0911236600@14.238.2.146:5060">0911236600</option> -->
                         </optgroup>
                     </select>`);
 

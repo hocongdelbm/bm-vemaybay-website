@@ -57,6 +57,8 @@ class Viewyearlyreport extends SugarView  {
 				$js .= "['".(int)$i."', ".(int)$row['revenue_amount'].", ".(int)$row['cost_amount'].", ".(int)($row['revenue_amount'] - $row['cost_amount'])."],";
 			}
 		}
+
+		// pr($sql);
 		
 		$new_js = substr($js, 0, -1);
 		$new_js .= "]";

@@ -43,7 +43,8 @@ class Viewassignbk extends SugarView
 				ELSE 1 END) AS group_type
 			FROM ec_online_report
 			WHERE deleted = 0 
-			AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
+			AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "'.date('Y-m-d').'"
+			-- AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "'.date('Y-m-d', strtotime('+7 hours', strtotime(date('Y-m-d H:i:s')))).'"
 			ORDER BY FIELD(status, 1, 2, 0), last_online
 		';
 		// date_modified
@@ -53,7 +54,7 @@ class Viewassignbk extends SugarView
 					FROM calls c
 					LEFT JOIN users u ON u.id = c.assigned_user_id AND u.deleted = 0
 					WHERE c.direction = "inbound"
-					AND DATE(c.date_entered) = "'.date('Y-m-d', strtotime('7 hours', strtotime(date('Y-m-d H:i:s')))).'"
+					AND DATE(c.date_entered) = "'.date('Y-m-d', strtotime('+7 hours', strtotime(date('Y-m-d H:i:s')))).'"
 					AND c.deleted = 0
 					GROUP BY user_id
 					';

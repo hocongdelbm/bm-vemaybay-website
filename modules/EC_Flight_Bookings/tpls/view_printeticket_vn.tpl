@@ -17,7 +17,7 @@
                                                         <tr>
                                                             <td class="pad" style="padding-left: 25px;width: 100%;padding-right: 0px;">
                                                                 <div align="left" class="alignment" style="line-height: 10px">
-                                                                    <img alt="tcb" src="https://bm.vemaybay.website/include/images/mail/bm-tcb-logo.png" style="display: block;height: auto; border: 0; width: 75px; max-width: 100%;" title="tcb" width="75" />
+                                                                    <img alt="tcb" src="https://bm.vemaybay.website/include/images/mail/logo-tcb-blue.png" style="display: block;height: auto; border: 0; width: 75px; max-width: 100%;" title="tcb" width="75" />
                                                                 </div>
                                                             </td>
                                                         </tr>

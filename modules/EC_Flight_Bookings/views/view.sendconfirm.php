@@ -605,7 +605,7 @@ class Viewsendconfirm extends SugarView {
 															<div style="font-family: sans-serif">
 																<div class="" style="font-size: 12px;font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif;mso-line-height-alt: 14.399999999999999px;color: #000;line-height: 1.5;">
 																	<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
-																		<span style="font-size: 13px; font-weight: 600;">Hãng: '.$airline['data'][0]['name'].'&nbsp; | &nbsp; Hạng vé: '.$row['ticket_class'].'</span>
+																		<span style="font-size: 13px; font-weight: 600;">Hãng: '.$airline['data'][0]['name'].'</span>
 																	</p>
 																</div>
 															</div>

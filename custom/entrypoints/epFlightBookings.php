@@ -1555,10 +1555,6 @@ function populateEditedLinePassenger($booking_id)
 	$rowCount = $db->countRows($res);
 	$html = $html1 = $html2 = '';
 
-	// if($current_user->user_name == 'hungnh'){
-	// 	pr($sql);
-	// }
-
 	$i = $k = 0;
 	$pass_order = 0;
 	$pass_changed_name_arr = array();
@@ -1622,44 +1618,41 @@ function populateEditedLinePassenger($booking_id)
 			</td>';
 
 		/* Thông tin hành lý lượt đi*/
+		// -------------------------------------
 		$luggage_price = '';
-
 		// luggage_price_arr là list option hành lý
 		$luggage_price_arr = generateLuggage($booking->date_entered, $booking->airline, $row['ticket_class_ob'], $row['type'], (int)$row['luggage_index_outbound']);
 
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($row['ticket_class_ob']);
-		// }
+		if (!empty($row['luggage_index_outbound'])) {
+			$row['luggage_price'] = (int)$row['luggage_index_outbound'];
+		} 
+		$bag_out2 = $luggage_price_arr[(int)$row['luggage_price']];
 
-		if (empty($row['luggage_index_outbound'])) {
-			$bag_out2 = $luggage_price_arr[(int)$row['luggage_price']];
-		} else {
-			$bag_out2 = $luggage_price_arr[(int)$row['luggage_index_outbound']];
-		}
 		$bag_weight_out = 0;
 		if (isset($bag_out2) && !empty($bag_out2)) {
 			preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-
-			// Check by haihugn - 19/06/2023
 			$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
 		}
+
 		if ($bag_weight_out > 0) {
 			$luggage_price .= '<span class="text-conpleted-status fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')<br>';
 		}
-		/* END Thông tin hành lý lượt đi*/
 
+		
 		/* Thông tin hành lý lượt về*/
+		// ------------------------------------
 		$luggage_price_ib_arr = generateLuggage($booking->date_entered, $booking->airline_inbound, $row['ticket_class_ib'], $row['type'], (int)$row['luggage_index_inbound']);
-		if (empty($row['luggage_index_inbound'])) {
-			$bag_in = $luggage_price_ib_arr[(int)$row['luggage_price_inbound']];
-		} else {
-			$bag_in = $luggage_price_ib_arr[(int)$row['luggage_index_inbound']];
+		if (!empty($row['luggage_index_inbound'])) {
+			$row['luggage_price_inbound'] = (int)$row['luggage_index_inbound'];
 		}
+
+		$bag_in = $luggage_price_ib_arr[(int)$row['luggage_price_inbound']];
+
 		$bag_weight_in = 0;
 		if (isset($bag_in) && !empty($bag_in)) {
 			preg_match('/(\d+)kg/isU', $bag_in, $ib_output);
 
-			$bag_weight_in = (int)$ib_output[1];
+			$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
 		}
 		if ($bag_weight_in > 0) {
 			$luggage_price .= '<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in . ' (Giá mua: ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . ')';

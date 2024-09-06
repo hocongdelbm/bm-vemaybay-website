@@ -2477,33 +2477,14 @@ function getCallSource($call_to) {
         case '02839977799':
             $call_sources = 'sanvemaybay.com.vn';
             break;
-        case '1900636063':
-        case '02873001886':
-        case '1900636060':
-        case '0968304455':
-        case '0933799860':
-        case '0919018102':
-        case '0933296508':
-        case '0933297608':
-        case '0918038348':
-        case '0962768782':
-        case '0963498793':
-        case '0963678130':
-        case '0963986905':
-        case '0963987527':
-        case '0964031020':
-        case '0964359785':
-        case '0914491010':
-            $call_sources = 'vietjet.net';
+        case '0911236600':
+        case '01388506538':
+            $call_sources = 'Laptop Dell';
             break;
         case '02839977788':
             $call_sources = 'timchuyenbay.com';
             break;
-        case '01388505968':
-            $call_sources = 'vemaybay5s.com';
-            break;
-
-        case '02866509900':
+        case '02873001886':
             $call_sources = 'suatuoiuc.vn';
             break;
             // Zalo
