@@ -194,8 +194,8 @@ class Viewstatistics extends SugarView
                // "0963498793" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
                // "0963678130" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
                // "0964359785" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0963986905" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0963987527" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
+               // "0963986905" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
+               // "0963987527" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
                "0964031020" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                
                // 04/09/2024
@@ -223,6 +223,7 @@ class Viewstatistics extends SugarView
                "0914491010" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
                "0918038348" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "0919018102" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
+               "0911236600" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                
                "02839977788" => array('type'=> 'VNPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "02839977799" => array('type'=> 'VNPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
@@ -558,8 +559,8 @@ class Viewstatistics extends SugarView
                          $total_outbound = isset($user['outbound']) ? count($user['outbound']) : 0;
                          $total_outbound_all += $total_outbound;
 
-                         $outbound_answer    = isset($user['outbound_answer']) ? '<strong class="text-dark">'.$user['outbound_answer'].'</strong>' : '';
-                         $outbound_noanswer  = isset($user['outbound_noanswer']) ? '<strong class="text-dark">'.$user['outbound_noanswer'].'</strong>': '';
+                         $outbound_answer    = isset($user['outbound_answer']) ? '<strong class="text-primary">'.$user['outbound_answer'].'</strong>' : '';
+                         $outbound_noanswer  = isset($user['outbound_noanswer']) ? '<strong class="text-primary">'.$user['outbound_noanswer'].'</strong>': '';
                          isset($user['outbound_answer']) ? $total_outbound_answer += $user['outbound_answer'] : 0;
                          isset($user['outbound_noanswer']) ? $total_outbound_noanswer += $user['outbound_noanswer'] : 0;
                     

@@ -1536,8 +1536,6 @@ $(function () {
     container.append(`<select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100 mt-3">
                         <option value=""></option>
                         <optgroup label="Viettel">
-                            <option value="0963986905@103.232.121.103:55000">0963986905</option>
-                            <option value="0963987527@103.232.121.103:55000">0963987527</option>
                             <option value="0964031020@103.232.121.103:55000">0964031020</option>
                             
                             <option value="0984150870@103.232.121.103:55000">0984150870</option>

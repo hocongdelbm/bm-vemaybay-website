@@ -2506,7 +2506,7 @@ function getCallSource($call_to) {
 
 // Block Call inbound - Linh tinh SPAM
 function isSpamPhone($phone){
-    $top_phone = array('028', '024', '021', '022', '029', '195', '252', '247', '231', '371', '232', '224', '027');
+    $top_phone = array('028', '024', '021', '022', '029', '195', '252', '247', '231', '371', '232', '224', '027', '020');
     $sub_phone = substr(trim($phone), 0, 3);
 
     if(in_array($sub_phone, $top_phone)){

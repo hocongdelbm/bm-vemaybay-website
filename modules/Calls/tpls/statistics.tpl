@@ -326,7 +326,7 @@
                     <th width="15%">Họ tên</th>
                     <th width="10%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
                     <th width="10%" align="center"><span title="outbound">Gọi đi trả lời</span></th>
-                    <th width="10%" align="center"><span title="outbound">Gọi đi không trả lời</span></th>
+                    <th width="10%" align="center"><span title="outbound">0 trả lời</span></th>
                     <th width="10%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
                     <th width="10%" align="center"><span title="missed">Cuộc gọi nhỡ</span></th>
                     <th width="10%" align="center" class="hide-mobile"><span title="spam">Số rác</span></th>
@@ -377,16 +377,35 @@
      </div>
 </div>
 
-<!-- THỐNG KÊ THỜI LƯỢNG TRUNG BÌNH CUỘC GỌI -->
-<!-- ======================================= -->
-<h3 class="sub-title text-center mt-5">Thời lượng bình quân cuộc gọi từ ngày {$FROM_DATE} đến ngày {$TO_DATE} </h3>
-<div class="box-section">
-     <div class="call-statistics__wrap">
-          <section class="call-statistics__duration--average flex-fill">
-               <canvas id="chartjs__calls-duration--average" class="mx-auto"></canvas>
-          </section>
+
+<div class="bar-chart d-flex flex-wrap align-items-center gap-4">
+     <div class="box-duration__chart flex-fill">
+          <!-- THỐNG KÊ THỜI LƯỢNG TRUNG BÌNH CUỘC GỌI -->
+          <!-- ======================================= -->
+          <h3 class="sub-title text-center mt-5">Thời lượng bình quân cuộc gọi từ ngày {$FROM_DATE} đến ngày {$TO_DATE} </h3>
+          <div class="box-section">
+               <div class="call-statistics__wrap">
+                    <section class="call-statistics__duration--average flex-fill">
+                         <canvas id="chartjs__calls-duration--average" class="mx-auto"></canvas>
+                    </section>
+               </div>
+          </div>
+     </div>
+
+     <div class="box-lead__chart flex-fill">
+          <!-- THỐNG KÊ SỐ LƯỢNG CUỘC GỌI THEO SITE -->
+          <!-- ==================================== -->
+          <h3 class="sub-title text-center mt-5">Số lượng cuộc gọi theo website từ ngày {$FROM_DATE} đến ngày {$TO_DATE} </h3>
+          <div class="box-section">
+               <div class="call-statistics__wrap">
+                    <section class="call-statistics__sources flex-fill">
+                         <canvas id="chartjs__calls-sources" class="mx-auto"></canvas>
+                    </section>
+               </div>
+          </div>
      </div>
 </div>
+
 
 {literal}
 <script>
@@ -566,16 +585,6 @@
 </script>
 {/literal}
 
-<!-- THỐNG KÊ SỐ LƯỢNG CUỘC GỌI THEO SITE -->
-<!-- ==================================== -->
-<h3 class="sub-title text-center mt-5">Số lượng cuộc gọi theo website từ ngày {$FROM_DATE} đến ngày {$TO_DATE} </h3>
-<div class="box-section">
-     <div class="call-statistics__wrap">
-          <section class="call-statistics__sources flex-fill">
-               <canvas id="chartjs__calls-sources" class="mx-auto"></canvas>
-          </section>
-     </div>
-</div>
 
 {literal}
 <script>

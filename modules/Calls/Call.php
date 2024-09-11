@@ -428,10 +428,6 @@ class Call extends SugarBean
         return $query;
     }
 
-
-
-
-
     public function fill_in_additional_detail_fields()
     {
         global $locale;
@@ -789,9 +785,6 @@ class Call extends SugarBean
         }
 
         /* BEGIN - SECURITY GROUPS */
-        /**
-        if(!ACLController::moduleSupportsACL($this->parent_type) || ACLController::checkAccess($this->parent_type, 'view', $is_owner)){
-         */
         if (!ACLController::moduleSupportsACL($this->parent_type) || ACLController::checkAccess($this->parent_type, 'view', $is_owner, 'module', $in_group)) {
             /* END - SECURITY GROUPS */
             $array_assign['PARENT'] = 'a';
@@ -819,9 +812,6 @@ class Call extends SugarBean
             /* END - SECURITY GROUPS */
         }
         /* BEGIN - SECURITY GROUPS */
-        /**
-        if( ACLController::checkAccess('Contacts', 'view', $is_owner)){
-         */
         if (ACLController::checkAccess('Contacts', 'view', $is_owner, 'module', $in_group)) {
             /* END - SECURITY GROUPS */
             $array_assign['CONTACT'] = 'a';

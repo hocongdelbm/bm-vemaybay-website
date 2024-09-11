@@ -28,16 +28,16 @@ class Viewmanage extends SugarView {
                ],
 
                // 01/07/2024
-               '0963986905' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963987527' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
+               // '0963986905' => [
+               //      'action' => 'all',
+               //      'label'   => 'Vietjet (.net)',
+               //      'brandname'   => 'Travelpass',
+               // ],
+               // '0963987527' => [
+               //      'action' => 'all',
+               //      'label'   => 'Vietjet (.net)',
+               //      'brandname'   => 'Travelpass',
+               // ],
                '0964031020' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
@@ -152,6 +152,11 @@ class Viewmanage extends SugarView {
                '0919018102' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0911236600' => [
+                    'action' => 'all',
+                    'label'   => 'Laptop',
                     'brandname'   => 'GIAO NHANH',
                ],
           ],
