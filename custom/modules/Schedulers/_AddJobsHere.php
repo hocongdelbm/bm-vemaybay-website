@@ -2086,10 +2086,10 @@ function checkStatusOnlineUser()
 			}
 
 			// Change status
-			if($status == 'On Break'){
-				$agent = custom_get_sip_number($user_id);
-				agent_change_status($agent, $status);
-			}
+			// if($status == 'On Break'){
+			// 	$agent = custom_get_sip_number($user_id);
+			// 	agent_change_status($agent, $status);
+			// }
 		}
 	}
 
