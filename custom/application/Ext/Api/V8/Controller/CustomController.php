@@ -235,6 +235,7 @@ class CustomController extends BaseController
         $call->status       = 'new';
         $call->log          = json_encode($params);
         $call->record_file  = $record_file;
+        // $call->hangup_cause = this->determineHangupCause($params);
         $call->save();
 
         if (!empty($call->id)) {
@@ -359,5 +360,51 @@ class CustomController extends BaseController
             'message' => "Success",
             'data' => $data,
         ], 200);
+    }
+
+    public function determineHangupCause($params) {
+    
+        $direction          = $params['call_direction'] ?? '';
+        $disposition        = $params['call_hangup_disposition'] ?? '';
+        $hangupCause        = $params['hangup_cause'] ?? '';
+        $ccCancelReason     = $params['cc_cancel_reason'] ?? null;
+    
+        // Xử lý cho cuộc gọi inbound
+        if ($direction === 'inbound') {
+            if ($disposition === 'recv_bye' && $hangupCause === 'NORMAL_CLEARING') {
+                return ($ccCancelReason === 'BREAK_OUT')
+                    ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời'
+                    : 'khách hàng kết thúc cuộc gọi khi cuộc gọi kết thúc';
+            }
+    
+            if ($disposition === 'send_bye') {
+                return ($ccCancelReason === 'TIMEOUT')
+                    ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
+                    : 'Agent kết thúc cuộc gọi, khi cuộc gọi kết thúc';
+            }
+    
+            if ($disposition === 'send_refuse') {
+                return 'Cuộc gọi nhỡ, agent bận máy';
+            }
+        }
+    
+        // Xử lý cho cuộc gọi outbound
+        if ($direction === 'outbound') {
+            if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
+                return 'Agent hủy cuộc gọi, khi khách hàng không trả lời cuộc gọi';
+            }
+    
+            if ($disposition === 'send_refuse') {
+                return ($hangupCause === 'USER_BUSY')
+                    ? 'Khách hàng từ chối cuộc gọi'
+                    : 'Khách hàng mất sóng không liên lạc được, cuộc gọi tự động kết thúc';
+            }
+    
+            if ($disposition === 'recv_bye'){
+                return 'Agent kết thúc cuộc gọi khi cuộc gọi kết thúc';
+            }
+        }
+    
+        return 'Nguyên nhân ngắt máy không xác định';
     }
 }

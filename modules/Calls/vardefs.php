@@ -595,6 +595,17 @@ $dictionary['Call'] = array(
             'reportable' => false,
             'audited' => 1,
         ),
+        'hangup_cause' => array(
+            'name'       => 'hangup_cause',
+            'vname'      => 'LBL_HANGUP_CAUSE',
+            'type'       => 'varchar',
+            'required'   => false,
+            'default'    => '',
+			'comments' 	 => 'Nguyên nhân ngắt máy',
+            'importable' => true,
+            'reportable' => false,
+            'audited'    => true,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_calls_callid', 'type' => 'index', 'fields' => array('call_id')),
