@@ -194,9 +194,9 @@ class Call extends SugarBean
         }*/
 
         // Call_source
-        if ($this->direction == 'inbound' || $this->direction != 'outbound') {
-            $this->call_sources = getCallSource($this->call_to);
-        }
+        // if ($this->direction == 'inbound' || $this->direction != 'outbound') {
+        //     $this->call_sources = getCallSource($this->call_to);
+        // }
 
         $return_id = parent::save($check_notify);
 

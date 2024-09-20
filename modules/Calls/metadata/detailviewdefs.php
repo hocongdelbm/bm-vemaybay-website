@@ -113,6 +113,14 @@ $viewdefs['Calls'] = array(
 				),
 				array(
 					array(
+						'name' => 'other_caller',
+						'label' => 'LBL_OTHER_CALLER',
+					),
+					array(
+					),
+				),
+				array(
+					array(
 						'name' => 'direction',
 						'label' => 'LBL_DIRECTION',
 					),
@@ -193,6 +201,9 @@ $viewdefs['Calls'] = array(
 						'label' => 'LBL_DESCRIPTION',
 					),
 					array(
+						'name' => 'hangup_cause',
+						'comment' => 'Nguyên nhân ngắt máy',
+						'label' => 'LBL_HANGUP_CAUSE',
 					),
 				),
 				array(

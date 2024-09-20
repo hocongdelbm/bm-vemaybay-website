@@ -147,4 +147,5 @@ $mod_strings = array(
     'LBL_CALL_DURATION_C' => 'Duration',
     'LBL_CALL_SOURCES' => 'Nguồn',
     'LBL_HANGUP_CAUSE' => 'Nguyên nhân ngắt máy',
+    'LBL_OTHER_CALLER' => 'Số gọi đi',
 );

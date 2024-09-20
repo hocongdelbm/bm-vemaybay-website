@@ -348,16 +348,14 @@ $(document).ready(function () {
 
     // Checkbox busy
     $('input#busy_stt').change(function () {
-        let sip_user = $("#sip_user").val();
-        let status = '';
+        let sip_user    = $("#sip_user").val();
+        let status      = 'Available';
 
         if ($(this).prop('checked') == true) {
             status = 'Logged Out';
             if (ua) ua.stop();
             showConnect(false);
-        }
-        else {
-            status = 'Available';
+        } else {
             check_online_for_call();
         }
 
@@ -1540,7 +1538,7 @@ $(function () {
                             <option value="0963323407@103.232.121.103:55000">0963323407</option>
                             <option value="0964031020@103.232.121.103:55000">0964031020</option>
                             <option value="0963987527@103.232.121.103:55000">0963987527</option>
-                            <option value="0963986905@103.232.121.103:55000">0963986905</option>
+                            <!-- <option value="0963986905@103.232.121.103:55000">0963986905</option> -->
                             <option value="0984150870@103.232.121.103:55000">0984150870</option>
                             <option value="0984175174@103.232.121.103:55000">0984175174</option>
                             <option value="0984177790@103.232.121.103:55000">0984177790</option>

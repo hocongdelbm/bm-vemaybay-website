@@ -148,6 +148,16 @@ class CustomController extends BaseController
         $call_start     = isset($params['call_start']) ? global_test_input($params['call_start']) : '';
         $call_duration  = isset($params['call_duration']) ? global_test_input($params['call_duration']) : '';
         $record_file    = isset($params['record_file']) ? global_test_input($params['record_file']) : '';
+        $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
+
+        if (empty($call_id)) {
+            $response['fail'] = array(
+                'code' => 400,
+                'title' => 'Bad request params',
+            );
+            echo json_encode($response);
+            exit();
+        }
 
         $where = '';
         $number = $call_direction == 'inbound' ? $call_from : $call_to;
@@ -235,7 +245,11 @@ class CustomController extends BaseController
         $call->status       = 'new';
         $call->log          = json_encode($params);
         $call->record_file  = $record_file;
-        // $call->hangup_cause = this->determineHangupCause($params);
+        $call->other_caller     = $other_caller;
+        if ($call_direction == 'inbound' || $call_direction != 'outbound') {
+            $call->call_sources = getCallSource($call_to);
+        }
+        $call->hangup_cause = $this->determineHangupCause($params);
         $call->save();
 
         if (!empty($call->id)) {
@@ -374,13 +388,13 @@ class CustomController extends BaseController
             if ($disposition === 'recv_bye' && $hangupCause === 'NORMAL_CLEARING') {
                 return ($ccCancelReason === 'BREAK_OUT')
                     ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời'
-                    : 'khách hàng kết thúc cuộc gọi khi cuộc gọi kết thúc';
+                    : 'khách hàng chủ động kết thúc cuộc gọi';
             }
     
             if ($disposition === 'send_bye') {
                 return ($ccCancelReason === 'TIMEOUT')
                     ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
-                    : 'Agent kết thúc cuộc gọi, khi cuộc gọi kết thúc';
+                    : 'Agent chủ động kết thúc cuộc gọi';
             }
     
             if ($disposition === 'send_refuse') {
@@ -397,11 +411,15 @@ class CustomController extends BaseController
             if ($disposition === 'send_refuse') {
                 return ($hangupCause === 'USER_BUSY')
                     ? 'Khách hàng từ chối cuộc gọi'
-                    : 'Khách hàng mất sóng không liên lạc được, cuộc gọi tự động kết thúc';
+                    : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
             }
     
             if ($disposition === 'recv_bye'){
-                return 'Agent kết thúc cuộc gọi khi cuộc gọi kết thúc';
+                return 'Agent chủ động kết thúc cuộc gọi';
+            }
+
+            if ($disposition === 'send_bye'){
+                return 'Khách hàng chủ động kết thúc cuộc gọi';
             }
         }
     
