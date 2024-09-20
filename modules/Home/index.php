@@ -2,9 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-
-
-global $current_user, $sugar_version, $sugar_config, $beanFiles;
+global $current_user, $sugar_version, $sugar_config, $beanFiles, $db;
 
 
 require_once('include/MySugar/MySugar.php');
@@ -47,7 +45,8 @@ if (!$hasUserPreferences) {
         'pbss_chart_type' => 'PipelineBySalesStageDashlet',
         'obm_date_start' => 'OutcomeByMonthDashlet',
         'obm_date_end' => 'OutcomeByMonthDashlet',
-        'obm_ids' => 'OutcomeByMonthDashlet');
+        'obm_ids' => 'OutcomeByMonthDashlet'
+    );
 
     //upgrading from pre-5.0 homepage
     $old_columns = $current_user->getPreference('columns', 'home');
@@ -64,13 +63,14 @@ if (!$hasUserPreferences) {
         $current_user->setPreference('dashlets', $old_dashlets, 0, 'home');
     } else {
         // This is here to get Sugar dashlets added above the rest
-        $dashlets[create_guid()] = array('className' => 'SugarFeedDashlet',
+        $dashlets[create_guid()] = array(
+            'className' => 'SugarFeedDashlet',
             'module' => 'SugarFeed',
             'forceColumn' => 1,
             'fileLocation' => $dashletsFiles['SugarFeedDashlet']['file'],
         );
 
-        foreach ($defaultDashlets as $dashletName=>$module) {
+        foreach ($defaultDashlets as $dashletName => $module) {
             // clint - fixes bug #20398
             // only display dashlets that are from visibile modules and that the user has permission to list
             $myDashlet = new MySugar($module);
@@ -81,11 +81,13 @@ if (!$hasUserPreferences) {
                 foreach ($prefsforthisdashlet as $pref) {
                     $options[$pref] = $current_user->getPreference($pref);
                 }
-                $dashlets[create_guid()] = array('className' => $dashletName,
+                $dashlets[create_guid()] = array(
+                    'className' => $dashletName,
                     'module' => $module,
                     'forceColumn' => 0,
                     'fileLocation' => $dashletsFiles[$dashletName]['file'],
-                    'options' => $options);
+                    'options' => $options
+                );
             }
         }
 
@@ -98,7 +100,7 @@ if (!$hasUserPreferences) {
         $columns[1]['width'] = '40%';
         $columns[1]['dashlets'] = array();
 
-        foreach ($dashlets as $guid=>$dashlet) {
+        foreach ($dashlets as $guid => $dashlet) {
             if ($dashlet['forceColumn'] == 0) {
                 array_push($columns[0]['dashlets'], $guid);
             } else {
@@ -140,7 +142,7 @@ if (empty($pages)) {
     $pageIndex = 0;
     $pages[0]['columns'] = $columns;
     $pages[0]['numColumns'] = '3';
-    $pages[0]['pageTitleLabel'] = 'LBL_HOME_PAGE_1_NAME';	// "My Sugar"
+    $pages[0]['pageTitleLabel'] = 'LBL_HOME_PAGE_1_NAME';    // "My Sugar"
     $pageIndex++;
     $current_user->setPreference('pages', $pages, 0, 'Home');
     $activePage = 0;
@@ -222,16 +224,16 @@ foreach ($pages[$activePage]['columns'] as $colNum => $column) {
 }
 
 $i = 0;
-    while ($i < count($pages)) {
-        if ($i == 0) {
-            $pageTabs[$i]['pageTitle'] = $GLOBALS['app_strings']['LBL_SUITE_DASHBOARD'];
-//            $pageTabs[$i]['active'] = 'current';
-        } else {
-            $pageTabs[$i]['pageTitle'] = $pages[$i]['pageTitle'];
-            $divPages[] = $i;
-        }
-        $i++;
+while ($i < count($pages)) {
+    if ($i == 0) {
+        $pageTabs[$i]['pageTitle'] = $GLOBALS['app_strings']['LBL_SUITE_DASHBOARD'];
+        //            $pageTabs[$i]['active'] = 'current';
+    } else {
+        $pageTabs[$i]['pageTitle'] = $pages[$i]['pageTitle'];
+        $divPages[] = $i;
     }
+    $i++;
+}
 
 if (!empty($sugar_config['lock_homepage']) && $sugar_config['lock_homepage'] == true) {
     $sugar_smarty->assign('lock_homepage', true);
@@ -268,6 +270,24 @@ $sugar_smarty->assign('mod', return_module_language($GLOBALS['current_language']
 $sugar_smarty->assign('app', $GLOBALS['app_strings']);
 $sugar_smarty->assign('module', 'Home');
 
+
+// CUSTOM HOMEPAGE
+$list_agent_online = [];
+$sql_online = '
+    SELECT *
+    FROM ec_online_report
+    WHERE status = 1
+    AND deleted = 0 
+    AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "'.date('Y-m-d').'"
+    ORDER BY last_online
+';
+$res = $db->query($sql_online);
+while ($row = $db->fetchByAssoc($res)) {
+    $list_agent_online[$row['assigned_user_id']] = $row;
+}
+$sugar_smarty->assign('agent_online', $list_agent_online);
+// pr($list_agent_online);
+
 //custom chart code
 //Get the RGraph libraries (add this more elegantly later to check exactly what is needed, not just all).
 require_once('include/SuiteGraphs/RGraphIncludes.php');
@@ -296,6 +316,6 @@ if (file_exists('custom/themes/' . $theme . '/tpls/MySugar.tpl')) {
 }
 
 //init the quickEdit listeners after the dashlets have loaded on home page the first time
-echo"<script>if(typeof(qe_init) != 'undefined'){qe_init();}</script>";
-echo"<script> $( '#pageNum_'+ 0 +'_anchor').addClass( 'current' );</script>";
-echo"<script> $( '#pageNum_'+ 0).addClass( 'active' );</script>";
+echo "<script>if(typeof(qe_init) != 'undefined'){qe_init();}</script>";
+echo "<script> $( '#pageNum_'+ 0 +'_anchor').addClass( 'current' );</script>";
+echo "<script> $( '#pageNum_'+ 0).addClass( 'active' );</script>";

@@ -34,10 +34,14 @@ class CustomController extends BaseController
         '157.119.251.106', // vemaybaynamphuong.vn
         '157.119.251.145', // vemaybaynamphuong.com.vn
         '157.119.251.218', // vietjetstar.net
-        '157.119.251.18', // vietjet.net (old)
 
-        '119.17.253.171', // vemaybay5s.com ; vemaybaynamphuong.com ; vietjet.net.vn
-        '202.151.168.26', // travelpass.vn ; vietjetkhuyenmai.vn
+        '119.17.253.171', // vemaybaynamphuong.com ; vietjet.net.vn
+        '119.17.253.122', // vemaybay5s.com
+        '119.17.253.63', // ve5s.vn
+        '119.17.253.235', // vietjetkhuyenmai.vn
+        '119.17.253.14', // appvemaybay.com
+        '202.151.168.27', // vemaybaynamphuong.net
+        '202.151.168.28', // vemaybay.me
     ];
 
     /************  BOOKING  ************/

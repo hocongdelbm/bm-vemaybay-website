@@ -2340,8 +2340,18 @@ function write_file_logs_behavior($json)
     $year = date('Y');
     $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT );
     $file_name = "secure_sessions/behavior_user_logs/$year/$month/" . str_replace('-', '_', date('d-m-Y') . '_log');
-    $myfile = fopen($file_name, "a") or die("Error something !!!");
 
+    // Check if the file exists
+    if (!file_exists($file_name)) {
+        $dir_name = dirname($file_name);
+        if (!is_dir($dir_name)) {
+            mkdir($dir_name, 0777, true);
+        }
+        touch($file_name);
+    }
+
+
+    $myfile = fopen($file_name, "a") or die("Error something !!!");
     fwrite($myfile, $json);
     fclose($myfile);
 }
