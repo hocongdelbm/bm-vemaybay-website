@@ -348,11 +348,11 @@ $(document).ready(function () {
 
     // Checkbox busy
     $('input#busy_stt').change(function () {
-        let sip_user    = $("#sip_user").val();
+        let sip_user    = SIP_USER;
         let status      = 'Available';
 
         if ($(this).prop('checked') == true) {
-            status = 'Logged Out';
+            status = 'On Break';
             if (ua) ua.stop();
             showConnect(false);
         } else {

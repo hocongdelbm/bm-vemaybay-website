@@ -3,7 +3,6 @@
 global $current_user, $db;
 
 // Loại trừ user Booker - 493ad5e5-ffea-a84f-96d7-6577fed623d6
-
 $array_admin = [
      '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
      '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
@@ -19,14 +18,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
 	$temp_files         = scandir($path);
 	natsort($temp_files);
 	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hour')));
-     $agent  = isset($_POST['agent']) ? $_POST['agent'].'@td.timchuyenbay.net' : "";
-
-     if(in_array($current_user_id, $array_admin)){
-          // Luôn online
-          agent_change_status($agent, 'Available');
-          echo 1;
-          exit();
-     }
 
      $is_busy = 0; //Không bận
      foreach ($temp_files as $file) {
@@ -41,20 +32,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
                $diffInSeconds  	= abs($timestamp_now - $strtotime_user);
 
                if(trim($data_user['busy']) == 1){
-                    $status = 'Logged Out';
                     $is_busy = 1;
                } else {
                     if($diffInSeconds > 150){ //2 phút rữ
-                         $status = 'Logged Out';
                          $is_busy = 1;
                     } else {
                          $is_busy = 0;
-                         $status = 'Available';
                     }
                }
-               
-               // Change agent status
-               agent_change_status($agent, $status);
 
                if($is_busy == 1){
                     echo 0;

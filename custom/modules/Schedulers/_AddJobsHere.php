@@ -2006,14 +2006,6 @@ function checkStatusOnlineUser()
 {
 	global $db, $current_user;
 
-	$array_admin = [
-		'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-		'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
-		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-		'1', //DDuc
-	];
-
 	$path           = "secure_sessions/check_online_logs/";
 	$temp_files     = scandir($path);
 	natsort($temp_files);
@@ -2034,7 +2026,7 @@ function checkStatusOnlineUser()
 
 			// User đó busy - check 5 phút
 			if (trim($data_user['busy']) == 1) {
-				$status = 'Logged Out';
+				$status = 'On Break';
 				// Kiểm tra sự chênh lệch trong khoảng thời gian 5 phút (300 giây)
 				if ($diffInSeconds > 600) {
 					$sql_offline = '
@@ -2054,7 +2046,7 @@ function checkStatusOnlineUser()
 			} else {
 				// Kiểm tra sự chênh lệch trong khoảng thời gian 2 phút 30s (150 giây)
 				if ($diffInSeconds > 150) {
-					$status = 'Logged Out';
+					$status = 'On Break';
 
 					$sql_offline = '
 						UPDATE ec_online_report 
@@ -2067,9 +2059,6 @@ function checkStatusOnlineUser()
 					$_SESSION['busy'] 	= 0;
 					// sendTestTelegram('Nhân viên ' .$val['name_user']. ' đã bị off vì quá 2 phút không tương tác BM. '.$last_time_user_7.'');
 				} else {
-					//Online 
-					$status = 'Available';
-
 					$sql_select = '
 								SELECT status
 								FROM ec_online_report
@@ -2097,11 +2086,10 @@ function checkStatusOnlineUser()
 			}
 
 			// Change status
-			if (in_array($user_id, $array_admin)) {
-				$status = 'Available';
+			if($status == 'On Break'){
+				$agent = custom_get_sip_number($user_id);
+				agent_change_status($agent, $status);
 			}
-			$agent = custom_get_sip_number($user_id);
-			agent_change_status($agent, $status);
 		}
 	}
 
