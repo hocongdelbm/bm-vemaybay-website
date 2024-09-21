@@ -1,5 +1,6 @@
 <?php
 
+use PhpOffice\PhpSpreadsheet\Shared\OLE\PPS;
 use Symfony\Component\Validator\Constraints\Length;
 
 /**
@@ -414,7 +415,8 @@ function myRemoveUnicodeChars($str)
 }
 
 // Check string is unicode
-function global_is_unicode($string) {
+function global_is_unicode($string)
+{
     return preg_match('/[^\x20-\x7e]/', $string);
 }
 
@@ -630,7 +632,8 @@ function myRecheckFlight($aircode, $pnr, $fullName, $flightNo, $timeout = 30, $u
 }
 
 // GR TELE LÝ THÔNG
-function sendGrLyThongTele($content, $parseMode = 'HTML', $timeout = 8) {
+function sendGrLyThongTele($content, $parseMode = 'HTML', $timeout = 8)
+{
     $chat_id = '-1001656085253';
     $token = '2062223399:AAGhuTA3jvRBeCLq8fixOFrY-MecvuA_7AA';
 
@@ -647,7 +650,8 @@ function sendGrLyThongTele($content, $parseMode = 'HTML', $timeout = 8) {
 }
 
 // GR TELE TEST
-function sendGrTestTele($content, $parseMode = 'HTML', $timeout = 8) {
+function sendGrTestTele($content, $parseMode = 'HTML', $timeout = 8)
+{
     $chat_id = '-1001360390468'; // Group Test
     $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk'; // Bot @CronJobNewsVietjet_bot
 
@@ -664,10 +668,11 @@ function sendGrTestTele($content, $parseMode = 'HTML', $timeout = 8) {
 }
 
 // GR TELE SUPPORT
-function sendGrSupportTele($content, $parseMode = 'HTML', $timeout = 8) {
+function sendGrSupportTele($content, $parseMode = 'HTML', $timeout = 8)
+{
     // $chat_id = '-1773893748'; // Group support
     $chat_id = '-618676080'; // Group support
-    $token = '6713845742:AAF3ilFQEFrUgIN69bpNOeJknCJQhBR4nHU'; 
+    $token = '6713845742:AAF3ilFQEFrUgIN69bpNOeJknCJQhBR4nHU';
 
     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
     $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
@@ -678,9 +683,9 @@ function sendGrSupportTele($content, $parseMode = 'HTML', $timeout = 8) {
     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
     $result = curl_exec($curl);
     curl_close($curl);
-    return 
-    
-    $result;
+    return
+
+        $result;
 }
 
 // GR TEST
@@ -764,7 +769,8 @@ function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 
 //     return $result;
 // }
 
-function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array') {
+function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
+{
     $search_by_allow = array('CODE', 'NAME', 'FULL');
     $search_by = $search_by && in_array($search_by, $search_by_allow) ? $search_by : 'FULL';
     $case_sensitive = $case_sensitive ? $case_sensitive : 0; // default is case insensitive
@@ -798,17 +804,29 @@ function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $form
         if (strpos($code_str, $q) !== false && $search_by == 'CODE') {
             $full_str = $json_val['name'] . ', ' . $json_val['country'] . ' (' . $json_val['code'] . ')';
             array_push($data, array(
-                'label' => $full_str, 'value' => $full_str, 'code' => $json_val['code'], 'country' => $json_val['country'], 'name' => $json_val['name']
+                'label' => $full_str,
+                'value' => $full_str,
+                'code' => $json_val['code'],
+                'country' => $json_val['country'],
+                'name' => $json_val['name']
             ));
         } else if (strpos($name_str, $q) !== false && $search_by == 'NAME') {
             $full_str = $json_val['name'] . ', ' . $json_val['country'] . ' (' . $json_val['code'] . ')';
             array_push($data, array(
-                'label' => $full_str, 'value' => $full_str, 'code' => $json_val['code'], 'country' => $json_val['country'], 'name' => $json_val['name']
+                'label' => $full_str,
+                'value' => $full_str,
+                'code' => $json_val['code'],
+                'country' => $json_val['country'],
+                'name' => $json_val['name']
             ));
         } else if ((strpos($code_str, $q) !== false || strpos($name_str, $q) !== false) && $search_by == 'FULL') {
             $full_str = $json_val['name'] . ', ' . $json_val['country'] . ' (' . $json_val['code'] . ')';
             array_push($data, array(
-                'label' => $full_str, 'value' => $full_str, 'code' => $json_val['code'], 'country' => $json_val['country'], 'name' => $json_val['name']
+                'label' => $full_str,
+                'value' => $full_str,
+                'code' => $json_val['code'],
+                'country' => $json_val['country'],
+                'name' => $json_val['name']
             ));
         }
         if (count($data) > 30) {
@@ -821,7 +839,8 @@ function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $form
     return $result;
 }
 
-function myGetAirportInfo2($airport_code, $case_sensitive = 1, $format = 'array') {
+function myGetAirportInfo2($airport_code, $case_sensitive = 1, $format = 'array')
+{
     $case_sensitive = $case_sensitive ? $case_sensitive : 0; // default is case insensitive
     $q = $airport_code;
     $q = myRemoveUnicodeChars($q);
@@ -844,7 +863,11 @@ function myGetAirportInfo2($airport_code, $case_sensitive = 1, $format = 'array'
         }
         if (strpos($str, $q) !== false) {
             array_push($data, array(
-                'label' => $json_val['value'], 'value' => $json_val['value'], 'code' => substr($json_val['value'], (strpos($json_val['value'], '(') + 1), 3), 'country' => substr($json_val['value'], (strpos($json_val['value'], ',') + 2), 2), 'name' => substr($json_val['value'], 0, strpos($json_val['value'], ','))
+                'label' => $json_val['value'],
+                'value' => $json_val['value'],
+                'code' => substr($json_val['value'], (strpos($json_val['value'], '(') + 1), 3),
+                'country' => substr($json_val['value'], (strpos($json_val['value'], ',') + 2), 2),
+                'name' => substr($json_val['value'], 0, strpos($json_val['value'], ','))
             ));
         }
         if (count($data) > 30) {
@@ -853,7 +876,7 @@ function myGetAirportInfo2($airport_code, $case_sensitive = 1, $format = 'array'
     }
     if ($data) {
         return array('data' => $data);
-    }   
+    }
 }
 
 
@@ -990,12 +1013,13 @@ function myGetWorkingProcessCount($parent_type, $parent_id, $field = '')
 }
 
 // Remove working process exist
-function myRemoveWorkingProcess($parent_type, $parent_id, $field = '') {
+function myRemoveWorkingProcess($parent_type, $parent_id, $field = '')
+{
     global $db;
     $sql = "UPDATE ec_working_process
 			SET deleted = 1
-			WHERE parent_id = '".$parent_id."'
-				AND parent_type = '".$parent_type."'
+			WHERE parent_id = '" . $parent_id . "'
+				AND parent_type = '" . $parent_type . "'
 				AND deleted = 0";
     if ($field != '') {
         $sql .= " AND " . $field . " IS NOT NULL ";
@@ -1004,7 +1028,8 @@ function myRemoveWorkingProcess($parent_type, $parent_id, $field = '') {
 }
 
 // Create working process
-function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field) {
+function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field)
+{
     // global $db;
     if (!empty($field)) {
         $work = new EC_Working_Process();
@@ -1792,7 +1817,6 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
                 $luggage_price = $luggage_index;
             }
         }
-
     } else if ($airline == 'BBA' || $airline == 'QH') {
         if ($pass_type == '2') {
             $pass_ticket_class = '_infant';
@@ -1840,7 +1864,16 @@ function populateLuggageIndex($airline, $booking_date, $luggage_idx = 0, $auto_g
 {
     global $app_list_strings;
     $arr_replace = array(
-        'VNA' => 'vietnamair', 'JET' => 'jetstar', 'VJA' => 'vietjet', 'BBA' => 'bambooair', 'VJ' => 'vietjet', 'BL' => 'jetstar', 'JQ' => 'jetstar', '3K' => 'jetstar', 'VNP' => 'pacificair', 'VTA' => 'vietravelair'
+        'VNA' => 'vietnamair',
+        'JET' => 'jetstar',
+        'VJA' => 'vietjet',
+        'BBA' => 'bambooair',
+        'VJ' => 'vietjet',
+        'BL' => 'jetstar',
+        'JQ' => 'jetstar',
+        '3K' => 'jetstar',
+        'VNP' => 'pacificair',
+        'VTA' => 'vietravelair'
     );
     $luggage_idx_arr = array();
     if ($airline == 'VJA' || $airline == 'VJ') {
@@ -1860,7 +1893,8 @@ function populateLuggageIndex($airline, $booking_date, $luggage_idx = 0, $auto_g
 }
 
 // Admin hệ thống và quản lý
-function isAllowedUser() {
+function isAllowedUser()
+{
     global $current_user, $db;
 
     if (is_admin($current_user)) {
@@ -1892,12 +1926,14 @@ function isAllowedUser() {
 }
 
 // Bỏ các khoảng trắng
-function replaceAllSpacesToSingleSpace($string) {
+function replaceAllSpacesToSingleSpace($string)
+{
     return trim(preg_replace('!\s+!', ' ', $string));
 }
 
 // Get info user
-function myGetUser($uid = '') {
+function myGetUser($uid = '')
+{
     global $db, $sugar_config;
 
     $info   = array();
@@ -1930,16 +1966,18 @@ function myGetUser($uid = '') {
     return $info;
 }
 
-function isBot($id) {
+function isBot($id)
+{
     $u = new User();
     $u->retrieve($id);
 
-    if(strtoupper($u->title) == 'BOT') return true;
-    return false; 
+    if (strtoupper($u->title) == 'BOT') return true;
+    return false;
 }
 
 // CẬP NHẬT STATUS_BOOKING TRONG EC_CUSTOMER KHI STATUS_BOOKING ĐÓ THAY ĐỔI
-function UpdateInforBookingOfCustomer($booking_id) {
+function UpdateInforBookingOfCustomer($booking_id)
+{
     global $db;
     $bk = new EC_Flight_Bookings;
     $bk->retrieve($booking_id);
@@ -1970,7 +2008,8 @@ function UpdateInforBookingOfCustomer($booking_id) {
 }
 
 // Get customer type
-function getCustomerType($phone) {
+function getCustomerType($phone)
+{
     if (!$phone || is_null($phone) || empty($phone)) return "NEW";
 
     global $db;
@@ -1990,10 +2029,10 @@ function getCustomerType($phone) {
     $journey = array('14' => array(), '30' => array(), '90' => array(), '365' => array());
     $revenue = array('14' => 0, '30' => 0, '90' => 0, '365' => 0);
     $is_return = 0;
-    
+
     while ($row = $db->fetchByAssoc($res)) {
 
-        if(array_key_exists('info_data', $row)){
+        if (array_key_exists('info_data', $row)) {
             $data = json_decode(html_entity_decode($row['info_data']), true);
             $count = count($data);
             $i = 0;
@@ -2002,13 +2041,13 @@ function getCustomerType($phone) {
                 $time = floor((strtotime($current_date) - strtotime($booking_date)) / (24 * 60 * 60));
                 $done = in_array($v['booking_status'], array('3', '7', '8')) ? true : false;
                 $amount = (float)$v['customer_price_revenue'];
-    
+
                 // if ($i == $count - 1) $recent_date = $booking_date;
                 // elseif ($i == $count - 2) $recent_date_2 = $booking_date;
-    
+
                 if ($done) {
-                    if($i != $count - 1) $is_return++;
-    
+                    if ($i != $count - 1) $is_return++;
+
                     if ($time <= 14) {
                         $count_booking['done']['14']++;
                         $count_ticket['14'] += $v['booking_quantity'];
@@ -2033,7 +2072,7 @@ function getCustomerType($phone) {
                 if ($time <= 14) {
                     $count_booking['all']['14']++;
                     // $journey['14'][$v['journey']] = 1; //$journey['14']['SGN - HAN'] = 1
-                    if(empty($journey['14']) || !array_key_exists($v['journey'], $journey['14'])){
+                    if (empty($journey['14']) || !array_key_exists($v['journey'], $journey['14'])) {
                         $journey['14'][] = $v['journey']; //$journey['14']['SGN - HAN'] = 1
                     }
                 }
@@ -2049,10 +2088,10 @@ function getCustomerType($phone) {
                     $count_booking['all']['365']++;
                     // $journey['365'][$v['journey']] = 1;
                 }
-    
+
                 $i++;
             }
-    
+
             // Count journey
             $journey['14'] = count($journey['14']);
             // $journey['30'] = count($journey['30']);
@@ -2076,13 +2115,14 @@ function getCustomerType($phone) {
 }
 
 // Duration khoảng thời gian customer đặt booking  - Dùng cho nút check
-function getDurationDateBetweenBookingLastest($phone) {
+function getDurationDateBetweenBookingLastest($phone)
+{
     global $db;
     $sql = 'SELECT info_data
 		   FROM ec_customer
 		   WHERE phone = "' . trim($phone) . '"';
     $res = $db->query($sql);
-    
+
     $count_paymented = 0;
     $current_date    = date('Y-m-d');
     while ($row = $db->fetchByAssoc($res)) {
@@ -2091,18 +2131,18 @@ function getDurationDateBetweenBookingLastest($phone) {
 
         $booking_date_lastest = empty($last_element['booking_date']) ? false : date('Y-m-d', strtotime('+7 hours', strtotime($last_element['booking_date'])));
 
-        foreach($data as $id => $v) {
-			if($v['booking_status'] == 8 || $v['booking_status'] == 7 || $v['booking_status'] == 3 ){
-				$count_paymented += 1;
-			}
-		}
+        foreach ($data as $id => $v) {
+            if ($v['booking_status'] == 8 || $v['booking_status'] == 7 || $v['booking_status'] == 3) {
+                $count_paymented += 1;
+            }
+        }
     }
 
-    if($booking_date_lastest == false){
+    if ($booking_date_lastest == false) {
         $duration_date = '- Ngày đặt booking gần nhất chưa xác định!';
     } else {
         $date_before   = strtotime($current_date) - strtotime($booking_date_lastest);
-        $duration_date = '- Khách hàng đã đặt booking <b class="color-red"> '.abs($date_before/(60 * 60)/24).'</b> ngày trước.';
+        $duration_date = '- Khách hàng đã đặt booking <b class="color-red"> ' . abs($date_before / (60 * 60) / 24) . '</b> ngày trước.';
     }
 
     return array(
@@ -2146,15 +2186,17 @@ function pr($data)
     }
 }
 
-function global_test_input($data) {
-    if(is_null($data)) return '';
+function global_test_input($data)
+{
+    if (is_null($data)) return '';
     $data = trim($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
     return $data;
 }
 
-function custom_get_sip_number($key = '') {
+function custom_get_sip_number($key = '')
+{
     $arr = [
         /************************  IT  ************************/
         'dedf3602-b1ec-97da-abbe-6656e656f5eb' => ['user' => '001', 'password' => '0Cm1Wc$bQd%ZTK5tnGGZ'], // Admin
@@ -2175,7 +2217,7 @@ function custom_get_sip_number($key = '') {
         '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
         // Trương Mỹ Nhân
         '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
-   
+
         // Nguyễn Duy Đăng
         'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         // Nguyễn Lộc Danh
@@ -2213,19 +2255,19 @@ function custom_get_sip_number($key = '') {
 
     ];
 
-    if(strlen($key) == 3) {
-        foreach($arr as $k => $v) {
-            if($v['user'] == $key) {
+    if (strlen($key) == 3) {
+        foreach ($arr as $k => $v) {
+            if ($v['user'] == $key) {
                 return $k;
             }
         }
-    }
-    else if(!empty($key) && isset($arr[$key])) return $arr[$key]['user'];
-    else if(empty($key)) return $arr;
+    } else if (!empty($key) && isset($arr[$key])) return $arr[$key]['user'];
+    else if (empty($key)) return $arr;
     return '';
 }
 
-function getNameGroupCalls($sip = "") {
+function getNameGroupCalls($sip = "")
+{
     $name = array();
 
     $arr_group = array(
@@ -2251,7 +2293,8 @@ function getNameGroupCalls($sip = "") {
 }
 
 // Format phone number
-function formatPhoneNumber($phoneNumber) {
+function formatPhoneNumber($phoneNumber)
+{
     // Loại bỏ mọi ký tự không phải là số
     $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
 
@@ -2282,7 +2325,8 @@ function formatPhoneNumber($phoneNumber) {
 }
 
 // Format duration 
-function secondsToTimeFormat($seconds) {
+function secondsToTimeFormat($seconds)
+{
     $hours      = floor($seconds / 3600);
     $minutes    = floor(($seconds % 3600) / 60);
     $seconds    = $seconds % 60;
@@ -2328,7 +2372,7 @@ function content_log($current_user_id, $time, $busy = 0)
     );
 
     write_file_logs_online(json_encode($row), $current_user_id);
-    
+
     return true;
 }
 
@@ -2338,7 +2382,7 @@ function write_file_logs_behavior($json)
     if (empty($json)) return false;
 
     $year = date('Y');
-    $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT );
+    $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT);
     $file_name = "secure_sessions/behavior_user_logs/$year/$month/" . str_replace('-', '_', date('d-m-Y') . '_log');
 
     // Check if the file exists
@@ -2361,7 +2405,7 @@ function content_logs_behavior($current_user_id, $time, $name_user = '', $url = 
 {
     if (is_null($current_user_id) || empty($current_user_id) || is_null($time) || empty($time)) return false;
 
-    $row = '[' . $time . '][' . $name_user . ']['.$e_target.']: ' . $url . PHP_EOL;
+    $row = '[' . $time . '][' . $name_user . '][' . $e_target . ']: ' . $url . PHP_EOL;
     write_file_logs_behavior($row);
 
     echo 200;
@@ -2369,17 +2413,18 @@ function content_logs_behavior($current_user_id, $time, $name_user = '', $url = 
 }
 
 // GET WEBSITE LINK - CREATEDBY
-function get_server_name($created_by = ''){
+function get_server_name($created_by = '')
+{
     global $db;
 
     $arr = [
         'dc22131a-795a-6cd3-2caa-52d40d3b5622', // bookingvj
         '557d4a5b-27ce-5cb1-4531-5800ab9ed31d', // timcbcom
     ];
-    if(!in_array($created_by, $arr)) return 'timchuyenbay.com';
+    if (!in_array($created_by, $arr)) return 'timchuyenbay.com';
 
     // Query từ db - another
-    $sql = 'SELECT last_name FROM users WHERE id ="'.$created_by.'" AND deleted = 0 LIMIT 1';
+    $sql = 'SELECT last_name FROM users WHERE id ="' . $created_by . '" AND deleted = 0 LIMIT 1';
     $res = $db->query($sql);
 
     while ($row = $db->fetchByAssoc($res)) {
@@ -2388,7 +2433,8 @@ function get_server_name($created_by = ''){
 }
 
 // Function to get the client ip address
-function get_ip_address_from_client() {
+function get_ip_address_from_client()
+{
     $white_list_ip = array('127.0.0.1', '::1');
 
     $ipaddress = '';
@@ -2429,11 +2475,12 @@ function get_browser_name($user_agent)
     return 'Unkown';
 }
 
-function get_blacklist_phone() {
+function get_blacklist_phone()
+{
     // Check file json
     $file_path = 'custom/jssip_webrtc/blacklist.json';
 
-    if(file_exists($file_path)) {
+    if (file_exists($file_path)) {
         $json = file_get_contents($file_path);
         return $json;
     }
@@ -2441,20 +2488,20 @@ function get_blacklist_phone() {
     return '';
 }
 
-function add_blacklist_phone($phone) {
-    if(empty($phone)) return false;
+function add_blacklist_phone($phone)
+{
+    if (empty($phone)) return false;
 
     $json = get_blacklist_phone();
-    if(empty($json)) {
+    if (empty($json)) {
         $arr = [$phone];
-    }
-    else {
+    } else {
         $arr = json_decode($json, true);
-        if(array_search($phone, $arr) === false) {
+        if (array_search($phone, $arr) === false) {
             $arr[] = $phone;
         }
     }
-    
+
     $file_name = 'custom/jssip_webrtc/blacklist.json';
     $myfile = fopen($file_name, "w") or die("Error something !!!");
     fwrite($myfile, json_encode($arr));
@@ -2462,7 +2509,8 @@ function add_blacklist_phone($phone) {
 }
 
 // RANDOM NGANLUONG_CODE
-function get_payment_link(){
+function get_payment_link()
+{
     $length = 10;
     $characters = 'qwertyuiopasdfghjklzxcvbnm0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@!';
 
@@ -2472,17 +2520,18 @@ function get_payment_link(){
     for ($i = 0; $i < $length; $i++) {
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
-    
-    $randomString = $randomString.substr(time(), 4);
+
+    $randomString = $randomString . substr(time(), 4);
 
     return $randomString;
 }
 
 // Call source into module calls
-function getCallSource($call_to) {
+function getCallSource($call_to)
+{
     $call_to = str_replace(" ", "", trim($call_to));
     $call_sources = '';
-    
+
     switch ($call_to) {
         case '02839977799':
             $call_sources = 'sanvemaybay.com.vn';
@@ -2515,21 +2564,93 @@ function getCallSource($call_to) {
 }
 
 // Block Call inbound - Linh tinh SPAM
-function isSpamPhone($phone){
+function isSpamPhone($phone)
+{
     $top_phone = array('028', '024', '021', '022', '029', '195', '252', '247', '231', '371', '232', '224', '027', '020');
     $sub_phone = substr(trim($phone), 0, 3);
 
-    if(in_array($sub_phone, $top_phone)){
+    if (in_array($sub_phone, $top_phone)) {
         $digits = str_split($phone);
 
         for ($i = 3; $i < count($digits) - 3; $i++) {
-            if ($digits[$i] == $digits[$i+1] && $digits[$i] == $digits[$i+2]) {
+            if ($digits[$i] == $digits[$i + 1] && $digits[$i] == $digits[$i + 2]) {
                 return true;
             }
         }
     }
 
     return false;
+}
+
+// CHANGE STATUS AGENT
+
+function agent_change_status($agent, $status)
+{
+    global $db;
+    if (empty($agent) || empty($status)) {
+        $response['success'] = array(
+            'code' => 400,
+            'title' => 'agent status bad request',
+        );
+        echo json_encode($response);
+        exit();
+    }
+
+    $agent_domain  = $agent . '@td.timchuyenbay.net';
+    $toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
+    $body_request = array(
+        'agent' => $agent_domain,
+        'status' => $status,
+        'token' => $toten,
+    );
+
+    try {
+        $curl = curl_init();
+        if ($curl === false) {
+            echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
+        }
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
+            CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
+            CURLOPT_TIMEOUT        => 0,
+            CURLOPT_CUSTOMREQUEST   => 'POST',
+            CURLOPT_POSTFIELDS      => $body_request,
+        ));
+
+        $json = curl_exec($curl);
+        $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        $arr = json_decode($json, true);
+
+        if ($httpcode == 200) {
+            $sql_as = 'UPDATE users
+                       SET agent_status = "' . $status . '"
+                       WHERE td_sip = "' . $agent . '"
+                       AND deleted = 0';
+            $db->query($sql_as);
+
+            if($status == 'Available'){
+	            $timestamp_now = date('Y-m-d H:i:s');
+
+                if(custom_get_sip_number($agent)){
+                    $sql_online = '
+                        UPDATE ec_online_report 
+                        SET status = 1, last_online = "' . $timestamp_now . '"
+                        WHERE assigned_user_id = "' . custom_get_sip_number($agent) . '"
+                        AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+                        AND deleted = 0
+                    ';
+                    $db->query($sql_online);
+                }
+            } 
+        }
+    } catch (Exception $e) {
+        return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
+    }
 }
 
 require_once 'custom/include/utils/address.php';

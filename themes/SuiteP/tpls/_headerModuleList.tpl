@@ -5,13 +5,17 @@
           const currentURL = window.location.href;
           const currentURLQuery = window.location.search;
 
+          var busy = 0;
+          if(AGENT_STATUS != 'Available'){
+               busy = 1;
+          } 
           if(currentURLQuery.indexOf('module=EC_Zalo&action=index') === -1) {
                $.ajax({
                     url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
                     type: "POST",
                     cache: false,
                     data: {
-                         is_busy: localStorage.getItem('is_busy'),
+                         is_busy: busy,
                          for: "checkUsrStt",
                     },
                     success: function(response) {
@@ -20,10 +24,11 @@
                               $("#availability-status").addClass("busy");
                               if(ua) ua.stop();
                               showConnect(false);
-                         } else {
-                              $('#busy_stt').prop("checked", false);
-                              $("#availability-status").addClass("online");
-                         }
+                         } 
+                         // else {
+                         //      $('#busy_stt').prop("checked", false);
+                         //      $("#availability-status").addClass("online");
+                         // }
                     }
                });
 
@@ -41,43 +46,17 @@
           }
 
           // Checked trạng thái bận của user
-          let value_busy = localStorage.getItem('is_busy');
-          if(value_busy == 1){
-               $('#busy_stt').prop("checked", true);
-          } else{
-               $('#busy_stt').prop("checked", false);
-          }
-
           $('body').on('click', function(e) {
-               // Lấy thời điểm hiện tại
                const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
                let e_target_class = e.target.className;
-               // console.log(e.target);
 
                if(e.target.id == 'busy_stt'){
-                    if ($("#busy_stt").is(":checked")) {
-                         localStorage.setItem('is_busy', 1);
-                    } else{
-                         localStorage.setItem('is_busy', 0);
-                    }
-                    
-                    let checked = localStorage.getItem('is_busy');
-                    if(checked == 1){
-                         $("#availability-status").removeClass("online");
-                         $("#availability-status").addClass("busy");
-                         $('#busy_stt').prop("checked", true);
-                    } else {
-                         $("#availability-status").removeClass("busy");
-                         $("#availability-status").addClass("online");
-                         $('#busy_stt').prop("checked", false);
-                    }
-
                     $.ajax({
                          url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
                          type: "POST",
                          cache: false,
                          data: {
-                              checked: checked,
+                              busy: busy,
                               time_busy: currentTime,
                               for: "saveLastBusyUser",
                          },

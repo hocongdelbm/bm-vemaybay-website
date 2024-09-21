@@ -357,6 +357,10 @@ class SugarView
         $ss->assign("langHeader", get_language_header());
         $ss->assign("BROWSER_TITLE", $this->getBrowserTitle());
 
+        // AGENT STATUS - HAIHUGN
+        if(isset($current_user->agent_status) && !empty($current_user->agent_status)){
+            $ss->assign("AGENT_STATUS", $current_user->agent_status);
+        } 
 
         // set ab testing if exists
         $testing = (isset($_REQUEST["testing"]) ? $_REQUEST['testing'] : "a");
@@ -1140,6 +1144,7 @@ EOHTML;
         if(isset($arr_sip_number[$current_user->id])) {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="'.$arr_sip_number[$current_user->id]['user'].'" disabled />';
             $html .= '<input type="hidden" name="sip_password" id="sip_password" value="'.$arr_sip_number[$current_user->id]['password'].'" disabled />';
+            $html .= '<input type="hidden" name="agent_status" id="agent_status" value="'.$current_user->agent_status.'" disabled />';
             $html .= '<input type="hidden" name="sip_instance_id" id="sip_instance_id" value="'.$current_user->id.'" disabled />';
             $html .= '
                 <div id="call-overlay"></div>

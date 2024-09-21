@@ -242,6 +242,9 @@ class Call extends SugarBean
                         } else {
                             $text_name_agent = $user_list[custom_get_sip_number($list_agent_inbound[0])];
                         }
+                    } else {
+                        // dialed
+                        $text_name_agent = $user_list[custom_get_sip_number($log['dialed'])];
                     }
                     $text = '' . $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào ' . $this->call_to . ' - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
                 }

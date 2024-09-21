@@ -1,19 +1,20 @@
 /********************   DECLARE   ********************/
-const SIP_USER = document.getElementById('sip_user').value;
-const SIP_PASSWORD = document.getElementById('sip_password').value;
-// const SIP_INSTANCE  = 'uuid:' + document.getElementById('sip_instance_id').value;
-const SIP_DOMAIN = 'td.timchuyenbay.net';
-const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
-const SIP_CONTACT = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
-const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
-const RINGTONE_FILE = 'ringtone.mp3';
-const TITLE_PAGE = document.getElementsByTagName("title")[0].innerHTML;
+const SIP_USER          = document.getElementById('sip_user').value;
+const SIP_PASSWORD      = document.getElementById('sip_password').value;
+const AGENT_STATUS      = document.getElementById('agent_status').value;
+// const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
+const SIP_DOMAIN        = 'td.timchuyenbay.net';
+const SIP_URI           = `sip:${SIP_USER}@${SIP_DOMAIN}`;
+const SIP_CONTACT       = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
+const WS_SERVERS        = `wss://${SIP_DOMAIN}:7444`;
+const RINGTONE_FILE     = 'ringtone.mp3';
+const TITLE_PAGE        = document.getElementsByTagName("title")[0].innerHTML;
 
 /********************   CONFIG   ********************/
 var ua;
 var session;
 var configuration = {
-    'uri': SIP_URI, // Fill sip uri here like sip:sip-user@your-domain.bwapp.bwsip.io
+    'uri': SIP_URI,
     'password': SIP_PASSWORD,
     'ws_servers': WS_SERVERS,
     'register': true,
@@ -30,6 +31,7 @@ var callOptions = {
     'sessionTimersExpires': 180, // Don't set a value lower than 90
     // 'eventHandlers' : eventHandlers, // For debug
 };
+
 // Register callbacks to desired call events (For debug)
 var eventHandlers = {
     'progress': function (e) {
@@ -68,15 +70,16 @@ ua.on('registrationFailed', function (ev) {
     showConnect(false);
 });
 ua.on('connecting', function (ev) {
-    console.info('Connecting');
-    showConnect(false);
+    console.warn('Connecting');
+    // showConnect(false);
 });
 ua.on('connected', function (ev) {
-    console.info('Connected');
-    check_online_for_call();
+    console.warn('Connected');
+    // check_online_for_call();
+    showConnect(true);
 });
 ua.on('disconnected', function (ev) {
-    console.info('Disconnected');
+    console.warn('Disconnected');
     showConnect(false);
 });
 
@@ -87,13 +90,12 @@ function check_online_for_call() {
     // On calling not check online
     if (session) return;
 
-    let sip_user = $("#sip_user").val();
     if (configuration.uri && configuration.password) {
         $.ajax({
             url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
             data: {
                 for: "is_Online",
-                agent: sip_user
+                agent: SIP_USER
             },
             type: "POST",
             cache: false,
@@ -320,8 +322,7 @@ ua.on('newRTCSession', function (ev) {
                 audio_jssip.play();
             };
         }
-    }
-    else if (session.direction === "outgoing") {
+    } else if (session.direction === "outgoing") {
         alert("Lỗi kết nối");
     }
 
@@ -346,23 +347,31 @@ $(document).ready(function () {
         }
     });
 
+    // Checked trạng thái bận của user
+    if (AGENT_STATUS == 'Available') {
+        showConnect(true);
+    } else {
+        showConnect(false);
+        ua.stop();
+    }
+
     // Checkbox busy
     $('input#busy_stt').change(function () {
-        let sip_user    = SIP_USER;
-        let status      = 'Available';
+        let status = 'Available';
 
         if ($(this).prop('checked') == true) {
-            status = 'On Break';
-            if (ua) ua.stop();
+            status = 'Logged Out';
             showConnect(false);
+            if (ua) ua.stop();
         } else {
+            showConnect(true);
             check_online_for_call();
         }
 
         $.ajax({
             url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
             data: {
-                agent: sip_user,
+                agent: SIP_USER,
                 status: status,
                 for: "changeStatusAgent"
             },
@@ -1250,14 +1259,18 @@ function showToastCall(type = '', call_id = '', zalo_id = '', phone = '', hotlin
 function showConnect(check = true) {
     if (check) {
         let color = '#1bcfb4';
-        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.096"></g><g id="SVGRepo_iconCarrier"> <path d="M17.62 10.7516C17.19 10.7516 16.85 10.4016 16.85 9.98156C16.85 9.61156 16.48 8.84156 15.86 8.17156C15.25 7.52156 14.58 7.14156 14.02 7.14156C13.59 7.14156 13.25 6.79156 13.25 6.37156C13.25 5.95156 13.6 5.60156 14.02 5.60156C15.02 5.60156 16.07 6.14156 16.99 7.11156C17.85 8.02156 18.4 9.15156 18.4 9.97156C18.4 10.4016 18.05 10.7516 17.62 10.7516Z" fill="${color}"></path> <path d="M21.2298 10.75C20.7998 10.75 20.4598 10.4 20.4598 9.98C20.4598 6.43 17.5698 3.55 14.0298 3.55C13.5998 3.55 13.2598 3.2 13.2598 2.78C13.2598 2.36 13.5998 2 14.0198 2C18.4198 2 21.9998 5.58 21.9998 9.98C21.9998 10.4 21.6498 10.75 21.2298 10.75Z" fill="${color}"></path> <path d="M11.05 14.95L9.2 16.8C8.81 17.19 8.19 17.19 7.79 16.81C7.68 16.7 7.57 16.6 7.46 16.49C6.43 15.45 5.5 14.36 4.67 13.22C3.85 12.08 3.19 10.94 2.71 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.6 4 2.98 3.44 3.51 2.94C4.15 2.31 4.85 2 5.59 2C5.87 2 6.15 2.06 6.4 2.18C6.66 2.3 6.89 2.48 7.07 2.74L9.39 6.01C9.57 6.26 9.7 6.49 9.79 6.71C9.88 6.92 9.93 7.13 9.93 7.32C9.93 7.56 9.86 7.8 9.72 8.03C9.59 8.26 9.4 8.5 9.16 8.74L8.4 9.53C8.29 9.64 8.24 9.77 8.24 9.93C8.24 10.01 8.25 10.08 8.27 10.16C8.3 10.24 8.33 10.3 8.35 10.36C8.53 10.69 8.84 11.12 9.28 11.64C9.73 12.16 10.21 12.69 10.73 13.22C10.83 13.32 10.94 13.42 11.04 13.52C11.44 13.91 11.45 14.55 11.05 14.95Z" fill="${color}"></path> <path d="M21.9696 18.3291C21.9696 18.6091 21.9196 18.8991 21.8196 19.1791C21.7896 19.2591 21.7596 19.3391 21.7196 19.4191C21.5496 19.7791 21.3296 20.1191 21.0396 20.4391C20.5496 20.9791 20.0096 21.3691 19.3996 21.6191C19.3896 21.6191 19.3796 21.6291 19.3696 21.6291C18.7796 21.8691 18.1396 21.9991 17.4496 21.9991C16.4296 21.9991 15.3396 21.7591 14.1896 21.2691C13.0396 20.7791 11.8896 20.1191 10.7496 19.2891C10.3596 18.9991 9.96961 18.7091 9.59961 18.3991L12.8696 15.1291C13.1496 15.3391 13.3996 15.4991 13.6096 15.6091C13.6596 15.6291 13.7196 15.6591 13.7896 15.6891C13.8696 15.7191 13.9496 15.7291 14.0396 15.7291C14.2096 15.7291 14.3396 15.6691 14.4496 15.5591L15.2096 14.8091C15.4596 14.5591 15.6996 14.3691 15.9296 14.2491C16.1596 14.1091 16.3896 14.0391 16.6396 14.0391C16.8296 14.0391 17.0296 14.0791 17.2496 14.1691C17.4696 14.2591 17.6996 14.3891 17.9496 14.5591L21.2596 16.9091C21.5196 17.0891 21.6996 17.2991 21.8096 17.5491C21.9096 17.7991 21.9696 18.0491 21.9696 18.3291Z" fill="${color}"></path></g></svg>`;
+        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone icon-online" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.096"></g><g id="SVGRepo_iconCarrier"> <path d="M17.62 10.7516C17.19 10.7516 16.85 10.4016 16.85 9.98156C16.85 9.61156 16.48 8.84156 15.86 8.17156C15.25 7.52156 14.58 7.14156 14.02 7.14156C13.59 7.14156 13.25 6.79156 13.25 6.37156C13.25 5.95156 13.6 5.60156 14.02 5.60156C15.02 5.60156 16.07 6.14156 16.99 7.11156C17.85 8.02156 18.4 9.15156 18.4 9.97156C18.4 10.4016 18.05 10.7516 17.62 10.7516Z" fill="${color}"></path> <path d="M21.2298 10.75C20.7998 10.75 20.4598 10.4 20.4598 9.98C20.4598 6.43 17.5698 3.55 14.0298 3.55C13.5998 3.55 13.2598 3.2 13.2598 2.78C13.2598 2.36 13.5998 2 14.0198 2C18.4198 2 21.9998 5.58 21.9998 9.98C21.9998 10.4 21.6498 10.75 21.2298 10.75Z" fill="${color}"></path> <path d="M11.05 14.95L9.2 16.8C8.81 17.19 8.19 17.19 7.79 16.81C7.68 16.7 7.57 16.6 7.46 16.49C6.43 15.45 5.5 14.36 4.67 13.22C3.85 12.08 3.19 10.94 2.71 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.6 4 2.98 3.44 3.51 2.94C4.15 2.31 4.85 2 5.59 2C5.87 2 6.15 2.06 6.4 2.18C6.66 2.3 6.89 2.48 7.07 2.74L9.39 6.01C9.57 6.26 9.7 6.49 9.79 6.71C9.88 6.92 9.93 7.13 9.93 7.32C9.93 7.56 9.86 7.8 9.72 8.03C9.59 8.26 9.4 8.5 9.16 8.74L8.4 9.53C8.29 9.64 8.24 9.77 8.24 9.93C8.24 10.01 8.25 10.08 8.27 10.16C8.3 10.24 8.33 10.3 8.35 10.36C8.53 10.69 8.84 11.12 9.28 11.64C9.73 12.16 10.21 12.69 10.73 13.22C10.83 13.32 10.94 13.42 11.04 13.52C11.44 13.91 11.45 14.55 11.05 14.95Z" fill="${color}"></path> <path d="M21.9696 18.3291C21.9696 18.6091 21.9196 18.8991 21.8196 19.1791C21.7896 19.2591 21.7596 19.3391 21.7196 19.4191C21.5496 19.7791 21.3296 20.1191 21.0396 20.4391C20.5496 20.9791 20.0096 21.3691 19.3996 21.6191C19.3896 21.6191 19.3796 21.6291 19.3696 21.6291C18.7796 21.8691 18.1396 21.9991 17.4496 21.9991C16.4296 21.9991 15.3396 21.7591 14.1896 21.2691C13.0396 20.7791 11.8896 20.1191 10.7496 19.2891C10.3596 18.9991 9.96961 18.7091 9.59961 18.3991L12.8696 15.1291C13.1496 15.3391 13.3996 15.4991 13.6096 15.6091C13.6596 15.6291 13.7196 15.6591 13.7896 15.6891C13.8696 15.7191 13.9496 15.7291 14.0396 15.7291C14.2096 15.7291 14.3396 15.6691 14.4496 15.5591L15.2096 14.8091C15.4596 14.5591 15.6996 14.3691 15.9296 14.2491C16.1596 14.1091 16.3896 14.0391 16.6396 14.0391C16.8296 14.0391 17.0296 14.0791 17.2496 14.1691C17.4696 14.2591 17.6996 14.3891 17.9496 14.5591L21.2596 16.9091C21.5196 17.0891 21.6996 17.2991 21.8096 17.5491C21.9096 17.7991 21.9696 18.0491 21.9696 18.3291Z" fill="${color}"></path></g></svg>`;
         $('#call-phone__circle').html(icon);
         $('#agent-number').html(SIP_USER);
+        $("#availability-status").removeClass("busy").addClass("online");
+        $('input#busy_stt').prop("checked", false);
     }
     else {
         let color = '#ff5f4d';
-        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M22.0005 18.3291C22.0005 18.6891 21.9205 19.0591 21.7505 19.4191C21.5805 19.7791 21.3605 20.1191 21.0705 20.4391C20.5805 20.9791 20.0405 21.3691 19.4305 21.6191C18.8305 21.8691 18.1705 21.9991 17.4705 21.9991C16.4505 21.9991 15.3605 21.7591 14.2105 21.2691C13.0605 20.7791 11.9005 20.1191 10.7605 19.2891C10.1805 18.8591 9.61055 18.4191 9.06055 17.9391L12.3205 14.6791C12.3305 14.6791 12.3305 14.6791 12.3405 14.6891C12.8605 15.1291 13.2905 15.4291 13.6305 15.6091C13.6805 15.6291 13.7405 15.6591 13.8105 15.6891C13.8905 15.7191 13.9705 15.7291 14.0605 15.7291C14.2305 15.7291 14.3605 15.6691 14.4705 15.5591L15.2305 14.8091C15.4805 14.5591 15.7205 14.3691 15.9505 14.2491C16.1805 14.1091 16.4105 14.0391 16.6605 14.0391C16.8505 14.0391 17.0505 14.0791 17.2705 14.1691C17.4905 14.2591 17.7205 14.3891 17.9705 14.5591L21.2905 16.9091C21.5505 17.0891 21.7305 17.2991 21.8405 17.5491C21.9405 17.7991 22.0005 18.0491 22.0005 18.3291Z" fill="${color}"></path> <path d="M10.76 13.24L7.5 16.5C7.49 16.5 7.49 16.5 7.48 16.49C6.45 15.45 5.52 14.36 4.68 13.22C3.87 12.1 3.22 10.97 2.74 9.86C2.73 9.84 2.73 9.83 2.72 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.56 4.1 2.86 3.62 3.27 3.19C3.34 3.11 3.42 3.02 3.51 2.94C3.67 2.78 3.83 2.64 4 2.53C4.01 2.53 4.01 2.53 4.01 2.53C4.51 2.17 5.04 2 5.6 2C5.88 2 6.16 2.06 6.41 2.18C6.65 2.29 6.86 2.45 7.03 2.68C7.05 2.7 7.06 2.72 7.08 2.74L9.4 6.01C9.58 6.26 9.71 6.49 9.8 6.71C9.89 6.92 9.94 7.13 9.94 7.32C9.94 7.56 9.87 7.8 9.73 8.03C9.6 8.26 9.41 8.5 9.17 8.74L8.41 9.53C8.3 9.64 8.25 9.77 8.25 9.93C8.25 10.01 8.26 10.08 8.28 10.16C8.31 10.24 8.34 10.3 8.36 10.36C8.54 10.69 8.85 11.12 9.29 11.64C9.74 12.16 10.22 12.69 10.74 13.22C10.75 13.23 10.75 13.23 10.76 13.24Z" fill="${color}"></path> <path d="M21.7709 2.22891C21.4709 1.92891 20.9809 1.92891 20.6809 2.22891L2.23086 20.6889C1.93086 20.9889 1.93086 21.4789 2.23086 21.7789C2.38086 21.9189 2.57086 21.9989 2.77086 21.9989C2.97086 21.9989 3.16086 21.9189 3.31086 21.7689L21.7709 3.30891C22.0809 3.00891 22.0809 2.52891 21.7709 2.22891Z" fill="${color}"></path></g></svg>`;
+        let icon = `<svg width="28px" height="28px" viewBox="0 0 24 24" fill="none" class="icon icon-phone icon-busy" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M22.0005 18.3291C22.0005 18.6891 21.9205 19.0591 21.7505 19.4191C21.5805 19.7791 21.3605 20.1191 21.0705 20.4391C20.5805 20.9791 20.0405 21.3691 19.4305 21.6191C18.8305 21.8691 18.1705 21.9991 17.4705 21.9991C16.4505 21.9991 15.3605 21.7591 14.2105 21.2691C13.0605 20.7791 11.9005 20.1191 10.7605 19.2891C10.1805 18.8591 9.61055 18.4191 9.06055 17.9391L12.3205 14.6791C12.3305 14.6791 12.3305 14.6791 12.3405 14.6891C12.8605 15.1291 13.2905 15.4291 13.6305 15.6091C13.6805 15.6291 13.7405 15.6591 13.8105 15.6891C13.8905 15.7191 13.9705 15.7291 14.0605 15.7291C14.2305 15.7291 14.3605 15.6691 14.4705 15.5591L15.2305 14.8091C15.4805 14.5591 15.7205 14.3691 15.9505 14.2491C16.1805 14.1091 16.4105 14.0391 16.6605 14.0391C16.8505 14.0391 17.0505 14.0791 17.2705 14.1691C17.4905 14.2591 17.7205 14.3891 17.9705 14.5591L21.2905 16.9091C21.5505 17.0891 21.7305 17.2991 21.8405 17.5491C21.9405 17.7991 22.0005 18.0491 22.0005 18.3291Z" fill="${color}"></path> <path d="M10.76 13.24L7.5 16.5C7.49 16.5 7.49 16.5 7.48 16.49C6.45 15.45 5.52 14.36 4.68 13.22C3.87 12.1 3.22 10.97 2.74 9.86C2.73 9.84 2.73 9.83 2.72 9.81C2.24 8.67 2 7.58 2 6.54C2 5.86 2.12 5.21 2.36 4.61C2.56 4.1 2.86 3.62 3.27 3.19C3.34 3.11 3.42 3.02 3.51 2.94C3.67 2.78 3.83 2.64 4 2.53C4.01 2.53 4.01 2.53 4.01 2.53C4.51 2.17 5.04 2 5.6 2C5.88 2 6.16 2.06 6.41 2.18C6.65 2.29 6.86 2.45 7.03 2.68C7.05 2.7 7.06 2.72 7.08 2.74L9.4 6.01C9.58 6.26 9.71 6.49 9.8 6.71C9.89 6.92 9.94 7.13 9.94 7.32C9.94 7.56 9.87 7.8 9.73 8.03C9.6 8.26 9.41 8.5 9.17 8.74L8.41 9.53C8.3 9.64 8.25 9.77 8.25 9.93C8.25 10.01 8.26 10.08 8.28 10.16C8.31 10.24 8.34 10.3 8.36 10.36C8.54 10.69 8.85 11.12 9.29 11.64C9.74 12.16 10.22 12.69 10.74 13.22C10.75 13.23 10.75 13.23 10.76 13.24Z" fill="${color}"></path> <path d="M21.7709 2.22891C21.4709 1.92891 20.9809 1.92891 20.6809 2.22891L2.23086 20.6889C1.93086 20.9889 1.93086 21.4789 2.23086 21.7789C2.38086 21.9189 2.57086 21.9989 2.77086 21.9989C2.97086 21.9989 3.16086 21.9189 3.31086 21.7689L21.7709 3.30891C22.0809 3.00891 22.0809 2.52891 21.7709 2.22891Z" fill="${color}"></path></g></svg>`;
         $('#call-phone__circle').html(icon);
+        $("#availability-status").removeClass("online").addClass("busy");
+        $('input#busy_stt').prop("checked", true);
     }
 }
 
@@ -1277,53 +1290,9 @@ function extract_hotline(str) {
         let hotline = matches.groups.regex_x_cid.trim();
 
         switch (hotline) {
-            /**********  HOTLINE  **********/
-            case '1900636060':
-            case '1900636063':
-                return 'Vietjet.net';
-
-            /**********  VIETTEL  **********/
-            case '0962768782':
-            case '0963498793':
-            case '0963678130':
-            case '0963986905':
-            case '0963987527':
-            case '0964359785':
-            case '0964031020':
-            case '02866509900':
-                
-            // 04-09-2024
-            case '0984150870':
-            case '0984175174':
-            case '0984177790':
-            case '0984191015':
-            case '0984195219':
-            case '0984260802':
-            case '0984280718':
-            case '0984343406':
-                return 'Vietjet.net';
-
             case '0911236600':
             case '01388506538':
                 return 'Laptop Dell';
-
-            /**********  MOBIFONE  **********/
-            case '0933296508':
-            case '0933297608':
-            case '0933625233':
-            case '0933799860':
-            case '0933026416':
-            case '0933611306':
-            case '0933297608':
-                return 'Vietjet.net';
-
-            /**********  VINAPHONE  **********/
-            case '0913030802':
-            case '0918038348':
-            case '0919018102':
-                return 'Vietjet.net';
-            case '0914491010':
-                return 'Sữa tươi Úc'
 
             /**********  VNPT  **********/
             case '02839977788':
