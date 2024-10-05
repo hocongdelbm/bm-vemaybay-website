@@ -132,15 +132,14 @@ class Viewtest extends SugarView
 	{
 		global $db, $current_user;
 
-		// $today 			= '2024-01-01';
-		$today 	= date('Y-m-d H:i:s', strtotime('+7 hours'));
+		$today = date('Y-m-d');
 		$start_date 		= date('Y-m-01', strtotime($today));
-		$end_date 		= date('Y-m-t', strtotime($today));
-		$month 			= date('m-Y', strtotime($today));
+		$end_date 			= date('Y-m-t', strtotime($today));
+		$month 				= date('m-Y', strtotime($today));
 		$month_before 		= date('m-Y', strtotime('-1 month', strtotime($today)));
 		$end_date_before 	= date('Y-m-t', strtotime('-1 month', strtotime($start_date)));
 
-		// từ ngày phải lấy ngày duyệt lương của tháng trước
+		// Ngày duyệt lương của tháng trước
 		$sql = '
 			SELECT DATE_FORMAT(approved_date, "%Y-%m-%d") AS from_date 
 			FROM ec_employee_salary 
@@ -149,9 +148,9 @@ class Viewtest extends SugarView
 			AND year = "' . date('Y', strtotime('01-' . $month . ' -1 month')) . '"
 			LIMIT 1
 		';
-		$res = $db->query($sql);
-		$row_fdate = $db->fetchByAssoc($res);
-		$from_date_q = '';
+		$res 			= $db->query($sql);
+		$row_fdate 		= $db->fetchByAssoc($res);
+		$from_date_q 	= '';
 
 		if (strtotime($row_fdate['from_date']) < strtotime('01-' . $month) && strtotime($row_fdate['from_date']) != false) {
 			$from_date_s = $row_fdate['from_date'];
@@ -172,6 +171,9 @@ class Viewtest extends SugarView
 				  , ot.working_hour AS overtime
 				  , u.id AS user_id, u.his_stt
 				  , u.start_working_date
+				, u.his_date_start
+              	, u.his_date_end
+				, CONCAT(u.last_name, " ", u.first_name) AS full_name
 				  , (
 					 	SELECT SUM(d.working_hour) / 8
 					 	FROM ec_workingovertimedetails d
@@ -189,6 +191,7 @@ class Viewtest extends SugarView
 						 , his.description AS history_desc
 						 , his.status AS his_stt
 						 , his.date_start AS his_date_start 
+						, his.date_end AS his_date_end
 					FROM users usr
 					INNER JOIN ec_workhistory his
 					ON his.assigned_user_id = usr.id
@@ -272,8 +275,7 @@ class Viewtest extends SugarView
 
 
 		// if($current_user->user_name == 'hungnh') {
-		// pr($sql);
-		// die();
+		// 	pr($sql);
 		// }
 
 		$res = $db->query($sql);
@@ -282,6 +284,7 @@ class Viewtest extends SugarView
 				($row['his_stt'] != 'InActive' && $row['his_stt'] != 'Absent')
 				|| (($row['his_stt'] == 'InActive' || $row['his_stt'] == 'Absent') && date('m-Y', strtotime($row['his_date_start'])) == $month)
 			) {
+
 				// tính ngày bắt đầu
 				if ($month == date('m-Y')) {
 					$tdate = date('j'); //Ngày hiện tại trong tháng - without leading zeros
@@ -294,87 +297,94 @@ class Viewtest extends SugarView
 					$tdate = date('j', strtotime($end_date));
 					if (strtotime($end_date) < strtotime($row['his_date_start']))
 						$working_days = $tdate = 0;
-					else if (strtotime($start_date) < strtotime($row['his_date_start']) && strtotime($end_date) >= strtotime($row['his_date_end']))
+					else if ($row['his_date_start'] && strtotime($start_date) < strtotime($row['his_date_start']) && $row['his_date_end'] && strtotime($end_date) >= strtotime($row['his_date_end']))
 						$working_days = date('j', strtotime($row['his_date_end'])) - date('j', strtotime($row['his_date_start'])) + 1;
 					else
 						$working_days = date('t', strtotime($start_date));
 				}
 
-				// tính những ngày nghỉ không lương
-				$sql1 = '
-					SELECT *
-					FROM ec_leaveabsences
-					WHERE deleted = 0
-					AND status = 2 
-					AND (
-						DATE_FORMAT(from_date, "%m-%Y") = "' . $month . '" 
-						OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '"
-					)
-					AND assigned_user_id = "' . $row['user_id'] . '"
-				';
-				$res1 = $db->query($sql1);
+				// Tính những ngày nghỉ không lương
 				$no_paid_days = 0;
+				if ($row['user_id']) {
+					$sql1 = '
+						SELECT *
+						FROM ec_leaveabsences
+						WHERE deleted = 0
+						AND status = 2 
+						AND (
+							DATE_FORMAT(from_date, "%m-%Y") = "' . $month . '" 
+							OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '"
+						)
+						AND assigned_user_id = "' . $row['user_id'] . '"
+					';
+					$res1 = $db->query($sql1);
 
-				while ($row1 = $db->fetchByAssoc($res1)) {
-					if ((float)$row1['no_paid_days'] > 0) {
-						// xin trong tháng
-						if (
-							strtotime($row1['from_date']) >= strtotime($start_date)
-							&& strtotime($row1['to_date']) <= strtotime($end_date)
-						) {
-							// nếu ngày hiện tại chưa tới ngày kết thúc nghỉ
-							if (strtotime($row1['to_date']) > strtotime($today)) {
-								if (strtotime($today) > strtotime($row1['from_date'])) {
-									// đếm số ngày nghỉ cho đến hiện tại
-									$leaves = myCalculateDayBetweenDates($row1['from_date'], $today) + 1;
-									// nếu số ngày nghỉ > nghỉ không lương
-									if ($leaves - $row1['no_paid_days'] >= 0) {
-										$no_paid_days += $row1['no_paid_days'];
-										// ngược lại
-									} else {
-										// kiểm tra có CN
-										$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $today);
-										$no_paid_days = $leaves - $tt_sun;
-									}
-								} else $no_paid_days = 0;
-							} else {
-								$no_paid_days += $row1['no_paid_days'];
-							}
-							// xin khác tháng
-						} else {
-							// ngày bắt đầu thuộc tháng trước
-							if (strtotime($row1['from_date']) < strtotime($start_date)) {
-								$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date_before) + 1;
-								$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $end_date_before);
-								if (($leaves - $tt_sun) < $row1['no_paid_days']) {
-									$row1['no_paid_days'] -= ($leaves - $tt_sun);
+					while ($row1 = $db->fetchByAssoc($res1)) {
+						if ((float)$row1['no_paid_days'] > 0) {
+							// xin trong tháng
+							if (
+								strtotime($row1['from_date']) >= strtotime($start_date)
+								&& strtotime($row1['to_date']) <= strtotime($end_date)
+							) {
+								// nếu ngày hiện tại chưa tới ngày kết thúc nghỉ
+								if (strtotime($row1['to_date']) > strtotime($today)) {
+									if (strtotime($today) > strtotime($row1['from_date'])) {
+										// đếm số ngày nghỉ cho đến hiện tại
+										$leaves = myCalculateDayBetweenDates($row1['from_date'], $today) + 1;
+										// nếu số ngày nghỉ > nghỉ không lương
+										if ($leaves - $row1['no_paid_days'] >= 0) {
+											$no_paid_days += $row1['no_paid_days'];
+											// ngược lại
+										} else {
+											// kiểm tra có CN
+											$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $today);
+											$no_paid_days = $leaves - $tt_sun;
+										}
+									} else $no_paid_days = 0;
+								} else {
+									$no_paid_days += $row1['no_paid_days'];
 								}
-								if (strtotime($row1['to_date']) <= strtotime($today)) {
-									$leaves2 = myCalculateDayBetweenDates($start_date, $today) + 1;
-									$tt_sun2 = $this->calSundaysBetweenTwoDays($start_date, $today);
-									if ($leaves2 - $tt_sun2 < $row1['no_paid_days']) {
-										$no_paid_days += $leaves2 - $tt_sun2;
+								// xin khác tháng
+							} else {
+								// ngày bắt đầu thuộc tháng trước
+								if (strtotime($row1['from_date']) < strtotime($start_date)) {
+									$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date_before) + 1;
+									$tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $end_date_before);
+									if (($leaves - $tt_sun) < $row1['no_paid_days']) {
+										$row1['no_paid_days'] -= ($leaves - $tt_sun);
+									}
+									if (strtotime($row1['to_date']) <= strtotime($today)) {
+										$leaves2 = myCalculateDayBetweenDates($start_date, $today) + 1;
+										$tt_sun2 = $this->calSundaysBetweenTwoDays($start_date, $today);
+										if ($leaves2 - $tt_sun2 < $row1['no_paid_days']) {
+											$no_paid_days += $leaves2 - $tt_sun2;
+										} else {
+											$no_paid_days += $row1['no_paid_days'];
+										}
 									} else {
 										$no_paid_days += $row1['no_paid_days'];
 									}
 								} else {
-									$no_paid_days += $row1['no_paid_days'];
-								}
-							} else {
-								$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date) + 1;
-								if ($leaves < $row['no_paid_days']) {
-									$no_paid_days += $leaves;
+									$leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date) + 1;
+									if ($leaves < $row['no_paid_days']) {
+										$no_paid_days += $leaves;
+									}
 								}
 							}
 						}
 					}
 				}
 
-				// tính các ngày chủ nhật
+				// Tính các ngày chủ nhật
 				$sundays = array();
 				$first_sunday = 7 - date('N', strtotime($start_date)) + 1;
-				for ($i = $first_sunday; $i <= $tdate; $i += 7) {
-					if (strtotime($i . '-' . $month) >= strtotime($row['his_date_start']) && strtotime($i . '-' . $month) <= strtotime($row['his_date_end']))
+
+				// for ($i = $first_sunday; $i <= $tdate; $i += 7) {
+				// 	if (strtotime($i . '-' . $month) >= strtotime($row['his_date_start']) && strtotime($i . '-' . $month) <= strtotime($row['his_date_end']))
+				// 		$sundays[] = $i;
+				// }
+				for($i = $first_sunday; $i <= $tdate; $i+=7) {
+					if(strtotime($i.'-'.$month) >= strtotime($row['start_working_date']))
 						$sundays[] = $i;
 				}
 				$exclude_days = array_unique(array_merge($sundays), 0);
@@ -385,8 +395,7 @@ class Viewtest extends SugarView
 					$working_days += $bonus_days;
 				}
 
-				$working_days = $working_days - count($exclude_days) - (float)$no_paid_days + ($row['overtime'] / 8) + $row['bonus_work_days'];
-
+				$working_days = $working_days - count($exclude_days) - (float)$no_paid_days + (int)($row['overtime'] / 8) + (int)$row['bonus_work_days'];
 				if ($working_days <= 0) $working_days = 0;
 
 				$sql2 = '
@@ -400,7 +409,6 @@ class Viewtest extends SugarView
 					AND month = "' . date('n', strtotime($today)) . '" 
 					AND year = "' . date('Y', strtotime($today)) . '"
 					AND deleted = 0';
-
 				$db->query($sql2);
 
 				// những nhân viên đã nghỉ hoặc tạm vắng thì không tính công
@@ -417,6 +425,7 @@ class Viewtest extends SugarView
 				$db->query($sql2);
 			}
 		}
+
 		return true;
 	}
 

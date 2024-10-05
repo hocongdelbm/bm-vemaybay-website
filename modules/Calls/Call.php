@@ -510,56 +510,90 @@ class Call extends SugarBean
     }
 
 
+    // public function get_list_view_data()
+    // {
+    //     $call_fields = $this->get_list_view_array();
+    //     global $app_list_strings, $focus, $action, $currentModule;
+    //     if (isset($focus->id)) {
+    //         $id = $focus->id;
+    //     } else {
+    //         $id = '';
+    //     }
+    //     if (isset($this->parent_type) && $this->parent_type != null) {
+    //         $call_fields['PARENT_MODULE'] = $this->parent_type;
+    //     }
+    //     if ($this->status == "Planned") {
+    //         //cn: added this if() to deal with sequential Closes in Meetings.  this is a hack to a hack (formbase.php->handleRedirect)
+    //         if (empty($action)) {
+    //             $action = "index";
+    //         }
+
+    //         $setCompleteUrl = "<b><a id='{$this->id}' class='list-view-data-icon' title='" . translate('LBL_CLOSEINLINE') . "' onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
+    //         if ($this->ACLAccess('edit')) {
+    //             $call_fields['SET_COMPLETE'] = $setCompleteUrl . "<span class='suitepicon suitepicon-action-clear'></span></a></b>";
+    //         } else {
+    //             $call_fields['SET_COMPLETE'] = '';
+    //         }
+    //     }
+    //     global $timedate;
+    //     $today = $timedate->nowDb();
+    //     $nextday = $timedate->asDbDate($timedate->getNow()->modify("+1 day"));
+    //     if (!isset($call_fields['DATE_START'])) {
+    //         LoggerManager::getLogger()->warn('Call has not DATE_START field for list view data.');
+    //     }
+    //     $mergeTime = isset($call_fields['DATE_START']) ? $call_fields['DATE_START'] : null; //$timedate->merge_date_time($call_fields['DATE_START'], $call_fields['TIME_START']);
+    //     $date_db = $timedate->to_db($mergeTime);
+    //     if ($date_db    < $today) {
+    //         if ($call_fields['STATUS'] == 'Held' || $call_fields['STATUS'] == 'Not Held') {
+    //             $call_fields['DATE_START'] = "<font>" . $call_fields['DATE_START'] . "</font>";
+    //         } else {
+    //             if (!isset($call_fields['DATE_START'])) {
+    //                 LoggerManager::getLogger()->warn('Call field has not START_DATE when trying to get list view data.');
+    //                 $dateStart = null;
+    //             } else {
+    //                 $dateStart = $call_fields['DATE_START'];
+    //             }
+    //             $call_fields['DATE_START'] = "<font class='overdueTask'>" . $dateStart . "</font>";
+    //         }
+    //     } elseif ($date_db < $nextday) {
+    //         $call_fields['DATE_START'] = "<font class='todaysTask'>" . $call_fields['DATE_START'] . "</font>";
+    //     } else {
+    //         $call_fields['DATE_START'] = "<font class='futureTask'>" . $call_fields['DATE_START'] . "</font>";
+    //     }
+    //     $this->fill_in_additional_detail_fields();
+
+    //     //make sure we grab the localized version of the contact name, if a contact is provided
+    //     if (!empty($this->contact_id)) {
+    //         // Bug# 46125 - make first name, last name, salutation and title of Contacts respect field level ACLs
+    //         $contact_temp = BeanFactory::getBean("Contacts", $this->contact_id);
+    //         if (!empty($contact_temp)) {
+    //             $contact_temp->_create_proper_name_field();
+    //             $this->contact_name = $contact_temp->full_name;
+    //         }
+    //     }
+
+    //     $call_fields['CONTACT_ID'] = $this->contact_id;
+    //     $call_fields['CONTACT_NAME'] = $this->contact_name;
+    //     $call_fields['PARENT_NAME'] = $this->parent_name;
+    //     $call_fields['REMINDER_CHECKED'] = $this->reminder_time == -1 ? false : true;
+    //     $call_fields['EMAIL_REMINDER_CHECKED'] = $this->email_reminder_time == -1 ? false : true;
+
+    //     return $call_fields;
+    // }
     public function get_list_view_data()
     {
         $call_fields = $this->get_list_view_array();
         global $app_list_strings, $focus, $action, $currentModule;
-        if (isset($focus->id)) {
-            $id = $focus->id;
-        } else {
-            $id = '';
-        }
+ 
         if (isset($this->parent_type) && $this->parent_type != null) {
             $call_fields['PARENT_MODULE'] = $this->parent_type;
         }
         if ($this->status == "Planned") {
-            //cn: added this if() to deal with sequential Closes in Meetings.  this is a hack to a hack (formbase.php->handleRedirect)
             if (empty($action)) {
                 $action = "index";
             }
-
-            $setCompleteUrl = "<b><a id='{$this->id}' class='list-view-data-icon' title='" . translate('LBL_CLOSEINLINE') . "' onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
-            if ($this->ACLAccess('edit')) {
-                $call_fields['SET_COMPLETE'] = $setCompleteUrl . "<span class='suitepicon suitepicon-action-clear'></span></a></b>";
-            } else {
-                $call_fields['SET_COMPLETE'] = '';
-            }
         }
-        global $timedate;
-        $today = $timedate->nowDb();
-        $nextday = $timedate->asDbDate($timedate->getNow()->modify("+1 day"));
-        if (!isset($call_fields['DATE_START'])) {
-            LoggerManager::getLogger()->warn('Call has not DATE_START field for list view data.');
-        }
-        $mergeTime = isset($call_fields['DATE_START']) ? $call_fields['DATE_START'] : null; //$timedate->merge_date_time($call_fields['DATE_START'], $call_fields['TIME_START']);
-        $date_db = $timedate->to_db($mergeTime);
-        if ($date_db    < $today) {
-            if ($call_fields['STATUS'] == 'Held' || $call_fields['STATUS'] == 'Not Held') {
-                $call_fields['DATE_START'] = "<font>" . $call_fields['DATE_START'] . "</font>";
-            } else {
-                if (!isset($call_fields['DATE_START'])) {
-                    LoggerManager::getLogger()->warn('Call field has not START_DATE when trying to get list view data.');
-                    $dateStart = null;
-                } else {
-                    $dateStart = $call_fields['DATE_START'];
-                }
-                $call_fields['DATE_START'] = "<font class='overdueTask'>" . $dateStart . "</font>";
-            }
-        } elseif ($date_db < $nextday) {
-            $call_fields['DATE_START'] = "<font class='todaysTask'>" . $call_fields['DATE_START'] . "</font>";
-        } else {
-            $call_fields['DATE_START'] = "<font class='futureTask'>" . $call_fields['DATE_START'] . "</font>";
-        }
+      
         $this->fill_in_additional_detail_fields();
 
         //make sure we grab the localized version of the contact name, if a contact is provided

@@ -1,16 +1,18 @@
 /********************   DECLARE   ********************/
-const SIP_USER          = document.getElementById('sip_user').value;
-const SIP_PASSWORD      = document.getElementById('sip_password').value;
-const AGENT_STATUS      = document.getElementById('agent_status').value;
+const SIP_USER = document.getElementById('sip_user').value;
+const SIP_PASSWORD = document.getElementById('sip_password').value;
+const AGENT_STATUS = document.getElementById('agent_status').value;
 // const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
-const SIP_DOMAIN        = 'td.timchuyenbay.net';
-const SIP_URI           = `sip:${SIP_USER}@${SIP_DOMAIN}`;
-const SIP_CONTACT       = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
-const WS_SERVERS        = `wss://${SIP_DOMAIN}:7444`;
-const RINGTONE_FILE     = 'ringtone.mp3';
-const TITLE_PAGE        = document.getElementsByTagName("title")[0].innerHTML;
+const SIP_DOMAIN = 'td.timchuyenbay.net';
+const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
+const SIP_CONTACT = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
+const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
+const RINGTONE_FILE = 'ringtone.mp3';
+const TITLE_PAGE = document.getElementsByTagName("title")[0].innerHTML;
 
 /********************   CONFIG   ********************/
+var ua_status = '';
+var callLog = [];
 var ua;
 var session;
 var configuration = {
@@ -23,29 +25,36 @@ var configuration = {
     'no_answer_timeout': 90,
     'display_name': 'Tim chuyen bay',
     'contact_uri': SIP_CONTACT,
+    'log': true,
     // 'instance_id' : SIP_INSTANCE,
     // 'stun_servers': [{ urls: 'stun.cloudflare.com:3478' }],
 };
+
+// Register callbacks to desired call events (For debug)
+let call_flow = '';
+var eventHandlers = {
+    'progress': function (e) {
+        console.warn('call is in progress');
+        call_flow += 'Call is in progress. ';
+    },
+    'failed': function (e) {
+        console.warn('call failed with cause: ' + e.cause + ' ');
+        call_flow += 'Call failed with cause: ' + e.cause + ' ';
+    },
+    'ended': function (e) {
+        console.warn('call ended with cause:  ' + e.cause + ' ');
+        call_flow += 'Call ended with cause: ' + e.cause + ' ';
+    },
+    'confirmed': function (e) {
+        console.warn('call confirmed');
+        call_flow += 'Call confirmed. ';
+    }
+};
+
 var callOptions = {
     'mediaConstraints': { 'audio': true, 'video': false },
     'sessionTimersExpires': 180, // Don't set a value lower than 90
-    // 'eventHandlers' : eventHandlers, // For debug
-};
-
-// Register callbacks to desired call events (For debug)
-var eventHandlers = {
-    'progress': function (e) {
-        console.log('call is in progress');
-    },
-    'failed': function (e) {
-        console.error('call failed with cause: ' + e.cause);
-    },
-    'ended': function (e) {
-        console.log('call ended with cause: ' + e.cause);
-    },
-    'confirmed': function (e) {
-        console.log('call confirmed');
-    }
+    'eventHandlers': eventHandlers, // For debug
 };
 
 /***********   Setup audio and ringtone   *************/
@@ -55,6 +64,9 @@ incomingCallAudio.loop = true;
 
 /********************   INIT   ********************/
 JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
+// JsSIP.debug.disable('JsSIP:*');
+// JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
+
 socket = new JsSIP.WebSocketInterface(WS_SERVERS);
 configuration.sockets = [socket];
 
@@ -63,26 +75,26 @@ ua = new JsSIP.UA(configuration);
 ua.start();
 
 ua.on('registrationFailed', function (ev) {
-    alert('Lỗi đăng ký máy chủ SIP: ' + ev.cause);
-    console.error(ev.cause);
+    console.error('Lỗi đăng ký máy chủ SIP: ' + ev.cause);
     configuration.uri = null;
     configuration.password = null;
     showConnect(false);
+    ua_status = 'registrationFailed';
 });
 ua.on('connecting', function (ev) {
     console.warn('Connecting');
-    // showConnect(false);
+    ua_status = 'Connecting';
 });
 ua.on('connected', function (ev) {
     console.warn('Connected');
-    // check_online_for_call();
     showConnect(true);
+    ua_status = 'Connected';
 });
 ua.on('disconnected', function (ev) {
     console.warn('Disconnected');
     showConnect(false);
+    ua_status = 'disconnected';
 });
-
 
 /*************  CHECK ONLINE FOR CALL  *************/
 setInterval(check_online_for_call, 90000);
@@ -185,6 +197,21 @@ ua.on('newRTCSession', function (ev) {
                 $('#display_dtmf').html(cur_dtml_value);
             }
         });
+
+        // UDPATE TƯƠNG TÁC KHI CUỘC GỌI ĐANG DIỄN RA
+        setInterval(function () {
+            const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
+            $.ajax({
+                url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
+                type: "POST",
+                cache: false,
+                data: {
+                     time: currentTime,
+                     for: "saveLastClickUser",
+                },
+                success: function(response) {}
+           });
+        }, 90000);
     });
 
     /************  HANDLE INBOUND CALL  ************/
@@ -240,6 +267,11 @@ ua.on('newRTCSession', function (ev) {
         $('.voiceip-content__client').slideDown();
         $('.calc-dtmf__wrap').slideUp();
         $(".voiceip-modal-transfer").hide();
+
+        // SAVE LOG
+        logCallEvent(session, SIP_USER, ua_status, call_flow);
+        saveCallLog();
+
         session = null;
     });
 
@@ -289,6 +321,11 @@ ua.on('newRTCSession', function (ev) {
         }
 
         $(document).prop('title', TITLE_PAGE);
+
+        // SAVE LOG
+        logCallEvent(session, SIP_USER, ua_status, call_flow);
+        saveCallLog();
+
         session = null;
     });
 
@@ -839,6 +876,53 @@ $(document).ready(function () {
 
 });
 
+// CALL LOG ===============================
+// -------------------------------------------------
+// -------------------------------------------------
+function saveCallLog() {
+    var fullLog = callLog.join('\n');
+
+    $.ajax({
+        url: "index.php?entryPoint=entryPointCallContact",
+        data: {
+            type: "save_log_call",
+            log: fullLog,
+        },
+        type: "POST",
+        cache: false,
+        success: function (response) {
+         
+        }
+    });
+    console.warn(fullLog);
+    callLog = []; 
+}
+
+function logCallEvent(session, ua, status, event = '') {
+    // INFOR CALL
+    console.warn(session);
+    let call_id     = '';
+    let direction   = session.direction || '';
+    if (direction === "incoming") {
+        let INVITE = session._request.data;
+        call_id = extract_call_id(INVITE);
+    }
+    else if (direction === "outgoing") {
+        call_id = session._request.call_id;
+    }
+    let call_from   = session._request.from._uri._user || '';
+    let call_to     = session._request.to._uri._user || '';
+
+    var timestamp = getCurrentTimestamp();
+    var logEntry = `[${timestamp}][${ua}][${status}]:[${direction}][${call_from}][${call_to}][${call_id}] ${event}`;
+    callLog.push(logEntry);
+}
+
+function getCurrentTimestamp() {
+    var currentDate = new Date(); 
+    currentDate.setHours(currentDate.getHours() + 7); 
+    return currentDate.toISOString().replace('T', ' ').split('.')[0]; 
+}
 
 // PUSH NOTIFICATION ===============================
 // -------------------------------------------------
@@ -1423,7 +1507,7 @@ function formatPhoneNumber(phoneNumber) {
 var call_timer;
 var seconds = 0;
 var minutes = 0;
-var hours   = 0;
+var hours = 0;
 
 function startTimer() {
     $('#voiceip-timer').show();
@@ -1506,8 +1590,8 @@ $(function () {
                             <option value="0963678130@103.232.121.103:55000">0963678130</option>
                             <option value="0963323407@103.232.121.103:55000">0963323407</option>
                             <option value="0964031020@103.232.121.103:55000">0964031020</option>
-                            <option value="0963987527@103.232.121.103:55000">0963987527</option>
-                            <!-- <option value="0963986905@103.232.121.103:55000">0963986905</option> -->
+                            <!-- <option value="0963987527@103.232.121.103:55000">0963987527</option>
+                            <option value="0963986905@103.232.121.103:55000">0963986905</option> -->
                             <option value="0984150870@103.232.121.103:55000">0984150870</option>
                             <option value="0984175174@103.232.121.103:55000">0984175174</option>
                             <option value="0984177790@103.232.121.103:55000">0984177790</option>
@@ -1531,7 +1615,7 @@ $(function () {
                             <option value="0913030802@14.238.2.146:5060">0913030802</option>
                             <option value="0918038348@103.232.121.103:55000">0918038348</option>
                             <option value="0919018102@103.232.121.103:55000">0919018102</option>
-                            <!-- <option value="0911236600@14.238.2.146:5060">0911236600</option> -->
+                            <option value="0911236600@14.238.2.146:5060">0911236600</option>
                         </optgroup>
                     </select>`);
 

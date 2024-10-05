@@ -340,7 +340,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 modified_user_id = "'.$current_user->id.'",
                 assigned_user_id = "'.$current_user->id.'"
             WHERE call_id = "'.$call_id.'" AND deleted = 0';
-        $db->query($sql);
+        $result = $db->query($sql);
+        if(!$result){
+            $GLOBALS['log']->fatal('Lưu cuộc gọi thất bại ' . $sql);
+            
+            $cal = new Call();
+            $cal->retrieve($call_id);
+            $cal->parent_type = 'Contacts';
+            $cal->parent_id = $con->id;
+            $cal->description = $note;
+            $cal->booking_id = $booking_id;
+            $cal->created_by = $current_user->id;
+            $cal->modified_user_id = $current_user->id;
+            $cal->assigned_user_id = $current_user->id;
+            $cal->save();
+            if (!$cal->id) {
+                $GLOBALS['log']->fatal('Lưu cuộc gọi bằng đối tượng thất bại: ' . $cal->id);
+            }
+        }
 
 
         /**********  2. Handle Booking  **********/
@@ -496,7 +513,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo 0;
         exit();
-    } 
+    } else if($type == 'save_log_call'){
+        $log_call = isset($_POST['log']) ? $_POST['log'] : '';
+        if(!empty($log_call)){
+
+            $year = date('Y');
+            $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT);
+            $file_name = "secure_sessions/save_call_logs/$year/$month/" . str_replace('-', '_', date('d-m-Y') . '_log');
+
+            if (!file_exists($file_name)) {
+                $dir_name = dirname($file_name);
+                if (!is_dir($dir_name)) {
+                    mkdir($dir_name, 0777, true);
+                }
+                touch($file_name);
+            }
+        
+            $myfile = fopen($file_name, "a") or die("Error: Không thể mở file ghi log!");
+            fwrite($myfile, $log_call . PHP_EOL);
+            fclose($myfile);
+
+            echo 200;
+            return true;
+        }
+    }
 }
 
 function get_call_info($phone) {

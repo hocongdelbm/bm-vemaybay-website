@@ -12,6 +12,8 @@ class CallsViewDetail extends ViewDetail
 		if ($current_user->user_name == 'hungnh' || $current_user->user_name == 'booker') {
 			$log = json_decode(html_entity_decode($this->bean->log), true);
 			pr($log);
+
+			// write_file_backup_log_calls(json_encode($log));
 		}
 
 		$this->populateCustomButtons();

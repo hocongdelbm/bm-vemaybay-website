@@ -48,6 +48,9 @@ class Viewemployeesalary extends SugarView {
 	 		if(isset($_POST['approved_btn'])) {
 	 			$this->updateApprovedStatus();
 	 		}
+	 		if(isset($_POST['update_btn'])) {
+				$this->updateWorkingDays();
+	 		}
 	 		$this->populateButtons($smarty, $is_special_user);
 	 		$this->populateContent($smarty, $is_special_user);
 	 	}
@@ -64,7 +67,7 @@ class Viewemployeesalary extends SugarView {
 		// nút chỉnh sửa
 		if(empty($_REQUEST['month_search'])) $_REQUEST['month_search'] = date('n', strtotime('-1 month'));
 		if(empty($_REQUEST['year_search'])) $_REQUEST['year_search'] = date('Y', strtotime('-1 month'));
-		$approved_inf = $this->checkApproved($_REQUEST['month_search'], $_REQUEST['year_search']);
+		$approved_inf = $this->checkApproved((int)$_REQUEST['month_search'], (int)$_REQUEST['year_search']);
  		if($is_special_user) {
  			if(!$approved_inf['is_approved']) {
 	 			if(!isset($_REQUEST['edit_btn'])) {
@@ -78,6 +81,9 @@ class Viewemployeesalary extends SugarView {
 		 		if(is_admin($current_user)) {
 		 			$approved_btn = '<input type="submit" class="btn btn-primary" name="approved_btn" value="Duyệt">';
 		 			$smartyobj->assign('APPROVED_BTN', $approved_btn);
+
+		 			$update_btn = '<input type="submit" class="btn btn-secondary" name="update_btn" value="Cập nhật">';
+		 			$smartyobj->assign('UPDATE_SALARY', $update_btn);
 		 		}
 		 	}
 
@@ -109,8 +115,9 @@ class Viewemployeesalary extends SugarView {
  		$smartyobj->assign('YEAR', $_REQUEST['year_search']);
 
  		$approved_inf = $this->checkApproved($_REQUEST['month_search'], $_REQUEST['year_search']);
+
  		if($approved_inf['is_approved']) {
- 			$smartyobj->assign('STATUS', 'Đã duyệt ngày ' . date('d-m-Y H:i:s', strtotime($approved_inf['approved_date'])));
+ 			$smartyobj->assign('STATUS', 'Đã duyệt ngày ' . date('d-m-Y H:i:s', strtotime('+7 hours', strtotime($approved_inf['approved_date']))));
  		} else {
  			$smartyobj->assign('STATUS', 'Chưa duyệt');
  		}
@@ -1866,4 +1873,308 @@ class Viewemployeesalary extends SugarView {
  		return $this->bean->db->query($sql_exists);
  	}
 
+	 function updateWorkingDays()
+	 {
+		global $db, $current_user;
+
+		if(isset($_REQUEST['month_search'])){
+			$month = $_REQUEST['month_search'];
+		} else $month = date('n');
+
+		$today = date('Y-'.$month.'-t'); // là ngày cuối tháng
+		$start_date 		= date('Y-m-01', strtotime($today));
+		$end_date 			= date('Y-m-t', strtotime($today));
+		$month 				= date('m-Y', strtotime($today));
+		$month_before 		= date('m-Y', strtotime('-1 month', strtotime($today)));
+		$end_date_before 	= date('Y-m-t', strtotime('-1 month', strtotime($start_date)));
+
+		 // Ngày duyệt lương của tháng trước
+		 $sql = '
+			 SELECT DATE_FORMAT(approved_date, "%Y-%m-%d") AS from_date 
+			 FROM ec_employee_salary 
+			 WHERE deleted = 0 
+			 AND month = "' . date('n', strtotime('01-' . $month . ' -1 month')) . '" 
+			 AND year = "' . date('Y', strtotime('01-' . $month . ' -1 month')) . '"
+			 LIMIT 1
+		 ';
+		 $res 			= $db->query($sql);
+		 $row_fdate 		= $db->fetchByAssoc($res);
+		 $from_date_q 	= '';
+ 
+		 if (strtotime($row_fdate['from_date']) < strtotime('01-' . $month) && strtotime($row_fdate['from_date']) != false) {
+			 $from_date_s = $row_fdate['from_date'];
+			 $from_date_q = ' AND from_date >= "' . $row_fdate['from_date'] . '"';
+			 $first_sunday_lastm = 7 - date('N', strtotime($from_date_s)) + 1;
+ 
+			 for ($i = $first_sunday_lastm; $i <= date('t', strtotime('-1 month')); $i += 7) {
+				 if ($i > (int)date('d', strtotime($from_date_s)))
+					 $sundays_lastm_left[] = $i;
+			 }
+		 } else {
+			 $from_date_s = $start_date;
+		 }
+ 
+		 $sql = 'SELECT l.used_leave_days_curr AS used_leave_days
+					, IFNULL(l.no_paid_days, 0) AS no_paid_days
+					, IFNULL(l.absence_days, 0) AS leave_days
+				   , ot.working_hour AS overtime
+				   , u.id AS user_id, u.his_stt
+				   , u.start_working_date
+				 , u.his_date_start
+				   , u.his_date_end
+				 , CONCAT(u.last_name, " ", u.first_name) AS full_name
+				   , (
+						  SELECT SUM(d.working_hour) / 8
+						  FROM ec_workingovertimedetails d
+						  INNER JOIN ec_workingovertimes t
+						  ON t.id = d.ec_workingovertimes_id_c
+						  AND t.status = 2
+						  WHERE d.deleted = 0
+						  AND d.assigned_user_id = u.id
+						  AND DATE_FORMAT(t.bonus_month, "%m-%Y") = "' . $month . '" 
+					  ) AS bonus_work_days
+			 FROM (
+					 SELECT usr.id, usr.start_working_date
+						  , usr.last_name, usr.first_name
+						  , usr.title, usr.deleted, his.with_salary
+						  , his.description AS history_desc
+						  , his.status AS his_stt
+						  , his.date_start AS his_date_start 
+						 , his.date_end AS his_date_end
+					 FROM users usr
+					 INNER JOIN ec_workhistory his
+					 ON his.assigned_user_id = usr.id
+					 AND his.deleted = 0
+					 AND DATE_FORMAT(his.date_start, "%Y-%m-01") <= "' . $start_date . '"
+					 AND LAST_DAY(IFNULL(his.date_end, "' . $end_date . '")) >= "' . $end_date . '"
+					 WHERE usr.deleted = 0
+				 ) AS u
+			 LEFT JOIN (
+				 SELECT SUM(IFNULL(used_leave_days_curr_m, 0)) AS used_leave_days
+				  , assigned_user_id
+				  , SUM(
+					IF( from_date > "' . $today . '"
+						,  0
+						,  CASE WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" 
+						AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" 
+						THEN IFNULL( absence_days, 0 )
+						WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" 
+						THEN DATEDIFF("' . $end_date . '", from_date) + 1
+						ELSE DATEDIFF(to_date, "' . $start_date . '") + 1 END 
+					)
+				  ) AS absence_days
+				  , SUM(
+					 IF( from_date > "' . $today . '" OR no_paid_days = 0
+						,  0
+						,  CASE 
+								-- trong thang, hom nay > ngay ket thuc nghi
+								WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" AND (to_date <= "' . $today . '"  OR DATEDIFF("' . $today . '", from_date) >= no_paid_days)
+								THEN IFNULL(no_paid_days, 0)
+ 
+								-- trong thang, hom nay < ngay ket thuc nghi, co chon ngay nghi 0.5 buoi 
+								WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" AND to_date > "' . $today . '" AND part_date <= "' . $today . '"
+								THEN DATEDIFF("' . $today . '", from_date) + 0.5
+ 
+								-- trong thang, hom nay < ngay ket thuc nghi, ko chon ngay nghi 0.5 buoi 
+								WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" AND DATE_FORMAT( to_date, "%m-%Y" ) = "' . $month . '" AND to_date > "' . $today . '"
+								THEN DATEDIFF("' . $today . '", from_date) + 1
+ 
+								-- khac thang
+								WHEN DATE_FORMAT( from_date, "%m-%Y" ) = "' . $month . '" 
+								THEN DATEDIFF("' . $end_date . '", from_date) + 1
+								ELSE DATEDIFF("' . $end_date . '", "' . $start_date . '") + 1 END
+					) 
+				  ) AS no_paid_days
+				  , (
+					 SELECT SUM(IFNULL(used_leave_days_next_m, 0)) 
+					 FROM ec_leaveabsences
+					 WHERE deleted = 0
+					 AND status = 2 
+					 AND (DATE_FORMAT(from_date, "%m-%Y") = "' . $month_before . '" 
+					 OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month_before . '")
+					 AND assigned_user_id = a.assigned_user_id
+					 GROUP BY assigned_user_id
+				 ) AS used_leave_days_curr
+				 FROM ec_leaveabsences a
+				 WHERE deleted = 0
+				 AND status = 2 AND (DATE_FORMAT(from_date, "%m-%Y") = "' . $month . '" 
+				 OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '")' . $from_date_q . '
+				 GROUP BY assigned_user_id
+			 ) AS l ON l.assigned_user_id = u.id
+			 LEFT JOIN (
+				 SELECT SUM(working_hour) AS working_hour, assigned_user_id 
+				 FROM ec_workingovertimedetails
+				 WHERE deleted = 0 AND status = 2 
+				 AND register_date <= "' . $today . '"
+				 AND register_date >= "' . $from_date_s . '"
+				 GROUP BY assigned_user_id
+			 ) AS ot ON ot.assigned_user_id = u.id
+			 WHERE u.deleted = 0 
+			 AND u.start_working_date IS NOT NULL
+			 GROUP BY u.id
+			 ORDER BY (
+				 CASE 
+					 WHEN u.title LIKE "%QuanLy%" THEN 1
+					 WHEN u.title LIKE "%KeToan%" THEN 2
+					 WHEN u.title LIKE "%Leader%" THEN 3
+					 WHEN u.title LIKE "%Booker%" THEN 4
+				 ELSE 5
+				 END 
+			 ), u.start_working_date';
+ 
+ 
+		 // if($current_user->user_name == 'hungnh') {
+		 // 	pr($sql);
+		 // }
+ 
+		 $res = $db->query($sql);
+		 while ($row = $db->fetchByAssoc($res)) {
+			 if (
+				 ($row['his_stt'] != 'InActive' && $row['his_stt'] != 'Absent')
+				 || (($row['his_stt'] == 'InActive' || $row['his_stt'] == 'Absent') && date('m-Y', strtotime($row['his_date_start'])) == $month)
+			 ) {
+ 
+				 // tính ngày bắt đầu
+				 if ($month == date('m-Y')) {
+					 $tdate = date('j'); //Ngày hiện tại trong tháng - without leading zeros
+ 
+					 if (date('m-Y') == date('m-Y', strtotime($row['his_date_start'])))
+						 $working_days = date('j') - date('j', strtotime($row['his_date_start'])) + 1;
+					 else
+						 $working_days = date('j', strtotime($today));
+				 } else {
+					 $tdate = date('j', strtotime($end_date));
+					 if (strtotime($end_date) < strtotime($row['his_date_start']))
+						 $working_days = $tdate = 0;
+					 else if ($row['his_date_start'] && strtotime($start_date) < strtotime($row['his_date_start']) && $row['his_date_end'] && strtotime($end_date) >= strtotime($row['his_date_end']))
+						 $working_days = date('j', strtotime($row['his_date_end'])) - date('j', strtotime($row['his_date_start'])) + 1;
+					 else
+						 $working_days = date('t', strtotime($start_date));
+				 }
+ 
+				 // Tính những ngày nghỉ không lương
+				 $no_paid_days = 0;
+				 if ($row['user_id']) {
+					 $sql1 = '
+						 SELECT *
+						 FROM ec_leaveabsences
+						 WHERE deleted = 0
+						 AND status = 2 
+						 AND (
+							 DATE_FORMAT(from_date, "%m-%Y") = "' . $month . '" 
+							 OR DATE_FORMAT(to_date, "%m-%Y") = "' . $month . '"
+						 )
+						 AND assigned_user_id = "' . $row['user_id'] . '"
+					 ';
+					 $res1 = $db->query($sql1);
+ 
+					 while ($row1 = $db->fetchByAssoc($res1)) {
+						 if ((float)$row1['no_paid_days'] > 0) {
+							 // xin trong tháng
+							 if (
+								 strtotime($row1['from_date']) >= strtotime($start_date)
+								 && strtotime($row1['to_date']) <= strtotime($end_date)
+							 ) {
+								 // nếu ngày hiện tại chưa tới ngày kết thúc nghỉ
+								 if (strtotime($row1['to_date']) > strtotime($today)) {
+									 if (strtotime($today) > strtotime($row1['from_date'])) {
+										 // đếm số ngày nghỉ cho đến hiện tại
+										 $leaves = myCalculateDayBetweenDates($row1['from_date'], $today) + 1;
+										 // nếu số ngày nghỉ > nghỉ không lương
+										 if ($leaves - $row1['no_paid_days'] >= 0) {
+											 $no_paid_days += $row1['no_paid_days'];
+											 // ngược lại
+										 } else {
+											 // kiểm tra có CN
+											 $tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $today);
+											 $no_paid_days = $leaves - $tt_sun;
+										 }
+									 } else $no_paid_days = 0;
+								 } else {
+									 $no_paid_days += $row1['no_paid_days'];
+								 }
+								 // xin khác tháng
+							 } else {
+								 // ngày bắt đầu thuộc tháng trước
+								 if (strtotime($row1['from_date']) < strtotime($start_date)) {
+									 $leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date_before) + 1;
+									 $tt_sun = $this->calSundaysBetweenTwoDays($row1['from_date'], $end_date_before);
+									 if (($leaves - $tt_sun) < $row1['no_paid_days']) {
+										 $row1['no_paid_days'] -= ($leaves - $tt_sun);
+									 }
+									 if (strtotime($row1['to_date']) <= strtotime($today)) {
+										 $leaves2 = myCalculateDayBetweenDates($start_date, $today) + 1;
+										 $tt_sun2 = $this->calSundaysBetweenTwoDays($start_date, $today);
+										 if ($leaves2 - $tt_sun2 < $row1['no_paid_days']) {
+											 $no_paid_days += $leaves2 - $tt_sun2;
+										 } else {
+											 $no_paid_days += $row1['no_paid_days'];
+										 }
+									 } else {
+										 $no_paid_days += $row1['no_paid_days'];
+									 }
+								 } else {
+									 $leaves = myCalculateDayBetweenDates($row1['from_date'], $end_date) + 1;
+									 if ($leaves < $row['no_paid_days']) {
+										 $no_paid_days += $leaves;
+									 }
+								 }
+							 }
+						 }
+					 }
+				 }
+ 
+				 // Tính các ngày chủ nhật
+				 $sundays = array();
+				 $first_sunday = 7 - date('N', strtotime($start_date)) + 1;
+ 
+				 // for ($i = $first_sunday; $i <= $tdate; $i += 7) {
+				 // 	if (strtotime($i . '-' . $month) >= strtotime($row['his_date_start']) && strtotime($i . '-' . $month) <= strtotime($row['his_date_end']))
+				 // 		$sundays[] = $i;
+				 // }
+				 for($i = $first_sunday; $i <= $tdate; $i+=7) {
+					 if(strtotime($i.'-'.$month) >= strtotime($row['start_working_date']))
+						 $sundays[] = $i;
+				 }
+				 $exclude_days = array_unique(array_merge($sundays), 0);
+ 
+				 // tính số ngày công
+				 if (strtotime($from_date_s) < strtotime($start_date)) {
+					 $bonus_days = date('t', strtotime($from_date_s)) - date('d', strtotime($from_date_s)) - count($sundays_lastm_left);
+					 $working_days += $bonus_days;
+				 }
+ 
+				 $working_days = $working_days - count($exclude_days) - (float)$no_paid_days + (int)($row['overtime'] / 8) + (int)$row['bonus_work_days'];
+				 if ($working_days <= 0) $working_days = 0;
+ 
+				 $sql2 = '
+					 UPDATE ec_employee_salary 
+					 SET 
+						 working_days = ' . $working_days . '
+							, ot_days = ' . ($row['overtime'] / 8) . ' 
+							, no_paid_days = ' . (float)$row['no_paid_days'] . '
+					 WHERE is_approved = 0 
+					 AND assigned_user_id = "' . $row['user_id'] . '"
+					 AND month = "' . date('n', strtotime($today)) . '" 
+					 AND year = "' . date('Y', strtotime($today)) . '"
+					 AND deleted = 0';
+				 $db->query($sql2);
+ 
+				 // những nhân viên đã nghỉ hoặc tạm vắng thì không tính công
+			 } else {
+				 $sql2 = 'UPDATE ec_employee_salary 
+						  SET working_days = 0
+							, ot_days = 0 
+							, no_paid_days = 0
+						  WHERE is_approved = 0 
+						  AND assigned_user_id = "' . $row['user_id'] . '"
+						  AND month="' . date('n', strtotime($today)) . '" 
+						  AND year = "' . date('Y', strtotime($today)) . '" 
+						  AND deleted = 0';
+				 $db->query($sql2);
+			 }
+		 }
+ 
+		 return true;
+	 }
 } 

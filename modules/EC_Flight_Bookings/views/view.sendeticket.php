@@ -3,6 +3,7 @@ require_once("include/Sugar_Smarty.php");
 class Viewsendeticket extends SugarView {
 	function display() {
         global $current_user;
+		$smartyCont = new Sugar_Smarty();
 
         // Check email is valid
         $not_allowed = array(
@@ -40,7 +41,7 @@ class Viewsendeticket extends SugarView {
             exit;
         }
 
-		$is_ok = $this->sendEticket();
+		$is_ok = $this->sendEticket($smartyCont);
 		if($is_ok){
             header("Location: index.php?module=EC_Flight_Bookings&action=DetailView&record=".$_REQUEST['return_id']);
             exit;
@@ -50,7 +51,7 @@ class Viewsendeticket extends SugarView {
 		}
 	}
 
-	function sendEticket() {
+	function sendEticket($smartyobj) {
 		global $db, $current_user, $app_list_strings;
 		$send_ok = true;
 		require_once('modules/EC_Flight_Bookings/views/view.printeticket.php');
@@ -75,7 +76,8 @@ class Viewsendeticket extends SugarView {
 		$booking_infos['image_url_large'] = $department_info['company_logo'];
 		$booking_infos['booking_num'] = $_REQUEST['booking'];
 		$booking_infos['add_type'] = $_REQUEST['add_type'];
-		$pass_inf = $pe->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id']);
+		$pass_inf = $pe->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $smartyobj);
+
 
 		if (
 			$pass_inf['pass_cnt'] <= 1 
@@ -91,6 +93,7 @@ class Viewsendeticket extends SugarView {
 			}
 		}
 		$booking_infos['list_of_passenger'] = $pass_inf['html'];
+		$booking_infos['list_of_itineraries_changed'] = $pass_inf['html_itineraries'];
 
 		if ($_REQUEST['add_type'] != 3 || !isset($_REQUEST['add_type'])) {
 			$iti_info = $pe->listOfItineraries($_REQUEST['booking_id'], $khuhoi, $_REQUEST['wayflight'],  $lang, $_REQUEST['itinerary_id'], $is_change_inf);
@@ -126,13 +129,13 @@ class Viewsendeticket extends SugarView {
 			$booking_infos['list_of_itineraries'] = $iti_html;
 		}
 
-		$booking_infos['com_name'] 			= $department_info['com_name'];
-		$booking_infos['com_taxcode'] 		= $department_info['com_taxcode'];
-		$booking_infos['com_address'] 		= $department_info['com_address'];
+		$booking_infos['com_name'] 				= $department_info['com_name'];
+		$booking_infos['com_taxcode'] 			= $department_info['com_taxcode'];
+		$booking_infos['com_address'] 			= $department_info['com_address'];
 		$booking_infos['com_phone'] 			= $department_info['com_phone'].' - '.$department_info['com_hotline1'].' - '.$department_info['com_hotline2'];
 		$booking_infos['com_phone_support'] 	= $department_info['com_phone'];
-		$booking_infos['com_website'] 		= $department_info['com_website2'];
-		$booking_infos['com_website_slogan'] 		= $department_info['com_website'];
+		$booking_infos['com_website'] 			= $department_info['com_website2'];
+		$booking_infos['com_website_slogan'] 	= $department_info['com_website'];
 		$booking_infos['com_email'] 			= $department_info['com_email'];
 		$booking_infos['minute_before'] 		= $_REQUEST['ticket_type'] == '2' ? '120' : '120'; // vé quốc tế là 180p
 

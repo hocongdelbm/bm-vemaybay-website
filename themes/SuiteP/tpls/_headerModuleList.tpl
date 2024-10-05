@@ -4,6 +4,7 @@
      $(document).ready(function() {
           const currentURL = window.location.href;
           const currentURLQuery = window.location.search;
+          const AGENT_STATUS    = $('#agent_status').val() || 'Available';
 
           var busy = 0;
           if(AGENT_STATUS != 'Available'){
@@ -19,16 +20,12 @@
                          for: "checkUsrStt",
                     },
                     success: function(response) {
-                         if (response == 2) {
-                              $("#busy_stt").prop("checked", true);
-                              $("#availability-status").addClass("busy");
-                              if(ua) ua.stop();
-                              showConnect(false);
-                         } 
-                         // else {
-                         //      $('#busy_stt').prop("checked", false);
-                         //      $("#availability-status").addClass("online");
-                         // }
+                         // if (response == 2) {
+                         //      $("#busy_stt").prop("checked", true);
+                         //      $("#availability-status").addClass("busy");
+                         //      if(ua) ua.stop();
+                         //      showConnect(false);
+                         // } 
                     }
                });
 

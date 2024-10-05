@@ -82,6 +82,8 @@ function updateOnlineReport()
 		'e4a1676e-536d-b5d2-75c2-6502656a118b', //cuong
 		'493ad5e5-ffea-a84f-96d7-6577fed623d6', //booker
 		'2751ebe5-6cdc-acfc-7d70-659d08368c2e', //ancao
+
+		'c57196c6-e211-9856-43d5-6695498f39ae', //tiennguyen
 	);
 	$notInCondition = "'" . implode("', '", $arr_id_admin) . "'";
 
@@ -2091,9 +2093,13 @@ function checkStatusOnlineUser()
 
 		$user_id = str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
         $data_user = json_decode(read_file_logs_online($user_id), true);
+		if (!$data_user) continue; 
+
         $last_time_user_7 = date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
         $diffInSeconds = abs($timestamp_now - strtotime($data_user['last_time']));
         $agent = custom_get_sip_number($user_id);
+
+		if($user_id == 'c57196c6-e211-9856-43d5-6695498f39ae') continue; //tiennguyen
 
 		// Kiểm tra trạng thái busy (5 phút) và không tương tác (2 phút 30 giây)
         if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] != 1 && $diffInSeconds > 150)) {
@@ -2103,12 +2109,13 @@ function checkStatusOnlineUser()
         } else {
             // Kiểm tra trạng thái online hiện tại
             $row = $db->fetchByAssoc($db->query("
-                SELECT status FROM ec_online_report
+                SELECT status 
+				FROM ec_online_report
                 WHERE assigned_user_id = '$user_id'
                 AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'
                 AND deleted = 0
             "));
-            if ($row['status'] && !in_array($row['status'], [1, 2]) && $agent) {
+            if (!empty($row['status']) && !in_array($row['status'], [1, 2]) && $agent) {
                 agent_change_status($agent, 'Available');
             }
         }
