@@ -1,5 +1,10 @@
 <?php
+global $app_list_strings, $current_user;
 $module_name = 'EC_Flight_Bookings';
+$booking_stt_list = $app_list_strings['booking_status_list'];
+if(isManagerUser($current_user->id)) {
+    $booking_stt_list[100] = 'Thay đổi giao cho'; 
+}
 $searchdefs[$module_name] = array(
     'layout' => array(
         'basic_search' => array(
@@ -231,6 +236,7 @@ $searchdefs[$module_name] = array(
                 'label' => 'LBL_BOOKING_STATUS',
                 'width' => '10%',
                 'name' => 'booking_status',
+                'options' => $booking_stt_list,
             ),
             'ticket_type' => array(
                 'type' => 'enum',

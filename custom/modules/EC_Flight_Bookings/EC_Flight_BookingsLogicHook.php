@@ -14,6 +14,38 @@ class EC_Flight_BookingsLogicHook
 		if ($current_user->id != '4f4d7a13-4171-9b7d-251c-64dd8f9885e4') {
 			$focus->ip_address = '';
 		}
+
+		// kt những booking sau khi hoàn tất có thay đổi giao cho
+		// nếu có trả về icon warning
+		if(isManagerUser($current_user->id)) {
+			$focus->name .= $this->checkBookingChangeAssign($focus->id);
+		}
+	}
+
+	function checkBookingChangeAssign($booking_id) {
+		global $db;
+		$icon = '';
+		$sql = '
+			SELECT COUNT(id)
+			FROM ec_flight_bookings_audit 
+			WHERE parent_id = "' . $booking_id . '"
+			AND field_name = "assigned_user_id" 
+			AND date_created > IFNULL((
+				SELECT date_created
+				FROM ec_flight_bookings_audit 
+				WHERE parent_id = "' . $booking_id . '"
+				AND field_name = "booking_status"
+				AND after_value_string = "8"
+				ORDER BY date_created
+				LIMIT 1
+			), "' . date('Y-m-d H:i:s', strtotime('+1 hour')) . '")
+		';
+		$is_change = $db->getOne($sql);
+		if(!empty($is_change)) {
+			$icon = '</a><a class="bk-warning-icon" title="Xem thông tin thay đổi giao cho"><svg width="18px" height="18px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" fill="#F40009"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <rect x="0" fill="none" width="20" height="20"></rect> <g> <path d="M10 2c4.42 0 8 3.58 8 8s-3.58 8-8 8-8-3.58-8-8 3.58-8 8-8zm1.13 9.38l.35-6.46H8.52l.35 6.46h2.26zm-.09 3.36c.24-.23.37-.55.37-.96 0-.42-.12-.74-.36-.97s-.59-.35-1.06-.35-.82.12-1.07.35-.37.55-.37.97c0 .41.13.73.38.96.26.23.61.34 1.06.34s.8-.11 1.05-.34z"></path></g></g></svg>';
+		}
+		
+		return $icon;
 	}
 
 	function checkBeforeDelete($focus, $event, $arguments)
