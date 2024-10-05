@@ -132,17 +132,6 @@ $GLOBALS['app_list_strings']['request_type_list'] = array(
   3 => 'Yêu cầu đặt vé',
   4 => 'Góp ý website',
 );
-
-$GLOBALS['app_list_strings']['booking_status_list'] = array(
-  1 => 'InCompleted',
-  2 => 'PaymentPending',
-  3 => 'Confirmed',
-  4 => 'Cancelled',
-  6 => 'Called',
-  7 => 'Ticket Exported',
-  8 => 'Completed',
-);
-
 $GLOBALS['app_list_strings']['debt_status_list'] = array(
   'New' => 'Mới khởi tạo',
   'Processing' => 'Đang chi / thu',
@@ -1058,4 +1047,13 @@ $app_strings['LBL_GROUPTAB3_1684119585'] = 'Nhóm mới';
 $app_strings['LBL_GROUPTAB3_1684119902'] = 'Nhóm mới';
 
 $app_strings['LBL_GROUPTAB1_1684121154'] = 'Nhóm mới';
-?>
+
+$app_list_strings['booking_status_list']=array (
+  1 => 'InCompleted',
+  2 => 'PaymentPending',
+  3 => 'Confirmed',
+  4 => 'Cancelled',
+  6 => 'Called',
+  7 => 'Ticket Exported',
+  8 => 'Completed',
+);

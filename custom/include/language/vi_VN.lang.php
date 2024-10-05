@@ -555,17 +555,6 @@ $GLOBALS['app_list_strings']['location_list'] = array(
   '1d279238-8d81-4b85-2ba9-5a4f0da2dc23' => 'VP 48 NCV',
 
 );
-
-$GLOBALS['app_list_strings']['booking_status_list'] = array(
-  1 => 'Mới tạo',
-  6 => 'Đã gọi',
-  2 => 'Chờ TT',
-  3 => 'Xác nhận',
-  7 => 'Xuất vé',
-  4 => 'Hủy',
-  8 => 'Hoàn tất',
-);
-
 $GLOBALS['app_list_strings']['mobile_phone_new_prefix_convert_list'] = array(
   '0162' => '032',
   '0163' => '033',
@@ -2480,4 +2469,13 @@ $app_strings['LBL_GROUPTAB4_1701142222'] = 'Nhóm mới';
 $app_strings['LBL_GROUPTAB4_1701142454'] = 'Activity';
 
 $app_strings['LBL_GROUPTAB5_1717468343'] = 'Email';
-?>
+
+$app_list_strings['booking_status_list']=array (
+  1 => 'Mới tạo',
+  6 => 'Đã gọi',
+  2 => 'Chờ TT',
+  3 => 'Xác nhận',
+  7 => 'Xuất vé',
+  4 => 'Hủy',
+  8 => 'Hoàn tất',
+);
