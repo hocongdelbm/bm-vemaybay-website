@@ -492,6 +492,7 @@
 					{$APPROVED_BTN}
 					{$EXCEL_BTN}
 					{$EXCERPT_SALARY}
+					{$UPDATE_SALARY}
 				</div>
 			</span>
 			<span class="search_area hide">

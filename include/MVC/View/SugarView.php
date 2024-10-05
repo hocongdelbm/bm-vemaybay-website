@@ -1244,7 +1244,7 @@ EOHTML;
                                                 </svg>
                                             </div>
                                             <div class="calc-button calc-number" dtmf="0" id="zero" style="grid-area: zero;">0</div>
-                                            <div class="calc-button" id="submit_dtmf" style="grid-area: submit_dtmf;">*</div>
+                                            <div class="calc-button calc-number" dtmf="*" id="submit_dtmf" style="grid-area: submit_dtmf;">*</div>
                                         </div>
                                     </div>
                                 </div>

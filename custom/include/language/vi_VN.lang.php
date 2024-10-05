@@ -2306,13 +2306,13 @@ $GLOBALS['app_list_strings']['bambooair_buzflex_luggage_price_list'] = array(
 );
 $GLOBALS['app_list_strings']['bambooair_advanced_luggage_price_list'] = array(
   1 => '15kg hành lý ký gửi ',
-  100000 => 'Thêm 5kg hành lý trả trước (100.000 VND/Khách)-HLTT',
-  150000 => 'Thêm 10kg hành lý trả trước (150.000 VND/Khách)-HLTT',
-  220000 => 'Thêm 20kg hành lý trả trước (220.000 VND/Khách)-HLTT',
-  280000 => 'Thêm 25kg hành lý trả trước (280.000 VND/Khách)-HLTT',
-  380000 => 'Thêm 30kg hành lý trả trước (380.000 VND/Khách)-HLTT',
-  450000 => 'Thêm 35kg hành lý trả trước (450.000 VND/Khách)-HLTT',
-  550000 => 'Thêm 40kg hành lý trả trước (550.000 VND/Khách)-HLTT',
+  // 100000 => 'Thêm 5kg hành lý trả trước (100.000 VND/Khách)-HLTT',
+  // 150000 => 'Thêm 10kg hành lý trả trước (150.000 VND/Khách)-HLTT',
+  // 220000 => 'Thêm 20kg hành lý trả trước (220.000 VND/Khách)-HLTT',
+  // 280000 => 'Thêm 25kg hành lý trả trước (280.000 VND/Khách)-HLTT',
+  // 380000 => 'Thêm 30kg hành lý trả trước (380.000 VND/Khách)-HLTT',
+  // 450000 => 'Thêm 35kg hành lý trả trước (450.000 VND/Khách)-HLTT',
+  // 550000 => 'Thêm 40kg hành lý trả trước (550.000 VND/Khách)-HLTT',
 );
 $GLOBALS['app_list_strings']['bambooair_plus_luggage_price_list'] = array(
   0 => 'Thêm 20kg hành lý (0 VND/Khách)-Plus ',
@@ -2325,6 +2325,13 @@ $GLOBALS['app_list_strings']['bambooair_plus_luggage_price_list'] = array(
 $GLOBALS['app_list_strings']['bambooair_infant_luggage_price_list'] = array(
   0 => 'Không mang hành lý ký gửi ',
 );
+
+
+
+
+
+
+
 
 // Vietravel Airlines
 $GLOBALS['app_list_strings']['vietravel_luggage_price_list'] = array(
@@ -2374,9 +2381,9 @@ $GLOBALS['app_list_strings']['new_vietravel_luggage_price_list2'] = array(
   // 460000 => 'Thêm 40kg hành lý (460.000 VND/Khách)',
 
   // Từ ngày 15-08-2024
-  230000 => 'Thêm 15kg kiện hành lý (230.000 VND/Khách)',
-  310000 => 'Thêm 23kg kiện hành lý (310.000 VND/Khách)',
-  480000 => 'Thêm 32kg kiện hành lý (480.000 VND/Khách)',
+  230000 => '1 kiện 15kg (230.000 VND/Khách)',
+  310000 => '1 kiện 23kg (310.000 VND/Khách)',
+  480000 => '1 kiện 32kg (480.000 VND/Khách)',
 );
 
 // HÀNH LÝ QUỐC TẾ

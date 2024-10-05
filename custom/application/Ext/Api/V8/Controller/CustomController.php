@@ -151,9 +151,15 @@ class CustomController extends BaseController
         $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
 
         if (empty($call_id)) {
+            $GLOBALS['log']->fatal('Lỗi params. Lưu thông tin cuộc gọi thất bại');
+			write_file_backup_log_calls(json_encode($params));
+
             $response['fail'] = array(
+                'error' => true,
                 'code' => 400,
-                'title' => 'Bad request params',
+                'message' => 'Bad request params',
+                'data_post' => json_encode($params)
+
             );
             echo json_encode($response);
             exit();
@@ -255,12 +261,18 @@ class CustomController extends BaseController
         if (!empty($call->id)) {
             return json_encode([
                 'error' => false,
+                'code' => 200,
                 'message' => "Success",
             ]);
         } else {
+            $GLOBALS['log']->fatal('Lưu cuộc gọi thất bại.');
+			write_file_backup_log_calls(json_encode($params));
+
             return json_encode([
                 'error' => true,
+                'code' => 401,
                 'message' => "Failed",
+                'data_post' => json_encode($params)
             ]);
         }
     }

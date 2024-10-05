@@ -2583,7 +2583,6 @@ function isSpamPhone($phone)
 }
 
 // CHANGE STATUS AGENT
-
 function agent_change_status($agent, $status)
 {
     global $db;
@@ -2651,6 +2650,38 @@ function agent_change_status($agent, $status)
     } catch (Exception $e) {
         return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
     }
+}
+
+// GHI FILE LOGS BACKUP SAVE CALL FAIELD
+function write_file_backup_log_calls($json)
+{
+    $GLOBALS['log']->fatal('Tiến hành lưu thông tin cuộc gọi backup.');
+    if (empty($json)) return false;
+
+    $file_name = "secure_sessions/backup_log_calls/" . str_replace('-', '_', date('d-m-Y') . '.json');
+
+    // Kiểm tra xem tệp có tồn tại không
+    if (!file_exists($file_name)) {
+        $dir_name = dirname($file_name);
+        if (!is_dir($dir_name)) {
+            mkdir($dir_name, 0777, true);
+        }
+        file_put_contents($file_name, json_encode([]));
+    }
+
+    $file_content = file_get_contents($file_name);
+    $json_data = json_decode($file_content, true);
+
+    if (!is_array($json_data)) {
+        $json_data = [];
+    }
+
+    $json_data[] = json_decode($json, true);
+
+    file_put_contents($file_name, json_encode($json_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+    $GLOBALS['log']->fatal('Lưu thông tin cuộc gọi backup thành công.');
+    return true;
 }
 
 require_once 'custom/include/utils/address.php';

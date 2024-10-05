@@ -28,6 +28,7 @@ class Viewprinteticket extends SugarView {
 
 		// Lấy danh sách, số lượng, thông tin hành khách 
 		$pass_inf = $this->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $smartyobj);
+
 		if ($pass_inf['pass_cnt'] <= 1 && isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 3) {
 			$is_change_inf = 1;
 			$_REQUEST['add_type'] = 0;
@@ -38,6 +39,7 @@ class Viewprinteticket extends SugarView {
 			}
 		}
 		$smartyobj->assign('ADD_TYPE', $_REQUEST['add_type']);
+
 
 		// KHÔNG THAY ĐỔI HÀNH TRÌNH
 		if ((isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 0) || !isset($_REQUEST['add_type'])) {
@@ -170,6 +172,7 @@ class Viewprinteticket extends SugarView {
 		}
 
 		$html = '';
+		$html_itineraries = '';
 		$sql = "
 			SELECT p.id,
 				p.name,
@@ -311,6 +314,7 @@ class Viewprinteticket extends SugarView {
 
 			if(!is_null($smartyobj) && !empty($smartyobj)){
 				$smartyobj->assign('LIST_OF_ITINERARIES', $html_dep_itineraries.$html_ret_itineraries);
+				$html_itineraries .= $html_dep_itineraries.$html_ret_itineraries;
 			} 
 		} 
 		else {
@@ -384,7 +388,7 @@ class Viewprinteticket extends SugarView {
 			}
 		}
 
-		return array('html' => $html, 'pass_cnt' => $rowCount, 'pass_id' => $pass_id, 'edit_no' => $iti->sabre_logs);
+		return array('html' => $html, 'html_itineraries' => $html_itineraries, 'pass_cnt' => $rowCount, 'pass_id' => $pass_id, 'edit_no' => $iti->sabre_logs);
 	}
 
 	function getAnotherIti($booking_id, $direction, $passenger_id, $line)

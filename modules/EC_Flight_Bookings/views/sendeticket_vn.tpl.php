@@ -117,21 +117,17 @@ function generateSendmailHtml($booking_infos)
 								</tbody>
 							</table>';
 	
-	// LIST HÀNH KHÁCH
+	// INFOR HÀNH TRÌNH (BỊ THAY ĐỔI)
+	$infor_iti = ($_REQUEST['add_type'] == 3) ? $booking_infos['list_of_itineraries_changed'] : $booking_infos['list_of_itineraries'];
 
 	// NẾU HÀNH TRÌNH BỊ THAY ĐỔI
-	if($_REQUEST['add_type'] == 3) {
-		// HÀNH KHÁCH - HÀNH TRÌNH
-		$html .= $booking_infos['list_of_passenger'];
-
-	} else {
-		// HÀNH KHÁCH
-		$html .= '<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-14" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
-					<tbody>
-						<tr>
-							<td>
-								<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width: 100%;">
-									<tbody>
+	// HÀNH KHÁCH
+	$html .= '<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-14" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+				<tbody>
+					<tr>
+						<td>
+							<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width: 100%;">
+								<tbody>
 									<tr>
 										<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="100%">
 											<table border="0" cellpadding="0" cellspacing="0" class="text_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
@@ -149,136 +145,135 @@ function generateSendmailHtml($booking_infos)
 											</table>
 										</td>
 									</tr>
-									</tbody>
-								</table>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-15" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
-					<tbody>
-						<tr>
-							<td>
-								<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; padding: 0 10px 10px; width:100%;">
-									<thead>
-										<tr>
-											<th width="35%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">Tên Hành Khách</th>
-											<th width="20%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">Mã Đặt Chỗ</th>
-											<th width="45%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">Hành Lý Ký Gửi</th>
-										</tr>
-									</thead>
-									<tbody>
-										'.$booking_infos['list_of_passenger'].'
-									</tbody>
-								</table>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-13" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
-					<tbody>
-						<tr>
-							<td>
-								<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 100%;">
-									<tbody>
-										<tr>
-										<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="100%">
-											<table border="0" cellpadding="0" cellspacing="0" class="image_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; " width="100%">
-												<tr>
-													<td class="pad" style=" width: 100%; padding-right: 0px; padding-left: 0px; ">
-														<div align="center" class="alignment" style="line-height: 10px">
-															<img alt="round_corners" class="big" src="https://drive.google.com/uc?export=view&id=1RRkc90dZKVr_wK-hhWQMVL0F_ZxmNfBU" style=" display: block; height: auto; border: 0;max-width: 100%; width: 100%;" title="round_corners"/>
-														</div>
-													</td>
-												</tr>
-											</table>
-										</td>
-										</tr>
-									</tbody>
-								</table>
-							</td>
-						</tr>
-					</tbody>
-				</table>';
-	
-		// HÀNH TRÌNH
-		$html .= '<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-14" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
-					<tbody>
-						<tr>
-							<td>
-								<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width:100%; ">
-									<tbody>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-15" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+				<tbody>
+					<tr>
+						<td>
+							<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; padding: 0 10px 10px; width:100%;">
+								<thead>
 									<tr>
-										<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="100%">
-											<table border="0" cellpadding="0" cellspacing="0" class="text_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
-												<tr>
-													<td class="pad" style=" padding: 10px 10px 10px 25px;">
-														<div style="font-family: sans-serif">
-															<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #232323; line-height: 1.2; ">
-																<p style=" margin: 0; font-size: 13px; line-height: 20px; mso-line-height-alt: 16.8px; ">
-																	<span style="font-size: 16px;font-weight: 600;">Thông tin hành trình</span>
-																</p>
-															</div>
-														</div>
-													</td>
-												</tr>
-											</table>
-										</td>
+										<th width="35%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">Tên Hành Khách</th>
+										<th width="20%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">Mã Đặt Chỗ</th>
+										<th width="45%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">Hành Lý Ký Gửi</th>
 									</tr>
-									</tbody>
-								</table>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-15" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
-					<tbody>
-						<tr>
-							<td>
-								<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width: 100%; padding: 0 10px 10px;">
-									<thead>
-										<tr>
-											<th width="20%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Ngày giờ bay</th>
-											<th width="18%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Hãng bay</th>
-											<th width="14%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Mã chuyến</th>
-											<th width="22%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Điểm đi</th>
-											<th width="22%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Điểm đến</th>
-										</tr>
-									</thead>
-									<tbody>
-										'.$booking_infos['list_of_itineraries'].'
-									</tbody>
-								</table>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-13" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
-					<tbody>
-						<tr>
-							<td>
-								<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 100%; ">
-									<tbody>
-										<tr>
-										<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="100%">
-											<table border="0" cellpadding="0" cellspacing="0" class="image_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; " width="100%">
-												<tr>
-													<td class="pad" style=" width: 100%; padding-right: 0px; padding-left: 0px; ">
-														<div align="center" class="alignment" style="line-height: 10px">
-															<img alt="round_corners" class="big" src="https://drive.google.com/uc?export=view&id=1RRkc90dZKVr_wK-hhWQMVL0F_ZxmNfBU" style=" display: block; height: auto; border: 0; max-width: 100%; width: 100%;" title="round_corners"/>
+								</thead>
+								<tbody>
+									'.$booking_infos['list_of_passenger'].'
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-13" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+				<tbody>
+					<tr>
+						<td>
+							<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 100%;">
+								<tbody>
+									<tr>
+									<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="100%">
+										<table border="0" cellpadding="0" cellspacing="0" class="image_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; " width="100%">
+											<tr>
+												<td class="pad" style=" width: 100%; padding-right: 0px; padding-left: 0px; ">
+													<div align="center" class="alignment" style="line-height: 10px">
+														<img alt="round_corners" class="big" src="https://drive.google.com/uc?export=view&id=1RRkc90dZKVr_wK-hhWQMVL0F_ZxmNfBU" style=" display: block; height: auto; border: 0;max-width: 100%; width: 100%;" title="round_corners"/>
+													</div>
+												</td>
+											</tr>
+										</table>
+									</td>
+									</tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>';
+
+	// HÀNH TRÌNH
+	$html .= '<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-14" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+				<tbody>
+					<tr>
+						<td>
+							<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width:100%; ">
+								<tbody>
+								<tr>
+									<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="100%">
+										<table border="0" cellpadding="0" cellspacing="0" class="text_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
+											<tr>
+												<td class="pad" style=" padding: 10px 10px 10px 25px;">
+													<div style="font-family: sans-serif">
+														<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #232323; line-height: 1.2; ">
+															<p style=" margin: 0; font-size: 13px; line-height: 20px; mso-line-height-alt: 16.8px; ">
+																<span style="font-size: 16px;font-weight: 600;">Thông tin hành trình</span>
+															</p>
 														</div>
-													</td>
-												</tr>
-											</table>
-										</td>
-										</tr>
-									</tbody>
-								</table>
-							</td>
-						</tr>
-					</tbody>
-				</table>';
-	}
+													</div>
+												</td>
+											</tr>
+										</table>
+									</td>
+								</tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-15" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+				<tbody>
+					<tr>
+						<td>
+							<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ffffff; color: #000000; width: 100%; padding: 0 10px 10px;">
+								<thead>
+									<tr>
+										<th width="20%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Ngày giờ bay</th>
+										<th width="18%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Hãng bay</th>
+										<th width="14%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Mã chuyến</th>
+										<th width="22%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Điểm đi</th>
+										<th width="22%" class="text-center" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;">Điểm đến</th>
+									</tr>
+								</thead>
+								<tbody>
+									'.$infor_iti.'
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-13" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+				<tbody>
+					<tr>
+						<td>
+							<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 100%; ">
+								<tbody>
+									<tr>
+									<td class="column column-1" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; border: 0px; " width="100%">
+										<table border="0" cellpadding="0" cellspacing="0" class="image_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; " width="100%">
+											<tr>
+												<td class="pad" style=" width: 100%; padding-right: 0px; padding-left: 0px; ">
+													<div align="center" class="alignment" style="line-height: 10px">
+														<img alt="round_corners" class="big" src="https://drive.google.com/uc?export=view&id=1RRkc90dZKVr_wK-hhWQMVL0F_ZxmNfBU" style=" display: block; height: auto; border: 0; max-width: 100%; width: 100%;" title="round_corners"/>
+													</div>
+												</td>
+											</tr>
+										</table>
+									</td>
+									</tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>';
 
 	// LƯU Ý
 	$html .= '<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-36" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
