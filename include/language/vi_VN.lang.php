@@ -1233,7 +1233,7 @@ $app_strings = array(
     'LBL_EMAIL_ERROR_PROTOCOL' => 'Một giao thức máy chủ là cần thiết.',
     'LBL_EMAIL_ERROR_MONITORED_FOLDER' => 'Giám sát thư mục được yêu cầu.',
     'LBL_EMAIL_ERROR_TRASH_FOLDER' => 'Thư mục thùng rác là cần thiết.',
-    'LBL_EMAIL_ERROR_VIEW_RAW_SOURCE' => 'Thông tin này không có sẵn',
+    'LBL_EMAIL_ERROR_VIEW_RAW_SOURCE' => 'Không có thông báo!',
     'LBL_EMAIL_ERROR_NO_OUTBOUND' => 'Không có máy chủ gửi thư đi được chỉ định.',
     'LBL_EMAIL_ERROR_SENDING' => 'Lỗi gửi Email. Xin vui lòng liên hệ với quản trị của bạn để được trợ giúp.',
     'LBL_EMAIL_FOLDERS' => SugarThemeRegistry::current()->getImage('icon_email_folder', 'align=absmiddle border=0', null, null, '.gif', '') . 'Thư mục',

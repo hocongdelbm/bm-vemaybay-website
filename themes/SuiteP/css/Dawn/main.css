@@ -113,6 +113,7 @@ textarea.box-textarea:focus {
     border-radius: 4px;
     font-style: italic;
     font-weight: 600;
+    text-align: left;
 }
 
 .unerror {
@@ -1753,10 +1754,6 @@ select::-webkit-scrollbar {
     vertical-align: middle;
 }
 
-#form-login a {
-    color: #7e8ba3;
-}
-
 .form-login__wrapper {
     text-align: center;
     padding: 2rem 1.5rem;
@@ -1769,13 +1766,16 @@ select::-webkit-scrollbar {
     flex-shrink: 0;
     margin: 0 auto;
     min-height: 0;
-    width: 450px;
+    max-width: 450px;
 }
 
 .form-login__wrapper img {
     height: 60px;
+    object-fit: contain;
 }
 
+#login_button,
+#generate_pwd_button,
 .form-login__wrapper input[type=submit] {
     background-image: linear-gradient(160deg, #0688f9 0%, #135ca0 100%);
     color: var(--white-color);
@@ -2223,18 +2223,7 @@ input#btnChangeStatus {
     right: 5px;
     top: 50%;
     transform: translate(-50%, -50%);
-}
-
-input#confirm_pwd,
-input#new_password,
-input#old_password {
-    padding: 6px;
-    text-indent: 5px;
-    margin: 0;
-    border: 1px solid var(--border-color);
-    outline: none;
-    border-radius: 5px;
-    width: 100%;
+    z-index: 5;
 }
 
 select.select-box {
@@ -4830,7 +4819,7 @@ div[data-module="Users"] .email #outboundDialog_c #outboundDialog {
     padding: 12px;
     border: none;
     border: 1px solid #dee2e6;
-    border-top: none;
+    /* border-top: none; */
     margin-bottom: 15px;
 }
 

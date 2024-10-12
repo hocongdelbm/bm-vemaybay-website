@@ -1366,7 +1366,7 @@ EOQ;
             $messages[] = $mod_strings['ERR_PASSWORD_ONENUMBER'];
         }
 
-        if ($onespecial && false === strpbrk($newPassword, "#$%^&*()+=-[]';,./{}|:<>?~")) {
+        if ($onespecial && false === strpbrk($newPassword, "#$%^&*()+=-[]';,./{}|:<>?~@")) {
             $messages[] = $mod_strings['ERR_PASSWORD_SPECCHARS'];
         }
 
@@ -2230,7 +2230,7 @@ EOQ;
         $condition = 0;
         $charBKT .= $UPPERCASE . $LOWERCASE . $NUMBER;
         $password = "";
-        $length = '6';
+        $length = $res['minpwdlength'] ?? '10';
 
         // Create random characters for the ones that doesnt have requirements
         for ($i = 0; $i < $length - $condition; $i++) {  // loop and create password

@@ -34,7 +34,7 @@ class EC_Vouchers extends Basic
     public $account_phone;
     public $account_email;
     public $reduce_amount;
-    public $reduce_percent;
+    // public $reduce_percent;
 
 
 	

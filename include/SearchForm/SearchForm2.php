@@ -1456,7 +1456,6 @@ class SearchForm
             }
         }
 
-
         // if($current_user->user_name == 'hungnh'){
         //     pr($where_clauses);
         // }

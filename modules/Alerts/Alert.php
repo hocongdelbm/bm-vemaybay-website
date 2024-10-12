@@ -6,7 +6,7 @@ class Alert extends Basic
     public $object_name = 'Alert';
     public $table_name = 'alerts';
     public $importable = false;
-    public $disable_row_level_security = true ; // to ensure that modules created and deployed under CE will continue to function under team security if the instance is upgraded to PRO
+    public $disable_row_level_security = true; // to ensure that modules created and deployed under CE will continue to function under team security if the instance is upgraded to PRO
     public $id;
     public $name;
     public $date_entered;
@@ -37,7 +37,8 @@ class Alert extends Basic
     public function bean_implements($interface)
     {
         switch ($interface) {
-            case 'ACL': return true;
+            case 'ACL':
+                return true;
         }
         return false;
     }

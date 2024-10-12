@@ -682,9 +682,11 @@ class VietjetAPIHelper {
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_POST, TRUE);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-            curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
+            curl_setopt($curl, CURLOPT_ENCODING, '');
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
+            curl_setopt($curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
+            curl_setopt($curl, CURLOPT_DNS_USE_GLOBAL_CACHE, false);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->CONNECTTIMEOUT);
             curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);
             $json = curl_exec($curl);

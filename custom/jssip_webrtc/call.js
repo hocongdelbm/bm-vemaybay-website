@@ -2,6 +2,8 @@
 const SIP_USER = document.getElementById('sip_user').value;
 const SIP_PASSWORD = document.getElementById('sip_password').value;
 const AGENT_STATUS = document.getElementById('agent_status').value;
+const CURRENT_USER = document.getElementById('sip_instance_id').value;
+
 // const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
 const SIP_DOMAIN = 'td.timchuyenbay.net';
 const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
@@ -34,19 +36,22 @@ var configuration = {
 let call_flow = '';
 var eventHandlers = {
     'progress': function (e) {
-        console.warn('call is in progress');
+        // console.warn('call is in progress');
         call_flow += 'Call is in progress. ';
     },
     'failed': function (e) {
-        console.warn('call failed with cause: ' + e.cause + ' ');
-        call_flow += 'Call failed with cause: ' + e.cause + ' ';
+        // console.warn(e);
+        // console.warn('call failed with cause: ' + e.cause + ' ');
+        if (e.message && e.message.data) {
+            call_flow += 'Call failed with cause: ' + e.message.data + ' ';
+        } else call_flow += 'Call failed with cause: ' + e.cause + ' ';
     },
     'ended': function (e) {
-        console.warn('call ended with cause:  ' + e.cause + ' ');
+        // console.warn('call ended with cause:  ' + e.cause + ' ');
         call_flow += 'Call ended with cause: ' + e.cause + ' ';
     },
     'confirmed': function (e) {
-        console.warn('call confirmed');
+        // console.warn('call confirmed');
         call_flow += 'Call confirmed. ';
     }
 };
@@ -82,16 +87,16 @@ ua.on('registrationFailed', function (ev) {
     ua_status = 'registrationFailed';
 });
 ua.on('connecting', function (ev) {
-    console.warn('Connecting');
+    // console.warn('Connecting');
     ua_status = 'Connecting';
 });
 ua.on('connected', function (ev) {
-    console.warn('Connected');
+    // console.warn('Connected');
     showConnect(true);
     ua_status = 'Connected';
 });
 ua.on('disconnected', function (ev) {
-    console.warn('Disconnected');
+    // console.warn('Disconnected');
     showConnect(false);
     ua_status = 'disconnected';
 });
@@ -150,6 +155,9 @@ ua.on('newRTCSession', function (ev) {
     session.on("confirmed", function () {
         $(document).prop('title', 'Đang gọi...');
 
+        // Close notification
+        closeNotification();
+
         // Change interface
         let name = $('#voiceip-info-name').html();
         let phone = $('#voiceip-info-phone').html();
@@ -200,17 +208,17 @@ ua.on('newRTCSession', function (ev) {
 
         // UDPATE TƯƠNG TÁC KHI CUỘC GỌI ĐANG DIỄN RA
         setInterval(function () {
-            const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
+            const currentTime = new Date(new Date().toString().split('GMT')[0] + ' UTC').toISOString().split('.')[0].replace('T', ' ');
             $.ajax({
                 url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
                 type: "POST",
                 cache: false,
                 data: {
-                     time: currentTime,
-                     for: "saveLastClickUser",
+                    time: currentTime,
+                    for: "saveLastClickUser",
                 },
-                success: function(response) {}
-           });
+                success: function (response) { }
+            });
         }, 90000);
     });
 
@@ -271,7 +279,7 @@ ua.on('newRTCSession', function (ev) {
         // SAVE LOG
         logCallEvent(session, SIP_USER, ua_status, call_flow);
         saveCallLog();
-
+        call_flow = '';
         session = null;
     });
 
@@ -325,7 +333,7 @@ ua.on('newRTCSession', function (ev) {
         // SAVE LOG
         logCallEvent(session, SIP_USER, ua_status, call_flow);
         saveCallLog();
-
+        call_flow = '';
         session = null;
     });
 
@@ -366,13 +374,50 @@ ua.on('newRTCSession', function (ev) {
 });
 
 $(document).ready(function () {
+    // BLOCK BEHAVIOR OF USER
+    const adminUserIds = [
+        '1', //Admin - Ducpham
+        '9eb0f65f-a9f6-65bb-1985-637ca8511491', //Trinh
+        '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //Nhat Do
+        '168889bb-54c2-59c7-8b3f-649102530d3c', //Hai Hung
+        '622ecf27-f729-7187-7e27-6520e0dab882', //Quangnd
+    ];
+    if (CURRENT_USER) {
+        var isAdmin = adminUserIds.includes(CURRENT_USER);
+        if (!isAdmin) {
+            // Mouse right
+            document.addEventListener('contextmenu', function (event) {
+                event.preventDefault();
+            });
+
+            document.addEventListener('keydown', function (event) {
+                // F12
+                if (event.keyCode === 123) {
+                    event.preventDefault();
+                }
+                // Ctrl+Shift+I (Inspect)
+                if (event.ctrlKey && event.shiftKey && event.keyCode === 73) {
+                    event.preventDefault();
+                }
+                // Ctrl+Shift+J (Console)
+                if (event.ctrlKey && event.shiftKey && event.keyCode === 74) {
+                    event.preventDefault();
+                }
+                // Ctrl+U (View Source)
+                if (event.ctrlKey && event.keyCode === 85) {
+                    event.preventDefault();
+                }
+            });
+        }
+    }
+
     // Microphone permission 
     $(document).on('click', '#call-phone__circle', function () {
         if (navigator.mediaDevices) {
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
                 .then(stream => {
                     // stream.getTracks().forEach(track => pc.addTrack(track, stream));
-                    console.log('allow micro');
+                    // console.log('allow micro');
                 })
                 .catch(function (error) {
                     showModalNotify('error', 'Không có microphone hoặc quyền bị từ chối');
@@ -891,18 +936,18 @@ function saveCallLog() {
         type: "POST",
         cache: false,
         success: function (response) {
-         
+
         }
     });
-    console.warn(fullLog);
-    callLog = []; 
+    // console.warn(fullLog);
+    callLog = [];
 }
 
 function logCallEvent(session, ua, status, event = '') {
     // INFOR CALL
     console.warn(session);
-    let call_id     = '';
-    let direction   = session.direction || '';
+    let call_id = '';
+    let direction = session.direction || '';
     if (direction === "incoming") {
         let INVITE = session._request.data;
         call_id = extract_call_id(INVITE);
@@ -910,8 +955,8 @@ function logCallEvent(session, ua, status, event = '') {
     else if (direction === "outgoing") {
         call_id = session._request.call_id;
     }
-    let call_from   = session._request.from._uri._user || '';
-    let call_to     = session._request.to._uri._user || '';
+    let call_from = session._request.from._uri._user || '';
+    let call_to = session._request.to._uri._user || '';
 
     var timestamp = getCurrentTimestamp();
     var logEntry = `[${timestamp}][${ua}][${status}]:[${direction}][${call_from}][${call_to}][${call_id}] ${event}`;
@@ -919,9 +964,9 @@ function logCallEvent(session, ua, status, event = '') {
 }
 
 function getCurrentTimestamp() {
-    var currentDate = new Date(); 
-    currentDate.setHours(currentDate.getHours() + 7); 
-    return currentDate.toISOString().replace('T', ' ').split('.')[0]; 
+    var currentDate = new Date();
+    currentDate.setHours(currentDate.getHours() + 7);
+    return currentDate.toISOString().replace('T', ' ').split('.')[0];
 }
 
 // PUSH NOTIFICATION ===============================
@@ -931,10 +976,12 @@ function getCurrentTimestamp() {
 // Register a service worker
 const check_support = () => {
     if (!('serviceWorker' in navigator)) {
-        throw new Error('No Service Worker support!')
+        // throw new Error('No Service Worker support!');
+        console.warn('No Service Worker support!')
     }
     if (!('PushManager' in window)) {
-        throw new Error('No Push API Support!')
+        console.warn('No Push API Support!')
+        // throw new Error('No Push API Support!')
     }
 }
 
@@ -957,7 +1004,8 @@ if (navigator.mediaDevices) {
 const requestNotificationPermission = async () => {
     const permission = await window.Notification.requestPermission()
     if (permission !== 'granted') {
-        throw new Error('Permission not granted for Notification')
+        // throw new Error('Permission not granted for Notification')
+        console.warn('Permission not granted for Notification');
     }
 }
 requestNotificationPermission()
@@ -1590,7 +1638,7 @@ $(function () {
                             <option value="0963678130@103.232.121.103:55000">0963678130</option>
                             <option value="0963323407@103.232.121.103:55000">0963323407</option>
                             <option value="0964031020@103.232.121.103:55000">0964031020</option>
-                            <!-- <option value="0963987527@103.232.121.103:55000">0963987527</option>
+                            <!-- <option value="0963987527@103.232.121.103:55000">0963987527</option> 
                             <option value="0963986905@103.232.121.103:55000">0963986905</option> -->
                             <option value="0984150870@103.232.121.103:55000">0984150870</option>
                             <option value="0984175174@103.232.121.103:55000">0984175174</option>

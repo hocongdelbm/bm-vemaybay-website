@@ -1,0 +1,13 @@
+.table-create-voucher tbody tr td {
+    display: table-cell;
+    vertical-align: middle;
+    padding: 6px 4px ;
+}
+
+.table-create-voucher tr td.label {
+    font-weight: 600;
+    width: 25%;
+}
+.table-create-voucher tr td.value {
+    width: 75%;
+}

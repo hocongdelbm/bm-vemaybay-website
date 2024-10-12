@@ -2685,3 +2685,20 @@ function write_file_backup_log_calls($json)
 }
 
 require_once 'custom/include/utils/address.php';
+
+function sendTestTelegram($content, $parseMode = 'HTML', $timeout = 5)
+{
+	$chat_id = '-1001360390468'; // Group Test
+	$token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
+
+	$url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
+	$url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
+	$curl = curl_init();
+	curl_setopt($curl, CURLOPT_URL, $url);
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+	curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+	$result = curl_exec($curl);
+	curl_close($curl);
+	return $result;
+}

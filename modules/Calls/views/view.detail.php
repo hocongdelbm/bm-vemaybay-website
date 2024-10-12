@@ -7,7 +7,7 @@ class CallsViewDetail extends ViewDetail
 
 	function display()
 	{
-		global $current_user, $app_list_strings, $sugar_config;
+		global $current_user, $app_list_strings, $sugar_config, $timedate;
 
 		if ($current_user->user_name == 'hungnh' || $current_user->user_name == 'booker') {
 			$log = json_decode(html_entity_decode($this->bean->log), true);

@@ -184,9 +184,9 @@ class Call extends SugarBean
         // }
 
         // prevent a mass mailing for recurring meetings created in Calendar module
-        if (empty($this->id) && !empty($_REQUEST['module']) && $_REQUEST['module'] == "Calendar" && !empty($_REQUEST['repeat_type']) && !empty($this->repeat_parent_id)) {
-            $check_notify = false;
-        }
+        // if (empty($this->id) && !empty($_REQUEST['module']) && $_REQUEST['module'] == "Calendar" && !empty($_REQUEST['repeat_type']) && !empty($this->repeat_parent_id)) {
+        //     $check_notify = false;
+        // }
         /*nsingh 7/3/08  commenting out as bug #20814 is invalid
         if($current_user->getPreference('reminder_time')!= -1 &&  isset($_POST['reminder_checked']) && isset($_POST['reminder_time']) && $_POST['reminder_checked']==0  && $_POST['reminder_time']==-1){
         	$this->reminder_checked = '1';

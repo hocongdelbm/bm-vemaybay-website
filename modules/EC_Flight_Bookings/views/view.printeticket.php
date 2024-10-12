@@ -285,7 +285,7 @@ class Viewprinteticket extends SugarView {
 					<tr>
 						<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . (empty($new_name['name']) ? $row['name'] : $new_name['name']) . '</td>
 						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
-						<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
+						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
 					</tr>';
 				
 				if(empty($html_dep_itineraries)) {
@@ -379,7 +379,7 @@ class Viewprinteticket extends SugarView {
 					$html .= '<tr class="initital_iti">
 						<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . (empty($new_name['name']) ? $row['name'] : $new_name['name']) . '</td>
 						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
-						<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
+						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
 					</tr>';
 				}
 			} 

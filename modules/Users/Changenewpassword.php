@@ -132,9 +132,18 @@ $sugar_smarty->assign('return_action', 'login');
 $sugar_smarty->assign("APP", $app_strings);
 $sugar_smarty->assign("INSTRUCTION", $app_strings['NTC_LOGIN_MESSAGE']);
 $sugar_smarty->assign("ERRORS", $errors);
+// $sugar_smarty->assign(
+//     "USERNAME_FIELD",
+//     '<td scope="row" width="30%">' . $mod_strings['LBL_USER_NAME'] . ':</td><td width="70%"><input type="text" size="20" tabindex="1" id="user_name" name="user_name"  value=""></td>'
+// );
 $sugar_smarty->assign(
     "USERNAME_FIELD",
-    '<td scope="row" width="30%">' . $mod_strings['LBL_USER_NAME'] . ':</td><td width="70%"><input type="text" size="20" tabindex="1" id="user_name" name="user_name"  value=""></td>'
+    '<div class="text-field">
+        <label for="fp_user_name">' . $mod_strings['LBL_USER_NAME'] . '</label>
+        <div class="input-group">
+            <input type="text" class="form-control" size="20" id="user_name" name="user_name" tabindex="1" value="" placeholder="' . $mod_strings['LBL_USER_NAME'] . '" autocomplete="off">
+        </div>
+    </div>'
 );
 $sugar_smarty->assign('PWDSETTINGS', $GLOBALS['sugar_config']['passwordsetting']);
 
@@ -144,7 +153,7 @@ $rules = "'','',''";
 $sugar_smarty->assign('SUBMIT_BUTTON', '<input title="' . $mod_strings['LBL_LOGIN_BUTTON_TITLE']
     . '" class="button" '
     . 'onclick="if(!set_password(form,newrules(' . $rules . '))) return false; validateCaptchaAndSubmit();" '
-    . 'type="button" tabindex="3" id="login_button" name="Login" value="' . $mod_strings['LBL_LOGIN_BUTTON_LABEL'] . '" /><br>&nbsp');
+    . 'type="button" tabindex="3" id="login_button" name="Login" value="' . $mod_strings['LBL_LOGIN_BUTTON_LABEL'] . '" />');
 
 if (!empty($_REQUEST['guid'])) {
     $sugar_smarty->assign("GUID", $_REQUEST['guid']);

@@ -1960,11 +1960,14 @@ $GLOBALS['app_list_strings']['work_history_status_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['voucher_status_list'] = array(
-  'new' => 'Mới tạo',
-  'active' => 'Đã kích hoạt',
+  'pending' => 'Chờ sử dụng',
+  'done' => 'Đã sử dụng',
   'expired' => 'Hết hạn',
   'cancel' => 'Hủy',
-  'done' => 'Đã sử dụng',
+);
+$GLOBALS['app_list_strings']['voucher_type_list'] = array(
+  'single' => 'Đơn',
+  'group' => 'Nhóm',
 );
 
 $GLOBALS['app_list_strings']['overtime_type_list'] = array(
@@ -2092,12 +2095,12 @@ $GLOBALS['app_list_strings']['vietjet_index_price_list'] = array(
 
 $GLOBALS['app_list_strings']['vietjet_luggage_price_list'] = array(
   0 => 'Không có hành lý ',
-  180000 => 'Thêm 15kg hành lý (180.000 VND/Khách)',
-  210000 => 'Thêm 20kg hành lý (210.000 VND/Khách)',
-  270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  380000 => 'Thêm 30kg hành lý (380.000 VND/Khách)',
-  450000 => 'Thêm 35kg hành lý (450.000 VND/Khách)',
-  500000 => 'Thêm 40kg hành lý (500.000 VND/Khách)',
+  180000 => '15kg hành lý (180.000 VND/Khách)',
+  210000 => '20kg hành lý (210.000 VND/Khách)',
+  270000 => '25kg hành lý (270.000 VND/Khách)',
+  380000 => '30kg hành lý (380.000 VND/Khách)',
+  450000 => '35kg hành lý (450.000 VND/Khách)',
+  500000 => '40kg hành lý (500.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietjet_index_price_list2'] = array(
@@ -2119,49 +2122,49 @@ $GLOBALS['app_list_strings']['vietjet_index_price_list2'] = array(
 );
 
 $GLOBALS['app_list_strings']['vietjet_luggage_price_list2'] = array(
-  0   => 'Không mang hành lý ký gửi ',
-  1   => 'Thêm 20kg ký gửi (0 VND/Khách)',
-  3   => 'Thêm 40kg ký gửi (0 VND/Khách)',
-  2   => 'Thêm 20kg ký gửi (250.000 VND/Khách)',
-  4   => 'Thêm 30kg ký gửi (360.000 VND/Khách)',
-  6   => 'Thêm 40kg ký gửi (460.000 VND/Khách)',
-  7   => 'Thêm 20kg ký gửi QK (520.000 VND/Khách)',
-  8   => 'Thêm 30kg ký gửi QK (630.000 VND/Khách)',
-  9   => 'Thêm 50kg ký gửi (630.000 VND/Khách)',
-  10  => 'Thêm 60kg ký gửi (740.000 VND/Khách)',
-  11  => 'Thêm 70kg ký gửi (840.000 VND/Khách)',
-  12  => 'Thêm 80kg ký gửi (5.650.000 VND/Khách)',
-  13  => 'Thêm 90kg ký gửi (6.350.000 VND/Khách)',
-  14  => 'Thêm 100kg ký gửi (7.050.000 VND/Khách)',
+  0   => 'Không mang hành lý ',
+  1   => '20kg (0 VND/Khách)',
+  3   => '40kg (0 VND/Khách)',
+  2   => '20kg (250.000 VND/Khách)',
+  4   => '30kg (360.000 VND/Khách)',
+  6   => '40kg (460.000 VND/Khách)',
+  7   => '20kg QK (520.000 VND/Khách)',
+  8   => '30kg QK (630.000 VND/Khách)',
+  9   => '50kg (630.000 VND/Khách)',
+  10  => '60kg (740.000 VND/Khách)',
+  11  => '70kg (840.000 VND/Khách)',
+  12  => '80kg (5.650.000 VND/Khách)',
+  13  => '90kg (6.350.000 VND/Khách)',
+  14  => '100kg (7.050.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['new_vietjet_luggage_price_list'] = array(
-  0 => 'Không ',
-  1 => 'Thêm 15kg hành lý (180.000 VND/Khách)',
-  2 => 'Thêm 20kg hành lý (210.000 VND/Khách)',
-  3 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  4 => 'Thêm 30kg hành lý (380.000 VND/Khách)',
-  5 => 'Thêm 35kg hành lý (450.000 VND/Khách)',
-  6 => 'Thêm 40kg hành lý (500.000 VND/Khách)',
-  7 => 'Thêm 20kg hành lý QK (450.000 VND/Khách)',
-  8 => 'Thêm 30kg hành lý QK (600.000 VND/Khách)',
+  0 => '',
+  1 => '15kg (180.000 VND/Khách)',
+  2 => '20kg (210.000 VND/Khách)',
+  3 => '25kg (270.000 VND/Khách)',
+  4 => '30kg (380.000 VND/Khách)',
+  5 => '35kg (450.000 VND/Khách)',
+  6 => '40kg (500.000 VND/Khách)',
+  7 => '20kg QK (450.000 VND/Khách)',
+  8 => '30kg QK (600.000 VND/Khách)',
 );
 
 
 // Vietnam Airlines
 $GLOBALS['app_list_strings']['vietnamair_luggage_price_list'] = array(
-  0 => 'Thêm 23kg hành lý (0 VND/Khách)',
-  1 => 'Không mang hành lý ký gửi ',
-  350000  => 'Thêm 1 kiện 23kg hành lý (350.000 VND/Khách)',
-  700000  => 'Thêm 2 kiện 23kg hành lý (700.000 VND/Khách)',
-  1050000 => 'Thêm 3 kiện 23kg hành lý (1.050.000 VND/Khách)',
-  1400000 => 'Thêm 4 kiện 23kg hành lý (1.400.000 VND/Khách)',
-  1750000 => 'Thêm 5 kiện 23kg hành lý (1.750.000 VND/Khách)',
-  190000  => 'Thêm 1 kiện 10kg hành lý (190.000 VND/Khách)',
-  380000  => 'Thêm 2 kiện 10kg hành lý (380.000 VND/Khách)',
-  570000  => 'Thêm 3 kiện 10kg hành lý (570.000 VND/Khách)',
-  760000  => 'Thêm 4 kiện 10kg hành lý (760.000 VND/Khách)',
-  950000  => 'Thêm 5 kiện 10kg hành lý (950.000 VND/Khách)',
+  0 => '23kg (0 VND/Khách)',
+  1 => 'Không mang hành lý ký gửi',
+  350000  => '1 kiện 23kg (350.000 VND/Khách)',
+  700000  => '2 kiện 23kg (700.000 VND/Khách)',
+  1050000 => '3 kiện 23kg (1.050.000 VND/Khách)',
+  1400000 => '4 kiện 23kg (1.400.000 VND/Khách)',
+  1750000 => '5 kiện 23kg (1.750.000 VND/Khách)',
+  190000  => '1 kiện 10kg (190.000 VND/Khách)',
+  380000  => '2 kiện 10kg (380.000 VND/Khách)',
+  570000  => '3 kiện 10kg (570.000 VND/Khách)',
+  760000  => '4 kiện 10kg (760.000 VND/Khách)',
+  950000  => '5 kiện 10kg (950.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietnamair_luggage_price_list2'] = array(
@@ -2184,110 +2187,111 @@ $GLOBALS['app_list_strings']['vietnamair_luggage_price_list2'] = array(
 
 $GLOBALS['app_list_strings']['vietnamair_business_luggage_price_list'] = array(
   0 => 'Mỗi người tối đa 32kg (0 VND/Khách)',
-  2 => 'Thêm 32kg hành lý (0 VND/Khách)',
+  2 => '32kg (0 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietnamair_infant_luggage_price_list'] = array(
-  0 => 'Thêm 10kg hành lý (0 VND/Khách)',
+  0 => '10kg (0 VND/Khách)',
   1 => 'Không mang hành lý ký gửi ',
 );
 
 
 // Pacific Airlines
 $GLOBALS['app_list_strings']['pacificair_luggage_price_list'] = array(
-  0 => 'Thêm 23kg hành lý (0 VND/Khách)',
-  1 => 'Không mang hành lý ký gửi ',
-  3 => 'Thêm 10kg hành lý (0 VND/Khách)',
+  0 => '23kg (0 VND/Khách)',
+  1 => 'Không mang hành lý',
+  3 => '10kg (0 VND/Khách)',
   4 => 'Đợi kiểm tra',
-  350000  => '1 kiện 23kg hành lý (350.000 VND/Khách)',
-  700000  => '2 kiện 23kg hành lý (700.000 VND/Khách)',
-  1050000 => '3 kiện 23kg hành lý (1.050.000 VND/Khách)',
-  1400000 => '4 kiện 23kg hành lý (1.400.000 VND/Khách)',
-  1750000 => '5 kiện 23kg hành lý (1.750.000 VND/Khách)',
-  190000  => '1 kiện 10kg hành lý (190.000 VND/Khách)',
-  380000  => '2 kiện 10kg hành lý (380.000 VND/Khách)',
-  570000  => '3 kiện 10kg hành lý (570.000 VND/Khách)',
-  760000  => '4 kiện 10kg hành lý (760.000 VND/Khách)',
-  950000  => '5 kiện 10kg hành lý (950.000 VND/Khách)',
+  350000  => '1 kiện 23kg (350.000 VND/Khách)',
+  700000  => '2 kiện 23kg (700.000 VND/Khách)',
+  1050000 => '3 kiện 23kg (1.050.000 VND/Khách)',
+  1400000 => '4 kiện 23kg (1.400.000 VND/Khách)',
+  1750000 => '5 kiện 23kg (1.750.000 VND/Khách)',
+  190000  => '1 kiện 10kg (190.000 VND/Khách)',
+  380000  => '2 kiện 10kg (380.000 VND/Khách)',
+  570000  => '3 kiện 10kg (570.000 VND/Khách)',
+  760000  => '4 kiện 10kg (760.000 VND/Khách)',
+  950000  => '5 kiện 10kg (950.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['pacificair_infant_luggage_price_list'] = array(
-  0 => 'Thêm 10kg hành lý (0 VND/Khách)',
+  0 => '10kg (0 VND/Khách)',
   1 => 'Không mang hành lý ký gửi ',
 );
 
 // Bamboo Airways
 $GLOBALS['app_list_strings']['bambooair_eco_luggage_price_list'] = array(
-  0 => 'Thêm 0kg hành lý (0 VND/Khách) - Eco ',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco',
+  0 => 'Không có hành lý - Eco ',
+  200000    => '10kg (200.000 VND/Khách) - Eco',
+  350000    => '20kg (350.000 VND/Khách) - Eco',
+  500000    => '30kg (500.000 VND/Khách) - Eco',
+  650000    => '40kg (650.000 VND/Khách) - Eco',
 
-  2000    => 'Thêm 15kg hành lý (2.000 VND/Khách) - Eco',
-  210000  => 'Thêm 20kg hành lý (210.000 VND/Khách)-Eco',
-  250000  => 'Thêm 25kg hành lý (250.000 VND/Khách)-Eco',
-  300000  => 'Thêm 30kg hành lý (300.000 VND/Khách)-Eco',
-  330000  => 'Thêm 35kg hành lý (330.000 VND/Khách)-Eco',
-  370000  => 'Thêm 40kg hành lý (370.000 VND/Khách)-Eco',
+  2000    => '15kg (2.000 VND/Khách) - Eco',
+  210000  => '20kg (210.000 VND/Khách)-Eco',
+  250000  => '25kg (250.000 VND/Khách)-Eco',
+  300000  => '30kg (300.000 VND/Khách)-Eco',
+  330000  => '35kg (330.000 VND/Khách)-Eco',
+  370000  => '40kg (370.000 VND/Khách)-Eco',
 );
 $GLOBALS['app_list_strings']['bambooair_eco_saver_luggage_price_list'] = array(
   0 => '20 kg xách tay (0 VND/Khách) - Eco ',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco',
+  200000    => '10kg (200.000 VND/Khách) - Eco',
+  350000    => '20kg (350.000 VND/Khách) - Eco',
+  500000    => '30kg (500.000 VND/Khách) - Eco',
+  650000    => '40kg (650.000 VND/Khách) - Eco',
 
-  2000    => 'Thêm 15kg hành lý (2.000 VND/Khách) - Eco',
-  210000  => 'Thêm 20kg hành lý (210.000 VND/Khách)-Eco',
-  250000  => 'Thêm 25kg hành lý (250.000 VND/Khách)-Eco',
-  300000  => 'Thêm 30kg hành lý (300.000 VND/Khách)-Eco',
-  330000  => 'Thêm 35kg hành lý (330.000 VND/Khách)-Eco',
-  370000  => 'Thêm 40kg hành lý (370.000 VND/Khách)-Eco',
+  2000    => '15kg (2.000 VND/Khách) - Eco',
+  210000  => '20kg (210.000 VND/Khách) - Eco',
+  250000  => '25kg (250.000 VND/Khách) - Eco',
+  300000  => '30kg (300.000 VND/Khách) - Eco',
+  330000  => '35kg (330.000 VND/Khách) - Eco',
+  370000  => '40kg (370.000 VND/Khách) - Eco',
 );
 $GLOBALS['app_list_strings']['bambooair_business_luggage_price_list'] = array(
-  0 => 'Thêm 30kg hành lý (0 VND/Khách)-Business',
-  2000    => 'Thêm 15kg hành lý (2.000 VND/Khách)-Business',
-  110000  => 'Thêm 35kg hành lý (110.000 VND/Khách)-Business',
-  140000  => 'Thêm 40kg hành lý (140.000 VND/Khách)-Business',
+  0 => '30kg (0 VND/Khách)-Business',
+  2000    => '15kg (2.000 VND/Khách)-Business',
+  110000  => '35kg (110.000 VND/Khách)-Business',
+  140000  => '40kg (140.000 VND/Khách)-Business',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosaver_luggage_price_list'] = array(
   // 0 => '20 kg ký gửi (0 VND/Khách)-Eco Saver',
-  0 => 'Không có hành lý ký gửi - Eco Saver',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco Saver',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco Saver',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco Saver',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco Saver',
+  0 => 'Không mang hành lý - Eco Saver',
+  200000    => '10kg (200.000 VND/Khách) - Eco Saver',
+  350000    => '20kg (350.000 VND/Khách) - Eco Saver',
+  500000    => '30kg (500.000 VND/Khách) - Eco Saver',
+  650000    => '40kg (650.000 VND/Khách) - Eco Saver',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosavermax_luggage_price_list'] = array(
   0 => '7kg xách tay (0 VND/Khách) - Eco Saver Max',
-
+  
   // new
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco Saver Max',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco Saver Max',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco Saver Max',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco Saver Max',
+  2 => 'Không có hành lý',
+  200000    => '10kg (200.000 VND/Khách) - Eco Saver Max',
+  350000    => '20kg (350.000 VND/Khách) - Eco Saver Max',
+  500000    => '30kg (500.000 VND/Khách) - Eco Saver Max',
+  650000    => '40kg (650.000 VND/Khách) - Eco Saver Max',
 );
 $GLOBALS['app_list_strings']['bambooair_ecoflex_luggage_price_list'] = array(
-  0 => '20 kg ký gửi (0 VND/Khách)-Eco Flex',
+  // 0 => '20 kg ký gửi (0 VND/Khách) - Eco Flex',
   
   // new
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách)-Eco Flex',
   20 => 'Mỗi hành khách tối đa 20Kg (0 VND/Khách) - Eco Flex',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco Flex',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco Flex',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco Flex',
-  650000    => 'Thêm 40kg hành lý (600.000 VND/Khách) - Eco Flex',
+  200000    => '10kg (200.000 VND/Khách) - Eco Flex',
+  350000    => '20kg (350.000 VND/Khách) - Eco Flex',
+  500000    => '30kg (500.000 VND/Khách) - Eco Flex',
+  650000    => '40kg (600.000 VND/Khách) - Eco Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosmart_luggage_price_list'] = array(
   // 0 => '20kg ký gửi (0 VND/Khách)-Eco Smart',
-  0 => 'Không có hành lý ký gửi -Eco Smart',
+  0 => 'Không có hành lý ký gửi - Eco Smart',
 
   // new
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Eco Smart',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Eco Smart',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Eco Smart',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Eco Smart',
+  200000    => '10kg (200.000 VND/Khách) - Eco Smart',
+  350000    => '20kg (350.000 VND/Khách) - Eco Smart',
+  500000    => '30kg (500.000 VND/Khách) - Eco Smart',
+  650000    => '40kg (650.000 VND/Khách) - Eco Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_preflex_luggage_price_list'] = array(
   0 => '30kg ký gửi (0 VND/Khách) - Premium Flex',
@@ -2295,20 +2299,20 @@ $GLOBALS['app_list_strings']['bambooair_preflex_luggage_price_list'] = array(
   // new
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Premium Flex',
   30 => 'Mỗi hành khách tối đa 30Kg (0 VND/Khách) - Premium Flex',
-  200000 => 'Thêm 10kg hành lý (200.000 VND/Khách) - Premium Flex',
-  350000 => 'Thêm 20kg hành lý (350.000 VND/Khách) - Premium Flex',
-  500000 => 'Thêm 30kg hành lý (500.000 VND/Khách) - Premium Flex',
-  650000 => 'Thêm 40kg hành lý (650.000 VND/Khách) - Premium Flex',
+  200000 => '10kg (200.000 VND/Khách) - Premium Flex',
+  350000 => '20kg (350.000 VND/Khách) - Premium Flex',
+  500000 => '30kg (500.000 VND/Khách) - Premium Flex',
+  650000 => '40kg (650.000 VND/Khách) - Premium Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_buzsmart_luggage_price_list'] = array(
   0 => '40kg ký gửi (0 VND/Khách) - Business Smart',
 
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Business Smart',
   40 => 'Mỗi hành khách tối đa 40Kg (0 VND/Khách) - Business Smart',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Business Smart',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Business Smart',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Business Smart',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Business Smart',
+  200000    => '10kg (200.000 VND/Khách) - Business Smart',
+  350000    => '20kg (350.000 VND/Khách) - Business Smart',
+  500000    => '30kg (500.000 VND/Khách) - Business Smart',
+  650000    => '40kg (650.000 VND/Khách) - Business Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_buzflex_luggage_price_list'] = array(
   0 => '40kg ký gửi (0 VND/Khách) - Business Flex',
@@ -2316,34 +2320,34 @@ $GLOBALS['app_list_strings']['bambooair_buzflex_luggage_price_list'] = array(
   // new
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Business Smart',
   40 => 'Mỗi hành khách tối đa 40Kg (0 VND/Khách) - Business Smart',
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Business Smart',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Business Smart',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Business Smart',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Business Smart',
+  200000    => '10kg (200.000 VND/Khách) - Business Smart',
+  350000    => '20kg (350.000 VND/Khách) - Business Smart',
+  500000    => '30kg (500.000 VND/Khách) - Business Smart',
+  650000    => '40kg (650.000 VND/Khách) - Business Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_advanced_luggage_price_list'] = array(
   1 => '15kg hành lý ký gửi ',
-  // 100000 => 'Thêm 5kg hành lý trả trước (100.000 VND/Khách)-HLTT',
-  // 150000 => 'Thêm 10kg hành lý trả trước (150.000 VND/Khách)-HLTT',
-  // 220000 => 'Thêm 20kg hành lý trả trước (220.000 VND/Khách)-HLTT',
-  // 280000 => 'Thêm 25kg hành lý trả trước (280.000 VND/Khách)-HLTT',
-  // 380000 => 'Thêm 30kg hành lý trả trước (380.000 VND/Khách)-HLTT',
-  // 450000 => 'Thêm 35kg hành lý trả trước (450.000 VND/Khách)-HLTT',
-  // 550000 => 'Thêm 40kg hành lý trả trước (550.000 VND/Khách)-HLTT',
+  // 100000 => '5kg trả trước (100.000 VND/Khách)-HLTT',
+  // 150000 => '10kg trả trước (150.000 VND/Khách)-HLTT',
+  // 220000 => '20kg trả trước (220.000 VND/Khách)-HLTT',
+  // 280000 => '25kg trả trước (280.000 VND/Khách)-HLTT',
+  // 380000 => '30kg trả trước (380.000 VND/Khách)-HLTT',
+  // 450000 => '35kg trả trước (450.000 VND/Khách)-HLTT',
+  // 550000 => '40kg trả trước (550.000 VND/Khách)-HLTT',
 );
 $GLOBALS['app_list_strings']['bambooair_plus_luggage_price_list'] = array(
-  0 => 'Thêm 20kg hành lý (0 VND/Khách) - Plus ',
-  // 2000    => 'Thêm 15kg hành lý (2.000 VND/Khách)-Plus',
-  // 100000  => 'Thêm 25kg hành lý (100.000 VND/Khách)-Plus',
-  // 130000  => 'Thêm 30kg hành lý (130.000 VND/Khách)-Plus',
-  // 170000  => 'Thêm 35kg hành lý (170.000 VND/Khách)-Plus',
-  // 190000  => 'Thêm 40kg hành lý (190.000 VND/Khách)-Plus',
+  0 => '20kg (0 VND/Khách) - Plus ',
+  // 2000    => '15kg (2.000 VND/Khách)-Plus',
+  // 100000  => '25kg (100.000 VND/Khách)-Plus',
+  // 130000  => '30kg (130.000 VND/Khách)-Plus',
+  // 170000  => '35kg (170.000 VND/Khách)-Plus',
+  // 190000  => '40kg (190.000 VND/Khách)-Plus',
 
   // new
-  200000    => 'Thêm 10kg hành lý (200.000 VND/Khách) - Plus',
-  350000    => 'Thêm 20kg hành lý (350.000 VND/Khách) - Plus',
-  500000    => 'Thêm 30kg hành lý (500.000 VND/Khách) - Plus',
-  650000    => 'Thêm 40kg hành lý (650.000 VND/Khách) - Plus',
+  200000    => '10kg (200.000 VND/Khách) - Plus',
+  350000    => '20kg (350.000 VND/Khách) - Plus',
+  500000    => '30kg (500.000 VND/Khách) - Plus',
+  650000    => '40kg (650.000 VND/Khách) - Plus',
 );
 $GLOBALS['app_list_strings']['bambooair_infant_luggage_price_list'] = array(
   0 => 'Không mang hành lý ký gửi ',
@@ -2359,49 +2363,49 @@ $GLOBALS['app_list_strings']['bambooair_infant_luggage_price_list'] = array(
 // Vietravel Airlines
 $GLOBALS['app_list_strings']['vietravel_luggage_price_list'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  150000 => 'Thêm 15kg hành lý (150.000 VND/Khách)',
-  190000 => 'Thêm 20kg hành lý (190.000 VND/Khách)',
-  240000 => 'Thêm 25kg hành lý (240.000 VND/Khách)',
-  280000 => 'Thêm 30kg hành lý (280.000 VND/Khách)',
-  320000 => 'Thêm 35kg hành lý (320.000 VND/Khách)',
-  370000 => 'Thêm 40kg hành lý (370.000 VND/Khách)',
+  150000 => '15kg (150.000 VND/Khách)',
+  190000 => '20kg (190.000 VND/Khách)',
+  240000 => '25kg (240.000 VND/Khách)',
+  280000 => '30kg (280.000 VND/Khách)',
+  320000 => '35kg (320.000 VND/Khách)',
+  370000 => '40kg (370.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietravel_luggage_price_list2'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  200000 => 'Thêm 15kg hành lý (200.000 VND/Khách)',
-  220000 => 'Thêm 20kg hành lý (220.000 VND/Khách)',
-  270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  320000 => 'Thêm 30kg hành lý (320.000 VND/Khách)',
-  380000 => 'Thêm 35kg hành lý (380.000 VND/Khách)',
-  420000 => 'Thêm 40kg hành lý (420.000 VND/Khách)',
+  200000 => '15kg (200.000 VND/Khách)',
+  220000 => '20kg (220.000 VND/Khách)',
+  270000 => '25kg (270.000 VND/Khách)',
+  320000 => '30kg (320.000 VND/Khách)',
+  380000 => '35kg (380.000 VND/Khách)',
+  420000 => '40kg (420.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['new_vietravel_luggage_price_list1'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  180000 => 'Thêm 15kg hành lý (180.000 VND/Khách)',
-  210000 => 'Thêm 20kg hành lý (210.000 VND/Khách)',
-  270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  380000 => 'Thêm 30kg hành lý (380.000 VND/Khách)',
-  450000 => 'Thêm 35kg hành lý (450.000 VND/Khách)',
-  500000 => 'Thêm 40kg hành lý (500.000 VND/Khách)',
+  180000 => '15kg (180.000 VND/Khách)',
+  210000 => '20kg (210.000 VND/Khách)',
+  270000 => '25kg (270.000 VND/Khách)',
+  380000 => '30kg (380.000 VND/Khách)',
+  450000 => '35kg (450.000 VND/Khách)',
+  500000 => '40kg (500.000 VND/Khách)',
 );
 
 // Từ ngày 06-01-2023
 $GLOBALS['app_list_strings']['new_vietravel_luggage_price_list2'] = array(
   0 => 'Không mang hành lý ký gửi ',
-  // 200000 => 'Thêm 15kg hành lý (200.000 VND/Khách)',
-  // 220000 => 'Thêm 20kg hành lý (220.000 VND/Khách)',
-  // 270000 => 'Thêm 25kg hành lý (270.000 VND/Khách)',
-  // 320000 => 'Thêm 30kg hành lý (320.000 VND/Khách)',
-  // 380000 => 'Thêm 35kg hành lý (380.000 VND/Khách)',
-  // 420000 => 'Thêm 40kg hành lý (420.000 VND/Khách)',
+  // 200000 => '15kg (200.000 VND/Khách)',
+  // 220000 => '20kg (220.000 VND/Khách)',
+  // 270000 => '25kg (270.000 VND/Khách)',
+  // 320000 => '30kg (320.000 VND/Khách)',
+  // 380000 => '35kg (380.000 VND/Khách)',
+  // 420000 => '40kg (420.000 VND/Khách)',
 
-  // 250000 => 'Thêm 20kg hành lý (250.000 VND/Khách)',
-  // 300000 => 'Thêm 25kg hành lý (300.000 VND/Khách)',
-  // 350000 => 'Thêm 30kg hành lý (350.000 VND/Khách)',
-  // 400000 => 'Thêm 35kg hành lý (400.000 VND/Khách)',
-  // 460000 => 'Thêm 40kg hành lý (460.000 VND/Khách)',
+  // 250000 => '20kg (250.000 VND/Khách)',
+  // 300000 => '25kg (300.000 VND/Khách)',
+  // 350000 => '30kg (350.000 VND/Khách)',
+  // 400000 => '35kg (400.000 VND/Khách)',
+  // 460000 => '40kg (460.000 VND/Khách)',
 
   // Từ ngày 15-08-2024
   230000 => '1 kiện 15kg (230.000 VND/Khách)',
@@ -2412,11 +2416,11 @@ $GLOBALS['app_list_strings']['new_vietravel_luggage_price_list2'] = array(
 // HÀNH LÝ QUỐC TẾ
 $GLOBALS['app_list_strings']['inter_luggage_price_list'] = array(
     '0' => 'Không mang hành lý ký gửi ',
-    '20' => 'Thêm 20kg hành lý ',
-    '23' => '1 kiện 23kg hành lý ',
-    '223' => '2 kiện 23kg hành lý ',
-    '25' => 'Thêm 25kg hành lý ',
-    '30' => 'Thêm 30kg hành lý ',
+    '20' => '20kg ',
+    '23' => '1 kiện 23kg ',
+    '223' => '2 kiện 23kg ',
+    '25' => '25kg ',
+    '30' => '30kg ',
 );
 // =================== END ==========================
 // ==================================================
