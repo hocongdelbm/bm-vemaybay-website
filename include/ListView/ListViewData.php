@@ -289,10 +289,10 @@ class ListViewData
         }
         $main_query = $ret_array['select'] . $params['custom_select'] . $ret_array['from'] . $params['custom_from'] . $ret_array['inner_join']. $ret_array['where'] . $params['custom_where'] . $ret_array['order_by'] . $params['custom_order_by'];
        
-        if($current_user->user_name == 'hungnh'){
-            echo 'LIST VIEW IN INCLCUES';
-            pr($main_query);
-        }
+        // if($current_user->user_name == 'hungnh'){
+        //     echo 'LIST VIEW IN INCLCUES';
+        //     pr($main_query);
+        // }
        
        
         //C.L. - Fix for 23461
