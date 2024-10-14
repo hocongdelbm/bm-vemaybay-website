@@ -1004,7 +1004,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<input type="hidden" name="action" value="Save">
 				<input type="hidden" name="booking_id" value="' . $this->bean->id . '">
 				<div class="detail view in-popup" id="line_itineraries_area"></div>
-				<input class="btn btn-primary mt-3 d-block mx-auto save-popup-dialog" type="submit" value="Lưu" name="save_change_flight">
+				<input class="btn btn-primary mt-3 d-block mx-auto" type="submit" value="Lưu" name="save_change_flight">
 			</form>';
 			$this->ss->assign('CHANGE_FLIGHT_TIME', $change_flight_time);
 		}
@@ -1279,6 +1279,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				$check_ret = true;
 			} 
 			else $html .= '<td data-label="" class="text-center"></td>';
+
+			if($current_user->user_name == 'hungnh'){
+				// pr($row);
+			}
 
 			$html .= '<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 					<td data-label="Chiều" class="text-center" id="detail_direction'.$i.'" data-direction="'.$row['direction'].'">' . $app_list_strings['bk_direction_list'][$row['direction']] . '</td>

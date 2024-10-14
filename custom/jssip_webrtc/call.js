@@ -381,6 +381,7 @@ $(document).ready(function () {
         '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //Nhat Do
         '168889bb-54c2-59c7-8b3f-649102530d3c', //Hai Hung
         '622ecf27-f729-7187-7e27-6520e0dab882', //Quangnd
+        '493ad5e5-ffea-a84f-96d7-6577fed623d6', //Booker test
     ];
     if (CURRENT_USER) {
         var isAdmin = adminUserIds.includes(CURRENT_USER);

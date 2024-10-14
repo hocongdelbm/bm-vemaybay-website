@@ -684,6 +684,9 @@ $(document).ready(function () {
 	});
 
 	$(document).one('click', '#btnSaveWorkingProcess', function (event) {
+
+		console.warn('Cos voo day khong ma showloading');
+
 		$(this).attr("disabled", "disabled");
 		var frmSaveWorkingProcess = $('#frmSaveWorkingProcess').val();
 

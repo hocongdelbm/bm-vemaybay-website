@@ -411,12 +411,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 
 		// số vé lượt đi
 		$html .= '<tr class="line_pass' . $row['id'] . '">
-				<td class="text-label" width="20%">Số vé lượt đi:</td>
+				<td class="text-label text-nowrap" width="20%">Số vé lượt đi:</td>
 				<td width="30%"><input class="box-input" type="text" value="' . $row['eticket_outbound'] . '" name="pass_eticket_outbound[]"></td>
 				' . $eticket_inbound . '
 			</tr>';
 		$html .= '<tr class="line_pass' . $row['id'] . '">
-				<td class="text-label" width="20%">PNR lượt đi:</td>
+				<td class="text-label text-nowrap" width="20%">PNR lượt đi:</td>
 				<td width="30%"><input class="box-input" type="text" value="' . $row['pnr_outbound'] . '" name="pass_pnr_outbound[]"></td>
 				' . $pnr_inbound . '
 			</tr>';
@@ -433,7 +433,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		}
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
-				<td width="20%" class="text-label">Thêm HL lượt đi:</td>
+				<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
 				<td width="30%" class="pass_luggage_ln pass_luggage_left">
 					<select class="pass_luggage pass_luggage_ob box-select" name="pass_luggage_ob[]" ln="' . $i . '">' . generateLuggage($booking->date_entered, $booking->airline, $ticket_class_ob, $row['type'], (int)$row['luggage_index_outbound'], 1, (int)$row['luggage_price']) . '</select>
 					' . $vj_luggage_outbound . '
@@ -443,13 +443,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		// giá mua lượt đi
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
-				<td width="20%" class="text-label">Giá mua HL lượt đi:</td>
+				<td width="20%" class="text-label text-nowrap">Giá mua HL lượt đi:</td>
 				<td width="30%"><input type="text" value="' . $row['luggage_purchase'] . '" name="bought_price_outbound[]" class="box-input allow-number-only"></td>
 				' . $bought_price_inbound . '
 			</tr>';
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
-				<td width="20%" class="text-label"">NCC HL lượt đi:</td>
+				<td width="20%" class="text-label text-nowrap">NCC HL lượt đi:</td>
 				<td width="30%" class="supplier_line supplier_line_left">
 					<select class="box-select" name="supplier_outbound[]">' . get_select_options_with_id($supplier, trim($row['supplier_id'])) . '</select>
 					<input type="hidden" name="iti_ob" value="' . $row_t['iti_id_ob'] . '">
