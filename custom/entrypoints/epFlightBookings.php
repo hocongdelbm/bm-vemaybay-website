@@ -348,13 +348,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		if (empty($booking->flight_type)) {
 			// số vé lượt về
 			$eticket_inbound = '
-					<td width="20%" class="text-label">Số vé lượt về:</td>
-					<td width="30%"><input class="box-input" type="text" value="' . $row['eticket_inbound'] . '" name="pass_eticket_inbound[]"></td>';
+					<td width="20%" class="text-label text-nowrap">Số vé lượt về:</td>
+					<td><input class="box-input" type="text" value="' . $row['eticket_inbound'] . '" name="pass_eticket_inbound[]"></td>';
 
 			// pnr lượt về
 			$pnr_inbound = '
-					<td width="20%" class="text-label">PNR lượt về:</td>
-					<td width="30%"><input class="box-input" type="text" value="' . $row['pnr_inbound'] . '" name="pass_pnr_inbound[]"></td>';
+					<td width="20%" class="text-label text-nowrap">PNR lượt về:</td>
+					<td><input class="box-input" type="text" value="' . $row['pnr_inbound'] . '" name="pass_pnr_inbound[]"></td>';
 
 			// đánh dấu hành lý của VJ thì lưu cách khác
 			// lượt về
@@ -371,21 +371,21 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 				$luggage_price_inb = (int)$row['luggage_index_inbound'];
 			}
 			$luggage_inbound = '
-					<td width="20%" class="text-label">Thêm HL lượt về:</td>
-					<td width="30%" class="pass_luggage_ln pass_luggage_right">
+					<td width="20%" class="text-label text-nowrap">Thêm HL lượt về:</td>
+					<td class="pass_luggage_ln pass_luggage_right">
 						<select class="pass_luggage pass_luggage_ib box-select" name="pass_luggage_ib[]" ln="' . $i . '">' . generateLuggage($booking->date_entered, $booking->airline_inbound, $ticket_class_ib, $row['type'], (int)$row['luggage_index_inbound'], 1, (int)$row['luggage_price_inbound']) . '</select>
 						' . $vj_luggage_inbound . '
 					</td>';
 
 			// giá mua hành lý lượt về
 			$bought_price_inbound = '
-					<td width="20%" class="text-label">Giá mua HL lượt về:</td>
-					<td width="30%"><input type="text" value="' . $row['luggage_purchase_inbound'] . '" name="bought_price_inbound[]" class="box-input allow-number-only"></td>';
+					<td width="20%" class="text-label text-nowrap">Giá mua HL lượt về:</td>
+					<td><input type="text" value="' . $row['luggage_purchase_inbound'] . '" name="bought_price_inbound[]" class="box-input allow-number-only"></td>';
 
 			// nhà cung cấp lượt về
 			$supplier_inbound = '
-					<td width="20%"><label class="text-label">NCC HL lượt về:</label></td>
-					<td width="30%" class="supplier_line supplier_line_right">
+					<td width="20%"><label class="text-label text-nowrap">NCC HL lượt về:</label></td>
+					<td class="supplier_line supplier_line_right">
 						<select class="box-select" name="supplier_inbound[]">' . get_select_options_with_id($supplier, trim($row['supplier_inbound_id'])) . '</select>
 						<input type="hidden" name="iti_ib" value="' . $row_t['iti_id_ib'] . '">
 					</td>';
@@ -412,12 +412,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		// số vé lượt đi
 		$html .= '<tr class="line_pass' . $row['id'] . '">
 				<td class="text-label text-nowrap" width="20%">Số vé lượt đi:</td>
-				<td width="30%"><input class="box-input" type="text" value="' . $row['eticket_outbound'] . '" name="pass_eticket_outbound[]"></td>
+				<td><input class="box-input" type="text" value="' . $row['eticket_outbound'] . '" name="pass_eticket_outbound[]"></td>
 				' . $eticket_inbound . '
 			</tr>';
 		$html .= '<tr class="line_pass' . $row['id'] . '">
 				<td class="text-label text-nowrap" width="20%">PNR lượt đi:</td>
-				<td width="30%"><input class="box-input" type="text" value="' . $row['pnr_outbound'] . '" name="pass_pnr_outbound[]"></td>
+				<td><input class="box-input" type="text" value="' . $row['pnr_outbound'] . '" name="pass_pnr_outbound[]"></td>
 				' . $pnr_inbound . '
 			</tr>';
 
@@ -434,7 +434,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
 				<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
-				<td width="30%" class="pass_luggage_ln pass_luggage_left">
+				<td class="pass_luggage_ln pass_luggage_left">
 					<select class="pass_luggage pass_luggage_ob box-select" name="pass_luggage_ob[]" ln="' . $i . '">' . generateLuggage($booking->date_entered, $booking->airline, $ticket_class_ob, $row['type'], (int)$row['luggage_index_outbound'], 1, (int)$row['luggage_price']) . '</select>
 					' . $vj_luggage_outbound . '
 				</td>
@@ -444,13 +444,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
 				<td width="20%" class="text-label text-nowrap">Giá mua HL lượt đi:</td>
-				<td width="30%"><input type="text" value="' . $row['luggage_purchase'] . '" name="bought_price_outbound[]" class="box-input allow-number-only"></td>
+				<td><input type="text" value="' . $row['luggage_purchase'] . '" name="bought_price_outbound[]" class="box-input allow-number-only"></td>
 				' . $bought_price_inbound . '
 			</tr>';
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
 				<td width="20%" class="text-label text-nowrap">NCC HL lượt đi:</td>
-				<td width="30%" class="supplier_line supplier_line_left">
+				<td class="supplier_line supplier_line_left">
 					<select class="box-select" name="supplier_outbound[]">' . get_select_options_with_id($supplier, trim($row['supplier_id'])) . '</select>
 					<input type="hidden" name="iti_ob" value="' . $row_t['iti_id_ob'] . '">
 				</td>

@@ -40,7 +40,7 @@ $listViewDefs['Calls'] = array(
 	'CALL_TYPE' => array(
 		'width' => '20%',
 		'label' => 'LBL_CALL_TYPE',
-		'default' => true,
+		'default' => false,
 	),
 
 	'CALL_FROM' => array(

@@ -849,7 +849,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		// Change booking status button
-		if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8)) || $current_user->user_name == 'hungnh') {
+		// if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8)) || $current_user->user_name == 'hungnh') {
+		if (is_admin($current_user) && !in_array($this->bean->booking_status, array(4, 7, 8)) || $current_user->user_name == 'hungnh') {
 			$change_status = '</form>
 			<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -944,7 +945,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		// Edit booking detail
-		if ($this->bean->booking_status == '7' || ACLController::checkAccess("Bugs", "edit", true) && $this->bean->booking_status == '8') {
+		// if ($this->bean->booking_status == '7' || ACLController::checkAccess("Bugs", "edit", true) && $this->bean->booking_status == '8') {
+		if ($this->bean->booking_status == '7' || $this->bean->booking_status == '8') {
 			$total_qty 			= isset($_POST['total_qty']) && !empty($_POST['total_qty']) ? $_POST['total_qty'] : (isset($this->bean->total_qty) ? $this->bean->total_qty : 0);
 			$subtotal_amount 		= isset($_POST['subtotal_amount']) && !empty($_POST['subtotal_amount']) ? $_POST['subtotal_amount'] : (isset($this->bean->subtotal_amount) ? $this->bean->subtotal_amount : 0);
 			$total_bought_amount 	= isset($_POST['total_bought_amount']) && !empty($_POST['total_bought_amount']) ? $_POST['total_bought_amount'] : (isset($this->bean->total_bought_amount) ? $this->bean->total_bought_amount : 0);

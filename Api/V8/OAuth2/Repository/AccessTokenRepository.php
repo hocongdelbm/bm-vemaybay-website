@@ -128,8 +128,8 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             'newDateTime' => new DateTime(),
             'expiresDateTime' => new DateTime($token->access_token_expires),
         );
-        $this->sendTestTelegramTokenRevoked(json_encode($log_token));
-
+        if($token->id === null || $token->token_is_revoked === '1' || new DateTime() > new DateTime($token->access_token_expires))
+            $this->sendTestTelegramTokenRevoked(json_encode($log_token));
 
         return $token->id === null || $token->token_is_revoked === '1' || new DateTime() > new DateTime($token->access_token_expires);
     }

@@ -270,10 +270,10 @@ $app_list_strings = array(
         86400 => '1 ngày trước',
     ),
 
-    'task_priority_default' => 'Đa phương tiện',
+    'task_priority_default' => 'Trung bình',
     'task_priority_dom' => array(
         'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
+        'Medium' => 'Trung bình',
         'Low' => 'Thấp',
     ),
     'task_status_default' => 'Not Started',
@@ -320,7 +320,7 @@ $app_list_strings = array(
     'case_priority_default_key' => 'P2',
     'case_priority_dom' => array(
         'P1' => 'Cao',
-        'P2' => 'Đa phương tiện',
+        'P2' => 'Trung bình',
         'P3' => 'Thấp',
     ),
     'user_type_dom' => array(
@@ -347,10 +347,10 @@ $app_list_strings = array(
     ),
     'project_task_priority_options' => array(
         'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
+        'Medium' => 'Trung bình',
         'Low' => 'Thấp',
     ),
-    'project_task_priority_default' => 'Đa phương tiện',
+    'project_task_priority_default' => 'Trung bình',
 
     'project_task_status_options' => array(
         'Not Started' => 'Chưa bắt đầu',
@@ -463,11 +463,11 @@ $app_list_strings = array(
         'AOS_Invoices' => 'Hóa đơn',
         'AOS_Contracts' => 'Hợp đồng',
     ),
-    'issue_priority_default_key' => 'Đa phương tiện',
+    'issue_priority_default_key' => 'Trung bình',
     'issue_priority_dom' => array(
         'Urgent' => 'Khẩn cấp',
         'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
+        'Medium' => 'Trung bình',
         'Low' => 'Thấp',
     ),
     'issue_resolution_default_key' => '',
@@ -489,11 +489,11 @@ $app_list_strings = array(
         'Rejected' => 'Đã từ chối',
     ),
 
-    'bug_priority_default_key' => 'Đa phương tiện',
+    'bug_priority_default_key' => 'Trung bình',
     'bug_priority_dom' => array(
         'Urgent' => 'Khẩn cấp',
         'High' => 'Cao',
-        'Medium' => 'Đa phương tiện',
+        'Medium' => 'Trung bình',
         'Low' => 'Thấp',
     ),
     'bug_resolution_default_key' => '',
@@ -516,7 +516,7 @@ $app_list_strings = array(
     ),
     'bug_type_default_key' => 'Phát sinh',
     'bug_type_dom' => array(
-        'Defect' => 'Khiếm khuyết',
+        'Defect' => 'Lỗi',
         'Feature' => 'Tính năng',
     ),
     'case_type_dom' => array(
@@ -751,7 +751,7 @@ $app_list_strings = array(
     'document_category_dom' => array(
         '' => '',
         'Marketing' => 'Marketing',
-        'Knowledege Base' => 'Kiến thức cơ bản',
+        'Knowledege Base' => 'Trung tâm hỗ trợ',
         'Sales' => 'Bán hàng',
     ),
 
@@ -893,7 +893,7 @@ $app_list_strings = array(
 
     'projects_priority_options' => array(
         'high' => 'Cao',
-        'medium' => 'Đa phương tiện',
+        'medium' => 'Trung bình',
         'low' => 'Thấp',
     ),
 
@@ -2101,10 +2101,10 @@ $app_strings = array(
 
 $app_list_strings['moduleList']['Library'] = 'Thư viện';
 $app_list_strings['moduleList']['EmailAddresses'] = 'Địa chỉ Email ';
-$app_list_strings['project_priority_default'] = 'Đa phương tiện';
+$app_list_strings['project_priority_default'] = 'Trung bình';
 $app_list_strings['project_priority_options'] = array(
     'High' => 'Cao',
-    'Medium' => 'Đa phương tiện',
+    'Medium' => 'Trung bình',
     'Low' => 'Thấp',
 );
 
@@ -2824,8 +2824,8 @@ $app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
 );
 
 // knowledge base
-$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Kiến thức cơ bản'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'KB - thể loại'; // Shows in the ALL menu entries
+$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
+$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
 $app_list_strings['aok_status_list']['Draft'] = 'Dự thảo';
 $app_list_strings['aok_status_list']['Expired'] = 'hết hạn';
 $app_list_strings['aok_status_list']['In_Review'] = 'Đang xem xét';

@@ -1590,38 +1590,6 @@ function calculateSupplierBalance($supplier_id)
     return $db->getOne($sql);
 }
 
-// Check quyền cho admin hệ thống và kế toán trưởng
-function isManagerUser($user_id)
-{
-    global $db, $current_user;
-
-    if (is_admin($current_user)) {
-        return 1;
-    }
-
-    // $sql = 'SELECT COUNT(id) 
-    //         FROM acl_roles_users 
-    //         WHERE deleted = 0 
-    //         AND role_id IN (
-    //             "222d9e8c-a54c-d7b8-8f75-567e493d6ea3",
-    //             "c4ae12df-787f-5a30-5612-509b1346b649"
-    //         )
-    //         AND user_id = "' . $user_id . '"';
-
-    $sql = 'SELECT COUNT(id) 
-            FROM acl_roles_users 
-            WHERE user_id = "' . $user_id . '"
-                AND role_id IN (
-                    "' . $GLOBALS['app_list_strings']['roles_users']['QUANLY'] . '",
-                    "' . $GLOBALS['app_list_strings']['roles_users']['KETOAN'] . '"
-                )
-                AND deleted = 0';
-    $is_manager = $db->getOne($sql);
-
-    if ($is_manager) return 1;
-    return 0;
-}
-
 function getEmailFromUser($user_id)
 {
     global $db;
@@ -1924,6 +1892,39 @@ function isAllowedUser()
 
     return false;
 }
+
+// Check quyền cho admin hệ thống, QL và kế toán
+function isManagerUser($user_id)
+{
+    global $db, $current_user;
+
+    if (is_admin($current_user)) {
+        return 1;
+    }
+
+    // $sql = 'SELECT COUNT(id) 
+    //         FROM acl_roles_users 
+    //         WHERE deleted = 0 
+    //         AND role_id IN (
+    //             "222d9e8c-a54c-d7b8-8f75-567e493d6ea3",
+    //             "c4ae12df-787f-5a30-5612-509b1346b649"
+    //         )
+    //         AND user_id = "' . $user_id . '"';
+
+    $sql = 'SELECT COUNT(id) 
+            FROM acl_roles_users 
+            WHERE user_id = "' . $user_id . '"
+                AND role_id IN (
+                    "' . $GLOBALS['app_list_strings']['roles_users']['QUANLY'] . '",
+                    "' . $GLOBALS['app_list_strings']['roles_users']['KETOAN'] . '"
+                )
+                AND deleted = 0';
+    $is_manager = $db->getOne($sql);
+
+    if ($is_manager) return 1;
+    return 0;
+}
+
 
 // Bỏ các khoảng trắng
 function replaceAllSpacesToSingleSpace($string)

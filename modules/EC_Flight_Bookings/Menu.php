@@ -14,9 +14,11 @@ if(ACLController::checkAccess('EC_Flight_Bookings', 'list', true))$module_menu[]
 
 if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true))$module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=airportstatistics&return_module=EC_Flight_Bookings&return_action=airportstatistics", "Phân tích hành trình","airplane_16", 'EC_Flight_Bookings');
 
-if(ACLController::checkAccess('Bugs', 'edit', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=debtopay&return_module=EC_Flight_Bookings&return_action=debtopay", "Công nợ phải trả","debt_16x16", 'EC_Flight_Bookings');
-
-if(ACLController::checkAccess('Bugs', 'edit', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=agentreport&return_module=EC_Flight_Bookings&return_action=agentreport", "Công nợ phải thu","debt_16x16", 'EC_Flight_Bookings');
+// Doanh số booker
+if(isManagerUser($current_user->id)) {
+	if(ACLController::checkAccess('Bugs', 'edit', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=debtopay&return_module=EC_Flight_Bookings&return_action=debtopay", "Công nợ phải trả","debt_16x16", 'EC_Flight_Bookings');
+	if(ACLController::checkAccess('Bugs', 'edit', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=agentreport&return_module=EC_Flight_Bookings&return_action=agentreport", "Công nợ phải thu","debt_16x16", 'EC_Flight_Bookings');
+}
 
 if(ACLController::checkAccess('EC_Flight_Bookings', 'list', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=checkflydate&return_module=EC_Flight_Bookings&return_action=checkflydate", "Kiểm tra ngày bay","calendar_16x16", 'EC_Flight_Bookings');
 

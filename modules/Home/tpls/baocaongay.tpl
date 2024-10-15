@@ -56,83 +56,110 @@
 <h1 class="title">Báo cáo ngày</h1>
 
 <div class="box-section">
-<form action="index.php" method="post" name="frmSearch" id="frmSearch">
-<input type="hidden" name="module" value="Home" />
-	<input type="hidden" name="action" value="baocaongay" />
-	
-	<input autocomplete="off" type="text" name="tungay" id="tungay" value="{$POST_TUNGAY}" title="" size="11" maxlength="10" />
-	<img border="0" src="themes/default/images/jscalendar.gif" alt="Từ ngày" id="tungay_trigger" align="absmiddle" />
-	{literal}
-	<script type="text/javascript">
-		Calendar.setup ({
-		inputField : "tungay",
-		daFormat : "%d-%m-%Y",
-		button : "tungay_trigger",
-		singleClick : true,
-		dateStr : "",
-		step : 1,
-		weekNumbers:false
-	});
-	</script>
-	{/literal}
-	÷
-	<input autocomplete="off" type="text" name="denngay" id="denngay" value="{$POST_DENNGAY}" title="" size="11" maxlength="10" />
-	<img border="0" src="themes/default/images/jscalendar.gif" alt="Đến ngày" id="denngay_trigger" align="absmiddle" />
-	{literal}
-	<script type="text/javascript">
-		Calendar.setup ({
-		inputField : "denngay",
-		daFormat : "%d-%m-%Y",
-		button : "denngay_trigger",
-		singleClick : true,
-		dateStr : "",
-		step : 1,
-		weekNumbers:false
-	});
-	</script>
-	{/literal}
-	<input type="submit" name="btnSearch" id="btnSearch" value="Xem" title="Xem" />
-</form>
+	<form action="index.php" method="post" name="frmSearch" id="frmSearch">
+	<input type="hidden" name="module" value="Home" />
+		<input type="hidden" name="action" value="baocaongay" />
+		
+        <div class="from-to-date--wrap d-inline-flex gap-3 align-items-center">
+			<div class="d-flex gap-2 align-items-center fdate_trigger--wrap">
+                <span class="sublabel">Từ ngày: </span>    
+                <div class="dateTime d-flex gap-2 position-relative">
+                    <input class="date_input box-input" type="text" maxlength="10" size="11" tabindex="103" title="" value="{$POST_TUNGAY}" id="tungay" name="tungay" autocomplete="off">
+                    <button class="icon_dateTime" type="button" id="tungay_trigger" onclick="return false;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"/>
+                            <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
+                          </svg>
+                    </button>
+                    {literal}
+                        <script type="text/javascript">
+                                Calendar.setup ({
+                                    inputField : "tungay",
+                                    daFormat : "%d-%m-%Y",
+                                    button : "tungay_trigger",
+                                    singleClick : true,
+                                    dateStr : "",
+                                    step : 1,
+									weekNumbers:false
+                                });
+                        </script>
+                    {/literal}
+                </div>
+            </div>
 
-<table id="tbl_baocaongay" class="table-baocaongay table-details__booking" cellpadding="0" cellspacing="0" border="0">
-	<tr>
-    	<td width="28%" align="center" style="font-weight:bold;">
-        	<img src="custom/themes/default/images/user_icon.jpg" />
-            <br />Nhân viên
-        </td>
-        <td width="12%" align="center" style="font-weight:bold;">
-        	<img src="custom/themes/default/images/task_icon_16x16.png" />
-            <br />Công việc
-        </td>
-        <td width="12%" align="center" style="font-weight:bold;">
-        	<img src="custom/themes/default/images/contact_icon.jpg" />
-            <br />Liên hệ
-        </td>
-        <td width="12%" align="center" style="font-weight:bold;">
-        	<img src="custom/themes/default/images/meeting_icon.jpg" />
-            <br />Cuộc gặp
-        </td>
-        <td width="12%" align="center" style="font-weight:bold;">
-        	<img src="custom/themes/default/images/callcenter_icon.jpg" />
-            <br />Cuộc gọi
-        </td>
-        <td width="12%" align="center" style="font-weight:bold;">
-        	<img src="custom/themes/default/images/opportunity_icon.jpg" />
-            <br />Cơ hội
-        </td>
-    </tr>
-    {$DATA}
-</table>
+			<svg width="40" height="20" fill="none">
+                <g clip-path="url(#icon_arrow_flight_long_svg__clip0)" stroke="#718096" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M33.5 8.5L36 11M4 11h32"></path>
+                </g>
+                <defs>
+                    <clipPath id="icon_arrow_flight_long_svg__clip0">
+                        <path fill="#fff" d="M0 0h40v20H0z"></path>
+                    </clipPath>
+                </defs>
+            </svg>
 
-<div id="viewDetailDialog" title="Chi tiết" style="display:none; font-family:arial; font-size:12px;">
-	<table width="100%" cellspacing="0" cellpadding="0" border="0">
-    	<tr>
-        	<td width="5%" align="center" style="font-weight:bold;">STT</td>
-            <td width="20%" align="center" style="font-weight:bold;">Tên</td>
-            <td width="15%" align="center" style="font-weight:bold;">Ngày tạo</td>
-            <td width="30%" align="center" style="font-weight:bold;">Khách hàng</td>
-            <td width="30%" align="center" style="font-weight:bold;">Diễn giải</td>
-        </tr>
-    </table>
-</div>
+			<div class="d-flex gap-2 align-items-center tdate_trigger--wrap">
+                <span class="sublabel">Đến ngày: </span>    
+                <div class="dateTime d-flex gap-2 position-relative">
+                   <input  class="date_input box-input" type="text" maxlength="10" size="11" title="" value="{$POST_DENNGAY}" id="denngay" name="denngay" autocomplete="off">
+                    <button class="icon_dateTime" type="button" id="denngay_trigger" onclick="return false;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"/>
+                            <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
+                        </svg>
+                    </button>
+                    {literal}
+                        <script type="text/javascript">
+                                Calendar.setup ({
+                                    inputField : "denngay",
+                                    daFormat : "%d-%m-%Y",
+                                    button : "denngay_trigger",
+                                    singleClick : true,
+                                    dateStr : "",
+                                    step : 1
+                                });
+                        </script>
+                    {/literal}
+                </div>
+            </div>
+		</div>
+
+		<input type="submit" class="btn btn-primary" name="btnSearch" id="btnSearch" value="Xem" title="Xem" />
+	</form>
+
+	<table id="tbl_baocaongay" class="table-baocaongay table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
+		<tr>
+			<td align="center" class="fw-bold">
+				Nhân viên
+			</td>
+			<td width="12%" align="center" class="fw-bold">
+				Công việc
+			</td>
+			<td width="12%" align="center" class="fw-bold">
+				Liên hệ
+			</td>
+			<td width="12%" align="center" class="fw-bold">
+				Cuộc gặp
+			</td>
+			<td width="12%" align="center" class="fw-bold">
+				Cuộc gọi
+			</td>
+			<td width="12%" align="center" class="fw-bold">
+				Cơ hội
+			</td>
+		</tr>
+		{$DATA}
+	</table>
+
+	<div id="viewDetailDialog" title="Chi tiết" style="display:none; font-family:arial; font-size:12px;">
+		<table width="100%" cellspacing="0" cellpadding="0" border="0">
+			<tr>
+				<td width="5%" align="center">STT</td>
+				<td width="20%" align="center">Tên</td>
+				<td width="15%" align="center">Ngày tạo</td>
+				<td width="30%" align="center">Khách hàng</td>
+				<td align="center">Diễn giải</td>
+			</tr>
+		</table>
+	</div>
 </div>

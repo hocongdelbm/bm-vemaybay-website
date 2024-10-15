@@ -42,6 +42,12 @@ class CustomController extends BaseController
         '119.17.253.14', // appvemaybay.com
         '202.151.168.27', // vemaybaynamphuong.net
         '202.151.168.28', // vemaybay.me
+
+        '157.119.251.114',
+        '157.119.251.90',
+        '157.119.251.44',
+        '157.119.251.101',
+        '157.119.251.41',
     ];
 
     /************  BOOKING  ************/

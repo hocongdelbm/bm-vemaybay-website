@@ -1954,14 +1954,6 @@ function updateMissingEfforts()
 // {
 // 	global $db, $current_user;
 
-// 	$array_admin = [
-// 		'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-// 		'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-// 		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
-// 		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-// 		'1', //DDuc
-// 	];
-
 // 	$path           = "secure_sessions/check_online_logs/";
 // 	$temp_files     = scandir($path);
 // 	natsort($temp_files);
@@ -2047,11 +2039,6 @@ function updateMissingEfforts()
 // 					}
 // 				}
 // 			}
-
-// 			// Change status admin
-// 			if (in_array($user_id, $array_admin)) {
-// 				agent_change_status($agent, 'Available');
-// 			}
 // 		}
 // 	}
 
@@ -2061,14 +2048,9 @@ function checkStatusOnlineUser()
 {
 	global $db;
 
-	$array_admin = [
-		'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-		'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
-		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-		'1', //DDuc
-	];
-
+	// 0: Offline
+	// 1: Online
+	// 2: Busy
 	$path           = "secure_sessions/check_online_logs/";
 	$timestamp_now = strtotime('+7 hours');
 
@@ -2091,20 +2073,19 @@ function checkStatusOnlineUser()
             if ($agent) agent_change_status($agent, 'Logged Out');
         } else {
             // Kiểm tra trạng thái online hiện tại
-            $row = $db->fetchByAssoc($db->query("
-                SELECT status 
-				FROM ec_online_report
-                WHERE assigned_user_id = '$user_id'
-                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'
-                AND deleted = 0
-            "));
-            if (!empty($row['status']) && !in_array($row['status'], [1, 2]) && $agent) {
-                agent_change_status($agent, 'Available');
-            }
-        }
+            // $row = $db->fetchByAssoc($db->query("
+            //     SELECT status 
+			// 	FROM ec_online_report
+            //     WHERE assigned_user_id = '$user_id'
+            //     AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'
+            //     AND deleted = 0
+            // "));
 
-		// Đổi trạng thái admin
-		if (in_array($user_id, $array_admin)) agent_change_status($agent, 'Available');
+
+            // if (!empty($row['status']) && !in_array($row['status'], [1, 2]) && $agent) {
+            //     agent_change_status($agent, 'Available');
+            // }
+        }
 	}
 
 	return true;
