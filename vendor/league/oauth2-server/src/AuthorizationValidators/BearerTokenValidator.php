@@ -108,6 +108,13 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
             // Attempt to parse the JWT
             $token = $this->jwtConfiguration->parser()->parse($jwt);
         } catch (\Lcobucci\JWT\Exception $exception) {
+            $log_token = array(
+                'path'              => 'vendor\league\oauth2-server\src\AuthorizationValidators',
+                'token'             => $token,
+                'getMessage'        => $exception->getMessage(), 
+                'jwt'               => $jwt,  
+            );
+            $this->sendTestTelegramAccessDenied(json_encode($log_token));
             throw OAuthServerException::accessDenied($exception->getMessage(), null, $exception);
         }
 
