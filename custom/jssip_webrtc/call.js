@@ -374,44 +374,6 @@ ua.on('newRTCSession', function (ev) {
 });
 
 $(document).ready(function () {
-    // BLOCK BEHAVIOR OF USER
-    const adminUserIds = [
-        '1', //Admin - Ducpham
-        '9eb0f65f-a9f6-65bb-1985-637ca8511491', //Trinh
-        '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //Nhat Do
-        '168889bb-54c2-59c7-8b3f-649102530d3c', //Hai Hung
-        '622ecf27-f729-7187-7e27-6520e0dab882', //Quangnd
-        '493ad5e5-ffea-a84f-96d7-6577fed623d6', //Booker test
-    ];
-    if (CURRENT_USER) {
-        var isAdmin = adminUserIds.includes(CURRENT_USER);
-        if (!isAdmin) {
-            // Mouse right
-            document.addEventListener('contextmenu', function (event) {
-                event.preventDefault();
-            });
-
-            document.addEventListener('keydown', function (event) {
-                // F12
-                if (event.keyCode === 123) {
-                    event.preventDefault();
-                }
-                // Ctrl+Shift+I (Inspect)
-                if (event.ctrlKey && event.shiftKey && event.keyCode === 73) {
-                    event.preventDefault();
-                }
-                // Ctrl+Shift+J (Console)
-                if (event.ctrlKey && event.shiftKey && event.keyCode === 74) {
-                    event.preventDefault();
-                }
-                // Ctrl+U (View Source)
-                if (event.ctrlKey && event.keyCode === 85) {
-                    event.preventDefault();
-                }
-            });
-        }
-    }
-
     // Microphone permission 
     $(document).on('click', '#call-phone__circle', function () {
         if (navigator.mediaDevices) {
@@ -791,7 +753,6 @@ $(document).ready(function () {
                 name: name,
                 email: email,
                 note: note,
-
                 booking_id: booking_id,
                 booking_name: booking_name,
                 type_call_booking: type_call_booking
@@ -1636,19 +1597,19 @@ $(function () {
     container.append(`<select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100 mt-3">
                         <option value=""></option>
                         <optgroup label="Viettel">
-                            <option value="0963678130@103.232.121.103:55000">0963678130</option>
+                            <!-- <option value="0963678130@103.232.121.103:55000">0963678130</option> -->
                             <option value="0963323407@103.232.121.103:55000">0963323407</option>
                             <option value="0964031020@103.232.121.103:55000">0964031020</option>
-                            <!-- <option value="0963987527@103.232.121.103:55000">0963987527</option> 
-                            <option value="0963986905@103.232.121.103:55000">0963986905</option> -->
+                            <!-- <option value="0963987527@103.232.121.103:55000">0963987527</option> -->
+                            <!-- <option value="0963986905@103.232.121.103:55000">0963986905</option> -->
                             <option value="0984150870@103.232.121.103:55000">0984150870</option>
                             <option value="0984175174@103.232.121.103:55000">0984175174</option>
                             <option value="0984177790@103.232.121.103:55000">0984177790</option>
-                            <option value="0984191015@103.232.121.103:55000">0984191015</option>
+                            <!-- <option value="0984191015@103.232.121.103:55000">0984191015</option> -->
                             <option value="0984195219@103.232.121.103:55000">0984195219</option>
                             <option value="0984260802@103.232.121.103:55000">0984260802</option>
                             <option value="0984280718@103.232.121.103:55000">0984280718</option>
-                            <option value="0984343406@103.232.121.103:55000">0984343406</option>
+                            <!-- <option value="0984343406@103.232.121.103:55000">0984343406</option> -->
                         </optgroup>
                         <optgroup label="Mobiphone">
                             <option value="0933625233@103.199.78.74:65000">0933625233</option>

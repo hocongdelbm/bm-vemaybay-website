@@ -39,6 +39,9 @@ $mod_strings = array(
     'LBL_APPROVER' => 'Người phê duyệt',
 
     'LBL_LIST_CATE' => 'Danh mục hỗ trợ',
+    
+    'LBL_PHOTO' => 'Ảnh minh họa 1',
+    'LBL_PHOTO_SUB' => 'Ảnh minh họa 2',
 );
 
 $mod_strings['LBL_AOK_KB_CATEGORIES_TITLE'] = 'Danh mục';

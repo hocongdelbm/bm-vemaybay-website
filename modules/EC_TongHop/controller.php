@@ -44,6 +44,9 @@ class EC_TongHopController extends SugarController{
             case "analytics":
                 $this->action = "analytics";
                 break;
+          case "businessreport":
+               $this->action = "businessreport";
+               break;
             default:
                 $this->action = "bookingqtyreport";
                 break;
@@ -73,6 +76,8 @@ class EC_TongHopController extends SugarController{
 			$this->action = "yearlyreport";
           if( $this->return_action == "cashflow" )
 			$this->action = "cashflow";
+          if( $this->return_action == "businessreport" )
+			$this->action = "businessreport";
 	}
 }
 ?>

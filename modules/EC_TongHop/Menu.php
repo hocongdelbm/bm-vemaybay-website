@@ -9,6 +9,16 @@ global $mod_strings, $app_strings, $sugar_config, $current_user;
 $deparment_info = myGetDepartmentInfo($current_user->department_id);
 $title_info = $current_user->title;
 
+// PANDA
+$arr_user_whitelist = [
+    'pandadth',
+    'hungnh',
+];
+$is_panda = (in_array($GLOBALS['current_user']->user_name, $arr_user_whitelist));
+if($is_panda){
+    if(ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[]=Array("index.php?module=EC_TongHop&action=businessreport&return_module=EC_TongHop&return_action=businessreport&date_select=this_week", "Báo cáo tuần", "businessreport", 'EC_TongHop');
+}
+
 // if (ACLController::checkAccess('EC_TongHop', 'edit', true)) {
 //     $module_menu[] = array('index.php?module=EC_TongHop&action=EditView&return_module=EC_TongHop&return_action=DetailView', $mod_strings['LNK_NEW_RECORD'], 'Add', 'EC_TongHop');
 // }

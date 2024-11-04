@@ -16,6 +16,11 @@ $listViewDefs['Bugs'] = array(
         'default' => true,
         'link' => true
     ),
+    'RESOLUTION' => array(
+        'width' => '10',
+        'label' => 'LBL_LIST_RESOLUTION',
+        'default' => true
+    ),
     'STATUS' => array(
         'width' => '10',
         'label' => 'LBL_LIST_STATUS',
@@ -46,11 +51,6 @@ $listViewDefs['Bugs'] = array(
         'related_fields' => array('fixed_in_release'),
         'module' => 'Releases',
         'id' => 'FIXED_IN_RELEASE',
-    ),
-    'RESOLUTION' => array(
-        'width' => '10',
-        'label' => 'LBL_LIST_RESOLUTION',
-        'default' => false
     ),
     'ASSIGNED_USER_NAME' => array(
         'width' => '9',

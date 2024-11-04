@@ -390,6 +390,13 @@ $moduleList[] = 'EC_Completed_Bookings';
 
  
  //WARNING: The contents of this file are auto-generated
+$beanList['EC_Report_Weekly'] = 'EC_Report_Weekly';
+$beanFiles['EC_Report_Weekly'] = 'modules/EC_Report_Weekly/EC_Report_Weekly.php';
+$moduleList[] = 'EC_Report_Weekly';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
 $beanList['EC_Customer'] = 'EC_Customer';
 $beanFiles['EC_Customer'] = 'modules/EC_Customer/EC_Customer.php';
 $moduleList[] = 'EC_Customer';

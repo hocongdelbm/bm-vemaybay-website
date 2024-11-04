@@ -60,15 +60,15 @@ class WinInvoice extends InvoiceLogs {
         $post_data['invCustomer'] = isset($invoice['invCustomer']) ? $invoice['invCustomer'] : '1'; // KH CÁ NHÂN HAY TỔ CHỨC
 
         /******  2. THÔNG TIN KHÁCH HÀNG  ******/
-        $post_data['buyerName']      = isset($buyer['buyerName']) ? $buyer['buyerName'] : '';
-        $post_data['buyerCompany']   = isset($buyer['buyerCompany']) ? $buyer['buyerCompany'] : '';
+        $post_data['buyerName']      = isset($buyer['buyerName']) ? html_entity_decode($buyer['buyerName']) : '';
+        $post_data['buyerCompany']   = isset($buyer['buyerCompany']) ? html_entity_decode($buyer['buyerCompany']) : '';
         $post_data['buyerEmail']     = isset($buyer['buyerEmail']) ? $buyer['buyerEmail'] : 'ngandtk@giaonhanh.net';
         // Optional
         $post_data['buyerCode']      = isset($buyer['buyerCode']) ? $buyer['buyerCode'] : '';
         $post_data['buyerTax']       = isset($buyer['buyerTax']) ? $buyer['buyerTax'] : '';
-        $post_data['buyerAddress']   = isset($buyer['buyerAddress']) ? $buyer['buyerAddress'] : '';
+        $post_data['buyerAddress']   = isset($buyer['buyerAddress']) ? html_entity_decode($buyer['buyerAddress']) : '';
         $post_data['buyerAcc']       = isset($buyer['buyerAcc']) ? $buyer['buyerAcc'] : '';
-        $post_data['buyerBank']      = isset($buyer['buyerBank']) ? $buyer['buyerBank'] : '';
+        $post_data['buyerBank']      = isset($buyer['buyerBank']) ? html_entity_decode($buyer['buyerBank']) : '';
         $post_data['buyerPhone']     = isset($buyer['buyerPhone']) ? $buyer['buyerPhone'] : '';
         $post_data['buyerFax']       = isset($buyer['buyerFax']) ? $buyer['buyerFax'] : '';
 
@@ -181,15 +181,15 @@ class WinInvoice extends InvoiceLogs {
             $post_data['invCustomer'] = $data['invCustomer'];
 
             /******  2. THÔNG TIN KHÁCH HÀNG  ******/
-            $post_data['buyerName']      = $data['buyerName'];
-            $post_data['buyerCompany']   = $data['buyerCompany'];
+            $post_data['buyerName']      = html_entity_decode($data['buyerName']);
+            $post_data['buyerCompany']   = html_entity_decode($data['buyerCompany']);
             $post_data['buyerEmail']     = $data['buyerEmail'];
             // Optional
             $post_data['buyerCode']      = $data['buyerCode'];
             $post_data['buyerTax']       = $data['buyerTax'];
-            $post_data['buyerAddress']   = $data['buyerAddress'];
+            $post_data['buyerAddress']   = html_entity_decode($data['buyerAddress']);
             $post_data['buyerAcc']       = $data['buyerAcc'];
-            $post_data['buyerBank']      = $data['buyerBank'];
+            $post_data['buyerBank']      = html_entity_decode($data['buyerBank']);
             $post_data['buyerPhone']     = $data['buyerPhone'];
             $post_data['buyerFax']       = $data['buyerFax'];
 

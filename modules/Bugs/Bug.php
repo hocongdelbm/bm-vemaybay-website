@@ -334,7 +334,54 @@ class Bug extends SugarBean
 
     public function save($check_notify = false)
     {
-        return parent::save($check_notify);
+        global $sugar_config;
+
+        // SENTELE NOTIFY
+        $is_new_record = $this->new_with_id || empty($this->fetched_row); 
+
+        $return_id = parent::save($check_notify);
+
+        $is_work_log_updated = !$is_new_record && isset($this->fetched_row['work_log']) && ($this->fetched_row['work_log'] !== $this->work_log || empty($this->fetched_row['work_log'])) && $GLOBALS['current_user']->is_admin;
+
+        $user_created = $GLOBALS['current_user']->last_name . ' ' .  $GLOBALS['current_user']->first_name;
+        $subject = $this->name;
+
+        if ($is_new_record) {
+            $content = html_entity_decode($user_created . ' đã tạo: ' . $subject, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            sendTelegramSupportKTTP(
+                json_encode(array(
+                    'text' => $content,
+                    'reply_markup' => array(
+                        'inline_keyboard' => array(
+                            array(
+                                array(
+                                    'text' => 'Mở phiếu',
+                                    'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
+                                ),
+                            ),
+                        ),
+                    ),
+                ), JSON_UNESCAPED_UNICODE)
+            );
+        } elseif ($is_work_log_updated) {
+            $content = html_entity_decode($user_created . ' đã phản hồi: ' . $subject, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            sendTelegramSupportKTTP(
+                json_encode(array(
+                    'text' => $content,
+                    'reply_markup' => array(
+                        'inline_keyboard' => array(
+                            array(
+                                array(
+                                    'text' => 'Mở phiếu',
+                                    'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
+                                ),
+                            ),
+                        ),
+                    ),
+                ), JSON_UNESCAPED_UNICODE)
+            );
+        } 
+        return $return_id;
     }
 }
 

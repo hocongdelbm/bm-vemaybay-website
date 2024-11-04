@@ -520,10 +520,18 @@ select::-webkit-scrollbar {
 }
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img {
+    display: flex;
+    align-items: center;
     position: relative;
-    width: 30px;
-    height: 30px;
 }
+
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img img {
+    width: 30px;
+    height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+}
+
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img svg {
     width: 100%;
@@ -554,7 +562,7 @@ select::-webkit-scrollbar {
 }
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-text {
-    margin-left: .5rem;
+    margin-left: .25rem;
 }
 
 .rtl .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-text {

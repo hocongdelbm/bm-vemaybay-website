@@ -517,12 +517,12 @@ $(function () {
       });
     });
 
-    $(document).click(function(event) {
-        // Kiểm tra xem người dùng click vào phần tử nào
-        // Nếu không phải là sidebar hoặc nút toggleButton, ẩn sidebar đi
-        if (!$(event.target).closest('#sidebar, .menu-mobile-icon').length) {
-            $('#sidebar').removeClass('active');
-        }
+    $(document).click(function (event) {
+      // Kiểm tra xem người dùng click vào phần tử nào
+      // Nếu không phải là sidebar hoặc nút toggleButton, ẩn sidebar đi
+      if (!$(event.target).closest('#sidebar, .menu-mobile-icon').length) {
+        $('#sidebar').removeClass('active');
+      }
     });
 
   })(jQuery);
@@ -615,31 +615,56 @@ $(document).ready(function () {
   });
 
   $("#popup__voiceip--wrap").draggable({
-    stop: function( event, ui ) {
+    stop: function (event, ui) {
       $(this).removeClass('start');
       $(this).addClass('stop');
     },
-    start: function(event, ui) {
+    start: function (event, ui) {
       $(this).removeClass('stop');
       $(this).addClass('start');
       $(this).addClass('draggable');
     }
   });
-  
+
 
   // EC_TONGHOP
-  $(document).on("click", "#btnSearch_cancel", function() {
+  $(document).on("click", "#btnSearch_cancel", function () {
     $('form[name="search_form"]').removeClass('active');
     $('.overlay-mobile').slideUp(300);
   });
 
-  $(document).on("click", "#filter_report", function() {
+  $(document).on("click", "#filter_report", function () {
     $('form[name="search_form"]').addClass('active');
     $('.overlay-mobile').slideDown(300);
   });
 
+  // view password
+  const icon_hide = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 19c.946 0 1.81-.103 2.598-.281l-1.757-1.757c-.273.021-.55.038-.841.038-5.351 0-7.424-3.846-7.926-5a8.642 8.642 0 0 1 1.508-2.297L4.184 8.305c-1.538 1.667-2.121 3.346-2.132 3.379a.994.994 0 0 0 0 .633C2.073 12.383 4.367 19 12 19zm0-14c-1.837 0-3.346.396-4.604.981L3.707 2.293 2.293 3.707l18 18 1.414-1.414-3.319-3.319c2.614-1.951 3.547-4.615 3.561-4.657a.994.994 0 0 0 0-.633C21.927 11.617 19.633 5 12 5zm4.972 10.558-2.28-2.28c.19-.39.308-.819.308-1.278 0-1.641-1.359-3-3-3-.459 0-.888.118-1.277.309L8.915 7.501A9.26 9.26 0 0 1 12 7c5.351 0 7.424 3.846 7.926 5-.302.692-1.166 2.342-2.954 3.558z"></path></svg>';
+  const icon_show = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9a3.02 3.02 0 0 0-3 3c0 1.642 1.358 3 3 3 1.641 0 3-1.358 3-3 0-1.641-1.359-3-3-3z"></path><path d="M12 5c-7.633 0-9.927 6.617-9.948 6.684L1.946 12l.105.316C2.073 12.383 4.367 19 12 19s9.927-6.617 9.948-6.684l.106-.316-.105-.316C21.927 11.617 19.633 5 12 5zm0 12c-5.351 0-7.424-3.846-7.926-5C4.578 10.842 6.652 7 12 7c5.351 0 7.424 3.846 7.926 5-.504 1.158-2.578 5-7.926 5z"></path></svg>';
+  $(document).on("click", "#view-password", function () {
+    if ($(this).hasClass('view-password')) {
+      $("#username_password").attr('type', 'password');
+      $(this).removeClass('view-password');
+      $(this).html(icon_hide);
+    } else {
+      $("#username_password").attr('type', 'text');
+      $(this).addClass('view-password');
+      $(this).html(icon_show);
+    }
+  });
 
 });
+
+/**
+ * Demo image
+ */
+function demoImage(input) {
+	if (input.files && input.files[0]) {
+		let prevImagePhoto_new = document.getElementById('prevImagePhoto_new');
+		prevImagePhoto_new.src = URL.createObjectURL(input.files[0]);
+		document.getElementById('prevImagePhoto_new').style.display = '';
+	}
+}
 
 function showModalNotify(type_modal, text_modal, text_description = '') {
   let view_detail = '';
@@ -709,7 +734,7 @@ function showModalNotify(type_modal, text_modal, text_description = '') {
     $('#modal-content').append(html_error);
   } else if (type_modal == 1 || type_modal == 200 || type_modal == 'success') {
     $('#modal-content').append(html_success);
-  } else if (type_modal == 2 || type_modal == 'warning'){
+  } else if (type_modal == 2 || type_modal == 'warning') {
     $('#modal-content').append(html_warning);
   } else {
     let text_warning = 'type modal không xác định!';
@@ -794,10 +819,10 @@ function formatName(name) {
  * @return {boolean}
  */
 function showToastNotify(type = '', content = '') {
-	if (type.length == 0) { alert(content); return false; }
+  if (type.length == 0) { alert(content); return false; }
 
-	let color = ROOT_STYLE.getPropertyValue(`--${type}-color`);
-	let html = `
+  let color = ROOT_STYLE.getPropertyValue(`--${type}-color`);
+  let html = `
           <div class="toast__content d-flex align-items-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" fill="${color}" viewBox="0 0 256 256">
               <rect width="256" height="256" fill="none"></rect>
@@ -819,15 +844,15 @@ function showToastNotify(type = '', content = '') {
           </div>
     `;
 
-	$('#toast-notify').removeClass();
-	$('#toast-notify').addClass(`toast__container--${type} active`);
-	$('#toast-notify').html(html);
-	$('#toast-notify .progress-bar').animate({ width: "100%" }, 3000);
-	setTimeout(function () {
-		$('#toast-notify').removeClass(`toast-${type} active`);
-	}, 4000);
+  $('#toast-notify').removeClass();
+  $('#toast-notify').addClass(`toast__container--${type} active`);
+  $('#toast-notify').html(html);
+  $('#toast-notify .progress-bar').animate({ width: "100%" }, 3000);
+  setTimeout(function () {
+    $('#toast-notify').removeClass(`toast-${type} active`);
+  }, 4000);
 
-	return true;
+  return true;
 }
 
 
@@ -837,17 +862,17 @@ function showToastNotify(type = '', content = '') {
  * @return {boolean}
  */
 
-function copyContent(input){
-	const copyValue = input.trim();
+function copyContent(input) {
+  const copyValue = input.length > 0 ? input.trim() : '';
 
-	if (copyValue) {
-		navigator.clipboard.writeText(copyValue).then(function() {
-			showToastNotify('success', 'Đã sao chép thành công!')
-		}).catch(function(error) {
-			showToastNotify('danger', 'Không thể sao chép văn bản!')
-		    	console.error('Không thể sao chép văn bản: ', error);
-		});
-	} else {
-		showToastNotify('danger', 'Không có thông tin để sao ché!')
-	}
+  if (copyValue) {
+    navigator.clipboard.writeText(copyValue).then(function () {
+      showToastNotify('success', 'Đã sao chép thành công!')
+    }).catch(function (error) {
+      showToastNotify('danger', 'Không thể sao chép văn bản!')
+      console.error('Không thể sao chép văn bản: ', error);
+    });
+  } else {
+    showToastNotify('danger', 'Không có thông tin để sao chép!')
+  }
 }

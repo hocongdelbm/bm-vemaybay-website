@@ -116,4 +116,6 @@ $entry_point_registry = array(
     // Config phone outbound
     'entryPointPhoneOutbound'         => array('file' => 'custom/entrypoints/epConfigPhoneOutbound.php', 'auth' => false),
 
+    // Bank Account
+    'entryPointBankAccount'         => array('file' => 'custom/entrypoints/epBankAccount.php', 'auth' => true),
 );

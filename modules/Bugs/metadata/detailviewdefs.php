@@ -2,7 +2,14 @@
 
 $viewdefs['Bugs']['DetailView'] = array(
   'templateMeta' => array(
-    'form' => array('buttons' => array('EDIT', 'DUPLICATE', 'DELETE', 'FIND_DUPLICATES',)),
+    'form' => array(
+      'buttons' => array(
+        'EDIT',
+        // 'DUPLICATE',
+        'DELETE',
+        // 'FIND_DUPLICATES',
+      )
+    ),
     'maxColumns' => '2',
     'widths' => array(
       array('label' => '10', 'field' => '30'),
@@ -38,7 +45,10 @@ $viewdefs['Bugs']['DetailView'] = array(
       array(
         'description',
       ),
-
+      array(
+        'photo',
+        'photo_sub',
+      ),
       array(
         'work_log',
       ),

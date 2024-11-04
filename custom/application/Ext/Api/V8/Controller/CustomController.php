@@ -157,6 +157,18 @@ class CustomController extends BaseController
         $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
 
         if (empty($call_id)) {
+            // Notify tele
+            $log_call_failed = array(
+				'domain' => 'bm.vemaybay.website',
+				'path' => 'custom/Controler/save_call',
+				'datetime' => date('d-m-Y H:i:s'),
+				'call_id' => $call_id,
+				'message' => 'Lỗi params call_id. Lưu thông tin cuộc gọi thất bại',
+				'params' => json_encode($params),
+			);
+			sendTestTelegram(json_encode($log_call_failed));
+
+            // Lưu log
             $GLOBALS['log']->fatal('Lỗi params. Lưu thông tin cuộc gọi thất bại');
 			write_file_backup_log_calls(json_encode($params));
 

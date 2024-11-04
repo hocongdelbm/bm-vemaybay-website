@@ -273,8 +273,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email      = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
         $note       = isset($_POST['note']) ? global_test_input($_POST['note']) : "";
 
+
         // Validate
-        if(empty($call_id)) {
+        if(empty($call_id) || empty($note)) {
+            $GLOBALS['log']->fatal('update_call thất bại: ' . $_POST);
+
             echo 0;
             exit();
         }
@@ -317,8 +320,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $save = true;
             }
             if($save === true) $con->save();
-        }
-        else {
+        } else {
             $sql = 'SELECT name
                 FROM calls
                 WHERE call_id = "'.$call_id.'" AND deleted = 0';
@@ -344,18 +346,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if(!$result){
             $GLOBALS['log']->fatal('Lưu cuộc gọi thất bại ' . $sql);
             
-            $cal = new Call();
-            $cal->retrieve($call_id);
-            $cal->parent_type = 'Contacts';
-            $cal->parent_id = $con->id;
-            $cal->description = $note;
-            $cal->booking_id = $booking_id;
-            $cal->created_by = $current_user->id;
-            $cal->modified_user_id = $current_user->id;
-            $cal->assigned_user_id = $current_user->id;
-            $cal->save();
-            if (!$cal->id) {
-                $GLOBALS['log']->fatal('Lưu cuộc gọi bằng đối tượng thất bại: ' . $cal->id);
+            if($call_id){
+                $cal = new Call();
+                $cal->retrieve($call_id);
+                $cal->parent_type = 'Contacts';
+                $cal->parent_id = $con->id;
+                $cal->description = $note;
+                $cal->booking_id = $booking_id;
+                $cal->created_by = $current_user->id;
+                $cal->modified_user_id = $current_user->id;
+                $cal->assigned_user_id = $current_user->id;
+                $cal->save();
+                if (!$cal->id) {
+                    $GLOBALS['log']->fatal('Lưu cuộc gọi bằng đối tượng thất bại: ' . $cal->id);
+                }
             }
         }
 

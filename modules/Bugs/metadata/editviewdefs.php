@@ -13,6 +13,11 @@ $viewdefs['Bugs']['EditView'] = array(
             array('label' => '10', 'field' => '30'),
             array('label' => '10', 'field' => '30')
         ),
+        'includes' => array(
+            array(
+                'file' => 'modules/Bugs/js/view.edit.js',
+            ),
+        ),
     ),
 
 
@@ -61,6 +66,15 @@ $viewdefs['Bugs']['EditView'] = array(
                 array(
                     'name' => 'description',
                     'nl2br' => true,
+                ),
+            ),
+
+            array(
+                array(
+                    'name' => 'photo',
+                ),
+                array(
+                    'name' => 'photo_sub',
                 ),
             ),
 

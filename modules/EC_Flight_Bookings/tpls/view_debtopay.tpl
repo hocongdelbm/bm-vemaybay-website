@@ -78,7 +78,7 @@
     <input type="hidden" name="print" value="true"/>
     <input type="hidden" name="from_date" value="{$POST_FROM_DATE}"/>
     <input type="hidden" name="to_date" value="{$POST_TO_DATE}"/>
-    <input type="hidden" name="supcode_{$SUPPLIER_ID}" value="{$SUPPLIER_CODE}"/>
+    <input type="hidden" name="supcode_supcode_{$SUPPLIER_ID}" value="{$SUPPLIER_CODE}"/>
     <input type="hidden" name="supname_{$SUPPLIER_ID}" value="{$SUPPLIER_NAME}"/>
     <input type="hidden" name="exportexcel"/>
     <input type="hidden" name="supplier_id[]" value="{$SUPPLIER_ID}"/>

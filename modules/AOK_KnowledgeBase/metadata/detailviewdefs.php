@@ -12,9 +12,9 @@ $viewdefs[$module_name] =
           'buttons' =>
           array(
             0 => 'EDIT',
-            1 => 'DUPLICATE',
+            // 1 => 'DUPLICATE',
             2 => 'DELETE',
-            3 => 'FIND_DUPLICATES',
+            // 3 => 'FIND_DUPLICATES',
           ),
         ),
         'maxColumns' => '2',
@@ -46,36 +46,32 @@ $viewdefs[$module_name] =
       array(
         'default' =>
         array(
-          0 =>
           array(
             0 => 'name',
           ),
-          1 =>
           array(
-            0 =>
             array(
               'name' => 'status',
               'studio' => 'visible',
               'label' => 'LBL_STATUS',
             ),
-            1 =>
             array(
               'name' => 'revision',
               'label' => 'LBL_REVISION',
             ),
           ),
-          2 =>
           array(
-            0 =>
             array(
               'name' => 'description',
               'label' => 'LBL_DESCRIPTION',
               'customCode' => '{$fields.description.value}',
             ),
           ),
-          3 =>
           array(
-            0 =>
+            'photo',
+            'photo_sub',
+          ),
+          array(
             array(
               'name' => 'additional_info',
               'comment' => 'Full text of the note',
@@ -83,7 +79,6 @@ $viewdefs[$module_name] =
               'label' => 'LBL_ADDITIONAL_INFO',
             ),
           ),
-          4 =>
           array(
             array(
               'name' => 'date_entered',
@@ -97,14 +92,12 @@ $viewdefs[$module_name] =
               'label' => 'LBL_AUTHOR',
             ),
           ),
-          5 =>
           array(
             array(
               'name' => 'date_modified',
               'customCode' => '{$fields.date_modified.value} {$APP.LBL_BY} {$fields.modified_by_name.value}',
               'label' => 'LBL_DATE_MODIFIED',
             ),
-            1 =>
             array(
               'name' => 'approver',
               'studio' => 'visible',

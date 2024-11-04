@@ -154,6 +154,10 @@ class Viewemployeekpi extends SugarView {
 					GROUP BY w.assigned_user_id
 					ORDER BY total_kpi DESC ";
 
+			if($GLOBALS['current_user']->user_name == 'hungnh'){
+				pr($sql);
+			}
+
 			$res = $db->query($sql);
 			$i = 0;
 			$html = '';

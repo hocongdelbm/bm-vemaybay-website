@@ -28,15 +28,15 @@ $mod_strings = array(
     'LBL_LIST_TYPE' => 'Loại',
     'LBL_RESOLUTION' => 'Trạng thái:',
     'LBL_RELEASE' => 'Phát hành:',
-    'LNK_NEW_BUG' => 'Báo cáo Lỗi',
-    'LNK_BUG_LIST' => 'D/s Báo cáo lỗi',
+    'LNK_NEW_BUG' => 'Tạo Báo cáo',
+    'LNK_BUG_LIST' => 'D/s Báo cáo',
     'ERR_DELETE_RECORD' => 'Bạn phải xác định một bản ghi trong danh sách để xóa các lỗi.',
     'LBL_LIST_MY_BUGS' => 'Lỗi được chỉ định',
     'LNK_IMPORT_BUGS' => 'Nhập Lỗi',
     'LBL_FOUND_IN_RELEASE' => 'Tìm thấy:',
     'LBL_FIXED_IN_RELEASE' => 'Sửa chữa:',
     'LBL_LIST_FIXED_IN_RELEASE' => 'Sửa chữa',
-    'LBL_WORK_LOG' => 'Lịch sử làm việc:',
+    'LBL_WORK_LOG' => 'Phản hồi của Admin:',
     'LBL_SOURCE' => 'Nguồn:',
     'LBL_PRODUCT_CATEGORY' => 'Loại:',
 
@@ -64,4 +64,7 @@ $mod_strings = array(
     'LBL_BUG_INFORMATION' => 'Thông tin chung', //No need to be translated in all caps. Translation used just in menu action items when using the SuiteP template
     
     'LBL_LIST_KNOWLEDGE_BASE' => 'Trung tâm hỗ trợ',
+
+    'LBL_PHOTO' => 'Ảnh minh họa 1',
+    'LBL_PHOTO_SUB' => 'Ảnh minh họa 2',
 );

@@ -1106,6 +1106,26 @@ $(document).ready(function () {
 		$("#img_qr_code").attr('src', selectedValue);
 	});
 
+	// GET THÔNG TIN BANK - SEND CUSTOMER
+	$('#get_bank').on('click', function(){
+		let booking_id = $(this).attr('booking_id');
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointBankAccount",
+			type: "POST",
+			data: {
+				booking: booking_id,
+				type: 'get_infor_bank',
+				for: "changeBankAccountPosition",
+			},
+			beforeSend: function() {},
+			success: function(response) {
+				if(response.length > 0){
+					copyContent(response);
+				}
+			}
+		});
+	});
 	
 	// Handle mapping call with booking
 	$('#btn-mapping-call-booking').click( function() {

@@ -1343,7 +1343,8 @@ function populateEditedLineItineraries($booking_id)
 				} else {
 					$pass_dt = '';
 				}
-				$applied_pass = 'tất cả hành khách' . $pass_dt;
+				// $applied_pass = 'tất cả hành khách' . $pass_dt;
+				$applied_pass = 'tất cả hành khách';
 			} else {
 				$applied_pass = implode(', ', $pass_name_arr);
 			}
@@ -2241,6 +2242,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'get3TicketBooking') {
 			HAVING TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440
 			ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), average_fee DESC
 		';
+
 	$res = $db->query($sql);
 	$i = $total = $canceled = $completed = $exported = $confirmed = $called = $paidwait = 0;
 	$created = $ticket_completed = $total_sale = 0;

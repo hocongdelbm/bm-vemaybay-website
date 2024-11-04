@@ -2058,7 +2058,18 @@ function checkStatusOnlineUser()
 
 		$user_id = str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
         $data_user = json_decode(read_file_logs_online($user_id), true);
-		if (!$data_user) continue; 
+		if (!$data_user) {
+			$log_online = array(
+				'domain' => 'bm.vemaybay.website',
+				'path' => 'custom/modules/Schedules',
+				'file' => $file,
+				'user_id' => $user_id,
+				'timestamp_now' => $timestamp_now,
+				'datetime' => date('d-m-Y H:i:s'),
+			);
+			sendTestTelegram(json_encode($log_online));
+			continue;
+		}; 
 
         $last_time_user_7 = date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
         $diffInSeconds = abs($timestamp_now - strtotime($data_user['last_time']));
@@ -2071,20 +2082,6 @@ function checkStatusOnlineUser()
             updateUserStatus($db, $user_id, $last_time_user_7, 0);
             $_SESSION['busy'] = 0;
             if ($agent) agent_change_status($agent, 'Logged Out');
-        } else {
-            // Kiểm tra trạng thái online hiện tại
-            // $row = $db->fetchByAssoc($db->query("
-            //     SELECT status 
-			// 	FROM ec_online_report
-            //     WHERE assigned_user_id = '$user_id'
-            //     AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'
-            //     AND deleted = 0
-            // "));
-
-
-            // if (!empty($row['status']) && !in_array($row['status'], [1, 2]) && $agent) {
-            //     agent_change_status($agent, 'Available');
-            // }
         }
 	}
 

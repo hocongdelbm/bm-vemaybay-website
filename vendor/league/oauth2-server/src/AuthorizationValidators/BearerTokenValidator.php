@@ -97,6 +97,8 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
      */
     public function validateAuthorization(ServerRequestInterface $request)
     {
+        global $sugar_config;
+
         if ($request->hasHeader('authorization') === false) {
             throw OAuthServerException::accessDenied('Missing "Authorization" header');
         }
@@ -109,6 +111,7 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
             $token = $this->jwtConfiguration->parser()->parse($jwt);
         } catch (\Lcobucci\JWT\Exception $exception) {
             $log_token = array(
+                'domain'            => $sugar_config['site_url'],
                 'path'              => 'vendor\league\oauth2-server\src\AuthorizationValidators',
                 'token'             => $token,
                 'getMessage'        => $exception->getMessage(), 
@@ -133,6 +136,7 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
             );
             
             $log_token = array(
+                'domain'            => $sugar_config['site_url'],
                 'path'              => 'vendor\league\oauth2-server\src\AuthorizationValidators',
                 'token'             => $token,
                 'getMessage'        => $exception->getMessage(),
