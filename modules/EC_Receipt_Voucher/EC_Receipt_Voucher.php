@@ -92,12 +92,17 @@ class EC_Receipt_Voucher extends Basic
 
 		if ($this->rv_status == '1') {
 			myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'paid');
-		}else if ($this->rv_status == '0') {
+
+			if ($this->loai_thu == '4' ) {
+				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (PT: Đổi giờ bay, hành trình, tên khách)', $this->created_by, 'create_receipt');
+			}
+		} else {
 			myRemoveWorkingProcess($this->module_dir, $this->id);
 		}
 
 		// Begin save working process for delivery man
-        if (isset($this->delivery_man_id) && !empty($this->delivery_man_id) && $this->fetched_row['delivery_man_id'] != $this->delivery_man_id) {
+        // if (isset($this->delivery_man_id) && !empty($this->delivery_man_id) && $this->fetched_row['delivery_man_id'] != $this->delivery_man_id) {
+		if ($this->rv_status == '1' && isset($this->delivery_man_id) && !empty($this->delivery_man_id)) {
 			myRemoveWorkingProcess($this->module_dir, $this->id, 'ticket_delivery');
 			$work = new EC_Working_Process();
 			$work->id = '';
@@ -109,7 +114,7 @@ class EC_Receipt_Voucher extends Basic
 			$work->ticket_delivery = 1;
 			$work->save();
 		}
-		else if (empty($this->delivery_man_id)) {
+		else if (empty($this->delivery_man_id) || $this->rv_status != '1') {
 			myRemoveWorkingProcess($this->module_dir, $this->id, 'ticket_delivery');
 		}
 		// End save working process for delivery man

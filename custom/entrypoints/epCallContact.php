@@ -271,14 +271,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $zalo_id    = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
         $name       = isset($_POST['name']) ? global_test_input($_POST['name']) : "";
         $email      = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
-        $note       = isset($_POST['note']) ? global_test_input($_POST['note']) : "";
-
+        $note       = isset($_POST['note']) ? addslashes($_POST['note']) : "";
+       
+        $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
+        $is_success     = isset($_POST['is_success']) ? $_POST['is_success'] : "";
+        $call_status    = ($is_success === 'true') ? 'done' : 'new';
 
         // Validate
-        if(empty($call_id) || empty($note)) {
+        if(empty($call_id)) {
             $GLOBALS['log']->fatal('update_call thất bại: ' . $_POST);
 
-            echo 0;
+            echo 400;
             exit();
         }
         global $db, $current_user;
@@ -335,62 +338,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $con->save();
         }
 
-        $sql = '
-            UPDATE calls
-            SET parent_type = "Contacts", parent_id = "'.$con->id.'", description = "'.$note.'", booking_id = "'.$booking_id.'",
-                created_by = "'.$current_user->id.'",
-                modified_user_id = "'.$current_user->id.'",
-                assigned_user_id = "'.$current_user->id.'"
-            WHERE call_id = "'.$call_id.'" AND deleted = 0';
-        $result = $db->query($sql);
-        if(!$result){
-            $GLOBALS['log']->fatal('Lưu cuộc gọi thất bại ' . $sql);
-            
-            if($call_id){
-                $cal = new Call();
-                $cal->retrieve($call_id);
-                $cal->parent_type = 'Contacts';
-                $cal->parent_id = $con->id;
-                $cal->description = $note;
-                $cal->booking_id = $booking_id;
-                $cal->created_by = $current_user->id;
-                $cal->modified_user_id = $current_user->id;
-                $cal->assigned_user_id = $current_user->id;
-                $cal->save();
-                if (!$cal->id) {
-                    $GLOBALS['log']->fatal('Lưu cuộc gọi bằng đối tượng thất bại: ' . $cal->id);
-                }
+        // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
+        $sql_exist_callid = 'SELECT IF(COUNT(id) > 0, 1, 0)
+                    FROM calls 
+                    WHERE call_id = "'.$call_id.'" AND deleted = 0';
+        $is_exist_callid = $db->getOne($sql_exist_callid);
+
+        if ($is_exist_callid) {
+            $sql_update_call = '
+                UPDATE calls
+                SET parent_type = "Contacts", parent_id = "'.$con->id.'", description = "'.$note.'", booking_id = "'.$booking_id.'",
+                    created_by = "'.$current_user->id.'",
+                    modified_user_id = "'.$current_user->id.'",
+                    assigned_user_id = "'.$current_user->id.'",
+                    status = "'.$call_status.'"
+                WHERE call_id = "'.$call_id.'" AND deleted = 0';
+
+            $result_update_call = $db->query($sql_update_call);
+            if($result_update_call){
+                $log_save_calls = '['.$current_user->user_name.']['.date('Y-m-d H:i:s', strtotime('+7 hour')).'][success]' . $sql_update_call;
+                save_log_call($log_save_calls);
+            } else {
+                $log_save_calls = '['.$current_user->user_name.']['.date('Y-m-d H:i:s', strtotime('+7 hour')).'][Failed_db]' . $sql_update_call;
+                save_log_call($log_save_calls);
+                
+                echo 401;
+                exit;
             }
+        } else {
+            $log_save_calls = '['.$current_user->user_name.']['.date('Y-m-d H:i:s', strtotime('+7 hour')).'][Failed_Callid]' . $sql_exist_callid;
+            save_log_call($log_save_calls);
+
+            echo 404;
+            exit;
         }
 
 
         /**********  2. Handle Booking  **********/
         if(!empty($booking_id)) {
             $booking_name = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
-            $type_call_booking = isset($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "";
 
-            if(!empty($type_call_booking)) {
-                $work                       = new EC_Working_Process();
-                $work->name 			    = $booking_name;
-                $work->parent_type 		    = 'EC_Flight_Bookings';
-                $work->parent_id 		    = $booking_id;
-                $work->description 		    = $note;
-                $work->$type_call_booking   = 1;
-                $work->assigned_user_id     = $current_user->id;
-                $work->save();
-    
+            if(!empty($type_call)) {
                 $bean_note                      = new Note();
                 $bean_note->name                = $booking_name;
                 $bean_note->parent_type         = 'EC_Flight_Bookings';
                 $bean_note->parent_id           = $booking_id;
                 $bean_note->description         = $note;
-                $bean_note->booking_status      = ($type_call_booking == 'called' ? '6' : '');
+                $bean_note->booking_status      = ($type_call == 'called' ? '6' : '');
                 $bean_note->working_process_id  = $work->id;
                 $bean_note->assigned_user_id    = $current_user->id;
                 $bean_note->save();
 
                 // Update status and assigned
-                if($type_call_booking == 'called') {
+                if($type_call == 'called') {
                     $sql_update = 'UPDATE ec_flight_bookings
                         SET booking_status = "6", assigned_user_id = "'.$current_user->id.'"
                         WHERE id = "'.$booking_id.'" AND deleted = 0';
@@ -398,7 +398,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
         }
-
 
         /**********  3. Handle Zalo  **********/
         if(!empty($zalo_id) && empty($phone)) {
@@ -423,7 +422,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        echo 1;
+        /**********  4. Handle working process - KPI  **********/
+        if(!empty($call_id)){
+            // GET INFOR CALL
+            $sql_call = 'SELECT name, log, status
+                        FROM calls
+                        WHERE call_id = "'.$call_id.'" AND deleted = 0 
+                        LIMIT 1';
+            $result = $db->query($sql_call);
+
+            if ($result) {
+                while ($call = $db->fetchByAssoc($result)) {
+                    if ($call && isset($call['log'])) {
+                        $log_call = json_decode(html_entity_decode($call['log']), true);
+        
+                        if (!empty($note) && (int)$log_call['call_talk'] > 0 && $call['status'] == 'done') {
+                            $work = new EC_Working_Process();
+                            $work->name = !empty($booking_id) ? $booking_name : $call['name'];
+                            $work->parent_type = !empty($booking_id) ? 'EC_Flight_Bookings' : 'Calls';
+                            $work->parent_id = !empty($booking_id) ? $booking_id : $call['id'];
+                            $work->description = $note;
+                            $work->$type_call = 1; // Kiểm tra $type_call đã được định nghĩa
+                            $work->assigned_user_id = $current_user->id;
+                            $work->save();
+                        } 
+                    }
+                }
+            }
+        }
+
+        echo 200;
         exit();
     }
     elseif($type == "check_missed_call") {
@@ -519,27 +547,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     } else if($type == 'save_log_call'){
         $log_call = isset($_POST['log']) ? $_POST['log'] : '';
-        if(!empty($log_call)){
-
-            $year = date('Y');
-            $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT);
-            $file_name = "secure_sessions/save_call_logs/$year/$month/" . str_replace('-', '_', date('d-m-Y') . '_log');
-
-            if (!file_exists($file_name)) {
-                $dir_name = dirname($file_name);
-                if (!is_dir($dir_name)) {
-                    mkdir($dir_name, 0777, true);
-                }
-                touch($file_name);
-            }
-        
-            $myfile = fopen($file_name, "a") or die("Error: Không thể mở file ghi log!");
-            fwrite($myfile, $log_call . PHP_EOL);
-            fclose($myfile);
-
-            echo 200;
-            return true;
-        }
+        save_log_call($log_call);
     }
 }
 
@@ -710,4 +718,25 @@ function get_phone_by_alias($alias) {
     }
 
     return '';
+}
+
+function save_log_call($log_call){
+    if(!empty($log_call)){
+        $year = date('Y');
+        $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT);
+        $file_name = "secure_sessions/save_call_logs/$year/$month/" . str_replace('-', '_', date('d-m-Y') . '_log');
+
+        if (!file_exists($file_name)) {
+            $dir_name = dirname($file_name);
+            if (!is_dir($dir_name)) {
+                mkdir($dir_name, 0777, true);
+            }
+            touch($file_name);
+        }
+    
+        $myfile = fopen($file_name, "a") or die("Error: Không thể mở file ghi log!");
+        fwrite($myfile, $log_call . PHP_EOL);
+        fclose($myfile);
+        return true;
+    }
 }

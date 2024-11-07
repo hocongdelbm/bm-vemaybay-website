@@ -2101,7 +2101,8 @@ function custom_get_sip_number($key = '')
         '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
         // Trương Mỹ Nhân
         '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
-
+        // Lê Tín Nghĩa
+        'ebc40fa1-8878-1a86-000d-5b6949a87e11' => ['user' => '107', 'password' => 'C1UtQnCWTpUmH8C5?9wE'],
         // Nguyễn Duy Đăng
         'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         // Nguyễn Lộc Danh
@@ -2424,8 +2425,12 @@ function getCallSource($call_to)
         case '01388506538':
             $call_sources = 'Laptop Dell';
             break;
+        case '02866509900':
         case '02839977788':
             $call_sources = 'timchuyenbay.com';
+            break;
+        case '1900636063':
+            $call_sources = 'vemaybay5s.com';
             break;
         case '02873001886':
             $call_sources = 'suatuoiuc.vn';

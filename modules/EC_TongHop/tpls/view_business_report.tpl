@@ -45,6 +45,14 @@
 			}
 		});
 
+		let modalEditCostQc = document.getElementById('modalEditCostQc');
+		let cost_qc 		= document.getElementById('cost-qc');
+		if(modalEditCostQc){
+			modalEditCostQc.addEventListener('shown.bs.modal', () => {
+				cost_qc.focus()
+			})
+		}
+
 		document.getElementById('cost-qc').addEventListener('input', function (e) {
 			let input = e.target.value.replace(/\D/g, '');
 			input = input.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -65,9 +73,27 @@
 
 	#date_select_container .form-group{
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: 8px;
 	}	
+
+	@media screen and (max-width: 575px),
+	(orientation: landscape) and (max-width: 950px) {
+		#date_select_container .form-group{
+			flex: 1 1 45%;
+		}
+		
+		.box-report__weekly{
+			grid-template-columns: repeat(1, 1fr);
+		}
+
+		table.table-report__weekly thead tr th,
+		table.table-report__weekly tbody tr td {
+			font-size: 12px;
+		}
+	}
+
 </style>
 {/literal}
 
@@ -79,36 +105,41 @@
 </div>
 
 <div class="box-section overflow-auto position-relative mt-0">
+	<div class="overlay-mobile"></div>
 	<form id="ec_search_form" name="search_form" method="POST" action="index.php?module=EC_TongHop&action=businessreport&date_select={$CURRENT_OPTION}">
 		<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-dash-lg search_form--dash d-xl-none d-lg-none d-block" viewBox="0 0 16 16">
 			<path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8"></path>
 		</svg>
-		<div class="action--wrap d-flex gap-4 align-items-center justify-content-between w-100">
-			<div id="date_select_container" class="d-flex align-items-center gap-4">
-				<div class="form-group">
+		<div class="action--wrap d-flex gap-4 align-items-center justify-content-between w-100 mb-3">
+			<div id="date_select_container" class="d-flex align-items-center gap-4 flex-wrap">
+				<div class="form-group text-nowrap">
 					<input type="radio" name="date_select" class="form-check-input m-0" value="this_week" id="this_week" checked>
 					<label for="this_week">Tuần này</label>
 				</div>
-				<div class="form-group">
+				<div class="form-group text-nowrap">
 					<input type="radio" name="date_select" class="form-check-input m-0" value="previous_week" id="previous_week">
 					<label for="previous_week">Tuần trước</label>
 				</div>
-				<div class="form-group">
+				<div class="form-group text-nowrap">
 					<input type="radio" name="date_select" class="form-check-input m-0" value="this_month" id="this_month">
 					<label for="this_month">Tháng này</label>
 				</div>
-				<div class="form-group">
+				<div class="form-group text-nowrap">
 					<input type="radio" name="date_select" class="form-check-input m-0" value="previous_month" id="previous_month">
 					<label for="previous_month">Tháng trước</label>
 				</div>
 			</div>
-			<button class="btn btn-primary" id="real-time" name="real-time">
-				Cập nhật
-			</button>
+
+			<div class="d-flex align-items-center gap-3">
+				<button class="btn btn-primary" id="real-time" name="real-time">
+					Cập nhật
+				</button>
+				<input type="button" id="btnSearch_cancel" name="search" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ" title="Hủy bỏ"/>
+			</div>
 		</div>
 	</form>
 
-	<div class="box-report__wrap box-report__weekly mt-3">
+	<div class="box-report__wrap box-report__weekly">
         {$DATA_REPORT}
 	</div>
 

@@ -715,6 +715,9 @@ $(document).ready(function () {
 
         let regEmailNew = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+        // Checkbox
+        let is_success = $('input#is_success').prop('checked');
+
         if (phone.length == 0 && zalo_id.length == 0) {
             showToastWarning('Vui lòng bổ sung SĐT');
             $(this).css("pointer-events", "");
@@ -753,14 +756,21 @@ $(document).ready(function () {
                 name: name,
                 email: email,
                 note: note,
+                is_success: is_success,
+
                 booking_id: booking_id,
                 booking_name: booking_name,
                 type_call_booking: type_call_booking
             },
             type: "POST",
             cache: false,
+            beforeSend: function () {
+                $('.container-waiting').show();
+			},
             success: function (response) {
-                if (response.length == 1) {
+                $('.container-waiting').hide();
+
+                if (parseInt(response) == 200) {
                     $(".voiceip-update").css("pointer-events", "");
                     $('#popup-voiceip').removeClass('show');
                     $('#popup__voiceip--wrap').removeClass('show');
@@ -769,7 +779,7 @@ $(document).ready(function () {
                     if (booking_id.length > 0) $('.btn-modal-close').addClass('reload');
                 }
                 else {
-                    showModalNotify('error', 'Lỗi cập nhật. Vui lòng thử lại!');
+                    showModalNotify('error', 'Lỗi cập nhật. Vui lòng đợi 1 lát rồi thử lại!');
                     $(".voiceip-update").css("pointer-events", "");
                     return false;
                 }
@@ -907,7 +917,7 @@ function saveCallLog() {
 
 function logCallEvent(session, ua, status, event = '') {
     // INFOR CALL
-    console.warn(session);
+    // console.warn(session);
     let call_id = '';
     let direction = session.direction || '';
     if (direction === "incoming") {
@@ -1387,14 +1397,13 @@ function extract_hotline(str) {
             case '0911236600':
             case '01388506538':
                 return 'Laptop Dell';
-
-            /**********  VNPT  **********/
             case '02839977788':
+            case '02866509900':
                 return 'timchuyenbay (.com)';
             case '02839977799':
                 return 'Sanvemaybay (.com.vn)';
-
-            /**********  FPT  **********/
+            case '1900636063':
+                return 'Vemaybay5s (.com)';
             case '02873001886':
                 return 'Sữa tươi Úc';
 
@@ -1597,19 +1606,19 @@ $(function () {
     container.append(`<select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100 mt-3">
                         <option value=""></option>
                         <optgroup label="Viettel">
-                            <!-- <option value="0963678130@103.232.121.103:55000">0963678130</option> -->
-                            <option value="0963323407@103.232.121.103:55000">0963323407</option>
-                            <option value="0964031020@103.232.121.103:55000">0964031020</option>
-                            <!-- <option value="0963987527@103.232.121.103:55000">0963987527</option> -->
-                            <!-- <option value="0963986905@103.232.121.103:55000">0963986905</option> -->
-                            <option value="0984150870@103.232.121.103:55000">0984150870</option>
-                            <option value="0984175174@103.232.121.103:55000">0984175174</option>
-                            <option value="0984177790@103.232.121.103:55000">0984177790</option>
-                            <!-- <option value="0984191015@103.232.121.103:55000">0984191015</option> -->
+                            <option value="0385295550@125.235.38.182:55555">0385295550</option> 
+                            <option value="0385295676@125.235.38.182:55555">0385295676</option> 
+                            <option value="0385297839@125.235.38.182:55555">0385297839</option> 
+                            <option value="0385299921@125.235.38.182:55555">0385299921</option> 
+                            <option value="0385299946@125.235.38.182:55555">0385299946</option> 
+                            <option value="0385300174@125.235.38.182:55555">0385300174</option> 
+                            <option value="0385300984@125.235.38.182:55555">0385300984</option> 
+                            <option value="0385301071@125.235.38.182:55555">0385301071</option> 
+                            <option value="0385301087@125.235.38.182:55555">0385301087</option> 
+                            <!---->
+                            <option value="0964031020@103.232.121.103:55000">0964031020</option> 
                             <option value="0984195219@103.232.121.103:55000">0984195219</option>
-                            <option value="0984260802@103.232.121.103:55000">0984260802</option>
                             <option value="0984280718@103.232.121.103:55000">0984280718</option>
-                            <!-- <option value="0984343406@103.232.121.103:55000">0984343406</option> -->
                         </optgroup>
                         <optgroup label="Mobiphone">
                             <option value="0933625233@103.199.78.74:65000">0933625233</option>

@@ -2692,7 +2692,6 @@ select#iv_payment_method {
     border-radius: 5px;
     border: 1px solid var(--border-color);
     min-height: 50px;
-    max-height: 100px;
     padding: 8px;
     font-size: 14px;
 }
@@ -4937,7 +4936,7 @@ body.modal-active{
     top: 0;
     left: 0;
     transform: scale(0);
-    z-index: 100;
+    z-index: 105;
 }
 
 #modal-container.active {
@@ -6092,7 +6091,24 @@ API ZALO TEMPLATE - TIN NHẮN KHUYẾN MÃI
 /* ------------------------------------ */
 #testSettingsDiv,
 #selectFoldersDiv{
-    background: #fff;
+    background: var(--white-color);
     padding-bottom: 15px;
 
+}
+
+
+/* ZOOM IMG */
+div[type="image"] img{
+    transition: transform 0.3s ease;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 5px;
+    background: var(--white-color);
+    margin-top: 10px;
+}
+
+div[type="image"] img:hover{
+    transform: scale(1.5);
 }

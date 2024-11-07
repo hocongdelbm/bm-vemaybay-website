@@ -106,7 +106,7 @@ class Viewchatzalo extends SugarView {
         $html = '';
         $list_zalo_id = ['interaction' => [], 'no_interaction' => []];
 
-        while(count($list_zalo_id['interaction']) < 16) {
+        while(count($list_zalo_id['interaction']) < 12) {
             $json = $this->Zalo->get_recent_messages($offset);
             $arr = json_decode($json, true);
 

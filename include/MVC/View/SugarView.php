@@ -1216,6 +1216,17 @@ EOHTML;
                                         <textarea name="voiceip-notes" id="voiceip-notes" placeholder="Ghi chú"></textarea>
                                     </div>
 
+                                    <div class="d-flex justify-content-between align-items-center gap-2 voiceip-more my-2 bg-white rounded p-2">
+                                        <div class="voiceip-more__item is-success">
+                                            <label for="is_success" class="me-2">Hoàn tất?</label>
+                                            <input type="checkbox" id="is_success"">
+                                        </div>
+                                        <div class="voiceip-more__item template-notes">
+                                            <label for="template-notes">Mẫu ghi chú</label>
+                                            <select name="template-notes" class="box-select" id="template-notes"></select>
+                                        </div>
+                                    </div>
+
                                     <div class="voiceip-modal-transfer" role="alert">
                                         <div class="transfer-container">
                                             <div class="transfer-header">

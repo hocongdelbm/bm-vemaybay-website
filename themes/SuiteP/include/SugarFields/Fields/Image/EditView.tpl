@@ -67,11 +67,11 @@
 {if !$noChange}
 <span id="{{$idName}}_new" style="display:{if $showRemove}none;{/if}">
 <input type="hidden" name="{{$idName}}_escaped">
-<input onchange="demoImage(this)" id="{{$idName}}_file" name="{{$idName}}_file"
-       type="file" title='{{$vardef.help}}' size="{{$displayParams.size|default:30}}"
-        {{if !empty($displayParams.accesskey)}} accesskey='{{$displayParams.accesskey}}' {{/if}}
-        {{if !empty($vardef.len)}} maxlength='{{$vardef.len}}' {{elseif !empty($displayParams.maxlength)}} maxlength="{{$displayParams.maxlength}}" {{else}} maxlength="255" {{/if}} {{$displayParams.field}}>
-<img id="prevImagePhoto_new" style="max-width: 100%;" src="#" alt="" style="display: none;">
+<input onchange="demoImage(this, 'prevImage{{$idName}}_new')" id="{{$idName}}_file" name="{{$idName}}_file" 
+       type="file" title="{{$vardef.help}}" size="{{$displayParams.size|default:30}}"
+       {{if !empty($displayParams.accesskey)}} accesskey="{{$displayParams.accesskey}}" {{/if}}
+       {{if !empty($vardef.len)}} maxlength="{{$vardef.len}}" {{elseif !empty($displayParams.maxlength)}} maxlength="{{$displayParams.maxlength}}" {{else}} maxlength="255" {{/if}} {{$displayParams.field}}>
+<img id="prevImage{{$idName}}_new" style="max-width: 100%; display: none;" src="#" alt="">
 
     {{if isset($vardef.allowEapm) && $vardef.allowEapm}}
     <span id="{{$idName}}_externalApiSelector" style="display:none;">

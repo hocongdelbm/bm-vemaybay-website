@@ -62,7 +62,7 @@ class EC_Payment_Voucher extends Basic
 			exit();
 		}
 
-        $is_tele = 0;
+		$is_tele = 0;
 		if (empty($this->id)) {
 			// PC-230916-0001
 			$number = 0;
@@ -96,7 +96,7 @@ class EC_Payment_Voucher extends Basic
 		if (!empty($this->hoanve_id) &&  $this->ec_payment_types_id_c == '7a7abc9b-0925-bdb7-d92b-526e3c5c0c14') {
 			$hv = new EC_HoanVe;
 			$hv->retrieve($this->hoanve_id);
-			if((int)$hv->tinhtrang != 1){
+			if ((int)$hv->tinhtrang != 1) {
 				header('Location: index.php?module=' . $this->module_dir . '&action=Error&error_string=' . urlencode('Phiếu Hoàn vé phải ở trạng thái "đã hoàn". Vui lòng kiểm tra lại'));
 				exit;
 			}
@@ -104,19 +104,19 @@ class EC_Payment_Voucher extends Basic
 
 		parent::save($check_notify);
 
-		// Create working process
-		myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'create_payment');
-
 		// SEND TELE
-        if ($is_tele == 1) {
+		if ($is_tele == 1) {
+			// Create working process - KPI
+			myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'create_payment');
+
 			$date_entered = date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($this->date_entered)));
 			$user_list = get_user_array(true, '', '', true);
 
-			$messages = "- Phiếu chi: ".$this->name."\n" .
-						"- Loai chi: ".$this->payment_type."\n" .
-						"- Ngày tạo: ".$date_entered." bởi ".$user_list[$this->created_by]."\n" .
-						"- Số tiền: ".format_number($this->amount)." VNĐ\n" .
-						"- Nội dung: ".$this->description."\n";
+			$messages = "- Phiếu chi: " . $this->name . "\n" .
+				"- Loai chi: " . $this->payment_type . "\n" .
+				"- Ngày tạo: " . $date_entered . " bởi " . $user_list[$this->created_by] . "\n" .
+				"- Số tiền: " . format_number($this->amount) . " VNĐ\n" .
+				"- Nội dung: " . $this->description . "\n";
 
 			$content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 			sendTelegramKeToan2025(

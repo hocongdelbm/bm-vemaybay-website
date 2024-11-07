@@ -341,8 +341,11 @@ class Bug extends SugarBean
 
         $return_id = parent::save($check_notify);
 
-        $is_work_log_updated = !$is_new_record && isset($this->fetched_row['work_log']) && ($this->fetched_row['work_log'] !== $this->work_log || empty($this->fetched_row['work_log'])) && $GLOBALS['current_user']->is_admin;
+        $is_work_log_updated = !$is_new_record 
+        && $GLOBALS['current_user']->is_admin 
+        && (isset($this->fetched_row['work_log']) ? $this->fetched_row['work_log'] !== $this->work_log : !empty($this->work_log));
 
+        
         $user_created = $GLOBALS['current_user']->last_name . ' ' .  $GLOBALS['current_user']->first_name;
         $subject = $this->name;
 
@@ -381,6 +384,7 @@ class Bug extends SugarBean
                 ), JSON_UNESCAPED_UNICODE)
             );
         } 
+
         return $return_id;
     }
 }

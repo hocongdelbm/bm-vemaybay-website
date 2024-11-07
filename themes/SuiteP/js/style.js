@@ -656,14 +656,14 @@ $(document).ready(function () {
 });
 
 /**
- * Demo image
+ * Hiển thị ảnh xem trước
  */
-function demoImage(input) {
-	if (input.files && input.files[0]) {
-		let prevImagePhoto_new = document.getElementById('prevImagePhoto_new');
-		prevImagePhoto_new.src = URL.createObjectURL(input.files[0]);
-		document.getElementById('prevImagePhoto_new').style.display = '';
-	}
+function demoImage(input, imgId) {
+  if (input.files && input.files[0]) {
+      let previewImage = document.getElementById(imgId);
+      previewImage.src = URL.createObjectURL(input.files[0]);
+      previewImage.style.display = '';
+  }
 }
 
 function showModalNotify(type_modal, text_modal, text_description = '') {

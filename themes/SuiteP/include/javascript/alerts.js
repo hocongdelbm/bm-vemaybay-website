@@ -7,7 +7,7 @@ var AlertObj = function () {
     this.options.type = 'info';
 };
 
-var Alerts = function () {};
+var Alerts = function () { };
 Alerts.prototype.replaceMessages = [];
 
 Alerts.prototype.enable = function () {

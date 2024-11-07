@@ -71,13 +71,14 @@ $(document).ready(function() {
 	// xử lý sự kiện submit
 	// $('form#EditView').on('submit', function(e){
 	$('#EditView').submit(function(e){
-		var action 			= $('#EditView input:hidden[name="action"]').val();
-		var amount 			= unformatNumber($('#amount').val());
+		var action 				= $('#EditView input:hidden[name="action"]').val();
+		var amount 				= unformatNumber($('#amount').val());
 		var receipt_type 		= $('#receipt_type :selected').val();
 		var loai_thu 			= $('#loai_thu :selected').val();
 		var tknganhang_id 		= $('#tknganhang_id :selected').val();
 		var com_location 		= $('#com_location_id :selected').val();
-		var booking_id 		= $('#booking_id').val();
+		var booking_id 			= $('#booking_id').val();
+		var delivery_man 		= $('#delivery_man_id').val();
 		var supplier_id 		= loai_thu_arr.includes(loai_thu) ? $('#account_id_c :selected').val() : $('#account_id_c').val();
 		var supplier2_id 		= $('#supplier2_id :selected').val();
 		var supplier3_id 		= $('#supplier3_id :selected').val();
@@ -87,7 +88,7 @@ $(document).ready(function() {
 		var bought_amount 		= unformatNumber($('#bought_amount').val());
 		var bought_amount2 		= unformatNumber($('#bought_amount2').val());
 		var bought_amount3 		= unformatNumber($('#bought_amount3').val());
-		var total_sell 		= sell_amount + sell_amount2 + sell_amount3;
+		var total_sell 			= parseInt(sell_amount + sell_amount2 + sell_amount3);
 
 		if(action == 'Save'){
 			if(amount == '' && loai_thu != '4' && loai_thu != '5') {
@@ -120,7 +121,18 @@ $(document).ready(function() {
 				$('#com_location_id').focus();
 				return false;
 			}
+			if(delivery_man.length > 0 && loai_thu != '21'){
+				$('.toast-warning').addClass('active');
+				$('.toast-warning #toast-content').text('Loại thu và người giao chưa phù hợp!');
+				$('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
+				setTimeout(function () {
+					$(".toast-warning").removeClass('active');
+				}, 4000);
 
+				$('#delivery_man_id').focus();
+				return false;
+			}
+			
 			// Loại thu "Thu tiền vé" thì phải chèn booking
 			if((loai_thu == '1' || loai_thu == '4' || loai_thu == '5') && booking_id == ''){
 				$text_warning = 'Booking không được để trống!';
