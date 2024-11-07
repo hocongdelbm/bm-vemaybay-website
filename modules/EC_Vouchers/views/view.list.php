@@ -9,7 +9,7 @@ class EC_VouchersViewList extends ViewList {
 
     function listViewPrepare() {
         if(empty($_REQUEST['orderBy']) || isset($_POST['query'])) {
-            $_REQUEST['orderBy'] = 'order_by_no';
+            $_REQUEST['orderBy'] = 'date_entered';
             $_REQUEST['sortOrder'] = 'desc';
         }
 

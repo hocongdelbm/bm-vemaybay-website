@@ -6,46 +6,44 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 $module_name = 'EC_Vouchers';
 $listViewDefs[$module_name] = array(
-	'ORDER_BY_NO' => array(
-		'width' => '10', 
-		'label' => 'LBL_ORDER_BY_NO',
-        	'default' => true
-    ),
 	'NAME' => array(
 		'width' => '10', 
 		'label' => 'LBL_NAME', 
 		'default' => true,
-        	'link' => true
-    ),  
+        'link' => true
+    ),
+	'REDUCE_AMOUNT' => array(
+		'width' => '10', 
+		'label' => 'LBL_AMOUNT', 
+		'default' => true,
+		'related_fields' => array('reduce_percent')
+	),
     'STATUS' => array(
 		'width' => '10', 
-		'label' => 'LBL_STATUS', 
+		'label' => 'LBL_STATUS',
 		'default' => true,
     ), 
-    'REDUCE_AMOUNT' => array(
-		'width' => '10', 
-		'label' => 'LBL_REDUCE_AMOUNT', 
-		'default' => true,
-    ),     
 	'VALIDATE_FROM_DATE' => array(
 		'width' => '20', 
 		'label' => 'LBL_DURATION', 
 		'default' => true,
+		'related_fields' => array('validate_to_date')
     ),
 	'CAMPAIGN_NAME' => array(
 		'width' => '10', 
 		'label' => 'LBL_CAMPAIGN_NAME', 
 		'default' => true,
     ),
-    'BOOKING_RECEIVE_ID' => array(
-		'name' => 'booking_receive_id',
+    'BOOKING' => array(
+		'name' => 'booking',
 		'width' => '10', 
 		'label' => 'LBL_BOOKING', 
 		'default' => true,
+		'link' => true
     ),
 	'DATE_ENTERED' => array(
 		'width' => '10', 
 		'label' => 'LBL_DATE_ENTERED',
-        	'default' => true
+        'default' => true
     ),
 );

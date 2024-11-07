@@ -4,32 +4,72 @@ require_once('include/MVC/View/views/view.detail.php');
 
 class EC_VouchersViewDetail extends ViewDetail {
 	function display() {
-		$this->populateCustomFields();
-		$this->populateCustomButtons();
+		var_dump(
+			$this->bean->uploadWebsite($this->bean->website, [
+				'name' => $this->bean->name,
+				'status' => $this->bean->status,
+				'campaign_name' => $this->bean->campaign_name,
+				'campaign_id' => $this->bean->campaign_id,
+				'validate_from_date' => $this->bean->validate_from_date,
+				'validate_to_date' => $this->bean->validate_to_date,
+				'reduce_amount' => $this->bean->reduce_amount,
+				'reduce_percent' => $this->bean->reduce_percent,
+				'max_discount' => $this->bean->max_discount,
+				'quantity' => $this->bean->quantity,
+				'quantity_used' => 0,
+				'condition_voucher' => $this->bean->condition_voucher
+			])
+		);
+		die();
+
+		$this->css();
+		$this->populateFields();
+		$this->populateButtons();
 		parent::display();
 	}
 
-	function populateCustomFields() {
+	private function css() {
+		$styles = '<link rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/detail.css">';
+		echo $styles; 
+	}
+
+	public function populateFields() {
 		// Thời hạn
 		$duration = date('d/m/Y', strtotime($this->bean->validate_from_date)). ' - ' . date('d/m/Y', strtotime($this->bean->validate_to_date));
 		$this->ss->assign('CUS_DURATION', $duration);
 
-		// Hành trình
-		if(isset($this->bean->dep_code) && !empty($this->bean->dep_code) && isset($this->bean->arv_code) && !empty($this->bean->arv_code)){
-			$journey = $this->bean->dep_code . ' - ' . $this->bean->arv_code;
-			$this->ss->assign('CUS_JOURNEY', $journey);
-		}
+		// Mệnh giá
+		$amount = $this->bean->reduce_amount > 0 ? format_number($this->bean->reduce_amount) : $this->bean->reduce_percent . "%";
+		$this->ss->assign('CUS_AMOUNT', $amount);
+
+		// Tình trạng
+		$this->ss->assign('CUS_STATUS', $this->bean->getFormatStatus());
+
 
 		// Booking sử dụng voucher
-		$booking = new EC_Flight_Bookings;
-		$booking->retrieve($this->bean->booking_receive_id);
-		$this->ss->assign('CUS_BOOKING', '<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $booking->id . '" target="_blank">' . $booking->name . '</a>');
+		if($this->bean->type == 'single') {
+			$booking = '<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $this->bean->booking_receive_id . '" target="_blank">'. $this->bean->booking . '</a>';
+		}
+		else {
+			$booking = $this->renderPopupListBookings();
+		}
+		$this->ss->assign('CUS_BOOKING', $booking);
+
+		// Khách hàng
+		$account = '';
+		if(!empty($this->bean->account_name) || !empty($this->bean->account_phone)) {
+			$account = '<ul class="list-group list-group-flush">
+				<li class="list-group-item">'.$this->bean->account_name.'</li>
+				<li class="list-group-item">'.$this->bean->account_phone.'</li>
+				<li class="list-group-item">'.$this->bean->account_email.'</li>
+			</ul>';
+		}
+		$this->ss->assign('CUS_ACCOUNT', $account);
 
 		// Điều kiện sử dụng voucher
 		if(isset($this->bean->condition_voucher) && !empty($this->bean->condition_voucher)){
-
-			$condition_voucher 	= json_decode(html_entity_decode($this->bean->condition_voucher), true);
-			$condition 		= $this->convertConditionVoucher($condition_voucher);
+			$condition_voucher = json_decode(html_entity_decode($this->bean->condition_voucher), true);
+			$condition = $this->convertConditionVoucher($condition_voucher);
 			$text_condition	= '';
 			
 			foreach($condition as $value){
@@ -42,29 +82,11 @@ class EC_VouchersViewDetail extends ViewDetail {
 		}
 	}
 
-	function populateCustomButtons(){
-		global $app_list_strings, $current_user, $timedate;
+	public function populateButtons(){
+		global $timedate;
 		$date_format = $timedate->get_date_format();
-
-		// Nút 'kích hoạt' voucher
-		$change_status = '';
-		if($this->bean->status == 'new') {
-			$active_date = date($date_format.' H:i', strtotime(date($date_format.' H:i'))+7*3600);
-
-			$change_status = '</form>
-			<form action="index.php" name="frmChangeStatus" id="frmChangeStatus" method="post">
-				<input type="hidden" name="module" value="EC_Vouchers" />
-				<input type="hidden" name="action" value="Save" />
-				<input type="hidden" name="record" value="'.$this->bean->id.'" />
-				<input type="hidden" name="return_module" value="EC_Vouchers" />
-				<input type="hidden" name="return_action" value="DetailView" />
-				<input type="hidden" name="return_id" value="'.$this->bean->id.'" />
-				<input type="hidden" name="status" value="active" />
-				<input type="hidden" name="active_date" value="'.$active_date.'" />
-				<input type="submit" class="btn btn-success" name="btnChangeStatus" value="Kích hoạt" title="Kích hoạt" />
-			</form>';
-			$this->ss->assign('CHANGE_STATUS', $change_status);
-		} else if($this->bean->status == 'active'){
+		
+		if($this->bean->status == 'active'){
 			$change_status = '</form>
 			<form action="index.php" name="frmChangeStatus" id="frmChangeStatus" method="post">
 				<input type="hidden" name="module" value="EC_Vouchers" />
@@ -78,28 +100,26 @@ class EC_VouchersViewDetail extends ViewDetail {
 			</form>';
 			$this->ss->assign('CHANGE_STATUS', $change_status);
 		}
-
-
 	}
 
-	function convertConditionVoucher($condition_voucher){
-		$text_arr = array(
+	protected function convertConditionVoucher($condition_voucher){
+		$text_arr = [
 			'total_amount' => '',
 			'journey' => '',
 			'total_qty' => '',
 			'ticket_type' => '',
 			'flight_type' => '',
-		);
+		];
 
-		$ticket_type_condition = array(
+		$ticket_type_condition = [
 			'1' => 'Nội địa',
 			'2' => 'Quốc tế',
-		);
+		];
 
-		$flight_type_condition = array(
+		$flight_type_condition = [
 			'1' => 'một chiều',
 			'0' => 'khứ hồi',
-		);
+		];
 
 		foreach($condition_voucher as $condition){
 			// Bé hơn
@@ -169,4 +189,61 @@ class EC_VouchersViewDetail extends ViewDetail {
 		return $text_arr;
 	}
 
+	protected function renderPopupListBookings() {
+		return '
+			<a class="view-bookings" data-bs-toggle="modal" data-bs-target="#modal_list_booking">Xem danh sách</a>
+			<div class="modal" id="modal_list_booking">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h4 class="modal-title">Danh sách booking dùng voucher</h4>
+						</div>
+						<div class="modal-body">
+							<table class="table table-hover">
+								<thead>
+									<tr>
+										<th>STT</th>
+										<th>Booking</th>
+										<th>Ngày tạo</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>1</td>
+										<td>VJ21IO3J12IL</td>
+										<td>10/11/2024 15:30</td>
+									</tr>
+									<tr>
+										<td>2</td>
+										<td>VJ21IO3J12IL</td>
+										<td>10/11/2024 15:30</td>
+									</tr>
+									<tr>
+										<td>3</td>
+										<td>VJ21IO3J12IL</td>
+										<td>10/11/2024 15:30</td>
+									</tr>
+								</tbody>
+							</table>
+							<ul class="pagination pagination-sm">
+								<li class="page-item disabled">
+									<a class="page-link" href="#">
+										<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M15 6L9 12L15 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+									</a>
+								</li>
+								<li class="page-item">
+									<a class="page-link" href="#">
+										<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6L15 12L9 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+									</a>
+								</li>
+							</ul>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Đóng</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		';
+	}
 }

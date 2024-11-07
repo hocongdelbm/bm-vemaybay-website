@@ -11,3 +11,12 @@
 .table-create-voucher tr td.value {
     width: 75%;
 }
+
+.table-create-voucher input[name="voucher_code"] {
+    text-transform: uppercase;
+}
+
+.table-create-voucher input[type="submit"],
+.table-create-voucher #create_voucher_btn {
+    cursor: pointer;
+}

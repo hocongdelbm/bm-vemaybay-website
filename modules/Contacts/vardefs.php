@@ -637,6 +637,16 @@ $dictionary['Contact'] = array(
             'reportable' => false,
             'audited'    => true,
         ),
+        'zalo_data' => array(
+            'name'       => 'zalo_data',
+            'vname'      => 'LBL_ZALO_DATA',
+            'type'       => 'varchar',
+            'len'        => 2048,
+            'default'    => '',
+            'importable' => true,
+            'reportable' => false,
+            'audited'    => true,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_cont_phone', 'type' => 'index', 'fields' => array('phone_mobile')),

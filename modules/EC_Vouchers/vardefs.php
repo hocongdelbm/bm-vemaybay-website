@@ -5,13 +5,13 @@ $dictionary['EC_Vouchers'] = array(
 	'inline_edit' => false,
 	'duplicate_merge' => true,
 	'fields' => array(
-		// Loại voucher (Đơn hoặc Nhóm)
+		// Voucher type (Group or Single)
 		'type' => array(
 			'name' => 'type',
 			'vname' => 'LBL_TYPE',
 			'type' => 'enum',
 			'options' => 'voucher_type_list',
-			'len' => 16,
+			'len' => 10,
 			'default' => 'single',
 			'audited' => 1,
 			'massupdate' => 0,
@@ -22,14 +22,13 @@ $dictionary['EC_Vouchers'] = array(
 			'dependency' => false,
 		),
 
-		// Tình trạng voucher
 		'status' => array(
 			'name' => 'status',
 			'vname' => 'LBL_STATUS',
 			'type' => 'enum',
 			'options' => 'voucher_status_list',
-			'len' => 16,
-			'default' => 'new',
+			'len' => 10,
+			'default' => 'pending',
 			'audited' => 1,
 			'massupdate' => 0,
 			'reportable' => 0,
@@ -41,7 +40,6 @@ $dictionary['EC_Vouchers'] = array(
 			'dependency' => false,
 		),
 
-		// Ngày sử dụng
 		'applied_date' => array(
 			'name' => 'applied_date',
 			'vname' => 'LBL_APPLIED_DATE',
@@ -70,7 +68,7 @@ $dictionary['EC_Vouchers'] = array(
 		// 	'duplicate_merge_dom_value' => '0',
 		// ),
 
-		// Ngày bắt đầu
+		// Start date
 		'validate_from_date' => array(
 			'name' => 'validate_from_date',
 			'vname' => 'LBL_VALIDATE_FROM_DATE',
@@ -85,7 +83,7 @@ $dictionary['EC_Vouchers'] = array(
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Ngày kết thúc
+		// From date
 		'validate_to_date' => array(
 			'name' => 'validate_to_date',
 			'vname' => 'LBL_VALIDATE_TO_DATE',
@@ -100,46 +98,7 @@ $dictionary['EC_Vouchers'] = array(
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// 'dep_code' => array(
-		// 	'required' => false,
-		// 	'name' => 'dep_code',
-		// 	'vname' => 'LBL_DEP_CODE',
-		// 	'type' => 'varchar',
-		// 	'massupdate' => 0,
-		// 	'importable' => 'true',
-		// 	'duplicate_merge' => 'disabled',
-		// 	'duplicate_merge_dom_value' => '0',
-		// 	'audited' => 0,
-		// 	'reportable' => 0,
-		// 	'len' => 5,
-		// ),
-		// 'arv_code' => array(
-		// 	'required' => false,
-		// 	'name' => 'arv_code',
-		// 	'vname' => 'LBL_ARV_CODE',
-		// 	'type' => 'varchar',
-		// 	'massupdate' => 0,
-		// 	'comments' => '',
-		// 	'help' => '',
-		// 	'importable' => 'true',
-		// 	'duplicate_merge' => 'disabled',
-		// 	'duplicate_merge_dom_value' => '0',
-		// 	'audited' => 0,
-		// 	'reportable' => 0,
-		// 	'len' => 5,
-		// ),
-
-		// Thông tin sự kiện phát hành voucher
-		'campaign_name' => array(
-			'name'       => 'campaign_name',
-			'vname'      => 'LBL_CAMPAIGN_NAME',
-			'type'       => 'varchar',
-			'len'        => 255,
-			'default'    => '',
-			'importable' => true,
-			'reportable' => false,
-			'audited' => false,
-		),
+		// Campaign information
 		'campaign_id' => array(
 			'name'       => 'campaign_id',
 			'vname'      => 'LBL_CAMPAIGN_ID',
@@ -152,13 +111,24 @@ $dictionary['EC_Vouchers'] = array(
 			'reportable' => false,
 			'audited'    => false,
 		),
+		'campaign_name' => array(
+			'name'       => 'campaign_name',
+			'vname'      => 'LBL_CAMPAIGN_NAME',
+			'type'       => 'varchar',
+			'len'        => 255,
+			'default'    => '',
+			'importable' => true,
+			'reportable' => false,
+			'audited' => false,
+		),
 
-		// Thông tin khách hàng sử dụng voucher
+		// Customer information using voucher
 		'account_name' => array(
 			'name' => 'account_name',
 			'vname' => 'LBL_ACCOUNT_NAME',
 			'type' => 'varchar',
 			'len' => 64,
+			'default' => '',
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
@@ -172,6 +142,7 @@ $dictionary['EC_Vouchers'] = array(
 			'vname' => 'LBL_ACCOUNT_PHONE',
 			'type' => 'varchar',
 			'len' => 16,
+			'default' => '',
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
@@ -185,19 +156,7 @@ $dictionary['EC_Vouchers'] = array(
 			'vname' => 'LBL_ACCOUNT_EMAIL',
 			'type' => 'varchar',
 			'len' => 30,
-			'required' => 0,
-			'massupdate' => 0,
-			'importable' => 1,
-			'audited' => 0,
-			'reportable' => 0,
-			'duplicate_merge' => 'disabled',
-			'duplicate_merge_dom_value' => '0',
-		),
-		'account_address' => array(
-			'name' => 'account_address',
-			'vname' => 'LBL_ACCOUNT_ADDRESS',
-			'type' => 'varchar',
-			'len' => 255,
+			'default' => '',
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
@@ -207,12 +166,13 @@ $dictionary['EC_Vouchers'] = array(
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Thông tin booking
+		// Booking apply
 		'booking_receive_id' => array(
 			'name' => 'booking_receive_id',
 			'vname' => '',
 			'type' => 'id',
 			'len' => 36,
+			'default' => '',
 			'importable' => 1,
 			'audited' => 0,
 			'reportable' => 0,
@@ -233,43 +193,44 @@ $dictionary['EC_Vouchers'] = array(
 			'studio' => 'visible',
 		),
 
-		// Số tiền giảm
 		'reduce_amount' => array(
 			'name' => 'reduce_amount',
 			'vname' => 'LBL_REDUCE_AMOUNT',
 			'type' => 'int',
 			'len' => 11,
+			'default' => 0,
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
 			'audited' => 0,
 			'reportable' => 0,
-			'disable_num_format' => '',
+			'disable_num_format' => true,
 			'duplicate_merge' => 'disabled',
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Số phần trăm giảm
 		'reduce_percent' => array(
 			'name' => 'reduce_percent',
 			'vname' => 'LBL_REDUCE_PERCENT',
 			'type' => 'int',
 			'len' => 3,
+			'default' => 0,
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
 			'audited' => 0,
 			'reportable' => 0,
+			'disable_num_format' => false,
 			'duplicate_merge' => 'disabled',
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Giảm tối đa
 		'max_discount' => array(
-			'name' => 'reduce_amount',
-			'vname' => 'LBL_REDUCE_AMOUNT',
+			'name' => 'max_discount',
+			'vname' => 'LBL_MAX_DISCOUNT',
 			'type' => 'int',
 			'len' => 11,
+			'default' => 0,
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
@@ -280,7 +241,24 @@ $dictionary['EC_Vouchers'] = array(
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Điều kiện áp dụng
+		// Releasing quantity
+		'quantity' => array(
+			'name' => 'quantity',
+			'vname' => 'LBL_QUANTITY',
+			'type' => 'int',
+			'len' => 11,
+			'default' => 1,
+			'required' => 0,
+			'massupdate' => 0,
+			'importable' => 1,
+			'audited' => 0,
+			'reportable' => 0,
+			'disable_num_format' => '',
+			'duplicate_merge' => 'disabled',
+			'duplicate_merge_dom_value' => '0',
+		),
+
+		// Conditions apply
 		'condition_voucher' => array(
 			'name' => 'condition_voucher',
 			'vname' => 'LBL_CONDITION_VOUCHER',
@@ -294,28 +272,29 @@ $dictionary['EC_Vouchers'] = array(
 			'comments' => 'Điều kiện áp dụng voucher',
 		),
 
-		// Sắp xếp
-		'order_by_no' => array(
-			'name' => 'order_by_no',
-			'vname' => 'LBL_ORDER_BY_NO',
-			'type' => 'int',
-			'len' => 10,
-			'required' => 0,
-			'massupdate' => 0,
-			'importable' => 1,
-			'audited' => 0,
-			'reportable' => 0,
-			'disable_num_format' => '',
-			'duplicate_merge' => 'disabled',
-			'duplicate_merge_dom_value' => '0',
-		),
+		// 'order_by_no' => array(
+		// 	'name' => 'order_by_no',
+		// 	'vname' => 'LBL_ORDER_BY_NO',
+		// 	'type' => 'int',
+		// 	'len' => 10,
+		// 	'default' => 0,
+		// 	'required' => 0,
+		// 	'massupdate' => 0,
+		// 	'importable' => 1,
+		// 	'audited' => 0,
+		// 	'reportable' => 0,
+		// 	'disable_num_format' => '',
+		// 	'duplicate_merge' => 'disabled',
+		// 	'duplicate_merge_dom_value' => '0',
+		// ),
 
 		// Website apply
 		'website' => array(
 			'name' => 'website',
 			'vname' => 'LBL_WEBSITE',
 			'type' => 'varchar',
-			'len' => 50,
+			'len' => 40,
+			'default' => '',
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
@@ -333,7 +312,12 @@ $dictionary['EC_Vouchers'] = array(
 		// 	'reportable' => 0,
 		// ),
 	),
-	'indices' => array(),
+	'indices' => array(
+		array('name' => 'idx_vouchers_campaign_id', 'type' => 'index', 'fields' => array('campaign_id')),
+		array('name' => 'idx_vouchers_account_phone', 'type' => 'index', 'fields' => array('account_phone')),
+		array('name' => 'idx_vouchers_booking_id', 'type' => 'index', 'fields' => array('booking_receive_id')),
+		array('name' => 'idx_vouchers_applied_date', 'type' => 'index', 'fields' => array('applied_date')),
+	),
 	'relationships' => array(),
 	'optimistic_locking' => true,
 	'unified_search' => true,

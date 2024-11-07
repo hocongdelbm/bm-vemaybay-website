@@ -657,10 +657,10 @@ $GLOBALS['app_list_strings']['work_history_status_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['voucher_status_list'] = array(
-  1 => 'Active',
-  0 => 'Deactive',
-  2 => 'Chưa sử dụng',
-  3 => 'Đã sử dụng',
+  'pending' => 'Pending',
+  'done' => 'Done',
+  'expired' => 'Expired',
+  'cancel' => 'Cancel',
 );
 
 $GLOBALS['app_list_strings']['overtime_type_list'] = array(

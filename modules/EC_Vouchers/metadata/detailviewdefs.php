@@ -26,18 +26,21 @@ $viewdefs[$module_name]['DetailView'] = array(
 
     'panels' => array (
         'default' => array(
-            array(
+            array (
+                array(
+                    'name' => 'name',
+                    'label' => 'LBL_NAME',
+                ),
                 array(
                     'name' => 'campaign_name',
-                    'label' => 'LBL_CAMPAIGN_NAME',
+                    'label' => 'LBL_EVENT',
                 ),
             ),
-            array (
-                'name',
-                'status',
-            ),
-            array (
-                'reduce_amount',
+            array(
+                array(
+                    'name' => 'quantity',
+                    'label' => 'LBL_QUANTITY',
+                ),
                 array(
                     'name' => 'duration',
                     'label' => 'LBL_DURATION',
@@ -45,28 +48,35 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
             array (
-                'account_name',
-                'account_phone',
+                array(
+                    'name' => 'amount',
+                    'label' => 'LBL_AMOUNT',
+                    'customCode' => '{$CUS_AMOUNT}',
+                ),
+                array(
+                    'name' => 'max_discount',
+                    'label' => 'LBL_MAX_DISCOUNT',
+                ),
             ),
             array (
-                'account_address',
-                'account_email',
+                array(
+                    'name' => 'status',
+                    'label' => 'LBL_STATUS',
+                    'customCode' => '{$CUS_STATUS}',
+                ),
+                'applied_date',
             ),
             array (
+                array(
+                    'name' => 'account',
+                    'label' => 'LBL_ACCOUNT',
+                    'customCode' => '{$CUS_ACCOUNT}',
+                ),
                 array(
                     'name' => 'booking',
                     'label' => 'LBL_BOOKING',
                     'customCode' => '{$CUS_BOOKING}',
                 ),
-                array(
-                    'name' => 'journey',
-                    'label' => 'LBL_JOURNEY',
-                    'customCode' => '{$CUS_JOURNEY}',
-                ),
-            ),
-            array (
-                'active_date',
-                'applied_date'
             ),
             array (
                   array (
@@ -83,14 +93,14 @@ $viewdefs[$module_name]['DetailView'] = array(
         ),
         'lbl_panel_description' => array(
             array (
-                'description',
-            ),
-            array (
                 array (
                     'name' => 'condition_voucher',
                     'label' => 'LBL_CONDITION_VOUCHER',
                     'customCode' => '{$CUS_CONDITION_VOUCHER}',
                 )
+            ),
+            array (
+                'description',
             ),
         )
     ),
