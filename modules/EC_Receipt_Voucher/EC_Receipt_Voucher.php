@@ -52,7 +52,7 @@ class EC_Receipt_Voucher extends Basic
 
     function save($check_notify = FALSE)
 	{
-		global $current_user;
+		global $current_user, $sugar_config, $app_list_strings;
 
 		// Check booking is paid
 		if (isset($this->booking_id) && !empty($this->booking_id)
@@ -63,9 +63,11 @@ class EC_Receipt_Voucher extends Basic
 			exit;
 		}
 
+        $is_tele = 0;
 		if (empty($this->name)) {
 			$total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM ec_receipt_voucher");
 			$this->name = 'PT-' . date('ymd') . '-' . $total_row;
+			$is_tele = 1;
 		}
 
         // Ghi nhận ngày ghi sổ
@@ -90,12 +92,17 @@ class EC_Receipt_Voucher extends Basic
 
 		if ($this->rv_status == '1') {
 			myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'paid');
-		}else if ($this->rv_status == '0') {
+
+			if ($this->loai_thu == '4' ) {
+				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (PT: Đổi giờ bay, hành trình, tên khách)', $this->created_by, 'create_receipt');
+			}
+		} else {
 			myRemoveWorkingProcess($this->module_dir, $this->id);
 		}
 
 		// Begin save working process for delivery man
-        if (isset($this->delivery_man_id) && !empty($this->delivery_man_id) && $this->fetched_row['delivery_man_id'] != $this->delivery_man_id) {
+        // if (isset($this->delivery_man_id) && !empty($this->delivery_man_id) && $this->fetched_row['delivery_man_id'] != $this->delivery_man_id) {
+		if ($this->rv_status == '1' && isset($this->delivery_man_id) && !empty($this->delivery_man_id)) {
 			myRemoveWorkingProcess($this->module_dir, $this->id, 'ticket_delivery');
 			$work = new EC_Working_Process();
 			$work->id = '';
@@ -107,11 +114,39 @@ class EC_Receipt_Voucher extends Basic
 			$work->ticket_delivery = 1;
 			$work->save();
 		}
-		else if (empty($this->delivery_man_id)) {
+		else if (empty($this->delivery_man_id) || $this->rv_status != '1') {
 			myRemoveWorkingProcess($this->module_dir, $this->id, 'ticket_delivery');
 		}
 		// End save working process for delivery man
 
+		// SEND TELE
+        if ($is_tele == 1) {
+			$date_entered = date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($this->date_entered)));
+			$user_list = get_user_array(true, '', '', true);
+
+			$messages = "- Phiếu thu: ".$this->name."\n" .
+						"- Loại thu: ".$app_list_strings['loai_thu_list'][(int)$this->loai_thu]."\n" .
+						"- Ngày tạo: ".$date_entered." bởi ".$user_list[$this->created_by]."\n" .
+						"- Số tiền: ".format_number($this->amount)." VNĐ\n" .
+						"- Nội dung: ".$this->description."\n";
+
+			$content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			sendTelegramKeToan2025(
+				json_encode(array(
+					'text' => $content,
+					'reply_markup' => array(
+						'inline_keyboard' => array(
+							array(
+								array(
+									'text' => 'Phiếu thu',
+									'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . '&record=' . $this->id . '&action=DetailView&dothis=true',
+								),
+							),
+						),
+					),
+				), JSON_UNESCAPED_UNICODE),
+			);
+		}
 	}
 	
 }

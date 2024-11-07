@@ -318,14 +318,15 @@ function myGetMinuteList($minute = '')
  * @param string $id dòng dữ liệu muốn kiểm tra
  * @return bool
  */
-function myCheckValueExist($module, $field = array(), $field_value = array(), $id)
+function myCheckValueExist($module, $fields = array(), $field_value = array(), $id)
 {
     global $db;
     $rowcount = 0;
     $field_con = '';
-    if (count($field) > 0) {
+    if (count($fields) > 0) {
         $i = 0;
-        foreach ($field as $field) {
+        foreach ($fields as $field) {
+            if(!isset($field_value[$i]) || is_null($field_value[$i]) || empty($field_value[$i])) continue;
             $field_con .= " AND " . $field . " = '" . $field_value[$i] . "'";
             $i++;
         }
@@ -334,6 +335,7 @@ function myCheckValueExist($module, $field = array(), $field_value = array(), $i
         SELECT COUNT(id) FROM " . strtolower($module) . "
         WHERE id <> '" . $id . "' AND deleted = 0" . $field_con;
     $rowcount = $db->getOne($sql);
+
     if ($rowcount > 0)
         return true;
     return false;
@@ -638,106 +640,6 @@ function myRecheckFlight($aircode, $pnr, $fullName, $flightNo, $timeout = 30, $u
     return $result;
 }
 
-// GR TELE LÝ THÔNG
-function sendGrLyThongTele($content, $parseMode = 'HTML', $timeout = 8)
-{
-    $chat_id = '-1001656085253';
-    $token = '2062223399:AAGhuTA3jvRBeCLq8fixOFrY-MecvuA_7AA';
-
-    $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-    $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-    $result = curl_exec($curl);
-    curl_close($curl);
-    return $result;
-}
-
-// GR TELE TEST
-function sendGrTestTele($content, $parseMode = 'HTML', $timeout = 8)
-{
-    $chat_id = '-1001360390468'; // Group Test
-    $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk'; // Bot @CronJobNewsVietjet_bot
-
-    $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-    $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-    $result = json_decode(curl_exec($curl), true);
-    curl_close($curl);
-    return $result;
-}
-
-// GR TELE SUPPORT
-function sendGrSupportTele($content, $parseMode = 'HTML', $timeout = 8)
-{
-    // $chat_id = '-1773893748'; // Group support
-    $chat_id = '-618676080'; // Group support
-    $token = '6713845742:AAF3ilFQEFrUgIN69bpNOeJknCJQhBR4nHU';
-
-    $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-    $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-    $result = curl_exec($curl);
-    curl_close($curl);
-    return
-
-        $result;
-}
-
-// GR TEST
-function myTelegramBlockIP($postData, $timeout = 20, $format = 'json')
-{
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, 'https://api.telegram.org/bot1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk/sendMessage?chat_id=-1001360390468');
-
-    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-    ));
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-    $result = json_decode(curl_exec($curl), true);
-    curl_close($curl);
-    return $result;
-}
-
-
-/**
- * Telegram send message
- */
-function myTelegramSendMessage($postData, $token, $chat_id, $timeout = 20, $format = 'json')
-{
-    $curl = curl_init();
-    // curl_setopt($curl, CURLOPT_URL, 'https://s2.vietnamairlines.bid/index.php/apiv1/telegram/send_message/format/' . $format);
-    curl_setopt($curl, CURLOPT_URL, 'https://api.telegram.org/bot' . $token . '/sendMessage?chat_id=' . $chat_id);
-
-    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-        'Content-Type: application/json',
-        'X-API-KEY: MHlV04ML1B8ObhTp7urAF0YImADw656728f095w5',
-    ));
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_POST, true);
-    curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-    $result = json_decode(curl_exec($curl), true);
-    curl_close($curl);
-    return $result;
-}
-
 // Get airline info
 function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 1, $format = 'array')
 {
@@ -756,25 +658,6 @@ function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 
     else if ($format == 'json') $result = $data;
     return $result;
 }
-
-// Get airport info
-// function myGetAirportInfo($airport_code, $case_sensitive = 1, $format = 'array')
-// {
-//     $api_key    = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
-//     $url        = 'http://api.vemaybaynamphuong.com/index.php/apiv1/api/airport_search/format/json/term/' . $airport_code . '/case_sensitive/' . $case_sensitive;
-
-//     $curl_handle = curl_init();
-//     curl_setopt($curl_handle, CURLOPT_URL, $url);
-//     curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
-//     curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-//     curl_setopt($curl_handle, CURLOPT_FOLLOWLOCATION, 0);
-//     $data = curl_exec($curl_handle);
-//     curl_close($curl_handle);
-//     $result = '';
-//     if ($format == 'array') $result = json_decode($data, true);
-//     else if ($format == 'json') $result = $data;
-//     return $result;
-// }
 
 function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
 {
@@ -1597,38 +1480,6 @@ function calculateSupplierBalance($supplier_id)
     return $db->getOne($sql);
 }
 
-// Check quyền cho admin hệ thống và kế toán trưởng
-function isManagerUser($user_id)
-{
-    global $db, $current_user;
-
-    if (is_admin($current_user)) {
-        return 1;
-    }
-
-    // $sql = 'SELECT COUNT(id) 
-    //         FROM acl_roles_users 
-    //         WHERE deleted = 0 
-    //         AND role_id IN (
-    //             "222d9e8c-a54c-d7b8-8f75-567e493d6ea3",
-    //             "c4ae12df-787f-5a30-5612-509b1346b649"
-    //         )
-    //         AND user_id = "' . $user_id . '"';
-
-    $sql = 'SELECT COUNT(id) 
-            FROM acl_roles_users 
-            WHERE user_id = "' . $user_id . '"
-                AND role_id IN (
-                    "' . $GLOBALS['app_list_strings']['roles_users']['QUANLY'] . '",
-                    "' . $GLOBALS['app_list_strings']['roles_users']['KETOAN'] . '"
-                )
-                AND deleted = 0';
-    $is_manager = $db->getOne($sql);
-
-    if ($is_manager) return 1;
-    return 0;
-}
-
 function getEmailFromUser($user_id)
 {
     global $db;
@@ -1932,6 +1783,39 @@ function isAllowedUser()
     return false;
 }
 
+// Check quyền cho admin hệ thống, QL và kế toán
+function isManagerUser($user_id)
+{
+    global $db, $current_user;
+
+    if (is_admin($current_user)) {
+        return 1;
+    }
+
+    // $sql = 'SELECT COUNT(id) 
+    //         FROM acl_roles_users 
+    //         WHERE deleted = 0 
+    //         AND role_id IN (
+    //             "222d9e8c-a54c-d7b8-8f75-567e493d6ea3",
+    //             "c4ae12df-787f-5a30-5612-509b1346b649"
+    //         )
+    //         AND user_id = "' . $user_id . '"';
+
+    $sql = 'SELECT COUNT(id) 
+            FROM acl_roles_users 
+            WHERE user_id = "' . $user_id . '"
+                AND role_id IN (
+                    "' . $GLOBALS['app_list_strings']['roles_users']['QUANLY'] . '",
+                    "' . $GLOBALS['app_list_strings']['roles_users']['KETOAN'] . '"
+                )
+                AND deleted = 0';
+    $is_manager = $db->getOne($sql);
+
+    if ($is_manager) return 1;
+    return 0;
+}
+
+
 // Bỏ các khoảng trắng
 function replaceAllSpacesToSingleSpace($string)
 {
@@ -2224,7 +2108,8 @@ function custom_get_sip_number($key = '')
         '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
         // Trương Mỹ Nhân
         '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
-
+        // Lê Tín Nghĩa
+        'ebc40fa1-8878-1a86-000d-5b6949a87e11' => ['user' => '107', 'password' => 'C1UtQnCWTpUmH8C5?9wE'],
         // Nguyễn Duy Đăng
         'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         // Nguyễn Lộc Danh
@@ -2547,8 +2432,12 @@ function getCallSource($call_to)
         case '01388506538':
             $call_sources = 'Laptop Dell';
             break;
+        case '02866509900':
         case '02839977788':
             $call_sources = 'timchuyenbay.com';
+            break;
+        case '1900636063':
+            $call_sources = 'vemaybay5s.com';
             break;
         case '02873001886':
             $call_sources = 'suatuoiuc.vn';
@@ -2692,20 +2581,4 @@ function write_file_backup_log_calls($json)
 }
 
 require_once 'custom/include/utils/address.php';
-
-function sendTestTelegram($content, $parseMode = 'HTML', $timeout = 5)
-{
-	$chat_id = '-1001360390468'; // Group Test
-	$token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
-
-	$url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-	$url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-	curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-	$result = curl_exec($curl);
-	curl_close($curl);
-	return $result;
-}
+require_once 'custom/include/utils/tele.php';

@@ -165,7 +165,7 @@ class EC_Flight_BookingsLogicHook
 
 		// Cập nhật KPI COM khi hoàn tất booking
 		if (isset($_POST['btnCompleted'])) {
-			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, '', $current_user->id, 'completed');
+			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, 'Hoàn tất booking', $current_user->id, 'completed');
 		}
 	}
 

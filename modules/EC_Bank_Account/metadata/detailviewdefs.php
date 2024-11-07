@@ -80,6 +80,10 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'name' => 'is_sms',
                     'label' => 'LBL_IS_SMS',
                 ),
+                array(
+                    'name' => 'is_roll',
+                    'label' => 'LBL_IS_ROLL',
+                ),
             ),
 
             array(

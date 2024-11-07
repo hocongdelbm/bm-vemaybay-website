@@ -155,7 +155,7 @@ Alerts.prototype.addToManager = function (AlertObj) {
   }).fail(function (data) {
     console.error(data);
   }).always(function () {
-    // Alerts.prototype.updateManager();
+    Alerts.prototype.updateManager();
   });
 };
 
@@ -186,48 +186,48 @@ Alerts.prototype.redirectToLogin = function () {
 /**
  * Update Alert Manager (Navigation bar element)
  */
-// Alerts.prototype.updateManager = function () {
-//   var url = 'index.php?module=Alerts&action=get&to_pdf=1';
-//   $.ajax(url).done(function (data) {
-//     if (data === 'lost session') {
-//       Alerts.prototype.redirectToLogin();
-//       return false;
-//     }
+Alerts.prototype.updateManager = function () {
+  var url = 'index.php?module=Alerts&action=get&to_pdf=1';
+  $.ajax(url).done(function (data) {
+    if (data === 'lost session') {
+      Alerts.prototype.redirectToLogin();
+      return false;
+    }
 
-//     // remove the jsAlert message
-//     for (var replaceMessage in Alerts.prototype.replaceMessages) {
-//       data = data.replace(
-//         Alerts.prototype.replaceMessages[replaceMessage].search,
-//         Alerts.prototype.replaceMessages[replaceMessage].replace
-//       );
-//     }
+    // remove the jsAlert message
+    for (var replaceMessage in Alerts.prototype.replaceMessages) {
+      data = data.replace(
+        Alerts.prototype.replaceMessages[replaceMessage].search,
+        Alerts.prototype.replaceMessages[replaceMessage].replace
+      );
+    }
 
-//     var alertsDiv = $('.desktop_notifications #alerts');
-//     alertsDiv.html(data);
+    var alertsDiv = $('.desktop_notifications #alerts');
+    alertsDiv.html(data);
 
-//     var alerts = $('<div></div>');
-//     $(data).appendTo(alerts);
-//     var alertCount = $(alerts).children('.alert').length;
-//     var alertCountDiv = $('.alert_count');
-//     var desktopNotificationsDiv = $('.desktop_notifications');
-//     var alertButtonDiv = $('.alertsButton');
+    var alerts = $('<div></div>');
+    $(data).appendTo(alerts);
+    var alertCount = $(alerts).children('.alert').length;
+    var alertCountDiv = $('.alert_count');
+    var desktopNotificationsDiv = $('.desktop_notifications');
+    var alertButtonDiv = $('.alertsButton');
 
 
-//     alertCountDiv.html(alertCount);
-//     if (alertCount > 0) {
-//       alertsDiv.addClass('has-alerts');
-//       desktopNotificationsDiv.addClass('has-alerts');
-//       alertButtonDiv.removeClass('btn-').addClass('btn-danger');
-//       alertCountDiv.removeClass('hidden');
-//     }
-//     else {
-//       desktopNotificationsDiv.removeClass('has-alerts');
-//       alertsDiv.removeClass('has-alerts');
-//       alertButtonDiv.removeClass('btn-danger').addClass('btn-success');
-//       alertCountDiv.addClass('hidden');
-//     }
-//   });
-// };
+    alertCountDiv.html(alertCount);
+    if (alertCount > 0) {
+      alertsDiv.addClass('has-alerts');
+      desktopNotificationsDiv.addClass('has-alerts');
+      alertButtonDiv.removeClass('btn-').addClass('btn-danger');
+      alertCountDiv.removeClass('hidden');
+    }
+    else {
+      desktopNotificationsDiv.removeClass('has-alerts');
+      alertsDiv.removeClass('has-alerts');
+      alertButtonDiv.removeClass('btn-danger').addClass('btn-success');
+      alertCountDiv.addClass('hidden');
+    }
+  });
+};
 
 /**
  * Mark alert as read
@@ -236,7 +236,7 @@ Alerts.prototype.redirectToLogin = function () {
 Alerts.prototype.markAsRead = function (id) {
   var url = 'index.php?module=Alerts&action=markAsRead&record=' + id + '&to_pdf=1';
   $.ajax(url).done(function () {
-    // Alerts.prototype.updateManager();
+    Alerts.prototype.updateManager();
   });
 };
 
@@ -249,7 +249,7 @@ $(document).ready(function () {
     {search: SUGAR.language.translate("app", "MSG_JS_ALERT_MTG_REMINDER_MEETING_MSG"), replace: ""}
   ];
   var updateMissed = function () {
-    // Alerts.prototype.updateManager();
+    Alerts.prototype.updateManager();
     setTimeout(updateMissed, 60000);
   };
   setTimeout(updateMissed, 2000);

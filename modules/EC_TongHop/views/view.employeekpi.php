@@ -5,7 +5,7 @@ date_default_timezone_set("Asia/Ho_Chi_Minh");
 
 class Viewemployeekpi extends SugarView {
 	function display() {
-		if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
+		if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true) && $GLOBALS['current_user']->user_name == 'hungnh') {
 			$smartyCont = new Sugar_Smarty();
 			$this->populateContent($smartyCont);
 			$smartyCont->display('modules/EC_TongHop/tpls/view_employeekpi.tpl');
@@ -122,10 +122,6 @@ class Viewemployeekpi extends SugarView {
 						,SUM(IFNULL(w.create_payment,0)) AS create_payment
 						,SUM(IFNULL(w.create_transfer,0)) AS create_transfer
 						,SUM(IFNULL(w.invoice_input_issued,0)) AS invoice_input_issued
-						,SUM(IFNULL(w.manner, 0)) AS manner
-						,SUM(IFNULL(w.effected, 0)) AS effected
-						,SUM(IFNULL(w.awareness, 0)) AS awareness
-						,SUM(IFNULL(w.minus, 0)) AS minus
 						,SUM(  
 						  	IFNULL(w.called,0) 
 							+ IFNULL(w.completed,0) 
@@ -140,10 +136,6 @@ class Viewemployeekpi extends SugarView {
 							+ IFNULL(w.create_payment,0) 
 							+ IFNULL(w.create_transfer,0)
 							+ IFNULL(w.invoice_input_issued,0)
-							+ IFNULL(w.manner,0)
-							+ IFNULL(w.effected,0)
-							+ IFNULL(w.awareness,0)
-							- IFNULL(w.minus, 0)
 						  ) AS total_kpi
 					FROM ec_working_process w
 					INNER JOIN users u ON w.assigned_user_id = u.id
@@ -153,6 +145,10 @@ class Viewemployeekpi extends SugarView {
 					" . $sql_search2 . "
 					GROUP BY w.assigned_user_id
 					ORDER BY total_kpi DESC ";
+
+			if($GLOBALS['current_user']->user_name == 'hungnh'){
+				pr($sql);
+			}
 
 			$res = $db->query($sql);
 			$i = 0;
@@ -180,25 +176,22 @@ class Viewemployeekpi extends SugarView {
 
 			while ($row = $db->fetchByAssoc($res)) {
 				$html .= '<tr>
-					<td align="center"><span>' . ($i + 1) . '</span></td>
-					<td align="left"><a class="admin-view-detail" user_id="' . $row['assigned_user_id'] . '" load_type="total_kpi" load_name="điểm KPI" href="#" title="Xem chi tiết">' . $row['full_name'] . '</a></td>
-					<td align="center"><span title="Called">' . ($row['called'] != 0 ? $row['called'] : '') . '</span></td>
-					<td align="center"><span title="Completed">' . ($row['completed'] != 0 ? $row['completed'] : '') . '</span></td>
-					<td align="center"><span title="Đã thanh toán / Đã thu">' . ($row['paid'] != 0 ? $row['paid'] : '') . '</span></td>
-					<td align="center"><span title="Recheck">' . ($row['recheck'] != 0 ? $row['recheck'] : '') . '</span></td>
-					<td align="center"><span title="Recall">' . ($row['recall'] != 0 ? $row['recall'] : '') . '</span></td>';
-				if ($from_date_value == $to_date_value) {
-					$html .= '<td align="center"><span title="Chuyên môn"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="manner" id="manner' . ($i + 1) . '">' . $row['manner'] . '</a></span></td>
-						<td align="center"><span title="Hiệu quả"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="effected" id="effected' . ($i + 1) . '">' . ($row['effected'] + $row['ticket_delivery']) . '</a></span></td>
-						<td align="center"><span title="Ý thức"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="awareness" id="awareness' . ($i + 1) . '">' . $row['awareness'] . '</a></span></td>';
-					$html .= '<td align="center"><span title="Bị trừ"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="minus" id="minus' . ($i + 1) . '">' . format_number($row['minus']) . '</a></span></td>';
-				} else {
-
-					$html .= '<td align="center"><span>' . $row['manner'] . '</span></td><td align="center"><span>' . $row['effected'] . '</span></td><td align="center"><span>' . $row['awareness'] . '</span></td>';
-					$html .= '<td align="center"><span>' . format_number($row['minus']) . '</span></td>';
-				}
-
-				$html .= '<td align="center"><span title="Tổng cộng">' . ($row['total_kpi'] != 0 ? $row['total_kpi'] : '') . '</span></td></tr>';
+							<td align="center"><span>' . ($i + 1) . '</span></td>
+							<td align="left"><a class="admin-view-detail" user_id="' . $row['assigned_user_id'] . '" load_type="total_kpi" load_name="điểm KPI" href="#" title="Xem chi tiết">' . $row['full_name'] . '</a></td>
+							<td align="center"><span title="Called">' . ($row['called'] != 0 ? $row['called'] : '') . '</span></td>
+							<td align="center"><span title="Completed">' . ($row['completed'] != 0 ? $row['completed'] : '') . '</span></td>
+							<td align="center"><span title="Đã thanh toán / Đã thu">' . ($row['paid'] != 0 ? $row['paid'] : '') . '</span></td>
+							<td align="center"><span title="Recheck">' . ($row['recheck'] != 0 ? $row['recheck'] : '') . '</span></td>
+							<td align="center"><span title="Recall">' . ($row['recall'] != 0 ? $row['recall'] : '') . '</span></td>
+							<td align="center"><span title="invoice_issued: Xuất HD đầu ra">' . ($row['invoice_issued'] != 0 ? $row['invoice_issued'] : '') . '</span></td>
+							<td align="center"><span title="ticket_delivery: Giao vé">' . ($row['ticket_delivery'] != 0 ? $row['ticket_delivery'] : '') . '</span></td>
+							<td align="center"><span title="check_debt: Check công nợ">' . ($row['check_debt'] != 0 ? $row['check_debt'] : '') . '</span></td>
+							<td align="center"><span title="create_repaid: Tạo hoàn vé">' . ($row['create_repaid'] != 0 ? $row['create_repaid'] : '') . '</span></td>
+							<td align="center"><span title="create_payment: Tạo PC">' . ($row['create_payment'] != 0 ? $row['create_payment'] : '') . '</span></td>
+							<td align="center"><span title="create_transfer: Tạo điều chuyển">' . ($row['create_transfer'] != 0 ? $row['create_transfer'] : '') . '</span></td>
+							<td align="center"><span title="invoice_input_issued: Xuất HĐ đầu vào">' . ($row['invoice_input_issued'] != 0 ? $row['invoice_input_issued'] : '') . '</span></td>
+							<td align="center"><span title="Tổng cộng">' . ($row['total_kpi'] != 0 ? $row['total_kpi'] : '') . '</span></td>
+						</tr>';
 
 				$i++;
 				$ttl_called += $row['called'];
@@ -216,10 +209,10 @@ class Viewemployeekpi extends SugarView {
 				$ttl_payment += $row['create_payment'];
 				$ttl_transfer += $row['create_transfer'];
 				$ttl_final += $row['total_kpi'];
-				$ttl_manner += $row['manner'];
-				$ttl_effected += $row['effected'];
-				$ttl_awareness += $row['awareness'];
-				$ttl_minus += $row['minus'];
+				// $ttl_manner += $row['manner'];
+				// $ttl_effected += $row['effected'];
+				// $ttl_awareness += $row['awareness'];
+				// $ttl_minus += $row['minus'];
 			}
 
 			$smartyobj->assign('EMPLOYEE_KPI_TYPE_LIST', get_select_options_with_id($app_list_strings['employee_kpi_type_list'], ''));
@@ -240,10 +233,6 @@ class Viewemployeekpi extends SugarView {
 			$smartyobj->assign('TTL_PAYMENT', $ttl_payment);
 			$smartyobj->assign('TTL_TRANSFER', $ttl_transfer);
 			$smartyobj->assign('TTL_FINAL', $ttl_final);
-			$smartyobj->assign('TTL_MANNER', $ttl_manner);
-			$smartyobj->assign('TTL_EFFECTED', $ttl_effected);
-			$smartyobj->assign('TTL_AWARENESS', $ttl_awareness);
-			$smartyobj->assign('TTL_MINUS', $ttl_minus);
 		} 
 		else if ($_POST['report_type'] == 'owner') {
 			// main query		

@@ -107,9 +107,10 @@ $app_list_strings['moduleList']['AOD_IndexEvent'] = 'Chỉ số sự kiện';
 $app_list_strings['moduleList']['AOD_Index'] = 'Chỉ số';
 $app_list_strings['moduleList']['AOP_Case_Events'] = 'Trường hợp các sự kiện';
 $app_list_strings['moduleList']['AOP_Case_Updates'] = 'Cập nhật trường hợp';
-// Knowledge base
-$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Kiến thức cơ bản'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'KB - thể loại'; // Shows in the ALL menu entries
+
+// knowledge base
+$app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
+$app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
 $app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
 $app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
 // ExternalOauth
@@ -2166,11 +2167,11 @@ $GLOBALS['app_list_strings']['vietnamair_luggage_price_list2'] = array(
   660000  => '3 kiện 10kg (660.000 VND/Khách)',
   760000  => '4 kiện 10kg (760.000 VND/Khách)',
   950000  => '5 kiện 10kg (950.000 VND/Khách)',
-  350000  => '2 kiện 23kg (có 1 kiện miễn phí) (350.000 VND/Khách)',
-  700000  => '3 kiện 23kg (có 1 kiện miễn phí) (700.000 VND/Khách)',
-  1050000 => '4 kiện 23kg (có 1 kiện miễn phí) (1.050.000 VND/Khách)',
-  1400000 => '5 kiện 23kg (có 1 kiện miễn phí) (1.400.000 VND/Khách)',
-  1750000 => '6 kiện 23kg (có 1 kiện miễn phí) (1.750.000 VND/Khách)',
+  350000  => '2 kiện 23kg (1 kiện Free) (350.000 VND/Khách)',
+  700000  => '3 kiện 23kg (1 kiện Free) (700.000 VND/Khách)',
+  1050000 => '4 kiện 23kg (1 kiện Free) (1.050.000 VND/Khách)',
+  1400000 => '5 kiện 23kg (1 kiện Free) (1.400.000 VND/Khách)',
+  1750000 => '6 kiện 23kg (1 kiện Free) (1.750.000 VND/Khách)',
 );
 
 $GLOBALS['app_list_strings']['vietnamair_business_luggage_price_list'] = array(

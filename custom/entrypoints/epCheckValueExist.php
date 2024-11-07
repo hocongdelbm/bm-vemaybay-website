@@ -16,9 +16,8 @@ if(!empty($_SESSION['authenticated_user_id'])){
 	$field = trim(stripslashes($_REQUEST['field']));
 	$field_value = trim(stripslashes($_REQUEST['field_value']));
 	$id = trim(stripslashes($_REQUEST['record']));
-	echo myCheckValueExist($module, array($field), array($field_value), $id) ? '1' : '0';
+	echo myCheckValueExist($module, array($field), array($field_value), $id) ? 1 : 0;
 } 
-else {
-	echo '<script>location.reload();</script>';
-}
-	  
+
+echo 0;
+exit();

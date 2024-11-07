@@ -113,20 +113,21 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// Lấy thông tin đã thanh toán từ kpi
 		$sql_kpi = '
-			SELECT id, description, paid, called, recheck, recall, check_debt
+			SELECT id, description, paid, called, recheck, recall, check_debt, support
 			FROM ec_working_process 
 			WHERE parent_id = "' . $this->bean->id . '" 
 				AND deleted = 0 
-				AND (paid = 1 OR called = 1 OR recheck > 0 OR recall > 0 OR check_debt > 0)';
+				AND (paid = 1 OR called = 1 OR recheck > 0 OR recall > 0 OR check_debt > 0 OR support > 0)';
 
 		$res_kpi = $this->bean->db->query($sql_kpi);
 		while ($row_kpi = $this->bean->db->fetchByAssoc($res_kpi)) {
-			if ($row_kpi['called'] == 1 || $row_kpi['paid'] == 1 || $row_kpi['recheck'] > 0 || $row_kpi['recall'] > 0 || $row_kpi['check_debt'] > 0) {
+			if ($row_kpi['called'] == 1 || $row_kpi['paid'] == 1 || $row_kpi['recheck'] > 0 || $row_kpi['recall'] > 0 || $row_kpi['check_debt'] > 0 || $row_kpi['support'] > 0) {
 				if($row_kpi['called'] == 1) $action_type = 'called';
 				elseif($row_kpi['paid'] == 1) $action_type = 'paid';
 				elseif($row_kpi['recheck'] > 0) $action_type = 'recheck';
 				elseif($row_kpi['recall'] > 0) $action_type = 'recall';
 				elseif($row_kpi['check_debt'] > 0) $action_type = 'check_debt';
+				elseif($row_kpi['support'] > 0) $action_type = 'support';
 
 				$actions_kpi[$row_kpi['id']] = [
 					'type' 		  => $action_type,
@@ -168,6 +169,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				'recheck'	 => 'Recheck',
 				'recall' 	 => 'Recall',
 				'check_debt' => 'Công nợ',
+				'support' 	 => 'Hỗ trợ KH',
 			];
 			if(in_array($id_wprocess, array_keys($actions_kpi))) {
 				$t = $actions_kpi[$id_wprocess]['type'];
@@ -497,16 +499,35 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					</div>';
 
 		// Check debt
+		$check_debt = '';
 		$check_debt_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'check_debt');
-		$check_debt = '</form>
-		<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmCheckDebt" id="frmCheckDebt">
-		  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-		  <input type="hidden" name="action" value="Save" />
-		  <input type="hidden" name="record" value="' . $this->bean->id . '" />
-		  <input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-		  <input type="hidden" name="check_debt" value="2" />
-		  ' . (ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) ? '<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnCheckDebt" id="btnCheckDebt" value="Đ/c công nợ (' . $check_debt_count . ')" title="Đ/c công nợ (' . $check_debt_count . ')" />' : '') . '
-		</form>';
+		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true)){
+			$check_debt .= '</form>
+			<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmCheckDebt" id="frmCheckDebt">
+			  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+			  <input type="hidden" name="action" value="Save" />
+			  <input type="hidden" name="record" value="' . $this->bean->id . '" />
+			  <input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+			  <input type="hidden" name="check_debt" value="2" />
+			  <input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnCheckDebt" id="btnCheckDebt" value="Đ/c công nợ (' . $check_debt_count . ')" title="Đ/c công nợ (' . $check_debt_count . ')" />
+			</form>';
+		}
+
+		// support customer
+		$support = '';
+		if(in_array((int)$this->bean->booking_status, [1,8])){
+			$support_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'support');
+			$support .= '</form>
+			<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmSupportCustomer" id="frmSupportCustomer">
+				<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+				<input type="hidden" name="action" value="Save" />
+				<input type="hidden" name="record" value="' . $this->bean->id . '" />
+				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+				<input type="hidden" name="support_customer" value="2" />
+				<input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
+				<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnSupportCustomer" id="btnSupportCustomer" value="Hỗ trợ KH (' . $support_count . ')" title="Hỗ trợ KH (' . $support_count . ')" />
+			</form>';
+		}
 
 		/*if(is_admin($current_user)){
 			// bonus
@@ -523,7 +544,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			</form>';
 		}*/
 
-		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt);
+		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt .$support);
 
 		// Is invoice export
 		$is_invoice_export_title = $this->bean->is_invoice_export ? 'Chưa XHĐ đầu ra' : 'Đã XHĐ đầu ra';
@@ -573,15 +594,20 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		if(in_array($server_name, $array_servername)){
 			$nganluong_code = '
 				<div class="nganluong__wrap">
-					<input type="text" value="'.$payment_link.'" id="payment_link_hidden" class="d-none" />
-					<button class="outline-none" id="copy_payment_link">
+					<button class="flex-fill outline-none" id="copy_payment_link" onclick="copyContent(\''.$payment_link.'\')">
 						<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
 					</button>
-					<button class="outline-none" id="get_qr_code">
+					<button class="flex-fill outline-none" id="get_qr_code">
 						<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 						<span>QR code</span>
 					</button>
-					<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
+					<button class="flex-fill outline-none btn btn-primary-2" id="get_bank">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
+							<path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+						</svg>
+						<span>Ngân hàng</span>
+					</button>
+					<button type="button" class="flex-fill history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
 							<path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483m.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
 							<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
@@ -849,7 +875,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		// Change booking status button
-		if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8)) || $current_user->user_name == 'hungnh') {
+		// if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8)) || $current_user->user_name == 'hungnh') {
+		if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id)  || $current_user->user_name == 'hungnh') {
 			$change_status = '</form>
 			<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -944,7 +971,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		// Edit booking detail
-		if ($this->bean->booking_status == '7' || ACLController::checkAccess("Bugs", "edit", true) && $this->bean->booking_status == '8') {
+		// if ($this->bean->booking_status == '7' || ACLController::checkAccess("Bugs", "edit", true) && $this->bean->booking_status == '8') {
+		if ($this->bean->booking_status == '7' || $this->bean->booking_status == '8') {
 			$total_qty 			= isset($_POST['total_qty']) && !empty($_POST['total_qty']) ? $_POST['total_qty'] : (isset($this->bean->total_qty) ? $this->bean->total_qty : 0);
 			$subtotal_amount 		= isset($_POST['subtotal_amount']) && !empty($_POST['subtotal_amount']) ? $_POST['subtotal_amount'] : (isset($this->bean->subtotal_amount) ? $this->bean->subtotal_amount : 0);
 			$total_bought_amount 	= isset($_POST['total_bought_amount']) && !empty($_POST['total_bought_amount']) ? $_POST['total_bought_amount'] : (isset($this->bean->total_bought_amount) ? $this->bean->total_bought_amount : 0);
@@ -1004,7 +1032,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<input type="hidden" name="action" value="Save">
 				<input type="hidden" name="booking_id" value="' . $this->bean->id . '">
 				<div class="detail view in-popup" id="line_itineraries_area"></div>
-				<input class="btn btn-primary mt-3 d-block mx-auto save-popup-dialog" type="submit" value="Lưu" name="save_change_flight">
+				<input class="btn btn-primary mt-3 d-block mx-auto" type="submit" value="Lưu" name="save_change_flight">
 			</form>';
 			$this->ss->assign('CHANGE_FLIGHT_TIME', $change_flight_time);
 		}
@@ -1279,6 +1307,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				$check_ret = true;
 			} 
 			else $html .= '<td data-label="" class="text-center"></td>';
+
+			if($current_user->user_name == 'hungnh'){
+				// pr($row);
+			}
 
 			$html .= '<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 					<td data-label="Chiều" class="text-center" id="detail_direction'.$i.'" data-direction="'.$row['direction'].'">' . $app_list_strings['bk_direction_list'][$row['direction']] . '</td>

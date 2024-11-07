@@ -111,7 +111,7 @@ class ProcessRecordLogicHook
         $status = $app_list_strings['call_status_dom'][$bean->status];
         switch ($bean->status) {
             case 'new':
-                $bean->status;
+                $bean->status = '<b class="text-dark">' . $status . '</b>';
                 break;
             case 'processing':
                 $bean->status = '<b class="text-warning">' . $status . '</b>';

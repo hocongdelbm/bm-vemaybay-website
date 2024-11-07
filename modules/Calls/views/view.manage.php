@@ -27,50 +27,60 @@ class Viewmanage extends SugarView {
                     'brandname'   => 'Travelpass',
                ],
 
-               // 01/07/2024
-               '0963986905' => [
+               // 07/11/2024
+               '0385291429' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
+                    'brandname'   => 'GIAO NHANH',
                ],
-               '0963987527' => [
+               '0385295550' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
+                    'brandname'   => 'GIAO NHANH',
                ],
-               '0964031020' => [
+               '0385295676' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
+                    'brandname'   => 'GIAO NHANH',
                ],
-               '0963678130' => [
+               '0385297839' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
+                    'brandname'   => 'GIAO NHANH',
                ],
-               '0963323407' => [
+               '0385299921' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385299946' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385300174' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385300984' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385301071' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385301087' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
                ],
 
                // 04/09/2024
-               '0984150870' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0984175174' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0984177790' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0984191015' => [
+               '0984280718' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
@@ -80,17 +90,7 @@ class Viewmanage extends SugarView {
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
-               '0984260802' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0984280718' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0984343406' => [
+               '0964031020' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',

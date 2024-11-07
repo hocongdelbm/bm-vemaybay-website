@@ -6,6 +6,13 @@ if (!defined('sugarEntry') || !sugarEntry) {
 global $mod_strings, $app_strings;
 global $current_user, $sugar_config, $current_language;
 
+$arr_admin = array(
+    '1', //ducpham
+    '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
+    '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhatdo
+    '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
+);
+
 $module_menu = array();
 if ($GLOBALS['current_user']->isAdminForModule('Users')) {
     $module_menu = array(
@@ -27,7 +34,7 @@ if (is_admin($current_user)) {
     $module_menu[]          = array("index.php?module=SecurityGroups&action=config&return_module=SecurityGroups&return_action=ListView", $admin_mod_strings['LBL_CONFIG_SECURITYGROUPS_TITLE'], "Security_Suite_Settings");
 
     // Login as user
-    if(!empty($_REQUEST['record']) && isset($_REQUEST['module']) && $_REQUEST['module'] == 'Users') {
+    if(!empty($_REQUEST['record']) && isset($_REQUEST['module']) && $_REQUEST['module'] == 'Users' && in_array($current_user->id, $arr_admin)) {
 		require_once('modules/Users/User.php');
 		$log_user = new User();
 		$log_user->retrieve($_REQUEST['record']);

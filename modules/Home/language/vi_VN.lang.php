@@ -215,5 +215,6 @@ $mod_strings = array(
     'LBL_ELASTIC_SEARCH_DEFAULT' => 'Không có kết quả tìm kiếm theo tiêu chí của bạn. Thử mở rộng tìm kiếm.',
 
     'LNK_TASK_VIEW' => 'Xem tác vụ',
+    'LBL_REPORTS_DAY' => 'Báo cáo ngày',
 
 );

@@ -60,7 +60,7 @@ $(document).ready(function () {
 				data: 'module=Accounts&field=phone_office&field_value=' + $('#phone_office').val() + '&record=' + $('#EditView input:hidden[name="record"]').val(),
 				url: 'index.php?module=Accounts&entryPoint=entryPointCheckValueExist&action=EditView',
 				success: function (data) {
-					if (data == '1') {
+					if (data == 1) {
 						is_phone_office_exist = true;
 					}
 					else {
@@ -70,7 +70,10 @@ $(document).ready(function () {
 			});
 
 			if (is_phone_office_exist) {
-				alert('Số điện thoại <' + $('#phone_office').val() + '> đã bị trùng trong danh sách nhập. Vui lòng kiểm tra lại.');
+				if($('#phone_office').val().length > 0)
+					alert('Số điện thoại <' + $('#phone_office').val() + '> đã bị trùng trong danh sách nhập. Vui lòng kiểm tra lại.');
+				else
+					alert('Số điện thoại không hợp lệ. Vui lòng kiểm tra lại.');
 				$('#phone_office').focus();
 				$('#phone_office').select();
 				return false;

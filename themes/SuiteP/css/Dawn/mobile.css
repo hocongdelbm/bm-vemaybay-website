@@ -186,7 +186,7 @@
     margin-bottom: 20px;
   }
 
-  .button-action--wrap input:not([type="checkbox"]) {
+  .button-action--wrap input:not([type="checkbox"]):not([type="radio"]) {
     width: 100%;
     min-height: 45px;
     border-radius: 50px;
@@ -347,7 +347,7 @@
   }
 
   .navbar .navbar-brand-wrapper {
-    max-width: 140px;
+    max-width: 100px;
     width: 100%;
   }
 
@@ -536,7 +536,7 @@
     flex-direction: row;
   }
 
-  .button-action--wrap input:not([type="checkbox"]) {
+  .button-action--wrap input:not([type="checkbox"]):not([type="radio"]) {
     flex: 1;
     width: 50%;
   }

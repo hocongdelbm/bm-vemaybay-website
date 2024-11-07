@@ -111,6 +111,7 @@ $dictionary['Call'] = array(
             'required'  => true,
             'importable' => 'required',
             'default'   => 'new',
+            'audited'   => true,
             'studio'    => array('detailview' => false)
         ),
 

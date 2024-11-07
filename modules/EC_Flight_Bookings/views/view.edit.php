@@ -313,7 +313,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 
 		$res 		= $this->bean->db->query($sql);
-		// $row_count 	= $this->bean->db->getRowCount($res);
 		$row_count 	= $this->bean->db->countRows($res);
 		$row_count 	= !empty($row_count) ? $row_count : 0;
 

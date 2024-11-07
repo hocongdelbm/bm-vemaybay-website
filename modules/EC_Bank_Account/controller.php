@@ -11,6 +11,9 @@ class EC_Bank_AccountController extends SugarController {
 			case "Popup":
 				$this->action = "Popup";
 				break;
+			case "get_bank":
+				$this->action = "get_bank";
+				break;
 			case "index":
 				$this->action = "ListView";
 				break;
@@ -38,5 +41,7 @@ class EC_Bank_AccountController extends SugarController {
 			$this->action = "ListView";
 		if ($this->return_action == "Delete")
 			$this->action = "Delete";
+		if( $this->return_action == "get_bank" )
+			$this->action = "get_bank";
 	}
 }

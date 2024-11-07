@@ -19,6 +19,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	$is_invoice_export 			= isset($_POST['is_invoice_export']) ? (int)$_POST['is_invoice_export'] : null;
 	$is_invoice_input_export 	= isset($_POST['is_invoice_input_export']) ? (int)$_POST['is_invoice_input_export'] : null;
 	$recheck_status 			= isset($_POST['recheck_status']) ? $_POST['recheck_status'] : null;
+	$support_customer 			= isset($_POST['support_customer']) ? $_POST['support_customer'] : null;
 	$recall_status 				= isset($_POST['recall_status']) ? $_POST['recall_status'] : null;
 	$check_debt 				= isset($_POST['check_debt']) ? $_POST['check_debt'] : null;
 	$bonus 						= isset($_POST['bonus']) ? $_POST['bonus'] : null;
@@ -120,7 +121,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 					$work->called = 1;
 				else if ($booking_status == '3') // Confirmed
 					$work->confirmed = 1;
-				else if ($booking_status == '8') // Completed
+				else if ($booking_status == '8' && is_null($support_customer)) // Completed
 					$work->completed = 1;
 
 				if ($recheck_status == '2') // Đã recheck
@@ -131,6 +132,9 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 				if ($check_debt == '2') // Đối chiếu công nợ
 					$work->check_debt = 1;
+
+				if ($support_customer == '2') // Hỗ trợ KH
+					$work->support = 1;
 
 				if (!is_null($bonus)) { // Bonus
 					myRemoveWorkingProcess($module, $record, 'bonus');
@@ -150,8 +154,15 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 					$db->query($sql_udt_recheck);
 				}
 
-				// Cập nhật tình trạng
-				update_field_booking($record, 'booking_status', $booking_status);
+				// Cập nhật hỗ trợ xong thì chuyển sang status "Đã TT"
+				if($support_customer == '2' && !is_null($booking_status) && $booking_status == '1'){
+					update_field_booking($record, 'booking_status', '2');
+				} else {
+					if($record && $booking_status){
+						update_field_booking($record, 'booking_status', $booking_status);
+					}
+				}
+				
 				// Cập nhật giao cho khi bấm Đã gọi lần đầu
 				if($booking_status == '6') update_field_booking($record, 'assigned_user_id', $current_user->id);
 
@@ -171,6 +182,28 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	}
 }
 
+if (isset($_POST['for']) && strtolower($_POST['for']) == 'update_kpi_com') {
+	$record 		= trim($_POST['booking_id']);
+	$user_id_old 	= trim($_POST['assigned_user_id_old']);
+	$user_id_new 	= trim($_POST['assigned_user_id_new']);
+	$booking_status = trim($_POST['booking_status']);
+
+	if($booking_status && (int)$booking_status == 8){
+		$sql_update = 'UPDATE ec_working_process
+						SET assigned_user_id = "'.$user_id_new.'"
+						WHERE completed = 1
+						AND parent_id = "'.$record.'" 
+						AND parent_type = "EC_Flight_Bookings"
+						AND assigned_user_id = "'.$user_id_old.'"
+						AND deleted = 0';
+		$res_update = $db->query($sql_update);
+		if(!$res_update){
+			// SAVE LOG
+			$log_process = '['.$current_user->user_name.'][KPI_COM_FAILED]'. $sql_update;
+			save_log_call($log_process);
+		}
+	}
+}
 
 function update_field_booking($id, $field, $value, $datatype = 'string') {
 	if(is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;

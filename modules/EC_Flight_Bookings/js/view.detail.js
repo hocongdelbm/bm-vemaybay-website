@@ -684,6 +684,9 @@ $(document).ready(function () {
 	});
 
 	$(document).one('click', '#btnSaveWorkingProcess', function (event) {
+
+		console.warn('Cos voo day khong ma showloading');
+
 		$(this).attr("disabled", "disabled");
 		var frmSaveWorkingProcess = $('#frmSaveWorkingProcess').val();
 
@@ -1078,22 +1081,6 @@ $(document).ready(function () {
 		$('#frmChangeStatus').submit();
 	});
 
-
-	// Icon copy
-	$('#copy_payment_link').on('click', function(){
-		// Get the text field
-		var copyText = document.getElementById("payment_link_hidden");
-
-		// Select the text field
-		copyText.select();
-		copyText.setSelectionRange(0, 99999); // For mobile devices
-
-		// Copy the text inside the text field
-		navigator.clipboard.writeText(copyText.value);
-
-		showToastNotify('success', 'Đã sao chép thành công!')
-	});
-
 	// Icon get QR code
 	$('#get_qr_code').on('click', function(){
 		showDialog("dialog_qr_code");
@@ -1103,6 +1090,26 @@ $(document).ready(function () {
 		$("#img_qr_code").attr('src', selectedValue);
 	});
 
+	// GET THÔNG TIN BANK - SEND CUSTOMER
+	$('#get_bank').on('click', function(){
+		let booking_id = $(this).attr('booking_id');
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointBankAccount",
+			type: "POST",
+			data: {
+				booking: booking_id,
+				type: 'get_infor_bank',
+				for: "changeBankAccountPosition",
+			},
+			beforeSend: function() {},
+			success: function(response) {
+				if(response.length > 0){
+					copyContent(response);
+				}
+			}
+		});
+	});
 	
 	// Handle mapping call with booking
 	$('#btn-mapping-call-booking').click( function() {

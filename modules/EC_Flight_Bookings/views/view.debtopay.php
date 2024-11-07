@@ -114,6 +114,10 @@ class Viewdebtopay extends SugarView
 			$smartyobj->assign('SUPPLIER_NAME', $_POST['supname_' . $supplier_id]);
 
 			if (isset($_POST['exportexcel'])) {
+
+				pr($_POST);
+				pr($html);
+				die;
 				ob_clean();
 				header("Pragma: cache");
 				require_once('modules/EC_Flight_Bookings/views/congnophaitra.xls.php');

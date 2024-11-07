@@ -77,6 +77,17 @@
 		background-color: #cfeafe !important;
 	}
 
+	/* NOTES */
+	ul.kpi-notes{
+		list-style: none;
+		border-left: 2px solid #ffc107;
+		padding: 0 10px;
+		font-size: 13px;
+		line-height: 2;
+		margin: 15px 0 0;
+		text-align: left;
+	}
+
 	</style>
     <script>
 		$(document).ready(function(){
@@ -443,20 +454,23 @@
 	</form>
 
 {if $IS_ADMIN || $ALL}
-<table class="list-data list-data-all table-details__booking mt-3" cellpadding="0" cellspacing="0">
+<table class="list-data list-data-all table-details__booking my-3" cellpadding="0" cellspacing="0">
 	<thead>
 		<tr>
 			<th width="3%">STT</th>
-			<th width="15%">Họ tên</th>
-			<th width="7%" align="center"><span title="Called">Call</span></th>
-			<th width="7%" align="center"><span title="Comepleted">Complete</span></th>
-			<th width="9%" align="center"><span title="Đã thanh toán / Đã thu">Đã TT</span></th>
-			<th width="7%" align="center"><span title="Recheck">Recheck</span></th>
-			<th width="7%" align="center"><span title="Recall">Recall</span></th>
-			<th width="8%" align="center"><span title="Chuyên môn">Chuyên môn</span></th>
-			<th width="7%" align="center"><span title="Hiệu quả">Hiệu quả</span></th>
-			<th width="7%" align="center"><span title="Ý thức">Ý thức</span></th>
-			<th width="7%" align="center"><span title="Bị trừ">Bị trừ</span></th>
+			<th width="12%">Họ tên</th>
+			<th width="5%" align="center"><span title="Booking đã gọi">CAL</span></th>
+			<th width="5%" align="center"><span title="Booking hoàn tất">COM</span></th>
+			<th width="5%" align="center"><span title="Đã thanh toán / Đã thu">DTT</span></th>
+			<th width="5%" align="center"><span title="Recheck thông tin">RCE</span></th>
+			<th width="5%" align="center"><span title="Recall">Recall</span></th>
+			<th width="5%" align="center"><span title="invoice_issued">Xuất HD đầu ra</span></th>
+			<th width="5%" align="center"><span title="ticket_delivery">Giao vé</span></th>
+			<th width="5%" align="center"><span title="check_debt">Công nợ</span></th>
+			<th width="5%" align="center"><span title="create_repaid">Hoàn vé</span></th>
+			<th width="5%" align="center"><span title="create_payment">Tạo PC</span></th>
+			<th width="5%" align="center"><span title="create_transfer">Tạo Điều chuyển</span></th>
+			<th width="5%" align="center"><span title="invoice_input_issued">Xuất HD đầu vào</span></th>
 			<th align="center"><span title="Tổng cộng">Tổng cộng</span></th>
 	</tr>
 	</thead>
@@ -468,13 +482,54 @@
 		<td align="center"><span title="Đã thanh toán / Đã thu">{$TTL_PAID}</span></td>
 		<td align="center"><span title="Recheck">{$TTL_RECHECK}</span></td>
 		<td align="center"><span title="Recall">{$TTL_RECALL}</span></td>
-		<td align="center"><span title="Chuyên môn">{$TTL_MANNER}</span></td>
-		<td align="center"><span title="Hiệu quả">{$TTL_EFFECTED}</span></td>
-		<td align="center"><span title="Ý thức">{$TTL_AWARENESS}</span></td>
-		<td align="center"><span title="Bị trừ">{$TTL_MINUS}</span></td>
 		<td align="center"><span title="Tổng cộng">{$TTL_FINAL}</span></td>
 	</tr>
 </table>
+
+<ul class="kpi-notes">
+	<li>
+		<strong>CAL</strong>: <span>Cuộc gọi <span class="fw-bold text-dark">(Cuộc gọi hoàn tất, có mô tả và có hội thoại)</span></span>
+	</li>
+	<li>
+		<strong>COM</strong>: <span>Booking <span class="fw-bold text-primary">hoàn tất</span></span>
+	</li>
+	<li>
+		<strong>DTT</strong>: <span>Đã thanh toán / đã thu <span class="fw-bold text-primary">(Kế toán)</span></span>
+	</li>
+	<li>
+		<strong>RCE</strong>: <span>Recheck thông tin</span>
+	</li>
+	<li>
+		<strong>RCA</strong>: <span>Recall cuộc gọi</span>
+	</li>
+	<li>
+		<strong>HDV</strong>: <span>Xuất hóa đơn đầu vào</span>
+	</li>
+	<li>
+		<strong>HDR</strong>: <span>Xuất hóa đơn đầu ra</span>
+	</li>
+	<li>
+		<strong>GVE</strong>: <span>Giao vé</span>
+	</li>
+	<li>
+		<strong>DCN</strong>: <span>Đối chiếu công nợ</span>
+	</li>
+	<li>
+		<strong>THV</strong>: <span>Tạo phiếu hoàn vé</span>
+	</li>
+	<li>
+		<strong>LPC</strong>: <span>Lập phiếu chi</span>
+	</li>
+	<li>
+		<strong>DCT</strong>: <span>Lập phiếu điều chuyển tiền</span>
+	</li>
+	<li>
+		<strong>SDL</strong>: <span>Hỗ trợ delay chuyến bay</span>
+	</li>
+	<li>
+		<strong>CCB</strong>: <span>Tạo PT đổi giờ bay, hành trình, tên khách</span>
+	</li>
+</ul>
 
 <div id="mark_detail_tbl--wrap" class="p-2">
 	<table id="mark_detail_tbl" class="table-details__booking" cellpadding="0" cellspacing="0">
