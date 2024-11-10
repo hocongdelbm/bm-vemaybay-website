@@ -153,6 +153,8 @@ class CustomController extends BaseController
         $call_to        = isset($params['call_to']) ? trim($params['call_to']) : '';
         $call_start     = isset($params['call_start']) ? global_test_input($params['call_start']) : '';
         $call_duration  = isset($params['call_duration']) ? global_test_input($params['call_duration']) : 0;
+        $call_talk      = isset($params['call_talk']) ? global_test_input($params['call_talk']) : 0;
+        $call_wait      = isset($params['call_wait']) ? global_test_input($params['call_wait']) : 0;
         $record_file    = isset($params['record_file']) ? global_test_input($params['record_file']) : '';
         $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
 
@@ -207,6 +209,7 @@ class CustomController extends BaseController
         $call->call_from = $call_from;
         $call->call_to   = $call_to;
         $call->call_type = strlen($number) < 15 ? 'phone' : 'zalo';
+        $call->type_call_sources = 'called';
 
         if ($call_direction == 'internal') {
             $call->direction = 'internal';
@@ -269,7 +272,12 @@ class CustomController extends BaseController
         $call->status       = 'new';
         $call->log          = json_encode($params);
         $call->record_file  = $record_file;
-        $call->other_caller     = $other_caller;
+        $call->other_caller = $other_caller;
+
+        $call->call_duration = $call_duration;
+        $call->call_wait    = $call_wait;
+        $call->call_talk    = $call_talk;
+
         if ($call_direction == 'inbound' || $call_direction != 'outbound') {
             $call->call_sources = getCallSource($call_to);
         }

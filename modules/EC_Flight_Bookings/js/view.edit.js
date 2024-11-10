@@ -355,7 +355,6 @@ $(document).ready(function () {
 	});
 
 	// Submit event
-	let assigned_user_id_current = $("#assigned_user_id").val();
 	$('#EditView').submit(function () {
 		var action = $('#EditView input:hidden[name="action"]').val();
 		var flight_type = $('#flight_type :selected').val();
@@ -372,10 +371,6 @@ $(document).ready(function () {
 		var dti_arr = $('#date_ticket_issue_outbound').val().split('-');
 		var date_ticket_issue = new Date(dti_arr[1] + '/' + dti_arr[0] + '/' + dti_arr[2]).getTime();
 		let is_edit_voucher = $('#is_edit_voucher').val();
-
-		let booking_status 		= $("#booking_status").val();
-		let booking_id 			= $('input[type="hidden"][name="record"]').val();
-		let assigned_user_id 	=  $("#assigned_user_id").val();
 
 		if (action == 'Save') {
 			if (is_ticket_exported == 1 && $.trim($('#date_ticket_issue_outbound').val()) == '') {
@@ -437,23 +432,6 @@ $(document).ready(function () {
 					success: function (res) {
 						console.log(res);
 					}
-				});
-			}
-
-			// reUpdate KPI for assigned_user_id
-			if(booking_status && booking_status == 8 && assigned_user_id_current !=  assigned_user_id){
-				$.ajax({
-					url: 'index.php?entryPoint=entryPointSaveWorkingProcess',
-					data: {
-						assigned_user_id_old: assigned_user_id_current,
-						assigned_user_id_new: assigned_user_id,
-						booking_id: booking_id,
-						booking_status: booking_status,
-						for: "update_kpi_com"
-					},
-					type: 'POST',
-					cache: false,
-					success: function (res) {}
 				});
 			}
 

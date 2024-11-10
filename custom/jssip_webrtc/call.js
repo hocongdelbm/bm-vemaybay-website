@@ -432,7 +432,7 @@ $(document).ready(function () {
     $(document).on('click', '.btn-voiceip-calling', function () {
         let id = $(this).attr('id');
         let number = '', call_id = '';
-        let booking_id = booking_name = type_call_booking = '';
+        let booking_id = booking_name = type_call_booking = journey_id = '';
         let outbound_phone = $('#select-phone-outbound').val();
 
         // Gọi bằng numpad
@@ -440,11 +440,12 @@ $(document).ready(function () {
             number = $('#call_voiceip_main_number').val().trim();
             $('#call_voiceip_main_number').val('');
         }
-        else if (id == 'btnCalled' || id == 'btnRecall') {
+        else if (id == 'btnCalled' || id == 'btnRecall' || 'btnRemind') {
             number = $(this).attr('phone');
             booking_id = $(this).attr('booking_id');
             booking_name = $(this).attr('booking_name');
-            type_call_booking = id == 'btnCalled' ? 'called' : 'recall';
+            type_call_booking = (id == 'btnCalled') ? 'called' : (id == 'btnRemind') ? 'remind' : 'recall';
+            journey_id = $(this).attr('iti_id');
         } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             number = $(this).attr('phone');
         }
@@ -519,10 +520,11 @@ $(document).ready(function () {
                     }
                     ua.call(number, callOptions);
 
-                    if (id == 'btnCalled' || id == 'btnRecall') {
+                    if (id == 'btnCalled' || id == 'btnRecall' || 'btnRemind') {
                         $('.voiceip-update').attr('booking_id', booking_id);
                         $('.voiceip-update').attr('booking_name', booking_name);
                         $('.voiceip-update').attr('type_call_booking', type_call_booking);
+                        $('.voiceip-update').attr('journey_id', journey_id);
                     }
 
                     handleButtons('outgoing');
@@ -712,6 +714,7 @@ $(document).ready(function () {
         let booking_id = $(this).attr('booking_id');
         let booking_name = $(this).attr('booking_name');
         let type_call_booking = $(this).attr('type_call_booking');
+        let journey_id = $(this).attr('journey_id');
 
         let regEmailNew = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -760,7 +763,8 @@ $(document).ready(function () {
 
                 booking_id: booking_id,
                 booking_name: booking_name,
-                type_call_booking: type_call_booking
+                type_call_booking: type_call_booking,
+                journey_id: journey_id
             },
             type: "POST",
             cache: false,

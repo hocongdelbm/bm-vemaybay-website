@@ -117,6 +117,9 @@ $viewdefs['Calls'] = array(
 						'label' => 'LBL_OTHER_CALLER',
 					),
 					array(
+						'name' => 'assigned_user_name',
+						'customCode' => '{$fields.assigned_user_name.value}',
+						'label' => 'LBL_ASSIGNED_TO',
 					),
 				),
 				array(
@@ -189,9 +192,8 @@ $viewdefs['Calls'] = array(
 						'label' => 'LBL_CALL_SOURCES',
 					),
 					array(
-						'name' => 'assigned_user_name',
-						'customCode' => '{$fields.assigned_user_name.value}',
-						'label' => 'LBL_ASSIGNED_TO',
+						'name' => 'type_call_sources',
+						'label' => 'LBL_TYPE_CALL_SOURCES',
 					),
 				),
 				array(

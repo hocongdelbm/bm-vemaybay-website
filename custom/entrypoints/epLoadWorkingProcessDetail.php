@@ -30,13 +30,14 @@ if(!empty($_SESSION['authenticated_user_id'])){
 	} else {
 		$sql_search .= " AND DATE(DATE_ADD(w.date_entered, INTERVAL 7 HOUR)) <= '".date('Y-m-d')."' ";
 	}
+
 	// Filter by employee kpi type
 	if(isset($_POST['kpi_type']) && !empty($_POST['kpi_type']) && in_array($_POST['kpi_type'], array_keys($app_list_strings['employee_kpi_type_list']))){
 		$sql_search .= " AND w." . $_POST['kpi_type'] . " IS NOT NULL AND w." . $_POST['kpi_type'] . " > 0 ";
 	}
+
 	// phân quyền dữ liệu
-	if(is_admin($current_user)  
-	|| ($current_user->title == 'QuanLy') // ngocthu, trangbtq, soinau
+	if(is_admin($current_user) || ($current_user->title == 'QuanLy') // ngocthu, trangbtq, soinau
 	) {
 		$sql_search .= " AND w.assigned_user_id='".$user_id."' ";
 	} else {
@@ -109,18 +110,18 @@ if(!empty($_SESSION['authenticated_user_id'])){
 		$total_bonus = 0;
 		while($row = $db->fetchByAssoc($res)){			
 			$html .= '<tr>
-				<td align="center"><a target="_blank" href="index.php?module='.$row['module'].'&action=DetailView&record='.$row['booking_id'].'" title="Xem chi tiết booking '.$row['booking'].'">'.$row['booking'].'</a></td>
-				<td align="center">'.$row['contact_name'].'</td>
-				<td align="left">'.$row['description'].'</td>
-				<td align="right">'.format_number($row['total_amount']).'</td>
-				<td align="right">'.format_number($row['total_purchase']).'</td>
-				<td align="right">'.format_number($row['total_profit']).'</td>
-				<td align="left">'.$row['assigned_user'].'</td>
-				<td align="right">'.format_number($row['bonus']).'</td>
-				<td align="center"><input disabled="disabled" type="checkbox" '.($row['is_approved'] ? 'checked="checked"' : '').' /></td>
-				<td align="left">'.$row['approved_by'].'</td>
-				<td align="left">'.$row['approved_note'].'</td>
-			</tr>';
+						<td align="center"><a target="_blank" href="index.php?module='.$row['module'].'&action=DetailView&record='.$row['booking_id'].'" title="Xem chi tiết booking '.$row['booking'].'">'.$row['booking'].'</a></td>
+						<td align="center">'.$row['contact_name'].'</td>
+						<td align="left">'.$row['description'].'</td>
+						<td align="right">'.format_number($row['total_amount']).'</td>
+						<td align="right">'.format_number($row['total_purchase']).'</td>
+						<td align="right">'.format_number($row['total_profit']).'</td>
+						<td align="left">'.$row['assigned_user'].'</td>
+						<td align="right">'.format_number($row['bonus']).'</td>
+						<td align="center"><input disabled="disabled" type="checkbox" '.($row['is_approved'] ? 'checked="checked"' : '').' /></td>
+						<td align="left">'.$row['approved_by'].'</td>
+						<td align="left">'.$row['approved_note'].'</td>
+					</tr>';
 			$total_bonus += $row['bonus'];
 		}
 		
@@ -144,19 +145,22 @@ if(!empty($_SESSION['authenticated_user_id'])){
 			<th width="4%" align="center"><span title="Comepleted">COM</span></th>
 			<th width="4%" align="center"><span title="Đã thanh toán / Đã thu">DTT</span></th>
 			<th width="4%" align="center"><span title="Recheck">RCE</span></th>
+			<th width="4%" align="center"><span title="Recall">RCA</span></th>
 			<th width="4%" align="center"><span title="Xuất hóa đơn đầu vào">HDV</span></th>
 			<th width="4%" align="center"><span title="Xuất hóa đơn đầu ra">HDR</span></th>
 			<th width="4%" align="center"><span title="Giao vé">GVE</span></th>
-			<th width="4%" align="center"><span title="Recall">RCA</span></th>
 			<th width="4%" align="center"><span title="Đối chiếu công nợ">DCN</span></th>
 			<th width="4%" align="center"><span title="Tạo hoàn vé">THV</span></th>
-			<th width="4%" align="center"><span title="Xử lý hoàn vé">XHV</span></th>
 			<th width="4%" align="center"><span title="Lập phiếu chi">LPC</span></th>
+			<th width="4%" align="center"><span title="Lập phiếu thu">LPT</span></th>
 			<th width="4%" align="center"><span title="Lập điều chuyển tiền">DCT</span></th>
-			<th width="4%" align="center"><span title="Chuyên môn">CMN</span></th>
+			<th width="4%" align="center"><span title="Hỗ trợ KH">SDL</span></th>
+
+			<!-- <th width="4%" align="center"><span title="Chuyên môn">CMN</span></th>
 			<th width="4%" align="center"><span title="Hiệu quả">HQA</span></th>
 			<th width="4%" align="center"><span title="Tác phong">TPG</span></th>
-			<th width="4%" align="center"><span title="Bị trừ">TRU</span></th>
+			<th width="4%" align="center"><span title="Bị trừ">TRU</span></th> -->
+
 			<th width="4%" align="center"><span title="Tổng cộng">TCG</span></th>
 		</tr></thead>';
 		
@@ -168,13 +172,16 @@ if(!empty($_SESSION['authenticated_user_id'])){
 					  ,w.completed
 					  ,w.paid
 					  ,w.recheck
+					  ,w.support
 					  ,(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
 					  ,w.ticket_delivery
 					  ,w.recall
+					  ,w.remind
 					  ,w.check_debt
 					  ,w.create_repaid
 					  ,w.process_repaid
 					  ,w.create_payment
+					  ,w.create_receipt
 					  ,w.create_transfer
 					  ,w.invoice_input_issued
 					  ,w.manner
@@ -189,6 +196,7 @@ if(!empty($_SESSION['authenticated_user_id'])){
 		$ttl_completed = 0;
 		$ttl_paid = 0;
 		$ttl_recheck = 0;
+		$ttl_support = 0;
 		$ttl_inv_in_issued = 0;
 		$ttl_inv_issued = 0;
 		$ttl_delivery = 0;
@@ -198,15 +206,16 @@ if(!empty($_SESSION['authenticated_user_id'])){
 		$ttl_new_repaid = 0;
 		$ttl_do_repaid = 0;
 		$ttl_payment = 0;
+		$ttl_receipt = 0;
 		$ttl_transfer = 0;
 		$ttl_final = 0;
 		
 		$res = $db->query($sql);
 		while($row = $db->fetchByAssoc($res)){
 			
-			$ttl_row = $row['called'] + $row['completed'] + $row['paid'] + $row['recheck'] 
-						+ $row['invoice_input_issued'] + $row['invoice_issued'] + $row['ticket_delivery'] + $row['recall'] 
-						+ $row['check_debt'] + $row['create_repaid'] + $row['process_repaid'] + $row['create_payment'] + $row['create_transfer'] 
+			$ttl_row = $row['called'] + $row['completed'] + $row['paid'] + $row['recheck'] + $row['support']
+						+ $row['invoice_input_issued'] + $row['invoice_issued'] + $row['ticket_delivery'] + $row['recall'] + $row['remind']
+						+ $row['check_debt'] + $row['create_repaid'] + $row['create_payment'] +  $row['create_receipt'] + $row['create_transfer'] 
 						+ $row['manner'] + $row['effected'] + $row['awareness']
 						- $row['minus'];
 						
@@ -220,45 +229,51 @@ if(!empty($_SESSION['authenticated_user_id'])){
 				$row['voucher'] = 'Bị trừ';
 			}
 
+			$recall = ($row['recall'] != 0 || $row['remind'] != 0) ? (int)($row['recall'] + $row['remind']) : '';
 			$html .= '<tr>
-				<td align="center"><a href="index.php?module='.$row['parent_type'].'&action=DetailView&record='.$row['parent_id'].'" target="_blank" title="Xem chi tiết">'.$row['voucher'].'</a></td>
-				<td align="left">'.$row['description'].'</td>
-				<td align="center"><span title="Called">'.($row['called'] != 0 ? $row['called'] : '').'</span></td>
-				<td align="center"><span title="Completed">'.($row['completed'] != 0 ? $row['completed'] : '').'</span></td>
-				<td align="center"><span title="Đã thanh toán / Đã thu">'.($row['paid'] != 0 ? $row['paid'] : '').'</span></td>
-				<td align="center"><span title="Recheck">'.($row['recheck'] != 0 ? $row['recheck'] : '').'</span></td>
-				<td align="center"><span title="Xuất hóa đơn đầu vào">'.($row['invoice_input_issued'] != 0 ? $row['invoice_input_issued'] : '').'</span></td>
-				<td align="center"><span title="Xuất hóa đơn đầu ra">'.($row['invoice_issued'] != 0 ? $row['invoice_issued'] : '').'</span></td>
-				<td align="center"><span title="Giao vé">'.($row['ticket_delivery'] != 0 ? $row['ticket_delivery'] : '').'</span></td>
-				<td align="center"><span title="Recall">'.($row['recall'] != 0 ? $row['recall'] : '').'</span></td>
-				<td align="center"><span title="Đối chiếu công nợ">'.($row['check_debt'] != 0 ? $row['check_debt'] : '').'</span></td>
-				<td align="center"><span title="Tạo hoàn vé">'.($row['create_repaid'] != 0 ? $row['create_repaid'] : '').'</span></td>
-				<td align="center"><span title="Xử lý hoàn vé">'.($row['process_repaid'] != 0 ? $row['process_repaid'] : '').'</span></td>
-				<td align="center"><span title="Lập phiếu chi">'.($row['create_payment'] != 0 ? $row['create_payment'] : '').'</span></td>
-				<td align="center"><span title="Lập điều chuyển tiền">'.($row['create_transfer'] != 0 ? $row['create_transfer'] : '').'</span></td>
-				<td align="center"><span title="Chuyên môn">'.($row['manner'] != 0 ? $row['manner'] : '').'</span></td>
-				<td align="center"><span title="Hiệu quả">'.($row['effected'] != 0 ? $row['effected'] : '').'</span></td>
-				<td align="center"><span title="Ý thức">'.($row['awareness'] != 0 ? $row['awareness'] : '').'</span></td>
-				<td align="center"><span title="Bị trừ">'.($row['minus'] != 0 ? $row['minus'] : '').'</span></td>
-				<td align="center"><span title="Tổng cộng">'.$ttl_row.'</span></td>
-			</tr>';
+						<td align="center"><a href="index.php?module='.$row['parent_type'].'&action=DetailView&record='.$row['parent_id'].'" target="_blank" title="Xem chi tiết">'.$row['voucher'].'</a></td>
+						<td align="left">'.$row['description'].'</td>
+						<td align="center"><span title="Called">'.($row['called'] != 0 ? $row['called'] : '').'</span></td>
+						<td align="center"><span title="Completed">'.($row['completed'] != 0 ? $row['completed'] : '').'</span></td>
+						<td align="center"><span title="Đã thanh toán / Đã thu">'.($row['paid'] != 0 ? $row['paid'] : '').'</span></td>
+						<td align="center"><span title="Recheck">'.($row['recheck'] != 0 ? $row['recheck'] : '').'</span></td>
+						<td align="center"><span title="Recall">'.$recall.'</span></td>
+						<td align="center"><span title="Xuất hóa đơn đầu vào">'.($row['invoice_input_issued'] != 0 ? $row['invoice_input_issued'] : '').'</span></td>
+						<td align="center"><span title="Xuất hóa đơn đầu ra">'.($row['invoice_issued'] != 0 ? $row['invoice_issued'] : '').'</span></td>
+						<td align="center"><span title="Giao vé">'.($row['ticket_delivery'] != 0 ? $row['ticket_delivery'] : '').'</span></td>
+						<td align="center"><span title="Đối chiếu công nợ">'.($row['check_debt'] != 0 ? $row['check_debt'] : '').'</span></td>
+						<td align="center"><span title="Tạo hoàn vé">'.($row['create_repaid'] != 0 ? $row['create_repaid'] : '').'</span></td>
+						<td align="center"><span title="Lập phiếu chi">'.($row['create_payment'] != 0 ? $row['create_payment'] : '').'</span></td>
+						<td align="center"><span title="Lập phiếu thu">'.($row['create_receipt'] != 0 ? $row['create_receipt'] : '').'</span></td>
+						<td align="center"><span title="Lập điều chuyển tiền">'.($row['create_transfer'] != 0 ? $row['create_transfer'] : '').'</span></td>
+						<td align="center"><span title="Hỗ trợ KH">'.($row['support'] != 0 ? $row['support'] : '').'</span></td>
+						
+						<!-- <td align="center"><span title="Chuyên môn">'.($row['manner'] != 0 ? $row['manner'] : '').'</span></td>
+						<td align="center"><span title="Hiệu quả">'.($row['effected'] != 0 ? $row['effected'] : '').'</span></td>
+						<td align="center"><span title="Ý thức">'.($row['awareness'] != 0 ? $row['awareness'] : '').'</span></td>
+						<td align="center"><span title="Bị trừ">'.($row['minus'] != 0 ? $row['minus'] : '').'</span></td> -->
+						
+						<td align="center"><span title="Tổng cộng">'.$ttl_row.'</span></td>
+					</tr>';
 			
 			$ttl_called += $row['called'];
 			$ttl_confirmed += $row['confirmed'];
 			$ttl_completed += $row['completed'];
 			$ttl_paid += $row['paid'];
 			$ttl_recheck += $row['recheck'];
+			$ttl_support += $row['support'];
 			
 			$ttl_inv_in_issued += $row['invoice_input_issued'];
 			$ttl_inv_issued += $row['invoice_issued'];
 			$ttl_delivery += $row['ticket_delivery'];
-			$ttl_recall += $row['recall'];
+			$ttl_recall += ($row['recall'] + $row['remind']);
 			$ttl_bonus += $row['bonus'];
 			
 			$ttl_comdebt += $row['check_debt'];
 			$ttl_new_repaid += $row['create_repaid'];
 			$ttl_do_repaid += $row['process_repaid'];
 			$ttl_payment += $row['create_payment'];
+			$ttl_receipt += $row['create_receipt'];
 			$ttl_transfer += $row['create_transfer'];
 
 			$ttl_manner += $row['manner'];
@@ -276,19 +291,22 @@ if(!empty($_SESSION['authenticated_user_id'])){
 			<td align="center"><span title="Completed">'.$ttl_completed.'</span></td>
 			<td align="center"><span title="Đã thanh toán / Đã thu">'.$ttl_paid.'</span></td>
 			<td align="center"><span title="Recheck">'.$ttl_recheck.'</span></td>
+			<td align="center"><span title="Hỗ trợ KH">'.$ttl_support.'</span></td>
 			<td align="center"><span title="Xuất hóa đơn đầu vào">'.$ttl_inv_in_issued.'</span></td>
 			<td align="center"><span title="Xuất hóa đơn đầu ra">'.$ttl_inv_issued.'</span></td>
 			<td align="center"><span title="Giao vé">'.$ttl_delivery.'</span></td>
 			<td align="center"><span title="Recall">'.$ttl_recall.'</span></td>
 			<td align="center"><span title="Đối chiếu công nợ">'.$ttl_comdebt.'</span></td>
 			<td align="center"><span title="Tạo hoàn vé">'.$ttl_new_repaid.'</span></td>
-			<td align="center"><span title="Xử lý hoàn vé">'.$ttl_do_repaid.'</span></td>
 			<td align="center"><span title="Lập phiếu chi">'.$ttl_payment.'</span></td>
+			<td align="center"><span title="Lập phiếu thu">'.$ttl_receipt.'</span></td>
 			<td align="center"><span title="Lập điều chuyển tiền">'.$ttl_transfer.'</span></td>
-			<td align="center"><span title="Chuyên môn">'.$ttl_manner.'</span></td>
+
+			<!-- <td align="center"><span title="Chuyên môn">'.$ttl_manner.'</span></td>
 			<td align="center"><span title="Hiệu quả">'.$ttl_effect.'</span></td>
 			<td align="center"><span title="Ý thức">'.$ttl_aware.'</span></td>
-			<td align="center"><span title="Bị trừ">'.$ttl_minus.'</span></td>
+			<td align="center"><span title="Bị trừ">'.$ttl_minus.'</span></td> -->
+
 			<td align="center"><span title="Tổng cộng">'.$ttl_final.'</span></td>
 		</tr>';
 		

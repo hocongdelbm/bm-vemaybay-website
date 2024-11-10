@@ -205,58 +205,6 @@ $(document).ready(function () {
 		else return true;
 	});
 
-	// Click button Remind
-	$(document).on('click', 'input[name="btnRemind"]', function () {
-		let journey_id 	= $(this).attr('iti_id');
-		$('input[name="current-journey-id"]').val(journey_id);
-
-		$("#dlgRemind").dialog({
-			title: "Thông báo lịch bay cho hành khách",
-			width: 400,
-			modal: true,
-			resizable: false,
-		});
-	});
-
-	$(document).on('click', '#btn-confirm-remind', function () {
-		let name 			= $('#note-name').val(); //booking_name
-		let parent_id 		= $('#note-parent-id').val(); // booking_id
-		let booking_status 	= $('#note-booking-status').val();
-		let description 	= $("#txtRemind").val();
-		let journey_id 	= $("#current-journey-id").val();
-
-		$.ajax({
-			url: "index.php?entryPoint=entryPointFlightBookings",
-			data: {
-				name: name,
-				parent_id: parent_id,
-				description: description,
-				booking_status: booking_status,
-				journey_id: journey_id,
-				for: "remindFlightSchedules",
-			},
-			type: "POST",
-			cache: false,
-			success: function (response) {
-				$('#dlgRemind').dialog('close');
-				if(response == 1){
-					let text_warning = 'Thông báo lịch bay cho khách hàng thành công.';
-					showModalNotify(1, text_warning);
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				} else {
-					let text_warning = 'Lỗi khi thực hiện nhấn nút remind. Vui lòng liên hệ IT để được hỗ trợ.';
-					showModalNotify(0, text_warning);
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				}
-			}
-		});
-	});
-
-	/* Cancel remind */
-	$('#btn-cancel-remind').on('click', function(){
-		$('#dlgRemind').dialog('close');
-	});
-
 	// Open form send mail
 	$('#btnSendMail').on('click', function(){
 		$('#frmContinueSendMail').css('display', 'block');

@@ -5917,6 +5917,10 @@ table.table-details__booking tbody td {
 #pagecontent[data-module=Calls]  .list-view-rounded-corners table.list.view.table-responsive tr td[field=description]{
     width: min(50vw, 230px);
 }
+#pagecontent[data-module=Calls]  .list-view-rounded-corners table.list.view.table-responsive tr td[field=call_from],
+#pagecontent[data-module=Calls]  .list-view-rounded-corners table.list.view.table-responsive tr td[field=call_to]{
+    width: fit-content;
+}
 
 /* =============== ONEPAY ================== */
 /* ========================================= */

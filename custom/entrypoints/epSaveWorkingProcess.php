@@ -182,29 +182,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	}
 }
 
-if (isset($_POST['for']) && strtolower($_POST['for']) == 'update_kpi_com') {
-	$record 		= trim($_POST['booking_id']);
-	$user_id_old 	= trim($_POST['assigned_user_id_old']);
-	$user_id_new 	= trim($_POST['assigned_user_id_new']);
-	$booking_status = trim($_POST['booking_status']);
-
-	if($booking_status && (int)$booking_status == 8){
-		$sql_update = 'UPDATE ec_working_process
-						SET assigned_user_id = "'.$user_id_new.'"
-						WHERE completed = 1
-						AND parent_id = "'.$record.'" 
-						AND parent_type = "EC_Flight_Bookings"
-						AND assigned_user_id = "'.$user_id_old.'"
-						AND deleted = 0';
-		$res_update = $db->query($sql_update);
-		if(!$res_update){
-			// SAVE LOG
-			$log_process = '['.$current_user->user_name.'][KPI_COM_FAILED]'. $sql_update;
-			save_log_call($log_process);
-		}
-	}
-}
-
 function update_field_booking($id, $field, $value, $datatype = 'string') {
 	if(is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
 

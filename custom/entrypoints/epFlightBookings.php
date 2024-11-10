@@ -714,61 +714,60 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 }
 
 // Nhắc nhở khách hàng lịch bay - button Remind
-if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
-	$name           = (isset($_POST["name"]) && !empty($_POST["name"])) ? $_POST["name"] : null;
-	$description    = (isset($_POST["description"]) && !empty($_POST["description"])) ? $_POST["description"] : null;
-	$parent_id      = (isset($_POST["parent_id"]) && !empty($_POST["parent_id"])) ? $_POST["parent_id"] : null;
-	$booking_status = (isset($_POST["booking_status"]) && !empty($_POST["booking_status"])) ? $_POST["booking_status"] : null;
-	$journey_id 	 = (isset($_POST["journey_id"]) && !empty($_POST["journey_id"])) ? $_POST["journey_id"] : null;
+// if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
+// 	$name           = (isset($_POST["name"]) && !empty($_POST["name"])) ? $_POST["name"] : null;
+// 	$description    = (isset($_POST["description"]) && !empty($_POST["description"])) ? $_POST["description"] : null;
+// 	$parent_id      = (isset($_POST["parent_id"]) && !empty($_POST["parent_id"])) ? $_POST["parent_id"] : null;
+// 	$booking_status = (isset($_POST["booking_status"]) && !empty($_POST["booking_status"])) ? $_POST["booking_status"] : null;
+// 	$journey_id 	 = (isset($_POST["journey_id"]) && !empty($_POST["journey_id"])) ? $_POST["journey_id"] : null;
 
-	if(is_null($name)  || is_null($description) || is_null($parent_id) || is_null($booking_status) || is_null($journey_id)) {
-	    echo 0;
-	    exit();
-	}
+// 	if(is_null($name)  || is_null($description) || is_null($parent_id) || is_null($booking_status) || is_null($journey_id)) {
+// 	    echo 0;
+// 	    exit();
+// 	}
 
-	if(!empty($journey_id)){
-		// Lưu note
-		$n = new Note();
-		$n->name            = $name;
-		$n->description     = $description;
-		$n->parent_type     = 'EC_Flight_Bookings';
-		$n->parent_id       = $parent_id;
-		$n->booking_status  = $booking_status;
+// 	if(!empty($journey_id)){
+// 		// Lưu note
+// 		$n = new Note();
+// 		$n->name            = $name;
+// 		$n->description     = $description;
+// 		$n->parent_type     = 'EC_Flight_Bookings';
+// 		$n->parent_id       = $parent_id;
+// 		$n->booking_status  = $booking_status;
 
-		// recall = 1 in working_process
-		$work = new EC_Working_Process();
-		$work->id 			= '';
-		$work->name 			= $name;
-		$work->description 		= $description;
-		$work->parent_type 		= 'EC_Flight_Bookings';
-		$work->parent_id 		= $parent_id;
-		$work->assigned_user_id  = $current_user->id;
-		$work->recall = 1;
-		$work->save();
+// 		// recall = 1 in working_process
+// 		// $work = new EC_Working_Process();
+// 		// $work->id 			= '';
+// 		// $work->name 			= $name;
+// 		// $work->description 		= $description . ' (Thông báo hành trình bay)';
+// 		// $work->parent_type 		= 'EC_Flight_Bookings';
+// 		// $work->parent_id 		= $parent_id;
+// 		// $work->assigned_user_id  = $current_user->id;
+// 		// $work->recall = 1;
+// 		// $work->save();
 
-		if (!empty($work->id)) {
-			// Add attribute for notes
-			$n->working_process_id = $work->id;
-			$n->save();
-		} 
-		else{
-			echo 0; 
-			exit();
-		} 
+// 		// if (!empty($work->id)) {
+// 		// 	$n->working_process_id = $work->id;
+// 		// 	$n->save();
+// 		// } 
+// 		// else{
+// 		// 	echo 0; 
+// 		// 	exit();
+// 		// } 
 
-		// Update is_remind trong bảng ec_booking_itineraries = true
-		$update_remind = "UPDATE ec_booking_itineraries 
-		SET is_remind = 1
-		WHERE id = '" . trim($journey_id) . "'";
-		$db->query($update_remind);
+// 		// Update is_remind trong bảng ec_booking_itineraries = true
+// 		$update_remind = "UPDATE ec_booking_itineraries 
+// 		SET is_remind = 1
+// 		WHERE id = '" . trim($journey_id) . "'";
+// 		$db->query($update_remind);
 
-		echo 1;
-		exit();
-	} else {
-		echo 0;
-		exit();
-	}
-}
+// 		echo 1;
+// 		exit();
+// 	} else {
+// 		echo 0;
+// 		exit();
+// 	}
+// }
 
 function populateLineDetails($booking_id){
 	global $app_list_strings, $db;
@@ -1286,6 +1285,8 @@ function populateEditedLineItineraries($booking_id)
 				,iti.is_layover
 				,iti.is_remind
 				,bk.ticket_type
+				,bk.phone as bk_phone
+				,bk.name as bk_name
 				,GROUP_CONCAT(TRIM(iti.name)) AS pass_name
 				,GROUP_CONCAT(
 					IF(iti.assigned_user_id IN (
@@ -1381,8 +1382,9 @@ function populateEditedLineItineraries($booking_id)
 			$send_ticket_btn = '<input type="button" class="btn btn-primary-2 fw-semibold flex-fill" ln="' . $j . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" />';
 
 			if ($row['is_remind'] == 0) {
-				$remind_btn = '<input type="button" class="btn btn-primary-2 flex-fill" iti_id="'.$row['id'].'" name="btnRemind" value="Remind" title="Send Remind"></div>';
-			} else $remind_btn = '';
+				$remind_btn = '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
+				// $remind_btn = '<input type="button" class="btn btn-primary-2 flex-fill" iti_id="'.$row['id'].'" name="btnRemind" value="Remind" title="Send Remind"></div>';
+			}
 		}
 
 		$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));

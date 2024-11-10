@@ -53,7 +53,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.1"></script>
+		$js = '<script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.2"></script>
 			<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet/booking.js?v=1.9"></script>
 			<script src="modules/'.$this->bean->module_dir.'/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/'.$this->bean->module_dir.'/js/api_sms.js?v=1.1"></script>
@@ -113,19 +113,20 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// Lấy thông tin đã thanh toán từ kpi
 		$sql_kpi = '
-			SELECT id, description, paid, called, recheck, recall, check_debt, support
+			SELECT id, description, paid, called, recheck, recall, check_debt, support, remind
 			FROM ec_working_process 
 			WHERE parent_id = "' . $this->bean->id . '" 
 				AND deleted = 0 
-				AND (paid = 1 OR called = 1 OR recheck > 0 OR recall > 0 OR check_debt > 0 OR support > 0)';
+				AND (paid = 1 OR called = 1 OR recheck > 0 OR recall > 0 OR remind > 0 OR check_debt > 0 OR support > 0)';
 
 		$res_kpi = $this->bean->db->query($sql_kpi);
 		while ($row_kpi = $this->bean->db->fetchByAssoc($res_kpi)) {
-			if ($row_kpi['called'] == 1 || $row_kpi['paid'] == 1 || $row_kpi['recheck'] > 0 || $row_kpi['recall'] > 0 || $row_kpi['check_debt'] > 0 || $row_kpi['support'] > 0) {
+			if ($row_kpi['called'] == 1 || $row_kpi['paid'] == 1 || $row_kpi['recheck'] > 0 || $row_kpi['recall'] > 0 || $row_kpi['remind'] > 0 || $row_kpi['check_debt'] > 0 || $row_kpi['support'] > 0) {
 				if($row_kpi['called'] == 1) $action_type = 'called';
 				elseif($row_kpi['paid'] == 1) $action_type = 'paid';
 				elseif($row_kpi['recheck'] > 0) $action_type = 'recheck';
 				elseif($row_kpi['recall'] > 0) $action_type = 'recall';
+				elseif($row_kpi['remind'] > 0) $action_type = 'remind';
 				elseif($row_kpi['check_debt'] > 0) $action_type = 'check_debt';
 				elseif($row_kpi['support'] > 0) $action_type = 'support';
 
@@ -168,6 +169,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				'paid' 	 	 => 'Ghi chú "Đã thanh toán"',
 				'recheck'	 => 'Recheck',
 				'recall' 	 => 'Recall',
+				'remind' 	 => 'Remind',
 				'check_debt' => 'Công nợ',
 				'support' 	 => 'Hỗ trợ KH',
 			];
@@ -1336,9 +1338,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				} else $send_ticket_btn .= '';
 
 				// REMIND BUTTON
+				$remind_btn = '';
 				if ($row['is_remind'] == 0 && ($row['booking_status'] == 7 || $row['booking_status'] == 8)) {
-					$remind_btn = '<input type="button" class="btn btn-primary-2" iti_id="' . $row['id'] . '" name="btnRemind" value="Remind" title="Send Remind" />';
-				} else $remind_btn = '';
+					$remind_btn = '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$this->bean->id.'" booking_name="'.$this->bean->name.'" phone="'.$this->bean->phone.'" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
+				}
 
 				// SMS BUTTON
 				$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));

@@ -1872,19 +1872,20 @@ $GLOBALS['app_list_strings']['booking_payment_type_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['employee_kpi_type_list'] = array(
-  'called' => 'Called',
-  'completed' => 'Completed',
+  'called' => 'Cuộc gọi',
+  'completed' => 'Booking hoàn tất',
   'paid' => 'Đã thanh toán / Đã thu',
   'recheck' => 'Recheck',
-  'invoice_issued' => 'Xuất hóa đơn đầu ra',
-  'ticket_delivery' => 'Giao vé',
   'recall' => 'Recall',
+  'invoice_issued' => 'Xuất hóa đơn đầu ra',
+  'invoice_input_issued' => 'Xuất hóa đơn đầu vào',
+  'ticket_delivery' => 'Giao vé',
   'check_debt' => 'Đối chiếu công nợ',
   'create_repaid' => 'Tạo hoàn vé',
-  'process_repaid' => 'Xử lý hoàn vé',
   'create_payment' => 'Lập phiếu chi',
+  'create_receipt' => 'Lập phiếu thu',
   'create_transfer' => 'Lập điều chuyển tiền',
-  'invoice_input_issued' => 'Xuất hóa đơn đầu vào',
+  'support' => 'Hỗ trợ khác',
 );
 
 $GLOBALS['app_list_strings']['bba_ticket_class_list'] = array(

@@ -99,8 +99,6 @@ class Call extends SugarBean
         }
     }
 
-
-
     /**
      * Disable edit if call is recurring and source is not Sugar. It should be edited only from Outlook.
      * @param $view string
@@ -127,7 +125,6 @@ class Call extends SugarBean
     // save date_end by calculating user input
     // this is for calendar
     private static $remindersInSaving = false;
-
 
     public function save($check_notify = false)
     {
@@ -200,6 +197,31 @@ class Call extends SugarBean
 
         $return_id = parent::save($check_notify);
 
+        // KPI FOR CALLS - Hungnh
+        if ($this->status == 'done' && !empty($this->description) && $this->call_talk > 0) {
+            switch ($this->type_call_sources) {
+                case 'called':
+                    if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
+                        myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
+                    } else {
+                        $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
+                    }
+                    break;
+                case 'recall':
+                    $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'recall');
+                    break;
+                case 'remind':
+                    $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'remind');
+                    // Update ec_booking_itineraries
+                    $update_remind = "UPDATE ec_booking_itineraries 
+                                    SET is_remind = 1
+                                    WHERE id = '" . trim($this->journey_id) . "'
+                                    AND deleted = 0";
+                                    $this->db->query($update_remind);
+                    break;
+            }
+        }
+
         // if ($this->update_vcal) {
         //     vCal::cache_sugar_vcal($current_user);
         // }
@@ -271,6 +293,22 @@ class Call extends SugarBean
 
         return $return_id;
     }
+
+    /**
+     * Update KPI field function to reduce code duplication.
+     * author: hungnh
+     */
+    public function updateKpiField($parent_type, $parentId, $field) {
+        $sql = 'UPDATE ec_working_process
+                SET ' . $field . ' = 1
+                WHERE ' . $field . ' = 0
+                AND parent_id = "' . $parentId . '"
+                AND parent_type = "' . $parent_type . '"
+                AND deleted = 0';
+    
+            $this->db->query($sql);
+    }
+    
 
     /**
      * @param array $reminders
