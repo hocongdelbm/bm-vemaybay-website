@@ -6737,17 +6737,6 @@ a.buttontoggle:hover {
      }
 }
 
-#forgotpasslink {
-     margin: 10px 0 0 0;
-     padding: 10px;
-     clear: both
-}
-
-#generate_pwd_button {
-     height: 50px;
-     font-size: 20px
-}
-
 #recaptcha_image {
      margin-top: 10px;
      margin-left: auto !important;

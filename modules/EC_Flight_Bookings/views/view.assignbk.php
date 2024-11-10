@@ -43,19 +43,21 @@ class Viewassignbk extends SugarView
 				ELSE 1 END) AS group_type
 			FROM ec_online_report
 			WHERE deleted = 0 
-			AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
+			-- AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "'.date('Y-m-d').'"
+			-- AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "'.date('Y-m-d', strtotime('+7 hours', strtotime(date('Y-m-d H:i:s')))).'"
+			AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
 			ORDER BY FIELD(status, 1, 2, 0), last_online
 		';
 		// date_modified
 
 		// SQL CALL INBOUND
 		$sql_inbound = 'SELECT u.id as user_id, count(*) as quantity_inbound
-					FROM calls c
-					LEFT JOIN users u ON u.id = c.assigned_user_id AND u.deleted = 0
-					WHERE c.direction = "inbound"
-					AND DATE(c.date_entered) = "'.date('Y-m-d', strtotime('7 hours', strtotime(date('Y-m-d H:i:s')))).'"
-					AND c.deleted = 0
-					GROUP BY user_id
+						FROM calls c
+						LEFT JOIN users u ON u.id = c.assigned_user_id AND u.deleted = 0
+						WHERE c.direction = "inbound"
+						AND DATE(c.date_entered) = "'.date('Y-m-d', strtotime('+7 hours', strtotime(date('Y-m-d H:i:s')))).'"
+						AND c.deleted = 0
+						GROUP BY user_id
 					';
 		$arr_inbound = array();
 		$res_inbound = $this->bean->db->query($sql_inbound);
@@ -91,7 +93,7 @@ class Viewassignbk extends SugarView
 						<div class="d-flex align-items-center justify-content-center flex-wrap gap-1">
 							<input type="button" class="online_btn flex-fill btn btn-primary up_btn" value="UP" change_type="up" onl_val="' . $row['id'] . '">
 							<input type="button" class="online_btn flex-fill btn btn-secondary down_btn" value="DOWN" change_type="down" onl_val="' . $row['id'] . '">
-							<input type="button" class="online_btn flex-fill btn btn-danger off_btn" value="OFF" change_type="off" onl_val="' . $row['id'] . '">
+							<input type="button" class="online_btn flex-fill btn btn-danger off_btn" value="OFF" change_type="off" onl_val="' . $row['id'] . '" data-sip="'.custom_get_sip_number($row['assigned_user_id']).'">
 						</div>
 					';
 					$last_online = $row['last_online'] ? date('d-m-Y H:i:s', strtotime('+7 hour', strtotime($row['last_online']))) : '';

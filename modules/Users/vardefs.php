@@ -1256,7 +1256,37 @@ $dictionary['User'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
-
+        // CUSTOM TD
+        'agent_status' => array(
+            'required' => false,
+            'name' => 'agent_status',
+            'vname' => 'LBL_AGENT_STATUS',
+            'massupdate' => false,
+            'type' => 'varchar',
+            'len' => '50',
+            'help' => '',
+            'audited' => 0,
+            'reportable' => 0,
+            'comment' => 'Trạng thái của agent. Quyết định họ có thể tiếp nhận cuộc gọi hay không',
+        ),
+        'td_sip' => array(
+            'required' => false,
+            'name' => 'td_sip',
+            'vname' => 'LBL_TD_SIP',
+            'massupdate' => false,
+            'type' => 'varchar',
+            'len' => 6,
+            'comment' => 'Số SIP',
+        ),
+        'td_password' => array(
+            'required' => false,
+            'name' => 'td_password',
+            'vname' => 'LBL_TD_PASSWORD',
+            'massupdate' => false,
+            'type' => 'varchar',
+            'len' => '50',
+            'comment' => 'td Password',
+        ),
     ),
     'indices' => array(
         array(

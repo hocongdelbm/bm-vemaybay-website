@@ -113,6 +113,17 @@ $viewdefs['Calls'] = array(
 				),
 				array(
 					array(
+						'name' => 'other_caller',
+						'label' => 'LBL_OTHER_CALLER',
+					),
+					array(
+						'name' => 'assigned_user_name',
+						'customCode' => '{$fields.assigned_user_name.value}',
+						'label' => 'LBL_ASSIGNED_TO',
+					),
+				),
+				array(
+					array(
 						'name' => 'direction',
 						'label' => 'LBL_DIRECTION',
 					),
@@ -181,9 +192,8 @@ $viewdefs['Calls'] = array(
 						'label' => 'LBL_CALL_SOURCES',
 					),
 					array(
-						'name' => 'assigned_user_name',
-						'customCode' => '{$fields.assigned_user_name.value}',
-						'label' => 'LBL_ASSIGNED_TO',
+						'name' => 'type_call_sources',
+						'label' => 'LBL_TYPE_CALL_SOURCES',
 					),
 				),
 				array(
@@ -193,6 +203,9 @@ $viewdefs['Calls'] = array(
 						'label' => 'LBL_DESCRIPTION',
 					),
 					array(
+						'name' => 'hangup_cause',
+						'comment' => 'Nguyên nhân ngắt máy',
+						'label' => 'LBL_HANGUP_CAUSE',
 					),
 				),
 				array(

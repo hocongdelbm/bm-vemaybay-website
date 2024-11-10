@@ -220,6 +220,10 @@
     flex: 1;
 }
 
+.voiceip-group input:read-only{
+    background-color: #c3c8cf;
+}
+
 .voiceip-notes textarea {
     min-height: 60px;
     max-height: 220px;

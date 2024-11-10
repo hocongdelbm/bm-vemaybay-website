@@ -7,6 +7,7 @@ $action_view_map['employeekpi']         = 'employeekpi';
 $action_view_map['cashflow']            = 'cashflow';
 $action_view_map['yearlyreport']        = 'yearlyreport';
 $action_view_map['profitreport']        = 'profitreport';
+$action_view_map['businessreport']      = 'businessreport'; //Báo cáo kinh doanh tuần
 
 $action_view_map['iplist'] = 'iplist';
 $action_view_map['analytics'] = 'analytics';

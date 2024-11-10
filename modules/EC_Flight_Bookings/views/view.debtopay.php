@@ -2,8 +2,10 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once("include/Sugar_Smarty.php");
 
-class Viewdebtopay extends SugarView {
-	function display() {
+class Viewdebtopay extends SugarView
+{
+	function display()
+	{
 		$smartyCont = new Sugar_Smarty();
 		$this->populateContent($smartyCont);
 		$smartyCont->display('modules/EC_Flight_Bookings/tpls/view_debtopay.tpl');
@@ -11,7 +13,8 @@ class Viewdebtopay extends SugarView {
 
 	// 26-02-2020 : Cập nhật 1, số tiền có hiện số âm, số tiền nợ hiện số dương
 	// 26-02-2020 : Cập nhật 2, tính từ trạng thái xác nhận nếu đã xuất vé thì hiện lên báo cáo công nợ 
-	function populateContent($smartyobj) {
+	function populateContent($smartyobj)
+	{
 		global $app_list_strings;
 
 		if (isset($_POST['from_date']) && !empty($_POST['from_date'])) {
@@ -65,6 +68,7 @@ class Viewdebtopay extends SugarView {
 						  			<thead><tr>
 										<th width="10%"><div align="center"><strong>Ngày hạch toán</strong></div></th>
 										<th width="12%"><div align="center"><strong>Số chứng từ</strong></div></th>
+										<th width="5%"><div align="center"><strong>Số vé</strong></div></th>
 										<th width="30%"><div align="center"><strong>Diễn giải</strong></div></th>
 										<th width="12%"><div align="center"><strong>Số tiền bán</strong></div></th>
 										<th width="12%"><div align="center"><strong>Số tiền nợ</strong></div></th>
@@ -75,6 +79,7 @@ class Viewdebtopay extends SugarView {
 										<th><div align="center"><strong>A</strong></div></th>
 										<th><div align="center"><strong>B</strong></div></th>
 										<th><div align="center"><strong>C</strong></div></th>
+										<th><div align="center"><strong>D</strong></div></th>
 										<th><div align="center"><strong>1</strong></div></th>
 										<th><div align="center"><strong>2</strong></div></th>
 										<th><div align="center"><strong>3</strong></div></th>
@@ -83,7 +88,9 @@ class Viewdebtopay extends SugarView {
 									</thead>
 						  			' . $voucher_arr['html'] . '
 									<tr class="footer-tr">
-										<td colspan="3"><strong>Cộng</strong></td>
+										<td colspan="2"><strong>Cộng</strong></td>
+										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_qty']) . '</td>
+										<td></td>
 										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_sell']) . '</td>
 										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_debt']) . '</td>
 										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_pay']) . '</td>
@@ -107,6 +114,10 @@ class Viewdebtopay extends SugarView {
 			$smartyobj->assign('SUPPLIER_NAME', $_POST['supname_' . $supplier_id]);
 
 			if (isset($_POST['exportexcel'])) {
+
+				pr($_POST);
+				pr($html);
+				die;
 				ob_clean();
 				header("Pragma: cache");
 				require_once('modules/EC_Flight_Bookings/views/congnophaitra.xls.php');
@@ -127,7 +138,8 @@ class Viewdebtopay extends SugarView {
 		$smartyobj->assign('POST_TO_DATE', $post_tdate);
 	}
 
-	function getSupplierList($opening_year, $post_fdate, $post_tdate) {
+	function getSupplierList($opening_year, $post_fdate, $post_tdate)
+	{
 		global $db;
 
 		$sql = "SELECT tmp.supplier_id
@@ -307,7 +319,7 @@ class Viewdebtopay extends SugarView {
 		-- HAVING total_debt <> 0
 		ORDER BY supplier_code ";
 
-		
+
 
 		$res = $db->query($sql);
 		$total_debt = 0;
@@ -362,7 +374,8 @@ class Viewdebtopay extends SugarView {
 		return array('html' => $html, 'total_debt' => abs($total_debt));
 	}
 
-	function getVoucherList($opening_year, $accounting_code, $supplier_id, $post_fdate, $post_tdate) {
+	function getVoucherList($opening_year, $accounting_code, $supplier_id, $post_fdate, $post_tdate)
+	{
 		global $db, $current_user;
 
 		// Get opening amount
@@ -370,6 +383,7 @@ class Viewdebtopay extends SugarView {
 			SELECT 
 				'' AS id
 				,'OPN' AS voucher_name
+				,'' AS qty
 				,'' AS date_entered
 				,'' AS posted_date
 				,'' AS sell_amount
@@ -534,6 +548,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT p.id
 			  ,p.name AS voucher_name
+			  ,SUM(IFNULL( d.quantity, 0 )) AS qty
 			  ,p.date_entered
 			  ,IF(d.direction = 0, p.date_ticket_issue, p.date_ticket_inbound_issue) AS posted_date
 			  ,SUM(IFNULL(d.total_price, 0)) AS sell_amount
@@ -558,6 +573,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT CONCAT(d.id, '-OUTBOUND') AS id
 			  ,CONCAT('HLCD-', p.name) AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,p.date_ticket_issue AS posted_date
 			  ,SUM(IFNULL(d.luggage_price, 0)) AS sell_amount
@@ -585,6 +601,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT CONCAT(d.id, '-INBOUND') AS id
 			  ,CONCAT('HLCV-', p.name) AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,p.date_ticket_issue AS posted_date
 			  ,SUM(IFNULL(d.luggage_price_inbound, 0)) AS sell_amount
@@ -612,6 +629,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT p.id AS id
 			  ,p.name AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,p.ngaychungtu AS posted_date
 			  ,0 AS sell_amount
@@ -633,6 +651,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT CONCAT(p.id, '-SUPPLIER1') AS id
 			  ,p.name AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,p.ngaychungtu AS posted_date
 			  ,IFNULL(p.sell_amount, 0) AS sell_amount
@@ -654,6 +673,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT CONCAT(p.id, '-SUPPLIER2') AS id
 			  ,p.name AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,p.ngaychungtu AS posted_date
 			  ,IFNULL(p.sell_amount2, 0) AS sell_amount
@@ -677,6 +697,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT CONCAT(p.id, '-SUPPLIER3') AS id
 			  ,p.name AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) AS posted_date
 			  ,IFNULL(p.sell_amount3, 0) AS sell_amount
@@ -700,6 +721,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT p.id
 			  ,p.name AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,p.ngayhachtoan AS posted_date
 			  ,SUM(IFNULL(c.sotienkhach, 0)) AS sell_amount
@@ -724,6 +746,7 @@ class Viewdebtopay extends SugarView {
 		UNION
 		SELECT p.id
 			  ,p.name AS voucher_name
+			  ,'' AS qty
 			  ,p.date_entered
 			  ,p.ngaychungtu AS posted_date
 			  ,'' AS sell_amount
@@ -753,11 +776,13 @@ class Viewdebtopay extends SugarView {
 		$total_debt 	= 0;
 		$total_pay 	= 0;
 		$total_remain 	= 0;
+		$total_qty = 0;
 
 		while ($row = $db->fetchByAssoc($res)) {
 			if ($row['voucher_name'] == 'OPN') {
 				$total_remain += $row['remain_amount'];
 				$html .= '<tr>
+					<td>&nbsp;</td>
 					<td>&nbsp;</td>
 					<td>&nbsp;</td>
 					<td style="font-weight:bold;">Số đầu kỳ</td>
@@ -770,21 +795,23 @@ class Viewdebtopay extends SugarView {
 				$total_sell += $row['sell_amount'];
 				$total_debt += $row['debt_amount'];
 				$total_pay += $row['pay_amount'];
+				$total_qty += $row['qty'];
 				$total_remain += ($row['debt_amount'] - $row['pay_amount']);
 				$html .= '<tr>
-				<td align="center">' . date('d/m/Y', strtotime($row['posted_date'])) . '</td>
-				<td><a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '" target="_blank">' . $row['voucher_name'] . '</a></td>
-				<td>' . $row['description'] . '</td>
-				<td align="right">' . (!empty($row['sell_amount']) ? format_number($row['sell_amount']) : '') . '</td>
-				<td align="right">' . (!empty($row['debt_amount']) ? format_number($row['debt_amount']) : '') . '</td>
-				<td align="right">' . (!empty($row['pay_amount']) ? '-' . format_number($row['pay_amount']) : '') . '</td>
-				<td align="right">' . format_number($total_remain) . '</td>
+							<td align="center">' . date('d/m/Y', strtotime($row['posted_date'])) . '</td>
+							<td><a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '" target="_blank">' . $row['voucher_name'] . '</a></td>
+							<td align="center">' . $row['qty'] . '</td>
+							<td>' . $row['description'] . '</td>
+							<td align="right">' . (!empty($row['sell_amount']) ? format_number($row['sell_amount']) : '') . '</td>
+							<td align="right">' . (!empty($row['debt_amount']) ? format_number($row['debt_amount']) : '') . '</td>
+							<td align="right">' . (!empty($row['pay_amount']) ? '-' . format_number($row['pay_amount']) : '') . '</td>
+							<td align="right">' . format_number($total_remain) . '</td>
 					</tr>';
 			}
 
 			$i++;
 		} // while
 
-		return array('html' => $html, 'total_sell' => $total_sell, 'total_debt' => $total_debt, 'total_pay' => '-' . $total_pay, 'total_remain' => $total_remain);
+		return array('html' => $html, 'total_qty' => $total_qty, 'total_sell' => $total_sell, 'total_debt' => $total_debt, 'total_pay' => '-' . $total_pay, 'total_remain' => $total_remain);
 	}
 }

@@ -626,7 +626,11 @@ class SearchForm
                     }
                 }
 
-                if (isset($this->fieldDefs[$fvName]['options']) && isset($GLOBALS['app_list_strings'][$this->fieldDefs[$fvName]['options']])) {
+                if (
+                    isset($this->fieldDefs[$fvName]['options']) 
+                    // && isset($GLOBALS['app_list_strings'][$this->fieldDefs[$fvName]['options']])
+                    && in_array($this->fieldDefs[$fvName]['options'], array_keys($GLOBALS['app_list_strings']))
+                ) {
                     // fill in enums
                     $this->fieldDefs[$fvName]['options'] = $GLOBALS['app_list_strings'][$this->fieldDefs[$fvName]['options']];
                     //Hack to add blanks for parent types on search views
@@ -1005,7 +1009,9 @@ class SearchForm
                             }
                         }
                     } else {
-                        $operator = $operator != 'subquery' ? 'in' : $operator;
+                        if($operator != 'subquery' && $operator != 'dividequery') {
+                            $operator = 'in';
+                        }
                         foreach ($parms['value'] as $val) {
                             if ($val != ' ' && $val != '') {
                                 if (!empty($field_value)) {
@@ -1239,7 +1245,6 @@ class SearchForm
                         if (empty($type) && isset($parms['db_field']) && isset($parms['db_field'][0]) && isset($this->seed->field_defs[$parms['db_field'][0]]['type'])) {
                             $type = $this->seed->field_defs[$parms['db_field'][0]]['type'];
                         }
-
                         switch (strtolower($operator)) {
                             case 'subquery':
                                 $in = 'IN';
@@ -1420,6 +1425,23 @@ class SearchForm
                                     $where .= ' OR ' . $db_field . " in (" . $field_value . ')';
                                 }
                                 break;
+                            case 'dividequery':
+                                $q = 1;
+                                foreach ($parms['subquery'] as $query) {
+                                    if ($q == 1) {
+                                        $select_id = $field_value;
+                                    }
+                                    if ($q < count($parms['subquery'])) {
+                                        $sql1 = string_format_old($query, array($select_id));
+                                        $res1 = $GLOBALS['db']->query($sql1);
+                                        $row1 = $GLOBALS['db']->fetchByAssoc($res1);
+                                        $select_id = implode("','", explode(",", $row1['select_id']));
+                                    } else {
+                                        $where .= "{$db_field} IN (" . string_format_old($query, array($select_id)) . ")";
+                                    }
+                                    $q++;
+                                }
+                                break;
                         }
                     }
                 }
@@ -1433,7 +1455,6 @@ class SearchForm
                 }
             }
         }
-
 
         // if($current_user->user_name == 'hungnh'){
         //     pr($where_clauses);

@@ -21,74 +21,71 @@ class Viewmanage extends SugarView {
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
-               // '0973834501' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0973891401' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0974015001' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0974091002' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0983171970' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0983103703' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
-               // '0983129202' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'GIAO NHANH',
-               // ],
                '02866509900' => [
                     'action' => 'inbound-only',
                     'label'   => 'Sữa tươi Úc',
                     'brandname'   => 'Travelpass',
                ],
 
-               // 01/07/2024
-               '0962768782' => [
+               // 07/11/2024
+               '0385291429' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385295550' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385295676' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385297839' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385299921' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385299946' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385300174' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385300984' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385301071' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0385301087' => [
+                    'action' => 'all',
+                    'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+
+               // 04/09/2024
+               '0984280718' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
-               // '0963323407' => [
-               //      'action' => 'blocked',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0963498793' => [
-               //      'action' => 'all',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               // '0963678130' => [
-               //      'action' => 'all',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-               '0963986905' => [
-                    'action' => 'all',
-                    'label'   => 'Vietjet (.net)',
-                    'brandname'   => 'Travelpass',
-               ],
-               '0963987527' => [
+               '0984195219' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
@@ -98,12 +95,6 @@ class Viewmanage extends SugarView {
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],
-               // '0964359785' => [
-               //      'action' => 'all',
-               //      'label'   => 'Vietjet (.net)',
-               //      'brandname'   => 'Travelpass',
-               // ],
-
           ],
           'MOBIFONE' => [
                '0933296508' => [
@@ -171,6 +162,11 @@ class Viewmanage extends SugarView {
                '0919018102' => [
                     'action' => 'all',
                     'label'   => 'Vietjet (.net)',
+                    'brandname'   => 'GIAO NHANH',
+               ],
+               '0911236600' => [
+                    'action' => 'all',
+                    'label'   => 'Laptop',
                     'brandname'   => 'GIAO NHANH',
                ],
           ],

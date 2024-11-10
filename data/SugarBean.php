@@ -3177,26 +3177,26 @@ class SugarBean
             && !$this->isOwner($this->created_by)
         ) {
             // cn: bug 42727 no need to send email to owner (within workflow)
-
             $admin = BeanFactory::newBean('Administration');
             $admin->retrieveSettings();
             $sendNotifications = false;
 
             if ($admin->settings['notify_on']) {
-                $GLOBALS['log']->info("Notifications: user assignment has changed, " .
-                    "checking if user receives notifications");
+                $GLOBALS['log']->info("Notifications: user assignment has changed, " . "checking if user receives notifications");
                 $sendNotifications = true;
+
             } elseif (isset($_REQUEST['send_invites']) && $_REQUEST['send_invites'] == 1) {
                 // cn: bug 5795 Send Invites failing for Contacts
                 $sendNotifications = true;
             } else {
                 $GLOBALS['log']->info("Notifications: not sending e-mail, notify_on is set to OFF");
+                $GLOBALS['log']->fatal("Notifications: not sending e-mail, notify_on is set to OFF");
             }
-
 
             if ($sendNotifications) {
                 $notify_list = $this->get_notification_recipients();
                 foreach ($notify_list as $notify_user) {
+                    $GLOBALS['log']->fatal("Notifications: user assignment has changed, " . $notify_user->full_name);
                     $this->send_assignment_notifications($notify_user, $admin);
                 }
             }
@@ -3215,6 +3215,7 @@ class SugarBean
         $this->new_assigned_user_name = $notify_user->full_name;
 
         $GLOBALS['log']->info("Notifications: recipient is $this->new_assigned_user_name");
+        $GLOBALS['log']->fatal("Notifications: recipient is $this->new_assigned_user_name");
 
         return array($notify_user);
     }
@@ -3229,12 +3230,13 @@ class SugarBean
     {
         global $current_user;
 
-        if ((($this->object_name == 'Meeting' || $this->object_name == 'Call') || $notify_user->receive_notifications) && !in_array($notify_user->id, $this->sentAssignmentNotifications, true)) {
+        // if ((($this->object_name == 'Meeting' || $this->object_name == 'Call') || $notify_user->receive_notifications) && !in_array($notify_user->id, $this->sentAssignmentNotifications, true)) {
+        if ((($this->object_name == 'Meeting') || $notify_user->receive_notifications) && !in_array($notify_user->id, $this->sentAssignmentNotifications, true)) {
             $sendToEmail = $notify_user->emailAddress->getPrimaryAddress($notify_user);
             $sendEmail = true;
             if (empty($sendToEmail)) {
-                $GLOBALS['log']->warn("Notifications: no e-mail address set for user " .
-                    "{$notify_user->user_name}, cancelling send");
+                $GLOBALS['log']->warn("Notifications: no e-mail address set for user " . "{$notify_user->user_name}, cancelling send");
+                $GLOBALS['log']->fatal("Notifications: no e-mail address set for user " . "{$notify_user->user_name}, cancelling send");
                 $sendEmail = false;
             }
 
@@ -3244,6 +3246,7 @@ class SugarBean
             if (empty($admin->settings['notify_send_from_assigning_user'])) {
                 if (!isset($admin->settings['notify_fromaddress'])) {
                     LoggerManager::getLogger()->warn('admin settings / notify from address is not set');
+                    LoggerManager::getLogger()->fatal('admin settings / notify from address is not set');
                     $adminSettingsNotifyFromAddress = null;
                 } else {
                     $adminSettingsNotifyFromAddress = $admin->settings['notify_fromaddress'];
@@ -3259,6 +3262,7 @@ class SugarBean
                 $fromAddress = !empty($fromAddress) ? $fromAddress : $admin->settings['notify_fromaddress'];
                 $notify_mail->From = $fromAddress;
                 isValidEmailAddress($notify_mail->From);
+
                 //Use the users full name is available otherwise default to system name
                 $from_name = !empty($admin->settings['notify_fromname']) ? $admin->settings['notify_fromname'] : "";
                 $from_name = !empty($current_user->full_name) ? $current_user->full_name : $from_name;
@@ -3346,12 +3350,15 @@ class SugarBean
             $xtpl->assign("OBJECT", translate('LBL_MODULE_NAME', $this->module_name));
             $template_name = "Default";
         }
+
         if (!empty($_SESSION["special_notification"]) && $_SESSION["special_notification"]) {
             $template_name = $beanList[$this->module_dir] . 'Special';
         }
+
         if ($this->special_notification) {
             $template_name = $beanList[$this->module_dir] . 'Special';
         }
+
         $xtpl->assign("ASSIGNED_USER", $this->new_assigned_user_name);
         $xtpl->assign("ASSIGNER", $current_user->name);
 

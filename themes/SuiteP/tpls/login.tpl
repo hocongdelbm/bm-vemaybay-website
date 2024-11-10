@@ -67,7 +67,7 @@
             </div>
 
             <div class="form__field">
-                <input id="bigbutton" class="btn-block" type="submit" title="{sugar_translate module=" Users" label="LBL_LOGIN_BUTTON_TITLE" }" tabindex="3" name="Login" value="{sugar_translate module="Users" label="LBL_LOGIN_BUTTON_LABEL" }">
+                <input id="bigbutton" class="btn-block" type="submit" title="{sugar_translate module="Users" label="LBL_LOGIN_BUTTON_LABEL" }" tabindex="3" name="Login" value="{sugar_translate module="Users" label="LBL_LOGIN_BUTTON_LABEL" }">
             </div>
 
             <div id="forgotpasslink" style="cursor: pointer; display:{$DISPLAY_FORGOT_PASSWORD_FEATURE};" onclick='toggleDisplay("forgot_password_dialog");'>
@@ -78,21 +78,27 @@
         <form class="form-signin passform" role="form" action="index.php" method="post" name="DetailView" name="fp_form" id="fp_form" autocomplete="off">
             <div id="forgot_password_dialog" style="display: none">
                 <input type="hidden" name="entryPoint" value="GeneratePassword" />
-                <div id="generate_success" class="error" style="display: inline"></div>
+                <div id="generate_success" class="text-danger my-3 small fw-semibold"></div>
 
-                <div class="input-group">
-                    <input type="text" class="form-control" size='26' id="fp_user_name" name="fp_user_name" value='{$LOGIN_USER_NAME}' placeholder="{sugar_translate module="Users" label="LBL_USER_NAME"}" autocomplete="off">
+                <div class="d-flex gap-4 flex-column">
+                    <div class="text-field">
+                        <label for="fp_user_name">{sugar_translate module="Users" label="LBL_USER_NAME" }</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" size='26' id="fp_user_name" name="fp_user_name" value='{$LOGIN_USER_NAME}' placeholder="{sugar_translate module="Users" label="LBL_USER_NAME"}" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="text-field">
+                        <label for="fp_user_mail">{sugar_translate module="Users" label="LBL_EMAIL" }</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" size='26' id="fp_user_mail" name="fp_user_mail" value='' placeholder="{sugar_translate module="Users" label="LBL_EMAIL"}" autocomplete="off">
+                        </div>
+                    </div>
+    
+                    {$CAPTCHA}
+                    <div id="wait_pwd_generation"></div>
+                    <input title="Email Temp Password" class="button btn-block" type="button" style="display:inline" onclick="validateAndSubmit();
+                    return document.getElementById('cant_login').value == ''" id="generate_pwd_button" name="fp_login" value="{sugar_translate module="Users" label="LBL_LOGIN_SUBMIT"}" autocomplete="off">
                 </div>
-
-                <div class="input-group">
-                    <input type="text" class="form-control" size='26' id="fp_user_mail" name="fp_user_mail" value='' placeholder="{sugar_translate module="Users" label="LBL_EMAIL"}" autocomplete="off">
-                </div>
-
-                {$CAPTCHA}
-                <div id="wait_pwd_generation"></div>
-
-                <input title="Email Temp Password" class="button btn-block" type="button" style="display:inline" onclick="validateAndSubmit();
-                return document.getElementById('cant_login').value == ''" id="generate_pwd_button" name="fp_login" value="{sugar_translate module="Users" label="LBL_LOGIN_SUBMIT"}" autocomplete="off">
             </div>
         </form>
     </div>

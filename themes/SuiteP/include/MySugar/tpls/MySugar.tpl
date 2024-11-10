@@ -1,12 +1,67 @@
+<!-- custom dashboard -->
+<nav class="card">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <a class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Home</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">Profile</a>
+            </li>
+            <li class="nav-item" role="presentation">
+              <a class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab" aria-controls="contact-tab-pane" aria-selected="false">Contact</a>
+            </li>
+        </ul>
+    </div>
+    <div class="tab-content card-body" id="myTabContent">
+        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </div>
+        <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </div>
+        <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel" aria-labelledby="contact-tab" tabindex="0">
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        </div>
+    </div>
+</nav>
+
+<!-- table -->
+ <div class="table-responsive text-nowrap mt-3 bg-white p-3 rounded border">
+    <table class="table table-striped table-hover">
+        <caption align="top">LIST AGENT</caption>
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Start Online</th>
+                <th scope="col">Last Online</th>
+            </tr>
+        </thead>
+        <tbody>
+            {if $agent_online}
+                {foreach from=$agent_online item=agent name=agentLoop}
+                    <tr>
+                        <td>{$smarty.foreach.agentLoop.iteration}</td>
+                        <td>{$agent.name}</td>
+                        <td>{$agent.start_online}</td>
+                        <td>{$agent.last_online}</td>
+                    </tr>
+                {/foreach}
+            {/if}
+        </tbody>
+    </table>
+ </div>
+
+<!-- end custom dashboard -->
+
 {sugar_getscript file="cache/include/javascript/sugar_grp_yui_widgets.js"}
 {sugar_getscript file='include/javascript/dashlets.js'}
-
 {$chartResources}
 {$mySugarChartResources}
-<div class="dashboard">
+<div class="dashboard d-none">
     {*display tabs*}
     <ul class="nav tabs-list admin_tabs-list nav-dashboard">
-
         {foreach from=$dashboardPages key=tabNum item=tab}
             {if $tabNum == 0}
                 <li role="presentation" class="admin_tabs-item active">
@@ -58,85 +113,86 @@
         {/foreach}
     </div>
 </div>
-    <div class="modal fade modal-add-dashlet" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header d-flex align-items-center justify-content-between">
-                    <h4 class="modal-title">{$lblAddDashlets}</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-                          </svg>
-                    </button>
-                </div>
-                <div class="modal-body" id="dashletsList">
-                    <p><img src="themes/SuiteP/images/loading.gif" width="48" height="48" align="baseline" border="0"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">{$app.LBL_CLOSE_BUTTON_TITLE}</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
 
-    <div class="modal fade modal-add-dashboard" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header d-flex align-items-center justify-content-between">
-                    <h4 class="modal-title">{$lblAddTab}</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+<div class="modal fade modal-add-dashlet" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex align-items-center justify-content-between">
+                <h4 class="modal-title">{$lblAddDashlets}</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
                         </svg>
-                    </button>
-                </div>
-                <div class="modal-body" id="dashboardDialog">
-                    <p><img src="themes/SuiteP/images/loading.gif" width="48" height="48" align="baseline" border="0" alt=""></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{$app.LBL_CANCEL_BUTTON_LABEL}</button>
-                    <button type="button" class="btn btn-primary btn-add-dashboard" data-bs-dismiss="modal">{$lblAddTab}</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+                </button>
+            </div>
+            <div class="modal-body" id="dashletsList">
+                <p><img src="themes/SuiteP/images/loading.gif" width="48" height="48" align="baseline" border="0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">{$app.LBL_CLOSE_BUTTON_TITLE}</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade modal-add-dashboard" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex align-items-center justify-content-between">
+                <h4 class="modal-title">{$lblAddTab}</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="dashboardDialog">
+                <p><img src="themes/SuiteP/images/loading.gif" width="48" height="48" align="baseline" border="0" alt=""></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{$app.LBL_CANCEL_BUTTON_LABEL}</button>
+                <button type="button" class="btn btn-primary btn-add-dashboard" data-bs-dismiss="modal">{$lblAddTab}</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 
-    <div class="modal fade modal-edit-dashboard" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header d-flex align-items-center justify-content-between">
-                    <h4 class="modal-title">{$app.LBL_EDIT_TAB}</h4>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
-                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-                          </svg>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p><img src="themes/SuiteP/images/loading.gif" width="48" height="48" align="baseline" border="0" alt=""></p>                </div>
-                    <div class="container-fluid">
-                        <div class="panel panel-default panel-template">
-                            <div class="panel-heading">
-                                    <div class="edit-dashboard-tabs d-flex gap-2 align-items-center">
-                                        <span class="suitepicon suitepicon-mimetype-tab"></span>
-                                        <span class="panel-title">Untitled</span>
-                                    </div>
+<div class="modal fade modal-edit-dashboard" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex align-items-center justify-content-between">
+                <h4 class="modal-title">{$app.LBL_EDIT_TAB}</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+                        </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><img src="themes/SuiteP/images/loading.gif" width="48" height="48" align="baseline" border="0" alt=""></p>                </div>
+                <div class="container-fluid">
+                    <div class="panel panel-default panel-template">
+                        <div class="panel-heading">
+                                <div class="edit-dashboard-tabs d-flex gap-2 align-items-center">
+                                    <span class="suitepicon suitepicon-mimetype-tab"></span>
+                                    <span class="panel-title">Untitled</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">{$app.LBL_CLOSE_BUTTON_TITLE}</button></div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">{$app.LBL_CLOSE_BUTTON_TITLE}</button></div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
-    <!-- fix errors in mysugar.js -->
-    <div style="visibility: collapse">
-        <div id="dashletsDialog"></div>
-        <div id="dashletsDialog_c"></div>
-    </div>
+<!-- fix errors in mysugar.js -->
+<div style="visibility: collapse">
+    <div id="dashletsDialog"></div>
+    <div id="dashletsDialog_c"></div>
+</div>
 
 <script type="text/javascript" src="themes/SuiteP/include/MySugar/javascript/AddRemoveDashboardPages.js"></script>
 <script type="text/javascript" src="themes/SuiteP/include/MySugar/javascript/retrievePage.js"></script>

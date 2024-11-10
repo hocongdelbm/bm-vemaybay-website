@@ -26,6 +26,7 @@ class Viewrecoveryorder extends SugarView {
         if(isset($_POST['btnRecovery'])) {
             $sql = "SELECT id FROM ec_flight_bookings WHERE name = '$bookingNo' AND deleted = 1 LIMIT 1";
             $bookingId = $db->getOne($sql);
+
             if (!empty($bookingId)) {
                 $db->query("UPDATE ec_flight_bookings SET deleted = 0 WHERE id = '$bookingId' AND deleted = 1");
                 $db->query("UPDATE ec_booking_itineraries SET deleted = 0 WHERE booking_id = '$bookingId' AND deleted = 1");

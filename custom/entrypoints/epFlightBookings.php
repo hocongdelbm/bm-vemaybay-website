@@ -348,13 +348,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		if (empty($booking->flight_type)) {
 			// số vé lượt về
 			$eticket_inbound = '
-					<td width="20%" class="text-label">Số vé lượt về:</td>
-					<td width="30%"><input class="box-input" type="text" value="' . $row['eticket_inbound'] . '" name="pass_eticket_inbound[]"></td>';
+					<td width="20%" class="text-label text-nowrap">Số vé lượt về:</td>
+					<td><input class="box-input" type="text" value="' . $row['eticket_inbound'] . '" name="pass_eticket_inbound[]"></td>';
 
 			// pnr lượt về
 			$pnr_inbound = '
-					<td width="20%" class="text-label">PNR lượt về:</td>
-					<td width="30%"><input class="box-input" type="text" value="' . $row['pnr_inbound'] . '" name="pass_pnr_inbound[]"></td>';
+					<td width="20%" class="text-label text-nowrap">PNR lượt về:</td>
+					<td><input class="box-input" type="text" value="' . $row['pnr_inbound'] . '" name="pass_pnr_inbound[]"></td>';
 
 			// đánh dấu hành lý của VJ thì lưu cách khác
 			// lượt về
@@ -371,21 +371,21 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 				$luggage_price_inb = (int)$row['luggage_index_inbound'];
 			}
 			$luggage_inbound = '
-					<td width="20%" class="text-label">Thêm HL lượt về:</td>
-					<td width="30%" class="pass_luggage_ln pass_luggage_right">
+					<td width="20%" class="text-label text-nowrap">Thêm HL lượt về:</td>
+					<td class="pass_luggage_ln pass_luggage_right">
 						<select class="pass_luggage pass_luggage_ib box-select" name="pass_luggage_ib[]" ln="' . $i . '">' . generateLuggage($booking->date_entered, $booking->airline_inbound, $ticket_class_ib, $row['type'], (int)$row['luggage_index_inbound'], 1, (int)$row['luggage_price_inbound']) . '</select>
 						' . $vj_luggage_inbound . '
 					</td>';
 
 			// giá mua hành lý lượt về
 			$bought_price_inbound = '
-					<td width="20%" class="text-label">Giá mua HL lượt về:</td>
-					<td width="30%"><input type="text" value="' . $row['luggage_purchase_inbound'] . '" name="bought_price_inbound[]" class="box-input allow-number-only"></td>';
+					<td width="20%" class="text-label text-nowrap">Giá mua HL lượt về:</td>
+					<td><input type="text" value="' . $row['luggage_purchase_inbound'] . '" name="bought_price_inbound[]" class="box-input allow-number-only"></td>';
 
 			// nhà cung cấp lượt về
 			$supplier_inbound = '
-					<td width="20%"><label class="text-label">NCC HL lượt về:</label></td>
-					<td width="30%" class="supplier_line supplier_line_right">
+					<td width="20%"><label class="text-label text-nowrap">NCC HL lượt về:</label></td>
+					<td class="supplier_line supplier_line_right">
 						<select class="box-select" name="supplier_inbound[]">' . get_select_options_with_id($supplier, trim($row['supplier_inbound_id'])) . '</select>
 						<input type="hidden" name="iti_ib" value="' . $row_t['iti_id_ib'] . '">
 					</td>';
@@ -411,13 +411,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 
 		// số vé lượt đi
 		$html .= '<tr class="line_pass' . $row['id'] . '">
-				<td class="text-label" width="20%">Số vé lượt đi:</td>
-				<td width="30%"><input class="box-input" type="text" value="' . $row['eticket_outbound'] . '" name="pass_eticket_outbound[]"></td>
+				<td class="text-label text-nowrap" width="20%">Số vé lượt đi:</td>
+				<td><input class="box-input" type="text" value="' . $row['eticket_outbound'] . '" name="pass_eticket_outbound[]"></td>
 				' . $eticket_inbound . '
 			</tr>';
 		$html .= '<tr class="line_pass' . $row['id'] . '">
-				<td class="text-label" width="20%">PNR lượt đi:</td>
-				<td width="30%"><input class="box-input" type="text" value="' . $row['pnr_outbound'] . '" name="pass_pnr_outbound[]"></td>
+				<td class="text-label text-nowrap" width="20%">PNR lượt đi:</td>
+				<td><input class="box-input" type="text" value="' . $row['pnr_outbound'] . '" name="pass_pnr_outbound[]"></td>
 				' . $pnr_inbound . '
 			</tr>';
 
@@ -433,8 +433,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		}
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
-				<td width="20%" class="text-label">Thêm HL lượt đi:</td>
-				<td width="30%" class="pass_luggage_ln pass_luggage_left">
+				<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
+				<td class="pass_luggage_ln pass_luggage_left">
 					<select class="pass_luggage pass_luggage_ob box-select" name="pass_luggage_ob[]" ln="' . $i . '">' . generateLuggage($booking->date_entered, $booking->airline, $ticket_class_ob, $row['type'], (int)$row['luggage_index_outbound'], 1, (int)$row['luggage_price']) . '</select>
 					' . $vj_luggage_outbound . '
 				</td>
@@ -443,14 +443,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		// giá mua lượt đi
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
-				<td width="20%" class="text-label">Giá mua HL lượt đi:</td>
-				<td width="30%"><input type="text" value="' . $row['luggage_purchase'] . '" name="bought_price_outbound[]" class="box-input allow-number-only"></td>
+				<td width="20%" class="text-label text-nowrap">Giá mua HL lượt đi:</td>
+				<td><input type="text" value="' . $row['luggage_purchase'] . '" name="bought_price_outbound[]" class="box-input allow-number-only"></td>
 				' . $bought_price_inbound . '
 			</tr>';
 		$html .= '
 			<tr class="line_pass' . $row['id'] . '">
-				<td width="20%" class="text-label"">NCC HL lượt đi:</td>
-				<td width="30%" class="supplier_line supplier_line_left">
+				<td width="20%" class="text-label text-nowrap">NCC HL lượt đi:</td>
+				<td class="supplier_line supplier_line_left">
 					<select class="box-select" name="supplier_outbound[]">' . get_select_options_with_id($supplier, trim($row['supplier_id'])) . '</select>
 					<input type="hidden" name="iti_ob" value="' . $row_t['iti_id_ob'] . '">
 				</td>
@@ -705,65 +705,69 @@ if (isset($_POST['for']) && $_POST['for'] == 'checkUsrStt') {
 if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 	$onl = new EC_Online_Report;
 	$onl_res = $onl->changeOnlinePosition($_POST['onl'], $_POST['type']);
+
+	if($_POST['agent']){
+		agent_change_status($_POST['agent'], 'Logged Out');
+	}
+
 	echo $onl_res;
 }
 
 // Nhắc nhở khách hàng lịch bay - button Remind
-if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
-	$name           = (isset($_POST["name"]) && !empty($_POST["name"])) ? $_POST["name"] : null;
-	$description    = (isset($_POST["description"]) && !empty($_POST["description"])) ? $_POST["description"] : null;
-	$parent_id      = (isset($_POST["parent_id"]) && !empty($_POST["parent_id"])) ? $_POST["parent_id"] : null;
-	$booking_status = (isset($_POST["booking_status"]) && !empty($_POST["booking_status"])) ? $_POST["booking_status"] : null;
-	$journey_id 	 = (isset($_POST["journey_id"]) && !empty($_POST["journey_id"])) ? $_POST["journey_id"] : null;
+// if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
+// 	$name           = (isset($_POST["name"]) && !empty($_POST["name"])) ? $_POST["name"] : null;
+// 	$description    = (isset($_POST["description"]) && !empty($_POST["description"])) ? $_POST["description"] : null;
+// 	$parent_id      = (isset($_POST["parent_id"]) && !empty($_POST["parent_id"])) ? $_POST["parent_id"] : null;
+// 	$booking_status = (isset($_POST["booking_status"]) && !empty($_POST["booking_status"])) ? $_POST["booking_status"] : null;
+// 	$journey_id 	 = (isset($_POST["journey_id"]) && !empty($_POST["journey_id"])) ? $_POST["journey_id"] : null;
 
-	if(is_null($name)  || is_null($description) || is_null($parent_id) || is_null($booking_status) || is_null($journey_id)) {
-	    echo 0;
-	    exit();
-	}
+// 	if(is_null($name)  || is_null($description) || is_null($parent_id) || is_null($booking_status) || is_null($journey_id)) {
+// 	    echo 0;
+// 	    exit();
+// 	}
 
-	if(!empty($journey_id)){
-		// Lưu note
-		$n = new Note();
-		$n->name            = $name;
-		$n->description     = $description;
-		$n->parent_type     = 'EC_Flight_Bookings';
-		$n->parent_id       = $parent_id;
-		$n->booking_status  = $booking_status;
+// 	if(!empty($journey_id)){
+// 		// Lưu note
+// 		$n = new Note();
+// 		$n->name            = $name;
+// 		$n->description     = $description;
+// 		$n->parent_type     = 'EC_Flight_Bookings';
+// 		$n->parent_id       = $parent_id;
+// 		$n->booking_status  = $booking_status;
 
-		// recall = 1 in working_process
-		$work = new EC_Working_Process();
-		$work->id 			= '';
-		$work->name 			= $name;
-		$work->description 		= $description;
-		$work->parent_type 		= 'EC_Flight_Bookings';
-		$work->parent_id 		= $parent_id;
-		$work->assigned_user_id  = $current_user->id;
-		$work->recall = 1;
-		$work->save();
+// 		// recall = 1 in working_process
+// 		// $work = new EC_Working_Process();
+// 		// $work->id 			= '';
+// 		// $work->name 			= $name;
+// 		// $work->description 		= $description . ' (Thông báo hành trình bay)';
+// 		// $work->parent_type 		= 'EC_Flight_Bookings';
+// 		// $work->parent_id 		= $parent_id;
+// 		// $work->assigned_user_id  = $current_user->id;
+// 		// $work->recall = 1;
+// 		// $work->save();
 
-		if (!empty($work->id)) {
-			// Add attribute for notes
-			$n->working_process_id = $work->id;
-			$n->save();
-		} 
-		else{
-			echo 0; 
-			exit();
-		} 
+// 		// if (!empty($work->id)) {
+// 		// 	$n->working_process_id = $work->id;
+// 		// 	$n->save();
+// 		// } 
+// 		// else{
+// 		// 	echo 0; 
+// 		// 	exit();
+// 		// } 
 
-		// Update is_remind trong bảng ec_booking_itineraries = true
-		$update_remind = "UPDATE ec_booking_itineraries 
-		SET is_remind = 1
-		WHERE id = '" . trim($journey_id) . "'";
-		$db->query($update_remind);
+// 		// Update is_remind trong bảng ec_booking_itineraries = true
+// 		$update_remind = "UPDATE ec_booking_itineraries 
+// 		SET is_remind = 1
+// 		WHERE id = '" . trim($journey_id) . "'";
+// 		$db->query($update_remind);
 
-		echo 1;
-		exit();
-	} else {
-		echo 0;
-		exit();
-	}
-}
+// 		echo 1;
+// 		exit();
+// 	} else {
+// 		echo 0;
+// 		exit();
+// 	}
+// }
 
 function populateLineDetails($booking_id){
 	global $app_list_strings, $db;
@@ -1281,6 +1285,8 @@ function populateEditedLineItineraries($booking_id)
 				,iti.is_layover
 				,iti.is_remind
 				,bk.ticket_type
+				,bk.phone as bk_phone
+				,bk.name as bk_name
 				,GROUP_CONCAT(TRIM(iti.name)) AS pass_name
 				,GROUP_CONCAT(
 					IF(iti.assigned_user_id IN (
@@ -1338,7 +1344,8 @@ function populateEditedLineItineraries($booking_id)
 				} else {
 					$pass_dt = '';
 				}
-				$applied_pass = 'tất cả hành khách' . $pass_dt;
+				// $applied_pass = 'tất cả hành khách' . $pass_dt;
+				$applied_pass = 'tất cả hành khách';
 			} else {
 				$applied_pass = implode(', ', $pass_name_arr);
 			}
@@ -1375,8 +1382,9 @@ function populateEditedLineItineraries($booking_id)
 			$send_ticket_btn = '<input type="button" class="btn btn-primary-2 fw-semibold flex-fill" ln="' . $j . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" />';
 
 			if ($row['is_remind'] == 0) {
-				$remind_btn = '<input type="button" class="btn btn-primary-2 flex-fill" iti_id="'.$row['id'].'" name="btnRemind" value="Remind" title="Send Remind"></div>';
-			} else $remind_btn = '';
+				$remind_btn = '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
+				// $remind_btn = '<input type="button" class="btn btn-primary-2 flex-fill" iti_id="'.$row['id'].'" name="btnRemind" value="Remind" title="Send Remind"></div>';
+			}
 		}
 
 		$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
@@ -1555,10 +1563,6 @@ function populateEditedLinePassenger($booking_id)
 	$rowCount = $db->countRows($res);
 	$html = $html1 = $html2 = '';
 
-	// if($current_user->user_name == 'hungnh'){
-	// 	pr($sql);
-	// }
-
 	$i = $k = 0;
 	$pass_order = 0;
 	$pass_changed_name_arr = array();
@@ -1622,44 +1626,41 @@ function populateEditedLinePassenger($booking_id)
 			</td>';
 
 		/* Thông tin hành lý lượt đi*/
+		// -------------------------------------
 		$luggage_price = '';
-
 		// luggage_price_arr là list option hành lý
 		$luggage_price_arr = generateLuggage($booking->date_entered, $booking->airline, $row['ticket_class_ob'], $row['type'], (int)$row['luggage_index_outbound']);
 
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($row['ticket_class_ob']);
-		// }
+		if (!empty($row['luggage_index_outbound'])) {
+			$row['luggage_price'] = (int)$row['luggage_index_outbound'];
+		} 
+		$bag_out2 = $luggage_price_arr[(int)$row['luggage_price']];
 
-		if (empty($row['luggage_index_outbound'])) {
-			$bag_out2 = $luggage_price_arr[(int)$row['luggage_price']];
-		} else {
-			$bag_out2 = $luggage_price_arr[(int)$row['luggage_index_outbound']];
-		}
 		$bag_weight_out = 0;
 		if (isset($bag_out2) && !empty($bag_out2)) {
 			preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-
-			// Check by haihugn - 19/06/2023
 			$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
 		}
+
 		if ($bag_weight_out > 0) {
 			$luggage_price .= '<span class="text-conpleted-status fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')<br>';
 		}
-		/* END Thông tin hành lý lượt đi*/
 
+		
 		/* Thông tin hành lý lượt về*/
+		// ------------------------------------
 		$luggage_price_ib_arr = generateLuggage($booking->date_entered, $booking->airline_inbound, $row['ticket_class_ib'], $row['type'], (int)$row['luggage_index_inbound']);
-		if (empty($row['luggage_index_inbound'])) {
-			$bag_in = $luggage_price_ib_arr[(int)$row['luggage_price_inbound']];
-		} else {
-			$bag_in = $luggage_price_ib_arr[(int)$row['luggage_index_inbound']];
+		if (!empty($row['luggage_index_inbound'])) {
+			$row['luggage_price_inbound'] = (int)$row['luggage_index_inbound'];
 		}
+
+		$bag_in = $luggage_price_ib_arr[(int)$row['luggage_price_inbound']];
+
 		$bag_weight_in = 0;
 		if (isset($bag_in) && !empty($bag_in)) {
 			preg_match('/(\d+)kg/isU', $bag_in, $ib_output);
 
-			$bag_weight_in = (int)$ib_output[1];
+			$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
 		}
 		if ($bag_weight_in > 0) {
 			$luggage_price .= '<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in . ' (Giá mua: ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . ')';
@@ -2243,6 +2244,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'get3TicketBooking') {
 			HAVING TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440
 			ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), average_fee DESC
 		';
+
 	$res = $db->query($sql);
 	$i = $total = $canceled = $completed = $exported = $confirmed = $called = $paidwait = 0;
 	$created = $ticket_completed = $total_sale = 0;

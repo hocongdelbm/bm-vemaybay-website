@@ -55,7 +55,6 @@ class EC_Online_Report extends Basic
 		);
 		$time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
 
-
 		// kt số người online
 		$sql_onl_cnt = '
 			SELECT COUNT(id)

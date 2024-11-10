@@ -97,6 +97,7 @@
                     data: {
                         type: $(this).attr("change_type"),
                         onl: $(this).attr("onl_val"),
+                        agent: $(this).attr("data-sip"),
                         for: "changeOnlinePosition",
                     },
                     beforeSend: function() {

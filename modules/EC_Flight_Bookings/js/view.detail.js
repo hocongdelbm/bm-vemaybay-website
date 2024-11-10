@@ -205,58 +205,6 @@ $(document).ready(function () {
 		else return true;
 	});
 
-	// Click button Remind
-	$(document).on('click', 'input[name="btnRemind"]', function () {
-		let journey_id 	= $(this).attr('iti_id');
-		$('input[name="current-journey-id"]').val(journey_id);
-
-		$("#dlgRemind").dialog({
-			title: "Thông báo lịch bay cho hành khách",
-			width: 400,
-			modal: true,
-			resizable: false,
-		});
-	});
-
-	$(document).on('click', '#btn-confirm-remind', function () {
-		let name 			= $('#note-name').val(); //booking_name
-		let parent_id 		= $('#note-parent-id').val(); // booking_id
-		let booking_status 	= $('#note-booking-status').val();
-		let description 	= $("#txtRemind").val();
-		let journey_id 	= $("#current-journey-id").val();
-
-		$.ajax({
-			url: "index.php?entryPoint=entryPointFlightBookings",
-			data: {
-				name: name,
-				parent_id: parent_id,
-				description: description,
-				booking_status: booking_status,
-				journey_id: journey_id,
-				for: "remindFlightSchedules",
-			},
-			type: "POST",
-			cache: false,
-			success: function (response) {
-				$('#dlgRemind').dialog('close');
-				if(response == 1){
-					let text_warning = 'Thông báo lịch bay cho khách hàng thành công.';
-					showModalNotify(1, text_warning);
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				} else {
-					let text_warning = 'Lỗi khi thực hiện nhấn nút remind. Vui lòng liên hệ IT để được hỗ trợ.';
-					showModalNotify(0, text_warning);
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				}
-			}
-		});
-	});
-
-	/* Cancel remind */
-	$('#btn-cancel-remind').on('click', function(){
-		$('#dlgRemind').dialog('close');
-	});
-
 	// Open form send mail
 	$('#btnSendMail').on('click', function(){
 		$('#frmContinueSendMail').css('display', 'block');
@@ -684,6 +632,9 @@ $(document).ready(function () {
 	});
 
 	$(document).one('click', '#btnSaveWorkingProcess', function (event) {
+
+		console.warn('Cos voo day khong ma showloading');
+
 		$(this).attr("disabled", "disabled");
 		var frmSaveWorkingProcess = $('#frmSaveWorkingProcess').val();
 
@@ -1078,22 +1029,6 @@ $(document).ready(function () {
 		$('#frmChangeStatus').submit();
 	});
 
-
-	// Icon copy
-	$('#copy_payment_link').on('click', function(){
-		// Get the text field
-		var copyText = document.getElementById("payment_link_hidden");
-
-		// Select the text field
-		copyText.select();
-		copyText.setSelectionRange(0, 99999); // For mobile devices
-
-		// Copy the text inside the text field
-		navigator.clipboard.writeText(copyText.value);
-
-		showToastNotify('success', 'Đã sao chép thành công!')
-	});
-
 	// Icon get QR code
 	$('#get_qr_code').on('click', function(){
 		showDialog("dialog_qr_code");
@@ -1103,6 +1038,26 @@ $(document).ready(function () {
 		$("#img_qr_code").attr('src', selectedValue);
 	});
 
+	// GET THÔNG TIN BANK - SEND CUSTOMER
+	$('#get_bank').on('click', function(){
+		let booking_id = $(this).attr('booking_id');
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointBankAccount",
+			type: "POST",
+			data: {
+				booking: booking_id,
+				type: 'get_infor_bank',
+				for: "changeBankAccountPosition",
+			},
+			beforeSend: function() {},
+			success: function(response) {
+				if(response.length > 0){
+					copyContent(response);
+				}
+			}
+		});
+	});
 	
 	// Handle mapping call with booking
 	$('#btn-mapping-call-booking').click( function() {

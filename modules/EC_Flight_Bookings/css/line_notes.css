@@ -263,6 +263,11 @@
     color: var(--white-color) !important;
 }
 
+#line-notes .mobile-menu-wrapper .message_list .row-mess.row-support .row-content {
+    background-color: var(--bs-secondary) !important;
+    color: var(--white-color) !important;
+}
+
 #line-notes .mobile-menu-wrapper .message_list .row-mess.row-check_debt .row-content {
     background-color: var(--bs-info) !important;
     color: var(--white-color) !important;

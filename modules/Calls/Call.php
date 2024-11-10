@@ -99,8 +99,6 @@ class Call extends SugarBean
         }
     }
 
-
-
     /**
      * Disable edit if call is recurring and source is not Sugar. It should be edited only from Outlook.
      * @param $view string
@@ -127,7 +125,6 @@ class Call extends SugarBean
     // save date_end by calculating user input
     // this is for calendar
     private static $remindersInSaving = false;
-
 
     public function save($check_notify = false)
     {
@@ -184,9 +181,9 @@ class Call extends SugarBean
         // }
 
         // prevent a mass mailing for recurring meetings created in Calendar module
-        if (empty($this->id) && !empty($_REQUEST['module']) && $_REQUEST['module'] == "Calendar" && !empty($_REQUEST['repeat_type']) && !empty($this->repeat_parent_id)) {
-            $check_notify = false;
-        }
+        // if (empty($this->id) && !empty($_REQUEST['module']) && $_REQUEST['module'] == "Calendar" && !empty($_REQUEST['repeat_type']) && !empty($this->repeat_parent_id)) {
+        //     $check_notify = false;
+        // }
         /*nsingh 7/3/08  commenting out as bug #20814 is invalid
         if($current_user->getPreference('reminder_time')!= -1 &&  isset($_POST['reminder_checked']) && isset($_POST['reminder_time']) && $_POST['reminder_checked']==0  && $_POST['reminder_time']==-1){
         	$this->reminder_checked = '1';
@@ -194,11 +191,36 @@ class Call extends SugarBean
         }*/
 
         // Call_source
-        if ($this->direction == 'inbound' || $this->direction != 'outbound') {
-            $this->call_sources = getCallSource($this->call_to);
-        }
+        // if ($this->direction == 'inbound' || $this->direction != 'outbound') {
+        //     $this->call_sources = getCallSource($this->call_to);
+        // }
 
         $return_id = parent::save($check_notify);
+
+        // KPI FOR CALLS - Hungnh
+        if ($this->status == 'done' && !empty($this->description) && $this->call_talk > 0) {
+            switch ($this->type_call_sources) {
+                case 'called':
+                    if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
+                        myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
+                    } else {
+                        $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
+                    }
+                    break;
+                case 'recall':
+                    $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'recall');
+                    break;
+                case 'remind':
+                    $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'remind');
+                    // Update ec_booking_itineraries
+                    $update_remind = "UPDATE ec_booking_itineraries 
+                                    SET is_remind = 1
+                                    WHERE id = '" . trim($this->journey_id) . "'
+                                    AND deleted = 0";
+                                    $this->db->query($update_remind);
+                    break;
+            }
+        }
 
         // if ($this->update_vcal) {
         //     vCal::cache_sugar_vcal($current_user);
@@ -242,6 +264,9 @@ class Call extends SugarBean
                         } else {
                             $text_name_agent = $user_list[custom_get_sip_number($list_agent_inbound[0])];
                         }
+                    } else {
+                        // dialed
+                        $text_name_agent = $user_list[custom_get_sip_number($log['dialed'])];
                     }
                     $text = '' . $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào ' . $this->call_to . ' - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
                 }
@@ -268,6 +293,22 @@ class Call extends SugarBean
 
         return $return_id;
     }
+
+    /**
+     * Update KPI field function to reduce code duplication.
+     * author: hungnh
+     */
+    public function updateKpiField($parent_type, $parentId, $field) {
+        $sql = 'UPDATE ec_working_process
+                SET ' . $field . ' = 1
+                WHERE ' . $field . ' = 0
+                AND parent_id = "' . $parentId . '"
+                AND parent_type = "' . $parent_type . '"
+                AND deleted = 0';
+    
+            $this->db->query($sql);
+    }
+    
 
     /**
      * @param array $reminders
@@ -428,10 +469,6 @@ class Call extends SugarBean
         return $query;
     }
 
-
-
-
-
     public function fill_in_additional_detail_fields()
     {
         global $locale;
@@ -511,56 +548,90 @@ class Call extends SugarBean
     }
 
 
+    // public function get_list_view_data()
+    // {
+    //     $call_fields = $this->get_list_view_array();
+    //     global $app_list_strings, $focus, $action, $currentModule;
+    //     if (isset($focus->id)) {
+    //         $id = $focus->id;
+    //     } else {
+    //         $id = '';
+    //     }
+    //     if (isset($this->parent_type) && $this->parent_type != null) {
+    //         $call_fields['PARENT_MODULE'] = $this->parent_type;
+    //     }
+    //     if ($this->status == "Planned") {
+    //         //cn: added this if() to deal with sequential Closes in Meetings.  this is a hack to a hack (formbase.php->handleRedirect)
+    //         if (empty($action)) {
+    //             $action = "index";
+    //         }
+
+    //         $setCompleteUrl = "<b><a id='{$this->id}' class='list-view-data-icon' title='" . translate('LBL_CLOSEINLINE') . "' onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
+    //         if ($this->ACLAccess('edit')) {
+    //             $call_fields['SET_COMPLETE'] = $setCompleteUrl . "<span class='suitepicon suitepicon-action-clear'></span></a></b>";
+    //         } else {
+    //             $call_fields['SET_COMPLETE'] = '';
+    //         }
+    //     }
+    //     global $timedate;
+    //     $today = $timedate->nowDb();
+    //     $nextday = $timedate->asDbDate($timedate->getNow()->modify("+1 day"));
+    //     if (!isset($call_fields['DATE_START'])) {
+    //         LoggerManager::getLogger()->warn('Call has not DATE_START field for list view data.');
+    //     }
+    //     $mergeTime = isset($call_fields['DATE_START']) ? $call_fields['DATE_START'] : null; //$timedate->merge_date_time($call_fields['DATE_START'], $call_fields['TIME_START']);
+    //     $date_db = $timedate->to_db($mergeTime);
+    //     if ($date_db    < $today) {
+    //         if ($call_fields['STATUS'] == 'Held' || $call_fields['STATUS'] == 'Not Held') {
+    //             $call_fields['DATE_START'] = "<font>" . $call_fields['DATE_START'] . "</font>";
+    //         } else {
+    //             if (!isset($call_fields['DATE_START'])) {
+    //                 LoggerManager::getLogger()->warn('Call field has not START_DATE when trying to get list view data.');
+    //                 $dateStart = null;
+    //             } else {
+    //                 $dateStart = $call_fields['DATE_START'];
+    //             }
+    //             $call_fields['DATE_START'] = "<font class='overdueTask'>" . $dateStart . "</font>";
+    //         }
+    //     } elseif ($date_db < $nextday) {
+    //         $call_fields['DATE_START'] = "<font class='todaysTask'>" . $call_fields['DATE_START'] . "</font>";
+    //     } else {
+    //         $call_fields['DATE_START'] = "<font class='futureTask'>" . $call_fields['DATE_START'] . "</font>";
+    //     }
+    //     $this->fill_in_additional_detail_fields();
+
+    //     //make sure we grab the localized version of the contact name, if a contact is provided
+    //     if (!empty($this->contact_id)) {
+    //         // Bug# 46125 - make first name, last name, salutation and title of Contacts respect field level ACLs
+    //         $contact_temp = BeanFactory::getBean("Contacts", $this->contact_id);
+    //         if (!empty($contact_temp)) {
+    //             $contact_temp->_create_proper_name_field();
+    //             $this->contact_name = $contact_temp->full_name;
+    //         }
+    //     }
+
+    //     $call_fields['CONTACT_ID'] = $this->contact_id;
+    //     $call_fields['CONTACT_NAME'] = $this->contact_name;
+    //     $call_fields['PARENT_NAME'] = $this->parent_name;
+    //     $call_fields['REMINDER_CHECKED'] = $this->reminder_time == -1 ? false : true;
+    //     $call_fields['EMAIL_REMINDER_CHECKED'] = $this->email_reminder_time == -1 ? false : true;
+
+    //     return $call_fields;
+    // }
     public function get_list_view_data()
     {
         $call_fields = $this->get_list_view_array();
         global $app_list_strings, $focus, $action, $currentModule;
-        if (isset($focus->id)) {
-            $id = $focus->id;
-        } else {
-            $id = '';
-        }
+ 
         if (isset($this->parent_type) && $this->parent_type != null) {
             $call_fields['PARENT_MODULE'] = $this->parent_type;
         }
         if ($this->status == "Planned") {
-            //cn: added this if() to deal with sequential Closes in Meetings.  this is a hack to a hack (formbase.php->handleRedirect)
             if (empty($action)) {
                 $action = "index";
             }
-
-            $setCompleteUrl = "<b><a id='{$this->id}' class='list-view-data-icon' title='" . translate('LBL_CLOSEINLINE') . "' onclick='SUGAR.util.closeActivityPanel.show(\"{$this->module_dir}\",\"{$this->id}\",\"Held\",\"listview\",\"1\");'>";
-            if ($this->ACLAccess('edit')) {
-                $call_fields['SET_COMPLETE'] = $setCompleteUrl . "<span class='suitepicon suitepicon-action-clear'></span></a></b>";
-            } else {
-                $call_fields['SET_COMPLETE'] = '';
-            }
         }
-        global $timedate;
-        $today = $timedate->nowDb();
-        $nextday = $timedate->asDbDate($timedate->getNow()->modify("+1 day"));
-        if (!isset($call_fields['DATE_START'])) {
-            LoggerManager::getLogger()->warn('Call has not DATE_START field for list view data.');
-        }
-        $mergeTime = isset($call_fields['DATE_START']) ? $call_fields['DATE_START'] : null; //$timedate->merge_date_time($call_fields['DATE_START'], $call_fields['TIME_START']);
-        $date_db = $timedate->to_db($mergeTime);
-        if ($date_db    < $today) {
-            if ($call_fields['STATUS'] == 'Held' || $call_fields['STATUS'] == 'Not Held') {
-                $call_fields['DATE_START'] = "<font>" . $call_fields['DATE_START'] . "</font>";
-            } else {
-                if (!isset($call_fields['DATE_START'])) {
-                    LoggerManager::getLogger()->warn('Call field has not START_DATE when trying to get list view data.');
-                    $dateStart = null;
-                } else {
-                    $dateStart = $call_fields['DATE_START'];
-                }
-                $call_fields['DATE_START'] = "<font class='overdueTask'>" . $dateStart . "</font>";
-            }
-        } elseif ($date_db < $nextday) {
-            $call_fields['DATE_START'] = "<font class='todaysTask'>" . $call_fields['DATE_START'] . "</font>";
-        } else {
-            $call_fields['DATE_START'] = "<font class='futureTask'>" . $call_fields['DATE_START'] . "</font>";
-        }
+      
         $this->fill_in_additional_detail_fields();
 
         //make sure we grab the localized version of the contact name, if a contact is provided
@@ -789,9 +860,6 @@ class Call extends SugarBean
         }
 
         /* BEGIN - SECURITY GROUPS */
-        /**
-        if(!ACLController::moduleSupportsACL($this->parent_type) || ACLController::checkAccess($this->parent_type, 'view', $is_owner)){
-         */
         if (!ACLController::moduleSupportsACL($this->parent_type) || ACLController::checkAccess($this->parent_type, 'view', $is_owner, 'module', $in_group)) {
             /* END - SECURITY GROUPS */
             $array_assign['PARENT'] = 'a';
@@ -819,9 +887,6 @@ class Call extends SugarBean
             /* END - SECURITY GROUPS */
         }
         /* BEGIN - SECURITY GROUPS */
-        /**
-        if( ACLController::checkAccess('Contacts', 'view', $is_owner)){
-         */
         if (ACLController::checkAccess('Contacts', 'view', $is_owner, 'module', $in_group)) {
             /* END - SECURITY GROUPS */
             $array_assign['CONTACT'] = 'a';

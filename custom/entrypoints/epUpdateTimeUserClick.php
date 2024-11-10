@@ -19,14 +19,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
 	$temp_files         = scandir($path);
 	natsort($temp_files);
 	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hour')));
-     $agent  = isset($_POST['agent']) ? $_POST['agent'].'@td.timchuyenbay.net' : "";
-
-     if(in_array($current_user_id, $array_admin)){
-          // Luôn online
-          agent_change_status($agent, 'Available');
-          echo 1;
-          exit();
-     }
 
      $is_busy = 0; //Không bận
      foreach ($temp_files as $file) {
@@ -53,9 +45,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
                     }
                }
                
-               // Change agent status
-               agent_change_status($agent, $status);
-
                if($is_busy == 1){
                     echo 0;
                     exit();
@@ -69,84 +58,32 @@ if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
 
 
 if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
-     $agent  = isset($_POST['agent']) ? trim($_POST['agent']).'@td.timchuyenbay.net' : '';
-     $status = isset($_POST['status']) ? trim($_POST['status']) : '';
+     $agent  = isset($_POST['agent']) ? trim($_POST['agent']) : '';
+     $agent_status = isset($_POST['status']) ? trim($_POST['status']) : '';
 
-     agent_change_status($agent, $status);
-}
-
-function agent_change_status($agent, $status){
-     if(empty($agent) || empty($status)) {
-          $response['success'] = array(
-               'code' => 400,
-               'title' => 'agent status bad request',
-           );
-          echo json_encode($response);
-          exit();
-     }
-
-     $toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
-     $body_request = array(
-          'agent' => $agent,
-          'status' => $status,
-          'token' => $toten,
-     );
-
-     try {
-          $curl = curl_init();
-          if ($curl === false) {
-               echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
-          }
-
-          curl_setopt_array($curl, array(
-               CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
-               CURLOPT_RETURNTRANSFER => true,
-               CURLOPT_FOLLOWLOCATION => true,
-               CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
-               CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
-               CURLOPT_TIMEOUT        => 0,
-               CURLOPT_CUSTOMREQUEST   => 'POST',
-               CURLOPT_POSTFIELDS      => $body_request,
-          ));
-     
-          $json = curl_exec($curl);
-          $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-          curl_close($curl);
-          $arr = json_decode($json, true);
-
-          // if($arr['success']['code'] == 200){
-          //      echo 1;
-          //      exit();
-          // } 
-
-          // echo 0;
-          // exit();
-     } catch(Exception $e) {
-          return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
-     }
+     if ($agent && $agent_status) {
+          agent_change_status($agent, $agent_status);
+      }
 }
 
 // Check trạng thái người dùng
 if (isset($_POST['for']) && $_POST['for'] == 'checkUsrStt') {
+     $time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
 
-     // booker
-     if($current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6'){
-          $time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
-          $busy = $_POST['is_busy'];
-          content_log($current_user->id, $time_current, $busy);
+     // Booker
+    if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
+          content_log($current_user->id, $time_current, $_POST['is_busy']);
           echo 1;
+          return;
      }
-
+     
      // Admin - KT
      $array_adminkt = array(
           '72ece22c-cb25-8e30-9dea-56f2201cd359',
           '9ba5c5a0-a402-02f4-76d3-53ba0481ce45',
           'b5523dbd-b9a7-67c0-77b5-533e6ece89b1',
      );
-
-     if ((!is_admin($current_user) || in_array($current_user->id, $array_adminkt)) && $current_user->id != '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
-          $time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
-
+     if ((!is_admin($current_user) || in_array($current_user->id, $array_adminkt)) && $current_user->id !== '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
           // Update START_ONLINE khi user Online lần đầu
           $sql_exist = '
                SELECT id, status
@@ -155,61 +92,49 @@ if (isset($_POST['for']) && $_POST['for'] == 'checkUsrStt') {
                AND assigned_user_id = "' . $current_user->id . '"
                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
           ';
-
-          $res_exist 	= $db->query($sql_exist);
-          $row_exist 	= $db->fetchByAssoc($res_exist);
+          $row_exist = $db->fetchByAssoc($db->query($sql_exist));
           $online 		= new EC_Online_Report;
           if(isset($row_exist) && !empty($row_exist)){
                $online->retrieve($row_exist['id']);
           } else {
                $online->retrieve($current_user->id);
           }
-
-          if (!empty($row_exist['id']) && $row_exist['status'] != 2) {
-               // $online->retrieve($row_exist['id']);
-
-               // Thời gian bắt đầu online - checkin
+          if ($row_exist && $row_exist['status'] != 2 && empty($online->start_online)) {
+               // Thời gian bắt đầu online - checkin - online lần đầu
                if (strtotime($online->start_online) === false) {
                     $online->status = 1;
                     $online->save();
 
-                    $sql = '
-                         UPDATE ec_online_report
-                         SET start_online = "' . date('Y-m-d H:i:s', strtotime($online->date_modified)) . '", last_online = "' . date('Y-m-d H:i:s', strtotime($online->date_modified)) . '"
-                         WHERE id = "' . $online->id . '"
-                         AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                         AND deleted = 0
-                    ';
-                    $db->query($sql);
-
-                    // ONLINE LẦN ĐẦU
-                    echo 'first_online';
+                    $start_time = date('Y-m-d H:i:s', strtotime($online->date_modified));
+                    $db->query("
+                        UPDATE ec_online_report
+                        SET start_online = '{$start_time}', last_online = '{$start_time}'
+                        WHERE id = '{$online->id}'
+                        AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = CURDATE()
+                        AND deleted = 0
+                    ");
                } 
           }
 
-          // GHI VÀO LOG
-          $is_busy = 0;
-
-          if($online->status == 2){
-               echo 2;
-               $is_busy = 1;
-          } 
-
+          // Ghi log trạng thái
+          $is_busy = $online->status == 2 ? 1 : 0;
           content_log($current_user->id, $time_current, $is_busy);
+          echo $is_busy ? 2 : 1;
      }
 }
 
 // Họ click vào button Busy
 if (isset($_POST['for']) && $_POST['for'] == 'saveLastBusyUser') {
+     $time = $_POST['time'];
+     $busy = $_POST['busy'];
 
      // Booker
-     if($current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6'){
-          $time = $_POST['time'];
-          $busy = $_POST['checked'];
+    if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
           content_log($current_user->id, $time, $busy);
           echo 1;
+          return;
      }
-
+     
      // Admin - KT
      $array_adminkt = array(
           '72ece22c-cb25-8e30-9dea-56f2201cd359',
@@ -217,7 +142,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastBusyUser') {
           'b5523dbd-b9a7-67c0-77b5-533e6ece89b1',
      );
 
-     if ((!is_admin($current_user) || in_array($current_user->id, $array_adminkt)) && $current_user->id != '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
+     if ((!is_admin($current_user) || in_array($current_user->id, $array_adminkt)) && $current_user->id !== '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
           // Update last_online khi họ bấm bận
           $sql_exist = '
                SELECT id, status
@@ -226,73 +151,54 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastBusyUser') {
                AND assigned_user_id = "' . $current_user->id . '"
                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
           ';
-
-          $res_exist 	= $db->query($sql_exist);
-          $row_exist 	= $db->fetchByAssoc($res_exist);
+          $row_exist = $db->fetchByAssoc($db->query($sql_exist));
           $online 		= new EC_Online_Report;
 
-          if (!empty($row_exist['id']) && $row_exist['status'] != 2) {
-               // ĐANG BẬN
-               $online->retrieve($row_exist['id']);
-               $online->status = 2;
-               $online->save();
-
-               // Thời gian bắt đầu online - checkin
-               if (strtotime($online->last_online) !== false) {
-                    $sql = '
-                         UPDATE ec_online_report
-                         SET last_online = "' . date('Y-m-d H:i:s', strtotime($online->date_modified)) . '"
-                         WHERE id = "' . $online->id . '"
-                         AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                         AND deleted = 0
-                    ';
-                    $db->query($sql);
-
-                    echo 'Cập nhật last_online khi họ bận';
-               } else {
-                    echo 'last_online = NULL';
-               }
-          } else {
-               // HẾT BẬN
-               $online->retrieve($row_exist['id']);
-               $online->status = 1;
-               $online->save();
-               
-               // Thời gian bắt đầu online - checkin
-               if (strtotime($online->last_online) !== false) {
-                    $sql = '
-                         UPDATE ec_online_report
-                         SET last_online = "' . date('Y-m-d H:i:s', strtotime($online->date_modified)) . '"
-                         WHERE id = "' . $online->id . '"
-                         AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                         AND deleted = 0
-                    ';
-                    $db->query($sql);
-
-                    echo 'Cập nhật last_online khi họ HẾT bận';
-               } else {
-                    echo 'last_online = NULL';
-               }
+          $online = new EC_Online_Report;
+          if ($row_exist) {
+              $online->retrieve($row_exist['id']);
           }
 
-          if (trim($_POST['checked']) == 1) {
-               $_SESSION['busy'] = 1;
+          // Cập nhật trạng thái busy
+          if ($row_exist && $row_exist['status'] != 2) {
+               $online->status = 2;  // Đang bận
+               $online->save();
           } else {
-               $_SESSION['busy'] = 0;
+               $online->status = 1;  // Hết bận
+               $online->save();
           }
-          $time = $_POST['time_busy'];
 
-          content_log($current_user->id, $time, $_SESSION['busy']);
+          // Cập nhật thời gian last_online
+          if (strtotime($online->last_online) !== false) {
+               $last_online_time = date('Y-m-d H:i:s', strtotime($online->date_modified));
+               $db->query("
+               UPDATE ec_online_report
+               SET last_online = '{$last_online_time}'
+               WHERE id = '{$online->id}'
+               AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = CURDATE()
+               AND deleted = 0
+               ");
+               echo $online->status == 2 ? 'Cập nhật last_online khi họ bận' : 'Cập nhật last_online khi họ hết bận';
+          } else {
+               echo 'last_online = NULL';
+          }
+
+          // Cập nhật trạng thái busy trong session
+          $_SESSION['busy'] = (trim($_POST['checked']) == 1) ? 1 : 0;
+          $time_busy = $_POST['time_busy'];
+          content_log($current_user->id, $time_busy, $_SESSION['busy']);
      }
 }
 
 if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
-     // booker
-     if($current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6'){
-          $time = $_POST['time'];
-          $busy = $_SESSION['busy'];
+     $time = $_POST['time'] ?? null;
+     $busy = $_SESSION['busy'] ?? 0;
+
+     // Booker
+     if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
           content_log($current_user->id, $time, $busy);
           echo 1;
+          return;
      }
 
      // Admin - KT
@@ -302,7 +208,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
           'b5523dbd-b9a7-67c0-77b5-533e6ece89b1',
      );
 
-     if ((!is_admin($current_user) || in_array($current_user->id, $array_adminkt)) && $current_user->id != '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
+     if ((!is_admin($current_user) || in_array($current_user->id, $array_adminkt)) && $current_user->id !== '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
+          if (is_null($time) || empty($time)) {
+               echo 0;
+               exit();
+           }
+
           $sql_exist = '
                SELECT id, status
                FROM ec_online_report
@@ -310,8 +221,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
                AND assigned_user_id = "' . $current_user->id . '"
                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
           ';
-          $res_exist 	= $db->query($sql_exist);
-          $row_exist 	= $db->fetchByAssoc($res_exist);
+          $row_exist = $db->fetchByAssoc($db->query($sql_exist));
           $online 		= new EC_Online_Report;
 
           if(isset($row_exist) && !empty($row_exist)){
@@ -320,14 +230,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
                $online->retrieve($current_user->id);
           }
           
-          if (is_null($_POST['time']) || empty($_POST['time'])){
-               echo 0; 
-               exit();
-          } 
-
-          $time = $_POST['time'];
           $busy = isset($_SESSION['busy']) ? $_SESSION['busy'] : ($online->status == 2 ? 1 : 0);
-
           content_log($current_user->id, $time, $busy);
           echo 1;
      }

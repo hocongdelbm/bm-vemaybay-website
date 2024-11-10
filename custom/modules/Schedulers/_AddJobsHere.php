@@ -25,23 +25,6 @@ $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày 
 
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 
-function sendTestTelegram($content, $parseMode = 'HTML', $timeout = 5)
-{
-	$chat_id = '-1001360390468'; // Group Test
-	$token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk'; // Bot @CronJobNewsVietjet_bot
-
-	$url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-	$url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-	curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-	$result = curl_exec($curl);
-	curl_close($curl);
-	return $result;
-}
-
 function checkExpirationDateVoucher()
 {
 	global $db;
@@ -82,6 +65,8 @@ function updateOnlineReport()
 		'e4a1676e-536d-b5d2-75c2-6502656a118b', //cuong
 		'493ad5e5-ffea-a84f-96d7-6577fed623d6', //booker
 		'2751ebe5-6cdc-acfc-7d70-659d08368c2e', //ancao
+
+		'c57196c6-e211-9856-43d5-6695498f39ae', //tiennguyen
 	);
 	$notInCondition = "'" . implode("', '", $arr_id_admin) . "'";
 
@@ -1964,175 +1949,163 @@ function updateMissingEfforts()
 	return true;
 }
 
-//Cập nhật status agent
-function agent_change_status($agent, $status)
-{
-	$agent  = $agent . '@td.timchuyenbay.net';
-	$toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
-	$body_request = array(
-		'agent' => $agent,
-		'status' => $status,
-		'token' => $toten,
-	);
-
-	try {
-		$curl = curl_init();
-		if ($curl === false) {
-			echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
-		}
-
-		curl_setopt_array($curl, array(
-			CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
-			CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
-			CURLOPT_TIMEOUT        => 0,
-			CURLOPT_CUSTOMREQUEST   => 'POST',
-			CURLOPT_POSTFIELDS      => $body_request,
-		));
-
-		$json = curl_exec($curl);
-		$httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		curl_close($curl);
-		$arr = json_decode($json, true);
-	} catch (Exception $e) {
-		return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
-	}
-}
-
 // Kiểm tra user còn online hay không
+// function checkStatusOnlineUser()
+// {
+// 	global $db, $current_user;
+
+// 	$path           = "secure_sessions/check_online_logs/";
+// 	$temp_files     = scandir($path);
+// 	natsort($temp_files);
+// 	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hours')));
+// 	foreach ($temp_files as $file) {
+// 		if ($file != "." && $file != ".." && $file != "Thumbs.db" && $file != basename(__FILE__)) {
+// 			$info               = pathinfo($file);
+// 			$file_name          = basename($file, '.' . $info['extension']);
+// 			$user_id            = str_replace('_', '-', $file_name);
+// 			$json_file          = read_file_logs_online($user_id);
+// 			$data_user  	    = json_decode($json_file, true);
+
+// 			$strtotime_user 	= strtotime(date('Y-m-d H:i:s', strtotime($data_user['last_time'])));
+// 			$last_time_user_7 	= date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
+// 			$diffInSeconds  	= abs($timestamp_now - $strtotime_user);
+// 			$agent 				= custom_get_sip_number($user_id);
+
+
+// 			// User đó busy - check 5 phút - 300s
+// 			if (trim($data_user['busy']) == 1) {
+// 				if ($diffInSeconds > 600) {
+// 					$sql_offline = '
+// 						UPDATE ec_online_report 
+// 						SET status = 0, last_online = "' . $last_time_user_7 . '"
+// 						WHERE assigned_user_id = "' . $user_id . '"
+// 						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+// 						AND deleted = 0
+// 					';
+// 					$db->query($sql_offline);
+				
+// 					$_SESSION['busy'] = 0;
+// 					if($agent){
+// 						agent_change_status($agent, 'Logged Out');
+// 					}
+// 					// sendTestTelegram('Nhân viên ' .$user_id. ' đã bị off do bận quá 5 phút');
+// 				} else {
+// 					// sendTestTelegram('Nhân viên ' .$user_id. ' vẫn còn đang bận');
+// 				}
+
+// 			} else {
+// 				// Kiểm tra sự chênh lệch trong khoảng thời gian 2 phút 30s (150 giây)
+// 				if ($diffInSeconds > 150) {
+// 					$sql_offline = '
+// 						UPDATE ec_online_report 
+// 						SET status = 0, last_online = "' . $last_time_user_7 . '"
+// 						WHERE assigned_user_id = "' . $user_id . '"
+// 						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+// 						AND deleted = 0
+// 					';
+// 					$db->query($sql_offline);
+// 					$_SESSION['busy'] 	= 0;
+// 					// sendTestTelegram('Nhân viên ' .$val['name_user']. ' đã bị off vì quá 2 phút không tương tác BM. '.$last_time_user_7.'');
+// 					if($agent){
+// 						agent_change_status($agent, 'Logged Out');
+// 					}
+// 				} else {
+// 					//Online 
+// 					$sql_select = '
+// 								SELECT status
+// 								FROM ec_online_report
+// 								WHERE assigned_user_id = "' . $user_id . '"
+// 								AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+// 								AND deleted = 0
+// 								';
+// 					$res = $db->query($sql_select);
+// 					$row = $db->fetchByAssoc($res);
+
+// 					if ($row['status'] && $row['status'] != 1 && $row['status'] != 2) {
+// 						// $sql_online = '
+// 						// 	UPDATE ec_online_report 
+// 						// 	SET status = 1, last_online = "' . $last_time_user_7 . '"
+// 						// 	WHERE assigned_user_id = "' . $user_id . '"
+// 						// 	AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+// 						// 	AND deleted = 0
+// 						// ';
+// 						// $db->query($sql_online);
+// 						if($agent){
+// 							agent_change_status($agent, 'Available');
+// 						}
+// 						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' ONLINE trở lại');
+// 					} else {
+// 						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' Vẫn đang online');
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+
+// 	return true;
+// }
 function checkStatusOnlineUser()
 {
-	global $db, $current_user;
+	global $db;
 
-	$array_admin = [
-		'168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-		'622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-		'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
-		'9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-		'1', //DDuc
-	];
-
+	// 0: Offline
+	// 1: Online
+	// 2: Busy
 	$path           = "secure_sessions/check_online_logs/";
-	$temp_files     = scandir($path);
-	natsort($temp_files);
-	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hours')));
-	$status = '';
+	$timestamp_now = strtotime('+7 hours');
 
-	foreach ($temp_files as $file) {
-		if ($file != "." && $file != ".." && $file != "Thumbs.db" && $file != basename(__FILE__)) {
-			$info               = pathinfo($file);
-			$file_name          = basename($file, '.' . $info['extension']);
-			$user_id            = str_replace('_', '-', $file_name);
-			$json_file          = read_file_logs_online($user_id);
-			$data_user  	    = json_decode($json_file, true);
+	foreach (array_diff(scandir($path), ['.', '..', 'Thumbs.db', basename(__FILE__)]) as $file) {
 
-			$strtotime_user 	= strtotime(date('Y-m-d H:i:s', strtotime($data_user['last_time'])));
-			$last_time_user_7 	= date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
-			$diffInSeconds  	= abs($timestamp_now - $strtotime_user);
+		$user_id = str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
+        $data_user = json_decode(read_file_logs_online($user_id), true);
+		if (!$data_user) {
+			$log_online = array(
+				'domain' => 'bm.vemaybay.website',
+				'path' => 'custom/modules/Schedules',
+				'file' => $file,
+				'user_id' => $user_id,
+				'timestamp_now' => $timestamp_now,
+				'datetime' => date('d-m-Y H:i:s'),
+			);
+			sendTestTelegram(json_encode($log_online));
+			continue;
+		}; 
 
-			// User đó busy - check 5 phút
-			if (trim($data_user['busy']) == 1) {
-				$status = 'Logged Out';
-				// Kiểm tra sự chênh lệch trong khoảng thời gian 5 phút (300 giây)
-				if ($diffInSeconds > 600) {
-					$sql_offline = '
-						UPDATE ec_online_report 
-						SET status = 0, last_online = "' . $last_time_user_7 . '"
-						WHERE assigned_user_id = "' . $user_id . '"
-						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-						AND deleted = 0
-					';
-					$db->query($sql_offline);
+        $last_time_user_7 = date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
+        $diffInSeconds = abs($timestamp_now - strtotime($data_user['last_time']));
+        $agent = custom_get_sip_number($user_id);
 
-					$_SESSION['busy'] = 0;
-					// sendTestTelegram('Nhân viên ' .$user_id. ' đã bị off do bận quá 5 phút');
-				} else {
-					// sendTestTelegram('Nhân viên ' .$user_id. ' vẫn còn đang bận');
-				}
-			} else {
-				// Kiểm tra sự chênh lệch trong khoảng thời gian 2 phút 30s (150 giây)
-				if ($diffInSeconds > 150) {
-					$status = 'Logged Out';
+		if($user_id == 'c57196c6-e211-9856-43d5-6695498f39ae') continue; //tiennguyen
 
-					$sql_offline = '
-						UPDATE ec_online_report 
-						SET status = 0, last_online = "' . $last_time_user_7 . '"
-						WHERE assigned_user_id = "' . $user_id . '"
-						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-						AND deleted = 0
-					';
-					$db->query($sql_offline);
-					$_SESSION['busy'] 	= 0;
-					// sendTestTelegram('Nhân viên ' .$val['name_user']. ' đã bị off vì quá 2 phút không tương tác BM. '.$last_time_user_7.'');
-				} else {
-					//Online 
-					$status = 'Available';
-
-					$sql_select = '
-								SELECT status
-								FROM ec_online_report
-								WHERE assigned_user_id = "' . $user_id . '"
-								AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-								AND deleted = 0
-								';
-					$res = $db->query($sql_select);
-					$row = $db->fetchByAssoc($res);
-
-					if ($row['status'] != 1 && $row['status'] != 2) {
-						$sql_online = '
-							UPDATE ec_online_report 
-							SET status = 1, last_online = "' . $last_time_user_7 . '"
-							WHERE assigned_user_id = "' . $user_id . '"
-							AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-							AND deleted = 0
-						';
-						$db->query($sql_online);
-						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' ONLINE trở lại');
-					} else {
-						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' Vẫn đang online');
-					}
-				}
-			}
-
-			// Change status
-			if (in_array($user_id, $array_admin)) {
-				$status = 'Available';
-			}
-			$agent = custom_get_sip_number($user_id);
-			agent_change_status($agent, $status);
-		}
+		// Kiểm tra trạng thái busy (5 phút) và không tương tác (2 phút 30 giây)
+        if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] != 1 && $diffInSeconds > 150)) {
+            updateUserStatus($db, $user_id, $last_time_user_7, 0);
+            $_SESSION['busy'] = 0;
+            if ($agent) agent_change_status($agent, 'Logged Out');
+        }
 	}
 
 	return true;
 }
 
+function updateUserStatus($db, $user_id, $last_time_user_7, $status)
+{
+    $db->query("
+        UPDATE ec_online_report
+        SET status = $status, last_online = '$last_time_user_7'
+        WHERE assigned_user_id = '$user_id'
+        AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'
+        AND deleted = 0
+    ");
+}
+
+
+
 // Kiểm tra xem booking giao cho booker đã được xử lý hay chưa? 
 // Thời gian xử lý tối đa là 2 phút
 function checkBookingHandle()
 {
-	global $db, $app_list_strings, $current_user;
-	// $sql = '
-	// 	SELECT 
-	// 		onl.id, onl.booking_id,
-	// 		b.total_qty, b.name AS booking_name, b.contact_name, b.phone,
-	// 		IF(
-	// 			b.booking_status <> 1 
-	// 			OR (
-	// 				SELECT IF(COUNT(id) > 0, 1, 0)
-	// 				FROM notes
-	// 				WHERE parent_id = b.id
-	// 			), 1, 0 
-	// 		) AS is_processed
-	// 	FROM ec_online_report onl
-	// 		LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id
-	// 	WHERE onl.deleted = 0
-	// 		AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-	// 		AND (onl.booking_id <> "" OR onl.booking_id IS NOT NULL) 
-	// 		AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(onl.start_assign, "%Y-%m-%d %H:%i"), "' . date('Y-m-d H:i') . '") >= 5
-	// ';
-
+	global $db, $app_list_strings;
 	$sql = '
 		SELECT 
 			onl.id, onl.booking_id,

@@ -346,6 +346,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ]);
         }
         else {
+            $error_code = isset($arr['error']) ? $arr['error'] : '';
+            $message = $Zalo->get_error_description_zns($error_code);
+
             $m = new EC_Messages();
             $m->send_from       = $Zalo->get_oa_id();
             $m->send_to         = $phone;
@@ -358,11 +361,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $m->data            = json_encode($template_data);
             $m->response        = $json;
             $m->status          = 'fail';
+            $m->description     = $message;
             $m->assigned_user_id = $current_user->id;
             $m->save();
-
-            $message = "Gửi tin nhắn thất bại";
-            if($arr['message'] && strpos(strtolower($arr['message']), "account not existed") !== false) $message = "Số điện thoại không có Zalo";
 
             echo json_encode(["error" => 1, "message" => $message, "data" => $arr]);
         }

@@ -9,6 +9,16 @@ global $mod_strings, $app_strings, $sugar_config, $current_user;
 $deparment_info = myGetDepartmentInfo($current_user->department_id);
 $title_info = $current_user->title;
 
+// PANDA
+$arr_user_whitelist = [
+    'pandadth',
+    'hungnh',
+];
+$is_panda = (in_array($GLOBALS['current_user']->user_name, $arr_user_whitelist));
+if($is_panda){
+    if(ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[]=Array("index.php?module=EC_TongHop&action=businessreport&return_module=EC_TongHop&return_action=businessreport&date_select=this_week", "Báo cáo tuần", "businessreport", 'EC_TongHop');
+}
+
 // if (ACLController::checkAccess('EC_TongHop', 'edit', true)) {
 //     $module_menu[] = array('index.php?module=EC_TongHop&action=EditView&return_module=EC_TongHop&return_action=DetailView', $mod_strings['LNK_NEW_RECORD'], 'Add', 'EC_TongHop');
 // }
@@ -26,11 +36,10 @@ if(is_admin($current_user))$module_menu[]=Array("index.php?module=EC_TongHop&act
 
 if(ACLController::checkAccess('EC_TongHop', 'list', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=employeekpi&return_module=EC_TongHop&return_action=employeekpi", 'KPI nhân viên',"kpi_icon_16", 'EC_TongHop');
 
-if(ACLController::checkAccess('Bugs', 'edit', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=cashflow&return_module=EC_TongHop&return_action=cashflow", "Báo cáo dòng tiền","finance-16", 'EC_TongHop');
-
-if(ACLController::checkAccess('Bugs', 'view', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=yearlyreport&return_module=EC_TongHop&return_action=yearlyreport", "Báo cáo tổng hợp","linechart_16x16", 'EC_TongHop');
-
 if(isAllowedUser()) {
+    if(ACLController::checkAccess('EC_TongHop', 'edit', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=cashflow&return_module=EC_TongHop&return_action=cashflow", "Báo cáo dòng tiền","finance-16", 'EC_TongHop');
+    if(ACLController::checkAccess('EC_TongHop', 'view', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=yearlyreport&return_module=EC_TongHop&return_action=yearlyreport", "Báo cáo tổng hợp","linechart_16x16", 'EC_TongHop');
+    
     if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[] 	= array("index.php?module=EC_TongHop&action=profitreport&return_module=EC_TongHop&return_action=profitreport", "Báo cáo lãi lỗ","profit_16x16", 'EC_TongHop');
     if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] 	= array("index.php?module=EC_TongHop&action=iplist&return_module=EC_TongHop&return_action=iplist", "Danh sách IP", "ip-location", 'EC_TongHop');
     if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] 	= array("index.php?module=EC_TongHop&action=analytics&return_module=EC_TongHop&return_action=analytics", "Analytics TCB", "analytics", 'EC_TongHop');

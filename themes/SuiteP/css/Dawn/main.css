@@ -113,6 +113,7 @@ textarea.box-textarea:focus {
     border-radius: 4px;
     font-style: italic;
     font-weight: 600;
+    text-align: left;
 }
 
 .unerror {
@@ -519,10 +520,18 @@ select::-webkit-scrollbar {
 }
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img {
+    display: flex;
+    align-items: center;
     position: relative;
-    width: 30px;
-    height: 30px;
 }
+
+.navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img img {
+    width: 30px;
+    height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+}
+
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img svg {
     width: 100%;
@@ -553,7 +562,7 @@ select::-webkit-scrollbar {
 }
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-text {
-    margin-left: .5rem;
+    margin-left: .25rem;
 }
 
 .rtl .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-text {
@@ -1753,10 +1762,6 @@ select::-webkit-scrollbar {
     vertical-align: middle;
 }
 
-#form-login a {
-    color: #7e8ba3;
-}
-
 .form-login__wrapper {
     text-align: center;
     padding: 2rem 1.5rem;
@@ -1769,13 +1774,16 @@ select::-webkit-scrollbar {
     flex-shrink: 0;
     margin: 0 auto;
     min-height: 0;
-    width: 450px;
+    max-width: 450px;
 }
 
 .form-login__wrapper img {
     height: 60px;
+    object-fit: contain;
 }
 
+#login_button,
+#generate_pwd_button,
 .form-login__wrapper input[type=submit] {
     background-image: linear-gradient(160deg, #0688f9 0%, #135ca0 100%);
     color: var(--white-color);
@@ -2223,18 +2231,7 @@ input#btnChangeStatus {
     right: 5px;
     top: 50%;
     transform: translate(-50%, -50%);
-}
-
-input#confirm_pwd,
-input#new_password,
-input#old_password {
-    padding: 6px;
-    text-indent: 5px;
-    margin: 0;
-    border: 1px solid var(--border-color);
-    outline: none;
-    border-radius: 5px;
-    width: 100%;
+    z-index: 5;
 }
 
 select.select-box {
@@ -2695,7 +2692,6 @@ select#iv_payment_method {
     border-radius: 5px;
     border: 1px solid var(--border-color);
     min-height: 50px;
-    max-height: 100px;
     padding: 8px;
     font-size: 14px;
 }
@@ -4830,7 +4826,7 @@ div[data-module="Users"] .email #outboundDialog_c #outboundDialog {
     padding: 12px;
     border: none;
     border: 1px solid #dee2e6;
-    border-top: none;
+    /* border-top: none; */
     margin-bottom: 15px;
 }
 
@@ -4940,7 +4936,7 @@ body.modal-active{
     top: 0;
     left: 0;
     transform: scale(0);
-    z-index: 100;
+    z-index: 105;
 }
 
 #modal-container.active {
@@ -5921,6 +5917,10 @@ table.table-details__booking tbody td {
 #pagecontent[data-module=Calls]  .list-view-rounded-corners table.list.view.table-responsive tr td[field=description]{
     width: min(50vw, 230px);
 }
+#pagecontent[data-module=Calls]  .list-view-rounded-corners table.list.view.table-responsive tr td[field=call_from],
+#pagecontent[data-module=Calls]  .list-view-rounded-corners table.list.view.table-responsive tr td[field=call_to]{
+    width: fit-content;
+}
 
 /* =============== ONEPAY ================== */
 /* ========================================= */
@@ -6095,7 +6095,24 @@ API ZALO TEMPLATE - TIN NHẮN KHUYẾN MÃI
 /* ------------------------------------ */
 #testSettingsDiv,
 #selectFoldersDiv{
-    background: #fff;
+    background: var(--white-color);
     padding-bottom: 15px;
 
+}
+
+
+/* ZOOM IMG */
+div[type="image"] img{
+    transition: transform 0.3s ease;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 5px;
+    background: var(--white-color);
+    margin-top: 10px;
+}
+
+div[type="image"] img:hover{
+    transform: scale(1.5);
 }

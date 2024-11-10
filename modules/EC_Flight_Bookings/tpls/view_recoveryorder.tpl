@@ -3,7 +3,7 @@
         $(document).ready(function () {
             $('#frmRecoveryOrder').on('submit', function () {
                 var bookingNo = $.trim($('#txtBookingNo').val()).replace(/[^a-zA-Z0-9]/g, '');
-                if(bookingNo == '' || bookingNo.length > 10){
+                if(bookingNo == ''){
                     alert('Số booking không hợp lệ');
                     return false;
                 }

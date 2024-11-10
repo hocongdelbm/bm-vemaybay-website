@@ -7,7 +7,7 @@ $viewdefs[$module_name]['DetailView'] = array(
             'buttons' => array(
                 'EDIT',
                 'DELETE',
-                // 'DUPLICATE',
+                'DUPLICATE',
                 array(
                     'customCode' => '{$CALLS_BUTTON}',
                 ),

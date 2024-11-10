@@ -161,12 +161,11 @@ class EC_Flight_BookingsLogicHook
 
 	function updateKPI($focus, $event, $arguments)
 	{
-		global $current_user;
-
-		// Cập nhật KPI COM khi hoàn tất booking
-		if (isset($_POST['btnCompleted'])) {
-			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, '', $current_user->id, 'completed');
-		}
+		// Cập nhật KPI COM khi hoàn tất booking - Tính KPI cho người được giao booking
+		if (isset($_POST['btnCompleted']) || $focus->booking_status == 8 && $focus->fetched_row['assigned_user_id'] != $focus->assigned_user_id) {
+			myRemoveWorkingProcess($focus->object_name, $focus->id, 'completed');
+			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, 'Hoàn tất booking', $focus->assigned_user_id, 'completed');
+		} 
 	}
 
 	// Cập nhật thông tin voucher, khi lưu từ web

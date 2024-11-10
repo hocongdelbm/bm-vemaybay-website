@@ -7,8 +7,10 @@ class VietjetAPIHelper {
 
     public function __construct($supplier_id) {
         if($supplier_id == '3e414dde-85b6-315b-e0ba-6556c458368f') { // Minh Hồng Võ
-            $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2";
+            $this->ENDPOINT = "https://apivj3.timchuyenbay.net/api/v2"; // Main
             // $this->ENDPOINT = "https://apivj4.timchuyenbay.net/api/v2";
+            // $this->ENDPOINT = "https://apivj2.timchuyenbay.net/api/v2";
+
         }
         elseif($supplier_id == '7df1cbf9-21b6-4f45-7cc5-62011601a951') { // Travelpass
             // $this->ENDPOINT = "https://apivj.timchuyenbay.net/api/v1";
@@ -680,9 +682,11 @@ class VietjetAPIHelper {
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_POST, TRUE);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-            curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
+            curl_setopt($curl, CURLOPT_ENCODING, '');
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
+            curl_setopt($curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_3);
+            curl_setopt($curl, CURLOPT_DNS_USE_GLOBAL_CACHE, false);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $this->CONNECTTIMEOUT);
             curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);
             $json = curl_exec($curl);

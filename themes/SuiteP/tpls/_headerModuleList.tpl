@@ -4,26 +4,28 @@
      $(document).ready(function() {
           const currentURL = window.location.href;
           const currentURLQuery = window.location.search;
+          const AGENT_STATUS    = $('#agent_status').val() || 'Available';
 
+          var busy = 0;
+          if(AGENT_STATUS != 'Available'){
+               busy = 1;
+          } 
           if(currentURLQuery.indexOf('module=EC_Zalo&action=index') === -1) {
                $.ajax({
                     url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
                     type: "POST",
                     cache: false,
                     data: {
-                         is_busy: localStorage.getItem('is_busy'),
+                         is_busy: busy,
                          for: "checkUsrStt",
                     },
                     success: function(response) {
-                         if (response == 2) {
-                              $("#busy_stt").prop("checked", true);
-                              $("#availability-status").addClass("busy");
-                              if(ua) ua.stop();
-                              showConnect(false);
-                         } else {
-                              $('#busy_stt').prop("checked", false);
-                              $("#availability-status").addClass("online");
-                         }
+                         // if (response == 2) {
+                         //      $("#busy_stt").prop("checked", true);
+                         //      $("#availability-status").addClass("busy");
+                         //      if(ua) ua.stop();
+                         //      showConnect(false);
+                         // } 
                     }
                });
 
@@ -41,43 +43,17 @@
           }
 
           // Checked trạng thái bận của user
-          let value_busy = localStorage.getItem('is_busy');
-          if(value_busy == 1){
-               $('#busy_stt').prop("checked", true);
-          } else{
-               $('#busy_stt').prop("checked", false);
-          }
-
           $('body').on('click', function(e) {
-               // Lấy thời điểm hiện tại
                const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
                let e_target_class = e.target.className;
-               // console.log(e.target);
 
                if(e.target.id == 'busy_stt'){
-                    if ($("#busy_stt").is(":checked")) {
-                         localStorage.setItem('is_busy', 1);
-                    } else{
-                         localStorage.setItem('is_busy', 0);
-                    }
-                    
-                    let checked = localStorage.getItem('is_busy');
-                    if(checked == 1){
-                         $("#availability-status").removeClass("online");
-                         $("#availability-status").addClass("busy");
-                         $('#busy_stt').prop("checked", true);
-                    } else {
-                         $("#availability-status").removeClass("busy");
-                         $("#availability-status").addClass("online");
-                         $('#busy_stt').prop("checked", false);
-                    }
-
                     $.ajax({
                          url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
                          type: "POST",
                          cache: false,
                          data: {
-                              checked: checked,
+                              busy: busy,
                               time_busy: currentTime,
                               for: "saveLastBusyUser",
                          },
@@ -336,13 +312,13 @@
                                    </li>
                          
                                    <!-- Notifications -->
-                                   <li id="desktop_notifications" class="nav-item dropdown d-none">
+                                   <li id="desktop_notifications" class="nav-item dropdown">
                                         <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: #bba8bff5"><path d="M19 13.586V10c0-3.217-2.185-5.927-5.145-6.742C13.562 2.52 12.846 2 12 2s-1.562.52-1.855 1.258C7.185 4.074 5 6.783 5 10v3.586l-1.707 1.707A.996.996 0 0 0 3 16v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a.996.996 0 0 0-.293-.707L19 13.586zM19 17H5v-.586l1.707-1.707A.996.996 0 0 0 7 14v-4c0-2.757 2.243-5 5-5s5 2.243 5 5v4c0 .266.105.52.293.707L19 16.414V17zm-7 5a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22z"></path></svg>
-                                             <span class="count-symbol bg-danger"></span>
+                                             <span class="alert_count count-symbol bg-danger"></span>
                                         </a>
                                         <div id="alerts" class="dropdown-menu dropdown-menu-right navbar-dropdown box-list" aria-labelledby="notificationDropdown">
-                                        {$APP.LBL_EMAIL_ERROR_VIEW_RAW_SOURCE}
+                                             {$APP.LBL_EMAIL_ERROR_VIEW_RAW_SOURCE}
                                         </div>
                                    </li>
                          
@@ -350,12 +326,10 @@
                                    <li id="globalLinks" class="nav-item nav-profile dropdown">
                                         <a class="nav-link dropdown-toggle" id="profileDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                              <div class="nav-profile-img">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm7.753 18.305c-.261-.586-.789-.991-1.871-1.241-2.293-.529-4.428-.993-3.393-2.945 3.145-5.942.833-9.119-2.489-9.119-3.388 0-5.644 3.299-2.489 9.119 1.066 1.964-1.148 2.427-3.393 2.945-1.084.25-1.608.658-1.867 1.246-1.405-1.723-2.251-3.919-2.251-6.31 0-5.514 4.486-10 10-10s10 4.486 10 10c0 2.389-.845 4.583-2.247 6.305z"/></svg>
-                                                  <span id="availability-status" class="availability-status online"></span>
-                                             </div>
-                                             <div class="nav-profile-text d-flex align-items-center hide-mobile">
-                                                  <p class="text-black">{$CURRENT_USER}</p>
-                                                  <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#9c9fa6"><path d="M16.293 9.293 12 13.586 7.707 9.293l-1.414 1.414L12 16.414l5.707-5.707z"></path></svg> -->
+                                                  {$CURRENT_USER_PHOTO}
+                                                  <div class="nav-profile-text d-flex align-items-center hide-mobile">
+                                                       <p class="text-black">{$CURRENT_USER}</p>
+                                                  </div>
                                              </div>
                                         </a>
                                         <ul class="dropdown-menu navbar-dropdown box-list user-dropdown user-menu" aria-labelledby="profileDropdown">

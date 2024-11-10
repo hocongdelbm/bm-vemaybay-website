@@ -1011,6 +1011,45 @@ class Zalo {
         }
     }
 
+    /** 
+     * Get error description when sending ZNS fail
+     * 
+     * @param int $error_code
+     * @return string
+     */
+    public function get_error_description_zns($error_code) {
+        switch($error_code) {
+            case -108:
+                return "Số điện thoại không hợp lệ";
+            case -110:
+                return "Phiên bản Zalo app của người dùng quá cũ nên không được hỗ trợ";
+            case -114:
+            case -119:
+            case -139:
+            case -141:
+                return "Số điện thoại này không thể nhận tin";
+            case -115:
+            case -126:
+                return "Tài khoản không đủ số dư";
+            case -116:
+            case -121:
+            case -130:
+            case -131:
+                return "Nội dung tin không hợp lệ";
+            case -118:
+                return "Số điện thoại không có Zalo";
+            case -133:
+                return "Không được phép gửi tin vào ban đêm (từ 22h-6h)";
+            case -144:
+            case -147:
+                return "OA đã vượt giới hạn gửi ZNS trong ngày";
+            case -146:
+                return "Mẫu tin này đã bị vô hiệu hóa ";
+            default:
+                return "Gửi tin nhắn thất bại";
+        }
+    }
+
 
 
     /***************  UPLOAD  ***************/

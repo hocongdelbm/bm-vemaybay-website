@@ -147,19 +147,19 @@ class Viewiplist extends SugarView {
             $error_msg = curl_error($curl);
             curl_close($curl);
 
-            if($GLOBALS['current_user']->user_name == 'hungnh'){
-                echo "url: ";
-                pr($url);
+            // if($GLOBALS['current_user']->user_name == 'hungnh'){
+            //     echo "url: ";
+            //     pr($url);
 
-                echo "post_data: ";
-                pr($post_data);
+            //     echo "post_data: ";
+            //     pr($post_data);
 
-                echo "http_code: ";
-                pr($http_code);
+            //     echo "http_code: ";
+            //     pr($http_code);
 
-                echo "cURL error: ";
-                pr($error_msg);
-            }
+            //     echo "cURL error: ";
+            //     pr($error_msg);
+            // }
 
             $arr = json_decode(html_entity_decode($json), true);
 
