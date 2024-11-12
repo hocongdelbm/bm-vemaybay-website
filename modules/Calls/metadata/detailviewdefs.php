@@ -210,6 +210,15 @@ $viewdefs['Calls'] = array(
 				),
 				array(
 					array(
+						'name' => 'call_reason',
+						'comment' => 'Phân loại cuộc gọi. Nhu cầu khách hàng',
+						'label' => 'LBL_CALL_REASON',
+					),
+					array(
+					),
+				),
+				array(
+					array(
 						'name' => 'date_entered',
 						'customCode' => '{$fields.date_entered.value} {$APP.LBL_BY} {$fields.created_by_name.value}&nbsp;',
 						'label' => 'LBL_DATE_ENTERED',

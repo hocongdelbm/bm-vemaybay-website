@@ -2078,6 +2078,19 @@ $GLOBALS['app_list_strings']['call_type_list'] = array(
   'zalo' => 'Zalo',
 );
 
+$GLOBALS['app_list_strings']['call_reason_list'] = array(
+  'in_journey' => 'Khách hỏi hành trình',
+  'in_ticket_hunt' => 'Nhu cầu săn vé máy bay',
+  'in_group_booking' => 'Đặt vé đoàn nhiều người',
+  'in_complaint_delay' => 'Phàn nàn sự cố delay',
+  'in_invoice_contact' => 'Liên hệ kế toán hóa đơn',
+  'in_mistake' => 'Nhầm lẫn, Lý Thông linh tinh',
+  'in_other' => 'Khác, chưa định nghĩa',
+  'out_no_need' => 'Khách chưa có nhu cầu',
+  'out_interest' => 'Đang quan tâm sơ bộ',
+  'out_no_response' => 'Không nghe máy, bực mình'
+);
+
 
 /*====================  LUGGAGE  ====================*/
 // ==================================================

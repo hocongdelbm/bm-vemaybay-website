@@ -205,6 +205,32 @@ $(document).ready(function () {
 		else return true;
 	});
 
+	$(document).on('click', '#confirm-remind', function () {
+		let journey_id 	= $(this).attr('iti_id');
+
+		$.ajax({
+			url: "index.php?entryPoint=entryPointFlightBookings",
+			data: {
+				journey_id: journey_id,
+				for: "remindFlightSchedules",
+			},
+			type: "POST",
+			cache: false,
+			success: function (response) {
+				if(response == 1){
+					let text_warning = 'Thông báo lịch bay cho khách hàng thành công.';
+					showModalNotify(1, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				} else {
+					let text_warning = 'Lỗi khi thực hiện nhấn nút remind. Vui lòng liên hệ IT để được hỗ trợ.';
+					showModalNotify(0, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				}
+			}
+		});
+	});
+
+
 	// Open form send mail
 	$('#btnSendMail').on('click', function(){
 		$('#frmContinueSendMail').css('display', 'block');

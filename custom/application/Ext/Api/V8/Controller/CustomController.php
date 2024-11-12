@@ -15,8 +15,9 @@ class CustomController extends BaseController
     private $IP_WHITELIST = [
         '14.161.31.237', // LBM
 
-        '157.119.251.232', // vietjet.net,
+        '157.119.251.232', // vietjet.net
         '103.160.5.98', // vietjet.net
+        '10.1.1.1', // vietjet.net
         '103.160.5.21', // timchuyenbay.com
 
         '157.119.251.220', // timchuyenbay.net
@@ -59,7 +60,7 @@ class CustomController extends BaseController
 
         // Validate here
         if (strlen($user_id) != 36) return $response->withJson(['error' => true, 'message' => "Invalid user id"], 400);
-        if (!in_array($request_ip, $this->IP_WHITELIST)) return $response->withJson(['error' => true, 'message' => "Access is not allowed"], 403);
+        if (!in_array($request_ip, $this->IP_WHITELIST)) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
 
         // Save booking
         $booking = BeanFactory::newBean("EC_Flight_Bookings");

@@ -268,6 +268,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $name       = isset($_POST['name']) ? global_test_input($_POST['name']) : "";
         $email      = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
         $note       = isset($_POST['note']) ? addslashes($_POST['note']) : "";
+        $call_reason = isset($_POST['call_reason']) ? global_test_input($_POST['call_reason']) : "";
 
         $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
@@ -349,6 +350,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     created_by = "' . $current_user->id . '",
                                     modified_user_id = "' . $current_user->id . '",
                                     assigned_user_id = "' . $current_user->id . '",
+                                    call_reason = "' . $call_reason . '",
                                     journey_id = "' . $journey_id . '",
                                     type_call_sources = "' . $type_call . '",
                                     status = "' . $call_status . '"

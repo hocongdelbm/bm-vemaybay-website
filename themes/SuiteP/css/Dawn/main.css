@@ -1933,6 +1933,7 @@ ul.clickMenu .subnav li a,
     background: transparent;
     text-align: left;
     font-weight: 500;
+    text-decoration: none;
 
     padding: .4rem .5rem;
 }

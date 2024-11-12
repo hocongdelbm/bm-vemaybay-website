@@ -787,17 +787,7 @@ class Viewsendconfirm extends SugarView {
 															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px">
 																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
-																		MBBank HCM - Số TK : <strong>0000920990898</strong>
-																	</p>
-																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
-																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>
-																	</p>
-																</div>
-															</td>
-															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px;">
-																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
-																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
-																		Agribank - Số TK : <strong>1903201152919</strong>
+																		HD Bank - Số TK : <strong>081704070006171</strong>
 																	</p>
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
 																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>

@@ -80,13 +80,7 @@ class Bug extends SugarBean
         }
     }
 
-
-
     public $new_schema = true;
-
-
-
-
 
     public function get_summary_text()
     {
@@ -281,10 +275,6 @@ class Bug extends SugarBean
         return  $the_array;
     }
 
-    /**
-    	builds a generic search based on the query string using or
-    	do not include any $this-> because this is called on without having the class instantiated
-     */
     public function build_generic_where_clause($the_query_string)
     {
         $where_clauses = array();
@@ -334,58 +324,7 @@ class Bug extends SugarBean
 
     public function save($check_notify = false)
     {
-        global $sugar_config;
-
-        // SENTELE NOTIFY
-        $is_new_record = $this->new_with_id || empty($this->fetched_row); 
-
-        $return_id = parent::save($check_notify);
-
-        $is_work_log_updated = !$is_new_record 
-        && $GLOBALS['current_user']->is_admin 
-        && (isset($this->fetched_row['work_log']) ? $this->fetched_row['work_log'] !== $this->work_log : !empty($this->work_log));
-
-        
-        $user_created = $GLOBALS['current_user']->last_name . ' ' .  $GLOBALS['current_user']->first_name;
-        $subject = $this->name;
-
-        if ($is_new_record) {
-            $content = html_entity_decode($user_created . ' đã tạo: ' . $subject, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            sendTelegramSupportKTTP(
-                json_encode(array(
-                    'text' => $content,
-                    'reply_markup' => array(
-                        'inline_keyboard' => array(
-                            array(
-                                array(
-                                    'text' => 'Mở phiếu',
-                                    'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
-                                ),
-                            ),
-                        ),
-                    ),
-                ), JSON_UNESCAPED_UNICODE)
-            );
-        } elseif ($is_work_log_updated) {
-            $content = html_entity_decode($user_created . ' đã phản hồi: ' . $subject, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            sendTelegramSupportKTTP(
-                json_encode(array(
-                    'text' => $content,
-                    'reply_markup' => array(
-                        'inline_keyboard' => array(
-                            array(
-                                array(
-                                    'text' => 'Mở phiếu',
-                                    'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
-                                ),
-                            ),
-                        ),
-                    ),
-                ), JSON_UNESCAPED_UNICODE)
-            );
-        } 
-
-        return $return_id;
+        return parent::save($check_notify);
     }
 }
 

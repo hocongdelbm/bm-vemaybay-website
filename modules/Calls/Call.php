@@ -203,8 +203,12 @@ class Call extends SugarBean
                 case 'called':
                     if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
                         myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
-                    } else {
-                        $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
+                    } else if(!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)){
+                        if($this->is_ExitsRowKpi('EC_Flight_Bookings', $this->booking_id)){
+                            $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
+                        }  else {
+                            myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Call Have Bookings)', $current_user->id, 'called');
+                        }
                     }
                     break;
                 case 'recall':
@@ -221,7 +225,7 @@ class Call extends SugarBean
                     break;
             }
         }
-
+        
         // if ($this->update_vcal) {
         //     vCal::cache_sugar_vcal($current_user);
         // }
@@ -294,6 +298,23 @@ class Call extends SugarBean
         return $return_id;
     }
 
+    /**
+     * Check isExits ec_working_process with called = 0.
+     * field: booking_id => parent_id, 
+     * author: hungnh
+     */
+    public function is_ExitsRowKpi($parent_type, $parentId) {
+        $query = "SELECT COUNT(*) 
+                    FROM ec_working_process
+                    WHERE called = 0
+                    AND parent_type = '{$parent_type}'
+                    AND parent_id = '{$parentId}'
+                    AND deleted = 0";
+
+        $count = $this->db->getOne($query);
+        return $count > 0;
+    }
+    
     /**
      * Update KPI field function to reduce code duplication.
      * author: hungnh

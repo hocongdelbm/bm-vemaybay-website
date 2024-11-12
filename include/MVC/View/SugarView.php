@@ -1221,8 +1221,8 @@ EOHTML;
                                             <label for="is_success" class="me-2">Hoàn tất?</label>
                                             <input type="checkbox" id="is_success"">
                                         </div>
-                                        <div class="voiceip-more__item template-notes">
-                                            <label for="template-notes">Mẫu ghi chú</label>
+                                        <div class="voiceip-more__item template-notes text-nowrap">
+                                            <label for="template-notes">Phân loại</label>
                                             <select name="template-notes" class="box-select" id="template-notes"></select>
                                         </div>
                                     </div>
@@ -1345,16 +1345,22 @@ EOHTML;
                 <link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=2.4">
             ';
 
-            // if($current_user->id == '1' || $current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6' || $current_user->id = '168889bb-54c2-59c7-8b3f-649102530d3c')
+            // if($current_user->id == '1' || $current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6' || $current_user->id = '168889bb-54c2-59c7-8b3f-649102530d3c'){
             //     $js = '<audio id="audio_jssip"></audio>
             //         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
             //         <script src="custom/jssip_webrtc/call2.js?ver='.date("YmdHi").'"></script>
             //     ';
-            // else 
-                $js = '<audio id="audio_jssip"></audio>
-                    <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                    <script src="custom/jssip_webrtc/call.js?vver='.date("YmdHi").'"></script>
-                ';
+            // } else {
+            //     $js = '<audio id="audio_jssip"></audio>
+            //         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
+            //         <script src="custom/jssip_webrtc/call.js?vver='.date("YmdHi").'"></script>
+            //     ';
+            // }
+
+            $js = '<audio id="audio_jssip"></audio>
+                <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
+                <script src="custom/jssip_webrtc/call.js?vver='.date("YmdHi").'"></script>
+            ';
         }
         else {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="" disabled />';

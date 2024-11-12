@@ -117,7 +117,7 @@ function check_online_for_call() {
             type: "POST",
             cache: false,
             success: function (response) {
-                let always_online = ['010', '001', '012', '888', '222'];
+                let always_online = ['010', '001', '012', '888'];
                 if (always_online.includes(SIP_USER)) response = 1;
 
                 if (response == 1) {
@@ -176,6 +176,7 @@ ua.on('newRTCSession', function (ev) {
             $('#voiceip-zalo-id').val(zaloid);
             $('#voiceip-zalo-id').prop('readonly', true);
         } else $('#voiceip-zalo-id').val('');
+
         handleButtons('processing');
         startTimer();
 
@@ -250,6 +251,17 @@ ua.on('newRTCSession', function (ev) {
         }, 100);
         $(document).prop('title', 'Có cuộc gọi đến...');
         showToastCall('incoming__call', call_id, zalo_id, phone, hotline)
+
+        // ADD template-notes CHO cuộc gọi đến
+        $('#template-notes').html(`
+            <option value="in_journey">Khách hỏi hành trình</option>
+            <option value="in_ticket_hunt">Nhu cầu săn vé máy bay</option>
+            <option value="in_group_booking">Đặt vé đoàn nhiều người</option>
+            <option value="in_complaint_delay">Phàn nàn sự cố delay</option>
+            <option value="in_invoice_contact">Liên hệ kế toán hóa đơn</option>
+            <option value="in_mistake">Nhầm lẫn, Lý Thông linh tinh</option>
+            <option value="in_other">Khác, chưa định nghĩa</option>
+        `)
 
         // Nghe máy
         session.on("accepted", function () {
@@ -339,6 +351,13 @@ ua.on('newRTCSession', function (ev) {
 
     /************ OUTGOING CALL SOUND ************/
     if (session._connection && session.direction === "outgoing") {
+        // ADD template-notes CHO cuộc gọi ĐI
+        $('#template-notes').html(`
+            <option value="out_no_need">Khách chưa có nhu cầu</option>
+            <option value="out_interest">Đang quan tâm sơ bộ</option>
+            <option value="out_no_response">Không nghe máy, bực mình</option>
+        `)
+
         if (session._connection.addEventListener) {
             session._connection.addEventListener('track', (e) => {
                 if (e.streams && e.streams[0]) {
@@ -710,6 +729,7 @@ $(document).ready(function () {
         let email = $('input[name="voiceip-email"]').val();
         let note = $('textarea[name="voiceip-notes"]').val();
         let call_id = $('#popup-voiceip').attr('call_id');
+        let call_reason = $('#template-notes').val();
 
         let booking_id = $(this).attr('booking_id');
         let booking_name = $(this).attr('booking_name');
@@ -759,6 +779,7 @@ $(document).ready(function () {
                 name: name,
                 email: email,
                 note: note,
+                call_reason: call_reason,
                 is_success: is_success,
 
                 booking_id: booking_id,
@@ -967,7 +988,7 @@ const registerServiceWorker = async () => {
         await existingRegistration.unregister();
     }
 
-    const swRegistration = await navigator.serviceWorker.register('service-worker.js?v=' + Date.now() + '', { scope: "/" });
+    const swRegistration = await navigator.serviceWorker.register('service-worker.js?v=' + Date.now() + '');
     return swRegistration;
 }
 
@@ -986,87 +1007,22 @@ const requestNotificationPermission = async () => {
 }
 requestNotificationPermission()
 
-// BroadcastChannel - detect and communicate between tabs, ensuring that only one tab displays the notification.
-const broadcast = new BroadcastChannel('notify_channel');
-broadcast.onmessage = (message) => {
-    // console.warn(message);
-    if (message.data.type === 'show_notification') {
-        showNotification(message.data.phone);
-    } else if (message.data.type === 'close_notification') {
-        clearAllNotifications();
-    }
-};
-
 const sendNotification = (phone) => {
-    broadcast.postMessage({ type: 'show_notification', phone });
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'show_notification', phone });
+    } else {
+        console.warn('No active Service Worker controller found.');
+    }
 };
 
 const closeNotification = () => {
-    broadcast.postMessage({ type: 'close_notification' });
-};
-
-const showNotification = async (call_from) => {
-    if (!swRegistration) {
-        console.error('Service Worker registration not found');
-        return;
-    }
-
-    try {
-        broadcast.postMessage({ type: 'SHOW_NOTIFY', call_from });
-    } catch (error) {
-        console.error('Error broadcasting notification message:', error);
+    if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'close_notification' });
+    } else {
+        console.warn('No active Service Worker controller found.');
     }
 };
 
-const clearAllNotifications = async () => {
-    if (!swRegistration) {
-        console.error('Service Worker registration not found');
-        return;
-    }
-    try {
-        broadcast.postMessage({ type: 'CLEAR_NOTIFICATIONS' });
-    } catch (error) {
-        console.error('Error sending clear notifications message:', error);
-    }
-};
-
-// Đăng ký sự kiện BroadcastChannel
-broadcast.addEventListener('message', async (event) => {
-    if (event.data.type === 'SHOW_NOTIFY') {
-        const notifications = await swRegistration.getNotifications({ tag: 'bm-tcb' });
-        if (notifications.length === 0) {
-            try {
-                await swRegistration.showNotification('Tìm chuyến bay', {
-                    body: 'Cuộc gọi đến: ' + event.data.call_from,
-                    sound: RINGTONE_FILE,
-                    tag: 'bm-tcb',
-                    icon: '',
-                    dir: 'ltr',
-                    image: '',
-                    actions: [
-                        { action: 'accept_call', title: 'Trả lời' },
-                        { action: 'reject_call', title: 'Từ chối' },
-                    ],
-                    vibrate: [300, 100, 300, 100, 300, 100, 300],
-                    requireInteraction: true,
-                    renotify: true,
-                    timestamp: Date.now(),
-                });
-            } catch (error) {
-                console.error('Error showing notification:', error);
-            }
-        }
-    } else if (event.data.type === 'CLEAR_NOTIFICATIONS') {
-        try {
-            const notifications = await swRegistration.getNotifications({ tag: 'bm-tcb' });
-            for (const notification of notifications) {
-                notification.close();
-            }
-        } catch (error) {
-            console.error('Error getting notifications:', error);
-        }
-    }
-});
 
 // Khởi tạo service worker và xin quyền thông báo
 const init = async () => {

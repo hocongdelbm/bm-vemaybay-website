@@ -148,4 +148,7 @@ $mod_strings = array(
     'LBL_CALL_SOURCES' => 'Nguồn',
     'LBL_HANGUP_CAUSE' => 'Nguyên nhân ngắt máy',
     'LBL_OTHER_CALLER' => 'Số gọi đi',
+
+    'LBL_TYPE_CALL_SOURCES' => 'Nguồn chi tiết',
+    'LBL_CALL_REASON' => 'Phân loại cuộc gọi',
 );
