@@ -14,6 +14,16 @@ class CallsViewDetail extends ViewDetail
 			pr($log);
 
 			// write_file_backup_log_calls(json_encode($log));
+
+			$alert = BeanFactory::newBean('Alerts');
+			$alert->name = $this->bean->name;
+			$alert->description = $this->bean->description;
+			$alert->url_redirect = 'index.php?module=Calls&action=DetailView&record='.$this->bean->id;
+			$alert->target_module = 'Calls';
+			$alert->assigned_user_id = $current_user->id;
+			$alert->type = 'light';
+			$alert->is_read = 0;
+			// $alert->save();
 		}
 
 		$this->populateCustomButtons();
@@ -90,5 +100,39 @@ class CallsViewDetail extends ViewDetail
 			</form>';
 		}
 		$this->ss->assign('CALLS_STATUS', $status);
+
+		if (isset($this->bean->log) && !empty($this->bean->log)) {
+			$log_call = json_decode(html_entity_decode($this->bean->log), true);
+
+			// DATETIME WAIT
+			if (isset($log_call['call_wait'])) {
+				$datetime_wait = global_secondsToTimeFormat($log_call['call_wait']);
+				$this->ss->assign('CUS_DATE_WAIT', $datetime_wait);
+			}
+
+			// DATETIME TIẾP NHẬN
+			if (isset($log_call['call_talk'])) {
+				$datetime_accept = date('d-m-Y H:i:s', strtotime($this->bean->date_end) - $this->bean->call_talk);
+				$this->ss->assign('CUS_DATE_ACCEPT', $datetime_accept);
+			}
+
+			// DATETIME HOLD
+			// if (isset($log_call['call_hold'])) {
+			// 	$datetime_hold = global_secondsToTimeFormat($log_call['call_hold']);
+			// 	$this->ss->assign('CUS_DATE_HOLD', $datetime_hold);
+			// }
+		}
+
+		// CALL TALK
+		if (isset($this->bean->call_talk) && !empty($this->bean->call_talk)) {
+			$call_talk = global_secondsToTimeFormat($this->bean->call_talk);
+			$this->ss->assign('CUS_CALL_TALK', $call_talk);
+		}
+
+		// CALL DURATION
+		if (isset($this->bean->call_duration) && !empty($this->bean->call_duration)) {
+			$call_duration = global_secondsToTimeFormat($this->bean->call_duration);
+			$this->ss->assign('CUS_CALL_DURATION', $call_duration);
+		}
 	}
 }

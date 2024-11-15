@@ -9242,12 +9242,18 @@ fieldset:disabled .btn {
 
 .bg-primary {
      --bs-bg-opacity: 1;
-     background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important
+     /* background-color: rgba(var(--bs-primary-rgb), var(--bs-bg-opacity)) !important */
+     background-color: var(--primary-color) !important
 }
 
 .bg-secondary {
      --bs-bg-opacity: 1;
      background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity)) !important
+}
+
+.bg-label-secondary {
+     background-color: #ebeef0 !important;
+     color: #8592a3 !important;
 }
 
 .bg-success {
@@ -12733,5 +12739,76 @@ fieldset:disabled .btn {
           display: none !important
      }
 }
+
+
+
+/* CUSTOM MORE */
+
+.row-bordered {
+     overflow: hidden
+   }
+   
+   .row-bordered>.col,
+   .row-bordered>[class^=col-],
+   .row-bordered>[class*=" col-"],
+   .row-bordered>[class^="col "],
+   .row-bordered>[class*=" col "],
+   .row-bordered>[class$=" col"],
+   .row-bordered>[class=col] {
+     position: relative;
+     padding-top: 1px
+   }
+   
+   .row-bordered>.col::before,
+   .row-bordered>[class^=col-]::before,
+   .row-bordered>[class*=" col-"]::before,
+   .row-bordered>[class^="col "]::before,
+   .row-bordered>[class*=" col "]::before,
+   .row-bordered>[class$=" col"]::before,
+   .row-bordered>[class=col]::before {
+     content: "";
+     position: absolute;
+     right: 0;
+     bottom: -1px;
+     left: 0;
+     display: block;
+     height: 0;
+     border-top: 1px solid #d9dee3;
+   }
+   
+   .row-bordered>.col::after,
+   .row-bordered>[class^=col-]::after,
+   .row-bordered>[class*=" col-"]::after,
+   .row-bordered>[class^="col "]::after,
+   .row-bordered>[class*=" col "]::after,
+   .row-bordered>[class$=" col"]::after,
+   .row-bordered>[class=col]::after {
+     content: "";
+     position: absolute;
+     top: 0;
+     bottom: 0;
+     left: -1px;
+     display: block;
+     width: 0;
+     border-left: 1px solid #d9dee3
+   }
+   
+   .row-bordered.row-border-light>.col::before,
+   .row-bordered.row-border-light>.col::after,
+   .row-bordered.row-border-light>[class^=col-]::before,
+   .row-bordered.row-border-light>[class^=col-]::after,
+   .row-bordered.row-border-light>[class*=" col-"]::before,
+   .row-bordered.row-border-light>[class*=" col-"]::after,
+   .row-bordered.row-border-light>[class^="col "]::before,
+   .row-bordered.row-border-light>[class^="col "]::after,
+   .row-bordered.row-border-light>[class*=" col "]::before,
+   .row-bordered.row-border-light>[class*=" col "]::after,
+   .row-bordered.row-border-light>[class$=" col"]::before,
+   .row-bordered.row-border-light>[class$=" col"]::after,
+   .row-bordered.row-border-light>[class=col]::before,
+   .row-bordered.row-border-light>[class=col]::after {
+     border-color: rgba(67, 89, 113, .1)
+   }
+   
 
 /*# sourceMappingURL=bootstrap.min.css.map */

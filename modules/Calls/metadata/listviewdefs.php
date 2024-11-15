@@ -87,11 +87,18 @@ $listViewDefs['Calls'] = array(
 	// 		0 => 'time_end',
 	// 	),
 	// ),
-	'CALL_DURATION_C' => 
+	// 'CALL_DURATION_C' => 
+	// array (
+	// 	'width' => '10%',
+	// 	'label' => 'LBL_CALL_DURATION_C',
+	// 	'default' => true,
+	// ),
+	'CALL_TALK' => 
 	array (
 		'width' => '10%',
-		'label' => 'LBL_CALL_DURATION_C',
+		'label' => 'LBL_CALL_TALK',
 		'default' => true,
+		'type' => 'text',
 	),
 
 	'STATUS' => array(

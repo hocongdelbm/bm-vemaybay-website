@@ -573,7 +573,7 @@
 
 <ul class="kpi-notes">
 	<li>
-		<strong>CAL</strong>: <span>Cuộc gọi <span class="fw-bold text-dark">(Cuộc gọi hoàn tất, có mô tả và có hội thoại)</span></span>
+		<strong>CAL</strong>: <span>Cuộc gọi <span class="fw-bold text-dark">(Cuộc gọi hoàn tất, có mô tả và hội thoại từ 20s trở lên)</span></span>
 	</li>
 	<li>
 		<strong>COM</strong>: <span>Booking <span class="fw-bold text-primary">hoàn tất</span></span>

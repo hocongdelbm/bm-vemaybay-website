@@ -5057,149 +5057,6 @@ a.buttontoggle:hover {
      margin: 0
 }
 
-.desktop_notifications>.dropdown-menu {
-     left: auto
-}
-
-.desktop_notifications a {
-     cursor: pointer
-}
-
-.desktop_notifications ul li {
-     padding: 0;
-     margin: 0
-}
-
-.desktop_notifications ul li a {
-     padding: 0 3px 0 3px;
-     margin: 0;
-     line-height: 35px
-}
-
-.desktop_notifications .alertsButton {
-     background-color: var(--text-color);
-     border: none;
-     box-shadow: none;
-     color: var(--white-color);
-     font-size: 40px;
-     background-color: transparent;
-     margin-top: 0;
-     border: none
-}
-
-.desktop_notifications .alert_count {
-     display: block;
-     position: relative;
-     top: -16px;
-     left: 24px;
-     font-size: 10px;
-     background-color: #F08377;
-     color: var(--white-color);
-     border-radius: 30px;
-     float: left;
-     line-height: 20px;
-     width: 20px;
-     height: 20px;
-     z-index: 200
-}
-
-.desktop_notifications .alert {
-     margin-bottom: 8px
-}
-
-.desktop_notifications .close {
-     font-weight: normal;
-     color: var(--text-color);
-     filter: none;
-     line-height: 1;
-     opacity: 1;
-     text-shadow: none
-}
-
-.desktop_notifications .alert {
-     font-weight: normal;
-     color: var(--text-color);
-     filter: none;
-     line-height: 1;
-     opacity: 1;
-     text-shadow: none
-}
-
-.desktop_notifications .close {
-     position: relative;
-     top: 0;
-     right: 0;
-     color: inherit
-}
-
-.desktop_notifications .close span {
-     color: var(--white-color);
-     margin-bottom: 0;
-     margin-right: 0
-}
-
-.desktop_notifications .dropdown-menu {
-     font-size: 12px;
-     background-color: #F08377;
-     color: #F5F5F5;
-     padding: 8px;
-     margin: 0;
-     border-radius: 0
-}
-
-.desktop_notifications .has-alerts {
-     background-color: #5D5670;
-     border-radius: 2px
-}
-
-.desktop_notifications .has-alerts .alert-info {
-     background-color: #F5F5F5;
-     color: var(--white-color);
-     padding: 0;
-     border: 1px solid #757083;
-     border-radius: 2px
-}
-
-.desktop_notifications .has-alerts .text-info {
-     color: var(--white-color)
-}
-
-.desktop_notifications .has-alerts p {
-     font-size: 12px;
-     background-color: #F5F5F5;
-     color: var(--text-color);
-     border-bottom-left-radius: 2px;
-     border-bottom-right-radius: 2px;
-     line-height: 20px;
-     max-width: 256px;
-     min-height: 20px
-}
-
-.desktop_notifications .has-alerts .alert-header {
-     padding: 8px 15px 8px 15px;
-     margin: 0
-}
-
-.desktop_notifications .has-alerts p {
-     padding: 8px 15px 8px 15px;
-     margin: 0
-}
-
-.desktop_notifications .has-alerts .alert-header {
-     font-size: 14px;
-     font-weight: bold;
-     background-color: #5D5670;
-     color: var(--text-color);
-     border-top-left-radius: 2px;
-     border-top-right-radius: 2px;
-     line-height: 20px
-}
-
-.desktop_notifications .has-alerts .alert-header img {
-     width: 16px;
-     height: 16px
-}
-
 .modulelinks>.dropdown-menu {
      left: 50px
 }
@@ -5279,20 +5136,6 @@ a.buttontoggle:hover {
 
      .mobile-bar .desktop_notifications {
           margin-right: 4px
-     }
-
-     .mobile-bar .desktop_notifications .alert_count {
-          top: -12px;
-          left: 24px
-     }
-
-     .mobile-bar .desktop_notifications .dropdown-menu.has-alerts {
-          left: auto;
-          right: 0
-     }
-
-     .mobile-bar .desktop_notifications .dropdown-menu .has-alerts p {
-          width: 100%
      }
 
      .modulename {
@@ -6273,10 +6116,6 @@ a.buttontoggle:hover {
 
      .searchbutton {
           display: inline
-     }
-
-     .desktop_notifications .dropdown-menu {
-          left: -140px
      }
 
      .navbar-search .dropdown-menu button:active {

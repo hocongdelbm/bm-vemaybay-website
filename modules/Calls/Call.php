@@ -198,7 +198,7 @@ class Call extends SugarBean
         $return_id = parent::save($check_notify);
 
         // KPI FOR CALLS - Hungnh
-        if ($this->status == 'done' && !empty($this->description) && $this->call_talk > 0) {
+        if ($this->status == 'done' && !empty($this->description) && $this->call_talk >= 20) {
             switch ($this->type_call_sources) {
                 case 'called':
                     if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {

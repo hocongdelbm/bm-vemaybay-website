@@ -2138,6 +2138,7 @@ $GLOBALS['app_list_strings']['vietjet_index_price_list2'] = array(
 $GLOBALS['app_list_strings']['vietjet_luggage_price_list2'] = array(
   0   => 'Không mang hành lý ',
   1   => '20kg (0 VND/Khách)',
+  5   => '30kg (0 VND/Khách) - V_SBoss/SkyBoss',
   3   => '40kg (0 VND/Khách)',
   2   => '20kg (250.000 VND/Khách)',
   4   => '30kg (360.000 VND/Khách)',

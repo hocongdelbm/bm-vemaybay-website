@@ -1,8 +1,8 @@
 /********************   DECLARE   ********************/
-const SIP_USER = document.getElementById('sip_user').value;
-const SIP_PASSWORD = document.getElementById('sip_password').value;
-const AGENT_STATUS = document.getElementById('agent_status').value;
-const CURRENT_USER = document.getElementById('sip_instance_id').value;
+const SIP_USER      = document.getElementById('sip_user').value;
+const SIP_PASSWORD  = document.getElementById('sip_password').value;
+const AGENT_STATUS  = document.getElementById('agent_status').value || 'Available';
+const CURRENT_USER  = document.getElementById('sip_instance_id').value;
 
 // const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
 const SIP_DOMAIN = 'td.timchuyenbay.net';
@@ -424,7 +424,8 @@ $(document).ready(function () {
         let status = 'Available';
 
         if ($(this).prop('checked') == true) {
-            status = 'Logged Out';
+            // status = 'Logged Out';
+            status = 'On Break';
             showConnect(false);
             if (ua) ua.stop();
         } else {

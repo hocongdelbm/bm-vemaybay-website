@@ -1,8 +1,8 @@
 /********************   DECLARE   ********************/
-const SIP_USER = document.getElementById('sip_user').value;
-const SIP_PASSWORD = document.getElementById('sip_password').value;
-const AGENT_STATUS = document.getElementById('agent_status').value;
-const CURRENT_USER = document.getElementById('sip_instance_id').value;
+const SIP_USER      = document.getElementById('sip_user').value;
+const SIP_PASSWORD  = document.getElementById('sip_password').value;
+const AGENT_STATUS  = document.getElementById('agent_status').value || 'Available';
+const CURRENT_USER  = document.getElementById('sip_instance_id').value;
 
 // const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
 const SIP_DOMAIN = 'td.timchuyenbay.net';
@@ -252,6 +252,17 @@ ua.on('newRTCSession', function (ev) {
         $(document).prop('title', 'Có cuộc gọi đến...');
         showToastCall('incoming__call', call_id, zalo_id, phone, hotline)
 
+        // ADD template-notes CHO cuộc gọi đến
+        $('#template-notes').html(`
+            <option value="in_journey">Khách hỏi hành trình</option>
+            <option value="in_ticket_hunt">Nhu cầu săn vé máy bay</option>
+            <option value="in_group_booking">Đặt vé đoàn nhiều người</option>
+            <option value="in_complaint_delay">Phàn nàn sự cố delay</option>
+            <option value="in_invoice_contact">Liên hệ kế toán hóa đơn</option>
+            <option value="in_mistake">Nhầm lẫn, Lý Thông linh tinh</option>
+            <option value="in_other">Khác, chưa định nghĩa</option>
+        `)
+
         // Nghe máy
         session.on("accepted", function () {
             incomingCallAudio.autoplay = false;
@@ -340,6 +351,13 @@ ua.on('newRTCSession', function (ev) {
 
     /************ OUTGOING CALL SOUND ************/
     if (session._connection && session.direction === "outgoing") {
+        // ADD template-notes CHO cuộc gọi ĐI
+        $('#template-notes').html(`
+            <option value="out_no_need">Khách chưa có nhu cầu</option>
+            <option value="out_interest">Đang quan tâm sơ bộ</option>
+            <option value="out_no_response">Không nghe máy, bực mình</option>
+        `)
+
         if (session._connection.addEventListener) {
             session._connection.addEventListener('track', (e) => {
                 if (e.streams && e.streams[0]) {
@@ -406,7 +424,8 @@ $(document).ready(function () {
         let status = 'Available';
 
         if ($(this).prop('checked') == true) {
-            status = 'Logged Out';
+            // status = 'Logged Out';
+            status = 'On Break';
             showConnect(false);
             if (ua) ua.stop();
         } else {
@@ -711,6 +730,7 @@ $(document).ready(function () {
         let email = $('input[name="voiceip-email"]').val();
         let note = $('textarea[name="voiceip-notes"]').val();
         let call_id = $('#popup-voiceip').attr('call_id');
+        let call_reason = $('#template-notes').val();
 
         let booking_id = $(this).attr('booking_id');
         let booking_name = $(this).attr('booking_name');
@@ -760,6 +780,7 @@ $(document).ready(function () {
                 name: name,
                 email: email,
                 note: note,
+                call_reason: call_reason,
                 is_success: is_success,
 
                 booking_id: booking_id,

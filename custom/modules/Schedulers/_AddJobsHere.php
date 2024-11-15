@@ -1949,101 +1949,6 @@ function updateMissingEfforts()
 	return true;
 }
 
-// Kiểm tra user còn online hay không
-// function checkStatusOnlineUser()
-// {
-// 	global $db, $current_user;
-
-// 	$path           = "secure_sessions/check_online_logs/";
-// 	$temp_files     = scandir($path);
-// 	natsort($temp_files);
-// 	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hours')));
-// 	foreach ($temp_files as $file) {
-// 		if ($file != "." && $file != ".." && $file != "Thumbs.db" && $file != basename(__FILE__)) {
-// 			$info               = pathinfo($file);
-// 			$file_name          = basename($file, '.' . $info['extension']);
-// 			$user_id            = str_replace('_', '-', $file_name);
-// 			$json_file          = read_file_logs_online($user_id);
-// 			$data_user  	    = json_decode($json_file, true);
-
-// 			$strtotime_user 	= strtotime(date('Y-m-d H:i:s', strtotime($data_user['last_time'])));
-// 			$last_time_user_7 	= date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
-// 			$diffInSeconds  	= abs($timestamp_now - $strtotime_user);
-// 			$agent 				= custom_get_sip_number($user_id);
-
-
-// 			// User đó busy - check 5 phút - 300s
-// 			if (trim($data_user['busy']) == 1) {
-// 				if ($diffInSeconds > 600) {
-// 					$sql_offline = '
-// 						UPDATE ec_online_report 
-// 						SET status = 0, last_online = "' . $last_time_user_7 . '"
-// 						WHERE assigned_user_id = "' . $user_id . '"
-// 						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-// 						AND deleted = 0
-// 					';
-// 					$db->query($sql_offline);
-				
-// 					$_SESSION['busy'] = 0;
-// 					if($agent){
-// 						agent_change_status($agent, 'Logged Out');
-// 					}
-// 					// sendTestTelegram('Nhân viên ' .$user_id. ' đã bị off do bận quá 5 phút');
-// 				} else {
-// 					// sendTestTelegram('Nhân viên ' .$user_id. ' vẫn còn đang bận');
-// 				}
-
-// 			} else {
-// 				// Kiểm tra sự chênh lệch trong khoảng thời gian 2 phút 30s (150 giây)
-// 				if ($diffInSeconds > 150) {
-// 					$sql_offline = '
-// 						UPDATE ec_online_report 
-// 						SET status = 0, last_online = "' . $last_time_user_7 . '"
-// 						WHERE assigned_user_id = "' . $user_id . '"
-// 						AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-// 						AND deleted = 0
-// 					';
-// 					$db->query($sql_offline);
-// 					$_SESSION['busy'] 	= 0;
-// 					// sendTestTelegram('Nhân viên ' .$val['name_user']. ' đã bị off vì quá 2 phút không tương tác BM. '.$last_time_user_7.'');
-// 					if($agent){
-// 						agent_change_status($agent, 'Logged Out');
-// 					}
-// 				} else {
-// 					//Online 
-// 					$sql_select = '
-// 								SELECT status
-// 								FROM ec_online_report
-// 								WHERE assigned_user_id = "' . $user_id . '"
-// 								AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-// 								AND deleted = 0
-// 								';
-// 					$res = $db->query($sql_select);
-// 					$row = $db->fetchByAssoc($res);
-
-// 					if ($row['status'] && $row['status'] != 1 && $row['status'] != 2) {
-// 						// $sql_online = '
-// 						// 	UPDATE ec_online_report 
-// 						// 	SET status = 1, last_online = "' . $last_time_user_7 . '"
-// 						// 	WHERE assigned_user_id = "' . $user_id . '"
-// 						// 	AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-// 						// 	AND deleted = 0
-// 						// ';
-// 						// $db->query($sql_online);
-// 						if($agent){
-// 							agent_change_status($agent, 'Available');
-// 						}
-// 						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' ONLINE trở lại');
-// 					} else {
-// 						// sendTestTelegram('Nhân viên ' .$val['name_user']. ' Vẫn đang online');
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	return true;
-// }
 function checkStatusOnlineUser()
 {
 	global $db;
@@ -2071,7 +1976,6 @@ function checkStatusOnlineUser()
 			continue;
 		}; 
 
-        $last_time_user_7 = date('Y-m-d H:i:s', strtotime($data_user['last_time'] . ' -7 hours'));
         $diffInSeconds = abs($timestamp_now - strtotime($data_user['last_time']));
         $agent = custom_get_sip_number($user_id);
 
@@ -2079,7 +1983,6 @@ function checkStatusOnlineUser()
 
 		// Kiểm tra trạng thái busy (5 phút) và không tương tác (2 phút 30 giây)
         if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] != 1 && $diffInSeconds > 150)) {
-            updateUserStatus($db, $user_id, $last_time_user_7, 0);
             $_SESSION['busy'] = 0;
             if ($agent) agent_change_status($agent, 'Logged Out');
         }
@@ -2087,18 +1990,6 @@ function checkStatusOnlineUser()
 
 	return true;
 }
-
-function updateUserStatus($db, $user_id, $last_time_user_7, $status)
-{
-    $db->query("
-        UPDATE ec_online_report
-        SET status = $status, last_online = '$last_time_user_7'
-        WHERE assigned_user_id = '$user_id'
-        AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'
-        AND deleted = 0
-    ");
-}
-
 
 
 // Kiểm tra xem booking giao cho booker đã được xử lý hay chưa? 

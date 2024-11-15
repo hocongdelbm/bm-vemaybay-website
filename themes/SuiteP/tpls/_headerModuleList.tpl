@@ -106,12 +106,11 @@
 <div class="container-fluid">
      <div class="row">
           <div class="col-md-12">
-               <!-- <nav class="header-navbar navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row"> -->
-               <nav class="header-navbar navbar default-layout-navbar fixed-top py-0 px-3 d-flex">
+               <nav class="header-navbar layout-navbar navbar default-layout-navbar fixed-top py-0 px-3 d-flex">
                     <div class="d-flex header-navbar__top w-100 align-items-center">
                          <!-- LOGO -->
                          <div class="navbar-brand-wrapper d-flex align-items-center">
-                              <a class="brand-logo" href="index.php?module=Home&amp;action=index">
+                              <a class="brand-logo" href="index.php?module=Home&action=index">
                                    <img src="themes/SuiteP/images/home/company_logo.png" alt="">
                               </a>
                          </div>
@@ -234,23 +233,10 @@
                                    {if $AUTHENTICATED}
                                    <li id="change_user_status">
                                         <div class="container_checkbox">
-                                            <!-- <div id="usr_stt_warning" class="text-black"></div>
-                                            <div class="switch-holder d-flex align-items-center gap-2">
-                                                <div class="switch-label">
-                                                    <span class="text-black">Online</span>
-                                                </div>
-                                                <div class="switch-toggle d-flex align-items-center">
-                                                       <label class="switch" for="online_stt">
-                                                            <input type="checkbox" id="online_stt" class="usr_stt" stt_opt="1">
-                                                            <span class="slider"></span>
-                                                       </label>
-                                                </div>
-                                            </div> -->
                                             <div class="switch-holder d-flex align-items-center gap-2">
                                                 <div class="switch-toggle d-flex align-items-center">
                                                        <label class="switch" for="busy_stt">
                                                             <input type="checkbox" id="busy_stt" class="usr_stt" stt_opt="2">
-                                                            <!-- <span class="slider"></span> -->
                                                        </label>
                                                 </div>
                                                   <div class="switch-label">
@@ -272,52 +258,74 @@
                                    {/if}
 
                                    <!-- QUICK CREATE -->
-                                   <li  id="quickcreatetop" class="nav-item dropdown d-none">
-                                        <a class="nav-link count-indicator dropdown-toggle" id="quickcreateDropdown" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                                             <button class="btn btn-block btn-lg btn-gradient-primary">                    
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             {$APP.LBL_CREATE_BUTTON_LABEL}
-                                             </button>
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-right navbar-dropdown box-list" aria-labelledby="quickcreateDropdown" role="menu">
-                                        <li class="box-item">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             <a href="index.php?module=Accounts&action=EditView&return_module=Accounts&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="Accounts" label="LBL_MODULE_NAME"}</a>
-                                        </li>
-                                        <li class="box-item">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             <a href="index.php?module=Contacts&action=EditView&return_module=Contacts&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="Contacts" label="LBL_MODULE_NAME"}</a>
-                                        </li>
-                                        <li class="box-item">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             <a href="index.php?module=Opportunities&action=EditView&return_module=Opportunities&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="Opportunities" label="LBL_MODULE_NAME"}</a>
-                                        </li>
-                                        <li class="box-item">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             <a href="index.php?module=Leads&action=EditView&return_module=Leads&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="Leads" label="LBL_MODULE_NAME"}</a>
-                                        </li>
-                                        <li class="box-item">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             <a href="index.php?module=Documents&action=EditView&return_module=Documents&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="Documents" label="LBL_MODULE_NAME"}</a>
-                                        </li>
-                                        <li class="box-item">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             <a href="index.php?module=Calls&action=EditView&return_module=Calls&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="Calls" label="LBL_MODULE_NAME"}</a>
-                                        </li>
-                                        <li class="box-item">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>
-                                             <a href="index.php?module=Tasks&action=EditView&return_module=Tasks&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="Tasks" label="LBL_MODULE_NAME"}</a>
-                                        </li>
-                                        </ul>
+                                   <li  id="quickcreatetop" class="nav-item navbar-dropdown dropdown-shortcuts dropdown">
+                                        <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="true">
+                                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM9 9H5V5h4v4zm5 2h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1zm1-6h4v4h-4V5zM3 20a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v6zm2-5h4v4H5v-4zm8 5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6zm2-5h4v4h-4v-4z"></path></svg>
+                                         </a>
+
+                                         <div class="dropdown-menu dropdown-menu-end p-0">
+                                             <div class="dropdown-menu-header border-bottom">
+                                                 <div class="dropdown-header d-flex align-items-center py-2 bg-primary">
+                                                     <h5 class="text-white mb-0 me-auto">Tạo nhanh</h5>
+                                                 </div>
+                                             </div>
+                                             <div class="dropdown-shortcuts-list">
+                                                  <div class="row row-bordered overflow-visible g-0">
+                                                       <div class="dropdown-shortcuts-item col">
+                                                            <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                            </span>
+                                                            <a class="stretched-link" href="index.php?module=EC_Receipt_Voucher&action=EditView&return_module=EC_Receipt_Voucher&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_Receipt_Voucher" label="LBL_MODULE_NAME"}</a>
+                                                       </div>
+                              
+                                                       <div class="dropdown-shortcuts-item col">
+                                                            <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                            </span>
+                                                            <a class="stretched-link" href="index.php?module=EC_Payment_Voucher&action=EditView&return_module=EC_Payment_Voucher&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_Payment_Voucher" label="LBL_MODULE_NAME"}</a>
+                                                       </div>
+                                                  </div>
+                                                  <div class="row row-bordered overflow-visible g-0">
+                                                       <div class="dropdown-shortcuts-item col">
+                                                            <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                            </span>
+                                                            <a class="stretched-link" href="index.php?module=EC_HoanVe&action=EditView&return_module=EC_HoanVe&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_HoanVe" label="LBL_MODULE_NAME"}</a>
+                                                       </div>
+                              
+                                                       <div class="dropdown-shortcuts-item col">
+                                                            <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                            </span>
+                                                            <a class="stretched-link" href="index.php?module=EC_LeaveAbsences&action=EditView&return_module=EC_LeaveAbsences&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_LeaveAbsences" label="LBL_MODULE_NAME"}</a>
+                                                       </div>
+                                                  </div>
+                                                  <div class="row row-bordered overflow-visible g-0">
+                                                       <div class="dropdown-shortcuts-item col">
+                                                            <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                            </span>
+                                                            <a class="stretched-link" href="index.php?module=EC_ChuyenTienNoiBo&action=EditView&return_module=EC_ChuyenTienNoiBo&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_ChuyenTienNoiBo" label="LBL_MODULE_NAME"}</a>
+                                                       </div>
+                              
+                                                       <div class="dropdown-shortcuts-item col">
+                                                            <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                            </span>
+                                                            <a class="stretched-link" href="index.php?module=EC_HoaDonBan&action=EditView&return_module=EC_HoaDonBan&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_HoaDonBan" label="LBL_MODULE_NAME"}</a>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                         </div>
                                    </li>
                          
                                    <!-- Notifications -->
-                                   <li id="desktop_notifications" class="nav-item dropdown">
+                                   <li id="desktop_notifications" class="nav-item dropdown desktop_notifications">
                                         <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: #bba8bff5"><path d="M19 13.586V10c0-3.217-2.185-5.927-5.145-6.742C13.562 2.52 12.846 2 12 2s-1.562.52-1.855 1.258C7.185 4.074 5 6.783 5 10v3.586l-1.707 1.707A.996.996 0 0 0 3 16v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a.996.996 0 0 0-.293-.707L19 13.586zM19 17H5v-.586l1.707-1.707A.996.996 0 0 0 7 14v-4c0-2.757 2.243-5 5-5s5 2.243 5 5v4c0 .266.105.52.293.707L19 16.414V17zm-7 5a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22z"></path></svg>
-                                             <span class="alert_count count-symbol bg-danger"></span>
+                                             <span class="alert_count count-symbol bg-danger">0</span>
                                         </a>
-                                        <div id="alerts" class="dropdown-menu dropdown-menu-right navbar-dropdown box-list" aria-labelledby="notificationDropdown">
+                                        <div id="alerts" class="dropdown-menu dropdown-menu-end navbar-dropdown box-list" aria-labelledby="notificationDropdown">
                                              {$APP.LBL_EMAIL_ERROR_VIEW_RAW_SOURCE}
                                         </div>
                                    </li>
@@ -332,7 +340,7 @@
                                                   </div>
                                              </div>
                                         </a>
-                                        <ul class="dropdown-menu navbar-dropdown box-list user-dropdown user-menu" aria-labelledby="profileDropdown">
+                                        <ul class="dropdown-menu dropdown-menu-end navbar-dropdown box-list user-dropdown user-menu" aria-labelledby="profileDropdown">
                                         <li class="box-item">
                                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
                                              <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>

@@ -429,7 +429,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             while ($call = $db->fetchByAssoc($result)) {
                 if ($call) {
                     // LƯU KPI
-                    if (!empty($note) && (int)$call['call_talk'] > 0 && $call['status'] == 'done') {
+                    if (!empty($note) && (int)$call['call_talk'] >= 20 && $call['status'] == 'done') {
                         $work = new EC_Working_Process();
                         $work->name = $call['name'];
                         $work->parent_type = 'Calls';
@@ -570,17 +570,7 @@ function get_call_info($phone)
     if (is_null($phone) || empty($phone)) return '';
 
     global $db, $app_list_strings;
-    $html = '<table id="table-voicecall" class="table-details__booking">
-                <caption class="caption-voicecall" align="top">THÔNG TIN CUỘC GỌI GẦN ĐÂY</caption>
-                <thead>
-                    <th>STT</th>
-                    <th>Cuộc gọi</th>
-                    <th>Direction</th>
-                    <th>Gọi từ</th>
-                    <th>Gọi đến</th>
-                    <th>Mô tả</th>
-                </thead>
-                <tbody>';
+    $html = '';
 
     $sql = "SELECT id, name, status, direction, call_from, call_to, description
             FROM calls
@@ -589,35 +579,50 @@ function get_call_info($phone)
             LIMIT 10";
 
     $res = $db->query($sql);
-    $i = 1;
-    while ($row = $db->fetchByAssoc($res)) {
-        // class direction
-        if ($row['direction'] == 'suddenly') {
-            $direction_class = 'text-warning';
-        } else if ($row['direction'] == 'inbound') {
-            $direction_class = 'text-success';
-        } else if ($row['direction'] == 'missed') {
-            $direction_class = 'text-danger';
-        } else if ($row['direction'] == 'outbound') {
-            $direction_class = 'text-primary';
-        } else if ($row['direction'] == 'spam') {
-            $direction_class = 'text-spam';
-        } else {
-            $direction_class = 'text-normal';
-        }
 
-        $html .= '
-                <tr>
-                    <td align="center" class="fw-bold">' . $i . '</td>
-                    <td align="left" class="fw-bold name_call"><a target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $row['id'] . '">' . $row['name'] . '</a></td>
-                    <td align="left" class="direction_call fw-bold ' . $direction_class . '">' . $app_list_strings['calls_direction_list'][$row['direction']] . '</td>
-                    <td align="center" class="from_call">' . $row['call_from'] . '</td>
-                    <td align="center" class="to_call">' . $row['call_to'] . '</td>
-                    <td align="left" class="description_call" style="max-width: 250px;">' . $row['description'] . '</td>
-                </tr>';
-        $i++;
+    if ($db->countRows($res) > 0) {
+        $html .= '<table id="table-voicecall" class="table-details__booking">
+                    <caption class="caption-voicecall" align="top">THÔNG TIN CUỘC GỌI GẦN ĐÂY</caption>
+                    <thead>
+                        <th>STT</th>
+                        <th>Cuộc gọi</th>
+                        <th>Direction</th>
+                        <th>Gọi từ</th>
+                        <th>Gọi đến</th>
+                        <th>Mô tả</th>
+                    </thead>
+                    <tbody>';
+                    
+        $i = 1;
+        while ($row = $db->fetchByAssoc($res)) {
+            // class direction
+            if ($row['direction'] == 'suddenly') {
+                $direction_class = 'text-warning';
+            } else if ($row['direction'] == 'inbound') {
+                $direction_class = 'text-success';
+            } else if ($row['direction'] == 'missed') {
+                $direction_class = 'text-danger';
+            } else if ($row['direction'] == 'outbound') {
+                $direction_class = 'text-primary';
+            } else if ($row['direction'] == 'spam') {
+                $direction_class = 'text-spam';
+            } else {
+                $direction_class = 'text-normal';
+            }
+    
+            $html .= '
+                    <tr>
+                        <td align="center" class="fw-bold">' . $i . '</td>
+                        <td align="left" class="fw-bold name_call text-nowrap"><a target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $row['id'] . '">' . $row['name'] . '</a></td>
+                        <td align="left" class="direction_call fw-bold ' . $direction_class . '">' . $app_list_strings['calls_direction_list'][$row['direction']] . '</td>
+                        <td align="center" class="from_call">' . $row['call_from'] . '</td>
+                        <td align="center" class="to_call">' . $row['call_to'] . '</td>
+                        <td align="left" class="description_call" style="max-width: 250px;">' . $row['description'] . '</td>
+                    </tr>';
+            $i++;
+        }
+        $html .= '</tbody></table>';
     }
-    $html .= '</tbody></table>';
 
     return $html;
 }
@@ -627,44 +632,56 @@ function get_booking_info($phone)
     if (is_null($phone) || empty($phone)) return '';
 
     global $db, $app_list_strings;
-    $html = '<table id="table-voicebooking" class="table-details__booking">
-                <caption class="caption-voicebooking" align="top">THÔNG TIN BOOKING GẦN ĐÂY</caption>
-                <thead>
-                    <th>STT</th>
-                    <th>Booking</th>
-                    <th>Trạng thái</th>
-                    <th>Hành trình</th>
-                    <th>Ngày đặt</th>
-                </thead>
-                <tbody>';
+
+    $html = '';
 
     $sql = "SELECT id, name, info_data, count(*) as is_exsist
         FROM ec_customer c
         WHERE c.phone = '" . $phone . "' AND c.deleted = 0";
 
     $res = $db->query($sql);
-    while ($row = $db->fetchByAssoc($res)) {
-        if ($row['is_exsist'] != 0) {
-            $data_bk = array_reverse(json_decode(html_entity_decode($row['info_data']), true));
-            $i = 1;
-            foreach ($data_bk as $id => $v) {
-                if ($i <= 10) {
-                    $html .= '
-                    <tr>
-                        <td align="center" class="fw-bold">' . $i . '</td>
-                        <td><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $id . '" target="_blank">' . $v['booking_number'] . '</a></td>
-                        <td class="fw-bold text-center" style="color:' . $app_list_strings['booking_status_color_list'][$v['booking_status']] . ';" align="center">' . $app_list_strings['booking_status_list'][$v['booking_status']] . '</td>
-                        <td class="text-center">' . $v['journey'] . '</td>
-                        <td>' . ($v['booking_date'] != '' ? date('d-m-Y H:i', strtotime('+7 hours', strtotime($v['booking_date']))) : '') . '</td>
-                    </tr>';
-                    $i++;
+
+    if ($db->countRows($res) > 0) {
+        $html .= '<table id="table-voicebooking" class="table-details__booking">
+                    <caption class="caption-voicebooking" align="top">THÔNG TIN BOOKING GẦN ĐÂY</caption>
+                    <thead>
+                        <th>STT</th>
+                        <th>Booking</th>
+                        <th>Trạng thái</th>
+                        <th>Hành trình</th>
+                        <th>Ngày đặt</th>
+                        <th>Khách hàng</th>
+                    </thead>
+                    <tbody>';
+                    
+        while ($row = $db->fetchByAssoc($res)) {
+            if ($row['is_exsist'] != 0) {
+                $data_bk = array_reverse(json_decode(html_entity_decode($row['info_data']), true));
+                $i = 1;
+                foreach ($data_bk as $id => $v) {
+                    if ($i <= 10) {
+                        $html .= '
+                        <tr>
+                            <td align="center" class="fw-bold">' . $i . '</td>
+                            <td><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $id . '" target="_blank">' . $v['booking_number'] . '</a></td>
+                            <td class="fw-bold text-center" style="color:' . $app_list_strings['booking_status_color_list'][$v['booking_status']] . ';" align="center">' . $app_list_strings['booking_status_list'][$v['booking_status']] . '</td>
+                            <td class="text-center">' . $v['journey'] . '</td>
+                            <td>' . ($v['booking_date'] != '' ? date('d-m-Y H:i', strtotime('+7 hours', strtotime($v['booking_date']))) : '') . '</td>
+                            <td class="text-center">
+                                <span>
+                                    ' . $v['customer_name'] . '
+                                </span>   
+                            </td>
+                        </tr>';
+                        $i++;
+                    }
                 }
+            } else {
+                $html .= '<tr><td align="center" colspan="5" class="text-start fw-bold">Liên hệ chưa đặt booking!</td></tr>';
             }
-        } else {
-            $html .= '<tr><td align="center" colspan="5" class="text-start fw-bold">Liên hệ chưa đặt booking!</td></tr>';
         }
+        $html .= '</tbody></table>';
     }
-    $html .= '</tbody></table>';
 
     return $html;
 }
@@ -673,18 +690,8 @@ function get_booking_refund($phone)
 {
     if (is_null($phone) || empty($phone)) return '';
     global $db, $app_list_strings;
-    $html = '<table id="table-voicehv__booking" class="table-details__booking">
-                <caption class="caption-voicehv__booking" align="top">THÔNG TIN HOÀN VÉ GẦN ĐÂY</caption>
-                <thead>
-                    <th>STT</th>
-                    <th>Phiếu hoàn</th>
-                    <th>Trạng thái</th>
-                    <th>Booking</th>
-                    <th>Diễn giải</th>
-                    <th>Hoàn tiền khách</th>
-                    <th>Đã chi tiền</th>
-                </thead>
-                <tbody>';
+
+    $html = '';
 
     $sql_hv = 'SELECT hv.id, hv.name, hv.tinhtrang, hv.description, bk.name as booking, hv.booking_id as booking_id, hv.tongtienkhach,
                         (
@@ -701,21 +708,38 @@ function get_booking_refund($phone)
                 LIMIT 5';
 
     $res = $db->query($sql_hv);
-    $i = 1;
-    while ($row = $db->fetchByAssoc($res)) {
-        $html .= '<tr>
-                    <td align="center" class="fw-bold">' . $i . '</td>
-                    <td align="left" class="fw-bold hv_name"><a target="_blank" href="index.php?module=EC_HoanVe&return_module=EC_HoanVe&action=DetailView&record=' . $row['id'] . '">' . $row['name'] . '</a></td>
-                    <td align="center" class="fw-bold hv_status">' . $app_list_strings['tinhtranghoanve_list'][$row['tinhtrang']] . '</td>
-                    <td align="left" class="fw-bold bk_name"><a target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking'] . '</a></td>
-                    <td align="center" class="fw-bold hv_description" style="max-width: 300px;">' . $row['description'] . '</td>
-                    <td align="center" class="fw-bold hv_htk">' . format_number($row['tongtienkhach']) . '</td>
-                    <td align="center" class="fw-bold hv_refunded">' . format_number($row['refunded']) . '</td>
-                </tr>';
-        $i++;
+
+    if ($db->countRows($res) > 0) {
+        $html .= '<table id="table-voicehv__booking" class="table-details__booking">
+                    <caption class="caption-voicehv__booking" align="top">THÔNG TIN HOÀN VÉ GẦN ĐÂY</caption>
+                    <thead>
+                        <th>STT</th>
+                        <th>Phiếu hoàn</th>
+                        <th>Trạng thái</th>
+                        <th>Booking</th>
+                        <th>Diễn giải</th>
+                        <th>Hoàn tiền khách</th>
+                        <th>Đã chi tiền</th>
+                    </thead>
+                    <tbody>';
+    
+        $i = 1;
+        while ($row = $db->fetchByAssoc($res)) {
+            $html .= '<tr>
+                        <td align="center" class="fw-bold">' . $i . '</td>
+                        <td align="left" class="fw-bold hv_name"><a target="_blank" href="index.php?module=EC_HoanVe&return_module=EC_HoanVe&action=DetailView&record=' . $row['id'] . '">' . $row['name'] . '</a></td>
+                        <td align="center" class="fw-bold hv_status">' . $app_list_strings['tinhtranghoanve_list'][$row['tinhtrang']] . '</td>
+                        <td align="left" class="fw-bold bk_name"><a target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking'] . '</a></td>
+                        <td align="center" class="fw-bold hv_description" style="max-width: 300px;">' . $row['description'] . '</td>
+                        <td align="center" class="fw-bold hv_htk">' . format_number($row['tongtienkhach']) . '</td>
+                        <td align="center" class="fw-bold hv_refunded">' . format_number($row['refunded']) . '</td>
+                    </tr>';
+            $i++;
+        }
+    
+        $html .= '</tbody></table>';
     }
 
-    $html .= '</tbody></table>';
     return $html;
 }
 

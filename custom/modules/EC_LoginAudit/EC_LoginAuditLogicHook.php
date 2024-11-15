@@ -13,10 +13,7 @@ class loginActions
             $la_event = 'login_failed';
         }
 
-        if (empty($agent_status)) {
-            $agent_status   = 'Logged Out';
-        }
-
+        $agent_status   = 'Logged Out';
         switch ($la_event) {
             case 'login_failed':
                 $la_result = "Failed";
@@ -46,24 +43,10 @@ class loginActions
                                 VALUES ('$uuid','','$timestamp', '$timestamp','$current_user->id','1','','0','1','$ip_address','$typed_name','$current_user->is_admin','$la_result', '$platform', '$brower', '$user_agent')";
 
         $db->query($query, false);
-
+        
         // Update change status agent and update agent status
-        if ($agent_status) {
-            if ($current_user->td_sip) {
-                agent_change_status($current_user->td_sip, $agent_status);
-            }
+        if ($la_event && $agent_status && $current_user->td_sip) {
+            agent_change_status($current_user->td_sip, $agent_status);
         }
-
-        // Logout => OFF ONLINE
-        if($la_result == 'Logout'){
-            $sql_offline = '
-                UPDATE ec_online_report 
-                SET status = 0, last_online = "' . date('Y-m-d H:i:s') . '"
-                WHERE assigned_user_id = "' . $current_user->id . '"
-                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                AND deleted = 0
-            ';
-            $db->query($sql_offline);
-        }   
     }
 }

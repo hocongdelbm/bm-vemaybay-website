@@ -2091,6 +2091,21 @@ function global_test_input($data)
     return $data;
 }
 
+// Format seconds to time
+function global_secondsToTimeFormat($seconds)
+{
+	if ($seconds == 0) {
+		return '00:00:00';
+	}
+
+	$hours      = floor($seconds / 3600);
+	$minutes    = floor(($seconds % 3600) / 60);
+	$seconds    = $seconds % 60;
+
+	return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+}
+
+
 function custom_get_sip_number($key = '')
 {
     $arr = [
@@ -2486,7 +2501,11 @@ function isSpamPhone($phone)
 // CHANGE STATUS AGENT
 function agent_change_status($agent, $status)
 {
-    global $db;
+    // 0: Offline
+	// 1: Online
+	// 2: Busy
+
+    global $db, $current_user;
     if (empty($agent) || empty($status)) {
         $response['success'] = array(
             'code' => 400,
@@ -2532,26 +2551,59 @@ function agent_change_status($agent, $status)
                        WHERE td_sip = "' . $agent . '"
                        AND deleted = 0';
             $db->query($sql_as);
+            
+            $result_sql_as = $db->query($sql_as);
+            if(!$result_sql_as){
+                $response['fail'] = array(
+                    'code' => 500,
+                    'title' => 'Error sql_as',
+                    'message' => $sql_as,
+                );
+                sendTestTelegram(json_encode($response));
+            }
 
-            if($status == 'Available'){
-	            $timestamp_now = date('Y-m-d H:i:s');
-
-                if(custom_get_sip_number($agent)){
-                    $sql_online = '
-                        UPDATE ec_online_report 
-                        SET status = 1, last_online = "' . $timestamp_now . '"
-                        WHERE assigned_user_id = "' . custom_get_sip_number($agent) . '"
-                        AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                        AND deleted = 0
-                    ';
-                    $db->query($sql_online);
+            $timestamp_now = date('Y-m-d H:i:s');
+            $sip_number = custom_get_sip_number($agent);
+            if ($sip_number) {
+                $status_value = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
+                
+                $sql_update = '
+                    UPDATE ec_online_report 
+                    SET status = "'.$status_value.'", last_online = "' . $timestamp_now . '"
+                    WHERE assigned_user_id = "' . custom_get_sip_number($agent) . '"
+                    AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+                    AND deleted = 0
+                ';
+                
+                $result_sql_update = $db->query($sql_update);
+                if (!$result_sql_update) {
+                    $response = [
+                        'fail' => [
+                            'code' => 500,
+                            'title' => 'Error result_sql_update',
+                            'message' => $sql_update,
+                        ]
+                    ];
+                    sendTestTelegram(json_encode($response));
                 }
-            } 
+            } else {
+                $response = [
+                    'fail' => [
+                        'code' => 400,
+                        'title' => 'sip_number not valid',
+                        'agent' => $agent,
+                        'status' => $status,
+                        'sip_number' => custom_get_sip_number($agent),
+                    ]
+                ];
+                sendTestTelegram(json_encode($response));
+            }
         }
     } catch (Exception $e) {
         return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
     }
 }
+
 
 // GHI FILE LOGS BACKUP SAVE CALL FAIELD
 function write_file_backup_log_calls($json)

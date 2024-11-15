@@ -876,9 +876,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$this->ss->assign('SEND_MAIL', $send_mail);
 		}
 
+		
 		// Change booking status button
-		// if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8)) || $current_user->user_name == 'hungnh') {
-		if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id)  || $current_user->user_name == 'hungnh') {
+		$now = date("Y-m-d H:i:s");
+		$time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
+
+		/**
+		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
+		 */
+
+		// if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8))) {
+		if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id)  || $current_user->user_name == 'hungnh' || $current_user->user_name == 'admin' || strtotime($time_current) < strtotime("08:00:00") || strtotime($time_current) > strtotime("20:59:59")) {
 			$change_status = '</form>
 			<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />

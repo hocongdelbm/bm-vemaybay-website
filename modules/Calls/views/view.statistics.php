@@ -107,7 +107,7 @@ class Viewstatistics extends SugarView
           // THỐNG KÊ THỜI LƯỢNG CUỘC GỌI
           $this->statisticsDurationAverage($from_date, $to_date);
 
-          // THỐNG KÊ THỜI LƯỢNG CUỘC GỌI
+          // THỐNG KÊ NGUỒN CUỘC GỌI
           $this->statisticsCallSources($from_date, $to_date);
 
           // ROLE
@@ -209,7 +209,7 @@ class Viewstatistics extends SugarView
                // "0984343406" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
                
                // 07/11/2024
-               "0385291429" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
+               "0385291429" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  //Brandname header - Hạn chế dùng gọi ra
                "0385295550" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "0385295676" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "0385297839" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  

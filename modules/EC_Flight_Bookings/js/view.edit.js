@@ -1464,6 +1464,11 @@ function checkLineItems() {
 
 // Validate birthday
 function isValidDateBirthDay(date) {
+
+	if(date.length == 0){
+		return true;
+	}
+	
     const dateParts = date.split('-');
 
     const [day, month, year] = dateParts;

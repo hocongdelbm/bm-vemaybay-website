@@ -157,6 +157,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				// Cập nhật hỗ trợ xong thì chuyển sang status "Đã TT"
 				if($support_customer == '2' && !is_null($booking_status) && $booking_status == '1'){
 					update_field_booking($record, 'booking_status', '2');
+					update_field_booking($record, 'assigned_user_id', $current_user->id);
 				} else {
 					if($record && $booking_status){
 						update_field_booking($record, 'booking_status', $booking_status);

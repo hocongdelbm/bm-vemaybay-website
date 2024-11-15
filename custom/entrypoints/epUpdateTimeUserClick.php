@@ -16,54 +16,39 @@ $array_admin = [
 if (isset($_POST['for']) && $_POST['for'] == 'is_Online') {
      $current_user_id    = $current_user->id;
      $path               = "secure_sessions/check_online_logs/";
-	$temp_files         = scandir($path);
-	natsort($temp_files);
-	$timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hour')));
+     $temp_files         = scandir($path);
+     natsort($temp_files);
+     $timestamp_now = strtotime(date('Y-m-d H:i:s', strtotime('+7 hour')));
 
      $is_busy = 0; //Không bận
      foreach ($temp_files as $file) {
           $info               = pathinfo($file);
-          $file_name          = basename($file,'.'.$info['extension']);
+          $file_name          = basename($file, '.' . $info['extension']);
           $user_id            = str_replace('_', '-', $file_name);
 
-          if ($file != "." && $file != ".." && $file != "Thumbs.db" && $file != basename(__FILE__) && $user_id == $current_user_id) {
-               $json_file          = read_file_logs_online($user_id);
-               $data_user  	     = json_decode($json_file, true);
-               $strtotime_user 	= strtotime(date('Y-m-d H:i:s', strtotime($data_user['last_time'])));
-               $diffInSeconds  	= abs($timestamp_now - $strtotime_user);
+          $excluded_files = [".", "..", "Thumbs.db", basename(__FILE__)];
+          if (!in_array($file, $excluded_files) && $user_id == $current_user_id) {
+               $json_file = read_file_logs_online($user_id);
+               $data_user = json_decode($json_file, true);
+               $strtotime_user = strtotime($data_user['last_time']);
+               $diffInSeconds = abs($timestamp_now - $strtotime_user);
 
-               if(trim($data_user['busy']) == 1){
-                    $status = 'Logged Out';
-                    $is_busy = 1;
-               } else {
-                    if($diffInSeconds > 150){ //2 phút rữ
-                         $status = 'Logged Out';
-                         $is_busy = 1;
-                    } else {
-                         $is_busy = 0;
-                         $status = 'Available';
-                    }
-               }
-               
-               if($is_busy == 1){
-                    echo 0;
-                    exit();
-               } else {
-                    echo 1;
-                    exit();
-               }
+               $is_busy = (trim($data_user['busy']) == 1) || ($diffInSeconds > 150) ? 1 : 0;
+
+               echo $is_busy == 1 ? 0 : 1;
+               exit();
           }
-     }  
+     }
 }
 
 
 if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
-     $agent  = isset($_POST['agent']) ? trim($_POST['agent']) : '';
-     $agent_status = isset($_POST['status']) ? trim($_POST['status']) : '';
+     $agent         = isset($_POST['agent']) ? trim($_POST['agent']) : '';
+     $agent_status  = isset($_POST['status']) ? trim($_POST['status']) : '';
 
      if ($agent && $agent_status) {
           agent_change_status($agent, $agent_status);
-      }
+     }
 }
 
 // Check trạng thái người dùng
@@ -71,12 +56,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'checkUsrStt') {
      $time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
 
      // Booker
-    if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
+     if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
           content_log($current_user->id, $time_current, $_POST['is_busy']);
           echo 1;
           return;
      }
-     
+
      // Admin - KT
      $array_adminkt = array(
           '72ece22c-cb25-8e30-9dea-56f2201cd359',
@@ -93,8 +78,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'checkUsrStt') {
                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
           ';
           $row_exist = $db->fetchByAssoc($db->query($sql_exist));
-          $online 		= new EC_Online_Report;
-          if(isset($row_exist) && !empty($row_exist)){
+          $online           = new EC_Online_Report;
+          if (isset($row_exist) && !empty($row_exist)) {
                $online->retrieve($row_exist['id']);
           } else {
                $online->retrieve($current_user->id);
@@ -113,7 +98,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'checkUsrStt') {
                         AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = CURDATE()
                         AND deleted = 0
                     ");
-               } 
+               }
           }
 
           // Ghi log trạng thái
@@ -129,12 +114,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastBusyUser') {
      $busy = $_POST['busy'];
 
      // Booker
-    if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
+     if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {
           content_log($current_user->id, $time, $busy);
           echo 1;
           return;
      }
-     
+
      // Admin - KT
      $array_adminkt = array(
           '72ece22c-cb25-8e30-9dea-56f2201cd359',
@@ -152,11 +137,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastBusyUser') {
                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
           ';
           $row_exist = $db->fetchByAssoc($db->query($sql_exist));
-          $online 		= new EC_Online_Report;
+          $online           = new EC_Online_Report;
 
           $online = new EC_Online_Report;
           if ($row_exist) {
-              $online->retrieve($row_exist['id']);
+               $online->retrieve($row_exist['id']);
           }
 
           // Cập nhật trạng thái busy
@@ -212,7 +197,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
           if (is_null($time) || empty($time)) {
                echo 0;
                exit();
-           }
+          }
 
           $sql_exist = '
                SELECT id, status
@@ -222,14 +207,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
           ';
           $row_exist = $db->fetchByAssoc($db->query($sql_exist));
-          $online 		= new EC_Online_Report;
+          $online           = new EC_Online_Report;
 
-          if(isset($row_exist) && !empty($row_exist)){
+          if (isset($row_exist) && !empty($row_exist)) {
                $online->retrieve($row_exist['id']);
           } else {
                $online->retrieve($current_user->id);
           }
-          
+
           $busy = isset($_SESSION['busy']) ? $_SESSION['busy'] : ($online->status == 2 ? 1 : 0);
           content_log($current_user->id, $time, $busy);
           echo 1;

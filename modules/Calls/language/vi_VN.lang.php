@@ -144,10 +144,16 @@ $mod_strings = array(
     'LBL_CALL_TYPE' => 'Type',
     'LBL_LIST_CONTACT' => 'Liên hệ',
     'LBL_BOOKING' => 'Booking',
-    'LBL_CALL_DURATION_C' => 'Duration',
+    'LBL_CALL_DURATION_C' => 'Hội thoại',
     'LBL_CALL_SOURCES' => 'Nguồn',
     'LBL_HANGUP_CAUSE' => 'Nguyên nhân ngắt máy',
     'LBL_OTHER_CALLER' => 'Số gọi đi',
+
+    'LBL_DATE_WAIT' => 'Thời gian chờ',
+    'LBL_DATE_ACCEPT' => 'Thời gian tiếp nhận',
+    'LBL_DATE_HOLD' => 'Thời gian giữ cuộc gọi',
+    'LBL_CALL_TALK' => 'Hội thoại',
+    'LBL_CALL_DURATION' => 'Thời lượng',
 
     'LBL_TYPE_CALL_SOURCES' => 'Nguồn chi tiết',
     'LBL_CALL_REASON' => 'Phân loại cuộc gọi',

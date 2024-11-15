@@ -6,12 +6,15 @@
 # the misuse of the repository as backup replacement.
 # For development the cache directory can be safely ignored and
 # therefore it is ignored.
-/cache/*
+cache/*
+!cache/upload/inputinvoices
 # Ignore some files and directories from the custom directory.
 /custom/history/
 /custom/working/
 /custom/modules/*/Ext/
-/custom/application/Ext/
+/custom/application/Ext/*
+!/custom/application/Ext/Api/*
+/custom/Extension/application/Ext/Language/
 # Custom configuration should also be ignored.
 /config.php
 /config_override.php
@@ -30,4 +33,5 @@ modules/EC_Zalo/nohup.out
 secure_sessions/*
 !secure_sessions/logs
 
+# Ignore vendor
 vendor

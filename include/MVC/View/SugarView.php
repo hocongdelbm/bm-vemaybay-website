@@ -1149,6 +1149,8 @@ EOHTML;
         $arr_sip_number = custom_get_sip_number();
 
         $html = '';
+        $css = $js = '';
+
         if(isset($arr_sip_number[$current_user->id])) {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="'.$arr_sip_number[$current_user->id]['user'].'" disabled />';
             $html .= '<input type="hidden" name="sip_password" id="sip_password" value="'.$arr_sip_number[$current_user->id]['password'].'" disabled />';
@@ -1340,32 +1342,24 @@ EOHTML;
                     <div id="popup-inforbooking"></div>
                 </div>
             ';
-            
-            $css = '
-                <link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=2.4">
-            ';
 
-            // if($current_user->id == '1' || $current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6' || $current_user->id = '168889bb-54c2-59c7-8b3f-649102530d3c'){
-            //     $js = '<audio id="audio_jssip"></audio>
-            //         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-            //         <script src="custom/jssip_webrtc/call2.js?ver='.date("YmdHi").'"></script>
-            //     ';
-            // } else {
-            //     $js = '<audio id="audio_jssip"></audio>
-            //         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-            //         <script src="custom/jssip_webrtc/call.js?vver='.date("YmdHi").'"></script>
-            //     ';
-            // }
-
-            $js = '<audio id="audio_jssip"></audio>
-                <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                <script src="custom/jssip_webrtc/call.js?vver='.date("YmdHi").'"></script>
-            ';
+            if($current_user->id == '1' || $current_user->id == '493ad5e5-ffea-a84f-96d7-6577fed623d6' || $current_user->id = '168889bb-54c2-59c7-8b3f-649102530d3c'){
+                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=2.5">';
+                $js .= '<audio id="audio_jssip"></audio>
+                        <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
+                        <script src="custom/jssip_webrtc/call2.js?ver=2.5"></script>
+                ';
+            } else {
+                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=2.4">';
+                $js .= '<audio id="audio_jssip"></audio>
+                        <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
+                        <script src="custom/jssip_webrtc/call.js?ver=2.4"></script>
+                ';
+            }
         }
         else {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="" disabled />';
             $html .= '<input type="hidden" name="sip_password" id="sip_password" value="" disabled />';
-            $css = $js = '';
         }
 
         echo $css.$html.$js;

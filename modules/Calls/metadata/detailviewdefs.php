@@ -150,12 +150,35 @@ $viewdefs['Calls'] = array(
 						'label' => 'LBL_DATE_TIME',
 					),
 					array(
-						'name' => 'date_end',
-						'customCode' => '{$fields.date_end.value} {$fields.time_end.value}&nbsp;',
-						'label' => 'LBL_DATE_END_TIME',
-					),
-
+                        'name' => 'date_wait',
+                        'customCode' => '{$CUS_DATE_WAIT}',
+                        'label' => 'LBL_DATE_WAIT',
+                    ),
 				),
+				array(
+                    array(
+                        'name' => 'date_accept',
+                        'customCode' => '{$CUS_DATE_ACCEPT}',
+                        'label' => 'LBL_DATE_ACCEPT',
+                    ),
+					array(
+                        'name' => 'date_end',
+                        'customCode' => '{$fields.date_end.value} {$fields.time_end.value}&nbsp;',
+                        'label' => 'LBL_DATE_END_TIME',
+                    ),
+                ),
+				array(
+                    array(
+                        'name' => 'call_duration',
+                        'label' => 'LBL_CALL_DURATION',
+                        'customCode' => '{$CUS_CALL_DURATION}',
+                    ),
+                    array(
+                        'name' => 'call_talk',
+                        'label' => 'LBL_CALL_TALK',
+                        'customCode' => '{$CUS_CALL_TALK}',
+                    ),
+                ),
 				// array(
 				// array(
 				//   'name' => 'duration_hours',
