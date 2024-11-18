@@ -97,7 +97,7 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
      */
     public function validateAuthorization(ServerRequestInterface $request)
     {
-        global $sugar_config;
+        global $sugar_config, $current_user;
 
         if ($request->hasHeader('authorization') === false) {
             throw OAuthServerException::accessDenied('Missing "Authorization" header');
@@ -116,6 +116,7 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
                 'token'             => $token,
                 'getMessage'        => $exception->getMessage(), 
                 'jwt'               => $jwt,  
+                'current_user'               => $current_user->user_name,  
             );
             $this->sendTestTelegramAccessDenied(json_encode($log_token));
             throw OAuthServerException::accessDenied($exception->getMessage(), null, $exception);
@@ -144,6 +145,7 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
                 'jwt'               => $jwt,
                 'clock'             => $clock,
                 'constraints_log'   => $constraints_log ?? '',
+                'current_user'               => $current_user->user_name,  
             );
             $this->sendTestTelegramAccessDenied(json_encode($log_token));
 

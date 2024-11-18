@@ -1539,12 +1539,12 @@ fieldset[disabled] .navbar-inverse .btn-link:focus {
 
 .label {
      display: inline;
-     /* padding: 0.2em 0.6em 0.3em; */
      font-size: 14px;
      font-weight: 500;
      line-height: 1;
      vertical-align: baseline;
      border-radius: 0.25em;
+     color: var(--text-primary-2-color);
 }
 .label:empty {
      display: none

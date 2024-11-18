@@ -1,4 +1,6 @@
 <?php
+global $current_user, $db;
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
 
@@ -277,15 +279,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $is_success     = isset($_POST['is_success']) ? $_POST['is_success'] : "";
         $call_status    = ($is_success === 'true') ? 'done' : 'new';
 
+
         // Validate
-        if (empty($call_id)) {
+        if (empty($call_id) || empty($note)) {
             $GLOBALS['log']->fatal('update_call thất bại: ' . $_POST);
+
+            $log_false = array(
+                'path'           => 'update_call',
+                'call_id'        => $call_id,
+                'current_user'   => $current_user->user_name,
+            );
+            sendTelegramSupportKTTP(json_encode($log_false));
 
             echo 400;
             exit();
         }
-        global $db, $current_user;
-
 
         /**********  1. Handle Call & Contact  **********/
         if (empty($contact_id)) {

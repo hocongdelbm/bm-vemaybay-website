@@ -676,18 +676,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'updateUsrStt') {
 	}
 }
 
-// kiểm tra trạng thái hiện tại của user 
-if (isset($_POST['for']) && $_POST['for'] == 'checkUsrStt') {
-	$sql = 'SELECT IFNULL(status, 0)
-			FROM ec_online_report
-			WHERE deleted = 0 
-			AND assigned_user_id = "' . $current_user->id . '"
-			AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-		';
-	$user_stt = $db->getOne($sql);
-	echo $user_stt;
-}
-
 // nhắc nhở lên group nếu thay đổi trạng thái nhiều lần trong thời gian quy định (5 phút làm liên tục quá 5 lần)
 // if (isset($_POST['for']) && $_POST['for'] == 'reportToGroup') {
 // 	if (isset($_POST['type']) && $_POST['type'] == 'repeatChangeStt') {

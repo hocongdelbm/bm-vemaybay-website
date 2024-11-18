@@ -1949,6 +1949,8 @@ function updateMissingEfforts()
 	return true;
 }
 
+
+// Kiểm tra user còn online hay không
 function checkStatusOnlineUser()
 {
 	global $db;
@@ -1957,7 +1959,7 @@ function checkStatusOnlineUser()
 	// 1: Online
 	// 2: Busy
 	$path           = "secure_sessions/check_online_logs/";
-	$timestamp_now = strtotime('+7 hours');
+	$timestamp_now 	= strtotime('+7 hours');
 
 	foreach (array_diff(scandir($path), ['.', '..', 'Thumbs.db', basename(__FILE__)]) as $file) {
 
@@ -1981,9 +1983,8 @@ function checkStatusOnlineUser()
 
 		if($user_id == 'c57196c6-e211-9856-43d5-6695498f39ae') continue; //tiennguyen
 
-		// Kiểm tra trạng thái busy (5 phút) và không tương tác (2 phút 30 giây)
-        if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] != 1 && $diffInSeconds > 150)) {
-            $_SESSION['busy'] = 0;
+		// Kiểm tra trạng thái busy (10 phút) và không tương tác (2 phút 30 giây)
+        if (($data_user['busy'] == 1 && $diffInSeconds > 600) || ($data_user['busy'] == 0 && $diffInSeconds > 150)) {
             if ($agent) agent_change_status($agent, 'Logged Out');
         }
 	}

@@ -146,7 +146,8 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 			</form>';
 			$this->ss->assign('CHANGE_STATUS', $change_status);
 		} 
-		else if($this->bean->rv_status == '1' && !$this->isSalesInvoiceExist($this->bean->id) && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
+		// else if($this->bean->rv_status == '1' && !$this->isSalesInvoiceExist($this->bean->id) && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
+		else if($this->bean->rv_status == '1' && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
 			$bk = new EC_Flight_Bookings();
 			$bk->retrieve($this->bean->booking_id);
 			
@@ -212,14 +213,16 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 			$this->ss->assign('DEBT', $debt_btn);
 		}
 	}
+
+	// Module ec_hoadonban không có field phieuthu_id
 	
 	// Kiểm tra xem đã có hóa đơn bán nào thuộc phiếu thu này?
-	function isSalesInvoiceExist($phieuthu_id){
-		$sql = "SELECT COUNT(id) FROM ec_hoadonban
-				WHERE phieuthu_id='".$phieuthu_id."' AND deleted=0 ";
-		$rowcount = $this->bean->db->getOne($sql);
-		if($rowcount > 0)
-			return true;
-		return false;
-	}
+	// function isSalesInvoiceExist($phieuthu_id){
+	// 	$sql = "SELECT COUNT(id) FROM ec_hoadonban
+	// 			WHERE phieuthu_id='".$phieuthu_id."' AND deleted=0 ";
+	// 	$rowcount = $this->bean->db->getOne($sql);
+	// 	if($rowcount > 0)
+	// 		return true;
+	// 	return false;
+	// }
 }

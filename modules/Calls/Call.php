@@ -198,7 +198,13 @@ class Call extends SugarBean
         $return_id = parent::save($check_notify);
 
         // KPI FOR CALLS - Hungnh
-        if ($this->status == 'done' && !empty($this->description) && $this->call_talk >= 20) {
+        if ($this->status == 'done' 
+            && !empty($this->description) 
+            && (
+                ($this->call_talk >= 20 && $this->direction == 'outbound') 
+                || ($this->call_talk > 0 && $this->direction == 'inbound')
+            )
+        ) {
             switch ($this->type_call_sources) {
                 case 'called':
                     if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
@@ -639,6 +645,7 @@ class Call extends SugarBean
 
     //     return $call_fields;
     // }
+
     public function get_list_view_data()
     {
         $call_fields = $this->get_list_view_array();
@@ -715,7 +722,6 @@ class Call extends SugarBean
         return $xtpl;
     }
 
-
     public function get_call_users()
     {
         $template = BeanFactory::newBean('Users');
@@ -739,7 +745,6 @@ class Call extends SugarBean
         return $list;
     }
 
-
     public function get_invite_calls(&$user)
     {
         $template = $this;
@@ -747,18 +752,13 @@ class Call extends SugarBean
         $query = "SELECT calls_users.required, calls_users.accept_status, calls_users.call_id from calls_users where calls_users.user_id='$user->id' AND ( calls_users.accept_status IS NULL OR  calls_users.accept_status='none') AND calls_users.deleted=0";
         $GLOBALS['log']->debug("Finding linked records $this->object_name: " . $query);
 
-
         $result = $this->db->query($query, true);
-
-
         $list = array();
-
 
         while ($row = $this->db->fetchByAssoc($result)) {
             $record = $template->retrieve($row['call_id']);
             $template->required = $row['required'];
             $template->accept_status = $row['accept_status'];
-
 
             if ($record != null) {
                 // this copies the object into the array
@@ -767,7 +767,6 @@ class Call extends SugarBean
         }
         return $list;
     }
-
 
     public function set_accept_status(&$user, $status)
     {
@@ -790,8 +789,6 @@ class Call extends SugarBean
             $this->set_relationship($this->rel_leads_table, $relate_values, true, true, $data_values);
         }
     }
-
-
 
     public function get_notification_recipients()
     {

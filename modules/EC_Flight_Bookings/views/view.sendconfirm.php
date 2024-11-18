@@ -111,7 +111,8 @@ class Viewsendconfirm extends SugarView {
 		$nganluong_datepaid =  date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
 
 		$name_site = array(
-			'TCB' => 'timchuyenbay.com'
+			'TCB' => 'timchuyenbay.com',
+			'VJ2' => 'vietjet.net',
 		);
 		$name_website 	= substr($this->bean->name, 0, 3);
 		if(isset($nganluong_code) && !empty($nganluong_code)){

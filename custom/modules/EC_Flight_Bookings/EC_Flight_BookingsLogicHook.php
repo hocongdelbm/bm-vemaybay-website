@@ -193,7 +193,7 @@ class EC_Flight_BookingsLogicHook
 				  , account_phone = "' . $focus->phone . '"
 				  , account_address = "' . $focus->address . '"
 				  , account_email = "' . $focus->email . '"
-				  , booking_id = "' . $booking->id . '"
+				  , booking_receive_id = "' . $booking->id . '"
 				WHERE id = "' . $booking->voucher_id . '"';
 		$focus->db->query($sql2);
 	}

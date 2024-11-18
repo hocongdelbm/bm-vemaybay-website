@@ -1911,7 +1911,8 @@ function getCustomerType($phone)
     global $db;
     $sql = 'SELECT id, info_data
 		   FROM ec_customer
-		   WHERE phone = "' . $phone . '"';
+		   WHERE phone = "' . $phone . '"
+           AND deleted = 0';
 
     $res = $db->query($sql);
 
@@ -2545,13 +2546,12 @@ function agent_change_status($agent, $status)
         curl_close($curl);
         $arr = json_decode($json, true);
 
-        if ($httpcode == 200) {
+        if ($httpcode == 200 && $arr['success']['code'] == 200) {
             $sql_as = 'UPDATE users
                        SET agent_status = "' . $status . '"
                        WHERE td_sip = "' . $agent . '"
                        AND deleted = 0';
-            $db->query($sql_as);
-            
+                       
             $result_sql_as = $db->query($sql_as);
             if(!$result_sql_as){
                 $response['fail'] = array(
@@ -2560,43 +2560,69 @@ function agent_change_status($agent, $status)
                     'message' => $sql_as,
                 );
                 sendTestTelegram(json_encode($response));
-            }
+            } else {
+                $timestamp_now = date('Y-m-d H:i:s');
+                $sip_number = custom_get_sip_number($agent);
 
-            $timestamp_now = date('Y-m-d H:i:s');
-            $sip_number = custom_get_sip_number($agent);
-            if ($sip_number) {
-                $status_value = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
-                
-                $sql_update = '
-                    UPDATE ec_online_report 
-                    SET status = "'.$status_value.'", last_online = "' . $timestamp_now . '"
-                    WHERE assigned_user_id = "' . custom_get_sip_number($agent) . '"
-                    AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                    AND deleted = 0
-                ';
-                
-                $result_sql_update = $db->query($sql_update);
-                if (!$result_sql_update) {
+                if ($sip_number) {
+                    $status_value = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
+                    $start_online = '';
+
+                    // Check for existing records
+                    $sql_exist = 'SELECT id, status
+                                FROM ec_online_report
+                                WHERE deleted = 0
+                                AND assigned_user_id = "' . custom_get_sip_number($agent) . '"
+                                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
+                    $row_exist = $db->fetchByAssoc($db->query($sql_exist));
+
+                    $online = new EC_Online_Report();
+                    if (!empty($row_exist)) {
+                        $online->retrieve($row_exist['id']);
+                    } else {
+                        $online->retrieve($current_user->id);
+                    }
+                    
+                    if ($row_exist && empty($online->start_online)) {
+                        $start_time     = date('Y-m-d H:i:s');
+                        $start_online   = ", start_online = '{$start_time}'";
+                    } 
+
+                    $sql_update = '
+                        UPDATE ec_online_report 
+                        SET status = "' . $status_value . '", last_online = "' . $timestamp_now . '"' . $start_online . '
+                        WHERE assigned_user_id = "' . custom_get_sip_number($agent) . '"
+                        AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
+                        AND deleted = 0
+                    ';
+
+                    $result_sql_update = $db->query($sql_update);
+                    if (!$result_sql_update) {
+                        $response = [
+                            'fail' => [
+                                'code' => 500,
+                                'title' => 'Error result_sql_update',
+                                'message' => $sql_update,
+                            ]
+                        ];
+                        sendTestTelegram(json_encode($response));
+                    } else {
+                        $busy = $status == 'Available' ? 0 : ($status == 'On Break' ? 1 : 2);
+                        $time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
+                        content_log($current_user->id, $time_current, $busy);
+                    }
+                } else {
                     $response = [
                         'fail' => [
-                            'code' => 500,
-                            'title' => 'Error result_sql_update',
-                            'message' => $sql_update,
+                            'code' => 400,
+                            'title' => 'sip_number not valid',
+                            'agent' => $agent,
+                            'status' => $status,
+                            'sip_number' => custom_get_sip_number($agent),
                         ]
                     ];
                     sendTestTelegram(json_encode($response));
                 }
-            } else {
-                $response = [
-                    'fail' => [
-                        'code' => 400,
-                        'title' => 'sip_number not valid',
-                        'agent' => $agent,
-                        'status' => $status,
-                        'sip_number' => custom_get_sip_number($agent),
-                    ]
-                ];
-                sendTestTelegram(json_encode($response));
             }
         }
     } catch (Exception $e) {

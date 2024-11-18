@@ -319,6 +319,7 @@ class Viewstatistics extends SugarView
                          c.call_from,
                          c.call_to,
                          c.status,
+                         c.call_talk,
                          c.date_end,
                          c.date_start,
                          c.description,
@@ -440,8 +441,7 @@ class Viewstatistics extends SugarView
                               $arr_user_calls[$userId]['inbound'][] = $row;
                          }
                     } 
-               } 
-               else if($direction == 'missed'){
+               } else if($direction == 'missed'){
                     // Cuộc gọi nhỡ
                     $call_log_missed = json_decode(html_entity_decode($row['log']), true);
                     if(isset($call_log_missed['list_agent']) && !empty($call_log_missed['list_agent'])){
@@ -463,7 +463,7 @@ class Viewstatistics extends SugarView
                     $arr_user_calls[$userId]['spam'][] = $row;
                } else if($direction == 'suddenly'){
                     $arr_user_calls[$userId]['suddenly'][] = $row;
-               }  else if($direction == 'internal'){
+               } else if($direction == 'internal'){
                     $user_id = custom_get_sip_number($row['call_from']);
                     if(isset($user_id) && !empty($user_id)){
                          $arr_user_calls[$user_id]['internal'][] = $row;
@@ -476,38 +476,20 @@ class Viewstatistics extends SugarView
           $total_inbound      = $total_outbound = $total_missed = $total_suddenly = $total_spam =  $total_internal = $total_final = 0;
           $total_inbound_all  = $total_outbound_all = $total_missed_all = $total_spam_all = $total_suddenly_all = $total_internal_all = 0;
 
-          $total_outbound_answer = $total_outbound_noanswer = 0;
+          $total_outbound_answer = $total_outbound_noanswer = $total_outbound_kpi = 0;
 
           // Sắp xếp mảng theo giá trị giảm dần của 'inbound'
           uasort($arr_user_calls, function ($a, $b) {
-               return count($b['inbound']) - count($a['inbound']);
+               $countA = isset($a['inbound']) && is_array($a['inbound']) ? count($a['inbound']) : 0;
+               $countB = isset($b['inbound']) && is_array($b['inbound']) ? count($b['inbound']) : 0;
+               return $countB - $countA;
           });
-          
-          // if($current_user->user_name = 'hungnh'){
-          //      pr($arr_user_calls);
-          // }
-
+           
           foreach($arr_user_calls as $user_id => $user){
                if(count($user) > 2){
                     if($current_user->id == $user_id || isAllowedUser()){
                          // ALL OF CALL
                          foreach($user as $key => $dir){
-                              // class direction
-                              if($key == 'suddenly'){
-                                   $direction_class = 'text-warning';
-                              } else if ($key == 'inbound'){
-                                   $direction_class = 'text-success';
-                              } else if ($key == 'missed'){
-                                   $direction_class = 'text-danger';
-                              } else if ($key == 'outbound'){
-                                   $direction_class = 'text-primary';     
-
-                              } else if ($key == 'spam'){
-                                   $direction_class = 'text-spam';
-                              } else {
-                                   $direction_class = 'text-normal';
-                              }
-               
                               if($key != 'name' && $key != 'agent'){
                                    usort($dir, function($a, $b) {
                                         $dateA = DateTime::createFromFormat('d-m-Y H:i:s', $a['date_start']);
@@ -519,11 +501,26 @@ class Viewstatistics extends SugarView
                                         if ($key == 'outbound'){
                                              // Gọi đi Nghe máy và Không nghe máy
                                              $data_log = json_decode(html_entity_decode($call['log']), true);
-                                             if($data_log['call_talk'] > 0){
-                                                  $user['outbound_answer']++;
+                                             if (isset($data_log['call_talk']) && $data_log['call_talk'] >= 20) {
+                                                  if (isset($user['outbound_kpi'])) {
+                                                       $user['outbound_kpi']++;
+                                                  } else {
+                                                       $user['outbound_kpi'] = 1;
+                                                  }
+                                                  $key_direction = 'outbound kpi_answer';
+                                             } else if (isset($data_log['call_talk']) && $data_log['call_talk'] > 0) {
+                                                  if (isset($user['outbound_answer'])) {
+                                                       $user['outbound_answer']++;
+                                                  } else {
+                                                       $user['outbound_answer'] = 1;
+                                                  }
                                                   $key_direction = 'outbound ob_answer';
                                              } else {
-                                                  $user['outbound_noanswer']++;
+                                                  if (isset($user['outbound_noanswer'])) {
+                                                       $user['outbound_noanswer']++;
+                                                  } else {
+                                                       $user['outbound_noanswer'] = 1;
+                                                  }
                                                   $key_direction = 'outbound ob_noanswer';
                                              }
                                         }  else {
@@ -549,9 +546,9 @@ class Viewstatistics extends SugarView
                                                             <td class="call_from">'.$call['call_from'].'</td>
                                                             <td class="call_to">'.$call['call_to'].'</td>
                                                             <td class="call_sources">'.$call['call_sources'].'</td>
-                                                            <!-- <td align="center" class="'.$direction_class.'"><strong>'.$app_list_strings['calls_direction_list'][$key].'</strong></td> -->
                                                             <td align="center" class="time-call">'.$call['date_start'].'</td>
                                                             <td align="center" class="duration">'.$duration.'</td>
+                                                            <td align="center" class="call_talk">'.global_secondsToTimeFormat($call['call_talk']).'</td>
                                                             <td align="left" class="description">'.$call['description'].'</td>
                                                        </tr>';
                                         $index++;
@@ -572,8 +569,10 @@ class Viewstatistics extends SugarView
                          $total_outbound_all += $total_outbound;
 
                          $outbound_answer    = isset($user['outbound_answer']) ? '<strong class="text-primary">'.$user['outbound_answer'].'</strong>' : '';
+                         $outbound_kpi       = isset($user['outbound_kpi']) ? '<strong class="text-primary">'.$user['outbound_kpi'].'</strong>' : '';
                          $outbound_noanswer  = isset($user['outbound_noanswer']) ? '<strong class="text-primary">'.$user['outbound_noanswer'].'</strong>': '';
                          isset($user['outbound_answer']) ? $total_outbound_answer += $user['outbound_answer'] : 0;
+                         isset($user['outbound_kpi']) ? $total_outbound_kpi += $user['outbound_kpi'] : 0;
                          isset($user['outbound_noanswer']) ? $total_outbound_noanswer += $user['outbound_noanswer'] : 0;
                     
                          // Nhỡ
@@ -599,12 +598,17 @@ class Viewstatistics extends SugarView
                          $total_calls = $total_inbound + $total_outbound + $total_missed + $total_suddenly + $total_spam + $total_internal;
                          $total_final += $total_calls;
 
+                         // if($current_user->user_name == 'hungnh'){
+                         //      pr($user);
+                         // }
+
                          $html .= '
                               <tr>
                                    <td align="center" class="fw-semibold hide-mobile">'.$i.'</td>
                                    <td align="left" class="full_name">'.$user['name'].'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="outbound">'.$outbound.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="ob_answer">'.$outbound_answer.'</td>
+                                   <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="kpi_answer">'.$outbound_kpi.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="ob_noanswer">'.$outbound_noanswer.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="inbound">'.$inbound.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="missed">'.$missed.'</td>
@@ -616,8 +620,6 @@ class Viewstatistics extends SugarView
                          $i++;
                     }
                }
-
-          
           }
 
 
@@ -626,6 +628,7 @@ class Viewstatistics extends SugarView
 
           $smartyobj->assign('TTL_OUTBOUND', $total_outbound_all);
           $smartyobj->assign('TTL_OUTBOUND_ANSWER', $total_outbound_answer);
+          $smartyobj->assign('TTL_OUTBOUND_KPI', $total_outbound_kpi);
           $smartyobj->assign('TTL_OUTBOUND_NOANSWER', $total_outbound_noanswer);
 
           $smartyobj->assign('TTL_MISSED', $total_missed_all);
@@ -727,8 +730,8 @@ class Viewstatistics extends SugarView
                }
 
                $label_source .= "'".$source."',";
-               $quantity_inbound .= "'".$quantity['inbound']."',";
-               $quantity_missed .= "'".$quantity['missed']."',";
+               $quantity_inbound .= "'" . (isset($quantity['inbound']) ? $quantity['inbound'] : 0) . "',";
+               $quantity_missed .= "'" . (isset($quantity['missed']) ? $quantity['missed'] : 0) . "',";
           }
 
           $label_source = substr($label_source, 0, -1); //Loại bỏ dấu , của element cuối cùng

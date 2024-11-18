@@ -4,31 +4,9 @@
      $(document).ready(function() {
           const currentURL = window.location.href;
           const currentURLQuery = window.location.search;
-          const AGENT_STATUS    = $('#agent_status').val() || 'Available';
+          const AGENT_STATUS    = $('#agent_status').val();
 
-          var busy = 0;
-          if(AGENT_STATUS != 'Available'){
-               busy = 1;
-          } 
           if(currentURLQuery.indexOf('module=EC_Zalo&action=index') === -1) {
-               $.ajax({
-                    url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
-                    type: "POST",
-                    cache: false,
-                    data: {
-                         is_busy: busy,
-                         for: "checkUsrStt",
-                    },
-                    success: function(response) {
-                         // if (response == 2) {
-                         //      $("#busy_stt").prop("checked", true);
-                         //      $("#availability-status").addClass("busy");
-                         //      if(ua) ua.stop();
-                         //      showConnect(false);
-                         // } 
-                    }
-               });
-
                // BEHAVIOR USER
                $.ajax({
                     url: "index.php?entryPoint=entryPointBehaviorUser",
@@ -42,29 +20,16 @@
                });
           }
 
-          // Checked trạng thái bận của user
           $('body').on('click', function(e) {
                const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
-               let e_target_class = e.target.className;
-
-               if(e.target.id == 'busy_stt'){
+              
+               if(e.target.id != 'busy_stt'){
                     $.ajax({
                          url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
                          type: "POST",
                          cache: false,
                          data: {
-                              busy: busy,
-                              time_busy: currentTime,
-                              for: "saveLastBusyUser",
-                         },
-                         success: function(response) {}
-                    });
-               } else {
-                    $.ajax({
-                         url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
-                         type: "POST",
-                         cache: false,
-                         data: {
+                              agent_status: AGENT_STATUS,
                               time: currentTime,
                               for: "saveLastClickUser",
                          },
@@ -251,8 +216,119 @@
                                         <div class="call-label">
                                              <span class="text-black" id="agent-number"></span>
                                         </div>
-                                        <div class="call-phone__numpad">
-                                             <div class="numpad"></div>
+                                        <div class="call-phone__numpad" style="display: none;">
+                                             <div class="numpad">
+                                                  <div class="d-flex flex-column gap-3">
+                                                       <h2 class="m-0 fs-5 text-primary fw-bold">BM Voices</h2>
+                                                       <div class="flex-start gap-3">
+                                                           <label for="select-phone-outbound" class="label text-nowrap">Số gọi ra</label>
+                                                           <select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100">
+                                                                      <option value=""></option>
+                                                                 <optgroup label="Viettel">
+                                                                      <option value="0385295550@125.235.38.182:55555">0385295550</option> 
+                                                                      <option value="0385295676@125.235.38.182:55555">0385295676</option> 
+                                                                      <option value="0385297839@125.235.38.182:55555">0385297839</option> 
+                                                                      <option value="0385299921@125.235.38.182:55555">0385299921</option> 
+                                                                      <option value="0385299946@125.235.38.182:55555">0385299946</option> 
+                                                                      <option value="0385300174@125.235.38.182:55555">0385300174</option> 
+                                                                      <option value="0385300984@125.235.38.182:55555">0385300984</option> 
+                                                                      <option value="0385301071@125.235.38.182:55555">0385301071</option> 
+                                                                      <option value="0385301087@125.235.38.182:55555">0385301087</option> 
+                                                                      <option value="0964031020@103.232.121.103:55000">0964031020</option> 
+                                                                      <option value="0984195219@103.232.121.103:55000">0984195219</option>
+                                                                      <option value="0984280718@103.232.121.103:55000">0984280718</option>
+                                                                 </optgroup>
+                                                                 <optgroup label="Mobiphone">
+                                                                      <option value="0933625233@103.199.78.74:65000">0933625233</option>
+                                                                      <option value="0933799860@103.199.78.74:65000">0933799860</option>
+                                                                      <option value="0933296508@103.232.121.103:55000">0933296508</option>
+                                                                      <option value="0933026416@103.232.121.103:55000">0933026416</option>
+                                                                      <option value="0933611306@103.232.121.103:55000">0933611306</option>
+                                                                      <option value="0933297608@103.232.121.103:55000">0933297608</option>
+                                                                      <option value="0937451098@103.232.121.103:55000">0937451098</option>
+                                                                      <option value="0937523198@103.232.121.103:55000">0937523198</option>
+                                                                 </optgroup>
+                                                                 <optgroup label="Vinaphone">
+                                                                      <option value="0913030802@14.238.2.146:5060">0913030802</option>
+                                                                      <option value="0918038348@103.232.121.103:55000">0918038348</option>
+                                                                      <option value="0919018102@103.232.121.103:55000">0919018102</option>
+                                                                      <option value="0911236600@14.238.2.146:5060">0911236600</option>
+                                                                 </optgroup>
+                                                            </select>
+                                                       </div>
+                                                       <div class="form-control inputBoxes flex-between">
+                                                           <label for="call_voiceip_main_number" class="icon-country">
+                                                               <svg width="25" height="25" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" preserveAspectRatio="xMidYMid meet"><g stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g><path fill="#DA251D" d="M32 5H4a4 4 0 0 0-4 4v18a4 4 0 0 0 4 4h28a4 4 0 0 0 4-4V9a4 4 0 0 0-4-4z"></path><path fill="#FF0" d="M19.753 16.037L18 10.642l-1.753 5.395h-5.672l4.589 3.333l-1.753 5.395L18 21.431l4.589 3.334l-1.753-5.395l4.589-3.333z"></path></g></svg>
+                                                           </label>
+                                                           <input id="call_voiceip_main_number" type="text" oninput="addNumber_oninput(this)" name="call_voiceip_main_number" placeholder="Nhập số điện thoại" />
+                                                       </div>
+                                                       <div class="numbers">
+                                                           <button class="number" type="button" name="1" onclick="addNumber(this)">
+                                                               <span class="pin_font">1</span>
+                                                               <span class="pin_text"></span>
+                                                           </button>
+                                                           <button class="number" type="button" name="2" onclick="addNumber(this)">
+                                                               <span class="pin_font">2</span>
+                                                               <span class="pin_text">ABC</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="3" onclick="addNumber(this)">
+                                                               <span class="pin_font">3</span>
+                                                               <span class="pin_text">DEF</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="4" onclick="addNumber(this)">
+                                                               <span class="pin_font">4</span>
+                                                               <span class="pin_text">GHI</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="5" onclick="addNumber(this)">
+                                                               <span class="pin_font">5</span>
+                                                               <span class="pin_text">JKL</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="6" onclick="addNumber(this)">
+                                                               <span class="pin_font">6</span>
+                                                               <span class="pin_text">MNO</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="7" onclick="addNumber(this)">
+                                                               <span class="pin_font">7</span>
+                                                               <span class="pin_text">PQRS</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="8" onclick="addNumber(this)">
+                                                               <span class="pin_font">8</span>
+                                                               <span class="pin_text">TUV</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="9" onclick="addNumber(this)">
+                                                               <span class="pin_font">9</span>
+                                                               <span class="pin_text">WXYZ</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="del" onclick="deleteAll()">
+                                                               <span class="pin_font">AC</span>
+                                                           </button>
+                                                           <button class="number" type="button" name="0" onclick="addNumber(this)">
+                                                               <span class="pin_font">0</span>
+                                                               <span class="pin_text">
+                                                                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                                                                       <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"></path>
+                                                                   </svg>
+                                                               </span>
+                                                           </button>
+                                                           <button class="number" type="button" name="clear" onclick="removeNumber(this)">
+                                                               <span class="pin_font">
+                                                                   <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" class="bi bi-backspace" viewBox="0 0 16 16">
+                                                                       <path d="M5.83 5.146a.5.5 0 0 0 0 .708L7.975 8l-2.147 2.146a.5.5 0 0 0 .707.708l2.147-2.147 2.146 2.147a.5.5 0 0 0 .707-.708L9.39 8l2.146-2.146a.5.5 0 0 0-.707-.708L8.683 7.293 6.536 5.146a.5.5 0 0 0-.707 0z"></path>
+                                                                       <path d="M13.683 1a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7.08a2 2 0 0 1-1.519-.698L.241 8.65a1 1 0 0 1 0-1.302L5.084 1.7A2 2 0 0 1 6.603 1zm-7.08 1a1 1 0 0 0-.76.35L1 8l4.844 5.65a1 1 0 0 0 .759.35h7.08a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"></path>
+                                                                   </svg>
+                                                               </span>
+                                                           </button>
+                                                       </div>
+                                                       <div class="call-button--wrap flex-between">
+                                                            <button class="btn btn-calling flex-fill btn-voiceip-calling-zalo" type="button" id="btn-voiceip-main-zalo">
+                                                                 Zalo
+                                                            </button>
+                                                           <button class="btn-calling flex-fill btn-voiceip-calling" type="button" id="btn-voiceip-main-calling">
+                                                               Gọi
+                                                           </button>
+                                                       </div>
+                                                   </div>
+                                             </div>
                                         </div>
                                    </li>
                                    {/if}

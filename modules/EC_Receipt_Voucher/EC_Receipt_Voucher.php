@@ -98,6 +98,10 @@ class EC_Receipt_Voucher extends Basic
 			if ($this->loai_thu == '4' ) {
 				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (PT: Đổi giờ bay, hành trình, tên khách)', $this->created_by, 'create_receipt');
 			}
+
+			if ($this->loai_thu == '5' ) {
+				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (PT: Thu phí hành lý)', $this->created_by, 'create_receipt');
+			}
 		} else {
 			myRemoveWorkingProcess($this->module_dir, $this->id);
 		}

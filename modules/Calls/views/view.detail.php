@@ -9,21 +9,11 @@ class CallsViewDetail extends ViewDetail
 	{
 		global $current_user, $app_list_strings, $sugar_config, $timedate;
 
-		if ($current_user->user_name == 'hungnh' || $current_user->user_name == 'booker') {
+		if ($current_user->user_name == 'hungnh') {
 			$log = json_decode(html_entity_decode($this->bean->log), true);
 			pr($log);
 
 			// write_file_backup_log_calls(json_encode($log));
-
-			$alert = BeanFactory::newBean('Alerts');
-			$alert->name = $this->bean->name;
-			$alert->description = $this->bean->description;
-			$alert->url_redirect = 'index.php?module=Calls&action=DetailView&record='.$this->bean->id;
-			$alert->target_module = 'Calls';
-			$alert->assigned_user_id = $current_user->id;
-			$alert->type = 'light';
-			$alert->is_read = 0;
-			// $alert->save();
 		}
 
 		$this->populateCustomButtons();

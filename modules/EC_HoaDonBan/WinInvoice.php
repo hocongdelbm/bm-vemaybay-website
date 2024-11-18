@@ -406,7 +406,7 @@ class WinInvoice extends InvoiceLogs {
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
+            CURLOPT_TIMEOUT => 20,
             CURLOPT_CUSTOMREQUEST => 'GET',
         ));
         $json = curl_exec($curl);
