@@ -544,16 +544,16 @@
 			<th>% Achieved</th>
 			<th>Bonus</th>
 			<th>KPI</th>
-	</tr>
+		</tr>
 	</thead>
 	<tbody>
 		<tr>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/flight_booking.svg" alt="booking" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/ticket.svg" alt="ticket" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/target.svg" alt="target" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/percent.svg" alt="percent" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/bonus.svg" alt="check" border="0" width="96" /></td>
-				<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/kpi.svg" alt="plus" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/flight_booking.svg" alt="booking" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/ticket.svg" alt="ticket" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/target.svg" alt="target" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/percent.svg" alt="percent" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/bonus.svg" alt="check" border="0" width="96" /></td>
+			<td class="text-center"><img src="themes/SuiteP/images/modules/ec_flight_booking/kpi.svg" alt="plus" border="0" width="96" /></td>
 		</tr>
 		<tr class="footer-tr">
 			<td>{$BOOKING_COUNT}</td>
@@ -571,50 +571,54 @@
 </table>
 {/if}
 
-<ul class="kpi-notes">
-	<li>
-		<strong>CAL</strong>: <span>Cuộc gọi <span class="fw-bold text-dark">(Cuộc gọi hoàn tất, có mô tả và hội thoại từ 20s trở lên)</span></span>
-	</li>
-	<li>
-		<strong>COM</strong>: <span>Booking <span class="fw-bold text-primary">hoàn tất</span></span>
-	</li>
-	<li>
-		<strong>DTT</strong>: <span>Đã thanh toán / đã thu</span>
-	</li>
-	<li>
-		<strong>RCE</strong>: <span>Recheck thông tin</span>
-	</li>
-	<li>
-		<strong>RCA</strong>: <span>Recall cuộc gọi / Nhắc lịch bay khách hàng</span>
-	</li>
-	<li>
-		<strong>HDV</strong>: <span>Xuất hóa đơn đầu vào</span>
-	</li>
-	<li>
-		<strong>HDR</strong>: <span>Xuất hóa đơn đầu ra</span>
-	</li>
-	<li>
-		<strong>GVE</strong>: <span>Giao vé / giao thực phẩm</span>
-	</li>
-	<li>
-		<strong>DCN</strong>: <span>Đối chiếu công nợ</span>
-	</li>
-	<li>
-		<strong>THV</strong>: <span>Tạo phiếu hoàn vé</span>
-	</li>
-	<li>
-		<strong>LPC</strong>: <span>Lập phiếu chi <span class="fw-bold text-primary">(Đã chi)</span></span>
-	</li>
-	<li>
-		<strong>LPT</strong>: <span>Lập phiếu thu / PT đổi giờ bay, hành trình, tên khách <span class="fw-bold text-primary">(Đã thu)</span></span>
-	</li>
-	<li>
-		<strong>DCT</strong>: <span>Lập phiếu điều chuyển tiền</span>
-	</li>
-	<li>
-		<strong>SDL</strong>: <span>Hỗ trợ delay chuyến bay / Tư vấn qua Zalo OA / Hỗ trợ khác</span>
-	</li>
-</ul>
+<div class="flex-start">
+	<ul class="kpi-notes flex-fill">
+		<li>
+			<strong>CAL</strong>: <span>Cuộc gọi <span class="fw-bold text-dark">(Hoàn tất, có mô tả và hội thoại từ 20s trở lên (đi) hoặc có thoại (đến))</span></span>
+		</li>
+		<li>
+			<strong>COM</strong>: <span>Booking <span class="fw-bold text-primary">hoàn tất</span></span>
+		</li>
+		<li>
+			<strong>DTT</strong>: <span>Đã thanh toán / đã thu</span>
+		</li>
+		<li>
+			<strong>RCE</strong>: <span>Recheck thông tin</span>
+		</li>
+		<li>
+			<strong>RCA</strong>: <span>Recall cuộc gọi / Nhắc lịch bay khách hàng</span>
+		</li>
+		<li>
+			<strong>HDV</strong>: <span>Xuất hóa đơn đầu vào</span>
+		</li>
+		<li>
+			<strong>HDR</strong>: <span>Xuất hóa đơn đầu ra</span>
+		</li>
+	</ul>
+	<ul class="kpi-notes flex-fill">
+		<li>
+			<strong>GVE</strong>: <span>Giao vé / giao thực phẩm</span>
+		</li>
+		<li>
+			<strong>DCN</strong>: <span>Đối chiếu công nợ</span>
+		</li>
+		<li>
+			<strong>THV</strong>: <span>Tạo phiếu hoàn vé</span>
+		</li>
+		<li>
+			<strong>LPC</strong>: <span>Lập phiếu chi <span class="fw-bold text-primary">(Đã chi)</span></span>
+		</li>
+		<li>
+			<strong>LPT</strong>: <span>Lập phiếu thu / PT đổi giờ bay, hành trình, tên khách / PT tiền hành lý <span class="fw-bold text-primary">(Đã thu)</span></span>
+		</li>
+		<li>
+			<strong>DCT</strong>: <span>Lập phiếu điều chuyển tiền</span>
+		</li>
+		<li>
+			<strong>SDL</strong>: <span>Hỗ trợ delay chuyến bay / Tư vấn qua Zalo OA / Hỗ trợ khác</span>
+		</li>
+	</ul>
+</div>
 
 </div>
 

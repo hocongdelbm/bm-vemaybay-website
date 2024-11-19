@@ -421,7 +421,7 @@ $(document).ready(function () {
             if (ua) ua.stop();
         } else {
             showConnect(true);
-            check_online_for_call();
+            // check_online_for_call();
         }
 
         $.ajax({

@@ -22,14 +22,21 @@
 
           $('body').on('click', function(e) {
                const currentTime = new Date(new Date().toString().split('GMT')[0]+' UTC').toISOString().split('.')[0].replace('T',' ');
-              
+               
+               let agent_status = 'Available';
+               if($('input#busy_stt').prop('checked') === true && AGENT_STATUS === 'Logged Out'){
+                    agent_status = 'Logged Out';
+               } else if ($('input#busy_stt').prop('checked') === true) {
+                    agent_status = 'On Break';
+               }
+               
                if(e.target.id != 'busy_stt'){
                     $.ajax({
                          url: "index.php?entryPoint=entryPointUpdateTimeUserClick",
                          type: "POST",
                          cache: false,
                          data: {
-                              agent_status: AGENT_STATUS,
+                              agent_status: agent_status,
                               time: currentTime,
                               for: "saveLastClickUser",
                          },

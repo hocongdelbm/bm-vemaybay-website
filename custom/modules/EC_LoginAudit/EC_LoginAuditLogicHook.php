@@ -48,5 +48,23 @@ class loginActions
         if ($la_event && $agent_status && $current_user->td_sip) {
             agent_change_status($current_user->td_sip, $agent_status);
         }
+
+        // Nếu login lần đầu cập nhật start_online
+        if ($la_event === 'after_login' && $la_result === 'Success') {
+            $sql_exist = '
+                SELECT id, start_online
+                FROM ec_online_report
+                WHERE deleted = 0
+                    AND assigned_user_id = "' . $current_user->id . '"
+                    AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = "' . date('Y-m-d') . '"
+            ';
+            $row = $db->fetchByAssoc($db->query($sql_exist));
+        
+            if (!empty($row) && empty($row['start_online'])) {
+                $start_time = date('Y-m-d H:i:s');
+
+                $db->query('UPDATE ec_online_report SET start_online = "'.$start_time.'" WHERE id = "' . $row['id'] . '" AND deleted = 0');
+            } 
+        }
     }
 }

@@ -218,22 +218,7 @@
 
 <h1 class="title title-online_tbl">Danh sách Online / Offline</h1>
 <div id="online_report" class="box-section">
-    <table id="online_tbl" class="table-online_tbl table-details__booking" cellpadding="0" cellspacing="0">
-        <thead>
-            <th class="hide-mobile" width="3%">STT</th>
-            <th>Họ tên</th>
-            <th width="7%">SIP</th>
-            <th width="7%">Tình trạng</th>
-            <th class="hide-mobile" width="12%">Nhóm</th>
-            <th class="hide-mobile" width="15%">Check-in</th>
-            <th class="hide-mobile" width="7%">Nhận cuộc gọi</th>
-            <th class="hide-mobile" width="15%">Last Online</th>
-            <th width="18%"></th>
-        </thead>
-        <tbody>
-            {$ONLINE_DATA}
-        </tbody>
-    </table>
+    {$ONLINE_DATA}
 </div>
 
 {if $IS_ALLOWED_USER}

@@ -694,7 +694,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 	$onl = new EC_Online_Report;
 	$onl_res = $onl->changeOnlinePosition($_POST['onl'], $_POST['type']);
 
-	if($_POST['agent']){
+	if(isset($_POST['agent']) && !empty($_POST['agent'])){
 		agent_change_status($_POST['agent'], 'Logged Out');
 	}
 
