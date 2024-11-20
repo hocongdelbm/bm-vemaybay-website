@@ -326,7 +326,7 @@ function myCheckValueExist($module, $fields = array(), $field_value = array(), $
     if (count($fields) > 0) {
         $i = 0;
         foreach ($fields as $field) {
-            if(!isset($field_value[$i]) || is_null($field_value[$i]) || empty($field_value[$i])) continue;
+            if (!isset($field_value[$i]) || is_null($field_value[$i]) || empty($field_value[$i])) continue;
             $field_con .= " AND " . $field . " = '" . $field_value[$i] . "'";
             $i++;
         }
@@ -2095,15 +2095,15 @@ function global_test_input($data)
 // Format seconds to time
 function global_secondsToTimeFormat($seconds)
 {
-	if ($seconds == 0) {
-		return '00:00:00';
-	}
+    if ($seconds == 0) {
+        return '00:00:00';
+    }
 
-	$hours      = floor($seconds / 3600);
-	$minutes    = floor(($seconds % 3600) / 60);
-	$seconds    = $seconds % 60;
+    $hours      = floor($seconds / 3600);
+    $minutes    = floor(($seconds % 3600) / 60);
+    $seconds    = $seconds % 60;
 
-	return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+    return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 }
 
 
@@ -2505,8 +2505,8 @@ function isSpamPhone($phone)
 function agent_change_status($agent, $status)
 {
     // 0: Offline
-	// 1: Online
-	// 2: Busy
+    // 1: Online
+    // 2: Busy
 
     global $db, $current_user;
     if (empty($agent) || empty($status)) {
@@ -2553,9 +2553,9 @@ function agent_change_status($agent, $status)
                         SET agent_status = "' . $status . '"
                         WHERE td_sip = "' . $agent . '"
                         AND deleted = 0';
-                        
+
             $result_sql_as = $db->query($sql_as);
-            if(!$result_sql_as){
+            if (!$result_sql_as) {
                 $response['fail'] = array(
                     'code' => 500,
                     'title' => 'Error sql_as',
@@ -2576,7 +2576,7 @@ function agent_change_status($agent, $status)
                         AND deleted = 0
                     ';
                     $db->query($sql_update);
-            
+
                     $busy = $status == 'Available' ? 0 : ($status == 'On Break' ? 1 : 2);
                     $time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
 
@@ -2592,9 +2592,9 @@ function agent_change_status($agent, $status)
                     //     ]
                     // ];
                     // sendTestTelegram(json_encode($response));
-                    
+
                     content_log($sip_number, $time_current, $busy);
-                } 
+                }
             }
         }
     } catch (Exception $e) {
@@ -2637,3 +2637,5 @@ function write_file_backup_log_calls($json)
 
 require_once 'custom/include/utils/address.php';
 require_once 'custom/include/utils/tele.php';
+require_once 'custom/include/utils/exits.php';
+require_once 'custom/include/utils/booking.php';

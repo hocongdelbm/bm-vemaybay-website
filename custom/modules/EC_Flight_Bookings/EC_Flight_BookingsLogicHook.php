@@ -106,8 +106,7 @@ class EC_Flight_BookingsLogicHook
 					}
 				}
 			}
-		}
-		else {
+		} else {
 			// Đối với những booking tạo từ ngày 19-09-2022
 			// Khi mở ra thì trừ lại ds
 			if (strtotime($focus->date_entered) >= strtotime('2022-09-19') && $focus->fetched_row['status'] == 8) {
@@ -137,7 +136,7 @@ class EC_Flight_BookingsLogicHook
 
 		// Kiểm tra xem nếu khách hàng có hành lý thì đã nhập NCC và giá mua hành lý hay chưa?
 		// Có 1 số hành lý có giá là = 1. Nên không thể check p.luggage_price > 0 nên check 200 đồng
-		if(isset($_POST['booking_status']) && $_POST['booking_status'] == '8') {
+		if (isset($_POST['booking_status']) && $_POST['booking_status'] == '8') {
 			if (isset($_POST['flight_type']) && $_POST['flight_type'] == '0') {
 				$sql_return = 'OR (p.luggage_price_inbound > 500 AND (p.supplier_inbound_id IS NULL OR p.supplier_inbound_id = "" OR p.luggage_purchase_inbound IS NULL))';
 				// $sql_return = 'OR (p.supplier_inbound_id IS NULL OR (p.luggage_purchase_inbound IS NULL OR p.luggage_purchase_inbound < 0))';
@@ -159,13 +158,26 @@ class EC_Flight_BookingsLogicHook
 		}
 	}
 
+	function updateFields($focus, $event, $arguments)
+	{
+		// Contact ID
+		if (!empty($focus->contact_name) && empty($focus->contact_id)) {
+			createContactsForBooking($focus->phone);
+		}
+
+		// Journey
+		if (empty($focus->journey)) {
+			fillJourneyForBooking($focus->id);
+		}
+	}
+
 	function updateKPI($focus, $event, $arguments)
 	{
 		// Cập nhật KPI COM khi hoàn tất booking - Tính KPI cho người được giao booking
 		if (isset($_POST['btnCompleted']) || $focus->booking_status == 8 && $focus->fetched_row['assigned_user_id'] != $focus->assigned_user_id) {
 			myRemoveWorkingProcess($focus->object_name, $focus->id, 'completed');
 			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, 'Hoàn tất booking', $focus->assigned_user_id, 'completed');
-		} 
+		}
 	}
 
 	// Cập nhật thông tin voucher, khi lưu từ web
@@ -358,20 +370,15 @@ class EC_Flight_BookingsLogicHook
 	}
 
 	// Show column recall
-	function getRecallValue($bean, $event, $arguments){
+	function getRecallValue($bean, $event, $arguments)
+	{
 		// Get access to custom fields from $bean
 		$bean->custom_fields->retrieve();
-  
+
 		// Get access to name property using DBManager because $bean->name return null
 		$sql 	= "SELECT COALESCE(SUM(IFNULL(recall, 0)), 0) AS recall FROM ec_working_process WHERE parent_id = '{$bean->id}' AND parent_type = 'EC_Flight_Bookings' AND deleted = 0";
 		$rc_val 	= $bean->db->getOne($sql);
 
-		// if($GLOBALS['current_user']->user_name == 'hungnh'){
-		//     pr($sql);
-		//     pr($rc_val);
-		// }
-
 		$bean->recall_c = $rc_val;
-
-    }
+	}
 }

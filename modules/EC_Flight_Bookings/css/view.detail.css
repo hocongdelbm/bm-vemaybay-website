@@ -91,12 +91,14 @@
     overflow: hidden;
     padding: 4px 7px;
 }
+
 #copy_payment_link img {
     height: auto;
     max-width: 100%;
     background-repeat: no-repeat;
     object-fit: cover;
 }
+
 #copy_payment_link:hover {
     transform: scale(1.1);
 }
@@ -112,6 +114,7 @@
     overflow: hidden;
     padding: 4px 7px;
 }
+
 #get_qr_code span {
     font-weight: 600;
 }
@@ -123,6 +126,7 @@
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     padding: 15px;
 }
+
 .dialog_qr_code .title {
     margin-bottom: 12px;
     font-size: 18px;
@@ -131,10 +135,12 @@
     color: var(--bs-dark);
     font-weight: 600;
 }
+
 .dialog_qr_code .select_bank {
     display: block;
     width: 100%;
 }
+
 .dialog_qr_code .img_qr_code {
     display: block;
     width: 330px;
@@ -145,6 +151,7 @@
     padding: 5px;
     background-image: linear-gradient(144deg, #AF40FF, #5B42F3 50%, var(--primary-color));
 }
+
 .dialog_qr_code button {
     display: block;
     margin: 0 auto;
@@ -193,10 +200,88 @@
     padding: 6px 12px;
 }
 
-#tbl_pax tbody tr.psg-line td {vertical-align: baseline;}
+#tbl_pax tbody tr.psg-line td {
+    vertical-align: baseline;
+}
+
+
+/* CART TYPE CONTACTS */
+.card-contact {
+    width: 100%;
+    max-height: 50px;
+    position: relative;
+    padding: 10px;
+    border-radius: 12px;
+    transition: all 0.2s cubic-bezier(0.15, 0.83, 0.66, 1);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #00B4DB;
+    background: -webkit-linear-gradient(to right, #0083B0, #0092b2);
+    background: linear-gradient(to right, #0083B0, #0092b2);
+    color: #FFF;
+}
+
+.card-contact.contact_vip_member {
+    background: #603813;
+    background: -webkit-linear-gradient(to right, #3a3a3a, #603813);
+    background: linear-gradient(to right, #3a3a3a, #603813);
+}
+
+.card-contact.contact_supper_vip {
+    background: #202020;
+    background: -webkit-linear-gradient(to right, #202020, #414141);
+    background: linear-gradient(to right, #202020, #414141);
+}
+
+.card-contact.contact_warning {
+    background: #ED213A;
+    background: -webkit-linear-gradient(to right, #93291E, #ED213A);
+    background: linear-gradient(to right, #93291E, #ED213A);
+}
+
+.card-contact.contact_gold_member {
+    background: #F09819;
+    background: -webkit-linear-gradient(to right, #e5a300, #F09819);
+    background: linear-gradient(to right, #e5a300, #F09819);
+}
+
+.card-contact:hover {
+    transform: scale(1.05);
+}
+
+.card-contact a span {
+    color: #FFF;
+}
+
+.temp {
+    font-weight: 700;
+    font-size: 20px;
+    color: #FFF;
+}
+
+.temp-scale {
+    min-width: 90px;
+    width: fit-content;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+}
+
+.temp-scale span {
+    font-weight: 600;
+    font-size: 12px;
+    color: #FFF;
+    text-transform: uppercase;
+}
 
 /* ================= RESPONSIVE TABLE ============== */
 @media screen and (max-width: 600px) {
+
     table#tbl_pax,
     table#line_details_tbl,
     table#itinerary_tbl {
@@ -247,7 +332,7 @@
 
 
     /* ============== DETAIL ===============*/
-    #ip_address{
+    #ip_address {
         display: block;
         overflow: hidden;
         text-overflow: ellipsis;

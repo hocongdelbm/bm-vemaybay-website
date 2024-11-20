@@ -694,7 +694,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 	$onl = new EC_Online_Report;
 	$onl_res = $onl->changeOnlinePosition($_POST['onl'], $_POST['type']);
 
-	if(isset($_POST['agent']) && !empty($_POST['agent'])){
+	if (isset($_POST['agent']) && !empty($_POST['agent'])) {
 		agent_change_status($_POST['agent'], 'Logged Out');
 	}
 
@@ -705,12 +705,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 	$journey_id 	 = (isset($_POST["journey_id"]) && !empty($_POST["journey_id"])) ? $_POST["journey_id"] : null;
 
-	if(is_null($journey_id)) {
-	    echo 0;
-	    exit();
+	if (is_null($journey_id)) {
+		echo 0;
+		exit();
 	}
 
-	if(!empty($journey_id)){
+	if (!empty($journey_id)) {
 		// Update is_remind trong bảng ec_booking_itineraries = true
 		$update_remind = "UPDATE ec_booking_itineraries 
 		SET is_remind = 1
@@ -725,7 +725,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 	}
 }
 
-function populateLineDetails($booking_id){
+function populateLineDetails($booking_id)
+{
 	global $app_list_strings, $db;
 	$supplier_cus_sql = " AND account_type='Supplier' AND is_stop_tracking=0 ";
 
@@ -793,7 +794,7 @@ function populateLineDetails($booking_id){
 		$html .= '<td><input class="allow-number-only text-center" onblur="calculateLineEditDetails(' . $i . ');" type="text" name="bkd_total_bought_price[]" id="bk_edit_total_bought_price' . $i . '" value="' . ((float)$row['total_bought_price'] ? format_number($row['total_bought_price']) : format_number($row['total_price'] - ($row['service_fee']) * $row['quantity'])) . '" maxlength="25" /></td>';
 		$html .= '<td><input class="allow-number-only text-center" onblur="calculateLineEditDetails(' . $i . ');" type="text" name="bkd_supplier_discount[]" id="bk_edit_supplier_discount' . $i . '" value="' . format_number($row['supplier_discount']) . '" maxlength="25" /></td>';
 		$html .= '<td><input class="allow-number-only text-center" onblur="calculateLineEditDetails(' . $i . ');" id="bk_edit_supplier_ticketing_fee' . $i . '" type="text" name="bkd_supplier_ticketing_fee[]" value="' . (isset($row['fee_bought']) ? format_number($row['fee_bought']) : 0) . '" maxlength="25"></td>';
-		$html .= '<td><select id="bk_edit_supplier_id'.$i.'" name="bkd_supplier_id[]"><option value=""></option>'.myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $row['supplier_id'], 'id', $supplier_cus_sql).'</select></td>';
+		$html .= '<td><select id="bk_edit_supplier_id' . $i . '" name="bkd_supplier_id[]"><option value=""></option>' . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $row['supplier_id'], 'id', $supplier_cus_sql) . '</select></td>';
 		$html .= '<td class="align-middle text-center">
 					<input type="hidden" value="0" name="bkd_deleted[]" id="bk_edit_deleted' . $i . '" />
 					<input type="hidden" name="bkd_detail_id[]" id="bk_edit_detail_id' . $i . '" value="' . $detail_id . '" />
@@ -822,14 +823,14 @@ function populateLineDetails($booking_id){
 		$i++;
 	}
 
-		$total_qty 			= isset($_POST['total_qty']) && !empty($_POST['total_qty']) ? $_POST['total_qty'] : $total_qty_loop;
-		$subtotal_amount 		= isset($_POST['subtotal_amount']) && !empty($_POST['subtotal_amount']) ? $_POST['subtotal_amount'] : $total_price_loop;
-		$total_bought_amount 	= isset($_POST['total_bought_amount']) && !empty($_POST['total_bought_amount']) ? $_POST['total_bought_amount'] : $subtotal_amount_loop;
-		// User permission
-		$supplier_list = str_replace('"', "'", myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $supplier_cus_sql));
+	$total_qty 			= isset($_POST['total_qty']) && !empty($_POST['total_qty']) ? $_POST['total_qty'] : $total_qty_loop;
+	$subtotal_amount 		= isset($_POST['subtotal_amount']) && !empty($_POST['subtotal_amount']) ? $_POST['subtotal_amount'] : $total_price_loop;
+	$total_bought_amount 	= isset($_POST['total_bought_amount']) && !empty($_POST['total_bought_amount']) ? $_POST['total_bought_amount'] : $subtotal_amount_loop;
+	// User permission
+	$supplier_list = str_replace('"', "'", myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', $supplier_cus_sql));
 
-		// Tổng
-		$html .= '<tr id="bkd_last_row" class="footer-tr">
+	// Tổng
+	$html .= '<tr id="bkd_last_row" class="footer-tr">
 			<td colspan="2" style="margin-top: 3px;">
 				<input type="hidden" name="bkd_row_count" id="bkd_row_count" value="' . $row_count . '" />
 				<input type="hidden" name="supplier_list" id="supplier_list" value="' . $supplier_list . '" />
@@ -850,9 +851,9 @@ function populateLineDetails($booking_id){
 			</td>
 		</tr>';
 
-		$html1 = '<script>calculateTotal();</script>';
+	$html1 = '<script>calculateTotal();</script>';
 
-	return $html.$html1;
+	return $html . $html1;
 }
 
 function populateLinePassengers($booking_id, $flight_type, $type, $airline_in = '', $airline_out = '', $ticket_class_out = '', $ticket_class_in = '', $contact_name = '', $contact_phone = '')
@@ -1311,7 +1312,7 @@ function populateEditedLineItineraries($booking_id)
 						<td colspan="13" class="bg-yellow">
 							<b>
 							Lần thay đổi thứ ' . $row['sabre_logs'] . ': Áp dụng cho ' . $applied_pass . '. 
-							Thay đổi bởi: <b>'.$user_list[$row['modified_user_id']].'
+							Thay đổi bởi: <b>' . $user_list[$row['modified_user_id']] . '
 							</b>
 						</td>
 					</tr>';
@@ -1339,17 +1340,17 @@ function populateEditedLineItineraries($booking_id)
 
 			if ($row['is_remind'] == 0) {
 				// $remind_btn .= '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
-					
+
 				$remind_btn .= '<div class="dropdown">
 									<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
 										Remind
 									</button>
 									<ul class="dropdown-menu dropdown-menu-end box-list">
 										<li class="box-item">
-											<a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a>
+											<a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a>
 										</li>
 										<li class="box-item">
-											<a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a>
+											<a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a>
 										</li>
 									</ul>
 								</div>';
@@ -1602,7 +1603,7 @@ function populateEditedLinePassenger($booking_id)
 
 		if (!empty($row['luggage_index_outbound'])) {
 			$row['luggage_price'] = (int)$row['luggage_index_outbound'];
-		} 
+		}
 		$bag_out2 = $luggage_price_arr[(int)$row['luggage_price']];
 
 		$bag_weight_out = 0;
@@ -1615,7 +1616,7 @@ function populateEditedLinePassenger($booking_id)
 			$luggage_price .= '<span class="text-conpleted-status fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')<br>';
 		}
 
-		
+
 		/* Thông tin hành lý lượt về*/
 		// ------------------------------------
 		$luggage_price_ib_arr = generateLuggage($booking->date_entered, $booking->airline_inbound, $row['ticket_class_ib'], $row['type'], (int)$row['luggage_index_inbound']);
@@ -1754,18 +1755,18 @@ if (isset($_POST['for']) && $_POST['for'] == 'blockIP') {
 	$time_block = isset($_POST['time']) ? $_POST['time'] : '';
 	$domain 	= isset($_POST['domain']) ? $_POST['domain'] : '';
 
-	if(empty($ip) || empty($time_block) || empty($domain)) {
+	if (empty($ip) || empty($time_block) || empty($domain)) {
 		echo 0;
 		exit();
 	}
 
-	$url = 'https://'.$domain.'/info-tcb';
+	$url = 'https://' . $domain . '/info-tcb';
 	$post_data = [
-	    'ip' => $ip,
-	    'domain' => $domain,
-	    'time' => $time_block,
-	    'type' => 'handle-ip',
-	    'action' => 'block-ip',
+		'ip' => $ip,
+		'domain' => $domain,
+		'time' => $time_block,
+		'type' => 'handle-ip',
+		'action' => 'block-ip',
 	];
 
 	$curl = curl_init();
@@ -1781,23 +1782,23 @@ if (isset($_POST['for']) && $_POST['for'] == 'blockIP') {
 	curl_close($curl);
 
 	echo $status;
-	exit(); 
+	exit();
 }
 if (isset($_POST['for']) && $_POST['for'] == 'allowIP') {
 	$ip 	= isset($_POST['ip']) ? $_POST['ip'] : '';
 	$domain = isset($_POST['domain']) ? $_POST['domain'] : '';
 
-	if(empty($ip) || empty($domain)) {
+	if (empty($ip) || empty($domain)) {
 		echo 0;
 		exit();
 	}
 
-	$url = 'https://'.$domain.'/info-tcb';
+	$url = 'https://' . $domain . '/info-tcb';
 	$post_data = [
-	    'ip' => $ip,
-	    'domain' => $domain,
-	    'type' => 'handle-ip',
-	    'action' => 'unblock-ip',
+		'ip' => $ip,
+		'domain' => $domain,
+		'type' => 'handle-ip',
+		'action' => 'unblock-ip',
 	];
 
 	$curl = curl_init();
@@ -1813,7 +1814,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'allowIP') {
 	curl_close($curl);
 
 	echo $status;
-	exit(); 
+	exit();
 }
 if (isset($_POST['for']) && $_POST['for'] == 'HistoryBlockIP') {
 	$ip 		= isset($_POST['ip']) ? $_POST['ip'] : '';
@@ -1821,19 +1822,19 @@ if (isset($_POST['for']) && $_POST['for'] == 'HistoryBlockIP') {
 	$from_date 	= isset($_POST['from_date']) ? $_POST['from_date'] : '';
 	$to_date 	= isset($_POST['to_date']) ? $_POST['to_date'] : '';
 
-	if(empty($ip) || empty($domain)) {
+	if (empty($ip) || empty($domain)) {
 		echo 0;
 		exit();
 	}
 
-	$url = 'https://'.$domain.'/info-tcb';
+	$url = 'https://' . $domain . '/info-tcb';
 	$post_data = [
-	    'ip' => $ip,
-	    'domain' => $domain,
-	    'from-date' => $from_date,
-	    'to-date' => $to_date,
-	    'type' => 'get-infor-tcb',
-	    'action' => 'hisblock-ip',
+		'ip' => $ip,
+		'domain' => $domain,
+		'from-date' => $from_date,
+		'to-date' => $to_date,
+		'type' => 'get-infor-tcb',
+		'action' => 'hisblock-ip',
 	];
 
 	$curl = curl_init();
@@ -1849,25 +1850,25 @@ if (isset($_POST['for']) && $_POST['for'] == 'HistoryBlockIP') {
 	curl_close($curl);
 
 	echo $data;
-	exit(); 
+	exit();
 }
 if (isset($_POST['for']) && $_POST['for'] == 'whitelistIP') {
 	$ip 		= isset($_POST['ip']) ? $_POST['ip'] : '';
 	$time_wl 	= isset($_POST['time']) ? $_POST['time'] : '';
 	$domain 	= isset($_POST['domain']) ? $_POST['domain'] : '';
 
-	if(empty($ip) || empty($time_wl) || empty($domain)) {
+	if (empty($ip) || empty($time_wl) || empty($domain)) {
 		echo 0;
 		exit();
 	}
 
-	$url = 'https://'.$domain.'/info-tcb';
+	$url = 'https://' . $domain . '/info-tcb';
 	$post_data = [
-	    'ip' => $ip,
-	    'domain' => $domain,
-	    'time' => $time_wl,
-	    'type' => 'handle-ip',
-	    'action' => 'whitelist-ip',
+		'ip' => $ip,
+		'domain' => $domain,
+		'time' => $time_wl,
+		'type' => 'handle-ip',
+		'action' => 'whitelist-ip',
 	];
 
 	$curl = curl_init();
@@ -1883,7 +1884,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'whitelistIP') {
 	curl_close($curl);
 
 	echo $data;
-	exit(); 
+	exit();
 }
 
 // lấy ds vé cận
@@ -2221,13 +2222,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'get3TicketBooking') {
 	while ($row = $db->fetchByAssoc($res)) {
 		$departure_date = implode("<br>", explode("|", $row['departure_date']));
 		$arrival_date = implode("<br>", explode("|", $row['arrival_date']));
-		
+
 		$service_fee = implode("&nbsp;/&nbsp;", array_map(function ($val) {
 			return format_number($val);
 		}, explode(',', $row['service_fee'])));
 
 		// Ngày xuất vé
-		if($row['bk_date_ticket_issue'] == ''){
+		if ($row['bk_date_ticket_issue'] == '') {
 			$date_ticket_issue = '';
 		} else {
 			$date_ticket_issue = date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
@@ -2682,7 +2683,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 			ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), average_fee DESC
 		';
 
-		// pr($sql);
+	// pr($sql);
 
 	$res = $db->query($sql);
 	$i = $total = $canceled = $completed = $exported = $confirmed = $called = $paidwait = 0;
@@ -2695,7 +2696,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 		}, explode(',', $row['service_fee'])));
 
 		// Ngày xuất vé
-		if($row['bk_date_ticket_issue'] == ''){
+		if ($row['bk_date_ticket_issue'] == '') {
 			$date_ticket_issue = '';
 		} else {
 			$date_ticket_issue = date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
@@ -2773,7 +2774,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 	$note .= genNoteBKStt($paidwait, $paidwait_txt, 'Chờ TT');
 	$note .= genNoteBKStt($created, $created_txt, 'Mới tạo');
 
-	if($ticket_completed == ''){
+	if ($ticket_completed == '') {
 		$fee_average = 0;
 	} else {
 		$fee_average = format_number($total_sale / $ticket_completed);
@@ -2888,7 +2889,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getBookerBooking') {
 
 	while ($row = $db->fetchByAssoc($res)) {
 
-		if(empty($row['bk_date_ticket_issue'])){
+		if (empty($row['bk_date_ticket_issue'])) {
 			$date_ticket_issue = '';
 		} else {
 			$date_ticket_issue = date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
@@ -3071,7 +3072,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getToTalBKInOneDay') {
 			return format_number($val);
 		}, $service_fee_arr);
 		$service_fee = implode(" / ", $service_fee_arr);
-		
+
 		// phân loại bk theo phí dv tối thiểu
 		if ($row['min_service_fee'] >= 100000 && $row['min_service_fee'] < 150000) {
 			$total100++;
@@ -3099,7 +3100,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getToTalBKInOneDay') {
 			}
 		}
 
-		if(empty($row['bk_date_ticket_issue']) ||$row['bk_date_ticket_issue'] == '' ){
+		if (empty($row['bk_date_ticket_issue']) || $row['bk_date_ticket_issue'] == '') {
 			$bk_date_ticket_issue  = '';
 		} else {
 			$bk_date_ticket_issue  = date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
@@ -3174,13 +3175,16 @@ if (isset($_POST['for']) && $_POST['for'] == 'getToTalBKInOneDay') {
 
 	// tính % của những mức phí
 	$fee100_txt = getComparePercentTxt($total100, $total, 2, array(
-		'total_sale' => $total100_sale, 'total_com' => $total100_com
+		'total_sale' => $total100_sale,
+		'total_com' => $total100_com
 	));
 	$fee150_txt = getComparePercentTxt($total150, $total, 2, array(
-		'total_sale' => $total150_sale, 'total_com' => $total150_com
+		'total_sale' => $total150_sale,
+		'total_com' => $total150_com
 	));
 	$fee200_txt = getComparePercentTxt($total200, $total, 2, array(
-		'total_sale' => $total200_sale, 'total_com' => $total200_com
+		'total_sale' => $total200_sale,
+		'total_com' => $total200_com
 	));
 
 	// ghi chú nếu trạng thái bk khác hoàn tất / đã gọi / huỷ
@@ -3255,19 +3259,19 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 	if (!empty($_POST['fdate']) && strtotime($_POST['fdate']) !== false) {
 		$sql_search .= " AND bk.date_ticket_issue >= '" . date('Y-m-d', strtotime($_POST['fdate'])) . "' ";
 		$post_from_date = $_POST['fdate'];
-	 } else {
+	} else {
 		$sql_search .= " AND bk.date_ticket_issue >= '" . date('Y-m-d') . "' ";
 		$post_from_date = date('d-m-Y');
-	 }
+	}
 
-	 // Đến ngày
-	 if (!empty($_POST['tdate']) && strtotime($_POST['tdate']) !== false) {
+	// Đến ngày
+	if (!empty($_POST['tdate']) && strtotime($_POST['tdate']) !== false) {
 		$sql_search .= " AND bk.date_ticket_issue <= '" . date('Y-m-d', strtotime($_POST['tdate'])) . "' ";
 		$post_to_date = $_POST['tdate'];
-	 } else {
+	} else {
 		$sql_search .= " AND bk.date_ticket_issue <= '" . date('Y-m-d') . "' ";
 		$post_to_date = date('d-m-Y');
-	 }
+	}
 
 	$sql_inter = 'SELECT 
 					bk.id AS parent_id
@@ -3350,8 +3354,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 				LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
 				WHERE bk.ticket_type = 2
 				AND p.loai_thu IN ("4", "5", "10", "11", "12", "13", "14", "16") 
-				AND DATE(p.ngayhachtoan)>="'. date("Y-m-d", strtotime($post_from_date)) . '"
-				AND DATE(p.ngayhachtoan)<="'. date("Y-m-d", strtotime($post_to_date)) . '"
+				AND DATE(p.ngayhachtoan)>="' . date("Y-m-d", strtotime($post_from_date)) . '"
+				AND DATE(p.ngayhachtoan)<="' . date("Y-m-d", strtotime($post_to_date)) . '"
 				AND p.deleted=0
 				AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
 				GROUP BY p.id
@@ -3400,8 +3404,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 					WHERE p.deleted=0
 					AND bk.ticket_type = 2
 					AND p.tinhtrang="1"
-					AND DATE(p.ngayhachtoan)>="'. date("Y-m-d", strtotime($post_from_date)) . '"
-					AND DATE(p.ngayhachtoan)<="'. date("Y-m-d", strtotime($post_to_date)) . '"
+					AND DATE(p.ngayhachtoan)>="' . date("Y-m-d", strtotime($post_from_date)) . '"
+					AND DATE(p.ngayhachtoan)<="' . date("Y-m-d", strtotime($post_to_date)) . '"
 					GROUP BY p.id
 
 					-- hoan ve > 0
@@ -3433,8 +3437,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 					WHERE p.deleted=0
 					AND bk.ticket_type = 2
 					AND p.tinhtrang="1" 
-					AND p.ngayhachtoan>="'. date('Y-m-d', strtotime($post_from_date)) . '"
-					AND p.ngayhachtoan<="'. date('Y-m-d', strtotime($post_to_date)) . '"
+					AND p.ngayhachtoan>="' . date('Y-m-d', strtotime($post_from_date)) . '"
+					AND p.ngayhachtoan<="' . date('Y-m-d', strtotime($post_to_date)) . '"
 					GROUP BY p.id
 					HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
 					) AS hv_t
@@ -3452,24 +3456,24 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 	$total_amount_inter = 0;
 	while ($row = $db->fetchByAssoc($res_inter)) {
 
-		if($row['bk_date_ticket_issue'] == '' || empty($row['bk_date_ticket_issue'])){
+		if ($row['bk_date_ticket_issue'] == '' || empty($row['bk_date_ticket_issue'])) {
 			$date_ticket_issue = '';
 		} else {
 			$date_ticket_issue = date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
 		}
 
 		$html .= '<tr>
-					<td align="center"><a href="index.php?module='.$row['parent_type'].'&amp;action=DetailView&amp;record='.$row['parent_id'].'" target="_blank">'.$row['parent_name'].'</a></td>
-					<td align="center" class="fw-bold" style="color:' . $app_list_strings[$row['color_status_list']][$row['booking_status']] . '">'.$app_list_strings[$row['status_list']][$row['booking_status']].'</td>
+					<td align="center"><a href="index.php?module=' . $row['parent_type'] . '&amp;action=DetailView&amp;record=' . $row['parent_id'] . '" target="_blank">' . $row['parent_name'] . '</a></td>
+					<td align="center" class="fw-bold" style="color:' . $app_list_strings[$row['color_status_list']][$row['booking_status']] . '">' . $app_list_strings[$row['status_list']][$row['booking_status']] . '</td>
 					<td align="left" class="hide-mobile">' . $row['contact_name'] . '</td>
 					<td align="left" class="hide-mobile">' . $row['contact_mobile'] . '</td>
-					<td align="center" class="hide-mobile">'.format_number($row['service_fee']).'</td>
-					<td align="center">'.$row['total_quantity'].'</td>
-					<td align="right" class="fw-bold">'.format_number(($row['subtotal_amount'] - $row['total_bought_price'])).'</td>
-					<td align="center">'.format_number($row['average_fee']).'</td>
+					<td align="center" class="hide-mobile">' . format_number($row['service_fee']) . '</td>
+					<td align="center">' . $row['total_quantity'] . '</td>
+					<td align="right" class="fw-bold">' . format_number(($row['subtotal_amount'] - $row['total_bought_price'])) . '</td>
+					<td align="center">' . format_number($row['average_fee']) . '</td>
 					<td align="center" class="hide-mobile">' . date('d-m-Y', strtotime($row['bk_date_entered'])) . '</td>
 					<td align="center" class="hide-mobile">' . $date_ticket_issue . '</td>
-				</tr>'; 
+				</tr>';
 		$i++;
 		$total_ticket += $row['total_quantity'];
 		$total_bk_sales += ($row['subtotal_amount'] - $row['total_bought_price']);
@@ -3477,13 +3481,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 	}
 
 	$html .= '<tr class="footer-tr">
-				<td colspan="2" class="text-start fw-bold">Số dòng = '.$i.'</td>
+				<td colspan="2" class="text-start fw-bold">Số dòng = ' . $i . '</td>
 				<td class="hide-mobile">&nbsp;</td>
 				<td class="hide-mobile">&nbsp;</td>
 				<td class="fee-service hide-mobile">&nbsp;</td>
-				<td align="center">'.format_number($total_ticket).'</td>
-				<td align="right" class="text-end fw-bold color-red">'.format_number($total_bk_sales).'</td>
-				<td align="right" class="text-end fw-bold color-red">'.format_number($total_bk_sales/$total_ticket).'</td>
+				<td align="center">' . format_number($total_ticket) . '</td>
+				<td align="right" class="text-end fw-bold color-red">' . format_number($total_bk_sales) . '</td>
+				<td align="right" class="text-end fw-bold color-red">' . format_number($total_bk_sales / $total_ticket) . '</td>
 				<td class="hide-mobile">&nbsp;</td>
 				<td class="hide-mobile">&nbsp;</td>
 			</tr>';
@@ -3491,7 +3495,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 	$html .= '</table></div>';
 
 	echo $html;
-}	
+}
 
 // Thống kê chi tiết booking inter trong doanh số vé xuất
 if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
@@ -3519,19 +3523,19 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 	if (!empty($_POST['fdate']) && strtotime($_POST['fdate']) !== false) {
 		$sql_search .= " AND bk.date_ticket_issue >= '" . date('Y-m-d', strtotime($_POST['fdate'])) . "' ";
 		$post_from_date = $_POST['fdate'];
-	 } else {
+	} else {
 		$sql_search .= " AND bk.date_ticket_issue >= '" . date('Y-m-d') . "' ";
 		$post_from_date = date('d-m-Y');
-	 }
+	}
 
-	 // Đến ngày
-	 if (!empty($_POST['tdate']) && strtotime($_POST['tdate']) !== false) {
+	// Đến ngày
+	if (!empty($_POST['tdate']) && strtotime($_POST['tdate']) !== false) {
 		$sql_search .= " AND bk.date_ticket_issue <= '" . date('Y-m-d', strtotime($_POST['tdate'])) . "' ";
 		$post_to_date = $_POST['tdate'];
-	 } else {
+	} else {
 		$sql_search .= " AND bk.date_ticket_issue <= '" . date('Y-m-d') . "' ";
 		$post_to_date = date('d-m-Y');
-	 }
+	}
 
 	$sql_domestic = 'SELECT 
 						bk.id AS parent_id
@@ -3614,8 +3618,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 					LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
 					WHERE bk.ticket_type <> 2
 					AND p.loai_thu IN ("4", "5", "10", "11", "12", "13", "14", "16") 
-					AND DATE(p.ngayhachtoan)>="'. date("Y-m-d", strtotime($post_from_date)) . '"
-					AND DATE(p.ngayhachtoan)<="'. date("Y-m-d", strtotime($post_to_date)) . '"
+					AND DATE(p.ngayhachtoan)>="' . date("Y-m-d", strtotime($post_from_date)) . '"
+					AND DATE(p.ngayhachtoan)<="' . date("Y-m-d", strtotime($post_to_date)) . '"
 					AND p.deleted=0
 					AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
 					GROUP BY p.id
@@ -3665,8 +3669,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 						WHERE p.deleted=0
 						AND bk.ticket_type <> 2
 						AND p.tinhtrang="1"
-						AND DATE(p.ngayhachtoan)>="'. date("Y-m-d", strtotime($post_from_date)) . '"
-						AND DATE(p.ngayhachtoan)<="'. date("Y-m-d", strtotime($post_to_date)) . '"
+						AND DATE(p.ngayhachtoan)>="' . date("Y-m-d", strtotime($post_from_date)) . '"
+						AND DATE(p.ngayhachtoan)<="' . date("Y-m-d", strtotime($post_to_date)) . '"
 						GROUP BY p.id
 
 						-- hoan ve > 0
@@ -3698,8 +3702,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 						WHERE p.deleted=0
 						AND bk.ticket_type <> 2
 						AND p.tinhtrang="1" 
-						AND p.ngayhachtoan>="'. date('Y-m-d', strtotime($post_from_date)) . '"
-						AND p.ngayhachtoan<="'. date('Y-m-d', strtotime($post_to_date)) . '"
+						AND p.ngayhachtoan>="' . date('Y-m-d', strtotime($post_from_date)) . '"
+						AND p.ngayhachtoan<="' . date('Y-m-d', strtotime($post_to_date)) . '"
 						GROUP BY p.id
 						HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
 					) AS hv_t
@@ -3717,24 +3721,24 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 	$total_amount_domestic = 0;
 	while ($row = $db->fetchByAssoc($res_domestic)) {
 
-		if($row['bk_date_ticket_issue'] == '' || empty($row['bk_date_ticket_issue'])){
+		if ($row['bk_date_ticket_issue'] == '' || empty($row['bk_date_ticket_issue'])) {
 			$date_ticket_issue = '';
 		} else {
 			$date_ticket_issue = date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
 		}
 
 		$html .= '<tr>
-					<td align="center"><a href="index.php?module='.$row['parent_type'].'&amp;action=DetailView&amp;record='.$row['parent_id'].'" target="_blank">'.$row['parent_name'].'</a></td>
-					<td align="center" class="fw-bold" style="color:' . $app_list_strings[$row['color_status_list']][$row['booking_status']] . '">'.$app_list_strings[$row['status_list']][$row['booking_status']].'</td>
+					<td align="center"><a href="index.php?module=' . $row['parent_type'] . '&amp;action=DetailView&amp;record=' . $row['parent_id'] . '" target="_blank">' . $row['parent_name'] . '</a></td>
+					<td align="center" class="fw-bold" style="color:' . $app_list_strings[$row['color_status_list']][$row['booking_status']] . '">' . $app_list_strings[$row['status_list']][$row['booking_status']] . '</td>
 					<td align="left" class="hide-mobile">' . $row['contact_name'] . '</td>
 					<td align="left" class="hide-mobile">' . $row['contact_mobile'] . '</td>
-					<td align="right" class="fw-bold hide-mobile">'.format_number(($row['service_fee'])).'</td>
-					<td align="center">'.$row['total_quantity'].'</td>
-					<td align="right" class="fw-bold">'.format_number(($row['subtotal_amount'] - $row['total_bought_price'])).'</td>
-					<td align="right" class="fw-bold">'.format_number(($row['average_fee'])).'</td>
+					<td align="right" class="fw-bold hide-mobile">' . format_number(($row['service_fee'])) . '</td>
+					<td align="center">' . $row['total_quantity'] . '</td>
+					<td align="right" class="fw-bold">' . format_number(($row['subtotal_amount'] - $row['total_bought_price'])) . '</td>
+					<td align="right" class="fw-bold">' . format_number(($row['average_fee'])) . '</td>
 					<td align="center" class="hide-mobile">' . date('d-m-Y', strtotime($row['bk_date_entered'])) . '</td>
 					<td align="center" class="hide-mobile">' . $date_ticket_issue . '</td>
-				</tr>'; 
+				</tr>';
 		$i++;
 		$total_ticket += $row['total_quantity'];
 		$total_bk_sales += ($row['subtotal_amount'] - $row['total_bought_price']);
@@ -3742,12 +3746,12 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 	}
 
 	$html .= '<tr class="footer-tr">
-				<td colspan="2" class="text-start fw-bold">Số dòng = '.$i.'</td>
+				<td colspan="2" class="text-start fw-bold">Số dòng = ' . $i . '</td>
 				<td class="hide-mobile">&nbsp;</td>
 				<td class="hide-mobile">&nbsp;</td>
 				<td class="fee-service hide-mobile">&nbsp;</td>
-				<td align="center">'.format_number($total_ticket).'</td>
-				<td align="right" class="text-end fw-bold color-red">'.format_number($total_bk_sales).'</td>
+				<td align="center">' . format_number($total_ticket) . '</td>
+				<td align="right" class="text-end fw-bold color-red">' . format_number($total_bk_sales) . '</td>
 				<td align="right" class="text-end fw-bold color-red">' . format_number($total_bk_sales / $total_ticket) . '</td>
 				<td class="hide-mobile">&nbsp;</td>
 				<td class="hide-mobile">&nbsp;</td>
@@ -3756,4 +3760,142 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 	$html .= '</table></div>';
 
 	echo $html;
-}	
+}
+
+/*
+	Danh sách booking của liên hệ - QUY ĐỊNH 1 SDT LÀ 1 LIÊN HỆ
+*/
+if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
+	$contact_id  = isset($_POST['contact_id']) ? $_POST['contact_id'] : '';
+	$booking_id  = $_POST['booking_id'] ?? '';
+
+	$html = $html_summary = '';
+	$type_contact = '';
+	$name_contact = '';
+	$phone_contact = '';
+	$email_contact = '';
+
+	$total_ = 0;
+	$count_booking = 0;
+	$count_booking_completed 	= 0;
+	$count_booking_cancel 		= 0;
+	$count_booking_other 		= 0;
+
+	$total_revenue 		= 0;
+	$total_profit 		= 0;
+
+	if ($contact_id) {
+		$html = '<div class="list-booking-customer">
+					<table class="tbl-check-contact-info table-details__booking">
+						<thead>
+							<tr>
+								<th class="hide-mobile">STT</th>
+								<th>Booking</th>
+								<th class="hide-mobile">Hành trình</th>
+								<th class="hide-mobile">Tình trạng</th>
+								<th>Ngày đặt</th>
+								<th>Liên hệ</th>
+								<th>Số vé</th>
+								<th>Doanh thu</th>
+								<th>Doanh số</th>
+							</tr>
+						</thead>';
+
+		$sql = "SELECT *
+				FROM ec_flight_bookings
+				WHERE  contact_id = '" . $contact_id . "' AND deleted = 0";
+
+		$res = $db->query($sql);
+		$count_booking 	= $db->countRows($res);
+
+		if ($count_booking > 0) {
+			$i = 1;
+			while ($row = $db->fetchByAssoc($res)) {
+
+				// Infor contact
+				$current_date 			= date('Y-m-d');
+				$name_contact 			= $row['contact_name'];
+				$phone_contact 			= $row['phone'];
+				$email_contact 			= $row['email'];
+
+				if ($row['booking_status'] == 2) { //CHỜ THANH TOÁN
+					$class_color = 'text-warning';
+				} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { //XÁC NHẬN
+					$class_color = 'text-success';
+				} elseif ($row['booking_status'] == 4) { //HỦY
+					$class_color = 'text-danger';
+				} elseif ($row['booking_status'] == 6) { //ĐÃ GỌI
+					$class_color = 'text-info';
+				} elseif ($row['booking_status'] == 8) { //HOÀN TẤT
+					$class_color = 'text-primary';
+				} else {
+					$class_color = 'text-dark';
+				}
+
+				// Journey
+				if ($row['journey']) {
+					$journey = $row['journey'];
+				} else {
+					$journey_array 	= journeyOfBooking($row['id']);
+					$journey 		= $journey_array["departure"] . '-' . $journey_array["arrival"];
+				}
+
+				if ($row['booking_status'] == 8 || $row['booking_status'] == 7 || $row['booking_status'] == 3) {
+					$count_booking_completed++;
+
+					$total_revenue  += $row['total_amount'];
+					$total_profit 	+= calculateBKTotalAmt($row['id']);
+				} else if ($row['booking_status'] == 4) {
+					$count_booking_cancel++;
+				} else {
+					$count_booking_other++;
+				}
+
+				// pr($row);
+				$current_booking = ($row['id'] == $booking_id) ? 'current_booking' : '';
+
+				$html .= '<tr>
+							<td class="'.$current_booking.' hide-mobile fw-bold text-center">' . $i . '</td>
+							<td class="'.$current_booking.'"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='.$row['id'].'" target="_blank">' . $row['name'] . '</a></td>
+							<td class="'.$current_booking.' hide-mobile text-center">' . $journey . '</td>
+							<td class="'.$current_booking.' hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int)$row['booking_status']] . '</td>
+							<td class="'.$current_booking.'">' . date('d-m-Y H:i', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+							<td class="'.$current_booking.'">' . $row['contact_name'] . '</td>
+							<td class="'.$current_booking.' text-center fw-bold">' . $row['total_qty'] . '</td>
+							<td class="'.$current_booking.' text-end fw-bold">' . format_number($row['total_amount']) . '</td>
+							<td class="'.$current_booking.' text-end fw-bold">' . format_number(calculateBKTotalAmt($row['id'])) . '</td>
+						</tr>';
+				$i++;
+			}
+		}
+
+		$type_contact = classifyContact($contact_id);
+
+		$html .= '</table></div>';
+
+		$denominator_booking_completed = ($count_booking_completed == 0) ? 1 : $count_booking_completed;
+		$html_summary .= '
+						<div class="d-flex gap-3 mb-3">
+							<div class="flex-fill lh-base">
+								<p>👤 *Họ tên: ' . $name_contact . '</p>  
+								<p>📞 *SĐT: ' . $phone_contact . '</p>
+								<p>📧 *Email: ' . $email_contact . '</p>
+							</div>
+							<div class="flex-fill lh-base">
+								<p>🏷️ *Loại khách hàng: <span class="fw-bold">' . $type_contact['label'] . '</span></p>  
+								<p>📊 *Tổng booking: ' . $count_booking . ' (' . $count_booking_completed . ' <span class="text-primary fw-bold">hoàn tất</span>, ' . $count_booking_cancel . ' <span class="text-danger fw-bold">hủy</span>, ' . $count_booking_other . ' <span class="text-dark fw-bold">Khác</span>)</p>
+								<p>✅ *Tỷ lệ hoàn tất: <span class="fw-bold">' . round(($count_booking_completed / $count_booking * 100), 2) . '%</span></p>
+								<p>❌ *Tỷ lệ hủy: <span class="fw-bold">' . round(($count_booking_cancel / $count_booking * 100), 2) . '%</span></p>
+							</div>
+							<div class="flex-fill lh-base">
+								<p>💰 *Tổng doanh thu: <span class="fw-bold">' . format_number($total_revenue) . '</span></p>  
+								<p>💸 *Doanh thu trung bình: <span class="fw-bold">' . format_number($total_revenue / $denominator_booking_completed) . '</span></p>
+								<p>💰 *Tổng doanh số: <span class="fw-bold">' . format_number($total_profit) . '</span></p>  
+								<p>💸 *Doanh số trung bình: <span class="fw-bold">' . format_number($total_profit / $denominator_booking_completed) . '</span></p>
+							</div>
+						</div>';
+	}
+
+
+	echo $html_summary . $html;
+}
