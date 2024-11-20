@@ -2280,6 +2280,8 @@ function content_log($current_user_id, $time, $busy = 0)
     if (is_null($current_user_id) || empty($current_user_id) || is_null($time) || empty($time)) return false;
 
     $row = array(
+        'agent' => custom_get_sip_number($current_user_id),
+        'current_user_id' => $current_user_id,
         'last_time' => $time,
         'busy' => $busy,
     );

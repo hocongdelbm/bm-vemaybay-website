@@ -420,8 +420,8 @@ $(document).ready(function () {
             showConnect(false);
             if (ua) ua.stop();
         } else {
+            check_online_for_call();
             showConnect(true);
-            // check_online_for_call();
         }
 
         $.ajax({

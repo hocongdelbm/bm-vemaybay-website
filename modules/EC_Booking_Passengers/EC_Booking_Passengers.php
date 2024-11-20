@@ -35,6 +35,8 @@ class EC_Booking_Passengers extends Basic {
     public $pnr_outbound;
     public $pnr_inbound;
     public $is_active;
+    public $cic;
+    public $passport_number;
 
 	
     public function bean_implements($interface)

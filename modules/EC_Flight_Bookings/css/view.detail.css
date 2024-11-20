@@ -193,6 +193,8 @@
     padding: 6px 12px;
 }
 
+#tbl_pax tbody tr.psg-line td {vertical-align: baseline;}
+
 /* ================= RESPONSIVE TABLE ============== */
 @media screen and (max-width: 600px) {
     table#tbl_pax,

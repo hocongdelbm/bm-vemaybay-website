@@ -22,7 +22,7 @@ class CustomController extends BaseController
 
         '157.119.251.220', // timchuyenbay.net
         '157.119.251.12', // timchuyenbay.com.vn
-        '157.119.251.225', // timchuyenbay.vn
+        '157.119.251.44', // timchuyenbay.vn
         '157.119.251.195', // sanvemaybaygiare.net
         '103.160.5.35', // sanvemaybay.com.vn
         '157.119.251.197', // vemaybay.website, dailyve.net
@@ -36,17 +36,12 @@ class CustomController extends BaseController
         '157.119.251.145', // vemaybaynamphuong.com.vn
         '157.119.251.218', // vietjetstar.net
 
-        '119.17.253.171', // vemaybaynamphuong.com ; vietjet.net.vn
         '103.160.5.21', // vemaybay5s.com
-        '119.17.253.63', // ve5s.vn
-        '119.17.253.235', // vietjetkhuyenmai.vn
-        '119.17.253.14', // appvemaybay.com
         '202.151.168.27', // vemaybaynamphuong.net
         '202.151.168.28', // vemaybay.me
 
         '157.119.251.114',
         '157.119.251.90',
-        '157.119.251.44',
         '157.119.251.101',
         '157.119.251.41',
     ];

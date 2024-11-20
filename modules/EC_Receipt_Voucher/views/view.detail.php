@@ -106,6 +106,8 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 		$this->bean->ngayhachtoan = date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) - 7*3600);
 		
 		// Nút in phiếu
+		// $current_user->department_id
+		// f15f801d-a9bc-cc92-4152-655f5e89867f - MHV
 		if(ACLController::checkAccess('EC_Receipt_Voucher', 'view', true)) {
 			$dep_arr = myGetAllDepByCurrentUser();
 			$print_rv = '</form>
@@ -114,7 +116,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 			  	<input type="hidden" name="action" value="printrv" />
 			  	<input type="hidden" name="print" value="true" />
 			  	<input type="hidden" name="record" value="'.$this->bean->id.'" />
-				<select class="box-select" name="dep_id" id="dep_id">'.myMakeHtmlOption($dep_arr, isset($_POST['dep_id']) ? $_POST['dep_id'] : $current_user->department_id).'</select>
+				<select class="box-select" name="dep_id" id="dep_id">'.myMakeHtmlOption($dep_arr, isset($_POST['dep_id']) ? $_POST['dep_id'] : 'f15f801d-a9bc-cc92-4152-655f5e89867f').'</select>
 			  	<input onclick="Set_Cookie(\'showLeftCol\',\'false\',30,\'/\',\'\',\'\')" type="submit" class="btn btn-primary" name="btnPrintRV" value="In phiếu" title="In phiếu" />
 			</form>';
 			$this->ss->assign('PRINT_RV', $print_rv);

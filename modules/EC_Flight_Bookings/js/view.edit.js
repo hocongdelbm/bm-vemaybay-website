@@ -864,6 +864,8 @@ function insertPassengerLine(ln) {
 	// Họ tên
 	html += `<td data-label="Họ tên">
 				<input type="text" name="psg_full_name[]" id="psg_full_name${ln}" value="" class="text-start" maxlength="128" />
+				<label class="mt-1 fw-bold">CCCD:</label>
+				<input type="text" name="psg_cic[]" id="psg_cic${ln}" value="" class="text-start" maxlength="16" />
 			</td>`;
 
 	// Ngày sinh
@@ -872,6 +874,8 @@ function insertPassengerLine(ln) {
 					<input type="text" class="w-80" name="psg_birthday[]" id="psg_birthday${ln}" value="" maxlength="10" />
 					<img class="cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger${ln}" align="absmiddle" />
 				</div>
+				<label class="mt-1 fw-bold">Passport:</label>
+				<input type="text" name="psg_passport_number[]" id="psg_passport_number${ln}" value="" class="text-start" maxlength="10" />
 			</td>`;
 
 	// Số vé lượt đi

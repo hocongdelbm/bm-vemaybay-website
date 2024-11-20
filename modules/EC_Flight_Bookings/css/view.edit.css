@@ -13,6 +13,8 @@
     padding: 10px;
 }
 
+#tbl_line_passengers tbody tr.psg_line td {vertical-align: baseline;}
+
 /*====================  OVERRIDE  ====================*/
 #EditView input[type="button"] {
     margin-left: 0;
@@ -20,7 +22,6 @@
 }
 
 /* ================= RESPONSIVE TABLE ================ */
-/* =================================================== */
 @media screen and (max-width: 600px) {
     .addmin-fee-wrap,
     .date_ticket_issue--wrap,
@@ -29,7 +30,6 @@
     }
 
     /* ------------- HÀNH KHÁCH -------------- */
-    /* --------------------------------------- */
     .col_psg_price,
     .psg_price-wrap {
         display: flex;

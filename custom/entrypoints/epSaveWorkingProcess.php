@@ -127,8 +127,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				if ($recheck_status == '2') // Đã recheck
 					$work->recheck = 1;
 
-				if ($recall_status == '2') // Đã recall
-					$work->recall = 1;
+				// if ($recall_status == '2') // Đã recall
+					// $work->recall = 1;
 
 				if ($check_debt == '2') // Đối chiếu công nợ
 					$work->check_debt = 1;

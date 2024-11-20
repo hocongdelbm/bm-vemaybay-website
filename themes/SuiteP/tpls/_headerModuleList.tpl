@@ -8,16 +8,16 @@
 
           if(currentURLQuery.indexOf('module=EC_Zalo&action=index') === -1) {
                // BEHAVIOR USER
-               $.ajax({
-                    url: "index.php?entryPoint=entryPointBehaviorUser",
-                    type: "POST",
-                    cache: false,
-                    data: {
-                         url_behavior: currentURL,
-                         for: "saveBehaviorUser",
-                    },
-                    success: function(response) {}
-               });
+               // $.ajax({
+               //      url: "index.php?entryPoint=entryPointBehaviorUser",
+               //      type: "POST",
+               //      cache: false,
+               //      data: {
+               //           url_behavior: currentURL,
+               //           for: "saveBehaviorUser",
+               //      },
+               //      success: function(response) {}
+               // });
           }
 
           $('body').on('click', function(e) {

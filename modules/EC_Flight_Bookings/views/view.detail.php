@@ -54,7 +54,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// External file
 		$js = '<script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.2"></script>
-			<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet/booking.js?v=1.9"></script>
+			<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet/booking.js?v=1.93"></script>
 			<script src="modules/'.$this->bean->module_dir.'/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/'.$this->bean->module_dir.'/js/api_sms.js?v=1.1"></script>
 		';
@@ -1679,10 +1679,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				p.parent_detail_id,
 				p.date_entered,
 				p.luggage_index_outbound,
-				p.luggage_index_inbound
+				p.luggage_index_inbound,
+				p.cic,
+				p.passport_number
 			FROM ec_booking_passengers p
 			WHERE p.booking_id = '" . $this->bean->id . "' AND p.deleted = 0 
-				" . $condition . "
+				$condition
 			ORDER BY p.type, p.date_entered";
 
 		$res = $this->bean->db->query($sql);
@@ -1697,14 +1699,23 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			if ($i % 2 > 0) $even_or_odd = 'even';
 			else $even_or_odd = 'odd';
 
+			$hide_cic = ($this->bean->ticket_type == 2 || $row['type'] == 2) ? ' style="display:none" ' : '';
+			$hide_passport = ($this->bean->ticket_type == 1 || $row['type'] == 2) ? ' style="display:none" ' : '';
+
 			// Line 1
 			$html .= '<tr class="psg-line '.$even_or_odd.'" data-id="' . $row['id'] . '">
 						<td data-label="Giữ chỗ VJ" class="text-center"><input type="checkbox" name="check-passenger" class="check-passenger" /></td>
 						<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 						<td data-label="Loại HK" class="passenger_type text-center" data="' . $row['type'] . '" class="text-center">' . $app_list_strings['passenger_type_list'][(int)$row['type']] . '</td>
 						<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int)$row['salutation']] . '</td>
-						<td data-label="Họ tên" class="passenger_name text-start">' . $row['name'] . '</td>
-						<td data-label="Ngày sinh" class="passenger_birthdate text-center">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</td>
+						<td data-label="Họ tên" class="passenger_name text-start">
+							<p class="fullname text-center">'. $row['name'] .'</p>
+							<p class="cic mt-1" data="'. $row['cic'] .'" '.$hide_cic.'><b>CCCD: </b>'. $row['cic'] .'</p>
+							<p class="passport" data="'. $row['passport_number'] .'" '.$hide_passport.'><b>Passport: </b>'. $row['passport_number'] .'</p>
+						</td>
+						<td data-label="Ngày sinh" class="passenger_birthdate text-center">
+							<p class="birthdate">'. (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') .'</p>
+						</td>
 						<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
 							' . strtoupper($row['eticket_outbound']) . '
 							<img class="editinline" src="./custom/themes/default/images/custom/edit_inline.gif" style="display:none;">
