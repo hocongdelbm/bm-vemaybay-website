@@ -61,8 +61,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.2"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.93"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.1"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.97"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.1"></script>
 		';
@@ -349,11 +349,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$link_contact 		= $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id . "" : "#";
 		$type_contact 		= classifyContact($this->bean->contact_id);
 		$contact_name_new  	= '<a target="_blank" href="' . $link_contact . '" class="contact_name" data="' . $this->bean->contact_name . '"><span>' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span></a>';
-		$contact_assign 	= '<div class="card-contact ' . $type_contact['type'] . '">
-								<div class="contact-header">
+		$contact_assign 	= '<div class="card-contact gap-2 ' . $type_contact['type'] . '">
+								<div class="flex-fill contact-header">
 									' . $contact_name_new . '
 								</div>
-								<div class="card-contact-footer contact-footer flex-between" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '">
+								<div data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="flex-fill card-contact-footer contact-footer flex-end" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '">
 									<span class="temp">' . $type_contact['totalBookings'] . '</span>
 									<div class="temp-scale">
 										<span>' . $type_contact['label'] . '</span>
@@ -361,8 +361,20 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 								</div>
 							</div>';
 
-		$modal_history_bookings = '<div id="dialog-history-bookings" title="Lịch sử booking của liên hệ" style="display:none;"></div>';
-		
+		$modal_history_bookings = '<div class="modal fade modal-history-bookings" id="modalHistoryContactBookings" tabindex="-1" aria-labelledby="modalHistoryContactBookingsLabel" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered">
+									<div class="modal-content">
+										<div class="modal-header">
+											<h1 class="modal-title fs-5 text-white" id="modalHistoryContactBookingsLabel">Lịch sử booking của liên hệ</h1>
+											<button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+										</div>
+										<div class="modal-body">
+											<div class="td_spinner"></div>
+											<div id="dialog-history-bookings"></div>
+										</div>
+									</div>
+								</div>
+							</div>';
 		
 		$this->ss->assign('CONTACT_NAME', $contact_assign . $modal_history_bookings);
 
@@ -1427,7 +1439,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 									' . $send_ticket_btn . '
 									' . $sms_btn . '
 									' . $remind_btn . '
-									' . $other_cus . '
 								</div>
 							</form>
 						</td>';
@@ -1732,7 +1743,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			else $even_or_odd = 'odd';
 
 			$hide_cic = ($this->bean->ticket_type == 2 || $row['type'] == 2) ? ' style="display:none" ' : '';
-			$hide_passport = ($this->bean->ticket_type == 1 || $row['type'] == 2) ? ' style="display:none" ' : '';
+			$hide_passport = (empty($row['passport_number'])) ? ' style="display:none" ' : '';
 
 			// Line 1
 			$html .= '<tr class="psg-line ' . $even_or_odd . '" data-id="' . $row['id'] . '">
@@ -1742,8 +1753,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int)$row['salutation']] . '</td>
 						<td data-label="Họ tên" class="passenger_name text-start">
 							<p class="fullname text-center">' . $row['name'] . '</p>
-							<p class="cic mt-1" data="' . $row['cic'] . '" ' . $hide_cic . '><b>CCCD: </b>' . $row['cic'] . '</p>
-							<p class="passport" data="' . $row['passport_number'] . '" ' . $hide_passport . '><b>Passport: </b>' . $row['passport_number'] . '</p>
+							<p class="cic" data="' . $row['cic'] . '" ' . $hide_cic . '><b>CCCD: </b><span>' . $row['cic'] . '</span></p>
+							<p class="passport" data="' . $row['passport_number'] . '" ' . $hide_passport . '><b>Passport: </b><span>' . $row['passport_number'] . '</span></p>
 						</td>
 						<td data-label="Ngày sinh" class="passenger_birthdate text-center">
 							<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>

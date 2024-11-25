@@ -879,6 +879,7 @@ $dictionary['EC_Flight_Bookings'] = array(
         array('name' => 'idx_bk_email', 'type' => 'index', 'fields' => array('email')),
         array('name' => 'idx_bk_bkstatus', 'type' => 'index', 'fields' => array('booking_status')),
         array('name' => 'idx_bk_contact', 'type' => 'index', 'fields' => array('contact_name')),
+        array('name' => 'idx_bk_contact_id', 'type' => 'index', 'fields' => array('contact_id')),
         array('name' => 'idx_bk_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
         array('name' => 'idx_bk_date_ticket_issue', 'type' => 'index', 'fields' => array('date_ticket_issue')),
         array('name' => 'idx_bk_dateen', 'type' => 'index', 'fields' => array('date_entered')),

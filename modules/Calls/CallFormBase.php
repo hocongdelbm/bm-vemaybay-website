@@ -237,15 +237,19 @@ EOQ;
         } else {
             //this is not from long form so add assigned and current user automatically as there is no invitee list UI.
             //This call could be through an ajax call from subpanels or shortcut bar
-            $_POST['user_invitees'] .= ','.$_POST['assigned_user_id'].', ';
 
-            //add current user if the assigned to user is different than current user.
-            if ($current_user->id != $_POST['assigned_user_id'] && $_REQUEST['module'] != "Calendar") {
-                $_POST['user_invitees'] .= ','.$current_user->id.', ';
+            // fix warning by haihugn
+            if(isset($_POST['user_invitees']) && isset($_POST['assigned_user_id'])){
+                $_POST['user_invitees'] .= ','.$_POST['assigned_user_id'].', ';
+
+                //add current user if the assigned to user is different than current user.
+                if ($current_user->id != $_POST['assigned_user_id'] && $_REQUEST['module'] != "Calendar") {
+                    $_POST['user_invitees'] .= ','.$current_user->id.', ';
+                }
+
+                //remove any double commas introduced during appending
+                $_POST['user_invitees'] = str_replace(',,', ',', $_POST['user_invitees']);
             }
-
-            //remove any double commas introduced during appending
-            $_POST['user_invitees'] = str_replace(',,', ',', $_POST['user_invitees']);
         }
 
         if ((isset($_POST['isSaveFromDetailView']) && $_POST['isSaveFromDetailView'] == 'true') ||

@@ -3801,9 +3801,10 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							</tr>
 						</thead>';
 
-		$sql = "SELECT *
+		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered
 				FROM ec_flight_bookings
-				WHERE  contact_id = '" . $contact_id . "' AND deleted = 0";
+				WHERE  contact_id = '" . $contact_id . "' AND deleted = 0
+				ORDER BY date_entered DESC";
 
 		$res = $db->query($sql);
 		$count_booking 	= $db->countRows($res);
@@ -3859,7 +3860,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							<td class="'.$current_booking.'"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='.$row['id'].'" target="_blank">' . $row['name'] . '</a></td>
 							<td class="'.$current_booking.' hide-mobile text-center">' . $journey . '</td>
 							<td class="'.$current_booking.' hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int)$row['booking_status']] . '</td>
-							<td class="'.$current_booking.'">' . date('d-m-Y H:i', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+							<td class="'.$current_booking.' text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
 							<td class="'.$current_booking.'">' . $row['contact_name'] . '</td>
 							<td class="'.$current_booking.' text-center fw-bold">' . $row['total_qty'] . '</td>
 							<td class="'.$current_booking.' text-end fw-bold">' . format_number($row['total_amount']) . '</td>
@@ -3880,10 +3881,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 								<p>👤 *Họ tên: ' . $name_contact . '</p>  
 								<p>📞 *SĐT: ' . $phone_contact . '</p>
 								<p>📧 *Email: ' . $email_contact . '</p>
+								<p>🏷️ *Mô tả: ' . $type_contact['desc'] . '</p>  
 							</div>
 							<div class="flex-fill lh-base">
 								<p>🏷️ *Loại khách hàng: <span class="fw-bold">' . $type_contact['label'] . '</span></p>  
-								<p>📊 *Tổng booking: ' . $count_booking . ' (' . $count_booking_completed . ' <span class="text-primary fw-bold">hoàn tất</span>, ' . $count_booking_cancel . ' <span class="text-danger fw-bold">hủy</span>, ' . $count_booking_other . ' <span class="text-dark fw-bold">Khác</span>)</p>
+								<p>📊 *Tổng booking: ' . $count_booking . ' (<span class="text-primary fw-bold">' . $count_booking_completed . ' hoàn tất</span>, <span class="text-danger fw-bold">' . $count_booking_cancel . ' hủy</span>, <span class="text-dark fw-bold">' . $count_booking_other . ' Khác</span>)</p>
 								<p>✅ *Tỷ lệ hoàn tất: <span class="fw-bold">' . round(($count_booking_completed / $count_booking * 100), 2) . '%</span></p>
 								<p>❌ *Tỷ lệ hủy: <span class="fw-bold">' . round(($count_booking_cancel / $count_booking * 100), 2) . '%</span></p>
 							</div>

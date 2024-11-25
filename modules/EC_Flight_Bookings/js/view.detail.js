@@ -15,13 +15,6 @@ $(document).ready(function () {
 
 	// XEM DANH SÁCH BOOKING CỦA CONTACTS
 	$('.card-contact-footer').click(function () {
-
-		$('#dialog-history-bookings').dialog({
-			minHeight: 200,
-			width: 1000,
-			modal: true,
-			resizable: false,
-		});
 		let contact_id = $(this).attr('contact_id');
 		let booking_id = $(this).attr('booking_id');
 
@@ -42,6 +35,11 @@ $(document).ready(function () {
 				success: function (output) {
 					$('.container-waiting').hide();
 					$('#dialog-history-bookings').html(output);
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					console.error(XMLHttpRequest);
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
 				}
 			});
 		}

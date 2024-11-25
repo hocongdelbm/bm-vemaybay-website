@@ -24,6 +24,9 @@ class Alert extends Basic
     public $assigned_user_link;
     public $is_read;
 
+    public $alert_photo;
+    public $fileName;
+
     /**
      * @var string
      */
@@ -41,5 +44,121 @@ class Alert extends Basic
                 return true;
         }
         return false;
+    }
+
+    function save($check_notify = FALSE)
+    {
+        global $current_user, $sugar_config, $app_list_strings;
+
+        $list_employee_id   = $_POST['list_employee_id'] ?? [];
+        $dataAlert          = $this->prepareAlertData($list_employee_id[0]);
+
+        parent::save($check_notify);
+
+        if (in_array('all', $list_employee_id)) {
+            $this->createAlertForAll($dataAlert);
+        } elseif (count($list_employee_id) > 1 && !in_array('all', $list_employee_id)) {
+            $this->createMultipleAlert(array_slice($list_employee_id, 1), $dataAlert);
+        }
+    }
+
+    function prepareAlertData($user_id)
+    {
+        // Gán các giá trị mặc định nếu chưa có
+        $this->assigned_user_id = $this->assigned_user_id ?: $user_id;
+        $this->target_module = $this->target_module ?: 'Alerts';
+        $this->type = $this->type ?: 'info';
+
+        $this->url_redirect = $this->url_redirect ?: "index.php?module=" . str_replace("'", '', $this->target_module) . "&action=DetailView&record=$this->id";
+
+        $this->filename = $this->filename ?: $_POST['filename'];
+        $this->alert_photo = $this->alert_photo ?: $_POST['filename'];
+        $this->parent_alert_id = $this->parent_alert_id ?: $this->id;
+
+        return [
+            'name' => $this->name,
+            'description' => $this->description,
+            'assigned_user_id' => $this->assigned_user_id,
+            'is_read' => $this->is_read,
+            'target_module' => $this->target_module,
+            'type' => $this->type,
+            'url_redirect' => $this->url_redirect,
+            'reminder_id' => $this->reminder_id,
+            'alert_photo' => $this->alert_photo,
+            'filename' => $this->filename,
+            'parent_type' => $this->parent_type,
+            'parent_id' => $this->parent_id,
+            'parent_alert_id' => $this->parent_alert_id,
+        ];
+    }
+
+    function createMultipleAlert($user_ids, $alertData)
+    {
+        if (empty($user_ids)) {
+            return;
+        }
+
+        $values = [];
+        if(is_array($user_ids) && count($user_ids) > 0){
+            foreach ($user_ids as $user_id) {
+                $id = create_guid();
+                $alertData['assigned_user_id'] = $user_id;
+                $alertData['url_redirect'] = "index.php?module=" . str_replace("'", '', $alertData['target_module']) . "&action=DetailView&record=$id";
+    
+                // Thêm thông tin alert vào mảng
+                $values[] = "('" . $id . "', '" . $this->db->quote($alertData['name']) . "', '"
+                    . $this->db->quote($alertData['description']) . "', '"
+                    . $this->db->quote($alertData['url_redirect']) . "', '"
+                    . $this->db->quote($alertData['target_module']) . "', '"
+                    . $this->db->quote($user_id) . "', '"
+                    . $this->db->quote($alertData['type']) . "', '"
+                    . $this->db->quote($alertData['filename']) . "', '"
+                    . $this->db->quote($alertData['priority']) . "', '"
+                    . $this->db->quote($alertData['alert_photo']) . "', 0, '"
+                    . gmdate('Y-m-d H:i:s') . "', '"
+                    . gmdate('Y-m-d H:i:s') . "', '"
+                    . $this->db->quote($GLOBALS['current_user']->id) . "', '"
+                    . $this->db->quote($GLOBALS['current_user']->id) . "', '"
+                    . $this->db->quote($alertData['parent_alert_id']) . "')";
+            }
+        }
+
+        // Bulk insert alert
+        if (!empty($values)) {
+            $sql = "INSERT INTO alerts 
+                (id, name, description, url_redirect, target_module, assigned_user_id, type, filename, priority, alert_photo, is_read, date_entered, date_modified, modified_user_id, created_by, parent_alert_id) 
+                VALUES " . implode(", ", $values);
+        }
+
+        try {
+            $this->db->query($sql);
+        } catch (Exception $e) {
+            $GLOBALS['log']->fatal("Failed to create multiple alerts: " . $e->getMessage() . " - " . $sql);
+        }
+    }
+
+    function createAlertForAll($alertData)
+    {
+        $user_ids = [];
+        $sql = 'SELECT id, CONCAT(last_name, " ", IFNULL(first_name, "")) AS full_name 
+                    FROM users 
+                    WHERE deleted = 0 
+                    AND status = "Active" 
+                    AND title NOT IN ("Bot")';
+
+        try {
+            $result = $this->db->query($sql);
+            $user_ids = [];
+
+            while ($row = $this->db->fetchByAssoc($result)) {
+                if ($row['id'] !== $alertData['assigned_user_id']) {
+                    $user_ids[] = $row['id'];
+                }
+            }
+
+            $this->createMultipleAlert($user_ids, $alertData);
+        } catch (Exception $e) {
+            $GLOBALS['log']->fatal("Failed to retrieve users for alert creation: " . $e->getMessage() . " - " . $sql);
+        }
     }
 }

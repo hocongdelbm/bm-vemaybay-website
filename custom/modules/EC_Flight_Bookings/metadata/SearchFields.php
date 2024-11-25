@@ -75,22 +75,24 @@ $searchFields['EC_Flight_Bookings'] = array(
     //                         and favorites.parent_type = 'Calls'
     //                         and favorites.assigned_user_id = '{1}'",
     //   'db_field'=>array('id')),
-    'phone' => array(
-        'query_type' => 'format',
-        'operator' => 'subquery',
-        'subquery' => 'SELECT ec_flight_bookings.id FROM ec_flight_bookings WHERE ec_flight_bookings.deleted=0 AND ec_flight_bookings.phone LIKE "%{0}"',
-        'db_field' => array(
-            'id',
-        ),
-    ),
-    'contact_name' => array(
-        'query_type' => 'format',
-        'operator' => 'subquery',
-        'subquery' => 'SELECT ec_flight_bookings.id FROM ec_flight_bookings WHERE ec_flight_bookings.deleted=0 AND ec_flight_bookings.contact_name LIKE "%{0}"',
-        'db_field' => array(
-            'id',
-        ),
-    ),
+
+    // SLOW QUERY
+    // 'phone' => array(
+    //     'query_type' => 'format',
+    //     'operator' => 'subquery',
+    //     'subquery' => 'SELECT ec_flight_bookings.id FROM ec_flight_bookings WHERE ec_flight_bookings.deleted=0 AND ec_flight_bookings.phone LIKE "%{0}"',
+    //     'db_field' => array(
+    //         'id',
+    //     ),
+    // ),
+    // 'contact_name' => array(
+    //     'query_type' => 'format',
+    //     'operator' => 'subquery',
+    //     'subquery' => 'SELECT ec_flight_bookings.id FROM ec_flight_bookings WHERE ec_flight_bookings.deleted=0 AND ec_flight_bookings.contact_name LIKE "%{0}"',
+    //     'db_field' => array(
+    //         'id',
+    //     ),
+    // ),
 
     'passenger_search' =>
     array(

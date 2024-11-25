@@ -301,15 +301,14 @@ class EC_Flight_Bookings extends Basic
 				$iti->time_limit = date('Y-m-d', strtotime($_POST['iti_time_limit_date'][$i])) . ' ' . $_POST['iti_time_limit_h'][$i] . ':' . $_POST['iti_time_limit_m'][$i] . ':00';
 			} else $iti->time_limit = '';
 
-			$iti->base_price 		= unformat_number($_POST['iti_base_price'][$i]);
+			$iti->base_price 		= unformat_number($_POST['iti_base_price'][$i] ?? 0);
 			$iti->is_layover 		= $_POST['iti_is_layover'][$i];
-			$iti->is_booked 		= $_POST['iti_is_booked'][$i];
 			$iti->booking_id 		= $this->id;
-			$iti->description 		= $_POST['iti_description'][$i];
-			$iti->direction 		= $_POST['iti_direction'][$i];
-			$iti->add_type 			= $_POST['iti_add_type'][$i];
-			$iti->parent_detail_id 	= $_POST['iti_parent_detail_id'][$i];
-			$iti->deleted 			= $_POST['iti_deleted'][$i];
+			$iti->description 		= $_POST['iti_description'][$i] ?? '';
+			$iti->direction 		= $_POST['iti_direction'][$i] ?? '';
+			$iti->add_type 		= $_POST['iti_add_type'][$i] ?? 0;
+			$iti->parent_detail_id 	= $_POST['iti_parent_detail_id'][$i] ?? null;
+			$iti->deleted 			= $_POST['iti_deleted'][$i] ?? 0;
 
 			if ($iti->deleted == 1) {
 				$iti->mark_deleted($iti->id);
@@ -432,18 +431,18 @@ class EC_Flight_Bookings extends Basic
 
 			$psg->luggage_purchase 				= unformat_number($_POST['psg_luggage_purchase'][$i]);
 			$psg->luggage_purchase_inbound 		= unformat_number($_POST['psg_luggage_purchase_inbound'][$i]);
-			$psg->supplier_id 					= $_POST['psg_luggage_supplier'][$i];
-			$psg->supplier_inbound_id 			= $_POST['psg_luggage_supplier_inbound'][$i];
+			$psg->supplier_id 					= $_POST['psg_luggage_supplier'][$i] ?? '';
+			$psg->supplier_inbound_id 			= $_POST['psg_luggage_supplier_inbound'][$i] ?? '';
 			$psg->booking_id 					= $this->id;
-			$psg->add_type 						= $_POST['psg_add_type'][$i];
-			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i];
-			$psg->deleted 						= $_POST['psg_deleted'][$i];
-			$psg->luggage_purchase_no_vat 			= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
-			$psg->vat_luggage_purchase 				= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
+			$psg->add_type 					= $_POST['psg_add_type'][$i] ?? '';
+			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i] ?? '';
+			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? '0';
+			$psg->luggage_purchase_no_vat 		= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
+			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
 			$psg->luggage_purchase_inbound_no_vat 	= unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
-			$psg->vat_luggage_purchase_inbound 		= unformat_number($_POST['psg_detail_lug_pur_ib_vat'][$i]);
-			$psg->cic 				= $_POST['psg_cic'][$i] ? $_POST['psg_cic'][$i] : '';
-			$psg->passport_number 	= $_POST['psg_passport_number'][$i] ? $_POST['psg_passport_number'][$i] : '';
+			$psg->vat_luggage_purchase_inbound 	= unformat_number($_POST['psg_detail_lug_pur_ib_vat'][$i]);
+			$psg->cic 						= $_POST['psg_cic'][$i] ?? '';
+			$psg->passport_number 				= $_POST['psg_passport_number'][$i] ?? '';
 
 			if ($psg->deleted == 1) {
 				if (!empty($psg->id)) $psg->mark_deleted($psg->id);
@@ -526,7 +525,7 @@ class EC_Flight_Bookings extends Basic
 	function saveChangeFlightTime()
 	{
 		global $current_user, $app_list_strings;
-
+		
 		// ======== THAY ĐỔI THÔNG TIN HÀNH KHÁCH =========
 		// lấy stt của các lần thay đổi thông tin hành khách trước
 		$sql_pass_order = '
@@ -560,7 +559,6 @@ class EC_Flight_Bookings extends Basic
 
 			// tạo mới hành khách
 			if ($create_new) {
-
 				if (!empty($_POST['pass_name'][$i])) {
 					$pass_n 					= new EC_Booking_Passengers;
 
@@ -611,7 +609,6 @@ class EC_Flight_Bookings extends Basic
 				} else $birthday = '';
 
 				$pass = new EC_Booking_Passengers;
-
 				$pass->retrieve($_POST['pass_id'][$i]);
 				$pass->birthday 		= $birthday;
 				$pass->salutation 		= $_POST['pass_salutation'][$i];
@@ -620,6 +617,11 @@ class EC_Flight_Bookings extends Basic
 				$pass->eticket_inbound 	= $_POST['pass_eticket_inbound'][$i];
 				$pass->pnr_outbound 	= $_POST['pass_pnr_outbound'][$i];
 				$pass->pnr_inbound 		= $_POST['pass_pnr_inbound'][$i];
+
+				$pass->luggage_purchase 	 	= $_POST['bought_price_outbound'][$i];
+				$pass->luggage_purchase_inbound = $_POST['bought_price_inbound'][$i];
+				$pass->supplier_id 			 	= $_POST['supplier_outbound'][$i];
+				$pass->supplier_inbound_id 	 	= $_POST['supplier_inbound'][$i];
 
 				if (isset($_POST['pass_luggage_ob'][$i])) {
 					if (!isset($_POST['pass_luggage_ob_ind']) || empty($_POST['pass_luggage_ob_ind'][$i])) {
@@ -643,6 +645,10 @@ class EC_Flight_Bookings extends Basic
 				$pass->luggage_purchase_inbound 	= str_replace(array(',', '.'), '', $_POST['bought_price_inbound'][$i]);
 				$pass->save();
 			}
+		}
+
+		if($current_user->user_name == 'hungnh'){
+			// die;
 		}
 
 		if (!empty($_POST['applied_passenger'])) {

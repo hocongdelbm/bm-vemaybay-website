@@ -129,14 +129,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $result = [
                     "code"          => 0,
                     "message"       => "Lỗi 02: Thông tin chuyến bay đã bị thay đổi, vui lòng kiểm tra lại giá, mã chuyến và thời gian bay",
-                    "description"   => $response
+                    "description"   => $json
                 ];
             }
             else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 3) {
+                $response_2  = isset($response['response']) ? $response['response'] : [];
+                $description = isset($response_2['message']) ? $response_2['message'] : $response_2;
+
                 $result = [
                     "code"          => 0,
                     "message"       => "Lỗi 03: Báo giá đặt chỗ thất bại",
-                    "description"   => $json
+                    "description"   => $description
                 ];
             }
             else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 4) {
@@ -355,6 +358,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             'birthdate' => $birthdate,
                             'email'     => isset($p['email']) ? $p['email'] : '',
                             'mobile'    => isset($p['mobile']) ? format_mobile_phone($p['mobile']) : '',
+                            'inumber'   => isset($p['inumber']) ? $p['inumber'] : '',
                             'button_add_luggage'        => $button_add_luggage_dep . $button_add_luggage_ret,
                             'button_update_passenger'   => $button_update_passenger
                         ];

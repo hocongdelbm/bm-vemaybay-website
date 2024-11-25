@@ -203,6 +203,17 @@
 #tbl_pax tbody tr.psg-line td {
     vertical-align: baseline;
 }
+#tbl_pax tbody tr.psg-line td .cic, #tbl_pax tbody tr.psg-line td .passport {
+    width: fit-content;
+    background: #f2f2f2;
+    border-radius: 4px;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    padding: 3px 6px;
+    margin-top: .25rem;
+}
+#tbl_pax tbody tr.psg-line td .cic span, #tbl_pax tbody tr.psg-line td .passport span {
+    letter-spacing: 2px;
+}
 
 
 /* CART TYPE CONTACTS */
@@ -210,23 +221,25 @@
     width: 100%;
     max-height: 50px;
     position: relative;
-    padding: 10px;
+    padding: 8px 15px;
     border-radius: 12px;
     transition: all 0.2s cubic-bezier(0.15, 0.83, 0.66, 1);
     cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #00B4DB;
-    background: -webkit-linear-gradient(to right, #0083B0, #0092b2);
-    background: linear-gradient(to right, #0083B0, #0092b2);
-    color: #FFF;
+    background: #0083B0;
+    color: var(--white-color);
+}
+
+.card-contact.contact_return {
+    background: #56ab91;
 }
 
 .card-contact.contact_vip_member {
     background: #603813;
-    background: -webkit-linear-gradient(to right, #3a3a3a, #603813);
-    background: linear-gradient(to right, #3a3a3a, #603813);
+    background: -webkit-linear-gradient(to right, #453532, #603813);
+    background: linear-gradient(to right, #453532, #603813);
 }
 
 .card-contact.contact_supper_vip {
@@ -237,28 +250,32 @@
 
 .card-contact.contact_warning {
     background: #ED213A;
-    background: -webkit-linear-gradient(to right, #93291E, #ED213A);
-    background: linear-gradient(to right, #93291E, #ED213A);
+    background: -webkit-linear-gradient(to right, #cb2d3e, #ED213A);
+    background: linear-gradient(to right, #ED213A, #cb2d3e);
 }
 
 .card-contact.contact_gold_member {
-    background: #F09819;
-    background: -webkit-linear-gradient(to right, #e5a300, #F09819);
-    background: linear-gradient(to right, #e5a300, #F09819);
+    background: linear-gradient(to right, #EFBF04, #EFBF04);
 }
 
 .card-contact:hover {
     transform: scale(1.05);
 }
 
+.card-contact.contact_gold_member .temp,
+.card-contact.contact_gold_member .temp-scale span,
+.card-contact.contact_gold_member a span{
+    color: var(--black-color);
+}
+
 .card-contact a span {
-    color: #FFF;
+    color: var(--white-color);
 }
 
 .temp {
-    font-weight: 700;
-    font-size: 20px;
-    color: #FFF;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--white-color);
 }
 
 .temp-scale {
@@ -275,8 +292,12 @@
 .temp-scale span {
     font-weight: 600;
     font-size: 12px;
-    color: #FFF;
+    color: var(--white-color);
     text-transform: uppercase;
+}
+
+.modal.modal-history-bookings{
+    --bs-modal-width: 1000px;
 }
 
 /* ================= RESPONSIVE TABLE ============== */

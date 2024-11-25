@@ -23,7 +23,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
 
 if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
      $time     = $_POST['time'] ?? null;
-     $status   = $_POST['agent_status'];
+     $status   = $_POST['agent_status'] ?? 'Available';
      $busy     = ($status == 'Available') ? 0 : ($status == 'On Break' ? 1 : 2);
 
      // Booker

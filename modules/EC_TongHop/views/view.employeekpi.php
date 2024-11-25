@@ -242,28 +242,28 @@ class Viewemployeekpi extends SugarView {
 						$html .= '<td align="center"><span title="Tổng cộng">' . ($row['total_kpi'] != 0 ? $row['total_kpi'] : '') . '</span></td></tr>';
 
 				$i++;
-				$ttl_called += $row['called'];
-				$ttl_completed += $row['completed'];
-				$ttl_paid += $row['paid'];
-				$ttl_recheck += $row['recheck'];
-				$ttl_inv_in_issued += $row['invoice_input_issued'];
-				$ttl_inv_issued += $row['invoice_issued'];
-				$ttl_delivery += $row['ticket_delivery'];
-				$ttl_recall += ($row['recall'] + $row['remind']);
+				$ttl_called += (int)$row['called'];
+				$ttl_completed += (int)$row['completed'];
+				$ttl_paid += (int)$row['paid'];
+				$ttl_recheck += (int)$row['recheck'];
+				$ttl_inv_in_issued += (int)$row['invoice_input_issued'];
+				$ttl_inv_issued += (int)$row['invoice_issued'];
+				$ttl_delivery += (int)$row['ticket_delivery'];
+				$ttl_recall += (int)($row['recall'] + $row['remind']);
 				// $ttl_bonus += $row['bonus'];
-				$ttl_comdebt += $row['check_debt'];
-				$ttl_new_repaid += $row['create_repaid'];
-				$ttl_do_repaid += $row['process_repaid'];
-				$ttl_payment += $row['create_payment'];
-				$ttl_receipt += $row['create_receipt'];
-				$ttl_transfer += $row['create_transfer'];
-				$ttl_support += $row['support'];
-				$ttl_final += $row['total_kpi'];
+				$ttl_comdebt += (int)$row['check_debt'];
+				$ttl_new_repaid += (int)$row['create_repaid'];
+				$ttl_do_repaid += (int)$row['process_repaid'];
+				$ttl_payment += (int)$row['create_payment'];
+				$ttl_receipt += (int)$row['create_receipt'];
+				$ttl_transfer += (int)$row['create_transfer'];
+				$ttl_support += (int)$row['support'];
+				$ttl_final += (int)$row['total_kpi'];
 
-				$ttl_manner += $row['manner'];
-				$ttl_effected += $row['effected'];
-				$ttl_awareness += $row['awareness'];
-				$ttl_minus += $row['minus'];
+				// $ttl_manner += $row['manner'];
+				// $ttl_effected += $row['effected'];
+				// $ttl_awareness += $row['awareness'];
+				// $ttl_minus += $row['minus'];
 			}
 
 			$smartyobj->assign('ADMIN_DATA', $html);

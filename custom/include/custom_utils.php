@@ -2508,6 +2508,12 @@ function agent_change_status($agent, $status)
     // 1: Online
     // 2: Busy
 
+    $array_admin = [
+        '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
+        '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
+        '1', //DDuc
+    ];
+
     global $db, $current_user;
     if (empty($agent) || empty($status)) {
         $response['success'] = array(
@@ -2592,8 +2598,9 @@ function agent_change_status($agent, $status)
                     //     ]
                     // ];
                     // sendTestTelegram(json_encode($response));
-
-                    content_log($sip_number, $time_current, $busy);
+                    if (!in_array($current_user->id, $array_admin)) {
+                        content_log($sip_number, $time_current, $busy);
+                    }
                 }
             }
         }

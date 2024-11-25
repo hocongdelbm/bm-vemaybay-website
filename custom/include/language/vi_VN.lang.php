@@ -2511,4 +2511,12 @@ $app_strings['LBL_GROUPTAB4_1701142222'] = 'Nhóm mới';
 $app_strings['LBL_GROUPTAB4_1701142454'] = 'Activity';
 
 $app_strings['LBL_GROUPTAB5_1717468343'] = 'Email';
+
+$GLOBALS['app_list_strings']['alert_priority_list'] = array(
+    'urgent' => 'Khẩn cấp',
+    'high' => 'Cao',
+    'medium' => 'Trung bình',
+    'low' => 'Thấp',
+);
+
 ?>

@@ -792,11 +792,11 @@ class Viewdebtopay extends SugarView
 					<td style="font-weight:bold;" align="right">' . format_number($row['remain_amount']) . '</td>
 				</tr>';
 			} else {
-				$total_sell += $row['sell_amount'];
-				$total_debt += $row['debt_amount'];
-				$total_pay += $row['pay_amount'];
-				$total_qty += $row['qty'];
-				$total_remain += ($row['debt_amount'] - $row['pay_amount']);
+				$total_sell += (int)$row['sell_amount'];
+				$total_debt += (int)$row['debt_amount'];
+				$total_pay += (int)$row['pay_amount'];
+				$total_qty += (int)$row['qty'];
+				$total_remain += (int)($row['debt_amount'] - $row['pay_amount']);
 				$html .= '<tr>
 							<td align="center">' . date('d/m/Y', strtotime($row['posted_date'])) . '</td>
 							<td><a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '" target="_blank">' . $row['voucher_name'] . '</a></td>

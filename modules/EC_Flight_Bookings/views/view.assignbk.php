@@ -92,7 +92,7 @@ class Viewassignbk extends SugarView
 			';
 		} else {
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
-				if (strtotime($row['start_online']) !== false) {
+				if (isset($row['start_online']) && !empty($row['start_online']) && strtotime($row['start_online']) !== false) {
 					$start_online = date('d-m-Y H:i:s', strtotime('+7 hour', strtotime($row['start_online'])));
 					$last_online = date('d-m-Y H:i:s', strtotime('+7 hour', strtotime($row['last_online'])));
 				} else {
@@ -120,7 +120,7 @@ class Viewassignbk extends SugarView
 						<td class="text-center status ' . $status_class . '">' . $app_list_strings['online_stt_list'][$row['status']] . '</td>
 						<td class="hide-mobile text-center group_sip">' . getNameGroupCalls($arr_agent[$row['assigned_user_id']]['user']) . '</td>
 						<td class="hide-mobile text-center start_online">' . $start_online . '</td>
-						<td class="hide-mobile text-center fw-semibold call_inbound">' . $arr_inbound[$row['assigned_user_id']] . '</td>';
+						<td class="hide-mobile text-center fw-semibold call_inbound">' . ($arr_inbound[$row['assigned_user_id']] ?? '') . '</td>';
 
 					if (isAllowedUser($current_user)) {
 						// các nút thao tác

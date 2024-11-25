@@ -64,7 +64,7 @@ class EC_Flight_BookingsLogicHook
 				exit;
 			} else {
 				// Đối với những booking tạo từ ngày 19-09-2022
-				if (strtotime($focus->date_entered) >= strtotime('2022-09-19')) {
+				if (isset($focus->date_entered) && strtotime($focus->date_entered) >= strtotime('2022-09-19')) {
 					// Cập nhật ds vào bảng KPI và danh sách booker
 					$total_amt = $focus->calculateBKTotalAmt($focus->id);
 					if ($total_amt > 0) {
@@ -109,7 +109,7 @@ class EC_Flight_BookingsLogicHook
 		} else {
 			// Đối với những booking tạo từ ngày 19-09-2022
 			// Khi mở ra thì trừ lại ds
-			if (strtotime($focus->date_entered) >= strtotime('2022-09-19') && $focus->fetched_row['status'] == 8) {
+			if (strtotime($focus->date_entered) >= strtotime('2022-09-19') && isset($focus->fetched_row['status']) && $focus->fetched_row['status'] == 8) {
 				$sql_qty = '
 					UPDATE users
 					SET total_qty -= IFNULL((
@@ -318,13 +318,13 @@ class EC_Flight_BookingsLogicHook
 			// && in_array($focus->created_by, $allow_site)
 		) {
 			$onl = new EC_Online_Report;
-			$list_name_test = array('DEMO', 'IT', 'CUONG NGUYEN');
+			$list_name_test = array('DEMO', 'IT', 'CUONG NGUYEN', 'CUONG NG');
 			$list_name_help = array('PANDA PO', 'BAO GIA KHACH');
 
 			if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
 				$this->reSendTele('Booking báo giá: Báo giá khách - ' . $focus->name . ' - ' . $focus->phone, $focus->id, $focus->name);
 			} else if (in_array(strtoupper($focus->contact_name), $list_name_test)) {
-				$this->reSendTele('Booking TEST: Demo . . . Anh em bỏ qua!', $focus->id, $focus->name);
+				$this->reSendTele('Demo booking, test hệ thống . . .', $focus->id, $focus->name);
 			} else {
 				$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
 

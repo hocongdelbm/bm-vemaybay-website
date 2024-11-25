@@ -116,6 +116,7 @@
                         <th>Ngày sinh</th>
                         <th>Email</th>
                         <th>SĐT</th>
+                        <th>CCCD / Passport</th>
                         <th></th>
                     </tr>
                 </thead>

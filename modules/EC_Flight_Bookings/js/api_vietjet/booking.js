@@ -1,6 +1,8 @@
 const url = "index.php?entryPoint=entryPointAPIVietjet";
 
 $(document).ready(function () {
+    let ticket_type = $(`input[name="ticket_type"]`).val(); // '1':Domestic ; '2':International
+
     $("input#btn_holding_vja").click(function () {
         // Reset
         $("#confirm_reservation_dialog_vja .wrap-journey .journey .journey_info").html("");
@@ -77,7 +79,9 @@ $(document).ready(function () {
             let cic         = tr_passenger.find("td.passenger_name .cic").attr('data');
             let passport    = tr_passenger.find("td.passenger_name .passport").attr('data');
             let birthdate   = tr_passenger.find("td.passenger_birthdate .birthdate").html();
-            let phone = $("#reservation_form_vja input[name=reservation_phone]").val();
+            let phone       = $("#reservation_form_vja input[name=reservation_phone]").val();
+            let identification_number = passport;
+            if (identification_number.length == 0) identification_number = cic;
             if (type == 0) adult++;
 
             if (!birthdate || birthdate.length == 0) {
@@ -90,18 +94,10 @@ $(document).ready(function () {
                 "name": name,
                 "birthdate": birthdate,
                 "phone": phone,
-                "cic": cic,
-                "passport": passport
+                "identification_number": identification_number
             }
             array_id_pass.push(pass_id);
             array_passenger.push(p);
-
-            // Giay to tuy than
-            let cic_html = passport_html = '';
-            if (type == 0) {
-                cic_html = `<p class="cic"><b>CCCD: </b><span>${cic}</span></p>`;
-                passport_html = `<p class="passport"><b>Passport: </b><span>${passport}</span></p>`;
-            }
 
             // Lay thong tin vao popup confirm giu cho
             let html_passenger = `<div class="passenger">
@@ -116,12 +112,11 @@ $(document).ready(function () {
                                     <div class="left">
                                         <p><b>Loại: </b>${type_format}</p>
                                         <p class="fullname"><b>Họ tên: </b><span>${name}</span></p>
-                                        ${cic_html}
+                                        <p class="passport"><b>CCCD / Passport: </b><span>${identification_number}</span></p>
                                     </div>
                                     <div class="right">
                                         <p><b>Giới tính: </b>${gender_format}</p>
                                         <p><b>Ngày sinh: </b>${birthdate}</p>
-                                        ${passport_html}
                                     </div>
                                 </div>`;
 
@@ -345,7 +340,8 @@ $(document).ready(function () {
                     }
                     else {
                         let text_modal_error = data['message'];
-                        showModalNotify(0, text_modal_error);
+                        let text_modal_description = data['description'] ? data['description'] : '';
+                        showModalNotify(0, text_modal_error, text_modal_description);
                     }
                     return false;
                 }

@@ -37,6 +37,7 @@ function createContactsForBooking($phoneNumber)
             UPDATE ec_flight_bookings
             SET contact_id = "' . $contact_id . '"
             WHERE phone = "' . $phoneNumber . '"
+            AND (contact_id IS NULL OR contact_id = "")
             AND deleted = 0
         ';
         $db->query($sql_update);
@@ -103,6 +104,7 @@ function classifyContact($contactId)
     $type_contact = [
         'type' => '',
         'label' => '',
+        'desc' => '',
         'totalBookings' => 0,
         'completedBookings' => 0,
     ];
@@ -123,13 +125,15 @@ function classifyContact($contactId)
         $type_contact = [
             'type' => 'contact_warning',
             'label' => 'Lý thông',
+            'desc' => '5 booking trở lên mà không hoàn tất',
             'totalBookings' => $totalBookings,
             'completedBookings' => $completedBookings,
         ];
-    } elseif ($totalBookings >= 20 && $completedBookings >= 11) {
+    } elseif ($totalBookings > 20 && $completedBookings >= 11) {
         $type_contact = [
             'type' => 'contact_supper_vip',
             'label' => 'Supper VIP',
+            'desc' => 'Trên 20 booking và có từ 11 booking hoàn tất',
             'totalBookings' => $totalBookings,
             'completedBookings' => $completedBookings,
         ];
@@ -137,6 +141,7 @@ function classifyContact($contactId)
         $type_contact = [
             'type' => 'contact_gold_member',
             'label' => 'GOLD Member',
+            'desc' => 'Từ 11-20 booking và có từ 6 booking hoàn tất',
             'totalBookings' => $totalBookings,
             'completedBookings' => $completedBookings,
         ];
@@ -144,13 +149,15 @@ function classifyContact($contactId)
         $type_contact = [
             'type' => 'contact_vip_member',
             'label' => 'VIP Member',
+            'desc' => 'Từ 6-10 booking và có từ 3 booking hoàn tất',
             'totalBookings' => $totalBookings,
             'completedBookings' => $completedBookings,
         ];
     } elseif ($totalBookings >= 2 && $totalBookings <= 5 && $completedBookings >= 1) {
         $type_contact = [
-            'type' => 'contact_vip_member',
-            'label' => 'VIP Member',
+            'type' => 'contact_new_member',
+            'label' => 'KH mới',
+            'desc' => 'Từ 2-5 booking và có booking hoàn tất',
             'totalBookings' => $totalBookings,
             'completedBookings' => $completedBookings,
         ];
@@ -158,6 +165,7 @@ function classifyContact($contactId)
         $type_contact = [
             'type' => 'contact_return',
             'label' => 'Trở lại',
+            'desc' => 'Xuất hiện trong bất kỳ booking',
             'totalBookings' => $totalBookings,
             'completedBookings' => $completedBookings,
         ];

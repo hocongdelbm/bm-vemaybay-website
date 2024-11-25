@@ -454,7 +454,16 @@ class Viewbusinessreport extends SugarView
                 $content_call = '';
                 while ($row = $this->bean->db->fetchByAssoc($res_calls)) {
                     if($row_count_calls){
-                        $content_call = 'Tổng '.$row['total_calls'].' /  CG nhỡ '.$row['qty_call_missed'].' /  CG tạo BK  '.$row['qty_call_booking'].' /  Hoàn tất  '.$row['qty_call_booking_ok'].'';
+                        $content_call = sprintf(
+                            'CG nhỡ %02d + CG đến %02d = %02d (CG tạo BK %02d / Hoàn tất %02d)',
+                            $row['qty_call_missed'],
+                            $row['total_calls'],
+                            $row['qty_call_missed'] + $row['total_calls'],
+                            $row['qty_call_booking'],
+                            $row['qty_call_booking_ok']
+                        );
+
+                        // $content_call = 'CG nhỡ '.$row['qty_call_missed'].' + CG đến '.$row['total_calls'].' = '.($row['qty_call_missed']+$row['total_calls']).' (CG tạo BK  '.$row['qty_call_booking'].' /  Hoàn tất  '.$row['qty_call_booking_ok'].')';
                     }
                 }
     

@@ -46,7 +46,7 @@ class EC_Input_Invoices extends Basic
 
     function save($check_notify = FALSE)
     {
-        global $current_user;
+        global $db, $current_user;
         if (isset($_POST['im_ticket_code'])) {
 
             $sql = '
@@ -117,6 +117,33 @@ class EC_Input_Invoices extends Basic
                 $this->total                = unformat_number($_POST['im_total']);
                 parent::save($check_notify);
             }
+
+             // Cập nhật note - kpi
+             if(!empty($_POST['im_booking_id'])) {
+                $booking_id = $_POST['im_booking_id'];
+
+                // Cập nhật đã lấy hoá đơn đầu vào
+                $db->query('
+                    UPDATE ec_flight_bookings 
+                    SET is_invoice_input_export = 1 
+                    WHERE id = "' . $booking_id . '"');
+                $date_created = date_sub(date_create(date('Y-m-d H:i:s')), date_interval_create_from_date_string("7 hours"));
+                $db->query('
+                    INSERT INTO ec_flight_bookings_audit(id, parent_id, date_created, created_by, field_name, data_type, before_value_string, after_value_string) VALUES (uuid(), "'.$booking_id.'", "'.date('Y-m-d H:i:s', strtotime(date_format($date_created, "Y-m-d"))). '", "'.$current_user->id.'", "is_invoice_input_export", "boolean", 0, 1)
+                ');
+    
+                // Cập nhật kpi
+                myRemoveWorkingProcess('EC_Flight_Bookings', $_POST['im_booking_id'], 'invoice_input_issued');
+                myCreateWorkingProcess('EC_Flight_Bookings', $_POST['im_booking_id'], $_POST['im_booking'], 'Import từ hoá đơn của hãng (Manual)', $current_user->id, 'invoice_input_issued');
+    
+                $note = new Note;
+                $note->name = 'Import HD đầu vào';
+                $note->parent_type = 'EC_Flight_Bookings';
+                $note->parent_id = $booking_id;
+                $note->description = 'Đã lấy hóa đơn đầu vào số: ' . $_POST['im_invoice_number'] . '; số vé: ' . $_POST['im_ticket_code'];
+                $note->save();
+            }
+
         }
     }
 

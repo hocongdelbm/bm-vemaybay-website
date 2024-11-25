@@ -161,16 +161,6 @@
                                                             {$module}
                                                        </a>
                                                   </li>
-
-                                                  {*
-                                                       {if $module == 'Phiếu thu'} 
-                                                            <li class="box-item">
-                                                                 <a href="https://bm.vemaybay.website/index.php?module=EC_Flight_Bookings&action=debtopay&return_module=EC_Flight_Bookings&return_action=debtopay">
-                                                                      Công nợ phải trả
-                                                                 </a>
-                                                            </li>
-                                                       {/if}
-                                                  *}
                                              {/foreach}
 
                                              {foreach from=$modules.extra item=submodulename key=submodule}
@@ -404,12 +394,51 @@
                          
                                    <!-- Notifications -->
                                    <li id="desktop_notifications" class="nav-item dropdown desktop_notifications">
-                                        <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link count-indicator dropdown-toggle hide-arrow" id="notificationDropdown" href="javascript:void(0)" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="true">
                                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="fill: #bba8bff5"><path d="M19 13.586V10c0-3.217-2.185-5.927-5.145-6.742C13.562 2.52 12.846 2 12 2s-1.562.52-1.855 1.258C7.185 4.074 5 6.783 5 10v3.586l-1.707 1.707A.996.996 0 0 0 3 16v2a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-2a.996.996 0 0 0-.293-.707L19 13.586zM19 17H5v-.586l1.707-1.707A.996.996 0 0 0 7 14v-4c0-2.757 2.243-5 5-5s5 2.243 5 5v4c0 .266.105.52.293.707L19 16.414V17zm-7 5a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22z"></path></svg>
                                              <span class="alert_count count-symbol bg-danger">0</span>
                                         </a>
-                                        <div id="alerts" class="dropdown-menu dropdown-menu-end navbar-dropdown box-list" aria-labelledby="notificationDropdown">
-                                             {$APP.LBL_EMAIL_ERROR_VIEW_RAW_SOURCE}
+                                        <div class="dropdown-menu dropdown-menu-end navbar-dropdown box-list" aria-labelledby="notificationDropdown">
+                                             <div class="d-flex flex-column gap-2">
+                                                  <div class="notification-header">
+                                                       <div class="flex-between gap-2">
+                                                           <h3 class="notification-title">Thông báo</h3>
+                                                           <div class="dropdown">
+                                                                 <button type="button" class="btn-more-notify btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown" aria-expanded="true">
+                                                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16">
+                                                                           <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                                                                      </svg>
+                                                                 </button>
+                                                                 <div class="dropdown-more-notify dropdown-menu dropdown-menu-end">
+                                                                      <a class="flex-start gap-1 dropdown-item cursor-pointer clear-all-alerts-btn" href="javascript:void(0);">
+                                                                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+                                                                           <span class="">{sugar_translate label="LBL_CLEARALL"}</span>
+                                                                      </a>
+                                                                      <a class="flex-start gap-1 dropdown-item cursor-pointer mark-all-alerts-btn" href="javascript:void(0);">
+                                                                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="m10 15.586-3.293-3.293-1.414 1.414L10 18.414l9.707-9.707-1.414-1.414z"></path></svg>
+                                                                           <span class="">Đánh dấu tất cả đã đọc</span>
+                                                                      </a>
+                                                                 </div>
+                                                            </div>
+                                                       </div>
+                                                       <div class="flex-between gap-2">
+                                                            <div class="flex-start">
+                                                                 <div onclick="Alerts.getAlertUnread();" class="notification-show notification-unread active"><span>Chưa đọc</span></div>
+                                                                <div onclick="Alerts.getAllAlerts();" class="notification-show notification-all"><span>Tất cả</span></div>
+                                                            </div>
+                                                            <a href="index.php?module=Alerts&action=Listview&return_module=Alerts&return_action=index" class="notification-view-all"><span>Xem tất cả</span></a>
+                                                       </div>
+                                                  </div>
+                                                  <div class="notification-body mb-2" id="alerts">
+                                                       {$APP.LBL_EMAIL_ERROR_VIEW_RAW_SOURCE}
+                                                  </div>
+
+                                                  {if $IS_ADMIN}
+                                                  <div class="notification-footer">
+                                                       <a href="index.php?module=Alerts&action=EditView&return_module=Alerts&return_action=index" class="btn btn-primary w-100 py-2">Tạo thông báo</a>
+                                                  </div>
+                                                  {/if}
+                                             </div>
                                         </div>
                                    </li>
                          

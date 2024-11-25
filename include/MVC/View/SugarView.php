@@ -307,8 +307,10 @@ class SugarView
 
             // call fields ip_address and browser_name
             $monitor->setValue('ip_address', get_ip_address_from_client());
-            $monitor->setValue('browser_name', get_browser_name($_SERVER['HTTP_SEC_CH_UA']));
-    
+            if (isset($_SERVER['HTTP_SEC_CH_UA']) && $_SERVER['HTTP_SEC_CH_UA']) {
+                $monitor->setValue('browser_name', get_browser_name($_SERVER['HTTP_SEC_CH_UA']));
+            }
+
             if (!empty($this->bean->id)) {
                 $monitor->setValue('item_id', $this->bean->id);
                 $monitor->setValue('item_summary', $this->bean->get_summary_text());
@@ -361,6 +363,7 @@ class SugarView
         if(isset($current_user->agent_status) && !empty($current_user->agent_status)){
             $ss->assign("AGENT_STATUS", $current_user->agent_status);
         } 
+		$ss->assign('IS_ADMIN', is_admin($current_user) ? 1 : 0);
 
         // set ab testing if exists
         $testing = (isset($_REQUEST["testing"]) ? $_REQUEST['testing'] : "a");
