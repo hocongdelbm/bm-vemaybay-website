@@ -1686,12 +1686,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 
 		$html .= '<th scope="col" width="10%">Ngày sinh</th>
-						<th scope="col" width="12%">Số vé đi</th>
-						<th scope="col" width="12%">Số vé về</th>';
+					<th scope="col" width="10%">CCCD / Passport</th>
+					<th scope="col" width="10%">Số vé đi</th>
+					<th scope="col" width="10%">Số vé về</th>';
 
 		if ($add_type != 2) {
-			$html .= '<th scope="col" width="12%">PNR đi</th>
-							<th scope="col" width="12%">PNR về</th>';
+			$html .= '<th scope="col" width="10%">PNR đi</th>
+						<th scope="col" width="10%">PNR về</th>';
 		} else {
 			$html .= '<th scope="col" width="20%">Tên HK cũ</th>';
 		}
@@ -1742,8 +1743,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			if ($i % 2 > 0) $even_or_odd = 'even';
 			else $even_or_odd = 'odd';
 
-			$hide_cic = ($this->bean->ticket_type == 2 || $row['type'] == 2) ? ' style="display:none" ' : '';
+			$hide_cic = ($this->bean->ticket_type == 2 || $row['type'] == 2 || empty($row['cic'])) ? ' style="display:none" ' : '';
 			$hide_passport = (empty($row['passport_number'])) ? ' style="display:none" ' : '';
+			if(!empty($row['passport_number']) && empty($row['cic']) && $this->bean->ticket_type == 1 && $row['type'] != 2) $hide_cic = ' style="display:none" ';
 
 			// Line 1
 			$html .= '<tr class="psg-line ' . $even_or_odd . '" data-id="' . $row['id'] . '">
@@ -1753,11 +1755,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int)$row['salutation']] . '</td>
 						<td data-label="Họ tên" class="passenger_name text-start">
 							<p class="fullname text-center">' . $row['name'] . '</p>
-							<p class="cic" data="' . $row['cic'] . '" ' . $hide_cic . '><b>CCCD: </b><span>' . $row['cic'] . '</span></p>
-							<p class="passport" data="' . $row['passport_number'] . '" ' . $hide_passport . '><b>Passport: </b><span>' . $row['passport_number'] . '</span></p>
 						</td>
 						<td data-label="Ngày sinh" class="passenger_birthdate text-center">
 							<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>
+						</td>
+						<td data-label="Họ tên" class="passenger_id text-start">
+							<p class="cic text-nowrap" data="' . $row['cic'] . '" ' . $hide_cic . '><b>CCCD: </b><span>' . $row['cic'] . '</span></p>
+							<p class="passport text-nowrap" data="' . $row['passport_number'] . '" ' . $hide_passport . '><b>Passport: </b><span>' . $row['passport_number'] . '</span></p>
 						</td>
 						<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
 							' . strtoupper($row['eticket_outbound']) . '
@@ -1844,7 +1848,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 				$html .= '<tr class="psg-line luggage" ' . (trim($luggage_price) == '' ? 'style="display:none;"' : '') . '>
 							<td data-label="Hành lý ký gửi" class="text-center bg-yellow align-middle">&nbsp;</td>
-							<td colspan="9" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
+							<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
 						</tr>';
 			}
 
@@ -1967,7 +1971,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$html = '';
 		switch ($type) {
 			case 2:
-				$html = '<tfoot><tr class="footer-tr edited_pass_line hide-mobile"><td class="text-start" colspan="10"><b>Thông tin hành khách có thay đổi:</b> <span id="no-change__edit-pass"></span></td></tr></tfoot>';
+				$html = '<tfoot><tr class="footer-tr edited_pass_line hide-mobile"><td class="text-start" colspan="11"><b>Thông tin hành khách có thay đổi:</b> <span id="no-change__edit-pass"></span></td></tr></tfoot>';
 				break;
 			case 3:
 				$html = '<tfoot><tr class="footer-tr edited_iti_line hide-mobile"><td class="text-start" colspan="13"><b>Thông tin đổi ngày bay / hành trình:</b><span id="no-change__edit-iti"></span></td></tr></tfoot>';

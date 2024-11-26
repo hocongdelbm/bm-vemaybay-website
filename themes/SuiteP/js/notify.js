@@ -168,12 +168,11 @@ class Alerts {
             // Tính toán số lượng thông báo
             const alertsContainer = $('<div></div>').html(data);
             const alertCount = alertsContainer.find('.alert').length;
+            if (alertCount > 99) {
+                alertCount = '99+';
+            }
             $('.alert_count').text(alertCount);
-
-            $('.alertsButton')
-                .toggleClass('btn-danger', alertCount > 0)
-                .toggleClass('btn-success', alertCount === 0);
-
+            $('.alert_count').toggleClass('bg-danger', alertCount > 0);
             $('.desktop_notifications').toggleClass('has-alerts', alertCount > 0);
         } catch (error) {
             console.error('Failed to update alerts:', error);
@@ -211,12 +210,11 @@ class Alerts {
             // Tính toán số lượng thông báo
             const alertsContainer = $('<div></div>').html(data);
             const alertCount = alertsContainer.find('.alert').length;
+            if (alertCount > 99) {
+                alertCount = '99+';
+            }
             $('.alert_count').text(alertCount);
-
-            $('.alertsButton')
-                .toggleClass('btn-danger', alertCount > 0)
-                .toggleClass('btn-success', alertCount === 0);
-
+            $('.alert_count').toggleClass('bg-danger', alertCount > 0);
             $('.desktop_notifications').toggleClass('has-alerts', alertCount > 0);
         } catch (error) {
             console.error('Failed to update alerts:', error);

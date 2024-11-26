@@ -24,8 +24,16 @@ class Alert extends Basic
     public $assigned_user_link;
     public $is_read;
 
+    public $parent_type;
+    public $parent_id;
+    public $filename;
     public $alert_photo;
-    public $fileName;
+    public $parent_alert_id;
+    public $priority;
+    public $viewed_at;
+    public $url_redirect;
+    public $type;
+    public $target_module;
 
     /**
      * @var string
@@ -67,12 +75,10 @@ class Alert extends Basic
         // Gán các giá trị mặc định nếu chưa có
         $this->assigned_user_id = $this->assigned_user_id ?: $user_id;
         $this->target_module = $this->target_module ?: 'Alerts';
-        $this->type = $this->type ?: 'info';
-
+        $this->type = $this->type ?: 'readonly';
         $this->url_redirect = $this->url_redirect ?: "index.php?module=" . str_replace("'", '', $this->target_module) . "&action=DetailView&record=$this->id";
-
         $this->filename = $this->filename ?: $_POST['filename'];
-        $this->alert_photo = $this->alert_photo ?: $_POST['filename'];
+        $this->alert_photo = $this->alert_photo ?: $_POST['alert_photo'];
         $this->parent_alert_id = $this->parent_alert_id ?: $this->id;
 
         return [
@@ -86,6 +92,7 @@ class Alert extends Basic
             'reminder_id' => $this->reminder_id,
             'alert_photo' => $this->alert_photo,
             'filename' => $this->filename,
+            'priority' => $this->priority,
             'parent_type' => $this->parent_type,
             'parent_id' => $this->parent_id,
             'parent_alert_id' => $this->parent_alert_id,
@@ -99,26 +106,32 @@ class Alert extends Basic
         }
 
         $values = [];
-        if(is_array($user_ids) && count($user_ids) > 0){
+        if (is_array($user_ids) && count($user_ids) > 0) {
             foreach ($user_ids as $user_id) {
                 $id = create_guid();
                 $alertData['assigned_user_id'] = $user_id;
-                $alertData['url_redirect'] = "index.php?module=" . str_replace("'", '', $alertData['target_module']) . "&action=DetailView&record=$id";
-    
+                $parent_type    = $alertData['parent_type'] ?? "";
+                $parent_id      = $alertData['parent_id'] ?? "";
+                $filename       = $alertData['filename'] ?? "";
+                $alert_photo    = $alertData['alert_photo'] ?? "";
+                $url_redirect   = (!empty($parent_type) && !empty($parent_id)) ? $alertData['url_redirect'] : "index.php?module=" . str_replace("'", '', $alertData['target_module']) . "&action=DetailView&record=$id";
+
                 // Thêm thông tin alert vào mảng
                 $values[] = "('" . $id . "', '" . $this->db->quote($alertData['name']) . "', '"
                     . $this->db->quote($alertData['description']) . "', '"
-                    . $this->db->quote($alertData['url_redirect']) . "', '"
+                    . $this->db->quote($url_redirect) . "', '"
                     . $this->db->quote($alertData['target_module']) . "', '"
                     . $this->db->quote($user_id) . "', '"
                     . $this->db->quote($alertData['type']) . "', '"
-                    . $this->db->quote($alertData['filename']) . "', '"
+                    . $this->db->quote($filename) . "', '"
                     . $this->db->quote($alertData['priority']) . "', '"
-                    . $this->db->quote($alertData['alert_photo']) . "', 0, '"
+                    . $this->db->quote($alert_photo) . "', 0, '"
                     . gmdate('Y-m-d H:i:s') . "', '"
                     . gmdate('Y-m-d H:i:s') . "', '"
                     . $this->db->quote($GLOBALS['current_user']->id) . "', '"
                     . $this->db->quote($GLOBALS['current_user']->id) . "', '"
+                    . $this->db->quote($parent_type) . "', '"
+                    . $this->db->quote($parent_id) . "', '"
                     . $this->db->quote($alertData['parent_alert_id']) . "')";
             }
         }
@@ -126,7 +139,7 @@ class Alert extends Basic
         // Bulk insert alert
         if (!empty($values)) {
             $sql = "INSERT INTO alerts 
-                (id, name, description, url_redirect, target_module, assigned_user_id, type, filename, priority, alert_photo, is_read, date_entered, date_modified, modified_user_id, created_by, parent_alert_id) 
+            (id, name, description, url_redirect, target_module, assigned_user_id, type, filename, priority, alert_photo, is_read, date_entered, date_modified, modified_user_id, created_by, parent_type, parent_id, parent_alert_id) 
                 VALUES " . implode(", ", $values);
         }
 
@@ -160,5 +173,40 @@ class Alert extends Basic
         } catch (Exception $e) {
             $GLOBALS['log']->fatal("Failed to retrieve users for alert creation: " . $e->getMessage() . " - " . $sql);
         }
+    }
+
+    public function autoCreateAlert($module, $list_user, $alertData)
+    {
+        $alert = new Alert();
+        $alert->name                = $alertData['name'] ?? '';
+        $alert->description         = $alertData['description'] ?? '';
+        $alert->target_module       = $module;
+        $alert->parent_type         = $alertData['parent_type'];
+        $alert->parent_id           = $alertData['parent_id'];
+        $alert->type                = $alertData['type'] ?? 'info';
+        $alert->url_redirect        = $alertData['url_redirect'] ?? '';
+        $alert->priority            = $alertData['priority'] ?? 'low';
+        $alert->assigned_user_id    = $list_user[0] ?? $GLOBALS['current_user']->id;
+        $alert->save();
+
+        if (!empty($alert->id)) {
+            // Update parent_alert_id cho alert đầu tiên
+            $sql1 = 'UPDATE alerts 
+                    SET parent_alert_id = "' . $alert->id . '"
+                    WHERE deleted = 0 
+                    AND id = "' . $alert->id . '"';
+            $this->db->query($sql1);
+
+            $alertData['parent_alert_id']   = $alert->id;
+            $alertData['target_module']     = $module;
+
+            if (count($list_user) > 1) {
+                $alert->createMultipleAlert(array_slice($list_user, 1), $alertData);
+            }
+
+            return $alert->id;
+        }
+
+        return null; // Lỗi khi lưu alert
     }
 }

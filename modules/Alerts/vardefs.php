@@ -21,13 +21,15 @@ $dictionary['Alert'] = array(
             'massupdate' => false,
             'studio' => 'false',
         ),
-        'type' =>
-        array(
+        'type' => array(
             'name'        => 'type',
             'vname'     => 'LBL_TYPE',
-            'type'        => 'varchar',
             'massupdate' => false,
             'studio' => 'false',
+            'type' => 'enum',
+            'options' => 'alert_type_list',
+            'len' => 100,
+            'audited' => true,
         ),
         'url_redirect' =>
         array(
@@ -128,6 +130,14 @@ $dictionary['Alert'] = array(
             'len' => 100,
             'audited' => true,
             'comment' => 'The priority of the alert',
+        ),
+        'viewed_at' => array(
+            'required' => false,
+            'name' => 'viewed_at',
+            'vname' => 'LBL_VIEWED_AT',
+            'type' => 'datetime',
+            'dbType' => 'datetime',
+            'comment' => 'Time when the alert was viewed',
         ),
     ),
     'relationships' => array(),

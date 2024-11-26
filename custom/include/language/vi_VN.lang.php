@@ -424,7 +424,7 @@ $GLOBALS['app_list_strings']['invoice_mahang_list'] = array(
 
 $GLOBALS['app_list_strings']['invoice_percent_vat_list'] = array(
   '0'   => '0%',
-  '0.08'=> '8%',
+  '0.08' => '8%',
   '0.1' => '10%',
   '-1'  => 'KCT',
   '-2'  => 'KKKNT',
@@ -2193,6 +2193,7 @@ $GLOBALS['app_list_strings']['vietnamair_luggage_price_list2'] = array(
   660000  => '3 kiện 10kg (660.000 VND/Khách)',
   760000  => '4 kiện 10kg (760.000 VND/Khách)',
   950000  => '5 kiện 10kg (950.000 VND/Khách)',
+  350001  => '1 kiện 23kg (350.000 VND/Khách)',
   350000  => '2 kiện 23kg (1 kiện Free) (350.000 VND/Khách)',
   700000  => '3 kiện 23kg (1 kiện Free) (700.000 VND/Khách)',
   1050000 => '4 kiện 23kg (1 kiện Free) (1.050.000 VND/Khách)',
@@ -2279,7 +2280,7 @@ $GLOBALS['app_list_strings']['bambooair_ecosaver_luggage_price_list'] = array(
 );
 $GLOBALS['app_list_strings']['bambooair_ecosavermax_luggage_price_list'] = array(
   0 => '7kg xách tay (0 VND/Khách) - Eco Saver Max',
-  
+
   // new
   2 => 'Không có hành lý',
   200000    => '10kg (200.000 VND/Khách) - Eco Saver Max',
@@ -2289,7 +2290,7 @@ $GLOBALS['app_list_strings']['bambooair_ecosavermax_luggage_price_list'] = array
 );
 $GLOBALS['app_list_strings']['bambooair_ecoflex_luggage_price_list'] = array(
   // 0 => '20 kg ký gửi (0 VND/Khách) - Eco Flex',
-  
+
   // new
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách)-Eco Flex',
   20 => 'Mỗi hành khách tối đa 20Kg (0 VND/Khách) - Eco Flex',
@@ -2310,7 +2311,7 @@ $GLOBALS['app_list_strings']['bambooair_ecosmart_luggage_price_list'] = array(
 );
 $GLOBALS['app_list_strings']['bambooair_preflex_luggage_price_list'] = array(
   0 => '30kg ký gửi (0 VND/Khách) - Premium Flex',
-  
+
   // new
   1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Premium Flex',
   30 => 'Mỗi hành khách tối đa 30Kg (0 VND/Khách) - Premium Flex',
@@ -2430,12 +2431,12 @@ $GLOBALS['app_list_strings']['new_vietravel_luggage_price_list2'] = array(
 
 // HÀNH LÝ QUỐC TẾ
 $GLOBALS['app_list_strings']['inter_luggage_price_list'] = array(
-    '0' => 'Không mang hành lý ký gửi ',
-    '20' => '20kg ',
-    '23' => '1 kiện 23kg ',
-    '223' => '2 kiện 23kg ',
-    '25' => '25kg ',
-    '30' => '30kg ',
+  '0' => 'Không mang hành lý ký gửi ',
+  '20' => '20kg ',
+  '23' => '1 kiện 23kg ',
+  '223' => '2 kiện 23kg ',
+  '25' => '25kg ',
+  '30' => '30kg ',
 );
 // =================== END ==========================
 // ==================================================
@@ -2512,11 +2513,14 @@ $app_strings['LBL_GROUPTAB4_1701142454'] = 'Activity';
 
 $app_strings['LBL_GROUPTAB5_1717468343'] = 'Email';
 
-$GLOBALS['app_list_strings']['alert_priority_list'] = array(
-    'urgent' => 'Khẩn cấp',
-    'high' => 'Cao',
-    'medium' => 'Trung bình',
-    'low' => 'Thấp',
+$app_list_strings['alert_priority_list'] = array(
+  'urgent' => 'Khẩn cấp',
+  'high' => 'Cao',
+  'medium' => 'Trung bình',
+  'low' => 'Thấp',
 );
 
-?>
+$app_list_strings['alert_type_list'] = array(
+  'readonly' => 'Chỉ xem',
+  'remind' => 'Nhắc nhở',
+);

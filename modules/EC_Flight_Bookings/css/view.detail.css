@@ -203,17 +203,6 @@
 #tbl_pax tbody tr.psg-line td {
     vertical-align: baseline;
 }
-#tbl_pax tbody tr.psg-line td .cic, #tbl_pax tbody tr.psg-line td .passport {
-    width: fit-content;
-    background: #f2f2f2;
-    border-radius: 4px;
-    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
-    padding: 3px 6px;
-    margin-top: .25rem;
-}
-#tbl_pax tbody tr.psg-line td .cic span, #tbl_pax tbody tr.psg-line td .passport span {
-    letter-spacing: 2px;
-}
 
 
 /* CART TYPE CONTACTS */
@@ -342,12 +331,7 @@
     table#tbl_pax td::before,
     table#line_details_tbl td::before,
     table#itinerary_tbl td::before {
-        /*
-        * aria-label has no advantage, it won't be read inside a table
-        content: attr(aria-label);
-        */
         content: attr(data-label);
-        /* float: left; */
         font-weight: bold;
     }
 

@@ -14,9 +14,9 @@ $searchdefs['Alerts'] = array(
 				'default' => true,
 				'width' => '10%',
 			),
-			'priority' => array(
-				'name' => 'priority',
-				'label' => 'LBL_PRIORITY',
+			'is_read' => array(
+				'name' => 'is_read',
+				'label' => 'LBL_IS_READ',
 				'default' => true,
 				'width' => '10%',
 			),
@@ -27,6 +27,19 @@ $searchdefs['Alerts'] = array(
 				'default' => true,
 				'width' => '10%',
 			),
+			'priority' => array(
+				'name' => 'priority',
+				'label' => 'LBL_PRIORITY',
+				'default' => true,
+				'width' => '10%',
+			),
+			'type' => array(
+				'name' => 'type',
+				'label' => 'LBL_TYPE',
+				'default' => true,
+				'width' => '10%',
+			),
+			
 			// 'assigned_user_id' => array(
 			//   	'name' => 'assigned_user_id',
 			//   	'type' => 'enum',

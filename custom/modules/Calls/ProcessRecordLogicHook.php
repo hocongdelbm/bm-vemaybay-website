@@ -21,7 +21,7 @@ class ProcessRecordLogicHook
         $sql = "SELECT log FROM calls WHERE id = '{$bean->id}' AND deleted = 0";
         $log = $GLOBALS['db']->getOne($sql);
         $log_array = json_decode(html_entity_decode($log), true);
-        $other_caller = $log_array['other_caller'];
+        $other_caller = $log_array['other_caller'] ?? '';
 
         
         // FROM - TO

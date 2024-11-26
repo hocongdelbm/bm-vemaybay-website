@@ -30,8 +30,8 @@ class loginActions
         }
 
         $uuid = create_guid();
-        $typed_name = $db->quote($_REQUEST['user_name']);
-        $ip_address = $_SERVER['REMOTE_ADDR'];
+        $typed_name = $_REQUEST['user_name'] ? $db->quote($_REQUEST['user_name']) : '';
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
 
         // Browser
         $brower          = trim($_SERVER['HTTP_SEC_CH_UA']);

@@ -109,7 +109,7 @@ class EC_Flight_BookingsLogicHook
 		} else {
 			// Đối với những booking tạo từ ngày 19-09-2022
 			// Khi mở ra thì trừ lại ds
-			if (strtotime($focus->date_entered) >= strtotime('2022-09-19') && isset($focus->fetched_row['status']) && $focus->fetched_row['status'] == 8) {
+			if (isset($focus->date_entered) && strtotime($focus->date_entered) >= strtotime('2022-09-19') && isset($focus->fetched_row['status']) && $focus->fetched_row['status'] == 8) {
 				$sql_qty = '
 					UPDATE users
 					SET total_qty -= IFNULL((
@@ -177,6 +177,30 @@ class EC_Flight_BookingsLogicHook
 		if (isset($_POST['btnCompleted']) || $focus->booking_status == 8 && $focus->fetched_row['assigned_user_id'] != $focus->assigned_user_id) {
 			myRemoveWorkingProcess($focus->object_name, $focus->id, 'completed');
 			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, 'Hoàn tất booking', $focus->assigned_user_id, 'completed');
+
+			$list_user = [
+				'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //panda
+				'72ece22c-cb25-8e30-9dea-56f2201cd359', //trangbtq
+				'9ba5c5a0-a402-02f4-76d3-53ba0481ce45', //soinau
+				'b5523dbd-b9a7-67c0-77b5-533e6ece89b1', //ngocthu
+			];
+
+			$user = BeanFactory::newBean('Users');
+            $user->retrieve($focus->assigned_user_id);
+			$full_name = $user->last_name . ' ' . $user->first_name;
+
+			$alertData = [
+				'name' 			=> $focus->name,
+				'parent_type' 	=> 'EC_Flight_Bookings',
+				'parent_id' 	=> $focus->id,
+				'description' 	=> $focus->description . ' (' . $full_name . ' đã hoàn tất booking).',
+				'url_redirect' 	=> 'index.php?module=EC_Flight_Bookings&action=DetailView&record='.$focus->id.'',
+				'priority' 		=> 'low',
+				'type' 			=> 'readonly',
+			];
+     
+			$alert 		= new Alert();
+			$alertId 	= $alert->autoCreateAlert('EC_Flight_Bookings', $list_user, $alertData);
 		}
 	}
 

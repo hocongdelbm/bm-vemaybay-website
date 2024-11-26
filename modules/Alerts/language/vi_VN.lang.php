@@ -31,7 +31,7 @@ $mod_strings = array(
     'LBL_HISTORY_SUBPANEL_TITLE' => 'Xem lịch sử',
     'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Các hoạt động',
     'LBL_NEW_FORM_TITLE' => 'thông báo mới',
-    'LBL_IS_READ' => 'Đọc',
+    'LBL_IS_READ' => 'Đã đọc?',
     'LBL_DATE_START' => 'Date Start',
     'LBL_PRIORITY' => 'Độ ưu tiên',
 

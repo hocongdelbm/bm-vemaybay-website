@@ -37,8 +37,8 @@ $viewdefs['Alerts'] = array(
                 ),
                 array(
                     array(
-                        'name' => 'filename',
-                        'label' => 'LBL_FILENAME',
+                        'name' => 'type',
+                        'label' => 'LBL_TYPE',
                     ),
                     array(
                         'name' => 'assigned_user_name',
@@ -51,6 +51,12 @@ $viewdefs['Alerts'] = array(
                         'name' => 'alert_photo',
                         'label' => 'LBL_ALERT_PHOTO',
                     ),
+                    array(
+                        'name' => 'filename',
+                        'label' => 'LBL_FILENAME',
+                    ),
+                ),
+                array(
                     array(
                         'name' => 'description',
                         'displayParams' => array(

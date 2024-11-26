@@ -212,7 +212,7 @@ class Viewsendconfirm extends SugarView {
 				$voucher['name'],
 				format_number($voucher['amt']).' VND',
 				'https://drive.google.com/uc?export=view&id=1L-eMFTQQYbIkK6LqoVnp6q_5hR6FSH0D',
-				$voucher['expire_date'],
+				$voucher['expire_date'] ?? '',
 				$department_info['com_name'], // header company name
 				'',
 				$payment_link

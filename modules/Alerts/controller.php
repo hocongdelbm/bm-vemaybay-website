@@ -151,6 +151,9 @@ class AlertsController extends SugarController
     public function action_markAsRead()
     {
         $bean = BeanFactory::getBean('Alerts', $_GET['record']);
+        if (empty($bean->viewed_at) || !strtotime($bean->viewed_at)) {
+            $bean->viewed_at = date('Y-m-d H:i:s'); 
+        }
         $bean->is_read = 1;
         $bean->save();
 
@@ -170,6 +173,9 @@ class AlertsController extends SugarController
     {
         $bean = BeanFactory::getBean('Alerts', $_GET['record']);
         $redirect_url = $bean->url_redirect;
+        if (empty($bean->viewed_at) || !strtotime($bean->viewed_at)) {
+            $bean->viewed_at = date('Y-m-d H:i:s'); 
+        }
         $bean->is_read = 1;
         $bean->save();
 

@@ -133,7 +133,7 @@ class EC_Input_Invoices extends Basic
                 ');
     
                 // Cập nhật kpi
-                myRemoveWorkingProcess('EC_Flight_Bookings', $_POST['im_booking_id'], 'invoice_input_issued');
+                // myRemoveWorkingProcess('EC_Flight_Bookings', $_POST['im_booking_id'], 'invoice_input_issued');
                 myCreateWorkingProcess('EC_Flight_Bookings', $_POST['im_booking_id'], $_POST['im_booking'], 'Import từ hoá đơn của hãng (Manual)', $current_user->id, 'invoice_input_issued');
     
                 $note = new Note;
