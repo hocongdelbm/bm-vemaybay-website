@@ -76,8 +76,8 @@ $(document).ready(function () {
             let gender      = tr_passenger.find("td.passenger_salutation").attr("data");
             let gender_format = gender == 0 ? "Nam" : "Nữ";
             let name        = tr_passenger.find("td.passenger_name .fullname").html();
-            let cic         = tr_passenger.find("td.passenger_name .cic").attr('data');
-            let passport    = tr_passenger.find("td.passenger_name .passport").attr('data');
+            let cic         = tr_passenger.find("td.passenger_id .cic").attr('data');
+            let passport    = tr_passenger.find("td.passenger_id .passport").attr('data');
             let birthdate   = tr_passenger.find("td.passenger_birthdate .birthdate").html();
             let phone       = $("#reservation_form_vja input[name=reservation_phone]").val();
             let identification_number = passport;

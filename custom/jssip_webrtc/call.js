@@ -411,12 +411,10 @@ $(document).ready(function () {
     // Checkbox busy
     $('input#busy_stt').change(function () {
         let status = 'Available';
-        let busy   = 0;
 
         if ($(this).prop('checked') == true) {
             // status = 'Logged Out';
             status = 'On Break';
-            busy   = 1;
             showConnect(false);
             if (ua) ua.stop();
         } else {
@@ -429,7 +427,6 @@ $(document).ready(function () {
             data: {
                 agent: SIP_USER,
                 status: status,
-                busy: busy,
                 for: "changeStatusAgent"
             },
             type: "POST",

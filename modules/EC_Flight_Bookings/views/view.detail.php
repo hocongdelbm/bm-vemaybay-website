@@ -1754,7 +1754,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<td data-label="Loại HK" class="passenger_type text-center" data="' . $row['type'] . '" class="text-center">' . $app_list_strings['passenger_type_list'][(int)$row['type']] . '</td>
 						<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int)$row['salutation']] . '</td>
 						<td data-label="Họ tên" class="passenger_name text-start">
-							<p class="fullname text-center">' . $row['name'] . '</p>
+							<p class="fullname">' . $row['name'] . '</p>
 						</td>
 						<td data-label="Ngày sinh" class="passenger_birthdate text-center">
 							<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>

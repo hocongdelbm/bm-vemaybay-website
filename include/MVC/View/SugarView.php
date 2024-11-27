@@ -1329,16 +1329,16 @@ EOHTML;
             ';
 
             if($current_user->id == '1' || $current_user->id == '168889bb-54c2-59c7-8b3f-649102530d3c'){
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=3.3">';
+                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=3.4">';
                 $js .= '<audio id="audio_jssip"></audio>
                         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call2.js?ver=3.3"></script>
+                        <script src="custom/jssip_webrtc/call2.js?ver=3.4"></script>
                 ';
             } else {
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=3.3">';
+                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=3.4">';
                 $js .= '<audio id="audio_jssip"></audio>
                         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call.js?ver=3.3"></script>
+                        <script src="custom/jssip_webrtc/call.js?ver=3.4"></script>
 
                 ';
             }

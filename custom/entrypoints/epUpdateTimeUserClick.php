@@ -3,7 +3,6 @@
 global $current_user, $db;
 
 // Loại trừ user Booker - 493ad5e5-ffea-a84f-96d7-6577fed623d6
-
 $array_admin = [
      '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
      '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
@@ -24,7 +23,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
 if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
      $time     = $_POST['time'] ?? null;
      $status   = $_POST['agent_status'] ?? 'Available';
-     $busy     = ($status == 'Available') ? 0 : ($status == 'On Break' ? 1 : 2);
+     $busy     = ($status == 'Available') ? 0 : 1;
 
      // Booker
      if ($current_user->id === '493ad5e5-ffea-a84f-96d7-6577fed623d6') {

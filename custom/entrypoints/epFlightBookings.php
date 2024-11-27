@@ -905,16 +905,6 @@ function populateLinePassengers($booking_id, $flight_type, $type, $airline_in = 
 		</tr></thead>';
 
 	$i = 0;
-	$arr_replace = array(
-		'VNA' => 'vietnamair',
-		'JET' => 'jetstar',
-		'VJA' => 'vietjet',
-		'BBA' => 'bambooair',
-		'VJ' => 'vietjet',
-		'BL' => 'jetstar',
-		'JQ' => 'jetstar',
-		'3K' => 'jetstar'
-	);
 
 	while ($row = $db->fetchByAssoc($res)) {
 		// kiểm tra có tên mới hay chưa
@@ -1048,18 +1038,6 @@ function populateLineItineraries($booking_id)
 	global $db;
 	$booking = new EC_Flight_Bookings;
 	$booking->retrieve($booking_id);
-
-	// $sql = "SELECT i.id AS detail_id 
-	// 			  ,i.flight_number
-	// 			  ,i.ticket_class
-	// 			  ,i.departure
-	// 			  ,i.arrival
-	// 		FROM ec_booking_itineraries i
-	// 		WHERE deleted=0
-	// 		AND i.booking_id='".$booking_id."'
-	// 		ORDER BY date_entered";
-	// $res = $db->query($sql);
-
 
 	if (trim($booking->airline) == 'VNA' || trim($booking->airline) == 'VNP') {
 		if (trim($booking->airline) == 'VNA') $selected1 = 'selected';
@@ -1309,7 +1287,7 @@ function populateEditedLineItineraries($booking_id)
 
 			// Tên các lần thay đổi ngày bay
 			$html .= '<tr>
-						<td colspan="13" class="bg-yellow">
+						<td colspan="14" class="bg-yellow">
 							<b>
 							Lần thay đổi thứ ' . $row['sabre_logs'] . ': Áp dụng cho ' . $applied_pass . '. 
 							Thay đổi bởi: <b>' . $user_list[$row['modified_user_id']] . '
@@ -1551,7 +1529,7 @@ function populateEditedLinePassenger($booking_id)
 			$html1 = '';
 			$pass_changed_name_arr = array();
 			$html = '';
-			$html1 .= '<tr><td colspan="10" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': ';
+			$html1 .= '<tr><td colspan="11" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': ';
 			$i = 0;
 		}
 
@@ -1568,7 +1546,9 @@ function populateEditedLinePassenger($booking_id)
 					<td data-label="Loại HK" class="text-center passenger_type">' . $app_list_strings['passenger_type_list'][$row['type']] . '</td>
 					<td data-label="Danh xưng" class="text-center passenger_salutation">' . $app_list_strings['passenger_salutation_list'][$row['salutation']] . '</td>
 					<td data-label="Họ tên" class="text-start passenger_name">' . $row['name'] . '</td>
-					<td data-label="Ngày sinh" class="text-center passenger_birthday">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date('d-m-Y', strtotime($row['birthday'])) : '') . '</td>';
+					<td data-label="Ngày sinh" class="text-center passenger_birthday">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date('d-m-Y', strtotime($row['birthday'])) : '') . '</td>
+					<td data-label="Ngày sinh" class="text-center passenger_id"></td>
+				';
 
 		$html .= '
 			<td data-label="Số vé đi" class="text-center eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
@@ -3856,15 +3836,15 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 				$current_booking = ($row['id'] == $booking_id) ? 'current_booking' : '';
 
 				$html .= '<tr>
-							<td class="'.$current_booking.' hide-mobile fw-bold text-center">' . $i . '</td>
-							<td class="'.$current_booking.'"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='.$row['id'].'" target="_blank">' . $row['name'] . '</a></td>
-							<td class="'.$current_booking.' hide-mobile text-center">' . $journey . '</td>
-							<td class="'.$current_booking.' hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int)$row['booking_status']] . '</td>
-							<td class="'.$current_booking.' text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
-							<td class="'.$current_booking.'">' . $row['contact_name'] . '</td>
-							<td class="'.$current_booking.' text-center fw-bold">' . $row['total_qty'] . '</td>
-							<td class="'.$current_booking.' text-end fw-bold">' . format_number($row['total_amount']) . '</td>
-							<td class="'.$current_booking.' text-end fw-bold">' . format_number(calculateBKTotalAmt($row['id'])) . '</td>
+							<td class="' . $current_booking . ' hide-mobile fw-bold text-center">' . $i . '</td>
+							<td class="' . $current_booking . '"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
+							<td class="' . $current_booking . ' hide-mobile text-center">' . $journey . '</td>
+							<td class="' . $current_booking . ' hide-mobile text-center fw-bold ' . $class_color . '">' . $app_list_strings['booking_status_list'][(int)$row['booking_status']] . '</td>
+							<td class="' . $current_booking . ' text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+							<td class="' . $current_booking . '">' . $row['contact_name'] . '</td>
+							<td class="' . $current_booking . ' text-center fw-bold">' . $row['total_qty'] . '</td>
+							<td class="' . $current_booking . ' text-end fw-bold">' . format_number($row['total_amount']) . '</td>
+							<td class="' . $current_booking . ' text-end fw-bold">' . format_number(calculateBKTotalAmt($row['id'])) . '</td>
 						</tr>';
 				$i++;
 			}

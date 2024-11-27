@@ -2556,59 +2556,45 @@ function agent_change_status($agent, $status)
 
         if ($httpcode == 200 && $arr['success']['code'] == 200) {
             $sql_as = 'UPDATE users
-                        SET agent_status = "' . $status . '"
-                        WHERE td_sip = "' . $agent . '"
-                        AND deleted = 0';
+                       SET agent_status = "' . $status . '"
+                       WHERE td_sip = "' . $agent . '"
+                       AND deleted = 0';
 
             $result_sql_as = $db->query($sql_as);
-            if (!$result_sql_as) {
-                $response['fail'] = array(
-                    'code' => 500,
-                    'title' => 'Error sql_as',
-                    'message' => $sql_as,
-                );
-                sendTestTelegram(json_encode($response));
-            } else {
-                $timestamp_now = date('Y-m-d H:i:s');
-                $sip_number = custom_get_sip_number($agent);
+            if ($result_sql_as) {
+                $timestamp_now  = date('Y-m-d H:i:s');
+                $sip_number     = custom_get_sip_number($agent);
+                $status_value   = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
+
+                if($status != 'Logged Out'){
+                    $where_sql = ', last_online = "' . $timestamp_now . '"';
+                }
 
                 if ($sip_number) {
-                    $status_value = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
-                    $sql_update = '
+                    $sql_online = '
                         UPDATE ec_online_report 
-                        SET status = "' . $status_value . '", last_online = "' . $timestamp_now . '"
-                        WHERE assigned_user_id = "' . custom_get_sip_number($agent) . '"
+                        SET status = '.$status_value.' '.$where_sql.'
+                        WHERE assigned_user_id = "' . $sip_number . '"
                         AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
                         AND deleted = 0
                     ';
-                    $db->query($sql_update);
+                    $result_sql_online = $db->query($sql_online);
 
-                    $busy = $status == 'Available' ? 0 : ($status == 'On Break' ? 1 : 2);
-                    $time_current  = date('Y-m-d H:i:s', strtotime('+7 hour'));
-
-                    // SAVE LOG
-                    // $response = [
-                    //     'fail' => [
-                    //         'code' => 400,
-                    //         'title' => 'TEST',
-                    //         'agent' => $agent,
-                    //         'status' => $status,
-                    //         'status_value' => $status_value,
-                    //         'busy' => $busy,
-                    //     ]
-                    // ];
-                    // sendTestTelegram(json_encode($response));
-                    if (!in_array($current_user->id, $array_admin)) {
-                        content_log($sip_number, $time_current, $busy);
-                    }
+                    if($result_sql_online){
+                        $busy           = ($status == 'Available') ? 0 : 1;
+                        $time_current   = date('Y-m-d H:i:s', strtotime('+7 hour'));
+                        if (!in_array($sip_number, $array_admin)) {
+                            content_log($sip_number, $time_current, $busy);
+                        }
+                    } 
                 }
+
             }
         }
     } catch (Exception $e) {
         return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
     }
 }
-
 
 // GHI FILE LOGS BACKUP SAVE CALL FAIELD
 function write_file_backup_log_calls($json)

@@ -143,131 +143,205 @@
      }
 
      .box-call__direction .card p{
-          font-size: 18px;
-          line-height: 22px;
+          font-size: 1rem;
           color: var(--text-color);
-          font-weight: 600;
+          font-weight: bold;
      }
+
+     .chart-title{
+          font-size: 1.25rem;
+          color: #36454F;
+     }
+
+     /* REPORT EMPLOYEE */
+     .month-employee-title{
+          font-size: 1rem;
+          font-weight: bold;
+          display: flex;
+          justify-content: space-between;
+     }
+
+     .month-employee-bottom{
+          display: flex;
+          flex-wrap: wrap;
+     }
+
+     li.month-emp-row:not(:last-child){
+          border-bottom: 1px solid var(--border-color);
+     }
+
+     .month-emp-avatar{
+          background: var(--border-color);
+          padding: 5px;
+          border-radius: 0.375rem;
+     }
+
 
 </style>
 <script>
      $(document).ready(function() {
+          createCallChart();
+
           $("#month_select").change(function() {
                $("#from_date").val($(this).find("option:selected").data("from-date"));
                $("#to_date").val($(this).find("option:selected").data("to-date"));
+
+               $(".container-waiting").show();
                $("#ec_search_form").submit();
           });
+
+          // DATA CHART
+          function createCallChart() {
+               const y_data        = $("#chart-data-y").text().split("|") || [];
+               const x_data        = $("#chart-data-x").text().split(",") || [];
+               const chart_type    = $("#chart-type").text();
+
+               if(chart_type == 'bar') {
+                    background_cl = '#13678A';
+               } else {
+                    background_cl = '#fff';
+               }
+
+               // chart data
+               const data = {
+                    labels: x_data,
+                    datasets: [
+                         {
+                              label: 'cuộc gọi',
+                              data: y_data,
+                              borderColor: '#012970',
+                              backgroundColor: background_cl,
+                              tension: 0.1,
+                              borderRadius: 12,
+                         }
+                    ]
+               };
+
+               // chart config
+               const config = {
+                    type: $('#chart-type').text(),
+                    data: data,
+                    options: {
+                         animations: {
+                              radius: {
+                                   duration: 400,
+                                   easing: 'linear',
+                                   loop: (context) => context.active
+                              }
+                         },
+                         interaction: {
+                              mode: 'nearest',
+                              intersect: false,
+                              axis: 'x'
+                         },
+                         plugins: {
+                              tooltip: {
+                                   enabled: true,
+                              },
+                              legend: {
+                                   display: false,
+                              },
+                         },
+                         elements: {
+                              point:{
+                                   radius: 5
+                              }
+                         }
+                    },
+               };
+
+               // create chart
+               new Chart(
+                    document.getElementById('call-chart'),
+                    config
+               );
+          }
      });
 </script>
 {/literal}
 
-<div class="title-wrap d-flex align-items-center justify-content-between gap-2">
-     <h1 class="title">Thống kê cuộc gọi</h1>
-	<svg xmlns="http://www.w3.org/2000/svg" id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block hide-landscape" viewBox="0 0 16 16">
-		<path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
-	</svg>
-</div>
-
-<div class="box-section mb-3 position-relative">
-	<div class="overlay-mobile"></div>
-
-     <form action="index.php" method="post" name="search_form" id="ec_search_form">
-          <input type="hidden" name="module" value="Calls"/>
-          <input type="hidden" name="action" value="summary"/>
-          <input type="hidden" name="from_date" id="from_date" value="{$FROM_DATE}">
-          <input type="hidden" name="to_date" id="to_date" value="{$TO_DATE}">
-
-          <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="currentColor" class="bi bi-dash-lg search_form--dash d-xl-none d-lg-none d-md-none d-block" viewBox="0 0 16 16">
-               <path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8"></path>
+<div class="report-date__call">
+     <div class="chart-data d-none">
+          <div id="chart-data-y">{$CHART_YAXIS}</div>
+          <div id="chart-data-x">{$CHART_XAXIS}</div>
+          <div id="chart-type">{$CHART_TYPE}</div>
+     </div>
+     
+     <div class="title-wrap d-flex align-items-center justify-content-between gap-2">
+          <h1 class="title">Báo cáo cuộc gọi {$REPORT_TIME}</h1>
+          <svg xmlns="http://www.w3.org/2000/svg" id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block hide-landscape" viewBox="0 0 16 16">
+               <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
           </svg>
- 
-          <div class="d-flex align-items-center gap-2 action--wrap">
-               <select class="box-select" id="month_select" name="month_select">{$MONTH_SELECT}</select>
-          </div>
-     </form>
-</div>
+     </div>
 
-
-<div class="box-call__direction">
-     <div class="row">
-          <div class="col-lg-3 col-sm-6">
-               <div class="card card-border-shadow-primary h-100">
-                    <div class="card-body">
-                         <div class="d-flex align-items-center mb-2">
-                              <div class="box-icon me-3">
-                                   <span class="box-icon-initial rounded bg-label-primary">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.712 13.288a.999.999 0 0 0-1.414 0l-1.594 1.594c-.739-.22-2.118-.72-2.992-1.594s-1.374-2.253-1.594-2.992l1.594-1.594a.999.999 0 0 0 0-1.414l-4-4a.999.999 0 0 0-1.414 0L2.586 6c-.38.38-.594.902-.586 1.435.023 1.424.4 6.37 4.298 10.268S15.142 21.977 16.566 22h.028c.528 0 1.027-.208 1.405-.586l2.712-2.712a.999.999 0 0 0 0-1.414l-3.999-4zM16.585 20c-1.248-.021-5.518-.356-8.873-3.712C4.346 12.922 4.02 8.637 4 7.414l2.005-2.005 2.586 2.586-1.293 1.293a1 1 0 0 0-.272.912c.024.115.611 2.842 2.271 4.502s4.387 2.247 4.502 2.271a.993.993 0 0 0 .912-.271l1.293-1.293 2.586 2.586L16.585 20z"></path><path d="m16.795 5.791-4.497 4.497 1.414 1.414 4.497-4.497L21.005 10V2.995H14z"></path></svg>
-                                   </span>
+     <div class="box-call__direction">
+          <div class="row">
+               {foreach from=$DATA_DIRECTION item=itemDirection}
+                    <div class="col-lg-3 col-sm-6">
+                         <div class="card card-border-shadow-{$itemDirection.class} h-100">
+                              <div class="card-body">
+                                   <div class="d-flex align-items-center mb-2">
+                                        <div class="box-icon me-3">
+                                             <span class="box-icon-initial rounded bg-label-{$itemDirection.class}">
+                                                  {$itemDirection.icon}
+                                             </span>
+                                        </div>
+                                        <h5 class="mb-0">{$itemDirection.data}</h5>
+                                   </div>
+                                   <p class="mb-0">{$itemDirection.label}</p>
+                                   <p class="mb-0 d-none">
+                                        <span class="text-heading fw-medium me-2">+18.2%</span>
+                                        <span class="text-muted">So với hôm qua</span>
+                                   </p>
                               </div>
-                              <h4 class="mb-0">{$TOTAL_INBOUND}</h4>
                          </div>
-                         <p class="mb-2">Cuộc gọi đi</p>
-                         <p class="mb-0">
-                              <span class="text-heading fw-medium me-2">+18.2%</span>
-                              <span class="text-muted">So với hôm qua</span>
-                         </p>
                     </div>
-               </div>
-          </div>
-          <div class="col-lg-3 col-sm-6">
-               <div class="card card-border-shadow-success h-100">
-                    <div class="card-body">
-                         <div class="d-flex align-items-center mb-2">
-                              <div class="box-icon me-3">
-                                   <span class="box-icon-initial rounded bg-label-success">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.712 13.288a.999.999 0 0 0-1.414 0l-1.597 1.596c-.824-.245-2.166-.771-2.99-1.596-.874-.874-1.374-2.253-1.594-2.992l1.594-1.594a.999.999 0 0 0 0-1.414l-4-4a1.03 1.03 0 0 0-1.414 0l-2.709 2.71c-.382.38-.597.904-.588 1.437.022 1.423.396 6.367 4.297 10.268C10.195 21.6 15.142 21.977 16.566 22h.028c.528 0 1.027-.208 1.405-.586l2.712-2.712a.999.999 0 0 0 0-1.414l-3.999-4zM16.585 20c-1.248-.021-5.518-.356-8.874-3.712C4.343 12.92 4.019 8.636 4 7.414l2.004-2.005L8.59 7.995 7.297 9.288c-.238.238-.34.582-.271.912.024.115.611 2.842 2.271 4.502s4.387 2.247 4.502 2.271a.994.994 0 0 0 .912-.271l1.293-1.293 2.586 2.586L16.585 20z"></path><path d="M15.795 6.791 13.005 4v6.995H20l-2.791-2.79 4.503-4.503-1.414-1.414z"></path></svg>
-                                   </span>
-                              </div>
-                              <h4 class="mb-0">{$TOTAL_OUTBOUND}</h4>
-                         </div>
-                         <p class="mb-2">Cuộc gọi đến</p>
-                         <p class="mb-0">
-                              <span class="text-heading fw-medium me-2">+18.2%</span>
-                              <span class="text-muted">So với hôm qua</span>
-                         </p>
-                    </div>
-               </div>
-          </div>
-          <div class="col-lg-3 col-sm-6">
-               <div class="card card-border-shadow-danger h-100">
-                    <div class="card-body">
-                         <div class="d-flex align-items-center mb-2">
-                              <div class="box-icon me-3">
-                                   <span class="box-icon-initial rounded bg-label-danger">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.09 12.5a8.92 8.92 0 0 1-1-2.2l1.59-1.59a1 1 0 0 0 0-1.42l-4-4a1 1 0 0 0-1.41 0L2.59 6A2 2 0 0 0 2 7.44 15.44 15.44 0 0 0 5.62 17L2.3 20.29l1.41 1.42 18-18-1.41-1.42zM7 15.55a13.36 13.36 0 0 1-3-8.13l2-2L8.59 8 7.3 9.29a1 1 0 0 0-.27.92 11 11 0 0 0 1.62 3.73zm9.71-2.26a1 1 0 0 0-1.41 0l-1.6 1.6-.34-.12-1.56 1.55a12.06 12.06 0 0 0 2 .66 1 1 0 0 0 .91-.27l1.3-1.3L18.59 18l-2 2A13.61 13.61 0 0 1 10 18.1l-1.43 1.45a15.63 15.63 0 0 0 8 2.45 2 2 0 0 0 1.43-.58l2.71-2.71a1 1 0 0 0 0-1.42z"></path></svg>
-                                   </span>
-                              </div>
-                              <h4 class="mb-0">{$TOTAL_MISSED}</h4>
-                         </div>
-                         <p class="mb-2">Cuộc gọi nhỡ</p>
-                         <p class="mb-0">
-                              <span class="text-heading fw-medium me-2">+18.2%</span>
-                              <span class="text-muted">So với hôm qua</span>
-                         </p>
-                    </div>
-               </div>
-          </div>
-          <div class="col-lg-3 col-sm-6">
-               <div class="card card-border-shadow-dark h-100">
-                    <div class="card-body">
-                         <div class="d-flex align-items-center mb-2">
-                              <div class="box-icon me-3">
-                                   <span class="box-icon-initial rounded bg-label-dark">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-mic" viewBox="0 0 16 16">
-                                             <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5"/>
-                                             <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3"/>
-                                        </svg>
-                                   </span>
-                              </div>
-                              <h4 class="mb-0">{$TOTAL_INTERNAL}</h4>
-                         </div>
-                         <p class="mb-2">Nội bộ
-                         <p class="mb-0">
-                              <span class="text-heading fw-medium me-2">+18.2%</span>
-                              <span class="text-muted">So với hôm qua</span>
-                         </p>
-                    </div>
-               </div>
+               {/foreach}
           </div>
      </div>
-</div>
+     
+     <div class="box-section mb-3 position-relative">
+          <div class="chart-box">
+               <div class="d-flex gap-4 month-call-chart">
+                    <div class="chart-body flex-fill">
+                         <section class="month-chart-area h-100">
+                              <div class="chart-header flex-start mb-3">
+                                   <div class="chart-title fw-bold d-inline-block">Tổng quan</div>
+                                   <form action="index.php" method="post" id="ec_search_form">
+                                        <input type="hidden" name="module" value="{$MODULE_NAME}">
+                                        <input type="hidden" name="action" value="summary"/>
+                                        <input type="hidden" name="from_date" id="from_date" value="{$FROM_DATE}">
+                                        <input type="hidden" name="to_date" id="to_date" value="{$TO_DATE}">
+                                        <select class="box-select" id="month_select" name="month_select">{$MONTH_SELECT}</select>
+                                   </form>
+                              </div>
+                              <canvas id="call-chart"></canvas>
+                         </section>
+                    </div>
+                    <div class="chart-sidebar w-25">
+                         <section class="month-employee-area h-100">
+                              <div class="month-employee-top flex-between mb-3">
+                                   <p class="month-employee-title">Cuộc gọi nhân viên</p>
+                                   {* 
+                                        <a target="_blank" href="index.php?module={$MODULE_NAME}&action=employee_report_call&from_date={$FROM_DATE}&to_date={$TO_DATE}">
+                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                                  <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                                             </svg>
+                                        </a>
+                                   *}
+                                   <a href="javascript:void(0)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                             <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                                        </svg>
+                                   </a>
+                              </div>
+                              <ul class="month-employee-bottom">
+                                   {$EMPLOYEE_MONTH}
+                              </ul>
+                         </section>
+                    </div>
+               </div>
+          </div>
+
+     </div>
+</div>    

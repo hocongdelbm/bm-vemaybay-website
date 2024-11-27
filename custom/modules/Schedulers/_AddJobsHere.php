@@ -1962,24 +1962,10 @@ function checkStatusOnlineUser()
 	$timestamp_now 	= strtotime('+7 hours');
 
 	foreach (array_diff(scandir($path), ['.', '..', 'Thumbs.db', basename(__FILE__)]) as $file) {
-
-		$user_id = str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
-		$data_user = json_decode(read_file_logs_online($user_id), true);
-		if (!$data_user) {
-			$log_online = array(
-				'domain' => 'bm.vemaybay.website',
-				'path' => 'custom/modules/Schedules',
-				'file' => $file,
-				'user_id' => $user_id,
-				'timestamp_now' => $timestamp_now,
-				'datetime' => date('d-m-Y H:i:s'),
-			);
-			sendTestTelegram(json_encode($log_online));
-			continue;
-		};
-
-		$diffInSeconds = abs($timestamp_now - strtotime($data_user['last_time']));
-		$agent = custom_get_sip_number($user_id);
+		$user_id 		= str_replace('_', '-', pathinfo($file, PATHINFO_FILENAME));
+		$data_user 		= json_decode(read_file_logs_online($user_id), true);
+		$diffInSeconds 	= abs($timestamp_now - strtotime($data_user['last_time']));
+		$agent 			= custom_get_sip_number($user_id);
 
 		if ($user_id == 'c57196c6-e211-9856-43d5-6695498f39ae') continue; //tiennguyen
 

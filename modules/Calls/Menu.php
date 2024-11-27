@@ -20,9 +20,7 @@ if (ACLController::checkAccess('Calls', 'list', true))
     $module_menu[] = array("index.php?module=Calls&action=statistics&return_module=Calls&return_action=statistics", "Thống kê", "statistics", 'Calls');
 
 if (ACLController::checkAccess('Calls', 'edit', true))
-    $module_menu[] = array("index.php?module=Calls&action=manage&return_module=Calls&return_action=manage", "Quản lý", "magnage");
+    $module_menu[] = array("index.php?module=Calls&action=manage&return_module=Calls&return_action=manage", "Quản lý SĐT", "magnage");
 
-if ($current_user->user_name == 'hungnh') {
-    if (ACLController::checkAccess('Calls', 'edit', true))
-        $module_menu[] = array("index.php?module=Calls&action=summary&return_module=Calls&return_action=summary", "Thống kê khác", "summary");
-}
+if (ACLController::checkAccess('Calls', 'edit', true))
+    $module_menu[] = array("index.php?module=Calls&action=summary&return_module=Calls&return_action=summary", "Báo cáo khác", "summary");
