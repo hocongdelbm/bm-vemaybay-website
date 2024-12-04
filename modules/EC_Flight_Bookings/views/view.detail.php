@@ -155,7 +155,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				n.working_process_id,
 				u.user_name,
 				u.id AS user_id
-			FROM notes n LEFT JOIN users u ON n.created_by = u.id AND u.deleted = 0
+			FROM notes n 
+			LEFT JOIN users u ON n.created_by = u.id AND u.deleted = 0
 			WHERE n.parent_id = '" . $this->bean->id . "'
 				AND n.parent_type = 'EC_Flight_Bookings' 
 				AND n.deleted = 0
@@ -163,9 +164,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		";
 
 		$res 			= $this->bean->db->query($sql);
-		$user_list 		= get_user_array(true, 'Active', '', true);
+		$user_list 		= get_user_array(true, '', '', true);
 		$note_username 	= "";
-		$row_content 	= "";
+		$row_content 		= "";
 
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$note_username 	= $user_list[$row['user_id']];
@@ -234,7 +235,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					<div class="mobile-menu__top">
 						<h3 class="title">Diễn giải</h3>
 						<label for="slide-menu" class="wrap-cancel">
-							<svg aria-hidden="true" class="xvijh9v xhhsvwb x1ty9z65 xgzva0m" height="24px" viewBox="0 0 24 24" width="24px"><g stroke="#BCC0C4" stroke-linecap="round" stroke-width="2"><line x1="6" x2="18" y1="6" y2="18"></line><line x1="6" x2="18" y1="18" y2="6"></line></g></svg>
+							<svg aria-hidden="true" height="24px" viewBox="0 0 24 24" width="24px"><g stroke="var(--text-primary-color)" stroke-linecap="round" stroke-width="2"><line x1="6" x2="18" y1="6" y2="18"></line><line x1="6" x2="18" y1="18" y2="6"></line></g></svg>
 						</label>
 					</div>
 					<div class="mobile-menu-wrapper">
@@ -315,7 +316,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_IS_EXPORTED', $is_exported);
 
 		// Đã giữ chỗ
-		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . '> <label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp;<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '>&nbsp;<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" title="' . $this->bean->agent_name . '">' . $this->bean->agent_name . '</a>';
+		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . '> <label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp;<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '>&nbsp;<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '"></a>';
 		$this->ss->assign('CUSTOM_IS_HOLD', $is_hold);
 
 		// Date ticket issue (ngày xuất vé) - giao vé
@@ -1360,14 +1361,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				$check_ret = true;
 			} else $html .= '<td data-label="" class="text-center"></td>';
 
-			if ($current_user->user_name == 'hungnh') {
-				// pr($row);
-			}
+			$flight_number = $row['flight_number'] ?? '';
 
 			$html .= '<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 					<td data-label="Chiều" class="text-center" id="detail_direction' . $i . '" data-direction="' . $row['direction'] . '">' . $app_list_strings['bk_direction_list'][$row['direction']] . '</td>
 					<td data-label="Mã hãng" class="text-center dt_airline" id="detail_airline' . $i . '" data-airline="' . $row['airline_code'] . '">' . $img_src . '</td>
-					<td data-label="Số hiệu" class="text-center">' . $row['flight_number'] . '</td>
+					<td data-label="Số hiệu" class="text-center">' . $flight_number . '</td>
 					<td data-label="Hạng vé" class="text-center ticket_class' . $row['direction'] . '">' . $row['ticket_class'] . '</td>
 					<td data-label="Nơi đi" class="text-center">' . $row['departure'] . '</td>
 					<td data-label="Nơi đến" class="text-center">' . ($row['is_layover'] ? '' : $row['arrival']) . '</td>
@@ -1411,7 +1410,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
 				$sms_btn = '<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2"
 						direction="' . $row['direction'] . '" 
-						flightno="' . $row['flight_number'] . '"
+						flightno="' . $flight_number . '"
 						journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']])) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']])) . '"
 						date="' . explode(' ', $sms_depdate)[0] . '"
 						time="' . explode(' ', $sms_depdate)[1] . '"

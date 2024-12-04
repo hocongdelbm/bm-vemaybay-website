@@ -104,7 +104,10 @@ class Viewsendconfirm extends SugarView {
 			$form_body 	= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail);	
 			$subject 	= 'Voucher Timchuyenbay gởi tặng!';
 		} 
-		else $voucher = array();
+		else $voucher = array(
+			'name' => '',
+			'amt' => 0,
+		);
 
 		// Ngân lượng (Thanh toán online)
 		$nganluong_code = $this->bean->nganluong_code;
@@ -821,8 +824,10 @@ class Viewsendconfirm extends SugarView {
 				FROM ec_vouchers 
 				WHERE booking_receive_id = "' . $booking_id . '"
 				AND deleted = 0';
+
 		$res = $this->bean->db->query($sql);
 		$row = $this->bean->db->fetchByAssoc($res);
+
 		return array('name' => $row['name'], 'amt' => $row['reduce_amount'], 'expire_date' => date('d-m-Y', strtotime($row['validate_to_date'])));
 	}
 }

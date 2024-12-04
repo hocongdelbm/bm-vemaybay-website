@@ -29,7 +29,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 		// Kiểm tra đối với trường hợp booking đã gọi, chỉ tính 1 lần
 		if ($booking_status == '6') {
-			// Kiểm tra đã tồn tại
 			$sql_exist = 'SELECT IF(id IS NOT NULL, 1, 0) 
 						  FROM ec_working_process
 						  WHERE parent_id = "'.$record.'" deleted = 0 AND called > 0';
@@ -117,9 +116,11 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				$db->query($update);
 			} 
 			else {
-				if ($booking_status == '6') // Called
-					$work->called = 1;
-				else if ($booking_status == '3') // Confirmed
+				// if ($booking_status == '6') // Called
+				// 	$work->called = 1;
+				// else 
+				
+				if ($booking_status == '3') // Confirmed
 					$work->confirmed = 1;
 				else if ($booking_status == '8' && is_null($support_customer)) // Completed
 					$work->completed = 1;

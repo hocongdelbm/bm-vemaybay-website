@@ -96,7 +96,6 @@ $entry_point_registry = array(
     'entryPointGetRemainingCredit'          => array('file' => 'custom/entrypoints/epGetRemainingCredit.php', 'auth' => true),
     'entryPointGetCurrencyExrate'           => array('file' => 'custom/entrypoints/epGetCurrencyExrate.php', 'auth' => true),
     'entryPointLoadWorkingProcessDetail'    => array('file' => 'custom/entrypoints/epLoadWorkingProcessDetail.php', 'auth' => true),
-    'entryPointGetReportData'               => array('file' => 'custom/entrypoints/epGetReportData.php', 'auth' => true),
     'entryPointCheckBookingPaid'            => array('file' => 'custom/entrypoints/epCheckBookingPaid.php', 'auth' => true),
     'entryPointGetAirportAndAirline'        => array('file' => 'custom/entrypoints/epGetAirportAndAirline.php', 'auth' => true),
 
@@ -118,4 +117,8 @@ $entry_point_registry = array(
 
     // Bank Account
     'entryPointBankAccount'         => array('file' => 'custom/entrypoints/epBankAccount.php', 'auth' => true),
+    
+    // DASHBOARD - HOME
+    'entryPointOverviewDashBoard'           => array('file' => 'custom/entrypoints/epOverviewDashboard.php', 'auth' => true),
+
 );

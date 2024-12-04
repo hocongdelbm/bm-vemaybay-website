@@ -114,7 +114,6 @@ class Viewdebtopay extends SugarView
 			$smartyobj->assign('SUPPLIER_NAME', $_POST['supname_' . $supplier_id]);
 
 			if (isset($_POST['exportexcel'])) {
-
 				pr($_POST);
 				pr($html);
 				die;
@@ -765,10 +764,6 @@ class Viewdebtopay extends SugarView
 		AND p.supplier_id = '" . $supplier_id . "'
 		ORDER BY posted_date, order_date";
 
-		// if ($GLOBALS['current_user']->user_name == 'hungnh') {
-		//     pr($sql);
-		// }
-
 		$res 		= $db->query($sql);
 		$i 			= 0;
 		$html 		= '';
@@ -796,7 +791,7 @@ class Viewdebtopay extends SugarView
 				$total_debt += (int)$row['debt_amount'];
 				$total_pay += (int)$row['pay_amount'];
 				$total_qty += (int)$row['qty'];
-				$total_remain += (int)($row['debt_amount'] - $row['pay_amount']);
+				$total_remain += (int)$row['debt_amount'] - (int)$row['pay_amount'];
 				$html .= '<tr>
 							<td align="center">' . date('d/m/Y', strtotime($row['posted_date'])) . '</td>
 							<td><a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '" target="_blank">' . $row['voucher_name'] . '</a></td>

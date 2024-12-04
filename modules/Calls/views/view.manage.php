@@ -118,7 +118,7 @@ class Viewmanage extends SugarView {
                     'brandname'   => 'Travelpass',
                ],
                '0933799860' => [
-                    'action' => 'all',
+                    'action' => 'inbound-only',
                     'label'   => 'Vietjet (.net)',
                     'brandname'   => 'Travelpass',
                ],

@@ -8,7 +8,7 @@ class UsersLogicHook
 		if ($current_user->user_name == 'pandadth') {
 			$url = "index.php?module=EC_TongHop&action=businessreport&return_module=EC_TongHop&return_action=businessreport";
 		} else {
-			$url = "index.php?module=EC_Flight_Bookings&action=index";
+			$url = "index.php?module=Home&action=index";
 		}
 
 		SugarApplication::redirect($url);

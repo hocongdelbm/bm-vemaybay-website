@@ -212,7 +212,7 @@
                                                        <div class="flex-start gap-3">
                                                            <label for="select-phone-outbound" class="label text-nowrap">Số gọi ra</label>
                                                            <select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100">
-                                                                      <option value=""></option>
+                                                                 <option value=""></option>
                                                                  <optgroup label="Viettel">
                                                                       <option value="0385295550@125.235.38.182:55555">0385295550</option> 
                                                                       <option value="0385295676@125.235.38.182:55555">0385295676</option> 
@@ -338,14 +338,20 @@
                                                   <div class="row row-bordered overflow-visible g-0">
                                                        <div class="dropdown-shortcuts-item col">
                                                             <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+                                                                      <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                                                                      <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                                                 </svg>
                                                             </span>
                                                             <a class="stretched-link" href="index.php?module=EC_Receipt_Voucher&action=EditView&return_module=EC_Receipt_Voucher&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_Receipt_Voucher" label="LBL_MODULE_NAME"}</a>
                                                        </div>
                               
                                                        <div class="dropdown-shortcuts-item col">
                                                             <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+                                                                      <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                                                                      <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                                                 </svg>
                                                             </span>
                                                             <a class="stretched-link" href="index.php?module=EC_Payment_Voucher&action=EditView&return_module=EC_Payment_Voucher&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_Payment_Voucher" label="LBL_MODULE_NAME"}</a>
                                                        </div>
@@ -353,14 +359,20 @@
                                                   <div class="row row-bordered overflow-visible g-0">
                                                        <div class="dropdown-shortcuts-item col">
                                                             <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+                                                                      <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                                                                      <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                                                 </svg>
                                                             </span>
                                                             <a class="stretched-link" href="index.php?module=EC_HoanVe&action=EditView&return_module=EC_HoanVe&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_HoanVe" label="LBL_MODULE_NAME"}</a>
                                                        </div>
                               
                                                        <div class="dropdown-shortcuts-item col">
                                                             <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+                                                                      <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                                                                      <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                                                 </svg>
                                                             </span>
                                                             <a class="stretched-link" href="index.php?module=EC_LeaveAbsences&action=EditView&return_module=EC_LeaveAbsences&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_LeaveAbsences" label="LBL_MODULE_NAME"}</a>
                                                        </div>
@@ -368,14 +380,20 @@
                                                   <div class="row row-bordered overflow-visible g-0">
                                                        <div class="dropdown-shortcuts-item col">
                                                             <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+                                                                      <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                                                                      <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                                                 </svg>
                                                             </span>
                                                             <a class="stretched-link" href="index.php?module=EC_ChuyenTienNoiBo&action=EditView&return_module=EC_ChuyenTienNoiBo&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_ChuyenTienNoiBo" label="LBL_MODULE_NAME"}</a>
                                                        </div>
                               
                                                        <div class="dropdown-shortcuts-item col">
                                                             <span class="dropdown-shortcuts-icon bg-label-secondary rounded-circle mb-2">
-                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>
+                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+                                                                      <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                                                                      <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                                                 </svg>
                                                             </span>
                                                             <a class="stretched-link" href="index.php?module=EC_HoaDonBan&action=EditView&return_module=EC_HoaDonBan&return_action=DetailView">{$APP.LBL_QUICK_CREATE}{sugar_translate module="EC_HoaDonBan" label="LBL_MODULE_NAME"}</a>
                                                        </div>

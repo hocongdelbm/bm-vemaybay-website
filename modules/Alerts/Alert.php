@@ -77,8 +77,8 @@ class Alert extends Basic
         $this->target_module = $this->target_module ?: 'Alerts';
         $this->type = $this->type ?: 'readonly';
         $this->url_redirect = $this->url_redirect ?: "index.php?module=" . str_replace("'", '', $this->target_module) . "&action=DetailView&record=$this->id";
-        $this->filename = $this->filename ?: $_POST['filename'];
-        $this->alert_photo = $this->alert_photo ?: $_POST['alert_photo'];
+        $this->filename = $this->filename ?: $_POST['filename'] ?? '';
+        $this->alert_photo = $this->alert_photo ?: $_POST['alert_photo'] ?? '';
         $this->parent_alert_id = $this->parent_alert_id ?: $this->id;
 
         return [

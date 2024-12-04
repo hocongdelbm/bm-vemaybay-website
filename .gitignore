@@ -35,3 +35,7 @@ secure_sessions/*
 
 # Ignore vendor
 vendor
+
+# Ignore folder server
+awstats-icon
+awstatsicons

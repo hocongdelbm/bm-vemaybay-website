@@ -20,11 +20,13 @@ class Viewbusinessreport extends SugarView
             '<option value="this_month">Tháng này</option>',
             '<option value="previous_month">Tháng trước</option>',
         );
+
+        $date_report = $_POST['date_select'] ?? $_GET['date_select'] ?? 'this_week';
         $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
-        $smartyobj->assign('CURRENT_OPTION', $_POST['date_select'] ?? $_GET['date_select']);
+        $smartyobj->assign('CURRENT_OPTION', $date_report);
 
         // DATA REPORT
-        $html_report = $this->genInforReport($_POST['date_select']);
+        $html_report = $this->genInforReport($date_report);
         $smartyobj->assign('DATA_REPORT', $html_report);
 
         // SAVE QC COST
@@ -62,9 +64,9 @@ class Viewbusinessreport extends SugarView
     {
         global $db, $current_user;
 
-        $date_ranges = [];
-        $today = date('Y-m-d');
-        $period = $_POST['date_select'] ?? $_GET['date_select'];
+        $date_ranges    = [];
+        $today          = date('Y-m-d');
+        $period         = $_POST['date_select'] ?? $_GET['date_select'] ?? 'this_week';
 
         if (isset($_POST['real-time'])) {
             $period = $_POST['date_select'];

@@ -347,7 +347,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         } 
                         else $key_pass_edit = $p['key'];
 
-                        $button_update_passenger = '<button type="button" class="btn btn-primary btn_edit_passenger" re_key="'.$reservation_key.'" pass_key="'.$key_pass_edit.'" pass_type="'.$p['type'].'">'.$icon_edit_passenger.'Thông tin</button>';
+                        $button_update_passenger = '<button type="button" class="btn btn-primary btn_edit_passenger" re_key="'.$reservation_key.'" pass_key="'.$key_pass_edit.'" pass_type="'.$p['type'].'">Thông tin</button>';
                         
                         $gender = $p['gender'] == 'Male' ? 'Nam' : 'Nữ';
                         $birthdate = is_null($p['birthdate']) || empty($p['birthdate']) ? '' : date("d-m-Y", strtotime($p['birthdate']));

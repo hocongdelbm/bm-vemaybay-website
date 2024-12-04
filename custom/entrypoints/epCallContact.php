@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $json_user_info = $zalo->get_user_info($data['zalo_id']);
             $user_info      = json_decode($json_user_info, true);
 
-            if ($user_info['error'] == 0) {
+            if ($user_info && $user_info['error'] == 0) {
                 $zalo_phone = (isset($user_info['data']['shared_info']) && isset($user_info['data']['shared_info']['phone'])) ? $user_info['data']['shared_info']['phone'] : '';
                 // Get phone from user_alias
                 if (empty($zalo_phone)) $zalo_phone = get_phone_by_alias($user_info['data']['user_alias']);
@@ -496,9 +496,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         else echo 0;
         exit();
     } elseif ($type == "map_call_booking") {
-        $call_name = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
-        $booking_id = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
-        $booking_name = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
+        $call_name      = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
+        $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
+        $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
 
         if (empty($call_name) || empty($booking_id)) {
             echo 0;
@@ -509,10 +509,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $sql = 'SELECT id
                 FROM calls cal
-                WHERE cal.name = "' . $call_name . '"
+                WHERE cal.name = "' . trim($call_name) . '"
                     AND (cal.booking_id IS NULL OR cal.booking_id = "")
-                    AND cal.deleted = 0 
-            ';
+                    AND cal.deleted = 0';
         $call_id = $db->getOne($sql);
 
         if (!empty($call_id)) {
@@ -529,14 +528,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $cal->save();
 
             $assigned_user_id = (is_null($cal->assigned_user_id) || empty($cal->assigned_user_id)) ? $current_user->id : $cal->assigned_user_id;
-
             $work                       = new EC_Working_Process();
             $work->id                   = '';
             $work->name                 = $booking_name;
-            $work->parent_type             = 'EC_Flight_Bookings';
-            $work->parent_id             = $booking_id;
-            $work->description             = $description;
-            $work->called               = 1;
+            $work->parent_type          = 'EC_Flight_Bookings';
+            $work->parent_id            = $booking_id;
+            $work->description          = $description;
+            // $work->called               = 1;
             $work->assigned_user_id     = $assigned_user_id;
             $work->save();
 
@@ -546,7 +544,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
 
             $bean_note                      = new Note();
-            $bean_note->id                     = '';
+            $bean_note->id                  = '';
             $bean_note->name                = $booking_name;
             $bean_note->parent_type         = 'EC_Flight_Bookings';
             $bean_note->parent_id           = $booking_id;

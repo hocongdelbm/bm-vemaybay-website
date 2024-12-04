@@ -32,10 +32,8 @@ class Viewassignbk extends SugarView
 				ELSE 1 END) AS group_type
 			FROM ec_online_report
 			WHERE deleted = 0 
-			-- AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
-			-- AND DATE_ADD(date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d', strtotime('+7 hours', strtotime(date('Y-m-d H:i:s')))) . '"
 			AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-			ORDER BY FIELD(status, 1, 2, 0)
+			ORDER BY FIELD(status, 1, 2, 0), last_online
 		';
 		// date_modified
 

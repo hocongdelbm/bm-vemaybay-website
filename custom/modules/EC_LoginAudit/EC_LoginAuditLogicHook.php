@@ -31,7 +31,7 @@ class loginActions
         }
 
         $uuid = create_guid();
-        $typed_name = $_REQUEST['user_name'] ? $db->quote($_REQUEST['user_name']) : '';
+        $typed_name = isset($_REQUEST['user_name']) ? $db->quote($_REQUEST['user_name']) : '';
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
 
         // Browser

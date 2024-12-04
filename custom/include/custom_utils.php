@@ -2566,8 +2566,9 @@ function agent_change_status($agent, $status)
                 $sip_number     = custom_get_sip_number($agent);
                 $status_value   = $status == 'Available' ? 1 : ($status == 'On Break' ? 2 : 0);
 
+                $where_sql = '';
                 if($status != 'Logged Out'){
-                    $where_sql = ', last_online = "' . $timestamp_now . '"';
+                    $where_sql .= ', last_online = "' . $timestamp_now . '"';
                 }
 
                 if ($sip_number) {

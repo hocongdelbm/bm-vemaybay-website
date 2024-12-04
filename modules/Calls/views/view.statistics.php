@@ -224,7 +224,7 @@ class Viewstatistics extends SugarView
                "0933296508" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "0933297608" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "0933625233" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933799860" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
+               "0933799860" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
                "0933026416" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "0933611306" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
                "0937451098" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
@@ -597,10 +597,6 @@ class Viewstatistics extends SugarView
 
                          $total_calls = $total_inbound + $total_outbound + $total_missed + $total_suddenly + $total_spam + $total_internal;
                          $total_final += $total_calls;
-
-                         // if($current_user->user_name == 'hungnh'){
-                         //      pr($user);
-                         // }
 
                          $html .= '
                               <tr>

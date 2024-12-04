@@ -1951,6 +1951,7 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = array(
   22 => 'Quỹ dự phòng',
   23 => 'Tiền phòng Bình Thới',
   24 => 'Tiền phòng NVC',
+  25 => 'Tiền chung cư',
 );
 
 $GLOBALS['app_list_strings']['work_history_status_list'] = array(
@@ -2342,6 +2343,7 @@ $GLOBALS['app_list_strings']['bambooair_buzflex_luggage_price_list'] = array(
   650000    => '40kg (650.000 VND/Khách) - Business Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_advanced_luggage_price_list'] = array(
+  0 => 'Không mang hành lý ',
   1 => '15kg hành lý ký gửi ',
   // 100000 => '5kg trả trước (100.000 VND/Khách)-HLTT',
   // 150000 => '10kg trả trước (150.000 VND/Khách)-HLTT',
