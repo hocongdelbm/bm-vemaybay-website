@@ -1,3 +1,6 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
+
 {literal}
 <style>
      .card[class*=card-border-shadow-] {
@@ -322,14 +325,7 @@
                          <section class="month-employee-area h-100">
                               <div class="month-employee-top flex-between mb-3">
                                    <p class="month-employee-title">Cuộc gọi nhân viên</p>
-                                   {* 
-                                        <a target="_blank" href="index.php?module={$MODULE_NAME}&action=employee_report_call&from_date={$FROM_DATE}&to_date={$TO_DATE}">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
-                                                  <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
-                                             </svg>
-                                        </a>
-                                   *}
-                                   <a href="javascript:void(0)">
+                                   <a href="index.php?module={$MODULE_NAME}&action=employee_report&from_date={$FROM_DATE}&to_date={$TO_DATE}">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
                                              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
                                         </svg>
@@ -342,6 +338,5 @@
                     </div>
                </div>
           </div>
-
      </div>
 </div>    

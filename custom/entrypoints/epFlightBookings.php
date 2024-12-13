@@ -3856,7 +3856,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 		$denominator_booking_completed = ($count_booking_completed == 0) ? 1 : $count_booking_completed;
 		$html_summary .= '
-						<div class="d-flex gap-3 mb-3">
+						<div class="d-flex gap-3 mb-3 flex-wrap">
 							<div class="flex-fill lh-base">
 								<p>👤 *Họ tên: ' . $name_contact . '</p>  
 								<p>📞 *SĐT: ' . $phone_contact . '</p>

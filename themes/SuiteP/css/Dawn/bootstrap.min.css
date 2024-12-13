@@ -4852,6 +4852,8 @@ fieldset:disabled .btn {
      --bs-card-bg: #fff;
      --bs-card-img-overlay-padding: 1.5rem;
      --bs-card-group-margin: 1.625rem;
+     --bs-card-font-size: 0.9375rem;
+
      position: relative;
      display: flex;
      flex-direction: column;
@@ -4863,6 +4865,8 @@ fieldset:disabled .btn {
      background-clip: border-box;
      border: var(--bs-card-border-width) solid var(--bs-card-border-color);
      border-radius: var(--bs-card-border-radius);
+
+     font-size: var(--bs-card-font-size);
 }
 
 .card>hr {

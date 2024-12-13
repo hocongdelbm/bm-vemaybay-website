@@ -928,10 +928,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		/**
 		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
 		 */
-
+		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, array(7, 8)) || $current_user->user_name == 'hungnh') {
 		// if (ACLController::checkAccess('Bugs', 'edit', true) && ACLController::checkAccess('EC_Flight_Bookings', 'edit', true) && !in_array($this->bean->booking_status, array(4, 7, 8))) {
-		if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id)  || $current_user->user_name == 'hungnh' || $current_user->user_name == 'admin' || strtotime($time_current) < strtotime("08:00:00") || strtotime($time_current) > strtotime("20:59:59")) {
-			$change_status = '</form>
+		// if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id)  || $current_user->user_name == 'hungnh' || $current_user->user_name == 'admin' || strtotime($time_current) < strtotime("08:00:00") || strtotime($time_current) > strtotime("20:59:59")) {
+		
+		$change_status = '</form>
 			<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
 				<input type="hidden" name="action" value="Save" />
@@ -1095,7 +1096,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('SHARE_PROFIT', $this->createShareProfitBtn());
 
 		// Reservation with API Vietjet
-		if (($this->bean->booking_status == '1' || $this->bean->booking_status == '6' || $this->bean->booking_status == '3')
+		$allowed_holding_status = [1,2,3,6];
+		if (in_array($this->bean->booking_status, $allowed_holding_status)
 			&& ($this->bean->ticket_type == 1 || is_admin($current_user))
 			&& ($this->bean->airline == 'VJA' || $this->bean->airline_inbound == 'VJA' || $this->bean->airline == 'VZ' || $this->bean->airline_inbound == 'VZ')
 			&& (!$this->bean->is_hold && !$this->bean->holding_status)

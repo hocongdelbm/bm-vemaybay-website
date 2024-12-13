@@ -7,21 +7,11 @@ class Viewsummary extends SugarView
      {
           if (ACLController::checkAccess('Calls', 'list', true)) {
                $smartyCont = new Sugar_Smarty();
-               $this->displayJS();
-
                $con_ret = $this->populateContent();
 
                $this->assignFields($con_ret, $smartyCont);
                $smartyCont->display('modules/Calls/tpls/summary.tpl');
           }
-     }
-
-     function displayJS()
-     {
-          $js = '';
-          $js .= '<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.3/dist/chart.umd.min.js"></script>';
-          $js .= '<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>';
-          echo $js;
      }
 
      function populateContent()

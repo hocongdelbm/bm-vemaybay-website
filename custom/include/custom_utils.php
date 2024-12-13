@@ -2095,7 +2095,7 @@ function global_test_input($data)
 // Format seconds to time
 function global_secondsToTimeFormat($seconds)
 {
-    if ($seconds == 0) {
+    if (empty($seconds)) {
         return '00:00:00';
     }
 

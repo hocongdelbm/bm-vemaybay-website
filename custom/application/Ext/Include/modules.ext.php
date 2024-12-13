@@ -3,6 +3,111 @@
 
  
  //WARNING: The contents of this file are auto-generated
+$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
+$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
+$moduleList[] = 'EC_Bank_Account';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Banks'] = 'EC_Banks';
+$beanFiles['EC_Banks'] = 'modules/EC_Banks/EC_Banks.php';
+$moduleList[] = 'EC_Banks';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Booking_Details'] = 'EC_Booking_Details';
+$beanFiles['EC_Booking_Details'] = 'modules/EC_Booking_Details/EC_Booking_Details.php';
+$moduleList[] = 'EC_Booking_Details';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Booking_Itineraries'] = 'EC_Booking_Itineraries';
+$beanFiles['EC_Booking_Itineraries'] = 'modules/EC_Booking_Itineraries/EC_Booking_Itineraries.php';
+$moduleList[] = 'EC_Booking_Itineraries';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Booking_Passengers'] = 'EC_Booking_Passengers';
+$beanFiles['EC_Booking_Passengers'] = 'modules/EC_Booking_Passengers/EC_Booking_Passengers.php';
+$moduleList[] = 'EC_Booking_Passengers';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_CashFlow'] = 'EC_CashFlow';
+$beanFiles['EC_CashFlow'] = 'modules/EC_CashFlow/EC_CashFlow.php';
+$moduleList[] = 'EC_CashFlow';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_ChiTietHoaDon'] = 'EC_ChiTietHoaDon';
+$beanFiles['EC_ChiTietHoaDon'] = 'modules/EC_ChiTietHoaDon/EC_ChiTietHoaDon.php';
+$moduleList[] = 'EC_ChiTietHoaDon';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_ChiTietHoanVe'] = 'EC_ChiTietHoanVe';
+$beanFiles['EC_ChiTietHoanVe'] = 'modules/EC_ChiTietHoanVe/EC_ChiTietHoanVe.php';
+$moduleList[] = 'EC_ChiTietHoanVe';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_ChiTietTaiKhoan'] = 'EC_ChiTietTaiKhoan';
+$beanFiles['EC_ChiTietTaiKhoan'] = 'modules/EC_ChiTietTaiKhoan/EC_ChiTietTaiKhoan.php';
+$moduleList[] = 'EC_ChiTietTaiKhoan';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_ChuyenTienNoiBo'] = 'EC_ChuyenTienNoiBo';
+$beanFiles['EC_ChuyenTienNoiBo'] = 'modules/EC_ChuyenTienNoiBo/EC_ChuyenTienNoiBo.php';
+$moduleList[] = 'EC_ChuyenTienNoiBo';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Commission'] = 'EC_Commission';
+$beanFiles['EC_Commission'] = 'modules/EC_Commission/EC_Commission.php';
+$moduleList[] = 'EC_Commission';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Completed_Bookings'] = 'EC_Completed_Bookings';
+$beanFiles['EC_Completed_Bookings'] = 'modules/EC_Completed_Bookings/EC_Completed_Bookings.php';
+$moduleList[] = 'EC_Completed_Bookings';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Customer'] = 'EC_Customer';
+$beanFiles['EC_Customer'] = 'modules/EC_Customer/EC_Customer.php';
+$moduleList[] = 'EC_Customer';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Debts'] = 'EC_Debts';
+$beanFiles['EC_Debts'] = 'modules/EC_Debts/EC_Debts.php';
+$moduleList[] = 'EC_Debts';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
+$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
+$moduleList[] = 'EC_Bank_Account';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
 $beanList['EC_Banks'] = 'EC_Banks';
 $beanFiles['EC_Banks'] = 'modules/EC_Banks/EC_Banks.php';
 $moduleList[] = 'EC_Banks';
@@ -327,6 +432,13 @@ $moduleList[] = 'EC_Receipt_Voucher';
 
  
  //WARNING: The contents of this file are auto-generated
+$beanList['EC_Report_Weekly'] = 'EC_Report_Weekly';
+$beanFiles['EC_Report_Weekly'] = 'modules/EC_Report_Weekly/EC_Report_Weekly.php';
+$moduleList[] = 'EC_Report_Weekly';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
 $beanList['EC_Request_Flight'] = 'EC_Request_Flight';
 $beanFiles['EC_Request_Flight'] = 'modules/EC_Request_Flight/EC_Request_Flight.php';
 $moduleList[] = 'EC_Request_Flight';
@@ -407,118 +519,6 @@ $moduleList[] = 'EC_Working_Process';
 $beanList['EC_Zalo'] = 'EC_Zalo';
 $beanFiles['EC_Zalo'] = 'modules/EC_Zalo/EC_Zalo.php';
 $moduleList[] = 'EC_Zalo';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
-$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
-$moduleList[] = 'EC_Bank_Account';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Banks'] = 'EC_Banks';
-$beanFiles['EC_Banks'] = 'modules/EC_Banks/EC_Banks.php';
-$moduleList[] = 'EC_Banks';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Booking_Details'] = 'EC_Booking_Details';
-$beanFiles['EC_Booking_Details'] = 'modules/EC_Booking_Details/EC_Booking_Details.php';
-$moduleList[] = 'EC_Booking_Details';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Booking_Itineraries'] = 'EC_Booking_Itineraries';
-$beanFiles['EC_Booking_Itineraries'] = 'modules/EC_Booking_Itineraries/EC_Booking_Itineraries.php';
-$moduleList[] = 'EC_Booking_Itineraries';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Booking_Passengers'] = 'EC_Booking_Passengers';
-$beanFiles['EC_Booking_Passengers'] = 'modules/EC_Booking_Passengers/EC_Booking_Passengers.php';
-$moduleList[] = 'EC_Booking_Passengers';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_CashFlow'] = 'EC_CashFlow';
-$beanFiles['EC_CashFlow'] = 'modules/EC_CashFlow/EC_CashFlow.php';
-$moduleList[] = 'EC_CashFlow';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_ChiTietHoaDon'] = 'EC_ChiTietHoaDon';
-$beanFiles['EC_ChiTietHoaDon'] = 'modules/EC_ChiTietHoaDon/EC_ChiTietHoaDon.php';
-$moduleList[] = 'EC_ChiTietHoaDon';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_ChiTietHoanVe'] = 'EC_ChiTietHoanVe';
-$beanFiles['EC_ChiTietHoanVe'] = 'modules/EC_ChiTietHoanVe/EC_ChiTietHoanVe.php';
-$moduleList[] = 'EC_ChiTietHoanVe';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_ChiTietTaiKhoan'] = 'EC_ChiTietTaiKhoan';
-$beanFiles['EC_ChiTietTaiKhoan'] = 'modules/EC_ChiTietTaiKhoan/EC_ChiTietTaiKhoan.php';
-$moduleList[] = 'EC_ChiTietTaiKhoan';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_ChuyenTienNoiBo'] = 'EC_ChuyenTienNoiBo';
-$beanFiles['EC_ChuyenTienNoiBo'] = 'modules/EC_ChuyenTienNoiBo/EC_ChuyenTienNoiBo.php';
-$moduleList[] = 'EC_ChuyenTienNoiBo';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Commission'] = 'EC_Commission';
-$beanFiles['EC_Commission'] = 'modules/EC_Commission/EC_Commission.php';
-$moduleList[] = 'EC_Commission';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Completed_Bookings'] = 'EC_Completed_Bookings';
-$beanFiles['EC_Completed_Bookings'] = 'modules/EC_Completed_Bookings/EC_Completed_Bookings.php';
-$moduleList[] = 'EC_Completed_Bookings';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Customer'] = 'EC_Customer';
-$beanFiles['EC_Customer'] = 'modules/EC_Customer/EC_Customer.php';
-$moduleList[] = 'EC_Customer';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Debts'] = 'EC_Debts';
-$beanFiles['EC_Debts'] = 'modules/EC_Debts/EC_Debts.php';
-$moduleList[] = 'EC_Debts';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
-$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
-$moduleList[] = 'EC_Bank_Account';
-
-
- 
- //WARNING: The contents of this file are auto-generated
-$beanList['EC_Report_Weekly'] = 'EC_Report_Weekly';
-$beanFiles['EC_Report_Weekly'] = 'modules/EC_Report_Weekly/EC_Report_Weekly.php';
-$moduleList[] = 'EC_Report_Weekly';
 
 
 ?>

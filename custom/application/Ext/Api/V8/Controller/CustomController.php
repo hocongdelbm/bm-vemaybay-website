@@ -15,10 +15,11 @@ class CustomController extends BaseController
     private $IP_WHITELIST = [
         '14.161.31.237', // LBM
 
-        '157.119.251.232', // vietjet.net
+        '10.1.1.1', // Network line
+        '157.119.251.223', // vietjet.net
         '103.160.5.98', // vietjet.net
-        '10.1.1.1', // vietjet.net
         '157.119.248.137', // timchuyenbay.com
+        '103.160.5.135', // timchuyenbay.com
 
         '157.119.251.220', // timchuyenbay.net
         '157.119.251.12', // timchuyenbay.com.vn
@@ -259,17 +260,17 @@ class CustomController extends BaseController
             $call->direction = $call_direction;
         }
 
-        // Bổ sung assigned_user_id cho cuộc gọi đi
-        if ($call_direction == 'outbound') {
+        // Bổ sung assigned_user_id cho cuộc gọi đi / nội bộ
+        if ($call_direction == 'outbound' || $call_direction == 'internal') {
             $call->assigned_user_id = custom_get_sip_number($call_from);
-        }
+        } 
+
         $call->date_start   = date('d-m-Y H:i:s', strtotime($call_start));
         $call->date_end     = date('d-m-Y H:i:s', strtotime($call_start) + $call_duration);
         $call->status       = 'new';
         $call->log          = json_encode($params);
         $call->record_file  = $record_file;
         $call->other_caller = $other_caller;
-
         $call->call_duration = $call_duration;
         $call->call_wait    = $call_wait;
         $call->call_talk    = $call_talk;

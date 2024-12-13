@@ -17,8 +17,8 @@ $(document).on('click', 'input[name="btnSendSMS"]', function () {
     let arr_applied_pass_id = applied_pass.split(",");
     $('#tbl_pax tr.psg-line').each(function () {
         if (arr_applied_pass_id.includes($(this).attr('data-id'))) {
-            if(passenger.length == 0) passenger += $(this).find('td:eq(4)').html().trim().toUpperCase();
-            else passenger += ', ' + $(this).find('td:eq(4)').html().trim().toUpperCase();
+            if(passenger.length == 0) passenger += $(this).find('td:eq(4) .fullname').html().trim().toUpperCase();
+            else passenger += ', ' + $(this).find('td:eq(4) .fullname').html().trim().toUpperCase();
             count_passenger++;
         }
     });

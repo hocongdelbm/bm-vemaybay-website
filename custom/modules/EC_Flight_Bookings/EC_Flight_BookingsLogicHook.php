@@ -186,7 +186,7 @@ class EC_Flight_BookingsLogicHook
 			];
 
 			$user = BeanFactory::newBean('Users');
-            $user->retrieve($focus->assigned_user_id);
+			$user->retrieve($focus->assigned_user_id);
 			$full_name = $user->last_name . ' ' . $user->first_name;
 
 			$alertData = [
@@ -198,9 +198,9 @@ class EC_Flight_BookingsLogicHook
 				'priority' 		=> 'low',
 				'type' 			=> 'readonly',
 			];
-     
-			$alert 		= new Alert();
-			$alertId 	= $alert->autoCreateAlert('EC_Flight_Bookings', $list_user, $alertData);
+	
+			// $alert 		= new Alert();
+			// $alertId 	= $alert->autoCreateAlert('EC_Flight_Bookings', $list_user, $alertData);
 		}
 	}
 

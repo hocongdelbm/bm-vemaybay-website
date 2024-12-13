@@ -68,8 +68,8 @@ var incomingCallAudio = new window.Audio(RINGTONE_FILE);
 incomingCallAudio.loop = true;
 
 /********************   INIT   ********************/
-JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
-// JsSIP.debug.disable('JsSIP:*');
+// JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
+JsSIP.debug.disable('JsSIP:*');
 // JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
 
 socket = new JsSIP.WebSocketInterface(WS_SERVERS);
@@ -381,7 +381,7 @@ $(document).ready(function () {
     // Microphone permission 
     $(document).on('click', '#call-phone__circle', function () {
         if (!ua || !ua.isConnected() || !ua.isRegistered()) {
-            showModalNotify('error', 'Vui lòng nhấn online và thử lại...');
+            showModalNotify('error', 'Không có kết nối. Vui lòng nhấn Online hoặc refresh trang và thử lại!');
             return false;
         } else {
             if (navigator.mediaDevices) {
@@ -399,6 +399,7 @@ $(document).ready(function () {
             }
         }
     });
+    
 
     // Checked trạng thái bận của user
     if (AGENT_STATUS == 'Available') {

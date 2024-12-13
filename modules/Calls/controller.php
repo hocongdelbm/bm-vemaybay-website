@@ -22,6 +22,9 @@ class CallsController extends SugarController
                case "summary":
                     $this->action = "summary";
                     break;
+               case "employee_report":
+                    $this->action = "employee_report";
+                    break;
                case "manage":
                     $this->action = "manage";
                     break;
