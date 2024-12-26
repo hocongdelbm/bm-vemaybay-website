@@ -439,10 +439,10 @@ class EC_Flight_Bookings extends Basic
 			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? '0';
 			$psg->luggage_purchase_no_vat 		= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
 			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
-			$psg->luggage_purchase_inbound_no_vat 	= unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
+			$psg->luggage_purchase_inbound_no_vat = unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
 			$psg->vat_luggage_purchase_inbound 	= unformat_number($_POST['psg_detail_lug_pur_ib_vat'][$i]);
-			$psg->cic 							= $_POST['psg_cic'][$i] ?? '';
-			$psg->passport_number 				= $_POST['psg_passport_number'][$i] ?? '';
+			$psg->cic 							= trim($_POST['psg_cic'][$i]) ?? '';
+			$psg->passport_number 				= trim($_POST['psg_passport_number'][$i]) ?? '';
 
 			if ($psg->deleted == 1) {
 				if (!empty($psg->id)) $psg->mark_deleted($psg->id);

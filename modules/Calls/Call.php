@@ -955,4 +955,58 @@ class Call extends SugarBean
 
         parent::mark_deleted($id);
     }
+
+    public function determineHangupCause($params)
+    {
+        if(is_array($params) && count($params) > 0){
+            $direction          = $params['call_direction'] ?? '';
+            $disposition        = $params['call_hangup_disposition'] ?? '';
+            $hangupCause        = $params['hangup_cause'] ?? '';
+            $ccCancelReason     = $params['cc_cancel_reason'] ?? null;
+        
+            // Xử lý cho cuộc gọi inbound
+            if ($direction === 'inbound') {
+                if ($disposition === 'recv_bye' && $hangupCause === 'NORMAL_CLEARING') {
+                    return ($ccCancelReason === 'BREAK_OUT')
+                        ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời'
+                        : 'khách hàng chủ động kết thúc cuộc gọi';
+                }
+        
+                if ($disposition === 'send_bye') {
+                    return ($ccCancelReason === 'TIMEOUT')
+                        ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
+                        : 'Agent chủ động kết thúc cuộc gọi';
+                }
+        
+                if ($disposition === 'send_refuse') {
+                    return 'Cuộc gọi nhỡ, agent bận máy';
+                }
+            }
+        
+            // Xử lý cho cuộc gọi outbound
+            if ($direction === 'outbound') {
+                if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
+                    return 'Agent hủy cuộc gọi, khi khách hàng không trả lời cuộc gọi';
+                }
+        
+                if ($disposition === 'send_refuse') {
+                    return ($hangupCause === 'USER_BUSY')
+                        ? 'Khách hàng từ chối cuộc gọi'
+                        : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
+                }
+        
+                if ($disposition === 'recv_bye'){
+                    return 'Agent chủ động kết thúc cuộc gọi';
+                }
+    
+                if ($disposition === 'send_bye'){
+                    return 'Khách hàng chủ động kết thúc cuộc gọi';
+                }
+            }
+        
+            return 'Nguyên nhân ngắt máy không xác định';
+        }
+
+        return 'Không xác định';
+    }
 }

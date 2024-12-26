@@ -1962,6 +1962,7 @@ $GLOBALS['app_list_strings']['work_history_status_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['voucher_status_list'] = array(
+  'new' => 'Mới tạo',
   'pending' => 'Chờ sử dụng',
   'done' => 'Đã sử dụng',
   'expired' => 'Hết hạn',

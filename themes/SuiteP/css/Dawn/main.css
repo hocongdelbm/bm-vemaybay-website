@@ -2574,7 +2574,6 @@ input#start_working_date,
   gap: 5px;
 }
 
-#voucher_tbl input,
 table.table-request-invoice input,
 .tab-pane-NOBOOTSTRAPTOGGLER input:not(input[type="checkbox"]):not(input[type="button"]):not(input[type="radio"]),
 table.table-change-itineraries input,

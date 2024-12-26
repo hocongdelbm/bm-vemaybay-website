@@ -68,8 +68,8 @@ var incomingCallAudio = new window.Audio(RINGTONE_FILE);
 incomingCallAudio.loop = true;
 
 /********************   INIT   ********************/
-// JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
-JsSIP.debug.disable('JsSIP:*');
+JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
+// JsSIP.debug.disable('JsSIP:*');
 // JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
 
 socket = new JsSIP.WebSocketInterface(WS_SERVERS);

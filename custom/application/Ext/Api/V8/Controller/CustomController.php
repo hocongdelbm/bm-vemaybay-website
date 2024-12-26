@@ -38,8 +38,8 @@ class CustomController extends BaseController
         '157.119.251.218', // vietjetstar.net
 
         '103.160.5.21', // vemaybay5s.com
-        '202.151.168.27', // vemaybaynamphuong.net
-        '202.151.168.28', // vemaybay.me
+        '157.119.251.90', // vemaybaynamphuong.net
+        '157.119.251.151', // vemaybay.me
 
         '157.119.251.114',
         '157.119.251.90',
@@ -278,7 +278,7 @@ class CustomController extends BaseController
         if ($call_direction == 'inbound' || $call_direction != 'outbound') {
             $call->call_sources = getCallSource($call_to);
         }
-        $call->hangup_cause = $this->determineHangupCause($params);
+        $call->hangup_cause = $call->determineHangupCause($params);
         $call->save();
 
         if (!empty($call->id)) {
@@ -301,167 +301,65 @@ class CustomController extends BaseController
     }
 
     /************  VOUCHER  ************/
-    public function get_vouchers(Request $request, Response $response, array $args)
+    /**
+     * Get info single voucher by code
+     */
+    public function get_info_voucher(Request $request, Response $response, array $args)
     {
-        global $db;
-
         $params = (array)$request->getParsedBody();
-        $code_voucher  = isset($params['code_voucher']) ? global_test_input($params['code_voucher']) : '';
+        $request_ip = $request->getServerParam('REMOTE_ADDR');
+        $voucher_code = isset($params['voucher_code']) ? global_test_input($params['voucher_code']) : '';
 
-        $data = [
-            'name' => '',
-            'status' => '',
-            'validate_from_date' => '',
-            'validate_to_date' => '',
-            'reduce_amount' => '',
-            'condition_voucher' => '',
-        ];
-
-        if (strlen($code_voucher) < 3 || strlen($code_voucher) > 12) {
+        if(!in_array($request_ip, $this->IP_WHITELIST))
             return $response->withJson([
-                'error' => true,
-                'message' => "Failed",
-                'data' => 'Invalid code voucher. Length of code voucher incorrect.',
+                'error' => 1,
+                'message' => "Access $request_ip is not allowed"
+            ], 403);
+        if(strlen($voucher_code) < 9 || strlen($voucher_code) > 20)
+            return $response->withJson([
+                'error'   => 1,
+                'message' => "Invalid voucher code $voucher_code"
             ], 400);
-        } else if(strlen($code_voucher) >= 3 && strlen($code_voucher) <= 6){
-            $sql = '
-                SELECT
-                    id,
-                    name,
-                    status,
-                    validate_from_date,
-                    validate_to_date,
-                    reduce_amount,
-                    time_limit,
-                    condition_voucher
+
+        global $db;
+        $sql = "SELECT id
+                    ,name
+                    ,campaign_id
+                    ,campaign_name
+                    ,status
+                    ,start_time
+                    ,end_time
+                    ,reduce_amount
+                    ,reduce_percent
+                    ,max_discount
+                    ,condition_voucher
                 FROM ec_vouchers
-                WHERE status = "active" 
-                AND booking_receive_id = "" 
-                AND name LIKE "' . $code_voucher . '%" 
-                AND time_limit IS NULL OR TIMESTAMPDIFF(MINUTE, DATE_ADD(time_limit, INTERVAL 7 HOUR), NOW()) > 5
-                AND deleted = 0
-                ORDER BY RAND()
-                LIMIT 1
-            ';
+                WHERE name = '$voucher_code'
+                    AND type = 'single'
+                    AND status NOT IN('new', 'cancel')
+                    AND (booking_receive_id IS NULL OR booking_receive_id = '')
+                    AND deleted = 0
+                LIMIT 1";
 
-            $res    = $db->query($sql);
-            $count  = $db->countRows($res);
+        $res = $db->query($sql);
+        $result = $db->fetchByAssoc($res);
 
-            if($count != 0){
-                while ($row = $db->fetchByAssoc($res)) {
-                    // Cập nhật time_limit cho voucher này
-                    $sql_update = '
-                        UPDATE ec_vouchers
-                        SET time_limit = "'.date("Y-m-d H:i:s").'"
-                        WHERE id = "'.$row['id'].'"
-                    ';
-                    $db->query($sql_update);
-
-                    $data = [
-                        'id' => !is_null($row['id']) ? $row['id'] : '',
-                        'name' => !is_null($row['name']) ? $row['name'] : '',
-                        'status' => !is_null($row['status']) ? $row['status'] : '',
-                        'validate_from_date' => !is_null($row['validate_from_date']) ? $row['validate_from_date'] : '',
-                        'validate_to_date' => !is_null($row['validate_to_date']) ? $row['validate_to_date'] : '',
-                        'reduce_amount' => !is_null($row['reduce_amount']) ? $row['reduce_amount'] : '',
-                        'condition_voucher' => !is_null($row['condition_voucher']) ? json_decode(html_entity_decode($row['condition_voucher']), true) : '',
-                    ];
-                }
-
-            } else {
-                return $response->withJson([
-                    'error' => true,
-                    'message' => "Failed",
-                    'data' => 'Invalid code voucher. Voucher has expired.',
-                ], 400);
-            }
-
-        } else {
-            $sql = '
-                SELECT
-                    id,
-                    name,
-                    status,
-                    validate_from_date,
-                    validate_to_date,
-                    reduce_amount,
-                    condition_voucher
-                FROM ec_vouchers
-                WHERE name = "' . $code_voucher . '" AND deleted = 0
-            ';
-    
-            $res = $db->query($sql);
-            while ($row = $db->fetchByAssoc($res)) {
-                $data = [
-                    'id' => !is_null($row['id']) ? $row['id'] : '',
-                    'name' => !is_null($row['name']) ? $row['name'] : '',
-                    'status' => !is_null($row['status']) ? $row['status'] : '',
-                    'validate_from_date' => !is_null($row['validate_from_date']) ? $row['validate_from_date'] : '',
-                    'validate_to_date' => !is_null($row['validate_to_date']) ? $row['validate_to_date'] : '',
-                    'reduce_amount' => !is_null($row['reduce_amount']) ? $row['reduce_amount'] : '',
-                    'condition_voucher' => !is_null($row['condition_voucher']) ? json_decode(html_entity_decode($row['condition_voucher']), true) : '',
-                ];
-            }
+        if(!$result) {
+            return $response->withJson([
+                'error' => 1,
+                'message' => "Not found",
+                'data' => null
+            ], 200);
         }
+
+        // Clean JSON in condition_voucher field
+        if(isset($result['condition_voucher']) && is_string($result['condition_voucher']))
+            $result['condition_voucher'] = json_decode(html_entity_decode(trim($result['condition_voucher'])), true);
 
         return $response->withJson([
-            'error' => false,
+            'error' => 0,
             'message' => "Success",
-            'data' => $data,
+            'data' => $result
         ], 200);
-    }
-
-    public function determineHangupCause($params) {
-    
-        if(is_array($params) && count($params) > 0){
-            $direction          = $params['call_direction'] ?? '';
-            $disposition        = $params['call_hangup_disposition'] ?? '';
-            $hangupCause        = $params['hangup_cause'] ?? '';
-            $ccCancelReason     = $params['cc_cancel_reason'] ?? null;
-        
-            // Xử lý cho cuộc gọi inbound
-            if ($direction === 'inbound') {
-                if ($disposition === 'recv_bye' && $hangupCause === 'NORMAL_CLEARING') {
-                    return ($ccCancelReason === 'BREAK_OUT')
-                        ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời'
-                        : 'khách hàng chủ động kết thúc cuộc gọi';
-                }
-        
-                if ($disposition === 'send_bye') {
-                    return ($ccCancelReason === 'TIMEOUT')
-                        ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
-                        : 'Agent chủ động kết thúc cuộc gọi';
-                }
-        
-                if ($disposition === 'send_refuse') {
-                    return 'Cuộc gọi nhỡ, agent bận máy';
-                }
-            }
-        
-            // Xử lý cho cuộc gọi outbound
-            if ($direction === 'outbound') {
-                if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
-                    return 'Agent hủy cuộc gọi, khi khách hàng không trả lời cuộc gọi';
-                }
-        
-                if ($disposition === 'send_refuse') {
-                    return ($hangupCause === 'USER_BUSY')
-                        ? 'Khách hàng từ chối cuộc gọi'
-                        : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
-                }
-        
-                if ($disposition === 'recv_bye'){
-                    return 'Agent chủ động kết thúc cuộc gọi';
-                }
-    
-                if ($disposition === 'send_bye'){
-                    return 'Khách hàng chủ động kết thúc cuộc gọi';
-                }
-            }
-        
-            return 'Nguyên nhân ngắt máy không xác định';
-        }
-
-        return 'Không xác định';
     }
 }

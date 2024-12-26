@@ -4,20 +4,22 @@
 
 <div class="box-create-voucher box-section w-60">
 	<form id="form_create_voucher" method="post">
+		<input type="hidden" name="module" value="EC_Vouchers">
+		<input type="hidden" name="action" value="Save">
 		<table id="voucher_tbl" class="table-edit table-release__voucher table-create-voucher" cellpadding="0" cellspacing="0">
 			<tbody>
-				<tr>
+				<tr class="row-type">
 					<td class="label">Loại voucher:</td>
 					<td class="value">
 						<div class="d-flex gap-4">
 							<div class="form-check">
-								<input class="form-check-input" type="radio" name="type" id="voucher_type_group" value="group" checked>
+								<input class="form-check-input" type="radio" name="type" id="voucher_type_group" value="group" checked />
 								<label class="form-check-label" for="voucher_type_group">
 								  	Nhóm (Công khai)
 								</label>
 							</div>
 							<div class="form-check">
-								<input class="form-check-input" type="radio" name="type" id="voucher_type_single" value="single">
+								<input class="form-check-input" type="radio" name="type" id="voucher_type_single" value="single" />
 								<label class="form-check-label" for="voucher_type_single">
 									Đơn (Riêng tư)
 								</label>
@@ -25,16 +27,16 @@
 						</div>
 					</td>
 				</tr>
-				<tr>
+				<tr class="row-campaign">
 					<td class="label">Tên sự kiện: <span class="fw-bold color-red">*</span></td>
 					<td class="value">
-						<input type="text" name="campaign_name" value="{$CAMPAIGN_NAME}" class="box-input" required>
+						<input type="text" name="campaign_name" class="box-input" required />
 					</td>
 				</tr>
 				<tr class="row-voucher-code">
-					<td class="label">Mã voucher: <span class="fw-bold color-red">*</span></td>
+					<td class="label">Mã voucher:</td>
 					<td class="value">
-						<input type="text" name="voucher_code" id="voucher_code" class="box-input" minlength="6" maxlength="24" required>
+						<input type="text" name="voucher_code" id="voucher_code" class="box-input" minlength="6" maxlength="24" />
 					</td>
 				</tr>
 				<tr class="row-price">
@@ -46,11 +48,11 @@
 						<div class="d-flex gap-3">
 							<div>
 								<label>Số tiền giảm giá</label>
-								<input type="text" class="allow-number-only box-input" id="reduce_amount" name="reduce_amount" value="">
+								<input type="text" class="allow-number-only box-input" id="reduce_amount" name="reduce_amount" value="" />
 							</div>
 							<div>
 								<label>Phần trăm giảm giá</label>
-								<input type="text" class="allow-number-only box-input" id="reduce_percent" name="reduce_percent" value="" maxlength="3">
+								<input type="text" class="allow-number-only box-input" id="reduce_percent" name="reduce_percent" value="" maxlength="3" />
 							</div>
 						</div>
 					</td>
@@ -58,16 +60,28 @@
 				<tr class="row-quantity">
 					<td class="label">Số lượng: <span class="fw-bold color-red">*</span></td>
 					<td class="value">
-						<input type="text" class="allow-number-only box-input" id="voucher_qty" name="voucher_qty" value="{$VOUCHER_QTY}" required>
+						<input type="text" class="allow-number-only box-input" id="voucher_qty" name="voucher_qty" required />
 					</td>
 				</tr>
-				<tr class="row-validate-date">
-					<td class="label">Thời gian diễn ra:</td>
+				<tr class="row-website">
+					<td class="label">Website áp dụng: <span class="fw-bold color-red">*</span></td>
 					<td class="value">
-						<div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
+						<select name="website" id="website" class="form-select">
+							<option value="vietjet.net">vietjet.net</option>
+							<option value="timchuyenbay.com">timchuyenbay.com</option>
+						</select>
+					</td>
+				</tr>
+				<tr class="row-datetime">
+					<td class="label">Thời gian diễn ra: <span class="fw-bold color-red">*</span></td>
+					<td class="value">
+						<div class="d-inline-flex gap-2 align-items-center">
 							<div class="dateTime d-flex gap-2 position-relative">
-								<input type="text" id="from_date" name="from_date" value="{$FROM_DATE}" class="date_input box-input">
-								<button class="icon_dateTime" type="button" id="from_date_trigger" onclick="return false;">
+								<input type="text" name="start_date" id="start_date" value="{$START_DATE}" class="date_input box-input">
+								<input type="text" name="start_hour" id="start_hour" value="00" class="hour_input box-input" maxlength="2" size="2"/>
+								<b>:</b>
+								<input type="text" name="start_minute" id="start_minute" value="00" class="minute_input box-input" maxlength="2" size="2" />
+								<button class="icon_dateTime" type="button" id="start_date_trigger" onclick="return false;">
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
 										<path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"></path>
 										<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"></path>
@@ -85,8 +99,11 @@
 								</defs>
 							</svg>
 							<div class="dateTime d-flex gap-2 position-relative">
-								<input type="text" id="to_date" name="to_date" value="{$TO_DATE}" class="date_input box-input">
-								<button class="icon_dateTime" type="button" id="to_date_trigger" onclick="return false;">
+								<input type="text" name="end_date" id="end_date" value="{$END_DATE}" class="date_input box-input">
+								<input type="text" name="end_hour" id="end_hour" value="00" class="hour_input box-input" maxlength="2" size="2"/>
+								<b>:</b>
+								<input type="text" name="end_minute" id="end_minute" value="00" class="minute_input box-input" maxlength="2" size="2" />
+								<button class="icon_dateTime" type="button" id="end_date_trigger" onclick="return false;">
 									<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
 										<path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"></path>
 										<path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"></path>
@@ -96,19 +113,65 @@
 						</div>
 					</td>
 				</tr>
-				
-				<tr class="row-condition">
+				<tr class="row-condition-apply">
 					<td class="label align-top">Điều kiện áp dụng:</td>
 					<td class="value">
-						<select name="voucher_condition" id="voucher_condition" class="box-select">
-							<option value="">--- Chọn điều kiện ---</option>
-							<option value="min_price">Đơn giá tối thiểu</option>
-							<option value="max_discount">Giảm tối đa</option>
-							<option value="total_qty">Số vé</option>
-							<option value="flight_type">Chuyến bay</option>
-							<option value="ticket_type">Phạm vi áp dụng</option>
-							<option value="journey">Hành trình áp dụng</option>
-						</select>
+						<div class="list_condition">
+							<div class="condition">
+								<div class="condition-name">Đơn tối thiểu:</div>
+								<div class="condition-value">
+									<input type="text" name="min_order_value" class="box-input allow-number-only" value="0" />
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Số lượng vé:</div>
+								<div class="condition-value">
+									<input type="text" name="number_of_tickets" class="box-input allow-number-only" value="0" />
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Loại chuyến:</div>
+								<div class="condition-value">
+									<input type="radio" class="form-check-input" id="flight_type_domestic" name="flight_type" value="domestic">
+  									<label class="form-check-label" for="flight_type_domestic">Nội địa</label>
+									<input type="radio" class="form-check-input" id="flight_type_international" name="flight_type" value="international">
+  									<label class="form-check-label" for="flight_type_international">Quốc tế</label>
+									<input type="radio" class="form-check-input" id="flight_type_all" name="flight_type" value="">
+  									<label class="form-check-label" for="flight_type_all">Tất cả</label>
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Loại vé:</div>
+								<div class="condition-value">
+									<input type="radio" class="form-check-input" id="ticket_type_one_way" name="ticket_type" value="1">
+  									<label class="form-check-label" for="ticket_type_one_way">Một chiều</label>
+									<input type="radio" class="form-check-input" id="ticket_type_round_trip" name="ticket_type" value="2">
+  									<label class="form-check-label" for="ticket_type_round_trip">Khứ hồi</label>
+									<input type="radio" class="form-check-input" id="ticket_type_all" name="ticket_type" value="">
+  									<label class="form-check-label" for="ticket_type_all">Tất cả</label>
+								</div>
+							</div>
+							<div class="condition">
+								<div class="condition-name">Hành trình:</div>
+								<div class="condition-value">
+									<textarea class="form-control" rows="3" id="journey" name="journey" placeholder="SGN-HAN,HAN-SGN"></textarea>
+								</div>
+							</div>
+							<div></div>
+						</div>
+					</td>
+				</tr>
+				<tr class="row-condition-included">
+					<td class="label align-top">Điều kiện đi kèm:</td>
+					<td class="value">
+						<div class="list_condition">
+							<div class="condition">
+								<div class="condition-name">Giảm tối đa:</div>
+								<div class="condition-value">
+									<input type="text" name="max_discount" class="box-input allow-number-only" />
+								</div>
+							</div>
+						</div>
 					</td>
 				</tr>
 				<tr class="row-description">
@@ -122,11 +185,7 @@
 				</tr>
 			</tbody>
 		</table>
-		<input type="hidden" name="module" value="EC_Vouchers">
-		<input type="hidden" name="action" value="Save">
-		<input type="hidden" name="createMultipleVoucher">
 	</form>
-	{$VOUCHER_TBL}
 </div>
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>

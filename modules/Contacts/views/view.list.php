@@ -25,7 +25,7 @@ class ContactsViewList extends ViewList
 
     public function display() {
 		$this->lv->lvd->additionalDetails = false;
-		$this->lv->quickViewLinks = false;
+		$this->lv->quickViewLinks = true;
 		parent::display();
 	}
 }

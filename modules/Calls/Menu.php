@@ -23,4 +23,4 @@ if (ACLController::checkAccess('Calls', 'edit', true))
     $module_menu[] = array("index.php?module=Calls&action=manage&return_module=Calls&return_action=manage", "Quản lý SĐT", "magnage");
 
 if (ACLController::checkAccess('Calls', 'edit', true))
-    $module_menu[] = array("index.php?module=Calls&action=summary&return_module=Calls&return_action=summary", "Báo cáo khác", "summary");
+    $module_menu[] = array("index.php?module=Calls&action=summary&return_module=Calls&return_action=summary", "Báo cáo tháng", "summary");

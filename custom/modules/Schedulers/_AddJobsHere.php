@@ -1997,7 +1997,7 @@ function checkBookingHandle()
 	 			), 1, 0 
 	 		) AS is_processed
 		FROM ec_online_report onl
-			LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id
+		LEFT JOIN ec_flight_bookings b ON b.id = onl.booking_id AND b.deleted = 0
 		WHERE onl.deleted = 0
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 			AND (onl.booking_id <> "" OR onl.booking_id IS NOT NULL) 
@@ -2041,6 +2041,7 @@ function checkBookingHandle()
 			UPDATE ec_online_report 
 			SET booking_id = NULL, start_assign = NULL
 			WHERE id IN ("' . implode('","', $clear_bk_onl) . '")
+			AND deleted = 0
 		';
 		$db->query($sql1);
 	}
@@ -2128,6 +2129,7 @@ function reAssignBooking()
 						UPDATE ec_flight_bookings
 						SET assigned_user_id = "' . $assgined_user_id . '"
 						WHERE id = "' . $row['id'] . '"
+						AND deleted = 0 
 					';
 					$db->query($sql_upd);
 
