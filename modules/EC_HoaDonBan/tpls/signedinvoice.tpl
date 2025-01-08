@@ -20,14 +20,9 @@
                });
 
                $('#checkall').change(function () {
-                    let is_check_all = $(this).is(':checked');
-                    if (is_check_all) {
-                         $('input:checkbox[name="sochungtu_id[]"]').attr('checked', true);
-                    } else {
-                         $('input:checkbox[name="sochungtu_id[]"]').attr('checked', false);
-                    }
+                    $('input:checkbox[name="sochungtu_id[]"]').prop('checked', this.checked);
                });
-
+               
                $('#btnView').on('click', function () {
                     let from_date   = $('#from_date').val();
                     let to_date     = $('#to_date').val();

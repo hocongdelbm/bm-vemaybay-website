@@ -1320,18 +1320,18 @@ function populateEditedLineItineraries($booking_id)
 				// $remind_btn .= '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
 
 				$remind_btn .= '<div class="dropdown">
-									<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-										Remind
-									</button>
-									<ul class="dropdown-menu dropdown-menu-end box-list">
-										<li class="box-item">
-											<a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a>
-										</li>
-										<li class="box-item">
-											<a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a>
-										</li>
-									</ul>
-								</div>';
+					<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+						Remind
+					</button>
+					<ul class="dropdown-menu dropdown-menu-end box-list">
+						<li class="box-item">
+							<a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a>
+						</li>
+						<li class="box-item">
+							<a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="' . $booking_id . '" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a>
+						</li>
+					</ul>
+				</div>';
 			}
 		}
 
@@ -1361,7 +1361,7 @@ function populateEditedLineItineraries($booking_id)
 							journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']])) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']])) . '" 
 							date="' . explode(' ', $sms_depdate)[0] . '" 
 							time="' . explode(' ', $sms_depdate)[1] . '"
-							applied_pass="' . $row['applied_pass'] . '" name="btnSendSMS" value="SMS" title="Send SMS" />
+							applied_pass="' . $applied_pass . '" name="btnSendSMS" value="SMS" title="Send SMS" />
 						' . $remind_btn . '
 					</form>
 				</td>';
@@ -3747,6 +3747,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 */
 if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 	$contact_id  = isset($_POST['contact_id']) ? $_POST['contact_id'] : '';
+	$where  	 = (isset($_POST['purpose']) && $_POST['purpose'] == 'get_completed_status') ? ' AND booking_status = 8' : '';
 	$booking_id  = $_POST['booking_id'] ?? '';
 
 	$html = $html_summary = '';
@@ -3763,7 +3764,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 	$total_revenue 		= 0;
 	$total_profit 		= 0;
-
+	
 	if ($contact_id) {
 		$html = '<div class="list-booking-customer">
 					<table class="tbl-check-contact-info table-details__booking">
@@ -3784,10 +3785,17 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered
 				FROM ec_flight_bookings
 				WHERE  contact_id = '" . $contact_id . "' AND deleted = 0
+				".$where."
 				ORDER BY date_entered DESC";
 
 		$res = $db->query($sql);
 		$count_booking 	= $db->countRows($res);
+
+		$con = new Contact();
+		$con->retrieve($contact_id);
+		$name_contact 	= $con->last_name;
+		$phone_contact 	= $con->phone_mobile;
+		$email_contact 	= $con->email1;
 
 		if ($count_booking > 0) {
 			$i = 1;
@@ -3795,10 +3803,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 				// Infor contact
 				$current_date 			= date('Y-m-d');
-				$name_contact 			= $row['contact_name'];
-				$phone_contact 			= $row['phone'];
-				$email_contact 			= $row['email'];
-
 				if ($row['booking_status'] == 2) { //CHỜ THANH TOÁN
 					$class_color = 'text-warning';
 				} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { //XÁC NHẬN
@@ -3821,7 +3825,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 					$journey 		= $journey_array["departure"] . '-' . $journey_array["arrival"];
 				}
 
-				if ($row['booking_status'] == 8 || $row['booking_status'] == 7 || $row['booking_status'] == 3) {
+				// if ($row['booking_status'] == 8 || $row['booking_status'] == 7 || $row['booking_status'] == 3) {
+				if ($row['booking_status'] == 8) {
 					$count_booking_completed++;
 
 					$total_revenue  += $row['total_amount'];
@@ -3850,13 +3855,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 			}
 		}
 
-		$type_contact = classifyContact($contact_id);
+		// $type_contact = classifyContact($contact_id);
+		$type_contact = classifyContactv2($contact_id);
 
 		$html .= '</table></div>';
 
 		$denominator_booking_completed = ($count_booking_completed == 0) ? 1 : $count_booking_completed;
 		$html_summary .= '
-						<div class="d-flex gap-3 mb-3 flex-wrap">
+						<div class="d-flex gap-2 mb-3 flex-nowrap">
 							<div class="flex-fill lh-base">
 								<p>👤 *Họ tên: ' . $name_contact . '</p>  
 								<p>📞 *SĐT: ' . $phone_contact . '</p>

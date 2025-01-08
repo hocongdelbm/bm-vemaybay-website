@@ -30,10 +30,8 @@ class Viewbusinessreport extends SugarView
         $smartyobj->assign('DATA_REPORT', $html_report);
 
         // SAVE QC COST
-        if (isset($_POST) && !empty($_POST)) {
-            if (isset($_POST['btnSaveCostQc'])) {
-                $this->saveCostQc();
-            }
+        if (isset($_POST) && !empty($_POST) && isset($_POST['btnSaveCostQc'])) {
+            $this->saveCostQc();
         }
     }
 

@@ -193,6 +193,17 @@ $GLOBALS['app_list_strings']['customer_type_list'] = array(
   'WARNING' => 'Lý thông me',
   'IGNORE' => 'Linh tinh',
 );
+
+$GLOBALS['app_list_strings']['contact_type_list'] = array(
+  'NEW_CUSTOMER' => 'Mới',
+  'RETURN_CUSTOMER' => 'Trở lại',
+  'SILVER_MEMBER' => 'Bạc',
+  'GOLD_MEMBER' => 'Vàng',
+  'VIP_MEMBER' => 'VIP Member',
+  'OTHER' => 'Khác',
+);
+
+
 $GLOBALS['app_list_strings']['gender_list'] = array(
   0 => 'Nam',
   1 => 'Nữ',

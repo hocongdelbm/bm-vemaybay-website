@@ -25,6 +25,216 @@ $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày 
 
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 
+$job_strings[] = 'saveReportWeekly'; // Lưu kết quả doanh số cuối ngày vào table ec_report_weekly
+
+function saveReportWeekly()
+{
+	global $db;
+	$date_report = date('Y-m-d', strtotime('-1 day +7 hours'));
+	
+	$sql_exist = '
+		SELECT IF(COUNT(id) > 0, 1, 0) as count
+		FROM ec_report_weekly
+		WHERE from_date = "' . $date_report . '" 
+			AND to_date = "' . $date_report . '"
+			AND type = "BOOKING"
+			AND deleted = 0';
+	$count_rows = $db->getOne($sql_exist);
+	
+	// Bước 2: Tạo dữ liệu trong ec_report_weekly theo from_date - to_date
+	$sql_select = '
+		SELECT last_name, user_name, user_id,
+			SUM(bk_created) AS bk_created,
+			SUM(bk_called) AS bk_called,
+			SUM(bk_paying) AS bk_paying,
+			SUM(bk_confirmed) AS bk_confirmed,
+			SUM(bk_printed) AS bk_printed,
+			SUM(bk_completed) AS bk_completed,
+			SUM(bk_cancelled) AS bk_cancelled,
+			SUM(total) AS total,
+			SUM(total_sales) AS total_sales,
+			SUM(total_ticket) AS total_ticket,
+			0 AS advertisement_cost,
+			"' . $date_report . '" AS from_date,
+			"' . $date_report . '" AS to_date
+		FROM (
+			SELECT
+				u.last_name, u.user_name, u.id AS user_id,
+				COUNT(IF(bk.booking_status = 1, bk.id, NULL)) AS bk_created,
+				COUNT(IF(bk.booking_status = 6, bk.id, NULL)) AS bk_called,
+				COUNT(IF(bk.booking_status = 2, bk.id, NULL)) AS bk_paying,
+				COUNT(IF(bk.booking_status = 3, bk.id, NULL)) AS bk_confirmed,
+				COUNT(IF(bk.booking_status = 7, bk.id, NULL)) AS bk_printed,
+				COUNT(IF(bk.booking_status = 8, bk.id, NULL)) AS bk_completed,
+				COUNT(IF(bk.booking_status = 4, bk.id, NULL)) AS bk_cancelled,
+				COUNT(bk.id) AS total,
+				SUM(IF(bk.booking_status IN (3, 7, 8), bk.total_amount - bk.total_bought_amount, 0)) AS total_sales,
+				SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
+				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
+			FROM ec_flight_bookings bk
+				LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
+			WHERE u.title = "Bot" 
+				AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . $date_report . '"
+				AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . $date_report . ' 23:59:59"
+				AND bk.deleted = 0 
+			GROUP BY bk.id
+			
+			UNION
+			SELECT 
+				IF(u.title = "Bot", u.last_name, "Chưa xác định") AS last_name,
+				IF(u.title = "Bot", u.user_name, "") AS user_name,
+				IF(u.title = "Bot", u.id, "BK_UNK") AS user_id,
+				0 AS bk_created,
+				0 AS bk_called,
+				0 AS bk_paying,
+				0 AS bk_confirmed,
+				0 AS bk_printed,
+				0 AS bk_completed,
+				0 AS bk_cancelled,
+				0 AS total,
+				- (
+					SUM(IFNULL(bk_psg.luggage_purchase, 0)) + SUM(IFNULL(bk_psg.luggage_purchase_inbound, 0))
+				) AS total_sales,
+				0 AS total_ticket,
+				"" AS bk_date_entered
+			FROM ec_booking_passengers bk_psg
+				INNER JOIN ec_flight_bookings bk ON bk.id = bk_psg.booking_id
+					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . $date_report . '"
+					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . $date_report . ' 23:59:59"
+					AND bk.booking_status IN (3, 7, 8)
+				INNER JOIN users u ON bk.created_by = u.id 
+			WHERE (bk_psg.add_type IS NULL OR bk_psg.add_type = "") AND bk_psg.deleted = 0
+			GROUP BY user_id
+			
+			UNION
+			SELECT
+				"Booking chưa xác định" AS last_name, "" AS user_name, "BK_UNK" AS user_id,
+				COUNT(IF(bk.booking_status = 1, bk.id, NULL)) AS bk_created,
+				COUNT(IF(bk.booking_status = 6, bk.id, NULL)) AS bk_called,
+				COUNT(IF(bk.booking_status = 2, bk.id, NULL)) AS bk_paying,
+				COUNT(IF(bk.booking_status = 3, bk.id, NULL)) AS bk_confirmed,
+				COUNT(IF(bk.booking_status = 7, bk.id, NULL)) AS bk_printed,
+				COUNT(IF(bk.booking_status = 8, bk.id, NULL)) AS bk_completed,
+				COUNT(IF(bk.booking_status = 4, bk.id, NULL)) AS bk_cancelled,
+				COUNT(bk.id) AS total,
+				SUM(IF(bk.booking_status = 8, bk.total_amount - bk.total_bought_amount - bk.luggage_fee, 0)) AS total_sales,
+				SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
+				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
+			FROM ec_flight_bookings bk
+				LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
+			WHERE
+				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . $date_report . '"
+				AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . $date_report . ' 23:59:59"
+				AND (
+					(u.title = "Bot" AND LOWER(bk.contact_name) IN ("tim chuyen bay", "callnow", "call now"))
+					OR u.title <> "Bot"
+				)
+				AND bk.deleted = 0 
+			GROUP BY bk.id
+
+		) AS tmp
+		GROUP BY user_id
+		ORDER BY total_sales DESC
+	';
+	$results = $db->query($sql_select);
+
+	if ((int)$count_rows == 0) {
+		// CREATE
+		while ($row = $db->fetchByAssoc($results)) {
+			$rp = new EC_Report_Weekly();
+			$rp->user_id = $row['user_id'];
+			$rp->last_name = $row['last_name'];
+			$rp->user_name = $row['user_name'];
+			$rp->bk_created = $row['bk_created'];
+			$rp->bk_called = $row['bk_called'];
+			$rp->bk_paying = $row['bk_paying'];
+			$rp->bk_confirmed = $row['bk_confirmed'];
+			$rp->bk_printed = $row['bk_printed'];
+			$rp->bk_completed = $row['bk_completed'];
+			$rp->bk_cancelled = $row['bk_cancelled'];
+			$rp->total_qty = $row['total'];
+			$rp->total_sales = $row['total_sales'];
+			$rp->total_ticket = $row['total_ticket'];
+			$rp->type = 'BOOKING';
+			$rp->advertisement_cost = 0;
+			$rp->from_date = $today;
+			$rp->to_date = $today;
+			$rp->report_date = date('Y-m-d');
+			$rp->save();
+			sendTestTelegram("create EC_Report_Weekly: " . $date_report);
+		}
+	} else {
+		// UPDATE
+		while ($row = $db->fetchByAssoc($results)) {
+			// Bước 3: Kiểm tra xem user_id đã tồn tại trong khoảng thời gian chưa
+			$check_sql = '
+				SELECT COUNT(*)
+				FROM ec_report_weekly
+				WHERE user_id = "' . $row['user_id'] . '" 
+					AND from_date = "' . $date_report . '" 
+					AND to_date = "' . $date_report . '"
+					AND type = "BOOKING"
+					AND deleted = 0';
+			$user_exists = $db->getOne($check_sql);
+
+			if ((int)$user_exists > 0) {
+				$update_sql = '
+					UPDATE ec_report_weekly
+					SET 
+						bk_created = ' . (int)$row['bk_created'] . ',
+						bk_called = ' . (int)$row['bk_called'] . ',
+						bk_paying = ' . (int)$row['bk_paying'] . ',
+						bk_confirmed = ' . (int)$row['bk_confirmed'] . ',
+						bk_printed = ' . (int)$row['bk_printed'] . ',
+						bk_completed = ' . (int)$row['bk_completed'] . ',
+						bk_cancelled = ' . (int)$row['bk_cancelled'] . ',
+						total_qty = ' . $row['total'] . ',
+						total_sales = ' . $row['total_sales'] . ',
+						total_ticket = ' . $row['total_ticket'] . '
+					WHERE user_id = "' . $row['user_id'] . '" 
+						AND from_date = "' . $date_report . '" 
+						AND to_date = "' . $date_report . '"
+						AND type = "BOOKING"
+						AND deleted = 0
+				';
+
+				$result_update = $db->query($update_sql);
+
+				if($result_update){
+					sendTestTelegram("update EC_Report_Weekly : " . $date_report);
+				} else {
+					sendTestTelegram("update failed: " . $date_report);
+				}
+
+			} else {
+				$rp = new EC_Report_Weekly();
+				$rp->user_id = $row['user_id'];
+				$rp->last_name = $row['last_name'];
+				$rp->user_name = $row['user_name'];
+				$rp->bk_created = (int)$row['bk_created'];
+				$rp->bk_called = (int)$row['bk_called'];
+				$rp->bk_paying = (int)$row['bk_paying'];
+				$rp->bk_confirmed = (int)$row['bk_confirmed'];
+				$rp->bk_printed = (int)$row['bk_printed'];
+				$rp->bk_completed = (int)$row['bk_completed'];
+				$rp->bk_cancelled = (int)$row['bk_cancelled'];
+				$rp->total_qty = $row['total'];
+				$rp->total_sales = $row['total_sales'];
+				$rp->total_ticket = $row['total_ticket'];
+				$rp->type = 'BOOKING';
+				$rp->advertisement_cost = 0;
+				$rp->from_date = $date_report;
+				$rp->to_date = $date_report;
+				$rp->report_date = $today;
+				$rp->save();
+				sendTestTelegram("count_rows > 0. Create successed: " . $date_report);
+			}
+		}
+	}
+
+	return true;
+}
+
 function checkExpirationDateVoucher()
 {
 	global $db;
@@ -70,7 +280,6 @@ function updateOnlineReport()
 	);
 	$notInCondition = "'" . implode("', '", $arr_id_admin) . "'";
 
-	sendTestTelegram("updateOnlineReport 1 : " . date('Y-m-d H:i:s'));
 	$date_check = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
 	$sql = '
 		SELECT id, first_name, last_name, title,
@@ -109,8 +318,6 @@ function updateOnlineReport()
 	$res = $db->query($sql);
 	$i 	= 1;
 
-	sendTestTelegram("updateOnlineReport 2 : " . date('Y-m-d H:i:s'));
-	$GLOBALS['log']->debug("-------------------->  updateOnlineReport  <--------------------");
 	while ($row = $db->fetchByAssoc($res)) {
 		$sql_exist = '
 			SELECT IF(COUNT(id) > 0, 1, 0)
@@ -124,8 +331,6 @@ function updateOnlineReport()
 
 
 		// Check log
-		sendTestTelegram("updateOnlineReport 3 : " . date('Y-m-d H:i:s'));
-		$GLOBALS['log']->debug("---------------  LOG  ---------------");
 		$GLOBALS['log']->debug($sql_exist);
 		$sql_checklog = '
 			SELECT assigned_user_id,
@@ -140,7 +345,6 @@ function updateOnlineReport()
 		while ($row_checklog = $db->fetchByAssoc($res_checklog)) {
 			if ($row_checklog['is_exist'] == 0) $json[$row_checklog['assigned_user_id']] = $row_checklog['date'];
 		}
-		$GLOBALS['log']->warning(json_encode($json));
 		// End check log
 
 		if ($is_exist == 0 || !$is_exist) {
@@ -163,7 +367,6 @@ function updateOnlineReport()
 			$i++;
 		}
 	}
-	$GLOBALS['log']->debug("-------------------->  END updateOnlineReport  <--------------------");
 	return true;
 }
 
@@ -215,7 +418,7 @@ function KetChuyenTienMatSCK()
 	$db = DBManagerFactory::getInstance();
 
 	$report_year = date('Y');
-	$from_date = ($report_year - 1) . '-01-01';
+	$today = ($report_year - 1) . '-01-01';
 	$to_date = ($report_year - 1) . '-12-31';
 
 	$sql_search = " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($from_date)) . "' ";
@@ -2002,6 +2205,7 @@ function checkBookingHandle()
 			AND DATE_ADD(onl.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d') . '"
 			AND (onl.booking_id <> "" OR onl.booking_id IS NOT NULL) 
 			AND TIMESTAMPDIFF(MINUTE, DATE_FORMAT(onl.start_assign, "%Y-%m-%d %H:%i"), "' . date('Y-m-d H:i') . '") >= 2
+			AND b.deleted = 0
 	';
 
 	$res = $db->query($sql);

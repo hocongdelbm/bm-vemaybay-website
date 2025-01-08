@@ -568,6 +568,163 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else if ($type == 'save_log_call') {
         $log_call = isset($_POST['log']) ? $_POST['log'] : '';
         save_log_call($log_call);
+    } else if ($type == 'get_history_activity_contacts'){
+        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
+        $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
+        $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
+        if (empty($phone)) {
+            echo 0;
+            exit();
+        }
+    
+        $sql = "
+                SELECT 
+                    c.id AS interaction_id,
+                    c.name AS interaction_item,
+                    c.call_from as call_from,
+                    c.call_to as call_to,
+                    c.date_entered AS interaction_date,
+                    'call' AS interaction_type,
+                    c.direction AS interaction_status,
+                    c.description AS interaction_detail,
+                    c.assigned_user_id
+                FROM calls c
+                WHERE (c.call_from = '$phone' OR c.call_to = '$phone')
+                AND c.date_entered BETWEEN '$start_date' AND '$end_date'
+
+                UNION ALL
+                SELECT 
+                    b.id AS interaction_id,
+                    b.name AS interaction_item,
+                    b.phone as call_from,
+                    b.phone as call_to, 
+                    b.date_entered AS interaction_date,
+                    'booking' AS interaction_type,
+                    b.booking_status AS interaction_status,
+                    b.description AS interaction_detail,
+                    b.assigned_user_id
+                FROM ec_flight_bookings b
+                WHERE b.phone = '$phone'
+                AND b.date_entered BETWEEN '$start_date' AND '$end_date'
+
+                UNION ALL
+                SELECT 
+                    r.id AS interaction_id,
+                    r.name AS interaction_item,
+                    b.phone AS call_from,
+                    b.phone AS call_to,
+                    r.date_entered AS interaction_date,
+                    'refund' AS interaction_type,
+                    r.tinhtrang AS interaction_status,
+                    r.description AS interaction_detail,
+                    r.assigned_user_id
+                FROM ec_hoanve r
+                JOIN ec_flight_bookings b ON r.booking_id = b.id
+                WHERE b.phone = '$phone'
+                AND r.date_entered BETWEEN '$start_date' AND '$end_date'
+
+                UNION ALL
+                SELECT 
+                    rv.id AS interaction_id,
+                    rv.name AS interaction_item,
+                    b.phone AS call_from,
+                    b.phone AS call_to,
+                    rv.date_entered AS interaction_date,
+                    'receipt_voucher' AS interaction_type,
+                    rv.rv_status AS interaction_status,
+                    rv.description AS interaction_detail,
+                    rv.assigned_user_id
+                FROM ec_receipt_voucher rv
+                JOIN ec_flight_bookings b ON rv.booking_id = b.id
+                WHERE b.phone = '$phone'
+                AND rv.date_entered BETWEEN '$start_date' AND '$end_date'
+                    
+                UNION ALL
+                SELECT 
+                    pv.id AS interaction_id,
+                    pv.name AS interaction_item,
+                    b.phone AS call_from,
+                    b.phone AS call_to,
+                    pv.date_entered AS interaction_date,
+                    'payment_voucher' AS interaction_type,
+                    pv.pv_status AS interaction_status,
+                    pv.description AS interaction_detail,
+                    pv.assigned_user_id
+                FROM ec_payment_voucher pv
+                JOIN ec_flight_bookings b ON pv.booking_id = b.id
+                WHERE b.phone = '$phone'
+                AND pv.date_entered BETWEEN '$start_date' AND '$end_date'
+
+                ORDER BY interaction_date DESC;
+        ";
+        $res = $db->query($sql);
+        $count_actibity = $db->getRowCount($res);
+        $user_list = get_user_array(true, '', '', true);
+
+        if($count_actibity > 0){
+            $html = '<div class="row flex-start">
+                        <div class="col-md-12">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body p-0">
+                                    <div class="vertical-timeline vertical-timeline--animate vertical-timeline--one-column">';
+            while ($row = $db->fetchByAssoc($res)) {
+                
+                switch ($row['interaction_type']) {
+                    case 'call':
+                        $interaction_type = 'primary';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['calls_direction_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'booking':
+                        $interaction_type = 'success';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['booking_status_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'refund':
+                        $interaction_type = 'warning';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Hoanve&return_module=EC_Hoanve&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['tinhtranghoanve_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'receipt_voucher':
+                        $interaction_type = 'info';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Receipt_Voucher&return_module=EC_Receipt_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['receipt_voucher_status_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'payment_voucher':
+                        $interaction_type = 'danger';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Payment_Voucher&return_module=EC_Payment_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['payment_voucher_status_list'][$row['interaction_status']].')</span>';
+                        break;
+                    default:
+                        $interaction_link = $row['interaction_item'];
+                        $interaction_type = 'dark';
+                }
+
+                $html .= ' 
+                        <div class="vertical-timeline-item vertical-timeline-element">
+                            <div class="flex-start gap-3">
+                                <span class="vertical-timeline-element-date w-25 text-secondary fw-semibold">'.date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($row['interaction_date']))).'</span>
+                                <span class="vertical-timeline-element-icon bounce-in text-center">
+                                    <span class="badge badge-dot badge-dot-xl text-bg-'.$interaction_type.'"> </span>
+                                </span>
+                                <div class="vertical-timeline-element-content bounce-in flex-fill">
+                                    <p class="mb-2">
+                                        '.$interaction_link.' 
+                                        <span class="d-block">'.$row['interaction_detail'].'</span>
+                                    </p>
+                                    <p>Nhân viên: <span class="fw-semibold text-dark">' . $user_list[$row['assigned_user_id']] . '</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    ';
+            }
+
+            $html .= '</div>
+                        </div>
+                    </div>        
+                </div> 
+            </div>';
+            echo $html;
+        } else {
+            echo 'Không có hoạt động gì.';
+        }
+
+        exit;
     }
 }
 

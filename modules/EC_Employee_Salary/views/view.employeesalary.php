@@ -139,6 +139,7 @@ class Viewemployeesalary extends SugarView
 		} else { // chỉnh sửa bảng lương
 			$smartyobj->assign('isEdit', 1);
 			$data = $this->calculateSalaryEdit($_REQUEST['month_search'], $_REQUEST['year_search']);
+
 			$smartyobj->assign('SALARY_EDIT', $data);
 			$smartyobj->assign('REASON_MINUS_OPTION', get_select_options_with_id($app_list_strings['salary_minus_list'], ''));
 			$smartyobj->assign('REASON_BONUS_OPTION', get_select_options_with_id(array('Khac' => 'Khác', 'Thuong_DS' => 'Thưởng DS'), ''));
@@ -1793,7 +1794,7 @@ class Viewemployeesalary extends SugarView
 				$col_name = 'effort';
 				$col_dt_name = 'bonus_amount';
 				// $other_col = ' + overnight + delivery';
-				$other_col = ' + delivery';
+				$other_col = ' + COALESCE(delivery, 0)';
 				break;
 			default:
 				break;
@@ -1802,21 +1803,25 @@ class Viewemployeesalary extends SugarView
 		// cập nhật tổng giảm trừ / nỗ lực của nhân viên
 		for ($k = 0; $k <  count($monthyear); $k++) {
 			$sql_upt = 'UPDATE ec_employee_salary 
-		 				SET ' . $col_name . ' = (
-		 					SELECT SUM(IFNULL(' . $col_dt_name . ', 0)) 
-		 					FROM ec_salary_details 
-		 					WHERE deleted = 0 
-		 					AND voucher_date >= "' . date('Y-m-01', strtotime($monthyear[$k])) . '"
-		 					AND voucher_date <= "' . date('Y-m-t', strtotime($monthyear[$k])) . '"
-		 					AND assigned_user_id = "' . $_POST['assigned_user'] . '"
-		 				)' . $other_col . '
+						SET ' . $col_name . ' = (
+							COALESCE((
+								SELECT SUM(IFNULL(' . $col_dt_name . ', 0)) 
+								FROM ec_salary_details 
+								WHERE deleted = 0 
+								AND voucher_date BETWEEN "' . date('Y-m-01', strtotime($monthyear[$k])) . '" AND "' . date('Y-m-t', strtotime($monthyear[$k])) . '"
+								AND assigned_user_id = "' . addslashes($_POST['assigned_user']) . '"
+								AND deleted = 0
+							), 0) ' . $other_col . '
+						)
 		 				WHERE is_approved = 0 
-		 				AND assigned_user_id = "' . $_POST['assigned_user'] . '"
+						AND deleted = 0
+		 				AND assigned_user_id = "' . addslashes($_POST['assigned_user']) . '"
 		 				AND month = ' . date('n', strtotime($monthyear[$k])) . ' 
 		 				AND year = ' . date('Y', strtotime($monthyear[$k]));
 
-			// if($current_user->user_name == 'nponline') {
-			// 	echo $sql_upt; exit;
+			// if($current_user->user_name == 'hungnh') {
+			// 	pr($sql_upt);
+			// 	die;
 			// }
 
 			$this->bean->db->query($sql_upt);

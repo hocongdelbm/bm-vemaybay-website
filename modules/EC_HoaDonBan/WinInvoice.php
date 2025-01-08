@@ -14,7 +14,7 @@ class WinInvoice extends InvoiceLogs
         $this->USER           = '0316735473';
         $this->PASSWORD       = 'wcwdcdg34f8jvu8d16adaa807f24f5c852e63cdddfb708c4';
         $this->INVOICE_NUMBER = '1';
-        $this->INVOICE_SERIAL = 'C24THV';
+        $this->INVOICE_SERIAL = 'C'.date('y').'THV'; //C25THV
         $this->FILENAME       = date('Y_m_d') . '.log';
     }
 

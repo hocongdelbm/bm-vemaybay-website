@@ -15,6 +15,11 @@ class ContactsViewDetail extends ViewDetail
     {
         global $sugar_config;
 
+		// Create and update contact
+		createContactsForBooking($this->bean->phone_mobile);
+
+		$this->populateCustomButtons();
+
         $aop_portal_enabled = !empty($sugar_config['aop']['enable_portal']) && !empty($sugar_config['aop']['enable_aop']);
 
         $this->ss->assign("AOP_PORTAL_ENABLED", $aop_portal_enabled);
@@ -47,4 +52,26 @@ class ContactsViewDetail extends ViewDetail
         //     }
         // }
     }
+
+    function populateCustomButtons()
+	{
+		global $app_list_strings, $current_user, $timedate;
+		$date_format = $timedate->get_date_format();
+
+		$contact_button  	= '<a target="_blank" class="btn btn-info btn-view-detail" data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="contact_name" data-id="'.$this->bean->id.'"><span>Chi tiết</span></a>';
+		$modal_history_bookings = '<div class="modal fade modal-history-bookings" style="--bs-modal-width: 1000px;" id="modalHistoryContactBookings" tabindex="-1" aria-labelledby="modalHistoryContactBookingsLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h1 class="modal-title fs-5 text-white" id="modalHistoryContactBookingsLabel">Lịch sử booking của liên hệ</h1>
+                                                <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div id="dialog-history-bookings"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>';
+		$this->ss->assign('DETAIL_BOOKING', $contact_button.$modal_history_bookings);
+	}
 }

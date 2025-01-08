@@ -185,7 +185,7 @@ class EC_Vouchers extends Basic {
 		$task_fields = $this->get_list_view_array();
 
 		// Time
-		if($this->start_time && $this->end_time) $task_fields['END_TIME'] = date('d/m/Y H:i', strtotime($this->start_time)) . ' &#11157; '. date('d/m/Y H:i', strtotime($this->end_time));
+		if($this->start_time && $this->end_time) $task_fields['END_TIME'] = date('d/m/Y H:i', strtotime($this->start_time) - 7*3600) . ' &#11157; '. date('d/m/Y H:i', strtotime($this->end_time) - 7*3600);
 		else $task_fields['END_TIME'] = '';
 
 		// Status

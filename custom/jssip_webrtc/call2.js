@@ -36,24 +36,24 @@ var configuration = {
 let call_flow = '';
 var eventHandlers = {
     'progress': function (e) {
-        // console.warn('call is in progress');
+        console.warn('call is in progress');
         call_flow += 'Call is in progress. ';
+    },
+    'confirmed': function (e) {
+        console.warn('call confirmed');
+        call_flow += 'Call confirmed. ';
     },
     'failed': function (e) {
         // console.warn(e);
-        // console.warn('call failed with cause: ' + e.cause + ' ');
+        console.warn('call failed with cause: ' + e.cause + ' ');
         if (e.message && e.message.data) {
             call_flow += 'Call failed with cause: ' + e.message.data + ' ';
         } else call_flow += 'Call failed with cause: ' + e.cause + ' ';
     },
     'ended': function (e) {
-        // console.warn('call ended with cause:  ' + e.cause + ' ');
+        console.warn('call ended with cause:  ' + e.cause + ' ');
         call_flow += 'Call ended with cause: ' + e.cause + ' ';
     },
-    'confirmed': function (e) {
-        // console.warn('call confirmed');
-        call_flow += 'Call confirmed. ';
-    }
 };
 
 var callOptions = {

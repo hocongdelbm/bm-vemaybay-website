@@ -22,6 +22,11 @@ $(document).on('click', 'input[name="btnSendSMS"]', function () {
             count_passenger++;
         }
     });
+    if(passenger.length == 0) {
+        arr_applied_pass_id.forEach(function(name) {
+            if(name.length > 4 && name.length < 50 && name.includes(' ')) passenger += (passenger.length == 0) ? name : ', ' + name;
+        });
+    }
     if(passenger.length > 62) passenger = `so luong ${count_passenger} hanh khach`;
     
     // // Begin char counter
@@ -34,6 +39,10 @@ $(document).on('click', 'input[name="btnSendSMS"]', function () {
     // });
     // // End char counter
 
+    // Reset dialog
+    $('#dialog_send_sms .wrap-type input[name="sms_type"]').prop('checked', false);
+    $('#dialog_send_sms #sms_content').val();
+    $('#dialog_send_sms #sms_content_display').html('<i>Chưa có nội dung</i>');
     $('#dialog_send_sms').attr('direction', direction);
     $('#dialog_send_sms').attr('flightno', flightno);
     $('#dialog_send_sms').attr('journey', journey);

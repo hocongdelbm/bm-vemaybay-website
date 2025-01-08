@@ -91,8 +91,9 @@ class EC_WorkingOverTimesViewDetail extends ViewDetail{
 
 		$html = '';
 		if((is_admin($current_user) || $current_user->title == 'QuanLy') && $this->bean->status == 1) {
-			for($hs = 0; $hs <= 6; $hs++) {
-				$hs_arr[] = $hs;
+			$hs_arr = [];
+			for ($i = 0; $i <= 6; $i += 0.5) {
+				$hs_arr[(string)$i] = $i;
 			}
 
 			$html .= '<form method="post" action="index.php" id="overtime_tbl">

@@ -30,4 +30,18 @@ class ContactsController extends SugarController
     {
         $this->view = 'closecontactaddresspopup';
     }
+
+    // CUSTOM BY HAIHUGN
+    public function action_summary()
+    {
+        $this->view = 'summary';
+    }
+    public function action_TypeReports()
+    {
+        $this->view = 'TypeReports';
+    }
+    public function action_TeleSales()
+    {
+        $this->view = 'TeleSales';
+    }
 }

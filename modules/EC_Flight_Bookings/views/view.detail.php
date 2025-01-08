@@ -17,11 +17,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $db, $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 
-		// CHECK EXITS PHONE
+		// Create and update contact
 		createContactsForBooking($this->bean->phone);
-		if (empty($this->bean->journey)) {
+		if (strlen($this->bean->journey) < 7) {
 			fillJourneyForBooking($this->bean->id);
-		}
+		} 
 
 		$this->displayCSS();
 		$this->populateCustomButtons($deparment_info);
@@ -64,7 +64,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.1"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.97"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.1"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.2"></script>
 		';
 
 		$js .= '<script>
@@ -348,14 +348,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		
 		/************  CONTACT NEW  ************/
 		$link_contact 		= $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id . "" : "#";
-		$type_contact 		= classifyContact($this->bean->contact_id);
+		// $type_contact 		= classifyContact($this->bean->contact_id);
+		$type_contact 		= classifyContactv2($this->bean->contact_id);
+
 		$contact_name_new  	= '<a target="_blank" href="' . $link_contact . '" class="contact_name" data="' . $this->bean->contact_name . '"><span>' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span></a>';
-		$contact_assign 	= '<div class="card-contact gap-2 ' . $type_contact['type'] . '">
+		$contact_assign 	= '<div class="card-contact gap-2 card-contact__' . $type_contact['type'] . '">
 								<div class="flex-fill contact-header">
 									' . $contact_name_new . '
 								</div>
 								<div data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="flex-fill card-contact-footer contact-footer flex-end" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '">
-									<span class="temp">' . $type_contact['totalBookings'] . '</span>
+									<span class="temp d-none">' . $type_contact['totalBookings'] . '</span>
 									<div class="temp-scale">
 										<span>' . $type_contact['label'] . '</span>
 									</div>
@@ -1289,7 +1291,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					</thead>';
 
 		// Lấy ds những hành khách còn áp dụng hành trình đặt ban đầu
-		// Lượt đi
 		$departure_applied_pass = $this->getAppliedPassengerIti($this->bean->id, 0);
 		$arrival_applied_pass = '';
 		if ($this->bean->flight_type == '0') {

@@ -5357,7 +5357,6 @@ table.table-debtopay {
 #employee_salary_tbl thead tr th,
 table.bank-account-list thead tr th,
 #bkagent_report #bkagent_tbl thead tr th,
-/* table#iplist_tbl thead tr th, */
 table#recheck_tbl thead tr th,
 table#tbl-sms-data thead tr th,
 table.table-profitreport thead tr th,
@@ -5378,12 +5377,14 @@ table#accounting_object_list thead tr th {
   position: sticky;
   top: -1px;
   box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+  z-index: 1;
 }
 
 table.table-booking__list thead tr th {
   position: sticky;
   top: -17px;
   box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+  z-index: 1;
 }
 
 .box-details {

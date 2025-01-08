@@ -8047,8 +8047,16 @@ fieldset:disabled .btn {
      opacity: 1 !important
 }
 
+.overflow-y-auto{
+     overflow-y: auto !important;
+}
+
 .overflow-auto {
      overflow: auto !important
+}
+
+.overflow-x-hidden{
+     overflow-x: hidden !important;
 }
 
 .overflow-hidden {
@@ -8325,6 +8333,14 @@ fieldset:disabled .btn {
      --bs-border-opacity: 1
 }
 
+.w-5{
+     width: 5% !important;
+}
+
+.w-10{
+     width: 10% !important;
+}
+
 .w-15 {
      width: 15% !important;
 }
@@ -8459,6 +8475,18 @@ fieldset:disabled .btn {
 
 .min-vh-100 {
      min-height: 100vh !important
+}
+
+.max-vh-70 {
+     max-height: 70vh !important
+}
+
+.max-vh-80 {
+     max-height: 80vh !important
+}
+
+.max-vh-100 {
+     max-height: 100vh !important
 }
 
 .flex-fill {
@@ -9110,6 +9138,10 @@ fieldset:disabled .btn {
 
 .fw-normal {
      font-weight: 400 !important
+}
+
+.fw-medium {
+     font-weight: 500 !important
 }
 
 .fw-bold {

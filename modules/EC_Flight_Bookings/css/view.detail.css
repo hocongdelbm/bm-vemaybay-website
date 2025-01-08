@@ -221,6 +221,8 @@
     color: var(--white-color);
 }
 
+
+/* COLOR OLD */
 .card-contact.contact_return {
     background: #56ab91;
 }
@@ -231,6 +233,7 @@
     background: linear-gradient(to right, #453532, #603813);
 }
 
+.card-contact.card-contact__VIP_MEMBER,
 .card-contact.contact_supper_vip {
     background: #202020;
     background: -webkit-linear-gradient(to right, #202020, #414141);
@@ -243,9 +246,18 @@
     background: linear-gradient(to right, #ED213A, #cb2d3e);
 }
 
+/* .card-contact.card-contact__NEW_CUSTOMER, */
+.card-contact.card-contact__GOLD_MEMBER,
 .card-contact.contact_gold_member {
     background: linear-gradient(to right, #EFBF04, #EFBF04);
 }
+
+
+
+
+
+
+
 
 .card-contact:hover {
     transform: scale(1.05);

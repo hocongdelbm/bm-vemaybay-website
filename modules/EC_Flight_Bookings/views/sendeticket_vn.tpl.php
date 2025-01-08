@@ -300,7 +300,7 @@ function generateSendmailHtml($booking_infos)
 											
 															<br />
 															<img alt="ghim" class="big" src="https://drive.google.com/uc?export=view&id=1PHI2FXGauAdQnl-SDWpf6dx3rLhCQsL3" style="height: 1.5em; width: 1.5em; vertical-align: middle; border: 0; max-width: 100%; " title="ghim" /> 
-															<b>Hành khách từ 14 tuổi trở lên phải có giấy tờ tùy thân: CCCD, CMND hoặc bằng lái xe, hộ chiếu còn hạn sử dụng.</b> Trường hợp không có các giấy tờ trên, đi bằng giấy xác nhận nhân thân, có dấu giáp lai của cơ quan Công An phường, xã. Hành khách dưới 14 tuổi đi bằng giấy khai sinh bản chính.
+															<b>Hành khách từ 14 tuổi trở lên phải có giấy tờ tùy thân: CCCD, bằng lái xe, hộ chiếu hoặc định danh mức độ 2 trên ứng dụng VNeID.</b> Trường hợp không có các giấy tờ trên, đi bằng giấy xác nhận nhân thân, có dấu giáp lai của cơ quan Công An phường, xã. Hành khách dưới 14 tuổi đi bằng giấy khai sinh bản chính.
 											
 															<br />
 															<img alt="ghim" class="big" src="https://drive.google.com/uc?export=view&id=1PHI2FXGauAdQnl-SDWpf6dx3rLhCQsL3" style="height: 1.5em; width: 1.5em; vertical-align: middle; border: 0; max-width: 100%; " title="ghim" /> 

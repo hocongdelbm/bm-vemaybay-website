@@ -8,6 +8,9 @@ $viewdefs['Contacts'] = array(
 					'EDIT',
 					// 'DUPLICATE',
 					'DELETE',
+					array(
+						'customCode' => '{$DETAIL_BOOKING}',
+					),
 					// 'FIND_DUPLICATES',
 					// array(
 					// 	'customCode' => '<input type="submit" class="button" title="{$APP.LBL_MANAGE_SUBSCRIPTIONS}" onclick="this.form.return_module.value=\'Contacts\'; this.form.return_action.value=\'DetailView\'; this.form.return_id.value=\'{$fields.id.value}\'; this.form.action.value=\'Subscriptions\'; this.form.module.value=\'Campaigns\'; this.form.module_tab.value=\'Contacts\';" name="Manage Subscriptions" value="{$APP.LBL_MANAGE_SUBSCRIPTIONS}"/>',
@@ -82,6 +85,7 @@ $viewdefs['Contacts'] = array(
 			),
 			'includes' => array(
 				array('file' => 'modules/Contacts/Contact.js'),
+				array('file' => 'modules/Contacts/js/view.detail.js'),
 			),
 			'useTabs' => false,
 			'tabDefs' => array(

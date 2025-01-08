@@ -87,7 +87,7 @@ class Viewprinteticket extends SugarView {
 		$smartyobj->assign('LIST_OF_PASSENGER', $pass_inf['html']);
 		$smartyobj->assign('COM_NAME', $department_info['com_name']);
 		$smartyobj->assign('COM_TAXCODE', $department_info['com_taxcode']);
-		$smartyobj->assign('COM_ADDRESS', $department_info['com_address']);
+		$smartyobj->assign('COM_ADDRESS', ($lang == 'en' ? $department_info['com_address2'] : $department_info['com_address']));
 		$smartyobj->assign('COM_TOP_PHONE', $department_info['com_phone']);
 		$smartyobj->assign('COM_PHONE', $com_phone);
 		$smartyobj->assign('COM_WEBSITE', $com_website);

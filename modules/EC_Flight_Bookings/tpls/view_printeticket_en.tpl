@@ -228,7 +228,7 @@
                                                             <td class="pad" style=" padding-bottom: 15px; width: 100%; padding-right: 0px; padding-left: 0px; ">
                                                                 <div align="center" class="alignment" style="line-height: 10px">
                                                                     <p style=" margin: 0; font-size: 13px; line-height: 20px; mso-line-height-alt: 21px;  ">
-                                                                        {$COM_NAME}, {$COM_ADDRESS}, TPHCM
+                                                                        {$COM_NAME}, {$COM_ADDRESS}
                                                                     </p>
                                                                     <p style=" margin: 0; font-size: 13px; line-height: 20px; mso-line-height-alt: 21px;  ">
                                                                         MST: {$COM_TAXCODE} &nbsp;&nbsp;|&nbsp;&nbsp;Tel: {$COM_PHONE}&nbsp;&nbsp;|&nbsp;&nbsp;Email: {$COM_EMAIL}
