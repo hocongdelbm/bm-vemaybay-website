@@ -2262,6 +2262,8 @@ $GLOBALS['app_list_strings']['bambooair_eco_luggage_price_list'] = array(
   300000  => '30kg (300.000 VND/Khách)-Eco',
   330000  => '35kg (330.000 VND/Khách)-Eco',
   370000  => '40kg (370.000 VND/Khách)-Eco',
+  750000  => '50kg (750.000 VND/Khách)-Eco',
+  850000  => '60kg (850.000 VND/Khách)-Eco',
 );
 $GLOBALS['app_list_strings']['bambooair_eco_saver_luggage_price_list'] = array(
   0 => '20 kg xách tay (0 VND/Khách) - Eco ',
@@ -2276,12 +2278,16 @@ $GLOBALS['app_list_strings']['bambooair_eco_saver_luggage_price_list'] = array(
   300000  => '30kg (300.000 VND/Khách) - Eco',
   330000  => '35kg (330.000 VND/Khách) - Eco',
   370000  => '40kg (370.000 VND/Khách) - Eco',
+  750000  => '50kg (750.000 VND/Khách) - Eco',
+  850000  => '60kg (850.000 VND/Khách) - Eco',
 );
 $GLOBALS['app_list_strings']['bambooair_business_luggage_price_list'] = array(
   0 => '30kg (0 VND/Khách)-Business',
   2000    => '15kg (2.000 VND/Khách)-Business',
   110000  => '35kg (110.000 VND/Khách)-Business',
   140000  => '40kg (140.000 VND/Khách)-Business',
+  750000  => '50kg (750.000 VND/Khách)-Business',
+  850000  => '60kg (850.000 VND/Khách)-Business',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosaver_luggage_price_list'] = array(
   // 0 => '20 kg ký gửi (0 VND/Khách)-Eco Saver',
@@ -2290,6 +2296,8 @@ $GLOBALS['app_list_strings']['bambooair_ecosaver_luggage_price_list'] = array(
   350000    => '20kg (350.000 VND/Khách) - Eco Saver',
   500000    => '30kg (500.000 VND/Khách) - Eco Saver',
   650000    => '40kg (650.000 VND/Khách) - Eco Saver',
+  750000    => '50kg (750.000 VND/Khách) - Eco Saver',
+  850000    => '60kg (850.000 VND/Khách) - Eco Saver',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosavermax_luggage_price_list'] = array(
   0 => '7kg xách tay (0 VND/Khách) - Eco Saver Max',
@@ -2300,6 +2308,8 @@ $GLOBALS['app_list_strings']['bambooair_ecosavermax_luggage_price_list'] = array
   350000    => '20kg (350.000 VND/Khách) - Eco Saver Max',
   500000    => '30kg (500.000 VND/Khách) - Eco Saver Max',
   650000    => '40kg (650.000 VND/Khách) - Eco Saver Max',
+  750000    => '50kg (750.000 VND/Khách) - Eco Saver Max',
+  850000    => '60kg (850.000 VND/Khách) - Eco Saver Max',
 );
 $GLOBALS['app_list_strings']['bambooair_ecoflex_luggage_price_list'] = array(
   // 0 => '20 kg ký gửi (0 VND/Khách) - Eco Flex',
@@ -2311,6 +2321,8 @@ $GLOBALS['app_list_strings']['bambooair_ecoflex_luggage_price_list'] = array(
   350000    => '20kg (350.000 VND/Khách) - Eco Flex',
   500000    => '30kg (500.000 VND/Khách) - Eco Flex',
   650000    => '40kg (600.000 VND/Khách) - Eco Flex',
+  750000    => '50kg (750.000 VND/Khách) - Eco Flex',
+  850000    => '60kg (850.000 VND/Khách) - Eco Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_ecosmart_luggage_price_list'] = array(
   // 0 => '20kg ký gửi (0 VND/Khách)-Eco Smart',
@@ -2321,6 +2333,8 @@ $GLOBALS['app_list_strings']['bambooair_ecosmart_luggage_price_list'] = array(
   350000    => '20kg (350.000 VND/Khách) - Eco Smart',
   500000    => '30kg (500.000 VND/Khách) - Eco Smart',
   650000    => '40kg (650.000 VND/Khách) - Eco Smart',
+  750000    => '50kg (750.000 VND/Khách) - Eco Smart',
+  850000    => '60kg (850.000 VND/Khách) - Eco Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_preflex_luggage_price_list'] = array(
   0 => '30kg ký gửi (0 VND/Khách) - Premium Flex',
@@ -2332,6 +2346,8 @@ $GLOBALS['app_list_strings']['bambooair_preflex_luggage_price_list'] = array(
   350000 => '20kg (350.000 VND/Khách) - Premium Flex',
   500000 => '30kg (500.000 VND/Khách) - Premium Flex',
   650000 => '40kg (650.000 VND/Khách) - Premium Flex',
+  750000 => '50kg (750.000 VND/Khách) - Premium Flex',
+  850000 => '60kg (850.000 VND/Khách) - Premium Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_buzsmart_luggage_price_list'] = array(
   0 => '40kg ký gửi (0 VND/Khách) - Business Smart',
@@ -2342,17 +2358,21 @@ $GLOBALS['app_list_strings']['bambooair_buzsmart_luggage_price_list'] = array(
   350000    => '20kg (350.000 VND/Khách) - Business Smart',
   500000    => '30kg (500.000 VND/Khách) - Business Smart',
   650000    => '40kg (650.000 VND/Khách) - Business Smart',
+  750000    => '50kg (750.000 VND/Khách) - Business Smart',
+  850000    => '60kg (850.000 VND/Khách) - Business Smart',
 );
 $GLOBALS['app_list_strings']['bambooair_buzflex_luggage_price_list'] = array(
   0 => '40kg ký gửi (0 VND/Khách) - Business Flex',
 
   // new
-  1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Business Smart',
-  40 => 'Mỗi hành khách tối đa 40Kg (0 VND/Khách) - Business Smart',
-  200000    => '10kg (200.000 VND/Khách) - Business Smart',
-  350000    => '20kg (350.000 VND/Khách) - Business Smart',
-  500000    => '30kg (500.000 VND/Khách) - Business Smart',
-  650000    => '40kg (650.000 VND/Khách) - Business Smart',
+  1 => 'Mỗi hành khách tối đa 15Kg (0 VND/Khách) - Business Flex',
+  40 => 'Mỗi hành khách tối đa 40Kg (0 VND/Khách) - Business Flex',
+  200000    => '10kg (200.000 VND/Khách) - Business Flex',
+  350000    => '20kg (350.000 VND/Khách) - Business Flex',
+  500000    => '30kg (500.000 VND/Khách) - Business Flex',
+  650000    => '40kg (650.000 VND/Khách) - Business Flex',
+  750000    => '50kg (750.000 VND/Khách) - Business Flex',
+  850000    => '60kg (850.000 VND/Khách) - Business Flex',
 );
 $GLOBALS['app_list_strings']['bambooair_advanced_luggage_price_list'] = array(
   0 => 'Không mang hành lý ',
@@ -2378,6 +2398,8 @@ $GLOBALS['app_list_strings']['bambooair_plus_luggage_price_list'] = array(
   350000    => '20kg (350.000 VND/Khách) - Plus',
   500000    => '30kg (500.000 VND/Khách) - Plus',
   650000    => '40kg (650.000 VND/Khách) - Plus',
+  750000    => '50kg (750.000 VND/Khách) - Plus',
+  850000    => '60kg (850.000 VND/Khách) - Plus',
 );
 $GLOBALS['app_list_strings']['bambooair_infant_luggage_price_list'] = array(
   0 => 'Không mang hành lý ký gửi ',

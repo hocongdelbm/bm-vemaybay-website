@@ -21,5 +21,7 @@ if (ACLController::checkAccess('Contacts', 'list', true)) {
 if (ACLController::checkAccess('Contacts', 'list', true))
     $module_menu[] = array("index.php?module=Contacts&action=summary&return_module=Contacts&return_action=summary", "Báo cáo KH", "summary");
 
-if (ACLController::checkAccess('Contacts', 'list', true))
-    $module_menu[] = array("index.php?module=Contacts&action=telesales&return_module=Contacts&return_action=telesales", "TeleSales", "telesales");
+if($current_user->user_name == 'hungnh'){
+    if (ACLController::checkAccess('Contacts', 'list', true))
+        $module_menu[] = array("index.php?module=Contacts&action=telesales&return_module=Contacts&return_action=telesales", "TeleSales", "telesales");
+}

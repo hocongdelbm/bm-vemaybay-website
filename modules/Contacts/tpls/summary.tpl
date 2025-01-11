@@ -161,11 +161,6 @@
           color: #384551 !important;
      }
 
-     .text-muted {
-          --bs-text-opacity: 1;
-          color: #a7acb2 !important;
-     }
-
      .box-icon .box-icon-initial {
           position: absolute;
           top: 0;
@@ -194,6 +189,14 @@
 </style>
 <script>
      $(document).ready(function() {
+          $("#year_select").change(function() {
+               $("#from_date").val($(this).find("option:selected").attr("fromdate"));
+               $("#to_date").val($(this).find("option:selected").attr("todate"));
+
+               $(".container-waiting").show();
+               $("#ec_search_form").submit();
+          });
+          
           createContactsChartDoughnut();
           createContactsChartCombo();
 
@@ -336,10 +339,14 @@
 
 <div class="report-date__call">
      <div class="title-wrap flex-start mb-3">
-          <h1 class="title m-0">Báo cáo khách hàng theo chu kỳ 1 năm từ {$REPORT_TIME} </h1>
-          <svg xmlns="http://www.w3.org/2000/svg" id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block hide-landscape" viewBox="0 0 16 16">
-               <path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
-          </svg>
+          <h1 class="title m-0">Báo cáo khách hàng</h1>
+          <form id="ec_search_form" method="post" action="index.php">
+               <input type="hidden" name="module" value="{$MODULE_NAME}">
+               <input type="hidden" name="action" value="summary">
+               <input type="hidden" name="from_date" id="from_date" value="{$FROM_DATE}">
+               <input type="hidden" name="to_date" id="to_date" value="{$TO_DATE}">
+               <select class="box-select" id="year_select" name="year_select">{$YEAR_SELECT}</select>
+          </form>
      </div>
      
      <div class="box-contacts__type">
@@ -347,7 +354,7 @@
                {foreach from=$DATA_TYPE_CONTACTS item=itemType}
                     <div class="col-lg-2 col-sm-6">
                          <div class="card card-border-shadow-{$itemType.class} h-100">
-                              <div class="card-body">
+                              <div class="card-body p-3">
                                    <div class="flex-between mb-2">
                                         <div class="box-left flex-start">
                                              <div class="box-icon">
@@ -366,15 +373,14 @@
                                    </div>
                                    <div class="flex-between">
                                         <p class="mb-0">{$itemType.label}</p>
-                                        <a class="text-{$itemType.class}" href="index.php?module=Contacts&action=typereports&type_customer={$itemType.type|upper}">
+                                        <a class="text-{$itemType.class}" href="index.php?module=Contacts&action=typereports&type_customer={$itemType.type|upper}&year_select={$OPTION_SELECTED}&from_date={$FROM_DATE}&to_date={$TO_DATE}">
                                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
                                                   <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"></path>
                                              </svg>
                                          </a>
                                    </div>
                                    <p class="mb-0 d-none">
-                                        <span class="text-heading fw-medium me-2">+18.2%</span>
-                                        <span class="text-muted">So với hôm qua</span>
+                                        <code class="text-muted">{$itemType.desc}</code>
                                    </p>
                               </div>
                          </div>
@@ -407,6 +413,27 @@
                          <canvas id="contact-chart-doughnut"></canvas>
                     </section>
                </div>
+          </div>
+     </div>
+     <div class="box-section box-desc">
+          <h3 class="sub-title">Mô tả loại khách hàng</h3>
+          <div class="accordion row" id="accordionPanelsStayOpenExample">
+               {foreach from=$DATA_TYPE_CONTACTS item=itemType name=groupType}
+               <div class="col-md-6 {if not $smarty.foreach.groupType.last}mb-3{/if}">
+                    <div class="accordion-item">
+                         <h2 class="accordion-header">
+                              <button class="accordion-button w-100 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#accor-{$itemType.type}" aria-expanded="true" aria-controls="accor-{$itemType.type}">
+                                   {$itemType.label}
+                              </button>
+                         </h2>
+                         <div id="accor-{$itemType.type}" class="accordion-collapse collapse">
+                              <div class="accordion-body">
+                                   {$itemType.desc}
+                              </div>
+                         </div>
+                    </div>
+               </div>
+               {/foreach}
           </div>
      </div>
 </div>    

@@ -9,6 +9,7 @@ class Viewtypereports extends SugarView
         global $current_user;
 
         $con_return = $this->populateCondition();
+
         $smartyCont = new Sugar_Smarty();
         $this->assignFields($con_return, $smartyCont);
         $smartyCont->display('modules/Contacts/tpls/typereports.tpl');
@@ -20,21 +21,33 @@ class Viewtypereports extends SugarView
         $reportTime    = 'năm ' . date('Y');
         $type_customer = '';
 
-        if (isset($_REQUEST['report_year']) && !empty($_REQUEST['report_year'])) {
-            $reportYear = $_REQUEST['report_year'];
-        } else {
-            $reportYear = $currYear;
-        }
-
         if (isset($_REQUEST['type_customer']) && !empty($_REQUEST['type_customer'])) {
             $type_customer = $_REQUEST['type_customer'];
         }
 
+        if (isset($_REQUEST['from_date']) && !empty($_REQUEST['from_date']) && strtotime($_REQUEST['from_date']) !== false) {
+            $from_date = date('d-m-Y', strtotime($_REQUEST['from_date']));
+        } else {
+            $from_date = date('d-m') . '-' . ($currYear - 1);
+            $_REQUEST['from_date'] = $from_date;
+        }
+
+        if (isset($_REQUEST['to_date']) && !empty($_REQUEST['to_date']) && strtotime($_REQUEST['to_date']) !== false) {
+            $to_date = date('d-m-Y', strtotime($_REQUEST['to_date']));
+        } else {
+            $to_date = date('d-m-Y', strtotime($currYear));
+            $_REQUEST['to_date'] =  $to_date;
+        }
+
+        $year_select = isset($_REQUEST['year_select']) ? $_REQUEST['year_select'] : '';
+
         return [
             'curr_year'    => $currYear,
-            'report_year'  => $reportYear,
             'report_time'  => $reportTime,
             'type_customer' => $type_customer,
+            'from_date'    => $from_date,
+            'to_date'      => $to_date,
+            'year_select'   => $year_select,
         ];
     }
 
@@ -42,33 +55,86 @@ class Viewtypereports extends SugarView
     {
         global $current_user;
 
+        $time_opt = $this->populateReportYearSelect($con);
+        $smarty->assign('YEAR_SELECT', $time_opt['html']);
+        $smarty->assign('FROM_DATE', $con['from_date']);
+        $smarty->assign('TO_DATE', $con['to_date']);
+        $smarty->assign('REPORT_TIME', $time_opt['report_time']);
+
         $smarty->assign('MODULE_NAME', $this->bean->module_dir);
+
+        // ROLE
+        $smarty->assign('IS_ADMIN', (isAllowedUser()));
+        $smarty->assign('OWNER', (!isAllowedUser() ? 1 : 0));
 
         $text_type_customer = isset($GLOBALS['app_list_strings']['contact_type_list'][$con['type_customer']]) ? $GLOBALS['app_list_strings']['contact_type_list'][$con['type_customer']] : '';
         $smarty->assign('TEXT_TYPE_CUSTOMER', $text_type_customer);
         $smarty->assign('TYPE_CUSTOMER', $con['type_customer']);
 
         // LIST CUSTOMER FOR TYPE
-        $list_customer = $this->genListCustomerForType($con['type_customer']);
+        $list_customer = $this->genListCustomerForType($con);
         $smarty->assign('HTML_LIST_CUSTOMER', $list_customer['data']);
-        $smarty->assign('TOTAL_BOOKINGS', $list_customer['total']);
+        $smarty->assign('TOTAL_CUSTOMER', $list_customer['total']);
 
         // EMPLOYEE SELECT
-        $employee_select = $this->getEmployeeSelect();
-        $smarty->assign('EMLOYEE_SELECT', $employee_select);
+        $employee_option = $this->getEmployeeSelect();
+        $smarty->assign('EMLOYEE_OPTION', $employee_option);
 
         // ASSIGN CONTACTS
-        if(isset($_POST['btnSaveAssignContact'])){
-            $this->assignContactForEmployee();
+        if(isset($_POST['btnSaveAssignContactEmp'])){
+            $this->assignContactForEmployee($con);
+        } else if (isset($_POST['btnSaveAssignContact'])){
+            $this->assignContactForList($con);
         }
     }
 
-    function genListCustomerForType($type_customer)
+    function populateReportYearSelect($con){
+        $currYear = $con['curr_year'] ?? date('Y');
+        $reportTime = $con['year_select'] ?? '';
+
+        $labels = ['Chu kỳ', 'Năm ' . $currYear, 'Năm ' . ($currYear - 1), 'Năm ' . ($currYear - 2), 'Năm ' . ($currYear - 3)];
+        $values = ['period', 'this_year', 'previous_year', 'past_year', 'old_year'];
+        $dateOptions = [];
+
+        foreach ($values as $key => $value) {
+            $year = $currYear - $key + 1; // Lấy năm tương ứng.
+            $fromdate = $value === 'period' ? date('d-m') . '-' . ($currYear - 1) : "01-01-$year";
+            $todate = $value === 'period' ? date('d-m-Y') : "31-12-$year";
+            $dateOptions[] = [
+                'value' => $value,
+                'fromdate' => $fromdate,
+                'todate' => $todate,
+                'label' => $labels[$key],
+                'selected' => $reportTime === $value
+            ];
+        }
+
+        $html = implode('', array_map(function ($option) {
+            return '<option value="' . $option['value'] . '" fromdate="' . $option['fromdate'] . '" todate="' . $option['todate'] . '"'
+                . ($option['selected'] ? ' selected' : '') . '>' . $option['label'] . '</option>';
+        }, $dateOptions));
+    
+        return [
+            'html' => $html,
+            'report_time' => $reportTime
+        ];
+    }
+
+    function genListCustomerForType($params)
     {
         global $db, $current_user;
+   
+        $type_customer = $params['type_customer'] ?? null;
 
-        $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
-        $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
+        // $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
+        // $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
+        $start_date = date('Y-m-d 00:00:00', strtotime($params['from_date']));
+        $end_date = date('Y-m-d 23:59:59', strtotime($params['to_date']));
+
+        $sql_search = '';
+        if (!isAllowedUser()) {
+			$sql_search .= " WHERE c.assigned_user_id='" . $current_user->id . "' ";
+		}
 
         $sql = "SELECT 
                 c.id,
@@ -97,8 +163,6 @@ class Viewtypereports extends SugarView
                 t.profit_period_2
             FROM (
                 SELECT 
-                    -- SUM(CASE WHEN YEAR(date_entered) = YEAR(CURDATE()) THEN 1 ELSE 0 END) AS current_year,
-                    -- SUM(CASE WHEN YEAR(date_entered) < YEAR(CURDATE()) THEN 1 ELSE 0 END) AS past_year,
                     contact_id,
                     -- Chu kỳ hiện tại
                     SUM(CASE WHEN date_entered BETWEEN '$start_date' AND '$end_date' THEN 1 ELSE 0 END) AS current_period,
@@ -180,25 +244,30 @@ class Viewtypereports extends SugarView
                 GROUP BY bk.contact_id
             ) t
             JOIN contacts c ON c.id = t.contact_id
+            $sql_search
             ORDER BY t.profit_period_0 DESC";
 
             // if($current_user->user_name == 'hungnh'){
             //     pr($sql);
             // }
 
-        $html = '<div class="box-list__customer" style="max-height: 75vh; overflow: auto;">
+        $html = '<div class="box-list__customer mt-3" style="max-height: 75vh; overflow: auto;">
                     <table class="table-list__customer table-details__booking table__sticky text-nowrap" cellpadding="0" cellspacing="0" width="100%">
                         <thead>
                                 <tr>
-                                   <th width="3%">#</th>
-                                   <th width="15%" align="center">Tên khách hàng</th>
-                                   <th width="8%" align="center">Doanh số</th>
-                                   <th width="8%" align="center">BK Hoàn tất trong chu kỳ</th>
-                                   <th width="8%" align="center">BK Hoàn tất quá khứ</th>
-                                   <th width="8%" align="center">SL Booking</th>
-                                   <th align="center">Ghi chú</th>
-                                   <th width="8%" align="center">Giao cho</th>
-                                   <th width="8%" align="center">Xem thêm</th>
+                                    <th width="3%">#</th>';
+                                    if(isAllowedUser()){
+                                        $html .= '<th width="3%"><input type="checkbox" id="checkall" value="0"></th>';
+                                    }
+                                    
+                        $html .= '<th width="15%" align="center">Tên khách hàng</th>
+                                    <th width="8%" align="center">Doanh số</th>
+                                    <th width="8%" align="center">BK Hoàn tất</th>
+                                    <th width="8%" align="center">BK Hoàn tất quá khứ</th>
+                                    <th width="8%" align="center">SL Booking</th>
+                                    <th align="center">Ghi chú</th>
+                                    <th width="8%" align="center">Giao cho</th>
+                                    <th width="8%" align="center">Xem thêm</th>
                                 </tr>
                         </thead>
                         <tbody>';
@@ -212,8 +281,14 @@ class Viewtypereports extends SugarView
             if($type_customer === $row['type']){
                 $html .= '
                     <tr>
-                        <td align="center" class="fw-semibold">' . $i . '</td>
-                        <td align="left"><a target="_blank" href="index.php?module=Contacts&return_module=Contacts&action=DetailView&record=' . $row['id'] . '">' . $row['last_name'] . '</a></td>
+                        <td align="center" class="fw-semibold">' . $i . '</td>';
+                        if(isAllowedUser()){
+                            $html .= '<td class="text-center fw-bold">
+                                        <input type="checkbox" name="contact_id[]" value="' . $row['id'] . '" />
+                                    </td>';
+                        }
+
+            $html .= '<td align="left"><a target="_blank" href="index.php?module=Contacts&return_module=Contacts&action=DetailView&record=' . $row['id'] . '">' . $row['last_name'] . '</a></td>
                         <td align="center" class="text-danger"><strong>' . format_number($row['profit_period_0']) . '</strong></td>
                         <td align="center" class="text-dark"><strong>' . $row['current_period'] . '</strong></td>
                         <td align="center" class="text-dark"><strong>' . $row['past_period'] . '</strong></td>
@@ -252,7 +327,7 @@ class Viewtypereports extends SugarView
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0);" class="dropdown-item cursor-pointer text-decoration-none fw-medium view-activity-contact" data-bs-toggle="modal" data-bs-target="#modalViewHistoryActivity" data-phone="' . $row['phone_mobile'] . '">
+                                        <a href="javascript:void(0);" class="dropdown-item cursor-pointer text-decoration-none fw-medium view-activity-contact" data-bs-toggle="modal" data-bs-target="#modalViewHistoryActivity" data-type="get_history_activity_contacts" data-phone="' . $row['phone_mobile'] . '">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-activity me-2" viewBox="0 0 16 16">
                                                 <path fill-rule="evenodd" d="M6 2a.5.5 0 0 1 .47.33L10 12.036l1.53-4.208A.5.5 0 0 1 12 7.5h3.5a.5.5 0 0 1 0 1h-3.15l-1.88 5.17a.5.5 0 0 1-.94 0L6 3.964 4.47 8.171A.5.5 0 0 1 4 8.5H.5a.5.5 0 0 1 0-1h3.15l1.88-5.17A.5.5 0 0 1 6 2"></path>
                                             </svg>
@@ -260,15 +335,27 @@ class Viewtypereports extends SugarView
                                         </a>
                                     </li>
                                     <li>
-                                        <a href="javascript:void(0);" class="dropdown-item cursor-pointer text-decoration-none fw-medium assign-contact" data-contact_id="' . $row['id'] . '" data-contact_name="' . $row['last_name'] . '" data-bs-toggle="modal" data-bs-target="#modalAssignContacts">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person-add me-2" viewBox="0 0 16 16">
-                                                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
-                                                <path d="M8.256 14a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
+                                        <a href="javascript:void(0);" class="dropdown-item cursor-pointer text-decoration-none fw-medium view-activity-contact" data-bs-toggle="modal" data-bs-target="#modalViewHistoryActivity" data-type="get_history_activity_cskh" data-phone="' . $row['phone_mobile'] . '">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-headset me-2" viewBox="0 0 16 16">
+                                                <path d="M8 1a5 5 0 0 0-5 5v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a6 6 0 1 1 12 0v6a2.5 2.5 0 0 1-2.5 2.5H9.366a1 1 0 0 1-.866.5h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 .866.5H11.5A1.5 1.5 0 0 0 13 12h-1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h1V6a5 5 0 0 0-5-5"/>
                                             </svg>
-                                            <span>Giao cho nhân viên</span>
+                                            <span>Cuộc gọi CSKH</span>
                                         </a>
                                     </li>
-                                </ul>
+                                ';
+                                if(isAllowedUser()){
+                                $html .= '<li>
+                                            <a href="javascript:void(0);" class="dropdown-item cursor-pointer text-decoration-none fw-medium assign-contact" data-contact_id="' . $row['id'] . '" data-contact_name="' . $row['last_name'] . '" data-bs-toggle="modal" data-bs-target="#modalAssignContacts">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-person-add me-2" viewBox="0 0 16 16">
+                                                    <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0m-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
+                                                    <path d="M8.256 14a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
+                                                </svg>
+                                                <span>Giao cho nhân viên</span>
+                                            </a>
+                                        </li>';
+                                }
+
+                        $html .= '</ul>
                             </div>
                         </td>
                     </tr>
@@ -311,27 +398,23 @@ class Viewtypereports extends SugarView
 			$employee_list[$row['id']] = $row['full_name'];
 		}
 
-        
-        $html = '
-            <div class="flex-start">
-                <label for="employee-select" class="form-label m-0">Nhân viên: </label>
-                <select class="box-select" id="employee-select" name="employee_id"><option value="">-- Trống --</option>'.get_select_options_with_id($employee_list, '').'</select>
-            </div>
-        ';
+        $html = get_select_options_with_id($employee_list, '');
 
         return $html;
     }
 
-    function assignContactForEmployee(){
-        global $db;
+    function assignContactForEmployee($params){
+        global $db, $current_user;
 
         $user_id    = htmlspecialchars($_POST['employee_id'] ?? '');
         $contact_id = htmlspecialchars($_POST['contact_id'] ?? '');
         $contact_name = htmlspecialchars($_POST['contact_name'] ?? '');
-        $typereports = htmlspecialchars($_POST['typereports'] ?? '');
+        $typereports = htmlspecialchars($params['type_customer'] ?? '');
 
         if(empty($user_id) || empty($contact_id)){
             SugarApplication::appendErrorMessage('Lỗi: Thiếu thông tin Khách hàng hoặc thông tin nhân viên. Vui lòng liên hệ Admin để được hỗ trợ!');
+            header("Location: index.php?module=Contacts&action=typereports&type_customer=".$typereports."&year_select=past_year&from_date=".date('d-m-Y', strtotime($params['from_date']))."&to_date=".date('d-m-Y', strtotime($params['to_date']))."");
+            exit;
         }
 
         $sql_update = "UPDATE contacts
@@ -347,10 +430,13 @@ class Viewtypereports extends SugarView
             // Thông báo cho user user_id
             $alertData = [
 				'name' 			=> 'Khách hàng: ' . $contact_name,
-				'parent_type' 	=> 'Contacts',
-				'parent_id' 	=> $contact_id,
+				// 'parent_type' 	=> 'Contacts',
+				// 'parent_id' 	=> $contact_id,
+				'parent_type' 	=> '',
+				'parent_id' 	=> '',
 				'description' 	=> 'CSKH ' . $contact_name . '. Đừng quên giữ liên lạc thường xuyên và hỗ trợ tận tình!',
-				'url_redirect' 	=> 'index.php?module=Contacts&action=DetailView&record='.$contact_id.'',
+				// 'url_redirect' 	=> 'index.php?module=Contacts&action=DetailView&record='.$contact_id.'',
+				'url_redirect' 	=> 'index.php?module=Contacts&action=typereports&type_customer='.$typereports,
 				'priority' 		=> 'low',
 				'type' 			=> 'readonly',
 			];
@@ -361,7 +447,84 @@ class Viewtypereports extends SugarView
             SugarApplication::appendErrorMessage('Chỉ định khách hàng cho nhân viên thất bại. Vui lòng liên hệ Admin để được hỗ trợ!');
         }
 
-        header("Location: index.php?module=Contacts&action=typereports&type_customer=".$typereports."");
+        header("Location: index.php?module=Contacts&action=typereports&type_customer=".$typereports."&year_select=past_year&from_date=".date('d-m-Y', strtotime($params['from_date']))."&to_date=".date('d-m-Y', strtotime($params['to_date']))."");
+        exit;
+    }
+    
+    function assignContactForList($params){
+        global $db, $current_user;
+        $employee_ids   = $_POST['employee_id'] ?? [];
+        $contact_ids    = $_POST['contact_id'] ?? [];
+        $typereports    = htmlspecialchars($params['type_customer'] ?? '');
+
+        // Số lượng contact_id và employee_id
+        $num_contacts   = count($contact_ids);
+        $num_employees  = count($employee_ids);
+
+        if (empty($employee_ids) || empty($contact_ids) || $num_contacts === 0 || $num_employees === 0) {
+            SugarApplication::appendErrorMessage('Lỗi: Thiếu thông tin Khách hàng hoặc thông tin nhân viên được giao!');
+            header("Location: index.php?module=Contacts&action=typereports&type_customer=".$typereports."&year_select=past_year&from_date=".date('d-m-Y', strtotime($params['from_date']))."&to_date=".date('d-m-Y', strtotime($params['to_date']))."");
+            exit;
+        } else if ($num_contacts < $num_employees){
+            SugarApplication::appendErrorMessage('Lỗi: Số lượng khách hàng phân bổ nhỏ hơn số lượng nhân viên chỉ định. Vui lòng kiểm tra lại!');
+            header("Location: index.php?module=Contacts&action=typereports&type_customer=".$typereports."&year_select=past_year&from_date=".date('d-m-Y', strtotime($params['from_date']))."&to_date=".date('d-m-Y', strtotime($params['to_date']))."");
+            exit;
+        } else {
+            $contacts_per_employee  = floor($num_contacts / $num_employees); // Phép chia đều
+            $remaining_contacts     = $num_contacts % $num_employees; // Contacts dư sẽ gán cho nhân viên cuối
+            $assignments            = array_fill(0, $num_employees, []);
+    
+            $contact_index = 0;
+            for ($i = 0; $i < $num_employees; $i++) {
+                $assigned_contacts = $contacts_per_employee + ($i < $remaining_contacts ? 1 : 0); // Nếu có dư, nhân viên nhận thêm 1 contact
+                $assignments[$i] = array_slice($contact_ids, $contact_index, $assigned_contacts);
+                $contact_index += $assigned_contacts;
+            }
+    
+            $this->updateContactAssignments($assignments, $employee_ids, $typereports, $params);
+        }
+    }
+
+    function updateContactAssignments($assignments, $employee_ids, $typereports, $params) {
+        global $db, $current_user;
+
+
+        // Chuẩn bị câu lệnh SQL để cập nhật `assigned_user_id` cho từng contact_id
+        $update_sql = "UPDATE contacts SET assigned_user_id = CASE id";
+    
+        // Tạo câu lệnh "CASE" cho từng nhóm assignment
+        $contact_ids_to_update = [];
+        foreach ($assignments as $index => $assigned_contacts) {
+            $employee_id = $employee_ids[$index];
+            foreach ($assigned_contacts as $contact_id) {
+                $update_sql .= " WHEN '$contact_id' THEN '$employee_id'";  // Gán nhân viên cho mỗi contact
+                $contact_ids_to_update[] = $contact_id;  // Dành cho phần WHERE
+            }
+        }
+    
+        // Thêm điều kiện WHERE và thực hiện cập nhật
+        $update_sql .= " END WHERE id IN ('" . implode("','", $contact_ids_to_update) . "') AND deleted = 0";
+        
+        // Thực hiện truy vấn
+        if ($db->query($update_sql)) {
+            SugarApplication::appendSuccessMessage('Phân giao khách hàng cho nhân viên thành công!');
+
+            // Thông báo cho user user_id
+            $alertData = [
+				'name' 			=> 'Phân công CSKH '. $typereports,
+				'parent_type' 	=> '',
+				'parent_id' 	=> '',
+				'description' 	=> 'Bạn được giao nhiệm vụ CSKH '. $typereports . '. Đừng quên giữ liên lạc thường xuyên và hỗ trợ tận tình nhé!',
+				'url_redirect' 	=> 'index.php?module=Contacts&action=typereports&type_customer='.$typereports,
+				'priority' 		=> 'low',
+				'type' 			=> 'readonly',
+			];
+			$alert 		= new Alert();
+			$alertId 	= $alert->autoCreateAlert('Contacts', $employee_ids, $alertData);
+        } else {
+            SugarApplication::appendErrorMessage('Chỉ định khách hàng cho nhân viên thất bại. Vui lòng liên hệ Admin để được hỗ trợ!');
+        }
+        header("Location: index.php?module=Contacts&action=typereports&type_customer=".$typereports."&year_select=past_year&from_date=".date('d-m-Y', strtotime($params['from_date']))."&to_date=".date('d-m-Y', strtotime($params['to_date']))."");
         exit;
     }
 }

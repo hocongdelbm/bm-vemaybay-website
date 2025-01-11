@@ -19,25 +19,48 @@ class Viewsummary extends SugarView
      function populateContent()
      {
           $currMonth     = date('n');
-          $reportTime = date('d-m') . '-' . (date('Y') - 1) . '/' . date('Y');
+          $currYear      = date('Y');
+          $reportTime    = 'năm ' . date('Y');
+
+          if (!empty($_REQUEST['from_date']) && strtotime($_REQUEST['from_date']) !== false) {
+               $from_date = date('d-m-Y', strtotime($_REQUEST['from_date']));
+          } else {
+               $from_date = date('d-m') . '-' . ($currYear - 1);
+               $_REQUEST['from_date'] = $from_date;
+          }
+
+          if (!empty($_REQUEST['to_date']) && strtotime($_REQUEST['to_date']) !== false) {
+               $to_date = date('d-m-Y', strtotime($_REQUEST['to_date']));
+          } else {
+               $to_date = date('d-m-Y', strtotime($currYear));
+               $_REQUEST['to_date'] =  $to_date;
+          }
+
+          $year_select = isset($_REQUEST['year_select']) ? $_REQUEST['year_select'] : '';
+
           return [
                'curr_month'   => $currMonth,
+               'curr_year'    => $currYear,
                'report_time'  => $reportTime,
+               'from_date'    => $from_date,
+               'to_date'      => $to_date,
+               'year_select'   => $year_select,
           ];
      }
 
      function assignFields($con, $smarty)
      {
           global $current_user;
-
+          $time_opt = $this->populateReportYearSelect($con);
+          $smarty->assign('YEAR_SELECT', $time_opt['html']);
+          $smarty->assign('OPTION_SELECTED', $con['year_select']);
+          $smarty->assign('FROM_DATE', $con['from_date']);
+          $smarty->assign('TO_DATE', $con['to_date']);
           $smarty->assign('MODULE_NAME', $this->bean->module_dir);
-          $smarty->assign('REPORT_TIME', $con['report_time']);
+          $smarty->assign('REPORT_TIME', $time_opt['report_time']);
 
           // LOẠI LIÊN HỆ
-          $data_type_contacts = $this->getContactsTypeTotals() ?? [];
-          if($current_user->user_name == 'hungnh'){
-               // pr($data_type_contacts);
-          }
+          $data_type_contacts = $this->getContactsTypeTotals($con) ?? [];
 
           // CHART DONUT
           $filtered_data = array_filter($data_type_contacts, function ($key) {
@@ -55,7 +78,7 @@ class Viewsummary extends SugarView
           $smarty->assign('CHART_COLORS_DONUT', '#696cff,#0dcaf0,#33A8FF,#ffc107,#212529,#ff3e1d');
 
           //  CHART BAR COMBO
-          $data_currency_contacts = $this->getContactsTop() ?? [];
+          $data_currency_contacts = $this->getContactsTop($con) ?? [];
           $chartLabels = [];
           $chartProfit0 = [];
           $chartProfit1 = [];
@@ -74,9 +97,41 @@ class Viewsummary extends SugarView
           $smarty->assign('DATA_TYPE_CONTACTS', $this->arrayContactsTypeData($data_type_contacts));
      }
 
+     function populateReportYearSelect($con){
+          $currYear = $con['curr_year'] ?? date('Y');
+          $reportTime = $con['year_select'] ?? 'period';
+  
+          $labels = ['Chu kỳ', 'Năm ' . $currYear, 'Năm ' . ($currYear - 1), 'Năm ' . ($currYear - 2), 'Năm ' . ($currYear - 3)];
+          $values = ['period', 'this_year', 'previous_year', 'past_year', 'old_year'];
+          $dateOptions = [];
+  
+          foreach ($values as $key => $value) {
+              $year = $currYear - $key + 1; // Lấy năm tương ứng.
+              $fromdate = $value === 'period' ? date('d-m') . '-' . ($currYear - 1) : "01-01-$year";
+              $todate = $value === 'period' ? date('d-m-Y') : "31-12-$year";
+              $dateOptions[] = [
+                  'value' => $value,
+                  'fromdate' => $fromdate,
+                  'todate' => $todate,
+                  'label' => $labels[$key],
+                  'selected' => $reportTime === $value
+              ];
+          }
+  
+          $html = implode('', array_map(function ($option) {
+              return '<option value="' . $option['value'] . '" fromdate="' . $option['fromdate'] . '" todate="' . $option['todate'] . '"'
+                  . ($option['selected'] ? ' selected' : '') . '>' . $option['label'] . '</option>';
+          }, $dateOptions));
+      
+          return [
+              'html' => $html,
+              'report_time' => $reportTime
+          ];
+      }
+
      function arrayContactsTypeData($data)
      {
-          $data = [
+          $result = [
                array(
                     'label' => 'KH mới',
                     'data_cnt' => format_number($data['NEW_CUSTOMER']['cnt']),
@@ -84,6 +139,7 @@ class Viewsummary extends SugarView
                     'type' => 'new_customer',
                     'link' => '',
                     'class' => 'primary',
+                    'desc' => 'Trong khoảng thời gian xem báo cáo, khách hàng có từ <code class="fs-6">1-3 booking hoàn tất</code>. Trước đó <strong>CHƯA</strong> có booking hoàn tất nào.',
                ),
                array(
                     'label' => 'Trở lại',
@@ -92,6 +148,7 @@ class Viewsummary extends SugarView
                     'type' => 'return_customer',
                     'link' => '',
                     'class' => 'info',
+                    'desc' => 'Trong khoảng thời gian xem báo cáo, khách hàng có từ <code class="fs-6">1-3 booking hoàn tất</code>. Trước đó đã có ít nhất <code class="fs-6">1 booking hoàn tất</code>',
                ),
                array(
                     'label' => 'Bạc',
@@ -100,6 +157,7 @@ class Viewsummary extends SugarView
                     'type' => 'silver_member',
                     'link' => '',
                     'class' => 'secondary',
+                    'desc' => 'Trong khoảng thời gian xem báo cáo. Khách hàng có từ <code class="fs-6">4-9 booking hoàn tất</code>.',
                ),
                array(
                     'label' => 'Vàng',
@@ -108,6 +166,7 @@ class Viewsummary extends SugarView
                     'type' => 'gold_member',
                     'link' => '',
                     'class' => 'warning',
+                    'desc' => 'Trong khoảng thời gian xem báo cáo. Khách hàng có từ <code class="fs-6">10 booking hoàn tất</code> trở lên.',
                ),
                array(
                     'label' => 'VIP Member',
@@ -116,6 +175,7 @@ class Viewsummary extends SugarView
                     'type' => 'vip_member',
                     'link' => '',
                     'class' => 'dark',
+                    'desc' => 'Khách hàng có từ <code class="fs-6">20 booking hoàn tất</code> trở lên và doanh số đạt trên <code class="fs-6">20tr</code>.',
                ),
                array(
                     'label' => 'Loại khác',
@@ -124,9 +184,10 @@ class Viewsummary extends SugarView
                     'type' => 'other',
                     'link' => '',
                     'class' => 'danger',
+                    'desc' => 'Không thuộc 1 trong 5 loại trên',
                ),
           ];
-          return $data;
+          return $result;
      }
 
      /**
@@ -134,7 +195,7 @@ class Viewsummary extends SugarView
       * @param mixed $params: Khoảng thời gian xem báo báo
       * @return int: Tổng số lượng cuộc gọi theo từng loại
       */
-     function getContactsTypeTotals()
+     function getContactsTypeTotals($params)
      {
           global $db, $current_user;
           $result = [
@@ -146,8 +207,10 @@ class Viewsummary extends SugarView
                'OTHER'           => ['cnt' => 0, 'profit' => 0],
           ];
 
-          $start_date    = date('Y-m-d', strtotime('-1 year +7 hours')); // Ngày 1 năm trước
-          $end_date      = date('Y-m-d', strtotime('+7 hours')); // Ngày hiện tại
+          // $start_date    = date('Y-m-d', strtotime('-1 year +7 hours')); // Ngày 1 năm trước
+          // $end_date      = date('Y-m-d', strtotime('+7 hours')); // Ngày hiện tại
+          $start_date = date('Y-m-d 00:00:00', strtotime($params['from_date']));
+          $end_date = date('Y-m-d 23:59:59', strtotime($params['to_date']));
 
           $sql = "SELECT 
                     CASE 
@@ -220,12 +283,13 @@ class Viewsummary extends SugarView
           return $result;
      }
 
-     function getContactsTop()
+     function getContactsTop($params)
      {
           global $db, $current_user;
-          $start_date    = date('Y-m-d', strtotime('-1 year +7 hours')); // Ngày 1 năm trước
-          $end_date      = date('Y-m-d', strtotime('+7 hours')); // Ngày hiện tại
-
+          // $start_date    = date('Y-m-d', strtotime('-1 year +7 hours')); // Ngày 1 năm trước
+          // $end_date      = date('Y-m-d', strtotime('+7 hours')); // Ngày hiện tại
+          $start_date = date('Y-m-d 00:00:00', strtotime($params['from_date']));
+          $end_date = date('Y-m-d 23:59:59', strtotime($params['to_date']));
           $top_contacts = [];
 
           $sql = "SELECT 

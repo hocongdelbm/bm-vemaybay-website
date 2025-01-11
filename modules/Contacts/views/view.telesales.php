@@ -140,9 +140,8 @@ class Viewtelesales extends SugarView
 			$employee_list[$row['id']] = $row['full_name'];
 		}
 
-		$html = '<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">';
-        $html .= '
-            <div class="flex-start">
+        $html = '
+            <div class="flex-start text-nowrap">
                 <label for="employee-select" class="form-label m-0">Nhân viên: </label>
                 <select class="box-select" id="employee-select" name="employee_id[]" multiple><option value="">-- Trống --</option>'.get_select_options_with_id($employee_list, '').'</select>
             </div>

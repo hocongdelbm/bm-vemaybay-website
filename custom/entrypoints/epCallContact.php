@@ -1,5 +1,5 @@
 <?php
-global $current_user, $db;
+global $current_user, $db, $app_list_strings;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
@@ -572,6 +572,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
         $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
+
         if (empty($phone)) {
             echo 0;
             exit();
@@ -591,6 +592,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 FROM calls c
                 WHERE (c.call_from = '$phone' OR c.call_to = '$phone')
                 AND c.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND c.deleted = 0
 
                 UNION ALL
                 SELECT 
@@ -606,6 +608,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 FROM ec_flight_bookings b
                 WHERE b.phone = '$phone'
                 AND b.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND b.deleted = 0
 
                 UNION ALL
                 SELECT 
@@ -622,6 +625,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 JOIN ec_flight_bookings b ON r.booking_id = b.id
                 WHERE b.phone = '$phone'
                 AND r.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND r.deleted = 0
 
                 UNION ALL
                 SELECT 
@@ -638,6 +642,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 JOIN ec_flight_bookings b ON rv.booking_id = b.id
                 WHERE b.phone = '$phone'
                 AND rv.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND rv.deleted = 0
                     
                 UNION ALL
                 SELECT 
@@ -654,6 +659,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 JOIN ec_flight_bookings b ON pv.booking_id = b.id
                 WHERE b.phone = '$phone'
                 AND pv.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND pv.deleted = 0
 
                 ORDER BY interaction_date DESC;
         ";
@@ -725,6 +731,140 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         exit;
+    } else if ($type == 'get_history_activity_cskh'){
+        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
+        $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
+        $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
+
+        if (empty($phone)) {
+            echo 0;
+            exit();
+        }
+    
+        $sql = "
+                SELECT 
+                    c.id,
+                    c.name,
+                    c.description,
+                    c.assigned_user_id,
+                    c.date_start,
+                    c.date_end,
+                    c.status,
+                    c.direction,
+                    c.call_from,
+                    c.call_to,
+                    c.record_file,
+                    -- c.hangup_cause,
+                    c.log
+                FROM calls c
+                WHERE (c.call_from = '$phone' OR c.call_to = '$phone')
+                AND c.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND c.deleted = 0
+                ORDER BY c.date_entered DESC;
+        ";
+
+        $res        = $db->query($sql);
+        $count_calls    = $db->getRowCount($res);
+        $user_list      = get_user_array(true, '', '', true);
+        $i = 1;
+        $successful_calls = 0;
+        $failed_calls = 0;
+        $total_duration = 0;
+        $total_wait = 0;
+        $total_talk = 0;
+
+        if($count_calls > 0){
+            $html = '<div class="list-calls-cskh">
+                        <table class="tbl-check-cskh-calls table-details__booking">
+                            <thead>
+                                <tr>
+                                    <th width="5%" class="text-center hide-mobile">#</th>
+                                    <th width="10%">Mã cuộc gọi</th>
+                                    <th width="8%">Trạng thái</th>
+                                    <th width="8%">Gọi từ</th>
+                                    <th width="8%">Gọi đến</th>
+                                    <th width="8%">Loại</th>
+                                    <th width="10%">Thời gian gọi</th>
+                                    <th width="25%" align="center">Ghi chú</th>
+                                    <th>Nhân viên xử lý</th>
+                                </tr>
+                            </thead>';
+            while ($row = $db->fetchByAssoc($res)) {
+                // Class status
+                if ($row['status'] == 'processing') {
+                    $status_class = 'text-warning';
+               } else if ($row['status'] == 'done') {
+                    $status_class = 'text-success';
+               } else {
+                    $status_class = 'text-normal';
+               }
+
+               // class direction
+               if ($row['direction'] == 'suddenly') {
+                    $direction_class = 'text-warning';
+                } else if ($row['direction'] == 'inbound') {
+                    $direction_class = 'text-success';
+                } else if ($row['direction'] == 'missed') {
+                    $direction_class = 'text-danger';
+                } else if ($row['direction'] == 'outbound') {
+                    $direction_class = 'text-primary';
+                } else if ($row['direction'] == 'spam') {
+                    $direction_class = 'text-spam';
+                } else {
+                    $direction_class = 'text-normal';
+                }
+
+                // Xử lý log
+                $log = json_decode(html_entity_decode($row['log']), true);
+                if(isset($log['call_talk']) && $log['call_talk'] > 0){
+                    $successful_calls++;
+                    $total_talk += $log['call_talk'];
+                } else {
+                    $failed_calls++;
+                }
+
+                if(isset($log['call_duration'])){
+                    $total_duration += $log['call_duration'];
+                }
+                if(isset($log['call_wait'])){
+                    $total_wait += $log['call_wait'];
+                }
+
+                $html .= '<tr>
+							<td class="hide-mobile fw-bold text-center">' . $i . '</td>
+							<td class="text-nowrap"><a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
+                            <td align="center" class="' . $status_class . '"><strong>' . $app_list_strings['call_status_dom'][$row['status']] . '</strong></td>
+							<td class="fw-bold text-center">' . $row['call_from'] . '</td>
+							<td class="fw-bold text-center">' . $row['call_to'] . '</td>
+                            <td align="center" class="' . $direction_class . '"><strong>' . $app_list_strings['calls_direction_list'][$row['direction']] . '</strong></td>
+                            <td align="center">' . $row['date_start'] . '</td>
+                            <td align="left">' . $row['description'] . '</td>
+                            <td align="center">' . $user_list[$row['assigned_user_id']] . '</td>
+						</tr>';
+				$i++;
+            }
+
+            // SUMMARY
+            $total_calls = ($i - 1);
+            $html_call_summary = '
+            <div class="d-flex gap-2 mb-3 flex-nowrap">
+                <div class="flex-fill lh-base">
+                    <p>📞 <strong>Tổng số cuộc gọi:</strong><span class="fw-bold">' . $total_calls . '</span></p>
+                    <p>✅ <strong>Cuộc gọi thành công:</strong> <span class="text-success fw-bold">' . $successful_calls . '</span> (Tỷ lệ: <span class="fw-bold">' . round(($successful_calls / $total_calls * 100), 2) . '%</span>)</p>
+                    <p>📵 <strong>Cuộc gọi thất bại:</strong> <span class="text-danger fw-bold">' . $failed_calls . '</span> (Tỷ lệ: <span class="fw-bold">' . round(($failed_calls / $total_calls * 100), 2) . '%</span>)</p>
+                </div>
+
+                <div class="flex-fill lh-base">
+                    <p>⏱️ <strong>Tổng thời gian:</strong> ' . global_secondsToTimeFormat($total_duration) . ' (Thời gian TB: ' . round($total_duration/$total_calls) . ')</p>
+                    <p>⏱️ <strong>Tổng thời gian đợi:</strong> ' . global_secondsToTimeFormat($total_wait) . ' (Thời gian TB: ' . round($total_wait/$total_calls) . ')</p>
+                    <p>⏱️ <strong>Tổng thời gian thoại:</strong> ' . global_secondsToTimeFormat($total_talk) . ' (Thời gian TB: ' . round($total_talk/$total_calls) . ')</p>
+                </div>
+            </div>';
+
+            echo $html_call_summary.$html;
+        } else {
+            echo 'Chưa có cuộc gọi CSKH nào!';
+        }
     }
 }
 

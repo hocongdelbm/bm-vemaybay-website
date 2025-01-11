@@ -1,3 +1,5 @@
+<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
+
 {literal}
 <style>
     .modal.modal-history-bookings {
