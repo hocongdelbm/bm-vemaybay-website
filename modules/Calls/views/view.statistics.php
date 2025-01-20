@@ -172,91 +172,36 @@ class Viewstatistics extends SugarView
           global $db, $current_user;
           $html = '';
 
+          $pbx = BeanFactory::getBean('Calls');
+          $list_phone = $pbx->get_list_phone_pbx();
+          $arr_sdt = [];
           $count_total_inbound = $count_total_outbound = 0;
 
-          $arr_sdt = [
-               "1900636060" => array('type'=> 'HOTLINE', 'inbound' => 0, 'outbound' => 0, 'status' => ''), 
-               "1900636063" => array('type'=> 'HOTLINE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
+          if (!empty($list_phone) && is_array($list_phone)) {
+               foreach ($list_phone as $network_provider) {
+                    foreach ($network_provider as $phone) {
+                         if (!isset($arr_sdt[trim($phone['name'])])) {
+                              $arr_sdt[trim($phone['name'])] = [];
+                         }
+                         $arr_sdt[trim($phone['name'])] = array(
+                              'type' => $phone['network_provider'],
+                              'inbound' => 0,
+                              'outbound' => 0,
+                              'status' => $phone['only_inbound'] == 1 ? 'Không gọi ra' : '',
+                         );
+                    }
+               }
+          }
 
-               "0968304455" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               "02866509900" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               // "0973834501" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0973891401" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0974015001" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0974091002" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0983171970" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0983103703" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0983129202" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               
-               // 01/07/2024
-               // "0962768782" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963323407" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963498793" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963678130" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0964359785" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963986905" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963987527" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0964031020" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               
-               // 04/09/2024
-               // "0984150870" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984175174" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984177790" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984191015" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984195219" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0984260802" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984280718" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0984343406" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               
-               // 07/11/2024
-               "0385291429" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  //Brandname header - Hạn chế dùng gọi ra
-               "0385295550" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385295676" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385297839" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385299921" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385299946" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385300174" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0385300984" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385301071" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385301087" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-
-               // MOBIFONE
-               // "0933296508" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0933297608" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933625233" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933799860" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               // "0933026416" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0933611306" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0937451098" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0937523198" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0902921024" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0901826124" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0906659170" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0901832964" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0906704506" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0906668586" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-
-               // VINAPHONE
-               "0913030802" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0914491010" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               // "0918038348" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0919018102" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0911236600" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // 16/01/2025
-               "0835308275" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0836232986" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // 20/01/2025
-               "0834962147" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0836652178" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0836795989" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0837240932" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               
-               "02839977788" => array('type'=> 'VNPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "02839977799" => array('type'=> 'VNPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "02873001886" => array('type'=> 'FPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),
+          $arr_zalo = [
                "2941581384627345950101" => array('type'=> 'Zalo domestic', 'inbound' => 0, 'outbound' => 0, 'status' => ''),
                "2941581384627345950102" => array('type'=> 'Zalo inter', 'inbound' => 0, 'outbound' => 0, 'status' => ''),
           ];
+
+          if (is_array($arr_sdt) && is_array($arr_zalo)) {
+               // $arr_sdt = array_merge($arr_sdt, $arr_zalo);
+               $arr_sdt = $arr_sdt + $arr_zalo;
+          }
 
           $sql_sdt = 'SELECT 
                          direction,
@@ -286,12 +231,12 @@ class Viewstatistics extends SugarView
 
           foreach($arr_sdt as $sdt => $count){
                
-               if($count['type'] == 'HOTLINE') $count['type'] = '<b style="color:red">'.$count['type'].'</b>';
-               elseif($count['type'] == 'VIETTEL') $count['type'] = '<b style="color:#ea3a59; text-transform:lowercase;">'.$count['type'].'</b>';
-               elseif($count['type'] == 'MOBIFONE') $count['type'] = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
-               elseif($count['type'] == 'VINAPHONE') $count['type'] = '<b style="color:#00aeed; text-transform:lowercase;">'.$count['type'].'</b>';
-               elseif($count['type'] == 'VNPT') $count['type'] = '<b style="color:#0066ba; letter-spacing:3px;">'.$count['type'].'</b>';
-               elseif($count['type'] == 'FPT') $count['type'] = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';
+               if(strtoupper($count['type']) === 'HOTLINE') $count['type'] = '<b style="color:red">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'VIETTEL') $count['type'] = '<b style="color:#ea3a59; text-transform:lowercase;">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'MOBIFONE') $count['type'] = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
+               elseif(strtoupper($count['type']) === 'VINAPHONE') $count['type'] = '<b style="color:#00aeed; text-transform:lowercase;">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'VNPT') $count['type'] = '<b style="color:#0066ba; letter-spacing:3px;">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'FPT') $count['type'] = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';
                elseif(str_contains($count['type'], 'Zalo')) $count['type'] = '<b style="color:#0068ff">'.$count['type'].'</b>';
                
                $html .= '<tr>

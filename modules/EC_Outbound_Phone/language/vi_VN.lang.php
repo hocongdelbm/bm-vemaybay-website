@@ -45,4 +45,5 @@ $mod_strings = array(
   'LBL_LABEL' => 'Nhãn hiển thị',
   'LBL_IS_ENABLE' => 'Enable',
   'LBL_ONLY_INBOUND' => 'Chỉ nhận gọi vào?',
+  'LBL_ROUND_ROBIN' => 'Xoay vòng gọi ra?',
 );

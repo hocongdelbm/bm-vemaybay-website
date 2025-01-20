@@ -63,7 +63,10 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
             array(
                 'description',
-                'assigned_user_name',
+                array(
+                    'name' => 'round_robin',
+                    'label' => 'LBL_ROUND_ROBIN',
+                ),
             ),
             array(
                 array(

@@ -212,36 +212,18 @@
                                                        <div class="flex-start gap-3">
                                                            <label for="select-phone-outbound" class="label text-nowrap">Số gọi ra</label>
                                                            <select name="select-phone-outbound" id="select-phone-outbound" class="box-select w-100">
-                                                                 <option value=""></option>
-                                                                 <optgroup label="Viettel">
-                                                                      <option value="0385295550@125.235.38.182:55555">0385295550</option> 
-                                                                      <option value="0385295676@125.235.38.182:55555">0385295676</option> 
-                                                                      <option value="0385297839@125.235.38.182:55555">0385297839</option> 
-                                                                      <option value="0385299921@125.235.38.182:55555">0385299921</option> 
-                                                                      <option value="0385299946@125.235.38.182:55555">0385299946</option> 
-                                                                      <option value="0385300174@125.235.38.182:55555">0385300174</option> 
-                                                                      <option value="0385301071@125.235.38.182:55555">0385301071</option> 
-                                                                      <option value="0385301087@125.235.38.182:55555">0385301087</option> 
-                                                                 </optgroup>
-                                                                 <optgroup label="Mobiphone">
-                                                                      <option value="0933625233@103.199.78.74:65000">0933625233</option>
-                                                                      <option value="0902921024@103.199.78.74:65000">0902921024</option>
-                                                                      <option value="0901826124@103.199.78.74:65000">0901826124</option>
-                                                                      <option value="0906659170@103.199.78.74:65000">0906659170</option>
-                                                                      <option value="0901832964@103.199.78.74:65000">0901832964</option>
-                                                                      <option value="0906704506@103.199.78.74:65000">0906704506</option>
-                                                                      <option value="0906668586@103.199.78.74:65000">0906668586</option>
-                                                                 </optgroup>
-                                                                 <optgroup label="Vinaphone">
-                                                                      <option value="0913030802@14.238.2.146:5060">0913030802</option>
-                                                                      <option value="0911236600@14.238.2.146:5060">0911236600</option>
-                                                                      <option value="0835308275@14.238.2.146:5060">0835308275</option>
-                                                                      <option value="0836232986@14.238.2.146:5060">0836232986</option>
-                                                                      <option value="0834962147@14.238.2.146:5060">0834962147</option>
-                                                                      <option value="0836652178@14.238.2.146:5060">0836652178</option>
-                                                                      <option value="0836795989@14.238.2.146:5060">0836795989</option>
-                                                                      <option value="0837240932@14.238.2.146:5060">0837240932</option>
-                                                                 </optgroup>
+                                                                <option value=""></option>
+                                                                {if isset($list_phone_choose_outbound) && $list_phone_choose_outbound|@count > 0}
+                                                                      {foreach from=$list_phone_choose_outbound key=network_provider item=phones}
+                                                                           <optgroup label="{$network_provider|capitalize}">
+                                                                                {foreach from=$phones item=phone}
+                                                                                     {if isset($phone.proxy) && $phone.proxy|trim != ''}
+                                                                                          <option value="{$phone.name|trim}@{$phone.proxy|trim}">{$phone.name|trim}</option>
+                                                                                     {/if}
+                                                                                {/foreach}
+                                                                           </optgroup>
+                                                                      {/foreach}
+                                                                 {/if}
                                                             </select>
                                                        </div>
                                                        <div class="form-control inputBoxes flex-between">

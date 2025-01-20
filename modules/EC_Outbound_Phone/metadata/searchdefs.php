@@ -56,6 +56,10 @@ $searchdefs[$module_name] = array(
             //     'type' => 'enum',
             //     'function' => array('name' => 'get_user_array', 'params' => array(false))
             // ),
+            array(
+                'name' => 'round_robin',
+                'label' => 'LBL_ROUND_ROBIN',
+            ),
         ),
     ),
 );

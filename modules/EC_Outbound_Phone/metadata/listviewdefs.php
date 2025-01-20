@@ -41,6 +41,12 @@ $listViewDefs[$module_name] = array(
         'default' => true,
         'link' => true
     ),
+    'ROUND_ROBIN' => array(
+        'width' => '32',
+        'label' => 'LBL_ROUND_ROBIN',
+        'default' => true,
+        'link' => true
+    ),
     'DESCRIPTION' => array(
         'width' => '32',
         'label' => 'LBL_DESCRIPTION',

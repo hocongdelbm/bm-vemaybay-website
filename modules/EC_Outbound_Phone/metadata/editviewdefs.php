@@ -53,7 +53,10 @@ $viewdefs[$module_name]['EditView'] = array(
             ),
             array(
                 'description',
-                'assigned_user_name',
+                array(
+                    'name' => 'round_robin',
+                    'label' => 'LBL_ROUND_ROBIN',
+                ),
             ),
         ),
 

@@ -1015,7 +1015,7 @@ class Call extends SugarBean
      * @param string $direction (inbound/outbound/all)
      * @return array  $condition (only_inbound)
      */
-    public function get_list_phone_pbx($type = 'outbound', $only_inbound = ''){
+    public function get_list_phone_pbx($only_inbound = '', $round_robin = ''){
         global $db;
         $result = [];
 
@@ -1025,6 +1025,10 @@ class Call extends SugarBean
         } else if ($only_inbound === 0){
             $conditon .= ' AND only_inbound = 0';
         }
+
+        if($round_robin === 1){
+            $conditon .= ' AND round_robin = 1';
+        }  
 
         $sql = "
             SELECT name, description, network_provider, proxy, brand_name, website, label, only_inbound
