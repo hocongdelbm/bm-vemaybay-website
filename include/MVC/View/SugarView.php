@@ -364,7 +364,7 @@ class SugarView
             $ss->assign("AGENT_STATUS", $current_user->agent_status);
         } 
 		$ss->assign('IS_ADMIN', is_admin($current_user) ? 1 : 0);
-
+        
         // set ab testing if exists
         $testing = (isset($_REQUEST["testing"]) ? $_REQUEST['testing'] : "a");
         $ss->assign("ABTESTING", $testing);
@@ -531,11 +531,10 @@ class SugarView
 
             if (!empty($current_user->photo)) {
                 $photo_profile = '<img src="index.php?entryPoint=download&id=' . $current_user->id . '_photo&type=Users" alt="photo profile">';
-                $ss->assign("CURRENT_USER_PHOTO", $photo_profile);
             } else {
                 $photo_profile = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>';
-                $ss->assign("CURRENT_USER_PHOTO", $photo_profile);
             }
+            $ss->assign("CURRENT_USER_PHOTO", $photo_profile);
             
             // get the last viewed records
             $favorites = BeanFactory::getBean('Favorites');
@@ -545,6 +544,15 @@ class SugarView
             $tracker = BeanFactory::getBean('Trackers');
             $history = $tracker->get_recently_viewed($current_user->id);
             $ss->assign("recentRecords", $this->processRecentRecords($history));
+
+            // Get phone number - PBX - Callcenter
+            // $pbx = BeanFactory::getBean('Calls');
+            // $list_phone = $pbx->get_list_phone_pbx('outbound');
+            
+            // // List phone choose for outbound call
+            // $list_phone_outbound = $pbx->get_list_phone_pbx('outbound', 0);
+            // // pr($list_phone_outbound);
+            // $ss->assign("list_phone_outbound", $list_phone_outbound);
         }
 
         $bakModStrings = $mod_strings;
@@ -1329,16 +1337,16 @@ EOHTML;
             ';
 
             if($current_user->id == '1' || $current_user->id == '168889bb-54c2-59c7-8b3f-649102530d3c'){
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=3.4">';
+                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=3.5">';
                 $js .= '<audio id="audio_jssip"></audio>
                         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call2.js?ver=3.4"></script>
+                        <script src="custom/jssip_webrtc/call2.js?ver=3.5"></script>
                 ';
             } else {
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=3.4">';
+                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=3.5">';
                 $js .= '<audio id="audio_jssip"></audio>
                         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call.js?ver=3.4"></script>
+                        <script src="custom/jssip_webrtc/call.js?ver=3.5"></script>
 
                 ';
             }

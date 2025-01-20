@@ -513,10 +513,11 @@ select::-webkit-scrollbar {
 }
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img img {
-  width: 30px;
+  width: 35px;
   height: 100%;
   max-width: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item.nav-profile .nav-link .nav-profile-img svg {

@@ -40,8 +40,4 @@ class ContactsController extends SugarController
     {
         $this->view = 'TypeReports';
     }
-    public function action_TeleSales()
-    {
-        $this->view = 'TeleSales';
-    }
 }

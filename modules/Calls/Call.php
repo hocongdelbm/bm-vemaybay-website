@@ -1009,4 +1009,44 @@ class Call extends SugarBean
 
         return 'Không xác định';
     }
+
+    /**
+     * Get list outbound phone pbx
+     * @param string $direction (inbound/outbound/all)
+     * @return array  $condition (only_inbound)
+     */
+    public function get_list_phone_pbx($type = 'outbound', $only_inbound = ''){
+        global $db;
+        $result = [];
+
+        $conditon = '';
+        if($only_inbound === 1){
+            $conditon .= ' AND only_inbound = 1';
+        } else if ($only_inbound === 0){
+            $conditon .= ' AND only_inbound = 0';
+        }
+
+        $sql = "
+            SELECT name, description, network_provider, proxy, brand_name, website, label, only_inbound
+            FROM ec_outbound_phone
+            WHERE status = 'active'
+            AND deleted = 0
+            $conditon
+        ";
+
+        $res = $db->query($sql);
+        $row_count = $db->getRowCount($res);
+        if ($row_count > 0) {
+            while ($row = $db->fetchByAssoc($res)) {
+                // Nhóm dữ liệu theo `network_provider`
+                $network_provider = $row['network_provider'];
+                if (!isset($result[$network_provider])) {
+                    $result[$network_provider] = [];
+                }
+                $result[$network_provider][] = $row;
+            }
+        }
+
+        return $result;
+    }
 }

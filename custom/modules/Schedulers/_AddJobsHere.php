@@ -161,7 +161,7 @@ function saveReportWeekly()
 			$rp->to_date = $today;
 			$rp->report_date = date('Y-m-d');
 			$rp->save();
-			sendTestTelegram("create EC_Report_Weekly: " . $date_report);
+			// sendTestTelegram("create EC_Report_Weekly: " . $date_report);
 		}
 	} else {
 		// UPDATE
@@ -200,11 +200,11 @@ function saveReportWeekly()
 
 				$result_update = $db->query($update_sql);
 
-				if($result_update){
-					sendTestTelegram("update EC_Report_Weekly : " . $date_report);
-				} else {
-					sendTestTelegram("update failed: " . $date_report);
-				}
+				// if($result_update){
+				// 	sendTestTelegram("update EC_Report_Weekly : " . $date_report);
+				// } else {
+				// 	sendTestTelegram("update failed: " . $date_report);
+				// }
 
 			} else {
 				$rp = new EC_Report_Weekly();
@@ -227,7 +227,7 @@ function saveReportWeekly()
 				$rp->to_date = $date_report;
 				$rp->report_date = $today;
 				$rp->save();
-				sendTestTelegram("count_rows > 0. Create successed: " . $date_report);
+				// sendTestTelegram("count_rows > 0. Create successed: " . $date_report);
 			}
 		}
 	}

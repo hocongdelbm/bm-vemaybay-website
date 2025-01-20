@@ -36,24 +36,27 @@ var configuration = {
 let call_flow = '';
 var eventHandlers = {
     'progress': function (e) {
-        console.warn('call is in progress');
+        // console.warn('call is in progress');
         call_flow += 'Call is in progress. ';
     },
-    'confirmed': function (e) {
-        console.warn('call confirmed');
-        call_flow += 'Call confirmed. ';
-    },
     'failed': function (e) {
-        // console.warn(e);
-        console.warn('call failed with cause: ' + e.cause + ' ');
-        if (e.message && e.message.data) {
-            call_flow += 'Call failed with cause: ' + e.message.data + ' ';
-        } else call_flow += 'Call failed with cause: ' + e.cause + ' ';
+        const errorCause = e.message?.data || e.cause;
+        call_flow += `Call failed with cause: ${errorCause} `;
+
+        if (errorCause && errorCause.includes('486 Busy Here')) {
+            showModalNotify('warning', 'Số máy quý khách vừa gọi hiện đang bận và không thể nhận cuộc gọi. Vui lòng liên hệ lại sau!');
+        } else if(errorCause && errorCause.includes('408 Request Timeout')){
+            showModalNotify('warning', 'Lỗi kết nối mạng hoặc người nhận không phản hồi trong thời gian cho phép. Vui lòng liên hệ lại sau!');
+        }
     },
     'ended': function (e) {
-        console.warn('call ended with cause:  ' + e.cause + ' ');
+        // console.warn('call ended with cause:  ' + e.cause + ' ');
         call_flow += 'Call ended with cause: ' + e.cause + ' ';
     },
+    'confirmed': function (e) {
+        // console.warn('call confirmed');
+        call_flow += 'Call confirmed. ';
+    }
 };
 
 var callOptions = {
@@ -68,8 +71,8 @@ var incomingCallAudio = new window.Audio(RINGTONE_FILE);
 incomingCallAudio.loop = true;
 
 /********************   INIT   ********************/
-JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
-// JsSIP.debug.disable('JsSIP:*');
+// JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
+JsSIP.debug.disable('JsSIP:*');
 // JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
 
 socket = new JsSIP.WebSocketInterface(WS_SERVERS);
@@ -399,7 +402,6 @@ $(document).ready(function () {
             }
         }
     });
-    
 
     // Checked trạng thái bận của user
     if (AGENT_STATUS == 'Available') {
@@ -458,6 +460,7 @@ $(document).ready(function () {
             journey_id = $(this).attr('iti_id');
         } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             number = $(this).attr('phone');
+            type_call_booking = 'recall';
         }
         else if (id === undefined || id.length == '') {
             number = $(this).attr('call_to');

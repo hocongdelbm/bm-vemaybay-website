@@ -256,33 +256,32 @@ if(!empty($_SESSION['authenticated_user_id'])){
 						<td align="center"><span title="Tổng cộng">'.$ttl_row.'</span></td>
 					</tr>';
 			
-			$ttl_called += $row['called'];
-			$ttl_confirmed += $row['confirmed'];
-			$ttl_completed += $row['completed'];
-			$ttl_paid += $row['paid'];
-			$ttl_recheck += $row['recheck'];
-			$ttl_support += $row['support'];
+			$ttl_called += (int)$row['called'];
+			$ttl_confirmed += (int)$row['confirmed'];
+			$ttl_completed += (int)$row['completed'];
+			$ttl_paid += (int)$row['paid'];
+			$ttl_recheck += (int)$row['recheck'];
+			$ttl_support += (int)$row['support'];
 			
-			$ttl_inv_in_issued += $row['invoice_input_issued'];
-			$ttl_inv_issued += $row['invoice_issued'];
-			$ttl_delivery += $row['ticket_delivery'];
-			$ttl_recall += ($row['recall'] + $row['remind']);
-			$ttl_bonus += $row['bonus'];
+			$ttl_inv_in_issued += (int)$row['invoice_input_issued'];
+			$ttl_inv_issued += (int)$row['invoice_issued'];
+			$ttl_delivery += (int)$row['ticket_delivery'];
+			$ttl_recall += (int)$recall;
+			$ttl_bonus += (int)$row['bonus'];
 			
-			$ttl_comdebt += $row['check_debt'];
-			$ttl_new_repaid += $row['create_repaid'];
-			$ttl_do_repaid += $row['process_repaid'];
-			$ttl_payment += $row['create_payment'];
-			$ttl_receipt += $row['create_receipt'];
-			$ttl_transfer += $row['create_transfer'];
+			$ttl_comdebt += (int)$row['check_debt'];
+			$ttl_new_repaid += (int)$row['create_repaid'];
+			$ttl_do_repaid += (int)$row['process_repaid'];
+			$ttl_payment += (int)$row['create_payment'];
+			$ttl_receipt += (int)$row['create_receipt'];
+			$ttl_transfer += (int)$row['create_transfer'];
 
-			$ttl_manner += $row['manner'];
-			$ttl_effect += $row['effected'];
-			$ttl_aware += $row['awareness'];
-			$ttl_minus += $row['minus'];
+			$ttl_manner += (int)$row['manner'];
+			$ttl_effect += (int)$row['effected'];
+			$ttl_aware += (int)$row['awareness'];
+			$ttl_minus += (int)$row['minus'];
 			
 			$ttl_final += $ttl_row;
-			
 		}
 		
 		$html .= '<tr class="footer-tr">
@@ -291,16 +290,16 @@ if(!empty($_SESSION['authenticated_user_id'])){
 			<td align="center"><span title="Completed">'.$ttl_completed.'</span></td>
 			<td align="center"><span title="Đã thanh toán / Đã thu">'.$ttl_paid.'</span></td>
 			<td align="center"><span title="Recheck">'.$ttl_recheck.'</span></td>
-			<td align="center"><span title="Hỗ trợ KH">'.$ttl_support.'</span></td>
+			<td align="center"><span title="Recall">'.$ttl_recall.'</span></td>
 			<td align="center"><span title="Xuất hóa đơn đầu vào">'.$ttl_inv_in_issued.'</span></td>
 			<td align="center"><span title="Xuất hóa đơn đầu ra">'.$ttl_inv_issued.'</span></td>
 			<td align="center"><span title="Giao vé">'.$ttl_delivery.'</span></td>
-			<td align="center"><span title="Recall">'.$ttl_recall.'</span></td>
 			<td align="center"><span title="Đối chiếu công nợ">'.$ttl_comdebt.'</span></td>
 			<td align="center"><span title="Tạo hoàn vé">'.$ttl_new_repaid.'</span></td>
 			<td align="center"><span title="Lập phiếu chi">'.$ttl_payment.'</span></td>
 			<td align="center"><span title="Lập phiếu thu">'.$ttl_receipt.'</span></td>
 			<td align="center"><span title="Lập điều chuyển tiền">'.$ttl_transfer.'</span></td>
+			<td align="center"><span title="Hỗ trợ KH">'.$ttl_support.'</span></td>
 
 			<!-- <td align="center"><span title="Chuyên môn">'.$ttl_manner.'</span></td>
 			<td align="center"><span title="Hiệu quả">'.$ttl_effect.'</span></td>

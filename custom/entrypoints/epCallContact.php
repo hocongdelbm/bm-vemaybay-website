@@ -282,15 +282,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // Validate
         if (empty($call_id) || empty($note)) {
-            $GLOBALS['log']->fatal('update_call thất bại: ' . $_POST);
-
-            $log_false = array(
-                'path'           => 'update_call',
-                'call_id'        => $call_id,
-                'current_user'   => $current_user->user_name,
-            );
-            sendTelegramSupportKTTP(json_encode($log_false));
-
             echo 400;
             exit();
         }
@@ -442,7 +433,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $work->name = $call['name'];
                         $work->parent_type = 'Calls';
                         $work->parent_id = $call['id'];
-                        $work->description = $note . ' (Called)';
+                        $work->description = $note . ' ('.$type_call.')';
                         $work->$type_call = 1; 
                         $work->assigned_user_id = $current_user->id;
                         $work->save();

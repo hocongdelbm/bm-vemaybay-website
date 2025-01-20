@@ -2448,19 +2448,17 @@ function getCallSource($call_to)
     $call_sources = '';
 
     switch ($call_to) {
-        case '02839977799':
+        case '02866509900':
             $call_sources = 'sanvemaybay.com.vn';
             break;
         case '0911236600':
         case '01388506538':
             $call_sources = 'Laptop Dell';
             break;
-        case '02866509900':
+        case '02839977799':
         case '02839977788':
-            $call_sources = 'timchuyenbay.com';
-            break;
         case '1900636063':
-            $call_sources = 'vemaybay5s.com';
+            $call_sources = 'timchuyenbay.com';
             break;
         case '02873001886':
             $call_sources = 'suatuoiuc.vn';

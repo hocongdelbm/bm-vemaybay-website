@@ -40,11 +40,14 @@ var eventHandlers = {
         call_flow += 'Call is in progress. ';
     },
     'failed': function (e) {
-        // console.warn(e);
-        // console.warn('call failed with cause: ' + e.cause + ' ');
-        if (e.message && e.message.data) {
-            call_flow += 'Call failed with cause: ' + e.message.data + ' ';
-        } else call_flow += 'Call failed with cause: ' + e.cause + ' ';
+        const errorCause = e.message?.data || e.cause;
+        call_flow += `Call failed with cause: ${errorCause} `;
+
+        if (errorCause && errorCause.includes('486 Busy Here')) {
+            showModalNotify('warning', 'Số máy quý khách vừa gọi hiện đang bận và không thể nhận cuộc gọi. Vui lòng liên hệ lại sau!');
+        } else if(errorCause && errorCause.includes('408 Request Timeout')){
+            showModalNotify('warning', 'Lỗi kết nối mạng hoặc người nhận không phản hồi trong thời gian cho phép. Vui lòng liên hệ lại sau!');
+        }
     },
     'ended': function (e) {
         // console.warn('call ended with cause:  ' + e.cause + ' ');
@@ -457,6 +460,7 @@ $(document).ready(function () {
             journey_id = $(this).attr('iti_id');
         } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             number = $(this).attr('phone');
+            type_call_booking = 'recall';
         }
         else if (id === undefined || id.length == '') {
             number = $(this).attr('call_to');
@@ -1352,13 +1356,12 @@ function extract_hotline(str) {
             case '0911236600':
             case '01388506538':
                 return 'Laptop Dell';
-            case '02839977788':
-            case '02866509900':
-                return 'timchuyenbay (.com)';
-            case '02839977799':
-                return 'Sanvemaybay (.com.vn)';
             case '1900636063':
-                return 'Vemaybay5s (.com)';
+            case '02839977788':
+            case '02839977799':
+                return 'timchuyenbay (.com)';
+            case '02866509900':
+                return 'Sanvemaybay (.com.vn)';
             case '02873001886':
                 return 'Sữa tươi Úc';
 

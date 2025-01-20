@@ -2560,3 +2560,23 @@ $app_list_strings['alert_type_list'] = array(
   'readonly' => 'Chỉ xem',
   'remind' => 'Nhắc nhở',
 );
+
+$app_list_strings['network_provider_list'] = array(
+  'hotline' => 'Hotline',
+  'viettel' => 'Viettel',
+  'mobifone' => 'Mobifone',
+  'vinaphone' => 'Vinaphone',
+  'vnpt' => 'VNPT',
+  'fpt' => 'FPT',
+  'other' => 'Khác',
+);
+
+$app_list_strings['outbound_phone_status_list'] = array(
+  'active' => 'Đang hoạt động',
+  'inactive' => 'Không hoạt động',
+  'blocked' => 'Bị chặn',
+);
+
+$app_list_strings['website_list'] = array(
+  '' => '',
+);
