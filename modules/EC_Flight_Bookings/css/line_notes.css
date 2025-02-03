@@ -108,7 +108,7 @@
 }
 
 #line-notes #slide-menu:checked~.mobile-menu {
-    transform: translateX(-20%);
+    transform: translateX(-50%);
 }
 
 #line-notes #slide-menu:checked~.header-slide-menu__overlay {

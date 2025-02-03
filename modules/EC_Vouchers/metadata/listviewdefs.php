@@ -18,8 +18,10 @@ $listViewDefs[$module_name] = array(
 		'default' => true,
 	),
 	'REDUCE_AMOUNT' => array(
+		'name' => 'reduce_amount',
+		'label' => 'LBL_DISCOUNT',
+		'type' => 'varchar',
 		'width' => '10',
-		'label' => 'LBL_REDUCE_AMOUNT',
 		'default' => true,
 		'related_fields' => array('reduce_percent'),
 	),
@@ -39,13 +41,6 @@ $listViewDefs[$module_name] = array(
 		'width' => '10',
 		'label' => 'LBL_WEBSITE',
 		'default' => true,
-	),
-	'BOOKING' => array(
-		'name' => 'booking',
-		'width' => '10',
-		'label' => 'LBL_BOOKING',
-		'default' => true,
-		'link' => true
 	),
 	'DATE_ENTERED' => array(
 		'width' => '10',

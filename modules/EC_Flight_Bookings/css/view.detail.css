@@ -297,13 +297,47 @@
     text-transform: uppercase;
 }
 
-.modal.modal-history-bookings{
-    --bs-modal-width: 1000px;
+.modal.modal-history-bookings{--bs-modal-width: 1000px;}
+
+/* Voucher */
+.detail-view-field #discount_amount {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
 }
+.wrap-voucher .group-voucher, .wrap-voucher .single-voucher {
+    border-radius: 3px;
+    font-size: .825rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.25rem .5rem;
+    margin-left: .375rem;
+}
+.group-voucher, .group-voucher:hover {
+    background: #ffe5b9;
+    color: #ff4900;
+}
+.single-voucher, .single-voucher:hover {
+    background: #ffede3;
+    color: #ff0000;
+}
+
+.dialog-voucher-detail .voucher-list-items .voucher-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 5px;
+    line-height: 1;
+    padding: 0.5rem;
+}
+.voucher-list-items .voucher-item .label {
+    font-weight: bold;
+    margin-right: 8px;
+}
+.voucher-list-items .voucher-item.voucher-item-code {font-weight: bold;}
+.voucher-list-items .voucher-item.voucher-item-discount-amount {color: var(--red-vj-color);}
 
 /* ================= RESPONSIVE TABLE ============== */
 @media screen and (max-width: 600px) {
-
     table#tbl_pax,
     table#line_details_tbl,
     table#itinerary_tbl {

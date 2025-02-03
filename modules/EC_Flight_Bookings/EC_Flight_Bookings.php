@@ -50,9 +50,9 @@ class EC_Flight_Bookings extends Basic
 	public $city;
 	public $airline;
 	public $airline_inbound;
-	public $has_voucher;
-	public $voucher_id;
-	public $voucher;
+	// public $has_voucher;
+	// public $voucher_id;
+	// public $voucher;
 	public $shipping_address;
 	public $agent_id;
 	public $total_bought_amount;
@@ -163,10 +163,10 @@ class EC_Flight_Bookings extends Basic
 		// Lý do thắng thua
 		$this->description = (isset($this->ghichuthangthua) && !empty($this->ghichuthangthua) && $this->booking_status == '4') ? $this->ghichuthangthua : $this->description;
 
-		// Kiểm tra số tiền giảm giá nếu có voucher
-		if (!empty($this->voucher_id)) {
-			$this->discount_amount = $this->checkDiscount($this->voucher_id);
-		}
+		// // Kiểm tra số tiền giảm giá nếu có voucher
+		// if (!empty($this->voucher_id)) {
+		// 	$this->discount_amount = $this->checkDiscount($this->voucher_id);
+		// }
 		if (isset($_POST['is_paid'])) {
 			$this->is_paid = $_POST['is_paid'];
 		}
@@ -508,18 +508,18 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	// Kiểm tra giảm giá
-	function checkDiscount($voucher_id)
-	{
-		$sql = 'SELECT reduce_amount 
-				FROM ec_vouchers
-				WHERE id = "' . $voucher_id . '" AND deleted = 0';
-		$discount = $this->db->getOne($sql);
-		if ($discount > $this->discount_amount) {
-			$this->discount_amount = $discount;
-		}
-		return $this->discount_amount;
-	}
+	// // Kiểm tra giảm giá
+	// function checkDiscount($voucher_id)
+	// {
+	// 	$sql = 'SELECT reduce_amount 
+	// 			FROM ec_vouchers
+	// 			WHERE id = "' . $voucher_id . '" AND deleted = 0';
+	// 	$discount = $this->db->getOne($sql);
+	// 	if ($discount > $this->discount_amount) {
+	// 		$this->discount_amount = $discount;
+	// 	}
+	// 	return $this->discount_amount;
+	// }
 
 	// Lưu thay đổi Ngày bay / Hành trình / Thông tin hành khách / Hành lý / Số vé / Code vé
 	function saveChangeFlightTime()

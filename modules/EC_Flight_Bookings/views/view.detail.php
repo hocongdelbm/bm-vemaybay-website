@@ -61,7 +61,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.1"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.97"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.2"></script>
@@ -110,7 +110,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		$css = '';
 		$css .= '<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0">';
+		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.1">';
 		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=1.9">';
 		echo $css;
 	}
@@ -288,13 +288,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Thông tin hoá đơn
 		$this->populateInvoiceInf();
 
-		// Nếu booking được tặng voucher, kiểm tra đã gửi mail hay chưa
-		// if ($this->bean->has_voucher) {
-		// 	$voucher_inf = $this->getVoucherInfo($this->bean->id);
-		// }
-
 		// Booking - tình trạng
-		$booking_name = '<b>' . $this->bean->name . '</b> - <span class="fw-bold" style="color:' . $app_list_strings['booking_status_color_list'][(int)$this->bean->booking_status] . ';">' . $app_list_strings['booking_status_list'][(int)$this->bean->booking_status] . '</span> ' . (!empty($this->bean->voucher_id) ? '<br><b><font color="green">Có sử dụng voucher</font></b>' : '');
+		$booking_name = '<b>' . $this->bean->name . '</b> - <span class="fw-bold" style="color:' . $app_list_strings['booking_status_color_list'][(int)$this->bean->booking_status] . ';">' . $app_list_strings['booking_status_list'][(int)$this->bean->booking_status] . '</span>';
 		$this->ss->assign('CUSTOM_NAME', $booking_name);
 
 		// Loại vé - Chuyến bay
@@ -754,8 +749,37 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Giảm giá hiện thêm mã voucher
 		$discount_html = '<span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
-		if (!empty($this->bean->voucher_id)) {
-			$discount_html .= '<span>- Voucher KM: <a href="index.php?module=EC_Vouchers&action=DetailView&record=' . $this->bean->voucher_id . '" class="text-primary fw-semibold" target="_blank">' . $this->bean->voucher . '</a></span>';
+		$vouchers = $this->getVoucherApplied();
+		if(!empty($vouchers)) {
+			$discount_html .= '<div class="wrap-voucher">';
+			foreach($vouchers as $v) {
+				$discount_html .= '<a class="'.$v['type'].'-voucher voucher" title="Xem chi tiết">
+					<span class="code">'.$v['code'].'</span>
+				</a>
+				<dialog id="dialog_voucher_detail" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
+					<ul class="voucher-list-items">
+						<li class="voucher-item">
+							<span class="label">Sự kiện/Chiến dịch:</span>
+							<span class="value">'. $v['campaign_name'] .'</span>
+						</li>
+						<li class="voucher-item voucher-item-code">
+							<span class="label">Mã giảm giá:</span>
+							<a class="value" href="index.php?module=EC_Vouchers&action=DetailView&record='.$v['voucher_id'].'" target="_blank">
+								<span class="me-1">'. $v['code'] .'</span>
+								<svg width="14px" height="14px" viewBox="0 0 24 24" stroke-width="2.3" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000333">
+									<path d="M21 3L15 3M21 3L12 12M21 3V9" stroke="#000333" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
+									<path d="M21 13V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H11" stroke="#000333" stroke-width="2.3" stroke-linecap="round"></path>
+								</svg>
+							</a>
+						</li>
+						<li class="voucher-item voucher-item-discount-amount">
+							<span class="label">Số tiền được giảm:</span>
+							<span class="value">'. format_number($v['discount_amount']) .' VND</span>
+						</li>
+					</ul>
+				</dialog>';
+			}
+			$discount_html .= '</div>';
 		}
 		$this->ss->assign('CUS_DISCOUNT_AMOUNT', $discount_html);
 	}
@@ -909,7 +933,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<option value="sendmail_confirm.html">Mail xác nhận</option>
 						<option value="sendmail_closetime.html">Mail cận giờ bay</option>
 						<option value="sendmail_promo.html">Mail vé khuyến mãi</option>
-						' . (($this->bean->has_voucher && in_array($this->bean->booking_status, array(3, 7, 8))) ? '<option value="sendmail_voucher.html">Mail Voucher KM</option>' : '') . '
 					</select>
 					<input type="submit" class="btn btn-primary save-popup-dialog" value="Tiếp tục" title="Tiếp tục" />
 					<input type="button" class="btn btn-secondary" id="btnCancelSendMail" value="Hủy bỏ" title="Hủy bỏ" />
@@ -1947,15 +1970,34 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $time;
 	}
 
-	function getVoucherInfo($booking_id)
-	{
-		$sql = 'SELECT IF(status=2, 1, 0) AS is_sent,
-					validate_to_date 
-				FROM ec_vouchers
-				WHERE booking_receive_id = "' . $booking_id . '" AND deleted = 0';
+	/**
+	 * Get voucher applied
+	 * 
+	 * @param string $booking_id
+	 * @return array
+	 */
+	public function getVoucherApplied($booking_id = '') {
+		if(!$booking_id || empty($booking_id)) $booking_id = $this->bean->id;
+
+		$sql = "SELECT 
+					bv.booking_id,
+					bv.voucher_id,
+					v.name AS code,
+					v.type,
+					v.status,
+					v.campaign_name,
+					bv.discount_amount
+				FROM bookings_vouchers bv
+					LEFT JOIN ec_vouchers v ON v.id = bv.voucher_id
+				WHERE bv.booking_id = '$booking_id'
+					AND bv.deleted = 0";
+
 		$res = $this->bean->db->query($sql);
-		$row = $this->bean->db->fetchByAssoc($res);
-		return array('is_sent' => $row['is_sent'], 'expire_date' => date('d-m-Y', strtotime($row['validate_to_date'])));
+		$results = [];
+		while($row = $this->bean->db->fetchByAssoc($res)) {
+			$results[] = $row;
+		}
+		return $results;
 	}
 
 	function checkIsPaidNote($booking_id)

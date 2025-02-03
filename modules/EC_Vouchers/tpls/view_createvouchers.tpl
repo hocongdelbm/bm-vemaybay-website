@@ -67,7 +67,6 @@
 					<td class="label">Website áp dụng: <span class="fw-bold color-red">*</span></td>
 					<td class="value">
 						<select name="website" id="website" class="form-select">
-							<option value="vietjet.net">vietjet.net</option>
 							<option value="timchuyenbay.com">timchuyenbay.com</option>
 						</select>
 					</td>

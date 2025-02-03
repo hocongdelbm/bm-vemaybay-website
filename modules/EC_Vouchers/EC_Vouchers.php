@@ -27,7 +27,6 @@ class EC_Vouchers extends Basic {
 	public $status;
 	public $start_time;
 	public $end_time;
-	public $applied_date;
 	public $campaign_name;
 	public $campaign_id;
     public $reduce_amount;
@@ -36,11 +35,7 @@ class EC_Vouchers extends Basic {
 	public $quantity;
 	public $website;
 	public $condition_voucher;
-	public $booking_receive_id;
-	public $account_name;
-    public $account_phone;
-    public $account_email;
-    public $account_address;
+	public $contact_id;
 
 	public $condition_apply = ['min_order_value', 'number_of_tickets', 'flight_type', 'ticket_type', 'journey'];
 	public $condition_included = ['max_discount'];
@@ -184,6 +179,10 @@ class EC_Vouchers extends Basic {
 	function get_list_view_data() {
 		$task_fields = $this->get_list_view_array();
 
+		// Discount
+		if($this->reduce_amount && $this->reduce_amount > 0) $task_fields['REDUCE_AMOUNT'] = format_number($this->reduce_amount);
+		elseif($this->reduce_percent && $this->reduce_percent > 0) $task_fields['REDUCE_AMOUNT'] = $this->reduce_percent . '%';
+
 		// Time
 		if($this->start_time && $this->end_time) $task_fields['END_TIME'] = date('d/m/Y H:i', strtotime($this->start_time) - 7*3600) . ' &#11157; '. date('d/m/Y H:i', strtotime($this->end_time) - 7*3600);
 		else $task_fields['END_TIME'] = '';
@@ -202,9 +201,10 @@ class EC_Vouchers extends Basic {
 	 * @return string JSON
 	 */
 	public function uploadWebsite($website, $voucher_info) {
-		$url = "https://$website/voucher";
-		$voucher_info['action'] = 'add_voucher';
-		$voucher_info['api_key'] = "m2-cVyHv2+7oyzyfU8+4c2MVARL+OwvxE48h6n846pGfe3rf52";
+		$url = "https://$website/vouchers";
+		$voucher_info['admin_key'] = 'Gq4y_aZ4BC12fI6XZ47L-8JsBxcPaE2vy3gh2uZN1+r3UQ9957';
+		$voucher_info['api_key'] = 'm2-cVyHv2+7oyzyfU8+4c2MVARL+OwvxE48h6n846pGfe3rf52';
+		$voucher_info['action'] = 'add';
 
 		try {
             $curl = curl_init();
@@ -313,24 +313,6 @@ class EC_Vouchers extends Basic {
 	 * 
 	 * @return string HTML
 	 */
-	public function getFormatStatus() {
-		$status = '';
-		$status_name = $GLOBALS['app_list_strings']['voucher_status_list'][$this->status];
-		if($this->status == 'pending') {
-			$status = '<span class="text-primary fst-italic">'.$status_name.'...</span>';
-		}
-		elseif($this->status == 'done') {
-			$status = '<span class="text-success fw-bold">'.$status_name.'</span>';
-		}
-		elseif($this->status == 'expired') {
-			$status = '<span class="text-secondary">'.$status_name.'</span>';
-		}
-		elseif($this->status == 'done') {
-			$status = '<span class="text-danger fw-bold">'.$status_name.'</span>';
-		}
-		return $status;
-	}
-
 	public function formatStatus($status = '') {
 		if(empty($status)) $status = $this->status;
 

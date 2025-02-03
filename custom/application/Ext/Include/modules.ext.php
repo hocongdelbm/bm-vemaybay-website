@@ -3,16 +3,16 @@
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_Banks'] = 'EC_Banks';
-$beanFiles['EC_Banks'] = 'modules/EC_Banks/EC_Banks.php';
-$moduleList[] = 'EC_Banks';
+$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
+$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
+$moduleList[] = 'EC_Bank_Account';
 
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
-$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
-$moduleList[] = 'EC_Bank_Account';
+$beanList['EC_Banks'] = 'EC_Banks';
+$beanFiles['EC_Banks'] = 'modules/EC_Banks/EC_Banks.php';
+$moduleList[] = 'EC_Banks';
 
 
  
@@ -101,16 +101,16 @@ $moduleList[] = 'EC_Debts';
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_Banks'] = 'EC_Banks';
-$beanFiles['EC_Banks'] = 'modules/EC_Banks/EC_Banks.php';
-$moduleList[] = 'EC_Banks';
+$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
+$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
+$moduleList[] = 'EC_Bank_Account';
 
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_Bank_Account'] = 'EC_Bank_Account';
-$beanFiles['EC_Bank_Account'] = 'modules/EC_Bank_Account/EC_Bank_Account.php';
-$moduleList[] = 'EC_Bank_Account';
+$beanList['EC_Banks'] = 'EC_Banks';
+$beanFiles['EC_Banks'] = 'modules/EC_Banks/EC_Banks.php';
+$moduleList[] = 'EC_Banks';
 
 
  
@@ -192,16 +192,16 @@ $moduleList[] = 'EC_Input_Invoices';
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_LeaveAbsences'] = 'EC_LeaveAbsences';
-$beanFiles['EC_LeaveAbsences'] = 'modules/EC_LeaveAbsences/EC_LeaveAbsences.php';
-$moduleList[] = 'EC_LeaveAbsences';
+$beanList['EC_LeaveAbsenceTypes'] = 'EC_LeaveAbsenceTypes';
+$beanFiles['EC_LeaveAbsenceTypes'] = 'modules/EC_LeaveAbsenceTypes/EC_LeaveAbsenceTypes.php';
+$moduleList[] = 'EC_LeaveAbsenceTypes';
 
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_LeaveAbsenceTypes'] = 'EC_LeaveAbsenceTypes';
-$beanFiles['EC_LeaveAbsenceTypes'] = 'modules/EC_LeaveAbsenceTypes/EC_LeaveAbsenceTypes.php';
-$moduleList[] = 'EC_LeaveAbsenceTypes';
+$beanList['EC_LeaveAbsences'] = 'EC_LeaveAbsences';
+$beanFiles['EC_LeaveAbsences'] = 'modules/EC_LeaveAbsences/EC_LeaveAbsences.php';
+$moduleList[] = 'EC_LeaveAbsences';
 
 
  
@@ -255,16 +255,16 @@ $moduleList[] = 'EC_Request_Flight';
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_Salary_Details'] = 'EC_Salary_Details';
-$beanFiles['EC_Salary_Details'] = 'modules/EC_Salary_Details/EC_Salary_Details.php';
-$moduleList[] = 'EC_Salary_Details';
+$beanList['EC_SMS_Logs'] = 'EC_SMS_Logs';
+$beanFiles['EC_SMS_Logs'] = 'modules/EC_SMS_Logs/EC_SMS_Logs.php';
+$moduleList[] = 'EC_SMS_Logs';
 
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_SMS_Logs'] = 'EC_SMS_Logs';
-$beanFiles['EC_SMS_Logs'] = 'modules/EC_SMS_Logs/EC_SMS_Logs.php';
-$moduleList[] = 'EC_SMS_Logs';
+$beanList['EC_Salary_Details'] = 'EC_Salary_Details';
+$beanFiles['EC_Salary_Details'] = 'modules/EC_Salary_Details/EC_Salary_Details.php';
+$moduleList[] = 'EC_Salary_Details';
 
 
  
@@ -348,16 +348,16 @@ $moduleList[] = 'EC_Input_Invoices';
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_LeaveAbsences'] = 'EC_LeaveAbsences';
-$beanFiles['EC_LeaveAbsences'] = 'modules/EC_LeaveAbsences/EC_LeaveAbsences.php';
-$moduleList[] = 'EC_LeaveAbsences';
+$beanList['EC_LeaveAbsenceTypes'] = 'EC_LeaveAbsenceTypes';
+$beanFiles['EC_LeaveAbsenceTypes'] = 'modules/EC_LeaveAbsenceTypes/EC_LeaveAbsenceTypes.php';
+$moduleList[] = 'EC_LeaveAbsenceTypes';
 
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_LeaveAbsenceTypes'] = 'EC_LeaveAbsenceTypes';
-$beanFiles['EC_LeaveAbsenceTypes'] = 'modules/EC_LeaveAbsenceTypes/EC_LeaveAbsenceTypes.php';
-$moduleList[] = 'EC_LeaveAbsenceTypes';
+$beanList['EC_LeaveAbsences'] = 'EC_LeaveAbsences';
+$beanFiles['EC_LeaveAbsences'] = 'modules/EC_LeaveAbsences/EC_LeaveAbsences.php';
+$moduleList[] = 'EC_LeaveAbsences';
 
 
  
@@ -411,13 +411,6 @@ $moduleList[] = 'EC_Online_Report';
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_Outbound_Phone'] = 'EC_Outbound_Phone';
-$beanFiles['EC_Outbound_Phone'] = 'modules/EC_Outbound_Phone/EC_Outbound_Phone.php';
-$moduleList[] = 'EC_Outbound_Phone';
-
-
- 
- //WARNING: The contents of this file are auto-generated
 $beanList['EC_Payment_Types'] = 'EC_Payment_Types';
 $beanFiles['EC_Payment_Types'] = 'modules/EC_Payment_Types/EC_Payment_Types.php';
 $moduleList[] = 'EC_Payment_Types';
@@ -453,16 +446,16 @@ $moduleList[] = 'EC_Request_Flight';
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_Salary_Details'] = 'EC_Salary_Details';
-$beanFiles['EC_Salary_Details'] = 'modules/EC_Salary_Details/EC_Salary_Details.php';
-$moduleList[] = 'EC_Salary_Details';
+$beanList['EC_SMS_Logs'] = 'EC_SMS_Logs';
+$beanFiles['EC_SMS_Logs'] = 'modules/EC_SMS_Logs/EC_SMS_Logs.php';
+$moduleList[] = 'EC_SMS_Logs';
 
 
  
  //WARNING: The contents of this file are auto-generated
-$beanList['EC_SMS_Logs'] = 'EC_SMS_Logs';
-$beanFiles['EC_SMS_Logs'] = 'modules/EC_SMS_Logs/EC_SMS_Logs.php';
-$moduleList[] = 'EC_SMS_Logs';
+$beanList['EC_Salary_Details'] = 'EC_Salary_Details';
+$beanFiles['EC_Salary_Details'] = 'modules/EC_Salary_Details/EC_Salary_Details.php';
+$moduleList[] = 'EC_Salary_Details';
 
 
  
@@ -526,6 +519,13 @@ $moduleList[] = 'EC_Working_Process';
 $beanList['EC_Zalo'] = 'EC_Zalo';
 $beanFiles['EC_Zalo'] = 'modules/EC_Zalo/EC_Zalo.php';
 $moduleList[] = 'EC_Zalo';
+
+
+ 
+ //WARNING: The contents of this file are auto-generated
+$beanList['EC_Outbound_Phone'] = 'EC_Outbound_Phone';
+$beanFiles['EC_Outbound_Phone'] = 'modules/EC_Outbound_Phone/EC_Outbound_Phone.php';
+$moduleList[] = 'EC_Outbound_Phone';
 
 
 ?>

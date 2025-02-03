@@ -167,13 +167,14 @@ class Alerts {
 
             // Tính toán số lượng thông báo
             const alertsContainer = $('<div></div>').html(data);
-            const alertCount = alertsContainer.find('.alert').length;
+            let alertCount = alertsContainer.find('.alert').length;
+            $('.alert_count').toggleClass('bg-danger', alertCount > 0);
+            $('.desktop_notifications').toggleClass('has-alerts', alertCount > 0);
+
             if (alertCount > 99) {
                 alertCount = '99+';
             }
             $('.alert_count').text(alertCount);
-            $('.alert_count').toggleClass('bg-danger', alertCount > 0);
-            $('.desktop_notifications').toggleClass('has-alerts', alertCount > 0);
         } catch (error) {
             console.error('Failed to update alerts:', error);
         }
@@ -209,13 +210,14 @@ class Alerts {
 
             // Tính toán số lượng thông báo
             const alertsContainer = $('<div></div>').html(data);
-            const alertCount = alertsContainer.find('.alert').length;
+            let alertCount = alertsContainer.find('.alert').length;
+            $('.alert_count').toggleClass('bg-danger', alertCount > 0);
+            $('.desktop_notifications').toggleClass('has-alerts', alertCount > 0);
+
             if (alertCount > 99) {
                 alertCount = '99+';
             }
             $('.alert_count').text(alertCount);
-            $('.alert_count').toggleClass('bg-danger', alertCount > 0);
-            $('.desktop_notifications').toggleClass('has-alerts', alertCount > 0);
         } catch (error) {
             console.error('Failed to update alerts:', error);
         }

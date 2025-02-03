@@ -12,51 +12,17 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 class CustomController extends BaseController
 {
-    private $IP_WHITELIST = [
-        '14.161.31.237', // LBM
-
-        '10.1.1.1', // Network line
-        '157.119.251.223', // vietjet.net
-        '103.160.5.98', // vietjet.net
-        '157.119.248.137', // timchuyenbay.com
-        '103.160.5.135', // timchuyenbay.com
-
-        '157.119.251.220', // timchuyenbay.net
-        '157.119.251.12', // timchuyenbay.com.vn
-        '157.119.251.44', // timchuyenbay.vn
-        '157.119.251.195', // sanvemaybaygiare.net
-        '103.160.5.35', // sanvemaybay.com.vn
-        '157.119.251.197', // vemaybay.website, dailyve.net
-        '157.119.251.191', // ve5s.com.vn
-        '157.119.251.69', // giavemaybayvietjet.com
-        '157.119.251.154', // vemaybayphuongnam.net
-        '157.119.251.70', // datvedoan.net
-        '157.119.251.122', // datvedoan.com
-        '157.119.251.106', // appvemaybay.net
-        '157.119.251.106', // vemaybaynamphuong.vn
-        '157.119.251.145', // vemaybaynamphuong.com.vn
-        '157.119.251.218', // vietjetstar.net
-
-        '103.160.5.21', // vemaybay5s.com
-        '157.119.251.90', // vemaybaynamphuong.net
-        '157.119.251.151', // vemaybay.me
-
-        '157.119.251.114',
-        '157.119.251.90',
-        '157.119.251.101',
-        '157.119.251.41',
-    ];
-
     /************  BOOKING  ************/
     public function save_booking(Request $request, Response $response, array $args)
     {
+        global $sugar_config;
         $params  = (array)$request->getParsedBody();
         $user_id = $params['user_id'];
         $request_ip = $request->getServerParam('REMOTE_ADDR');
 
         // Validate here
         if (strlen($user_id) != 36) return $response->withJson(['error' => true, 'message' => "Invalid user id"], 400);
-        if (!in_array($request_ip, $this->IP_WHITELIST)) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
+        if (!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
 
         // Save booking
         $booking = BeanFactory::newBean("EC_Flight_Bookings");
@@ -113,6 +79,32 @@ class CustomController extends BaseController
                 $detail->created_by         = $user_id;
                 $detail->modified_user_id   = $user_id;
                 $detail->save();
+            }
+        }
+
+        // Save voucher
+        if(isset($params['vouchers']) && !empty($params['vouchers'])) {
+            foreach ($params['vouchers'] as $type => $arr) {
+                $voucher_id = isset($arr['voucher_id']) ? $arr['voucher_id'] : '';
+                $discount_amount = isset($arr['discount_amount']) ? $arr['discount_amount'] : 0;
+                if(empty($voucher_id) || $discount_amount < 1) continue;
+
+                // Save relationship booking & voucher
+                $booking->load_relationship('vouchers');
+                $booking->vouchers->add($voucher_id);
+                global $db;
+                $sql = "UPDATE bookings_vouchers
+                        SET discount_amount = $discount_amount
+                        WHERE booking_id = '$booking->id'
+                            AND voucher_id = '$voucher_id'
+                            AND deleted = 0";
+                $db->query($sql);
+    
+                // Update voucher
+                if($type == 'private') {
+                    $sql = "UPDATE ec_vouchers v SET v.status = 'done' WHERE v.id = '$voucher_id' AND v.deleted = 0";
+                    $db->query($sql);
+                }
             }
         }
 
@@ -306,11 +298,12 @@ class CustomController extends BaseController
      */
     public function get_info_voucher(Request $request, Response $response, array $args)
     {
+        global $sugar_config;
         $params = (array)$request->getParsedBody();
         $request_ip = $request->getServerParam('REMOTE_ADDR');
         $voucher_code = isset($params['voucher_code']) ? global_test_input($params['voucher_code']) : '';
 
-        if(!in_array($request_ip, $this->IP_WHITELIST))
+        if(!in_array($request_ip, $sugar_config['ip_whitelist']))
             return $response->withJson([
                 'error' => 1,
                 'message' => "Access $request_ip is not allowed"
@@ -337,7 +330,6 @@ class CustomController extends BaseController
                 WHERE name = '$voucher_code'
                     AND type = 'single'
                     AND status NOT IN('new', 'cancel')
-                    AND (booking_receive_id IS NULL OR booking_receive_id = '')
                     AND deleted = 0
                 LIMIT 1";
 

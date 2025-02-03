@@ -2135,6 +2135,8 @@ function custom_get_sip_number($key = '')
         'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
+        // Đỗ Nhật
+        '245134a3-0382-7578-601a-6790ab9bb6b3' => ['user' => '789', 'password' => 't5scZL2Gnpuvc1JNYQYW'],
 
         /************************  KẾ TOÁN  ************************/
         // Đỗ Thị Kim Ngân

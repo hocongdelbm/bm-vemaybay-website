@@ -34,5 +34,18 @@ if(isAllowedUser()) {
 	if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu[] 	= array("index.php?module=EC_Flight_Bookings&action=bkagent&return_module=EC_Flight_Bookings&return_action=bkagent", "Thống kê vé", "bkagent", 'EC_Flight_Bookings');
 }
 
-if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu[] 	= array("index.php?module=EC_Flight_Bookings&action=issueticket&return_module=EC_Flight_Bookings&return_action=issueticket", "Xuất vé Vietjet", "justice-scale", 'EC_Flight_Bookings');
+if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
+	$module_menu[] = [
+		"index.php?module=EC_Flight_Bookings&action=issueticket&return_module=EC_Flight_Bookings&return_action=issueticket",
+		"Xuất vé Vietjet",
+		"justice-scale",
+		"EC_Flight_Bookings"
+	];
 
+	$module_menu[] = [
+		"index.php?module=EC_Flight_Bookings&action=updateflightfare&return_module=EC_Flight_Bookings&return_action=updateflightfare",
+		"Cập nhật giá vé",
+		"recovery-order-16",
+		"EC_Flight_Bookings",
+	];
+}

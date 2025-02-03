@@ -783,6 +783,16 @@ $dictionary['EC_Flight_Bookings'] = array(
             'audited' => 1,
         ),
 
+        'vouchers' => array(
+            'name' => 'vouchers',
+            'type' => 'link',
+            'relationship' => 'bookings_vouchers',
+            'module' => 'EC_Vouchers',
+            'bean_name' => 'EC_Vouchers',
+            'source' => 'non-db',
+            'vname' => 'LBL_VOUCHERS',
+        ),
+
         // 'sendmail_eticket_date' => array(
         //     'required' => false,
         //     'name' => 'sendmail_eticket_date',

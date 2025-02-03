@@ -1146,6 +1146,17 @@ $(document).ready(function () {
 			}
 		});
 	});
+
+	// Voucher
+	$('.voucher').on('click', function () {
+		$('#dialog_voucher_detail').dialog({
+			width: 500,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Chi tiết voucher"
+		});
+	});
 });
 
 // Count row for textarea

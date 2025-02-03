@@ -1278,7 +1278,7 @@ select::-webkit-scrollbar {
 
 #buttontoggle {
   position: fixed;
-  top: calc(var(--height-header) + var(--height-header-bottom) + 5px);
+  top: calc(var(--height-header) + var(--height-header-bottom) + 20px);
   transform: translateX(var(--width-sidebar));
   transition: all linear 0.3s;
   padding: 5px 3px;
