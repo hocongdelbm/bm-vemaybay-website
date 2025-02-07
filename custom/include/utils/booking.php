@@ -277,7 +277,7 @@ function classifyContactv2($contactId)
         $type_contact['desc'] = 'Chưa có bk hoàn tất';
     } else {
         $type_contact['type'] = 'DEFAULT_GROUP';
-        $type_contact['label'] = 'Mặc định';
+        $type_contact['label'] = 'Vãng lai';
         $type_contact['desc'] = 'Không thuộc 6 loại đã quy định';
     }
 

@@ -63,8 +63,9 @@ class Viewemployeesalary extends SugarView
 		global $current_user;
 
 		// nút chỉnh sửa
-		if (empty($_REQUEST['month_search'])) $_REQUEST['month_search'] = date('n', strtotime('-1 month'));
-		if (empty($_REQUEST['year_search'])) $_REQUEST['year_search'] = date('Y', strtotime('-1 month'));
+		if(empty($_REQUEST['month_search'])) $_REQUEST['month_search'] = date('n', strtotime('-1 month'));
+		if(empty($_REQUEST['year_search'])) $_REQUEST['year_search'] = date('Y', strtotime('-1 month'));
+
 		$approved_inf = $this->checkApproved((int)$_REQUEST['month_search'], (int)$_REQUEST['year_search']);
 		if ($is_special_user) {
 			if (!$approved_inf['is_approved']) {
@@ -80,8 +81,9 @@ class Viewemployeesalary extends SugarView
 					$approved_btn = '<input type="submit" class="btn btn-primary" name="approved_btn" value="Duyệt">';
 					$smartyobj->assign('APPROVED_BTN', $approved_btn);
 
-					$request_month = isset($_REQUEST['month_search']) ? $_REQUEST['month_search'] : null;
-					$previousMonth = date('m', strtotime('-1 month'));
+					$request_month = isset($_REQUEST['month_search']) ? (int)$_REQUEST['month_search'] : null;
+					$previousMonth = (int)date('m', strtotime('-1 month'));
+
 					if ($request_month === $previousMonth) {
 						$update_btn = '<input type="submit" class="btn btn-secondary" name="update_btn" value="Cập nhật">';
 						$smartyobj->assign('UPDATE_SALARY', $update_btn);
@@ -960,15 +962,15 @@ class Viewemployeesalary extends SugarView
 								AND status = "Active"
 								AND assigned_user_id = usr.id
 								AND date_start >= IFNULL(
-									( 
-										SELECT date_start 
-										FROM ec_workhistory 
-										WHERE deleted = 0 
-										AND status = "InActive" 
+									(
+										SELECT date_start
+										FROM ec_workhistory
+										WHERE deleted = 0
+										AND status = "InActive"
 										AND assigned_user_id = h.assigned_user_id
-										ORDER BY date_start DESC LIMIT 1 
+										ORDER BY date_start DESC LIMIT 1
 									),  "1970-01-01"
-								) 
+								)
 								ORDER BY date_start LIMIT 1
 							)
 							, IFNULL(
@@ -980,12 +982,12 @@ class Viewemployeesalary extends SugarView
 									AND assigned_user_id = usr.id
 									AND date_start <= IFNULL(
 										( 
-											SELECT date_start 
-											FROM ec_workhistory 
-											WHERE deleted = 0 
-											AND status = "InActive" 
+											SELECT date_start
+											FROM ec_workhistory
+											WHERE deleted = 0
+											AND status = "InActive"
 											AND assigned_user_id = h.assigned_user_id
-											ORDER BY date_start DESC LIMIT 1 
+											ORDER BY date_start DESC LIMIT 1
 										),  "1970-01-01"
 									) 
 									ORDER BY date_start LIMIT 1
@@ -1014,41 +1016,37 @@ class Viewemployeesalary extends SugarView
  					AND DATE_FORMAT(his.date_start, "%Y-%m-01") <= "' . date('Y-m-d', strtotime($start_date)) . '"
  					AND LAST_DAY(IFNULL(his.date_end, "' . $end_date . '")) >= "' . $end_date . '"
  					WHERE usr.deleted = 0
-					AND his.date_start IN ( 
+					AND his.date_start IN (
 						SELECT MAX(sub_his.date_start) FROM ec_workhistory sub_his 
-						WHERE DATE_FORMAT(his.date_start, "%Y-%m-01") <= "' . date('Y-m-d', strtotime($start_date)) . '" 
-						AND LAST_DAY(IFNULL(his.date_end, "' . $end_date . '")) >= "' . $end_date . '" 
-						AND sub_his.deleted = 0 
+						WHERE DATE_FORMAT(his.date_start, "%Y-%m-01") <= "' . date('Y-m-d', strtotime($start_date)) . '"
+						AND LAST_DAY(IFNULL(his.date_end, "' . $end_date . '")) >= "' . $end_date . '"
+						AND sub_his.deleted = 0
 						GROUP BY sub_his.assigned_user_id )
 					-- GROUP BY usr.id
-				) AS u 
+				) AS u
  				LEFT JOIN (
- 					SELECT * FROM ec_employee_salary WHERE deleted = 0 
+ 					SELECT * FROM ec_employee_salary WHERE deleted = 0
  					AND CONCAT(year, "-", month, "-01") <= "' . $end_date . '"
  					AND DATE_FORMAT(date_entered, "%Y-%m-%d") <= (
- 						SELECT DATE_FORMAT(date_entered, "%Y-%m-%d") FROM ec_employee_salary WHERE deleted = 0 
- 						AND CONCAT(year, "-", month, "-01") <= "' . $end_date . '" 
+ 						SELECT DATE_FORMAT(date_entered, "%Y-%m-%d") FROM ec_employee_salary WHERE deleted = 0
+ 						AND CONCAT(year, "-", month, "-01") <= "' . $end_date . '"
  						ORDER BY date_entered DESC LIMIT 1
  					)
  					' . $from_date_limit . '
  					GROUP BY assigned_user_id
  				) AS s ON s.assigned_user_id = u.id
- 				WHERE u.deleted = 0 
+ 				WHERE u.deleted = 0
  				AND u.his_date_start IS NOT NULL AND LENGTH(u.his_date_start) > 0
  				GROUP BY u.id
  				ORDER BY (
- 					CASE 
+ 					CASE
  						WHEN u.title LIKE "%QuanLy%" THEN 1
  						WHEN u.title LIKE "%KeToan%" THEN 2
  						WHEN u.title LIKE "%Leader%" THEN 3
  						WHEN u.title LIKE "%Booker%" THEN 4
  					ELSE 5
- 					END 
+ 					END
  				), u.his_date_start, u.first_name, u.last_name';
-
-		// if($GLOBALS['current_user']->user_name == 'nponline') {
-		// 	echo $sql; exit;
-		// }
 
 		$res = $this->bean->db->query($sql);
 		$i = -1;
@@ -2197,14 +2195,14 @@ class Viewemployeesalary extends SugarView
 
 				// những nhân viên đã nghỉ hoặc tạm vắng thì không tính công
 			} else {
-				$sql2 = 'UPDATE ec_employee_salary 
+				$sql2 = 'UPDATE ec_employee_salary
 						  SET working_days = 0
-							, ot_days = 0 
+							, ot_days = 0
 							, no_paid_days = 0
-						  WHERE is_approved = 0 
+						  WHERE is_approved = 0
 						  AND assigned_user_id = "' . $row['user_id'] . '"
-						  AND month="' . date('n', strtotime($today)) . '" 
-						  AND year = "' . date('Y', strtotime($today)) . '" 
+						  AND month="' . date('n', strtotime($today)) . '"
+						  AND year = "' . date('Y', strtotime($today)) . '"
 						  AND deleted = 0';
 				$db->query($sql2);
 			}
