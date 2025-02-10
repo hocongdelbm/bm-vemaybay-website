@@ -325,8 +325,7 @@
     font-weight: 600;
 }
 
-.voiceip-button.voiceip-end:hover svg,
-.voiceip-button.voiceip-decline:hover svg {
+.voiceip-button.voiceip-end:hover svg{
     fill: #ff3b2f;
 }
 
@@ -338,8 +337,7 @@
     fill: var(--primary-color);
 }
 
-.voiceip-button.voiceip-end:hover .voiceip-button__desc,
-.voiceip-button.voiceip-decline:hover .voiceip-button__desc{
+.voiceip-button.voiceip-end:hover .voiceip-button__desc{
     color: #ff3b2f;
     font-weight: 600;
 }

@@ -1287,14 +1287,6 @@ EOHTML;
                                         Kết thúc
                                     </div>
                                 </div>
-                                <div class="voiceip-button voiceip-decline">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
-                                        <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
-                                    </svg>
-                                    <div class="voiceip-button__desc voiceip-button__desc--decline">
-                                        Từ chối
-                                    </div>
-                                </div>
                                 <div class="voiceip-button voiceip-accept">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-telephone-fill" viewBox="0 0 16 16">
                                         <path fill-rule="evenodd" d="M1.885.511a1.745 1.745 0 0 1 2.61.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
@@ -1309,7 +1301,7 @@ EOHTML;
                                         <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
                                     </svg>
                                     <div class="voiceip-button__desc voiceip-button__desc--update">
-                                        Cập nhật
+                                        Hoàn tất
                                     </div>
                                 </div>
                                 <div class="voiceip-button voiceip-viewbooking">
@@ -1336,13 +1328,13 @@ EOHTML;
 
             if($current_user->id == '1' || $current_user->id == '168889bb-54c2-59c7-8b3f-649102530d3c'){
                 $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=3.5">';
-                $js .= '<audio id="audio_jssip"></audio>
+                $js .= '<audio id="audio_jssip" loop="true"></audio>
                         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
                         <script src="custom/jssip_webrtc/call2.js?ver=3.5"></script>
                 ';
             } else {
                 $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=3.5">';
-                $js .= '<audio id="audio_jssip"></audio>
+                $js .= '<audio id="audio_jssip" loop="true"></audio>
                         <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
                         <script src="custom/jssip_webrtc/call.js?ver=3.5"></script>
 

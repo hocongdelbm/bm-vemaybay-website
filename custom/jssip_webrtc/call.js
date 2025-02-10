@@ -68,11 +68,10 @@ var callOptions = {
 /***********   Setup audio and ringtone   *************/
 var audio_jssip = document.getElementById("audio_jssip");
 var incomingCallAudio = new window.Audio(RINGTONE_FILE);
-incomingCallAudio.loop = true;
 
 /********************   INIT   ********************/
-// JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
-JsSIP.debug.disable('JsSIP:*');
+JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
+// JsSIP.debug.disable('JsSIP:*');
 // JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
 
 socket = new JsSIP.WebSocketInterface(WS_SERVERS);
@@ -215,7 +214,7 @@ ua.on('newRTCSession', function (ev) {
     if (session.direction === "incoming") {
         incomingCallAudio.pause();
         incomingCallAudio.currentTime = 0;
-        incomingCallAudio.muted = false;
+        incomingCallAudio.muted = false;  // Không mute từ đầu
         incomingCallAudio.autoplay = true;
 
         // Get data
@@ -234,9 +233,10 @@ ua.on('newRTCSession', function (ev) {
             return;
         }
 
-        setTimeout(function () {
-            incomingCallAudio.play();
+        setTimeout(() => {
+            incomingCallAudio.play().catch(error => console.warn("Không thể tự động phát âm thanh:", error));
         }, 100);
+
         $(document).prop('title', 'Có cuộc gọi đến...');
         showToastCall('incoming__call', call_id, zalo_id, phone, hotline)
 
@@ -281,6 +281,14 @@ ua.on('newRTCSession', function (ev) {
         saveCallLog();
         call_flow = '';
         session = null;
+
+        // setimeout 5s to fill in the notes and click update button
+        setTimeout(function () {
+            if ($('#popup__voiceip--wrap').hasClass('show') && $('#voiceip-notes').val().length === 0) {
+                $('#voiceip-notes').val('không có ghi chú cho cuộc gọi này!');
+                $('.voiceip-update').click();
+            }
+        }, 5000);
     });
 
     /************  HANDLE FAILED  ************/
@@ -357,7 +365,12 @@ ua.on('newRTCSession', function (ev) {
                     stream.addTrack(e.track);
                     alert("Lỗi âm thanh cuộc gọi");
                 }
-                audio_jssip.play();
+
+                // Đặt `muted = true` trước khi play để bypass chính sách autoplay của trình duyệt
+                audio_jssip.muted = true;
+                audio_jssip.play().then(() => {
+                    audio_jssip.muted = false; // Sau khi phát, bật lại âm thanh
+                }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             });
         }
         else {
@@ -371,7 +384,12 @@ ua.on('newRTCSession', function (ev) {
                     stream.addTrack(e.track);
                     alert("Lỗi âm thanh cuộc gọi");
                 }
-                audio_jssip.play();
+
+                // Đặt `muted = true` trước khi play để bypass chính sách autoplay của trình duyệt
+                audio_jssip.muted = true;
+                audio_jssip.play().then(() => {
+                    audio_jssip.muted = false; // Sau khi phát, bật lại âm thanh
+                }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             };
         }
     } else if (session.direction === "outgoing") {
@@ -383,24 +401,7 @@ ua.on('newRTCSession', function (ev) {
 $(document).ready(function () {
     // Microphone permission 
     $(document).on('click', '#call-phone__circle', function () {
-        if (!ua || !ua.isConnected() || !ua.isRegistered()) {
-            showModalNotify('error', 'Không có kết nối. Vui lòng nhấn Online hoặc refresh trang và thử lại!');
-            return false;
-        } else {
-            if (navigator.mediaDevices) {
-                navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                    .then(stream => {
-                        $(".call-phone__numpad").toggle(200);
-                    })
-                    .catch(function (error) {
-                        showModalNotify('error', 'Không có microphone hoặc quyền bị từ chối');
-                        $('.call-phone__numpad').hide();
-                    });
-            } else {
-                showModalNotify('warning', 'Trình duyệt không hỗ trợ navigator.mediaDevices');
-                $('.call-phone__numpad').hide();
-            }
-        }
+        toggleCallNumpad();
     });
 
     // Checked trạng thái bận của user
@@ -560,8 +561,24 @@ $(document).ready(function () {
     });
 
     $(document).keyup(function (e) {
-        if (e.keyCode === 13) {
+        if (e.keyCode === 13) { //Enter
             $('#btn-voiceip-main-calling').click();
+        }
+
+        if (e.keyCode === 8) { //Backspace
+            removeNumber();
+        }
+
+        if (e.keyCode === 113) { // F2
+            toggleCallNumpad();
+        }
+
+        if (e.key === "Escape") {
+            if (session) {
+                session.terminate();
+                session = null;
+            }
+            handleButtons('completed');
         }
     });
 
@@ -695,16 +712,7 @@ $(document).ready(function () {
         }
     });
 
-    // Nút từ chối
-    $(document).on('click', '.voiceip-decline', function () {
-        if (session) {
-            session.terminate();
-            session = null;
-        }
-        handleButtons('completed');
-    });
-
-    // Nút gác máy
+    // Nút từ chối - Nút gác máy
     $(document).on('click', '.voiceip-end', function () {
         if (session) {
             session.terminate();
@@ -992,8 +1000,6 @@ $(document).ready(function () {
     $(document).on('click', '.voiceip-viewbooking', function () {
         $("#popup-inforbooking").toggle("slide");
     });
-
-
 });
 
 // CALL LOG ===============================
@@ -1100,7 +1106,6 @@ const closeNotification = () => {
         console.warn('No active Service Worker controller found.');
     }
 };
-
 
 // Khởi tạo service worker và xin quyền thông báo
 const init = async () => {
@@ -1385,8 +1390,7 @@ function handleButtons(type) {
         $('.voiceip-calling .skype').css('animation', 'play 1.5s ease infinite');
         $('.voiceip-button').hide();
         $('.voiceip-accept').show();
-        $('.voiceip-decline').show();
-
+        $('.voiceip-end').show();
         $('#voiceip-timer').hide();
     }
     else if (type == 'outgoing') {
@@ -1436,6 +1440,28 @@ function hide_avatar_zalo() {
         'background-size': 'unset',
         'border': 'solid 15px #fff',
     });
+}
+
+function toggleCallNumpad() {
+    if (!ua || !ua.isConnected() || !ua.isRegistered()) {
+        showModalNotify('error', 'Không có kết nối. Vui lòng nhấn Online hoặc refresh trang và thử lại!');
+        return false;
+    } else {
+        if (navigator.mediaDevices) {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(stream => {
+                    $(".call-phone__numpad").toggle(200);
+                    $('#call_voiceip_main_number').focus();
+                })
+                .catch(function (error) {
+                    showModalNotify('error', 'Không có microphone hoặc quyền bị từ chối');
+                    $('.call-phone__numpad').hide();
+                });
+        } else {
+            showModalNotify('warning', 'Trình duyệt không hỗ trợ navigator.mediaDevices');
+            $('.call-phone__numpad').hide();
+        }
+    }
 }
 
 // Reset popup call
@@ -1558,12 +1584,6 @@ var removeNumber = function () {
         $('#call_voiceip_main_number').val(newValue);
     }
 };
-
-$(document).keyup(function (e) {
-    if (e.keyCode == 8) {
-        removeNumber();
-    }
-});
 
 // When click outside to close modal 
 $(document).mouseup(function (e) { // event nhả chuột
