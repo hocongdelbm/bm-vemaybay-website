@@ -32,7 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 				'quantity' 		=> (int)$voucher->quantity,
 				'start_time' 	=> date('Y-m-d H:i:00', strtotime($voucher->start_time) - 7*3600),
 				'end_time' 		=> date('Y-m-d H:i:00', strtotime($voucher->end_time) - 7*3600),
-				'condition_voucher' => html_entity_decode(trim($voucher->condition_voucher))
+				'condition_voucher' => html_entity_decode(trim($voucher->condition_voucher)),
+				'is_hidden' => $voucher->is_hidden
 			];
 			if($voucher->reduce_amount > 0) $voucher_info['reduce_amount'] = (int)$voucher->reduce_amount;
 			elseif($voucher->reduce_percent > 0) $voucher_info['reduce_percent'] = (int)$voucher->reduce_percent;

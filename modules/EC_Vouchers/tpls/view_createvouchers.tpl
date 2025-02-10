@@ -2,7 +2,7 @@
 
 <h1 class="title">PHÁT HÀNH VOUCHER</h1>
 
-<div class="box-create-voucher box-section w-60">
+<div class="box-create-voucher box-section w-70">
 	<form id="form_create_voucher" method="post">
 		<input type="hidden" name="module" value="EC_Vouchers">
 		<input type="hidden" name="action" value="Save">
@@ -15,13 +15,13 @@
 							<div class="form-check">
 								<input class="form-check-input" type="radio" name="type" id="voucher_type_group" value="group" checked />
 								<label class="form-check-label" for="voucher_type_group">
-								  	Nhóm (Công khai)
+								  	Nhóm (Mã chung)
 								</label>
 							</div>
 							<div class="form-check">
 								<input class="form-check-input" type="radio" name="type" id="voucher_type_single" value="single" />
 								<label class="form-check-label" for="voucher_type_single">
-									Đơn (Riêng tư)
+									Đơn (Mỗi voucher mã khác nhau)
 								</label>
 							</div>
 						</div>
@@ -35,8 +35,12 @@
 				</tr>
 				<tr class="row-voucher-code">
 					<td class="label">Mã voucher:</td>
-					<td class="value">
+					<td class="value d-flex gap-3">
 						<input type="text" name="voucher_code" id="voucher_code" class="box-input" minlength="6" maxlength="24" />
+						<div class="form-check-hide-voucher">
+							<input type="checkbox" name="is_hidden" id="is_hidden" class="box-input" value="1" />
+							<label class="ms-1" for="is_hidden">Ẩn voucher</label>
+						</div>
 					</td>
 				</tr>
 				<tr class="row-price">

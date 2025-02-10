@@ -2056,10 +2056,6 @@ class Viewemployeesalary extends SugarView
 				 END 
 			 ), u.start_working_date';
 
-		// if($current_user->user_name == 'hungnh') {
-		// 	pr($sql);
-		// }
-
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
 			if (
@@ -2177,7 +2173,7 @@ class Viewemployeesalary extends SugarView
 					$working_days += $bonus_days;
 				}
 
-				$working_days = $working_days - count($exclude_days) - (float)$no_paid_days + (int)($row['overtime'] / 8) + (int)$row['bonus_work_days'];
+				$working_days = $working_days - count($exclude_days) - (float)$no_paid_days + (float)($row['overtime'] / 8) + (int)$row['bonus_work_days'];
 				if ($working_days <= 0) $working_days = 0;
 
 				$sql2 = '
@@ -2191,6 +2187,7 @@ class Viewemployeesalary extends SugarView
 					 AND month = "' . date('n', strtotime($today)) . '" 
 					 AND year = "' . date('Y', strtotime($today)) . '"
 					 AND deleted = 0';
+
 				$db->query($sql2);
 
 				// những nhân viên đã nghỉ hoặc tạm vắng thì không tính công

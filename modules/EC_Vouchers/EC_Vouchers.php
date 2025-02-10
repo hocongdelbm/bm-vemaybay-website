@@ -36,6 +36,7 @@ class EC_Vouchers extends Basic {
 	public $website;
 	public $condition_voucher;
 	public $contact_id;
+	public $is_hidden;
 
 	public $condition_apply = ['min_order_value', 'number_of_tickets', 'flight_type', 'ticket_type', 'journey'];
 	public $condition_included = ['max_discount'];
@@ -105,6 +106,7 @@ class EC_Vouchers extends Basic {
 					$suffix = 'G' . $this->countVoucher($voucher_type);
 					$this->name = strtoupper($prefix . $r . $suffix);
 				}
+				if(isset($_POST['is_hidden']) && $_POST['is_hidden'] == '1') $this->is_hidden = 1;
 				$this->campaign_name 	= $campaign_name;
 				$this->campaign_id 		= $this->generateUniqueId();
 				$this->website 			= $voucher_website;
