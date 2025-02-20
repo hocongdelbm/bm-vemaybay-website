@@ -880,6 +880,93 @@ class Zalo {
             if (is_resource($curl)) curl_close($curl);
         }
     }
+    
+    /** 
+     * Send transaction messages
+     * 
+     * @param string $zalo_id
+     * @param string $type transaction_reward, transaction_order, transaction_billing,...
+     * @param array $data
+     * @return string json
+     */
+    public function send_transaction($zalo_id, $type, $banner_link, $header, $text, $table = array(), $text2 = array(), $buttons = array()) {
+        if(empty($zalo_id)) return json_encode(['error' => 1, 'httpcode' => 403, 'message' => 'Invalid parameters', 'data' => null]);
+
+        $body_request = [
+            "recipient" => [
+                "user_id" => $zalo_id
+            ],
+            "message" => [
+                "attachment" => [
+                    "type" => "template",
+                    "payload" => [
+                        "template_type" => $type, // Type
+                        "language" => "VI",
+                        "elements" => [
+                            [
+                                "type" => "banner",
+                                "image_url" => $banner_link
+                            ],
+                            [
+                                "type" => "header",
+                                "content" => $header,
+                                "align" => ""
+                            ],
+                            [
+                                "type" => "text",
+                                "content" => $text,
+                                "align" => ""
+                            ],
+                        ],
+                    ]
+                ]
+            ]
+        ];
+        if(!empty($table)) {
+            $body_request["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "table",
+                "content" => $table
+            ];
+        }
+        if(!empty($text2)) $body_request["message"]["attachment"]["payload"]["elements"][] = $text2;
+        if(!empty($buttons)) $body_request["message"]["attachment"]["payload"]["buttons"] = $buttons;
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v3.0/oa/message/transaction",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CUSTOMREQUEST  => "POST",
+                CURLOPT_POSTFIELDS     => json_encode($body_request),
+                CURLOPT_HTTPHEADER     => [
+                    "Content-Type: application/json",
+                    "access_token: ". $this->get_token()
+                ]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
 
 
 

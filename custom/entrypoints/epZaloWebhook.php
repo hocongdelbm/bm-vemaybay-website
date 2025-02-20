@@ -20,15 +20,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $event = isset($arr['event_name']) ? $arr['event_name'] : '';
 
         try {
-            $event_list = [
+            $live_event_list = [
                 'user_send_text', 'user_send_image', 'user_send_gif', 'user_send_link', 'user_send_sticker', 'user_send_location', 'user_send_file', 'user_send_audio', 'user_send_video', 'user_send_business_card',
                 'oa_send_text', 'oa_send_image', 'oa_send_gif', 'oa_send_sticker', 'oa_send_file', 'oa_send_list', 'oa_send_template'
             ];
 
-            if(in_array($event, $event_list)) {
+            if(in_array($event, $live_event_list)) {
                 $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
                 $client->send($data);
                 $client->close();
+                header("HTTP/1.1 200 OK");
+                exit();
+            }
+            else if ($event == 'widget_interaction_accepted') {
+                sendTestTelegram($data);
                 header("HTTP/1.1 200 OK");
                 exit();
             }

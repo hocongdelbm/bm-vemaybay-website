@@ -950,6 +950,8 @@ EOHTML;
                 $image_server .
                 '";</script>'; // cn: bug 12274 - create session-stored key to defend against CSRF
             echo '<script type="text/javascript">var name_format = "' . $locale->getLocaleFormatMacro() . '";</script>';
+            echo '<script type="text/javascript">const logger_call_center = ' . ($sugar_config['logger_call_center'] ? 'true' : 'false') . ';</script>';
+
             echo self::getJavascriptValidation();
             if (!is_file(sugar_cached('jsLanguage/') . $GLOBALS['current_language'] . '.js')) {
                 require_once('include/language/jsLanguage.php');

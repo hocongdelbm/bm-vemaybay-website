@@ -311,9 +311,6 @@
 			</td>
 	
 		</tr>
-	
-	
-	
 	</table>
 	</div>
 	
@@ -339,6 +336,8 @@
 			<td> <input class="box-input" name="logger_file_maxSize" size="4" value="{$config.logger.file.maxSize}"></td>
 			<td scope="row">{$MOD.LBL_LOGGER_DEFAULT_DATE_FORMAT}</td>
 			<td><input class="box-input" name ="logger_file_dateFormat" type="text" value="{$config.logger.file.dateFormat}"></td>
+			<td scope="row">{$MOD.LBL_LOGGER_CALLCENTER}</td>
+			<td><input type='hidden' name='logger_call_center' value='false'><input name='logger_call_center' type="checkbox" value='true' {if !empty($config.logger_call_center)}checked{/if}></td>
 		</tr>
 		<tr>
 			<td scope="row">{$MOD.LBL_LOGGER_LOG_LEVEL} </td>

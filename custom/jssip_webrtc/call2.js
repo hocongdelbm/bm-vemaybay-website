@@ -70,9 +70,13 @@ var audio_jssip = document.getElementById("audio_jssip");
 var incomingCallAudio = new window.Audio(RINGTONE_FILE);
 
 /********************   INIT   ********************/
-JsSIP.debug.enable('JsSIP:*'); // More detailed debug output
-// JsSIP.debug.disable('JsSIP:*');
-// JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
+// DEBUG
+if (logger_call_center) {
+    JsSIP.debug.enable("JsSIP:*"); // More detailed debug output
+} else {
+    JsSIP.debug.disable("JsSIP:*");
+    // JsSIP.debug.enable('JsSIP:Transport JsSIP:RTCSession*');
+}
 
 socket = new JsSIP.WebSocketInterface(WS_SERVERS);
 configuration.sockets = [socket];
@@ -288,7 +292,7 @@ ua.on('newRTCSession', function (ev) {
                 $('#voiceip-notes').val('không có ghi chú cho cuộc gọi này!');
                 $('.voiceip-update').click();
             }
-        }, 5000);
+        }, 15000);
     });
 
     /************  HANDLE FAILED  ************/
