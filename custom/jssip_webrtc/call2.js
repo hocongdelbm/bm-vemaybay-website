@@ -287,12 +287,12 @@ ua.on('newRTCSession', function (ev) {
         session = null;
 
         // setimeout 5s to fill in the notes and click update button
-        setTimeout(function () {
-            if ($('#popup__voiceip--wrap').hasClass('show') && $('#voiceip-notes').val().length === 0) {
-                $('#voiceip-notes').val('không có ghi chú cho cuộc gọi này!');
-                $('.voiceip-update').click();
-            }
-        }, 15000);
+        // setTimeout(function () {
+        //     if ($('#popup__voiceip--wrap').hasClass('show') && $('#voiceip-notes').val().length === 0) {
+        //         $('#voiceip-notes').val('không có ghi chú cho cuộc gọi này!');
+        //         $('.voiceip-update').click();
+        //     }
+        // }, 15000);
     });
 
     /************  HANDLE FAILED  ************/

@@ -48,7 +48,7 @@ class Viewiplist extends SugarView {
         $tab = $tab_content = '';
         $i = 0;
         foreach ($this->websites as $domain => $username) {
-            $tbody = $overview_html = "";
+            $tbody = $overview_html = $tbody_block = "";
             if($i === 0) {
                 $json = $this->getInfoLog($domain, $from_date, $to_date);
                 $arr = json_decode(html_entity_decode($json), true);
@@ -61,15 +61,16 @@ class Viewiplist extends SugarView {
     
                     if (isset($arr['data']) && !empty($arr['data'])) {
                         foreach ($arr['data'] as $ip => $value) {
-                            // Block infp
-                            $class_block = $btn_blocking_history = '';
+                            // Block info
+                            $block_html = $class_block = $btn_blocking_history = '';
                             if(isset($arr['data_block']['ip']) && !empty($arr['data_block']['ip'])) {
                                 $class_block = " alert alert-danger";
+                                $block_html = '<span class="tag tag-block">Block</span>';
 
                                 $block_data = base64_encode(json_encode($arr['data_block']['ip']));
                                 $btn_blocking_history = '<div class="btn-group">
                                     <button type="button" data-bs-toggle="modal" data-bs-target="#modal_history-block-'. $username .'" class="btn btn-secondary btn-history-block" data="'.$block_data.'" site="'. $username .'">
-                                        Blocking history
+                                        Lịch sử chặn
                                     </button>
                                 </div>';
                             }
@@ -80,7 +81,7 @@ class Viewiplist extends SugarView {
                                 $journey_html .= '<div class="search-journey-wrap">';
                                 arsort($value['journey']);
                                 foreach ($value['journey'] as $journey => $count) {
-                                    $journey_html .= '<span class="btn btn-primary-2 journey">' . $journey . '<b class="' . ($count >= 30 ? 'text-danger' : 'text-normal') . '"> (' . $count . ')</b></span>';
+                                    $journey_html .= '<span class="btn btn-primary-2 journey">' . $journey . '<b class="text-normal"> (' . $count . ')</b></span>';
                                     $count_search += $count;
                                 }
                                 $journey_html .= '</div>';
@@ -91,10 +92,19 @@ class Viewiplist extends SugarView {
                             $start_datetime = !empty($value['start_time']) ? date("H:i d-m", $value['start_time']) : 'ERROR: Malformed';
                             $end_datetime   = !empty($value['end_time']) ? date("H:i d-m", $value['end_time']) : 'ERROR: Malformed';
     
-                            if ($value['total_search'] > 9) {
+                            if ($value['total_search'] > 9 || isset($arr['data_block']['ip'])) {
+                                $whitelist_html = $whitelist_class = '';
+                                if(isset($arr['data_allow'][$ip])) {
+                                    $whitelist_class = " whitelist";
+                                    $whitelist_html = '<span class="tag tag-whitelist">Whitelist</span>';
+                                }
+
                                 $tbody .= '
-                                    <tr class="row-'. $username . $class_block .'">
-                                        <td class="text-start ip"><a target="_blank" href="https://ipinfo.io/'. $ip .'"><span class="text-overflow-mobile">'. $ip .'</span></a></td>
+                                    <tr class="row-'. $username . $class_block . $whitelist_class .'">
+                                        <td class="text-start ip">
+                                            '.$whitelist_html.'
+                                            <a href="https://ipinfo.io/'. $ip .'" target="_blank" title="Xem thêm"><span class="text-overflow-mobile">'. $ip .'</span></a>
+                                        </td>
                                         <td class="text-start">'. $journey_html .'</td>
                                         <td class="text-center fw-semibold">'. $count_search .'</td>
                                         <td class="text-center count-session">'. $count_session .'</td>
@@ -104,22 +114,18 @@ class Viewiplist extends SugarView {
                                         <td class="text-center">
                                             <div class="btn-group__wrap">
                                                 <div class="btn-group">
-                                                    <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        Block
-                                                    </button>
+                                                    <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Chặn</button>
                                                     <ul class="dropdown-menu">
-                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="3600" class="dropdown-item btn-block">Block: 1 Tiếng</a></li>
-                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="21600" class="dropdown-item btn-block">Block: 6 Tiếng</a></li>
-                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="86400" class="dropdown-item btn-block">Block: 1 ngày</a></li>
-                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="604800" class="dropdown-item btn-block">Block: 7 ngày</a></li>
-                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="2592000" class="dropdown-item btn-block">Block: 30 ngày</a></li>
-                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="-1" class="dropdown-item btn-block">Block: Vĩnh viễn</a></li>
+                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="3600" class="dropdown-item btn-block">Chặn 1 Tiếng</a></li>
+                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="21600" class="dropdown-item btn-block">Chặn 6 Tiếng</a></li>
+                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="86400" class="dropdown-item btn-block">Chặn 1 ngày</a></li>
+                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="604800" class="dropdown-item btn-block">Chặn 7 ngày</a></li>
+                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="2592000" class="dropdown-item btn-block">Chặn 30 ngày</a></li>
+                                                        <li><a ip="'. $ip .'" domain="'. $domain .'" duration="-1" class="dropdown-item btn-block">Chặn vĩnh viễn</a></li>
                                                     </ul>
                                                 </div>
                                                 <div class="btn-group">
-                                                    <button type="button" class="btn btn-success btn-unblock" domain="'. $domain .'" ip="'. $ip .'">
-                                                        Unlock
-                                                    </button>
+                                                    <button type="button" class="btn btn-success btn-unblock" domain="'. $domain .'" ip="'. $ip .'">Bỏ chặn</button>
                                                 </div>
                                                 '.$btn_blocking_history.'
                                             </div>
@@ -127,6 +133,37 @@ class Viewiplist extends SugarView {
                                     </tr>
                                 ';
                             }
+                        }
+
+                        // List IP in blacklist
+                        foreach ($arr['data_block'] as $ip => $value) {
+                            if(isset($arr['data'][$ip])) continue;
+                            if(isset($value['blacklist'])) {
+                                $start_datetime = !empty($value['blacklist']['start_time']) ? date("H:i d-m", $value['blacklist']['start_time']) : 'ERROR: Malformed';
+                                $end_datetime = $value['blacklist']['duration'] > 0 ? date("H:i d-m", $value['blacklist']['start_time'] + $value['blacklist']['duration']) : '<b>Vô thời hạn</b>';
+                            }
+
+                            $tbody .= '
+                                <tr class="row-'. $username .' alert alert-danger blacklist">
+                                    <td class="text-start ip">
+                                        <span class="tag tag-block">Block</span>
+                                        <a href="https://ipinfo.io/'. $ip .'" target="_blank" title="Xem thêm"><span class="text-overflow-mobile">'. $ip .'</span></a>
+                                    </td>
+                                    <td class="text-start"><b>Blacklist</b></td>
+                                    <td class="text-center fw-semibold"></td>
+                                    <td class="text-center count-session"></td>
+                                    <td class="text-center start-datetime">'. $start_datetime .'</td>
+                                    <td class="text-center end-datetime">'. $end_datetime .'</td>
+                                    <td class="text-center count-apivj"></td>
+                                    <td class="text-center">
+                                        <div class="btn-group__wrap">
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-success btn-unblock" domain="'. $domain .'" ip="'. $ip .'">Bỏ chặn</button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ';
                         }
                     }
                 }
@@ -163,8 +200,8 @@ class Viewiplist extends SugarView {
                         <input id="input_ip" class="box-input" type="text" value="" size="12" />
                     </div>
                     <div class="btn-group">
-                        <button type="button" class="btn btn-success btn-unblock" id="unblock_ip" domain="'. $domain .'">Unblock</button>
-                        <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Block</button>
+                        <button type="button" class="btn btn-success btn-unblock" id="unblock_ip" domain="'. $domain .'">Bỏ chặn</button>
+                        <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Chặn</button>
                         <ul class="dropdown-menu">
                             <li><a domain="'. $domain .'" duration="3600" class="dropdown-item handle-ip-item block-item">1 Tiếng</a></li>
                             <li><a domain="'. $domain .'" duration="21600" class="dropdown-item handle-ip-item block-item">6 Tiếng</a></li>

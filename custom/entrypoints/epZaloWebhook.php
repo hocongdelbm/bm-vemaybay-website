@@ -7,17 +7,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     global $sugar_config;
 
     $headers = getallheaders();
-    $data    = file_get_contents('php://input'); // json
-    $arr     = json_decode($data, true);
+    $response = file_get_contents('php://input'); // json
+    $data = json_decode($response, true);
 
-    $timestamp  = $arr['timestamp'];
+    $timestamp  = $data['timestamp'];
     $app_id     = $sugar_config['zalo_config']['app_id'] ? $sugar_config['zalo_config']['app_id'] : '';
     $oa_secret  = $sugar_config['zalo_config']['oa_secret'] ? $sugar_config['zalo_config']['oa_secret'] : '';
-    $mac        = "mac=".hash('sha256', $app_id.$data.$timestamp.$oa_secret);
+    $mac        = "mac=".hash('sha256', $app_id.$response.$timestamp.$oa_secret);
     $h_mac      = isset($headers['X-Zevent-Signature']) ? $headers['X-Zevent-Signature'] : '';
    
     if($mac === $h_mac) {
-        $event = isset($arr['event_name']) ? $arr['event_name'] : '';
+        global $db;
+        $event = isset($data['event_name']) ? $data['event_name'] : '';
 
         try {
             $live_event_list = [
@@ -26,14 +27,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ];
 
             if(in_array($event, $live_event_list)) {
-                $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
-                $client->send($data);
-                $client->close();
+                // $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
+                // $client->send($response);
+                // $client->close();
                 header("HTTP/1.1 200 OK");
                 exit();
             }
             else if ($event == 'widget_interaction_accepted') {
-                sendTestTelegram($data);
+                $zalo_user_id = $data['data']['user_id'] ?? ($data['data']['user_external_id'] ?? '');
+                $url = $data['data']['url'] ?? '';
+                $zalo_last_interaction = date('Y-m-d H:i:s', $timestamp / 1000);
+                
+                if(!empty($zalo_user_id) && !empty($url)) {
+                    $parsed_url = parse_url($url);
+                    parse_str($parsed_url['query'], $query_params);
+
+                    $contact_phone = $query_params['contact_phone'] ?? '';
+                    if(!empty($contact_phone)) {
+                        // Nếu đã tồn tại zalo_user_id id thì (kiểm tra xem từ zalo_user_id có lấy được thông tin hay không)
+                            // Nếu có mobile_phone thì thôi
+                            // Chưa thì update mobile_phone
+
+                        $sql = "UPDATE contacts
+                            SET zalo_id = '$zalo_user_id', zalo_last_interaction = '$zalo_last_interaction'
+                            WHERE phone_mobile = '$contact_phone'
+                                AND deleted = 0
+                                AND (zalo_id IS NULL OR zalo_id = '')
+                        ";
+                        $db->query($sql);
+
+                        sendTestTelegram("Hệ thống đã map số điện thoại $contact_phone với zalo id $zalo_user_id");
+                    }
+                }
+
                 header("HTTP/1.1 200 OK");
                 exit();
             }
@@ -46,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             echo json_encode([
                 "error"     => 1,
                 "message"   => "Error: " . $e->getMessage(),
-                "data"      => $arr
+                "data"      => $data
             ]);
             exit();
         }

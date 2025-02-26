@@ -625,6 +625,15 @@ $dictionary['Contact'] = array(
             'reportable' => false,
             'audited'    => true,
         ),
+        'zalo_last_interaction' => array(
+            'name' => 'zalo_last_interaction',
+            'vname' => 'LBL_ZALO_LAST_INTERACTION',
+            'type' => 'datetime',
+            'len' => 20,
+            'required' => false,
+            'default' => '',
+        ),
+
         'telegram_id' => array(
             'name'       => 'telegram_id',
             'vname'      => 'LBL_TELEGRAM_ID',

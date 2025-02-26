@@ -889,8 +889,18 @@ class Zalo {
      * @param array $data
      * @return string json
      */
-    public function send_transaction($zalo_id, $type, $banner_link, $header, $text, $table = array(), $text2 = array(), $buttons = array()) {
+    public function send_transaction($zalo_id, $type, $header, $text, $table = array(), $text2 = array(), $buttons = array()) {
         if(empty($zalo_id)) return json_encode(['error' => 1, 'httpcode' => 403, 'message' => 'Invalid parameters', 'data' => null]);
+
+        $banner_link = '';
+        switch ($type) {
+            case 'transaction_reward':
+                $banner_link = "https://$this->domain/modules/EC_Zalo/images/banner_points.jpg";
+                break;
+            default:
+                $banner_link = '';
+                break;
+        } 
 
         $body_request = [
             "recipient" => [

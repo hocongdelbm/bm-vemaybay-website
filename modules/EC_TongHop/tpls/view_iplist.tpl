@@ -20,7 +20,17 @@
         padding: 15px;
     }
 
+    .table-iplist tbody tr td {vertical-align: middle;}
+    .table-iplist tbody tr.whitelist .btn-group__wrap {display: none;}
+
+    .table-iplist tbody tr.whitelist td:first-child > a > span {color: #42b32e;}
+    .table-iplist tbody tr.alert-danger {background-color: #ffeeef;}
+    .table-iplist tbody tr.alert-danger td:first-child > a > span {color: red;}
+
     .table-iplist tbody tr:hover {background-color: #f2f2f2 !important;}
+    .table-iplist tbody tr.whitelist:hover {background-color: #ebffdf !important;}
+    .table-iplist tbody tr.alert-danger:hover {background-color: #ffced3 !important;}
+
     .table-iplist a.dropdown-item, .handle-ip a.dropdown-item {
         font-size: 14px;
         font-weight: 600;
@@ -68,6 +78,22 @@
 
     .call-statistics__total canvas {
         width: 70% !important;
+    }
+
+    .tag {
+        border-radius: 4px;
+        box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
+        padding: 2px 6px;
+        margin-right: 5px;
+    }
+    .tag-whitelist {
+        background-color: #42b32e;
+        color: #fff;
+        letter-spacing: 1px;
+    }
+    .tag-block {
+        background-color: #ff0000;
+        color: #fff;
     }
 
     @media screen and (max-width: 575px), (orientation: landscape) and (max-width: 950px){
