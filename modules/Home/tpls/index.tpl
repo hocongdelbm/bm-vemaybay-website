@@ -5,29 +5,36 @@
 <style></style>
 <script>
     $(document).ready(function () {
-        $.ajax({
-            url: "index.php?entryPoint=entryPointOverviewDashBoard",
-            type: "POST",
-            data: {
-                type: "GET_TOTAL_OF_WEEK"
-            },
-            success: function (response) {
-                let result = JSON.parse(response);
+        fetchDashboardData();
+    });
 
-                $('#chart-calls-data-y').text(result.calls.this_week);
-                $('#chart-calls-data-y1').text(result.calls.last_week);
+    async function fetchDashboardData() {
+        try {
+            let response = await $.ajax({
+                url: "index.php?entryPoint=entryPointOverviewDashBoard",
+                type: "POST",
+                data: { type: "GET_TOTAL_OF_WEEK" },
+                async: true // Đảm bảo async
+            });
 
-                $('#chart-bookings-data-y').text(result.bookings.this_week);
-                $('#chart-bookings-data-y1').text(result.bookings.last_week);
+            let result = JSON.parse(response);
 
-                $("#user_topkpi").text(result.kpi.full_name);
-                $("#qty_topkpi").text(result.kpi.total_kpi);
+            $('#chart-calls-data-y').text(result.calls.this_week);
+            $('#chart-calls-data-y1').text(result.calls.last_week);
+            $('#chart-bookings-data-y').text(result.bookings.this_week);
+            $('#chart-bookings-data-y1').text(result.bookings.last_week);
+            $("#user_topkpi").text(result.kpi.full_name);
+            $("#qty_topkpi").text(result.kpi.total_kpi);
 
+            // 🔥 Chạy function sau 300ms để tránh làm chậm UI
+            setTimeout(() => {
                 getChartCalls();
                 getChartBookings();
-            }
-        });
-    });
+            }, 300);
+        } catch (error) {
+            console.warn("Lỗi AJAX:", error);
+        }
+    }
 
     // CHART BOOKINGS
     function getChartCalls() {

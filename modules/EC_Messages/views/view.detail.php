@@ -18,7 +18,7 @@ class EC_MessagesViewDetail extends ViewDetail {
     }
 
     public function js() {
-        $js = '';
+        $js = '<script src="modules/'.$this->bean->module_dir.'/js/detail.js"></script>';
         if($this->bean->status == 'done' || $this->bean->status == 'scheduled' || $this->bean->type == 'send') {
             $js .= '<script>
                 $(document).ready(function () {
@@ -29,15 +29,52 @@ class EC_MessagesViewDetail extends ViewDetail {
         echo $js;
     }
 
+    public function populate_custom_fields() {
+        // Status
+        if($this->bean->status == 'scheduled') $custom_status = '<b class="text-warning">Đã lên lịch</b>';
+        else if($this->bean->status == 'done') $custom_status = '<b class="text-success">Đã gửi</b>';
+        else if($this->bean->status == 'fail') $custom_status = '<b class="text-danger">Thất bại</b>';
+        else $custom_status = 'Mới tạo';
+        $this->ss->assign('CUSTOM_STATUS', $custom_status);
+
+        // Parent
+        if(!empty($this->bean->parent_id) && !empty($this->bean->parent_type)) {
+            $obj_name = $this->bean->parent_type;
+            $obj = new $obj_name();
+            $obj->retrieve($this->bean->parent_id);
+
+            $custom_parent = '<a href="/index.php?module='.$this->bean->parent_type.'&action=DetailView&record='.$this->bean->parent_id.'" target="_blank">'.$obj->name.'</a>';
+            $this->ss->assign('CUSTOM_PARENT', $custom_parent);
+        }
+
+        // Send from
+        if($this->bean->send_from === '2941581384627345950') $this->ss->assign('CUSTOM_SEND_FROM', '<b style="color:#0091ff">OA Tìm chuyến bay</b>');
+        elseif($this->bean->send_from === 'Travelpass') $this->ss->assign('CUSTOM_SEND_FROM', '<b>Travelpass</b> <i>(Brandname)</i>');
+        else $this->ss->assign('CUSTOM_SEND_FROM', $this->bean->send_from);
+
+        // Send to
+        if(!empty($this->bean->send_to)) $this->ss->assign('CUSTOM_SEND_TO', $this->bean->send_to);
+        else if($this->bean->type == 'sms_campaign_static' || $this->bean->type == 'sms_campaign_dynamic') $this->ss->assign('CUSTOM_SEND_TO', 'Hàng loạt');
+        else if($this->bean->type == 'send_zalo_broadcast') $this->ss->assign('CUSTOM_SEND_TO', $this->generate_filter_zalo_broadcast());
+
+        // Content
+        $custom_content = '';
+        if($this->bean->type == 'send_zalo_broadcast') $custom_content = '<a href="'.$this->bean->content.'" target="_blank" style="text-decoration:underline">Bài viết OA liên kết</a>';
+        else $custom_content = $this->bean->content;
+        $this->ss->assign('CUSTOM_CONTENT', $custom_content);
+    }
+
     public function populate_custom_buttons() {
         // Nút lên lịch SMS
-        if(($this->bean->type == 'sms_campaign_static' || $this->bean->type == 'sms_campaign_dynamic') && $this->bean->status == 'new' && strtotime($this->bean->send_time) > strtotime(date('d-m-Y H:i',  strtotime('+7 hours')))) {
+        if(($this->bean->type == 'sms_campaign_static' || $this->bean->type == 'sms_campaign_dynamic') && $this->bean->status == 'new' && strtotime($this->bean->send_time) > strtotime(date('d-m-Y H:i:00',  strtotime('+7 hours')))) {
+            $count = $this->bean->data ? count(json_decode(html_entity_decode($this->bean->data), true)) : 0;
+
             $button_schedule = '<button type="button" class="btn btn-warning" onclick="showDialog(\'dialog-confirm-schedule\')">Lên lịch</button>
                 <dialog id="dialog-confirm-schedule" class="dialog-confirm-schedule">
                     <h5 class="title">Xác nhận lên lịch</h5>
                     <form method="dialog" name="form-confirm-schedule">
-                        <p class="text-confirm">Lên lịch gửi tin nhắn vào lúc <i>'.date("H:i d/m/Y", strtotime($this->bean->send_time)).'</i></p>
-                        <div class="d-flex gap-2 justify-content-end mt-2">
+                        <p class="text-confirm">Lên lịch gửi tin nhắn cho <b>'.$count.'</b> số điện thoại vào lúc <i>'.date("H:i d/m/Y", strtotime($this->bean->send_time)).'</i></p>
+                        <div class="d-flex gap-2 justify-content-end mt-3">
                             <input type="button" class="btn btn-primary" name="btn-confirm-confirm-schedule" id="btn-confirm-confirm-schedule" value="Xác nhận" title="Xác nhận" />
                             <input type="button" class="btn btn-secondary" name="btn-cancel-confirm-schedule" value="Hủy" title="Hủy" onclick="closeDialog(\'dialog-confirm-schedule\')" />
                             <input type="hidden" name="sms_type" value="'.$this->bean->type.'" />
@@ -136,40 +173,6 @@ class EC_MessagesViewDetail extends ViewDetail {
 
             $this->ss->assign('CUSTOM_VIEW_PROMOTION', $button_voucher);
         }
-
-    }
-
-    public function populate_custom_fields() {
-        // Status
-        if($this->bean->status == 'scheduled') $custom_status = '<b class="text-warning">Đã lên lịch</b>';
-        else if($this->bean->status == 'done') $custom_status = '<b class="text-success">Đã gửi</b>';
-        else if($this->bean->status == 'fail') $custom_status = '<b class="text-danger">Thất bại</b>';
-        else $custom_status = 'Mới tạo';
-        $this->ss->assign('CUSTOM_STATUS', $custom_status);
-
-        // Parent
-        if(!empty($this->bean->parent_id) && !empty($this->bean->parent_type)) {
-            $obj_name = $this->bean->parent_type;
-            $obj = new $obj_name();
-            $obj->retrieve($this->bean->parent_id);
-
-            $custom_parent = '<a href="/index.php?module='.$this->bean->parent_type.'&action=DetailView&record='.$this->bean->parent_id.'" target="_blank">'.$obj->name.'</a>';
-            $this->ss->assign('CUSTOM_PARENT', $custom_parent);
-        }
-
-        // Send from
-        if($this->bean->send_from === '2941581384627345950') $this->ss->assign('CUSTOM_SEND_FROM', '<b style="color:#0091ff">OA Tìm chuyến bay</b>');
-
-        // Send to
-        if(!empty($this->bean->send_to)) $this->ss->assign('CUSTOM_SEND_TO', $this->bean->send_to);
-        else if($this->bean->type == 'send_list_sms_static' || $this->bean->type == 'send_list_sms_dynamic') $this->ss->assign('CUSTOM_SEND_TO', 'Hàng loạt');
-        else if($this->bean->type == 'send_zalo_broadcast') $this->ss->assign('CUSTOM_SEND_TO', $this->generate_filter_zalo_broadcast());
-
-        // Content
-        $custom_content = '';
-        if($this->bean->type == 'send_zalo_broadcast') $custom_content = '<a href="'.$this->bean->content.'" target="_blank" style="text-decoration:underline">Bài viết OA liên kết</a>';
-        else $custom_content = $this->bean->content;
-        $this->ss->assign('CUSTOM_CONTENT', $custom_content);
     }
 
     public function generate_filter_zalo_broadcast() {

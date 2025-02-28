@@ -10,9 +10,9 @@ input {width: 100%;}
     font-weight: 600;
     width: 25%;
 }
-.table-create-voucher tr td.value {
+/* .table-create-voucher tr td.value {
     width: 75%;
-}
+} */
 
 /* Condition */
 .list_condition {
@@ -44,4 +44,11 @@ input {width: 100%;}
 .row-datetime .dateTime .minute_input {
     padding: 5px 8px !important;
     width: 40px !important;
+}
+
+.row-voucher-code .value {
+    align-items: center;
+}
+.form-check-hide-voucher {
+    width: 115px;
 }

@@ -508,19 +508,6 @@ $GLOBALS['app_list_strings']['system_config_list'] = array(
 );
 
 /************  EC_SMS_Logs  ************/
-$GLOBALS['app_list_strings']['sms_logs_type_list'] = array(
-  'send_sms' => 'Gửi SMS',
-  'send_sms_list_static' => 'Gửi chiến dịch SMS',
-  'send_sms_list_dynamic' => 'Gửi chiến dịch SMS (Tùy biến)',
-  'send_zalo_zns' => 'Gửi ZNS',
-  'send_zalo_promotion' => 'Gửi khuyến mãi Zalo',
-  'send_zalo_broadcast' => 'Gửi quảng cáo Zalo',
-);
-$GLOBALS['app_list_strings']['sms_logs_type_message_list'] = array(
-  'customer_care'  => 'Chăm sóc khách hàng',
-  'transaction'    => 'Giao dịch',
-  'advertisement'  => 'Quảng cáo'
-);
 $GLOBALS['app_list_strings']['sms_logs_status'] = array(
   'new' => 'Mới tạo',
   'scheduled' => 'Đã lên lịch',

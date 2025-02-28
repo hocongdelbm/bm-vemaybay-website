@@ -601,10 +601,10 @@ function send_to_telegram_zalo_channel($content, $parseMode = 'HTML', $timeout =
     return $result;
 }
 
+header("HTTP/1.0 405 Method Not Allowed");
 echo json_encode([
     "error" => 1,
     "message" => "Method not allowed"
 ]);
-header("HTTP/1.0 405 Method Not Allowed");
 exit();
 ?>

@@ -618,27 +618,34 @@ $dictionary['Contact'] = array(
         'zalo_id' => array(
             'name'       => 'zalo_id',
             'vname'      => 'LBL_ZALO_ID',
-            'type'       => 'zalo_id',
-            'dbType'     => 'varchar',
+            'type'       => 'varchar',
             'len'        => 25,
             'default'    => '',
             'importable' => true,
             'reportable' => false,
             'audited'    => true,
         ),
+        'zalo_last_interaction' => array(
+            'name' => 'zalo_last_interaction',
+            'vname' => 'LBL_ZALO_LAST_INTERACTION',
+            'type' => 'datetime',
+            'len' => 20,
+            'required' => false,
+            'default' => '',
+        ),
+
         'telegram_id' => array(
             'name'       => 'telegram_id',
             'vname'      => 'LBL_TELEGRAM_ID',
-            'type'       => 'telegram_id',
-            'dbType'     => 'varchar',
+            'type'       => 'varchar',
             'len'        => 30,
             'default'    => '',
             'importable' => true,
             'reportable' => false,
             'audited'    => true,
         ),
-        'contact_type' =>
-		array(
+
+        'contact_type' => array(
 			'required' => false,
 			'name' => 'contact_type',
 			'vname' => 'LBL_CONTACT_TYPE',
@@ -656,6 +663,17 @@ $dictionary['Contact'] = array(
 			'studio' => 'visible',
 			'dependency' => false,
 		),
+
+        'points' => array(
+            'name'       => 'points',
+            'vname'      => 'LBL_POINTS',
+            'type'       => 'int',
+            'default'    => 0,
+            'comment'    => 'Cumulative points (Điểm tích lũy khi thanh toán booking)',
+            'importable' => true,
+            'reportable' => false,
+            'audited'    => true,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_cont_phone', 'type' => 'index', 'fields' => array('phone_mobile')),

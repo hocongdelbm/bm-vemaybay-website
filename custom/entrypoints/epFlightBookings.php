@@ -1173,7 +1173,7 @@ function populateLineItineraries($booking_id)
 function checkNewLineItineraries($parent_id)
 {
 	global $db;
-	$sql = 'SELECT eparture_date, arrival_date 
+	$sql = 'SELECT departure_date, arrival_date 
 			FROM ec_booking_itineraries 
 			WHERE add_type = 3 AND parent_detail_id = "' . $parent_id . '" 
 			ORDER BY date_entered DESC LIMIT 1';
@@ -1729,143 +1729,49 @@ if ($_POST['for'] == 'getShareProfit') {
 	echo json_encode(array('profit' => format_number($bk_profit), 'html' => $html, 'line_cnt' => $i));
 }
 
-// BLOCK - ALLOW - IP
-if (isset($_POST['for']) && $_POST['for'] == 'blockIP') {
+
+// BLOCK - UNBLOCK - WHITELIST IP ON WEBSITE
+if (isset($_POST['for']) && $_POST['for'] == 'block_ip') {
 	$ip 		= isset($_POST['ip']) ? $_POST['ip'] : '';
-	$time_block = isset($_POST['time']) ? $_POST['time'] : '';
+	$duration 	= isset($_POST['duration']) ? $_POST['duration'] : 0;
 	$domain 	= isset($_POST['domain']) ? $_POST['domain'] : '';
 
-	if (empty($ip) || empty($time_block) || empty($domain)) {
-		echo 0;
-		exit();
-	}
-
-	$url = 'https://' . $domain . '/info-tcb';
-	$post_data = [
-		'ip' => $ip,
-		'domain' => $domain,
-		'time' => $time_block,
-		'type' => 'handle-ip',
-		'action' => 'block-ip',
-	];
-
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_POST, TRUE);
-	curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-	curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
-	$status = curl_exec($curl);
-	curl_close($curl);
-
-	echo $status;
+	require_once('modules/EC_TongHop/views/view.iplist.php');
+	$IPList = new Viewiplist();
+	echo $IPList->blockIP($domain, $ip, $duration);
 	exit();
 }
-if (isset($_POST['for']) && $_POST['for'] == 'allowIP') {
+if (isset($_POST['for']) && $_POST['for'] == 'unblock_ip') {
 	$ip 	= isset($_POST['ip']) ? $_POST['ip'] : '';
 	$domain = isset($_POST['domain']) ? $_POST['domain'] : '';
 
-	if (empty($ip) || empty($domain)) {
-		echo 0;
-		exit();
-	}
-
-	$url = 'https://' . $domain . '/info-tcb';
-	$post_data = [
-		'ip' => $ip,
-		'domain' => $domain,
-		'type' => 'handle-ip',
-		'action' => 'unblock-ip',
-	];
-
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_POST, TRUE);
-	curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-	curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
-	$status = curl_exec($curl);
-	curl_close($curl);
-
-	echo $status;
+	require_once('modules/EC_TongHop/views/view.iplist.php');
+	$IPList = new Viewiplist();
+	echo $IPList->unblockIP($domain, $ip);
 	exit();
 }
-if (isset($_POST['for']) && $_POST['for'] == 'HistoryBlockIP') {
+if (isset($_POST['for']) && $_POST['for'] == 'whitelist_ip') {
 	$ip 		= isset($_POST['ip']) ? $_POST['ip'] : '';
+	$duration 	= isset($_POST['duration']) ? $_POST['duration'] : 0;
 	$domain 	= isset($_POST['domain']) ? $_POST['domain'] : '';
+
+	require_once('modules/EC_TongHop/views/view.iplist.php');
+	$IPList = new Viewiplist();
+	echo $IPList->whitelistIP($domain, $ip, $duration);
+	exit();
+}
+if (isset($_POST['for']) && $_POST['for'] == 'get_blocking_history') {
+	$ip 		= isset($_POST['ip']) ? $_POST['ip'] : '';
 	$from_date 	= isset($_POST['from_date']) ? $_POST['from_date'] : '';
 	$to_date 	= isset($_POST['to_date']) ? $_POST['to_date'] : '';
-
-	if (empty($ip) || empty($domain)) {
-		echo 0;
-		exit();
-	}
-
-	$url = 'https://' . $domain . '/info-tcb';
-	$post_data = [
-		'ip' => $ip,
-		'domain' => $domain,
-		'from-date' => $from_date,
-		'to-date' => $to_date,
-		'type' => 'get-infor-tcb',
-		'action' => 'hisblock-ip',
-	];
-
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_POST, TRUE);
-	curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-	curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
-	$data = curl_exec($curl);
-	curl_close($curl);
-
-	echo $data;
-	exit();
-}
-if (isset($_POST['for']) && $_POST['for'] == 'whitelistIP') {
-	$ip 		= isset($_POST['ip']) ? $_POST['ip'] : '';
-	$time_wl 	= isset($_POST['time']) ? $_POST['time'] : '';
 	$domain 	= isset($_POST['domain']) ? $_POST['domain'] : '';
 
-	if (empty($ip) || empty($time_wl) || empty($domain)) {
-		echo 0;
-		exit();
-	}
-
-	$url = 'https://' . $domain . '/info-tcb';
-	$post_data = [
-		'ip' => $ip,
-		'domain' => $domain,
-		'time' => $time_wl,
-		'type' => 'handle-ip',
-		'action' => 'whitelist-ip',
-	];
-
-	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_POST, TRUE);
-	curl_setopt($curl, CURLOPT_POSTFIELDS, $post_data);
-	curl_setopt($curl, CURLOPT_ENCODING, 'gzip');
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, TRUE);
-	$data = curl_exec($curl);
-	curl_close($curl);
-
-	echo $data;
+	require_once('modules/EC_TongHop/views/view.iplist.php');
+	$IPList = new Viewiplist();
+	echo $IPList->getInfoLog($domain, $from_date, $to_date, $ip);
 	exit();
 }
+// END BLOCK - UNBLOCK - WHITELIST IP ON WEBSITE
 
 // lấy ds vé cận
 if (isset($_POST['for']) && $_POST['for'] == 'getPriorBooking') {

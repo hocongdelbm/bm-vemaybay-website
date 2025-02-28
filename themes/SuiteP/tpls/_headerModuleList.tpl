@@ -73,7 +73,7 @@
                <nav class="header-navbar layout-navbar navbar default-layout-navbar fixed-top py-0 px-3 d-flex">
                     <div class="d-flex header-navbar__top w-100 align-items-center">
                          <!-- LOGO -->
-                         <div class="ms-5 navbar-brand-wrapper d-flex align-items-center">
+                         <div class="navbar-brand-wrapper d-flex align-items-center">
                               <a class="brand-logo" href="index.php?module=Home&action=index">
                                    <img src="themes/SuiteP/images/home/company_logo.png" alt="">
                               </a>

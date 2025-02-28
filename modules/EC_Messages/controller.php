@@ -17,6 +17,9 @@ class EC_MessagesController extends SugarController{
             case "report":
                 $this->action = "report";
                 break;
+            case "Save":
+                $this->action = "Save";
+                break;
             default:
                 $this->action = "ListView";
                 break;

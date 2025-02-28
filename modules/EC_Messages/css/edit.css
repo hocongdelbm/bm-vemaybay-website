@@ -1,0 +1,45 @@
+/***************  RESET  ***************/
+select.form-select {
+    -o-appearance: none;
+   -ms-appearance: none;
+   -webkit-appearance: none;
+   -moz-appearance: none;
+   appearance: none;
+}
+
+
+
+.btn-add-param-sms {
+    border-radius: 6px;
+    display: block;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+
+/***************  TEMPLATE ZALO  ***************/
+.card-content-zalo-broadcast .title-template {
+    color: #0091ff;  /* Zalo color */
+    text-align: center;
+    text-transform: uppercase;
+}
+.card-content-zalo-broadcast .list-group .list-group-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+}
+.card-content-zalo-broadcast .list-group .list-group-item .label {
+    width: 25%;
+    font-weight: 600;
+}
+.card-content-zalo-broadcast .list-group .list-group-item .field {
+    flex: 1;
+}
+.card-content-zalo-broadcast .list-group .list-group-item .field input,
+.card-content-zalo-broadcast .list-group .list-group-item .field select {width: 100%;}
+
+.card-content-zalo-broadcast .list-group .list-group-item .field select[name="field-zalo-broadcast-post"] {
+    color: #0091ff; /* Zalo color */
+    font-weight: 600;
+}

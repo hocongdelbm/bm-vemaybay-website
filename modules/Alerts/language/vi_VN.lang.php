@@ -40,4 +40,5 @@ $mod_strings = array(
     'LBL_ALERT_PHOTO' => 'Hình ảnh',
     'LBL_TYPE' => 'Loại',
     'LBL_ALERT_INFORMATION' => 'Chi tiết thông báo',
+    'LBL_VIEWED_AT' => 'Xem lúc',
 );

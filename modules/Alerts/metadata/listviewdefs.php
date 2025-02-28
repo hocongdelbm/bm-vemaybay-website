@@ -29,4 +29,10 @@ $listViewDefs['Alerts'] =
       'label' => 'LBL_ASSIGNED_TO_NAME',
       'default' => true,
     ),
+    'VIEWED_AT' =>
+    array(
+      'width' => '5%',
+      'label' => 'LBL_VIEWED_AT',
+      'default' => true,
+    ),
   );

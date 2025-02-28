@@ -233,7 +233,7 @@ class Viewstatistics extends SugarView
                
                if(strtoupper($count['type']) === 'HOTLINE') $count['type'] = '<b style="color:red">'.$count['type'].'</b>';
                elseif(strtoupper($count['type']) === 'VIETTEL') $count['type'] = '<b style="color:#ea3a59; text-transform:lowercase;">'.$count['type'].'</b>';
-               elseif(strtoupper($count['type']) === 'MOBIFONE') $count['type'] = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
+               elseif(strtoupper($count['type']) === 'MOBIPHONE') $count['type'] = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
                elseif(strtoupper($count['type']) === 'VINAPHONE') $count['type'] = '<b style="color:#00aeed; text-transform:lowercase;">'.$count['type'].'</b>';
                elseif(strtoupper($count['type']) === 'VNPT') $count['type'] = '<b style="color:#0066ba; letter-spacing:3px;">'.$count['type'].'</b>';
                elseif(strtoupper($count['type']) === 'FPT') $count['type'] = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';

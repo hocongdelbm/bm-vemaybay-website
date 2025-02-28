@@ -98,7 +98,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 						   SET is_paid = 1, description = CONCAT(IFNULL(description, ''), IF(description IS NOT NULL AND description <> '', ', ', ''), '" . $txtWorkingProcessNote . "') 
 						   WHERE id = '" . $record . "' ";
 				$db->query($update);
-				// End update booking description
 			} 
 			else if (!is_null($is_invoice_export) && $is_invoice_export == 1) {
 				$work->invoice_issued = 1;
@@ -173,7 +172,34 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 				// Add attribute for notes
 				$note->working_process_id = $work->id;
+
 				echo 1;
+
+				// // Save and send message add points to contact when paid successfully
+				// if (!is_null($is_paid) && $is_paid == 1) {
+				// 	$con_id = $con_phone = $con_zalo_id = '';
+				// 	$sql_get_phone_and_zalo = "
+				// 		SELECT c.id, bk.phone, c.zalo_id
+				// 		FROM ec_flight_bookings bk
+				// 			LEFT JOIN contacts c ON c.phone_mobile = bk.phone AND c.deleted = 0
+				// 		WHERE bk.id = '$record' AND bk.deleted = 0
+				// 	";
+				// 	$res_get_phone_and_zalo = $db->query($sql_get_phone_and_zalo);
+				// 	while ($row = $db->fetchByAssoc($res_get_phone_and_zalo)) {
+				// 		$con_id = $row['id'] ?? '';
+				// 		$con_phone = $row['phone'] ?? '';
+				// 		$con_zalo_id = $row['zalo_id'] ?? '';
+				// 	}
+
+				// 	if(!empty($con_phone) && !empty($con_zalo_id)) {
+				// 		$point = calculatePointsFromBooking($record);
+				// 		if($point > 0) {
+				// 			$sql_update_point = "UPDATE contacts SET points = points + $point WHERE id = '$con_id'";
+				// 			$db->query($sql_update_point);
+				// 			// Send zalo here
+				// 		}
+				// 	}
+				// }
 			} 
 			else echo 0;
 		}

@@ -1,344 +1,127 @@
 
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.5/css/dataTables.bootstrap5.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.2/css/responsive.bootstrap5.css">
-
-<script src="https://cdn.datatables.net/2.0.5/js/dataTables.js"></script>
-<script src="https://cdn.datatables.net/2.0.5/js/dataTables.bootstrap5.js"></script>
-<script src="https://cdn.datatables.net/responsive/3.0.2/js/dataTables.responsive.js"></script>
-<script src="https://cdn.datatables.net/responsive/3.0.2/js/responsive.bootstrap5.js"></script>
-
 {literal}
-    <script>
-        $(document).ready(function() {
-            $('.table-iplist').each(function(index){
-                $(this).DataTable(
-                    {
-                        responsive: true,
-                        "pageLength": 25,
-                        order: [[2, 'desc']],
-                    } 
-                );
-            });
+<style>
+    .nav-link {color: var(--bs-nav-tabs-link-active-color);}
+    .nav-link.active{
+        color: var(--bs-nav-link-color) !important;
+        isolation: isolate;
+    }
 
-            // $('.table-iplist').DataTable(
-            //     {
-            //         responsive: true,
-            //         "pageLength": 25,
-            //         order: [[2, 'desc']],
-            //     } 
-            // );
+    .ip-nav-tabs button{
+        border-radius: unset;
+        min-width: 100px;
+    }
 
-            Calendar.setup({
-                inputField: "from_date",
-                // daFormat: "%d-%m-%Y",
-                daFormat: "%d-%m-%Y %H:%M",
-                button: "fdate_trigger",
-                singleClick: true,
-                dateStr: "",
-                step: 1,
-                position: [230, 202],
-            });
-            Calendar.setup({
-                inputField: "to_date",
-                // daFormat: "%d-%m-%Y",
-                daFormat: "%d-%m-%Y %H:%M",
-                button: "tdate_trigger",
-                singleClick: true,
-                dateStr: "",
-                step: 2
-            });
+    .ip-tab-content {
+        width: 100%;
+        border: 1px solid #dee2e6;
+        padding: 15px;
+    }
 
-            $(document).on("click", ".block-item", function(e) {
-                let ip = $(this).attr("ip");
-                let time_block = $(this).attr("time-block");
-                let domain = $(this).attr("domain");
+    .table-iplist tbody tr td {vertical-align: middle;}
+    .table-iplist tbody tr.whitelist .btn-group__wrap {display: none;}
 
-                $.ajax({
-                    url: "index.php?entryPoint=entryPointFlightBookings",
-                    type: "POST",
-                    data: {
-                        ip: ip,
-                        domain: domain,
-                        time: time_block,
-                        for: "blockIP",
-                    },
-                    beforeSend: function () {
-                        $('.container-waiting').show();
-                    },
-                    success: function(response) {
-                        $('.container-waiting').hide();
-				        res = JSON.parse(response);
+    .table-iplist tbody tr.whitelist td:first-child > a > span {color: #42b32e;}
+    .table-iplist tbody tr.alert-danger {background-color: #ffeeef;}
+    .table-iplist tbody tr.alert-danger td:first-child > a > span {color: red;}
 
-                        if(res.code == 200){
-                            showModalNotify(1, 'Block IP thành công');
-                        } else {
-                            showModalNotify(0, 'Block IP không thành công');
-                        }
-                    }
-                });
-            });
+    .table-iplist tbody tr:hover {background-color: #f2f2f2 !important;}
+    .table-iplist tbody tr.whitelist:hover {background-color: #ebffdf !important;}
+    .table-iplist tbody tr.alert-danger:hover {background-color: #ffced3 !important;}
 
-            $(document).on("click", ".white-list-item", function(e) {
-                let ip = $("#white-list").val().trim();
-                let time_whitelist = $(this).attr("time-wl");
-                let domain = $(this).attr("domain");
+    .table-iplist a.dropdown-item, .handle-ip a.dropdown-item {
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+    }
 
-                if(ip.length === 0){
-                    showModalNotify(0, 'IP không hợp lệ!');
-                } else {
-                    $.ajax({
-                        url: "index.php?entryPoint=entryPointFlightBookings",
-                        type: "POST",
-                        data: {
-                            ip: ip,
-                            domain: domain,
-                            time: time_whitelist,
-                            for: "whitelistIP",
-                        },
-                        beforeSend: function () {
-                            $('.container-waiting').show();
-                        },
-                        success: function(response) {
-                            $('.container-waiting').hide();
-                            res = JSON.parse(response);
-    
-                            if(res.code == 200){
-                                showModalNotify(1, 'White list IP thành công');
-                            } else {
-                                showModalNotify(0, 'White list IP không thành công');
-                            }
-                        }
-                    });
-                }
-            });
+    .btn-group__wrap, .search-journey-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .search-journey-wrap .journey {
+        font-size: 13px;
+        font-weight: 500;
+        padding: 3px 6px;
+    }
 
-            $(document).on("click", ".btn-allow", function(e) {
-                let ip = $(this).attr("ip");
-                let domain = $(this).attr("domain");
+    .btn-group__wrap{justify-content: center;}
+    .btn-group__wrap .btn-group{flex: 1;}
 
-                $.ajax({
-                    url: "index.php?entryPoint=entryPointFlightBookings",
-                    type: "POST",
-                    data: {
-                        ip: ip,
-                        domain: domain,
-                        for: "allowIP",
-                    },
-                    beforeSend: function () {
-                        $('.container-waiting').show();
-                    },
-                    success: function(response) {
-                        $('.container-waiting').hide();
-				        res = JSON.parse(response);
+    div.dt-container div.dt-length label{display: none;}
 
-                        if(res.code == 200){
-                            showModalNotify(1, 'Unblock IP thành công');
-                        } else {
-                            showModalNotify(0, 'Block IP không thành công');
-                        }
-                        // $('.modal-overlay, .btn-modal-close').addClass('reload');
-                    }
-                });
-            });
+    .handle-ip {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-            $(document).on("click", ".btn-history-block", function(e) {
-                let ip = $(this).attr("ip");
-                let domain = $(this).attr("domain");
-                let site = $(this).attr("site");
-                let from_date = $(this).attr("data-fromdate");
-                let to_date = $(this).attr("data-todate");
+    .overview__wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
 
-                $.ajax({
-                    url: "index.php?entryPoint=entryPointFlightBookings",
-                    type: "POST",
-                    data: {
-                        ip: ip,
-                        domain: domain,
-                        from_date: from_date,
-                        to_date: to_date,
-                        for: "HistoryBlockIP",
-                    },
-                    beforeSend: function () {
-                        $("#modal_history-block-"+site+" #content-history").html('');
-                    },
-                    success: function(response) {
-				        res = JSON.parse(response);
-                        
-                        if(res.code == 200){
-                            if(res.data.length > 0){
-                                let html = `<table class="table-details__booking">
-                                            <thead>
-                                                <tr>
-                                                    <th>IP</th>    
-                                                    <th>Bắt đầu Block</th>    
-                                                    <th>Thời gian</th>    
-                                                    <th>Kết thúc Block</th>    
-                                                </tr>
-                                            </thead>
-                                            <tbody>`;
-                                        res.data.forEach(function(blocks, index) {
-                                            let date_start = new Date(blocks.start_time * 1000);
-                                            date_start.setHours(date_start.getHours() + 7);
-                                            
-                                            let duration = new Date(blocks.duration * 1000).toISOString().substr(11, 8);
+    .call-statistics__total {
+        width: 70%;
+        height: 400px;
+    }
 
-                                            html += `<tr>
-                                                        <td>${res.ip}</td>
-                                                        <td>${date_start.toISOString().slice(0, 19).replace('T', ' ')}</td>
-                                                        <td>${duration}</td>
-                                                        <td>${blocks.block_to}</td>
-                                                    </tr>`;
-                                        });
+    .call-statistics__total canvas {
+        width: 70% !important;
+    }
 
-                                    html += `</tbody></table>`;
+    .tag {
+        border-radius: 4px;
+        box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
+        padding: 2px 6px;
+        margin-right: 5px;
+    }
+    .tag-whitelist {
+        background-color: #42b32e;
+        color: #fff;
+        letter-spacing: 1px;
+    }
+    .tag-block {
+        background-color: #ff0000;
+        color: #fff;
+    }
 
-                                $("#modal_history-block-"+site+" #content-history").append(html);
-                            } else {
-                                $("#modal_history-block-"+site+" #content-history").append(
-                                    `<div class="d-flex flex-column gap-2 align-items-center">
-                                        <svg fill="#b3b3b3" width="70" height="70" viewBox="0 0 846.66 846.66" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" stroke="#b3b3b3"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <defs> <style type="text/css">  .fil0 {fill:black;fill-rule:nonzero}  </style> </defs> <g id="Layer_x0020_1"> <path class="fil0" d="M93.28 100.89l69.12 0 0 -71.08c0,-11.44 9.28,-20.71 20.72,-20.71l414.03 0c97.36,0 176.94,79.58 176.94,176.94l0 539.02c0,11.44 -9.27,20.71 -20.71,20.71l-69.12 0 0 71.08c0,11.44 -9.28,20.71 -20.72,20.71l-570.26 0c-11.44,0 -20.71,-9.27 -20.71,-20.71l0 -695.25c0,-11.44 9.27,-20.71 20.71,-20.71zm148.42 178.12c-27.24,0 -27.24,-41.42 0,-41.42l273.42 0c27.24,0 27.24,41.42 0,41.42l-273.42 0zm0 216.78c-27.24,0 -27.24,-41.42 0,-41.42l273.42 0c27.24,0 27.24,41.42 0,41.42l-273.42 0zm0 -108.39c-27.24,0 -27.24,-41.42 0,-41.42l273.42 0c27.24,0 27.24,41.42 0,41.42l-273.42 0zm-37.87 -286.51l303.48 0c97.36,0 176.95,79.58 176.95,176.94l0 426.52 48.41 0 0 -518.31c0,-74.49 -61.03,-135.52 -135.52,-135.52l-393.32 0 0 50.37zm11.51 478.47l326.15 0c11.43,0 20.71,9.28 20.71,20.71l0 105.46c0,11.44 -9.28,20.72 -20.71,20.72l-326.15 0c-11.44,0 -20.71,-9.28 -20.71,-20.72l0 -105.46c0,-11.43 9.27,-20.71 20.71,-20.71zm305.43 41.42l-284.72 0 0 64.04 284.72 0 0 -64.04zm-13.46 -478.47l-393.32 0 0 653.83 528.84 0 0 -518.31c0,-74.49 -61.02,-135.52 -135.52,-135.52z"></path> </g> </g></svg>
-                                        <p class="fs-6 fw-semibold">IP này chưa có lịch sử block!</p>
-                                    </div>`
-                                );
-                            }
-                        } else {
-                            showModalNotify(0, 'ERROR: response undefined!');
-                        }
-                    }
-                });
-            });
+    @media screen and (max-width: 575px), (orientation: landscape) and (max-width: 950px){
+        .tcb-wrap{gap: 0.25rem;}
+        .tcb-wrap span{font-size: 12px;}
 
-            $(document).on("change", "#date_select", function(e) {
-                $("#from_date").val($(this).find("option:selected").attr("from_date"));
-                $("#to_date").val($(this).find("option:selected").attr("to_date"));
-                sessionStorage.setItem('date_select_ip', $(this).val());
-            });
-            
-            $(document).on("change", "#site_select", function(e) {
-                sessionStorage.setItem('site_select_ip', $(this).val());
-            });
-
-            // Check sessionStorage - js
-            const date_select_id 		= document.getElementById('date_select');
-            const savedSelectdate = sessionStorage.getItem('date_select_ip');
-
-            if (savedSelectdate) {
-                date_select_id.value = savedSelectdate;
-            }
-        });
-    </script>
-    <style>
-        #ip_report .dateTime input.date_input{
-            min-width: 155px;
-            width: fit-content;
+        .call-statistics__total,
+        .call-statistics__total canvas {
+            width: 100% !important;
         }
 
-        .ip-nav-tabs button{
-            border-radius: unset;
-            min-width: 100px;
-        }
-
-        .ip-tab-content{
-            padding: 15px;
-            border: 1px solid #dee2e6;
-        }
-
-        .white-list-ip a.dropdown-item,
-        #iplist_tbl a.dropdown-item{
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .btn-group__wrap,
-        .tcb-wrap{
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-group__wrap{
-            justify-content: center;
-        }
-
-        .btn-group__wrap .btn-group{
-            flex: 1;
-        }
-
-        div.dt-container div.dt-length label{
+        .handle-ip,
+        div.dt-container > .row:first-child {
             display: none;
         }
+        
+        table#iplist_tbl thead th{white-space: nowrap;}
 
-        .white-list-ip{
-            position: absolute;
-            top: 16px;
-            right: 16px;
+        ul.dtr-details{width: 100%;}
+        ul.dtr-details li{
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .call-statistics__wrap {
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
+            padding: 0.25rem 10px !important;
         }
-
-        .call-statistics__total {
-            width: 70%;
-            height: 400px;
-        }
-
-        .call-statistics__total canvas {
-            width: 70% !important;
-        }
-
-        @media screen and (max-width: 575px),
-        (orientation: landscape) and (max-width: 950px){
-            .tcb-wrap{
-                gap: 0.25rem;
-            }
-
-            .tcb-wrap span{
-                font-size: 12px;
-            }
-
-            .call-statistics__total,
-            .call-statistics__total canvas {
-                width: 100% !important;
-            }
-
-            .white-list-ip,
-            div.dt-container > .row:first-child {
-                display: none;
-            }
-            
-            table#iplist_tbl thead th{
-                white-space: nowrap;
-            }
-
-            ul.dtr-details{
-                width: 100%;
-            }
-
-            ul.dtr-details li{
-                display: flex;
-                justify-content: space-between;
-                padding: 0.25rem 10px !important;
-            }
-
-            ul.dtr-details li:last-child .dtr-title{
-                display: none !important;
-            }
-
-            ul.dtr-details li:last-child .dtr-data{
-                flex: 1;
-            }
-
-        }
-    </style>
+        ul.dtr-details li:last-child .dtr-title{display: none !important;}
+        ul.dtr-details li:last-child .dtr-data{flex: 1;}
+    }
+</style>
 {/literal}
 
 <div class="title-wrap d-flex align-items-center justify-content-between gap-2">
@@ -350,7 +133,6 @@
 
 <div class="box-section position-relative mt-0" id="ip_report">
     <div class="overlay-mobile"></div>
-
     <form action="index.php" method="post" name="search_form" id="ec_search_form">
         <input type="hidden" name="module" value="EC_TongHop" />
         <input type="hidden" name="action" value="iplist" />
@@ -414,10 +196,247 @@
         
         <div class="button-action--wrap d-flex align-items-center">
             <input type="submit" id="btnView" name="btnView" class="btn btn-primary button-action" value="Xem" title="Xem"/>
-            <!-- <input type="submit" id="btnExport" name="btnExport" class="btn btn-danger" value="List Deny" title="List Deny" /> -->
             <input type="button" id="btnSearch_cancel" value="Hủy bỏ" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" title="Hủy bỏ"/>
         </div>
     </form>
   
     {$IP_LIST_TBL}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
+<script src="https://cdn.datatables.net/2.0.5/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.0.5/js/dataTables.bootstrap5.js"></script>
+<script src="https://cdn.datatables.net/responsive/3.0.2/js/dataTables.responsive.js"></script>
+<script src="https://cdn.datatables.net/responsive/3.0.2/js/responsive.bootstrap5.js"></script>
+{literal}
+<script>
+    var ENDPOINT = 'index.php?entryPoint=entryPointFlightBookings';
+
+    $(document).ready(function() {
+        $('.table-iplist').each(function(index){
+            $(this).DataTable(
+                {
+                    responsive: true,
+                    pageLength: 50,
+                    order: [[2, 'desc']],
+                }
+            );
+        });
+
+        Calendar.setup({
+            inputField: "from_date",
+            daFormat: "%d-%m-%Y %H:%M",
+            button: "fdate_trigger",
+            singleClick: true,
+            dateStr: "",
+            step: 1,
+            position: [230, 202],
+        });
+        Calendar.setup({
+            inputField: "to_date",
+            daFormat: "%d-%m-%Y %H:%M",
+            button: "tdate_trigger",
+            singleClick: true,
+            dateStr: "",
+            step: 2
+        });
+
+        $(document).on("click", ".btn-block", function(e) {
+            let ip = $(this).attr("ip");
+            let duration = $(this).attr("duration");
+            let domain = $(this).attr("domain");
+
+            if(ip.length*domain.length*duration.length == 0) {
+                showModalNotify(0, 'Dữ liệu không hợp lệ, vui lòng thử lại sau!');
+                return false;
+            }
+
+            $.ajax({
+                url: ENDPOINT,
+                type: "POST",
+                data: {
+                    for: "block_ip",
+                    ip: ip,
+                    duration: duration,
+                    domain: domain,
+                },
+                beforeSend: function () {
+                    $('.container-waiting').show();
+                },
+                success: function(response) {
+                    $('.container-waiting').hide();
+
+                    if(response && response.length > 3) {
+                        res = JSON.parse(response);
+                        if(res.error == 0) {
+                            showModalNotify(1, `Đã chặn truy cập ${ip}`);
+                            return true;
+                        }
+                    }
+
+                    console.log(response);
+                    showModalNotify(0, 'Thao tác thất bại');
+                    return false;
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('.container-waiting').hide();
+                    showModalNotify(0, `ERROR ${textStatus}: ${errorThrown}`);
+                    console.error(XMLHttpRequest);
+                }
+            });
+        });
+
+        $(document).on("click", ".btn-unblock", function(e) {
+            let ip = $(this).attr("ip");
+            let domain = $(this).attr("domain");
+            if($(this).attr("id") == 'unblock_ip') ip = $('#input_ip').val();
+
+            if(ip.length*domain.length == 0) {
+                showModalNotify(0, 'Dữ liệu không hợp lệ, vui lòng thử lại sau!');
+                return false;
+            }
+
+            $.ajax({
+                url: ENDPOINT,
+                type: "POST",
+                data: {
+                    for: 'unblock_ip',
+                    domain: domain,
+                    ip: ip
+                },
+                beforeSend: function () {
+                    $('.container-waiting').show();
+                },
+                success: function(response) {
+                    $('.container-waiting').hide();
+
+                    if(response && response.length > 3) {
+                        res = JSON.parse(response);
+                        if(res.error == 0) {
+                            showModalNotify(1, `Đã mở truy cập ${ip}`);
+                            return true;
+                        }
+                    }
+
+                    console.log(response);
+                    showModalNotify(0, 'Thao tác thất bại');
+                    return false;
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('.container-waiting').hide();
+                    showModalNotify(0, `ERROR ${textStatus}: ${errorThrown}`);
+                    console.error(XMLHttpRequest);
+                }
+            });
+        });
+
+        $(document).on("click", ".btn-history-block", function(e) {
+            let str = $(this).attr("data");
+            let site = $(this).attr("site");
+
+            if(!str.length || str.length == 0) {
+                showModalNotify(0, 'Không có dữ liệu');
+                return false;
+            }
+
+            let tbody = '';
+            let data_block = JSON.parse(atob(str));
+
+            data_block.forEach(function(blocks, index) {
+                let date_start = new Date(blocks.start_time * 1000);
+                date_start.setHours(date_start.getHours() + 7);
+                let duration = new Date(blocks.duration * 1000).toISOString().substr(11, 8);
+
+                tbody += `<tr>
+                    <td>${res.ip}</td>
+                    <td>${date_start.toISOString().slice(0, 19).replace('T', ' ')}</td>
+                    <td>${blocks.block_to}</td>
+                    <td>${duration}</td>
+                </tr>`;
+            });
+
+            let html = `<table class="table-details__booking">
+                <thead>
+                    <tr>
+                        <th>IP</th>    
+                        <th>Bắt đầu chặn</th>    
+                        <th>Kết thúc chặn</th>
+                        <th>Thời gian chặn</th>    
+                    </tr>
+                </thead>
+                <tbody>${tbody}</tbody>
+            </table>`;
+
+            $(`#modal_history-block-${site} #content-history`).html(html);
+        });
+
+        $(document).on("click", ".handle-ip-item", function(e) {
+            let ip = $('#input_ip').val();
+            let domain = $(this).attr("domain");
+            let duration = $(this).attr("duration");
+            let for_ = $(this).hasClass('block-item') ? 'block_ip' : 'whitelist_ip';
+
+            if(ip.length*domain.length*duration.length == 0) {
+                showModalNotify(0, 'Dữ liệu không hợp lệ, vui lòng thử lại sau!');
+                e.preventDefault();
+                return false;
+            }
+
+            $.ajax({
+                url: ENDPOINT,
+                type: "POST",
+                data: {
+                    for: for_,
+                    ip: ip,
+                    domain: domain,
+                    duration: duration,
+                },
+                beforeSend: function () {
+                    $('.container-waiting').show();
+                },
+                success: function(response) {
+                    $('.container-waiting').hide();
+
+                    if(response && response.length > 3) {
+                        res = JSON.parse(response);
+                        if(res.error == 0) {
+                            console.warn(for_);
+                            let m = for_ == 'block_ip' ? `Đã chặn ${ip}` : `Đã cho phép ${ip}`;
+                            showModalNotify(1, m);
+                            return true;
+                        }
+                    }
+
+                    console.error(response);
+                    showModalNotify(0, 'Thao tác thất bại');
+                    return false;
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('.container-waiting').hide();
+                    showModalNotify(0, `ERROR ${textStatus}: ${errorThrown}`);
+                    console.error(XMLHttpRequest);
+                }
+            });
+        });
+
+        $(document).on("change", "#date_select", function(e) {
+            $("#from_date").val($(this).find("option:selected").attr("from_date"));
+            $("#to_date").val($(this).find("option:selected").attr("to_date"));
+            sessionStorage.setItem('date_select_ip', $(this).val());
+        });
+        
+        $(document).on("change", "#site_select", function(e) {
+            sessionStorage.setItem('site_select_ip', $(this).val());
+        });
+
+        // Check sessionStorage - js
+        const date_select_id = document.getElementById('date_select');
+        const savedSelectdate = sessionStorage.getItem('date_select_ip');
+
+        if (savedSelectdate) {
+            date_select_id.value = savedSelectdate;
+        }
+    });
+</script>
+{/literal}

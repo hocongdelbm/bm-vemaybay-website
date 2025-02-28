@@ -277,7 +277,7 @@ function classifyContactv2($contactId)
         $type_contact['desc'] = 'Chưa có bk hoàn tất';
     } else {
         $type_contact['type'] = 'DEFAULT_GROUP';
-        $type_contact['label'] = 'Mặc định';
+        $type_contact['label'] = 'Vãng lai';
         $type_contact['desc'] = 'Không thuộc 6 loại đã quy định';
     }
 
@@ -407,3 +407,12 @@ function calculateBKTotalAmtFromContact($contactId)
     return $db->getOne($sql) ?? 0;
 }
 
+function calculatePointsFromBooking($booking_id) {
+    global $db;
+    $sql = "SELECT SUM(service_fee * quantity) as points
+        FROM ec_booking_details
+        WHERE booking_id = '$booking_id'
+            AND deleted = 0";
+    $total_service_fee = $db->getOne($sql) ?? 0;
+    return $total_service_fee / 10000; // Quy đổi 10.000 VND = 1 point
+}

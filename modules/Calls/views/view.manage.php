@@ -14,7 +14,6 @@ class Viewmanage extends SugarView {
 
           $pbx = BeanFactory::getBean('Calls');
           $list_phone = $pbx->get_list_phone_pbx();
-          pr($list_phone);
           
           foreach($list_phone as $carrier => $list) {
                $i = 1;
@@ -42,7 +41,7 @@ class Viewmanage extends SugarView {
 
                if(strtoupper($carrier) === 'HOTLINE') $carrier = '<b style="color:red">'.$carrier.'</b>';
                elseif(strtoupper($carrier) === 'VIETTEL') $carrier = '<b style="color:#ea3a59; text-transform:lowercase;">'.$carrier.'</b>';
-               elseif(strtoupper($carrier) === 'MOBIFONE') $carrier = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
+               elseif(strtoupper($carrier) === 'MOBIPHONE') $carrier = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
                elseif(strtoupper($carrier) === 'VINAPHONE') $carrier = '<b style="color:#00aeed; text-transform:lowercase;">'.$carrier.'</b>';
                elseif(strtoupper($carrier) === 'VNPT') $carrier = '<b style="color:#0066ba; letter-spacing:3px;">'.$carrier.'</b>';
                elseif(strtoupper($carrier) === 'FPT') $carrier = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';

@@ -14,7 +14,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 	function display()
 	{
-		global $db, $current_user;
+		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 
 		// Create and update contact
