@@ -2,39 +2,35 @@
 
 /**
  * TẠO LH CHO BOOKING
- * @param mixed $phoneNumber
- * @param mixed $booking_id
+ * @param string $phoneNumber
+ * @param string $contactName
  * @return bool true/false
  */
-function createContactsForBooking($phoneNumber)
+function createContactsForBooking($phoneNumber, $contactName = '')
 {
     global $db, $current_user;
 
-    $sql_contact = 'SELECT id
-                    FROM contacts
-                    WHERE phone_mobile = "' . $phoneNumber . '"
-                    AND deleted = 0';
+    $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$phoneNumber' AND deleted = 0";
     $contact_id = $db->getOne($sql_contact);
 
     $contact = new Contact();
     if (!$contact_id) {
-        $contact->last_name = $phoneNumber;
+        $contact->last_name = $contactName ?? '';
         $contact->phone_mobile = $phoneNumber;
         $contact->save();
         $contact_id = $contact->id;
     } else {
         $contact->retrieve($contact_id);
 
-        // Get contact name from booking
-        $sql_booking = 'SELECT contact_name
-                        FROM ec_flight_bookings
-                        WHERE phone = "' . $phoneNumber . '"
-                        AND deleted = 0
-                        ORDER BY date_entered DESC
-                        LIMIT 1';
-        $get_contact_name = $db->getOne($sql_booking);
+        if (empty($contact->last_name) || stripos($contact->last_name, "Khách") !== false || stripos($contact->last_name, "Khach") !== false || stripos($contact->last_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $contact->last_name)) {
+            // Get contact name from booking
+            $sql_booking = "SELECT contact_name
+                FROM ec_flight_bookings
+                WHERE phone = '$phoneNumber' AND deleted = 0
+                ORDER BY date_entered DESC
+                LIMIT 1";
+            $get_contact_name = $db->getOne($sql_booking);
 
-        if (empty($contact->last_name)) {
             $contact->last_name = $get_contact_name;
             $contact->save();
         }
@@ -221,10 +217,10 @@ function classifyContactv2($contactId)
 
     $sql = "
         SELECT 
-            SUM(CASE WHEN date_entered BETWEEN '$start_date' AND '$end_date' THEN 1 ELSE 0 END) AS completedCurrentPeriod,
-            SUM(CASE WHEN date_entered < '$start_date' THEN 1 ELSE 0 END) AS completedPastPeriods,
-            SUM(CASE WHEN date_entered BETWEEN '$start_date' AND '$end_date' THEN total_amount ELSE 0 END) AS revenueCurrentPeriod,
-            SUM(CASE WHEN date_entered < '$start_date' THEN total_amount ELSE 0 END) AS revenuePastPeriods
+            SUM(CASE WHEN DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) BETWEEN '$start_date' AND '$end_date' THEN 1 ELSE 0 END) AS completedCurrentPeriod,
+            SUM(CASE WHEN DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) < '$start_date' THEN 1 ELSE 0 END) AS completedPastPeriods,
+            SUM(CASE WHEN DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) BETWEEN '$start_date' AND '$end_date' THEN total_amount ELSE 0 END) AS revenueCurrentPeriod,
+            SUM(CASE WHEN DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) < '$start_date' THEN total_amount ELSE 0 END) AS revenuePastPeriods
         FROM ec_flight_bookings
         WHERE contact_id = '$contactId' 
         AND booking_status = '8' 
@@ -414,5 +410,5 @@ function calculatePointsFromBooking($booking_id) {
         WHERE booking_id = '$booking_id'
             AND deleted = 0";
     $total_service_fee = $db->getOne($sql) ?? 0;
-    return $total_service_fee / 10000; // Quy đổi 10.000 VND = 1 point
+    return (int)($total_service_fee / 10000); // Quy đổi 10.000 VND = 1 point
 }

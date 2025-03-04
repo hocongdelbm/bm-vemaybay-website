@@ -16,6 +16,12 @@ select.form-select {
     margin-top: 5px;
 }
 
+.content-length {
+    display: block;
+    font-weight: normal;
+    font-style: italic;
+}
+
 
 /***************  TEMPLATE ZALO  ***************/
 .card-content-zalo-broadcast .title-template {

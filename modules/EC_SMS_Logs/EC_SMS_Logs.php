@@ -1,6 +1,6 @@
 <?php
 require_once('include/upload_file.php');
-require_once('modules/EC_SMS_Logs/Zalo.php');
+require_once('modules/EC_Zalo/Zalo.php');
 
 require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;

@@ -217,8 +217,10 @@
                                                                       {foreach from=$list_phone_choose_outbound key=network_provider item=phones}
                                                                            <optgroup label="{$network_provider|capitalize}">
                                                                                 {foreach from=$phones item=phone}
-                                                                                     {if isset($phone.proxy) && $phone.proxy|trim != ''}
-                                                                                          <option value="{$phone.name|trim}@{$phone.proxy|trim}">{$phone.name|trim}</option>
+                                                                                     {if $phone.proxy|default:''|trim != ''}
+                                                                                          <option value="{$phone.name|trim}@{$phone.proxy|trim}">
+                                                                                               {$phone.name|trim} {if $phone.brand_name|trim != ''} ({$phone.brand_name|lower|capitalize}){/if}
+                                                                                          </option>
                                                                                      {/if}
                                                                                 {/foreach}
                                                                            </optgroup>

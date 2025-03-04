@@ -11,10 +11,9 @@ class Viewmanage extends SugarView {
 
      function populateContent($smartyobj) {
           $tr = '';
-
           $pbx = BeanFactory::getBean('Calls');
           $list_phone = $pbx->get_list_phone_pbx();
-          
+
           foreach($list_phone as $carrier => $list) {
                $i = 1;
                $row = '';
@@ -31,7 +30,7 @@ class Viewmanage extends SugarView {
                     else $website = getCallSource($value['name']);
 
                     $row .= '<tr>
-                         <td>'.$text_number.'</td>
+                         <td><a href="index.php?module=EC_Outbound_Phone&action=DetailView&record='.$value['id'].'" target="_blank">'.$text_number.'</a></td>
                          <td class="text-center fw-semibold '.($value['brand_name'] == 'Travelpass' ? 'text-primary' : 'text-success').'">'.$value['brand_name'].'</td>
                          <td class="text-center">'.$text_label.'</td>
                          <td class="text-center"><a href="https://'.$website.'" target="_blank">'.$website.'</a></td>

@@ -6,11 +6,11 @@ if (!defined('sugarEntry') || !sugarEntry) {
 global $mod_strings, $app_strings, $sugar_config, $current_user;
 
 if(ACLController::checkAccess('EC_Messages', 'list', true)){
-    $module_menu[]=array('index.php?module=EC_Messages&action=index&return_module=EC_Messages&return_action=DetailView', $mod_strings['LNK_LIST'],'View', 'EC_Messages');
+    $module_menu[] = array('index.php?module=EC_Messages&action=index&return_module=EC_Messages&return_action=DetailView', $mod_strings['LNK_LIST'],'View', 'EC_Messages');
 }
 
 if(ACLController::checkAccess('EC_Messages', 'edit', true)){
-    $module_menu[]=array('index.php?module=EC_Messages&action=EditView&return_module=EC_Messages&return_action=DetailView', $mod_strings['LNK_NEW_RECORD'], 'Add', 'EC_Messages');
+    $module_menu[] = array('index.php?module=EC_Messages&action=EditView&return_module=EC_Messages&return_action=DetailView', $mod_strings['LNK_NEW_CAMPAIGN'], 'Add', 'EC_Messages');
 }
 
 if(is_admin($current_user)) {

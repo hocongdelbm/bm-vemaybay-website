@@ -690,6 +690,20 @@ $dictionary['Call'] = array(
             'reportable' => false,
             'audited'    => true,
         ),
+        'is_success' => array(
+            'required'  => false,
+            'name'      => 'is_success',
+            'vname'     => 'LBL_IS_SUCCESS',
+            'type'      => 'bool',
+            'comment'   => 'is_sussces = (call_talk > 0) ?  1 : 0', // 1: thành công, 0: thất bại
+            'importable' => false,
+			'audited'    => true,
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'reportable' => 0,
+            'default'   => 0,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_calls_callid', 'type' => 'index', 'fields' => array('call_id')),

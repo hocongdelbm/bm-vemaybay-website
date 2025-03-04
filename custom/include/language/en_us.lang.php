@@ -436,12 +436,6 @@ $GLOBALS['app_list_strings']['vietnam_mobile_new_network_list'] = array(
   '059' => '0,2,4,5,6,7',
 );
 
-$GLOBALS['app_list_strings']['sms_template_list'] = array(
-  // 'Đơn hàng không nghe máy' => 'Chao Anh/Chi, ve may bay cua anh/chi da duoc xac nhan thanh cong. Vui long LH: ... de biet chi tiet va thanh toan truoc ... Xin cam on! (No reply)',
-  // 'Vé KM, Vé cận giờ bay (Ko nghe máy)' => 'Chao Anh/Chi, ve may bay cua anh/chi khong giu duoc cho. Vui long LH: ... Som de xac nhan thanh toan lay ve. Xin cam on! (No reply)',
-  'Không nghe máy, vé KM, cận' => 'Xin chao ban, so DT hien khong lien lac duoc. Truong hop ve KM hoac gan gio bay vui long goi cho chung toi 1900 63 6060 hoac Zalo/SMS ...',
-);
-
 $GLOBALS['app_list_strings']['international_airport_list'] = array(
   'BKK' => 'Bangkok',
   'CNX' => 'Chiang Mai',

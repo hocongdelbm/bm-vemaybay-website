@@ -1,8 +1,8 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
-require_once('modules/EC_SMS_Logs/Zalo.php');
-require_once('modules/EC_SMS_Logs/SMS.php');
+require_once('modules/EC_Zalo/Zalo.php');
+require_once('modules/EC_Messages/SMS.php');
 
 class EC_Flight_BookingsViewDetail extends ViewDetail
 {
@@ -61,7 +61,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.2"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.4"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.97"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.2"></script>
@@ -110,7 +110,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		$css = '';
 		$css .= '<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.1">';
+		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.2">';
 		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=1.9">';
 		echo $css;
 	}
@@ -331,18 +331,19 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 
 		/************  CONTACT OLD  ************/
-		$contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
-		$contact_name 		= '<span class="contact_name" data="' . $this->bean->contact_name . '">' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span>';
-		$check_contact_info = '<button class="btn btn-primary-2 d-flex gap-2 align-items-center" id="btnCheckContactInfo" ct_name="' . $this->bean->contact_name . '" ct_mobile="' . $this->bean->phone . '" ct_email="' . $this->bean->email . '" ct_id_booking="' . $this->bean->id . '">
-		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-		<span class="check_infor_customer">Check</span>
-		</button>
-		<div id="CheckContactInfoDialog" title="Kiểm tra thông tin" style="display:none;"></div>';
+		// $contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
+		// $contact_name 		= '<span class="contact_name" data="' . $this->bean->contact_name . '">' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span>';
+		// $check_contact_info = '<button class="btn btn-primary-2 d-flex gap-2 align-items-center" id="btnCheckContactInfo" ct_name="' . $this->bean->contact_name . '" ct_mobile="' . $this->bean->phone . '" ct_email="' . $this->bean->email . '" ct_id_booking="' . $this->bean->id . '">
+		// <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+		// <span class="check_infor_customer">Check</span>
+		// </button>
+		// <div id="CheckContactInfoDialog" title="Kiểm tra thông tin" style="display:none;"></div>';
 		// $this->ss->assign('CONTACT_NAME', $contact_name . $check_contact_info);
 		
 		
 		/************  CONTACT NEW  ************/
-		$link_contact 		= $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id . "" : "#";
+		$contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
+		$link_contact 		= $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id : "#";
 		// $type_contact 		= classifyContact($this->bean->contact_id);
 		$type_contact 		= classifyContactv2($this->bean->contact_id);
 
@@ -747,16 +748,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 		$this->ss->assign('CUSTOM_ASSIGNED_TO_NAME', $assigned_user_name);
 
-		// Giảm giá hiện thêm mã voucher
+		// Giảm giá
 		$discount_html = '<span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
+		// Giảm giá voucher
 		$vouchers = $this->getVoucherApplied();
 		if(!empty($vouchers)) {
 			$discount_html .= '<div class="wrap-voucher">';
 			foreach($vouchers as $v) {
-				$discount_html .= '<a class="'.$v['type'].'-voucher voucher" title="Xem chi tiết">
+				$discount_html .= '<a class="'.$v['type'].'-voucher voucher" for="dialog_voucher_detail_'.$v['code'].'" title="Xem chi tiết">
 					<span class="code">'.$v['code'].'</span>
 				</a>
-				<dialog id="dialog_voucher_detail" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
+				<dialog id="dialog_voucher_detail_'.$v['code'].'" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
 					<ul class="voucher-list-items">
 						<li class="voucher-item">
 							<span class="label">Sự kiện/Chiến dịch:</span>
@@ -780,6 +782,36 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				</dialog>';
 			}
 			$discount_html .= '</div>';
+		}
+		if(in_array($this->bean->booking_status, ['1', '6', '2'])) {
+		// if($current_user->id == '1') {
+			// Giảm giá tích điểm
+			$points = $this->bean->db->getOne('SELECT points FROM contacts WHERE id = "'.$this->bean->contact_id.'" AND deleted = 0');
+			if($points && $points > 0) {
+				$discount_html .= '<div class="wrap-points">
+					<button class="btn btn btn-primary-2 btn-sm btn-use-point" for="dialog_use_point" title="Dùng điểm tích lũy">Dùng điểm</button>
+					<dialog id="dialog_use_point" class="dialog dialog-use-point" style="display:none">
+						<div class="content">
+							<div class="point">
+								<label for="point_of_use">Nhập điểm áp dụng:</label>
+								<div class="input-group">
+									<input type="number" name="point_of_use" id="point_of_use" class="form-control allow-number-only" min="1" max="'.$points.'" />
+									<span class="input-group-text">/<b class="tt_points" id="tt_points" data="'.$points.'">'.$points.' điểm</b></span>
+								</div>
+							</div>
+							<div class="equal">=</div>
+							<div class="amount">
+								<label for="points_discount">Tổng tiền giảm:</label>
+								<div class="input-group">
+									<input type="text" name="points_discount" id="points_discount" class="form-control points_discount allow-number-only" readonly="true"/>
+									<span class="input-group-text">đ</span>
+								</div>
+							</div>
+						</div>
+						<button id="btn_apply_points_discount" class="btn btn btn-primary btn-apply-points-discount" contact_id="'.$this->bean->contact_id.'" booking_id="'.$this->bean->id.'">Áp dụng</button>
+					</dialog>
+				</div>';
+			}
 		}
 		$this->ss->assign('CUS_DISCOUNT_AMOUNT', $discount_html);
 	}
@@ -2478,7 +2510,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$Zalo = new Zalo();
 		// Information
-		$info = json_decode($Zalo->get_user_info($zalo_id), true);
+		$info = json_decode($Zalo->get_user($zalo_id), true);
 		if ($info['error'] == 1 || empty($info['data'])) return ['message' => 'Zalo ID không hợp lệ', 'send_promotion' => 0, 'data' => null];
 		$data = [
 			'id' 		=> $zalo_id,

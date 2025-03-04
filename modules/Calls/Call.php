@@ -975,18 +975,18 @@ class Call extends SugarBean
                 if ($disposition === 'send_bye') {
                     return ($ccCancelReason === 'TIMEOUT')
                         ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
-                        : 'Agent chủ động kết thúc cuộc gọi';
+                        : 'Tổng đài viên chủ động kết thúc cuộc gọi';
                 }
         
                 if ($disposition === 'send_refuse') {
-                    return 'Cuộc gọi nhỡ, agent bận máy';
+                    return 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi';
                 }
             }
         
             // Xử lý cho cuộc gọi outbound
             if ($direction === 'outbound') {
                 if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
-                    return 'Agent hủy cuộc gọi, khi khách hàng không trả lời cuộc gọi';
+                    return 'Tổng đài viên chủ động hủy cuộc gọi';
                 }
         
                 if ($disposition === 'send_refuse') {
@@ -994,13 +994,36 @@ class Call extends SugarBean
                         ? 'Khách hàng từ chối cuộc gọi'
                         : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
                 }
+
+                if($hangupCause === 'NORMAL_CLEARING'){
+                    if ($disposition === 'recv_bye'){
+                        return 'Tổng đài viên chủ động kết thúc cuộc gọi';
+                    }
         
-                if ($disposition === 'recv_bye'){
-                    return 'Agent chủ động kết thúc cuộc gọi';
+                    if ($disposition === 'send_bye'){
+                        return 'Khách hàng chủ động kết thúc cuộc gọi';
+                    }
                 }
+            }
+
+            // Xử lý cho cuộc gọi nội bộ (internal)
+            if ($direction === 'internal') {
+                if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
+                    return 'Người gọi chủ động hủy cuộc gọi';
+                }
+            
+                if($hangupCause === 'NORMAL_CLEARING'){
+                    if ($disposition === 'send_bye') {
+                        return 'Người nhận chủ động kết thúc cuộc gọi';
+                    }
+
+                    if ($disposition === 'send_refuse') {
+                        return 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi';
+                    }
     
-                if ($disposition === 'send_bye'){
-                    return 'Khách hàng chủ động kết thúc cuộc gọi';
+                    if ($disposition === 'recv_bye') {
+                        return 'Người gọi chủ động kết thúc cuộc gọi';
+                    }
                 }
             }
         
@@ -1008,6 +1031,32 @@ class Call extends SugarBean
         }
 
         return 'Không xác định';
+    }
+
+    
+    public function summaryLogForCalls($log_calls)
+    {
+		global $timedate;
+        $date_format = $timedate->get_date_format();
+
+        $call_start = $log_calls['call_start'];
+        $call_accepted = getCallAcceptDatetime($log_calls);
+        $call_end = $log_calls['call_end'];
+        $call_answer = calculateWaitTime($log_calls) ?? 0;
+        $call_talk = $log_calls['call_talk'] ?? 0;
+        $call_duration = $log_calls['call_duration'] ?? 0;
+
+        $description = "Cuộc gọi bắt đầu lúc <code>" . date('H:i:s '.$date_format.'', strtotime($call_start)) . "</code>. ";
+        if ($call_accepted) {
+            $description .= "Bắt máy lúc <code>" . date('H:i:s '.$date_format.'', strtotime($call_accepted)) . "</code> sau <code>$call_answer</code> giây chờ đợi. ";
+            $description .= "Hội thoại <code>$call_talk</code> giây và kết thúc lúc <code>" . date('H:i:s '.$date_format.'', strtotime($call_end)) . "</code>. ";
+        } else {
+            $description .= "Cuộc gọi không được bắt máy và kết thúc lúc <code>" . date('H:i:s '.$date_format.'', strtotime($call_end)) . "</code>. ";
+        }
+
+        $description .= "Tổng thời gian cuộc gọi được ghi nhận là <code>$call_duration</code> giây.";
+
+        return $description;
     }
 
     /**
@@ -1031,7 +1080,7 @@ class Call extends SugarBean
         }  
 
         $sql = "
-            SELECT name, description, network_provider, proxy, brand_name, website, label, only_inbound
+            SELECT id, name, description, network_provider, proxy, brand_name, website, label, only_inbound
             FROM ec_outbound_phone
             WHERE status = 'active'
             AND deleted = 0

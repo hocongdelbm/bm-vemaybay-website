@@ -162,7 +162,7 @@ class EC_Flight_BookingsLogicHook
 	{
 		// Contact ID
 		if (!empty($focus->contact_name) && empty($focus->contact_id)) {
-			createContactsForBooking($focus->phone);
+			createContactsForBooking($focus->phone, $focus->contact_name);
 		}
 
 		// Journey

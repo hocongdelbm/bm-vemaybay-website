@@ -13,14 +13,12 @@ class Viewreport extends SugarView {
 	}
 
 	function display_style() {
-		$style = '';
-		$style .= '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/report.css?v=1.0.7">';
+		$style = '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/report.css?v=1.0.7">';
         echo $style;
     }
 
 	function display_script() {
-		$script = '';
-		$script .= '<script src="modules/'.$this->bean->module_dir.'/js/report.js?v=1.0.6"></script>';
+		$script = '<script src="modules/'.$this->bean->module_dir.'/js/report.js?v=1.0.6"></script>';
         echo $script;
     }
 	
@@ -67,7 +65,7 @@ class Viewreport extends SugarView {
 		}
 
 		// SMS
-		$sql_sms = "SELECT COUNT(id) AS total_qty, SUM(cost) as total_amount
+		$sql_sms = "SELECT COUNT(id) AS total_qty, SUM(cost) * 300 as total_amount
 				FROM ec_messages m
 				WHERE $where_date
 					AND m.type = 'sms'

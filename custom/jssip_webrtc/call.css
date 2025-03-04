@@ -810,3 +810,13 @@ ul#offer-transfer-list :where(li:hover, li:focus, li:active) {
     font-size: 14px;
     line-height: 20px;
 }
+
+ul.annotation-list {
+    list-style: disc;
+    border-left: 2px solid var(--bs-warning);
+    padding: 0 30px;
+    font-size: 13px;
+    line-height: 1.75;
+    margin: 15px 0 0;
+    text-align: left;
+}

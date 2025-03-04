@@ -1149,13 +1149,89 @@ $(document).ready(function () {
 
 	// Voucher
 	$('.voucher').on('click', function () {
-		$('#dialog_voucher_detail').dialog({
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
 			width: 500,
 			modal: true,
 			resizable: false,
 			closeOnEscape: false,
 			title: "Chi tiết voucher"
 		});
+	});
+
+	// Points
+	$('.btn-use-point').on('click', function () {
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
+			width: 400,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Dùng điểm tích lũy"
+		});
+	});
+	$('input[name="point_of_use"]').on('input', function () {
+		let p = $(this).val();
+		let ttp = parseInt($('#tt_points').attr('data'));
+
+		if(p > ttp) {
+			$(this).val(ttp);
+			p = ttp;
+		}
+		$('input[name="points_discount"]').val(p*1000);
+	});
+	$('#btn_apply_points_discount').click(function() {
+		let p = $('input[name="point_of_use"]').val();
+		let ttp = parseInt($('#tt_points').attr('data'));
+		let contact_id = $(this).attr('contact_id');
+		let booking_id = $(this).attr('booking_id');
+
+		if(p < 1 || p > ttp) {
+			showModalNotify(2, "Số điểm áp dụng không hợp lệ");
+			return false;
+		}
+
+		if(contact_id.length > 0) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					for: "apply_points",
+					apply_points: p,
+					contact_id: contact_id,
+					booking_id: booking_id
+				},
+				type: "POST",
+				cache: false,
+				beforeSend: function () {$('.container-waiting').show();},
+				success: function (response) {
+					$('.container-waiting').hide();
+					try {
+						let obj = JSON.parse(response);
+
+						if(obj.error == 0) {
+							showModalNotify(1, "Áp điểm thành công");
+							$('.modal-overlay, .btn-modal-close').addClass('reload');
+						}
+						else {
+							let m = obj.message ? obj.message : 'Thao tác không thành công. Liên hệ IT để được hỗ trợ.';
+							showModalNotify(0, m);
+						}
+					}
+					catch(err) {
+						console.error(err);
+						showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+					}
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$('.container-waiting').hide();
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+				}
+			});
+		}
 	});
 });
 

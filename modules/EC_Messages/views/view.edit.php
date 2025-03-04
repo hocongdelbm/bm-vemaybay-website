@@ -9,7 +9,7 @@ class EC_MessagesViewEdit extends ViewEdit {
         $this->css();
 		$this->populate_custom_fields();
 		parent::display();
-        // $this->js();
+        $this->js();
 	}
 
     public function css() {

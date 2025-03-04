@@ -3690,7 +3690,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered
 				FROM ec_flight_bookings
-				WHERE  contact_id = '" . $contact_id . "' AND deleted = 0
+				WHERE contact_id = '$contact_id' AND deleted = 0
 				".$where."
 				ORDER BY date_entered DESC";
 
@@ -3702,22 +3702,22 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 		$name_contact 	= $con->last_name;
 		$phone_contact 	= $con->phone_mobile;
 		$email_contact 	= $con->email1;
+		$points_contact = $con->points ?? 0;
 
 		if ($count_booking > 0) {
 			$i = 1;
 			while ($row = $db->fetchByAssoc($res)) {
-
 				// Infor contact
-				$current_date 			= date('Y-m-d');
-				if ($row['booking_status'] == 2) { //CHỜ THANH TOÁN
+				$current_date = date('Y-m-d');
+				if ($row['booking_status'] == 2) { // CHỜ THANH TOÁN
 					$class_color = 'text-warning';
-				} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { //XÁC NHẬN
+				} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { // XÁC NHẬN
 					$class_color = 'text-success';
-				} elseif ($row['booking_status'] == 4) { //HỦY
+				} elseif ($row['booking_status'] == 4) { // HỦY
 					$class_color = 'text-danger';
-				} elseif ($row['booking_status'] == 6) { //ĐÃ GỌI
+				} elseif ($row['booking_status'] == 6) { // ĐÃ GỌI
 					$class_color = 'text-info';
-				} elseif ($row['booking_status'] == 8) { //HOÀN TẤT
+				} elseif ($row['booking_status'] == 8) { // HOÀN TẤT
 					$class_color = 'text-primary';
 				} else {
 					$class_color = 'text-dark';
@@ -3743,7 +3743,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 					$count_booking_other++;
 				}
 
-				// pr($row);
 				$current_booking = ($row['id'] == $booking_id) ? 'current_booking' : '';
 
 				$html .= '<tr>
@@ -3773,13 +3772,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 								<p>👤 *Họ tên: ' . $name_contact . '</p>  
 								<p>📞 *SĐT: ' . $phone_contact . '</p>
 								<p>📧 *Email: ' . $email_contact . '</p>
-								<p>🏷️ *Mô tả: ' . $type_contact['desc'] . '</p>  
+								<p>⭐ *Điểm tích lũy: <span style="color:red">' . $points_contact . ' điểm</span></p>
 							</div>
 							<div class="flex-fill lh-base">
 								<p>🏷️ *Loại khách hàng: <span class="fw-bold">' . $type_contact['label'] . '</span></p>  
 								<p>📊 *Tổng booking: ' . $count_booking . ' (<span class="text-primary fw-bold">' . $count_booking_completed . ' hoàn tất</span>, <span class="text-danger fw-bold">' . $count_booking_cancel . ' hủy</span>, <span class="text-dark fw-bold">' . $count_booking_other . ' Khác</span>)</p>
 								<p>✅ *Tỷ lệ hoàn tất: <span class="fw-bold">' . round(($count_booking_completed / $count_booking * 100), 2) . '%</span></p>
 								<p>❌ *Tỷ lệ hủy: <span class="fw-bold">' . round(($count_booking_cancel / $count_booking * 100), 2) . '%</span></p>
+								<p>🏷️ *Mô tả: ' . $type_contact['desc'] . '</p>
 							</div>
 							<div class="flex-fill lh-base">
 								<p>💰 *Tổng doanh thu: <span class="fw-bold">' . format_number($total_revenue) . '</span></p>  
@@ -3792,4 +3792,56 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 
 	echo $html_summary . $html;
+}
+
+if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
+	$apply_points 	= $_POST['apply_points'] ?? 0;
+	$contact_id 	= $_POST['contact_id'] ?? '';
+	$booking_id 	= $_POST['booking_id'] ?? '';
+
+	if(strlen($contact_id) == 36 && strlen($booking_id) == 36) {
+		$total_points = $db->getOne("SELECT points FROM contacts WHERE id = '$contact_id' AND deleted = 0");
+
+		if($apply_points < 1 || $apply_points > $total_points) {
+			echo json_encode([
+				'error' => 1,
+				'message' => 'Số điểm áp dụng không hợp lệ',
+				'data' => [
+					'apply_points' => $apply_points,
+					'total_points' => $total_points
+				]
+			]);
+			exit();
+		}
+
+		$discount = $apply_points*1000;
+		$sql_update_contact = "UPDATE contacts SET points = points - $apply_points WHERE id = '$contact_id' AND deleted = 0;";
+		$sql_update_booking = "UPDATE ec_flight_bookings SET discount_amount = discount_amount + $discount, total_amount = total_amount - $discount WHERE id = '$booking_id' AND deleted = 0;";
+		$res_contact = $db->query($sql_update_contact);
+		$res_booking = $db->query($sql_update_booking);
+
+		if($res_contact === false) {
+			echo json_encode([
+				'error' => 1,
+				'message' => 'Lỗi! Vui lòng thử lại sau',
+				'data' => $sql_update_contact
+			]);
+			exit();
+		}
+		if($res_booking === false) {
+			// Rollback
+			$sql_update_contact = "UPDATE contacts SET points = points + $apply_points WHERE id = '$contact_id' AND deleted = 0;";
+			$res_contact = $db->query($sql_update_contact);
+
+			echo json_encode([
+				'error' => 1,
+				'message' => 'Lỗi! Vui lòng thử lại sau',
+				'data' => $sql_update_booking
+			]);
+			exit();
+		}
+
+		echo json_encode(['error' => 0, 'message' => 'Success']);
+		exit(); 
+	}
 }

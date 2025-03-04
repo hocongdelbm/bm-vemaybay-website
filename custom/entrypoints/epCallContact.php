@@ -53,17 +53,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         /**********  2. Get zalo info **********/
         if (!empty($data['zalo_id'])) {
-            require_once('modules/EC_SMS_Logs/Zalo.php');
+            require_once('modules/EC_Zalo/Zalo.php');
             $zalo = new Zalo();
 
             // Get user info
-            $json_user_info = $zalo->get_user_info($data['zalo_id']);
+            $json_user_info = $zalo->get_user($data['zalo_id']);
             $user_info      = json_decode($json_user_info, true);
 
             if ($user_info && $user_info['error'] == 0) {
                 $zalo_phone = (isset($user_info['data']['shared_info']) && isset($user_info['data']['shared_info']['phone'])) ? $user_info['data']['shared_info']['phone'] : '';
                 // Get phone from user_alias
-                if (empty($zalo_phone)) $zalo_phone = get_phone_by_alias($user_info['data']['user_alias']);
+                if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['data']['user_alias']);
 
                 if (empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
                 if (empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
@@ -138,6 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $zalo_id = $data['zalo_id'];
         }
+
         // Lấy thông tin từ Zalo id
         else {
             $sql_1 = '
@@ -169,11 +170,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         /**********  2. Get and check zalo info **********/
         if (!empty($zalo_id)) {
-            require_once('modules/EC_SMS_Logs/Zalo.php');
+            require_once('modules/EC_Zalo/Zalo.php');
             $zalo = new Zalo();
 
             // Get user info
-            $json_user_info = $zalo->get_user_info($zalo_id);
+            $json_user_info = $zalo->get_user($zalo_id);
             $user_info = json_decode($json_user_info, true);
             if ($user_info['error'] != 0) {
                 echo json_encode([
@@ -184,50 +185,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             $zalo_phone = (isset($user_info['data']['shared_info']) && isset($user_info['data']['shared_info']['phone'])) ? $user_info['data']['shared_info']['phone'] : '';
             // Get phone from user_alias
-            if (empty($zalo_phone)) $zalo_phone = get_phone_by_alias($user_info['data']['user_alias']);
+            if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['data']['user_alias']);
 
             if (empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
             if (empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
             $data['avatar'] = $user_info['data']['avatars']['240'];
             $data['last_interaction'] = isset($user_info['data']['user_last_interaction_date']) ? $user_info['data']['user_last_interaction_date'] : ''; // dd/mm/yyyy
-
-            // // Get messages to get last interaction
-            // $json_message = $zalo->get_messages($zalo_id);
-            // $messages = json_decode($json_message, true);
-
-            // if($messages['error'] == 0 && !empty($messages['data'])) {
-            //     foreach($messages['data'] as $row_message) {
-            //         // User chủ động
-            //         if($row_message['from_id'] == $zalo_id) {
-            //             $data['last_interaction'] = date('Y-m-d H:i:s', strtotime(str_replace("/", "-", $row_message['sent_time'])));
-            //             break;
-            //         }
-            //         // OA chủ động (User trả lời cuộc gọi)
-            //         else if($row_message['type'] == 'nosupport') {
-            //             $sql_2 = 'SELECT log
-            //                 FROM calls
-            //                 WHERE direction = "outbound"
-            //                     AND call_from = "'.$zalo->TRAVELPASS_ZALO_ID.'"
-            //                     AND call_to = "'.$zalo_id.'"
-            //                     AND deleted = 0
-            //                 ORDER BY date_entered DESC
-            //             ';
-
-            //             $res_2 = $db->query($sql_2);
-            //             while ($row = $db->fetchByAssoc($res_2)) {
-            //                 $call_log = json_decode(html_entity_decode($row['log']), true);
-
-            //                 // User có trả lời
-            //                 if($call_log['call_talk'] > 0) {
-            //                     $data['last_interaction'] = $call_log['call_start'];
-            //                     break;
-            //                 }
-            //             }
-
-            //             if(!empty($data['last_interaction'])) break;
-            //         }
-            //     }
-            // }
 
             // Check interaction within 30 days
             if (empty($data['last_interaction']) || ((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400 > 30)) {
@@ -247,13 +210,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
 
-
         /**********  3. Get booking info of contact via phone **********/
         if (!empty($data['phone'])) {
             $phone_lh = global_test_input(str_replace(" ", "", $data['phone']));
             $data['info_booking'] = get_booking_info($phone_lh);
         }
-
 
         // Return
         echo json_encode([
@@ -444,22 +405,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         /**********  3. Handle Zalo  **********/
         if (!empty($zalo_id) && empty($phone)) {
-            require_once('modules/EC_SMS_Logs/Zalo.php');
+            require_once('modules/EC_Zalo/Zalo.php');
             $objZalo = new Zalo();
-            $json = $objZalo->get_user_info($zalo_id);
+            $json = $objZalo->get_user($zalo_id);
             $arr = json_decode($json, true);
 
             if (isset($arr['error']) && $arr['error'] == 0) {
-
-                // Send request info
                 if (
                     !isset($arr['data']['shared_info']) ||
                     !isset($arr['data']['shared_info']['phone']) ||
                     empty($arr['data']['shared_info']['phone'])
                 ) {
                     // Get phone from user_alias
-                    if (empty(get_phone_by_alias($arr['data']['user_alias']))) {
-                        $objZalo->send_request_user_info($zalo_id);
+                    if (empty($objZalo->get_phone_by_alias($arr['data']['user_alias']))) {
+                        $data['element'] = $objZalo->get_template('request_user_info');
+                        $objZalo->send_consultation('request_user_info', $zalo_id, $data);
                         $objZalo->send_to_telegram('Gửi yêu cầu thông tin đến Zalo <b>' . $zalo_id . '</b>');
                     }
                 }
@@ -1035,23 +995,6 @@ function get_booking_refund($phone)
     }
 
     return $html;
-}
-
-// Use with zalo
-function get_phone_by_alias($alias)
-{
-    if (is_null($alias) || empty($alias)) return '';
-
-    preg_match_all('!\d+!', $alias, $matches);
-    if (isset($matches[0]) && !empty($matches[0])) {
-        foreach ($matches[0] as $number) {
-            if (strlen($number) === 10) {
-                return $number;
-            }
-        }
-    }
-
-    return '';
 }
 
 function save_log_call($log_call)

@@ -337,7 +337,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $m->save();
 
             $fullname = $current_user->last_name.' '.$current_user->first_name;
-            send_to_telegram_zalo_channel("<b>".$fullname.'</b>: Gửi '.$Zalo->get_template_name_zns($template_id).' đến Zalo <b>' . $phone .'</b>');
+            $Zalo->send_to_telegram("<b>".$fullname.'</b>: Gửi '.$Zalo->get_template_name_zns($template_id).' đến Zalo <b>' . $phone .'</b>');
 
             echo json_encode([
                 "error"   => 0,
@@ -581,24 +581,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "message" => "Tính năng chưa chỗ trợ"
     ]);
     exit();
-}
-
-function send_to_telegram_zalo_channel($content, $parseMode = 'HTML', $timeout = 15) {
-    $token  = '6940954517:AAFINEfJWBOcuoThjXNycvNRRZjT3ZgLey8'; // TimChuyenBayOA_bot
-    $chatId = '-1002134640739'; // Tìm Chuyến Bay OA Zalo ZNS
-
-    $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatId;
-    $url = $url . "&parse_mode=".$parseMode."&text=" . urlencode($content);
-    $curl = curl_init();
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-    $result = curl_exec($curl);
-    curl_close($curl);
-    return $result;
 }
 
 header("HTTP/1.0 405 Method Not Allowed");

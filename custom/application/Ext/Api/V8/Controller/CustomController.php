@@ -144,21 +144,11 @@ class CustomController extends BaseController
         $call_duration  = isset($params['call_duration']) ? global_test_input($params['call_duration']) : 0;
         $call_talk      = isset($params['call_talk']) ? global_test_input($params['call_talk']) : 0;
         $call_wait      = isset($params['call_wait']) ? global_test_input($params['call_wait']) : 0;
+        $call_answer    = isset($params['call_answer']) ? global_test_input($params['call_answer']) : 0;
         $record_file    = isset($params['record_file']) ? global_test_input($params['record_file']) : '';
         $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
 
         if (empty($call_id)) {
-            // Notify tele
-            $log_call_failed = array(
-				'domain' => 'bm.vemaybay.website',
-				'path' => 'custom/Controler/save_call',
-				'datetime' => date('d-m-Y H:i:s'),
-				'call_id' => $call_id,
-				'message' => 'Lỗi params call_id. Lưu thông tin cuộc gọi thất bại',
-				'params' => json_encode($params),
-			);
-			sendTestTelegram(json_encode($log_call_failed));
-
             // Lưu log
             $GLOBALS['log']->fatal('Lỗi params. Lưu thông tin cuộc gọi thất bại');
 			write_file_backup_log_calls(json_encode($params));
@@ -209,7 +199,7 @@ class CustomController extends BaseController
         else if ($call_direction == 'inbound' && isSpamPhone($call_from) && strlen($call_from) < 15) {
             $call->direction = 'spam';
         }
-        else if ($call_direction == 'inbound' && $params['call_talk'] == 0) {
+        else if ($call_direction == 'inbound' && $call_talk == 0) {
             // Check file json
             $json_blacklist = get_blacklist_phone();
 
@@ -245,7 +235,7 @@ class CustomController extends BaseController
             }
 
         }
-        else if ($call_direction == 'inbound' && $params['call_talk'] < 6) {
+        else if ($call_direction == 'inbound' && $call_talk < 6) {
             $call->direction = 'suddenly';
         }
         else {
@@ -263,9 +253,10 @@ class CustomController extends BaseController
         $call->log          = json_encode($params);
         $call->record_file  = $record_file;
         $call->other_caller = $other_caller;
-        $call->call_duration = $call_duration;
-        $call->call_wait    = $call_wait;
-        $call->call_talk    = $call_talk;
+        $call->call_duration = (int)$call_duration;
+        $call->call_wait    = (int)calculateWaitTime($params);
+        $call->call_talk    = (int)$call_talk;
+        $call->is_success   = ((int)$call_talk > 0) ? 1 : 0;
 
         if ($call_direction == 'inbound' || $call_direction != 'outbound') {
             $call->call_sources = getCallSource($call_to);

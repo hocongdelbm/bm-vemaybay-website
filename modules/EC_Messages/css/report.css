@@ -9,6 +9,9 @@
 .report .title {
     text-align: center;
 }
+.report .subtitle {
+    text-align: left;
+}
 
 .report .search {
     padding: 15px 0;

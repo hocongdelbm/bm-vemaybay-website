@@ -175,31 +175,140 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 				echo 1;
 
-				// // Save and send message add points to contact when paid successfully
-				// if (!is_null($is_paid) && $is_paid == 1) {
-				// 	$con_id = $con_phone = $con_zalo_id = '';
-				// 	$sql_get_phone_and_zalo = "
-				// 		SELECT c.id, bk.phone, c.zalo_id
-				// 		FROM ec_flight_bookings bk
-				// 			LEFT JOIN contacts c ON c.phone_mobile = bk.phone AND c.deleted = 0
-				// 		WHERE bk.id = '$record' AND bk.deleted = 0
-				// 	";
-				// 	$res_get_phone_and_zalo = $db->query($sql_get_phone_and_zalo);
-				// 	while ($row = $db->fetchByAssoc($res_get_phone_and_zalo)) {
-				// 		$con_id = $row['id'] ?? '';
-				// 		$con_phone = $row['phone'] ?? '';
-				// 		$con_zalo_id = $row['zalo_id'] ?? '';
-				// 	}
+				// Save and send message add points to contact when paid successfully
+				try {
+					if (!is_null($is_paid) && $is_paid == 1) {
+						$con_id = $con_phone = $con_zalo_id = $con_name = '';
+						$sql_get_phone_and_zalo = "
+							SELECT c.id, bk.phone, c.zalo_id, c.last_name
+							FROM ec_flight_bookings bk
+								LEFT JOIN contacts c ON c.phone_mobile = bk.phone AND c.deleted = 0
+							WHERE bk.id = '$record' AND bk.deleted = 0
+						";
+						$res_get_phone_and_zalo = $db->query($sql_get_phone_and_zalo);
+						while ($row = $db->fetchByAssoc($res_get_phone_and_zalo)) {
+							$con_id = $row['id'] ?? '';
+							$con_phone = $row['phone'] ?? '';
+							$con_zalo_id = $row['zalo_id'] ?? '';
+							$con_name = $row['last_name'] ?? 'bạn';
 
-				// 	if(!empty($con_phone) && !empty($con_zalo_id)) {
-				// 		$point = calculatePointsFromBooking($record);
-				// 		if($point > 0) {
-				// 			$sql_update_point = "UPDATE contacts SET points = points + $point WHERE id = '$con_id'";
-				// 			$db->query($sql_update_point);
-				// 			// Send zalo here
-				// 		}
-				// 	}
-				// }
+							if(stripos($con_name, "Khách") !== false || stripos($con_name, "Khach") !== false || stripos($con_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $con_name)) {
+								$con_name = 'bạn';
+							}
+						}
+	
+						if(!empty($con_phone)) {
+							// Update point to contact
+							$point = calculatePointsFromBooking($record);
+							if($point > 0) {
+								$sql_update_point = "UPDATE contacts SET points = points + $point WHERE id = '$con_id'";
+								$db->query($sql_update_point);
+							}
+
+							// Get total point
+							$sql = "SELECT points FROM contacts WHERE id = '$con_id'";
+							$total_point = $db->getOne($sql);
+							
+							// Send point info to customer via Zalo
+							require_once('modules/EC_Zalo/Zalo.php');
+							$Zalo = new Zalo();
+							if(!empty($con_zalo_id)) {
+								if($total_point > 0) {
+									$total_discount = number_format($total_point*1000, 0, ',', '.') . "đ";
+									$header = "CHÚC MỪNG BẠN ĐÃ TÍCH LŨY $point ĐIỂM!";
+									$text = "Cảm ơn bạn đã tin tưởng lựa chọn Tìm Chuyến Bay. Bạn được giảm $total_discount cho lần mua vé tiếp theo. Điểm số càng cao, càng nhiều ưu đãi hấp dẫn.";
+									$text2 = "Chúc bạn có một chuyến đi an toàn, vui vẻ & như ý.";
+									$table = [
+										[
+											"key" => "Mã booking",
+											"value" => "$record_name",
+										],
+										[
+											"key" => "Số điện thoại",
+											"value" => "$con_phone",
+										],
+										[
+											"key" => "Tổng tích lũy",
+											"value" => "$total_point điểm",
+										],
+									];
+									
+									$json = $Zalo->send_transaction($con_zalo_id, 'transaction_reward', $header, $text, $table, $text2);
+									$arr = json_decode($json, true);
+
+									if(isset($arr['error']) && $arr['error'] == 0) {
+										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
+										$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
+										$content .= "\nBooking: <b>$record_name</b>";
+										$content .= "\nSố điện thoại: <b>$con_phone</b>";
+										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+										$Zalo->send_to_telegram($content);
+									}
+									else {
+										$content = "Gửi tin nhắn tích điểm đến zalo id thất bại\n";
+										$content .= "\nBooking: <b>$record_name</b>";
+										$content .= "\nSố điện thoại: <b>$con_phone</b>";
+										$content .= "\nZalo ID: <b>$con_zalo_id</b>";
+										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+										sendTestTelegram($content);
+									}
+								}
+							}
+							else {
+								$template_id = $Zalo->get_template_id_zns('points');
+								$template_data = json_encode([
+									"point" => $point,
+									"name" => $con_name,
+									"booking" => $record_name,
+									"total_point" => $total_point
+								]);
+								$json = $Zalo->send_zns($con_phone, $template_id, $template_data);
+								$arr  = json_decode($json, true);
+
+								if(isset($arr['error']) && $arr['error'] == 0) {
+									$m = new EC_Messages();
+									$m->send_from       = $Zalo->get_oa_id();
+									$m->send_to         = $con_phone;
+									$m->content         = $Zalo->get_template_name_zns($template_id);
+									$m->type            = 'zalo_zns';
+									$m->category        = 'transaction';
+									$m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
+									$m->parent_type     = 'EC_Flight_Bookings';
+									$m->parent_id       = $record;
+									$m->data            = $template_data;
+									$m->response        = $json;
+									$m->status          = 'done';
+									$m->cost            = 220;
+									$m->save();
+
+									$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
+									$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua ZNS\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nHọ tên: <b>$con_name</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$Zalo->send_to_telegram($content);
+								}
+								else {
+									$content = "Gửi tin nhắn ZNS tích điểm thất bại\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nHọ tên: <b>$con_name</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									sendTestTelegram($content);
+								}
+							}
+						}
+					}
+				}
+				catch(Exception $e) {
+					if (!empty($txtWorkingProcessNote)) $note->save();
+					exit();
+				}
 			} 
 			else echo 0;
 		}

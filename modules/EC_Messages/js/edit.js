@@ -1,6 +1,9 @@
 $(document).ready(function () {
-    // add readonly for "send_from"
-    $('#send_from').prop('disabled', true);
+    $('div.label[data-label=LBL_CONTENT]').append('<span class="content-length"><span id="content_length">0</span> kí tự</span>');
+
+    $('textarea#content').on('input', function(event) {
+        $('#content_length').text($(this).val().length);
+    });
 
     // $('select#type').change(function() {
     //     $(this).find(':selected').each(function() {

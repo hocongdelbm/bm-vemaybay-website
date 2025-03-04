@@ -455,7 +455,6 @@ $(document).ready(function () {
         // Gọi bằng numpad
         if (id == 'btn-voiceip-main-calling') {
             number = $('#call_voiceip_main_number').val().trim();
-            $('#call_voiceip_main_number').val('');
         }
         else if (id == 'btnCalled' || id == 'btnRecall' || 'btnRemind') {
             number = $(this).attr('phone');
@@ -472,11 +471,12 @@ $(document).ready(function () {
             call_id = $(this).attr('call_id');
         }
 
-        if (number.length > 0 && number != SIP_USER) {
+        if (number.length > 2 && number != SIP_USER) {
             callOptions.extraHeaders = ['X-Caller: ' + outbound_phone]
 
             resetPopupVoiceip();
             $('.call-phone__numpad').hide();
+            $('#call_voiceip_main_number').val('');
 
             // Map call to phone or zalo_id
             let phone = '', zalo_id = '';
@@ -561,12 +561,17 @@ $(document).ready(function () {
                     console.error("Error: " + errorThrown);
                 }
             });
+        } else {
+            showToastWarning('Vui lòng đảm bảo số gọi đi là chính xác!');
+            return false;
         }
     });
 
     $(document).keyup(function (e) {
-        if (e.keyCode === 13) { //Enter
-            $('#btn-voiceip-main-calling').click();
+        if ($('.call-phone__numpad').is(':visible')) {
+            if (e.keyCode === 13) { //Enter
+                $('#btn-voiceip-main-calling').click();
+            }
         }
 
         if (e.keyCode === 8) { //Backspace
@@ -596,7 +601,6 @@ $(document).ready(function () {
         // Gọi bằng numpad zalo
         if (id == 'btn-voiceip-main-zalo') {
             number = $('#call_voiceip_main_number').val().trim();
-            $('#call_voiceip_main_number').val('');
         } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             number = $(this).attr('phone');
         }
@@ -616,11 +620,12 @@ $(document).ready(function () {
             $('#voiceip-info-zaloid').html(number);
         }
 
-        if (number.length > 0 && number != SIP_USER) {
+        if (number.length > 2 && number != SIP_USER) {
             callOptions.extraHeaders = ['X-Caller: ' + outbound_phone]
 
             resetPopupVoiceip();
             $('.call-phone__numpad').hide();
+            $('#call_voiceip_main_number').val('');
 
             $.ajax({
                 url: "index.php?entryPoint=entryPointCallContact",
@@ -641,9 +646,9 @@ $(document).ready(function () {
                         let email = obj.data.email;
                         let avatar = obj.data.avatar ? obj.data.avatar.replace(/\\/g, "") : "";
 
-                        let info_booking = data.info_booking;
-                        let info_refund_ticket = data.info_refund_ticket;
-                        let info_call = data.info_call;
+                        let info_booking = obj.data.info_booking;
+                        let info_refund_ticket = obj.data.info_refund_ticket;
+                        let info_call = obj.data.info_call;
                         let activity_contact = info_booking + info_refund_ticket + info_call;
 
                         // Make a call
@@ -696,6 +701,9 @@ $(document).ready(function () {
                     console.error("Error Zalo: " + errorThrown);
                 }
             });
+        } else {
+            showToastWarning('Vui lòng đảm bảo số gọi đi là chính xác!');
+            return false;
         }
     });
 

@@ -157,4 +157,5 @@ $mod_strings = array(
 
     'LBL_TYPE_CALL_SOURCES' => 'Nguồn chi tiết',
     'LBL_CALL_REASON' => 'Phân loại cuộc gọi',
+    'LBL_IS_SUCCESS' => 'Trạng thái',
 );

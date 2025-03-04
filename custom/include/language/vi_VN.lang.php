@@ -507,13 +507,6 @@ $GLOBALS['app_list_strings']['system_config_list'] = array(
   'telegram_chat_id' => '-343974810',
 );
 
-/************  EC_SMS_Logs  ************/
-$GLOBALS['app_list_strings']['sms_logs_status'] = array(
-  'new' => 'Mới tạo',
-  'scheduled' => 'Đã lên lịch',
-  'done' => 'Đã gửi',
-  'fail' => 'Thất bại'
-);
 
 /************  EC_Messages  ************/
 $GLOBALS['app_list_strings']['message_type_list'] = [
@@ -535,7 +528,6 @@ $GLOBALS['app_list_strings']['message_status'] = [
   'done' => 'Đã gửi',
   'fail' => 'Thất bại'
 ];
-
 
 
 $GLOBALS['app_list_strings']['user_title_allow_full_report'] = array(
@@ -626,12 +618,6 @@ $GLOBALS['app_list_strings']['vietnam_mobile_new_network_list'] = array(
   '058' => '0,2,4,5,6,7',
   '099' => '0,2,4,5,6,7',
   '059' => '0,2,4,5,6,7',
-);
-
-$GLOBALS['app_list_strings']['sms_template_list'] = array(
-  // 'Đơn hàng không nghe máy' => 'Chao Anh/Chi, ve may bay cua anh/chi da duoc xac nhan thanh cong. Vui long LH: ... de biet chi tiet va thanh toan truoc ... Xin cam on! (No reply)',
-  // 'Vé KM, Vé cận giờ bay (Ko nghe máy)' => 'Chao Anh/Chi, ve may bay cua anh/chi khong giu duoc cho. Vui long LH: ... Som de xac nhan thanh toan lay ve. Xin cam on! (No reply)',
-  'Không nghe máy, vé KM, cận' => 'Xin chao ban, so DT hien khong lien lac duoc. Truong hop ve KM hoac gan gio bay vui long goi cho chung toi 1900 63 6060 hoac Zalo/SMS ...',
 );
 
 $GLOBALS['app_list_strings']['bk_holding_status_list'] = array(
@@ -2561,7 +2547,6 @@ $app_list_strings['network_provider_list'] = array(
 $app_list_strings['outbound_phone_status_list'] = array(
   'active' => 'Đang hoạt động',
   'inactive' => 'Không hoạt động',
-  'blocked' => 'Bị chặn',
 );
 
 $app_list_strings['website_list'] = array(

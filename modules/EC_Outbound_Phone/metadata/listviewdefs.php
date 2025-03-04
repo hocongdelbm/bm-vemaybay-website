@@ -21,44 +21,44 @@ $listViewDefs[$module_name] = array(
         'width' => '32',
         'label' => 'LBL_BRAND_NAME',
         'default' => true,
-        'link' => true
+        'link' => false
     ),
     'WEBSITE' => array(
         'width' => '32',
         'label' => 'LBL_WEBSITE',
         'default' => true,
-        'link' => true
+        'link' => false
     ),
     'STATUS' => array(
         'width' => '32',
         'label' => 'LBL_STATUS',
         'default' => true,
-        'link' => true
+        'link' => false
     ),
     'ONLY_INBOUND' => array(
         'width' => '32',
         'label' => 'LBL_ONLY_INBOUND',
         'default' => true,
-        'link' => true
+        'link' => false
     ),
     'ROUND_ROBIN' => array(
         'width' => '32',
         'label' => 'LBL_ROUND_ROBIN',
         'default' => true,
-        'link' => true
+        'link' => false
     ),
     'DESCRIPTION' => array(
         'width' => '32',
         'label' => 'LBL_DESCRIPTION',
         'default' => true,
-        'link' => true
+        'link' => false
     ),
     'ASSIGNED_USER_NAME' => array(
         'width' => '9',
         'label' => 'LBL_ASSIGNED_TO_NAME',
         'module' => 'Employees',
         'id' => 'ASSIGNED_USER_ID',
-        'default' => true
+        'default' => false
     ),
 
 );

@@ -307,7 +307,7 @@
 }
 .wrap-voucher .group-voucher, .wrap-voucher .single-voucher {
     border-radius: 3px;
-    font-size: .825rem;
+    font-size: .725rem;
     font-weight: 500;
     cursor: pointer;
     padding: 0.25rem .5rem;
@@ -335,6 +335,42 @@
 }
 .voucher-list-items .voucher-item.voucher-item-code {font-weight: bold;}
 .voucher-list-items .voucher-item.voucher-item-discount-amount {color: var(--red-vj-color);}
+
+/* Points */
+.btn-use-point {
+    font-size: .725rem;
+}
+.btn-apply-points-discount {
+    display: block;
+    margin: 0 auto;
+    margin-top: 1rem;
+}
+
+.dialog-use-point .content {
+    display: flex;
+    align-items: flex-end;
+    border-radius: 0;
+    gap: 20px;
+}
+.dialog-use-point .content .point {width: 45%;}
+.dialog-use-point .content .point .tt_points {
+    font-size: 14px;
+    margin-left: 10px
+}
+.dialog-use-point .content .equal {
+    width: 5%;
+    background: none;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}
+.dialog-use-point .content .amount {flex: 1;}
+.dialog-use-point .content .amount label {text-align: center;}
+.dialog-use-point .content .amount input {text-align: right;}
+.dialog-use-point .content label {
+    font-size: 14px;
+    padding-bottom: 3px;
+}
 
 /* ================= RESPONSIVE TABLE ============== */
 @media screen and (max-width: 600px) {
