@@ -18,6 +18,8 @@ function calculateWaitTime($log_call) {
     if (isset($log_call['call_accepted'], $log_call['call_start'])) {
         return (int)strtotime($log_call['call_accepted']) - (int)strtotime($log_call['call_start']);
     }
+
+    return $log_call['call_wait'] ?? 0;
 }
 
 /**

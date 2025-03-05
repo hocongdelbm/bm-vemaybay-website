@@ -1788,18 +1788,28 @@ EOHTML;
                     if (!empty($this->bean->id) &&
                         (empty($_REQUEST['isDuplicate']) || $_REQUEST['isDuplicate'] === 'false')
                     ) {
-                        $params[] =
-                            "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
-                            $this->bean->get_summary_text() .
-                            "</a>";
+                        // $params[] =
+                        //     "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
+                        //     $this->bean->get_summary_text() .
+                        //     "</a>";
+                        if (isset($this->bean)) {
+                            $params[] =
+                                "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
+                                $this->bean->get_summary_text() .
+                                "</a>";
+                        }
                         $params[] = $GLOBALS['app_strings']['LBL_EDIT_BUTTON_LABEL'];
                     } else {
                         $params[] = $GLOBALS['app_strings']['LBL_CREATE_BUTTON_LABEL'];
                     }
                     break;
                 case 'DetailView':
-                    $beanName = $this->bean->get_summary_text();
-                    $params[] = $beanName;
+                    if (isset($this->bean)) {
+                        $beanName = $this->bean->get_summary_text();
+                        $params[] = $beanName;
+                    }
+                    // $beanName = $this->bean->get_summary_text();
+                    // $params[] = $beanName;
                     break;
             }
         }

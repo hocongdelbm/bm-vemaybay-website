@@ -1,4 +1,6 @@
 <?php
+global $current_user;
+
 $viewdefs['Calls'] = array(
 	'DetailView' => array(
 		'templateMeta' => array(
@@ -6,7 +8,22 @@ $viewdefs['Calls'] = array(
 				'buttons' => array(
 					'EDIT',
 					// 'DUPLICATE',
-					// 'DELETE',
+					'DELETE',
+					// array(
+					// 	'customCode' => '{if $bean->aclAccess("delete") && $current_user->is_admin == 1}<input title="{$APP.LBL_DELETE_BUTTON_TITLE}" accessKey="{$APP.LBL_DELETE_BUTTON_KEY}" class="btn btn-delete btn-danger" onclick="this.form.return_module.value=\'Users\'; this.form.return_action.value=\'EditView\'; this.form.return_id.value=\'{$return_id}\'; this.form.action.value=\'Delete\'; return confirm(\'{$APP.NTC_DELETE_CONFIRMATION}\');" type="submit" name="Delete" value="{$APP.LBL_DELETE_BUTTON_LABEL}">{/if}',
+					// 	'sugar_html' => array(
+					// 	  'type' => 'submit',
+					// 	  'value' => '{$APP.LBL_DELETE_BUTTON_LABEL}',
+					// 	  'htmlOptions' => array(
+					// 	    'title' => '{$APP.LBL_DELETE_BUTTON_TITLE}',
+					// 	    'accessKey' => '{$APP.LBL_DELETE_BUTTON_KEY}',
+					// 	    'class' => 'btn btn-delete btn-danger',
+					// 	    'onclick' => 'this.form.return_module.value=\'Calls\'; this.form.return_action.value=\'ListView\'; this.form.return_id.value=\'{$return_id}\'; this.form.action.value=\'Delete\'; return confirm(\'Bạn chắc muốn xoá hoàn toàn cuộc gọi này?\');',
+					// 	    'name' => 'Delete',
+					// 	  ),
+					// 	  'template' => '{if $bean->aclAccess("delete") && $current_user->is_admin == 1}[CONTENT]{/if}',
+					// 	),
+					// ),
 					array('customCode' => '{$CALLS_STATUS}'),
 					array('customCode' => '{$CHANGE_STATUS}'),
 					array('customCode' => '{$CALLS_ANNOTATION}'),

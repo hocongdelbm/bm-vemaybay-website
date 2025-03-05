@@ -56,6 +56,8 @@ class Viewsummary extends SugarView
 
      function assignFields($con, $smarty)
      {
+          global $current_user;
+
           $smarty->assign('MODULE_NAME', $this->bean->module_dir);
           $smarty->assign('FROM_DATE', $con['from_date']);
           $smarty->assign('TO_DATE', $con['to_date']);
@@ -83,6 +85,18 @@ class Viewsummary extends SugarView
           $smarty->assign('TOTAL_OUTBOUND', format_number($data_type_call['outbound']));
           $smarty->assign('TOTAL_MISSED', format_number($data_type_call['missed']));
           $smarty->assign('TOTAL_INTERNAL', format_number($data_type_call['internal']));
+
+          // CDR Statistics
+          $calls = BeanFactory::getBean('Calls');
+          $cdr_stats = $calls->getCDRStatistics();
+
+          $smarty->assign('DATA_CDR_VOLUME', json_encode($cdr_stats['volume']));
+          $smarty->assign('DATA_CDR_MINUTES', json_encode($cdr_stats['minutes']));
+          $smarty->assign('DATA_CDR_CPM', json_encode($cdr_stats['call_per_min']));
+          $smarty->assign('DATA_CDR_MISSED', json_encode($cdr_stats['missed']));
+          $smarty->assign('DATA_CDR_ASR', json_encode($cdr_stats['asr']));
+          $smarty->assign('DATA_CDR_ALOC', json_encode($cdr_stats['aloc']));
+          $smarty->assign('CDR_STATS_TABLE', $cdr_stats['data'] ? $this->renderDataTableCdrStats($cdr_stats['data']) : []);
      }
 
      function reportDirectionData($data)
@@ -437,5 +451,87 @@ class Viewsummary extends SugarView
                'missed' => $missed,
                'internal' => $internal,
           ];
+     }
+
+     function renderDataTableCdrStats($rows)
+     {
+          $table = '<table class="table table-hover mt-5">';
+          $table .= '<thead class="table-dark">
+                         <tr>
+                              <th style="border-top-left-radius: 10px;">Hours</th>
+                              <th>Date</th> 
+                              <th>Time</th>
+                              <th>Volume</th>
+                              <th>Minutes</th>
+                              <th>Calls Per Min</th>
+                              <th>Missed</th>
+                              <th>ASR</th>
+                              <th style="border-top-right-radius: 10px;">ALOC</th>
+                         </tr>
+                    </thead>';
+
+          $hours = 23;
+          foreach ($rows as $index => $row) {
+               $table .= '<tr>';
+               if ($index <= $hours) {
+                    $table .= '<td>' . $row['hours'] . '</td>';
+               } 
+               else if ($index == $hours + 1) {
+                    $table .= '
+                              <tr>
+                              <td colspan="9">
+                                        <br>
+                                   </td>
+                              </tr>
+                              <thead class="table-dark">
+                                   <tr>
+                                        <th style="border-top-left-radius: 10px;">Days</th>
+                                        <th>Date</th> 
+                                        <th>Time</th>
+                                        <th>Volume</th>
+                                        <th>Minutes</th>
+                                        <th>Calls Per Min</th>
+                                        <th>Missed</th>
+                                        <th>ASR</th>
+                                        <th style="border-top-right-radius: 10px;">ALOC</th>
+                                   </tr>
+                              </thead>';
+               }
+
+               if ($index > $hours) {
+                    $table .= '<td>' . floor(trim($row['s_hour']) / 24) . '</td>';
+               }
+
+               $table .= '<td>' . trim($row['date']) . '</td>';
+               $table .= '<td>' . trim($row['time']) . '</td>';
+               $table .= '<td>' . trim($row['volume']) . '</td>';
+               $table .= '<td>' . trim(round($row['minutes'] ?? 0, 2)) . '</td>';
+               $table .= '<td>' . trim(round($row['calls_per_minute'] ?? 0, 2)) . ' / ' . trim(round($row['cpm_answered'] ?? 0, 2)) . '</td>';
+               $table .= '<td>' . trim($row['missed']) . '</td>';
+               $table .= '<td>' . trim(round($row['asr'] ?? 0, 2)) . '</td>';
+               $table .= '<td>' . trim(round($row['aloc'] ?? 0, 2)) . '</td>';
+
+               $table .= '</tr>';
+          }
+
+          $table .= '<tfoot>
+                         <tr>
+                              <td colspan="9">
+                                   <ul class="annotation-list">
+                                        <li><strong>Date: </strong>Ngày tháng.</li>
+                                        <li><strong>Time: </strong>Khoảng thời gian (AM: Buổi sáng, PM: Buổi tối).</li>
+                                        <li><strong>Volume: </strong>Tổng số lượng cuộc gọi.</li>
+                                        <li><strong>Minutes: </strong>Tổng số phút hội thoại.</li>
+                                        <li><strong>Calls Per Min: </strong>Số lượng cuộc gọi trong mỗi phút / Số lượng cuộc gọi được trả lời mỗi phút</li>
+                                        <li><strong>Missed: </strong>Số cuộc gọi nhỡ.</li>
+                                        <li><strong>ASR: </strong>Tỷ lệ cuộc gọi trả lời.</li>
+                                        <li><strong>ALOC: </strong>Thời lượng trung bình được trả lời.</li>
+                                   </ul>
+                              </td>
+                         </tr>
+                    </tfoot>';
+
+          $table .= '</table>';
+          return $table;
      }
 }

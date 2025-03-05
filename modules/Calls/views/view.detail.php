@@ -9,13 +9,15 @@ class CallsViewDetail extends ViewDetail
 	{
 		global $current_user, $app_list_strings, $sugar_config, $timedate;
 
-		if ($current_user->user_name == 'hungnh' || $current_user->user_name == 'quangnd') {
+		if (!is_admin($current_user)) {
+			unset($this->dv->defs['templateMeta']['form']['buttons'][1]); // Ẩn nút DELETE
+		}
+
+		if ($current_user->user_name == 'hungnh') {
 			$log = json_decode(html_entity_decode($this->bean->log), true);
 			$date_format = $timedate->get_date_format();
-
 			pr($log);
-
-			// write_file_backup_log_calls(json_encode($log));
+			// pr($this->dv->defs['templateMeta']['form']['buttons']);
 		}
 
 		$this->populateCustomButtons();
@@ -44,7 +46,8 @@ class CallsViewDetail extends ViewDetail
 		}
 
 		// DOITT - xử lý cuộc gọi
-		if (ACLController::checkAccess('Calls', 'edit', true)) {
+
+		if (ACLController::checkAccess('Calls', 'edit', true) && $this->bean->status != 'done') {
 			$change_status = '</form>
 			<form action="index.php" method="post" id="frmChangeStatus" name="frmChangeStatus">
 				<input type="hidden" name="module" value="Calls" />

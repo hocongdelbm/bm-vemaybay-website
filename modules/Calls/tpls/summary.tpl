@@ -1,5 +1,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
 {literal}
 <style>
@@ -184,7 +185,8 @@
 <script>
      $(document).ready(function() {
           createCallChart();
-
+          createCdr_Stats_Chart();
+          
           $("#month_select").change(function() {
                $("#from_date").val($(this).find("option:selected").data("from-date"));
                $("#to_date").val($(this).find("option:selected").data("to-date"));
@@ -258,6 +260,106 @@
                     document.getElementById('call-chart'),
                     config
                );
+          }
+
+          function createCdr_Stats_Chart() {
+               const ctx = document.getElementById("cdr_stats_chart");
+
+               const data_cdr_volume = JSON.parse($("#data_cdr_volume").html() || "[]");
+               const data_cdr_minutes = JSON.parse($("#data_cdr_minutes").html() || "[]");
+               const data_cdr_cpm = JSON.parse($("#data_cdr_cpm").html() || "[]");
+               const data_cdr_missed = JSON.parse($("#data_cdr_missed").html() || "[]");
+               const data_cdr_asr = JSON.parse($("#data_cdr_asr").html() || "[]");
+               const data_cdr_aloc = JSON.parse($("#data_cdr_aloc").html() || "[]");
+
+               const cdr_stats_data = {
+                    datasets: [{
+                              label: "Volume",
+                              data: data_cdr_volume,
+                              backgroundColor: "#EDC240",
+                              borderColor: "#EDC240",
+                              fill: false
+                         },
+                         {
+                              label: "Minutes",
+                              data: data_cdr_minutes,
+                              backgroundColor: "#AFD8F8",
+                              borderColor: "#AFD8F8",
+                              fill: false
+                         },
+                         {
+                              label: "Calls Per Min",
+                              data: data_cdr_cpm,
+                              backgroundColor: "#CB4B4B",
+                              borderColor: "#CB4B4B",
+                              fill: false
+                         },
+                         {
+                              label: "Missed",
+                              data: data_cdr_missed,
+                              backgroundColor: "#4DA74D",
+                              borderColor: "#4DA74D",
+                              fill: false
+                         },
+                         {
+                              label: "ASR",
+                              data: data_cdr_asr,
+                              backgroundColor: "#9440ED",
+                              borderColor: "#9440ED",
+                              fill: false
+                         },
+                         {
+                              label: "ALOC",
+                              data: data_cdr_aloc,
+                              backgroundColor: "#BD9B33",
+                              borderColor: "#BD9B33",
+                              fill: false
+                         }
+                    ]
+               };
+
+               const cdr_stats_config = {
+                    type: 'line',
+                    data: cdr_stats_data,
+                    options: {
+                         responsive: true,
+                         maintainAspectRatio: false,
+                         plugins: {
+                              legend: {
+                                   display: true,
+                                   labels: {
+                                        usePointStyle: true,
+                                        pointStyle: 'rect',
+                                        color: '#444',
+                                        boxWidth: 15
+                                   }
+                              }
+                         },
+                         scales: {
+                              x: {
+                                   type: "time",
+                              },
+                              y: {
+                                   min: 0
+                              }
+                         },
+                         elements: {
+                              line: {
+                                   tension: 0.3
+                              }
+                         }
+                    },
+                    scales: {
+                         xAxes: {type: "time",timeFormat: "%d:%H",minTickSize: [1, "hour"]},
+                         yAxes: [{
+                              ticks: {
+                                   beginAtZero: true
+                              }
+                         }]
+                    }
+               };
+
+               const cdr_stats_chart = new Chart(ctx, cdr_stats_config);
           }
      });
 </script>
@@ -338,5 +440,19 @@
                     </div>
                </div>
           </div>
+     </div>
+
+     <div class="box-section">
+          <div class="flex-start">
+               <div id="data_cdr_volume" class="d-none">{$DATA_CDR_VOLUME}</div>
+               <div id="data_cdr_minutes" class="d-none">{$DATA_CDR_MINUTES}</div>
+               <div id="data_cdr_cpm" class="d-none">{$DATA_CDR_CPM}</div>
+               <div id="data_cdr_missed" class="d-none">{$DATA_CDR_MISSED}</div>
+               <div id="data_cdr_asr" class="d-none">{$DATA_CDR_ASR}</div>
+               <div id="data_cdr_aloc" class="d-none">{$DATA_CDR_ALOC}</div>
+
+               <canvas id="cdr_stats_chart" class="w-90 m-auto" style="max-height: 500px;"></canvas>
+          </div>
+          {$CDR_STATS_TABLE}
      </div>
 </div>    

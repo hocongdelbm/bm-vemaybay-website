@@ -76,23 +76,6 @@ $listViewDefs['Calls'] = array(
 			'time_start',
 		),
 	),
-	// 'DATE_END' =>
-	// array(
-	// 	'width' => '15%',
-	// 	'label' => 'LBL_LIST_DATE_END',
-	// 	'link' => false,
-	// 	'default' => true,
-	// 	'related_fields' =>
-	// 	array(
-	// 		0 => 'time_end',
-	// 	),
-	// ),
-	// 'CALL_DURATION_C' => 
-	// array (
-	// 	'width' => '10%',
-	// 	'label' => 'LBL_CALL_DURATION_C',
-	// 	'default' => true,
-	// ),
 	'CALL_TALK' => 
 	array (
 		'width' => '10%',
@@ -134,9 +117,4 @@ $listViewDefs['Calls'] = array(
 		'id' => 'ASSIGNED_USER_ID',
 		'default' => true,
 	),
-	// 'DATE_ENTERED' => array(
-	// 	'width' => '10%',
-	// 	'label' => 'LBL_DATE_ENTERED',
-	// 	'default' => true
-	// ),
 );
