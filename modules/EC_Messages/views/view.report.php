@@ -29,25 +29,6 @@ class Viewreport extends SugarView {
 		// 		if(!$this->bean->db->query($sql_update)) pr("ERROR");
 		// 	}
 		// }
-
-		// Record point log
-		global $db;
-		$contact_id = 'df43e7e7-bab0-cc80-7820-656edbae6be1';
-		$apply_points = 18;
-		$total_points = 65;
-		$booking_id = '2ecu9n19387rg9812gre9812gf9081g3';
-
-		$point_log = new EC_Contact_Points_Log();
-		$point_log->id = '';
-		$point_log->name = 'Dùng điểm tích lũy cho booking';
-		$point_log->contact_id = $contact_id;
-		$point_log->contact_phone = $db->getOne("SELECT phone_mobile FROM contacts WHERE id = '$contact_id' AND deleted = 0");
-		$point_log->up = 0;
-		$point_log->down = $apply_points;
-		$point_log->current_point = $total_points - $apply_points;
-		$point_log->parent_type = 'EC_Flight_Bookings';
-		$point_log->parent_id = $booking_id;
-		$point_log->save();
 	}
 
 	function display_style() {
