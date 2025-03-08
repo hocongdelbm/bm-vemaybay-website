@@ -82,6 +82,13 @@ $app_list_strings['moduleList']['Employees']              = 'Nhân viên';
 $app_list_strings['moduleList']['Users']                  = 'Người dùng';
 $app_list_strings['moduleList']['ACLRoles']               = 'Quyền người dùng';
 $app_list_strings['moduleList']['EC_Vouchers']            = 'Vouchers';
+$app_list_strings['moduleList']['EC_Zalo']                = 'Zalo OA';
+$app_list_strings['moduleList']['EC_TongHop']             = 'Tổng hợp';
+$app_list_strings['moduleList']['EC_LeaveAbsenceTypes']   = 'Loại nghỉ phép';
+$app_list_strings['moduleList']['EC_LeaveAbsences']       = 'Nghỉ phép';
+$app_list_strings['moduleList']['EC_LyDoThangThua']       = 'Lý do thắng thua';
+$app_list_strings['moduleList']['EC_Location']            = 'Địa điểm';
+$app_list_strings['moduleList']['EC_LoginAudit']          = 'Login Audit';
 // AOR
 $app_list_strings['moduleList']['AOR_Reports'] = 'Báo cáo';
 $app_list_strings['moduleList']['AOR_Conditions'] = 'Báo cáo điều kiện';
