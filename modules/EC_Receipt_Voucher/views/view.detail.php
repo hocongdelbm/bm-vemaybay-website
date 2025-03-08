@@ -106,6 +106,8 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 		$this->bean->ngayhachtoan = date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) - 7*3600);
 		
 		// Nút in phiếu
+		// $current_user->department_id
+		// f15f801d-a9bc-cc92-4152-655f5e89867f - MHV
 		if(ACLController::checkAccess('EC_Receipt_Voucher', 'view', true)) {
 			$dep_arr = myGetAllDepByCurrentUser();
 			$print_rv = '</form>
@@ -114,7 +116,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 			  	<input type="hidden" name="action" value="printrv" />
 			  	<input type="hidden" name="print" value="true" />
 			  	<input type="hidden" name="record" value="'.$this->bean->id.'" />
-				<select class="box-select" name="dep_id" id="dep_id">'.myMakeHtmlOption($dep_arr, isset($_POST['dep_id']) ? $_POST['dep_id'] : $current_user->department_id).'</select>
+				<select class="box-select" name="dep_id" id="dep_id">'.myMakeHtmlOption($dep_arr, isset($_POST['dep_id']) ? $_POST['dep_id'] : 'f15f801d-a9bc-cc92-4152-655f5e89867f').'</select>
 			  	<input onclick="Set_Cookie(\'showLeftCol\',\'false\',30,\'/\',\'\',\'\')" type="submit" class="btn btn-primary" name="btnPrintRV" value="In phiếu" title="In phiếu" />
 			</form>';
 			$this->ss->assign('PRINT_RV', $print_rv);
@@ -146,7 +148,8 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 			</form>';
 			$this->ss->assign('CHANGE_STATUS', $change_status);
 		} 
-		else if($this->bean->rv_status == '1' && !$this->isSalesInvoiceExist($this->bean->id) && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
+		// else if($this->bean->rv_status == '1' && !$this->isSalesInvoiceExist($this->bean->id) && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
+		else if($this->bean->rv_status == '1' && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
 			$bk = new EC_Flight_Bookings();
 			$bk->retrieve($this->bean->booking_id);
 			
@@ -212,14 +215,16 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 			$this->ss->assign('DEBT', $debt_btn);
 		}
 	}
+
+	// Module ec_hoadonban không có field phieuthu_id
 	
 	// Kiểm tra xem đã có hóa đơn bán nào thuộc phiếu thu này?
-	function isSalesInvoiceExist($phieuthu_id){
-		$sql = "SELECT COUNT(id) FROM ec_hoadonban
-				WHERE phieuthu_id='".$phieuthu_id."' AND deleted=0 ";
-		$rowcount = $this->bean->db->getOne($sql);
-		if($rowcount > 0)
-			return true;
-		return false;
-	}
+	// function isSalesInvoiceExist($phieuthu_id){
+	// 	$sql = "SELECT COUNT(id) FROM ec_hoadonban
+	// 			WHERE phieuthu_id='".$phieuthu_id."' AND deleted=0 ";
+	// 	$rowcount = $this->bean->db->getOne($sql);
+	// 	if($rowcount > 0)
+	// 		return true;
+	// 	return false;
+	// }
 }

@@ -104,11 +104,16 @@ class EC_Payment_Voucher extends Basic
 
 		parent::save($check_notify);
 
+		if ($this->pv_status == '3') {
+            if (!isWorkingProcessExisting($this->module_dir, $this->id, 'create_payment')) {
+				myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (PC)', $this->created_by, 'create_payment');
+			}
+		} else {
+			myRemoveWorkingProcess($this->module_dir, $this->id, 'create_payment');
+		}
+		
 		// SEND TELE
 		if ($is_tele == 1) {
-			// Create working process - KPI
-			myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description, $current_user->id, 'create_payment');
-
 			$date_entered = date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($this->date_entered)));
 			$user_list = get_user_array(true, '', '', true);
 

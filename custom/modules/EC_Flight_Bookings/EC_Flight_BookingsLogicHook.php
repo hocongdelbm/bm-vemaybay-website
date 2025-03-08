@@ -64,7 +64,7 @@ class EC_Flight_BookingsLogicHook
 				exit;
 			} else {
 				// Đối với những booking tạo từ ngày 19-09-2022
-				if (strtotime($focus->date_entered) >= strtotime('2022-09-19')) {
+				if (isset($focus->date_entered) && strtotime($focus->date_entered) >= strtotime('2022-09-19')) {
 					// Cập nhật ds vào bảng KPI và danh sách booker
 					$total_amt = $focus->calculateBKTotalAmt($focus->id);
 					if ($total_amt > 0) {
@@ -106,11 +106,10 @@ class EC_Flight_BookingsLogicHook
 					}
 				}
 			}
-		}
-		else {
+		} else {
 			// Đối với những booking tạo từ ngày 19-09-2022
 			// Khi mở ra thì trừ lại ds
-			if (strtotime($focus->date_entered) >= strtotime('2022-09-19') && $focus->fetched_row['status'] == 8) {
+			if (isset($focus->date_entered) && strtotime($focus->date_entered) >= strtotime('2022-09-19') && isset($focus->fetched_row['status']) && $focus->fetched_row['status'] == 8) {
 				$sql_qty = '
 					UPDATE users
 					SET total_qty -= IFNULL((
@@ -137,7 +136,7 @@ class EC_Flight_BookingsLogicHook
 
 		// Kiểm tra xem nếu khách hàng có hành lý thì đã nhập NCC và giá mua hành lý hay chưa?
 		// Có 1 số hành lý có giá là = 1. Nên không thể check p.luggage_price > 0 nên check 200 đồng
-		if(isset($_POST['booking_status']) && $_POST['booking_status'] == '8') {
+		if (isset($_POST['booking_status']) && $_POST['booking_status'] == '8') {
 			if (isset($_POST['flight_type']) && $_POST['flight_type'] == '0') {
 				$sql_return = 'OR (p.luggage_price_inbound > 500 AND (p.supplier_inbound_id IS NULL OR p.supplier_inbound_id = "" OR p.luggage_purchase_inbound IS NULL))';
 				// $sql_return = 'OR (p.supplier_inbound_id IS NULL OR (p.luggage_purchase_inbound IS NULL OR p.luggage_purchase_inbound < 0))';
@@ -159,13 +158,49 @@ class EC_Flight_BookingsLogicHook
 		}
 	}
 
+	function updateFields($focus, $event, $arguments)
+	{
+		// Contact ID
+		if (!empty($focus->contact_name) && empty($focus->contact_id)) {
+			createContactsForBooking($focus->phone, $focus->contact_name);
+		}
+
+		// Journey
+		if (empty($focus->journey)) {
+			fillJourneyForBooking($focus->id);
+		}
+	}
+
 	function updateKPI($focus, $event, $arguments)
 	{
-		global $current_user;
+		// Cập nhật KPI COM khi hoàn tất booking - Tính KPI cho người được giao booking
+		if (isset($_POST['btnCompleted']) || $focus->booking_status == 8 && $focus->fetched_row['assigned_user_id'] != $focus->assigned_user_id) {
+			myRemoveWorkingProcess($focus->object_name, $focus->id, 'completed');
+			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, 'Hoàn tất booking', $focus->assigned_user_id, 'completed');
 
-		// Cập nhật KPI COM khi hoàn tất booking
-		if (isset($_POST['btnCompleted'])) {
-			myCreateWorkingProcess($focus->object_name, $focus->id, $focus->name, 'Hoàn tất booking', $current_user->id, 'completed');
+			$list_user = [
+				'4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //panda
+				'72ece22c-cb25-8e30-9dea-56f2201cd359', //trangbtq
+				'9ba5c5a0-a402-02f4-76d3-53ba0481ce45', //soinau
+				'b5523dbd-b9a7-67c0-77b5-533e6ece89b1', //ngocthu
+			];
+
+			$user = BeanFactory::newBean('Users');
+			$user->retrieve($focus->assigned_user_id);
+			$full_name = $user->last_name . ' ' . $user->first_name;
+
+			$alertData = [
+				'name' 			=> $focus->name,
+				'parent_type' 	=> 'EC_Flight_Bookings',
+				'parent_id' 	=> $focus->id,
+				'description' 	=> $focus->description . ' (' . $full_name . ' đã hoàn tất booking).',
+				'url_redirect' 	=> 'index.php?module=EC_Flight_Bookings&action=DetailView&record='.$focus->id.'',
+				'priority' 		=> 'low',
+				'type' 			=> 'readonly',
+			];
+	
+			// $alert 		= new Alert();
+			// $alertId 	= $alert->autoCreateAlert('EC_Flight_Bookings', $list_user, $alertData);
 		}
 	}
 
@@ -194,7 +229,7 @@ class EC_Flight_BookingsLogicHook
 				  , account_phone = "' . $focus->phone . '"
 				  , account_address = "' . $focus->address . '"
 				  , account_email = "' . $focus->email . '"
-				  , booking_id = "' . $booking->id . '"
+				  , booking_receive_id = "' . $booking->id . '"
 				WHERE id = "' . $booking->voucher_id . '"';
 		$focus->db->query($sql2);
 	}
@@ -307,13 +342,13 @@ class EC_Flight_BookingsLogicHook
 			// && in_array($focus->created_by, $allow_site)
 		) {
 			$onl = new EC_Online_Report;
-			$list_name_test = array('DEMO', 'IT', 'CUONG NGUYEN');
+			$list_name_test = array('DEMO', 'IT', 'CUONG NGUYEN', 'CUONG NG');
 			$list_name_help = array('PANDA PO', 'BAO GIA KHACH');
 
 			if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
 				$this->reSendTele('Booking báo giá: Báo giá khách - ' . $focus->name . ' - ' . $focus->phone, $focus->id, $focus->name);
 			} else if (in_array(strtoupper($focus->contact_name), $list_name_test)) {
-				$this->reSendTele('Booking TEST: Demo . . . Anh em bỏ qua!', $focus->id, $focus->name);
+				$this->reSendTele('Demo booking, test hệ thống . . .', $focus->id, $focus->name);
 			} else {
 				$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
 
@@ -359,20 +394,15 @@ class EC_Flight_BookingsLogicHook
 	}
 
 	// Show column recall
-	function getRecallValue($bean, $event, $arguments){
+	function getRecallValue($bean, $event, $arguments)
+	{
 		// Get access to custom fields from $bean
 		$bean->custom_fields->retrieve();
-  
+
 		// Get access to name property using DBManager because $bean->name return null
 		$sql 	= "SELECT COALESCE(SUM(IFNULL(recall, 0)), 0) AS recall FROM ec_working_process WHERE parent_id = '{$bean->id}' AND parent_type = 'EC_Flight_Bookings' AND deleted = 0";
 		$rc_val 	= $bean->db->getOne($sql);
 
-		// if($GLOBALS['current_user']->user_name == 'hungnh'){
-		//     pr($sql);
-		//     pr($rc_val);
-		// }
-
 		$bean->recall_c = $rc_val;
-
-    }
+	}
 }

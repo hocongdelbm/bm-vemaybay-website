@@ -107,7 +107,7 @@ class Viewstatistics extends SugarView
           // THỐNG KÊ THỜI LƯỢNG CUỘC GỌI
           $this->statisticsDurationAverage($from_date, $to_date);
 
-          // THỐNG KÊ THỜI LƯỢNG CUỘC GỌI
+          // THỐNG KÊ NGUỒN CUỘC GỌI
           $this->statisticsCallSources($from_date, $to_date);
 
           // ROLE
@@ -172,77 +172,36 @@ class Viewstatistics extends SugarView
           global $db, $current_user;
           $html = '';
 
+          $pbx = BeanFactory::getBean('Calls');
+          $list_phone = $pbx->get_list_phone_pbx();
+          $arr_sdt = [];
           $count_total_inbound = $count_total_outbound = 0;
 
-          $arr_sdt = [
-               "1900636060" => array('type'=> 'HOTLINE', 'inbound' => 0, 'outbound' => 0, 'status' => ''), 
-               "1900636063" => array('type'=> 'HOTLINE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
+          if (!empty($list_phone) && is_array($list_phone)) {
+               foreach ($list_phone as $network_provider) {
+                    foreach ($network_provider as $phone) {
+                         if (!isset($arr_sdt[trim($phone['name'])])) {
+                              $arr_sdt[trim($phone['name'])] = [];
+                         }
+                         $arr_sdt[trim($phone['name'])] = array(
+                              'type' => $phone['network_provider'],
+                              'inbound' => 0,
+                              'outbound' => 0,
+                              'status' => $phone['only_inbound'] == 1 ? 'Không gọi ra' : '',
+                         );
+                    }
+               }
+          }
 
-               "0968304455" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               "02866509900" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               // "0973834501" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0973891401" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0974015001" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0974091002" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0983171970" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0983103703" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0983129202" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               
-               // 01/07/2024
-               // "0962768782" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963323407" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963498793" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963678130" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0964359785" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963986905" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0963987527" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0964031020" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               
-               // 04/09/2024
-               // "0984150870" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984175174" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984177790" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               // "0984191015" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0984195219" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0984260802" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               "0984280718" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               // "0984343406" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => 'Blocked'),  
-               
-               // 07/11/2024
-               "0385291429" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385295550" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385295676" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385297839" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385299921" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385299946" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385300174" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385300984" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385301071" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0385301087" => array('type'=> 'VIETTEL', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-
-               // MOBIFONE
-               "0933296508" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933297608" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933625233" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933799860" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933026416" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0933611306" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0937451098" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0937523198" => array('type'=> 'MOBIFONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-
-               // VINAPHONE
-               "0913030802" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0914491010" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => 'Không gọi ra'),  
-               "0918038348" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0919018102" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "0911236600" => array('type'=> 'VINAPHONE', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               
-               "02839977788" => array('type'=> 'VNPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "02839977799" => array('type'=> 'VNPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),  
-               "02873001886" => array('type'=> 'FPT', 'inbound' => 0, 'outbound' => 0, 'status' => ''),
+          $arr_zalo = [
                "2941581384627345950101" => array('type'=> 'Zalo domestic', 'inbound' => 0, 'outbound' => 0, 'status' => ''),
                "2941581384627345950102" => array('type'=> 'Zalo inter', 'inbound' => 0, 'outbound' => 0, 'status' => ''),
           ];
+
+          if (is_array($arr_sdt) && is_array($arr_zalo)) {
+               // $arr_sdt = array_merge($arr_sdt, $arr_zalo);
+               $arr_sdt = $arr_sdt + $arr_zalo;
+          }
 
           $sql_sdt = 'SELECT 
                          direction,
@@ -272,12 +231,12 @@ class Viewstatistics extends SugarView
 
           foreach($arr_sdt as $sdt => $count){
                
-               if($count['type'] == 'HOTLINE') $count['type'] = '<b style="color:red">'.$count['type'].'</b>';
-               elseif($count['type'] == 'VIETTEL') $count['type'] = '<b style="color:#ea3a59; text-transform:lowercase;">'.$count['type'].'</b>';
-               elseif($count['type'] == 'MOBIFONE') $count['type'] = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
-               elseif($count['type'] == 'VINAPHONE') $count['type'] = '<b style="color:#00aeed; text-transform:lowercase;">'.$count['type'].'</b>';
-               elseif($count['type'] == 'VNPT') $count['type'] = '<b style="color:#0066ba; letter-spacing:3px;">'.$count['type'].'</b>';
-               elseif($count['type'] == 'FPT') $count['type'] = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';
+               if(strtoupper($count['type']) === 'HOTLINE') $count['type'] = '<b style="color:red">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'VIETTEL') $count['type'] = '<b style="color:#ea3a59; text-transform:lowercase;">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'MOBIPHONE') $count['type'] = '<b style="color:#006db7">mobi</b><b style="color:#ec1d24">fone</b>';
+               elseif(strtoupper($count['type']) === 'VINAPHONE') $count['type'] = '<b style="color:#00aeed; text-transform:lowercase;">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'VNPT') $count['type'] = '<b style="color:#0066ba; letter-spacing:3px;">'.$count['type'].'</b>';
+               elseif(strtoupper($count['type']) === 'FPT') $count['type'] = '<b style="color:#054da2">F</b><b style="color:#f37021">P</b><b style="color:#52b848">T</b>';
                elseif(str_contains($count['type'], 'Zalo')) $count['type'] = '<b style="color:#0068ff">'.$count['type'].'</b>';
                
                $html .= '<tr>
@@ -319,6 +278,7 @@ class Viewstatistics extends SugarView
                          c.call_from,
                          c.call_to,
                          c.status,
+                         c.call_talk,
                          c.date_end,
                          c.date_start,
                          c.description,
@@ -440,8 +400,7 @@ class Viewstatistics extends SugarView
                               $arr_user_calls[$userId]['inbound'][] = $row;
                          }
                     } 
-               } 
-               else if($direction == 'missed'){
+               } else if($direction == 'missed'){
                     // Cuộc gọi nhỡ
                     $call_log_missed = json_decode(html_entity_decode($row['log']), true);
                     if(isset($call_log_missed['list_agent']) && !empty($call_log_missed['list_agent'])){
@@ -463,7 +422,7 @@ class Viewstatistics extends SugarView
                     $arr_user_calls[$userId]['spam'][] = $row;
                } else if($direction == 'suddenly'){
                     $arr_user_calls[$userId]['suddenly'][] = $row;
-               }  else if($direction == 'internal'){
+               } else if($direction == 'internal'){
                     $user_id = custom_get_sip_number($row['call_from']);
                     if(isset($user_id) && !empty($user_id)){
                          $arr_user_calls[$user_id]['internal'][] = $row;
@@ -476,38 +435,20 @@ class Viewstatistics extends SugarView
           $total_inbound      = $total_outbound = $total_missed = $total_suddenly = $total_spam =  $total_internal = $total_final = 0;
           $total_inbound_all  = $total_outbound_all = $total_missed_all = $total_spam_all = $total_suddenly_all = $total_internal_all = 0;
 
-          $total_outbound_answer = $total_outbound_noanswer = 0;
+          $total_outbound_answer = $total_outbound_noanswer = $total_outbound_kpi = 0;
 
           // Sắp xếp mảng theo giá trị giảm dần của 'inbound'
           uasort($arr_user_calls, function ($a, $b) {
-               return count($b['inbound']) - count($a['inbound']);
+               $countA = isset($a['inbound']) && is_array($a['inbound']) ? count($a['inbound']) : 0;
+               $countB = isset($b['inbound']) && is_array($b['inbound']) ? count($b['inbound']) : 0;
+               return $countB - $countA;
           });
-          
-          // if($current_user->user_name = 'hungnh'){
-          //      pr($arr_user_calls);
-          // }
-
+           
           foreach($arr_user_calls as $user_id => $user){
                if(count($user) > 2){
                     if($current_user->id == $user_id || isAllowedUser()){
                          // ALL OF CALL
                          foreach($user as $key => $dir){
-                              // class direction
-                              if($key == 'suddenly'){
-                                   $direction_class = 'text-warning';
-                              } else if ($key == 'inbound'){
-                                   $direction_class = 'text-success';
-                              } else if ($key == 'missed'){
-                                   $direction_class = 'text-danger';
-                              } else if ($key == 'outbound'){
-                                   $direction_class = 'text-primary';     
-
-                              } else if ($key == 'spam'){
-                                   $direction_class = 'text-spam';
-                              } else {
-                                   $direction_class = 'text-normal';
-                              }
-               
                               if($key != 'name' && $key != 'agent'){
                                    usort($dir, function($a, $b) {
                                         $dateA = DateTime::createFromFormat('d-m-Y H:i:s', $a['date_start']);
@@ -519,11 +460,26 @@ class Viewstatistics extends SugarView
                                         if ($key == 'outbound'){
                                              // Gọi đi Nghe máy và Không nghe máy
                                              $data_log = json_decode(html_entity_decode($call['log']), true);
-                                             if($data_log['call_talk'] > 0){
-                                                  $user['outbound_answer']++;
+                                             if (isset($data_log['call_talk']) && $data_log['call_talk'] >= 20) {
+                                                  if (isset($user['outbound_kpi'])) {
+                                                       $user['outbound_kpi']++;
+                                                  } else {
+                                                       $user['outbound_kpi'] = 1;
+                                                  }
+                                                  $key_direction = 'outbound kpi_answer';
+                                             } else if (isset($data_log['call_talk']) && $data_log['call_talk'] > 0) {
+                                                  if (isset($user['outbound_answer'])) {
+                                                       $user['outbound_answer']++;
+                                                  } else {
+                                                       $user['outbound_answer'] = 1;
+                                                  }
                                                   $key_direction = 'outbound ob_answer';
                                              } else {
-                                                  $user['outbound_noanswer']++;
+                                                  if (isset($user['outbound_noanswer'])) {
+                                                       $user['outbound_noanswer']++;
+                                                  } else {
+                                                       $user['outbound_noanswer'] = 1;
+                                                  }
                                                   $key_direction = 'outbound ob_noanswer';
                                              }
                                         }  else {
@@ -549,9 +505,9 @@ class Viewstatistics extends SugarView
                                                             <td class="call_from">'.$call['call_from'].'</td>
                                                             <td class="call_to">'.$call['call_to'].'</td>
                                                             <td class="call_sources">'.$call['call_sources'].'</td>
-                                                            <!-- <td align="center" class="'.$direction_class.'"><strong>'.$app_list_strings['calls_direction_list'][$key].'</strong></td> -->
                                                             <td align="center" class="time-call">'.$call['date_start'].'</td>
                                                             <td align="center" class="duration">'.$duration.'</td>
+                                                            <td align="center" class="call_talk">'.global_secondsToTimeFormat($call['call_talk']).'</td>
                                                             <td align="left" class="description">'.$call['description'].'</td>
                                                        </tr>';
                                         $index++;
@@ -572,8 +528,10 @@ class Viewstatistics extends SugarView
                          $total_outbound_all += $total_outbound;
 
                          $outbound_answer    = isset($user['outbound_answer']) ? '<strong class="text-primary">'.$user['outbound_answer'].'</strong>' : '';
+                         $outbound_kpi       = isset($user['outbound_kpi']) ? '<strong class="text-primary">'.$user['outbound_kpi'].'</strong>' : '';
                          $outbound_noanswer  = isset($user['outbound_noanswer']) ? '<strong class="text-primary">'.$user['outbound_noanswer'].'</strong>': '';
                          isset($user['outbound_answer']) ? $total_outbound_answer += $user['outbound_answer'] : 0;
+                         isset($user['outbound_kpi']) ? $total_outbound_kpi += $user['outbound_kpi'] : 0;
                          isset($user['outbound_noanswer']) ? $total_outbound_noanswer += $user['outbound_noanswer'] : 0;
                     
                          // Nhỡ
@@ -605,6 +563,7 @@ class Viewstatistics extends SugarView
                                    <td align="left" class="full_name">'.$user['name'].'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="outbound">'.$outbound.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="ob_answer">'.$outbound_answer.'</td>
+                                   <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="kpi_answer">'.$outbound_kpi.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="ob_noanswer">'.$outbound_noanswer.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="inbound">'.$inbound.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="missed">'.$missed.'</td>
@@ -616,8 +575,6 @@ class Viewstatistics extends SugarView
                          $i++;
                     }
                }
-
-          
           }
 
 
@@ -626,6 +583,7 @@ class Viewstatistics extends SugarView
 
           $smartyobj->assign('TTL_OUTBOUND', $total_outbound_all);
           $smartyobj->assign('TTL_OUTBOUND_ANSWER', $total_outbound_answer);
+          $smartyobj->assign('TTL_OUTBOUND_KPI', $total_outbound_kpi);
           $smartyobj->assign('TTL_OUTBOUND_NOANSWER', $total_outbound_noanswer);
 
           $smartyobj->assign('TTL_MISSED', $total_missed_all);
@@ -727,8 +685,8 @@ class Viewstatistics extends SugarView
                }
 
                $label_source .= "'".$source."',";
-               $quantity_inbound .= "'".$quantity['inbound']."',";
-               $quantity_missed .= "'".$quantity['missed']."',";
+               $quantity_inbound .= "'" . (isset($quantity['inbound']) ? $quantity['inbound'] : 0) . "',";
+               $quantity_missed .= "'" . (isset($quantity['missed']) ? $quantity['missed'] : 0) . "',";
           }
 
           $label_source = substr($label_source, 0, -1); //Loại bỏ dấu , của element cuối cùng

@@ -17,6 +17,13 @@ $admin_option_defs['Administration']['password_management'] = [
     './index.php?module=Administration&action=PasswordManager',
     'password'
 ];
+$admin_option_defs['Administration']['outbound_phone_management'] = [
+    'PhoneManagement',
+    'LBL_MANAGE_PHONE_TITLE',
+    'LBL_MANAGE_PHONE',
+    './index.php?module=EC_Outbound_Phone&action=index',
+    'system-settings'
+];
 $admin_option_defs['Administration']['oauth2_clients'] = [
     'Password',
     'LBL_OAUTH2_CLIENTS_TITLE',

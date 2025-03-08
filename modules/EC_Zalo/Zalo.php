@@ -60,7 +60,7 @@ class Zalo {
     }
     
     /** 
-     * Get access token by authorization cod
+     * Get access token by authorization code
      * 
      * @param string $code
      * @return string json
@@ -880,6 +880,109 @@ class Zalo {
             if (is_resource($curl)) curl_close($curl);
         }
     }
+    
+    /** 
+     * Send transaction messages
+     * 
+     * @param string $zalo_id
+     * @param string $type transaction_reward, transaction_order, transaction_billing,...
+     * @param array $data
+     * @return string json
+     */
+    public function send_transaction($zalo_id, $type, $header, $text, $table = array(), $text2 = array(), $buttons = array()) {
+        if(empty($zalo_id)) return json_encode(['error' => 1, 'httpcode' => 403, 'message' => 'Invalid parameters', 'data' => null]);
+
+        $banner_link = '';
+        switch ($type) {
+            case 'transaction_reward':
+                $banner_link = "https://$this->domain/modules/EC_Zalo/images/banner_points.jpg";
+                break;
+            default:
+                $banner_link = '';
+                break;
+        } 
+
+        $body_request = [
+            "recipient" => [
+                "user_id" => $zalo_id
+            ],
+            "message" => [
+                "attachment" => [
+                    "type" => "template",
+                    "payload" => [
+                        "template_type" => $type, // Type
+                        "language" => "VI",
+                        "elements" => [
+                            [
+                                "type" => "banner",
+                                "image_url" => $banner_link
+                            ],
+                            [
+                                "type" => "header",
+                                "content" => $header,
+                                "align" => ""
+                            ],
+                            [
+                                "type" => "text",
+                                "content" => $text,
+                                "align" => ""
+                            ],
+                        ],
+                    ]
+                ]
+            ]
+        ];
+        if(!empty($table)) {
+            $body_request["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "table",
+                "content" => $table
+            ];
+        }
+        if(!empty($text2)) {
+            $body_request["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "text",
+                "align" => "center",
+                "content" => $text2
+            ];
+        }
+        if(!empty($buttons)) $body_request["message"]["attachment"]["payload"]["buttons"] = $buttons;
+
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => 'cURL Failed to initialize']);
+            }
+
+            curl_setopt_array($curl, [
+                CURLOPT_URL            => "https://openapi.zalo.me/v3.0/oa/message/transaction",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+                CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CUSTOMREQUEST  => "POST",
+                CURLOPT_POSTFIELDS     => json_encode($body_request),
+                CURLOPT_HTTPHEADER     => [
+                    "Content-Type: application/json",
+                    "access_token: ". $this->get_token()
+                ]
+            ]);
+            $json = curl_exec($curl);
+
+            if ($json === false) {
+                $m = trim(curl_error($curl).' ('.curl_errno($curl).')');
+                return json_encode(['error' => 1, 'httpcode' => null, 'message' => $m]);
+            }
+
+            return $json;
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
 
 
 
@@ -971,6 +1074,9 @@ class Zalo {
             case 'remind-flight':
                 return "346651"; // Nhắc nhở giờ bay
                 break;
+            case 'points':
+                return "411270";
+                break;
             default:
                 return "";
         }
@@ -1005,6 +1111,9 @@ class Zalo {
                 break;
             case '346699':
                 return "Chăm sóc khách hàng (Call sale)";
+                break;
+            case '411270':
+                return "Thông báo tích điểm";
                 break;
             default:
                 return "";
@@ -1185,5 +1294,29 @@ class Zalo {
         }
         return $randomString;
     }
+
+    public function unformat_zalo_phone($zalo_phone) {
+        if(substr($zalo_phone, 0, 2) == 84) return '0' . substr($zalo_phone, 2);
+        elseif(substr($zalo_phone, 0, 3) == "+84") return '0' . substr($zalo_phone, 3);
+
+        return $zalo_phone;
+    }
+
+    public function send_to_telegram($content, $parseMode = 'HTML', $timeout = 15) {
+        $token  = '6940954517:AAFINEfJWBOcuoThjXNycvNRRZjT3ZgLey8'; // TimChuyenBayOA_bot
+        $chatId = '-1002134640739'; // Tìm Chuyến Bay OA Zalo ZNS
+    
+        $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatId;
+        $url = $url . "&parse_mode=".$parseMode."&text=" . urlencode($content);
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+        $result = curl_exec($curl);
+        curl_close($curl);
+        return $result;
+    }
 }
-?>

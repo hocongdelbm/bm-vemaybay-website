@@ -47,4 +47,5 @@ $mod_strings = array (
   'LBL_CONTENT' => 'Content',
   'LBL_PARENT_DETAIL' => 'Parent detail',
   'LNK_REPORT' => 'Report cost',
+  'LNK_NEW_CAMPAIGN' => 'Gửi chiến dịch',
 );

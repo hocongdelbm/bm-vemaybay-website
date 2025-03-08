@@ -77,11 +77,14 @@ $entry_point_registry = array(
     'entryPointSMS'                         => array('file' => 'custom/entrypoints/epSMS.php', 'auth' => true),
     'entryPointSaveResultSMS'               => array('file' => 'custom/entrypoints/epSaveResultSMS.php', 'auth' => false),
     'entryPointUpdateContact'               => array('file' => 'custom/entrypoints/epUpdateContact.php', 'auth' => false),
-    'entryPointZalo'                => array('file' => 'custom/entrypoints/epZalo.php', 'auth' => true),
+    // 'entryPointZalo'                => array('file' => 'custom/entrypoints/epZalo.php', 'auth' => true),
     'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),
     'entryPointZaloAuthCallback'    => array('file' => 'custom/entrypoints/epZaloAuthCallback.php', 'auth' => false),
 	'entryPointZaloWebhook'         => array('file' => 'custom/entrypoints/epZaloWebhook.php', 'auth' => false),
 	'entryPointAddressHandling'     => array('file' => 'custom/entrypoints/epAddressHandling.php', 'auth' => true),
+	'entryPointUpdateFareSystem'    => array('file' => 'custom/entrypoints/epUpdateFareSystem.php', 'auth' => true),
+    // Voucher
+    'entryPointVoucher' => array('file' => 'custom/entrypoints/epVoucher.php', 'auth' => true),
 
     // Custom by Haihugn
 	'entryPointAbsence'                     => array('file' => 'custom/entrypoints/epAbsence.php', 'auth' => true),
@@ -107,9 +110,6 @@ $entry_point_registry = array(
     // Tracker
     'entryPointTracker'                     => array('file' => 'custom/entrypoints/epTracker.php', 'auth' => true),
     
-    // Voucher
-    'entryPointGetInfoVoucher'              => array('file' => 'custom/entrypoints/epGetInfoVoucher.php', 'auth' => true),
-    
     // ANALYTICS ON SITE
     'entryPointAnalytics'                   => array('file' => 'custom/entrypoints/epAnalytics.php', 'auth' => true),
     
@@ -118,4 +118,8 @@ $entry_point_registry = array(
 
     // Bank Account
     'entryPointBankAccount'         => array('file' => 'custom/entrypoints/epBankAccount.php', 'auth' => true),
+    
+    // DASHBOARD - HOME
+    'entryPointOverviewDashBoard'           => array('file' => 'custom/entrypoints/epOverviewDashboard.php', 'auth' => true),
+
 );

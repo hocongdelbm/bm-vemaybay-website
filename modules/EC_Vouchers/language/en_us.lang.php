@@ -1,42 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
 $mod_strings = array (
   'LBL_ASSIGNED_TO_ID' => 'Assigned User Id',
   'LBL_ASSIGNED_TO_NAME' => 'Assigned to',
@@ -75,22 +37,24 @@ $mod_strings = array (
   'LBL_EC_VOUCHERS_SUBPANEL_TITLE' => 'Vouchers',
   'LBL_NEW_FORM_TITLE' => 'New Vouchers',
 
+  // Custom
+  'LNK_MULTIPLE_NEW_RECORDS' => 'Phát hành Voucher',
   'LBL_STATUS' => 'Tình trạng',
-  'LBL_REDUCE' => 'reduce',
   'LBL_APPLIED_DATE' => 'Ngày sử dụng',
-  'LBL_VALIDATE_FROM_DATE' => 'Từ ngày',
-  'LBL_VALIDATE_TO_DATE' => 'Đến ngày',
   'LBL_ACCOUNT_NAME' => 'Khách hàng',
   'LBL_ACCOUNT_ADDRESS' => 'Địa chỉ',
   'LBL_ACCOUNT_PHONE' => 'SĐT',
   'LBL_ACCOUNT_EMAIL' => 'Email',
   'LBL_REDUCE_AMOUNT' => 'Giảm giá',
-  'LBL_REDUCE_PERCENT' => '% Giảm giá',
+  'LBL_REDUCE_PERCENT' => 'Phần trăm giảm giá',
   'LBL_EC_VOUCHERS_SUBPANEL_TITLE' => 'Voucher KM',
   'LBL_DURATION' => 'Thời hạn',
-  'LNK_MULTIPLE_NEW_RECORDS' => 'Phát hành Voucher',
-  'LBL_BOOKING' => 'Booking sử dụng',
+  'LBL_BOOKING' => 'Booking',
   'LBL_JOURNEY' => 'Hành trình',
   'LBL_ORDER_BY_NO' => 'STT',
   'LBL_ACTIVE_DATE' => 'Ngày kích hoạt',
+  'LBL_WEBSITE' => 'Website',
+  'LBL_PANEL_DESCRIPTION' => 'Chi tiết voucher',
+  'LBL_CAMPAIGN_NAME' => 'Tên chiến dịch',
+  'LBL_CONDITION_VOUCHER' => 'Điều kiện áp dụng',
 );

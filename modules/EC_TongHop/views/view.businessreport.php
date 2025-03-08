@@ -20,18 +20,18 @@ class Viewbusinessreport extends SugarView
             '<option value="this_month">Tháng này</option>',
             '<option value="previous_month">Tháng trước</option>',
         );
+
+        $date_report = $_POST['date_select'] ?? $_GET['date_select'] ?? 'this_week';
         $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
-        $smartyobj->assign('CURRENT_OPTION', $_POST['date_select'] ?? $_GET['date_select']);
+        $smartyobj->assign('CURRENT_OPTION', $date_report);
 
         // DATA REPORT
-        $html_report = $this->genInforReport($_POST['date_select']);
+        $html_report = $this->genInforReport($date_report);
         $smartyobj->assign('DATA_REPORT', $html_report);
 
         // SAVE QC COST
-        if (isset($_POST) && !empty($_POST)) {
-            if (isset($_POST['btnSaveCostQc'])) {
-                $this->saveCostQc();
-            }
+        if (isset($_POST) && !empty($_POST) && isset($_POST['btnSaveCostQc'])) {
+            $this->saveCostQc();
         }
     }
 
@@ -62,9 +62,9 @@ class Viewbusinessreport extends SugarView
     {
         global $db, $current_user;
 
-        $date_ranges = [];
-        $today = date('Y-m-d');
-        $period = $_POST['date_select'] ?? $_GET['date_select'];
+        $date_ranges    = [];
+        $today          = date('Y-m-d');
+        $period         = $_POST['date_select'] ?? $_GET['date_select'] ?? 'this_week';
 
         if (isset($_POST['real-time'])) {
             $period = $_POST['date_select'];
@@ -164,8 +164,7 @@ class Viewbusinessreport extends SugarView
         }
 
         $html =  '';
-
-        foreach ($date_ranges as $range) {
+        foreach ($date_ranges as $index => $range) {
             $from_date = $range['from'];
             $to_date   = $range['to'];
 
@@ -173,7 +172,7 @@ class Viewbusinessreport extends SugarView
             // ====================================================
             // Bước 1: Kiểm tra dữ liệu trong ec_report_weekly
             $sql_exist = '
-                SELECT IF(COUNT(id) > 0, 1, 0)
+                SELECT IF(COUNT(id) > 0, 1, 0) as count
                 FROM ec_report_weekly
                 WHERE from_date = "' . $from_date . '" 
                     AND to_date = "' . $to_date . '"
@@ -277,7 +276,7 @@ class Viewbusinessreport extends SugarView
                 ORDER BY total_sales DESC
             ';
 
-            if(strtotime($from_date) <= strtotime(date('Y-m-d'))){
+            if(strtotime($from_date) <= strtotime($today)){
                 if ((int)$count_rows == 0) {
                     // CREATE
                     $results = $db->query($sql_select);
@@ -316,7 +315,7 @@ class Viewbusinessreport extends SugarView
                                 AND type = "BOOKING"
                                 AND deleted = 0';
                         $user_exists = $db->getOne($check_sql);
-    
+
                         if ((int)$user_exists > 0) {
                             $update_sql = '
                                 UPDATE ec_report_weekly
@@ -337,38 +336,29 @@ class Viewbusinessreport extends SugarView
                                     AND type = "BOOKING"
                                     AND deleted = 0
                             ';
+
                             $db->query($update_sql);
                         } else {
-                            // Nếu không tồn tại thì tạo mới bằng câu lệnh INSERT
-                            $insert_sql = '
-                            INSERT INTO ec_report_weekly (
-                                user_id, last_name, user_name, 
-                                bk_created, bk_called, bk_paying, 
-                                bk_confirmed, bk_printed, bk_completed, 
-                                bk_cancelled, total_qty, total_sales, 
-                                total_ticket, advertisement_cost, 
-                                from_date, to_date, report_date, type
-                            ) VALUES (
-                                "' . $row['user_id'] . '", 
-                                "' . $row['last_name'] . '", 
-                                "' . $row['user_name'] . '", 
-                                ' . (int)$row['bk_created'] . ', 
-                                ' . (int)$row['bk_called'] . ', 
-                                ' . (int)$row['bk_paying'] . ', 
-                                ' . (int)$row['bk_confirmed'] . ', 
-                                ' . (int)$row['bk_printed'] . ', 
-                                ' . (int)$row['bk_completed'] . ', 
-                                ' . (int)$row['bk_cancelled'] . ', 
-                                ' . $row['total'] . ', 
-                                ' . $row['total_sales'] . ', 
-                                ' . $row['total_ticket'] . ', 
-                                0, 
-                                "' . $from_date . '", 
-                                "' . $to_date . '", 
-                                "' . date('Y-m-d') . '",
-                                "BOOKING"
-                            )';
-                            $db->query($insert_sql);
+                            $rp = new EC_Report_Weekly();
+                            $rp->user_id = $row['user_id'];
+                            $rp->last_name = $row['last_name'];
+                            $rp->user_name = $row['user_name'];
+                            $rp->bk_created = (int)$row['bk_created'];
+                            $rp->bk_called = (int)$row['bk_called'];
+                            $rp->bk_paying = (int)$row['bk_paying'];
+                            $rp->bk_confirmed = (int)$row['bk_confirmed'];
+                            $rp->bk_printed = (int)$row['bk_printed'];
+                            $rp->bk_completed = (int)$row['bk_completed'];
+                            $rp->bk_cancelled = (int)$row['bk_cancelled'];
+                            $rp->total_qty = $row['total'];
+                            $rp->total_sales = $row['total_sales'];
+                            $rp->total_ticket = $row['total_ticket'];
+                            $rp->type = 'BOOKING';
+                            $rp->advertisement_cost = 0;
+                            $rp->from_date = $from_date;
+                            $rp->to_date = $to_date;
+                            $rp->report_date = $today;
+                            $rp->save();
                         }
                     }
                 }
@@ -376,7 +366,7 @@ class Viewbusinessreport extends SugarView
 
             // QUERY CUỘC GỌI
             // ====================================================
-            if(strtotime($from_date) <= strtotime(date('Y-m-d'))){
+            if(strtotime($from_date) <= strtotime($today)){
                 // Bước 1: Kiểm tra dữ liệu calls trong ec_report_weekly
                 $sql_exist_calls = '
                     SELECT IF(COUNT(id) > 0, 1, 0)
@@ -407,7 +397,7 @@ class Viewbusinessreport extends SugarView
                         $rp->type = 'CALLS';
                         $rp->from_date = $from_date;
                         $rp->to_date = $to_date;
-                        $rp->report_date = date('Y-m-d');
+                        $rp->report_date = $today;
                         $rp->save();
                     }
                 } else if (isset($_POST['real-time'])) {
@@ -440,36 +430,23 @@ class Viewbusinessreport extends SugarView
 
                             $db->query($update_sql_calls);
                         } else {
-                            // Nếu không tồn tại thì tạo mới bằng câu lệnh INSERT
-                            $insert_sql_calls = '
-                            INSERT INTO ec_report_weekly (
-                                total_calls, 
-                                qty_call_missed, 
-                                qty_call_booking, 
-                                qty_call_booking_ok,
-                                from_date, 
-                                to_date, 
-                                report_date,
-                                type
-                            ) VALUES (
-                                ' . (int)$row['total_calls'] . ', 
-                                ' . (int)$row['qty_call_missed'] . ', 
-                                ' . (int)$row['qty_call_booking'] . ', 
-                                ' . (int)$row['qty_call_booking_ok'] . ', 
-                                "' . $from_date . '", 
-                                "' . $to_date . '", 
-                                "' . date('Y-m-d') . '"
-                                "CALLS"
-                            )';
-                            $db->query($insert_sql_calls);
+                            // Nếu không tồn tại thì tạo mới
+                            $rp = new EC_Report_Weekly();
+                            $rp->total_calls            = (int)$row['total_calls'];
+                            $rp->qty_call_missed        = (int)$row['qty_call_missed'];
+                            $rp->qty_call_booking       = (int)$row['qty_call_booking'];
+                            $rp->qty_call_booking_ok    = (int)$row['qty_call_booking_ok'];
+                            $rp->type = 'CALLS';
+                            $rp->from_date = $from_date;
+                            $rp->to_date = $to_date;
+                            $rp->report_date = $today;
+                            $rp->save();
                         }
-
-
                     }
                 }
             }
 
-            if (strtotime($from_date) <= strtotime(date('Y-m-d'))) {
+            if (strtotime($from_date) <= strtotime($today)) {
                 // GET DATA
                 $sql_get_calls      = "SELECT * FROM ec_report_weekly WHERE from_date = '$from_date' AND to_date = '$to_date' AND type = 'CALLS'";
                 $res_calls          = $this->bean->db->query($sql_get_calls);
@@ -477,7 +454,16 @@ class Viewbusinessreport extends SugarView
                 $content_call = '';
                 while ($row = $this->bean->db->fetchByAssoc($res_calls)) {
                     if($row_count_calls){
-                        $content_call = 'Tổng '.$row['total_calls'].' /  CG nhỡ '.$row['qty_call_missed'].' /  CG tạo BK  '.$row['qty_call_booking'].' /  Hoàn tất  '.$row['qty_call_booking_ok'].'';
+                        $content_call = sprintf(
+                            'CG nhỡ %02d + CG đến %02d = %02d (CG tạo BK %02d / Hoàn tất %02d)',
+                            $row['qty_call_missed'],
+                            $row['total_calls'],
+                            $row['qty_call_missed'] + $row['total_calls'],
+                            $row['qty_call_booking'],
+                            $row['qty_call_booking_ok']
+                        );
+
+                        // $content_call = 'CG nhỡ '.$row['qty_call_missed'].' + CG đến '.$row['total_calls'].' = '.($row['qty_call_missed']+$row['total_calls']).' (CG tạo BK  '.$row['qty_call_booking'].' /  Hoàn tất  '.$row['qty_call_booking_ok'].')';
                     }
                 }
     

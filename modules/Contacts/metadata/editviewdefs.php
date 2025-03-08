@@ -67,8 +67,8 @@ $viewdefs['Contacts'] = array(
 						'label' => 'LBL_BIRTHDATE',
 					),
 					array(
-						'name' => 'assigned_user_name',
-						'label' => 'LBL_ASSIGNED_TO_NAME',
+						// 'name' => 'assigned_user_name',
+						// 'label' => 'LBL_ASSIGNED_TO_NAME',
 					),
 				),
 

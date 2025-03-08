@@ -323,15 +323,16 @@
           <thead>
                <tr>
                     <th width="3%" class="hide-mobile">STT</th>
-                    <th width="15%">Họ tên</th>
-                    <th width="10%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
-                    <th width="10%" align="center"><span title="outbound">Gọi đi trả lời</span></th>
-                    <th width="10%" align="center"><span title="outbound">0 trả lời</span></th>
-                    <th width="10%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
-                    <th width="10%" align="center"><span title="missed">Cuộc gọi nhỡ</span></th>
-                    <th width="10%" align="center" class="hide-mobile"><span title="spam">Số rác</span></th>
-                    <th width="10%" align="center" class="hide-mobile"><span title="suddenly">Nhá máy</span></th>
-                    <th width="10%" align="center" class="hide-mobile"><span title="internal">Nội bộ</span></th>
+                    <th>Họ tên</th>
+                    <th width="8%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
+                    <th width="8%" align="center"><span title="outbound (Dưới 20s thoại)">Gọi đi (trả lời)</span></th>
+                    <th width="8%" align="center"><span title="outbound (Trên 20s thoại)">Gọi đi (KPI)</span></th>
+                    <th width="8%" align="center"><span title="outbound">0 trả lời</span></th>
+                    <th width="8%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
+                    <th width="8%" align="center"><span title="missed">Cuộc gọi nhỡ</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="spam">Số rác</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="suddenly">Nhá máy</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="internal">Nội bộ</span></th>
                </tr>
           </thead>
           <tbody>
@@ -341,6 +342,7 @@
                     <td align="center"><span title="total"></span>Tổng cộng</td>
                     <td align="center"><span title="outbound">{$TTL_OUTBOUND}</span></td>
                     <td align="center"><span title="outbound_answer">{$TTL_OUTBOUND_ANSWER}</span></td>
+                    <td align="center"><span title="outbound_kpi">{$TTL_OUTBOUND_KPI}</span></td>
                     <td align="center"><span title="outbound_noanswer">{$TTL_OUTBOUND_NOANSWER}</span></td>
                     <td align="center"><span title="inbound">{$TTL_INBOUND}</span></td>
                     <td align="center"><span title="missed">{$TTL_MISSED}</span></td>
@@ -366,6 +368,7 @@
                               <th width="8%" align="center">Site</th>
                               <th width="10%" align="center">Thời gian</th>
                               <th width="8%" align="center">Thời lượng</th>
+                              <th width="8%" align="center">Hội thoại</th>
                               <th align="center">Ghi chú</th>
                          </tr>
                     </thead>

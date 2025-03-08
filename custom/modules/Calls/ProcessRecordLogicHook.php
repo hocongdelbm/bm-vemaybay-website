@@ -21,7 +21,7 @@ class ProcessRecordLogicHook
         $sql = "SELECT log FROM calls WHERE id = '{$bean->id}' AND deleted = 0";
         $log = $GLOBALS['db']->getOne($sql);
         $log_array = json_decode(html_entity_decode($log), true);
-        $other_caller = $log_array['other_caller'];
+        $other_caller = $log_array['other_caller'] ?? '';
 
         
         // FROM - TO
@@ -107,6 +107,8 @@ class ProcessRecordLogicHook
                 $bean->direction;
         }
 
+        $bean->call_talk = global_secondsToTimeFormat($bean->call_talk);
+
         // Custom status
         $status = $app_list_strings['call_status_dom'][$bean->status];
         switch ($bean->status) {
@@ -124,21 +126,23 @@ class ProcessRecordLogicHook
         }
     }
 
-    function getDurationCallsValue(&$bean, $event, $arguments)
-    {
-        // Get access to custom fields from $bean
-        $bean->custom_fields->retrieve();
+    
 
-        // Get access to name property using DBManager because $bean->name return null
-        $sql = "SELECT log FROM calls WHERE id = '{$bean->id}' AND deleted = 0";
-        $log = $GLOBALS['db']->getOne($sql);
+    // function getDurationCallsValue(&$bean, $event, $arguments)
+    // {
+    //     // Get access to custom fields from $bean
+    //     $bean->custom_fields->retrieve();
 
-        // if($GLOBALS['current_user']->user_name == 'hungnh'){
-        //     pr($log);
-        // }
+    //     // Get access to name property using DBManager because $bean->name return null
+    //     $sql = "SELECT log FROM calls WHERE id = '{$bean->id}' AND deleted = 0";
+    //     $log = $GLOBALS['db']->getOne($sql);
 
-        $log_array = json_decode(html_entity_decode($log), true);
+    //     // if($GLOBALS['current_user']->user_name == 'hungnh'){
+    //     //     pr($log);
+    //     // }
 
-        $bean->call_duration_c = secondsToTimeFormat($log_array['call_talk']);
-    }
+    //     $log_array = json_decode(html_entity_decode($log), true);
+
+    //     $bean->call_duration_c = secondsToTimeFormat($log_array['call_talk']);
+    // }
 }

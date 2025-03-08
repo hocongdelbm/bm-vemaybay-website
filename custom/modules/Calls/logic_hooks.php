@@ -15,12 +15,12 @@ $hook_array['process_record'][] = Array(
     'custom_column'
 );
 
-$hook_array['process_record'][] = Array(
-    3,
-    'get duration call value',
-    'custom/modules/Calls/ProcessRecordLogicHook.php',
-    'ProcessRecordLogicHook',
-    'getDurationCallsValue'
-);
+// $hook_array['process_record'][] = Array(
+//     3,
+//     'get duration call value',
+//     'custom/modules/Calls/ProcessRecordLogicHook.php',
+//     'ProcessRecordLogicHook',
+//     'getDurationCallsValue'
+// );
 
 ?>

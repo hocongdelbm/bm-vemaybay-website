@@ -1,5 +1,5 @@
 <?php
-// created: 2024-10-15 03:36:45
+// created: 2025-02-26 02:29:06
 $GLOBALS['tabStructure'] = array (
   'LBL_GROUPTAB3_1684394664' => 
   array (
@@ -8,12 +8,13 @@ $GLOBALS['tabStructure'] = array (
     array (
       0 => 'EC_Flight_Bookings',
       1 => 'Calls',
-      2 => 'EC_Zalo',
-      3 => 'Emails',
-      4 => 'InboundEmail',
-      5 => 'EC_Messages',
+      2 => 'EC_Vouchers',
+      3 => 'EC_Zalo',
+      4 => 'EC_Messages',
+      5 => 'Emails',
       6 => 'EC_HoanVe',
-      7 => 'Accounts',
+      7 => 'InboundEmail',
+      8 => 'Accounts',
     ),
   ),
   'LBL_GROUPTAB4_1701142454' => 
@@ -22,9 +23,7 @@ $GLOBALS['tabStructure'] = array (
     'modules' => 
     array (
       0 => 'EC_TongHop',
-      1 => 'EC_Customer',
-      2 => 'Contacts',
-      3 => 'EC_Vouchers',
+      1 => 'Contacts',
     ),
   ),
   'LBL_GROUPTAB2_1684121222' => 
@@ -61,8 +60,8 @@ $GLOBALS['tabStructure'] = array (
       1 => 'EC_Location',
       2 => 'SecurityGroups',
       3 => 'EC_LoginAudit',
-      4 => 'Bugs',
-      5 => 'AOK_KnowledgeBase',
+      4 => 'AOK_KnowledgeBase',
+      5 => 'Documents',
     ),
   ),
 );

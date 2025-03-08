@@ -13,10 +13,7 @@ class loginActions
             $la_event = 'login_failed';
         }
 
-        if (empty($agent_status)) {
-            $agent_status   = 'Logged Out';
-        }
-
+        $agent_status   = '';
         switch ($la_event) {
             case 'login_failed':
                 $la_result = "Failed";
@@ -26,6 +23,7 @@ class loginActions
                 $la_result = "Success";
                 break;
             case 'before_logout':
+                $agent_status   = 'Logged Out';
                 $la_result = "Logout";
                 break;
             default:
@@ -33,8 +31,8 @@ class loginActions
         }
 
         $uuid = create_guid();
-        $typed_name = $db->quote($_REQUEST['user_name']);
-        $ip_address = $_SERVER['REMOTE_ADDR'];
+        $typed_name = isset($_REQUEST['user_name']) ? $db->quote($_REQUEST['user_name']) : '';
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
 
         // Browser
         $brower          = trim($_SERVER['HTTP_SEC_CH_UA']);
@@ -46,24 +44,28 @@ class loginActions
                                 VALUES ('$uuid','','$timestamp', '$timestamp','$current_user->id','1','','0','1','$ip_address','$typed_name','$current_user->is_admin','$la_result', '$platform', '$brower', '$user_agent')";
 
         $db->query($query, false);
-
+        
         // Update change status agent and update agent status
-        if ($agent_status) {
-            if ($current_user->td_sip) {
-                agent_change_status($current_user->td_sip, $agent_status);
-            }
+        if (!empty($la_event) && !empty($agent_status) && !empty($current_user->td_sip)) {
+            agent_change_status($current_user->td_sip, $agent_status);
         }
 
-        // Logout => OFF ONLINE
-        if($la_result == 'Logout'){
-            $sql_offline = '
-                UPDATE ec_online_report 
-                SET status = 0, last_online = "' . date('Y-m-d H:i:s') . '"
-                WHERE assigned_user_id = "' . $current_user->id . '"
-                AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                AND deleted = 0
+        // Nếu login lần đầu cập nhật start_online
+        if ($la_event === 'after_login' && $la_result === 'Success') {
+            $sql_exist = '
+                SELECT id, start_online
+                FROM ec_online_report
+                WHERE deleted = 0
+                    AND assigned_user_id = "' . $current_user->id . '"
+                    AND DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = "' . date('Y-m-d') . '"
             ';
-            $db->query($sql_offline);
-        }   
+            $row = $db->fetchByAssoc($db->query($sql_exist));
+        
+            if (!empty($row) && empty($row['start_online'])) {
+                $start_time = date('Y-m-d H:i:s');
+
+                $db->query('UPDATE ec_online_report SET start_online = "'.$start_time.'" WHERE id = "' . $row['id'] . '" AND deleted = 0');
+            } 
+        }
     }
 }

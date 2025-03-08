@@ -156,7 +156,8 @@ $mod_strings = array(
     // Voucher checkExpirationDateVoucher
     'LBL_CHECKEXPIRATIONDATEVOUCHER' => 'Kiểm tra hạn sử dụng của voucher',
 
-
+    // REPORT PROFIT
+    'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
 );
 
 global $sugar_config;

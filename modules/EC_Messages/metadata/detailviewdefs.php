@@ -8,6 +8,7 @@ $viewdefs[$module_name]['DetailView'] = array(
                 // 'DUPLICATE',
                 'DELETE',
                 // 'FIND_DUPLICATES',
+                array('customCode' => '{$CUSTOM_BUTTON_SCHEDULE}'),
             )
         ),
         'maxColumns' => '2',
@@ -24,12 +25,12 @@ $viewdefs[$module_name]['DetailView'] = array(
                 'type',
             ),
             array(
-                'category',
                 array(
                     'name' => 'status',
                     'label' => 'LBL_STATUS',
                     'customCode' => '{$CUSTOM_STATUS}'
-                )
+                ),
+                'category',
             ),
             array(
                 array(

@@ -98,17 +98,6 @@ $vardefs = array(
             'audited' => true,
             'comment' => 'An indicator of whether contact can be called'
         ),
-        'phone_home' => array(
-            'name' => 'phone_home',
-            'vname' => 'LBL_HOME_PHONE',
-            'type' => 'phone',
-            'dbType' => 'varchar',
-            'len' => 25,
-            'unified_search' => true,
-            'full_text_search' => array('boost' => 1),
-            'comment' => 'Home phone number of the contact',
-            'merge_filter' => 'enabled',
-        ),
         //bug 42902
         'email' => array(
             'name' => 'email',
@@ -124,6 +113,7 @@ $vardefs = array(
             'studio' => array('visible' => false, 'searchview' => true),
             'importable' => false,
         ),
+
         'phone_mobile' => array(
             'name' => 'phone_mobile',
             'vname' => 'LBL_MOBILE_PHONE',
@@ -145,6 +135,17 @@ $vardefs = array(
             'unified_search' => true,
             'full_text_search' => array('boost' => 1),
             'comment' => 'Work phone number of the contact',
+            'merge_filter' => 'enabled',
+        ),
+        'phone_home' => array(
+            'name' => 'phone_home',
+            'vname' => 'LBL_HOME_PHONE',
+            'type' => 'phone',
+            'dbType' => 'varchar',
+            'len' => 25,
+            'unified_search' => true,
+            'full_text_search' => array('boost' => 1),
+            'comment' => 'Home phone number of the contact',
             'merge_filter' => 'enabled',
         ),
         'phone_other' => array(
@@ -169,6 +170,7 @@ $vardefs = array(
             'comment' => 'Contact fax number',
             'merge_filter' => 'enabled',
         ),
+
         'email1' => array(
             'name' => 'email1',
             'vname' => 'LBL_EMAIL_ADDRESS',

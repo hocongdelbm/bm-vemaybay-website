@@ -1,8 +1,10 @@
 <?php
+global $current_user, $db, $app_list_strings;
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
 
-    if($type == "get_contact") {
+    if ($type == "get_contact") {
         global $db, $current_user, $app_list_strings;
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $zalo_id = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
@@ -21,10 +23,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
         $where = '';
-        if(!empty($phone) && !empty($zalo_id)) $where = '(con.phone_mobile = "'.$phone.'" AND con.zalo_id = "'.$zalo_id.'")';
-        elseif(!empty($phone)) $where = 'con.phone_mobile = "'.$phone.'"';
-        elseif(!empty($zalo_id)) $where = 'con.zalo_id = "'.$zalo_id.'"';
-        
+        if (!empty($phone) && !empty($zalo_id)) $where = '(con.phone_mobile = "' . $phone . '" AND con.zalo_id = "' . $zalo_id . '")';
+        elseif (!empty($phone)) $where = 'con.phone_mobile = "' . $phone . '"';
+        elseif (!empty($zalo_id)) $where = 'con.zalo_id = "' . $zalo_id . '"';
+
         $sql = '
             SELECT 
                 con.id,
@@ -35,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             FROM contacts con
                 LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id AND eb.bean_module = "Contacts" AND eb.deleted = 0
                 LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-            WHERE '.$where.' 
+            WHERE ' . $where . ' 
                 AND con.deleted = 0
         ';
 
@@ -50,26 +52,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
         /**********  2. Get zalo info **********/
-        if(!empty($data['zalo_id'])) {
-            require_once('modules/EC_SMS_Logs/Zalo.php');
+        if (!empty($data['zalo_id'])) {
+            require_once('modules/EC_Zalo/Zalo.php');
             $zalo = new Zalo();
 
             // Get user info
-            $json_user_info = $zalo->get_user_info($data['zalo_id']);
+            $json_user_info = $zalo->get_user($data['zalo_id']);
             $user_info      = json_decode($json_user_info, true);
-            
-            if($user_info['error'] == 0) {
+
+            if ($user_info && $user_info['error'] == 0) {
                 $zalo_phone = (isset($user_info['data']['shared_info']) && isset($user_info['data']['shared_info']['phone'])) ? $user_info['data']['shared_info']['phone'] : '';
                 // Get phone from user_alias
-                if(empty($zalo_phone)) $zalo_phone = get_phone_by_alias($user_info['data']['user_alias']);
+                if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['data']['user_alias']);
 
-                if(empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
-                if(empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
+                if (empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
+                if (empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
                 $data['avatar'] = isset($user_info['data']['avatars']['240']) ? $user_info['data']['avatars']['240'] : $user_info['data']['avatar'];
             }
         }
 
-        
+
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;
         $data['info_booking'] = get_booking_info($phone_lh);
@@ -83,8 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Return
         echo json_encode($data);
         exit();
-    }
-    elseif($type == "get_contact_zalo") { // Dùng cho gọi ra đường Zalo
+    } elseif ($type == "get_contact_zalo") { // Dùng cho gọi ra đường Zalo
         /** Tương tác của người dùng với OA là một trong các hành động:
          * Quan tâm OA
          * Gửi tin nhắn đến OA
@@ -109,7 +110,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         );
 
         // Lấy thông tin từ số điện thoại
-        if(strlen($number) < 15) {
+        if (strlen($number) < 15) {
             $sql_1 = '
                 SELECT con.id,
                     con.last_name AS name,
@@ -119,14 +120,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 FROM contacts con
                     LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id AND eb.bean_module = "Contacts" AND eb.deleted = 0
                     LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-                WHERE con.phone_mobile = "'.$number.'" AND con.deleted = 0
+                WHERE con.phone_mobile = "' . $number . '" AND con.deleted = 0
                 ORDER BY date_entered
                 LIMIT 1
             ';
 
             $res_1 = $db->query($sql_1);
             while ($row = $db->fetchByAssoc($res_1)) {
-                if(is_null($row['zalo_id']) || empty($row['zalo_id'])) continue;
+                if (is_null($row['zalo_id']) || empty($row['zalo_id'])) continue;
 
                 $data['contact_id'] = $row['id'];
                 $data['name']       = !is_null($row['name']) ? $row['name'] : '';
@@ -137,6 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $zalo_id = $data['zalo_id'];
         }
+
         // Lấy thông tin từ Zalo id
         else {
             $sql_1 = '
@@ -148,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 FROM contacts con
                     LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id AND eb.bean_module = "Contacts" AND eb.deleted = 0
                     LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-                WHERE con.zalo_id = "'.$number.'" AND con.deleted = 0
+                WHERE con.zalo_id = "' . $number . '" AND con.deleted = 0
                 ORDER BY date_entered
                 LIMIT 1
             ';
@@ -167,14 +169,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
         /**********  2. Get and check zalo info **********/
-        if(!empty($zalo_id)) {
-            require_once('modules/EC_SMS_Logs/Zalo.php');
+        if (!empty($zalo_id)) {
+            require_once('modules/EC_Zalo/Zalo.php');
             $zalo = new Zalo();
 
             // Get user info
-            $json_user_info = $zalo->get_user_info($zalo_id);
+            $json_user_info = $zalo->get_user($zalo_id);
             $user_info = json_decode($json_user_info, true);
-            if($user_info['error'] != 0) {
+            if ($user_info['error'] != 0) {
                 echo json_encode([
                     'error' => 1,
                     'message' => isset($user_info['message']) ? $user_info['message'] : 'Thông tin Zalo không hợp lệ'
@@ -183,53 +185,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             $zalo_phone = (isset($user_info['data']['shared_info']) && isset($user_info['data']['shared_info']['phone'])) ? $user_info['data']['shared_info']['phone'] : '';
             // Get phone from user_alias
-            if(empty($zalo_phone)) $zalo_phone = get_phone_by_alias($user_info['data']['user_alias']);
+            if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['data']['user_alias']);
 
-            if(empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
-            if(empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
+            if (empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
+            if (empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
             $data['avatar'] = $user_info['data']['avatars']['240'];
             $data['last_interaction'] = isset($user_info['data']['user_last_interaction_date']) ? $user_info['data']['user_last_interaction_date'] : ''; // dd/mm/yyyy
 
-            // // Get messages to get last interaction
-            // $json_message = $zalo->get_messages($zalo_id);
-            // $messages = json_decode($json_message, true);
-            
-            // if($messages['error'] == 0 && !empty($messages['data'])) {
-            //     foreach($messages['data'] as $row_message) {
-            //         // User chủ động
-            //         if($row_message['from_id'] == $zalo_id) {
-            //             $data['last_interaction'] = date('Y-m-d H:i:s', strtotime(str_replace("/", "-", $row_message['sent_time'])));
-            //             break;
-            //         }
-            //         // OA chủ động (User trả lời cuộc gọi)
-            //         else if($row_message['type'] == 'nosupport') {
-            //             $sql_2 = 'SELECT log
-            //                 FROM calls
-            //                 WHERE direction = "outbound"
-            //                     AND call_from = "'.$zalo->TRAVELPASS_ZALO_ID.'"
-            //                     AND call_to = "'.$zalo_id.'"
-            //                     AND deleted = 0
-            //                 ORDER BY date_entered DESC
-            //             ';
-
-            //             $res_2 = $db->query($sql_2);
-            //             while ($row = $db->fetchByAssoc($res_2)) {
-            //                 $call_log = json_decode(html_entity_decode($row['log']), true);
-
-            //                 // User có trả lời
-            //                 if($call_log['call_talk'] > 0) {
-            //                     $data['last_interaction'] = $call_log['call_start'];
-            //                     break;
-            //                 }
-            //             }
-
-            //             if(!empty($data['last_interaction'])) break;
-            //         }
-            //     }
-            // }
-
             // Check interaction within 30 days
-            if( empty($data['last_interaction']) || ((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400 > 30) ) {
+            if (empty($data['last_interaction']) || ((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400 > 30)) {
                 echo json_encode([
                     'error' => 1,
                     'message' => 'Không thể gọi đến Zalo này',
@@ -238,22 +202,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ], JSON_UNESCAPED_UNICODE);
                 exit();
             }
-        }
-        else {
+        } else {
             echo json_encode([
-                    'error' => 1,
-                    'message' => 'Không có thông tin Zalo'
-                ], JSON_UNESCAPED_UNICODE);
+                'error' => 1,
+                'message' => 'Không có thông tin Zalo'
+            ], JSON_UNESCAPED_UNICODE);
             exit();
         }
 
-
         /**********  3. Get booking info of contact via phone **********/
-        if(!empty($data['phone'])) {
+        if (!empty($data['phone'])) {
             $phone_lh = global_test_input(str_replace(" ", "", $data['phone']));
             $data['info_booking'] = get_booking_info($phone_lh);
         }
-
 
         // Return
         echo json_encode([
@@ -262,71 +223,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'data' => $data
         ], JSON_UNESCAPED_UNICODE);
         exit();
-    }
-    elseif($type == "update_call") {
+    } elseif ($type == "update_call") {
         $call_id    = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
         $contact_id = isset($_POST['contact_id']) ? global_test_input($_POST['contact_id']) : "";
-        $booking_id = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $phone      = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $zalo_id    = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
         $name       = isset($_POST['name']) ? global_test_input($_POST['name']) : "";
         $email      = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
         $note       = isset($_POST['note']) ? addslashes($_POST['note']) : "";
-       
+        $call_reason = isset($_POST['call_reason']) ? global_test_input($_POST['call_reason']) : "";
+
+        $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
+        $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
+
         $is_success     = isset($_POST['is_success']) ? $_POST['is_success'] : "";
         $call_status    = ($is_success === 'true') ? 'done' : 'new';
 
-        // Validate
-        if(empty($call_id)) {
-            $GLOBALS['log']->fatal('update_call thất bại: ' . $_POST);
 
+        // Validate
+        if (empty($call_id) || empty($note)) {
             echo 400;
             exit();
         }
-        global $db, $current_user;
-
 
         /**********  1. Handle Call & Contact  **********/
-        if(empty($contact_id)) {
+        if (empty($contact_id)) {
             $where = '';
             // if(!empty($phone) && !empty($zalo_id)) $where = '(phone_mobile = "'.$phone.'" AND zalo_id = "'.$zalo_id.'")';
-            if(!empty($phone)) $where = 'phone_mobile = "'.$phone.'"';
-            elseif(!empty($zalo_id)) $where = 'zalo_id = "'.$zalo_id.'"';
+            if (!empty($phone)) $where = 'phone_mobile = "' . $phone . '"';
+            elseif (!empty($zalo_id)) $where = 'zalo_id = "' . $zalo_id . '"';
 
             $sql = 'SELECT id
                 FROM contacts
-                WHERE '.$where.' AND deleted = 0
+                WHERE ' . $where . ' AND deleted = 0
                 LIMIT 1';
             $contact_id = $db->getOne($sql);
         }
 
         $con = new Contact();
-        if($contact_id && !empty($contact_id)) {
+        if ($contact_id && !empty($contact_id)) {
             $save = false;
             $con->retrieve($contact_id);
 
-            if(empty($con->phone_mobile)) {
+            if (empty($con->phone_mobile)) {
                 $con->phone_mobile = $phone;
                 $save = true;
             }
-            if(empty($con->zalo_id)) {
+            if (empty($con->zalo_id)) {
                 $con->zalo_id = $zalo_id;
                 $save = true;
             }
-            if(!empty($name)) {
+            if (!empty($name)) {
                 $con->last_name = $name;
                 $save = true;
             }
-            if(!empty($email)) {
+            if (!empty($email)) {
                 $con->email1 = $email;
                 $save = true;
             }
-            if($save === true) $con->save();
+            if ($save === true) $con->save();
         } else {
             $sql = 'SELECT name
                 FROM calls
-                WHERE call_id = "'.$call_id.'" AND deleted = 0';
+                WHERE call_id = "' . $call_id . '" AND deleted = 0';
             $call_name = $db->getOne($sql);
 
             $con->phone_mobile = $phone;
@@ -341,111 +301,126 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
         $sql_exist_callid = 'SELECT IF(COUNT(id) > 0, 1, 0)
                     FROM calls 
-                    WHERE call_id = "'.$call_id.'" AND deleted = 0';
+                    WHERE call_id = "' . $call_id . '" AND deleted = 0';
         $is_exist_callid = $db->getOne($sql_exist_callid);
 
         if ($is_exist_callid) {
-            $sql_update_call = '
-                UPDATE calls
-                SET parent_type = "Contacts", parent_id = "'.$con->id.'", description = "'.$note.'", booking_id = "'.$booking_id.'",
-                    created_by = "'.$current_user->id.'",
-                    modified_user_id = "'.$current_user->id.'",
-                    assigned_user_id = "'.$current_user->id.'",
-                    status = "'.$call_status.'"
-                WHERE call_id = "'.$call_id.'" AND deleted = 0';
-
+            $sql_update_call = 'UPDATE calls
+                                SET parent_type = "Contacts", parent_id = "' . $con->id . '", description = "' . $note . '", booking_id = "' . $booking_id . '",
+                                    created_by = "' . $current_user->id . '",
+                                    modified_user_id = "' . $current_user->id . '",
+                                    assigned_user_id = "' . $current_user->id . '",
+                                    call_reason = "' . $call_reason . '",
+                                    journey_id = "' . $journey_id . '",
+                                    type_call_sources = "' . $type_call . '",
+                                    status = "' . $call_status . '"
+                                WHERE call_id = "' . $call_id . '" AND deleted = 0';
             $result_update_call = $db->query($sql_update_call);
-            if($result_update_call){
-                $log_save_calls = '['.$current_user->user_name.']['.date('Y-m-d H:i:s', strtotime('+7 hour')).'][success]' . $sql_update_call;
+
+            if ($result_update_call) {
+                $log_save_calls = '[' . $current_user->user_name . '][' . date('Y-m-d H:i:s', strtotime('+7 hour')) . '][success]' . $sql_update_call;
                 save_log_call($log_save_calls);
             } else {
-                $log_save_calls = '['.$current_user->user_name.']['.date('Y-m-d H:i:s', strtotime('+7 hour')).'][Failed_db]' . $sql_update_call;
+                $log_save_calls = '[' . $current_user->user_name . '][' . date('Y-m-d H:i:s', strtotime('+7 hour')) . '][Failed_db]' . $sql_update_call;
                 save_log_call($log_save_calls);
-                
                 echo 401;
                 exit;
             }
         } else {
-            $log_save_calls = '['.$current_user->user_name.']['.date('Y-m-d H:i:s', strtotime('+7 hour')).'][Failed_Callid]' . $sql_exist_callid;
+            $log_save_calls = '[' . $current_user->user_name . '][' . date('Y-m-d H:i:s', strtotime('+7 hour')) . '][Failed_Callid]' . $sql_exist_callid;
             save_log_call($log_save_calls);
 
             echo 404;
             exit;
         }
-
-
         /**********  2. Handle Booking  **********/
-        if(!empty($booking_id)) {
+        $sql_call = 'SELECT id, name, status, call_talk FROM calls WHERE call_id = "' . $call_id . '" AND deleted = 0 LIMIT 1';
+        $result = $db->query($sql_call);
+
+        if (!empty($booking_id)) {
             $booking_name = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
+            if (!empty($type_call) && !empty($call_id)) {
+                while ($call = $db->fetchByAssoc($result)) {
+                    if ($call) {
+                        $work                       = new EC_Working_Process();
+                        $work->name                 = !empty($booking_id) ? $booking_name : $call['name'];
+                        $work->parent_type          = !empty($booking_id) ? 'EC_Flight_Bookings' : 'Calls';
+                        $work->parent_id            = !empty($booking_id) ? $booking_id : $call['id'];
+                        $work->description          = $note . ' (' . $type_call . ')';
+                        $work->$type_call           = ($is_success == 'true') ? 1 : 0;
+                        $work->assigned_user_id     = $current_user->id;
+                        $work->save();
 
-            if(!empty($type_call)) {
-                $bean_note                      = new Note();
-                $bean_note->name                = $booking_name;
-                $bean_note->parent_type         = 'EC_Flight_Bookings';
-                $bean_note->parent_id           = $booking_id;
-                $bean_note->description         = $note;
-                $bean_note->booking_status      = ($type_call == 'called' ? '6' : '');
-                $bean_note->working_process_id  = $work->id;
-                $bean_note->assigned_user_id    = $current_user->id;
-                $bean_note->save();
+                        $bean_note                      = new Note();
+                        $bean_note->name                = $booking_name;
+                        $bean_note->parent_type         = 'EC_Flight_Bookings';
+                        $bean_note->parent_id           = $booking_id;
+                        $bean_note->description         = $note . ' (' . $type_call . ')';;
+                        $bean_note->booking_status      = ($type_call == 'called' ? '6' : '');
+                        $bean_note->working_process_id  = $work->id;
+                        $bean_note->assigned_user_id    = $current_user->id;
+                        $bean_note->save();
 
-                // Update status and assigned
-                if($type_call == 'called') {
-                    $sql_update = 'UPDATE ec_flight_bookings
-                        SET booking_status = "6", assigned_user_id = "'.$current_user->id.'"
-                        WHERE id = "'.$booking_id.'" AND deleted = 0';
-                    $db->query($sql_update);
+                        // Update status and assigned
+                        if ($type_call == 'called') {
+                            $sql_update = 'UPDATE ec_flight_bookings
+                                    SET booking_status = "6", assigned_user_id = "' . $current_user->id . '"
+                                    WHERE id = "' . $booking_id . '" AND deleted = 0';
+                            $db->query($sql_update);
+                        }
+
+                        // Update is_remind trong bảng ec_booking_itineraries = true nếu đã ghi nhận KPI
+                        if (!empty($journey_id) && $call['call_talk'] > 0) {
+                            $update_remind = "UPDATE ec_booking_itineraries 
+                                SET is_remind = 1
+                                WHERE id = '" . trim($journey_id) . "'
+                                AND deleted = 0";
+                            $result_remind = $db->query($update_remind);
+                            if (!$result_remind) {
+                                $GLOBALS['log']->fatal('updated remind thất bại: ' . $update_remind);
+                            }
+                        } else {
+                            $GLOBALS['log']->fatal('updated remind thất bại: ' . json_encode($_POST));
+                        }
+                    }
+                }
+            }
+        } else {
+            while ($call = $db->fetchByAssoc($result)) {
+                if ($call) {
+                    // LƯU KPI
+                    if (!empty($note) && (int)$call['call_talk'] >= 20 && $call['status'] == 'done') {
+                        $work = new EC_Working_Process();
+                        $work->name = $call['name'];
+                        $work->parent_type = 'Calls';
+                        $work->parent_id = $call['id'];
+                        $work->description = $note . ' ('.$type_call.')';
+                        $work->$type_call = 1; 
+                        $work->assigned_user_id = $current_user->id;
+                        $work->save();
+                    } 
                 }
             }
         }
 
         /**********  3. Handle Zalo  **********/
-        if(!empty($zalo_id) && empty($phone)) {
-            require_once('modules/EC_SMS_Logs/Zalo.php');
+        if (!empty($zalo_id) && empty($phone)) {
+            require_once('modules/EC_Zalo/Zalo.php');
             $objZalo = new Zalo();
-            $json = $objZalo->get_user_info($zalo_id);
+            $json = $objZalo->get_user($zalo_id);
             $arr = json_decode($json, true);
 
-            if(isset($arr['error']) && $arr['error'] == 0) {
-        
-                // Send request info
-                if( !isset($arr['data']['shared_info']) ||
+            if (isset($arr['error']) && $arr['error'] == 0) {
+                if (
+                    !isset($arr['data']['shared_info']) ||
                     !isset($arr['data']['shared_info']['phone']) ||
                     empty($arr['data']['shared_info']['phone'])
                 ) {
                     // Get phone from user_alias
-                    if(empty(get_phone_by_alias($arr['data']['user_alias']))) {
-                        $objZalo->send_request_user_info($zalo_id);
-                        $objZalo->send_to_telegram('Gửi yêu cầu thông tin đến Zalo <b>'. $zalo_id .'</b>');
-                    }
-                }
-            }
-        }
-
-        /**********  4. Handle working process - KPI  **********/
-        if(!empty($call_id)){
-            // GET INFOR CALL
-            $sql_call = 'SELECT name, log, status
-                        FROM calls
-                        WHERE call_id = "'.$call_id.'" AND deleted = 0 
-                        LIMIT 1';
-            $result = $db->query($sql_call);
-
-            if ($result) {
-                while ($call = $db->fetchByAssoc($result)) {
-                    if ($call && isset($call['log'])) {
-                        $log_call = json_decode(html_entity_decode($call['log']), true);
-        
-                        if (!empty($note) && (int)$log_call['call_talk'] > 0 && $call['status'] == 'done') {
-                            $work = new EC_Working_Process();
-                            $work->name = !empty($booking_id) ? $booking_name : $call['name'];
-                            $work->parent_type = !empty($booking_id) ? 'EC_Flight_Bookings' : 'Calls';
-                            $work->parent_id = !empty($booking_id) ? $booking_id : $call['id'];
-                            $work->description = $note;
-                            $work->$type_call = 1; // Kiểm tra $type_call đã được định nghĩa
-                            $work->assigned_user_id = $current_user->id;
-                            $work->save();
-                        } 
+                    if (empty($objZalo->get_phone_by_alias($arr['data']['user_alias']))) {
+                        $data['element'] = $objZalo->get_template('request_user_info');
+                        $objZalo->send_consultation('request_user_info', $zalo_id, $data);
+                        $objZalo->send_to_telegram('Gửi yêu cầu thông tin đến Zalo <b>' . $zalo_id . '</b>');
                     }
                 }
             }
@@ -453,32 +428,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo 200;
         exit();
-    }
-    elseif($type == "check_missed_call") {
+    } elseif ($type == "check_missed_call") {
         $call_id = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
 
-        if(empty($call_id)) {
+        if (empty($call_id)) {
             echo 0;
             exit();
         }
 
         global $db;
         $sql = 'SELECT call_id
-            FROM calls
-            WHERE call_id = "'.$call_id.'" AND direction = "missed" AND deleted = 0
-        ';
+                    FROM calls
+                    WHERE call_id = "' . $call_id . '" AND direction = "missed" AND deleted = 0
+                ';
         $id = $db->getOne($sql);
 
-        if($id && !empty($id)) echo 1;
+        if ($id && !empty($id)) echo 1;
         else echo 0;
         exit();
-    }
-    elseif($type == "map_call_booking") {
-        $call_name = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
-        $booking_id = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
-        $booking_name = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
+    } elseif ($type == "map_call_booking") {
+        $call_name      = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
+        $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
+        $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
 
-        if(empty($call_name) || empty($booking_id)) {
+        if (empty($call_name) || empty($booking_id)) {
             echo 0;
             exit();
         }
@@ -486,45 +459,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         global $db, $current_user;
 
         $sql = 'SELECT id
-            FROM calls cal
-            WHERE cal.name = "'.$call_name.'"
-                AND (cal.booking_id IS NULL OR cal.booking_id = "")
-                AND cal.deleted = 0 
-        ';
+                FROM calls cal
+                WHERE cal.name = "' . trim($call_name) . '"
+                    AND (cal.booking_id IS NULL OR cal.booking_id = "")
+                    AND cal.deleted = 0';
         $call_id = $db->getOne($sql);
 
-        if(!empty($call_id)) {
+        if (!empty($call_id)) {
             $cal = new Call();
             $cal->retrieve($call_id);
             $cal->booking_id = $booking_id;
 
             $description = (is_null($cal->description) || empty($cal->description)) ? '' : trim(addslashes($cal->description));
 
-            if(empty($description)){
+            if (empty($description)) {
                 echo 2;
                 exit();
             }
             $cal->save();
 
             $assigned_user_id = (is_null($cal->assigned_user_id) || empty($cal->assigned_user_id)) ? $current_user->id : $cal->assigned_user_id;
-
             $work                       = new EC_Working_Process();
             $work->id                   = '';
-            $work->name 			    = $booking_name;
-            $work->parent_type 		    = 'EC_Flight_Bookings';
-            $work->parent_id 		    = $booking_id;
-            $work->description 		    = $description;
-            $work->called               = 1;
+            $work->name                 = $booking_name;
+            $work->parent_type          = 'EC_Flight_Bookings';
+            $work->parent_id            = $booking_id;
+            $work->description          = $description;
+            // $work->called               = 1;
             $work->assigned_user_id     = $assigned_user_id;
             $work->save();
 
-            if(empty($work->id)) {
+            if (empty($work->id)) {
                 echo 0;
                 exit();
             }
 
             $bean_note                      = new Note();
-            $bean_note->id 			        = '';
+            $bean_note->id                  = '';
             $bean_note->name                = $booking_name;
             $bean_note->parent_type         = 'EC_Flight_Bookings';
             $bean_note->parent_id           = $booking_id;
@@ -535,8 +506,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $bean_note->save();
 
             $sql_update = 'UPDATE ec_flight_bookings
-                SET booking_status = "6", assigned_user_id = "'.$assigned_user_id.'"
-                WHERE id = "'.$booking_id.'" AND deleted = 0';
+                    SET booking_status = "6", assigned_user_id = "' . $assigned_user_id . '"
+                    WHERE id = "' . $booking_id . '" AND deleted = 0';
             $db->query($sql_update);
 
             echo 1;
@@ -545,28 +516,316 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo 0;
         exit();
-    } else if($type == 'save_log_call'){
+    } else if ($type == 'save_log_call') {
         $log_call = isset($_POST['log']) ? $_POST['log'] : '';
         save_log_call($log_call);
+    } else if ($type == 'get_history_activity_contacts'){
+        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
+        $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
+        $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
+
+        if (empty($phone)) {
+            echo 0;
+            exit();
+        }
+    
+        $sql = "
+                SELECT 
+                    c.id AS interaction_id,
+                    c.name AS interaction_item,
+                    c.call_from as call_from,
+                    c.call_to as call_to,
+                    c.date_entered AS interaction_date,
+                    'call' AS interaction_type,
+                    c.direction AS interaction_status,
+                    c.description AS interaction_detail,
+                    c.assigned_user_id
+                FROM calls c
+                WHERE (c.call_from = '$phone' OR c.call_to = '$phone')
+                AND c.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND c.deleted = 0
+
+                UNION ALL
+                SELECT 
+                    b.id AS interaction_id,
+                    b.name AS interaction_item,
+                    b.phone as call_from,
+                    b.phone as call_to, 
+                    b.date_entered AS interaction_date,
+                    'booking' AS interaction_type,
+                    b.booking_status AS interaction_status,
+                    b.description AS interaction_detail,
+                    b.assigned_user_id
+                FROM ec_flight_bookings b
+                WHERE b.phone = '$phone'
+                AND b.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND b.deleted = 0
+
+                UNION ALL
+                SELECT 
+                    r.id AS interaction_id,
+                    r.name AS interaction_item,
+                    b.phone AS call_from,
+                    b.phone AS call_to,
+                    r.date_entered AS interaction_date,
+                    'refund' AS interaction_type,
+                    r.tinhtrang AS interaction_status,
+                    r.description AS interaction_detail,
+                    r.assigned_user_id
+                FROM ec_hoanve r
+                JOIN ec_flight_bookings b ON r.booking_id = b.id
+                WHERE b.phone = '$phone'
+                AND r.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND r.deleted = 0
+
+                UNION ALL
+                SELECT 
+                    rv.id AS interaction_id,
+                    rv.name AS interaction_item,
+                    b.phone AS call_from,
+                    b.phone AS call_to,
+                    rv.date_entered AS interaction_date,
+                    'receipt_voucher' AS interaction_type,
+                    rv.rv_status AS interaction_status,
+                    rv.description AS interaction_detail,
+                    rv.assigned_user_id
+                FROM ec_receipt_voucher rv
+                JOIN ec_flight_bookings b ON rv.booking_id = b.id
+                WHERE b.phone = '$phone'
+                AND rv.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND rv.deleted = 0
+                    
+                UNION ALL
+                SELECT 
+                    pv.id AS interaction_id,
+                    pv.name AS interaction_item,
+                    b.phone AS call_from,
+                    b.phone AS call_to,
+                    pv.date_entered AS interaction_date,
+                    'payment_voucher' AS interaction_type,
+                    pv.pv_status AS interaction_status,
+                    pv.description AS interaction_detail,
+                    pv.assigned_user_id
+                FROM ec_payment_voucher pv
+                JOIN ec_flight_bookings b ON pv.booking_id = b.id
+                WHERE b.phone = '$phone'
+                AND pv.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND pv.deleted = 0
+
+                ORDER BY interaction_date DESC;
+        ";
+        $res = $db->query($sql);
+        $count_actibity = $db->getRowCount($res);
+        $user_list = get_user_array(true, '', '', true);
+
+        if($count_actibity > 0){
+            $html = '<div class="row flex-start">
+                        <div class="col-md-12">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body p-0">
+                                    <div class="vertical-timeline vertical-timeline--animate vertical-timeline--one-column">';
+            while ($row = $db->fetchByAssoc($res)) {
+                
+                switch ($row['interaction_type']) {
+                    case 'call':
+                        $interaction_type = 'primary';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['calls_direction_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'booking':
+                        $interaction_type = 'success';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['booking_status_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'refund':
+                        $interaction_type = 'warning';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Hoanve&return_module=EC_Hoanve&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['tinhtranghoanve_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'receipt_voucher':
+                        $interaction_type = 'info';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Receipt_Voucher&return_module=EC_Receipt_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['receipt_voucher_status_list'][$row['interaction_status']].')</span>';
+                        break;
+                    case 'payment_voucher':
+                        $interaction_type = 'danger';
+                        $interaction_link = '<a class="fw-semibold text-decoration-underline text-'.$interaction_type.'" target="_blank" href="index.php?module=EC_Payment_Voucher&return_module=EC_Payment_Voucher&action=DetailView&record=' . $row['interaction_id'] . '">' . $row['interaction_item'] . '</a><span> ('.$GLOBALS['app_list_strings']['payment_voucher_status_list'][$row['interaction_status']].')</span>';
+                        break;
+                    default:
+                        $interaction_link = $row['interaction_item'];
+                        $interaction_type = 'dark';
+                }
+
+                $html .= ' 
+                        <div class="vertical-timeline-item vertical-timeline-element">
+                            <div class="flex-start gap-3">
+                                <span class="vertical-timeline-element-date w-25 text-secondary fw-semibold">'.date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($row['interaction_date']))).'</span>
+                                <span class="vertical-timeline-element-icon bounce-in text-center">
+                                    <span class="badge badge-dot badge-dot-xl text-bg-'.$interaction_type.'"> </span>
+                                </span>
+                                <div class="vertical-timeline-element-content bounce-in flex-fill">
+                                    <p class="mb-2">
+                                        '.$interaction_link.' 
+                                        <span class="d-block">'.$row['interaction_detail'].'</span>
+                                    </p>
+                                    <p>Nhân viên: <span class="fw-semibold text-dark">' . $user_list[$row['assigned_user_id']] . '</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    ';
+            }
+
+            $html .= '</div>
+                        </div>
+                    </div>        
+                </div> 
+            </div>';
+            echo $html;
+        } else {
+            echo 'Không có hoạt động gì.';
+        }
+
+        exit;
+    } else if ($type == 'get_history_activity_cskh'){
+        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
+        $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
+        $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
+
+        if (empty($phone)) {
+            echo 0;
+            exit();
+        }
+    
+        $sql = "
+                SELECT 
+                    c.id,
+                    c.name,
+                    c.description,
+                    c.assigned_user_id,
+                    c.date_start,
+                    c.date_end,
+                    c.status,
+                    c.direction,
+                    c.call_from,
+                    c.call_to,
+                    c.record_file,
+                    -- c.hangup_cause,
+                    c.log
+                FROM calls c
+                WHERE (c.call_from = '$phone' OR c.call_to = '$phone')
+                AND c.date_entered BETWEEN '$start_date' AND '$end_date'
+                AND c.deleted = 0
+                ORDER BY c.date_entered DESC;
+        ";
+
+        $res        = $db->query($sql);
+        $count_calls    = $db->getRowCount($res);
+        $user_list      = get_user_array(true, '', '', true);
+        $i = 1;
+        $successful_calls = 0;
+        $failed_calls = 0;
+        $total_duration = 0;
+        $total_wait = 0;
+        $total_talk = 0;
+
+        if($count_calls > 0){
+            $html = '<div class="list-calls-cskh">
+                        <table class="tbl-check-cskh-calls table-details__booking">
+                            <thead>
+                                <tr>
+                                    <th width="5%" class="text-center hide-mobile">#</th>
+                                    <th width="10%">Mã cuộc gọi</th>
+                                    <th width="8%">Trạng thái</th>
+                                    <th width="8%">Gọi từ</th>
+                                    <th width="8%">Gọi đến</th>
+                                    <th width="8%">Loại</th>
+                                    <th width="10%">Thời gian gọi</th>
+                                    <th width="25%" align="center">Ghi chú</th>
+                                    <th>Nhân viên xử lý</th>
+                                </tr>
+                            </thead>';
+            while ($row = $db->fetchByAssoc($res)) {
+                // Class status
+                if ($row['status'] == 'processing') {
+                    $status_class = 'text-warning';
+               } else if ($row['status'] == 'done') {
+                    $status_class = 'text-success';
+               } else {
+                    $status_class = 'text-normal';
+               }
+
+               // class direction
+               if ($row['direction'] == 'suddenly') {
+                    $direction_class = 'text-warning';
+                } else if ($row['direction'] == 'inbound') {
+                    $direction_class = 'text-success';
+                } else if ($row['direction'] == 'missed') {
+                    $direction_class = 'text-danger';
+                } else if ($row['direction'] == 'outbound') {
+                    $direction_class = 'text-primary';
+                } else if ($row['direction'] == 'spam') {
+                    $direction_class = 'text-spam';
+                } else {
+                    $direction_class = 'text-normal';
+                }
+
+                // Xử lý log
+                $log = json_decode(html_entity_decode($row['log']), true);
+                if(isset($log['call_talk']) && $log['call_talk'] > 0){
+                    $successful_calls++;
+                    $total_talk += $log['call_talk'];
+                } else {
+                    $failed_calls++;
+                }
+
+                if(isset($log['call_duration'])){
+                    $total_duration += $log['call_duration'];
+                }
+                if(isset($log['call_wait'])){
+                    $total_wait += $log['call_wait'];
+                }
+
+                $html .= '<tr>
+							<td class="hide-mobile fw-bold text-center">' . $i . '</td>
+							<td class="text-nowrap"><a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
+                            <td align="center" class="' . $status_class . '"><strong>' . $app_list_strings['call_status_dom'][$row['status']] . '</strong></td>
+							<td class="fw-bold text-center">' . $row['call_from'] . '</td>
+							<td class="fw-bold text-center">' . $row['call_to'] . '</td>
+                            <td align="center" class="' . $direction_class . '"><strong>' . $app_list_strings['calls_direction_list'][$row['direction']] . '</strong></td>
+                            <td align="center">' . $row['date_start'] . '</td>
+                            <td align="left">' . $row['description'] . '</td>
+                            <td align="center">' . $user_list[$row['assigned_user_id']] . '</td>
+						</tr>';
+				$i++;
+            }
+
+            // SUMMARY
+            $total_calls = ($i - 1);
+            $html_call_summary = '
+            <div class="d-flex gap-2 mb-3 flex-nowrap">
+                <div class="flex-fill lh-base">
+                    <p>📞 <strong>Tổng số cuộc gọi:</strong><span class="fw-bold">' . $total_calls . '</span></p>
+                    <p>✅ <strong>Cuộc gọi thành công:</strong> <span class="text-success fw-bold">' . $successful_calls . '</span> (Tỷ lệ: <span class="fw-bold">' . round(($successful_calls / $total_calls * 100), 2) . '%</span>)</p>
+                    <p>📵 <strong>Cuộc gọi thất bại:</strong> <span class="text-danger fw-bold">' . $failed_calls . '</span> (Tỷ lệ: <span class="fw-bold">' . round(($failed_calls / $total_calls * 100), 2) . '%</span>)</p>
+                </div>
+
+                <div class="flex-fill lh-base">
+                    <p>⏱️ <strong>Tổng thời gian:</strong> ' . global_secondsToTimeFormat($total_duration) . ' (Thời gian TB: ' . round($total_duration/$total_calls) . ')</p>
+                    <p>⏱️ <strong>Tổng thời gian đợi:</strong> ' . global_secondsToTimeFormat($total_wait) . ' (Thời gian TB: ' . round($total_wait/$total_calls) . ')</p>
+                    <p>⏱️ <strong>Tổng thời gian thoại:</strong> ' . global_secondsToTimeFormat($total_talk) . ' (Thời gian TB: ' . round($total_talk/$total_calls) . ')</p>
+                </div>
+            </div>';
+
+            echo $html_call_summary.$html;
+        } else {
+            echo 'Chưa có cuộc gọi CSKH nào!';
+        }
     }
 }
 
-function get_call_info($phone) {
-    if(is_null($phone) || empty($phone)) return '';
+function get_call_info($phone)
+{
+    if (is_null($phone) || empty($phone)) return '';
 
     global $db, $app_list_strings;
-    $html = '<table id="table-voicecall" class="table-details__booking">
-                <caption class="caption-voicecall" align="top">THÔNG TIN CUỘC GỌI GẦN ĐÂY</caption>
-                <thead>
-                    <th>STT</th>
-                    <th>Cuộc gọi</th>
-                    <th>Direction</th>
-                    <th>Gọi từ</th>
-                    <th>Gọi đến</th>
-                    <th>Mô tả</th>
-                </thead>
-                <tbody>';
-    
+    $html = '';
+
     $sql = "SELECT id, name, status, direction, call_from, call_to, description
             FROM calls
             WHERE (call_from = '" . trim($phone) . "' OR call_to = '" . trim($phone) . "') AND deleted = 0
@@ -574,102 +833,119 @@ function get_call_info($phone) {
             LIMIT 10";
 
     $res = $db->query($sql);
-    $i = 1;
-    while($row = $db->fetchByAssoc($res)){
-            // class direction
-            if($row['direction'] == 'suddenly'){
-                $direction_class = 'text-warning';
-           } else if ($row['direction'] == 'inbound'){
-                $direction_class = 'text-success';
-           } else if ($row['direction'] == 'missed'){
-                $direction_class = 'text-danger';
-           } else if ($row['direction'] == 'outbound'){
-                $direction_class = 'text-primary';     
 
-           } else if ($row['direction'] == 'spam'){
+    if ($db->countRows($res) > 0) {
+        $html .= '<table id="table-voicecall" class="table-details__booking">
+                    <caption class="caption-voicecall" align="top">THÔNG TIN CUỘC GỌI GẦN ĐÂY</caption>
+                    <thead>
+                        <th>STT</th>
+                        <th>Cuộc gọi</th>
+                        <th>Direction</th>
+                        <th>Gọi từ</th>
+                        <th>Gọi đến</th>
+                        <th>Mô tả</th>
+                    </thead>
+                    <tbody>';
+                    
+        $i = 1;
+        while ($row = $db->fetchByAssoc($res)) {
+            // class direction
+            if ($row['direction'] == 'suddenly') {
+                $direction_class = 'text-warning';
+            } else if ($row['direction'] == 'inbound') {
+                $direction_class = 'text-success';
+            } else if ($row['direction'] == 'missed') {
+                $direction_class = 'text-danger';
+            } else if ($row['direction'] == 'outbound') {
+                $direction_class = 'text-primary';
+            } else if ($row['direction'] == 'spam') {
                 $direction_class = 'text-spam';
-           } else {
+            } else {
                 $direction_class = 'text-normal';
-           }
-            
+            }
+    
             $html .= '
-                <tr>
-                    <td align="center" class="fw-bold">'.$i.'</td>
-                    <td align="left" class="fw-bold name_call"><a target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record='.$row['id'].'">'.$row['name'].'</a></td>
-                    <td align="left" class="direction_call fw-bold '.$direction_class.'">'.$app_list_strings['calls_direction_list'][$row['direction']].'</td>
-                    <td align="center" class="from_call">'.$row['call_from'].'</td>
-                    <td align="center" class="to_call">'.$row['call_to'].'</td>
-                    <td align="left" class="description_call" style="max-width: 250px;">'.$row['description'].'</td>
-                </tr>';
+                    <tr>
+                        <td align="center" class="fw-bold">' . $i . '</td>
+                        <td align="left" class="fw-bold name_call text-nowrap"><a target="_blank" href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $row['id'] . '">' . $row['name'] . '</a></td>
+                        <td align="left" class="direction_call fw-bold ' . $direction_class . '">' . $app_list_strings['calls_direction_list'][$row['direction']] . '</td>
+                        <td align="center" class="from_call">' . $row['call_from'] . '</td>
+                        <td align="center" class="to_call">' . $row['call_to'] . '</td>
+                        <td align="left" class="description_call" style="max-width: 250px;">' . $row['description'] . '</td>
+                    </tr>';
             $i++;
+        }
+        $html .= '</tbody></table>';
     }
-    $html .= '</tbody></table>';
 
     return $html;
 }
 
-function get_booking_info($phone) {
-    if(is_null($phone) || empty($phone)) return '';
+function get_booking_info($phone)
+{
+    if (is_null($phone) || empty($phone)) return '';
 
     global $db, $app_list_strings;
-    $html = '<table id="table-voicebooking" class="table-details__booking">
-                <caption class="caption-voicebooking" align="top">THÔNG TIN BOOKING GẦN ĐÂY</caption>
-                <thead>
-                    <th>STT</th>
-                    <th>Booking</th>
-                    <th>Trạng thái</th>
-                    <th>Hành trình</th>
-                    <th>Ngày đặt</th>
-                </thead>
-                <tbody>';
-    
+
+    $html = '';
+
     $sql = "SELECT id, name, info_data, count(*) as is_exsist
         FROM ec_customer c
         WHERE c.phone = '" . $phone . "' AND c.deleted = 0";
 
     $res = $db->query($sql);
-    while($row = $db->fetchByAssoc($res)){
-        if($row['is_exsist'] != 0){
-            $data_bk = array_reverse(json_decode(html_entity_decode($row['info_data']), true));
-            $i = 1;
-            foreach($data_bk as $id => $v) {
-                if($i <= 10){
-                    $html .= '
-                    <tr>
-                        <td align="center" class="fw-bold">'.$i.'</td>
-                        <td><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='.$id.'" target="_blank">'.$v['booking_number'].'</a></td>
-                        <td class="fw-bold text-center" style="color:'.$app_list_strings['booking_status_color_list'][$v['booking_status']].';" align="center">'.$app_list_strings['booking_status_list'][$v['booking_status']].'</td>
-                        <td class="text-center">'.$v['journey'].'</td>
-                        <td>'.($v['booking_date'] != '' ? date('d-m-Y H:i', strtotime('+7 hours', strtotime($v['booking_date']))) : '').'</td>
-                    </tr>';
-                    $i++;
+
+    if ($db->countRows($res) > 0) {
+        $html .= '<table id="table-voicebooking" class="table-details__booking">
+                    <caption class="caption-voicebooking" align="top">THÔNG TIN BOOKING GẦN ĐÂY</caption>
+                    <thead>
+                        <th>STT</th>
+                        <th>Booking</th>
+                        <th>Trạng thái</th>
+                        <th>Hành trình</th>
+                        <th>Ngày đặt</th>
+                        <th>Khách hàng</th>
+                    </thead>
+                    <tbody>';
+                    
+        while ($row = $db->fetchByAssoc($res)) {
+            if ($row['is_exsist'] != 0) {
+                $data_bk = array_reverse(json_decode(html_entity_decode($row['info_data']), true));
+                $i = 1;
+                foreach ($data_bk as $id => $v) {
+                    if ($i <= 10) {
+                        $html .= '
+                        <tr>
+                            <td align="center" class="fw-bold">' . $i . '</td>
+                            <td><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $id . '" target="_blank">' . $v['booking_number'] . '</a></td>
+                            <td class="fw-bold text-center" style="color:' . $app_list_strings['booking_status_color_list'][$v['booking_status']] . ';" align="center">' . $app_list_strings['booking_status_list'][$v['booking_status']] . '</td>
+                            <td class="text-center">' . $v['journey'] . '</td>
+                            <td>' . ($v['booking_date'] != '' ? date('d-m-Y H:i', strtotime('+7 hours', strtotime($v['booking_date']))) : '') . '</td>
+                            <td class="text-center">
+                                <span>
+                                    ' . $v['customer_name'] . '
+                                </span>   
+                            </td>
+                        </tr>';
+                        $i++;
+                    }
                 }
+            } else {
+                $html .= '<tr><td align="center" colspan="5" class="text-start fw-bold">Liên hệ chưa đặt booking!</td></tr>';
             }
         }
-        else {
-            $html .= '<tr><td align="center" colspan="5" class="text-start fw-bold">Liên hệ chưa đặt booking!</td></tr>';
-        }
+        $html .= '</tbody></table>';
     }
-    $html .= '</tbody></table>';
 
     return $html;
 }
 
-function get_booking_refund($phone){
-    if(is_null($phone) || empty($phone)) return '';
+function get_booking_refund($phone)
+{
+    if (is_null($phone) || empty($phone)) return '';
     global $db, $app_list_strings;
-    $html = '<table id="table-voicehv__booking" class="table-details__booking">
-                <caption class="caption-voicehv__booking" align="top">THÔNG TIN HOÀN VÉ GẦN ĐÂY</caption>
-                <thead>
-                    <th>STT</th>
-                    <th>Phiếu hoàn</th>
-                    <th>Trạng thái</th>
-                    <th>Booking</th>
-                    <th>Diễn giải</th>
-                    <th>Hoàn tiền khách</th>
-                    <th>Đã chi tiền</th>
-                </thead>
-                <tbody>';
+
+    $html = '';
 
     $sql_hv = 'SELECT hv.id, hv.name, hv.tinhtrang, hv.description, bk.name as booking, hv.booking_id as booking_id, hv.tongtienkhach,
                         (
@@ -681,47 +957,49 @@ function get_booking_refund($phone){
                         ) as refunded
                 FROM ec_hoanve hv
                 LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id AND bk.deleted = 0
-                WHERE bk.phone = "'.$phone.'" AND hv.deleted = 0
+                WHERE bk.phone = "' . $phone . '" AND hv.deleted = 0
                 ORDER BY hv.date_entered DESC
                 LIMIT 5';
 
     $res = $db->query($sql_hv);
-    $i = 1;
-    while($row = $db->fetchByAssoc($res)){
-        $html .= '<tr>
-                    <td align="center" class="fw-bold">'.$i.'</td>
-                    <td align="left" class="fw-bold hv_name"><a target="_blank" href="index.php?module=EC_HoanVe&return_module=EC_HoanVe&action=DetailView&record='.$row['id'].'">'.$row['name'].'</a></td>
-                    <td align="center" class="fw-bold hv_status">'.$app_list_strings['tinhtranghoanve_list'][$row['tinhtrang']].'</td>
-                    <td align="left" class="fw-bold bk_name"><a target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record='.$row['booking_id'].'">'.$row['booking'].'</a></td>
-                    <td align="center" class="fw-bold hv_description" style="max-width: 300px;">'.$row['description'].'</td>
-                    <td align="center" class="fw-bold hv_htk">'.format_number($row['tongtienkhach']).'</td>
-                    <td align="center" class="fw-bold hv_refunded">'.format_number($row['refunded']).'</td>
-                </tr>';
-        $i++;
+
+    if ($db->countRows($res) > 0) {
+        $html .= '<table id="table-voicehv__booking" class="table-details__booking">
+                    <caption class="caption-voicehv__booking" align="top">THÔNG TIN HOÀN VÉ GẦN ĐÂY</caption>
+                    <thead>
+                        <th>STT</th>
+                        <th>Phiếu hoàn</th>
+                        <th>Trạng thái</th>
+                        <th>Booking</th>
+                        <th>Diễn giải</th>
+                        <th>Hoàn tiền khách</th>
+                        <th>Đã chi tiền</th>
+                    </thead>
+                    <tbody>';
+    
+        $i = 1;
+        while ($row = $db->fetchByAssoc($res)) {
+            $html .= '<tr>
+                        <td align="center" class="fw-bold">' . $i . '</td>
+                        <td align="left" class="fw-bold hv_name"><a target="_blank" href="index.php?module=EC_HoanVe&return_module=EC_HoanVe&action=DetailView&record=' . $row['id'] . '">' . $row['name'] . '</a></td>
+                        <td align="center" class="fw-bold hv_status">' . $app_list_strings['tinhtranghoanve_list'][$row['tinhtrang']] . '</td>
+                        <td align="left" class="fw-bold bk_name"><a target="_blank" href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking'] . '</a></td>
+                        <td align="center" class="fw-bold hv_description" style="max-width: 300px;">' . $row['description'] . '</td>
+                        <td align="center" class="fw-bold hv_htk">' . format_number($row['tongtienkhach']) . '</td>
+                        <td align="center" class="fw-bold hv_refunded">' . format_number($row['refunded']) . '</td>
+                    </tr>';
+            $i++;
+        }
+    
+        $html .= '</tbody></table>';
     }
 
-    $html .= '</tbody></table>';
     return $html;
 }
 
-// Use with zalo
-function get_phone_by_alias($alias) {
-    if(is_null($alias) || empty($alias)) return '';
-
-    preg_match_all('!\d+!', $alias, $matches);
-    if(isset($matches[0]) && !empty($matches[0])) {
-        foreach ($matches[0] as $number) {
-            if (strlen($number) === 10) {
-                return $number;
-            }
-        }
-    }
-
-    return '';
-}
-
-function save_log_call($log_call){
-    if(!empty($log_call)){
+function save_log_call($log_call)
+{
+    if (!empty($log_call)) {
         $year = date('Y');
         $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT);
         $file_name = "secure_sessions/save_call_logs/$year/$month/" . str_replace('-', '_', date('d-m-Y') . '_log');
@@ -733,7 +1011,7 @@ function save_log_call($log_call){
             }
             touch($file_name);
         }
-    
+
         $myfile = fopen($file_name, "a") or die("Error: Không thể mở file ghi log!");
         fwrite($myfile, $log_call . PHP_EOL);
         fclose($myfile);

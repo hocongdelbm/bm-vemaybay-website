@@ -192,4 +192,7 @@ $mod_strings = array(
     'LBL_PHONE_MOBILE' => 'Điện thoại',
     'LBL_EMAIL' => 'Email',
     'LBL_ASSIGNED_USER_NAME' => 'Giao cho',
+    'LBL_POINTS' => 'Điểm tích lũy',
+    'LBL_CONTACT_TYPE' => 'Loại khách hàng',
+    'LNK_POINTS_LOG' => 'Quá trình tích điểm',
 );

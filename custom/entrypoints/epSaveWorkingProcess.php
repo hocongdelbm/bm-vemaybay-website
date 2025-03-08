@@ -29,7 +29,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 		// Kiểm tra đối với trường hợp booking đã gọi, chỉ tính 1 lần
 		if ($booking_status == '6') {
-			// Kiểm tra đã tồn tại
 			$sql_exist = 'SELECT IF(id IS NOT NULL, 1, 0) 
 						  FROM ec_working_process
 						  WHERE parent_id = "'.$record.'" deleted = 0 AND called > 0';
@@ -84,11 +83,11 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		} 
 		else {
 			$work = new EC_Working_Process();
-			$work->id 			= '';
-			$work->name 			= $record_name;
-			$work->description 		= $txtWorkingProcessNote;
-			$work->parent_type 		= $module;
-			$work->parent_id 		= $record;
+			$work->id = '';
+			$work->name = $record_name;
+			$work->description = $txtWorkingProcessNote;
+			$work->parent_type = $module;
+			$work->parent_id = $record;
 			$work->assigned_user_id = $current_user->id;
 
 			if (!is_null($is_paid) && $is_paid == 1) {
@@ -99,7 +98,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 						   SET is_paid = 1, description = CONCAT(IFNULL(description, ''), IF(description IS NOT NULL AND description <> '', ', ', ''), '" . $txtWorkingProcessNote . "') 
 						   WHERE id = '" . $record . "' ";
 				$db->query($update);
-				// End update booking description
 			} 
 			else if (!is_null($is_invoice_export) && $is_invoice_export == 1) {
 				$work->invoice_issued = 1;
@@ -117,9 +115,11 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				$db->query($update);
 			} 
 			else {
-				if ($booking_status == '6') // Called
-					$work->called = 1;
-				else if ($booking_status == '3') // Confirmed
+				// if ($booking_status == '6') // Called
+				// 	$work->called = 1;
+				// else 
+				
+				if ($booking_status == '3') // Confirmed
 					$work->confirmed = 1;
 				else if ($booking_status == '8' && is_null($support_customer)) // Completed
 					$work->completed = 1;
@@ -127,8 +127,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				if ($recheck_status == '2') // Đã recheck
 					$work->recheck = 1;
 
-				if ($recall_status == '2') // Đã recall
-					$work->recall = 1;
+				// if ($recall_status == '2') // Đã recall
+					// $work->recall = 1;
 
 				if ($check_debt == '2') // Đối chiếu công nợ
 					$work->check_debt = 1;
@@ -157,6 +157,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				// Cập nhật hỗ trợ xong thì chuyển sang status "Đã TT"
 				if($support_customer == '2' && !is_null($booking_status) && $booking_status == '1'){
 					update_field_booking($record, 'booking_status', '2');
+					update_field_booking($record, 'assigned_user_id', $current_user->id);
 				} else {
 					if($record && $booking_status){
 						update_field_booking($record, 'booking_status', $booking_status);
@@ -171,7 +172,160 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 				// Add attribute for notes
 				$note->working_process_id = $work->id;
+
 				echo 1;
+
+				// Save and send message add points to contact when paid successfully
+				try {
+					if (!is_null($is_paid) && $is_paid == 1) {
+						$con_id = $con_phone = $con_zalo_id = $con_name = '';
+						$sql_get_phone_and_zalo = "
+							SELECT c.id, bk.phone, c.zalo_id, c.last_name
+							FROM ec_flight_bookings bk
+								LEFT JOIN contacts c ON c.phone_mobile = bk.phone AND c.deleted = 0
+							WHERE bk.id = '$record' AND bk.deleted = 0
+						";
+						$res_get_phone_and_zalo = $db->query($sql_get_phone_and_zalo);
+						while ($row = $db->fetchByAssoc($res_get_phone_and_zalo)) {
+							$con_id = $row['id'] ?? '';
+							$con_phone = $row['phone'] ?? '';
+							$con_zalo_id = $row['zalo_id'] ?? '';
+							$con_name = $row['last_name'] ?? 'bạn';
+
+							if(stripos($con_name, "Khách") !== false || stripos($con_name, "Khach") !== false || stripos($con_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $con_name)) {
+								$con_name = 'bạn';
+							}
+						}
+	
+						if(!empty($con_phone)) {
+							// Update point to contact
+							$point = calculatePointsFromBooking($record);
+							if($point > 0) {
+								$sql_update_point = "UPDATE contacts SET points = points + $point WHERE id = '$con_id'";
+								$db->query($sql_update_point);
+							}
+
+							// Get total point
+							$sql = "SELECT points FROM contacts WHERE id = '$con_id'";
+							$total_point = $db->getOne($sql);
+
+							// Record point log
+							$point_log = new EC_Contact_Points_Log();
+							$point_log->id = '';
+							$point_log->name = 'Tích điểm từ booking';
+							$point_log->contact_id = $con_id;
+							$point_log->contact_phone = $con_phone;
+							$point_log->up = $point;
+							$point_log->down = 0;
+							$point_log->current_point = $total_point;
+							$point_log->parent_type = 'EC_Flight_Bookings';
+							$point_log->parent_id = $record;
+							$point_log->save();
+							
+							// Send point info to customer via Zalo
+							require_once('modules/EC_Zalo/Zalo.php');
+							$Zalo = new Zalo();
+							$Booking = new EC_Flight_Bookings();
+							if(!empty($con_zalo_id)) {
+								$total_discount = (int)($total_point/$Booking->point_step) * $Booking->point_step * 1000;
+								$total_discount_text = $total_discount > 0 ? number_format($total_discount, 0, ',', '.') . "đ" : "";
+								$total_discount_text = !empty($total_discount_text) ? " Bạn được giảm $total_discount_text cho lần mua vé tiếp theo." : "";
+
+								$header = "CHÚC MỪNG BẠN ĐÃ TÍCH LŨY $point ĐIỂM!";
+								$text = "Cảm ơn bạn đã tin tưởng lựa chọn Tìm Chuyến Bay.$total_discount_text Điểm số càng cao, càng nhiều ưu đãi hấp dẫn.";
+								$text2 = "Chúc bạn có một chuyến đi an toàn, vui vẻ & như ý.";
+								$table = [
+									[
+										"key" => "Mã booking",
+										"value" => "$record_name",
+									],
+									[
+										"key" => "Số điện thoại",
+										"value" => "$con_phone",
+									],
+									[
+										"key" => "Tổng tích lũy",
+										"value" => "$total_point điểm",
+									],
+								];
+								
+								$json = $Zalo->send_transaction($con_zalo_id, 'transaction_reward', $header, $text, $table, $text2);
+								$arr = json_decode($json, true);
+
+								if(isset($arr['error']) && $arr['error'] == 0) {
+									$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
+									$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$Zalo->send_to_telegram($content);
+								}
+								else {
+									$content = "Gửi tin nhắn tích điểm đến zalo id thất bại\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nZalo ID: <b>$con_zalo_id</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$content .= "\n\n$json";
+									sendTestTelegram($content);
+								}
+							}
+							else {
+								$template_id = $Zalo->get_template_id_zns('points');
+								$template_data = json_encode([
+									"point" => $point,
+									"name" => $con_name,
+									"booking" => $record_name,
+									"total_point" => $total_point
+								]);
+								$json = $Zalo->send_zns($con_phone, $template_id, $template_data);
+								$arr  = json_decode($json, true);
+
+								if(isset($arr['error']) && $arr['error'] == 0) {
+									$m = new EC_Messages();
+									$m->send_from       = $Zalo->get_oa_id();
+									$m->send_to         = $con_phone;
+									$m->content         = $Zalo->get_template_name_zns($template_id);
+									$m->type            = 'zalo_zns';
+									$m->category        = 'transaction';
+									$m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
+									$m->parent_type     = 'EC_Flight_Bookings';
+									$m->parent_id       = $record;
+									$m->data            = $template_data;
+									$m->response        = $json;
+									$m->status          = 'done';
+									$m->cost            = 220;
+									$m->save();
+
+									$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
+									$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua ZNS\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nHọ tên: <b>$con_name</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$Zalo->send_to_telegram($content);
+								}
+								else {
+									$content = "Gửi tin nhắn ZNS tích điểm thất bại\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nHọ tên: <b>$con_name</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$content .= "\n\n$json";
+									sendTestTelegram($content);
+								}
+							}
+						}
+					}
+				}
+				catch(Exception $e) {
+					if (!empty($txtWorkingProcessNote)) $note->save();
+					exit();
+				}
 			} 
 			else echo 0;
 		}
@@ -179,29 +333,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		// Save note
 		if (!empty($txtWorkingProcessNote)) $note->save();
 		exit();
-	}
-}
-
-if (isset($_POST['for']) && strtolower($_POST['for']) == 'update_kpi_com') {
-	$record 		= trim($_POST['booking_id']);
-	$user_id_old 	= trim($_POST['assigned_user_id_old']);
-	$user_id_new 	= trim($_POST['assigned_user_id_new']);
-	$booking_status = trim($_POST['booking_status']);
-
-	if($booking_status && (int)$booking_status == 8){
-		$sql_update = 'UPDATE ec_working_process
-						SET assigned_user_id = "'.$user_id_new.'"
-						WHERE completed = 1
-						AND parent_id = "'.$record.'" 
-						AND parent_type = "EC_Flight_Bookings"
-						AND assigned_user_id = "'.$user_id_old.'"
-						AND deleted = 0';
-		$res_update = $db->query($sql_update);
-		if(!$res_update){
-			// SAVE LOG
-			$log_process = '['.$current_user->user_name.'][KPI_COM_FAILED]'. $sql_update;
-			save_log_call($log_process);
-		}
 	}
 }
 

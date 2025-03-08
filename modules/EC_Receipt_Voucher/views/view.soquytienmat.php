@@ -45,7 +45,7 @@ class Viewsoquytienmat extends SugarView
 		$location_name = '';
 		if (isset($_POST['location_id']) && !empty($_POST['location_id'])) {
 			$location_name = $_POST['location_name'];
-		} 
+		}
 
 		if (isset($_POST['btnViewDetail'])) {
 			$accounting_code = '1111';
@@ -243,6 +243,10 @@ class Viewsoquytienmat extends SugarView
 				AND p.dentienmat = 1 " . str_replace('p.com_location_id', 'p.dendiadiem_id', $sql_search2) . "
 			ORDER BY posted_date";
 
+		// if($GLOBALS['current_user']->user_name == 'hungnh'){
+		// 	pr($sql);
+		// }
+
 		$res = $db->query($sql);
 		$html = '';
 		$total_receipt = 0;
@@ -252,17 +256,17 @@ class Viewsoquytienmat extends SugarView
 		$location_name = '';
 		if (isset($_POST['location_id']) && !empty($_POST['location_id'])) {
 			$location_name = $_POST['location_name'];
-		} 
+		}
 
 		// HEADER
 		$html .= '<table id="table-wrapper" class="table-soquytienmat" cellpadding="0" cellspacing="0" border="0" width="100%">
     	<tr>
         	<td valign="top">
             	<p>
-                '.$department_info['com_name'].'
+                ' . $department_info['com_name'] . '
 				<br />
-				'.$department_info['com_address'].'<br />
-				Mã số thuế: '.$department_info['com_taxcode'].'
+				' . $department_info['com_address'] . '<br />
+				Mã số thuế: ' . $department_info['com_taxcode'] . '
 				</p>
 			</td>
             <td valign="top" align="center">
@@ -276,10 +280,10 @@ class Viewsoquytienmat extends SugarView
         	<td colspan="2" align="center">
 				<br />
 					<label style="font-weight:bold; font-size:16pt">SỔ QUỸ TIỀN MẶT</label><br />';
-					if ($location_name != ''){
-						$html .='<label style="font-weight:bold; font-style:italic; font-size:12pt">Địa điểm: '.$location_name.'</label><br />';
-					}
-				$html .=  '<label class="fw-bold fst-italic">Từ ngày '.$post_fdate.' đến ngày '.$post_tdate.'</label>
+		if ($location_name != '') {
+			$html .= '<label style="font-weight:bold; font-style:italic; font-size:12pt">Địa điểm: ' . $location_name . '</label><br />';
+		}
+		$html .=  '<label class="fw-bold fst-italic">Từ ngày ' . $post_fdate . ' đến ngày ' . $post_tdate . '</label>
 				<br />
 				<br />
             </td>
@@ -349,9 +353,9 @@ class Viewsoquytienmat extends SugarView
 
 		$html .= '<tr>
             	    <td colspan="5" ><label class="fw-bold">Tổng cộng:</label></td>
-            	    <td align="right" ><label class="fw-bold">'.format_number($total_receipt).'</label></td>
-            	   	<td align="right" ><label class="fw-bold">'.format_number($total_payment).'</label></td>
-                    <td align="right" ><label class="fw-bold">'.format_number($total_remain).'</label></td>
+            	    <td align="right" ><label class="fw-bold">' . format_number($total_receipt) . '</label></td>
+            	   	<td align="right" ><label class="fw-bold">' . format_number($total_payment) . '</label></td>
+                    <td align="right" ><label class="fw-bold">' . format_number($total_remain) . '</label></td>
            	    </tr>
        	    </table>
             </td>
@@ -363,7 +367,7 @@ class Viewsoquytienmat extends SugarView
                 	<tr>
                     	<td width="30%" align="center">&nbsp;</td>
                         <td width="30%" align="center">&nbsp;</td>
-                        <td width="40%" align="center"><label class="fst-italic">Ngày '.date('d').' tháng '.date('m').' năm '.date('Y').'</label></td>
+                        <td width="40%" align="center"><label class="fst-italic">Ngày ' . date('d') . ' tháng ' . date('m') . ' năm ' . date('Y') . '</label></td>
                     </tr>
                 	<tr>
                     	<td width="30%" align="center"><label class="fw-bold">Thủ Quỹ</label><br />

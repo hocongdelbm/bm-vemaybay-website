@@ -1,41 +1,88 @@
 {$Flash}
 
-{if !$Flash}
-<div class="clear-all-alerts-container">
-    <a class="clear-all-alerts-btn btn btn-warning btn-xs">{sugar_translate label="LBL_CLEARALL"}</a>
-    {literal}
-    <script>
-          $('.clear-all-alerts-btn').unbind('click').click(function (event) {
-            $('.desktop_notifications:first .alert-dismissible .close').each(function (i, v) {
-              $(v).click();
+{literal}
+<script>
+        $(document).on("click", ".clear-all-alerts-btn", function () {
+            $('.desktop_notifications:first .alert-item').each(function (i, v) {
+               let alert    = $(v);
+               let alert_id = $(v).attr('alert-id');
+
+               Alerts.clearAlert(alert_id);
             });
-          });
-    </script>
-    {/literal}
-</div>
-{/if}
+        });
+
+        $(document).on("click", ".mark-all-alerts-btn", function () {
+            $('.desktop_notifications:first .alert-item').each(function (i, v) {
+               let alert    = $(v);
+               let alert_id = $(v).attr('alert-id');
+
+               Alerts.markAsRead(alert_id);
+            });
+        });
+
+        document.querySelectorAll('.notification-show').forEach(item => {
+            item.addEventListener('click', function () {
+                document.querySelectorAll('.notification-show').forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+</script>
+{/literal}
+
 {foreach from=$Results item=result}
-    <div class="alert alert-{if $result->type != null}{$result->type}{else}info{/if} alert-dismissible module-alert" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="Alerts.prototype.markAsRead('{$result->id}');"><span aria-hidden="true">&times;</span></button>
-        <h4 class="alert-header">
+    <div class="alert alert-item alert-{$result->priority|nl2br} flex-start gap-2 me-2 p-2 flex-fill" alert-id="{$result->id}">
+        <div class="d-flex flex-column gap-1 flex-fill">
+            <h4 class="alert-header">
+                <strong class="text-dark">{$result->name|nl2br}</strong>
+            </h4>
+            <p class="alert-description">
+                {$result->description|nl2br}
+            </p>
+            <div class="alert-bottom">
+                {assign var="dateEntered" value=$result->date_entered|cat:' +7 hours'|date_format:"%H:%M:%S %d-%m-%Y"}
+                {assign var="currentTime" value=$smarty.now+25200|date_format:"%H:%M:%S %d-%m-%Y"}
+
+                {assign var="dateEntered_strtotime" value=$dateEntered|strtotime}
+                {assign var="currentTime_strtotime" value=$currentTime|strtotime}
+
+                {assign var="timeDiff" value=0}
+                {math equation="x - y" x=$currentTime_strtotime y=$dateEntered_strtotime assign="timeDiff"} 
+
+                {assign var="timeAgo" value=""}
+                {assign var="timeTxt" value=""}
+
+                {if $timeDiff < 60}
+                    {assign var="timeAgo" value=$timeDiff|floor}
+                    {assign var="timeTxt" value='giây trước'}
+                {elseif $timeDiff < 3600}
+                    {assign var="timeAgo" value=$timeDiff/60|floor}
+                    {assign var="timeTxt" value='phút trước'}
+                {elseif $timeDiff < 86400}
+                    {assign var="timeAgo" value=$timeDiff/3600|floor}
+                    {assign var="timeTxt" value='giờ trước'}
+                {elseif $timeDiff < 2592000}
+                    {assign var="timeAgo" value=$timeDiff/86400|floor}
+                    {assign var="timeTxt" value='ngày trước'}
+                {elseif $timeDiff < 31536000}
+                    {assign var="timeAgo" value=$timeDiff/2592000|floor}
+                    {assign var="timeTxt" value='tháng trước'}
+                {else}
+                    {assign var="timeAgo" value=$timeDiff/31536000|floor}
+                    {assign var="timeTxt" value='năm trước'}
+                {/if}
+
+                <span class="time">
+                    {$timeAgo} {$timeTxt}
+                </span>
+            </div>
+        </div>
+        <div class="alert-footer w-10 {if $result->is_read != 0}readed{else}unread{/if}">
+            <span></span>
+        </div>
         {if $result->url_redirect != null && !($result->url_redirect|strstr:"fake_") }
-        <a class="alert-link text-{if $result->type != null}{$result->type}{else}info{/if}" href="index.php?module=Alerts&action=redirect&record={$result->id}">
+            <a class="alert-redirect" href="index.php?module=Alerts&action=redirect&record={$result->id}"></a>
         {/if}
-            {if $result->target_module != null }
-                {* Pluralize the module name if necessary. *}
-                <span class="suitepicon suitepicon-module-{$result->target_module|lower|replace:'_':'-'}{if substr($result->target_module, -1) !== 's'}s{/if}"></span>
-                <strong class="text-{if $result->type != null}{$result->type}{else}info{/if}">{$result->target_module}</strong>
-            {else}
-                <strong class="text-{if $result->type != null}{$result->type}{else}info{/if}">Alert</strong>
-            {/if}
-        {if $result->url_redirect != null }
-        </a>
-        {/if}
-        </h4>
-        <p class="alert-body">
-            {$result->name|nl2br}<br/>
-            {$result->description|nl2br}
-        </p>
     </div>
 {/foreach}
 

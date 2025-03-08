@@ -14,3 +14,7 @@
 .listViewPaginationTdS1, .listViewButtons, .search_form, .tablist, .utilsLink, .button, .tabForm {
     display: none;
 }
+
+.lunnar-newyear{
+    display: none;
+}

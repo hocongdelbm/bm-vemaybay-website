@@ -378,7 +378,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 							<td data-label="Xóa dòng" class="text-center align-middle">
 								<button title="Xóa" type="button" onclick="markItineraryRowDeleted(' . $i . ')" class="button-remove-in-edit" >' . $this->icon_x . '</button>
 								<input type="hidden" value="0" name="iti_deleted[]" id="iti_deleted' . $i . '" />
-								<input type="hidden" value="' . (isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true' ? 0 : $row['is_booked']) . '" name="iti_is_booked[]" id="iti_is_booked' . $i . '" />
 								<input type="hidden" name="iti_detail_id[]" id="iti_detail_id' . $i . '" value="' . $detail_id . '" />
 							</td>
 						</tr>';
@@ -630,7 +629,9 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					p.supplier_id,
 					p.supplier_inbound_id,
 					p.luggage_index_outbound,
-					p.luggage_index_inbound
+					p.luggage_index_inbound,
+					p.cic,
+					p.passport_number
 				FROM ec_booking_passengers p
 				WHERE p.booking_id = '".$this->bean->id. "'
 					AND add_type IS NULL
@@ -669,11 +670,13 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$passenger_id = isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true' ? '' : $row['id'];
-
+			$luggage_index_out = '';
+			$luggage_index_in = '';
+			
 			// Hành lý lượt di
 			$psg_luggage_price_out 	= generateLuggage($booking_date, $this->_outbound_airline, $this->_outbound_ticket_class, $row['type'], (int)$row['luggage_index_outbound'], 1, (int)$row['luggage_price']);
 			if (!empty($row['luggage_index_outbound'])) {
-				$luggage_index_out = '<input type="hidden" name="psg_luggage_ob_ind[]" value="1" />';
+				$luggage_index_out .= '<input type="hidden" name="psg_luggage_ob_ind[]" value="1" />';
 			}
 
 			// Hành lý lượt về
@@ -681,9 +684,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 				$row['luggage_index_inbound'] = $row['luggage_price_inbound'];
 			}
 			$psg_luggage_price_in = generateLuggage($booking_date, $this->_inbound_airline, $this->_inbound_ticket_class, $row['type'], (int)$row['luggage_index_inbound'], 1, (int)$row['luggage_price_inbound']);
-
 			if (!empty($row['luggage_index_inbound'])) {
-				$luggage_index_in = '<input type="hidden" name="psg_luggage_ib_ind[]" value="1" />';
+				$luggage_index_in .= '<input type="hidden" name="psg_luggage_ib_ind[]" value="1" />';
 			}
 
 			if (empty($psg_luggage_price_out)) {
@@ -692,7 +694,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			if (empty($psg_luggage_price_in)) {
 				$psg_luggage_price_in = '<option value="0">--không--</option>';
 			}
-
 
 			##### Line 1 (Thông tin hành khách) #####
 			$html .= '<tr id="psg_line_'. $i .'" class="psg_line">';
@@ -714,6 +715,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			// Họ tên
 			$html .= '<td data-label="Họ tên">
 				<input type="text" name="psg_full_name[]" id="psg_full_name'. $i .'" value="'. $row['name'] .'" class="text-start" maxlength="128" />
+				<label class="mt-1 fw-bold">CCCD:</label>
+				<input type="text" name="psg_cic[]" id="psg_cic'. $i .'" value="'. $row['cic'] .'" class="text-start" maxlength="16" />
 			</td>';
 
 			// Ngày sinh
@@ -723,6 +726,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 						value="' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '" maxlength="10" />
 					<img class="flex-fill cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger'. $i .'" align="absmiddle" />
 				</div>
+				<label class="mt-1 fw-bold">Passport:</label>
+				<input type="text" name="psg_passport_number[]" id="psg_passport_number'. $i .'" value="'. $row['passport_number'] .'" class="text-start" maxlength="10" />
 			</td>';
 
 			// Nếu code vé đã nhập thì không cho sửa trừ kế toán, admin

@@ -5,12 +5,44 @@ $(document).ready(function () {
 		$(this).addClass('active');
 		$(this).children('.box-list--calling').addClass('show');
 		$(this).children('.recall-link').removeClass('collapsed');
-	   });
-	 
-	   $(document).on('mouseleave', '.btn-calling--wrap', function () {
+	});
+
+	$(document).on('mouseleave', '.btn-calling--wrap', function () {
 		$(this).removeClass('active');
 		$(this).children('.box-list--calling').removeClass('show');
 		$(this).children('.recall-link').addClass('collapsed');
+	});
+
+	// XEM DANH SÁCH BOOKING CỦA CONTACTS
+	$('.card-contact-footer').click(function () {
+		let contact_id = $(this).attr('contact_id');
+		let booking_id = $(this).attr('booking_id');
+
+		if (contact_id.length > 0) {
+			$.ajax({
+				cache: false,
+				type: 'post',
+				data: {
+					contact_id: contact_id,
+					booking_id: booking_id,
+					for: "showHistoryBookingContact"
+				},
+				async: false,
+				url: 'index.php?entryPoint=entryPointFlightBookings',
+				beforeSend: function () {
+					$('.container-waiting').show();
+				},
+				success: function (output) {
+					$('.container-waiting').hide();
+					$('#dialog-history-bookings').html(output);
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					console.error(XMLHttpRequest);
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+				}
+			});
+		}
 	});
 
 	// Xem danh sách cuộc gọi
@@ -50,7 +82,7 @@ $(document).ready(function () {
 				booking: $("form[name='DetailView']>input[name='record']").val(),
 				for: "getInvoiceInf"
 			},
-			
+
 			beforeSend: function () {
 				$("#invoice_inf").html("<div>Please wait for a moment...</div>");
 			},
@@ -192,10 +224,10 @@ $(document).ready(function () {
 		$('form[name="DetailView"] input:button[name="Edit"]').remove();
 	}
 
-	if(booking_status == '8' && is_invoice_export == '1'){
+	if (booking_status == '8' && is_invoice_export == '1') {
 		$('#btnCheckInvoiceExport').hide();
 	}
-	if(booking_status == '8' && is_invoice_input_export == '1'){
+	if (booking_status == '8' && is_invoice_input_export == '1') {
 		$('#btnCheckInvoiceInputExport').hide();
 	}
 
@@ -205,41 +237,19 @@ $(document).ready(function () {
 		else return true;
 	});
 
-	// Click button Remind
-	$(document).on('click', 'input[name="btnRemind"]', function () {
-		let journey_id 	= $(this).attr('iti_id');
-		$('input[name="current-journey-id"]').val(journey_id);
-
-		$("#dlgRemind").dialog({
-			title: "Thông báo lịch bay cho hành khách",
-			width: 400,
-			modal: true,
-			resizable: false,
-		});
-	});
-
-	$(document).on('click', '#btn-confirm-remind', function () {
-		let name 			= $('#note-name').val(); //booking_name
-		let parent_id 		= $('#note-parent-id').val(); // booking_id
-		let booking_status 	= $('#note-booking-status').val();
-		let description 	= $("#txtRemind").val();
-		let journey_id 	= $("#current-journey-id").val();
+	$(document).on('click', '#confirm-remind', function () {
+		let journey_id = $(this).attr('iti_id');
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointFlightBookings",
 			data: {
-				name: name,
-				parent_id: parent_id,
-				description: description,
-				booking_status: booking_status,
 				journey_id: journey_id,
 				for: "remindFlightSchedules",
 			},
 			type: "POST",
 			cache: false,
 			success: function (response) {
-				$('#dlgRemind').dialog('close');
-				if(response == 1){
+				if (response == 1) {
 					let text_warning = 'Thông báo lịch bay cho khách hàng thành công.';
 					showModalNotify(1, text_warning);
 					$('.modal-overlay, .btn-modal-close').addClass('reload');
@@ -252,19 +262,15 @@ $(document).ready(function () {
 		});
 	});
 
-	/* Cancel remind */
-	$('#btn-cancel-remind').on('click', function(){
-		$('#dlgRemind').dialog('close');
-	});
 
 	// Open form send mail
-	$('#btnSendMail').on('click', function(){
+	$('#btnSendMail').on('click', function () {
 		$('#frmContinueSendMail').css('display', 'block');
 		$(this).hide();
 	});
 
 	// Close form send mail
-	$('#btnCancelSendMail').on('click', function(){
+	$('#btnCancelSendMail').on('click', function () {
 		$('#frmContinueSendMail').hide();
 		$('#btnSendMail').show();
 	});
@@ -300,10 +306,10 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '#btnChonNgonNgu', function () {
-		var what_form 	= '#' + $('#what_form').val();
-		var lang 		= $('input:radio[name="ngonngu"]:checked').val();
-		var khuhoi 	= $('#khuhoi').is(':checked') ? 1 : 0;
-		var wayflight 	= $(what_form + ' input:hidden[name="direction"]').val();
+		var what_form = '#' + $('#what_form').val();
+		var lang = $('input:radio[name="ngonngu"]:checked').val();
+		var khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
+		var wayflight = $(what_form + ' input:hidden[name="direction"]').val();
 
 		$(what_form).attr('action', $(what_form).attr('action') + '&lang=' + lang + '&khuhoi=' + khuhoi + '&wayflight=' + wayflight);
 		$(what_form).submit();
@@ -342,10 +348,10 @@ $(document).ready(function () {
 				return false;
 			}
 
-			var bought_price 	= document.getElementsByName('check_total_bought_price[]'); // giá mua
-			var supplier_id 	= document.getElementsByName('check_supplier_id[]'); // id NCC
-			var price_err 		= 0;
-			var supplier_err 	= 0;
+			var bought_price = document.getElementsByName('check_total_bought_price[]'); // giá mua
+			var supplier_id = document.getElementsByName('check_supplier_id[]'); // id NCC
+			var price_err = 0;
+			var supplier_err = 0;
 
 			for (var j = 0; j < bought_price.length; j++) {
 				// Trường hợp Vé đã xuất trong ngày, có thể Void ( có thể hiểu là huỷ đặt chỗ ) giá mua có thể = 0 chỉ đối với VNA
@@ -369,10 +375,10 @@ $(document).ready(function () {
 			}
 
 
-			var flight_type 	= $(this).find('input:hidden[name="flight_type"]').val();
-			var arr 			= document.getElementsByName('eticket_outbound[]');
-			var outbound_err 	= 0;
-			var inbound_err 	= 0;
+			var flight_type = $(this).find('input:hidden[name="flight_type"]').val();
+			var arr = document.getElementsByName('eticket_outbound[]');
+			var outbound_err = 0;
+			var inbound_err = 0;
 
 
 			for (var i = 0; i < arr.length; i++) {
@@ -384,7 +390,7 @@ $(document).ready(function () {
 				) {
 					outbound_err++;
 				}
-				
+
 				if (flight_type == '0' && (
 					$('#eticket_inbound' + i).val() == ''
 					|| $('#eticket_inbound' + i).val().length < 5
@@ -429,10 +435,10 @@ $(document).ready(function () {
 	});
 
 	// Line Note Message - Made by: DucPham at 28/09/2022
-	const MESSAGE_LIST_CHAT_ID 		= "#message_list";
-	const HEIGHT_ROW_TEXTAREA 		= 17; // 17px
-	const HEIGHT_MESSAGE_LIST_CHAT 	= 465; // 465px
-	const tag_textarea 				= $('textarea#note-description');
+	const MESSAGE_LIST_CHAT_ID = "#message_list";
+	const HEIGHT_ROW_TEXTAREA = 17; // 17px
+	const HEIGHT_MESSAGE_LIST_CHAT = 465; // 465px
+	const tag_textarea = $('textarea#note-description');
 
 	$(document).ready(function () {
 		// KHI TEXTAREA FOCUS
@@ -515,16 +521,16 @@ $(document).ready(function () {
 	});
 
 	$('#icon-send-notes').click(function () {
-		let name 			= $('#note-name').val();
-		let parent_id 		= $('#note-parent-id').val();
-		let booking_status 	= $('#note-booking-status').val();
-		let description 	= $('#note-description').val().trim();
-		let username 		= $('#note-username').val();
-		let send_loading 	= '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
+		let name = $('#note-name').val();
+		let parent_id = $('#note-parent-id').val();
+		let booking_status = $('#note-booking-status').val();
+		let description = $('#note-description').val().trim();
+		let username = $('#note-username').val();
+		let send_loading = '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
 
-		let dt 			= new Date();
-		let datetime 	= ("0" + dt.getHours()).slice(-2) + ":" + ("0" + dt.getMinutes()).slice(-2) + ",  " + ("0" + dt.getDate()).slice(-2) + "/" + ("0" + (dt.getMonth() + 1)).slice(-2) + "/" + dt.getFullYear();
-		let new_row 	= `<div class="row-mess row-this">
+		let dt = new Date();
+		let datetime = ("0" + dt.getHours()).slice(-2) + ":" + ("0" + dt.getMinutes()).slice(-2) + ",  " + ("0" + dt.getDate()).slice(-2) + "/" + ("0" + (dt.getMonth() + 1)).slice(-2) + "/" + dt.getFullYear();
+		let new_row = `<div class="row-mess row-this">
 							<div class="row-time">${datetime}</div>
 							<div class="row-user">${username}</div>
 							<div class="row-content">${description}${send_loading}</div>
@@ -574,11 +580,11 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '.action-remove', function () {
-		const dialog 		= $('#confirm_delete_message_dialog');
-		let id_note 		= $(this).attr("data-id-note");
-		let id_process 	= $(this).attr("data-id-process");
-		let type_process 	= $(this).attr("data-type-process");
-		let booking_id 	= $(this).attr("booking-id");
+		const dialog = $('#confirm_delete_message_dialog');
+		let id_note = $(this).attr("data-id-note");
+		let id_process = $(this).attr("data-id-process");
+		let type_process = $(this).attr("data-type-process");
+		let booking_id = $(this).attr("booking-id");
 
 		if (id_process === undefined) id_process = "";
 
@@ -595,10 +601,10 @@ $(document).ready(function () {
 	});
 
 	$('#confirm_delete_message').click(function (event) {
-		let id_note 		= $(this).attr("data-id-note");
-		let id_process 	= $(this).attr("data-id-process");
-		let type_process 	= $(this).attr("data-type-process");
-		let booking_id 	= $(this).attr("booking-id");
+		let id_note = $(this).attr("data-id-note");
+		let id_process = $(this).attr("data-id-process");
+		let type_process = $(this).attr("data-type-process");
+		let booking_id = $(this).attr("booking-id");
 		if (id_process === undefined) id_process = "";
 
 		$('.action-remove[data-id-note=' + id_note + ']').closest('.row-mess').fadeOut(1000, function () { $(this).remove(); });
@@ -616,7 +622,7 @@ $(document).ready(function () {
 			success: function (res) { },
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
 				let text_warning = 'ERROR: Vui lòng liên hệ bộ phận IT!';
-      			showToastWarning(text_warning);
+				showToastWarning(text_warning);
 
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
@@ -663,7 +669,7 @@ $(document).ready(function () {
 		var frmSaveWorkingProcess = $(this).attr('id');
 		$('#frmSaveWorkingProcess').val(frmSaveWorkingProcess);
 		var booking_status = $('#' + frmSaveWorkingProcess + ' input:hidden[name="booking_status"]').val();
-	
+
 		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').length > 0) {
 			$('#txtBonus').val($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').val());
 			$('#txtBonus').parent().parent().show();
@@ -684,9 +690,6 @@ $(document).ready(function () {
 	});
 
 	$(document).one('click', '#btnSaveWorkingProcess', function (event) {
-
-		console.warn('Cos voo day khong ma showloading');
-
 		$(this).attr("disabled", "disabled");
 		var frmSaveWorkingProcess = $('#frmSaveWorkingProcess').val();
 
@@ -708,12 +711,12 @@ $(document).ready(function () {
 
 		if (des.length < 20) {
 			$('#dlgWorkingProcessNote').dialog('close');
-			let text_warning = 'Bạn note quá ít! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) +'</span> nữa.';
+			let text_warning = 'Bạn note quá ít! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) + '</span> nữa.';
 			showModalNotify(0, text_warning);
 			$('.modal-overlay, .btn-modal-close').addClass('reload');
 		} else if (des.length > 200) {
 			$('#dlgWorkingProcessNote').dialog('close');
-			let text_warning = 'Bạn note quá nhiều! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) +'</span> nữa.';
+			let text_warning = 'Bạn note quá nhiều! Trang sẽ tự động reload trong vòng <span id="count-down" class="fw-semibold color-red"> ' + countdownAndReload(10) + '</span> nữa.';
 			showModalNotify(0, text_warning);
 			$('.modal-overlay, .btn-modal-close').addClass('reload');
 		}
@@ -775,10 +778,10 @@ $(document).ready(function () {
 	});
 
 	$('#CheckContactInfoDialog').on('dialogopen', function (event, ui) {
-		var ct_name 		= $('#btnCheckContactInfo').attr('ct_name');
-		var ct_mobile 		= $('#btnCheckContactInfo').attr('ct_mobile');
-		var ct_email 		= $('#btnCheckContactInfo').attr('ct_email');
-		var ct_id_booking 	= $('#btnCheckContactInfo').attr('ct_id_booking');
+		var ct_name = $('#btnCheckContactInfo').attr('ct_name');
+		var ct_mobile = $('#btnCheckContactInfo').attr('ct_mobile');
+		var ct_email = $('#btnCheckContactInfo').attr('ct_email');
+		var ct_id_booking = $('#btnCheckContactInfo').attr('ct_id_booking');
 
 		if (ct_name != '' && (ct_mobile != '' || ct_email != '')) {
 			$.ajax({
@@ -820,14 +823,14 @@ $(document).ready(function () {
 	});
 	// End edit booking detail
 
-	
+
 	// Thông tin những người đã xem booking
 	$("#btnViewBooking").on("click", function () {
 		$.ajax({
 			url: "index.php?entryPoint=entryPointTracker",
 			type: "POST",
 			data: {
-				"item_id" : $("#frmViewedBooking input[name='record']").val(), 
+				"item_id": $("#frmViewedBooking input[name='record']").val(),
 				"for": "Tracker_ViewBooking",
 			},
 			beforeSend: function () {
@@ -914,7 +917,7 @@ $(document).ready(function () {
 			resizable: false,
 		});
 	});
-	
+
 	$("#change_name").submit(function () {
 		if (!checkLineItems(2)) {
 			return false;
@@ -971,10 +974,10 @@ $(document).ready(function () {
 
 
 	$(document).on("focus", ".allow-number-only", function () {
-		var cal_date_format 	= $('#cal_date_format').val();
-		var dec_seperator 		= $('#dec_seperator').val();
-		var grp_seperator 		= $('#grp_seperator').val();
-		var sig_digits 		= $('#sig_digits').val();
+		var cal_date_format = $('#cal_date_format').val();
+		var dec_seperator = $('#dec_seperator').val();
+		var grp_seperator = $('#grp_seperator').val();
+		var sig_digits = $('#sig_digits').val();
 		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
 	});
 
@@ -1075,23 +1078,23 @@ $(document).ready(function () {
 
 		let myModal = new bootstrap.Modal(document.getElementById('modal-confirm'))
 		myModal.show();
-    });
+	});
 
 	$(document).on("click", "#confirm-modal", function () {
 		$('#frmChangeStatus').submit();
 	});
 
 	// Icon get QR code
-	$('#get_qr_code').on('click', function(){
+	$('#get_qr_code').on('click', function () {
 		showDialog("dialog_qr_code");
 	});
-	$('#select_bank_get_qr_code').change(function() {
+	$('#select_bank_get_qr_code').change(function () {
 		let selectedValue = $(this).val();
 		$("#img_qr_code").attr('src', selectedValue);
 	});
 
 	// GET THÔNG TIN BANK - SEND CUSTOMER
-	$('#get_bank').on('click', function(){
+	$('#get_bank').on('click', function () {
 		let booking_id = $(this).attr('booking_id');
 
 		$.ajax({
@@ -1102,46 +1105,138 @@ $(document).ready(function () {
 				type: 'get_infor_bank',
 				for: "changeBankAccountPosition",
 			},
-			beforeSend: function() {},
-			success: function(response) {
-				if(response.length > 0){
+			beforeSend: function () { },
+			success: function (response) {
+				if (response.length > 0) {
 					copyContent(response);
 				}
 			}
 		});
 	});
-	
+
 	// Handle mapping call with booking
-	$('#btn-mapping-call-booking').click( function() {
+	$('#btn-mapping-call-booking').click(function () {
 		let call_name = $('input[name=call_name]').val().trim();
 		let booking_id = $(this).attr('booking_id');
 		let booking_name = $(this).attr('booking_name');
-		if(call_name.length == 0 || call_name.length > 20 || booking_id.length == 0) return;
+		if (call_name.length == 0 || call_name.length > 20 || booking_id.length == 0) return;
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointCallContact",
 			data: {
-				type : "map_call_booking",
-				call_name : call_name,
-				booking_id : booking_id,
-				booking_name : booking_name
+				type: "map_call_booking",
+				call_name: call_name,
+				booking_id: booking_id,
+				booking_name: booking_name
 			},
 			type: "POST",
 			cache: false,
 			success: function (response) {
 				closeDialog("mapping_call_booking");
-				if(response == 1) {
+				if (response == 1) {
 					showModalNotify(1, "Liên kết cuộc gọi thành công");
 					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				} else if(response == 2){
+				} else if (response == 2) {
 					// warning
 					showModalNotify(2, "Vui lòng cập nhật thông tin cuộc gọi trước khi liên kết");
 				}
 				else {
 					showModalNotify(0, "Thao tác không thành công. Liên hệ IT để được hỗ trợ.");
-				} 
+				}
 			}
 		});
+	});
+
+	// Voucher
+	$('.voucher').on('click', function () {
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
+			width: 500,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Chi tiết voucher"
+		});
+	});
+
+	// Points
+	$('.btn-use-point').on('click', function () {
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
+			width: 400,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Dùng điểm tích lũy"
+		});
+	});
+	$('input[name="point_of_use"]').on('input', function () {
+		let p 	 = $(this).val();
+		let step = parseInt($(this).attr('min'));
+		let ttp  = parseInt($('#tt_points').attr('data'));
+
+		if(p < step || p > ttp || p%step != 0) {
+			$('#btn_apply_points_discount').prop('disabled', true);
+			$('input[name="points_discount"]').val(0);
+		}
+		else {
+			$('#btn_apply_points_discount').prop('disabled', false);
+			$('input[name="points_discount"]').val(p*1000);
+		} 
+	});
+	$('#btn_apply_points_discount').click(function() {
+		let p 	 = $('input[name="point_of_use"]').val();
+		let step = parseInt($('input[name="point_of_use"]').attr('min'));
+		let ttp  = parseInt($('#tt_points').attr('data'));
+		let contact_id = $(this).attr('contact_id');
+		let booking_id = $(this).attr('booking_id');
+
+		if(p < step || p > ttp || p%step != 0) {
+			showModalNotify(2, "Số điểm áp dụng không hợp lệ");
+			return false;
+		}
+
+		if(contact_id.length > 0) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					for: "apply_points",
+					apply_points: p,
+					contact_id: contact_id,
+					booking_id: booking_id
+				},
+				type: "POST",
+				cache: false,
+				beforeSend: function () {$('.container-waiting').show();},
+				success: function (response) {
+					$('.container-waiting').hide();
+					try {
+						let obj = JSON.parse(response);
+
+						if(obj.error == 0) {
+							showModalNotify(1, "Áp điểm thành công");
+							$('.modal-overlay, .btn-modal-close').addClass('reload');
+						}
+						else {
+							let m = obj.message ? obj.message : 'Thao tác không thành công. Liên hệ IT để được hỗ trợ.';
+							showModalNotify(0, m);
+						}
+					}
+					catch(err) {
+						console.error(err);
+						showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+					}
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$('.container-waiting').hide();
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+				}
+			});
+		}
 	});
 });
 
@@ -1388,8 +1483,8 @@ function checkLineItems(type) {
 	} else if (type == 3) { // check thông tin đổi ngày bay, hành trình
 
 		// tối đa 4 ô, 2 ô ở chiều đi, 2 ô ở chiều về (nếu có)
-		var iti_hour_arr 	= document.getElementsByClassName('input_hour');
-		var iti_minute_arr 	= document.getElementsByClassName('input_minute');
+		var iti_hour_arr = document.getElementsByClassName('input_hour');
+		var iti_minute_arr = document.getElementsByClassName('input_minute');
 
 		if (iti_hour_arr.length > 0) {
 			for (var i = 0; i < 2; i++) {
@@ -1591,17 +1686,17 @@ function checkShareProfit() {
 
 // BUTTON "CHỈNH SỬA CHI TIẾT BOOKING"
 // ==================================
-function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
+function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	let ticket_type = $("input[name='ticket_type']").val();
-	let qty 		= unformatNumber($('#bk_edit_quantity' + ln).val());
-	let price 	 	= unformatNumber($('#bk_edit_unit_price' + ln).val());
-	let tax_fee 	= unformatNumber($('#bk_edit_tax_and_fee' + ln).val());
-	let admin_fee 	= unformatNumber($('#bk_edit_admin_fee' + ln).val());
-	let vat_admin 	= admin_fee_no_vat = 0;
+	let qty = unformatNumber($('#bk_edit_quantity' + ln).val());
+	let price = unformatNumber($('#bk_edit_unit_price' + ln).val());
+	let tax_fee = unformatNumber($('#bk_edit_tax_and_fee' + ln).val());
+	let admin_fee = unformatNumber($('#bk_edit_admin_fee' + ln).val());
+	let vat_admin = admin_fee_no_vat = 0;
 
 	// chỉ tính vat và phí admin đối với vé nội địa
 	if (ticket_type != '2') {
-		if(is_cal_tax) {
+		if (is_cal_tax) {
 			tax_fee = price * 8 / 100;
 		}
 
@@ -1617,7 +1712,7 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
 				tax_fee = Math.ceil(tax_fee / 1000) * 1000;
 			}
 			vat_admin = 0;
-		} 
+		}
 
 		if ((airline_inf[0] != 'VNA' && airline_inf[0] != 'VNP' && $("#bk_edit_direction" + ln).val() == 0) || (airline_inf[1] != 'VNA' && airline_inf[1] != 'VNP' && $("#bk_edit_direction" + ln).val() == 1) && is_cal_admin) {
 			vat_admin = Math.round(admin_fee / 1.08 * 0.08);
@@ -1625,27 +1720,27 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
 	}
 
 	// Check cái này
-	let service_fee 			= unformatNumber($('#bk_edit_service_fee' + ln).val());
-	let airport_fee 			= unformatNumber($('#bk_edit_airport_fee' + ln).val());
-	let supplier_discount 		= unformatNumber($('#bk_edit_supplier_discount' + ln).val());
-	let supplier_ticketing_fee 	= unformatNumber($('#bk_edit_supplier_ticketing_fee' + ln).val());
-	let total_price 			= 0;
-	let total_bought_price 		= 0;
+	let service_fee = unformatNumber($('#bk_edit_service_fee' + ln).val());
+	let airport_fee = unformatNumber($('#bk_edit_airport_fee' + ln).val());
+	let supplier_discount = unformatNumber($('#bk_edit_supplier_discount' + ln).val());
+	let supplier_ticketing_fee = unformatNumber($('#bk_edit_supplier_ticketing_fee' + ln).val());
+	let total_price = 0;
+	let total_bought_price = 0;
 
 	// VE QUOC TE
 	// if(ticket_type == '2') {
 	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
 	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
 	// } else {
-		total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
-		total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
+	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
 	// }
 
-	if(supplier_discount != 0){
+	if (supplier_discount != 0) {
 		total_bought_price = Math.abs(total_bought_price - supplier_discount);
 	}
-  
-	if(supplier_ticketing_fee != 0){
+
+	if (supplier_ticketing_fee != 0) {
 		total_bought_price = Math.abs(total_bought_price + supplier_ticketing_fee);
 	}
 
@@ -1657,40 +1752,40 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0){
 	$('#bk_edit_total_price' + ln).val(total_price);
 	$('#bk_edit_total_bought_price' + ln).val(total_bought_price);
 	$('#bk_edit_tax_and_fee' + ln).val(tax_fee);
-	if(is_cal_admin) {
+	if (is_cal_admin) {
 		$('#bk_edit_vat_admin' + ln).val(vat_admin);
 		$('#bk_edit_admin_fee_no_vat' + ln).val(admin_fee - vat_admin);
 	}
 	calculateTotal();
 }
 
-function calculateTotal(){
-	var arr 				= document.getElementsByName('bkd_deleted[]');
-	var qty 				= document.getElementsByName('bkd_quantity[]');
-	var total_price 		= document.getElementsByName('bkd_total_price[]');
-	var total_bought_price 	= document.getElementsByName('bkd_total_bought_price[]');
+function calculateTotal() {
+	var arr = document.getElementsByName('bkd_deleted[]');
+	var qty = document.getElementsByName('bkd_quantity[]');
+	var total_price = document.getElementsByName('bkd_total_price[]');
+	var total_bought_price = document.getElementsByName('bkd_total_bought_price[]');
 
 	var total_qty = 0;
 	var subtotal_amt = 0;
 	var total_bought_amt = 0;
 
-	for(var i=0; i < arr.length; i++){
-		if(arr[i].value == '0'){
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i].value == '0') {
 			total_qty += unformatNumber(qty[i].value);
 			subtotal_amt += unformatNumber(total_price[i].value);
 			total_bought_amt += unformatNumber(total_bought_price[i].value);
 		}
 	}
 
-	var luggage_fee 	= unformatNumber($.trim($('#luggage_fee').text()));
-	var other_fee 		= unformatNumber($.trim($('#other_fee').text()));
-	var thuephi_quocte 	= unformatNumber($.trim($('#thuephi_quocte').text()));
-	var total_amount 	= subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
-	
+	var luggage_fee = unformatNumber($.trim($('#luggage_fee').text()));
+	var other_fee = unformatNumber($.trim($('#other_fee').text()));
+	var thuephi_quocte = unformatNumber($.trim($('#thuephi_quocte').text()));
+	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
+
 	// Hiện tại đã off % discount
 	var discount_percent = unformatNumber($('#discount_percent :selected').val());
 	var discount_amount = unformatNumber($.trim($('#discount_amount span.discount_value').text()));
-	if(discount_percent > 0){
+	if (discount_percent > 0) {
 		discount_amount = total_amount * discount_percent / 100;
 	}
 	total_amount -= discount_amount;

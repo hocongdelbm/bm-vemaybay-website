@@ -187,6 +187,7 @@ $(document).ready(function () {
                                 <td>${pass.birthdate}</td>
                                 <td>${pass.email}</td>
                                 <td>${pass.mobile}</td>
+                                <td>${pass.inumber}</td>
                                 <td>${pass.button_add_luggage}</td>
                             </tr>`;
                 });

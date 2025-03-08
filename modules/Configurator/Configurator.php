@@ -24,7 +24,8 @@ class Configurator
         'enable_line_editing_list',
         'enable_line_editing_detail',
         'hide_subpanels',
-        'stackTrace'
+        'stackTrace',
+        'logger_call_center',
     ];
     public $errors = array('main' => '');
     public $logger = null;

@@ -99,8 +99,6 @@ class Call extends SugarBean
         }
     }
 
-
-
     /**
      * Disable edit if call is recurring and source is not Sugar. It should be edited only from Outlook.
      * @param $view string
@@ -127,7 +125,6 @@ class Call extends SugarBean
     // save date_end by calculating user input
     // this is for calendar
     private static $remindersInSaving = false;
-
 
     public function save($check_notify = false)
     {
@@ -193,12 +190,43 @@ class Call extends SugarBean
         	$this->reminder_time = $current_user->getPreference('reminder_time');
         }*/
 
-        // Call_source
-        // if ($this->direction == 'inbound' || $this->direction != 'outbound') {
-        //     $this->call_sources = getCallSource($this->call_to);
-        // }
-
         $return_id = parent::save($check_notify);
+
+        // KPI FOR CALLS - Hungnh
+        if (
+            $this->status == 'done'
+            && !empty($this->description)
+            && (
+                ($this->call_talk >= 20 && $this->direction == 'outbound')
+                || ($this->call_talk > 0 && $this->direction == 'inbound')
+            )
+        ) {
+            switch ($this->type_call_sources) {
+                case 'called':
+                    if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
+                        myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
+                    } else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
+                        if ($this->is_ExitsRowKpi('EC_Flight_Bookings', $this->booking_id)) {
+                            $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
+                        } else {
+                            myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Call Have Bookings)', $current_user->id, 'called');
+                        }
+                    }
+                    break;
+                case 'recall':
+                    $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'recall');
+                    break;
+                case 'remind':
+                    $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'remind');
+                    // Update ec_booking_itineraries
+                    $update_remind = "UPDATE ec_booking_itineraries 
+                                    SET is_remind = 1
+                                    WHERE id = '" . trim($this->journey_id) . "'
+                                    AND deleted = 0";
+                    $this->db->query($update_remind);
+                    break;
+            }
+        }
 
         // if ($this->update_vcal) {
         //     vCal::cache_sugar_vcal($current_user);
@@ -271,6 +299,41 @@ class Call extends SugarBean
 
         return $return_id;
     }
+
+    /**
+     * Check isExits ec_working_process with called = 0.
+     * field: booking_id => parent_id, 
+     * author: hungnh
+     */
+    public function is_ExitsRowKpi($parent_type, $parentId)
+    {
+        $query = "SELECT COUNT(*) 
+                    FROM ec_working_process
+                    WHERE called = 0
+                    AND parent_type = '{$parent_type}'
+                    AND parent_id = '{$parentId}'
+                    AND deleted = 0";
+
+        $count = $this->db->getOne($query);
+        return $count > 0;
+    }
+
+    /**
+     * Update KPI field function to reduce code duplication.
+     * author: hungnh
+     */
+    public function updateKpiField($parent_type, $parentId, $field)
+    {
+        $sql = 'UPDATE ec_working_process
+                SET ' . $field . ' = 1
+                WHERE ' . $field . ' = 0
+                AND parent_id = "' . $parentId . '"
+                AND parent_type = "' . $parent_type . '"
+                AND deleted = 0';
+
+        $this->db->query($sql);
+    }
+
 
     /**
      * @param array $reminders
@@ -580,11 +643,12 @@ class Call extends SugarBean
 
     //     return $call_fields;
     // }
+
     public function get_list_view_data()
     {
         $call_fields = $this->get_list_view_array();
         global $app_list_strings, $focus, $action, $currentModule;
- 
+
         if (isset($this->parent_type) && $this->parent_type != null) {
             $call_fields['PARENT_MODULE'] = $this->parent_type;
         }
@@ -593,7 +657,7 @@ class Call extends SugarBean
                 $action = "index";
             }
         }
-      
+
         $this->fill_in_additional_detail_fields();
 
         //make sure we grab the localized version of the contact name, if a contact is provided
@@ -656,7 +720,6 @@ class Call extends SugarBean
         return $xtpl;
     }
 
-
     public function get_call_users()
     {
         $template = BeanFactory::newBean('Users');
@@ -680,7 +743,6 @@ class Call extends SugarBean
         return $list;
     }
 
-
     public function get_invite_calls(&$user)
     {
         $template = $this;
@@ -688,18 +750,13 @@ class Call extends SugarBean
         $query = "SELECT calls_users.required, calls_users.accept_status, calls_users.call_id from calls_users where calls_users.user_id='$user->id' AND ( calls_users.accept_status IS NULL OR  calls_users.accept_status='none') AND calls_users.deleted=0";
         $GLOBALS['log']->debug("Finding linked records $this->object_name: " . $query);
 
-
         $result = $this->db->query($query, true);
-
-
         $list = array();
-
 
         while ($row = $this->db->fetchByAssoc($result)) {
             $record = $template->retrieve($row['call_id']);
             $template->required = $row['required'];
             $template->accept_status = $row['accept_status'];
-
 
             if ($record != null) {
                 // this copies the object into the array
@@ -708,7 +765,6 @@ class Call extends SugarBean
         }
         return $list;
     }
-
 
     public function set_accept_status(&$user, $status)
     {
@@ -731,8 +787,6 @@ class Call extends SugarBean
             $this->set_relationship($this->rel_leads_table, $relate_values, true, true, $data_values);
         }
     }
-
-
 
     public function get_notification_recipients()
     {
@@ -898,5 +952,335 @@ class Call extends SugarBean
         CalendarUtils::correctRecurrences($this, $id);
 
         parent::mark_deleted($id);
+    }
+
+    public function determineHangupCause($params)
+    {
+        if (is_array($params) && count($params) > 0) {
+            $direction          = $params['call_direction'] ?? '';
+            $disposition        = $params['call_hangup_disposition'] ?? '';
+            $hangupCause        = $params['hangup_cause'] ?? '';
+            $ccCancelReason     = $params['cc_cancel_reason'] ?? null;
+
+			if ($hangupCause === 'DESTINATION_OUT_OF_ORDER') {
+                if ($direction === 'inbound') {
+                    if ($ccCancelReason === 'NO_AGENT_TIMEOUT') {
+                        return 'Không có tổng đài viên nào phản hồi, cuộc gọi bị hủy do hết thời gian chờ.';
+                    } elseif ($ccCancelReason === 'TIMEOUT') {
+                        return 'Cuộc gọi bị gián đoạn do lỗi mạng hoặc hệ thống tổng đài không phản hồi.';
+                    } else {
+                        return 'Không thể kết nối với tổng đài viên do lỗi đường truyền hoặc thiết bị.';
+                    }
+                } elseif ($direction === 'outbound') {
+                    return 'Không thể kết nối với khách hàng do thiết bị không hoạt động hoặc mất kết nối.';
+                } elseif ($direction === 'internal') {
+                    return 'Không thể kết nối giữa các tổng đài viên do lỗi hệ thống hoặc mất kết nối mạng.';
+                }
+            }
+
+            if ($hangupCause === 'INCOMPATIBLE_DESTINATION') {
+                if ($direction === 'inbound') {
+                    if ($disposition === 'recv_refuse') {
+                        return 'Cuộc gọi bị tổng đài từ chối do không hỗ trợ codec hoặc cấu hình không tương thích.';
+                    } elseif ($disposition === 'recv_bye') {
+                        return 'Cuộc gọi được tiếp nhận nhưng bị ngắt kết nối do vấn đề tương thích.';
+                    } elseif ($disposition === 'send_refuse') {
+                        return 'Tổng đài không hỗ trợ cuộc gọi từ khách hàng.';
+                    } else {
+                        return 'Cuộc gọi không thể tiếp tục do vấn đề tương thích thiết bị hoặc mạng.';
+                    }
+                } elseif ($direction === 'outbound') {
+                    return 'Cuộc gọi ra ngoài bị từ chối do thiết bị đích không hỗ trợ cuộc gọi.';
+                } elseif ($direction === 'local') {
+                    return 'Không thể kết nối giữa các tổng đài viên do thiết bị hoặc cấu hình không phù hợp.';
+                }
+            }
+            
+            // Xử lý cho cuộc gọi inbound
+            if ($direction === 'inbound') {
+				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+					return 'Khách hàng gọi vào số tổng đài chưa được cấp phát hoặc không khả dụng.';
+				}
+
+				if ($hangupCause === 'USER_BUSY') {
+                    return ($disposition === 'recv_refuse') ? 'Tổng đài viên từ chối cuộc gọi hoặc đang bận, không thể tiếp nhận cuộc gọi' : 'Hệ thống tổng đài từ chối cuộc gọi vì không có tổng đài viên nào tiếp nhận';
+                }
+				
+                if ($hangupCause === 'NO_ANSWER') {
+                    return ($disposition === 'send_bye') 
+                        ? 'Tổng đài viên không bắt máy, khách hàng kết thúc cuộc gọi' 
+                        : 'Tổng đài viên không bắt máy, cuộc gọi tự động kết thúc';
+                }
+				
+                if ($disposition === 'recv_bye' && $hangupCause === 'NORMAL_CLEARING') {
+                    return ($ccCancelReason === 'BREAK_OUT')
+                        ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời'
+                        : 'khách hàng chủ động kết thúc cuộc gọi';
+                }
+
+				if ($disposition === 'send_bye') {
+                    return ($ccCancelReason === 'TIMEOUT')
+                        ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
+                        : 'Tổng đài viên chủ động kết thúc cuộc gọi';
+                }
+        
+				if ($disposition === 'send_refuse') {
+                    return 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi';
+                }
+            }
+        
+            // Xử lý cho cuộc gọi outbound
+            if ($direction === 'outbound') {
+				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+                    return 'Số điện thoại không hợp lệ';
+                }
+
+				if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
+                    return 'Tổng đài viên chủ động hủy cuộc gọi';
+                }
+        
+                if ($disposition === 'send_refuse') {
+                    return ($hangupCause === 'USER_BUSY') ? 'Khách hàng đang bận hoặc từ chối cuộc gọi' : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
+                }
+        
+                if ($hangupCause === 'NORMAL_CLEARING') {
+                    if ($disposition === 'recv_bye') {
+                        return 'Tổng đài viên chủ động kết thúc cuộc gọi';
+                    }
+
+                    if ($disposition === 'send_bye') {
+                        return 'Khách hàng chủ động kết thúc cuộc gọi';
+                    }
+
+                    if ($disposition === 'send_refuse') {
+                        return 'Cuộc gọi bị từ chối hoặc không thể tiếp tục';
+                    }
+                }
+            }
+
+			if ($direction === 'internal') {
+				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+                    return 'Số điện thoại không hợp lệ';
+                }
+
+                if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
+                    return 'Người gọi chủ động hủy cuộc gọi';
+                }
+
+                if ($hangupCause === 'NORMAL_CLEARING') {
+                    if ($disposition === 'send_bye') {
+                        return 'Người nhận chủ động kết thúc cuộc gọi';
+                    }
+
+                    if ($disposition === 'send_refuse') {
+                        return 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi';
+                    }
+
+                    if ($disposition === 'recv_bye') {
+                        return 'Người gọi chủ động kết thúc cuộc gọi';
+                    }
+                }
+            }
+
+            return 'Nguyên nhân ngắt máy không xác định';
+        }
+
+        return 'Không xác định';
+    }
+
+
+    public function summaryLogForCalls($log_calls)
+    {
+        global $timedate;
+        $date_format = $timedate->get_date_format();
+
+        $call_start = $log_calls['call_start'];
+        $call_accepted = getCallAcceptDatetime($log_calls);
+        $call_end = $log_calls['call_end'];
+        $call_answer = calculateWaitTime($log_calls) ?? 0;
+        $call_talk = $log_calls['call_talk'] ?? 0;
+        $call_duration = $log_calls['call_duration'] ?? 0;
+
+        $description = "Cuộc gọi bắt đầu lúc <code>" . date('H:i:s ' . $date_format . '', strtotime($call_start)) . "</code>. ";
+        if ($call_accepted) {
+            $description .= "Bắt máy lúc <code>" . date('H:i:s ' . $date_format . '', strtotime($call_accepted)) . "</code> sau <code>$call_answer</code> giây chờ đợi. ";
+            $description .= "Hội thoại <code>$call_talk</code> giây và kết thúc lúc <code>" . date('H:i:s ' . $date_format . '', strtotime($call_end)) . "</code>. ";
+        } else {
+            $description .= "Cuộc gọi không được bắt máy và kết thúc lúc <code>" . date('H:i:s ' . $date_format . '', strtotime($call_end)) . "</code>. ";
+        }
+
+        $description .= "Tổng thời gian cuộc gọi được ghi nhận là <code>$call_duration</code> giây.";
+
+        return $description;
+    }
+
+    /**
+     * Get list outbound phone pbx
+     * @param string $direction (inbound/outbound/all)
+     * @return array  $condition (only_inbound)
+     */
+    public function get_list_phone_pbx($only_inbound = '', $round_robin = '')
+    {
+        global $db;
+        $result = [];
+
+        $conditon = '';
+        if ($only_inbound === 1) {
+            $conditon .= ' AND only_inbound = 1';
+        } else if ($only_inbound === 0) {
+            $conditon .= ' AND only_inbound = 0';
+        }
+
+        if ($round_robin === 1) {
+            $conditon .= ' AND round_robin = 1';
+        }
+
+        $sql = "
+            SELECT id, name, description, network_provider, proxy, brand_name, website, label, only_inbound
+            FROM ec_outbound_phone
+            WHERE status = 'active'
+            AND deleted = 0
+            $conditon
+        ";
+
+        $res = $db->query($sql);
+        $row_count = $db->getRowCount($res);
+        if ($row_count > 0) {
+            while ($row = $db->fetchByAssoc($res)) {
+                // Nhóm dữ liệu theo `network_provider`
+                $network_provider = $row['network_provider'];
+                if (!isset($result[$network_provider])) {
+                    $result[$network_provider] = [];
+                }
+                $result[$network_provider][] = $row;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get statistics of CDR 
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getCDRStatistics()
+    {
+        global $db;
+
+        $graph = [];
+
+        $sql =  'SELECT
+                        s_id AS hours,
+                        DATE_FORMAT(start_date, "%d %b") AS date,
+                        CONCAT(DATE_FORMAT(start_date, "%h:%i %p"), " - ", DATE_FORMAT(end_date, "%h:%i %p")) AS time,
+                        UNIX_TIMESTAMP(start_date) AS start_epoch,
+                        UNIX_TIMESTAMP(end_date) AS end_epoch,
+                        s_hour,
+                        start_date,
+                        end_date,
+                        COALESCE(total, 0) AS total,
+                        COALESCE(answered, 0) AS answered,
+                        COALESCE(seconds, 0) AS seconds,
+                        (ROUND(seconds / 60, 1)) AS minutes,
+                        COALESCE(total, 0) / (s_hour * 60) AS calls_per_minute,
+                        COALESCE(answered, 0) / (s_hour * 60) AS cpm_answered,
+                        COALESCE(total, 0) / s_hour AS calls_per_hour,
+                        COALESCE(failed, 0) AS failed,
+                        COALESCE(ROUND(100 * (answered / NULLIF(total, 0)), 2), 0) AS asr,
+                        COALESCE(ROUND(seconds / NULLIF(answered, 0) / 60, 2), 0) AS aloc
+                    FROM
+                    (
+                        SELECT
+                        s.s_id,
+                        s.start_date,
+                        s.end_date,
+                        s.s_hour,
+                        COUNT(c.call_id) AS total,
+                        SUM(CASE WHEN c.call_talk = 0 THEN 1 ELSE 0 END) AS failed,
+                        SUM(CASE WHEN c.call_talk > 0 THEN 1 ELSE 0 END) AS answered,
+                        SUM(CASE WHEN c.call_talk > 0 THEN c.call_talk ELSE 0 END) AS seconds
+                        FROM
+                        (
+                            SELECT
+                                h.s_id,
+                                h.s_start,
+                                h.s_end,
+                                h.s_hour,
+                                DATE_SUB(DATE_FORMAT(NOW(), "%Y-%m-%d %H:00:00"), INTERVAL h.s_start HOUR) AS start_date,
+                                DATE_SUB(DATE_FORMAT(NOW(), "%Y-%m-%d %H:00:00"), INTERVAL h.s_end HOUR) AS end_date 
+                            FROM (
+                                SELECT 1 AS s_id, 1 AS s_start, 0 AS s_end, 1 AS s_hour UNION ALL
+                                SELECT 2, 2, 1, 1 UNION ALL
+                                SELECT 3, 3, 2, 1 UNION ALL
+                                SELECT 4, 4, 3, 1 UNION ALL
+                                SELECT 5, 5, 4, 1 UNION ALL
+                                SELECT 6, 6, 5, 1 UNION ALL
+                                SELECT 7, 7, 6, 1 UNION ALL
+                                SELECT 8, 8, 7, 1 UNION ALL
+                                SELECT 9, 9, 8, 1 UNION ALL
+                                SELECT 10, 10, 9, 1 UNION ALL
+                                SELECT 11, 11, 10, 1 UNION ALL
+                                SELECT 12, 12, 11, 1 UNION ALL
+                                SELECT 13, 13, 12, 1 UNION ALL
+                                SELECT 14, 14, 13, 1 UNION ALL
+                                SELECT 15, 15, 14, 1 UNION ALL
+                                SELECT 16, 16, 15, 1 UNION ALL
+                                SELECT 17, 17, 16, 1 UNION ALL
+                                SELECT 18, 18, 17, 1 UNION ALL
+                                SELECT 19, 19, 18, 1 UNION ALL
+                                SELECT 20, 20, 19, 1 UNION ALL
+                                SELECT 21, 21, 20, 1 UNION ALL
+                                SELECT 22, 22, 21, 1 UNION ALL
+                                SELECT 23, 23, 22, 1 UNION ALL
+                                SELECT 24, 24, 23, 1 UNION ALL
+                                SELECT 25, 24, 0, 24 UNION ALL
+                                SELECT 26, 168, 0, 168 UNION ALL
+                                SELECT 27, 720, 0, 720
+                            ) AS h 
+                            GROUP BY s_id, s_hour, s_start, s_end 
+                            ORDER BY s_id ASC
+                        ) AS s
+                        LEFT JOIN calls AS c ON STR_TO_DATE(c.date_start, "%d-%m-%Y %H:%i:%s") BETWEEN s.start_date AND s.end_date AND c.deleted = 0 
+                        GROUP BY s.s_id, s.start_date, s.end_date, s.s_hour 
+                        ORDER BY s.s_id ASC
+                    ) AS d';
+
+        $res = $db->query($sql);
+        $x = 0;
+        $hours = 24;
+
+        while ($row = $db->fetchByAssoc($res)) {
+            $graph['data'][] = $row;
+
+            if ($x < $hours) {
+                $graph['total'][$x][] = $row['start_epoch'] * 1000;
+                $graph['total'][$x][] = $row['total'] / 1;
+
+                $graph['failed'][$x][] = $row['start_epoch'] * 1000;
+                $graph['failed'][$x][] = $row['failed'] / 1;
+
+                $graph['answered'][$x][] = $row['start_epoch'] * 1000;
+                $graph['answered'][$x][] = $row['answered'] / 1;
+
+                $graph['minutes'][$x][] = $row['start_epoch'] * 1000;
+                $graph['minutes'][$x][] = round($row['minutes'] ?? 0, 2);
+
+                $graph['call_per_min'][$x][] = $row['start_epoch'] * 1000;
+                $graph['call_per_min'][$x][] = round($row['avg_min'], 2);
+
+
+                $graph['asr'][$x][] = $row['start_epoch'] * 1000;
+                $graph['asr'][$x][] = round($row['asr'] ?? 0, 2) / 100;
+
+                $graph['aloc'][$x][] = $row['start_epoch'] * 1000;
+                $graph['aloc'][$x][] = round($row['aloc'] ?? 0, 2);
+            }
+
+            $x++;
+        }
+
+        return $graph;
     }
 }

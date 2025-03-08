@@ -20,7 +20,7 @@ $app_list_strings = array(
 
     strtolower($object_name) . '_status_dom' => array(
         'Active' => 'Đang hoạt động',
-        'Draft' => 'Dự thảo',
+        'Draft' => 'Bản nháp',
         'FAQ' => 'Hỏi đáp',
         'Expired' => 'hết hạn',
         'Under Review' => 'Đang xem xét',

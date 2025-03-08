@@ -126,7 +126,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
-
         ),
 
         'address' => array(
@@ -340,7 +339,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'name'       => 'city',
             'vname'      => 'LBL_CITY',
             'type'       => 'varchar',
-            'len'        => 64,
+            'len'        => 80,
             'default'    => '',
             'importable' => true,
             'reportable' => false,
@@ -405,7 +404,8 @@ $dictionary['EC_Flight_Bookings'] = array(
         'company_address' => array(
             'name'       => 'company_address',
             'vname'      => 'LBL_COMPANY_ADDRESS',
-            'type'       => 'text',
+            'type'       => 'varchar',
+            'length'     => 300,
             'default'    => '',
             'importable' => true,
             'reportable' => false,
@@ -416,7 +416,8 @@ $dictionary['EC_Flight_Bookings'] = array(
         'shipping_address' => array(
             'name'       => 'shipping_address',
             'vname'      => 'LBL_SHIPPING_ADDRESS',
-            'type'       => 'text',
+            'type'       => 'varchar',
+            'length'     => 500,
             'default'    => '',
             'importable' => true,
             'reportable' => false,
@@ -476,10 +477,9 @@ $dictionary['EC_Flight_Bookings'] = array(
             'required' => false,
             'name' => 'nganluong_info',
             'vname' => 'LBL_NGANLUONG_INFO',
-            'type' => 'longtext',
+            'type' => 'mediumtext',
             'massupdate' => 0,
             'comments' => 'thong tin booking thanh toan online',
-            'help' => '',
             'importable' => true,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
@@ -519,7 +519,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
         ),
-        
         'account_name' => array(
             'name'      => 'account_name',
             'vname'     => 'LBL_ACCOUNT_NAME',
@@ -533,7 +532,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'rname'      => 'name',
             'studio'     => 'visible',
             'quicksearch' => 'enabled',
-            'audited' => 1,
         ),
 
         'thuephi_quocte' => array(
@@ -692,7 +690,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
-            
         ),
 
         'delivery_man_id' => array(
@@ -703,7 +700,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'default'    => '',
             'importable' => true,
             'reportable' => false,
-            
         ),
         'delivery_man' => array(
             'name'       => 'delivery_man',
@@ -730,12 +726,11 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
         ),
-
         'voucher' => array(
             'name'       => 'voucher',
             'vname'      => 'LBL_VOUCHER',
             'type'       => 'relate',
-            'len'        => 20,
+            'len'        => 36,
             'importable' => true,
             'reportable' => false,
             'id_name'   => 'voucher_id',
@@ -744,9 +739,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'rname'     => 'name',
             'studio'    => 'visible',
             'quicksearch' => 'enabled',
-            'audited' => 1,
         ),
-
         'has_voucher' => array(
             'name'       => 'has_voucher',
             'vname'      => 'LBL_HAS_VOUCHER',
@@ -765,6 +758,39 @@ $dictionary['EC_Flight_Bookings'] = array(
             'default'    => '',
             'importable' => true,
             'reportable' => false,
+        ),
+
+        'contact_id' => array(
+            'name' => 'contact_id',
+            'vname' => 'LBL_CONTACT_ID',
+            'type' => 'id',
+            'length' => 36,
+            'default' => '',
+            'reportable' => false,
+            'audited' => true,
+            'massupdate' => false,
+            'comment' => 'The contact to which the case is associated'
+        ),
+
+        'journey' => array(
+            'name'       => 'journey',
+            'vname'      => 'LBL_JOURNEY',
+            'type'       => 'varchar',
+            'len'        => 10,
+            'default'    => '',
+            'importable' => true,
+            'reportable' => false,
+            'audited' => 1,
+        ),
+
+        'vouchers' => array(
+            'name' => 'vouchers',
+            'type' => 'link',
+            'relationship' => 'bookings_vouchers',
+            'module' => 'EC_Vouchers',
+            'bean_name' => 'EC_Vouchers',
+            'source' => 'non-db',
+            'vname' => 'LBL_VOUCHERS',
         ),
 
         // 'sendmail_eticket_date' => array(
@@ -863,6 +889,7 @@ $dictionary['EC_Flight_Bookings'] = array(
         array('name' => 'idx_bk_email', 'type' => 'index', 'fields' => array('email')),
         array('name' => 'idx_bk_bkstatus', 'type' => 'index', 'fields' => array('booking_status')),
         array('name' => 'idx_bk_contact', 'type' => 'index', 'fields' => array('contact_name')),
+        array('name' => 'idx_bk_contact_id', 'type' => 'index', 'fields' => array('contact_id')),
         array('name' => 'idx_bk_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
         array('name' => 'idx_bk_date_ticket_issue', 'type' => 'index', 'fields' => array('date_ticket_issue')),
         array('name' => 'idx_bk_dateen', 'type' => 'index', 'fields' => array('date_entered')),

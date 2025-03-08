@@ -8,6 +8,9 @@ $viewdefs['Contacts'] = array(
 					'EDIT',
 					// 'DUPLICATE',
 					'DELETE',
+					array(
+						'customCode' => '{$DETAIL_BOOKING}',
+					),
 					// 'FIND_DUPLICATES',
 					// array(
 					// 	'customCode' => '<input type="submit" class="button" title="{$APP.LBL_MANAGE_SUBSCRIPTIONS}" onclick="this.form.return_module.value=\'Contacts\'; this.form.return_action.value=\'DetailView\'; this.form.return_id.value=\'{$fields.id.value}\'; this.form.action.value=\'Subscriptions\'; this.form.module.value=\'Campaigns\'; this.form.module_tab.value=\'Contacts\';" name="Manage Subscriptions" value="{$APP.LBL_MANAGE_SUBSCRIPTIONS}"/>',
@@ -82,6 +85,7 @@ $viewdefs['Contacts'] = array(
 			),
 			'includes' => array(
 				array('file' => 'modules/Contacts/Contact.js'),
+				array('file' => 'modules/Contacts/js/view.detail.js'),
 			),
 			'useTabs' => false,
 			'tabDefs' => array(
@@ -153,13 +157,20 @@ $viewdefs['Contacts'] = array(
 				),
 				array(
 					array(
-						'name' => 'assigned_user_name',
-						'label' => 'LBL_ASSIGNED_TO_NAME',
+						'name' => 'points',
+						'label' => 'LBL_POINTS',
 					),
+					array(),
+				),
+				array(
 					array(
 						'name' => 'description',
 						'comment' => 'Full text of the note',
 						'label' => 'LBL_DESCRIPTION',
+					),
+					array(
+						'name' => 'assigned_user_name',
+						'label' => 'LBL_ASSIGNED_TO_NAME',
 					),
 				),
 				array(
@@ -193,21 +204,6 @@ $viewdefs['Contacts'] = array(
 			// 		array(
 			// 			'name' => 'campaign_name',
 			// 			'label' => 'LBL_CAMPAIGN',
-			// 		),
-			// 	),
-			// ),
-
-			// 'LBL_PANEL_ASSIGNMENT' => array(
-			// 	array(
-			// 		array(
-			// 			'name' => 'date_entered',
-			// 			'customCode' => '{$fields.date_entered.value} {$APP.LBL_BY} {$fields.created_by_name.value}',
-			// 			'label' => 'LBL_DATE_ENTERED',
-			// 		),
-			// 		array(
-			// 			'name' => 'date_modified',
-			// 			'customCode' => '{$fields.date_modified.value} {$APP.LBL_BY} {$fields.modified_by_name.value}',
-			// 			'label' => 'LBL_DATE_MODIFIED',
 			// 		),
 			// 	),
 			// ),

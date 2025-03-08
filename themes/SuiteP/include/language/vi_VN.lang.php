@@ -1976,7 +1976,7 @@ $app_strings = array(
     'LBL_IMPORT_SAMPLE_FILE_TEXT' => ' "Đây là một mẫu nhập tập tin mà cung cấp một ví dụ về nội dung dự kiến của một tập tin đã sẵn sàng cho nhập khẩu." "Các tập tin là một tệp .csv phân cách bằng dấu phẩy, bằng cách sử dụng dấu ngoặc kép đôi như lĩnh vực qualifier."  "Hàng tiêu đề là hàng cao nhất trong các tập tin và bao gồm các lĩnh vực nhãn như bạn sẽ nhìn thấy chúng trong ứng dụng." "Các nhãn này được sử dụng để lập bản đồ các dữ liệu trong các tập tin đến các lĩnh vực trong ứng dụng."  "Ghi chú: tên cơ sở dữ liệu cũng có thể được sử dụng trong hàng tiêu đề. Điều này là hữu ích khi bạn đang sử dụng phpMyAdmin hoặc một cơ sở dữ liệu công cụ để cung cấp một danh sách xuất khẩu các dữ liệu nhập khẩu." "Thứ tự cột là không quan trọng vì quá trình nhập khẩu phù hợp với các dữ liệu đến các lĩnh vực thích hợp dựa trên hàng tiêu đề."   "Để sử dụng tập tin này như một mẫu, thực hiện như sau:" "1. loại bỏ các hàng mẫu dữ liệu" "2. Loại bỏ văn bản trợ giúp mà bạn đang đọc ngay bây giờ""3. Nhập vào dữ liệu của bạn vào hàng phù hợp và cột""4. Lưu tệp vào một vị trí nổi tiếng trên hệ thống của bạn""5. Nhấp vào tùy chọn nhập khẩu từ trình đơn tác vụ trong ứng dụng và chọn tập tin để tải lên"    ',
     //define labels to be used for overriding local values during import/export
 
-    'LBL_NOTIFICATIONS_NONE' => 'Không có thông báo hiện tại',
+    'LBL_NOTIFICATIONS_NONE' => 'Hiện tại không có thông báo!',
     'LBL_ALT_SORT_DESC' => 'Xếp giảm dần',
     'LBL_ALT_SORT_ASC' => 'Xếp tăng dần',
     'LBL_ALT_SORT' => 'Sắp xếp',

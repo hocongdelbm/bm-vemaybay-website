@@ -108,7 +108,7 @@
 }
 
 #line-notes #slide-menu:checked~.mobile-menu {
-    transform: translateX(-20%);
+    transform: translateX(-50%);
 }
 
 #line-notes #slide-menu:checked~.header-slide-menu__overlay {
@@ -325,7 +325,7 @@
 
 #line-notes .mobile-menu__top .wrap-cancel svg,
 #line-notes .mobile-menu-wrapper .wrap-input .wrap-icon svg {
-    fill: #BCC0C4;
+    fill: var(--text-primary-color);
 }
 
 /* Remove message */

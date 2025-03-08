@@ -104,14 +104,18 @@ class Viewsendconfirm extends SugarView {
 			$form_body 	= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail);	
 			$subject 	= 'Voucher Timchuyenbay gởi tặng!';
 		} 
-		else $voucher = array();
+		else $voucher = array(
+			'name' => '',
+			'amt' => 0,
+		);
 
 		// Ngân lượng (Thanh toán online)
 		$nganluong_code = $this->bean->nganluong_code;
 		$nganluong_datepaid =  date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
 
 		$name_site = array(
-			'TCB' => 'timchuyenbay.com'
+			'TCB' => 'timchuyenbay.com',
+			'VJ2' => 'vietjet.net',
 		);
 		$name_website 	= substr($this->bean->name, 0, 3);
 		if(isset($nganluong_code) && !empty($nganluong_code)){
@@ -211,7 +215,7 @@ class Viewsendconfirm extends SugarView {
 				$voucher['name'],
 				format_number($voucher['amt']).' VND',
 				'https://drive.google.com/uc?export=view&id=1L-eMFTQQYbIkK6LqoVnp6q_5hR6FSH0D',
-				$voucher['expire_date'],
+				$voucher['expire_date'] ?? '',
 				$department_info['com_name'], // header company name
 				'',
 				$payment_link
@@ -787,17 +791,7 @@ class Viewsendconfirm extends SugarView {
 															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px">
 																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
-																		MBBank HCM - Số TK : <strong>0000920990898</strong>
-																	</p>
-																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
-																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>
-																	</p>
-																</div>
-															</td>
-															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px;">
-																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
-																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
-																		Agribank - Số TK : <strong>1903201152919</strong>
+																		HD Bank - Số TK : <strong>081704070006171</strong>
 																	</p>
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
 																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>
@@ -830,8 +824,10 @@ class Viewsendconfirm extends SugarView {
 				FROM ec_vouchers 
 				WHERE booking_receive_id = "' . $booking_id . '"
 				AND deleted = 0';
+
 		$res = $this->bean->db->query($sql);
 		$row = $this->bean->db->fetchByAssoc($res);
+
 		return array('name' => $row['name'], 'amt' => $row['reduce_amount'], 'expire_date' => date('d-m-Y', strtotime($row['validate_to_date'])));
 	}
 }

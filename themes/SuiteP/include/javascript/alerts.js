@@ -162,12 +162,12 @@ Alerts.prototype.updateManager = function () {
             alertsDiv.addClass('has-alerts');
             desktopNotificationsDiv.addClass('has-alerts');
             alertButtonDiv.removeClass('btn-').addClass('btn-danger');
-            alertCountDiv.removeClass('hidden');
+            // alertCountDiv.removeClass('hidden');
         } else {
             desktopNotificationsDiv.removeClass('has-alerts');
             alertsDiv.removeClass('has-alerts');
             alertButtonDiv.removeClass('btn-danger').addClass('btn-success');
-            alertCountDiv.addClass('hidden');
+            // alertCountDiv.addClass('hidden');
         }
     });
 };

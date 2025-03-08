@@ -81,6 +81,10 @@ class Viewcashflow extends SugarView {
 			}
 			
 			$total_cash = $this->getTotalCash($report_year, $sql_search, $dep_id);
+			// if($current_user->user_name == 'hungnh'){
+			// 	pr($total_cash);
+			// }
+
 			$total_amount += $total_cash;
 			$html .= '<tr>
 				<td align="center" class="hide-mobile">'.($i++).'</td>
@@ -495,12 +499,19 @@ class Viewcashflow extends SugarView {
 	}	
 	
 	function getTotalCash($report_year, $sql_search, $dep_id){
-		global $db;
+		global $db, $current_user;
 		$total_amount = 0;
 
 		// cả nam phương và tralvelpass
 		$location_np = $this->getLocationByDep('8df43570-09de-d2b3-b2fd-506eca7522f7');
 		$location_tp = $this->getLocationByDep('48840c01-3a4f-c430-f703-56f32c7cd8a4');
+		$locations = [];
+		if (!empty($location_np)) {
+			$locations = array_merge($locations, $location_np);
+		}
+		if (!empty($location_tp)) {
+			$locations = array_merge($locations, $location_tp);
+		}
 		$sql_search .= " AND p.com_location_id IN ('".implode("','", $location_np).'\',\''.implode("','", $location_tp)."') ";
 		
 		$sql = "SELECT SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0))
@@ -514,7 +525,7 @@ class Viewcashflow extends SugarView {
 					FROM ec_chitiettaikhoan".$report_year." p
 					WHERE p.deleted=0 
 					AND SUBSTRING(p.sotaikhoan, 1, 4)='1111'
-					AND p.location_id IN ('".implode("','", $location_np).'\',\''.implode("','", $location_tp)."')
+					AND p.location_id IN ('" . implode("','", $locations) . "')
 					
 					-- RECEIPT VOUCHER
 					UNION
@@ -562,9 +573,12 @@ class Viewcashflow extends SugarView {
 					 WHERE p.deleted=0 
 					 AND p.ghiso=1 
 					 AND p.dentienmat=1 ".str_replace('p.com_location_id', 'p.dendiadiem_id', $sql_search)."
-				 
 				 ) AS tmp ";
 		
+		// if($current_user->user_name == 'hungnh'){
+		// 	pr($sql);
+		// }
+
 		$total_amount += $db->getOne($sql);
 		return $total_amount;
 	}
@@ -722,15 +736,20 @@ class Viewcashflow extends SugarView {
 	// Get locations by department
 	function getLocationByDep($dep_id) {
 		global $db;
-		$arr = array();
+		$arr = [];
 
 		$sql = "SELECT id
 				FROM ec_location
-				WHERE deleted = 0 AND company_id = '".$dep_id."' ";
+				WHERE deleted = 0 
+				AND company_id = '".$dep_id."' 
+				AND is_display = 0
+			";
 
 		$res = $db->query($sql);
 		while($row = $db->fetchByAssoc($res)){
-			$arr[] = $row['id'];
+			if(!empty($row['id'])){
+				$arr[] = $row['id'];
+			}
 		}
 
 		return $arr;
@@ -813,6 +832,20 @@ class Viewcashflow extends SugarView {
 				AND d.add_type IS NULL
 				GROUP BY d.supplier_inbound_id
 
+				-- RECEIPT
+				UNION
+				SELECT p.id AS id
+					  ,account_id_c AS supplier_id
+					  ,p.amount AS debt_amount
+					  ,0 AS pay_amount
+					  ,'' AS accounting_code
+				FROM ec_receipt_voucher p
+				WHERE p.deleted = 0
+				AND p.loai_thu = '9'
+				AND p.account_id_c IS NOT NULL
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+
 				-- SUPPLIER 1
 				UNION
 				SELECT CONCAT(p.id, '-SUPPLIER1') AS id
@@ -825,9 +858,11 @@ class Viewcashflow extends SugarView {
 				AND p.loai_thu IN ('4', '5')
 				AND p.supplier_id IS NOT NULL
 				AND p.bought_amount IS NOT NULL
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 				AND p.supplier_id IS NOT NULL
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 
 				-- SUPPLIER 2
 				UNION
@@ -841,9 +876,11 @@ class Viewcashflow extends SugarView {
 				AND p.loai_thu IN ('4', '5')
 				AND p.supplier2_id IS NOT NULL
 				AND p.bought_amount2 IS NOT NULL
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 				AND p.supplier2_id IS NOT NULL
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 
 				-- SUPPLIER 3
 				UNION
@@ -857,9 +894,11 @@ class Viewcashflow extends SugarView {
 				AND p.loai_thu IN ('4', '5')
 				AND p.supplier3_id IS NOT NULL
 				AND p.bought_amount3 IS NOT NULL
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 				AND p.supplier3_id IS NOT NULL
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 
 				-- TICKET REFUND
 				UNION
@@ -889,14 +928,16 @@ class Viewcashflow extends SugarView {
 				FROM ec_payment_voucher p
 				WHERE p.deleted = 0
 				AND p.pv_status = '3'
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-				AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 				AND p.supplier_id IS NOT NULL
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
 		) AS tmp
 		LEFT JOIN accounts a ON tmp.supplier_id = a.id AND a.deleted = 0
 		WHERE a.is_stop_tracking = 0
 		AND a.account_type = 'Supplier'
-		AND a.is_reported = 1
+		-- AND a.is_reported = 1
 		GROUP BY tmp.supplier_id
 		-- HAVING total_debt <> 0
 		ORDER BY supplier_code";

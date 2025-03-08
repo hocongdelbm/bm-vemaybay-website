@@ -17,6 +17,9 @@ class EC_HoanVeLogicHook {
 			$update = "UPDATE ec_chitiethoanve SET deleted=1 
 					   WHERE hoanve_id='".trim($focus->id)."' AND deleted=0 ";
 			$focus->db->query($update);
+
+			// Xóa KPI - working process
+			myRemoveWorkingProcess($focus->module_dir, $focus->id, 'create_repaid');
 		}
 	}
 	

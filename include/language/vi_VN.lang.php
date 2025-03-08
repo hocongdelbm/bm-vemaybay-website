@@ -407,13 +407,13 @@ $app_list_strings = array(
     ),
 
     'project_status_dom' => array(
-        'Draft' => 'Dự thảo',
+        'Draft' => 'Bản nháp',
         'In Review' => 'Đang xem xét',
         'Underway' => 'Tiến hành',
         'On_Hold' => 'Chờ đợi',
         'Completed' => 'Hoàn thành',
     ),
-    'project_status_default' => 'Dự thảo',
+    'project_status_default' => 'Bản nháp',
 
     'project_duration_units_dom' => array(
         'Days' => 'Ngày',
@@ -736,14 +736,14 @@ $app_list_strings = array(
     'dom_email_types' => array(
         'out' => 'Gửi',
         'archived' => 'Lưu trữ',
-        'draft' => 'Dự thảo',
+        'draft' => 'Bản nháp',
         'inbound' => 'Trong giới hạn',
         'campaign' => 'Chiến dịch kinh doanh',
     ),
     'dom_email_status' => array(
         'archived' => 'Lưu trữ',
         'closed' => 'Đã đóng',
-        'draft' => 'Dự thảo',
+        'draft' => 'Bản nháp',
         'read' => 'Đọc',
         'replied' => 'Đã trả lời',
         'sent' => 'Gửi',
@@ -844,7 +844,7 @@ $app_list_strings = array(
 
     'document_status_dom' => array(
         'Active' => 'Đang hoạt động',
-        'Draft' => 'Dự thảo',
+        'Draft' => 'Bản nháp',
         'FAQ' => 'Hỏi đáp',
         'Expired' => 'hết hạn',
         'Under Review' => 'Đang xem xét',
@@ -2071,7 +2071,7 @@ $app_strings = array(
     'LBL_IMPORT_SAMPLE_FILE_TEXT' => ' "Đây là một mẫu nhập tập tin mà cung cấp một ví dụ về nội dung dự kiến của một tập tin đã sẵn sàng cho nhập khẩu." "Các tập tin là một tệp .csv phân cách bằng dấu phẩy, bằng cách sử dụng dấu ngoặc kép đôi như lĩnh vực qualifier."  "Hàng tiêu đề là hàng cao nhất trong các tập tin và bao gồm các lĩnh vực nhãn như bạn sẽ nhìn thấy chúng trong ứng dụng." "Các nhãn này được sử dụng để lập bản đồ các dữ liệu trong các tập tin đến các lĩnh vực trong ứng dụng."  "Ghi chú: tên cơ sở dữ liệu cũng có thể được sử dụng trong hàng tiêu đề. Điều này là hữu ích khi bạn đang sử dụng phpMyAdmin hoặc một cơ sở dữ liệu công cụ để cung cấp một danh sách xuất khẩu các dữ liệu nhập khẩu." "Thứ tự cột là không quan trọng vì quá trình nhập khẩu phù hợp với các dữ liệu đến các lĩnh vực thích hợp dựa trên hàng tiêu đề."   "Để sử dụng tập tin này như một mẫu, thực hiện như sau:" "1. loại bỏ các hàng mẫu dữ liệu" "2. Loại bỏ văn bản trợ giúp mà bạn đang đọc ngay bây giờ""3. Nhập vào dữ liệu của bạn vào hàng phù hợp và cột""4. Lưu tệp vào một vị trí nổi tiếng trên hệ thống của bạn""5. Nhấp vào tùy chọn nhập khẩu từ trình đơn tác vụ trong ứng dụng và chọn tập tin để tải lên"    ',
     //define labels to be used for overriding local values during import/export
 
-    'LBL_NOTIFICATIONS_NONE' => 'Không có thông báo hiện tại',
+    'LBL_NOTIFICATIONS_NONE' => 'Hiện tại không có thông báo',
     'ERR_NOTIFICATIONS_MARK_AS_READ' => 'Error while trying to mark notifications as read',
     'LBL_ALT_SORT_DESC' => 'Xếp giảm dần',
     'LBL_ALT_SORT_ASC' => 'Xếp tăng dần',
@@ -2956,7 +2956,7 @@ $app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
 // knowledge base
 $app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ';
 $app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ';
-$app_list_strings['aok_status_list']['Draft'] = 'Dự thảo';
+$app_list_strings['aok_status_list']['Draft'] = 'Bản nháp';
 $app_list_strings['aok_status_list']['Expired'] = 'hết hạn';
 $app_list_strings['aok_status_list']['In_Review'] = 'Đang xem xét';
 //$app_list_strings['aok_status_list']['Published'] = 'Published';
@@ -3137,7 +3137,7 @@ $app_list_strings['aos_quotes_type_dom']['Prospect'] = 'Triển vọng';
 $app_list_strings['aos_quotes_type_dom']['Reseller'] = 'Đại lý';
 $app_list_strings['aos_quotes_type_dom']['Other'] = 'Khác';
 $app_list_strings['template_ddown_c_list'][''] = '';
-$app_list_strings['quote_stage_dom']['Draft'] = 'Dự thảo';
+$app_list_strings['quote_stage_dom']['Draft'] = 'Bản nháp';
 $app_list_strings['quote_stage_dom']['Negotiation'] = 'Thương lượng';
 $app_list_strings['quote_stage_dom']['Delivered'] = 'Chuyển giao';
 $app_list_strings['quote_stage_dom']['On Hold'] = 'Chờ đợi';
@@ -3655,7 +3655,7 @@ $app_list_strings['moduleList']['Surveys'] = 'Khảo sát';
 $app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
 $app_list_strings['moduleList']['SurveyQuestions'] = 'Câu hỏi khảo sát';
 $app_list_strings['moduleList']['SurveyQuestionOptions'] = 'Tùy chọn câu hỏi khảo sát';
-$app_list_strings['survey_status_list']['Draft'] = 'Dự thảo';
+$app_list_strings['survey_status_list']['Draft'] = 'Bản nháp';
 $app_list_strings['survey_status_list']['Public'] = 'Công khai';
 $app_list_strings['survey_status_list']['Closed'] = 'Đã đóng';
 $app_list_strings['surveys_question_type']['Text'] = 'Văn bản';

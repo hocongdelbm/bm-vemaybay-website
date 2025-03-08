@@ -326,7 +326,7 @@ function myCheckValueExist($module, $fields = array(), $field_value = array(), $
     if (count($fields) > 0) {
         $i = 0;
         foreach ($fields as $field) {
-            if(!isset($field_value[$i]) || is_null($field_value[$i]) || empty($field_value[$i])) continue;
+            if (!isset($field_value[$i]) || is_null($field_value[$i]) || empty($field_value[$i])) continue;
             $field_con .= " AND " . $field . " = '" . $field_value[$i] . "'";
             $i++;
         }
@@ -900,6 +900,18 @@ function myGetWorkingProcessCount($parent_type, $parent_id, $field = '')
     }
     $recheck_count += $db->getOne($sql);
     return $recheck_count;
+}
+
+// Hàm kiểm tra sự tồn tại của WorkingProcess
+function isWorkingProcessExisting($parent_type, $parent_id, $field = '')
+{
+    // Ngoại trừ xuất hđ đầu ra
+    global $db;
+
+    $sql    = "SELECT COUNT(*) as count FROM ec_working_process WHERE parent_id = '$parent_id' AND parent_type = '$parent_type' AND $field = 1 AND deleted = 0";
+    $result = $db->query($sql);
+    $row    = $db->fetchByAssoc($result);
+    return $row['count'] > 0;
 }
 
 // Remove working process exist
@@ -1906,7 +1918,8 @@ function getCustomerType($phone)
     global $db;
     $sql = 'SELECT id, info_data
 		   FROM ec_customer
-		   WHERE phone = "' . $phone . '"';
+		   WHERE phone = "' . $phone . '"
+           AND deleted = 0';
 
     $res = $db->query($sql);
 
@@ -2086,6 +2099,21 @@ function global_test_input($data)
     return $data;
 }
 
+// Format seconds to time
+function global_secondsToTimeFormat($seconds)
+{
+    if (empty($seconds)) {
+        return '00:00:00';
+    }
+
+    $hours      = floor($seconds / 3600);
+    $minutes    = floor(($seconds % 3600) / 60);
+    $seconds    = $seconds % 60;
+
+    return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+}
+
+
 function custom_get_sip_number($key = '')
 {
     $arr = [
@@ -2114,6 +2142,8 @@ function custom_get_sip_number($key = '')
         'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
+        // Đỗ Nhật
+        '245134a3-0382-7578-601a-6790ab9bb6b3' => ['user' => '789', 'password' => 't5scZL2Gnpuvc1JNYQYW'],
 
         /************************  KẾ TOÁN  ************************/
         // Đỗ Thị Kim Ngân
@@ -2259,6 +2289,8 @@ function content_log($current_user_id, $time, $busy = 0)
     if (is_null($current_user_id) || empty($current_user_id) || is_null($time) || empty($time)) return false;
 
     $row = array(
+        'agent' => custom_get_sip_number($current_user_id),
+        'current_user_id' => $current_user_id,
         'last_time' => $time,
         'busy' => $busy,
     );
@@ -2367,39 +2399,6 @@ function get_browser_name($user_agent)
     return 'Unkown';
 }
 
-function get_blacklist_phone()
-{
-    // Check file json
-    $file_path = 'custom/jssip_webrtc/blacklist.json';
-
-    if (file_exists($file_path)) {
-        $json = file_get_contents($file_path);
-        return $json;
-    }
-
-    return '';
-}
-
-function add_blacklist_phone($phone)
-{
-    if (empty($phone)) return false;
-
-    $json = get_blacklist_phone();
-    if (empty($json)) {
-        $arr = [$phone];
-    } else {
-        $arr = json_decode($json, true);
-        if (array_search($phone, $arr) === false) {
-            $arr[] = $phone;
-        }
-    }
-
-    $file_name = 'custom/jssip_webrtc/blacklist.json';
-    $myfile = fopen($file_name, "w") or die("Error something !!!");
-    fwrite($myfile, json_encode($arr));
-    fclose($myfile);
-}
-
 // RANDOM NGANLUONG_CODE
 function get_payment_link()
 {
@@ -2418,167 +2417,8 @@ function get_payment_link()
     return $randomString;
 }
 
-// Call source into module calls
-function getCallSource($call_to)
-{
-    $call_to = str_replace(" ", "", trim($call_to));
-    $call_sources = '';
-
-    switch ($call_to) {
-        case '02839977799':
-            $call_sources = 'sanvemaybay.com.vn';
-            break;
-        case '0911236600':
-        case '01388506538':
-            $call_sources = 'Laptop Dell';
-            break;
-        case '02866509900':
-        case '02839977788':
-            $call_sources = 'timchuyenbay.com';
-            break;
-        case '1900636063':
-            $call_sources = 'vemaybay5s.com';
-            break;
-        case '02873001886':
-            $call_sources = 'suatuoiuc.vn';
-            break;
-            // Zalo
-        case '2941581384627345950101':
-            $call_sources = 'Zalo nội địa';
-            break;
-        case '2941581384627345950102':
-            $call_sources = 'Zalo quốc tế';
-            break;
-        case '2941581384627345950103':
-            $call_sources = 'Khiếu nại';
-            break;
-        default:
-            $call_sources = 'vietjet.net';
-    }
-
-    return $call_sources;
-}
-
-// Block Call inbound - Linh tinh SPAM
-function isSpamPhone($phone)
-{
-    $top_phone = array('028', '024', '021', '022', '029', '195', '252', '247', '231', '371', '232', '224', '027', '020');
-    $sub_phone = substr(trim($phone), 0, 3);
-
-    if (in_array($sub_phone, $top_phone)) {
-        $digits = str_split($phone);
-
-        for ($i = 3; $i < count($digits) - 3; $i++) {
-            if ($digits[$i] == $digits[$i + 1] && $digits[$i] == $digits[$i + 2]) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-// CHANGE STATUS AGENT
-function agent_change_status($agent, $status)
-{
-    global $db;
-    if (empty($agent) || empty($status)) {
-        $response['success'] = array(
-            'code' => 400,
-            'title' => 'agent status bad request',
-        );
-        echo json_encode($response);
-        exit();
-    }
-
-    $agent_domain  = $agent . '@td.timchuyenbay.net';
-    $toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
-    $body_request = array(
-        'agent' => $agent_domain,
-        'status' => $status,
-        'token' => $toten,
-    );
-
-    try {
-        $curl = curl_init();
-        if ($curl === false) {
-            echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
-        }
-
-        curl_setopt_array($curl, array(
-            CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
-            CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
-            CURLOPT_TIMEOUT        => 0,
-            CURLOPT_CUSTOMREQUEST   => 'POST',
-            CURLOPT_POSTFIELDS      => $body_request,
-        ));
-
-        $json = curl_exec($curl);
-        $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        curl_close($curl);
-        $arr = json_decode($json, true);
-
-        if ($httpcode == 200) {
-            $sql_as = 'UPDATE users
-                       SET agent_status = "' . $status . '"
-                       WHERE td_sip = "' . $agent . '"
-                       AND deleted = 0';
-            $db->query($sql_as);
-
-            if($status == 'Available'){
-	            $timestamp_now = date('Y-m-d H:i:s');
-
-                if(custom_get_sip_number($agent)){
-                    $sql_online = '
-                        UPDATE ec_online_report 
-                        SET status = 1, last_online = "' . $timestamp_now . '"
-                        WHERE assigned_user_id = "' . custom_get_sip_number($agent) . '"
-                        AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"
-                        AND deleted = 0
-                    ';
-                    $db->query($sql_online);
-                }
-            } 
-        }
-    } catch (Exception $e) {
-        return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
-    }
-}
-
-// GHI FILE LOGS BACKUP SAVE CALL FAIELD
-function write_file_backup_log_calls($json)
-{
-    $GLOBALS['log']->fatal('Tiến hành lưu thông tin cuộc gọi backup.');
-    if (empty($json)) return false;
-
-    $file_name = "secure_sessions/backup_log_calls/" . str_replace('-', '_', date('d-m-Y') . '.json');
-
-    // Kiểm tra xem tệp có tồn tại không
-    if (!file_exists($file_name)) {
-        $dir_name = dirname($file_name);
-        if (!is_dir($dir_name)) {
-            mkdir($dir_name, 0777, true);
-        }
-        file_put_contents($file_name, json_encode([]));
-    }
-
-    $file_content = file_get_contents($file_name);
-    $json_data = json_decode($file_content, true);
-
-    if (!is_array($json_data)) {
-        $json_data = [];
-    }
-
-    $json_data[] = json_decode($json, true);
-
-    file_put_contents($file_name, json_encode($json_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-    $GLOBALS['log']->fatal('Lưu thông tin cuộc gọi backup thành công.');
-    return true;
-}
-
 require_once 'custom/include/utils/address.php';
 require_once 'custom/include/utils/tele.php';
+require_once 'custom/include/utils/exits.php';
+require_once 'custom/include/utils/booking.php';
+require_once 'custom/include/utils/calls.php';

@@ -7,6 +7,11 @@ class EC_VouchersViewList extends ViewList {
         parent::__construct();
     }
 
+    function display() {
+        $this->lv->quickViewLinks = false;
+        parent::display();
+    }
+
     function listViewPrepare() {
         if(empty($_REQUEST['orderBy']) || isset($_POST['query'])) {
             $_REQUEST['orderBy'] = 'date_entered';
@@ -14,9 +19,5 @@ class EC_VouchersViewList extends ViewList {
         }
 
         parent::listViewPrepare();
-    }
-
-    function display() {
-        parent::display();
     }
 }
