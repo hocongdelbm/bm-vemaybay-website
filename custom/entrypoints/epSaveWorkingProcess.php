@@ -212,48 +212,51 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 							// Send point info to customer via Zalo
 							require_once('modules/EC_Zalo/Zalo.php');
 							$Zalo = new Zalo();
+							$Booking = new EC_Flight_Bookings();
 							if(!empty($con_zalo_id)) {
-								if($total_point > 0) {
-									$total_discount = number_format($total_point*1000, 0, ',', '.') . "đ";
-									$header = "CHÚC MỪNG BẠN ĐÃ TÍCH LŨY $point ĐIỂM!";
-									$text = "Cảm ơn bạn đã tin tưởng lựa chọn Tìm Chuyến Bay. Bạn được giảm $total_discount cho lần mua vé tiếp theo. Điểm số càng cao, càng nhiều ưu đãi hấp dẫn.";
-									$text2 = "Chúc bạn có một chuyến đi an toàn, vui vẻ & như ý.";
-									$table = [
-										[
-											"key" => "Mã booking",
-											"value" => "$record_name",
-										],
-										[
-											"key" => "Số điện thoại",
-											"value" => "$con_phone",
-										],
-										[
-											"key" => "Tổng tích lũy",
-											"value" => "$total_point điểm",
-										],
-									];
-									
-									$json = $Zalo->send_transaction($con_zalo_id, 'transaction_reward', $header, $text, $table, $text2);
-									$arr = json_decode($json, true);
+								$total_discount = (int)($total_point/$Booking->point_step) * $Booking->point_step * 1000;
+								$total_discount_text = $total_discount > 0 ? number_format($total_discount, 0, ',', '.') . "đ" : "";
+								$total_discount_text = !empty($total_discount_text) ? " Bạn được giảm $total_discount_text cho lần mua vé tiếp theo." : "";
 
-									if(isset($arr['error']) && $arr['error'] == 0) {
-										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
-										$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nSố điện thoại: <b>$con_phone</b>";
-										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
-										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
-										$Zalo->send_to_telegram($content);
-									}
-									else {
-										$content = "Gửi tin nhắn tích điểm đến zalo id thất bại\n";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nSố điện thoại: <b>$con_phone</b>";
-										$content .= "\nZalo ID: <b>$con_zalo_id</b>";
-										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
-										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
-										sendTestTelegram($content);
-									}
+								$header = "CHÚC MỪNG BẠN ĐÃ TÍCH LŨY $point ĐIỂM!";
+								$text = "Cảm ơn bạn đã tin tưởng lựa chọn Tìm Chuyến Bay.$total_discount_text Điểm số càng cao, càng nhiều ưu đãi hấp dẫn.";
+								$text2 = "Chúc bạn có một chuyến đi an toàn, vui vẻ & như ý.";
+								$table = [
+									[
+										"key" => "Mã booking",
+										"value" => "$record_name",
+									],
+									[
+										"key" => "Số điện thoại",
+										"value" => "$con_phone",
+									],
+									[
+										"key" => "Tổng tích lũy",
+										"value" => "$total_point điểm",
+									],
+								];
+								
+								$json = $Zalo->send_transaction($con_zalo_id, 'transaction_reward', $header, $text, $table, $text2);
+								$arr = json_decode($json, true);
+
+								if(isset($arr['error']) && $arr['error'] == 0) {
+									$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
+									$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$Zalo->send_to_telegram($content);
+								}
+								else {
+									$content = "Gửi tin nhắn tích điểm đến zalo id thất bại\n";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSố điện thoại: <b>$con_phone</b>";
+									$content .= "\nZalo ID: <b>$con_zalo_id</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$content .= "\n\n$json";
+									sendTestTelegram($content);
 								}
 							}
 							else {
@@ -299,6 +302,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									$content .= "\nHọ tên: <b>$con_name</b>";
 									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
 									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									$content .= "\n\n$json";
 									sendTestTelegram($content);
 								}
 							}

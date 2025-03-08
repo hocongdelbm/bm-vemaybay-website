@@ -407,13 +407,13 @@ $app_list_strings = array(
     ),
 
     'project_status_dom' => array(
-        'Draft' => 'Dự thảo',
+        'Draft' => 'Bản nháp',
         'In Review' => 'Đang xem xét',
         'Underway' => 'Tiến hành',
         'On_Hold' => 'Chờ đợi',
         'Completed' => 'Hoàn thành',
     ),
-    'project_status_default' => 'Dự thảo',
+    'project_status_default' => 'Bản nháp',
 
     'project_duration_units_dom' => array(
         'Days' => 'Ngày',
@@ -736,14 +736,14 @@ $app_list_strings = array(
     'dom_email_types' => array(
         'out' => 'Gửi',
         'archived' => 'Lưu trữ',
-        'draft' => 'Dự thảo',
+        'draft' => 'Bản nháp',
         'inbound' => 'Trong giới hạn',
         'campaign' => 'Chiến dịch kinh doanh',
     ),
     'dom_email_status' => array(
         'archived' => 'Lưu trữ',
         'closed' => 'Đã đóng',
-        'draft' => 'Dự thảo',
+        'draft' => 'Bản nháp',
         'read' => 'Đọc',
         'replied' => 'Đã trả lời',
         'sent' => 'Gửi',
@@ -844,7 +844,7 @@ $app_list_strings = array(
 
     'document_status_dom' => array(
         'Active' => 'Đang hoạt động',
-        'Draft' => 'Dự thảo',
+        'Draft' => 'Bản nháp',
         'FAQ' => 'Hỏi đáp',
         'Expired' => 'hết hạn',
         'Under Review' => 'Đang xem xét',
@@ -2956,7 +2956,7 @@ $app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
 // knowledge base
 $app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ';
 $app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ';
-$app_list_strings['aok_status_list']['Draft'] = 'Dự thảo';
+$app_list_strings['aok_status_list']['Draft'] = 'Bản nháp';
 $app_list_strings['aok_status_list']['Expired'] = 'hết hạn';
 $app_list_strings['aok_status_list']['In_Review'] = 'Đang xem xét';
 //$app_list_strings['aok_status_list']['Published'] = 'Published';
@@ -3137,7 +3137,7 @@ $app_list_strings['aos_quotes_type_dom']['Prospect'] = 'Triển vọng';
 $app_list_strings['aos_quotes_type_dom']['Reseller'] = 'Đại lý';
 $app_list_strings['aos_quotes_type_dom']['Other'] = 'Khác';
 $app_list_strings['template_ddown_c_list'][''] = '';
-$app_list_strings['quote_stage_dom']['Draft'] = 'Dự thảo';
+$app_list_strings['quote_stage_dom']['Draft'] = 'Bản nháp';
 $app_list_strings['quote_stage_dom']['Negotiation'] = 'Thương lượng';
 $app_list_strings['quote_stage_dom']['Delivered'] = 'Chuyển giao';
 $app_list_strings['quote_stage_dom']['On Hold'] = 'Chờ đợi';
@@ -3655,7 +3655,7 @@ $app_list_strings['moduleList']['Surveys'] = 'Khảo sát';
 $app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
 $app_list_strings['moduleList']['SurveyQuestions'] = 'Câu hỏi khảo sát';
 $app_list_strings['moduleList']['SurveyQuestionOptions'] = 'Tùy chọn câu hỏi khảo sát';
-$app_list_strings['survey_status_list']['Draft'] = 'Dự thảo';
+$app_list_strings['survey_status_list']['Draft'] = 'Bản nháp';
 $app_list_strings['survey_status_list']['Public'] = 'Công khai';
 $app_list_strings['survey_status_list']['Closed'] = 'Đã đóng';
 $app_list_strings['surveys_question_type']['Text'] = 'Văn bản';

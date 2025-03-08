@@ -117,10 +117,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $cdr_stats = $calls->getCDRStatistics();
         
         $result_cdr = [
-            'volume' => $cdr_stats['volume'] ?? [],
+            'total' => $cdr_stats['total'] ?? [],
+            'failed' => $cdr_stats['failed'] ?? [],
+            'answered' => $cdr_stats['answered'] ?? [],
             'minutes' => $cdr_stats['minutes'] ?? [],
             'call_per_min' => $cdr_stats['call_per_min'] ?? [],
-            'missed' => $cdr_stats['missed'] ?? [],
             'asr' => $cdr_stats['asr'] ?? [],
             'aloc' => $cdr_stats['aloc'] ?? [],
         ];

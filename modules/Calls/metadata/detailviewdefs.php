@@ -10,7 +10,7 @@ $viewdefs['Calls'] = array(
 					// 'DUPLICATE',
 					'DELETE',
 					// array(
-					// 	'customCode' => '{if $bean->aclAccess("delete") && $current_user->is_admin == 1}<input title="{$APP.LBL_DELETE_BUTTON_TITLE}" accessKey="{$APP.LBL_DELETE_BUTTON_KEY}" class="btn btn-delete btn-danger" onclick="this.form.return_module.value=\'Users\'; this.form.return_action.value=\'EditView\'; this.form.return_id.value=\'{$return_id}\'; this.form.action.value=\'Delete\'; return confirm(\'{$APP.NTC_DELETE_CONFIRMATION}\');" type="submit" name="Delete" value="{$APP.LBL_DELETE_BUTTON_LABEL}">{/if}',
+					// 	'customCode' => '{if $bean->aclAccess("delete") && $current_user->is_admin == 1}<input title="{$APP.LBL_DELETE_BUTTON_TITLE}" accessKey="{$APP.LBL_DELETE_BUTTON_KEY}" class="btn btn-delete btn-danger" onclick="this.form.return_module.value=\'Calls\'; this.form.return_action.value=\'EditView\'; this.form.return_id.value=\'{$return_id}\'; this.form.action.value=\'Delete\'; return confirm(\'{$APP.NTC_DELETE_CONFIRMATION}\');" type="submit" name="Delete" value="{$APP.LBL_DELETE_BUTTON_LABEL}">{/if}',
 					// 	'sugar_html' => array(
 					// 	  'type' => 'submit',
 					// 	  'value' => '{$APP.LBL_DELETE_BUTTON_LABEL}',

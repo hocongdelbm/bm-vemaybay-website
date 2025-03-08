@@ -95,10 +95,11 @@
 
             let result = JSON.parse(response);
 
-            $('#data_cdr_volume').text(JSON.stringify(result.volume));
+            $('#data_cdr_total').text(JSON.stringify(result.total));
+            $('#data_cdr_failed').text(JSON.stringify(result.failed));
+            $('#data_cdr_answered').text(JSON.stringify(result.answered));
             $('#data_cdr_minutes').text(JSON.stringify(result.minutes));
             $('#data_cdr_cpm').text(JSON.stringify(result.call_per_min));
-            $('#data_cdr_missed').text(JSON.stringify(result.missed));
             $('#data_cdr_asr').text(JSON.stringify(result.asr));
             $('#data_cdr_aloc').text(JSON.stringify(result.aloc));
 
@@ -299,98 +300,138 @@
     function createCdr_Stats_Chart() {
         const ctx = document.getElementById("cdr_stats_chart");
 
-        const data_cdr_volume = JSON.parse($("#data_cdr_volume").html() || "[]");
+        const data_cdr_total = JSON.parse($("#data_cdr_total").html() || "[]");
+        const data_cdr_failed = JSON.parse($("#data_cdr_failed").html() || "[]");
+        const data_cdr_answered = JSON.parse($("#data_cdr_answered").html() || "[]");
         const data_cdr_minutes = JSON.parse($("#data_cdr_minutes").html() || "[]");
         const data_cdr_cpm = JSON.parse($("#data_cdr_cpm").html() || "[]");
-        const data_cdr_missed = JSON.parse($("#data_cdr_missed").html() || "[]");
         const data_cdr_asr = JSON.parse($("#data_cdr_asr").html() || "[]");
         const data_cdr_aloc = JSON.parse($("#data_cdr_aloc").html() || "[]");
 
         const cdr_stats_data = {
             datasets: [{
-                        label: "Volume",
-                        data: data_cdr_volume,
+                        label: "Total",
+                        data: data_cdr_total,
                         backgroundColor: "#EDC240",
                         borderColor: "#EDC240",
-                        fill: false
+                        fill: false,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4
+                    },
+                    {
+                        label: "Failed",
+                        data: data_cdr_failed,
+                        backgroundColor: "#bd0000",
+                        borderColor: "#bd0000",
+                        fill: false,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4
+                    },
+                    {
+                        label: "Answered",
+                        data: data_cdr_answered,
+                        backgroundColor: "#4DA74D",
+                        borderColor: "#4DA74D",
+                        fill: false,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4
                     },
                     {
                         label: "Minutes",
                         data: data_cdr_minutes,
                         backgroundColor: "#AFD8F8",
                         borderColor: "#AFD8F8",
-                        fill: false
+                        fill: false,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4
                     },
                     {
                         label: "Calls Per Min",
                         data: data_cdr_cpm,
                         backgroundColor: "#CB4B4B",
                         borderColor: "#CB4B4B",
-                        fill: false
-                    },
-                    {
-                        label: "Missed",
-                        data: data_cdr_missed,
-                        backgroundColor: "#4DA74D",
-                        borderColor: "#4DA74D",
-                        fill: false
+                        fill: false,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4
                     },
                     {
                         label: "ASR",
                         data: data_cdr_asr,
                         backgroundColor: "#9440ED",
                         borderColor: "#9440ED",
-                        fill: false
+                        fill: false,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4
                     },
                     {
                         label: "ALOC",
                         data: data_cdr_aloc,
                         backgroundColor: "#BD9B33",
                         borderColor: "#BD9B33",
-                        fill: false
+                        fill: false,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4
                     }
             ]
         };
 
+        let delayed;
         const cdr_stats_config = {
             type: 'line',
             data: cdr_stats_data,
             options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            labels: {
-                                usePointStyle: true,
-                                pointStyle: 'rect',
-                                color: '#444',
-                                boxWidth: 15
-                            }
-                        }
+                animation: {
+                    onComplete: () => {
+                        delayed = true;
                     },
-                    scales: {
-                        x: {
-                            type: "time",
-                        },
-                        y: {
-                            min: 0
+                    delay: (context) => {
+                        let delay = 0;
+                        if (context.type === 'data' && context.mode === 'default' && !delayed) {
+                            delay = context.dataIndex * 150 + context.datasetIndex * 50;
                         }
+                        return delay;
                     },
-                    elements: {
-                        line: {
-                            tension: 0.3
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'rect',
+                            color: '#444',
+                            boxWidth: 15
                         }
                     }
-            },
-            scales: {
-                    xAxes: {type: "time",timeFormat: "%d:%H",minTickSize: [1, "hour"]},
-                    yAxes: [{
+                },
+                scales: {
+                    x: {
+                        type: "time",
+                        time: {
+                            unit: "hour",
+                            stepSize: 1,
+                            displayFormats: {
+                                hour: "h:mm a" 
+                            }
+                        },
                         ticks: {
-                            beginAtZero: true
+                            source: 'auto'
                         }
-                    }]
-            }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 10 
+                        }
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.3
+                    }
+                }
+            },
         };
 
         const cdr_stats_chart = new Chart(ctx, cdr_stats_config);
@@ -509,7 +550,7 @@
         <div class="col-md-12">
             <div class="card box-section h-100">
                 <div class="card-header flex-between p-1">
-                    <h5 class="card-title m-0">Thống kê chi tiết cuộc gọi</h5>
+                    <h5 class="card-title m-0">Chi tiết cuộc gọi</h5>
                     <div class="dropdown">
                         <button class="btn btn-light p-0" type="button" id="statisticsCdr" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
@@ -523,12 +564,13 @@
                     <canvas id="cdr_stats_chart" class="w-90 m-auto" style="max-height: 500px;"></canvas>
                 </div>
                 <div class="card-footer p-0">
-                    <div id="data_cdr_volume" class="d-none">[[1741150800000,0],[1741147200000,56],[1741143600000,113],[1741140000000,65],[1741136400000,14],[1741132800000,1],[1741129200000,0],[1741125600000,0],[1741122000000,0],[1741118400000,0],[1741114800000,0],[1741111200000,0],[1741107600000,0],[1741104000000,0],[1741100400000,0],[1741096800000,0],[1741093200000,2],[1741089600000,31],[1741086000000,29],[1741082400000,28],[1741078800000,36],[1741075200000,114],[1741071600000,83]]</div>
-                    <div id="data_cdr_minutes" class="d-none">[[1741150800000,0],[1741147200000,14.6],[1741143600000,35.5],[1741140000000,17.5],[1741136400000,7.4],[1741132800000,0],[1741129200000,0],[1741125600000,0],[1741122000000,0],[1741118400000,0],[1741114800000,0],[1741111200000,0],[1741107600000,0],[1741104000000,0],[1741100400000,0],[1741096800000,0],[1741093200000,1],[1741089600000,6.5],[1741086000000,9.5],[1741082400000,11.7],[1741078800000,7.9],[1741075200000,25.4],[1741071600000,18.2]]</div>
-                    <div id="data_cdr_cpm" class="d-none">[[1741150800000,0],[1741147200000,0],[1741143600000,0],[1741140000000,0],[1741136400000,0],[1741132800000,0],[1741129200000,0],[1741125600000,0],[1741122000000,0],[1741118400000,0],[1741114800000,0],[1741111200000,0],[1741107600000,0],[1741104000000,0],[1741100400000,0],[1741096800000,0],[1741093200000,0],[1741089600000,0],[1741086000000,0],[1741082400000,0],[1741078800000,0],[1741075200000,0],[1741071600000,0]]</div>
-                    <div id="data_cdr_missed" class="d-none">[[1741150800000,0],[1741147200000,26],[1741143600000,42],[1741140000000,27],[1741136400000,4],[1741132800000,1],[1741129200000,0],[1741125600000,0],[1741122000000,0],[1741118400000,0],[1741114800000,0],[1741111200000,0],[1741107600000,0],[1741104000000,0],[1741100400000,0],[1741096800000,0],[1741093200000,0],[1741089600000,18],[1741086000000,15],[1741082400000,9],[1741078800000,25],[1741075200000,58],[1741071600000,46]]</div>
-                    <div id="data_cdr_asr" class="d-none">[[1741150800000,0],[1741147200000,0.5357],[1741143600000,0.6283],[1741140000000,0.5846],[1741136400000,0.7143],[1741132800000,0],[1741129200000,0],[1741125600000,0],[1741122000000,0],[1741118400000,0],[1741114800000,0],[1741111200000,0],[1741107600000,0],[1741104000000,0],[1741100400000,0],[1741096800000,0],[1741093200000,1],[1741089600000,0.4194],[1741086000000,0.4828],[1741082400000,0.6786],[1741078800000,0.3056],[1741075200000,0.49119999999999997],[1741071600000,0.4458]]</div>
-                    <div id="data_cdr_aloc" class="d-none">[[1741150800000,0],[1741147200000,0.49],[1741143600000,0.5],[1741140000000,0.46],[1741136400000,0.74],[1741132800000,0],[1741129200000,0],[1741125600000,0],[1741122000000,0],[1741118400000,0],[1741114800000,0],[1741111200000,0],[1741107600000,0],[1741104000000,0],[1741100400000,0],[1741096800000,0],[1741093200000,0.48],[1741089600000,0.5],[1741086000000,0.68],[1741082400000,0.61],[1741078800000,0.72],[1741075200000,0.45],[1741071600000,0.49]]</div>
+                    <div id="data_cdr_total" class="d-none"></div>
+                    <div id="data_cdr_failed" class="d-none"></div>
+                    <div id="data_cdr_answered" class="d-none"></div>
+                    <div id="data_cdr_minutes" class="d-none"></div>
+                    <div id="data_cdr_cpm" class="d-none"></div>
+                    <div id="data_cdr_asr" class="d-none"></div>
+                    <div id="data_cdr_aloc" class="d-none"></div>
                 </div>
             </div>
         </div>

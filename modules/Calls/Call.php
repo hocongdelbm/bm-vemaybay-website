@@ -962,37 +962,87 @@ class Call extends SugarBean
             $hangupCause        = $params['hangup_cause'] ?? '';
             $ccCancelReason     = $params['cc_cancel_reason'] ?? null;
 
+			if ($hangupCause === 'DESTINATION_OUT_OF_ORDER') {
+                if ($direction === 'inbound') {
+                    if ($ccCancelReason === 'NO_AGENT_TIMEOUT') {
+                        return 'Không có tổng đài viên nào phản hồi, cuộc gọi bị hủy do hết thời gian chờ.';
+                    } elseif ($ccCancelReason === 'TIMEOUT') {
+                        return 'Cuộc gọi bị gián đoạn do lỗi mạng hoặc hệ thống tổng đài không phản hồi.';
+                    } else {
+                        return 'Không thể kết nối với tổng đài viên do lỗi đường truyền hoặc thiết bị.';
+                    }
+                } elseif ($direction === 'outbound') {
+                    return 'Không thể kết nối với khách hàng do thiết bị không hoạt động hoặc mất kết nối.';
+                } elseif ($direction === 'internal') {
+                    return 'Không thể kết nối giữa các tổng đài viên do lỗi hệ thống hoặc mất kết nối mạng.';
+                }
+            }
+
+            if ($hangupCause === 'INCOMPATIBLE_DESTINATION') {
+                if ($direction === 'inbound') {
+                    if ($disposition === 'recv_refuse') {
+                        return 'Cuộc gọi bị tổng đài từ chối do không hỗ trợ codec hoặc cấu hình không tương thích.';
+                    } elseif ($disposition === 'recv_bye') {
+                        return 'Cuộc gọi được tiếp nhận nhưng bị ngắt kết nối do vấn đề tương thích.';
+                    } elseif ($disposition === 'send_refuse') {
+                        return 'Tổng đài không hỗ trợ cuộc gọi từ khách hàng.';
+                    } else {
+                        return 'Cuộc gọi không thể tiếp tục do vấn đề tương thích thiết bị hoặc mạng.';
+                    }
+                } elseif ($direction === 'outbound') {
+                    return 'Cuộc gọi ra ngoài bị từ chối do thiết bị đích không hỗ trợ cuộc gọi.';
+                } elseif ($direction === 'local') {
+                    return 'Không thể kết nối giữa các tổng đài viên do thiết bị hoặc cấu hình không phù hợp.';
+                }
+            }
+            
             // Xử lý cho cuộc gọi inbound
             if ($direction === 'inbound') {
+				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+					return 'Khách hàng gọi vào số tổng đài chưa được cấp phát hoặc không khả dụng.';
+				}
+
+				if ($hangupCause === 'USER_BUSY') {
+                    return ($disposition === 'recv_refuse') ? 'Tổng đài viên từ chối cuộc gọi hoặc đang bận, không thể tiếp nhận cuộc gọi' : 'Hệ thống tổng đài từ chối cuộc gọi vì không có tổng đài viên nào tiếp nhận';
+                }
+				
+                if ($hangupCause === 'NO_ANSWER') {
+                    return ($disposition === 'send_bye') 
+                        ? 'Tổng đài viên không bắt máy, khách hàng kết thúc cuộc gọi' 
+                        : 'Tổng đài viên không bắt máy, cuộc gọi tự động kết thúc';
+                }
+				
                 if ($disposition === 'recv_bye' && $hangupCause === 'NORMAL_CLEARING') {
                     return ($ccCancelReason === 'BREAK_OUT')
                         ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời'
                         : 'khách hàng chủ động kết thúc cuộc gọi';
                 }
 
-                if ($disposition === 'send_bye') {
+				if ($disposition === 'send_bye') {
                     return ($ccCancelReason === 'TIMEOUT')
                         ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
                         : 'Tổng đài viên chủ động kết thúc cuộc gọi';
                 }
-
-                if ($disposition === 'send_refuse') {
+        
+				if ($disposition === 'send_refuse') {
                     return 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi';
                 }
             }
-
+        
             // Xử lý cho cuộc gọi outbound
             if ($direction === 'outbound') {
-                if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
+				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+                    return 'Số điện thoại không hợp lệ';
+                }
+
+				if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
                     return 'Tổng đài viên chủ động hủy cuộc gọi';
                 }
-
+        
                 if ($disposition === 'send_refuse') {
-                    return ($hangupCause === 'USER_BUSY')
-                        ? 'Khách hàng từ chối cuộc gọi'
-                        : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
+                    return ($hangupCause === 'USER_BUSY') ? 'Khách hàng đang bận hoặc từ chối cuộc gọi' : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
                 }
-
+        
                 if ($hangupCause === 'NORMAL_CLEARING') {
                     if ($disposition === 'recv_bye') {
                         return 'Tổng đài viên chủ động kết thúc cuộc gọi';
@@ -1001,11 +1051,18 @@ class Call extends SugarBean
                     if ($disposition === 'send_bye') {
                         return 'Khách hàng chủ động kết thúc cuộc gọi';
                     }
+
+                    if ($disposition === 'send_refuse') {
+                        return 'Cuộc gọi bị từ chối hoặc không thể tiếp tục';
+                    }
                 }
             }
 
-            // Xử lý cho cuộc gọi nội bộ (internal)
-            if ($direction === 'internal') {
+			if ($direction === 'internal') {
+				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+                    return 'Số điện thoại không hợp lệ';
+                }
+
                 if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
                     return 'Người gọi chủ động hủy cuộc gọi';
                 }
@@ -1123,15 +1180,15 @@ class Call extends SugarBean
                         s_hour,
                         start_date,
                         end_date,
-                        COALESCE(volume, 0) AS volume,
+                        COALESCE(total, 0) AS total,
                         COALESCE(answered, 0) AS answered,
                         COALESCE(seconds, 0) AS seconds,
                         (ROUND(seconds / 60, 1)) AS minutes,
-                        COALESCE(volume, 0) / (s_hour * 60) AS calls_per_minute,
+                        COALESCE(total, 0) / (s_hour * 60) AS calls_per_minute,
                         COALESCE(answered, 0) / (s_hour * 60) AS cpm_answered,
-                        COALESCE(volume, 0) / s_hour AS calls_per_hour,
-                        COALESCE(missed, 0) AS missed,
-                        COALESCE(ROUND(100 * (answered / NULLIF(volume, 0)), 2), 0) AS asr,
+                        COALESCE(total, 0) / s_hour AS calls_per_hour,
+                        COALESCE(failed, 0) AS failed,
+                        COALESCE(ROUND(100 * (answered / NULLIF(total, 0)), 2), 0) AS asr,
                         COALESCE(ROUND(seconds / NULLIF(answered, 0) / 60, 2), 0) AS aloc
                     FROM
                     (
@@ -1140,8 +1197,8 @@ class Call extends SugarBean
                         s.start_date,
                         s.end_date,
                         s.s_hour,
-                        COUNT(c.call_id) AS volume,
-                        SUM(CASE WHEN c.call_talk = 0 THEN 1 ELSE 0 END) AS missed,
+                        COUNT(c.call_id) AS total,
+                        SUM(CASE WHEN c.call_talk = 0 THEN 1 ELSE 0 END) AS failed,
                         SUM(CASE WHEN c.call_talk > 0 THEN 1 ELSE 0 END) AS answered,
                         SUM(CASE WHEN c.call_talk > 0 THEN c.call_talk ELSE 0 END) AS seconds
                         FROM
@@ -1153,8 +1210,7 @@ class Call extends SugarBean
                                 h.s_hour,
                                 DATE_SUB(DATE_FORMAT(NOW(), "%Y-%m-%d %H:00:00"), INTERVAL h.s_start HOUR) AS start_date,
                                 DATE_SUB(DATE_FORMAT(NOW(), "%Y-%m-%d %H:00:00"), INTERVAL h.s_end HOUR) AS end_date 
-                            FROM
-                                (
+                            FROM (
                                 SELECT 1 AS s_id, 1 AS s_start, 0 AS s_end, 1 AS s_hour UNION ALL
                                 SELECT 2, 2, 1, 1 UNION ALL
                                 SELECT 3, 3, 2, 1 UNION ALL
@@ -1193,13 +1249,20 @@ class Call extends SugarBean
 
         $res = $db->query($sql);
         $x = 0;
-        $hours = 23;
+        $hours = 24;
 
         while ($row = $db->fetchByAssoc($res)) {
+            $graph['data'][] = $row;
 
             if ($x < $hours) {
-                $graph['volume'][$x][] = $row['start_epoch'] * 1000;
-                $graph['volume'][$x][] = $row['volume'] / 1;
+                $graph['total'][$x][] = $row['start_epoch'] * 1000;
+                $graph['total'][$x][] = $row['total'] / 1;
+
+                $graph['failed'][$x][] = $row['start_epoch'] * 1000;
+                $graph['failed'][$x][] = $row['failed'] / 1;
+
+                $graph['answered'][$x][] = $row['start_epoch'] * 1000;
+                $graph['answered'][$x][] = $row['answered'] / 1;
 
                 $graph['minutes'][$x][] = $row['start_epoch'] * 1000;
                 $graph['minutes'][$x][] = round($row['minutes'] ?? 0, 2);
@@ -1207,8 +1270,6 @@ class Call extends SugarBean
                 $graph['call_per_min'][$x][] = $row['start_epoch'] * 1000;
                 $graph['call_per_min'][$x][] = round($row['avg_min'], 2);
 
-                $graph['missed'][$x][] = $row['start_epoch'] * 1000;
-                $graph['missed'][$x][] = $row['missed'] / 1;
 
                 $graph['asr'][$x][] = $row['start_epoch'] * 1000;
                 $graph['asr'][$x][] = round($row['asr'] ?? 0, 2) / 100;
@@ -1216,8 +1277,6 @@ class Call extends SugarBean
                 $graph['aloc'][$x][] = $row['start_epoch'] * 1000;
                 $graph['aloc'][$x][] = round($row['aloc'] ?? 0, 2);
             }
-
-            $graph['data'][] = $row;
 
             $x++;
         }

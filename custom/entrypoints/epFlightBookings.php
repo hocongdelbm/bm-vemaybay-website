@@ -3800,15 +3800,17 @@ if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
 	$booking_id 	= $_POST['booking_id'] ?? '';
 
 	if(strlen($contact_id) == 36 && strlen($booking_id) == 36) {
+		$Booking = new EC_Flight_Bookings();
 		$total_points = $db->getOne("SELECT points FROM contacts WHERE id = '$contact_id' AND deleted = 0");
 
-		if($apply_points < 1 || $apply_points > $total_points) {
+		if($apply_points < $Booking->point_step || $apply_points > $total_points || $apply_points % $Booking->point_step != 0) {
 			echo json_encode([
 				'error' => 1,
 				'message' => 'Số điểm áp dụng không hợp lệ',
 				'data' => [
 					'apply_points' => $apply_points,
-					'total_points' => $total_points
+					'total_points' => $total_points,
+					'point_step' => $Booking->point_step,
 				]
 			]);
 			exit();

@@ -2549,6 +2549,59 @@ $app_list_strings['outbound_phone_status_list'] = array(
   'inactive' => 'Không hoạt động',
 );
 
-$app_list_strings['website_list'] = array(
-  '' => '',
+$app_list_strings['document_category_dom'] = array(
+    '' => '',
+    'Contracts' => 'Hợp đồng',
+    'Internal Documents' => 'Tài liệu nội bộ',
+    'Reports' => 'Báo cáo',
+    'Plans & Strategies' => 'Kế hoạch & Chiến lược',
+    'Training Materials' => 'Tài liệu đào tạo',
+    'Accounting Documents' => 'Chứng từ kế toán',
+    'Legal Documents' => 'Tài liệu pháp lý',
+    'HR Files' => 'Hồ sơ nhân sự',
+    'Marketing' => 'Marketing',
+    'Knowledge Base' => 'Trung tâm hỗ trợ',
+    'Sales' => 'Bán hàng',
+    'Technical Documents' => 'Tài liệu kỹ thuật',
+    'Other' => 'Khác',
 );
+
+$app_list_strings['document_subcategory_dom'] = array(
+    '' => '',
+    'Marketing Collateral' => 'Tư liệu tiếp thị',
+    'Product Brochures' => 'Tài liệu giới thiệu sản phẩm',
+    'FAQ' => 'Câu hỏi thường gặp',
+    'Contracts - NDA' => 'Hợp đồng - NDA',
+    'Contracts - Service' => 'Hợp đồng - Dịch vụ',
+    'Contracts - Sales' => 'Hợp đồng - Bán hàng',
+    'Training - Guidelines' => 'Đào tạo - Hướng dẫn',
+    'Training - Onboarding' => 'Đào tạo - Nhập môn',
+    'Reports - Financial' => 'Báo cáo - Tài chính',
+    'Reports - Sales' => 'Báo cáo - Bán hàng',
+    'HR - Policies' => 'Nhân sự - Chính sách',
+    'HR - Employee Records' => 'Nhân sự - Hồ sơ nhân viên',
+    'Legal - Compliance' => 'Pháp lý - Tuân thủ',
+    'Legal - Agreements' => 'Pháp lý - Thỏa thuận',
+    'Technical - Manuals' => 'Kỹ thuật - Hướng dẫn sử dụng',
+    'Technical - Specifications' => 'Kỹ thuật - Thông số kỹ thuật',
+    'Other' => 'Khác',
+);
+
+$app_list_strings['document_template_type_dom'] = array(
+    '' => '',
+    'license' => 'Thỏa thuận cấp phép',
+    'contract' => 'Hợp đồng',
+    'proposal' => 'Đề xuất',
+    'invoice' => 'Hóa đơn',
+    'report' => 'Báo cáo',
+    'policy' => 'Chính sách',
+    'manual' => 'Hướng dẫn sử dụng',
+    'training' => 'Tài liệu đào tạo',
+    'guideline' => 'Hướng dẫn quy trình',
+    'compliance' => 'Tài liệu tuân thủ',
+    'marketing' => 'Tài liệu tiếp thị',
+    'brochure' => 'Tài liệu giới thiệu',
+    'other' => 'Khác',
+);
+
+

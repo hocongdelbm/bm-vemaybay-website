@@ -83,17 +83,18 @@ class Viewsummary extends SugarView
 
           $smarty->assign('TOTAL_INBOUND', format_number($data_type_call['inbound']));
           $smarty->assign('TOTAL_OUTBOUND', format_number($data_type_call['outbound']));
-          $smarty->assign('TOTAL_MISSED', format_number($data_type_call['missed']));
+          $smarty->assign('TOTAL_MISSED', format_number($data_type_call['failed']));
           $smarty->assign('TOTAL_INTERNAL', format_number($data_type_call['internal']));
 
           // CDR Statistics
           $calls = BeanFactory::getBean('Calls');
           $cdr_stats = $calls->getCDRStatistics();
 
-          $smarty->assign('DATA_CDR_VOLUME', json_encode($cdr_stats['volume']));
+          $smarty->assign('DATA_CDR_TOTAL', json_encode($cdr_stats['total']));
+          $smarty->assign('DATA_CDR_FAILED', json_encode($cdr_stats['failed']));
+          $smarty->assign('DATA_CDR_ANSWERED', json_encode($cdr_stats['answered']));
           $smarty->assign('DATA_CDR_MINUTES', json_encode($cdr_stats['minutes']));
           $smarty->assign('DATA_CDR_CPM', json_encode($cdr_stats['call_per_min']));
-          $smarty->assign('DATA_CDR_MISSED', json_encode($cdr_stats['missed']));
           $smarty->assign('DATA_CDR_ASR', json_encode($cdr_stats['asr']));
           $smarty->assign('DATA_CDR_ALOC', json_encode($cdr_stats['aloc']));
           $smarty->assign('CDR_STATS_TABLE', $cdr_stats['data'] ? $this->renderDataTableCdrStats($cdr_stats['data']) : []);
@@ -455,16 +456,17 @@ class Viewsummary extends SugarView
 
      function renderDataTableCdrStats($rows)
      {
-          $table = '<table class="table table-hover mt-5">';
+          $table = '<table class="table table-hover table-striped mt-5">';
           $table .= '<thead class="table-dark">
                          <tr>
                               <th style="border-top-left-radius: 10px;">Hours</th>
                               <th>Date</th> 
                               <th>Time</th>
-                              <th>Volume</th>
+                              <th>Total</th>
+                              <th>Failed</th>
+                              <th>Answered</th>
                               <th>Minutes</th>
-                              <th>Calls Per Min</th>
-                              <th>Missed</th>
+                              <th>Calls Per Min</th>   
                               <th>ASR</th>
                               <th style="border-top-right-radius: 10px;">ALOC</th>
                          </tr>
@@ -474,7 +476,7 @@ class Viewsummary extends SugarView
           foreach ($rows as $index => $row) {
                $table .= '<tr>';
                if ($index <= $hours) {
-                    $table .= '<td>' . $row['hours'] . '</td>';
+                    $table .= '<td><strong>' . $row['hours'] . '</strong></td>';
                } 
                else if ($index == $hours + 1) {
                     $table .= '
@@ -488,10 +490,11 @@ class Viewsummary extends SugarView
                                         <th style="border-top-left-radius: 10px;">Days</th>
                                         <th>Date</th> 
                                         <th>Time</th>
-                                        <th>Volume</th>
+                                        <th>Total</th>
+                                        <th>Failed</th>
+                                        <th>Answered</th>
                                         <th>Minutes</th>
                                         <th>Calls Per Min</th>
-                                        <th>Missed</th>
                                         <th>ASR</th>
                                         <th style="border-top-right-radius: 10px;">ALOC</th>
                                    </tr>
@@ -499,16 +502,17 @@ class Viewsummary extends SugarView
                }
 
                if ($index > $hours) {
-                    $table .= '<td>' . floor(trim($row['s_hour']) / 24) . '</td>';
+                    $table .= '<td><strong>' . floor(trim($row['s_hour']) / 24) . '</strong></td>';
                }
 
                $table .= '<td>' . trim($row['date']) . '</td>';
                $table .= '<td>' . trim($row['time']) . '</td>';
-               $table .= '<td>' . trim($row['volume']) . '</td>';
+               $table .= '<td>' . trim($row['total']) . '</td>';
+               $table .= '<td>' . trim($row['failed']) . '</td>';
+               $table .= '<td>' . trim($row['answered']) . '</td>';
                $table .= '<td>' . trim(round($row['minutes'] ?? 0, 2)) . '</td>';
                $table .= '<td>' . trim(round($row['calls_per_minute'] ?? 0, 2)) . ' / ' . trim(round($row['cpm_answered'] ?? 0, 2)) . '</td>';
-               $table .= '<td>' . trim($row['missed']) . '</td>';
-               $table .= '<td>' . trim(round($row['asr'] ?? 0, 2)) . '</td>';
+               $table .= '<td>' . trim(round($row['asr'] ?? 0, 2)) . '%</td>';
                $table .= '<td>' . trim(round($row['aloc'] ?? 0, 2)) . '</td>';
 
                $table .= '</tr>';
@@ -520,12 +524,14 @@ class Viewsummary extends SugarView
                                    <ul class="annotation-list">
                                         <li><strong>Date: </strong>Ngày tháng.</li>
                                         <li><strong>Time: </strong>Khoảng thời gian (AM: Buổi sáng, PM: Buổi tối).</li>
-                                        <li><strong>Volume: </strong>Tổng số lượng cuộc gọi.</li>
-                                        <li><strong>Minutes: </strong>Tổng số phút hội thoại.</li>
+                                        <li><strong>Total: </strong>Tổng số lượng cuộc gọi.</li>
+                                        <li><strong>Failed: </strong>Số cuộc gọi không có hội thoại.</li>
+                                        <li><strong>Answered: </strong>Số cuộc gọi có hội thoại.</li>
+                                        <li><strong>Seconds: </strong>Thời gian hội thoại của cuộc gọi.</li>
+                                        <li><strong>Minutes (call_talk/60): </strong>Số phút hội thoại cuộc gọi.</li>
                                         <li><strong>Calls Per Min: </strong>Số lượng cuộc gọi trong mỗi phút / Số lượng cuộc gọi được trả lời mỗi phút</li>
-                                        <li><strong>Missed: </strong>Số cuộc gọi nhỡ.</li>
-                                        <li><strong>ASR: </strong>Tỷ lệ cuộc gọi trả lời.</li>
-                                        <li><strong>ALOC: </strong>Thời lượng trung bình được trả lời.</li>
+                                        <li><strong>ASR: </strong>Tỷ lệ cuộc gọi được trả lời.</li>
+                                        <li><strong>ALOC: </strong>Thời lượng trung bình cuộc gọi được trả lời.</li>
                                    </ul>
                               </td>
                          </tr>

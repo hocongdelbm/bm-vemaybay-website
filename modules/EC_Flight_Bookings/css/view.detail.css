@@ -371,6 +371,9 @@
     font-size: 14px;
     padding-bottom: 3px;
 }
+.dialog-use-point .description {
+    padding: 12px 5px 0px;
+}
 
 /* ================= RESPONSIVE TABLE ============== */
 @media screen and (max-width: 600px) {

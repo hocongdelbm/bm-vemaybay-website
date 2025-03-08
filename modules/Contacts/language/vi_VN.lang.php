@@ -193,4 +193,5 @@ $mod_strings = array(
     'LBL_EMAIL' => 'Email',
     'LBL_ASSIGNED_USER_NAME' => 'Giao cho',
     'LBL_POINTS' => 'Điểm tích lũy',
+    'LBL_CONTACT_TYPE' => 'Loại khách hàng',
 );

@@ -16,8 +16,8 @@ class CallsViewDetail extends ViewDetail
 		if ($current_user->user_name == 'hungnh') {
 			$log = json_decode(html_entity_decode($this->bean->log), true);
 			$date_format = $timedate->get_date_format();
+			pr($this->bean->log);
 			pr($log);
-			// pr($this->dv->defs['templateMeta']['form']['buttons']);
 		}
 
 		$this->populateCustomButtons();

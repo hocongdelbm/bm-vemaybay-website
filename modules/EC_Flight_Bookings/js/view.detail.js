@@ -1173,22 +1173,27 @@ $(document).ready(function () {
 		});
 	});
 	$('input[name="point_of_use"]').on('input', function () {
-		let p = $(this).val();
-		let ttp = parseInt($('#tt_points').attr('data'));
+		let p 	 = $(this).val();
+		let step = parseInt($(this).attr('min'));
+		let ttp  = parseInt($('#tt_points').attr('data'));
 
-		if(p > ttp) {
-			$(this).val(ttp);
-			p = ttp;
+		if(p < step || p > ttp || p%step != 0) {
+			$('#btn_apply_points_discount').prop('disabled', true);
+			$('input[name="points_discount"]').val(0);
 		}
-		$('input[name="points_discount"]').val(p*1000);
+		else {
+			$('#btn_apply_points_discount').prop('disabled', false);
+			$('input[name="points_discount"]').val(p*1000);
+		} 
 	});
 	$('#btn_apply_points_discount').click(function() {
-		let p = $('input[name="point_of_use"]').val();
-		let ttp = parseInt($('#tt_points').attr('data'));
+		let p 	 = $('input[name="point_of_use"]').val();
+		let step = parseInt($('input[name="point_of_use"]').attr('min'));
+		let ttp  = parseInt($('#tt_points').attr('data'));
 		let contact_id = $(this).attr('contact_id');
 		let booking_id = $(this).attr('booking_id');
 
-		if(p < 1 || p > ttp) {
+		if(p < step || p > ttp || p%step != 0) {
 			showModalNotify(2, "Số điểm áp dụng không hợp lệ");
 			return false;
 		}

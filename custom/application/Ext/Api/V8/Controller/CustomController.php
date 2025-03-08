@@ -142,6 +142,7 @@ class CustomController extends BaseController
         $call_to        = isset($params['call_to']) ? trim($params['call_to']) : '';
         $call_start     = isset($params['call_start']) ? global_test_input($params['call_start']) : '';
         $call_duration  = isset($params['call_duration']) ? global_test_input($params['call_duration']) : 0;
+        $call_end       = isset($params['call_end']) ? global_test_input($params['call_end']) : '';
         $call_talk      = isset($params['call_talk']) ? global_test_input($params['call_talk']) : 0;
         $call_wait      = isset($params['call_wait']) ? global_test_input($params['call_wait']) : 0;
         $call_answer    = isset($params['call_answer']) ? global_test_input($params['call_answer']) : 0;
@@ -248,7 +249,7 @@ class CustomController extends BaseController
         } 
 
         $call->date_start   = date('d-m-Y H:i:s', strtotime($call_start));
-        $call->date_end     = date('d-m-Y H:i:s', strtotime($call_start) + $call_duration);
+        $call->date_end     = $call_end ? date('d-m-Y H:i:s', strtotime($call_end)) : date('d-m-Y H:i:s', strtotime($call_start) + (int)$call_duration);
         $call->status       = 'new';
         $call->log          = json_encode($params);
         $call->record_file  = $record_file;

@@ -265,82 +265,130 @@
           function createCdr_Stats_Chart() {
                const ctx = document.getElementById("cdr_stats_chart");
 
-               const data_cdr_volume = JSON.parse($("#data_cdr_volume").html() || "[]");
+               const data_cdr_total = JSON.parse($("#data_cdr_total").html() || "[]");
                const data_cdr_minutes = JSON.parse($("#data_cdr_minutes").html() || "[]");
                const data_cdr_cpm = JSON.parse($("#data_cdr_cpm").html() || "[]");
-               const data_cdr_missed = JSON.parse($("#data_cdr_missed").html() || "[]");
+               const data_cdr_failed = JSON.parse($("#data_cdr_failed").html() || "[]");
+               const data_cdr_answered = JSON.parse($("#data_cdr_answered").html() || "[]");
                const data_cdr_asr = JSON.parse($("#data_cdr_asr").html() || "[]");
                const data_cdr_aloc = JSON.parse($("#data_cdr_aloc").html() || "[]");
 
                const cdr_stats_data = {
                     datasets: [{
-                              label: "Volume",
-                              data: data_cdr_volume,
+                              label: "Total",
+                              data: data_cdr_total,
                               backgroundColor: "#EDC240",
                               borderColor: "#EDC240",
-                              fill: false
+                              fill: false,
+                              cubicInterpolationMode: 'monotone',
+                              tension: 0.4
+                         },
+                         {
+                              label: "Failed",
+                              data: data_cdr_failed,
+                              backgroundColor: "#bd0000",
+                              borderColor: "#bd0000",
+                              fill: false,
+                              cubicInterpolationMode: 'monotone',
+                              tension: 0.4
+                         },
+                         {
+                              label: "Answered",
+                              data: data_cdr_answered,
+                              backgroundColor: "#4DA74D",
+                              borderColor: "#4DA74D",
+                              fill: false,
+                              cubicInterpolationMode: 'monotone',
+                              tension: 0.4
                          },
                          {
                               label: "Minutes",
                               data: data_cdr_minutes,
                               backgroundColor: "#AFD8F8",
                               borderColor: "#AFD8F8",
-                              fill: false
+                              fill: false,
+                              cubicInterpolationMode: 'monotone',
+                              tension: 0.4
                          },
                          {
                               label: "Calls Per Min",
                               data: data_cdr_cpm,
                               backgroundColor: "#CB4B4B",
                               borderColor: "#CB4B4B",
-                              fill: false
-                         },
-                         {
-                              label: "Missed",
-                              data: data_cdr_missed,
-                              backgroundColor: "#4DA74D",
-                              borderColor: "#4DA74D",
-                              fill: false
+                              fill: false,
+                              cubicInterpolationMode: 'monotone',
+                              tension: 0.4
                          },
                          {
                               label: "ASR",
                               data: data_cdr_asr,
                               backgroundColor: "#9440ED",
                               borderColor: "#9440ED",
-                              fill: false
+                              fill: false,
+                              cubicInterpolationMode: 'monotone',
+                              tension: 0.4
                          },
                          {
                               label: "ALOC",
                               data: data_cdr_aloc,
                               backgroundColor: "#BD9B33",
                               borderColor: "#BD9B33",
-                              fill: false
+                              fill: false,
+                              cubicInterpolationMode: 'monotone',
+                              tension: 0.4
                          }
                     ]
                };
 
+               let delayed;
                const cdr_stats_config = {
                     type: 'line',
                     data: cdr_stats_data,
                     options: {
+                         animation: {
+                              onComplete: () => {
+                              delayed = true;
+                              },
+                              delay: (context) => {
+                              let delay = 0;
+                              if (context.type === 'data' && context.mode === 'default' && !delayed) {
+                                   delay = context.dataIndex * 150 + context.datasetIndex * 50;
+                              }
+                              return delay;
+                              },
+                         },
                          responsive: true,
                          maintainAspectRatio: false,
                          plugins: {
                               legend: {
-                                   display: true,
-                                   labels: {
-                                        usePointStyle: true,
-                                        pointStyle: 'rect',
-                                        color: '#444',
-                                        boxWidth: 15
-                                   }
+                              display: true,
+                              labels: {
+                                   usePointStyle: true,
+                                   pointStyle: 'rect',
+                                   color: '#444',
+                                   boxWidth: 15
+                              }
                               }
                          },
                          scales: {
                               x: {
                                    type: "time",
+                                   time: {
+                                        unit: "hour",
+                                        stepSize: 1,
+                                        displayFormats: {
+                                             hour: "h:mm a" 
+                                        }
+                                   },
+                                   ticks: {
+                                        source: 'auto'
+                                   }
                               },
                               y: {
-                                   min: 0
+                                   beginAtZero: true,
+                                   ticks: {
+                                        stepSize: 10 
+                                   }
                               }
                          },
                          elements: {
@@ -349,14 +397,6 @@
                               }
                          }
                     },
-                    scales: {
-                         xAxes: {type: "time",timeFormat: "%d:%H",minTickSize: [1, "hour"]},
-                         yAxes: [{
-                              ticks: {
-                                   beginAtZero: true
-                              }
-                         }]
-                    }
                };
 
                const cdr_stats_chart = new Chart(ctx, cdr_stats_config);
@@ -444,10 +484,11 @@
 
      <div class="box-section">
           <div class="flex-start">
-               <div id="data_cdr_volume" class="d-none">{$DATA_CDR_VOLUME}</div>
+               <div id="data_cdr_total" class="d-none">{$DATA_CDR_TOTAL}</div>
+               <div id="data_cdr_failed" class="d-none">{$DATA_CDR_FAILED}</div>
+               <div id="data_cdr_answered" class="d-none">{$DATA_CDR_ANSWERED}</div>
                <div id="data_cdr_minutes" class="d-none">{$DATA_CDR_MINUTES}</div>
                <div id="data_cdr_cpm" class="d-none">{$DATA_CDR_CPM}</div>
-               <div id="data_cdr_missed" class="d-none">{$DATA_CDR_MISSED}</div>
                <div id="data_cdr_asr" class="d-none">{$DATA_CDR_ASR}</div>
                <div id="data_cdr_aloc" class="d-none">{$DATA_CDR_ALOC}</div>
 

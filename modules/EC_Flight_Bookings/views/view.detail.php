@@ -61,7 +61,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.4"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.5"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.97"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.2"></script>
@@ -110,7 +110,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		$css = '';
 		$css .= '<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.2">';
+		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.3">';
 		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=1.9">';
 		echo $css;
 	}
@@ -784,10 +784,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$discount_html .= '</div>';
 		}
 		if(in_array($this->bean->booking_status, ['1', '6', '2'])) {
-		// if($current_user->id == '1') {
 			// Giảm giá tích điểm
 			$points = $this->bean->db->getOne('SELECT points FROM contacts WHERE id = "'.$this->bean->contact_id.'" AND deleted = 0');
 			if($points && $points > 0) {
+				$max_point = (int)($points / $this->bean->point_step) * $this->bean->point_step;
 				$discount_html .= '<div class="wrap-points">
 					<button class="btn btn btn-primary-2 btn-sm btn-use-point" for="dialog_use_point" title="Dùng điểm tích lũy">Dùng điểm</button>
 					<dialog id="dialog_use_point" class="dialog dialog-use-point" style="display:none">
@@ -795,7 +795,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 							<div class="point">
 								<label for="point_of_use">Nhập điểm áp dụng:</label>
 								<div class="input-group">
-									<input type="number" name="point_of_use" id="point_of_use" class="form-control allow-number-only" min="1" max="'.$points.'" />
+									<input type="number" name="point_of_use" id="point_of_use" class="form-control allow-number-only" min="'.$this->bean->point_step.'" max="'.$max_point.'" step="'.$this->bean->point_step.'" />
 									<span class="input-group-text">/<b class="tt_points" id="tt_points" data="'.$points.'">'.$points.' điểm</b></span>
 								</div>
 							</div>
@@ -803,12 +803,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 							<div class="amount">
 								<label for="points_discount">Tổng tiền giảm:</label>
 								<div class="input-group">
-									<input type="text" name="points_discount" id="points_discount" class="form-control points_discount allow-number-only" readonly="true"/>
+									<input type="text" name="points_discount" id="points_discount" value="0" class="form-control points_discount allow-number-only" readonly="true"/>
 									<span class="input-group-text">đ</span>
 								</div>
 							</div>
 						</div>
-						<button id="btn_apply_points_discount" class="btn btn btn-primary btn-apply-points-discount" contact_id="'.$this->bean->contact_id.'" booking_id="'.$this->bean->id.'">Áp dụng</button>
+						<div class="description">
+							<p>Các mốc điểm được sử dụng: 50, 100, 150, 200, 250,...</p>
+						</div>
+						<button id="btn_apply_points_discount" class="btn btn btn-primary btn-apply-points-discount" contact_id="'.$this->bean->contact_id.'" booking_id="'.$this->bean->id.'" disabled="true">Áp dụng</button>
 					</dialog>
 				</div>';
 			}

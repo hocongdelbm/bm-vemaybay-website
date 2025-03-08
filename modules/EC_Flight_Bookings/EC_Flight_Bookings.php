@@ -67,6 +67,7 @@ class EC_Flight_Bookings extends Basic
 	public $total_qty;
 	public $total_amount;
 	public $ip_address;
+	public $point_step = 50;
 
 	public function bean_implements($interface)
 	{
