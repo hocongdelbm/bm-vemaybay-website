@@ -13,6 +13,7 @@ cache/*
 /custom/working/
 /custom/modules/*/Ext/
 /custom/application/Ext/
+!/custom/application/Ext/Api/*
 /custom/Extension/application/Ext/Language/
 # Custom configuration should also be ignored.
 /config.php
@@ -32,4 +33,5 @@ modules/EC_Zalo/nohup.out
 secure_sessions/*
 !secure_sessions/logs
 
+# Ignore vendor
 vendor
