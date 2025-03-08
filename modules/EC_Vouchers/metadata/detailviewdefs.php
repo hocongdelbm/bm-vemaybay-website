@@ -32,12 +32,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_EVENT',
                 ),
             ),
-<<<<<<< HEAD
-            array(
-                array(
-                    'name' => 'quantity',
-                    'label' => 'LBL_QUANTITY',
-=======
             array (
                 array(
                     'name' => 'name',
@@ -55,7 +49,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'name' => 'discount',
                     'label' => 'LBL_DISCOUNT',
                     'customCode' => '{$DISCOUNT_FIELD}',
->>>>>>> 8201700091c3488d9a9fb900f7efbbfebbcecfff
                 ),
                 array(
                     'name' => 'duration',
@@ -65,36 +58,6 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
             array (
                 array(
-<<<<<<< HEAD
-                    'name' => 'amount',
-                    'label' => 'LBL_AMOUNT',
-                    'customCode' => '{$CUS_AMOUNT}',
-                ),
-                array(
-                    'name' => 'max_discount',
-                    'label' => 'LBL_MAX_DISCOUNT',
-                ),
-            ),
-            array (
-                array(
-                    'name' => 'status',
-                    'label' => 'LBL_STATUS',
-                    'customCode' => '{$CUS_STATUS}',
-                ),
-                'applied_date',
-            ),
-            array (
-                array(
-                    'name' => 'account',
-                    'label' => 'LBL_ACCOUNT',
-                    'customCode' => '{$CUS_ACCOUNT}',
-                ),
-                array(
-                    'name' => 'booking',
-                    'label' => 'LBL_BOOKING',
-                    'customCode' => '{$CUS_BOOKING}',
-                ),
-=======
                     'name' => 'max_discount',
                     'label' => 'LBL_MAX_DISCOUNT',
                     'customCode' => '{$MAX_DISCOUNT_FIELD}',
@@ -125,7 +88,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'name' => 'description',
                     'label' => 'LBL_DESCRIPTION',
                 ),
->>>>>>> 8201700091c3488d9a9fb900f7efbbfebbcecfff
             ),
             array(
                   array (
@@ -140,11 +102,7 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
         ),
-<<<<<<< HEAD
-        'lbl_panel_description' => array(
-=======
         'LBL_BOOKINGS_PANEL' => array(
->>>>>>> 8201700091c3488d9a9fb900f7efbbfebbcecfff
             array (
                 array (
                     'name' => 'BOOKINGS',
