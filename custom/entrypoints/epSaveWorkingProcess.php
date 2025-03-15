@@ -190,11 +190,11 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 							$con_id = $row['id'] ?? '';
 							$con_phone = $row['phone'] ?? '';
 							$con_zalo_id = $row['zalo_id'] ?? '';
-							$con_name = $row['last_name'] ?? 'bạn';
+							// $con_name = $row['last_name'] ?? 'bạn';
 
-							if(stripos($con_name, "Khách") !== false || stripos($con_name, "Khach") !== false || stripos($con_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $con_name)) {
-								$con_name = 'bạn';
-							}
+							// if(stripos($con_name, "Khách") !== false || stripos($con_name, "Khach") !== false || stripos($con_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $con_name)) {
+							// 	$con_name = 'bạn';
+							// }
 						}
 	
 						if(!empty($con_phone)) {
@@ -276,7 +276,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 								$template_id = $Zalo->get_template_id_zns('points');
 								$template_data = json_encode([
 									"point" => $point,
-									"name" => $con_name,
+									"name" => "bạn",
 									"booking" => $record_name,
 									"total_point" => $total_point
 								]);
@@ -303,7 +303,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua ZNS\n";
 									$content .= "\nBooking: <b>$record_name</b>";
 									$content .= "\nSố điện thoại: <b>$con_phone</b>";
-									$content .= "\nHọ tên: <b>$con_name</b>";
 									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
 									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
 									$Zalo->send_to_telegram($content);
@@ -312,7 +311,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									$content = "Gửi tin nhắn ZNS tích điểm thất bại\n";
 									$content .= "\nBooking: <b>$record_name</b>";
 									$content .= "\nSố điện thoại: <b>$con_phone</b>";
-									$content .= "\nHọ tên: <b>$con_name</b>";
 									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
 									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
 									$content .= "\n\n$json";

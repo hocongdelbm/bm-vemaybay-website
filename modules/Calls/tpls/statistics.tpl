@@ -326,7 +326,7 @@
                     <th>Họ tên</th>
                     <th width="8%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
                     <th width="8%" align="center"><span title="outbound (Dưới 20s thoại)">Gọi đi (trả lời)</span></th>
-                    <th width="8%" align="center"><span title="outbound (Trên 20s thoại)">Gọi đi (KPI)</span></th>
+                    <th width="8%" align="center"><span title="outbound (Trên 20s thoại)">Gọi đi (>=20s)</span></th>
                     <th width="8%" align="center"><span title="outbound">0 trả lời</span></th>
                     <th width="8%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
                     <th width="8%" align="center"><span title="missed">Cuộc gọi nhỡ</span></th>

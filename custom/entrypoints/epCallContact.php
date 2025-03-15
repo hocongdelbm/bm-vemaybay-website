@@ -334,7 +334,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit;
         }
         /**********  2. Handle Booking  **********/
-        $sql_call = 'SELECT id, name, status, call_talk FROM calls WHERE call_id = "' . $call_id . '" AND deleted = 0 LIMIT 1';
+        $sql_call = 'SELECT id, name, status, call_talk, description FROM calls WHERE call_id = "' . $call_id . '" AND deleted = 0 LIMIT 1';
         $result = $db->query($sql_call);
 
         if (!empty($booking_id)) {
@@ -343,13 +343,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 while ($call = $db->fetchByAssoc($result)) {
                     if ($call) {
                         $work                       = new EC_Working_Process();
-                        $work->name                 = !empty($booking_id) ? $booking_name : $call['name'];
-                        $work->parent_type          = !empty($booking_id) ? 'EC_Flight_Bookings' : 'Calls';
-                        $work->parent_id            = !empty($booking_id) ? $booking_id : $call['id'];
-                        $work->description          = $note . ' (' . $type_call . ')';
+                        $work->name                 = $booking_name;
+                        $work->parent_type          = 'EC_Flight_Bookings';
+                        $work->parent_id            = $booking_id;
+                        $work->description          = $note . ' (' . $type_call . ')' . $booking_id;
                         $work->$type_call           = ($is_success == 'true') ? 1 : 0;
                         $work->assigned_user_id     = $current_user->id;
                         $work->save();
+
+                        if(empty($work->id)) {
+                            // SEND TELE WARNING SAVE KPI FAILED
+                            $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                            "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
+                            "- User: <b>" . $current_user->user_name . "</b>\n" .
+                            "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                            $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            sendTelegramWarningSystem(
+                                json_encode(array(
+                                    'text' => $content,
+                                    'parse_mode' => 'HTML',
+                                    'reply_markup' => array(
+                                        'inline_keyboard' => array(
+                                            array(
+                                                array(
+                                                    'text' => 'Redirect url',
+                                                    'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                ), JSON_UNESCAPED_UNICODE),
+                            );
+                        }
 
                         $bean_note                      = new Note();
                         $bean_note->name                = $booking_name;
@@ -387,19 +412,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         } else {
             while ($call = $db->fetchByAssoc($result)) {
-                if ($call) {
-                    // LƯU KPI
-                    if (!empty($note) && (int)$call['call_talk'] >= 20 && $call['status'] == 'done') {
-                        $work = new EC_Working_Process();
-                        $work->name = $call['name'];
-                        $work->parent_type = 'Calls';
-                        $work->parent_id = $call['id'];
-                        $work->description = $note . ' ('.$type_call.')';
-                        $work->$type_call = 1; 
-                        $work->assigned_user_id = $current_user->id;
-                        $work->save();
-                    } 
-                }
+                if (!empty($note) && (int)$call['call_talk'] >= 20 && strtolower($call['status']) === 'done') {
+                    $work = new EC_Working_Process();
+                    $work->name = $call['name'];
+                    $work->parent_type = 'Calls';
+                    $work->parent_id = $call['id'];
+                    $work->description = $note . ' ('.$type_call.') Cập nhật cuộc gọi';
+                    $work->$type_call = 1; 
+                    $work->assigned_user_id = $current_user->id;
+                    $work->save();
+
+                    if(empty($work->id)) {
+                        // SEND TELE WARNING SAVE KPI FAILED
+                        $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                        "- Call: <b>" . $call['name'] . "</b>\n" .
+                        "- User: <b>" . $current_user->user_name . "</b>\n" .
+                        "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                        $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        sendTelegramWarningSystem(
+                            json_encode(array(
+                                'text' => $content,
+                                'parse_mode' => 'HTML',
+                                'reply_markup' => array(
+                                    'inline_keyboard' => array(
+                                        array(
+                                            array(
+                                                'text' => 'Redirect url',
+                                                'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ), JSON_UNESCAPED_UNICODE),
+                        );
+                    }
+                } 
             }
         }
 
@@ -484,8 +531,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $work->name                 = $booking_name;
             $work->parent_type          = 'EC_Flight_Bookings';
             $work->parent_id            = $booking_id;
-            $work->description          = $description;
-            // $work->called               = 1;
+            $work->description          = $description . ' (map_call_booking)';
+            $work->called               = 0;
             $work->assigned_user_id     = $assigned_user_id;
             $work->save();
 

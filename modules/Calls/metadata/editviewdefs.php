@@ -111,6 +111,14 @@ $viewdefs['Calls'] = array(
 				// 	),
 				// ),
 
+				// array(
+				// 	array(
+				// 	    'name' => 'status',
+				// 	    'label' => 'LBL_STATUS',
+				// 	),
+				// 	array(
+				// 	)
+				//  ),
 				array(
 					array(
 					    'name' => 'booking',

@@ -932,7 +932,7 @@ function myRemoveWorkingProcess($parent_type, $parent_id, $field = '')
 // Create working process
 function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field)
 {
-    // global $db;
+    global $sugar_config, $current_user;
     if (!empty($field)) {
         $work = new EC_Working_Process();
         $work->id = '';
@@ -943,6 +943,30 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
         $work->assigned_user_id = $assigned_user_id;
         $work->$field = 1;
         $work->save();
+        
+        if(empty($work->id)) {
+            // SEND TELE WARNING SAVE KPI FAILED
+            $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+            "- User: <b>" . $current_user->user_name . "</b>\n" .
+            "<pre>[WARNING]: myCreateWorkingProcess FAILED ".$description.".</pre>";
+            $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            sendTelegramWarningSystem(
+                json_encode(array(
+                    'text' => $content,
+                    'parse_mode' => 'HTML',
+                    'reply_markup' => array(
+                        'inline_keyboard' => array(
+                            array(
+                                array(
+                                    'text' => 'Redirect url',
+                                    'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module='.$parent_name.'&action=DetailView&record=' . $parent_id,
+                                ),
+                            ),
+                        ),
+                    ),
+                ), JSON_UNESCAPED_UNICODE),
+            );
+        }
     }
 }
 

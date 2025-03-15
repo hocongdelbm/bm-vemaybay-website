@@ -148,3 +148,34 @@ function sendTelegramSupportKTTP($postData, $timeout = 20, $format = 'json')
     curl_close($curl);
     return $result;
 }
+
+
+/**
+ * Send warning message to telegram
+ *
+ * @param string $postData
+ * @param int $timeout
+ * @param string $format
+ * @return array
+ */
+function sendTelegramWarningSystem($postData, $timeout = 20, $format = 'json')
+{
+    $chat_id = '-4627498274'; // WARNING SYSTEM BM ECOMMERCE
+	$token = '7721433243:AAGz_HUDmSZcXIpsJqYVutROqUOFj4lXAo0';
+    $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
+
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json; charset=UTF-8',
+        'X-API-KEY: FyHhxw4weBHbcuzHh5oe9CRhYJd6EjarMHlV04ML1B8ObhTp7urAF0YImADw656',
+    ));
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+    $result = json_decode(curl_exec($curl), true);
+    curl_close($curl);
+    return $result;
+}
