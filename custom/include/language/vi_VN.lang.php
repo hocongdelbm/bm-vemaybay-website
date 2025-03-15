@@ -2602,3 +2602,11 @@ $app_list_strings['document_template_type_dom'] = array(
 );
 
 
+$app_list_strings['absence_status_list'] = array(
+  0 => 'Mới tạo',
+  1 => 'Chờ duyệt',
+  2 => 'Đã duyệt',
+  
+);
+
+

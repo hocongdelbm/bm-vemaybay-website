@@ -136,6 +136,7 @@ function check_online_for_call() {
 }
 
 ua.on('newRTCSession', function (ev) {
+
     // When the previous call is existing
     if (session) {
         if (ev.session.direction === "incoming") {
@@ -578,10 +579,6 @@ $(document).ready(function () {
             if (e.keyCode === 13) { //Enter
                 $('#btn-voiceip-main-calling').click();
             }
-        }
-
-        if (e.keyCode === 8) { //Backspace
-            removeNumber();
         }
 
         if (e.keyCode === 113) { // F2
@@ -1592,15 +1589,6 @@ var addNumber_oninput = function (field) {
 
 var deleteAll = function () {
     $("#call_voiceip_main_number").val('');
-};
-
-var removeNumber = function () {
-    let call_number_val = $("#call_voiceip_main_number").val();
-
-    if (call_number_val.length > 0) {
-        var newValue = call_number_val.slice(0, -1);
-        $('#call_voiceip_main_number').val(newValue);
-    }
 };
 
 // When click outside to close modal 

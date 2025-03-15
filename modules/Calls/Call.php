@@ -197,21 +197,26 @@ class Call extends SugarBean
             $this->status == 'done'
             && !empty($this->description)
             && (
-                ($this->call_talk >= 20 && $this->direction == 'outbound')
-                || ($this->call_talk > 0 && $this->direction == 'inbound')
+                ((int)$this->call_talk >= 20 && strtolower($this->direction) === 'outbound')
+                || ((int)$this->call_talk > 0 && strtolower($this->direction) === 'inbound')
             )
         ) {
             switch ($this->type_call_sources) {
                 case 'called':
                     if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
                         myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
+
+                        // sendTestTelegram('KPI Booking empty - '.isWorkingProcessExisting($this->module_dir, $this->id, 'called').' - '.$this->name.' - '.$current_user->user_name);
                     } else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
                         if ($this->is_ExitsRowKpi('EC_Flight_Bookings', $this->booking_id)) {
                             $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
                         } else {
                             myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Call Have Bookings)', $current_user->id, 'called');
                         }
-                    }
+                    } 
+                    // else {
+                    //     sendTestTelegram('KPI For Calls - '.isWorkingProcessExisting($this->module_dir, $this->id, 'called').' - '.$this->name.' - '.$current_user->user_name);
+                    // }
                     break;
                 case 'recall':
                     $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'recall');
@@ -954,81 +959,43 @@ class Call extends SugarBean
         parent::mark_deleted($id);
     }
 
-    // public function determineHangupCause($params)
-    // {
-    //     if (!is_array($params) || empty($params)) {
-    //         return 'Không xác định';
-    //     }
-        
-    //     $direction      = $params['call_direction'] ?? '';
-    //     $disposition    = $params['call_hangup_disposition'] ?? '';
-    //     $hangupCause    = $params['hangup_cause'] ?? '';
-    //     $ccCancelReason = $params['cc_cancel_reason'] ?? null;
+    /**
+     * @param array $params
+     * @return string The hangup cause of the call.
+     * recv_cancel: Hệ thống nhận được một yêu cầu CANCEL từ bên kia (người gọi hoặc được gọi) trước khi cuộc gọi được kết nối
+     * send_refuse: Hệ thống từ chối cuộc gọi.
+     * send_cancel: Hệ thống gửi yêu cầu CANCEL đến bên kia trước khi cuộc gọi được kết nối
+     * send_bye: Hệ thống gửi tín hiệu BYE để kết thúc cuộc gọi.
+     */
+    public function determineHangupCause2($params)
+    {
+        if (!is_array($params) || empty($params)) {
+            return 'Không xác định';
+        }
 
-    //     $messages = [
-    //         'DESTINATION_OUT_OF_ORDER' => [
-    //             'inbound'  => $ccCancelReason === 'NO_AGENT_TIMEOUT' ? 'Không có tổng đài viên nào phản hồi, cuộc gọi bị hủy do hết thời gian chờ.' :
-    //                         ($ccCancelReason === 'TIMEOUT' ? 'Cuộc gọi bị gián đoạn do lỗi mạng hoặc hệ thống tổng đài không phản hồi.' :
-    //                         'Không thể kết nối với tổng đài viên do lỗi đường truyền hoặc thiết bị.'),
-    //             'outbound' => 'Không thể kết nối với khách hàng do thiết bị không hoạt động hoặc mất kết nối.',
-    //             'internal' => 'Không thể kết nối giữa các tổng đài viên do lỗi hệ thống hoặc mất kết nối mạng.'
-    //         ],
-    //         'INCOMPATIBLE_DESTINATION' => [
-    //             'inbound' => match ($disposition) {
-    //                 'recv_refuse' => 'Cuộc gọi bị tổng đài từ chối do không hỗ trợ codec hoặc cấu hình không tương thích.',
-    //                 'recv_bye'    => 'Cuộc gọi được tiếp nhận nhưng bị ngắt kết nối do vấn đề tương thích.',
-    //                 'send_refuse' => 'Tổng đài không hỗ trợ cuộc gọi từ khách hàng.',
-    //                 default       => 'Cuộc gọi không thể tiếp tục do vấn đề tương thích thiết bị hoặc mạng.'
-    //             },
-    //             'outbound' => 'Cuộc gọi ra ngoài bị từ chối do thiết bị đích không hỗ trợ cuộc gọi.',
-    //             'local'    => 'Không thể kết nối giữa các tổng đài viên do thiết bị hoặc cấu hình không phù hợp.'
-    //         ],
-    //         'UNALLOCATED_NUMBER' => [
-    //             'inbound'  => 'Khách hàng gọi vào số tổng đài chưa được cấp phát hoặc không khả dụng.',
-    //             'outbound' => 'Số điện thoại không hợp lệ.',
-    //             'internal' => 'Số điện thoại không hợp lệ.'
-    //         ],
-    //         'USER_BUSY' => [
-    //             'inbound'  => $disposition === 'recv_refuse' ? 'Tổng đài viên từ chối cuộc gọi hoặc đang bận, không thể tiếp nhận cuộc gọi' : 'Hệ thống tổng đài từ chối cuộc gọi vì không có tổng đài viên nào tiếp nhận',
-    //             'outbound' => 'Khách hàng đang bận hoặc từ chối cuộc gọi.'
-    //         ],
-    //         'NO_ANSWER' => [
-    //             'inbound' => $disposition === 'send_bye' ? 'Tổng đài viên không bắt máy, khách hàng kết thúc cuộc gọi' : 'Tổng đài viên không bắt máy, cuộc gọi tự động kết thúc'
-    //         ],
-    //         'NORMAL_CLEARING' => [
-    //             'inbound'  => match ($disposition) {
-    //                 'recv_bye' => $ccCancelReason === 'BREAK_OUT' ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời' : 'Khách hàng chủ động kết thúc cuộc gọi.',
-    //                 'send_bye' => $ccCancelReason === 'TIMEOUT' ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời' : 'Tổng đài viên chủ động kết thúc cuộc gọi.',
-    //                 'send_refuse' => 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi.',
-    //                 default => null
-    //             },
-    //             'outbound' => match ($disposition) {
-    //                 'recv_bye'  => 'Tổng đài viên chủ động kết thúc cuộc gọi.',
-    //                 'send_bye'  => 'Khách hàng chủ động kết thúc cuộc gọi.',
-    //                 'send_refuse' => 'Cuộc gọi bị từ chối hoặc không thể tiếp tục.',
-    //                 default => null
-    //             },
-    //             'internal' => match ($disposition) {
-    //                 'recv_bye'  => 'Người gọi chủ động kết thúc cuộc gọi.',
-    //                 'send_bye'  => 'Người nhận chủ động kết thúc cuộc gọi.',
-    //                 'send_refuse' => 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi.',
-    //                 default => null
-    //             }
-    //         ],
-    //         'ORIGINATOR_CANCEL' => [
-    //             /**
-    //              * Bên khởi tạo cuộc gọi (originator) đã chủ động hủy cuộc gọi trước khi nó được kết nối hoặc hoàn tất.
-    //              * Người gọi (caller) treo máy trước khi người nhận (callee) trả lời.
-    //              * Hệ thống tự động hủy cuộc gọi do lỗi cấu hình hoặc thời gian chờ (timeout).
-    //              * Người dùng hoặc ứng dụng khởi tạo cuộc gọi quyết định hủy bỏ (ví dụ: nhấp chuột hủy trên giao diện).
-    //              */
-    //             'outbound' => $disposition === 'recv_cancel' ? 'Tổng đài viên chủ động hủy cuộc gọi.' : null,
-    //             'internal' => $disposition === 'recv_cancel' ? 'Người gọi chủ động hủy cuộc gọi.' : null
-    //         ]
-    //     ];
+        $direction      = strtolower($params['call_direction'] ?? '');
+        $disposition    = strtolower($params['call_hangup_disposition'] ?? '');
+        $hangupCause    = strtoupper($params['hangup_cause'] ?? '');
+        $ccCancelReason = $params['cc_cancel_reason'] ?? null; //cc_cancel_reason chỉ tồn tại khi cuộc gọi liên quan đến hàng đợi (Call Center Queue)
+        $billsec        = (int)($params['call_bill'] ?? 0);
 
-    //     return $messages[strtoupper($hangupCause)][strtolower($direction)] ?? 'Nguyên nhân ngắt máy không xác định';
-    // }
+        $messages = [
+            'ORIGINATOR_CANCEL' => [
+                /**
+                 * Bên gọi (originator) đã hủy cuộc gọi trước khi nó được kết nối hoặc trả lời.
+                 * Nguyên nhân có thể do khách hàng, hệ thống, hoặc tổng đài viên hủy cuộc gọi.
+                 */
+                'inbound' => ($ccCancelReason === null && $billsec == 0) ? 'Khách hàng chủ động hủy cuộc gọi trước khi kết nối.' : 'Hệ thống tự động hủy cuộc gọi inbound (timeout, không agent, hoặc lỗi SIP).',
+                'outbound' => ($disposition === 'recv_cancel' && $ccCancelReason === null) ? 'Tổng đài viên hủy cuộc gọi.' : ($ccCancelReason !== null ? 'Hệ thống tự động hủy cuộc gọi outbound (timeout hoặc lỗi hàng đợi).' : 'Tổng đài viên hủy trước khi kết nối.'),
+                'internal' => ($disposition === 'recv_cancel') ? 'Người gọi nội bộ chủ động hủy cuộc gọi trước khi người nhận nghe máy.' : '',
+            ],
+            'NORMAL_CLEARING' => [
+                'internal' => ($disposition === 'recv_bye') ? 'Người nhận chủ động hủy cuộc gọi.' : 'Cuộc gọi nội bộ bị hủy trước khi kết nối.',
+            ]
+        ];
+
+        return $messages[$hangupCause][$direction] ?? 'Nguyên nhân ngắt máy không xác định';
+    }
 
 
     public function determineHangupCause($params)
@@ -1039,7 +1006,7 @@ class Call extends SugarBean
             $hangupCause        = $params['hangup_cause'] ?? '';
             $ccCancelReason     = $params['cc_cancel_reason'] ?? null;
 
-			if ($hangupCause === 'DESTINATION_OUT_OF_ORDER') {
+            if ($hangupCause === 'DESTINATION_OUT_OF_ORDER') {
                 if ($direction === 'inbound') {
                     if ($ccCancelReason === 'NO_AGENT_TIMEOUT') {
                         return 'Không có tổng đài viên nào phản hồi, cuộc gọi bị hủy do hết thời gian chờ.';
@@ -1072,54 +1039,54 @@ class Call extends SugarBean
                     return 'Không thể kết nối giữa các tổng đài viên do thiết bị hoặc cấu hình không phù hợp.';
                 }
             }
-            
+
             // Xử lý cho cuộc gọi inbound
             if ($direction === 'inbound') {
-				if ($hangupCause === 'UNALLOCATED_NUMBER') {
-					return 'Khách hàng gọi vào số tổng đài chưa được cấp phát hoặc không khả dụng.';
-				}
+                if ($hangupCause === 'UNALLOCATED_NUMBER') {
+                    return 'Khách hàng gọi vào số tổng đài chưa được cấp phát hoặc không khả dụng.';
+                }
 
-				if ($hangupCause === 'USER_BUSY') {
+                if ($hangupCause === 'USER_BUSY') {
                     return ($disposition === 'recv_refuse') ? 'Tổng đài viên từ chối cuộc gọi hoặc đang bận, không thể tiếp nhận cuộc gọi' : 'Hệ thống tổng đài từ chối cuộc gọi vì không có tổng đài viên nào tiếp nhận';
                 }
-				
+
                 if ($hangupCause === 'NO_ANSWER') {
-                    return ($disposition === 'send_bye') 
-                        ? 'Tổng đài viên không bắt máy, khách hàng kết thúc cuộc gọi' 
+                    return ($disposition === 'send_bye')
+                        ? 'Tổng đài viên không bắt máy, khách hàng kết thúc cuộc gọi'
                         : 'Tổng đài viên không bắt máy, cuộc gọi tự động kết thúc';
                 }
-				
+
                 if ($disposition === 'recv_bye' && $hangupCause === 'NORMAL_CLEARING') {
                     return ($ccCancelReason === 'BREAK_OUT')
                         ? 'Khách hàng kết thúc cuộc gọi khi không có agent trả lời'
                         : 'khách hàng chủ động kết thúc cuộc gọi';
                 }
 
-				if ($disposition === 'send_bye') {
+                if ($disposition === 'send_bye') {
                     return ($ccCancelReason === 'TIMEOUT')
                         ? 'Cuộc gọi tự động kết thúc vì không có agent trả lời'
                         : 'Tổng đài viên chủ động kết thúc cuộc gọi';
                 }
-        
-				if ($disposition === 'send_refuse') {
+
+                if ($disposition === 'send_refuse') {
                     return 'Tổng đài viên đang bận. Người nhận từ chối cuộc gọi';
                 }
             }
-        
+
             // Xử lý cho cuộc gọi outbound
             if ($direction === 'outbound') {
-				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+                if ($hangupCause === 'UNALLOCATED_NUMBER') {
                     return 'Số điện thoại không hợp lệ';
                 }
 
-				if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
+                if ($disposition === 'recv_cancel' && $hangupCause === 'ORIGINATOR_CANCEL') {
                     return 'Tổng đài viên chủ động hủy cuộc gọi';
                 }
-        
+
                 if ($disposition === 'send_refuse') {
                     return ($hangupCause === 'USER_BUSY') ? 'Khách hàng đang bận hoặc từ chối cuộc gọi' : 'Khách hàng không liên lạc được, cuộc gọi tự động kết thúc';
                 }
-        
+
                 if ($hangupCause === 'NORMAL_CLEARING') {
                     if ($disposition === 'recv_bye') {
                         return 'Tổng đài viên chủ động kết thúc cuộc gọi';
@@ -1135,8 +1102,8 @@ class Call extends SugarBean
                 }
             }
 
-			if ($direction === 'internal') {
-				if ($hangupCause === 'UNALLOCATED_NUMBER') {
+            if ($direction === 'internal') {
+                if ($hangupCause === 'UNALLOCATED_NUMBER') {
                     return 'Số điện thoại không hợp lệ';
                 }
 
@@ -1164,7 +1131,6 @@ class Call extends SugarBean
 
         return 'Không xác định';
     }
-
 
     public function summaryLogForCalls($log_calls)
     {

@@ -555,6 +555,7 @@ $(document).ready(function () {
                     if (id === undefined || id.length == '') $(`.toast__main[type="missed__call"][call_id="${call_id}"]`).parent().remove();
                     $('.voiceip-header__title').html('Đang gọi...');
                     $('.voiceip-timer').hide();
+
                     $('#popup-voiceip').attr('call_id', session._request.call_id); // New call id
                     $('#popup-voiceip').addClass('show');
                     $('#popup__voiceip--wrap').addClass('show');
@@ -578,10 +579,6 @@ $(document).ready(function () {
             if (e.keyCode === 13) { //Enter
                 $('#btn-voiceip-main-calling').click();
             }
-        }
-
-        if (e.keyCode === 8) { //Backspace
-            removeNumber();
         }
 
         if (e.keyCode === 113) { // F2
@@ -1592,15 +1589,6 @@ var addNumber_oninput = function (field) {
 
 var deleteAll = function () {
     $("#call_voiceip_main_number").val('');
-};
-
-var removeNumber = function () {
-    let call_number_val = $("#call_voiceip_main_number").val();
-
-    if (call_number_val.length > 0) {
-        var newValue = call_number_val.slice(0, -1);
-        $('#call_voiceip_main_number').val(newValue);
-    }
 };
 
 // When click outside to close modal 
