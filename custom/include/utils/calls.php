@@ -311,3 +311,63 @@ function getCallSource($call_to)
 
     return $call_sources;
 }
+
+/**
+ * @param float $mos Giá trị của Mean Opinion Score (MOS), dao động từ 1 đến 5.
+ * @return string Nhãn để mô tả chất lượng của cuộc gọi.
+ */
+
+function getMOSLabel($mos) {
+    if (!is_numeric($mos) || $mos < 0 || $mos > 5) {
+        return 'Giá trị MOS không hợp lệ.';
+    }
+
+    if ($mos >= 4.5 && $mos <= 5.0) {
+        $label = 'Rất tốt';
+        $description = 'Chất lượng âm thanh rõ ràng, không có méo tiếng hay gián đoạn.';
+    } elseif ($mos >= 4.0 && $mos < 4.5) {
+        $label = 'Tốt';
+        $description = 'Chất lượng ổn định, chỉ có biến đổi nhỏ về âm thanh.';
+    } elseif ($mos >= 3.5 && $mos < 4.0) {
+        $label = 'Chấp nhận được';
+        $description = 'Có biến dạng âm thanh nhưng không ảnh hưởng đáng kể.';
+    } elseif ($mos >= 3.0 && $mos < 3.5) {
+        $label = 'Trung bình';
+        $description = 'Chất lượng âm thanh không ổn định, có hiện tượng gián đoạn.';
+    } elseif ($mos >= 2.5 && $mos < 3.0) {
+        $label = 'Kém';
+        $description = 'Méo tiếng nhiều, tín hiệu không rõ ràng.';
+    } else { // $mos < 2.5
+        $label = 'Rất kém';
+        $description = 'Chất lượng quá thấp, khó có thể nhận diện nội dung.';
+    }
+
+    return "$label: $description (MOS: $mos)";
+}
+
+/**
+ * Gets the meaning of a call failed cause.
+ *
+ * This function takes a cause from the call failed cause list and returns the
+ * corresponding meaning of the cause.
+ *
+ * @param string $cause The call failed cause to get the meaning for.
+ * @return string The meaning of the call failed cause.
+ */
+function getCallFailedCauseMeaning($cause) {
+    $meanings = [
+        'USER_NOT_REGISTERED' => 'Người dùng SIP chưa đăng ký với tổng đài',
+        'NO_ANSWER' => 'Không ai trả lời cuộc gọi',
+        'USER_BUSY' => 'Người nhận đang bận',
+        'CALL_REJECTED' => 'Cuộc gọi bị từ chối',
+        'NO_USER_RESPONSE' => 'Người nhận không phản hồi',
+        'NORMAL_CLEARING' => 'Cuộc gọi kết thúc bình thường',
+        'SUBSCRIBER_ABSENT' => 'Thuê bao vắng mặt hoặc tắt máy',
+        'DESTINATION_OUT_OF_ORDER' => 'Điểm đến không hoạt động',
+        'NETWORK_OUT_OF_ORDER' => 'Mạng bị lỗi',
+        'PROTOCOL_ERROR' => 'Lỗi giao thức SIP',
+        'UNALLOCATED_NUMBER' => 'Số điện thoại không hợp lệ hoặc không tồn tại'
+    ];
+
+    return $meanings[strtoupper($cause)] ?? 'Không xác định';
+}

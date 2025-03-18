@@ -206,6 +206,12 @@ class CallsViewDetail extends ViewDetail
 			// 	$datetime_hold = global_secondsToTimeFormat($log_call['call_hold']);
 			// 	$this->ss->assign('CUS_DATE_HOLD', $datetime_hold);
 			// }
+
+			// call_failed_cause
+			if (isset($log_call['call_failed_cause'])) {
+				$call_failed_cause = getCallFailedCauseMeaning($log_call['call_failed_cause']);
+				$this->ss->assign('CUS_CALL_FAILED_CAUSE', $call_failed_cause);
+			}
 		}
 
 		// CALL TALK
@@ -217,11 +223,17 @@ class CallsViewDetail extends ViewDetail
 			$call_talk = global_secondsToTimeFormat($this->bean->call_talk);
 			$this->ss->assign('CUS_CALL_TALK', $call_talk);
 		}
-
+		
 		// CALL DURATION
 		if (isset($this->bean->call_duration) && !empty($this->bean->call_duration)) {
 			$call_duration = global_secondsToTimeFormat($this->bean->call_duration);
 			$this->ss->assign('CUS_CALL_DURATION', $call_duration);
+		}
+
+		// AUDIO MOS
+		if (isset($this->bean->call_mos) && !empty($this->bean->call_mos)) {
+			$call_mos = getMOSLabel($this->bean->call_mos);
+			$this->ss->assign('CUS_CALL_MOS', $call_mos);
 		}
 	}
 }
