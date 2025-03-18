@@ -148,6 +148,7 @@ class CustomController extends BaseController
         $call_answer    = isset($params['call_answer']) ? global_test_input($params['call_answer']) : 0;
         $record_file    = isset($params['record_file']) ? global_test_input($params['record_file']) : '';
         $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
+        $call_mos       = isset($params['call_mos']) ? global_test_input($params['call_mos']) : null;
 
         if (empty($call_id)) {
             // Lưu log
@@ -254,6 +255,7 @@ class CustomController extends BaseController
         $call->log          = json_encode($params);
         $call->record_file  = $record_file;
         $call->other_caller = $other_caller;
+        $call->call_mos     = $call_mos;
         $call->call_duration = (int)$call_duration;
         $call->call_wait    = (int)calculateWaitTime($params);
         $call->call_talk    = (int)$call_talk;

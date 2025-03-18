@@ -83,6 +83,14 @@ $listViewDefs['Calls'] = array(
 		'default' => true,
 		'type' => 'text',
 	),
+	'CALL_MOS' => 
+	array (
+		'width' => '10%',
+		'label' => 'LBL_LIST_CALL_MOS',
+		'default' => true,
+		'type' => 'FLOAT',
+		// 'align' => 'center',
+	),
 
 	'STATUS' => array(
 		'width' => '10%',

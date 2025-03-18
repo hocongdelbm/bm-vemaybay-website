@@ -263,6 +263,18 @@ $viewdefs['Calls'] = array(
 				),
 				array(
 					array(
+						'name' => 'call_failed_cause',
+						'label' => 'LBL_CALL_FAILED_CAUSE',
+						'customCode' => '{$CUS_CALL_FAILED_CAUSE}',
+					),
+					array(
+						'name' => 'call_mos',
+						'label' => 'LBL_CALL_MOS',
+						'customCode' => '{$CUS_CALL_MOS}',
+					),
+				),
+				array(
+					array(
 						'name' => 'date_entered',
 						'customCode' => '{$fields.date_entered.value} {$APP.LBL_BY} {$fields.created_by_name.value}&nbsp;',
 						'label' => 'LBL_DATE_ENTERED',

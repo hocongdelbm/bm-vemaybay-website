@@ -704,6 +704,18 @@ $dictionary['Call'] = array(
             'reportable' => 0,
             'default'   => 0,
         ),
+        'call_mos' => array(
+            'required' => false, 
+            'name' => 'call_mos',
+            'label' => 'LBL_CALL_MOS',
+            'type' => 'float',
+            'dbType' => 'double',
+            'audited' => false,
+            'mass_update' => false,
+            'duplicate_merge' => false,
+            'reportable' => true,
+            'importable' => 'true',
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_calls_callid', 'type' => 'index', 'fields' => array('call_id')),

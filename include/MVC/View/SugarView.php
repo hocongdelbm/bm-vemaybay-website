@@ -1328,20 +1328,12 @@ EOHTML;
                 </div>
             ';
 
-            if($current_user->id == '1' || $current_user->id == '168889bb-54c2-59c7-8b3f-649102530d3c'){
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=4.0.1">';
-                $js .= '<audio id="audio_jssip" loop="true"></audio>
-                        <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call2.js?ver=4.0.1"></script>
-                ';
-            } else {
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=4.0.1">';
-                $js .= '<audio id="audio_jssip" loop="true"></audio>
-                        <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call.js?ver=4.0.1"></script>
+            $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver='.date("YmdHi").'">';
+            $js .= '<audio id="audio_jssip" loop="true"></audio>
+                    <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
+                    <script src="custom/jssip_webrtc/call.js?ver='.date("YmdHi").'"></script>
 
-                ';
-            }
+            ';
         }
         else {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="" disabled />';
