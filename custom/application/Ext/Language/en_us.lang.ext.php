@@ -41,7 +41,7 @@
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-$app_list_strings['moduleList']['EC_Outbound_Phone'] = 'SĐT gọi ra';
+$app_list_strings['moduleList']['EC_Contact_Points_Log'] = 'Points log';
 
 
 /**

@@ -45,4 +45,5 @@ $mod_strings = array (
   'LBL_UP' => 'Up',
   'LBL_DOWN' => 'Down',
   'LBL_CURRENT_POINT' => 'Current point',
+  'LNK_DASHBOARD' => 'DASHBOARD',
 );
