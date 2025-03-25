@@ -466,8 +466,9 @@ class Contact extends Person implements EmailInterface
 
     public function get_list_view_data($filter_fields = array())
     {
-        $temp_array = parent::get_list_view_data();
+        global $current_user;
 
+        $temp_array = parent::get_list_view_data();
         if ($filter_fields && !empty($filter_fields['sync_contact'])) {
             $this->load_contacts_users_relationship();
             $temp_array['SYNC_CONTACT'] = !empty($this->contacts_users_id) ? 1 : 0;

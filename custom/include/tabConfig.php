@@ -1,5 +1,5 @@
 <?php
-// created: 2025-03-10 09:52:14
+// created: 2025-03-24 01:56:27
 $GLOBALS['tabStructure'] = array (
   'LBL_GROUPTAB3_1684394664' => 
   array (
@@ -56,13 +56,12 @@ $GLOBALS['tabStructure'] = array (
     'label' => 'LBL_GROUPTAB3_1684124846',
     'modules' => 
     array (
-      0 => 'EC_LyDoThangThua',
-      1 => 'EC_Location',
-      2 => 'SecurityGroups',
-      3 => 'EC_LoginAudit',
-      4 => 'AOK_KnowledgeBase',
-      5 => 'Documents',
-      6 => 'EC_Outbound_Phone',
+      0 => 'EC_Location',
+      1 => 'EC_LoginAudit',
+      2 => 'AOK_KnowledgeBase',
+      3 => 'Documents',
+      4 => 'Bugs',
+      5 => 'EC_Outbound_Phone',
     ),
   ),
 );

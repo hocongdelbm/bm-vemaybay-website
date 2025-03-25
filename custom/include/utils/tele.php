@@ -127,11 +127,11 @@ function sendGrLyThongTele($content, $parseMode = 'HTML', $timeout = 8)
     return $result;
 }
 
-// GR SUPPORT KT TP
-function sendTelegramSupportKTTP($postData, $timeout = 20, $format = 'json')
+// GR TÌM CHUYẾN BAY
+function sendTeleConfirmCallSales($postData, $timeout = 20, $format = 'json')
 {
-    $chat_id = '-1001756725737'; // Group Support ke toan TP
-    $token = '7721433243:AAGz_HUDmSZcXIpsJqYVutROqUOFj4lXAo0';
+    $chat_id = '-1001773893748'; // Group Tìm chuyến bay
+    $token = '7268245403:AAHw9qo93NeqXnOT04h7UzRZ2EKIx_wmSvo';
     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
 
     $curl = curl_init();

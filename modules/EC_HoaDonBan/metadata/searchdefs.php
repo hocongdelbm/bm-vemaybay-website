@@ -50,12 +50,18 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'width' => '10%',
             ),
-            // 'email' =>
-            // array(
-            //     'name' => 'email',
-            //     'default' => true,
-            //     'width' => '10%',
-            // ),
+            'lienhe' =>
+            array(
+                'name' => 'lienhe',
+                'default' => true,
+                'width' => '10%',
+            ),
+            'email' =>
+            array(
+                'name' => 'email',
+                'default' => true,
+                'width' => '10%',
+            ),
             'booking' =>
             array(
                 'name' => 'booking',

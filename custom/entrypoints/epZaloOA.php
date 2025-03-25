@@ -63,6 +63,73 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         echo json_encode($result);
+
+        try {
+            foreach($result['messages_info']['data'] as $m) {
+                $message_id = $m['message_id'] ?? '';
+                if(empty($message_id)) continue;
+
+                $mid = $db->getOne("SELECT id FROM ec_zalo_messages WHERE id = '$message_id'");
+                if(!$mid || empty($mid)) {
+                    // Handle type
+                    $subtype = '';
+                    $mtype = $m['type'] ?? '';
+                    if($mtype == 'text') {
+                        $mtype = 'consultation';
+                        $subtype = 'text';
+                    }
+                    else if($mtype == 'photo' || $mtype == 'image') {
+                        $mtype = 'consultation';
+                        $subtype = 'image';
+                    }
+                    else if($mtype == 'voice' || $mtype == 'audio') {
+                        $subtype = 'audio';
+                        $mtype = 'consultation';
+                    }
+                    else if (in_array($mtype, ['gif', 'sticker', 'video', 'file', 'location', 'link', 'links'])) {
+                        $subtype = $mtype;
+                        $mtype = 'consultation';
+                    }
+                    else {
+                        $mtype = 'other';
+                    }
+
+                    // Location info
+                    $lat = $long = '';
+                    if(isset($m['location'])) {
+                        $location = is_string($m['location']) ? json_decode($m['location'], true) : $m['location'];
+                        $lat = $location['latitude'] ?? ''; 
+                        $long = $location['longitude '] ?? ''; 
+                    }
+
+                    $zalomes = new EC_Zalo_Messages();
+                    $zalomes->new_with_id = true;
+                    $zalomes->id = $message_id;
+                    $zalomes->src = $m['src'] ?? '';
+                    $zalomes->from_id = $m['from_id'] ?? '';
+                    $zalomes->to_id = $m['to_id'] ?? '';
+                    $zalomes->timestamp = $m['time'] ?? 0;
+                    $zalomes->type = $mtype;
+                    $zalomes->sub_type = $subtype;
+                    $zalomes->description = $m['message'] ?? '';
+                    $zalomes->thumbnail = $m['thumb'] ?? '';
+                    $zalomes->url = $m['url'] ?? '';
+                    $zalomes->attached_description = $m['description'] ?? '';
+                    $zalomes->latitude = $lat;
+                    $zalomes->longitude = $long;
+                    $zalomes->quote_message_id = $m['quote_id'] ?? '';
+                    $zalomes->response = json_encode($m);
+                    $zalomes->date_entered  = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
+                    $zalomes->date_modified = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
+                    $zalomes->name = 'Resaved';
+                    $zalomes->save();
+                }
+            }
+        }
+        catch(Exception $e) {
+            exit();
+        }
+
         exit();
     }
     elseif($action == 'get_user_info') {
@@ -70,7 +137,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
 
         $json = $Zalo->get_user($zalo_id);
+
         echo $json;
+
+        try {
+            $arr = json_decode($json, true);
+            if(isset($arr['error']) && $arr['error'] == 0) {
+                $zalo_last_interaction = $arr['data']['user_last_interaction_date'] ?? ''; // d/m/Y
+                if(!empty($zalo_last_interaction)) {
+                    $zalo_last_interaction = date('Y-m-d', strtotime(str_replace("/", "-", $zalo_last_interaction)));
+                    $zalo_last_interaction .= ' 00:00:00';
+
+                    $sql_update_contact = "UPDATE contacts
+                        SET zalo_last_interaction = '$zalo_last_interaction'
+                        WHERE zalo_id = '$zalo_id'
+                            AND (zalo_last_interaction IS NULLL OR zalo_last_interaction = '' OR zalo_last_interaction < '$zalo_last_interaction')
+                            AND deleted = 0";
+                    $db->query($sql_update_contact);
+                }
+            }
+        }
+        catch(Exception $e) {
+            exit();
+        }
+
         exit();
     }
     elseif($action == 'get_list_user') {
@@ -336,6 +426,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $m->assigned_user_id = $current_user->id;
             $m->save();
 
+            try {
+                $msg_id = $arr['data']['msg_id'] ?? '';
+                $timestamp = $arr['data']['sent_time'] ?? 0;
+
+                $zalomes = new EC_Zalo_Messages();
+                $zalomes->new_with_id   = true;
+                $zalomes->id            = $msg_id;
+                $zalomes->src           = 0;
+                $zalomes->from_id       = $Zalo->get_oa_id();
+                $zalomes->to_id         = $phone;
+                $zalomes->timestamp     = $timestamp;
+                $zalomes->type          = 'zns';
+                $zalomes->sub_type      = $type_zns;
+                $zalomes->description   = $Zalo->get_template_name_zns($template_id);
+                $zalomes->template_id   = $template_id;
+                $zalomes->data          = json_encode($template_data);
+                $zalomes->response      = trim($json);
+                $zalomes->assigned_user_id = $current_user->id;
+                $zalomes->save();
+            }
+            catch(Exception $e) {
+                sendTestTelegram("Saved failed ZNS message\n" . $e->getMessage() . "\n\n" . $json);
+            }
+            
             $fullname = $current_user->last_name.' '.$current_user->first_name;
             $Zalo->send_to_telegram("<b>".$fullname.'</b>: Gửi '.$Zalo->get_template_name_zns($template_id).' đến Zalo <b>' . $phone .'</b>');
 

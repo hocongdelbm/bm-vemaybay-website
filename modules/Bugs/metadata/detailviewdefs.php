@@ -34,27 +34,25 @@ $viewdefs['Bugs']['DetailView'] = array(
 
       array(
         'type',
-        'source',
-      ),
-
-      array(
-        'product_category',
         'resolution',
-      ),
-
-      array(
-        'description',
       ),
       array(
         'photo',
         'photo_sub',
       ),
       array(
+        'description',
         'work_log',
       ),
       array(
-        'name' => 'assigned_user_name',
-        'label' => 'LBL_ASSIGNED_TO_NAME',
+        array(
+          'name' => 'assigned_user_name',
+          'label' => 'LBL_ASSIGNED_TO_NAME',
+        ),
+        array(
+          'name' => 'parent_name',
+          'label' => 'LBL_PARENT_NAME',
+        ),
       ),
       array(
         array(

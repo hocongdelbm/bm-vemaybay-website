@@ -282,7 +282,8 @@ class Viewstatistics extends SugarView
                          c.date_end,
                          c.date_start,
                          c.description,
-                         c.call_sources
+                         c.call_sources,
+                         c.call_reason
                FROM calls c
                LEFT JOIN users u ON c.assigned_user_id = u.id AND u.deleted = 0
                WHERE DATE(DATE_ADD(c.date_entered, INTERVAL 7 HOUR)) BETWEEN '". date('Y-m-d', strtotime($from_date)) ."' AND '". date('Y-m-d', strtotime($to_date)) ." 23:59:59'
@@ -432,8 +433,8 @@ class Viewstatistics extends SugarView
                }
           }
 
-          $total_inbound      = $total_outbound = $total_missed = $total_suddenly = $total_spam =  $total_internal = $total_final = 0;
-          $total_inbound_all  = $total_outbound_all = $total_missed_all = $total_spam_all = $total_suddenly_all = $total_internal_all = 0;
+          $total_inbound      = $total_outbound = $total_missed = $total_suddenly = $total_spam =  $total_internal = $total_calls = 0;
+          $total_inbound_all  = $total_outbound_all = $total_missed_all = $total_spam_all = $total_suddenly_all = $total_internal_all = $total_calls_all = 0;
 
           $total_outbound_answer = $total_outbound_noanswer = $total_outbound_kpi = 0;
 
@@ -520,42 +521,51 @@ class Viewstatistics extends SugarView
                          // Gọi đến
                          $inbound       = isset($user['inbound']) ? '<strong class="text-success">'.count($user['inbound']).'</strong>' : '';
                          $total_inbound = isset($user['inbound']) ? count($user['inbound']) : 0;
-                         $total_inbound_all += $total_inbound;
+                         $total_inbound_all += (int)$total_inbound;
 
                          // Gọi đi
                          $outbound  = isset($user['outbound']) ? '<strong class="text-primary">'.count($user['outbound']).'</strong>' : '';
                          $total_outbound = isset($user['outbound']) ? count($user['outbound']) : 0;
-                         $total_outbound_all += $total_outbound;
+                         $total_outbound_all += (int)$total_outbound;
 
                          $outbound_answer    = isset($user['outbound_answer']) ? '<strong class="text-primary">'.$user['outbound_answer'].'</strong>' : '';
                          $outbound_kpi       = isset($user['outbound_kpi']) ? '<strong class="text-primary">'.$user['outbound_kpi'].'</strong>' : '';
                          $outbound_noanswer  = isset($user['outbound_noanswer']) ? '<strong class="text-primary">'.$user['outbound_noanswer'].'</strong>': '';
-                         isset($user['outbound_answer']) ? $total_outbound_answer += $user['outbound_answer'] : 0;
-                         isset($user['outbound_kpi']) ? $total_outbound_kpi += $user['outbound_kpi'] : 0;
-                         isset($user['outbound_noanswer']) ? $total_outbound_noanswer += $user['outbound_noanswer'] : 0;
+                         isset($user['outbound_answer']) ? $total_outbound_answer += (int)$user['outbound_answer'] : 0;
+                         isset($user['outbound_kpi']) ? $total_outbound_kpi += (int)$user['outbound_kpi'] : 0;
+                         isset($user['outbound_noanswer']) ? $total_outbound_noanswer += (int)$user['outbound_noanswer'] : 0;
                     
                          // Nhỡ
                          $missed    = isset($user['missed']) ? '<strong class="text-danger">'.count($user['missed']).'</strong>' : '';
                          $total_missed = isset($user['missed']) ? count($user['missed']) : 0;
-                         $total_missed_all += $total_missed;
+                         $total_missed_all += (int)$total_missed;
                          
                          // Nhá
                          $suddenly      = isset($user['suddenly']) ? '<strong class="text-warning">'.count($user['suddenly']).'</strong>' : '';
                          $total_suddenly = isset($user['suddenly']) ? count($user['suddenly']) : 0;
-                         $total_suddenly_all += $total_suddenly;
+                         $total_suddenly_all += (int)$total_suddenly;
                          
                          // Số rác
                          $spam      = isset($user['spam']) ? '<strong class="text-spam">'.count($user['spam']).'</strong>' : '';
                          $total_spam = isset($user['spam']) ? count($user['spam']) : 0;
-                         $total_spam_all += $total_spam;
+                         $total_spam_all += (int)$total_spam;
                          
                          // Nội bộ
                          $internal  = isset($user['internal']) ? '<strong class="text-normarl">'.count($user['internal']).'</strong>' : '';
                          $total_internal = isset($user['internal']) ? count($user['internal']) : 0;
                          $total_internal_all += $total_internal;
 
-                         $total_calls = $total_inbound + $total_outbound + $total_missed + $total_suddenly + $total_spam + $total_internal;
-                         $total_final += $total_calls;
+                         $total_calls = (int)$total_inbound + (int)$total_outbound + (int)$total_missed + (int)$total_suddenly + (int)$total_spam + (int)$total_internal;
+                         $total_calls_all += $total_calls;
+
+                         $count_question_ticket = 0;
+                         if(isset($user['outbound']) && is_array($user['outbound']) && count($user['outbound']) > 0){
+                              foreach ($user['outbound'] as $call) {
+                                   if (isset($call['call_reason']) && $call['call_reason'] === 'out_question_ticket') {
+                                        $count_question_ticket++;
+                                   }
+                              }
+                         }
 
                          $html .= '
                               <tr>
@@ -570,8 +580,87 @@ class Viewstatistics extends SugarView
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="spam">'.$spam.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="suddenly">'.$suddenly.'</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="'.$user['name'].'" data-user_id="'.$user_id.'" data-direction="internal">'.$internal.'</td>
+                                   <td align="center" class="cursor-pointer hide-mobile text-dark"><strong>'.$total_calls.'</strong></td>
+                                   <td align="center" class="cursor-pointer hide-mobile">
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewEmpModal_'.$user_id.'">
+                                             CallSales
+                                        </button>
+
+                                        <div class="modal fade" id="reviewEmpModal_'.$user_id.'" tabindex="-1" aria-labelledby="reviewEmpModal_'.$user_id.'Label" aria-hidden="true">
+                                             <div class="modal-dialog modal-dialog-centered">
+                                                  <div class="modal-content">
+                                                       <div class="modal-header">
+                                                            <h1 class="modal-title text-white fs-5" id="reviewEmpModal_'.$user_id.'Label">Kết quả callsales</h1>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                       </div>
+                                                       <div class="modal-body">
+                                                            <div class="mb-3 text-start fw-semibold row">
+                                                                 <label for="reviewEmp_fromdate_'.$user_id.'" class="col-sm-4 form-label text-nowrap">Ngày:</label>
+                                                                 <div class="col-sm-8">
+                                                                      <span class="text-nowrap fw-semibold">'.date('d-m-Y', strtotime($from_date)).'</span>
+                                                                      <input type="hidden" id="reviewEmp_fromdate_'.$user_id.'" value="'.date('d-m-Y', strtotime($from_date)).'">
+                                                                 </div>
+                                                            </div>';
+                                                            if(strtotime($from_date) != strtotime($to_date)){
+                                                                 $html .= '
+                                                                 <div class="mb-3 text-start fw-semibold row">
+                                                                      <label for="reviewEmp_todate_'.$user_id.'" class="col-sm-4 form-label text-nowrap">Đến ngày:</label>
+                                                                      <div class="col-sm-8">
+                                                                           <span class="text-nowrap fw-semibold">'.date('d-m-Y', strtotime($to_date)).'</span>
+                                                                           <input type="hidden" id="reviewEmp_todate_'.$user_id.'" value="'.date('d-m-Y', strtotime($to_date)).'">
+                                                                      </div>
+                                                                 </div>
+                                                                 ';
+                                                            }
+                                                  $html .='<div class="mb-3 text-start fw-semibold row">
+                                                                 <label for="reviewEmp_name_'.$user_id.'" class="col-sm-4 form-label text-nowrap">Nhân viên:</label>
+                                                                 <div class="col-sm-8">
+                                                                      <span class="text-nowrap fw-semibold">'.$user['name'].'</span>
+                                                                      <input type="hidden" id="reviewEmp_name_'.$user_id.'" value="'.$user['name'].'">
+                                                                 </div>
+                                                            </div>
+                                                            <div class="mb-3 text-start fw-semibold row">
+                                                                 <label for="reviewEmp_outbound_'.$user_id.'" class="col-sm-4 form-label text-nowrap">Cuộc gọi đi:</label>
+                                                                 <div class="col-sm-8">
+                                                                      <span class="text-nowrap fw-semibold">'.($total_outbound).'</span>
+                                                                      <input type="hidden" id="reviewEmp_outbound_'.$user_id.'" value="'.($total_outbound).'">
+                                                                 </div>
+                                                            </div>
+                                                            <div class="mb-3 text-start fw-semibold row">
+                                                                 <label for="reviewEmp_outbound_answer_'.$user_id.'" class="col-sm-4 form-label text-nowrap">Có nghe máy:</label>
+                                                                 <div class="col-sm-8">
+                                                                      <span class="text-nowrap fw-semibold">'.((int)$user['outbound_answer'] + (int)$user['outbound_kpi']).'</span>
+                                                                      <input type="hidden" id="reviewEmp_outbound_answer_'.$user_id.'" value="'.((int)$user['outbound_answer'] + (int)$user['outbound_kpi']).'">
+                                                                 </div>
+                                                            </div>
+                                                            <div class="mb-3 text-start fw-semibold row">
+                                                                 <label class="col-sm-4 form-label text-nowrap">Tỉ lệ nghe máy:</label>
+                                                                 <div class="col-sm-8">
+                                                                      <span class="text-nowrap fw-semibold">
+                                                                           '. (($total_outbound > 0)  ? round((((int)$user['outbound_answer'] + (int)$user['outbound_kpi']) / $total_outbound) * 100, 2) : 0)  .'%
+                                                                      </span>
+                                                                 </div>
+                                                            </div>
+                                                            <div class="text-start fw-semibold row">
+                                                                 <label for="reviewEmp_question_ticket_'.$user_id.'" class="col-sm-4 form-label text-nowrap">Khách hỏi vé:</label>
+                                                                 <div class="col-sm-8">
+                                                                      <span class="text-nowrap fw-semibold">'.$count_question_ticket.'</span>
+                                                                      <input type="hidden" id="reviewEmp_question_ticket_'.$user_id.'" value="'.$count_question_ticket.'">
+                                                                 </div>
+                                                            </div>
+                                                       </div>
+                                                       <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                                            <button type="button" class="btnSendTeleBriefEmp btn btn-primary" data-id="'.$user_id.'" data-modal-id="reviewEmpModal_'.$user_id.'" class="btn btn-primary">Xác nhận</button>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                        </div>
+                                   </td>
                               </tr>
                          ';
+
+                         
                          $i++;
                     }
                }
@@ -590,7 +679,7 @@ class Viewstatistics extends SugarView
           $smartyobj->assign('TTL_SPAM', $total_spam_all);
           $smartyobj->assign('TTL_SUDDENLY', $total_suddenly_all);
           $smartyobj->assign('TTL_INTERNAL', $total_internal_all);
-          $smartyobj->assign('TTL_FINAL', $total_final);
+          $smartyobj->assign('TTL_EMP', $total_calls_all);
           $smartyobj->assign('ALL_OF_CALLS', $all_of_all);
      }
 

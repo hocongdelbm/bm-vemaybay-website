@@ -195,4 +195,5 @@ $mod_strings = array(
     'LBL_POINTS' => 'Điểm tích lũy',
     'LBL_CONTACT_TYPE' => 'Loại khách hàng',
     'LNK_POINTS_LOG' => 'Quá trình tích điểm',
+    'LBL_INFO_POINTS' => 'Quá trình tích điểm',
 );

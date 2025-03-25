@@ -2070,6 +2070,7 @@ $GLOBALS['app_list_strings']['call_reason_list'] = array(
   'in_mistake' => 'Nhầm lẫn, Lý Thông linh tinh',
   'in_other' => 'Khác, chưa định nghĩa',
   'out_no_need' => 'Khách chưa có nhu cầu',
+  'out_question_ticket' => 'Khách hỏi vé',
   'out_interest' => 'Đang quan tâm sơ bộ',
   'out_no_response' => 'Không nghe máy, bực mình'
 );

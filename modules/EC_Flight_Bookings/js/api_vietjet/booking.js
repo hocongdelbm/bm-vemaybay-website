@@ -338,6 +338,33 @@ $(document).ready(function () {
                         let text_modal_error = data['message'] + '\n' + data['description'];
                         showModalNotify(0, text_modal_error);
                     }
+                    else if(data['message'].includes('Lỗi 02')) {
+                        let text_modal_error = data['message'];
+                        let text_modal_description = data['description'] ? data['description'] : '';
+
+                        if(data['list_flight']) {
+                            let description = '';
+                            Object.keys(data['list_flight']).forEach(key => {
+                                let flightno = data['list_flight'][key]['flightno'] ?? '';
+                                let ticketclass = data['list_flight'][key]['class'] ?? '';
+                                let deptime = data['list_flight'][key]['deptime'] ?? '';
+                                let price = data['list_flight'][key]['price'] ?? '';
+
+                                description += `<p class="d-flex justify-content-center gap-3">
+                                    <span>${flightno} ${ticketclass}</span>
+                                    <span>Khởi hành: ${deptime}</span>
+                                    <span>Giá: <b>${price.toLocaleString('en-US')}</b></span>
+                                </p>`;
+                            });
+
+                            text_modal_description = `
+                                <h6>Dữ liệu trên hãng:</h6>
+                                <div class="text-center">${description}</div>
+                            `;
+                        }
+
+                        showModalNotify(0, text_modal_error, text_modal_description);
+                    }
                     else {
                         let text_modal_error = data['message'];
                         let text_modal_description = data['description'] ? data['description'] : '';

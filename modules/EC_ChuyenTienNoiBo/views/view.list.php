@@ -9,7 +9,8 @@ class EC_ChuyenTienNoiBoViewList extends ViewList {
 	
 	function listViewPrepare(){
 		if(empty($_REQUEST['orderBy'])){
-			$_REQUEST['orderBy'] = 'date_entered'; 
+			// $_REQUEST['orderBy'] = 'date_entered'; 
+			$_REQUEST['orderBy'] = 'ngaychungtu'; 
 			$_REQUEST['sortOrder'] = 'desc';
 		}
 		parent::listViewPrepare(); 

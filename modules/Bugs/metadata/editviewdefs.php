@@ -14,9 +14,6 @@ $viewdefs['Bugs']['EditView'] = array(
             array('label' => '10', 'field' => '30')
         ),
         'includes' => array(
-            array(
-                'file' => 'modules/Bugs/js/view.edit.js',
-            ),
         ),
     ),
 
@@ -46,21 +43,10 @@ $viewdefs['Bugs']['EditView'] = array(
             ),
 
             array(
-                'source',
+                'resolution',
                 'status',
 
             ),
-
-            array(
-                'product_category',
-                'resolution',
-            ),
-
-
-            // array(
-            //     'found_in_release',
-            //     'fixed_in_release'
-            // ),
 
             array(
                 array(

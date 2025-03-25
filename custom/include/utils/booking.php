@@ -267,7 +267,7 @@ function classifyContactv2($contactId)
         $type_contact['type'] = 'NEW_CUSTOMER';
         $type_contact['label'] = 'KH mới';
         $type_contact['desc'] = 'Chu kỳ năm có từ 1-3 bk và quá khứ không có bk';
-    } elseif ($completedCurrentPeriod >= 1){
+    } elseif ($completedCurrentPeriod >= 1) {
         $type_contact['type'] = 'OTHER';
         $type_contact['label'] = 'Loại khác';
         $type_contact['desc'] = 'Chưa có bk hoàn tất';
@@ -321,44 +321,226 @@ function journeyOfBooking($booking_id)
 }
 
 /**
- * Tính doanh số của 1 booking
- *
+ * Tính doanh số của 1 booking. Chỉ tính doanh số thực, không tính hoàn vé
+ * Các trạng thái đã chuyển khoản: 8, 7, 3
+ * Nếu booking có sử dụng điểm tích lũy thì không tính vào doanh số
  * @param string $booking_id của booking
  * @return string Trả về thông tin doanh số
  */
 function calculateBKTotalAmt($booking_id)
 {
     global $db;
+    $sql = "SELECT
+    IFNULL(b.total_amount, 0) 
+    + 
+    IFNULL((
+        SELECT SUM(IFNULL(pc.down*1000, 0))
+        FROM ec_contact_points_log pc
+        WHERE pc.parent_type = 'EC_Flight_Bookings' AND pc.parent_id = b.id AND pc.deleted = 0
+    ), 0)
+    +  
+    IFNULL((
+        SELECT SUM(IFNULL(hv.tongtienhang, 0))
+        FROM ec_hoanve hv 
+        WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
+    ), 0)
+    + 
+    IFNULL((
+        SELECT SUM(IFNULL(pt.amount, 0))
+        FROM ec_receipt_voucher pt 
+        WHERE pt.booking_id = b.id 
+        AND pt.rv_status IN (1, 2)
+        AND pt.loai_thu IN ('4','5')
+        AND pt.deleted = 0
+    ), 0)
+    - 
+    IFNULL((
+        SELECT SUM(IFNULL(d.total_bought_price, 0)) 
+        FROM ec_booking_details d 
+        WHERE d.booking_id = b.id AND d.deleted = 0
+    ), 0)
+    - 
+    IFNULL((
+        SELECT
+        IF(
+            b.flight_type = '0',
+            SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0) + IF(p.luggage_price_inbound > 0, IFNULL(p.luggage_purchase_inbound, 0), 0)),
+            SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
+            ) 
+        FROM ec_booking_passengers p 
+        WHERE p.booking_id = b.id AND p.deleted = 0 
+    ), 0)
+    - 
+    IFNULL((
+        SELECT SUM(IFNULL(hv.tongtienkhach, 0))
+        FROM ec_hoanve hv 
+        WHERE hv.tinhtrang = '1' AND hv.deleted = 0 AND hv.booking_id = b.id
+    ), 0)
+    -
+    IFNULL((
+        SELECT SUM(IFNULL(pt.bought_amount,0) + IFNULL(pt.bought_amount2,0) + IFNULL(pt.bought_amount3,0))
+        FROM ec_receipt_voucher pt 
+        WHERE pt.booking_id = b.id 
+        AND pt.rv_status IN (1, 2)
+        AND pt.loai_thu IN ('4','5')
+        AND pt.deleted = 0
+    ), 0)
+FROM ec_flight_bookings b 
+WHERE b.id = '" . $booking_id . "' 
+AND booking_status IN ('8', '7', '3') 
+AND b.deleted = 0";
 
-    $sql = '
-        SELECT 
-            total_amount
-            - IFNULL((
-                SELECT SUM(IFNULL(total_bought_price, 0))
-                FROM ec_booking_details
-                WHERE deleted = 0 AND booking_id = bk.id
-            ), 0)
-            - IFNULL((
-                SELECT IF(
-                    flight_type="0"
-                    , SUM(IF(
-                        px.luggage_price > 0
-                        , IFNULL(px.luggage_purchase,0), 0) 
-                        + IF(
-                            px.luggage_price_inbound>0
-                            , IFNULL(px.luggage_purchase_inbound,0)
-                            , 0)
-                        ), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)
-                    ))
-                FROM ec_booking_passengers px
-                WHERE px.deleted=0 AND px.add_type IS NULL
-                AND px.booking_id = bk.id
-            ),0)
-        FROM ec_flight_bookings bk
-        WHERE id = "' . $booking_id . '"
-        AND deleted = 0
-    ';
     return $db->getOne($sql);
+}
+
+/**
+ * Tính amount của 1 booking.
+ * Các trạng thái đã chuyển khoản: 8, 7, 3
+ * @param string $booking_id của booking
+ * @return array Trả về mảng gồm tất cả các cột có tác động đến doanh số của booking
+ */
+function calculateBKAmt($booking_id)
+{
+    global $db;
+
+    $sql = "SELECT
+            b.id AS booking_id,
+            b.name AS booking,
+            (
+                IFNULL(b.total_amount, 0) 
+                + 
+                IFNULL((
+                    SELECT SUM(IFNULL(pc.down*1000, 0))
+                    FROM ec_contact_points_log pc
+                    WHERE pc.parent_type = 'EC_Flight_Bookings' AND pc.parent_id = b.id AND pc.deleted = 0
+                ), 0)
+                +  
+                IFNULL((
+                    SELECT SUM(IFNULL(hv.tongtienhang, 0))
+                    FROM ec_hoanve hv 
+                    WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
+                ), 0)
+                + 
+                IFNULL((
+                    SELECT SUM(IFNULL(pt.amount, 0))
+                    FROM ec_receipt_voucher pt 
+                    WHERE pt.booking_id = b.id 
+                    AND pt.rv_status IN (1, 2)
+                    AND pt.loai_thu IN ('4','5')
+                    AND pt.deleted = 0
+                ), 0)
+            ) AS total_amount_all,
+            IFNULL(b.total_amount, 0) as total_amount,
+            -- GIÁ BÁN Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế
+            IFNULL((
+                SELECT SUM(IFNULL(pt.amount, 0))
+                FROM ec_receipt_voucher pt 
+                WHERE pt.booking_id = b.id 
+                AND pt.rv_status IN (1, 2)
+                AND pt.loai_thu IN ('4','5')
+                AND pt.deleted = 0
+            ), 0) AS total_amount_receipt,
+            -- GIÁ MUA Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế
+            IFNULL((
+                SELECT SUM(IFNULL(pt.bought_amount,0) + IFNULL(pt.bought_amount2,0) + IFNULL(pt.bought_amount3,0))
+                FROM ec_receipt_voucher pt 
+                WHERE pt.booking_id = b.id 
+                AND pt.rv_status IN (1, 2)
+                AND pt.loai_thu IN ('4','5')
+                AND pt.deleted = 0
+            ), 0) AS total_purchase_receipt,
+            -- Tiền giảm giá sử dụng điểm tích lũy
+            IFNULL((
+                SELECT SUM(IFNULL(pc.down*1000, 0))
+                FROM ec_contact_points_log pc
+                WHERE pc.parent_type = 'EC_Flight_Bookings' AND pc.parent_id = b.id AND pc.deleted = 0
+            ), 0) as total_amount_points,
+            -- Tiền hãng hoàn là khoản total_amount
+            IFNULL((
+                SELECT SUM(IFNULL(hv.tongtienhang, 0))
+                FROM ec_hoanve hv 
+                WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
+            ), 0) AS total_amount_brand_refunded,  
+            -- Tiền Hoàn khách là khoản total_bought_price
+            IFNULL((
+                SELECT SUM(IFNULL(hv.tongtienkhach, 0))
+                FROM ec_hoanve hv 
+                WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
+            ), 0) AS total_purchase_pass_refunded,  
+            (
+                IFNULL((
+                    SELECT SUM(IFNULL(d.total_bought_price, 0)) 
+                    FROM ec_booking_details d 
+                    WHERE d.booking_id = b.id AND d.deleted = 0
+                ), 0)
+                + 
+                IFNULL((
+                    SELECT
+                    IF(
+                        b.flight_type = '0',
+                        SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0) + IF(p.luggage_price_inbound > 0, IFNULL(p.luggage_purchase_inbound, 0), 0)),
+                        SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
+                        ) 
+                    FROM ec_booking_passengers p 
+                    WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
+                ), 0)
+                + 
+                IFNULL((
+                    SELECT SUM(IFNULL(hv.tongtienkhach, 0))
+                    FROM ec_hoanve hv 
+                    WHERE hv.tinhtrang='1' AND hv.deleted = 0 AND hv.booking_id = b.id
+                ), 0)
+                + 
+                IFNULL((
+                    SELECT SUM(IFNULL(pt.bought_amount,0) + IFNULL(pt.bought_amount2,0) + IFNULL(pt.bought_amount3,0))
+                    FROM ec_receipt_voucher pt 
+                    WHERE pt.booking_id = b.id 
+                    AND pt.rv_status IN (1, 2)
+                    AND pt.loai_thu IN ('4','5')
+                    AND pt.deleted = 0
+                ), 0)
+            ) AS total_purchase,
+            IFNULL((
+                SELECT SUM(IFNULL(d.total_bought_price, 0)) 
+                FROM ec_booking_details d 
+                WHERE d.booking_id = b.id AND d.deleted = 0
+            ), 0) AS total_purchase_booking,
+            IFNULL((
+                SELECT
+                IF(
+                    b.flight_type = '0',
+                    SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0) + IF(p.luggage_price_inbound > 0, IFNULL(p.luggage_purchase_inbound, 0), 0)),
+                    SUM(IF(p.luggage_price > 0, IFNULL(p.luggage_purchase, 0), 0))
+                    ) 
+                FROM ec_booking_passengers p 
+                WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
+            ), 0) as total_purchase_luggage,
+            ((SELECT total_amount_all) - (SELECT total_purchase)) AS total_profit 
+            FROM ec_flight_bookings b 
+            WHERE b.id = '" . $booking_id . "' 
+            AND booking_status IN ('8', '7', '3') 
+            AND b.deleted = 0";
+
+    $res = $db->query($sql);
+    $result = array();
+    while ($row = $db->fetchByAssoc($res)) {
+        $result = array(
+            'booking_id'                    => $row['booking_id'],
+            'booking'                       => $row['booking'],
+            'total_amount_all'              => $row['total_amount_all'],
+            'total_amount'                  => $row['total_amount'],
+            'total_amount_points'           => $row['total_amount_points'],
+            'total_amount_receipt'          => $row['total_amount_receipt'],
+            'total_amount_brand_refunded'   => $row['total_amount_brand_refunded'],
+            'total_purchase'                => $row['total_purchase'],
+            'total_purchase_booking'        => $row['total_purchase_booking'],
+            'total_purchase_pass_refunded'  => $row['total_purchase_pass_refunded'],
+            'total_purchase_luggage'        => $row['total_purchase_luggage'],
+            'total_purchase_receipt'        => $row['total_purchase_receipt'],
+            'total_profit'                  => $row['total_profit'],
+        );
+    }
+    return $result;
 }
 
 /**
@@ -403,7 +585,8 @@ function calculateBKTotalAmtFromContact($contactId)
     return $db->getOne($sql) ?? 0;
 }
 
-function calculatePointsFromBooking($booking_id) {
+function calculatePointsFromBooking($booking_id)
+{
     global $db;
     $sql = "SELECT SUM(service_fee * quantity) as points
         FROM ec_booking_details

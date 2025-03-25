@@ -1642,17 +1642,7 @@ function populateEditedLinePassenger($booking_id)
 if ($_POST['for'] == 'getShareProfit') {
 	$bk = new EC_Flight_Bookings;
 	// tính ds 1 booking
-	$bk_profit = $bk->calculateBKTotalAmt($_POST['bk']);
-
-	// bảng chia ds
-	// $html = '<thead>
-	// 	<tr>
-	// 		<td width="5%" style="font-weight: bold;">STT</td>
-	// 		<td width="55%" style="font-weight: bold;">Booker</td>
-	// 		<td style="text-align: right;font-weight: bold;">Số tiền</td>
-	// 		<td width="5%" style="text-align: center;font-weight: bold;"></td>
-	// 	</tr></thead>
-	// ';
+	$bk_profit = (int)calculateBKTotalAmt($_POST['bk']);
 	$html = '';
 
 	$sql = '
@@ -3731,12 +3721,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 					$journey 		= $journey_array["departure"] . '-' . $journey_array["arrival"];
 				}
 
-				// if ($row['booking_status'] == 8 || $row['booking_status'] == 7 || $row['booking_status'] == 3) {
 				if ($row['booking_status'] == 8) {
 					$count_booking_completed++;
 
-					$total_revenue  += $row['total_amount'];
-					$total_profit 	+= calculateBKTotalAmt($row['id']);
+					$total_revenue  += (int)$row['total_amount'];
+					$total_profit 	+= (int)calculateBKTotalAmt($row['id']);
 				} else if ($row['booking_status'] == 4) {
 					$count_booking_cancel++;
 				} else {
@@ -3753,8 +3742,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							<td class="' . $current_booking . ' text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
 							<td class="' . $current_booking . '">' . $row['contact_name'] . '</td>
 							<td class="' . $current_booking . ' text-center fw-bold">' . $row['total_qty'] . '</td>
-							<td class="' . $current_booking . ' text-end fw-bold">' . format_number($row['total_amount']) . '</td>
-							<td class="' . $current_booking . ' text-end fw-bold">' . format_number(calculateBKTotalAmt($row['id'])) . '</td>
+							<td class="' . $current_booking . ' text-end fw-bold">' . format_number((int)$row['total_amount']) . '</td>
+							<td class="' . $current_booking . ' text-end fw-bold">' . format_number((int)calculateBKTotalAmt($row['id'])) . '</td>
 						</tr>';
 				$i++;
 			}
@@ -3859,4 +3848,62 @@ if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
 		echo json_encode(['error' => 0, 'message' => 'Success']);
 		exit(); 
 	}
+
+	echo json_encode(['error' => 1, 'message' => 'Invalid params']);
+	exit(); 
+}
+if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
+	$parent_id 	= $_POST['parent_id'] ?? '';
+	$contact_id = $_POST['contact_id'] ?? '';
+	$reason 	= $_POST['reason'] ?? '';
+
+	if(strlen($contact_id) == 36 && strlen($parent_id) == 36) {
+		$point_log = new EC_Contact_Points_Log();
+		$point_log->retrieve($parent_id);
+		if($point_log->id == $parent_id && $point_log->down > 0) {
+			$refund_points = (int)$point_log->down; // Used point
+			$refund_amount = $refund_points*1000;
+
+			if($point_log->parent_type == 'EC_Flight_Bookings') {
+				$sql_refund_discount = "UPDATE ec_flight_bookings
+					SET discount_amount = discount_amount - $refund_amount, total_amount = total_amount + $refund_amount
+					WHERE id = '$point_log->parent_id'
+						AND booking_status IN('1', '2', '6')
+						AND discount_amount >= $refund_amount
+						AND deleted = 0";
+
+				$sql_refund_point = "UPDATE contacts SET points = points + $refund_points WHERE id = '$contact_id' AND deleted = 0";
+
+				if($db->query($sql_refund_discount) && $db->query($sql_refund_point)) {
+					$total_points = $db->getOne("SELECT points FROM contacts WHERE id = '$contact_id' AND deleted = 0");
+					$booking_name = $db->getOne("SELECT name FROM ec_flight_bookings WHERE id = '$point_log->parent_id' AND deleted = 0");
+
+					$point_log_refund = new EC_Contact_Points_Log();
+					$point_log_refund->id = '';
+					$point_log_refund->name = "Hoàn điểm từ booking $booking_name";
+					$point_log_refund->contact_id = $contact_id;
+					$point_log_refund->contact_phone = $db->getOne("SELECT phone_mobile FROM contacts WHERE id = '$contact_id' AND deleted = 0");
+					$point_log_refund->up = $refund_points;
+					$point_log_refund->down = 0;
+					$point_log_refund->current_point = $total_points + $refund_points;
+					$point_log_refund->parent_type = 'EC_Contact_Points_Log';
+					$point_log_refund->parent_id = $parent_id;
+					$point_log_refund->description = $reason;
+					$point_log_refund->save();
+
+					echo json_encode(['error' => 0, 'message' => 'Success']);
+					exit(); 
+				}
+
+				echo json_encode(['error' => 1, 'message' => 'Booking cannot be refunded points']);
+				exit(); 
+			}
+
+			echo json_encode(['error' => 1, 'message' => 'There is no refund policy']);
+			exit(); 
+		}
+	}
+
+	echo json_encode(['error' => 1, 'message' => 'Failed']);
+	exit(); 
 }

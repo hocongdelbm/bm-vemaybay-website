@@ -1,18 +1,19 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-class Viewbksalereport extends SugarView {
-	function display() {
+class Viewbksalereport extends SugarView
+{
+	function display()
+	{
 		$smartyCont = new Sugar_Smarty();
 		$this->populateContent($smartyCont);
 		$smartyCont->display('modules/EC_Flight_Bookings/tpls/view_bksalereport.tpl');
 	}
 
-	function populateContent($smartyobj) {
+	function populateContent($smartyobj)
+	{
 		global $current_user;
 
-		// report term
-		// check quarter 
 		switch (ceil(date('n') / 3)) {
 			case 1:
 				$cq_from_date = '01-01-' . date('Y');
@@ -52,7 +53,7 @@ class Viewbksalereport extends SugarView {
 		$report_term_list .= '<option data-fromdate="' . date('d-m-Y', strtotime("first day of previous month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of previous month")) . '" data-term="' . date('m', strtotime("last day of previous month")) . '" data-year="' . date('Y', strtotime("last day of previous month")) . '">Tháng trước</option>';
 		$report_term_list .= '<option data-fromdate="' . date('d-m-Y', strtotime($cq_from_date)) . '" data-todate="' . date('d-m-Y', strtotime($cq_to_date)) . '" data-term="' . date('m', strtotime($cq_from_date)) . '" data-year="' . date('Y', strtotime($cq_from_date)) . '">Quý này</option>';
 		$report_term_list .= '<option data-fromdate="' . date('d-m-Y', strtotime($lq_from_date)) . '" data-todate="' . date('d-m-Y', strtotime($lq_to_date)) . '" data-term="' . date('m', strtotime($lq_from_date)) . '" data-year="' . date('Y', strtotime($lq_from_date)) . '">Quý trước</option>';
-		
+
 		$smartyobj->assign('REPORT_TERM_LIST', $report_term_list);
 
 		// from date
@@ -92,7 +93,8 @@ class Viewbksalereport extends SugarView {
 	}
 
 	// Doanh số booker
-	function getDSBooking($from_date, $to_date, $assigned_user_id = '') {
+	function getDSBooking($from_date, $to_date, $assigned_user_id = '')
+	{
 		global $current_user;
 		// chỉ xem của 1 nhân viên
 		$user_search = '';
@@ -101,9 +103,7 @@ class Viewbksalereport extends SugarView {
 		}
 
 		// lấy mức ds tối thiểu
-		$min_rate = 70000000;
-
-		$hoanve = '';
+		$min_rate = 50000000;
 
 		$html = '
 			<thead>
@@ -112,10 +112,8 @@ class Viewbksalereport extends SugarView {
 				<th width="5%">Booking</th>
 				<th width="5%">Vé</th>
 				<th width="10%">Doanh số</th>
-				<th width="10%">DS cú đêm</th>
 				<th width="10%">DS được thưởng</th>
 				<th width="10%">Thưởng DS</th>
-				<th width="5%">Thứ hạng</th>
 				<th>Ghi chú</th>
 			</thead><tbody>';
 
@@ -127,7 +125,8 @@ class Viewbksalereport extends SugarView {
 				SUM(t.total_bk) AS total_bk,
 				SUM(t.total_qty) AS ticket_qty,
 				(
-					SUM(t.doanhso) - SUM(t.luggage_purchase_price)
+					SUM(t.doanhso) 
+					- SUM(t.luggage_purchase_price)
 					- IFNULL((
 						SELECT SUM(IFNULL(com_bk.total_amount, 0))
 						FROM ec_completed_bookings com_bk
@@ -139,22 +138,7 @@ class Viewbksalereport extends SugarView {
 							AND com_bk.deleted = 0
 					), 0)
 				) AS doanhso,
-				s.profit_overnight AS dscudem,
-				(
-					SUM(t.doanhso) 
-					- SUM(t.luggage_purchase_price) 
-					- IFNULL(s.profit_overnight, 0)
-					- IFNULL((
-						SELECT SUM(IFNULL(com_bk.total_amount, 0))
-						FROM ec_completed_bookings com_bk
-							INNER JOIN ec_flight_bookings bk ON bk.id = com_bk.ec_flight_bookings_id_c AND bk.deleted = 0
-						WHERE bk.assigned_user_id = t.user_id
-							AND com_bk.completed_bk_type = "SHARE_PROFIT"
-							AND DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-							AND DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-							AND com_bk.deleted = 0
-					), 0)
-				) AS dsconlai,
+				-- s.profit_overnight AS dscudem,
 				s.sales AS thuongds
 			FROM (
 				SELECT 	
@@ -229,8 +213,6 @@ class Viewbksalereport extends SugarView {
 				FROM ec_receipt_voucher t
 					LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id AND bk.deleted = 0 
 				WHERE 
-					-- DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-					-- AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
 					DATE_FORMAT(t.ngayhachtoan, "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
 					AND DATE_FORMAT(t.ngayhachtoan, "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
 					AND t.rv_status IN ( 1, 2 )
@@ -261,11 +243,7 @@ class Viewbksalereport extends SugarView {
 				AND s.month = ' . date('n', strtotime($from_date)) . ' 
 				AND s.year = ' . date('Y', strtotime($from_date)) .  ' AND s.deleted = 0
 			GROUP BY t.user_id
-			ORDER BY dsconlai DESC';
-
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($sql);
-		// }
+			ORDER BY doanhso DESC';
 
 		$res = $this->bean->db->query($sql);
 		$i = 1;
@@ -290,18 +268,16 @@ class Viewbksalereport extends SugarView {
 	 				<td class="text-center">' . format_number($row['total_bk']) . '</td>
 	 				<td class="text-center">' . format_number($row['ticket_qty']) . '</td>
 	 				<td class="text-end">' . format_number($row['doanhso']) . '</td>
-					<td class="text-end">' . format_number($row['dscudem']) . '</td>
 					<td class="text-end">' . format_number($row['doanhso'] - $row['dscudem']) . '</td>
 	 				<td class="text-end">' . format_number($row['thuongds']) . '</td>
-	 				<td class="text-center">' . $i . '/$TOTAL_RANK</td>
 	 				<td>' . $note . '</td>
 	 			</tr>';
 			// <input type="text" class="user-note"><input class="save-note-btn" type="button" value="Lưu">
 			$i++;
 
-			$total_bk_qty += $row['total_bk'];
-			$total_ticket_qty += $row['ticket_qty'];
-			$total_doanhso += $row['doanhso'];
+			$total_bk_qty += (int)$row['total_bk'];
+			$total_ticket_qty += (int)$row['ticket_qty'];
+			$total_doanhso += (int)$row['doanhso'];
 		}
 
 		$html .= '<tr class="last-row footer-tr">
@@ -313,17 +289,14 @@ class Viewbksalereport extends SugarView {
 	 			<td></td>
 	 			<td></td>
 	 			<td></td>
-	 			<td></td>
-				<td></td>
 	 		</tr></tbody>';
-
-		$html = str_replace('$TOTAL_RANK', $i - 1, $html);
 
 		return $html;
 	}
 
 	// Chi tiết doanh số
-	function getDetailDSBooking($from_date, $to_date, $assigned_user_id) {
+	function getDetailDSBooking($from_date, $to_date, $assigned_user_id)
+	{
 		if (empty($assigned_user_id)) {
 			$assigned_user_id_bk = ' AND (bk.assigned_user_id = "' . $assigned_user_id . '" OR bk.assigned_user_id IS NULL)';
 			$assigned_user_id_hv = ' AND (hv.assigned_user_id = "' . $assigned_user_id . '" OR hv.assigned_user_id IS NULL)';
@@ -564,24 +537,5 @@ class Viewbksalereport extends SugarView {
 			 	</tr></tbody>';
 
 		return $html;
-		// } else {
-		// 	return "Thiếu thông tin booker. Vui lòng vào trang doanh số chọn lại.";
-		// }
-	}
-
-	// Lấy doanh số tối thiểu
-	function getMinRate() {
-		$sql_rate_bonus = '
-				SELECT from_value 
-				FROM ec_commission 
-				WHERE DATE_FORMAT(date_entered, "%Y-%m-%d") = ( 
-					SELECT DATE_FORMAT(date_entered, "%Y-%m-%d") FROM ec_commission 
-					WHERE CONCAT(year, "-", month, "-01") <= "' . date('Y-n-01') . '" AND deleted = 0
-					ORDER BY date_entered DESC
-					LIMIT 1
-				) AND deleted = 0
-				ORDER BY from_value
-				LIMIT 1';
-		return $this->bean->db->getOne($sql_rate_bonus);
 	}
 }

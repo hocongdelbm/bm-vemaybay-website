@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
      $user = BeanFactory::newBean('Users');
      $user->retrieve($user_id);
-     $full_name     = $user->full_name;
+     $full_name     = trim($user->full_name);
      $title         = $user->title;
 
      if (
@@ -294,5 +294,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           ';
 
           echo $html;
+     } else if ($type == 'sendTeleConfirmCallSales'){
+          $emp_outbound            = $_POST['emp_outbound'] ?? 0;
+          $emp_outbound_answer     = $_POST['emp_outbound_answer'] ?? 0;
+          $emp_question_ticket     = $_POST['emp_question_ticket'] ?? 0;
+          $asr                     = ($emp_outbound > 0) ? round(($emp_outbound_answer / $emp_outbound) * 100, 2) : 0;
+               
+          if(strtotime($from_date) === strtotime($to_date)){
+               $mess_date = date('d/m/Y', strtotime($from_date));
+          } else{
+               $mess_date = date('d/m/Y', strtotime($from_date)) . ' - ' . date('d/m/Y', strtotime($to_date));
+          }
+
+          $messages = "- Nhân viên: <b>" . $full_name . "</b>\n" .
+          "- Ngày: <b>" . $mess_date . "</b>\n" .
+          "- Cuộc gọi đi: <b>" . $emp_outbound . "</b>\n" .
+          "- Nghe máy: <b>" . $emp_outbound_answer . "</b>\n" .
+          "- Tỉ lệ nghe máy: <b>" . $asr . "%</b>\n" .
+          "- Khách hỏi vé: <b>" . $emp_question_ticket . "</b>\n" .
+          "<pre>[INFO]: " . proposeCallImprovementStrategy($asr) . "</pre>";
+
+          $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+          $result = sendTeleConfirmCallSales(
+               json_encode(array(
+                    'text' => $content,
+                    'parse_mode' => 'HTML',
+               ), JSON_UNESCAPED_UNICODE),
+          );
+          
+          echo json_encode($result);
+          exit();
      }
 }

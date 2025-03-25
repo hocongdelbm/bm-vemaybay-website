@@ -17,7 +17,8 @@ class ContactsViewList extends ViewList
 
     public function listViewPrepare() {
 		if (empty($_REQUEST['orderBy']) || isset($_REQUEST['query'])) {
-			$_REQUEST['orderBy'] = 'date_entered';
+			// $_REQUEST['orderBy'] = 'date_entered';
+			$_REQUEST['orderBy'] = 'points';
 			$_REQUEST['sortOrder'] = 'desc';
 		}
 		parent::listViewPrepare();

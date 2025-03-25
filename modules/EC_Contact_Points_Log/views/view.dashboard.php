@@ -49,6 +49,7 @@ class Viewdashboard extends SugarView {
             GROUP BY contact_phone
             ORDER BY total_point DESC
             LIMIT 10";
+
         $res = $this->bean->db->query($sql);
 
         $stt = 0;

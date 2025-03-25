@@ -9,6 +9,7 @@ $mod_strings = array(
     'LBL_ASSIGNED_TO_NAME' => 'Thông báo tới',
     'LBL_ID' => 'ID',
     'LBL_DATE_ENTERED' => 'Ngày tạo',
+    'LBL_LIST_DATE_ENTERED' => 'Ngày thông báo',
     'LBL_DATE_MODIFIED' => 'Ngày sửa',
     'LBL_MODIFIED' => 'Được sửa bởi',
     'LBL_MODIFIED_NAME' => 'Chỉnh sửa bởi Tên',

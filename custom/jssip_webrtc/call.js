@@ -63,12 +63,12 @@ var callOptions = {
     'mediaConstraints': { 'audio': true, 'video': false },
     'sessionTimersExpires': 180, // Don't set a value lower than 90
     'eventHandlers': eventHandlers, // For debug
-    'pcConfig': { 
-        'iceServers': [
-            { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
-            { 'urls': 'stun:stun.cloudflare.com:3478' } // Máy chủ STUN của Cloudflare
-        ]
-    }
+    // 'pcConfig': { 
+    //     'iceServers': [
+    //         { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
+    //         { 'urls': 'stun:stun.cloudflare.com:3478' } // Máy chủ STUN của Cloudflare
+    //     ]
+    // }
 };
 
 /***********   Setup audio and ringtone   *************/
@@ -361,6 +361,7 @@ ua.on('newRTCSession', function (ev) {
         // ADD template-notes CHO cuộc gọi ĐI
         $('#template-notes').html(`
             <option value="out_no_need">Khách chưa có nhu cầu</option>
+            <option value="out_question_ticket">Khách hỏi vé</option>
             <option value="out_interest">Đang quan tâm sơ bộ</option>
             <option value="out_no_response">Không nghe máy, bực mình</option>
         `)

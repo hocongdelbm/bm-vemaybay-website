@@ -2,6 +2,9 @@ $(document).ready(function () {
 	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').addClass('allow-number-only');
 	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').css({ 'text-align': 'right' });
 
+	let discount_amount = $("#discount_amount");
+	discount_amount.prop("disabled", true);
+
 	var cal_date_format = $('#cal_date_format').val();
 	var dec_seperator = $('#dec_seperator').val();
 	var grp_seperator = $('#grp_seperator').val();
@@ -370,7 +373,6 @@ $(document).ready(function () {
 		var current_date = new Date().getTime();
 		var dti_arr = $('#date_ticket_issue_outbound').val().split('-');
 		var date_ticket_issue = new Date(dti_arr[1] + '/' + dti_arr[0] + '/' + dti_arr[2]).getTime();
-		let is_edit_voucher = $('#is_edit_voucher').val();
 
 		if (action == 'Save') {
 			if (is_ticket_exported == 1 && $.trim($('#date_ticket_issue_outbound').val()) == '') {
@@ -412,38 +414,10 @@ $(document).ready(function () {
 				return false;
 			}
 
-			if (is_edit_voucher == 1) {
-				let booking_id = $('input[type="hidden"][name="record"]').val();
-				let voucher_id = $('#voucher_id').val();
-				let voucher = $('#voucher').val();
-				let applied_id = $('#applied_id').val();
-
-				// check Voucher
-				$.ajax({
-					url: "index.php?entryPoint=entryPointGetInfoVoucher",
-					type: "POST",
-					data: {
-						booking_id: booking_id,
-						voucher: voucher,
-						voucher_id: voucher_id,
-						applied_id: applied_id,
-						for: "saveVoucher"
-					},
-					success: function (res) {
-						console.log(res);
-					}
-				});
-			}
-
 			return true;
 		}
 	});
 
-	$("#discount_amount").on('click', function () {
-		let text_warning = 'Vui lòng nhập mã voucher và nhấn nút "Áp dụng"';
-		showToastWarning(text_warning);
-	});
-	$('#discount_amount').prop('readonly', true);
 	$('#discount_amount').bind("cut copy paste", function (e) {
 		e.preventDefault();
 	});
@@ -455,65 +429,6 @@ $(document).ready(function () {
 	});
 	$('#discount_amount').on('contextmenu', function(e) {
 		e.preventDefault();
-	});
-
-	// Apply voucher
-	$("#apply_voucher").on('click', function () {
-		let applied_id = $('#applied_id').val();
-		let code_voucher = $('#voucher').val().trim();
-		let discount = parseInt($('#discount_amount').val().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ""));
-		let total_amount = parseInt($('#total_amount').val().toString().replace(/\B(?=(\d{3})+(?!\d))/g, ""));
-		let wayflight = $('#flight_type').val();
-		let total_qty = $('#total_qty').val();
-		let ticket_type = $('#ticket_type').val();
-		let journey = $('#journey').val();
-
-		$.ajax({
-			url: "index.php?entryPoint=entryPointGetInfoVoucher",
-			type: "POST",
-			data: {
-				applied_id: applied_id,
-				code_voucher: code_voucher,
-				discount: discount,
-				wayflight: wayflight,
-				total_qty: total_qty,
-				total_amount: total_amount,
-				ticket_type: ticket_type,
-				journey: journey,
-				for: "checkValidVoucher"
-			},
-			success: function (res) {
-				res = JSON.parse(res);
-				let reduce_amount = parseInt(res['value']);
-				let voucher_id = res['id'];
-
-				if (res['status'] == '2') {
-					// remove voucher
-					$("#voucher_id").val(voucher_id);
-					$("#discount_amount").val(0);
-					$("#total_amount").val(total_amount + reduce_amount);
-					$("#has_voucher").val(0);
-
-					$('#is_edit_voucher').val(1);
-				} else if (res['status'] == '1') {
-					$("#voucher_id").val(voucher_id);
-					$("#has_voucher").val(1);
-					$("#discount_amount").val(reduce_amount);
-					$("#total_amount").val(total_amount - reduce_amount + discount);
-
-					$('#is_edit_voucher').val(1);
-				} else if (res['status'] == '0') {
-					if (res['content']) {
-						let text_warning = res['content'];
-						showToastWarning(text_warning);
-					} else {
-						let text_warning = 'Voucher không tồn tại';
-						showToastWarning(text_warning);
-					}
-				}
-			}
-		});
-
 	});
 
 	// Autocomplete Location Booking (Field country)

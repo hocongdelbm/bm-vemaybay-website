@@ -177,24 +177,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 		</div>';	
 		$this->ss->assign('AIRLINE', $airline_html);
 
-		// Discount amount
-		$discount_amt = '<div class="d-flex gap-1 align-items-center">
-			<div class="flex-fill d-flex align-items-center gap-1">
-				<input type="text" class="flex-fill fw-semibold text-primary" name="voucher" id="voucher" placeholder="Mã Voucher" value="' . trim($this->bean->voucher) . '" />
-				<input type="hidden" name="voucher_id" id="voucher_id" value="' . $this->bean->voucher_id . '">
-				<input type="hidden" name="applied_id" id="applied_id" value="'.($this->bean->has_voucher ? $this->bean->voucher_id : '').'">
-				<input type="hidden" name="has_voucher" id="has_voucher" value="' . $this->bean->has_voucher . '">
-				<input type="hidden" name="is_edit_voucher" id="is_edit_voucher" value="0">
-				<input type="button" id="apply_voucher" class="btn btn-secondary min-w-unset w-40" value="Áp dụng">
-			</div>
-			<input type="text" class="w-70" name="discount_amount" id="discount_amount" size="30" maxlength="" value="' . format_number(isset($this->bean->discount_amount) ? $this->bean->discount_amount : 0) . '" title="" tabindex="124" />
-			<input type="hidden" id="bk_date_entered" value="' . (!empty($this->bean->date_entered) ? strtotime($this->bean->date_entered) : strtotime(date('Y-m-d H:i:s'))) . '">
-			<input type="hidden" id="bk_date_applied_vat_from" value="' . strtotime(date('2021-11-01 10:00:00')) . '">
-			<input type="hidden" id="bk_date_applied_vat_to" value="' . strtotime(date('2021-12-31 23:59:59')) . '">
-		</div>';
-		$this->ss->assign('DISCOUNT_AMOUNT', $discount_amt);
-
-
 		// Date ticket issue - Date ticket inbound issue (ngày xuất vé lượt đi - về)
 		// Only Admin and Accountant can view
 		$icon_calendar = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">

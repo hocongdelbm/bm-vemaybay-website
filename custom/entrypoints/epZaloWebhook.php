@@ -22,22 +22,93 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $event = isset($data['event_name']) ? $data['event_name'] : '';
 
         try {
-            $live_event_list = [
-                'user_send_text', 'user_send_image', 'user_send_gif', 'user_send_link', 'user_send_sticker', 'user_send_location', 'user_send_file', 'user_send_audio', 'user_send_video', 'user_send_business_card',
-                'oa_send_text', 'oa_send_image', 'oa_send_gif', 'oa_send_sticker', 'oa_send_file', 'oa_send_list', 'oa_send_template'
+            $list_consultation_events = [
+                'user_send_text',
+                'user_send_image', 'user_send_gif', 'user_send_sticker',
+                'user_send_link',
+                'user_send_file', 'user_send_audio', 'user_send_video',
+                'user_send_location',
+                'user_send_business_card',
+                'user_submit_info',
+
+                'oa_send_text',
+                'oa_send_image', 'oa_send_gif', 'oa_send_sticker',
+                'oa_send_file',
+                'oa_send_list',
             ];
 
-            if(in_array($event, $live_event_list)) {
-                // $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
-                // $client->send($response);
-                // $client->close();
-                header("HTTP/1.1 200 OK");
-                exit();
+            // Consultation messages
+            if(in_array($event, $list_consultation_events)) {
+                try {
+                    $zalomes = new EC_Zalo_Messages();
+                    $sender_id      = $data['sender']['id'] ?? '';
+                    $recipient_id   = $data['recipient']['id'] ?? '';
+                    $msg_id         = $data['message']['msg_id'] ?? '';
+                    $msg            = $data['message']['text'] ?? '';
+                    $msg_type       = $zalomes->map_sub_type($event);
+
+                    // Handle attachments
+                    $url = $thumbnail = $description = '';
+                    $lat = $long = '';
+                    $attachments = $data['message']['attachments'] ?? [];
+                    if(!empty($attachments)) {
+                        if(in_array($msg_type, ['image', 'gif', 'sticker'])) {
+                            $url = $attachments[0]['payload']['url'] ?? '';
+                            $thumbnail = $attachments[0]['payload']['thumbnail'] ?? '';
+                        }
+                        elseif(in_array($msg_type, ['link', 'audio', 'video', 'file'])) {
+                            $url = $attachments[0]['payload']['url'] ?? '';
+                            $thumbnail = $attachments[0]['payload']['thumbnail'] ?? '';
+                            $description = $attachments[0]['payload']['description'] ?? '';
+                        }
+                        elseif($msg_type == 'location') {
+                            $location = $attachments[0]['payload']['coordinates'] ?? '';
+                            if(!empty($location)) {
+                                $lat = $location['latitude'] ?? '';
+                                $long = $location['longitude'] ?? '';
+                            }
+                        }
+                    }
+
+                    $zalomes->new_with_id = true;
+                    $zalomes->id = $msg_id;
+                    $zalomes->src = strpos($event, "user_send") === false ? 0 : 1;
+                    $zalomes->from_id = $sender_id;
+                    $zalomes->to_id = $recipient_id;
+                    $zalomes->timestamp = $timestamp;
+                    $zalomes->type = 'consultation';
+                    $zalomes->sub_type = $msg_type;
+                    $zalomes->description = $msg;
+                    $zalomes->thumbnail = $thumbnail;
+                    $zalomes->url = $url;
+                    $zalomes->latitude = $lat;
+                    $zalomes->longitude = $long;
+                    $zalomes->attached_description = $description;
+                    $zalomes->response = trim($response);
+                    $zalomes->save();
+
+                    $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
+                    $client->send($response);
+                    $client->close();
+
+                    if($zalomes->src == 1) {
+                        $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
+                        $sql_update_contact = "UPDATE contacts SET zalo_last_interaction = '$zalo_last_interaction' WHERE zalo_id = '$sender_id' AND deleted = 0";
+                        $db->query($sql_update_contact);
+                    }
+                }
+                catch(Exception $e) {
+                    sendTestTelegram("Webhook Zalo\n" . $e->getMessage() . "\n\n" . $response);
+                }
+                finally {
+                    header("HTTP/1.1 200 OK");
+                    exit();
+                }
             }
-            else if ($event == 'widget_interaction_accepted') {
+            else if($event == 'widget_interaction_accepted') {
                 $zalo_user_id = $data['data']['user_id'] ?? ($data['data']['user_external_id'] ?? '');
                 $url = $data['data']['url'] ?? '';
-                $zalo_last_interaction = date('Y-m-d H:i:s', $timestamp / 1000);
+                $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
                 
                 if(!empty($zalo_user_id) && !empty($url)) {
                     $parsed_url = parse_url($url);

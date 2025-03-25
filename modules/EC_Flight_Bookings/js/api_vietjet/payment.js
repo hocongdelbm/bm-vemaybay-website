@@ -45,7 +45,7 @@ $(document).ready(function() {
                 $('.container-waiting').hide();
 
                 if (data['error'] === true) {
-                    showModalNotify('error', data['message'], data.response);
+                    showModalNotify('error', data['message'], data.response ?? '');
                     return;
                 }
 

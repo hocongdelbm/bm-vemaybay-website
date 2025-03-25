@@ -260,15 +260,11 @@ class Bug extends SugarBean
         $mod_strings = return_module_language($current_language, 'Bugs');
 
         $this->set_release();
-
-        // The new listview code only fetches columns that we're displaying and not all
-        // the columns so we need these checks.
         $the_array['NAME'] = (($this->name == "") ? "<em>blank</em>" : $this->name);
         $the_array['PRIORITY'] = empty($this->priority) ? "" : (!isset($app_list_strings[$this->field_name_map['priority']['options']][$this->priority]) ? $this->priority : $app_list_strings[$this->field_name_map['priority']['options']][$this->priority]);
         $the_array['STATUS'] = empty($this->status) ? "" : (!isset($app_list_strings[$this->field_name_map['status']['options']][$this->status]) ? $this->status : $app_list_strings[$this->field_name_map['status']['options']][$this->status]);
         $the_array['TYPE'] = empty($this->type) ? "" : (!isset($app_list_strings[$this->field_name_map['type']['options']][$this->type]) ? $this->type : $app_list_strings[$this->field_name_map['type']['options']][$this->type]);
 
-        $the_array['RELEASE'] = $this->release_name;
         $the_array['BUG_NUMBER'] = $this->bug_number;
         $the_array['ENCODED_NAME'] = $this->name;
 
@@ -324,6 +320,65 @@ class Bug extends SugarBean
 
     public function save($check_notify = false)
     {
+        global $current_user, $sugar_config;
+
+        if (isset($_POST['type']) && $_POST['type'] == 'report_bug_calls') {
+            $this->id = create_guid();
+            $this->new_with_id = true;
+            $this->name = $_POST['bugs_title'];
+            $this->description = $_POST['bugs_description'];
+            $this->type = 'Defect';
+            $this->status = 'New';
+            $this->priority = 'Medium';
+            $this->parent_id = $_POST['parent_id'];
+            $this->parent_type = $_POST['parent_type'];
+            $this->assigned_user_id = $_POST['current_user_id'];
+
+            if (!empty($this->id)) {
+                $list_user = [
+                    '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
+                    '1', //admin
+                ];
+
+                $alertData = [
+                    'name'         => '[Lỗi]: ' . $this->name,
+                    'parent_type'  => 'Bugs',
+                    'parent_id'    => $this->id,
+                    'description'  => $this->description,
+                    'url_redirect' => 'index.php?module=Bugs&action=DetailView&record=' . $this->id . '',
+                    'priority'     => 'medium',
+                    'type'         => 'readonly',
+                ];
+
+                $alert         = new Alert();
+                $alert->autoCreateAlert('Bugs', $list_user, $alertData);
+
+                // Send message to telegram
+                $messages = "- Nhân viên: <b>" . $current_user->full_name . "</b>\n" .
+                            "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                            "<pre>[LỖI CUỘC GỌI]: " . $this->description . "</pre>";
+
+                $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                sendTelegramWarningSystem(
+                    json_encode(array(
+                        'text' => $content,
+                        'parse_mode' => 'HTML',
+                        'reply_markup' => array(
+                            'inline_keyboard' => array(
+                                array(
+                                    array(
+                                        'text' => 'Redirect',
+                                        'url' => $sugar_config['site_url'].'/index.php?module='.$this->parent_type.'&&action=DetailView&record='.$this->parent_id.'',
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ), JSON_UNESCAPED_UNICODE),
+                );
+            }
+            unset($_POST['type']);
+        }
+
         return parent::save($check_notify);
     }
 }

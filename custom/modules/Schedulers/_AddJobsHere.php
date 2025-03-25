@@ -31,7 +31,7 @@ function saveReportWeekly()
 {
 	global $db;
 	$date_report = date('Y-m-d', strtotime('-1 day +7 hours'));
-	
+
 	$sql_exist = '
 		SELECT IF(COUNT(id) > 0, 1, 0) as count
 		FROM ec_report_weekly
@@ -40,7 +40,7 @@ function saveReportWeekly()
 			AND type = "BOOKING"
 			AND deleted = 0';
 	$count_rows = $db->getOne($sql_exist);
-	
+
 	// Bước 2: Tạo dữ liệu trong ec_report_weekly theo from_date - to_date
 	$sql_select = '
 		SELECT last_name, user_name, user_id,
@@ -240,21 +240,21 @@ function checkExpirationDateVoucher()
 	global $db;
 
 	$today = date('Y-m-d', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
-	$sql_check = '
-	SELECT
-		id,
-		status,
-		validate_to_date
-		FROM ec_vouchers
-		WHERE status IN ("new", "active") AND validate_to_date < "' . $today . '" AND deleted = 0
-	';
+	$sql_check = ' SELECT id FROM ec_vouchers WHERE status IN ("new", "pending") AND end_time < "' . $today . '" AND deleted = 0';
 
 	$res = $db->query($sql_check);
+	$list_voucher_expired = [];
 	while ($row = $db->fetchByAssoc($res)) {
+		$list_voucher_expired[] = '"' . $row['id'] . '"';
+	}
+
+	if (!empty($list_voucher_expired) && count($list_voucher_expired) > 0) {
 		$sql_update = '
-		UPDATE ec_vouchers
-		SET status = "expired"
-		WHERE id = "' . $row['id'] . '" AND deleted = 0';
+			UPDATE ec_vouchers 
+			SET status = "expired" 
+			WHERE id IN (' . implode(',', $list_voucher_expired) . ') 
+			AND deleted = 0
+			';
 		$db->query($sql_update);
 	}
 

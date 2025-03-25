@@ -239,7 +239,7 @@ $viewdefs[$module_name]['EditView'] = array(
                 array(
                     'name' => 'discount_amount',
                     'label' => 'LBL_DISCOUNT_AMOUNT',
-                    'customCode' => '{$DISCOUNT_AMOUNT}',
+                    // 'customCode' => '{$DISCOUNT_AMOUNT}',
                 ),
                 array(
                     'name' => 'iv_email',

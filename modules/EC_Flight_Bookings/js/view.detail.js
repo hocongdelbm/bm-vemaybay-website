@@ -1009,7 +1009,6 @@ $(document).ready(function () {
 
 	// Nút chia doanh số
 	$("#share_profit_btn").on("click", function () {
-
 		$("#share_profit_frm").dialog({
 			title: "Thông tin chia doanh số",
 			width: 400,
@@ -1026,7 +1025,6 @@ $(document).ready(function () {
 			},
 			beforeSend: function () {
 				$("#bk_ttl_amt").text("");
-				// $("#share_profit_tbl>tbody").html("<tr class='share_profit_loading'><td><img src='custom/themes/default/images/loading.gif' width='23'></td></tr>");
 			},
 			success: function (response) {
 				res = JSON.parse(response);
@@ -1672,7 +1670,6 @@ function markShareProfitDelete(ln) {
 }
 
 function checkShareProfit() {
-	// DS chia không thể cao hơn tổng DS
 	var total_profit = unformatNumber($("#bk_ttl_amt").text());
 	var share_profit = calculateTotalShareProfit();
 	if (share_profit > total_profit) {

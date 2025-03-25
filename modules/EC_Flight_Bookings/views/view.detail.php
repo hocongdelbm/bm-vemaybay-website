@@ -52,6 +52,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->createModal(); // Modal for confirm action
 
+		if($current_user->user_name == 'hungnh') {
+			pr(calculateBKAmt($this->bean->id));
+		}
+
 		parent::display();
 		$this->displayJS();
 	}
@@ -62,7 +66,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// External file
 		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.5"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.97"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.98"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.2"></script>
 		';

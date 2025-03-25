@@ -56,11 +56,16 @@ class EC_ChuyenTienNoiBo extends Basic {
     public function save($check_notify = FALSE){
 		global $current_user;
 		
-		if(empty($this->name)){
+		// if(empty($this->name)){
             // CTNB-230916-0001
-            $where = ' ngaychungtu >= "' . date('Y-m-d') . '" ';
-			$this->name = 'CTNB-' . date('ymd') . '-'.myAutoGenerateName('EC_ChuyenTienNoiBo', $where, 4);
-		}
+            // $where = ' ngaychungtu >= "' . date('Y-m-d') . '" ';
+			// $this->name = 'CTNB-' . date('ymd') . '-'.myAutoGenerateName('EC_ChuyenTienNoiBo', $where, 4);
+		// }
+
+        if (empty($this->name)) {
+			$total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM ec_chuyentiennoibo WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'");
+            $this->name = 'CTNB-' . date('ymd') . '-' . str_pad((int)$total_row, 4, '0', STR_PAD_LEFT);
+        }
 	
 		// Kiem tra tinh trang ghi so
 		if(empty($this->id))

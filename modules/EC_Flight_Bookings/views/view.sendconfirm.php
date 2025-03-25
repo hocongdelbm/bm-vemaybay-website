@@ -99,12 +99,10 @@ class Viewsendconfirm extends SugarView {
 			$subject = 'Đặt vé khuyến mãi '.$this->bean->name.' - '.$contact_name;
 		}
 		if($form_mail == 'sendmail_voucher.html') {
-			$this->changeVoucherStatus($this->bean->id);
 			$voucher 	= $this->getVoucherInfo($this->bean->id);
 			$form_body 	= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail);	
 			$subject 	= 'Voucher Timchuyenbay gởi tặng!';
-		} 
-		else $voucher = array(
+		} else $voucher = array(
 			'name' => '',
 			'amt' => 0,
 		);
@@ -812,22 +810,15 @@ class Viewsendconfirm extends SugarView {
 		return array('html' => $html, 'bank_owner' => $bank_owner, 'bank_main' => $bank_main);
 	}
 
-	function changeVoucherStatus($booking_id) {
-		$sql = 'UPDATE ec_vouchers SET status = 2 
-				WHERE booking_receive_id = "' . $booking_id . '"
-				AND deleted = 0';
-		$this->bean->db->query($sql);
-	}
-
 	function getVoucherInfo($booking_id) {
-		$sql = 'SELECT name, reduce_amount, validate_to_date
+		$sql = 'SELECT name, reduce_amount, end_time
 				FROM ec_vouchers 
-				WHERE booking_receive_id = "' . $booking_id . '"
+				WHERE booking_id = "' . $booking_id . '"
 				AND deleted = 0';
 
 		$res = $this->bean->db->query($sql);
 		$row = $this->bean->db->fetchByAssoc($res);
 
-		return array('name' => $row['name'], 'amt' => $row['reduce_amount'], 'expire_date' => date('d-m-Y', strtotime($row['validate_to_date'])));
+		return array('name' => $row['name'], 'amt' => $row['reduce_amount'], 'expire_date' => date('d-m-Y', strtotime($row['end_time'])));
 	}
 }

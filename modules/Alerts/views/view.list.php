@@ -15,6 +15,14 @@ class AlertsViewList extends ViewList {
 		parent::listViewPrepare();
 	}
 
+	public function listViewProcess() {
+		global $current_user;
+
+		// if(!is_admin($current_user)) 
+		$this->params['custom_where'] = " AND alerts.assigned_user_id = '$current_user->id'";
+        parent::listViewProcess();
+    }
+
 	function display() {
 		$this->lv->quickViewLinks = false;
 		$this->lv->lvd->additionalDetails = false;

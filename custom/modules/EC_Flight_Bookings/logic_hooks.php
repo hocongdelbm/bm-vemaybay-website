@@ -57,17 +57,3 @@ $hook_array["after_save"][] = array(
     "EC_Flight_BookingsLogicHook",
     "updateKPI"
 );
-// $hook_array["after_save"][] = array(
-//     4,
-//     "updateVoucher",
-//     "custom/modules/EC_Flight_Bookings/EC_Flight_BookingsLogicHook.php",
-//     "EC_Flight_BookingsLogicHook",
-//     "updateVoucher"
-// );
-// $hook_array["after_save"][] = array(
-//     5,
-//     "getVoucher",
-//     "custom/modules/EC_Flight_Bookings/EC_Flight_BookingsLogicHook.php",
-//     "EC_Flight_BookingsLogicHook",
-//     "getVoucher"
-// );

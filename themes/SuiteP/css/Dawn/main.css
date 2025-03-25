@@ -5030,6 +5030,8 @@ body.modal-active {
   transform: translate(-50%, -50%);
 }
 
+#modal-container .modal-main .modal-body .description {word-break: break-word;}
+
 #modal-container .modal-main.modal-success .modal-footer .btn-modal-close,
 #modal-container .modal-main.modal-success .icon-box {
   background: #82ce34;

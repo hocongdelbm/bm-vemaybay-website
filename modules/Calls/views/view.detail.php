@@ -15,9 +15,12 @@ class CallsViewDetail extends ViewDetail
 
 		if ($current_user->user_name == 'hungnh') {
 			$log = json_decode(html_entity_decode($this->bean->log), true);
+			$today = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
 			$date_format = $timedate->get_date_format();
+
 			pr($this->bean->log);
 			pr($log);
+			// pr($today);
 		}
 
 		$this->populateCustomButtons();
@@ -187,6 +190,58 @@ class CallsViewDetail extends ViewDetail
 								</div>';
 		}
 		$this->ss->assign('CALLS_ANNOTATION', $call_annotation);
+
+		// REPORT BUG
+		$report_bug = '</form><form action="index.php" method="post" id="frmReportBug" name="frmReportBug">
+							<input type="hidden" name="module" value="Bugs" />
+							<input type="hidden" name="action" value="Save" />
+							<input type="hidden" name="type" value="report_bug_calls" />
+							<input type="hidden" name="parent_id" value="' . $this->bean->id . '" />
+							<input type="hidden" name="parent_type" value="Calls" />
+							<input type="hidden" name="current_user_id" value="' . $current_user->id . '" />
+							<input type="hidden" name="record" value="' . $this->bean->id . '" />
+							<input type="hidden" name="return_module" value="Calls" />
+							<input type="hidden" name="return_action" value="DetailView" />
+							<input type="hidden" name="return_id" value="' . $this->bean->id . '" />
+							<button type="button" class="btn btn-danger" data-bs-toggle="modal" id="btnReportBug" data-bs-target="#modalReportBug">Báo lỗi</button>';
+
+			$report_bug .= '<div class="modal fade" id="modalReportBug" tabindex="-1" aria-labelledby="modalReportBugLabel" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered">
+									<div class="modal-content text-wrap">
+										<div class="modal-body">
+											<div class="container p-0">
+												<div class="row mb-3">
+													<div class="col-md-12">
+														<label for="bugs_title" class="form-label fw-semibold">Tiêu đề:</label>
+														<input type="text" name="bugs_title" id="bugs_title" class="form-control" maxlength="255" minlength="5" required placeholder="Nhập tiêu đề">
+													</div>
+												</div>
+												<div class="row mb-3">
+													<div class="col-md-12">
+														<label for="bugs_description" class="form-label fw-semibold">Mô tả:</label>
+														<textarea name="bugs_description" id="bugs_description" class="form-control" maxlength="500" minlength="50" rows="5" required placeholder="Nhập nội dung"></textarea>
+													</div>
+												</div>
+												<div class="row">
+													<div class="col-md-12">
+														<div class="alert alert-info m-0 text-dark">
+															<strong>Lưu ý:</strong>
+															<p>Hãy mô tả chi tiết lỗi để chúng tôi có thể kiểm tra và hỗ trợ bạn tốt hơn!</p>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+										<div class="modal-footer">
+											<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+											<button type="submit" class="btn btn-primary" id="btnSubmitReportBug">Gửi</button>
+										</div>
+									</div>
+								</div>
+							</div>';
+		$report_bug .= '</form>';
+
+		$this->ss->assign('REPORT_BUG', $report_bug);
 
 		if (isset($this->bean->log) && !empty($this->bean->log)) {
 			$log_call = json_decode(html_entity_decode($this->bean->log), true);

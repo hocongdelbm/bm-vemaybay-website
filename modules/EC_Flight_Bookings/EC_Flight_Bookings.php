@@ -225,7 +225,7 @@ class EC_Flight_Bookings extends Basic
 		}
 
 		// LƯU THÔNG TIN KHÁCH HÀNG
-		$this->saveInforCustomer($journey);
+		// $this->saveInforCustomer($journey);
 	}
 
 	function save2($check_notify = FALSE)

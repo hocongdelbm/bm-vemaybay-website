@@ -194,23 +194,6 @@ $dictionary['EC_Vouchers'] = array(
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Releasing quantity
-		'quantity' => array(
-			'name' => 'quantity',
-			'vname' => 'LBL_QUANTITY',
-			'type' => 'int',
-			'len' => 11,
-			'default' => 1,
-			'required' => 0,
-			'massupdate' => 0,
-			'importable' => 1,
-			'audited' => 0,
-			'reportable' => 0,
-			'disable_num_format' => '',
-			'duplicate_merge' => 'disabled',
-			'duplicate_merge_dom_value' => '0',
-		),
-
 		// Conditions apply
 		'condition_voucher' => array(
 			'name' => 'condition_voucher',

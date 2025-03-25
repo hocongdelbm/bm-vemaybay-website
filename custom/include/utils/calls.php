@@ -371,3 +371,80 @@ function getCallFailedCauseMeaning($cause) {
 
     return $meanings[strtoupper($cause)] ?? 'Không xác định';
 }
+
+
+function returnStragtegyCallSales($strategy) {
+
+}
+
+function proposeCallImprovementStrategy($asr) {
+    // $strategies = [
+    //     'high' => [
+    //         "Tỷ lệ bắt máy cao! Khách hàng phản hồi tốt. Duy trì khung giờ gọi hiện tại vì nó đang hiệu quả.",
+    //         "Tỷ lệ bắt máy cao! Khách hàng phản hồi tốt. Tiếp tục cá nhân hóa lời chào để duy trì sự thân thiện.",
+    //         "Tỷ lệ bắt máy cao! Khách hàng phản hồi tốt. Tăng tần suất gọi cho nhóm khách hàng tiềm năng.",
+    //         "Tỷ lệ bắt máy cao! Khách hàng phản hồi tốt. Thử mở rộng danh sách khách hàng tương tự nhóm hiện tại.",
+    //         "Tỷ lệ bắt máy cao! Khách hàng phản hồi tốt. Ghi nhận feedback từ khách hàng để cải thiện thêm."
+    //     ],
+    //     'good' => [
+    //         "Tỷ lệ nghe máy khá ổn, nhưng vẫn có thể cải thiện. Thử tối ưu hóa thời gian gọi, hoặc cách mở đầu cuộc gọi để tăng tỷ lệ phản hồi.",
+    //         "Tỷ lệ nghe máy khá ổn, nhưng vẫn có thể cải thiện. Điều chỉnh nhịp điệu giọng nói để tạo sự thu hút hơn.",
+    //         "Tỷ lệ nghe máy khá ổn, nhưng vẫn có thể cải thiện. Tăng cường tương tác với khách hàng để xây dựng lòng tin.",
+    //         "Tỷ lệ nghe máy khá ổn, nhưng vẫn có thể cải thiện. Hãy tối ưu cách mở đầu cuộc gọi bằng cách giới thiệu ngắn gọn nhưng hấp dẫn, nhấn mạnh vào giá trị mang lại ngay từ những giây đầu tiên.",
+    //         "Tỷ lệ nghe máy khá ổn, nhưng vẫn có thể cải thiện. Nếu khách hàng chưa nghe máy, hãy thử lại vào ngày khác thay vì liên tục gọi trong cùng một ngày."
+    //     ],
+    //     'average' => [
+    //         "Mức trung bình! Có thể khách hàng không quan tâm hoặc thời gian gọi chưa hợp lý. Tránh gọi vào giờ nghỉ trưa (12-13h), thử khung giờ khác như 3-5h chiều.",
+    //         "Mức trung bình! Có thể khách hàng không quan tâm hoặc thời gian gọi chưa hợp lý. Thay đổi kịch bản gọi để nhấn mạnh lợi ích cho khách hàng ngay từ đầu.",
+    //         "Mức trung bình! Có thể khách hàng không quan tâm hoặc thời gian gọi chưa hợp lý. Giảm tần suất gọi lặp lại để tránh làm phiền khách hàng.",
+    //         "Mức trung bình! Có thể khách hàng không quan tâm hoặc thời gian gọi chưa hợp lý. Kiểm tra danh sách khách hàng, đảm bảo số điện thoại không nằm trong danh sách chặn cuộc gọi quảng cáo nhằm liên hệ đúng đối tượng mục tiêu.",
+    //         "Mức trung bình! Có thể khách hàng không quan tâm hoặc thời gian gọi chưa hợp lý. Gnhấn mạnh lợi ích cụ thể cho khách hàng ngay trong 10 giây đầu.",
+    //     ],
+    //     'low' => [
+    //         "Khách hàng ít bắt máy! Có thể cách tiếp cận chưa phù hợp. Hãy thử điều chỉnh giọng điệu tự nhiên hơn, tránh đọc kịch bản một cách máy móc.",
+    //         "Khách hàng ít bắt máy! Có thể cách tiếp cận chưa phù hợp. Sàng lọc lại danh sách khách hàng để loại bỏ số điện thoại không hoạt động.",
+    //         "Khách hàng ít bắt máy! Tối ưu lại nội dung cuộc gọi, nhấn mạnh vào lợi ích, dịch vụ cung cấp cụ thể thay vì chỉ giới thiệu chung chung.",
+    //         "Khách hàng ít bắt máy! Có thể khách hàng không nhận diện được số lạ, hãy thử gửi tin nhắn Zalo trước khi gọi để tăng khả năng khách hàng nhận diện và phản hồi.",
+    //     ],
+    //     'very_low' => [
+    //         "Tỷ lệ bắt máy quá thấp! Kiểm tra lại toàn bộ danh sách khách hàng để đảm bảo đúng đối tượng.",
+    //         "Tỷ lệ bắt máy quá thấp! Cần xem lại cách tiếp cận mới.",
+    //         "Tỷ lệ bắt máy quá thấp! Thử các kênh liên lạc khác để thăm dò họ có quan tâm dịch vụ hay không.",
+    //         "Tỷ lệ bắt máy quá thấp! Học hỏi từ các cuộc gọi thành công để tối ưu kịch bản.",
+    //         "Tỷ lệ bắt máy quá thấp! Cải thiện giọng điệu và tốc độ nói để tạo cảm giác thân thiện hơn.",
+    //         "Tỷ lệ bắt máy quá thấp! Thử kịch bản gọi mới, tập trung vào câu mở đầu ngắn gọn và nhấn mạnh giá trị độc đáo của dịch vụ. Tôi là ai? cung cấp dịch vụ gì?"
+    //     ]
+    // ];
+    $strategies = [
+        'high' => [
+            "Tỷ lệ bắt máy cao!",
+        ],
+        'good' => [
+            "Tỷ lệ bắt máy ổn!",
+        ],
+        'average' => [
+            "Tỷ lệ bắt máy trung bình!",
+        ],
+        'low' => [
+            "Tỷ lệ bắt máy thấp!",
+        ],
+        'very_low' => [
+            "Tỷ lệ bắt máy quá thấp!",
+        ]
+    ];
+
+    if ($asr >= 80) {
+        $key = 'high';
+    } elseif ($asr >= 60) {
+        $key = 'good';
+    } elseif ($asr >= 50) {
+        $key = 'average';
+    } elseif ($asr >= 35) {
+        $key = 'low';
+    } else {
+        $key = 'very_low';
+    }
+
+    $randomIndex = array_rand($strategies[$key]);
+    return $strategies[$key][$randomIndex];
+}

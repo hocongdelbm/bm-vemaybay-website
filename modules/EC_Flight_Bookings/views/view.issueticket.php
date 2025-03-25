@@ -10,7 +10,7 @@ class Viewissueticket extends SugarView {
 	}
 
 	function displayStyle() {
-		$v = '1.0.1';
+		$v = '1.0.3';
 
 		$js = '';
         $js .= '<script src="modules/'.$this->bean->module_dir.'/js/api_vietjet/other.js?v='.$v.'"></script>';

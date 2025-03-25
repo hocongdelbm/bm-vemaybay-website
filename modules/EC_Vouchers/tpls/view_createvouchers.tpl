@@ -62,7 +62,7 @@
 					</td>
 				</tr>
 				<tr class="row-quantity">
-					<td class="label">Giảm tối đa:</td>
+					<td class="label">Số lượng:</td>
 					<td class="value">
 						<input type="text" class="allow-number-only box-input" id="voucher_qty" name="voucher_qty" required />
 					</td>

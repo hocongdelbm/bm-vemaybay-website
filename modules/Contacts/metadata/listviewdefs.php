@@ -67,6 +67,11 @@ $listViewDefs['Contacts'] = array(
         'label' => 'LBL_PHONE_MOBILE',
         'default' => true,
     ),
+    'POINTS' => array(
+        'width' => '10%',
+        'label' => 'LBL_POINTS',
+        'default' => true,
+    ),
     'ZALO_ID' => array(
         'width' => '15%',
         'label' => 'LBL_ZALO_ID',
