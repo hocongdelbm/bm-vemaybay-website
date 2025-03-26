@@ -629,12 +629,14 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 		$html .= '<thead>
 				<tr id="psg_first_row">
-					<th scope="col" class="text-start fw-semibold" style="width:8%;">Loại HK</th>
-					<th scope="col" class="text-center fw-semibold" style="width:6%;">Danh xưng</th>
-					<th scope="col" class="text-center fw-semibold" style="width:16%;">Họ tên</th>
-					<th scope="col" class="text-center fw-semibold" style="width:10%;">Ngày sinh</th>
-					<th scope="col" class="text-center fw-semibold" style="width:10%;">Số vé lượt đi</th>
-					<th scope="col" class="text-center fw-semibold" style="width:10%;">Số vé lượt về</th>
+					<th scope="col" class="text-start fw-semibold" style="width:5%;">Loại HK</th>
+					<th scope="col" class="text-center fw-semibold" style="width:5%;">Danh xưng</th>
+					<th scope="col" class="text-center fw-semibold" style="width:12%;">Họ tên</th>
+					<th scope="col" class="text-center fw-semibold" style="width:8%;">Ngày sinh</th>
+					<th scope="col" class="text-center fw-semibold" style="width:8%;">Số vé lượt đi</th>
+					<th scope="col" class="text-center fw-semibold" style="width:8%;">Số vé lượt về</th>
+					<th scope="col" class="text-center fw-semibold" style="width:8%;">Số vé HL lượt đi</th>
+					<th scope="col" class="text-center fw-semibold" style="width:8%;">Số vé HL lượt về</th>
 					<th scope="col" class="text-center fw-semibold" style="width:8%;">PNR lượt đi</th>
 					<th scope="col" class="text-center fw-semibold" style="width:8%;">PNR lượt về</th>
 					<th scope="col" class="text-center fw-semibold" style="width:12%;">Hành lý lượt đi</th>
@@ -712,11 +714,14 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 				<input type="text" name="psg_passport_number[]" id="psg_passport_number'. $i .'" value="'. $row['passport_number'] .'" class="text-start" maxlength="10" />
 			</td>';
 
-			// Nếu code vé đã nhập thì không cho sửa trừ kế toán, admin
 			// Số vé lượt đi
 			$html .= '<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound'.$i.'" value="'.$row['eticket_outbound'].'" class="text-center" maxlength="25" /></td>';
 			// Số vé lượt về
 			$html .= '<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound'.$i.'" value="'.$row['eticket_inbound'].'" class="text-center" maxlength="25" /></td>';
+			// Số vé HL lượt đi
+			$html .= '<td data-label="Số vé HL lượt đi"><input type="text" name="psg_eluggage_outbound[]" id="psg_eluggage_outbound'.$i.'" value="'.$row['eluggage_outbound'].'" class="text-center" maxlength="25" /></td>';
+			// Số vé HL lượt về
+			$html .= '<td data-label="Số vé HL lượt về"><input type="text" name="psg_eluggage_inbound[]" id="psg_eluggage_inbound'.$i.'" value="'.$row['eluggage_inbound'].'" class="text-center" maxlength="25" /></td>';
 			// PNR lượt đi
 			$html .= '<td data-label="PNR lượt đi"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound'.$i.'" value="'.$row['pnr_outbound'].'" class="text-center" maxlength="30" /></td>';
 			// PNR lượt về
@@ -748,7 +753,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 			#####  Line 2 (Hành lý đi nếu có)  #####
 			$html .= '<tr id="psg_line_desc_'.$i.'">
-					<td data-label="Thông tin HL đi" class="row_psg_price" colspan="12">
+					<td data-label="Thông tin HL đi" class="row_psg_price" colspan="13">
 						<div class="psg_price-wrap d-flex gap-2 align-items-center">
 							<div class="col_psg_price flex-fill">
 								<span class="text-label">Giá mua HL lượt đi (VAT): </span>
@@ -784,7 +789,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 			#####  Line 3 (Hành lý về nếu có)  #####
 			$html .= '<tr id="psg_line_lug_'. $i .'">
-						<td data-label="Thông tin HL về" class="row_psg_price" colspan="12">
+						<td data-label="Thông tin HL về" class="row_psg_price" colspan="13">
 							<div class="psg_price-wrap d-flex gap-2 align-items-center">
 								<div class="col_psg_price flex-fill">
 									<span class="text-label">Giá mua HL lượt về (VAT): </span>
@@ -822,7 +827,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 		}
 
 		$html .= '<tr id="psg_last_row" class="footer-tr">
-			<td colspan="11" class="text-start">
+			<td colspan="13" class="text-start">
 				<input type="button" class="btn btn-primary" id="btnPassengerAddRow" value="Thêm dòng" title="Thêm dòng" />
 				Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>
 				<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />

@@ -6,12 +6,12 @@ date_default_timezone_set("Asia/Ho_Chi_Minh");
 class Viewticketreport extends SugarView
 {
     private $_is_allow_recheck = true;
-    var $_loai_thu_str = "'4', '5', '10', '11', '12', '13', '14', '16'";
+    private $_loai_thu_str = "'4', '5', '10', '11', '12', '13', '14', '16'";
 
     function __construct()
     {
         global $current_user;
-        if (is_admin($current_user) || (ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && ACLController::checkAccess('Bugs', 'list', true))
+        if (is_admin($current_user) || (ACLController::checkAccess('EC_Payment_Voucher', 'edit', true))
         ) {
             $this->_is_allow_recheck = true;
         }
@@ -146,23 +146,6 @@ class Viewticketreport extends SugarView
         if (!$is_manager && !is_admin($current_user)) {
             $sql_role .= " AND bk.assigned_user_id='" . $current_user->id . "' ";
         }
-
-        // $full_report_titles = array_keys($app_list_strings['user_title_allow_full_report']);
-        // $user_title = strtolower(preg_replace('/\W/', '', $current_user->title));
-        // $user_id = !empty($_REQUEST['uid']) && is_guid($_REQUEST['uid']) ? $_REQUEST['uid'] : '';
-        // $sql_role = "";
-        // if (in_array($user_title, $full_report_titles)) {
-        //     if(!empty($user_id)){
-        //         $sql_role .= " AND bk.assigned_user_id='" . $user_id . "' ";
-        //     } else {
-        //         $sql_role .= "";
-        //     }
-        // } else {
-        //     if ($user_id != $current_user->id) {
-        //         $user_id = $current_user->id;
-        //     }
-        //     $sql_role .= " AND bk.assigned_user_id='" . $user_id . "' ";
-        // }
 
         // routing
         $data = '';
@@ -484,7 +467,30 @@ class Viewticketreport extends SugarView
         // set view_percent = 100 để ai cũng có thể xem được
         $current_user->view_percent = 100;
 
-        $view_percent = ",SUM(bkd.quantity) AS total_quantity 
+        $view_percent = ",SUM(bkd.quantity) AS total_quantity
+                        , (
+                            IFNULL((
+                                SELECT SUM(IFNULL(pc1.down * 1000, 0))
+                                FROM ec_contact_points_log pc1
+                                WHERE pc1.parent_type = 'EC_Flight_Bookings' 
+                                    AND pc1.parent_id = bk.id 
+                                    AND pc1.deleted = 0
+                            ), 0)
+                            -  
+                            IFNULL((
+                                SELECT SUM(IFNULL(pc2.up * 1000, 0))
+                                FROM ec_contact_points_log pc2
+                                WHERE pc2.parent_type = 'EC_Contact_Points_Log' 
+                                    AND pc2.parent_id IN (
+                                        SELECT pc_inner.id
+                                        FROM ec_contact_points_log pc_inner
+                                        WHERE pc_inner.parent_type = 'EC_Flight_Bookings' 
+                                            AND pc_inner.parent_id = bk.id 
+                                            AND pc_inner.deleted = 0
+                                    )
+                                    AND pc2.deleted = 0
+                            ), 0)
+                        ) AS total_points_amount
                         ,bk.total_amount AS subtotal_amount 
                         ,(SUM(IFNULL(bkd.total_bought_price,0)) 
 							+
@@ -581,6 +587,7 @@ class Viewticketreport extends SugarView
                     ,p.aircode AS airline_outbound
                     ,'' AS airline_inbound
                     ,0 AS total_quantity
+                    , 0 AS total_points_amount
                     ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0))  AS subtotal_amount
                     ,SUM(
                     IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount, 0), 0) 
@@ -622,11 +629,11 @@ class Viewticketreport extends SugarView
                 GROUP BY p.id
                 
                 -- hoan ve
-
                 UNION
                 SELECT hv_t.parent_id, hv_t.parent_name, hv_t.parent_type
                     , hv_t.airline_outbound, hv_t.airline_inbound
                     , SUM(hv_t.total_quantity) AS total_quantity
+                    , 0 AS total_points_amount
                     , SUM(hv_t.subtotal_amount) AS subtotal_amount
                     , SUM(hv_t.total_bought_price) AS total_bought_price, hv_t.flight_type
                     , hv_t.ticket_type, hv_t.booking_description, hv_t.departure
@@ -648,6 +655,7 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_outbound
                         ,'' AS airline_inbound
                         , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
+                        , 0 AS total_points_amount
                         ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS subtotal_amount
                         ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS total_bought_price
                         ,'' AS flight_type
@@ -690,6 +698,7 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_outbound
                         ,'' AS airline_inbound
                         , 0 AS total_quantity
+                        , 0 AS total_points_amount
                         , SUM(IFNULL(p.tongtienhang,0))  AS subtotal_amount
                         , SUM(IFNULL(p.tongtienkhach,0)) AS total_bought_price
                         ,'' AS flight_type
@@ -742,7 +751,8 @@ class Viewticketreport extends SugarView
         $total_bought_price = 0;
         $total_profit       = 0;
         $total_receipt      = 0;
-        
+        $total_points_amount = 0;
+
         $html = $xls = '';
         while ($row = $db->fetchByAssoc($res)) {
 
@@ -776,7 +786,7 @@ class Viewticketreport extends SugarView
                     <td class="text-start booking_description hide-mobile">' . $row['booking_description'] . ($row['not_from_web'] ? (!empty($row['booking_description']) ? '<br>' : '') . '<b>(Tạo bởi booker)</b>' : '') . '</td>
                     <td class="text-end hide-mobile">' . format_number($row['subtotal_amount']) . '</td>
                     <td class="text-end total_bought_price hide-mobile">' . format_number($row['total_bought_price']) . '</td>
-                    <td class="text-end">' . format_number($profit_amount) . '</label></td>';
+                    <td class="text-end">' . format_number($profit_amount) . ' '.((int)$row['total_points_amount'] > 0 ? '<span class="total_points_amount fw-semibold text-dark"> / '.format_number($row['total_points_amount']).'</span>' : '').'</label></td>';
 
             // $html .= '<td class="text-center hide-mobile">' . ($row['country'] == "VN" ? "" : $row['country']) . '</label></td>';
 
@@ -835,11 +845,12 @@ class Viewticketreport extends SugarView
             $xls .= "<td class=xl6624108 style='border-top:none;border-left:none'>" . $row['date_ticket_issue'] . "</td>";
             $xls .= "</tr>";
 
-            $total_quantity += $row['total_quantity'];
-            $subtotal_amount += $row['subtotal_amount'];
-            $total_bought_price += $row['total_bought_price'];
-            $total_profit += $profit_amount;
-            $total_receipt += $row['receipt_amount'];
+            $total_quantity += (int)$row['total_quantity'];
+            $total_points_amount += (int)$row['total_points_amount'];
+            $subtotal_amount += (int)$row['subtotal_amount'];
+            $total_bought_price += (int)$row['total_bought_price'];
+            $total_profit += (int)$profit_amount;
+            $total_receipt += (int)$row['receipt_amount'];
             $i++;
         } // end while
 
@@ -855,6 +866,7 @@ class Viewticketreport extends SugarView
             <td class="text-center fw-semibold color-red total_bought_price">' . format_number($total_bought_price) . '</td>
             <td class="text-center fw-semibold color-red total_profit">' . format_number($total_profit) . '</td>
             <td class="text-center fw-semibold color-red total_receipt">' . format_number($total_receipt) . '</td>
+            <td class="text-center fw-semibold color-red total_points_amount">' . format_number($total_points_amount) . '</td>
         </tr>';
 
         $html .= '<tr class="footer-tr">
@@ -864,7 +876,7 @@ class Viewticketreport extends SugarView
             <td class="notes hide-mobile">&nbsp;</td>
             <td class="text-center fw-semibold color-red subtotal_amount hide-mobile">' . format_number($subtotal_amount) . '</td>
             <td class="text-center fw-semibold color-red total_bought_price hide-mobile">' . format_number($total_bought_price) . '</td>
-            <td class="text-center fw-semibold color-red total_profit">' . format_number($total_profit) . '</td>
+            <td class="text-center fw-semibold color-red total_profit">' . format_number($total_profit) . ' / ' . format_number($total_points_amount) . '</td>
             <td class="text-center fw-semibold color-red total_receipt hide-mobile">' . format_number($total_receipt) . '</td>
             <td class="employees">&nbsp;</td>
             <td class="date_created hide-mobile">&nbsp;</td>
@@ -879,6 +891,7 @@ class Viewticketreport extends SugarView
 				  <td class=xl7024108 align=right style='border-top:none;border-left:none'>" . format_number($subtotal_amount) . "</td>
 				  <td class=xl7024108 align=right style='border-top:none;border-left:none'>" . format_number($total_bought_price) . "</td>
 				  <td class=xl7024108 align=right style='border-top:none;border-left:none'>" . format_number($total_receipt) . "</td>
+				  <td class=xl7024108 align=right style='border-top:none;border-left:none'>" . format_number($total_points_amount) . "</td>
 				  <td class=xl6924108 style='border-top:none;border-left:none'>&nbsp;</td>
 				  <td class=xl6924108 style='border-top:none;border-left:none'>&nbsp;</td>
 				  <td class=xl6924108 style='border-top:none;border-left:none'>&nbsp;</td>

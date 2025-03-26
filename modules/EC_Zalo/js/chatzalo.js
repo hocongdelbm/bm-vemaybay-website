@@ -12,6 +12,7 @@ var zsocket;
 var count_connect_error = 0;
 
 $(document).ready(function () {
+    getListUser()
     connectWebSocket();
 
     // Click
@@ -839,6 +840,51 @@ $(document).ready(function () {
     });
 });
 
+/**
+ * Get list user
+ * 
+ * @param {string} type
+ * @param {number} timestamp
+ * @param {string} current_list_user
+ */
+function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
+    if(type == 'default') {
+        $.ajax({
+            url: URL,
+            type: "POST",
+            data: {
+                action: "get_recent_messages", 
+                timestamp: timestamp,
+                current_list_user: current_list_user
+            },
+            beforeSend: function() {
+                loadingSkeleton('list_user', 9);
+            },
+            success: function (response) { // JSON
+                removeLoadingSkeleton();
+
+                if(response.length > 0) {
+                    let obj = JSON.parse(response);
+                    obj.data.forEach(row_data => {
+                        let message_info = row_data.message_info;
+                        let user_info = row_data.user_info;
+
+                        let html = create_li_chat(message_info, user_info);
+                        $('#list_mess_main').append(html);
+                    });
+                    $('input[name="last_timestamp"]').val(obj.last_timestamp);
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                removeLoadingSkeleton();
+                console.error(XMLHttpRequest);
+                console.error("Status: " + textStatus);
+                console.error("Error: " + errorThrown);
+            }
+        });
+    }
+}
+
 function connectWebSocket() {
     if(!OA_ID || OA_ID.length === 0) return false;
 
@@ -890,18 +936,18 @@ function connectWebSocket() {
                 };
 
                 // Add additional fields 
-                let attachments = data['message']['attachments'] ? data['message']['attachments'] : null;
+                let attachments = data['message']['attachments'] ?? null;
                 if(attachments) {
                     if(type == 'image' || type == 'photo' || type == 'gif' || type == 'sticker') {
-                        obj['url'] = attachments[0]['payload']['url'];
+                        obj['url'] = attachments[0]['payload']['url'] ?? '#';
                     }
                     else if(type == 'audio' || type == 'voice') {
-                        obj['url'] = attachments[0]['payload']['url'];
+                        obj['url'] = attachments[0]['payload']['url'] ?? '#';
                     }
                     else if(type == 'video') {
-                        obj['url'] = attachments[0]['payload']['url'];
-                        obj['thumb'] = attachments[0]['payload']['thumbnail'];
-                        obj['description'] = attachments[0]['payload']['description'];
+                        obj['url'] = attachments[0]['payload']['url'] ?? '#';
+                        obj['thumb'] = attachments[0]['payload']['thumbnail'] ?? '#';
+                        obj['description'] = attachments[0]['payload']['description'] ?? '';
                     }
                     else if(type == 'file') {
                         obj['file'] = attachments[0]['payload'];
@@ -909,10 +955,10 @@ function connectWebSocket() {
                     else if(type == 'link' || type == 'links') {
                         obj['links'] = [];
                         $.each(attachments , function(index, att) {
-                            let url = att.payload.url;
-                            let title = att.payload.title;
-                            let thumb = att.payload.thumbnail;
-                            let description = att.payload.description;
+                            let url = att.payload.url ?? '#';
+                            let title = att.payload.title ?? '';
+                            let thumb = att.payload.thumbnail ?? '#';
+                            let description = att.payload.description ?? '';
                             obj['links'].push({'url':url, 'title':title, 'thumb':thumb, 'description':description});
                         });
                     }
@@ -1194,7 +1240,7 @@ function create_chat_box(data_user, data_message, is_return = false) {
 
             let mid = valueObj.message_id ? valueObj.message_id : '';
             let sender_id = valueObj.from_id ? valueObj.from_id : '';
-            let timestamp = valueObj.time ? valueObj.time : 0;
+            let timestamp = valueObj.timestamp ? valueObj.timestamp : (valueObj.time ? valueObj.time : 0);
 
             valueObj['previous_sender_id'] = previous_sender_id;
             valueObj['previous_timestamp'] = previous_timestamp;
@@ -1241,17 +1287,19 @@ function create_chat_box(data_user, data_message, is_return = false) {
 function create_chat_row(obj, ctype = 'load') {
     let mid = obj.message_id ? obj.message_id : '';
     let quote_id = obj.quote_id ? obj.quote_id : '';
+    let parent_type = obj.message_type ? obj.message_type : 'consultation';
     let type = obj.type ? obj.type : '';
     let message = obj.message ? formatText(obj.message) : '';
     let src = obj.src ? obj.src : 0;
-    let timestamp = obj.time ? parseInt(obj.time) : 0;
+    let timestamp = obj.time ? parseInt(obj.time) : (obj.timestamp ? parseInt(obj.timestamp) : 0);
     let sent_time = formatTimestampZalo(timestamp, 'd/m/Y', 'H:i:s', 'time');
     let sender_id = obj.from_id ? obj.from_id : '';
-    let avatar = obj.from_avatar ? obj.from_avatar : DEFAULT_AVATAR;
+    let avatar = obj.from_avatar ? obj.from_avatar : (src == 0 ? OA_AVATAR : DEFAULT_AVATAR); // Here
     let previous_sender_id = obj.previous_sender_id ? obj.previous_sender_id : null;
     let previous_timestamp = obj.previous_timestamp ? obj.previous_timestamp : null;
     let timeout = ctype == 'load' ? 60 * 60 * 1000 : 20 * 60 * 1000;
     let html = '';
+
 
     // Time line
     let datetimeline    = new Date(timestamp);
@@ -1275,138 +1323,165 @@ function create_chat_row(obj, ctype = 'load') {
 
     // Content
     let content = '', classnamepicture = '';
-    if (type == 'text') {
-        content += `<span class="content"><span>${message}</span></span>`;
-    }
-    else if (type == 'photo' || type == 'image' || type == 'gif') {
-        let url = obj.url ? obj.url : '#';
-        if(message.length == 0) message = obj.description ? obj.description.trim() : '';
-        let text = message.length > 0 ? `<span class="content"><span>${message}</span></span>` : '';
-        classnamepicture = text.length > 0 ? 'picture_text' : '';
+    if (parent_type == 'zns') {
+        let zns_items = '';
+        let template_data = obj.message_data ? obj.message_data : {};
 
-        content += `
-            <div class="content-picture item">
-                <img src="${url}">
-                ${text}
+        for (let key in template_data) {
+            let label_name = get_label_name_template_zns(key);
+            if(!label_name || label_name.length == 0) continue;
+            zns_items += `<div class="item">
+                <div class="label">${label_name}</div>
+                <div class="value">${template_data[key]}</div>
+            </div>`;
+        }
+        
+        content = `<div class="card-container content-zns">
+            <div class="header-zns">Tin nhắn ZNS</div>
+            <div class="body-zns">
+                <h6 class="title-zns">Xác nhận hành trình</h6>
+                <div class="data-zns">${zns_items}</div>
             </div>
-        `;
+        </div>`;
+        type = parent_type;
     }
-    else if (type == 'sticker') {
-        let url = obj.url ? obj.url : '#';
-        content += `<img src="${url}">`;
-    }
-    else if (type == 'voice' || type == 'audio') {
-        let url = obj.url ? obj.url : '#';
-        content += `
-            <div class="sound-container">
-                <a class="func-play control" href="${url}" target="_blank" title="Play">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
-                    </svg>
-                </a>
-                <div class="ic_load">
-                    <div class="line"></div>
-                    <div class="line"></div>
-                    <div class="line"></div>
-                </div>
-                <span class="timer">00:00</span>
-            </div>
-        `;
-    }
-    else if (type == 'video') {
-        let url = obj.url ? obj.url : '#';
-        content += `
-            <video id="video" width="320" controls="">
-                <source src="${url}" type="video/mp4">
-                <source src="${url}" type="video/ogg">
-            </video>
-        `;
-    }
-    else if (type == 'file') {
-        let file = obj.file ? obj.file : null;
-        if(file) {
-            let file_size = file.size ? formatFileSize(parseInt(file.size)) : '';
-            let file_name = file.name ? file.name : '';
-            let file_type = file.type ? file.type : '';
-            let file_url = file.url ? file.url : '#';
-            let file_image = getImageFile(file_type);
+    else if (parent_type == 'call') {
+        let template_data = obj.message_data ? obj.message_data : {};
+        let call_type = get_style_call_message(type);
 
+        content = `<div class="card-container content-call">
+            <div class="call-title ${call_type.classname}">
+                <i>${call_type.icon}</i>
+                <span>${type}</span>
+            </div>
+            <div class="call-record-file">
+                <audio controls=""><source src="${template_data['record_file']}" type="audio/wav"></audio>
+            </div>
+        </div>`;
+        type = parent_type;
+    }
+    else {
+        if (type == 'text') {
+            content += `<span class="content"><span>${message}</span></span>`;
+        }
+        else if (type == 'photo' || type == 'image' || type == 'gif') {
+            let url = obj.url ? obj.url : '#';
+            if(message.length == 0) message = obj.description ? obj.description.trim() : '';
+            let text = message.length > 0 ? `<span class="content"><span>${message}</span></span>` : '';
+            classnamepicture = text.length > 0 ? 'picture_text' : '';
+    
             content += `
-                <div class="card-container">
-                    <div class="avatar avatar--m avatar-square">
-                        <div class="avatar-img">
-                            <img src="${file_image}">
+                <div class="content-picture item">
+                    <img src="${url}">
+                    ${text}
+                </div>
+            `;
+        }
+        else if (type == 'sticker') {
+            let url = obj.url ? obj.url : '#';
+            content += `<img src="${url}">`;
+        }
+        else if (type == 'audio' || type == 'voice') {
+            let url = obj.url ? obj.url : '#';
+            content += `
+                <div class="sound-container">
+                    <a class="func-play control" href="${url}" target="_blank" title="Play">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                        </svg>
+                    </a>
+                    <div class="ic_load">
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                    </div>
+                    <span class="timer">00:00</span>
+                </div>
+            `;
+        }
+        else if (type == 'video') {
+            let url = obj.url ? obj.url : '#';
+            content += `
+                <video id="video" width="320" controls="">
+                    <source src="${url}" type="video/mp4">
+                    <source src="${url}" type="video/ogg">
+                </video>
+            `;
+        }
+        else if (type == 'file') {
+            let file = obj.file ? obj.file : null;
+            if(file) {
+                let file_size = file.size ? formatFileSize(parseInt(file.size)) : '';
+                let file_name = file.name ? file.name : '';
+                let file_type = file.type ? file.type : '';
+                let file_url = file.url ? file.url : '#';
+                let file_image = getImageFile(file_type);
+    
+                content += `
+                    <div class="card-container">
+                        <div class="avatar avatar--m avatar-square">
+                            <div class="avatar-img">
+                                <img src="${file_image}">
+                            </div>
+                        </div>
+                        <div class="desc-content">
+                            <div class="title"><span>${file_name}</span></div>
+                            <div>${file_size}</div>
+                            <a title="Mở tập tin" href="${file_url}" target="_blank" download="${file_url}">Xem tệp tin</a>
                         </div>
                     </div>
-                    <div class="desc-content">
-                        <div class="title"><span>${file_name}</span></div>
-                        <div>${file_size}</div>
-                        <a title="Mở tập tin" href="${file_url}" target="_blank" download="${file_url}">Xem tệp tin</a>
+                `;
+            }
+        }
+        else if (type == 'location') {
+            let location = obj.location ? obj.location : '';
+            if(typeof location !== 'object') location = JSON.parse(location);
+            let latitude  = location.latitude ? location.latitude : '';
+            let longitude = location.longitude ? location.longitude : '';
+    
+            content += `
+                <div class="content">
+                    <div>
+                        <iframe title="map" width="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q=${latitude},${longitude}&amp;hl=es;z=14&amp;output=embed"></iframe>
                     </div>
                 </div>
             `;
         }
-    }
-    else if (type == 'location') {
-        let location = obj.location ? obj.location : '';
-        if(typeof location !== 'object') location = JSON.parse(location);
-        let latitude  = location.latitude ? location.latitude : '';
-        let longitude = location.longitude ? location.longitude : '';
-
-        content += `
-            <div class="content">
-                <div>
-                    <iframe title="map" width="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q=${latitude},${longitude}&amp;hl=es;z=14&amp;output=embed"></iframe>
-                </div>
-            </div>
-        `;
-    }
-    else if (type == 'link' || type == 'links') {
-        let links = obj.links ? obj.links : null;
-        $.each(links , function(index, link) { 
-            let title = link.title ? link.title : '';
-            let url = link.url ? link.url : '';
-            let thumb = link.thumb ? link.thumb : '';
-            let description = link.description ? link.description : '';
-
-            // Business card
-            if(isJSON(description)) {
-                let card = JSON.parse(description);
-                if(title.length == 0) title = message; // Name
-
-                content += `
-                    <div class="card business-card bg-primary text-white">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-8 col-8 left">
-                                    <img class="avatar" src="${thumb}" />
-                                    <div class="info">
-                                        <p>${title}</p>
-                                        <span id="card_phone" class="card-phone">${card.phone}</span>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4 col-4 right">
-                                    <img class="qrcode" src="${card.qrCodeUrl}" />
-                                </div>
+        else if (type == 'business_card') {
+            let json        = obj.description ? obj.description : '';
+            let thumbnail   = obj.thumbnail ? obj.thumbnail : '';
+            let username    = message;
+            content += getBusinessCard(json, thumbnail, username);
+        }
+        else if (type == 'link' || type == 'links') {
+            let links = obj.links ? obj.links : null;
+            $.each(links , function(index, link) { 
+                let title = link.title ? link.title : '';
+                let url = link.url ? link.url : '';
+                let thumb = link.thumb ? link.thumb : '';
+                let description = link.description ? link.description : '';
+    
+                // Business card
+                if(isJSON(description)) {
+                    let username = message;
+                    content += getBusinessCard(description, thumb, username);
+                }
+                else {
+                    content += `
+                        <div class="product-container">    
+                            <div class="main-product">
+                                <a class="img" style="background-image: url('${thumb}');" href="${url}" target="_blank"></a>
+                                <h6 class="title mt-2 mb-2 p-0" style="font-size:0.8rem">${title}</h6>
+                                <p class="desc">${description}</p>
                             </div>
                         </div>
-                    </div>
-                `;
-            }
-            else {
-                content += `
-                    <div class="product-container">    
-                        <div class="main-product">
-                            <a class="img" style="background-image: url('${thumb}');" href="${url}" target="_blank"></a>
-                            <h6 class="title mt-2 mb-2 p-0" style="font-size:0.8rem">${title}</h6>
-                            <p class="desc">${description}</p>
-                        </div>
-                    </div>
-                `;
-            }
-        });
+                    `;
+                }
+            });
+        }
+        else content = '<i>Tin nhắn chưa hỗ trợ</i>';
     }
-    else content = '<i>Tin nhắn chưa hỗ trợ</i>';
+
 
     // Display
     let classname = src == 1 ? 'mess_filter ': 'me';
@@ -1427,12 +1502,26 @@ function create_chat_row(obj, ctype = 'load') {
         $(`#${previous_message_id}`).css('padding-bottom', '0');
     }
 
+
     // Quote
     let quote_html = '', classquote = '';
     if(quote_id.length > 0) {
         classquote = 'quote';
         quote_html = create_quote_content(quote_id);
     }
+
+
+    // Action message
+    $action_message = `<div class="more ${classname}">
+        <div class="inner">
+            <div class="btn_quote" data-message-id="${mid}">
+                <i class="icon icon_quote_black">
+                    ${getIcons('quote', '#808080', '18px', '18px')}
+                </i>
+            </div>
+        </div>   
+    </div>`;
+    if(parent_type == 'zns' || parent_type == 'call' || parent_type == 'transaction') $action_message = '';
 
     html += `
         <div id="mess-${mid}" class="section-item ${classname}" sender_id="${sender_id}" timestamp="${timestamp}" style="${style_item}">
@@ -1447,15 +1536,7 @@ function create_chat_row(obj, ctype = 'load') {
                                 <div class="item-message ${getClassMessage(type)} ${classnamepicture} ${classquote}">
                                     ${quote_html}
                                     ${content}
-                                    <div class="more ${classname}">
-                                        <div class="inner">
-                                            <div class="btn_quote" data-message-id="${mid}">
-                                                <i class="icon icon_quote_black">
-                                                    ${getIcons('quote', '#808080', '18px', '18px')}
-                                                </i>
-                                            </div>
-                                        </div>   
-                                    </div>
+                                    ${$action_message}
                                 </div>
                             </div>
                         </div>
@@ -1546,14 +1627,19 @@ function create_quote_content(quote_id) {
  */
 function create_li_chat(message_data, user_data, return_only_content = false) {
     // Message data
+    let parent_type = message_data.message_type ? message_data.message_type : 'consultation';
     let type    = message_data.type ? message_data.type : '';
     let prefix  = message_data.src === 0 ? '<span style="margin-right:4px">OA:</span>' : '';
     let text    = message_data.message ? message_data.message : '';
-    let time    = message_data.time ? formatTimestampZalo(message_data.time, '', 'H:i') : '';
+    let time    = message_data.timestamp ? formatTimestampZalo(message_data.timestamp, '', 'H:i') : (message_data.time ? formatTimestampZalo(message_data.time, '', 'H:i') : '');
     let num     = message_data.num ? message_data.num : '';
+
     // User data
-    let zalo_id = user_data.id ? user_data.id : '';
-    let name    = user_data.name ? user_data.name : '';
+    let zalo_id = user_data.user_id ? user_data.user_id : '';
+    if(zalo_id == '') zalo_id = user_data.id ? user_data.id : '';
+    let name = user_data.user_alias ? user_data.user_alias : '';
+    if(name == '') name = user_data.display_name ? user_data.display_name : '';
+    if(name == '') name = user_data.name ? user_data.name : '';
     let avatar  = user_data.avatar ? user_data.avatar : DEFAULT_AVATAR;
     let tags    = user_data.tags_and_notes_info ? user_data.tags_and_notes_info.tag_names : [];
     let html_tags = tags.length > 0 ? '<div class="tag-content mt-1">' : '<div class="tag-content">';
@@ -1561,77 +1647,91 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
     html_tags += '</div>';
 
     let content = '';
-    if(type == 'text') {
+    if(parent_type == 'zns') {
         content = `<div class="lastest_message">${prefix + text}</div>`;
     }
-    else if(type == 'photo' || type == 'image') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('image', '#8D8D8F', 20, 21)}</div>
-                Hình ảnh
-            </div>
-        `;
-    }
-    else if(type == 'gif') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('gif', '#8D8D8F', 20, 17)}</div>
-                GIF
-            </div>
-        `;
-    }
-    else if(type == 'sticker') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('sticker', '#8D8D8F', 20, 21)}</div>
-                Sticker
-            </div>
-        `;
-    }
-    else if(type == 'voice' || type == 'audio') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('voice', '#8D8D8F', 20, 21)}</div>
-                Tin nhắn thoại
-            </div>
-        `;
-    }
-    else if(type == 'video') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('video', '#8D8D8F')}</div>
-                Video
-            </div>
-        `;
-    }
-    else if(type == 'file') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('file', '#8D8D8F', '20px', '18px')}</div>
-                Tệp đính kèm
-            </div>
-        `;
-    }
-    else if(type == 'link' || type == 'links') {
-        content = `<div class="lastest_message">${prefix}[Tin liên kết]</div>`;
-    }
-    else if(type == 'location') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('location', '#8D8D8F', 20, 21)}</div>
-                Vị trí
-            </div>
-        `;
+    else if(parent_type == 'call') {
+        let call_type = get_style_call_message(type);
+
+        content = `<div class="lastest_message">
+            ${prefix}
+            <div class="icon icon_call">${call_type.icon}</div>
+            ${type}
+        </div>`;
     }
     else {
-        content = `<div class="lastest_message">${prefix}Bạn có một tin nhắn mới</div>`;
+        if(type == 'text') {
+            content = `<div class="lastest_message">${prefix + text}</div>`;
+        }
+        else if(type == 'photo' || type == 'image') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('image', '#8D8D8F', 20, 21)}</div>
+                    Hình ảnh
+                </div>
+            `;
+        }
+        else if(type == 'gif') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('gif', '#8D8D8F', 20, 17)}</div>
+                    GIF
+                </div>
+            `;
+        }
+        else if(type == 'sticker') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('sticker', '#8D8D8F', 20, 21)}</div>
+                    Sticker
+                </div>
+            `;
+        }
+        else if(type == 'voice' || type == 'audio') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('voice', '#8D8D8F', 20, 21)}</div>
+                    Tin nhắn thoại
+                </div>
+            `;
+        }
+        else if(type == 'video') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('video', '#8D8D8F')}</div>
+                    Video
+                </div>
+            `;
+        }
+        else if(type == 'file') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('file', '#8D8D8F', '20px', '18px')}</div>
+                    Tệp đính kèm
+                </div>
+            `;
+        }
+        else if(type == 'link' || type == 'links') {
+            content = `<div class="lastest_message">${prefix}[Tin liên kết]</div>`;
+        }
+        else if(type == 'location') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('location', '#8D8D8F', 20, 21)}</div>
+                    Vị trí
+                </div>
+            `;
+        }
+        else {
+            content = `<div class="lastest_message">${prefix}Bạn có một tin nhắn mới</div>`;
+        }
     }
 
     if(return_only_content) return content;
@@ -2058,6 +2158,119 @@ function getSentTimeZalo(sent_time) {
 }
 
 /**
+ * Get label name from key in ZNS template
+ * 
+ * @param {string} key
+ * @return {string}
+ */
+function get_label_name_template_zns(key) {
+    switch (key) {
+        case 'booking':
+            return 'Booking';
+        case 'lien_he':
+        case 'full_name':
+            return 'Liên hệ';
+        case 'hang_hang_khong':
+            return 'Hãng hàng không';
+        case 'ma_chuyen':
+        case 'flight_no':
+            return 'Mã chuyến';
+        case 'hang_ve':
+            return 'Hạng vé';
+        case 'noi_di':
+            return 'Nơi đi';
+        case 'noi_di':
+            return 'Nơi đến';
+        case 'chieu_di':
+            return 'Chiều đi';
+        case 'chieu_ve':
+            return 'Chiều về';
+        case 'ngay_gio_di':
+            return 'Ngày giờ đi';
+        case 'ngay_gio_ve':
+            return 'Ngày giờ về';
+        case 'chuyen_bay_di':
+            return 'Chuyến bay đi';
+        case 'chuyen_bay_ve':
+            return 'Chuyến bay về';
+        case 'datetime':
+            return 'Ngày giờ bay';
+        case 'hanh_khach':
+            return 'Hành khách';
+        case 'hanh_ly':
+            return 'Hành lý';
+        case 'ten_hk':
+            return 'Tên hành khách';
+        case 'han_giu_cho':
+            return 'Hạn giữ chỗ';
+        case 'dia_chi_vp_1':
+            return 'Địa chỉ VP'
+        case 'transfer_amount':
+            return 'Số tiền';
+        case 'bank_transfer_note':
+            return 'Nội dung CK';
+        case 'code_pnr':
+        case 'pnr':
+            return 'PNR';
+        case 'journey':
+        case 'journey_old':
+            return 'Hành trình';
+        case 'journey_new':
+            return 'Chuyển sang';
+        case 'point':
+            return 'Điểm tích lũy';
+        case 'total_point':
+            return 'Tổng điểm';
+        default:
+            return '';
+    }
+}
+
+/**
+ * Get style call message
+ * 
+ * @param {string} type
+ * @return {object}
+ */
+function get_style_call_message(type) {
+    switch (type) {
+        case 'Cuộc gọi đến':
+            return {'classname': 'text-success', 'icon': getIcons('inbound_call', '#00ac47', 15, 15)};
+        case 'Cuộc gọi đi':
+            return {'classname': 'text-primary', 'icon': getIcons('outbound_call', '#0d6efd', 15, 15)};
+        case 'Cuộc gọi nhỡ':
+            return {'classname': 'text-danger', 'icon': getIcons('missed_call', '#dc3545', 15, 15)};
+        default:
+            return {'classname': '', 'icon': getIcons('call', '#8c8c8c', 15, 15)};
+    }
+}
+
+/**
+ * Format call duration
+ * 
+ * @param {int} seconds
+ * @return {string}
+ */
+function format_call_duration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    seconds %= 3600;
+    const minutes = Math.floor(seconds / 60);
+    seconds %= 60;
+
+    let result = '';
+    if (hours > 0) {
+        result += `${hours} giờ`;
+    }
+    if (minutes > 0) {
+        result += `${minutes} phút`;
+    }
+    if (seconds > 0 || result === '') {
+        result += `${seconds} giây`;
+    }
+    return result.trim();
+}
+
+/**
  * Get number at the end string
  * 
  * @param {string} str
@@ -2132,6 +2345,39 @@ function getTimeline(timestamp) {
     let timeline        = getSentTimeZalo(sent_time);
     let text_timeline   = `${timeline} ${dateofweek}, ` + sent_time.split(' ')[1];
     return `<div class="_sectionTimestamp" id="_sectionTimestamp${timestamp}"><span>${text_timeline}</span></div>`;
+}
+
+/**
+ * Create business card from json data
+ * 
+ * @param {string} json
+ * @param {string} thumbnail
+ * @param {string} name
+ * @return {string} HTML
+ */
+function getBusinessCard(json, thumbnail, name = '') {
+    if(isJSON(json)) {
+        let card = JSON.parse(json);
+        if(title.length == 0) title = name;
+
+        return `<div class="card business-card bg-primary text-white">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-8 col-8 left">
+                        <img class="avatar" src="${thumbnail}" />
+                        <div class="info">
+                            <p>${title}</p>
+                            <span id="card_phone" class="card-phone">${card.phone ?? ''}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-4 right">
+                        <img class="qrcode" src="${card.qrCodeUrl ?? '#'}" />
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+    return '';
 }
 
 /**
@@ -2263,6 +2509,35 @@ function formatFullAddress(address, district, city) {
 
     if(full_address.charAt(0) === ',') full_address = full_address.substring(1).trim();
     return full_address;
+}
+
+function loadingSkeleton(type = 'list_user', qty = 6) {
+    if(type == 'list_user') {
+        let html = '';
+        for(let i = 0; i < qty; i++) {
+            html += `<li class="item_mess item_mess_new mess_links item_mess_skeleton">
+                <div class="mess_avt">
+                    <div class="imgDrop skeleton-item skeleton-imgDrop"></div>
+                </div>
+                <div class="__content">
+                    <div class="info_content">  
+                        <div class="mess_content">
+                            <div class="mess_name truncate skeleton-item skeleton-mess_name"></div>
+                        </div>
+                        <div class="mess_more has_btn_more">
+                            <div class="mess_time skeleton-item skeleton-mess_time"></div>
+                            <div class="mess_number"></div>
+                        </div>
+                    </div>
+                    <div class="box-parent box-lastest_message skeleton-item skeleton-lastest_message"></div>
+                </div>
+            </li>`
+        }
+        $('#list_mess_main').append(html);
+    }
+}
+function removeLoadingSkeleton() {
+    $('.item_mess_skeleton').remove();
 }
 
 function map_date_of_week_zalo(num) {

@@ -54,6 +54,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		if($current_user->user_name == 'hungnh') {
 			pr(calculateBKAmt($this->bean->id));
+			pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
 		}
 
 		parent::display();
@@ -1744,21 +1745,21 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<th scope="col" width="8%">Loại HK</th>
 						<th scope="col" width="8%">Danh xưng</th>';
 		if ($add_type != 2) {
-			$html .= '<th scope="col" width="20%">Họ tên</th>';
+			$html .= '<th scope="col" width="12%">Họ tên</th>';
 		} else {
-			$html .= '<th scope="col" width="20%">Tên HK mới</th>';
+			$html .= '<th scope="col" width="12%">Tên HK mới</th>';
 		}
 
-		$html .= '<th scope="col" width="10%">Ngày sinh</th>
-					<th scope="col" width="10%">CCCD / Passport</th>
-					<th scope="col" width="10%">Số vé đi</th>
-					<th scope="col" width="10%">Số vé về</th>';
+		$html .= '<th scope="col" width="8%">Ngày sinh</th>
+					<th scope="col" width="8%">CCCD / Passport</th>
+					<th scope="col" width="8%">Số vé đi</th>
+					<th scope="col" width="8%">Số vé về</th>';
 
 		if ($add_type != 2) {
-			$html .= '<th scope="col" width="10%">PNR đi</th>
-						<th scope="col" width="10%">PNR về</th>';
+			$html .= '<th scope="col" width="8%">PNR đi</th>
+						<th scope="col" width="8%">PNR về</th>';
 		} else {
-			$html .= '<th scope="col" width="20%">Tên HK cũ</th>';
+			$html .= '<th scope="col" width="12%">Tên HK cũ</th>';
 		}
 
 		$html .= '</tr>
@@ -1771,6 +1772,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				p.type,
 				p.eticket_outbound,
 				p.eticket_inbound,
+				p.eluggage_outbound,
+				p.eluggage_inbound,
 				p.pnr_outbound,
 				p.pnr_inbound,
 				p.direction,
@@ -1829,12 +1832,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</td>
 						<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
 							' . strtoupper($row['eticket_outbound']) . '
-							<img class="editinline" src="./custom/themes/default/images/custom/edit_inline.gif" style="display:none;">
 							<input type="hidden" name="eticket_outbound[]" id="eticket_outbound' . $i . '" value="' . strtoupper($row['eticket_outbound']) . '"  />
 						</td>
 						<td data-label="Số vé về" class="text-center" class="eticket_inbound" content="' . strtoupper($row['eticket_inbound']) . '" row_no="' . $row['id'] . '">
 							' . strtoupper($row['eticket_inbound']) . '
-							<img class="editinline" src="./custom/themes/default/images/custom/edit_inline.gif" style="display:none;">
 							<input type="hidden" name="eticket_inbound[]" id="eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '"  />
 						</td>';
 
@@ -1877,11 +1878,22 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				}
 
 				if ($bag_weight_out > 0) {
+					$lug_purchase_inf = '';
 					if ($row['luggage_purchase'] > 0) {
-						$lug_purchase_inf = ' - Giá mua: ' . format_number($row['luggage_purchase_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase']);
-					} else $lug_purchase_inf = '';
+						$lug_purchase_inf .= ' - Giá mua: ' . format_number($row['luggage_purchase_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase']);
+					} 
 
-					$luggage_price .= '<div class="luggage__outbound"><span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . $lug_purchase_inf . ')</div>';
+					$eluggage_outbound = '';
+					if(strlen($row['eluggage_outbound']) > 0) {
+						$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
+												(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($row['eluggage_outbound']) . '</strong>)
+												<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '"  />
+											</span>';
+					}
+					$luggage_price .= '<div class="luggage__outbound">
+											<span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . $lug_purchase_inf . ')
+											'.$eluggage_outbound.'
+										</div>';
 				}
 
 				// Hành lý chiều về
@@ -1900,13 +1912,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
 					}
 
-					// if ($bag_weight_in >= 0) {
 					if ($bag_weight_in > 0) {
+						$in_lug_purchase_inf = '';
 						if ($row['luggage_purchase_inbound'] > 0) {
-							$in_lug_purchase_inf = ' - Giá mua: ' . format_number($row['luggage_purchase_inbound_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase_inbound']);
-						} else $in_lug_purchase_inf = '';
+							$in_lug_purchase_inf .= ' - Giá mua: ' . format_number($row['luggage_purchase_inbound_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase_inbound']);
+						} 
 
-						$luggage_price .= '<div class="luggage__inbound mt-2"><span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . $in_lug_purchase_inf . ')</div>';
+						$eluggage_inbound = '';
+						if(strlen($row['eluggage_inbound']) > 0) {
+							$eluggage_inbound .= '<span data-label="Số vé HL về" class="text-center" class="eluggage_inbound">
+													(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($row['eluggage_inbound']) . '</strong>)
+													<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '"  />
+												</span>';
+						}
+
+						$luggage_price .= '<div class="luggage__inbound mt-2">
+												<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . $in_lug_purchase_inf . ')
+												'.$eluggage_inbound.'
+											</div>';
 					}
 				}
 
@@ -2054,7 +2077,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$html = '';
 		switch ($type) {
 			case 2:
-				$html = '<tfoot><tr class="footer-tr edited_pass_line hide-mobile"><td class="text-start" colspan="11"><b>Thông tin hành khách có thay đổi:</b> <span id="no-change__edit-pass"></span></td></tr></tfoot>';
+				$html = '<tfoot><tr class="footer-tr edited_pass_line hide-mobile"><td class="text-start" colspan="13"><b>Thông tin hành khách có thay đổi:</b> <span id="no-change__edit-pass"></span></td></tr></tfoot>';
 				break;
 			case 3:
 				$html = '<tfoot><tr class="footer-tr edited_iti_line hide-mobile"><td class="text-start" colspan="13"><b>Thông tin đổi ngày bay / hành trình:</b><span id="no-change__edit-iti"></span></td></tr></tfoot>';

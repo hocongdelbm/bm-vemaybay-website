@@ -149,6 +149,7 @@ class CustomController extends BaseController
         $record_file    = isset($params['record_file']) ? global_test_input($params['record_file']) : '';
         $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
         $call_mos       = isset($params['call_mos']) ? global_test_input($params['call_mos']) : null;
+        $dialed         = isset($params['dialed']) ? global_test_input($params['dialed']) : '';
 
         if (empty($call_id)) {
             // Lưu log
@@ -166,10 +167,16 @@ class CustomController extends BaseController
             exit();
         }
 
+        $platform = 'switchboard';
         $where = '';
         $number = $call_direction == 'inbound' ? $call_from : $call_to;
-        if (strlen($number) < 15) $where = 'phone_mobile = "' . $number . '"';
-        else $where = 'zalo_id = "' . $number . '"';
+        if (strlen($number) < 15) {
+            $where = 'phone_mobile = "' . $number . '"';
+        }
+        else {
+            $platform = 'zalo';
+            $where = 'zalo_id = "' . $number . '"';
+        }
         
         // Get contact info
         global $db;
@@ -268,14 +275,60 @@ class CustomController extends BaseController
         $call->save();
 
         if (!empty($call->id)) {
+            // Save log zalo message with type call 
+            try {
+                if($platform == 'zalo') {
+                    global $sugar_config;
+                    $oa_id = $sugar_config['zalo_config']['oa_id'] ?? '';
+
+                    $src = '';
+                    if(strlen($call->call_to) > strlen($oa_id) && strpos($call->call_to, $oa_id) === 0) $src = 1;
+                    else $src = 0;
+
+                    $assigned_user_id = '';
+                    if($src == 0 && !empty($call->call_from) && strlen($call->call_from) < 5) {
+                        $assigned_user_id = $db->getOne("SELECT id FROM users WHERE td_sip = '".$call->call_from."' AND deleted = 0");
+                    }
+                    elseif($src == 1 && !empty($dialed) && strlen($dialed) < 5) {
+                        $assigned_user_id = $db->getOne("SELECT id FROM users WHERE td_sip = '$dialed' AND deleted = 0");
+                    }
+
+                    $zalomes = BeanFactory::newBean("EC_Zalo_Messages");
+                    $zalomes->new_with_id = true;
+                    $zalomes->id        = $call->id;
+                    $zalomes->src       = $src;
+                    $zalomes->from_id   = $src == 0 ? $oa_id : $call->call_from;
+                    $zalomes->to_id     = $src == 1 ? $oa_id : $call->call_to;
+                    $zalomes->timestamp = round(microtime(true) * 1000); // Milliseconds
+                    $zalomes->type      = 'call';
+                    $zalomes->sub_type  = $call->direction;
+                    $zalomes->data      = json_encode([
+                        'record_file'   => $call->record_file,
+                        'duration'      => $call->call_duration,
+                        'routing'       => $src == 1 ? substr($call->call_to, -3) : $call->call_from
+                    ]);
+                    $zalomes->response = $call->log;
+                    $zalomes->assigned_user_id = $assigned_user_id;
+                    $zalomes->save();
+                }
+            }
+            catch(Exception $e) {
+                return json_encode([
+                    'error' => false,
+                    'code' => 200,
+                    'message' => "Success",
+                ]);
+            }
+
             return json_encode([
                 'error' => false,
                 'code' => 200,
                 'message' => "Success",
             ]);
-        } else {
+        }
+        else {
             $GLOBALS['log']->fatal('Lưu cuộc gọi thất bại.');
-			write_file_backup_log_calls(json_encode($params));
+            write_file_backup_log_calls(json_encode($params));
 
             return json_encode([
                 'error' => true,

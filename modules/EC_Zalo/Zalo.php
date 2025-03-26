@@ -1085,13 +1085,13 @@ class Zalo {
     /** 
      * Send template name
      * 
-     * @param string $id
+     * @param string $template_id
      * @return string
      */
-    public function get_template_name_zns($id = null) {
-        if(is_null($id) || empty($id)) return "";
+    public function get_template_name_zns($template_id = null) {
+        if(is_null($template_id) || empty($template_id)) return "";
     
-        switch ($id) {
+        switch ($template_id) {
             case '347078':
             case '347088':
                 return "Thông tin hành trình";

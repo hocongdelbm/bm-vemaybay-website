@@ -195,6 +195,10 @@ i.icon {
 #zalochat_sidebar .list_mess .item_mess.active {
   background: #e9f2ff;
 }
+#zalochat_sidebar .list_mess .item_mess.item_mess_skeleton:hover,
+#zalochat_sidebar .list_mess .item_mess.item_mess_skeleton.active {
+  background: unset !important;
+}
 
 #zalochat_sidebar .list_mess .item_mess .mess_avt {
   width: 40px;
@@ -298,8 +302,11 @@ i.icon {
   align-items: center;
 }
 #zalochat_sidebar .list_mess .item_mess .mess_content .mess_name {
-  font-weight: 500;
+  width: 170px;
+  text-overflow: ellipsis;
+  overflow: hidden;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 #zalochat_sidebar .list_mess .item_mess .mess_more {
@@ -2086,4 +2093,47 @@ input[name="checkbox_tag"]:checked:before {
   -o-object-position: center;
   object-position: center;
 }
-/***************  END MESSAGE REPLY  ***************/
+/*****  End message reply  *****/
+
+/*****  ZNS Message  *****/
+.item-message.zns {background: #fff !important;}
+.content-zns {min-width: 310px;}
+.content-zns .header-zns {color: blue;}
+.content-zns .title-zns {
+  font-size: 14px;
+  margin: 3px 0 6px 0;
+}
+.content-zns .data-zns .item {
+  display: flex;
+  gap: 8px;
+  margin: 3px 0;
+}
+.content-zns .data-zns .item .label {
+  width: 40%;
+  color: #333;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 1.5;
+}
+.content-zns .data-zns .item .value {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+/*****  End ZNS Message  *****/
+
+/*****  Call Message  *****/
+.item-message.call {
+  background: #fff !important;
+}
+.content-call {min-width: 160px;}
+.content-call .call-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 3px 0 6px 3px;
+}
+.content-call .call-title i {margin-right: 4px;}
+.content-call .call-record-file {margin-top: 8px;}
+.content-call .call-record-file audio {height: 24px;}
+/*****  End Call Message  *****/

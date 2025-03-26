@@ -112,7 +112,6 @@ class Viewbksalereport extends SugarView
 				<th width="5%">Booking</th>
 				<th width="5%">Vé</th>
 				<th width="10%">Doanh số</th>
-				<th width="10%">DS được thưởng</th>
 				<th width="10%">Thưởng DS</th>
 				<th>Ghi chú</th>
 			</thead><tbody>';
@@ -138,7 +137,6 @@ class Viewbksalereport extends SugarView
 							AND com_bk.deleted = 0
 					), 0)
 				) AS doanhso,
-				-- s.profit_overnight AS dscudem,
 				s.sales AS thuongds
 			FROM (
 				SELECT 	
@@ -146,7 +144,28 @@ class Viewbksalereport extends SugarView
 					bk.id, bk.id AS voucher_id,
 					COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
 					SUM( dt.quantity ) AS total_qty,
-					SUM( bk.total_amount ) / COUNT( dt.id ) - SUM(IFNULL( dt.total_bought_price, 0 )) - IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5" AND deleted=0), 0) AS doanhso,
+					SUM( bk.total_amount ) / COUNT( dt.id ) 
+					+ IFNULL((
+						SELECT SUM(pc.down * 1000) 
+						FROM ec_contact_points_log pc 
+						WHERE pc.parent_type = "EC_Flight_Bookings" AND pc.parent_id = bk.id  AND pc.deleted = 0
+					), 0)
+					-  
+					IFNULL((
+						SELECT SUM(IFNULL(pc2.up * 1000, 0))
+						FROM ec_contact_points_log pc2
+						WHERE pc2.parent_type = "EC_Contact_Points_Log" 
+							AND pc2.parent_id IN (
+								SELECT pc_inner.id
+								FROM ec_contact_points_log pc_inner
+								WHERE pc_inner.parent_type = "EC_Flight_Bookings" 
+									AND pc_inner.parent_id = bk.id 
+									AND pc_inner.deleted = 0
+							)
+							AND pc2.deleted = 0
+					), 0)
+					- SUM(IFNULL( dt.total_bought_price, 0 )) 
+					- IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5" AND deleted=0), 0) AS doanhso,
 					(
 						SELECT SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
 						FROM ec_booking_passengers 
@@ -231,10 +250,10 @@ class Viewbksalereport extends SugarView
 					0 AS total_qty,
 					total_amount AS doanhso,
 					0 AS luggage_purchase_price 
-				FROM ec_completed_bookings
+				FROM ec_completed_bookings com
 				WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
 					AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-					' . str_replace('bk', '', $user_search) . '
+					' . str_replace('bk', 'com', $user_search) . '
 					AND deleted = 0 
 				AND completed_bk_type = "SHARE_PROFIT"
 			) AS t
@@ -244,6 +263,10 @@ class Viewbksalereport extends SugarView
 				AND s.year = ' . date('Y', strtotime($from_date)) .  ' AND s.deleted = 0
 			GROUP BY t.user_id
 			ORDER BY doanhso DESC';
+
+		// if($GLOBALS['current_user']->user_name == 'hungnh'){
+			// pr($sql);
+		// }
 
 		$res = $this->bean->db->query($sql);
 		$i = 1;
@@ -268,11 +291,9 @@ class Viewbksalereport extends SugarView
 	 				<td class="text-center">' . format_number($row['total_bk']) . '</td>
 	 				<td class="text-center">' . format_number($row['ticket_qty']) . '</td>
 	 				<td class="text-end">' . format_number($row['doanhso']) . '</td>
-					<td class="text-end">' . format_number($row['doanhso'] - $row['dscudem']) . '</td>
 	 				<td class="text-end">' . format_number($row['thuongds']) . '</td>
 	 				<td>' . $note . '</td>
 	 			</tr>';
-			// <input type="text" class="user-note"><input class="save-note-btn" type="button" value="Lưu">
 			$i++;
 
 			$total_bk_qty += (int)$row['total_bk'];
@@ -286,7 +307,6 @@ class Viewbksalereport extends SugarView
 	 			<td class="text-end">' . format_number($total_bk_qty) . '</td>
 	 			<td class="text-end">' . format_number($total_ticket_qty) . '</td>
 	 			<td class="text-end">' . format_number($total_doanhso) . '</td>
-	 			<td></td>
 	 			<td></td>
 	 			<td></td>
 	 		</tr></tbody>';
@@ -308,7 +328,6 @@ class Viewbksalereport extends SugarView
 			$assigned_user_id_t = ' AND t.assigned_user_id = "' . $assigned_user_id . '"';
 			$assigned_user_id_share = ' AND com_bk.assigned_user_id = "' . $assigned_user_id . '"';
 		}
-		// if(!empty($assigned_user_id)) {
 		$html = '<thead>
 					<th>STT</th>
 					<th>Ngày xuất vé</th>
@@ -322,176 +341,182 @@ class Viewbksalereport extends SugarView
 				</thead><tbody>';
 
 		$sql = 'SELECT t.*
-		 				FROM (
-			 				SELECT 	
-								bk.assigned_user_id AS user_id,
-								bk.id AS booking_id, bk.name AS booking,
-								"" AS voucher_id, "" AS voucher_name, 
-								"EC_Flight_Bookings" AS voucher_type,
-								DATE_FORMAT(bk.date_ticket_issue, "%d-%m-%Y") AS date_ticket_issue,
-								COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
-								SUM( dt.quantity ) AS total_qty,
-								0 AS return_qty,
-								(
-									SUM( bk.total_amount ) / COUNT( dt.id ) 
-									- SUM(IFNULL( dt.total_bought_price, 0 )) 
-									- IFNULL((
-										SELECT SUM(amount) 
-										FROM ec_payment_voucher 
-										WHERE booking_id = bk.id AND pv_status = "3" 
-											AND ec_payment_types_id_c = "3f9f8060-1866-2b2e-8322-52e36b8f58d5"
-											AND deleted = 0 
-									), 0)
-									- IFNULL((
-										SELECT SUM(IFNULL(total_amount, 0))
-										FROM ec_completed_bookings 
-										WHERE bk.id = ec_flight_bookings_id_c
-											AND completed_bk_type = "SHARE_PROFIT"
-											AND deleted = 0
-										GROUP BY ec_flight_bookings_id_c
-									), 0)
-								)  AS doanhso,
-								(
-									SELECT
-										SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) 
-											+ IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
-									FROM
-										ec_booking_passengers 
-									WHERE booking_id = bk.id 
-										AND add_type IS NULL
-										AND deleted = 0 
-								) AS luggage_purchase_price,
-								0 AS return_service_fee,
-								0 AS change_service_fee 
-							FROM ec_flight_bookings bk
-								LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id AND dt.deleted = 0 
-							WHERE bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-								AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-								AND bk.booking_status = 8 
-								' . $assigned_user_id_bk . '
-								AND bk.deleted = 0 
-							GROUP BY
-								bk.assigned_user_id,
-								bk.id 
+				FROM (
+					SELECT 	
+						bk.assigned_user_id AS user_id,
+						bk.id AS booking_id, bk.name AS booking,
+						"" AS voucher_id, "" AS voucher_name, 
+						"EC_Flight_Bookings" AS voucher_type,
+						DATE_FORMAT(bk.date_ticket_issue, "%d-%m-%Y") AS date_ticket_issue,
+						COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
+						SUM( dt.quantity ) AS total_qty,
+						0 AS return_qty,
+						(
+							IFNULL(SUM(bk.total_amount) / COUNT(dt.id), 0) 
+							+ 
+							IFNULL((
+								SELECT SUM(pc.down * 1000) 
+								FROM ec_contact_points_log pc 
+								WHERE pc.parent_type = "EC_Flight_Bookings" AND pc.parent_id = bk.id  AND pc.deleted = 0
+							), 0)
+							-  
+                            IFNULL((
+                                SELECT SUM(IFNULL(pc2.up * 1000, 0))
+                                FROM ec_contact_points_log pc2
+                                WHERE pc2.parent_type = "EC_Contact_Points_Log" 
+                                    AND pc2.parent_id IN (
+                                        SELECT pc_inner.id
+                                        FROM ec_contact_points_log pc_inner
+                                        WHERE pc_inner.parent_type = "EC_Flight_Bookings" 
+                                            AND pc_inner.parent_id = bk.id 
+                                            AND pc_inner.deleted = 0
+                                    )
+                                    AND pc2.deleted = 0
+                            ), 0)
+							- SUM(IFNULL( dt.total_bought_price, 0 )) 
+							- IFNULL((
+								SELECT SUM(amount) 
+								FROM ec_payment_voucher 
+								WHERE booking_id = bk.id AND pv_status = "3" 
+									-- Loại chi: Chiết khấu HH
+									AND ec_payment_types_id_c = "3f9f8060-1866-2b2e-8322-52e36b8f58d5"
+									AND deleted = 0 
+							), 0)
+						)  AS doanhso,
+						(
+							SELECT SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
+							FROM ec_booking_passengers 
+							WHERE booking_id = bk.id AND add_type IS NULL AND deleted = 0 
+						) AS luggage_purchase_price,
+						0 AS return_service_fee,
+						0 AS change_service_fee 
+					FROM ec_flight_bookings bk
+					LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id AND dt.deleted = 0 
+					WHERE bk.date_ticket_issue BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" AND "' . date('Y-m-d', strtotime($to_date)) . '"
+					-- WHERE bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '"  AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
+						AND bk.booking_status = 8 
+						' . $assigned_user_id_bk . '
+						AND bk.deleted = 0 
+					GROUP BY
+						bk.assigned_user_id,
+						bk.id 
 
-							-- hoanve doanh so <= 0
-							UNION
-							SELECT 
-								hv_t.user_id,
-								hv_t.booking_id, hv_t.booking,
-								hv_t.voucher_id, hv_t.voucher_name, 
-								"EC_HoanVe" AS voucher_type,
-								hv_t.date_ticket_issue,
-								SUM(hv_t.total_bk) AS total_bk,
-								SUM(hv_t.total_qty) AS total_qty,
-								SUM(hv_t.return_qty) AS return_qty,
-								SUM(hv_t.doanhso) AS doanhso,
-								SUM(hv_t.luggage_purchase_price) AS luggage_purchase_price,
-								SUM(hv_t.return_service_fee) AS return_service_fee,
-								SUM(hv_t.change_service_fee) AS change_service_fee
-							FROM
-							( 
-								SELECT
-									bk.assigned_user_id AS user_id,
-									bk.id AS booking_id, bk.name AS booking,
-									hv.id AS voucher_id, hv.name AS voucher_name, "EC_HoanVe" AS voucher_type,
-									DATE_FORMAT(hv.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue,
-									0 AS total_bk,
-									- COUNT( cthv.id ) AS total_qty,
-									COUNT( cthv.id ) AS return_qty,
-									0 AS doanhso,
-									0 AS luggage_purchase_price,
-									IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS return_service_fee,
-									0 AS change_service_fee 
-								FROM ec_chitiethoanve cthv 
-									LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id AND hv.deleted = 0
-									LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id AND bk.deleted = 0 
-								WHERE hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-									AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-									AND hv.tinhtrang = 1 
-									' . $assigned_user_id_bk . '
-									AND cthv.deleted = 0 
-								GROUP BY hv.id	
+					-- hoanve doanh so <= 0
+					UNION
+					SELECT 
+						hv_t.user_id,
+						hv_t.booking_id, hv_t.booking,
+						hv_t.voucher_id, hv_t.voucher_name, 
+						"EC_HoanVe" AS voucher_type,
+						hv_t.date_ticket_issue,
+						SUM(hv_t.total_bk) AS total_bk,
+						SUM(hv_t.total_qty) AS total_qty,
+						SUM(hv_t.return_qty) AS return_qty,
+						SUM(hv_t.doanhso) AS doanhso,
+						SUM(hv_t.luggage_purchase_price) AS luggage_purchase_price,
+						SUM(hv_t.return_service_fee) AS return_service_fee,
+						SUM(hv_t.change_service_fee) AS change_service_fee
+					FROM
+					( 
+						SELECT
+							bk.assigned_user_id AS user_id,
+							bk.id AS booking_id, bk.name AS booking,
+							hv.id AS voucher_id, hv.name AS voucher_name, "EC_HoanVe" AS voucher_type,
+							DATE_FORMAT(hv.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue,
+							0 AS total_bk,
+							- COUNT( cthv.id ) AS total_qty,
+							COUNT( cthv.id ) AS return_qty,
+							0 AS doanhso,
+							0 AS luggage_purchase_price,
+							IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS return_service_fee,
+							0 AS change_service_fee 
+						FROM ec_chitiethoanve cthv 
+							LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id AND hv.deleted = 0
+							LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id AND bk.deleted = 0 
+						WHERE hv.ngayhachtoan BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" AND "' . date('Y-m-d', strtotime($to_date)) . '"
+							AND hv.tinhtrang = 1 
+							' . $assigned_user_id_bk . '
+							AND cthv.deleted = 0 
+						GROUP BY hv.id	
 
-								-- hoanve doanh so > 0
-								UNION
-								SELECT
-									hv.assigned_user_id AS user_id,
-									bk.id AS booking_id, bk.name AS booking,
-									hv.id AS voucher_id, hv.name AS voucher_name, "EC_HoanVe" AS voucher_type,
-									DATE_FORMAT(hv.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue,
-									0 AS total_bk,
-									0 AS total_qty,
-									0 AS return_qty,
-									0 AS doanhso,
-									0 AS luggage_purchase_price,
-									SUM(IFNULL( cthv.phidichvu, 0 )) AS return_service_fee,
-									0 AS change_service_fee 
-								FROM
-									ec_chitiethoanve cthv
-									LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id AND hv.deleted = 0
-									LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id AND bk.deleted = 0 
-								WHERE hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-									AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-									AND hv.tinhtrang = 1 
-									' . $assigned_user_id_hv . '
-									AND cthv.deleted = 0 
-								GROUP BY hv.id	
-								HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
-							) AS hv_t
-							GROUP BY hv_t.voucher_id, hv_t.user_id
+						-- hoanve doanh so > 0
+						UNION
+						SELECT
+							hv.assigned_user_id AS user_id,
+							bk.id AS booking_id, bk.name AS booking,
+							hv.id AS voucher_id, hv.name AS voucher_name, "EC_HoanVe" AS voucher_type,
+							DATE_FORMAT(hv.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue,
+							0 AS total_bk,
+							0 AS total_qty,
+							0 AS return_qty,
+							0 AS doanhso,
+							0 AS luggage_purchase_price,
+							SUM(IFNULL( cthv.phidichvu, 0 )) AS return_service_fee,
+							0 AS change_service_fee 
+						FROM
+							ec_chitiethoanve cthv
+							LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id AND hv.deleted = 0
+							LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id AND bk.deleted = 0 
+						WHERE hv.ngayhachtoan BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" AND "' . date('Y-m-d', strtotime($to_date)) . '"
+							AND hv.tinhtrang = 1 
+							' . $assigned_user_id_hv . '
+							AND cthv.deleted = 0 
+						GROUP BY hv.id	
+						HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
+					) AS hv_t
+					GROUP BY hv_t.voucher_id, hv_t.user_id
 
-							-- phieu thu hanh ly, doi ngay bay, doi ten
-							UNION
-							SELECT
-								t.assigned_user_id AS user_id,
-								bk.id AS booking_id, bk.name AS booking,
-								t.id AS voucher_id, t.name AS voucher_name, 
-								"EC_Receipt_Voucher" AS voucher_type,
-								DATE_FORMAT(t.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue,
-								0 AS total_bk,
-								0 AS total_qty,
-								0 AS return_qty,
-								0 AS doanhso,
-								0 AS luggage_purchase_price,
-								0 AS return_service_fee,
-								SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
-								- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS change_service_fee 
-							FROM ec_receipt_voucher t
-								LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id AND bk.deleted = 0 
-							WHERE DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-								AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-								AND t.rv_status = 1 
-								AND t.loai_thu IN ( 4, 5 ) 
-								' . $assigned_user_id_t . '
-								AND t.deleted = 0 
-							GROUP BY t.id
+					-- phieu thu hanh ly, doi ngay bay, doi ten
+					UNION
+					SELECT
+						t.assigned_user_id AS user_id,
+						bk.id AS booking_id, bk.name AS booking,
+						t.id AS voucher_id, t.name AS voucher_name, 
+						"EC_Receipt_Voucher" AS voucher_type,
+						DATE_FORMAT(t.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue,
+						0 AS total_bk,
+						0 AS total_qty,
+						0 AS return_qty,
+						0 AS doanhso,
+						0 AS luggage_purchase_price,
+						0 AS return_service_fee,
+						SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
+						- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS change_service_fee 
+					FROM ec_receipt_voucher t
+						LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id AND bk.deleted = 0 
+					WHERE DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
+						AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
+						AND t.rv_status = 1 
+						AND t.loai_thu IN ( 4, 5 ) 
+						' . $assigned_user_id_t . '
+						AND t.deleted = 0 
+					GROUP BY t.id
 
-							-- doanh so dc share
-							UNION
-							SELECT 
-								com_bk.assigned_user_id AS user_id,
-								com_bk.ec_flight_bookings_id_c AS booking_id,
-								CONCAT(bk.name, " (Share)") AS booking,
-								"" AS voucher_id, "" AS voucher_name,
-								"UReceived_Share_Profit" AS voucher_type,
-								DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%d-%m-%Y") AS date_ticket_issue,
-								0 AS total_bk,
-								0 AS total_qty,
-								0 AS return_qty,
-								com_bk.total_amount AS doanhso,
-								0 AS luggage_purchase_price,
-								0 AS return_service_fee,
-								0 AS change_service_fee
-							FROM ec_completed_bookings com_bk
-								INNER JOIN ec_flight_bookings bk ON bk.id = com_bk.ec_flight_bookings_id_c AND bk.deleted = 0
-							WHERE DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-								AND DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-								AND com_bk.completed_bk_type = "SHARE_PROFIT"
-								' . $assigned_user_id_share . '
-								AND com_bk.deleted = 0 
-						) AS t
-						ORDER BY t.voucher_type, t.date_ticket_issue';
+					-- doanh so dc share
+					UNION
+					SELECT 
+						com_bk.assigned_user_id AS user_id,
+						com_bk.ec_flight_bookings_id_c AS booking_id,
+						CONCAT(bk.name, " (Share)") AS booking,
+						"" AS voucher_id, "" AS voucher_name,
+						"UReceived_Share_Profit" AS voucher_type,
+						DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%d-%m-%Y") AS date_ticket_issue,
+						0 AS total_bk,
+						0 AS total_qty,
+						0 AS return_qty,
+						com_bk.total_amount AS doanhso,
+						0 AS luggage_purchase_price,
+						0 AS return_service_fee,
+						0 AS change_service_fee
+					FROM ec_completed_bookings com_bk
+						INNER JOIN ec_flight_bookings bk ON bk.id = com_bk.ec_flight_bookings_id_c AND bk.deleted = 0
+					WHERE DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
+						AND DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
+						AND com_bk.completed_bk_type = "SHARE_PROFIT"
+						' . $assigned_user_id_share . '
+						AND com_bk.deleted = 0 
+				) AS t
+				ORDER BY t.voucher_type, t.date_ticket_issue';
 
 		$res 		= $this->bean->db->query($sql);
 		$i 			= 1;

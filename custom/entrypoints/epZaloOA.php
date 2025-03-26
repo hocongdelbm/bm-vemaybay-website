@@ -8,6 +8,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $action = isset($_POST['action']) ? $_POST['action'] : "";
 
     if($action == 'get_recent_messages') {
+        if($current_user->id == '1') {
+            $timestamp = isset($_POST['timestamp']) ? $_POST['timestamp'] : 0;
+            $current_list_user = isset($_POST['current_list_user']) ? array_unique(explode(',', $_POST['current_list_user'])) : []; // array
+
+            $bean_zalo = new EC_Zalo();
+            $results = $bean_zalo->get_list_user($timestamp, $current_list_user);
+            echo json_encode($results);
+            exit();
+        }
+
         $offset = isset($_POST['offset']) ? $_POST['offset'] : 0;
         $current_list_user = isset($_POST['current_list_user']) ? array_unique(explode(',', $_POST['current_list_user'])) : []; // array
 
@@ -26,17 +36,119 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             exit();
         }
     }
-    elseif($action == 'get_messages') {
+    elseif($action == 'get_messages') { // Version 2
         $Zalo = new Zalo();
+        $bean_zalo = new EC_Zalo();
+
         $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
         $offset  = isset($_POST['offset']) ? $_POST['offset'] : 0;
         $is_get_user_info = isset($_POST['is_get_user_info']) ? (int)$_POST['is_get_user_info'] : 1;
         $result = [];
 
+        // User info
+        $zalo_phone = '';
+        if($is_get_user_info == 1) {
+            $user_data = $bean_zalo->get_zalo_user_info($zalo_id);
+            $result['user_info']['data'] = $user_data;
+            $result['user_info']['error'] = !empty($user_data) ? 0 : 1;
+        }
+
         // Message info
-        $json_messages = $Zalo->get_messages($zalo_id, $offset);
-        $result['messages_info'] = json_decode($json_messages, true);
-        $result['messages_info']['offset'] = count($result['messages_info']['data']) + $offset;
+        $zalo_phone = $user_data['shared_info']['phone'] ?? '';
+        $message_data = [];
+        $is_using_api_for_message = false;
+        $sql = "SELECT zm.id AS message_id
+                ,zm.description AS message 
+                ,zm.src
+                ,zm.from_id
+                ,zm.to_id
+                ,zm.timestamp
+                ,zm.type AS message_type
+                ,zm.sub_type AS type
+                ,zm.thumbnail
+                ,zm.url
+                ,zm.attached_description AS description
+                ,zm.latitude
+                ,zm.longitude
+                ,zm.quote_message_id AS quote_id
+                ,zm.template_id
+                ,zm.data AS message_data
+                ,zm.assigned_user_id
+                ,TRIM(CONCAT(u.last_name, ' ', u.first_name)) AS assigned_user_name 
+            FROM ec_zalo_messages zm
+                LEFT JOIN users u ON u.id = zm.assigned_user_id
+            WHERE (zm.from_id = '$zalo_id' OR zm.to_id = '$zalo_id' OR zm.to_id = '$zalo_phone')
+                AND zm.deleted = 0
+            ORDER BY zm.timestamp DESC
+            LIMIT $offset, 10";
+
+        $res = $db->query($sql);
+        while($row = $db->fetchByAssoc($res)) {
+            if($row['message_type'] == 'zns') {
+                $row['message_data'] = json_decode(html_entity_decode($row['message_data']), true);
+
+                unset($row['thumbnail']);
+                unset($row['url']);
+                unset($row['description']);
+                unset($row['latitude']);
+                unset($row['longitude']);
+                unset($row['quote_id']);
+            }
+            else if($row['message_type'] == 'call') {
+                if($row['src'] == 1) $row['from_avatar'] = $result['user_info']['data']['avatar'] ?? '';
+                $row['type'] = $GLOBALS['app_list_strings']['calls_direction_list'][$row['type']];
+                $row['message_data'] = json_decode(html_entity_decode($row['message_data']), true);
+
+                unset($row['thumbnail']);
+                unset($row['url']);
+                unset($row['description']);
+                unset($row['latitude']);
+                unset($row['longitude']);
+                unset($row['quote_id']);
+                unset($row['template_id']);
+            }
+            else {
+                // Avatar
+                if($row['src'] == 1) $row['from_avatar'] = $result['user_info']['data']['avatar'] ?? '';
+
+                // Links info
+                if($row['type'] == 'link' || $row['type'] == 'links') {
+                    $row['links'][] = [
+                        'url' => $row['url'],
+                        'thumb' => $row['thumbnail'],
+                        'description' => $row['description']
+                    ];
+                }
+                elseif($row['type'] == 'links') {
+                    $row['links'] = json_decode(html_entity_decode($row['message_data']), true);
+                }
+                // File info
+                elseif($row['type'] == 'file') {
+                    $row['file'] = json_decode(html_entity_decode($row['message_data']), true);
+                }
+                
+                // Location info
+                if($row['latitude'] && $row['longitude']) {
+                    $row['location']['latitude'] = $row['latitude'];
+                    $row['location']['longitude'] = $row['longitude'];
+                }
+                unset($row['latitude']);
+                unset($row['longitude']);
+            }
+
+            $message_data[] = $row;
+        }
+        if(empty($message_data)) {
+            $json_messages = $Zalo->get_messages($zalo_id, $offset);
+            $result['messages_info'] = json_decode($json_messages, true);
+            $result['messages_info']['offset'] = count($result['messages_info']['data']) + $offset;
+            $is_using_api_for_message = true;
+        }
+        else {
+            $result['messages_info']['error']   = 0;
+            $result['messages_info']['data']    = $message_data;
+            $result['messages_info']['offset']  = count($message_data) + $offset;
+        }
 
         // Quota info
         $json_quota = $Zalo->get_quota_user($zalo_id);
@@ -55,82 +167,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
 
-        // User info
-        if($is_get_user_info == 1) {
-            $json_user = $Zalo->get_user($zalo_id);
-            $result['user_info'] = json_decode($json_user, true);
-            $result['user_info']['data']['chat_link'] = $Zalo->get_chat_link($zalo_id);
-        }
-
         echo json_encode($result);
 
+        // Save previous message
         try {
-            foreach($result['messages_info']['data'] as $m) {
-                $message_id = $m['message_id'] ?? '';
-                if(empty($message_id)) continue;
-
-                $mid = $db->getOne("SELECT id FROM ec_zalo_messages WHERE id = '$message_id'");
-                if(!$mid || empty($mid)) {
-                    // Handle type
-                    $subtype = '';
-                    $mtype = $m['type'] ?? '';
-                    if($mtype == 'text') {
-                        $mtype = 'consultation';
-                        $subtype = 'text';
+            if($is_using_api_for_message) {
+                foreach($result['messages_info']['data'] as $m) {
+                    $message_id = $m['message_id'] ?? '';
+                    if(empty($message_id)) continue;
+    
+                    $mid = $db->getOne("SELECT id FROM ec_zalo_messages WHERE id = '$message_id'");
+                    if(!$mid || empty($mid)) {
+                        // Handle type
+                        $subtype = '';
+                        $mtype = $m['type'] ?? '';
+                        if($mtype == 'text') {
+                            $mtype = 'consultation';
+                            $subtype = 'text';
+                        }
+                        else if($mtype == 'photo' || $mtype == 'image') {
+                            $mtype = 'consultation';
+                            $subtype = 'image';
+                        }
+                        else if($mtype == 'voice' || $mtype == 'audio') {
+                            $subtype = 'audio';
+                            $mtype = 'consultation';
+                        }
+                        else if (in_array($mtype, ['gif', 'sticker', 'video', 'file', 'location', 'link', 'links'])) {
+                            $subtype = $mtype;
+                            $mtype = 'consultation';
+                        }
+                        else {
+                            $mtype = 'other';
+                        }
+    
+                        // Location info
+                        $lat = $long = '';
+                        if(isset($m['location'])) {
+                            $location = is_string($m['location']) ? json_decode($m['location'], true) : $m['location'];
+                            $lat = $location['latitude'] ?? ''; 
+                            $long = $location['longitude '] ?? ''; 
+                        }
+    
+                        $zalomes = new EC_Zalo_Messages();
+                        $zalomes->new_with_id = true;
+                        $zalomes->id = $message_id;
+                        $zalomes->src = $m['src'] ?? '';
+                        $zalomes->from_id = $m['from_id'] ?? '';
+                        $zalomes->to_id = $m['to_id'] ?? '';
+                        $zalomes->timestamp = $m['time'] ?? 0;
+                        $zalomes->type = $mtype;
+                        $zalomes->sub_type = $subtype;
+                        $zalomes->description = $m['message'] ?? '';
+                        $zalomes->thumbnail = $m['thumb'] ?? '';
+                        $zalomes->url = $m['url'] ?? '';
+                        $zalomes->attached_description = $m['description'] ?? '';
+                        $zalomes->latitude = $lat;
+                        $zalomes->longitude = $long;
+                        $zalomes->quote_message_id = $m['quote_id'] ?? '';
+                        $zalomes->response = json_encode($m);
+                        $zalomes->date_entered  = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
+                        $zalomes->date_modified = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
+                        $zalomes->name = 'Resaved';
+                        $zalomes->save();
                     }
-                    else if($mtype == 'photo' || $mtype == 'image') {
-                        $mtype = 'consultation';
-                        $subtype = 'image';
-                    }
-                    else if($mtype == 'voice' || $mtype == 'audio') {
-                        $subtype = 'audio';
-                        $mtype = 'consultation';
-                    }
-                    else if (in_array($mtype, ['gif', 'sticker', 'video', 'file', 'location', 'link', 'links'])) {
-                        $subtype = $mtype;
-                        $mtype = 'consultation';
-                    }
-                    else {
-                        $mtype = 'other';
-                    }
-
-                    // Location info
-                    $lat = $long = '';
-                    if(isset($m['location'])) {
-                        $location = is_string($m['location']) ? json_decode($m['location'], true) : $m['location'];
-                        $lat = $location['latitude'] ?? ''; 
-                        $long = $location['longitude '] ?? ''; 
-                    }
-
-                    $zalomes = new EC_Zalo_Messages();
-                    $zalomes->new_with_id = true;
-                    $zalomes->id = $message_id;
-                    $zalomes->src = $m['src'] ?? '';
-                    $zalomes->from_id = $m['from_id'] ?? '';
-                    $zalomes->to_id = $m['to_id'] ?? '';
-                    $zalomes->timestamp = $m['time'] ?? 0;
-                    $zalomes->type = $mtype;
-                    $zalomes->sub_type = $subtype;
-                    $zalomes->description = $m['message'] ?? '';
-                    $zalomes->thumbnail = $m['thumb'] ?? '';
-                    $zalomes->url = $m['url'] ?? '';
-                    $zalomes->attached_description = $m['description'] ?? '';
-                    $zalomes->latitude = $lat;
-                    $zalomes->longitude = $long;
-                    $zalomes->quote_message_id = $m['quote_id'] ?? '';
-                    $zalomes->response = json_encode($m);
-                    $zalomes->date_entered  = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
-                    $zalomes->date_modified = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
-                    $zalomes->name = 'Resaved';
-                    $zalomes->save();
                 }
             }
         }
-        catch(Exception $e) {
+        catch(Exception $e) {}
+        finally {
             exit();
         }
-
-        exit();
     }
     elseif($action == 'get_user_info') {
         $Zalo = new Zalo();
@@ -380,7 +487,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo $Zalo->send_consultation($type, $zalo_id, $data);
         exit();
     }
-    elseif($action == 'send_zns') {
+    elseif($action == 'send_zns') { // Version 2
         $phone          = isset($_POST['phone']) ? $_POST['phone'] : "";
         $type_zns       = isset($_POST['type_zns']) ? $_POST['type_zns'] : "";
         $parent_id      = isset($_POST['parent_id']) ? $_POST['parent_id'] : "";

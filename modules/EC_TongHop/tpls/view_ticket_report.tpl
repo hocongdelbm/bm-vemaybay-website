@@ -299,6 +299,7 @@
                     <th>Tổng giá mua</th>
                     <th>Tổng doanh số</th>
                     <th>Tổng phiếu thu</th>
+                    <th>Tổng sử dụng điểm</th>
                 </tr>
             </thead>
             <tbody>
@@ -410,7 +411,7 @@
                 <th align="center" width="18%" class="hide-mobile">Ghi chú</th>
                 <th align="center" width="8%" class="hide-mobile">Doanh thu</th>
                 <th align="center" width="8%" class="hide-mobile">Giá mua</th>
-                <th align="center" width="8%">Doanh số</th>
+                <th align="center" width="8%">Doanh số / Sử dụng điểm</th>
                 <!-- <th align="center" width="7%" class="hide-mobile">Nơi đặt</th> -->
                 <th align="center" width="8%" class="hide-mobile">Phiếu thu</th>
                 <th align="center" width="12%">Nhân viên</th>

@@ -350,7 +350,7 @@ ua.on('newRTCSession', function (ev) {
         $(document).prop('title', TITLE_PAGE);
 
         // SAVE LOG
-        logCallEvent(session, SIP_USER, ua_status, call_flow);
+        logCallEvent(session, SIP_USER, ua_status, '');
         saveCallLog();
         call_flow = '';
         session = null;
@@ -363,7 +363,9 @@ ua.on('newRTCSession', function (ev) {
             <option value="out_no_need">Khách chưa có nhu cầu</option>
             <option value="out_question_ticket">Khách hỏi vé</option>
             <option value="out_interest">Đang quan tâm sơ bộ</option>
-            <option value="out_no_response">Không nghe máy, bực mình</option>
+            <option value="out_no_response">Không nghe máy</option>
+            <option value="out_no_uncomfortable">Khách khó chịu, không hài lòng, cảm thấy phiền...</option>
+            <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc được</option>
         `)
 
         if (session._connection.addEventListener) {
@@ -731,6 +733,9 @@ $(document).ready(function () {
     // Nút từ chối - Nút gác máy
     $(document).on('click', '.voiceip-end', function () {
         if (session) {
+            logCallEvent(session, SIP_USER, ua_status, '(voiceip-end)');
+            saveCallLog();
+
             session.terminate();
             session = null;
         }

@@ -5,8 +5,18 @@ $dictionary['EC_Zalo_Messages'] = array(
     'inline_edit' => false,
     'duplicate_merge' => false,
     'fields' => array(
-        // id => message_id
         // description => message
+
+        'message_id' => array(
+            'name'       => 'message_id',
+            'vname'      => 'LBL_MESSAGE_ID',
+            'type'       => 'varchar',
+            'len'        => 64,
+            'default'    => '',
+            'required'   => true,
+            'importable' => true,
+            'audited'    => true,
+        ),
 
         'src' => array(
             'name'       => 'src',
@@ -147,8 +157,8 @@ $dictionary['EC_Zalo_Messages'] = array(
         ),
 
         'data' => array(
-            'name'       => 'template_data',
-            'vname'      => 'LBL_TEMPLATE_DATA',
+            'name'       => 'data',
+            'vname'      => 'LBL_DATA',
             'type'       => 'varchar',
             'len'        => 2056,
             'default'    => '',
@@ -170,6 +180,7 @@ $dictionary['EC_Zalo_Messages'] = array(
     'indices' => array(
         array('name' => 'idx_zalo_messages_from_id', 'type' => 'index', 'fields' => array('from_id')),
         array('name' => 'idx_zalo_messages_to_id', 'type' => 'index', 'fields' => array('to_id')),
+        array('name' => 'idx_zalo_messages_message_id', 'type' => 'index', 'fields' => array('message_id')),
         array('name' => 'idx_zalo_messages_quote_message_id', 'type' => 'index', 'fields' => array('quote_message_id')),
         array('name' => 'idx_zalo_messages_template_id', 'type' => 'index', 'fields' => array('template_id')),
     ),

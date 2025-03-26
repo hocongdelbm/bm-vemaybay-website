@@ -42,6 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 try {
                     $zalomes = new EC_Zalo_Messages();
                     $sender_id      = $data['sender']['id'] ?? '';
+                    $admin_id       = $data['sender']['admin_id'] ?? '';
                     $recipient_id   = $data['recipient']['id'] ?? '';
                     $msg_id         = $data['message']['msg_id'] ?? '';
                     $msg            = $data['message']['text'] ?? '';
@@ -49,6 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     // Handle attachments
                     $url = $thumbnail = $description = '';
+                    $msg_data = [];
                     $lat = $long = '';
                     $attachments = $data['message']['attachments'] ?? [];
                     if(!empty($attachments)) {
@@ -61,6 +63,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $thumbnail = $attachments[0]['payload']['thumbnail'] ?? '';
                             $description = $attachments[0]['payload']['description'] ?? '';
                         }
+                        elseif($msg_type == 'links') {
+                            foreach($attachments as $payload) {
+                                $msg_data[] = $payload;
+                            }
+                        }
+                        elseif($msg_type == 'file') {
+                            $url  = $attachments[0]['payload']['url'] ?? '';
+                            $msg_data = $attachments[0]['payload'];
+                        }
                         elseif($msg_type == 'location') {
                             $location = $attachments[0]['payload']['coordinates'] ?? '';
                             if(!empty($location)) {
@@ -68,6 +79,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 $long = $location['longitude'] ?? '';
                             }
                         }
+                    }
+
+                    $assigned_user_id = '';
+                    if(!empty($admin_id) && strlen($admin_id) > 10) {
+                        $assigned_user_id = $db->getOne("SELECT id FROM users WHERE zalo_id = '$admin_id' AND deleted = 0");
                     }
 
                     $zalomes->new_with_id = true;
@@ -84,7 +100,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $zalomes->latitude = $lat;
                     $zalomes->longitude = $long;
                     $zalomes->attached_description = $description;
+                    $zalomes->data = !empty($msg_data) ? json_encode($msg_data) : '';
                     $zalomes->response = trim($response);
+                    $zalomes->assigned_user_id = $assigned_user_id;
                     $zalomes->save();
 
                     $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");

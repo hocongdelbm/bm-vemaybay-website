@@ -181,6 +181,11 @@
                let emp_outbound = $("#reviewEmp_outbound_" + emp_id + "").val() || '';
                let emp_outbound_answer = $("#reviewEmp_outbound_answer_" + emp_id + "").val() || '';
                let emp_question_ticket = $("#reviewEmp_question_ticket_" + emp_id + "").val() || 0;
+               let emp_noanswer_up_15 = $("#reviewEmp_outbound_noanswer_up_15_" + emp_id + "").val() || 0;
+               let emp_noanswer_under_15 = $("#reviewEmp_outbound_noanswer_under_15_" + emp_id + "").val() || 0;
+               let emp_noanswer_unconnected = $("#reviewEmp_outbound_noanswer_unconnected_" + emp_id + "").val() || 0;
+               let emp_noanswer_nonote = $("#reviewEmp_outbound_noanswer_nonote_" + emp_id + "").val() || 0;
+               let total_talk_outbound = $("#reviewEmp_outbound_answer_total_talk_" + emp_id + "").val() || 0;
 
                if (parseInt(to_date.length) === 0) {
                     to_date = from_date;
@@ -197,6 +202,11 @@
                     emp_outbound: emp_outbound,
                     emp_outbound_answer: emp_outbound_answer,
                     emp_question_ticket: emp_question_ticket,
+                    emp_noanswer_up_15: emp_noanswer_up_15,
+                    emp_noanswer_under_15: emp_noanswer_under_15,
+                    emp_noanswer_unconnected: emp_noanswer_unconnected,
+                    emp_noanswer_nonote: emp_noanswer_nonote,
+                    total_talk_outbound: total_talk_outbound,
                     for: 'sendTeleConfirmCallSales',
                 },
                 beforeSend: function () {},

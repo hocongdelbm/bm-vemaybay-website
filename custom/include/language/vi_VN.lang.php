@@ -2062,17 +2062,20 @@ $GLOBALS['app_list_strings']['call_type_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['call_reason_list'] = array(
-  'in_journey' => 'Khách hỏi hành trình',
-  'in_ticket_hunt' => 'Nhu cầu săn vé máy bay',
-  'in_group_booking' => 'Đặt vé đoàn nhiều người',
-  'in_complaint_delay' => 'Phàn nàn sự cố delay',
-  'in_invoice_contact' => 'Liên hệ kế toán hóa đơn',
-  'in_mistake' => 'Nhầm lẫn, Lý Thông linh tinh',
-  'in_other' => 'Khác, chưa định nghĩa',
-  'out_no_need' => 'Khách chưa có nhu cầu',
-  'out_question_ticket' => 'Khách hỏi vé',
-  'out_interest' => 'Đang quan tâm sơ bộ',
-  'out_no_response' => 'Không nghe máy, bực mình'
+  'in_journey' => 'Khách hỏi hành trình (Gọi đến)',
+  'in_ticket_hunt' => 'Nhu cầu săn vé máy bay (Gọi đến)',
+  'in_group_booking' => 'Đặt vé đoàn nhiều người (Gọi đến)',
+  'in_complaint_delay' => 'Phàn nàn sự cố delay (Gọi đến)',
+  'in_invoice_contact' => 'Liên hệ kế toán hóa đơn (Gọi đến)',
+  'in_mistake' => 'Nhầm lẫn, Lý Thông linh tinh (Gọi đến)',
+  'in_other' => 'Khác, chưa định nghĩa (Gọi đến)',
+  'horizontal' => '---------------------------------------',
+  'out_no_need' => 'Khách chưa có nhu cầu (Gọi đi)',
+  'out_question_ticket' => 'Khách hỏi vé (Gọi đi)',
+  'out_interest' => 'Đang quan tâm sơ bộ (Gọi đi)',
+  'out_no_response' => 'Không nghe máy (Gọi đi)',
+  'out_no_uncomfortable' => 'Khách khó chịu, không hài lòng, cảm thấy phiền... (Gọi đi)',
+  'out_no_subscriber_unreachable' => 'Số thuê bao, không liên lạc được. (Gọi đi)',
 );
 
 

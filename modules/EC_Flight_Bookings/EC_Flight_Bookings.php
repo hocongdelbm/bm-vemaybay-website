@@ -397,6 +397,8 @@ class EC_Flight_Bookings extends Basic
 			}
 			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
 			$psg->eticket_inbound 	= trim(stripslashes($_POST['psg_eticket_inbound'][$i]));
+			$psg->eluggage_outbound 	= trim(stripslashes($_POST['psg_eluggage_outbound'][$i]));
+			$psg->eluggage_inbound 	= trim(stripslashes($_POST['psg_eluggage_inbound'][$i]));
 			$psg->pnr_outbound 		= trim(stripslashes($_POST['psg_pnr_outbound'][$i]));
 			$psg->pnr_inbound 		= trim(stripslashes($_POST['psg_pnr_inbound'][$i]));
 
@@ -505,7 +507,7 @@ class EC_Flight_Bookings extends Basic
 			$booking->save2();
 
 			// Cập nhật trạng thái trong ec_customer
-			UpdateInforBookingOfCustomer($this->id);
+			// UpdateInforBookingOfCustomer($this->id);
 		}
 	}
 
@@ -570,6 +572,8 @@ class EC_Flight_Bookings extends Basic
 					$pass_n->booking_id 		= $pass->booking_id;
 					$pass_n->eticket_outbound 	= $_POST['pass_eticket_outbound'][$i];
 					$pass_n->eticket_inbound 	= $_POST['pass_eticket_inbound'][$i];
+					$pass_n->eluggage_outbound 	= $_POST['pass_eluggage_outbound'][$i];
+					$pass_n->eluggage_inbound 	= $_POST['pass_eluggage_inbound'][$i];
 					$pass_n->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
 					$pass_n->pnr_inbound 		= $_POST['pass_pnr_inbound'][$i];
 					$pass_n->direction 			= $pass->direction;
@@ -611,13 +615,15 @@ class EC_Flight_Bookings extends Basic
 
 				$pass = new EC_Booking_Passengers;
 				$pass->retrieve($_POST['pass_id'][$i]);
-				$pass->birthday 		= $birthday;
-				$pass->salutation 		= $_POST['pass_salutation'][$i];
-				$pass->name 			= $_POST['pass_name'][$i];
-				$pass->eticket_outbound = $_POST['pass_eticket_outbound'][$i];
-				$pass->eticket_inbound 	= $_POST['pass_eticket_inbound'][$i];
-				$pass->pnr_outbound 	= $_POST['pass_pnr_outbound'][$i];
-				$pass->pnr_inbound 		= $_POST['pass_pnr_inbound'][$i];
+				$pass->birthday 			= $birthday;
+				$pass->salutation 			= $_POST['pass_salutation'][$i];
+				$pass->name 				= $_POST['pass_name'][$i];
+				$pass->eticket_outbound 	= $_POST['pass_eticket_outbound'][$i];
+				$pass->eticket_inbound 		= $_POST['pass_eticket_inbound'][$i];
+				$pass->eluggage_outbound 	= $_POST['pass_eluggage_outbound'][$i];
+				$pass->eluggage_inbound 	= $_POST['pass_eluggage_inbound'][$i];
+				$pass->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
+				$pass->pnr_inbound 			= $_POST['pass_pnr_inbound'][$i];
 
 				$pass->luggage_purchase 	 	= $_POST['bought_price_outbound'][$i];
 				$pass->luggage_purchase_inbound = $_POST['bought_price_inbound'][$i];

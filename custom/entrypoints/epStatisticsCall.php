@@ -295,10 +295,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
           echo $html;
      } else if ($type == 'sendTeleConfirmCallSales'){
-          $emp_outbound            = $_POST['emp_outbound'] ?? 0;
-          $emp_outbound_answer     = $_POST['emp_outbound_answer'] ?? 0;
-          $emp_question_ticket     = $_POST['emp_question_ticket'] ?? 0;
-          $asr                     = ($emp_outbound > 0) ? round(($emp_outbound_answer / $emp_outbound) * 100, 2) : 0;
+          $emp_outbound                 = $_POST['emp_outbound'] ?? 0;
+          $emp_outbound_answer          = $_POST['emp_outbound_answer'] ?? 0;
+          $emp_question_ticket          = $_POST['emp_question_ticket'] ?? 0;
+          $emp_noanswer_nonote          = $_POST['emp_noanswer_nonote'] ?? 0;
+          $emp_noanswer_up_15           = $_POST['emp_noanswer_up_15'] ?? 0;
+          $emp_noanswer_under_15        = $_POST['emp_noanswer_under_15'] ?? 0;
+          $emp_noanswer_unconnected     = $_POST['emp_noanswer_unconnected'] ?? 0;
+          $total_talk_outbound          = $_POST['total_talk_outbound'] ?? 0;
+          $asr                          = ($emp_outbound > 0) ? round(($emp_outbound_answer / $emp_outbound) * 100, 2) : 0;
+          $avg_talk                     = ($emp_outbound_answer > 0) ? round($total_talk_outbound / $emp_outbound_answer) : 0;
                
           if(strtotime($from_date) === strtotime($to_date)){
                $mess_date = date('d/m/Y', strtotime($from_date));
@@ -311,12 +317,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           "- Cuộc gọi đi: <b>" . $emp_outbound . "</b>\n" .
           "- Nghe máy: <b>" . $emp_outbound_answer . "</b>\n" .
           "- Tỉ lệ nghe máy: <b>" . $asr . "%</b>\n" .
+          "- Thời gian nghe máy trung bình: <b>" . $avg_talk . "s</b>\n" .
+          "- Không nghe máy (>15s): <b>" . $emp_noanswer_up_15 . "</b>\n" .
+          "- Đổ chuông ngắn: <b>" . $emp_noanswer_under_15 . "</b>\n" .
+          "- Số không liên lạc: <b>" . $emp_noanswer_unconnected . "</b>\n" .
+          "- Không ghi chú/phân loại: <b>" . $emp_noanswer_nonote . "</b>\n" .
           "- Khách hỏi vé: <b>" . $emp_question_ticket . "</b>\n" .
           "<pre>[INFO]: " . proposeCallImprovementStrategy($asr) . "</pre>";
 
           $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
           $result = sendTeleConfirmCallSales(
+          // $result = sendTelegramWarningSystem(
                json_encode(array(
                     'text' => $content,
                     'parse_mode' => 'HTML',

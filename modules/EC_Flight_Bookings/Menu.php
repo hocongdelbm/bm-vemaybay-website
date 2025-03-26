@@ -29,8 +29,8 @@ if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu
 if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu[] 	= array("index.php?module=EC_Flight_Bookings&action=assignbk&return_module=EC_Flight_Bookings&return_action=assignbk", "Danh sách online", "justice-scale", 'EC_Flight_Bookings');
 
 // Doanh số booker
+if (ACLController::checkAccess('EC_Flight_Bookings', 'view', true)) $module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=bksalereport&return_module=EC_Flight_Bookings&return_action=bksalereport", $mod_strings['LNK_SALE_REPORT'],"growth", 'EC_Flight_Bookings');
 if(isAllowedUser()) {
-	if (ACLController::checkAccess('EC_Flight_Bookings', 'view', true)) $module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=bksalereport&return_module=EC_Flight_Bookings&return_action=bksalereport", $mod_strings['LNK_SALE_REPORT'],"growth", 'EC_Flight_Bookings');
 	if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu[] 	= array("index.php?module=EC_Flight_Bookings&action=bkagent&return_module=EC_Flight_Bookings&return_action=bkagent", "Thống kê vé", "bkagent", 'EC_Flight_Bookings');
 }
 

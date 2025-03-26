@@ -797,6 +797,10 @@ function insertPassengerLine(ln) {
 	html += `<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
 	// Số vé lượt về
 	html += `<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
+	// Số vé HL lượt đi
+	html += `<td data-label="Số vé HL lượt đi"><input type="text" name="psg_eluggage_outbound[]" id="psg_eluggage_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
+	// Số vé HL lượt về
+	html += `<td data-label="Số vé HL lượt về"><input type="text" name="psg_eluggage_inbound[]" id="psg_eluggage_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
 	// PNR lượt đi
 	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
 	// PNR lượt về
@@ -830,7 +834,7 @@ function insertPassengerLine(ln) {
 
 	/**********  Line 2 (Hành lý đi nếu có)  **********/
 	html += `<tr id="psg_line_desc_psg_line_desc_${ln}">
-		<td data-label="Thông tin HL đi" class="row_psg_price" colspan="12">
+		<td data-label="Thông tin HL đi" class="row_psg_price" colspan="13">
 			<div class="psg_price-wrap d-flex gap-2 align-items-center">
 				<div class="col_psg_price flex-fill">
 					<span class="text-label">Giá mua HL lượt đi (VAT): </span>
@@ -867,7 +871,7 @@ function insertPassengerLine(ln) {
 
 	/**********  Line 3 (Hành lý về nếu có)  **********/
 	html += `<tr id="psg_line_lug_${ln}">
-		<td data-label="Thông tin HL về" class="row_psg_price" colspan="12">
+		<td data-label="Thông tin HL về" class="row_psg_price" colspan="13">
 			<div class="psg_price-wrap d-flex gap-2 align-items-center">
 				<div class="col_psg_price flex-fill">
 					<span class="text-label">Giá mua HL lượt về (VAT): </span>

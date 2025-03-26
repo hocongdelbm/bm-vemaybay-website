@@ -1,6 +1,38 @@
-
+:root {
+    --skeleton-color: #e0e0e0;
+    --skeleton-border-radius: 8px;
+}
+  
 /**********  LOADING LIST USER  **********/
-/* HTML: <div class="loader_list_user"></div> */
+.skeleton-item {
+    animation: skeleton-loading 1.5s infinite;
+    background-color: var(--skeleton-color);
+    border-radius: var(--skeleton-border-radius);
+}
+.item_mess_skeleton .__content {height: 45px !important;}
+.skeleton-mess_name {
+    width: 120px !important;
+    height: 15px;
+}
+.skeleton-mess_time {
+    width: 28px;
+    height: 15px;
+}
+.skeleton-lastest_message {
+    width: 80% !important;
+    margin-top: 6px;
+}
+.skeleton-imgDrop {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+@keyframes skeleton-loading {
+    0% {background-color: var(--skeleton-color);}
+    50% {background-color: #f0f0f0;}
+    100% {background-color: var(--skeleton-color);}
+}
+
 .loader_list_user {
     width: 32px;
     padding: 4px;
@@ -18,6 +50,7 @@
     margin: 5px auto 10px;
 }
 @keyframes l3 {to{transform: rotate(1turn)}}
+
 
 
 
