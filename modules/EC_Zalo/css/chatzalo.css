@@ -1,6 +1,5 @@
 @import "loading.css";
 
-/****************************************/
 /***************  RESET  ***************/
 #bootstrap-container {
   padding: 10px 10px 10px 30px !important;
@@ -8,14 +7,12 @@
 /***************  END RESET  ***************/
 
 
-/****************************************/
+
 /***************  GLOBAL  ***************/
-/****************************************/
 i.icon {
   cursor: pointer;
   pointer-events: unset !important;
 }
-
 .btn {
   display: -webkit-box !important;
   display: -webkit-flex !important;
@@ -32,67 +29,54 @@ i.icon {
   align-items: center;
   border-radius: 4px;
 }
-
-.btn:not(.btn-sm) {
-  padding: 8px 12px;
-}
-
+.btn:not(.btn-sm) {padding: 8px 12px;}
 .btn_line.btn-blue {
   border: 1px solid #0068ff;
   color: #0068ff;
 }
-
 .btn_bg.btn-blue {
   background-color: #0068ff;
   color: #fff;
 }
-/****************************************/
 /*************  END GLOBAL  *************/
-/****************************************/
 
 
-.wrap-content.wrap-content-chat {
-  position: relative;
-}
 
+.wrap-content.wrap-content-chat {position: relative;}
 #content_main {
   width: 100%;
   background-color: #fff;
 }
-
 .zalochat_component {
-  overflow: hidden;
   display: flex;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
+  -webkit-flex-wrap: nowrap;
+  -ms-flex-wrap: nowrap;
+  flex-wrap: nowrap;
   height: calc(100vh - 110px);
+  overflow: hidden;
 }
 
 
 
-/*********************************/
 /************ SIDEBAR ************/
-/*********************************/
-#zalochat_sidebar {
+.zalochat_sidebar {
   position: relative;
-  display: -webkit-box;
+  display: flex;
   display: -webkit-flex;
   display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
+  flex-direction: column;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
-  flex-direction: column;
-  width: 300px;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  width: 27%;
   /* height: calc(100vh - 175px); */
   border: 1px solid #e0e8ef;
   border-right: 1px solid #d6d5dd;
 }
 
 /********** SIDEBAR TOP **********/
-.chat_sidebar .chat-sidebar__top {
+.zalochat_sidebar .chat-sidebar__top {
   display: flex;
   align-content: center;
   flex-wrap: wrap;
@@ -100,50 +84,50 @@ i.icon {
   border-bottom: 1px solid #d6d5dd;
 }
 
-.chat_sidebar .chat-sidebar__top .type {
+.zalochat_sidebar .chat-sidebar__top .type {
   width: 85%;
   padding: 0 12px;
 }
-.chat_sidebar .chat-sidebar__top .type .dropdown-menu {
+.zalochat_sidebar .chat-sidebar__top .type .dropdown-menu {
   font-size: 14px;
 }
 
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown {
+.zalochat_sidebar .chat-sidebar__top .type .btn-dropdown {
   position: relative;
   padding: 0 30px 0 0;
   font-weight: normal;
   border: none;
 }
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown:focus,
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown:active {
+.zalochat_sidebar .chat-sidebar__top .type .btn-dropdown:focus,
+.zalochat_sidebar .chat-sidebar__top .type .btn-dropdown:active {
   border: none;
   outline: none;
 }
-.chat_sidebar .chat-sidebar__top .type .btn-dropdown .icon_dropdown {
+.zalochat_sidebar .chat-sidebar__top .type .btn-dropdown .icon_dropdown {
   position: absolute;
   top: 0;
   right: 0;
 }
 
-.chat_sidebar .chat-sidebar__top .search-icon {
+.zalochat_sidebar .chat-sidebar__top .search-icon {
   flex: 1;
   padding: 0 10px;
   margin: 0;
   text-align: center;
 }
 
-.chat_sidebar .chat-sidebar__top .search-processing {
+.zalochat_sidebar .chat-sidebar__top .search-processing {
   display: none;
   width: 100%;
 }
-.chat_sidebar .chat-sidebar__top .search-processing .wrap {
+.zalochat_sidebar .chat-sidebar__top .search-processing .wrap {
   display: flex;
   gap: 8px;
   position: relative;
   width: 100%;
   padding: 0 8px;
 }
-.chat_sidebar .chat-sidebar__top .search-processing .wrap .input-search-user {
+.zalochat_sidebar .chat-sidebar__top .search-processing .wrap .input-search-user {
   width: 85%;
   padding: 0 5px 0 32px;
   background: #f6f6f7;
@@ -154,17 +138,18 @@ i.icon {
 .input-search-user:focus {
   border: 1px solid #0068ff !important;
 }
-.chat_sidebar .chat-sidebar__top .search-processing .wrap .close-search-processing {
+.zalochat_sidebar .chat-sidebar__top .search-processing .wrap .close-search-processing {
   background: #f6f6f7;
   border: none;
   flex: 1;
   font-weight: normal;
 }
-.chat_sidebar .chat-sidebar__top .search-processing .wrap .icon_search {
+.zalochat_sidebar .chat-sidebar__top .search-processing .wrap .icon_search {
   position: absolute;
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
+  cursor: auto;
 }
 
 #list_mess_search {display: none;}
@@ -302,11 +287,11 @@ i.icon {
   align-items: center;
 }
 #zalochat_sidebar .list_mess .item_mess .mess_content .mess_name {
-  width: 170px;
+  max-width: 200px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 #zalochat_sidebar .list_mess .item_mess .mess_more {
@@ -385,20 +370,17 @@ i.icon {
   background: #a9b7d1;
 }
 
-
-
-/***********************************/
 /************ CHAT MAIN ************/
-/***********************************/
-#zalochat_main {
-  overflow: inherit;
-  width: calc(100% - 600px);
-  /* height: calc(100vh - 175px); */
-  background: #f6f6f7;
+.zalochat_main {
+  flex: 1;
   position: relative;
+  overflow: inherit;
+  background: #f6f6f7;
+  /* width: calc(100% - 600px); */
+  /* height: calc(100vh - 175px); */
 }
 
-#zalochat_main .chat_welcome {
+.zalochat_main .chat_welcome {
   position: relative;
   display: -webkit-box;
   display: -webkit-flex;
@@ -421,11 +403,11 @@ i.icon {
   height: 100%;
 }
 
-#zalochat_main .zalochat_content {
+.zalochat_main .zalochat_content {
   height: 100%;
 }
 
-#zalochat_main .zalochat_content .group-feed {
+.zalochat_main .zalochat_content .group-feed {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -441,7 +423,7 @@ i.icon {
 }
 
 /* user-current */
-#zalochat_main .zalochat_content .group-feed .user-current {
+.zalochat_main .zalochat_content .group-feed .user-current {
   position: relative;
   z-index: 5;
   top: 0;
@@ -749,14 +731,14 @@ input[name="checkbox_tag"]:checked:before {
   background: #a9b7d1;
 }
 
-#zalochat_main .zalochat_content .group-feed .section-message {
+.zalochat_main .zalochat_content .group-feed .section-message {
   width: 100%;
   display: flex;
   flex: 1 1 0%;
   position: relative;
 }
 
-#zalochat_main .zalochat_content .group-feed .section-message .message__list {
+.zalochat_main .zalochat_content .group-feed .section-message .message__list {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -764,7 +746,7 @@ input[name="checkbox_tag"]:checked:before {
   flex-direction: column;
 }
 
-#zalochat_main .zalochat_content .group-feed .section-message .message__list .section-post {
+.zalochat_main .zalochat_content .group-feed .section-message .message__list .section-post {
   height: 100%;
   display: -webkit-box;
   display: -webkit-flex;
@@ -779,15 +761,13 @@ input[name="checkbox_tag"]:checked:before {
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
   flex-direction: column;
-
-  /* overflow: hidden; */
   overflow: auto;
   position: relative;
   background-color: #f6f6f7;
   padding-bottom: 30px;
 }
 
-#zalochat_main .zalochat_content .group-feed .section-message .message__list .section-post .section-message__details {
+.zalochat_main .zalochat_content .group-feed .section-message .message__list .section-post .section-message__details {
   display: table;
   min-width: 100%;
 }
@@ -938,15 +918,69 @@ input[name="checkbox_tag"]:checked:before {
   left: 0;
   width: 100%;
   height: 100%;
-
   z-index: unset;
-
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
   border-radius: 100%;
   -moz-border-radius: 100%;
   -webkit-border-radius: 100%;
+}
+.avatar .avatar-assign-img {
+  cursor: pointer;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 15px;
+  height: 15px;
+  background-color: #fff;
+  border-radius: 50%;
+  border: 1px solid #fff;
+  -moz-border-radius: 100%;
+  -webkit-border-radius: 100%;
+  z-index: 1;
+}
+.avatar .avatar-assign-name {
+  cursor: pointer;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 15px;
+  height: 15px;
+  background: #008fe5;
+  border-radius: 100%;
+  -moz-border-radius: 100%;
+  -webkit-border-radius: 100%;
+  border: 1px solid #fff;
+  color: #fff;
+  font-weight: 500;
+  font-size: 8px;
+  line-height: 0;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+.avatar .assign-fullname {
+  display: none;
+  position: absolute;
+  top: -2.35rem;
+  right: 0;
+  width: fit-content;
+  white-space: nowrap;
+  background: #fff;
+  border: none;
+  border-radius: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 5px 15px 0px;
+  color: #717171;
+  text-align: center;
+  line-height: 1;
+  font-weight: 500;
+  padding: 6px 10px 8px 10px;
+  z-index: 2;
 }
 
 .section-item.me .avatar {
@@ -993,73 +1027,21 @@ input[name="checkbox_tag"]:checked:before {
   max-width: 450px;
 }
 
-
-
-.section-item
-  .item-content
-  .item-headline-container
-  .snippet
-  .item-message.sound
-  .sound-container {
+.item-message.sound, .item-message.voice-message {
+  padding: 6px 10px 3px 10px !important;
+}
+.section-item .item-content .item-headline-container .snippet .item-message.sound .sound-container {
   display: block;
   position: relative;
-  width: 112px;
-  height: 30px;
   overflow: hidden;
-
-  background: rgb(255, 255, 255);
 }
-
-.section-item
-  .item-content
-  .item-headline-container
-  .snippet
-  .item-message.sound
-  .sound-container
-  .func-play {
-  display: block;
-  position: absolute;
-  top: 50%;
-  left: 0;
-  z-index: 1;
-  width: 24px;
-  height: 24px;
-  margin-top: -12px;
-}
-
-.section-item .item-content .message-container .item-message.sound .sound-container .func-play svg {
-  fill: #0068ff;
-}
-
-.func-play {
-  cursor: pointer;
-}
-
-.section-item .item-content .message-container .item-message.sound .sound-container .ic_load {
-  width: 63px;
-}
-
-.section-item .item-content .message-container .item-message.sound .sound-container .timer {
-  position: absolute;
-  top: 50%;
-  -webkit-transform: translateY(-50%);
-  transform: translateY(-50%);
-  right: 0;
-  z-index: 1;
-  background-color: transparent;
-  padding: 1px 5px;
-  color: #57576b;
-  font-size: 16px;
-  border-radius: 20px;
-  -moz-border-radius: 20px;
-  -webkit-border-radius: 20px;
-  letter-spacing: -0.3px;
+.sound-container audio {
+  height: 30px;
 }
 
 .section-item.me .item-content .message-container {
   text-align: right;
 }
-
 .section-item.me .item-content .message-container .item-message {
   background-color: #d0e3ff;
   text-align: left;
@@ -1082,6 +1064,10 @@ input[name="checkbox_tag"]:checked:before {
 .message-container .item-message .content,
 .message-container .item-message span {
   font-size: 14px;
+}
+.message-container .item-message .content a {
+  color: #008fe5;
+  text-decoration: underline;
 }
 
 /* Row chat image */
@@ -1137,6 +1123,8 @@ input[name="checkbox_tag"]:checked:before {
 }
 .item-message.video-message video {
   border-radius: 6px;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 12px;
+  height: 200px;
 }
 /* End row chat video */
 
@@ -1218,49 +1206,39 @@ input[name="checkbox_tag"]:checked:before {
 .section-item .item-content .message-container .item-message.product .product-container .main-product .title {
   display: block;
   color: #191919;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 500;
   text-align: left;
   padding: 0 10px !important;
   margin: 0;
 }
 .section-item .item-content .message-container .item-message.product .product-container .main-product .desc {
+  font-size: 13px;
   padding: 5px 10px 10px 10px;
 }
 /* End row chat link */
 
 
 /* Row chat business card */
-.message-container .business-card .card-body {
-  min-width: 320px;
-}
-
+.item-message.business_card {padding: 0 !important;}
+.message-container .business-card .card-body {min-width: 320px;}
 .message-container .business-card .card-body .row .left {
   display: flex;
   padding-right: 0;
 }
-
 .business-card .card-body .row .left .avatar {
   width: 50px;
   height: 50px;
   border: 3px solid #fff;
   border-radius: 50%;
 }
-
-.business-card .card-body .row .left .info {
-  margin-left: 5px;
-}
+.business-card .card-body .row .left .info {margin-left: 5px;}
 .business-card .card-body .row .left .info p {
   font-size: 14px;
   font-weight: 600;
 }
-.business-card .card-body .row .left .info .card-phone {
- color: #cccccc;
-}
-
-.business-card .card-body .row .right {
-  text-align: center;
-}
+.business-card .card-body .row .left .info .card-phone {color: #cccccc;}
+.business-card .card-body .row .right {text-align: center;}
 .business-card .card-body .row .right .qrcode {
   width: 80px;
   height: 80px;
@@ -1428,7 +1406,6 @@ input[name="checkbox_tag"]:checked:before {
 .section-compose .add-msg-box .add-msg-box-func .chat_item {
   position: relative;
   width: 40px;
-  /* height: 41px; */
   padding: 5px 10px 8px 10px;
   border-radius: 4px;
 }
@@ -1438,6 +1415,11 @@ input[name="checkbox_tag"]:checked:before {
   border: none;
   padding: 0;
   margin: 0;
+}
+
+.content_mess_input textarea.textarea.dragover {
+  background-color: #f1fdff !important;
+  border: 1px solid #0088ff !important;
 }
 
 .section-compose .add-msg-box .add-msg-box-txtArea {
@@ -1553,14 +1535,12 @@ input[name="checkbox_tag"]:checked:before {
   align-items: center;
 }
 
-#zalochat_profile {
-  --neutral_40: #d6d5dd;
-  border-left: 1px solid var(--neutral_40);
-  display: none;
-  width: 300px;
-  /* height: calc(100vh - 175px); */
-  border-left: 1px solid var(--neutral_40);
+.zalochat_profile {
   position: relative;
+  display: none;
+  width: 22%;
+  /* height: calc(100vh - 175px); */
+  border-left: 1px solid #d6d5dd;
   overflow-x: hidden;
   padding: 0 8px;
 }
@@ -1583,32 +1563,32 @@ input[name="checkbox_tag"]:checked:before {
   padding-bottom: 12px;
 }
 
-#zalochat_profile .profile_name,
-#zalochat_profile .profile_group {
+.zalochat_profile .profile_name,
+.zalochat_profile .profile_group {
   gap: 8px;
 }
 
-#zalochat_profile .profile_name {
+.zalochat_profile .profile_name {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-#zalochat_profile .profile_name .username_content {
+.zalochat_profile .profile_name .username_content {
   flex-direction: column;
   padding-left: 12px;
   display: flex;
   flex: 1 1 0%;
 }
 
-#zalochat_profile .profile_name .username_content .user_alias {
+.zalochat_profile .profile_name .username_content .user_alias {
   color: rgb(52, 52, 54);
   font-weight: 500;
   width: auto;
   word-break: break-word;
   font-size: 14px;
 }
-#zalochat_profile .profile_name .username_content .user_name {
+.zalochat_profile .profile_name .username_content .user_name {
   color: rgb(87, 87, 107);
   font-size: 13px;
   line-height: 21px;
@@ -1616,7 +1596,7 @@ input[name="checkbox_tag"]:checked:before {
   word-break: break-word;
 }
 
-#zalochat_profile .profile_link {
+.zalochat_profile .profile_link {
   display: flex;
   flex-wrap: wrap;
   -webkit-box-pack: start;
@@ -1626,21 +1606,21 @@ input[name="checkbox_tag"]:checked:before {
   margin-bottom: 12px;
 }
 
-#zalochat_profile .profile_link .link_ttl {
+.zalochat_profile .profile_link .link_ttl {
   font-size: 14px;
   line-height: 21px;
   font-weight: 500;
   width: 95px;
 }
 
-#zalochat_profile .profile_link .link_content {
+.zalochat_profile .profile_link .link_content {
   width: auto;
   max-width: 100%;
   color: #0068ff;
   font-size: 14px;
 }
 
-#zalochat_profile .profile_link .btn_coppy {
+.zalochat_profile .profile_link .btn_coppy {
   width: 16px;
   height: 16px;
   cursor: pointer;
@@ -1651,7 +1631,7 @@ input[name="checkbox_tag"]:checked:before {
   margin-left: 4px;
 }
 
-#zalochat_profile .info_more dl {
+.zalochat_profile .info_more dl {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1673,12 +1653,12 @@ input[name="checkbox_tag"]:checked:before {
   margin-bottom: 0;
 }
 
-#zalochat_profile .info_more dl dt {
+.zalochat_profile .info_more dl dt {
   max-width: 90px;
   font-weight: 500;
 }
 
-#zalochat_profile .info_more dl dd {
+.zalochat_profile .info_more dl dd {
   text-align: right;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -1698,7 +1678,7 @@ input[name="checkbox_tag"]:checked:before {
   padding-left: 5px;
 }
 
-#zalochat_profile .btn_info {
+.zalochat_profile .btn_info {
   padding: 8px 12px;
   line-height: 20px;
   display: -webkit-box !important;
@@ -1729,19 +1709,19 @@ input[name="checkbox_tag"]:checked:before {
   white-space: nowrap;
 }
 
-#zalochat_profile .btn_info:hover {
+.zalochat_profile .btn_info:hover {
   opacity: 0.8;
   background-color: var(--brand_20);
   color: var(--brand_50);
   background-color: var(--brand_10);
   font-weight: 600;
 }
-#zalochat_profile .btn_info:focus {
+.zalochat_profile .btn_info:focus {
   border: none;
   outline: none;
 }
 
-#zalochat_profile .func-filter .btn_manager_tag {
+.zalochat_profile .func-filter .btn_manager_tag {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1754,7 +1734,7 @@ input[name="checkbox_tag"]:checked:before {
   color: rgb(0, 104, 255);
 }
 
-#zalochat_profile .func-filter .btn_manager_tag:after {
+.zalochat_profile .func-filter .btn_manager_tag:after {
   width: 16px;
   height: 16px;
   margin: 0 4px;
@@ -1767,7 +1747,7 @@ input[name="checkbox_tag"]:checked:before {
     hue-rotate(210deg) brightness(102%) contrast(105%);
 }
 
-#zalochat_profile .customer__tag .list_tag {
+.zalochat_profile .customer__tag .list_tag {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -1790,7 +1770,7 @@ input[name="checkbox_tag"]:checked:before {
   flex-wrap: wrap;
 }
 
-#zalochat_profile .input_search input.dropdown_btn {
+.zalochat_profile .input_search input.dropdown_btn {
   height: 36px;
   font-size: 14px;
   cursor: pointer;
@@ -2051,6 +2031,9 @@ input[name="checkbox_tag"]:checked:before {
   background: #3989ff;
 }
 
+a.app__quote-content:hover {
+  color: unset;
+}
 .section-item .item-content .message-container .item-message.quote .quote-content .app__quote-content {
   display: -webkit-box;
   display: -webkit-flex;
@@ -2072,14 +2055,12 @@ input[name="checkbox_tag"]:checked:before {
   font-weight: 700;
   margin-bottom: 3px;
 }
-
 .app__quote-content .user-content, .app__quote-content .user-name {
   max-width: 300px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .app__quote-content img {
   width: 40px;
   height: 40px;
@@ -2132,6 +2113,10 @@ input[name="checkbox_tag"]:checked:before {
   font-size: 14px;
   font-weight: 600;
   margin: 3px 0 6px 3px;
+}
+.content-call .assign-fullname {
+  font-size: 13px;
+  padding-left: 5px;
 }
 .content-call .call-title i {margin-right: 4px;}
 .content-call .call-record-file {margin-top: 8px;}

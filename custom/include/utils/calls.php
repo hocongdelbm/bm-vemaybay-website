@@ -92,10 +92,12 @@ function write_file_backup_log_calls($json)
  */
 function agent_change_status($agent, $status)
 {
+    global $db, $sugar_config;
+    $domain = $sugar_config['postgreconfig']['domain_name'] ?? '';
+
     // 0: Offline
     // 1: Online
     // 2: Busy
-
     $array_admin = [
         '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
         '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
@@ -103,7 +105,7 @@ function agent_change_status($agent, $status)
     ];
 
     global $db, $current_user;
-    if (empty($agent) || empty($status)) {
+    if (empty($agent) || empty($status) || empty($domain)) {
         $response['success'] = array(
             'code' => 400,
             'title' => 'agent status bad request',
@@ -112,7 +114,7 @@ function agent_change_status($agent, $status)
         exit();
     }
 
-    $agent_domain  = $agent . '@td.timchuyenbay.net';
+    $agent_domain  = $agent . '@' . $domain;
     $toten  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
     $body_request = array(
         'agent' => $agent_domain,
@@ -127,7 +129,7 @@ function agent_change_status($agent, $status)
         }
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL             => "https://td.timchuyenbay.net/agent_status/change_status.php",
+            CURLOPT_URL             => "https://".$domain."/agent_status/change_status.php",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
@@ -447,4 +449,61 @@ function proposeCallImprovementStrategy($asr) {
 
     $randomIndex = array_rand($strategies[$key]);
     return $strategies[$key][$randomIndex];
+}
+
+
+function send_callee_autocall($callees)
+{
+
+    global $db, $sugar_config;
+    $bearer_token  = $sugar_config['postgreconfig']['bearer_token'] ?? '';
+    $domain_name = $sugar_config['postgreconfig']['domain_name'] ?? '';
+
+    if (empty($bearer_token) || empty($domain_name)) {
+        return json_encode([
+            'error' => 1,
+            'httpcode' => 400,
+            'message' => 'Bad request. Missing bearer token or domain',
+        ]);
+    }
+
+    $body_request = array(
+        'callee_numbers' => $callees,
+        'domain_name' => $domain_name,
+    );
+
+    try {
+        $curl = curl_init();
+        if ($curl === false) {
+            return json_encode([ 'error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize']);
+        }
+
+        curl_setopt_array($curl, array(
+            CURLOPT_URL             => "https://$domain_name/apiv1/autocall.php",
+            CURLOPT_RETURNTRANSFER  => true,
+            CURLOPT_HTTPHEADER      => [
+                "Content-Type: application/json",
+                "Authorization: Bearer $bearer_token"
+            ],
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
+            CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
+            CURLOPT_TIMEOUT         => 0,
+            CURLOPT_CUSTOMREQUEST   => 'POST',
+            CURLOPT_POSTFIELDS      => json_encode($body_request),
+        ));
+
+        $json = curl_exec($curl);
+        $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        $arr = json_decode(html_entity_decode($json), true);
+
+        if ($httpcode === 200 && isset($arr['code']) && (int)$arr['code'] === 200) {
+            return json_encode(array('error' => 0, 'response' => $arr));
+        } else {
+            return json_encode(['error' => 1, 'httpcode' => $httpcode, 'response' => $arr]);
+        }
+    } catch (Exception $e) {
+        return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
+    }
 }

@@ -711,7 +711,6 @@ $dictionary['Contact'] = array(
     'indices' => array(
         array('name' => 'idx_cont_phone', 'type' => 'index', 'fields' => array('phone_mobile')),
         array('name' => 'idx_cont_zaloid', 'type' => 'index', 'fields' => array('zalo_id')),
-        array('name' => 'idx_cont_last_name', 'type' => 'index', 'fields' => array('last_name')),
     ),
     'relationships' => array(
         'contact_direct_reports' => array(

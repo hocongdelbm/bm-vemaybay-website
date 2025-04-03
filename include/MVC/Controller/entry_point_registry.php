@@ -121,5 +121,8 @@ $entry_point_registry = array(
     
     // DASHBOARD - HOME
     'entryPointOverviewDashBoard'           => array('file' => 'custom/entrypoints/epOverviewDashboard.php', 'auth' => true),
+    
+    // AUTOCALL
+    'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
 
 );

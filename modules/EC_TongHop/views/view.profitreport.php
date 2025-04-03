@@ -162,6 +162,9 @@ class Viewprofitreport extends SugarView {
 
 		// tính các loại chi phí phát sinh (trừ công nợ phải trả)
 		$other_amt_curr = $this->getOTherAmount($sql_search_pv);
+		$other_amt_curr_quarter = [];
+		$other_amt_last_quarter = [];
+		$other_amt_prev_month = [];
 		if($calculate) {
 			// tháng trước
 			$other_amt_prev_month 	= $this->getOTherAmount($sql_search_rv_prev_month);

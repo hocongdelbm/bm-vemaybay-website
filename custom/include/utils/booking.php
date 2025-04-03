@@ -124,64 +124,66 @@ function classifyContact($contactId)
     ];
 
     // Đếm tổng số booking và số booking hoàn tất của liên hệ
-    $sql = 'SELECT 
-                COUNT(id) AS total_bookings,
-                SUM(CASE WHEN booking_status = "8" THEN 1 ELSE 0 END) AS completed_bookings
-            FROM ec_flight_bookings
-            WHERE contact_id = "' . $contactId . '" 
-            AND deleted = 0';
-    $result = $db->fetchByAssoc($db->query($sql));
+    $sql = "SELECT 
+        COUNT(id) AS total_bookings,
+        SUM(CASE WHEN booking_status = '8' THEN 1 ELSE 0 END) AS completed_bookings
+    FROM ec_flight_bookings
+    WHERE contact_id = '{$contactId}' 
+    AND deleted = 0";
 
-    $totalBookings      = (int)$result['total_bookings'];
-    $completedBookings  = (int)$result['completed_bookings'];
+    $result = $db->query($sql);
+    $data = $db->fetchByAssoc($result);
+
+    $totalBookings      = isset($data['total_bookings']) ? (int)$data['total_bookings'] : 0;
+    $completedBookings  = isset($data['completed_bookings']) ? (int)$data['completed_bookings'] : 0;
 
     if ($totalBookings >= 5 && $completedBookings == 0) {
         $type_contact = [
             'type' => 'contact_warning',
             'label' => 'Lý thông',
             'desc' => '5 booking trở lên mà không hoàn tất',
-            'totalBookings' => $totalBookings,
-            'completedBookings' => $completedBookings,
+            'totalBookings' => (int)$totalBookings,
+            'completedBookings' => (int)$completedBookings,
         ];
     } elseif ($totalBookings > 20 && $completedBookings >= 11) {
         $type_contact = [
             'type' => 'contact_supper_vip',
             'label' => 'Supper VIP',
             'desc' => 'Trên 20 booking và có từ 11 booking hoàn tất',
-            'totalBookings' => $totalBookings,
-            'completedBookings' => $completedBookings,
+            'totalBookings' => (int)$totalBookings,
+            'completedBookings' => (int)$completedBookings,
         ];
-    } elseif ($totalBookings >= 11 && $totalBookings <= 20 && $completedBookings >= 6) {
+    } elseif ((int)$totalBookings >= 11 && (int)$totalBookings <= 20 && (int)$completedBookings >= 6) {
         $type_contact = [
             'type' => 'contact_gold_member',
             'label' => 'GOLD Member',
             'desc' => 'Từ 11-20 booking và có từ 6 booking hoàn tất',
-            'totalBookings' => $totalBookings,
-            'completedBookings' => $completedBookings,
+            'totalBookings' => (int)$totalBookings,
+            'completedBookings' => (int)$completedBookings,
         ];
-    } elseif ($totalBookings >= 6 && $totalBookings <= 10 && $completedBookings >= 3) {
+    } elseif ((int)$totalBookings >= 6 && (int)$totalBookings <= 10 && (int)$completedBookings >= 3) {
         $type_contact = [
             'type' => 'contact_vip_member',
             'label' => 'VIP Member',
             'desc' => 'Từ 6-10 booking và có từ 3 booking hoàn tất',
-            'totalBookings' => $totalBookings,
-            'completedBookings' => $completedBookings,
+            'totalBookings' => (int)$totalBookings,
+            'completedBookings' => (int)$completedBookings,
         ];
-    } elseif ($totalBookings >= 2 && $totalBookings <= 5 && $completedBookings >= 1) {
+    } elseif ((int)$totalBookings >= 2 && (int)$totalBookings <= 5 && (int)$completedBookings >= 1) {
         $type_contact = [
             'type' => 'contact_new_member',
             'label' => 'KH mới',
             'desc' => 'Từ 2-5 booking và có booking hoàn tất',
-            'totalBookings' => $totalBookings,
-            'completedBookings' => $completedBookings,
+            'totalBookings' => (int)$totalBookings,
+            'completedBookings' => (int)$completedBookings,
         ];
     } else {
         $type_contact = [
             'type' => 'contact_return',
             'label' => 'Trở lại',
             'desc' => 'Xuất hiện trong bất kỳ booking',
-            'totalBookings' => $totalBookings,
-            'completedBookings' => $completedBookings,
+            'totalBookings' => (int)$totalBookings,
+            'completedBookings' => (int)$completedBookings,
         ];
     }
 

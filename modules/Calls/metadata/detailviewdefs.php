@@ -28,6 +28,7 @@ $viewdefs['Calls'] = array(
 					array('customCode' => '{$CHANGE_STATUS}'),
 					array('customCode' => '{$CALLS_ANNOTATION}'),
 					array('customCode' => '{$REPORT_BUG}'),
+					array('customCode' => '{$CALLS_AUTOMATION}'),
 					// array(
 					// 	'customCode' => '{if $fields.status.value != "Held" && $bean->aclAccess("edit")} <input type="hidden" name="isSaveAndNew" value="false">  <input type="hidden" name="status" value="">  <input type="hidden" name="isSaveFromDetailView" value="true">  <input title="{$APP.LBL_CLOSE_AND_CREATE_BUTTON_TITLE}"   class="btn btn-secondary"  onclick="this.form.status.value=\'Held\'; this.form.action.value=\'Save\';this.form.return_module.value=\'Calls\';this.form.isDuplicate.value=true;this.form.isSaveAndNew.value=true;this.form.return_action.value=\'EditView\'; this.form.return_id.value=\'{$fields.id.value}\'" id="close_create_button" name="button"  value="{$APP.LBL_CLOSE_AND_CREATE_BUTTON_TITLE}"  type="submit">{/if}',
 					// 	'sugar_html' => array(

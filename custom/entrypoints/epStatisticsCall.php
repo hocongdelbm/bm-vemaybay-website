@@ -312,29 +312,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                $mess_date = date('d/m/Y', strtotime($from_date)) . ' - ' . date('d/m/Y', strtotime($to_date));
           }
 
+          $mess_nonote = "";
+          if ((int)$emp_noanswer_nonote > 0) {
+               $mess_nonote .= "- Không ghi chú/phân loại: <b>" . $emp_noanswer_nonote . "</b>\n";
+          } 
+
           $messages = "- Nhân viên: <b>" . $full_name . "</b>\n" .
-          "- Ngày: <b>" . $mess_date . "</b>\n" .
-          "- Cuộc gọi đi: <b>" . $emp_outbound . "</b>\n" .
-          "- Nghe máy: <b>" . $emp_outbound_answer . "</b>\n" .
-          "- Tỉ lệ nghe máy: <b>" . $asr . "%</b>\n" .
-          "- Thời gian nghe máy trung bình: <b>" . $avg_talk . "s</b>\n" .
-          "- Không nghe máy (>15s): <b>" . $emp_noanswer_up_15 . "</b>\n" .
-          "- Đổ chuông ngắn: <b>" . $emp_noanswer_under_15 . "</b>\n" .
-          "- Số không liên lạc: <b>" . $emp_noanswer_unconnected . "</b>\n" .
-          "- Không ghi chú/phân loại: <b>" . $emp_noanswer_nonote . "</b>\n" .
-          "- Khách hỏi vé: <b>" . $emp_question_ticket . "</b>\n" .
-          "<pre>[INFO]: " . proposeCallImprovementStrategy($asr) . "</pre>";
-
-          $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-          $result = sendTeleConfirmCallSales(
-          // $result = sendTelegramWarningSystem(
-               json_encode(array(
-                    'text' => $content,
-                    'parse_mode' => 'HTML',
-               ), JSON_UNESCAPED_UNICODE),
-          );
+                    "- Ngày: <b>" . $mess_date . "</b>\n" .
+                    "- Cuộc gọi đi: <b>" . $emp_outbound . "</b>\n" .
+                    "- Nghe máy: <b>" . $emp_outbound_answer . "</b>\n" .
+                    "- Tỉ lệ nghe máy: <b>" . $asr . "%</b>\n" .
+                    "- Thời gian nghe máy trung bình: <b>" . $avg_talk . "s</b>\n" .
+                    "- Không nghe máy (>15s): <b>" . $emp_noanswer_up_15 . "</b>\n" .
+                    "- Đổ chuông ngắn: <b>" . $emp_noanswer_under_15 . "</b>\n" .
+                    "- Số không liên lạc: <b>" . $emp_noanswer_unconnected . "</b>\n" .
+                    $mess_nonote .
+                    "- Khách hỏi vé: <b>" . $emp_question_ticket . "</b>\n" .
+                    "<pre>[INFO]: " . proposeCallImprovementStrategy($asr) . "</pre>";
           
+          $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+          
+          // $result = sendTelegramWarningSystem(
+          $result = sendTeleConfirmCallSales(
+          json_encode(array(
+               'text' => $content,
+               'parse_mode' => 'HTML'
+          ), JSON_UNESCAPED_UNICODE) 
+          );
+
           echo json_encode($result);
           exit();
      }

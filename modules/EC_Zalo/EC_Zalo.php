@@ -24,8 +24,21 @@ class EC_Zalo extends Basic {
     public $assigned_user_name;
     public $assigned_user_link;
     public $SecurityGroups;
-
-    private $limit_chat_box = 12;
+    public $limit_chat_box = 15;
+    public $limit_message = 10;
+    public $image_file = [
+        'excel' => 'modules/EC_Zalo/images/private/files/file_excel.jpg',
+        'word' => 'modules/EC_Zalo/images/private/files/file_word.jpg',
+        'powerpoint' => 'modules/EC_Zalo/images/private/files/file_powerpoint.jpg',
+        'pdf' => 'modules/EC_Zalo/images/private/files/file_pdf.jpg',
+        'txt' => 'modules/EC_Zalo/images/private/files/file_txt.jpg',
+        'html' => 'modules/EC_Zalo/images/private/files/file_html.jpg',
+        'xml' => 'modules/EC_Zalo/images/private/files/file_xml.jpg',
+        'zip' => 'modules/EC_Zalo/images/private/files/file_zip.jpg',
+        'rar' => 'modules/EC_Zalo/images/private/files/file_rar.jpg',
+        'image' => 'modules/EC_Zalo/images/private/files/file_image.jpg',
+        'default' => 'modules/EC_Zalo/images/private/files/file_default.jpg'
+    ];
 	
     public function bean_implements($interface) {
         switch($interface)
@@ -78,7 +91,7 @@ class EC_Zalo extends Basic {
             if(!empty($zalo_name) && !empty($zalo_avatar)) {
                 $user_data = [
                     'user_id'       => $zalo_id,
-                    'display_name'  => $row_info['last_name'] ?? '',
+                    'display_name'  => $row_info['contact_name'] ?? '',
                     'user_alias'    => $zalo_name,
                     'avatar'        => $zalo_avatar,
                     'user_last_interaction_date' => $row_info['zalo_last_interaction'] ? date('d/m/Y', strtotime($row_info['zalo_last_interaction'])) : '',
@@ -91,8 +104,8 @@ class EC_Zalo extends Basic {
                         "address"   => $row_info['contact_address'] ?? '',
                         "city"      => $row_info['contact_city'] ?? '',
                         "district"  => $row_info['contact_district'] ?? '',
-                        "phone"     => $row_info['contact_phone'] ?? '',
-                        "name"      => $row_info['last_name'] ?? '',
+                        "phone"     => isset($row_info['contact_phone']) && strlen($row_info['contact_phone']) > 9 ? $row_info['contact_phone'] : '',
+                        "name"      => $row_info['contact_name'] ?? '',
                         "user_dob"  => $row_info['birthdate'] ? date('d/m/Y', strtotime($row_info['birthdate'])) : ''
                     ],
                     'chat_link' => $Zalo->get_chat_link($zalo_id)
@@ -129,7 +142,8 @@ class EC_Zalo extends Basic {
                     }
                     if(isset($user_data['tags_and_notes_info']) && !empty($user_data['tags_and_notes_info'])) {
                         if(isset($user_data['tags_and_notes_info']['tag_names']) && !empty($user_data['tags_and_notes_info']['tag_names'])) {
-                            $Contact->zalo_tags = implode(',', $user_data['tags_and_notes_info']['tag_names']);
+                            $tag_names = $user_data['tags_and_notes_info']['tag_names'];
+                            $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
                         }
                     }
                     $Contact->description = "Liên hệ tạo từ Zalo OA";
@@ -152,7 +166,8 @@ class EC_Zalo extends Basic {
                     }
                     if(isset($user_data['tags_and_notes_info']) && !empty($user_data['tags_and_notes_info'])) {
                         if(isset($user_data['tags_and_notes_info']['tag_names']) && !empty($user_data['tags_and_notes_info']['tag_names'])) {
-                            $Contact->zalo_tags = implode(',', $user_data['tags_and_notes_info']['tag_names']);
+                            $tag_names = $user_data['tags_and_notes_info']['tag_names'];
+                            $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
                         }
                     }
                 }
@@ -181,24 +196,24 @@ class EC_Zalo extends Basic {
         else $where_clause = "AND zm.deleted = 0";
 
         $sql = "SELECT DISTINCT(CONCAT(zm.from_id, zm.to_id)) AS chat_id
-                ,zm.id AS message_id
-                ,zm.src
-                ,zm.type AS message_type
-                ,zm.sub_type AS type
-                ,zm.description AS message
-                ,zm.timestamp
-                ,zm.from_id AS from_id
-                ,zm.to_id AS to_id
-                ,zm.quote_message_id AS quote_id
-                ,zm.template_id
-                ,zm.assigned_user_id
-                ,TRIM(CONCAT(u.last_name, ' ', u.first_name)) AS assigned_user_name 
-            FROM ec_zalo_messages zm
-                LEFT JOIN users u ON u.id = zm.assigned_user_id
-            WHERE zm.type != 'zns'
-                $where_clause
-            ORDER BY zm.timestamp DESC
-            LIMIT 200";
+            ,zm.message_id
+            ,zm.src
+            ,zm.type AS message_type
+            ,zm.sub_type AS type
+            ,zm.description AS message
+            ,zm.timestamp
+            ,zm.from_id AS from_id
+            ,zm.to_id AS to_id
+            ,zm.quote_message_id AS quote_id
+            ,zm.template_id
+            ,zm.assigned_user_id
+            ,TRIM(CONCAT(IFNULL(u.last_name, ''), ' ', IFNULL(u.first_name, ''))) AS assigned_user_name 
+        FROM ec_zalo_messages zm
+            LEFT JOIN users u ON u.id = zm.assigned_user_id
+        WHERE zm.type != 'zns'
+            $where_clause
+        ORDER BY zm.timestamp DESC
+        LIMIT 200";
 
         $res = $this->db->query($sql);
         while($row = $this->db->fetchByAssoc($res)) {
@@ -227,5 +242,95 @@ class EC_Zalo extends Basic {
         }
         $results['last_timestamp'] = $last_timestamp;
         return $results;
+    }
+
+    /**
+     * Get lastest message user
+     * 
+     * @param string $zalo_id
+     * @param bool $only_user_interaction
+     * @return array
+     */
+    public function get_lastest_message_user($zalo_id, $only_user_interaction = false) {
+        if(!$zalo_id || strlen($zalo_id) < 15) return [];
+
+        $where_clause = '';
+        if($only_user_interaction) $where_clause = "(zm.from_id = '$zalo_id' OR (zm.to_id = '$zalo_id' AND zm.type = 'call' AND zm.sub_type = 'outbound'))";
+        else $where_clause = "(zm.from_id = '$zalo_id' OR zm.to_id = '$zalo_id')";
+
+        $sql = "SELECT zm.message_id
+                ,zm.src
+                ,zm.type AS message_type
+                ,zm.sub_type AS type
+                ,zm.description AS message
+                ,zm.timestamp
+                ,zm.from_id AS from_id
+                ,zm.to_id AS to_id
+                ,zm.quote_message_id AS quote_id
+                ,zm.template_id
+                ,zm.assigned_user_id
+                ,TRIM(CONCAT(IFNULL(u.last_name, ''), ' ', IFNULL(u.first_name, ''))) AS assigned_user_name 
+            FROM ec_zalo_messages zm
+                LEFT JOIN users u ON u.id = zm.assigned_user_id
+            WHERE $where_clause
+                AND zm.deleted = 0
+            ORDER BY zm.timestamp DESC
+            LIMIT 1";
+        $res = $this->db->query($sql);
+        return $this->db->fetchByAssoc($res) ?? [];
+    }
+
+    /**
+     * Get quote message data
+     * 
+     * @param string $quote_id
+     * @return array
+     */
+    public function get_quote_message_data($quote_id) {
+        if(!$quote_id || empty($quote_id)) return [];
+
+        $result = [];
+        $sql = "SELECT
+                zm.src,
+                zm.type AS message_type,
+                zm.sub_type AS type,
+                zm.description AS message,
+                zm.thumbnail,
+                zm.url,
+                zm.data AS message_data
+            FROM ec_zalo_messages zm
+            WHERE zm.message_id = '$quote_id' AND zm.deleted = 0
+            LIMIT 1";
+        $res = $this->db->query($sql);
+        $row = $this->db->fetchByAssoc($res);
+
+        $message_data = !empty($row['message_data']) ? json_decode(html_entity_decode($row['message_data']), true) : [];
+        
+        // Default data
+        $result['src'] = $row['src'] ?? '';
+        $result['message'] = $row['message'] ?? '';
+        $result['type'] = $row['type'] ?? '';
+        $result['parent_type'] = $row['message_type'] ?? '';
+        $result['thumbnail'] = $row['thumbnail'] ?? '';
+
+        if($row['parent_type'] == 'call') {
+            $result['message'] = $result['type'] == 'outbound' ? 'Cuộc gọi đi' : 'Cuộc gọi đến';
+        }
+        else {
+            if($row['type'] == 'sticker') {
+                $result['thumbnail'] = $row['url'] ?? $result['thumbnail'];
+            }
+            elseif($row['type'] == 'links') {
+                $result['thumbnail'] = $message_data[0]['thumbnail'] ?? $result['thumbnail'];
+            }
+            elseif($row['type'] == 'file') {
+                $file_type = $message_data['type'] ?? '';
+                $result['filetype']  = $file_type;
+                $result['thumbnail'] = $this->image_file[$file_type] ?? '';
+                $result['filename']  = $message_data['name'] ?? '';
+            }
+        }
+
+        return $result;
     }
 }

@@ -566,6 +566,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else if ($type == 'save_log_call') {
         $log_call = isset($_POST['log']) ? $_POST['log'] : '';
         save_log_call($log_call);
+        exit;
     } else if ($type == 'get_history_activity_contacts'){
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
@@ -725,9 +726,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>';
             echo $html;
         } else {
-            echo 'Không có hoạt động gì.';
+            echo 'Không có hoạt động!';
         }
-
         exit;
     } else if ($type == 'get_history_activity_cskh'){
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
@@ -863,8 +863,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             echo 'Chưa có cuộc gọi CSKH nào!';
         }
+        exit();
+    } else if ($type == 'autocall') {
+        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
+        if(!empty($phone)){
+            $phone_list = explode(",", $phone);
+            echo send_callee_autocall($phone_list);
+        }
+        exit();
     }
 }
+
 
 function get_call_info($phone)
 {

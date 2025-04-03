@@ -602,6 +602,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					p.birthday,
 					p.eticket_outbound,
 					p.eticket_inbound,
+					p.eluggage_outbound,
+					p.eluggage_inbound,
 					p.pnr_outbound,
 					p.pnr_inbound,
 					p.luggage_price,

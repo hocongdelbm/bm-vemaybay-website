@@ -1163,13 +1163,14 @@ class Zalo {
 
     /***************  UPLOAD  ***************/
     /** 
-     * Upload to zalo
+     * Get file extension is supported
+     * 
      * @param string $type
      * @return array
      */
     public function get_file_extension($type) {
         if($type == 'image') return ['png', 'jpg', 'gif'];
-        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv', 'txt'];
+        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv'];
     }
 
     /** 
@@ -1296,9 +1297,9 @@ class Zalo {
     }
 
     public function unformat_zalo_phone($zalo_phone) {
+        if(!$zalo_phone || empty($zalo_phone)) return '';
         if(substr($zalo_phone, 0, 2) == 84) return '0' . substr($zalo_phone, 2);
         elseif(substr($zalo_phone, 0, 3) == "+84") return '0' . substr($zalo_phone, 3);
-
         return $zalo_phone;
     }
 

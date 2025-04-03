@@ -18,9 +18,10 @@ class CallsViewDetail extends ViewDetail
 			$today = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
 			$date_format = $timedate->get_date_format();
 
-			pr($this->bean->log);
+			// pr($this->bean->log);
 			pr($log);
-			// pr($today);
+
+			// pr(json_decode(html_entity_decode(send_callee_autocall(['0348650381'])), true));
 		}
 
 		$this->populateCustomButtons();
@@ -49,7 +50,6 @@ class CallsViewDetail extends ViewDetail
 		}
 
 		// DOITT - xử lý cuộc gọi
-
 		if (ACLController::checkAccess('Calls', 'edit', true) && $this->bean->status != 'done') {
 			$change_status = '</form>
 			<form action="index.php" method="post" id="frmChangeStatus" name="frmChangeStatus">
@@ -242,6 +242,12 @@ class CallsViewDetail extends ViewDetail
 		$report_bug .= '</form>';
 
 		$this->ss->assign('REPORT_BUG', $report_bug);
+
+		if($current_user->user_name == 'hungnh') {
+			$phone = ($this->bean->direction == 'outbound') ? $this->bean->call_to : $this->bean->call_from;
+			$call_automation = '<button type="button" class="btn btn-success voiceip-autocall" phone="' . $phone . '">Gọi tự động</button>';
+			$this->ss->assign('CALLS_AUTOMATION', $call_automation);
+		}
 
 		if (isset($this->bean->log) && !empty($this->bean->log)) {
 			$log_call = json_decode(html_entity_decode($this->bean->log), true);

@@ -194,11 +194,11 @@ class Call extends SugarBean
 
         // KPI FOR CALLS - Hungnh
         if (
-            $this->status == 'done'
+            (string)$this->status === 'done'
             && !empty($this->description)
             && (
-                ((int)$this->call_talk >= 20 && strtolower($this->direction) === 'outbound')
-                || ((int)$this->call_talk > 0 && strtolower($this->direction) === 'inbound')
+                ((int)$this->call_talk >= 20 && strtolower((string)$this->direction) === 'outbound')
+                || ((int)$this->call_talk > 0 && strtolower((string)$this->direction) === 'inbound')
             )
         ) {
             switch ($this->type_call_sources) {
@@ -1227,7 +1227,7 @@ class Call extends SugarBean
                         COALESCE(answered, 0) AS answered,
                         COALESCE(seconds, 0) AS seconds,
                         (ROUND(seconds / 60, 1)) AS minutes,
-                        COALESCE(total, 0) / (s_hour * 60) AS calls_per_minute,
+                        COALESCE(total, 0) / (s_hour * 60) AS call_per_min,
                         COALESCE(answered, 0) / (s_hour * 60) AS cpm_answered,
                         COALESCE(total, 0) / s_hour AS calls_per_hour,
                         COALESCE(failed, 0) AS failed,
@@ -1311,7 +1311,7 @@ class Call extends SugarBean
                 $graph['minutes'][$x][] = round($row['minutes'] ?? 0, 2);
 
                 $graph['call_per_min'][$x][] = $row['start_epoch'] * 1000;
-                $graph['call_per_min'][$x][] = round($row['avg_min'], 2);
+                $graph['call_per_min'][$x][] = round($row['call_per_min'], 2);
 
 
                 $graph['asr'][$x][] = $row['start_epoch'] * 1000;

@@ -294,11 +294,11 @@ class CustomController extends BaseController
                     }
 
                     $zalomes = BeanFactory::newBean("EC_Zalo_Messages");
-                    $zalomes->new_with_id = true;
-                    $zalomes->id        = $call->id;
-                    $zalomes->src       = $src;
-                    $zalomes->from_id   = $src == 0 ? $oa_id : $call->call_from;
-                    $zalomes->to_id     = $src == 1 ? $oa_id : $call->call_to;
+                    $zalomes->id = '';
+                    $zalomes->message_id  = $call->id;
+                    $zalomes->src         = $src;
+                    $zalomes->from_id     = $src == 0 ? $oa_id : $call->call_from;
+                    $zalomes->to_id       = $src == 1 ? $oa_id : $call->call_to;
                     $zalomes->timestamp = round(microtime(true) * 1000); // Milliseconds
                     $zalomes->type      = 'call';
                     $zalomes->sub_type  = $call->direction;
