@@ -125,4 +125,6 @@ $entry_point_registry = array(
     // AUTOCALL
     'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
 
+    // TEST
+    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => false),
 );

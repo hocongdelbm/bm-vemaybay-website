@@ -30,12 +30,12 @@ $listViewDefs[$module_name] =
       'label' => 'LBL_IP_ADDRESS',
       'default' => true,
     ),
-    // 'TYPED_NAME' => 
-    // array (
-    //   'width' => '10%',
-    //   'label' => 'LBL_TYPED_NAME',
-    //   'default' => true,
-    // ),
+    'TYPED_NAME' => 
+    array (
+      'width' => '10%',
+      'label' => 'LBL_TYPED_NAME',
+      'default' => true,
+    ),
     'DATE_ENTERED' =>
     array(
       'width' => '10%',

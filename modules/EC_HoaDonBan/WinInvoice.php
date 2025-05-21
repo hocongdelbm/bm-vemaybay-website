@@ -566,7 +566,8 @@ class InvoiceLogs
 
     protected function write_file($text)
     {
-        if (empty($text)) return false;
+        if(empty($text)) return false;
+        if(!is_dir($this->PATH)) mkdir($this->PATH, 0640, true);
 
         $file_name = $this->PATH . $this->FILENAME;
         $myfile = fopen($file_name, "a") or die("Error something !!!");

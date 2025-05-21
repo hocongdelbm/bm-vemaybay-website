@@ -334,6 +334,7 @@
 <input type="hidden" name="entrypoint" value="{$ENTRYPOINT}" readonly />
 <input type="hidden" name="websocket_url" value="{$WEBSOCKET_URL}" readonly />
 <input type="hidden" name="offset_list_user" value="0" readonly />
+<input type="hidden" name="is_loading_list_user" value="0" readonly />
 <input type="hidden" name="last_timestamp" value="0" readonly />
 <input type="hidden" name="limit_message" value="{$LIMIT_MESSAGE}" readonly />
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />

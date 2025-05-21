@@ -9,7 +9,8 @@ class CallsViewDetail extends ViewDetail
 	{
 		global $current_user, $app_list_strings, $sugar_config, $timedate;
 
-		if (!is_admin($current_user)) {
+		$ksnb = array('ngocthu', 'trangbtq', 'soinau');
+		if (!is_admin($current_user) || ($current_user->id !== $this->bean->assigned_user_id && in_array($current_user->user_name, $ksnb))) {
 			unset($this->dv->defs['templateMeta']['form']['buttons'][1]); // Ẩn nút DELETE
 		}
 
@@ -17,16 +18,11 @@ class CallsViewDetail extends ViewDetail
 			$log = json_decode(html_entity_decode($this->bean->log), true);
 			$today = date('Y-m-d H:i:s', strtotime(date('Y-m-d H:i:s') . ' +7 hours'));
 			$date_format = $timedate->get_date_format();
-
-			// pr($this->bean->log);
-			pr($log);
-
-			// pr(json_decode(html_entity_decode(send_callee_autocall(['0348650381'])), true));
 		}
 
 		$this->populateCustomButtons();
 
-		if ((!is_admin($current_user) || $current_user->id == '72ece22c-cb25-8e30-9dea-56f2201cd359') && $this->bean->status == 'new') {
+		if ((!is_admin($current_user) || (string)$current_user->id === '72ece22c-cb25-8e30-9dea-56f2201cd359') && (string)$this->bean->status === 'new') {
 			$cal = new Call();
 			$cal->retrieve($this->bean->id);
 			$cal->status = 'processing';
@@ -83,7 +79,7 @@ class CallsViewDetail extends ViewDetail
 		// 		<input type="submit" class="btn btn-warning fw-semibold btn-change-status" name="btnProcessing" id="btnProcessing" value="Đang xử lý" title="Đang xử lý"/>
 		// 	</form>';
 		// }
-		if (ACLController::checkAccess('Calls', 'edit', true) && $this->bean->status == 'processing' && ACLController::checkAccess('Bugs', 'view', true)) {
+		if (ACLController::checkAccess('Calls', 'edit', true) && (string)$this->bean->status === 'processing') {
 			// Đã hoàn thành
 			$status = '</form>
 			<form action="index.php" method="post" name="frmCompleted" id="frmCompleted">
@@ -243,11 +239,12 @@ class CallsViewDetail extends ViewDetail
 
 		$this->ss->assign('REPORT_BUG', $report_bug);
 
+		$call_automation = '';
 		if($current_user->user_name == 'hungnh') {
-			$phone = ($this->bean->direction == 'outbound') ? $this->bean->call_to : $this->bean->call_from;
+			$phone = ((string)$this->bean->direction === 'outbound') ? $this->bean->call_to : $this->bean->call_from;
 			$call_automation = '<button type="button" class="btn btn-success voiceip-autocall" phone="' . $phone . '">Gọi tự động</button>';
-			$this->ss->assign('CALLS_AUTOMATION', $call_automation);
 		}
+		$this->ss->assign('CALLS_AUTOMATION', $call_automation);
 
 		if (isset($this->bean->log) && !empty($this->bean->log)) {
 			$log_call = json_decode(html_entity_decode($this->bean->log), true);
@@ -273,10 +270,36 @@ class CallsViewDetail extends ViewDetail
 				$call_failed_cause = getCallFailedCauseMeaning($log_call['call_failed_cause']);
 				$this->ss->assign('CUS_CALL_FAILED_CAUSE', $call_failed_cause);
 			}
+
+			// RECALL BUTTON
+			$btn_logcall = '';
+			if ($current_user->user_name == 'hungnh') {
+				$btn_logcall .= '<button type="button" class="btn btn-sm btn-secondary btn-log-call" data-bs-toggle="modal" data-bs-target="#logcallModal">Log</button>
+								<div class="modal fade" data-bs-backdrop="static" id="logcallModal" tabindex="-1" aria-hidden="true">
+									<div class="modal-dialog modal-lg modal-simple modal-log-call modal-dialog-centered">
+										<div class="modal-content">
+											<div class="modal-body">
+												<div class="text-center mb-3">
+													<h4>Log cuộc gọi</h4>
+												</div>
+												<div class="flex-between bg-light text-dark rounded fw-semibold">
+													<pre>
+													' . json_encode($log_call, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . '
+													</pre>
+												</div>
+												<div class="col-12 flex-wrap flex-end mt-3">
+													<button type="reset" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Đóng</button>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>';
+			}
+			$this->ss->assign('BTN_LOG_CALL', $btn_logcall);
 		}
 
 		// CALL TALK
-		$cus_is_success = ($this->bean->is_success == 1) ? 'Thành công' : 'Thất bại';
+		$cus_is_success = ((int)$this->bean->is_success === 1) ? 'Thành công' : 'Thất bại';
 		$this->ss->assign('CUS_IS_SUCCESS', $cus_is_success);
 
 		// CALL TALK

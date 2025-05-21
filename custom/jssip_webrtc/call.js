@@ -229,7 +229,6 @@ ua.on('newRTCSession', function (ev) {
 
         // Get data
         let INVITE = session._request.data;
-        let hotline = extract_hotline(INVITE);
         let call_id = extract_call_id(INVITE);
         let phone = session._request.from._uri._user.length < 12 ? session._request.from._uri._user : '';
         let zalo_id = session._request.from._uri._user.length > 18 ? session._request.from._uri._user : '';
@@ -248,16 +247,20 @@ ua.on('newRTCSession', function (ev) {
         }, 100);
 
         $(document).prop('title', 'Có cuộc gọi đến...');
-        showToastCall('incoming__call', call_id, zalo_id, phone, hotline)
+        extract_hotline(INVITE).then(hotline => {
+            showToastCall('incoming__call', call_id, zalo_id, phone, hotline);
+        });
 
         // ADD template-notes CHO cuộc gọi đến
         $('#template-notes').html(`
+            <option value="">--Trống--</option>
             <option value="in_journey">Khách hỏi hành trình</option>
             <option value="in_ticket_hunt">Nhu cầu săn vé máy bay</option>
             <option value="in_group_booking">Đặt vé đoàn nhiều người</option>
             <option value="in_complaint_delay">Phàn nàn sự cố delay</option>
             <option value="in_invoice_contact">Liên hệ kế toán hóa đơn</option>
             <option value="in_mistake">Nhầm lẫn, Lý Thông linh tinh</option>
+            <option value="in_no_need">Khách chưa có nhu cầu</option>
             <option value="in_other">Khác, chưa định nghĩa</option>
         `)
 
@@ -302,7 +305,6 @@ ua.on('newRTCSession', function (ev) {
         if (session.direction === "incoming") {
             let INVITE = session._request.data;
             let call_id = extract_call_id(INVITE);
-            let hotline = extract_hotline(INVITE);
             let phone = session._request.from._uri._user.length < 12 ? session._request.from._uri._user : '';
             let zalo_id = session._request.from._uri._user.length > 18 ? session._request.from._uri._user : '';
 
@@ -322,10 +324,17 @@ ua.on('newRTCSession', function (ev) {
                         $('#call-overlay').removeClass('opened');
                         $(`.toast__main[type="incoming__call"][call_id="${call_id}"]`).parent().remove();
 
-                        if (response == 1) showToastCall('missed__call', call_id, zalo_id, phone, hotline);
+                        if (response == 1) {
+                            extract_hotline(INVITE).then(hotline => {
+                                showToastCall('missed__call', call_id, zalo_id, phone, hotline);
+                            });
+                        }
                     }
                 });
             }, 1000);
+        } else if (session.direction === "outgoing") {
+            stopTimer();
+            handleButtons('completed');
         }
 
         $(document).prop('title', TITLE_PAGE);
@@ -341,6 +350,7 @@ ua.on('newRTCSession', function (ev) {
     if (session._connection && session.direction === "outgoing") {
         // ADD template-notes CHO cuộc gọi ĐI
         $('#template-notes').html(`
+            <option value="">--Trống--</option>
             <option value="out_no_need">Khách chưa có nhu cầu</option>
             <option value="out_question_ticket">Khách hỏi vé</option>
             <option value="out_interest">Đang quan tâm sơ bộ</option>
@@ -387,10 +397,7 @@ ua.on('newRTCSession', function (ev) {
                 }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             };
         }
-    } else if (session.direction === "outgoing") {
-        alert("Lỗi kết nối");
     }
-
 });
 
 $(document).ready(function () {
@@ -774,6 +781,11 @@ $(document).ready(function () {
         }
         else if (call_id.length == 0) {
             showToastWarning('Thiếu dữ liệu call_id, liên hệ IT');
+            $(this).css("pointer-events", "");
+            return false;
+        }
+        else if (call_reason.length == 0) {
+            showToastWarning('Vui lòng phân loại cuộc gọi!');
             $(this).css("pointer-events", "");
             return false;
         }
@@ -1214,7 +1226,7 @@ if ('serviceWorker' in navigator) {
 
                         $('#voiceip-info-name').html(name);
                         $('#voiceip-name').val(name);
-                        
+
                         $('#voiceip-info-phone').html(formatPhoneNumber(phone));
                         $('#voiceip-phone').val(phone);
                         $('#voiceip-phone').prop('readonly', true);
@@ -1349,7 +1361,6 @@ function toast({ call_id = "", zalo_id = "", phone = "", type = "", hotline = ""
                     ${time}
                 </p>
             </div>
-            ${action != '' ? `<div class="toast__action">${action}</div>` : ''}
             <div class="toast__close">
                 <svg xmlns="http://www.w3.org/2000/svg" version="1.0" width="22" height="22" viewBox="0 0 834.000000 834.000000" preserveAspectRatio="xMidYMid meet">
                     <g transform="translate(0.000000,834.000000) scale(0.100000,-0.100000)" fill="#ff0000" stroke="none">
@@ -1400,38 +1411,33 @@ function extract_call_id(str) {
     return string_between_strings("X-cid: ", "\n", str).trim();
 }
 
-function extract_hotline(str) {
+async function extract_hotline(str) {
+
     const pattern = /X-Hotline:(?<regex_x_cid>\s*[\w\.-]+).*/;
     const matches = str.match(pattern);
-    if (matches && matches.groups && matches.groups.regex_x_cid) {
-        let hotline = matches.groups.regex_x_cid.trim();
 
-        switch (hotline) {
-            case '0911236600':
-            case '01388506538':
-                return 'Laptop Dell';
-            case '1900636063':
-            case '02839977788':
-            case '02839977799':
-                return 'timchuyenbay (.com)';
-            case '02866509900':
-                return 'Sanvemaybay (.com.vn)';
-            case '02873001886':
-                return 'Sữa tươi Úc';
+    if (!matches?.groups?.regex_x_cid) return '';
 
-            /**********  ZALO  **********/
-            case '2941581384627345950101':
-                return 'Zalo nội địa';
-            case '2941581384627345950102':
-                return 'Zalo quốc tế';
-            case '2941581384627345950103':
-                return 'Khiếu nại';
+    const hotline = matches.groups.regex_x_cid.trim();
 
-            default:
-                return 'Vietjet.net';
-        }
+    try {
+        const response = await $.ajax({
+            url: "index.php?entryPoint=entryPointCallContact",
+            data: {
+                type: "get_infor_phone",
+                phone: hotline,
+            },
+            type: "POST",
+            cache: false,
+            dataType: "json",
+        });
+
+        const { label = '', website = '' } = response;
+        return label || website || '';
+    } catch (error) {
+        console.error('ajax extract hotline failed:', error);
+        return '';
     }
-    return '';
 }
 
 function handleButtons(type) {
@@ -1468,7 +1474,7 @@ function handleButtons(type) {
         $('.voiceip-button').hide();
         $('.voiceip-update').show();
         $('.voiceip-dtmf').show();
-        
+
         $('.wrap-info-voiceip').hide();
         $('.wrap-form-voiceip').show();
     }
@@ -1626,6 +1632,15 @@ var addNumber_oninput = function (field) {
 
 var deleteAll = function () {
     $("#call_voiceip_main_number").val('');
+};
+
+var removeNumber = function () {
+    let call_number_val = $("#call_voiceip_main_number").val();
+
+    if (call_number_val.length > 0) {
+        var newValue = call_number_val.slice(0, -1);
+        $('#call_voiceip_main_number').val(newValue);
+    }
 };
 
 // When click outside to close modal 

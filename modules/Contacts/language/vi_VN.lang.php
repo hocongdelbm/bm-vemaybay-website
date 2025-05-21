@@ -196,4 +196,5 @@ $mod_strings = array(
     'LBL_CONTACT_TYPE' => 'Loại khách hàng',
     'LNK_POINTS_LOG' => 'Quá trình tích điểm',
     'LBL_INFO_POINTS' => 'Quá trình tích điểm',
+    'LBL_INFO_CALLS' => 'Lịch sử cuộc gọi',
 );

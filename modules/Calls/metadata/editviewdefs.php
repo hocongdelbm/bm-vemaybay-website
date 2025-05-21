@@ -136,6 +136,8 @@ $viewdefs['Calls'] = array(
 						'label' => 'LBL_CALL_REASON',
 					),
 					array(
+						// 'name' => 'status',
+						// 'label' => 'LBL_STATUS',
 					)
 				),
 				array(

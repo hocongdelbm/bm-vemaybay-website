@@ -75,6 +75,7 @@
 /* NGAN LUONG CODE */
 .nganluong__wrap {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 5px;
@@ -94,7 +95,7 @@
 
 #copy_payment_link img {
     height: auto;
-    max-width: 100%;
+    max-width: 76%;
     background-repeat: no-repeat;
     object-fit: cover;
 }
@@ -151,12 +152,6 @@
     padding: 5px;
     background-image: linear-gradient(144deg, #AF40FF, #5B42F3 50%, var(--primary-color));
 }
-
-.dialog_qr_code button {
-    display: block;
-    margin: 0 auto;
-}
-
 
 /* Button call & Dialog mapping */
 .btn-group-called .dropdown-menu {

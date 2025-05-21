@@ -91,8 +91,8 @@ $(document).ready(function () {
 
     // Load more user
     $('#list_mess_main').on('scroll', function() {
-        if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 10) {
-            if(!$('.loader_list_user').length) {
+        if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 5) {
+            if(!$('.loader_list_user').length && $(`input[name="is_loading_list_user"]`).val() == '0') {
                 let type_load = $('input[name="user_type_list"]').val();
                 let last_timestamp = parseInt($('input[name="last_timestamp"]').val());
                 let offset = parseInt($('input[name="offset_list_user"]').val());
@@ -119,9 +119,11 @@ $(document).ready(function () {
                         },
                         beforeSend: function() {
                             loadingSkeleton('list_user', 6);
+                            $(`input[name="is_loading_list_user"]`).val(1);
                         },
                         success: function (response) { // json
                             removeLoadingSkeleton();
+                            $(`input[name="is_loading_list_user"]`).val(0);
 
                             if(response.length > 0) {
                                 let obj = JSON.parse(response);
@@ -141,6 +143,7 @@ $(document).ready(function () {
                         },
                         error: function (XMLHttpRequest, textStatus, errorThrown) {
                             removeLoadingSkeleton();
+                            $(`input[name="is_loading_list_user"]`).val(0);
                             console.error(XMLHttpRequest);
                             console.error("Status: " + textStatus);
                             console.error("Error: " + errorThrown);
@@ -149,7 +152,7 @@ $(document).ready(function () {
                 }
             }
         }
-    })
+    });
 
     // List messages (Open chat)
     $(document).on("click", "li.item_mess", function() {
@@ -563,7 +566,7 @@ $(document).ready(function () {
         }
         else {
             $('#zalochat_profile').show();
-            $('#zalochat_main').css('flex', 'unset');
+            // $('#zalochat_main').css('flex', 'unset');
         }
     });
 
@@ -865,9 +868,11 @@ function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
             },
             beforeSend: function() {
                 loadingSkeleton('list_user', 9);
+                $(`input[name="is_loading_list_user"]`).val(1);
             },
             success: function (response) { // JSON
                 removeLoadingSkeleton();
+                $(`input[name="is_loading_list_user"]`).val(0);
 
                 if(response.length > 0) {
                     let obj = JSON.parse(response);
@@ -883,6 +888,7 @@ function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 removeLoadingSkeleton();
+                $(`input[name="is_loading_list_user"]`).val(0);
                 console.error(XMLHttpRequest);
                 console.error("Status: " + textStatus);
                 console.error("Error: " + errorThrown);

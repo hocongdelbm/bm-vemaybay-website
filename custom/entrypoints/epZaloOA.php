@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if($action == 'get_recent_messages') { // Version 2
         $timestamp = isset($_POST['timestamp']) ? $_POST['timestamp'] : 0;
-        $current_list_user = isset($_POST['current_list_user']) ? array_unique(explode(',', $_POST['current_list_user'])) : []; // array
+        $current_list_user = isset($_POST['current_list_user']) && !empty($_POST['current_list_user']) ? array_unique(explode(',', $_POST['current_list_user'])) : []; // array
 
         $bean_zalo = new EC_Zalo();
         $results = $bean_zalo->get_list_user($timestamp, $current_list_user);
@@ -554,7 +554,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $zalomes->save();
             }
             catch(Exception $e) {
-                sendTestTelegram("Saved failed ZNS message\n" . $e->getMessage() . "\n\n" . $json);
+                sendTestTelegram("<b>ZNS message saved failed</b>\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json");
             }
             
             $fullname = $current_user->last_name.' '.$current_user->first_name;

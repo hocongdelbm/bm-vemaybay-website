@@ -5,12 +5,16 @@ class Viewsummary extends SugarView
 {
      function display()
      {
+          global $current_user;
+
           if (ACLController::checkAccess('Calls', 'list', true)) {
                $smartyCont = new Sugar_Smarty();
                $con_ret = $this->populateContent();
 
                $this->assignFields($con_ret, $smartyCont);
                $smartyCont->display('modules/Calls/tpls/summary.tpl');
+          } else {
+               echo '<div class="alert alert-danger">Bạn không có quyền truy cập vào trang này!</div>';
           }
      }
 
@@ -21,10 +25,9 @@ class Viewsummary extends SugarView
           $currYear      = date('Y');
           $reportTime    = 'năm ' . date('Y');
 
+          $reportYear = $currYear;
           if (!empty($_REQUEST['report_year'])) {
                $reportYear = $_REQUEST['report_year'];
-          } else {
-               $reportYear = $currYear;
           }
 
           if (!empty($_REQUEST['from_date']) && strtotime($_REQUEST['from_date']) !== false) {
@@ -105,6 +108,7 @@ class Viewsummary extends SugarView
           $data = [
                array(
                     'label' => 'Cuộc gọi đi',
+                    'type' => 'outbound',
                     'data' => format_number($data['outbound']),
                     'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.712 13.288a.999.999 0 0 0-1.414 0l-1.594 1.594c-.739-.22-2.118-.72-2.992-1.594s-1.374-2.253-1.594-2.992l1.594-1.594a.999.999 0 0 0 0-1.414l-4-4a.999.999 0 0 0-1.414 0L2.586 6c-.38.38-.594.902-.586 1.435.023 1.424.4 6.37 4.298 10.268S15.142 21.977 16.566 22h.028c.528 0 1.027-.208 1.405-.586l2.712-2.712a.999.999 0 0 0 0-1.414l-3.999-4zM16.585 20c-1.248-.021-5.518-.356-8.873-3.712C4.346 12.922 4.02 8.637 4 7.414l2.005-2.005 2.586 2.586-1.293 1.293a1 1 0 0 0-.272.912c.024.115.611 2.842 2.271 4.502s4.387 2.247 4.502 2.271a.993.993 0 0 0 .912-.271l1.293-1.293 2.586 2.586L16.585 20z"></path><path d="m16.795 5.791-4.497 4.497 1.414 1.414 4.497-4.497L21.005 10V2.995H14z"></path></svg>',
                     'link' => '',
@@ -112,6 +116,7 @@ class Viewsummary extends SugarView
                ),
                array(
                     'label' => 'Cuộc gọi đến',
+                    'type' => 'inbound',
                     'data' => format_number($data['inbound']),
                     'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.712 13.288a.999.999 0 0 0-1.414 0l-1.597 1.596c-.824-.245-2.166-.771-2.99-1.596-.874-.874-1.374-2.253-1.594-2.992l1.594-1.594a.999.999 0 0 0 0-1.414l-4-4a1.03 1.03 0 0 0-1.414 0l-2.709 2.71c-.382.38-.597.904-.588 1.437.022 1.423.396 6.367 4.297 10.268C10.195 21.6 15.142 21.977 16.566 22h.028c.528 0 1.027-.208 1.405-.586l2.712-2.712a.999.999 0 0 0 0-1.414l-3.999-4zM16.585 20c-1.248-.021-5.518-.356-8.874-3.712C4.343 12.92 4.019 8.636 4 7.414l2.004-2.005L8.59 7.995 7.297 9.288c-.238.238-.34.582-.271.912.024.115.611 2.842 2.271 4.502s4.387 2.247 4.502 2.271a.994.994 0 0 0 .912-.271l1.293-1.293 2.586 2.586L16.585 20z"></path><path d="M15.795 6.791 13.005 4v6.995H20l-2.791-2.79 4.503-4.503-1.414-1.414z"></path></svg>',
                     'link' => '',
@@ -119,6 +124,7 @@ class Viewsummary extends SugarView
                ),
                array(
                     'label' => 'Cuộc gọi nhỡ',
+                    'type' => 'missed',
                     'data' => format_number($data['missed']),
                     'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.09 12.5a8.92 8.92 0 0 1-1-2.2l1.59-1.59a1 1 0 0 0 0-1.42l-4-4a1 1 0 0 0-1.41 0L2.59 6A2 2 0 0 0 2 7.44 15.44 15.44 0 0 0 5.62 17L2.3 20.29l1.41 1.42 18-18-1.41-1.42zM7 15.55a13.36 13.36 0 0 1-3-8.13l2-2L8.59 8 7.3 9.29a1 1 0 0 0-.27.92 11 11 0 0 0 1.62 3.73zm9.71-2.26a1 1 0 0 0-1.41 0l-1.6 1.6-.34-.12-1.56 1.55a12.06 12.06 0 0 0 2 .66 1 1 0 0 0 .91-.27l1.3-1.3L18.59 18l-2 2A13.61 13.61 0 0 1 10 18.1l-1.43 1.45a15.63 15.63 0 0 0 8 2.45 2 2 0 0 0 1.43-.58l2.71-2.71a1 1 0 0 0 0-1.42z"></path></svg>',
                     'link' => '',
@@ -126,6 +132,7 @@ class Viewsummary extends SugarView
                ),
                array(
                     'label' => 'Cuộc gọi nội bộ',
+                    'type' => 'internal',
                     'data' => format_number($data['internal']),
                     'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-mic" viewBox="0 0 16 16"><path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5"/><path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3"/></svg>',
                     'link' => '',

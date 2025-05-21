@@ -712,18 +712,34 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 // Nhắc nhở khách hàng lịch bay - button Remind
 if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 	$journey_id 	 = (isset($_POST["journey_id"]) && !empty($_POST["journey_id"])) ? $_POST["journey_id"] : null;
+	$booking_id 	 = (isset($_POST["booking_id"]) && !empty($_POST["booking_id"])) ? $_POST["booking_id"] : null;
 
-	if (is_null($journey_id)) {
+	if (is_null($journey_id) || is_null($booking_id)) {
 		echo 0;
 		exit();
 	}
 
-	if (!empty($journey_id)) {
-		// Update is_remind trong bảng ec_booking_itineraries = true
-		$update_remind = "UPDATE ec_booking_itineraries 
-		SET is_remind = 1
-		WHERE id = '" . trim($journey_id) . "'";
-		$db->query($update_remind);
+	if (!empty($journey_id) && !empty($booking_id)) {
+		$update_remind = "UPDATE ec_booking_itineraries SET is_remind = 1 WHERE id = '" . trim($journey_id) . "'";
+		$result = $db->query($update_remind);
+
+		if($result){
+			$sql_booking = "SELECT id, name, booking_status FROM ec_flight_bookings WHERE id = '" . trim($booking_id) . "' AND deleted = 0";
+			$res = $db->query($sql_booking);
+			$row = $db->fetchByAssoc($res);
+			$booking_status = $row['booking_status'];
+			$record_name = $row['name'];
+			$id = $row['id'];
+
+			$note = new Note();
+			$note->id 			= '';
+			$note->name 			= $record_name ?? '';
+			$note->description 		= 'Đã nhắc lịch bay cho khách (remind)';
+			$note->parent_type 		= 'EC_Flight_Bookings';
+			$note->parent_id 		= $booking_id ?? $id;
+			$note->booking_status 	= $booking_status ?? '';
+			$note->save();
+		}
 
 		echo 1;
 		exit();
@@ -3639,6 +3655,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 	Danh sách booking của liên hệ - QUY ĐỊNH 1 SDT LÀ 1 LIÊN HỆ
 */
 if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
+	global $current_user;
+
 	$contact_id  = isset($_POST['contact_id']) ? $_POST['contact_id'] : '';
 	$where  	 = (isset($_POST['purpose']) && $_POST['purpose'] == 'get_completed_status') ? ' AND booking_status = 8' : '';
 	$booking_id  = $_POST['booking_id'] ?? '';

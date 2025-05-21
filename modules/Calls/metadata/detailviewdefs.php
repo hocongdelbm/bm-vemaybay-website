@@ -10,7 +10,7 @@ $viewdefs['Calls'] = array(
 					// 'DUPLICATE',
 					'DELETE',
 					// array(
-					// 	'customCode' => '{if $bean->aclAccess("delete") && $current_user->is_admin == 1}<input title="{$APP.LBL_DELETE_BUTTON_TITLE}" accessKey="{$APP.LBL_DELETE_BUTTON_KEY}" class="btn btn-delete btn-danger" onclick="this.form.return_module.value=\'Calls\'; this.form.return_action.value=\'EditView\'; this.form.return_id.value=\'{$return_id}\'; this.form.action.value=\'Delete\'; return confirm(\'{$APP.NTC_DELETE_CONFIRMATION}\');" type="submit" name="Delete" value="{$APP.LBL_DELETE_BUTTON_LABEL}">{/if}',
+					// 	'customCode' => '{if $bean->aclAccess("delete") && ($current_user->user_name == "hungnh" || $current_user->user_name == "admin")}<input title="{$APP.LBL_DELETE_BUTTON_TITLE}" accessKey="{$APP.LBL_DELETE_BUTTON_KEY}" class="btn btn-delete btn-danger" onclick="this.form.return_module.value=\'Calls\'; this.form.return_action.value=\'EditView\'; this.form.return_id.value=\'{$return_id}\'; this.form.action.value=\'Delete\'; return confirm(\'{$APP.NTC_DELETE_CONFIRMATION}\');" type="submit" name="Delete" value="{$APP.LBL_DELETE_BUTTON_LABEL}">{/if}',
 					// 	'sugar_html' => array(
 					// 	  'type' => 'submit',
 					// 	  'value' => '{$APP.LBL_DELETE_BUTTON_LABEL}',
@@ -29,6 +29,7 @@ $viewdefs['Calls'] = array(
 					array('customCode' => '{$CALLS_ANNOTATION}'),
 					array('customCode' => '{$REPORT_BUG}'),
 					array('customCode' => '{$CALLS_AUTOMATION}'),
+					array('customCode' => '{$BTN_LOG_CALL}'),
 					// array(
 					// 	'customCode' => '{if $fields.status.value != "Held" && $bean->aclAccess("edit")} <input type="hidden" name="isSaveAndNew" value="false">  <input type="hidden" name="status" value="">  <input type="hidden" name="isSaveFromDetailView" value="true">  <input title="{$APP.LBL_CLOSE_AND_CREATE_BUTTON_TITLE}"   class="btn btn-secondary"  onclick="this.form.status.value=\'Held\'; this.form.action.value=\'Save\';this.form.return_module.value=\'Calls\';this.form.isDuplicate.value=true;this.form.isSaveAndNew.value=true;this.form.return_action.value=\'EditView\'; this.form.return_id.value=\'{$fields.id.value}\'" id="close_create_button" name="button"  value="{$APP.LBL_CLOSE_AND_CREATE_BUTTON_TITLE}"  type="submit">{/if}',
 					// 	'sugar_html' => array(

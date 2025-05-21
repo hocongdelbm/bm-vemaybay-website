@@ -362,7 +362,7 @@ function generateSendmailHtml($booking_infos)
 													<td class="pad" style="padding: 25px 0 15px; width: 100%;">
 														<div align="center" class="alignment" style="line-height: 10px">
 															<p style=" margin: 0; font-size: 12px; line-height: 20px; mso-line-height-alt: 21px;  ">
-																Address: 65/28 Giai Phong, Ward 4, Tan Binh District, TPHCM
+																Address: ' . $booking_infos['com_address'] . '
 															</p>
 															<p style=" margin: 0; font-size: 12px; line-height: 20px; mso-line-height-alt: 21px;  ">
 																Tel: ' . $booking_infos['com_phone_support'] . '&nbsp;&nbsp;|&nbsp;&nbsp;Email: ' . $booking_infos['com_email'] . '

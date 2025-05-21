@@ -10,6 +10,8 @@ function createContactsForBooking($phoneNumber, $contactName = '')
 {
     global $db, $current_user;
 
+    $phoneNumber = trim($phoneNumber);
+
     $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$phoneNumber' AND deleted = 0";
     $contact_id = $db->getOne($sql_contact);
 
@@ -17,8 +19,11 @@ function createContactsForBooking($phoneNumber, $contactName = '')
     if (!$contact_id) {
         $contact->last_name = $contactName ?? '';
         $contact->phone_mobile = $phoneNumber;
-        $contact->save();
-        $contact_id = $contact->id;
+        $contact->description = 'Liên hệ mới tạo từ booking';
+        $contact_id = $contact->save();
+        if(empty($contact_id)) {
+            sendTestTelegram('Tạo liên hệ mới thất bại với số điện thoại: ' . $phoneNumber);
+        }
     } else {
         $contact->retrieve($contact_id);
 

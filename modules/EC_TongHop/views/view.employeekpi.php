@@ -213,7 +213,7 @@ class Viewemployeekpi extends SugarView {
 
 				$html .= '<tr>
 							<td align="center"><span>' . ($i + 1) . '</span></td>
-							<td align="left"><a class="admin-view-detail" user_id="' . $row['assigned_user_id'] . '" load_type="total_kpi" load_name="điểm KPI" href="#" title="Xem chi tiết">' . $row['full_name'] . '</a></td>
+							<td align="left"><a class="admin-view-detail" user_id="' . $row['assigned_user_id'] . '" full_name="' . $row['full_name'] . '" load_type="total_kpi" load_name="điểm KPI" href="#" title="Xem chi tiết">' . $row['full_name'] . '</a></td>
 							<td align="center"><span title="Called">' . ($row['called'] != 0 ? $row['called'] : '') . '</span></td>
 							<td align="center"><span title="Completed">' . ($row['completed'] != 0 ? $row['completed'] : '') . '</span></td>
 							<td align="center"><span title="Đã thanh toán / Đã thu">' . ($row['paid'] != 0 ? $row['paid'] : '') . '</span></td>

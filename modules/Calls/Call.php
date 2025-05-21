@@ -91,9 +91,6 @@ class Call extends SugarBean
             $this->field_name_map[$field['name']] = $field;
         }
 
-
-
-
         if (!empty($GLOBALS['app_list_strings']['duration_intervals'])) {
             $this->minutes_values = $GLOBALS['app_list_strings']['duration_intervals'];
         }
@@ -214,9 +211,6 @@ class Call extends SugarBean
                             myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Call Have Bookings)', $current_user->id, 'called');
                         }
                     } 
-                    // else {
-                    //     sendTestTelegram('KPI For Calls - '.isWorkingProcessExisting($this->module_dir, $this->id, 'called').' - '.$this->name.' - '.$current_user->user_name);
-                    // }
                     break;
                 case 'recall':
                     $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'recall');
@@ -250,12 +244,15 @@ class Call extends SugarBean
         $user_list = get_user_array(true, '', '', true);
 
         if ($is_tele == 1) {
-            if ($this->direction == 'missed' || $this->direction == 'inbound') {
+            if ((string)$this->direction === 'missed' || (string)$this->direction === 'inbound') {
                 $log = json_decode(html_entity_decode($this->log), true);
                 $text_name_agent = '';
-                $site = $this->call_sources;
+                
+                $info_phone = getInfoCallSource($this->call_to);
+                $format_phone   = isset($info_phone['format_phone']) && !empty($info_phone['format_phone']) ? $info_phone['format_phone'] : $info_phone['phone'];
+                $site           = isset($info_phone['website']) && !empty($info_phone['website']) ? $info_phone['website'] : $this->call_sources;
 
-                if ($this->direction == 'missed') {
+                if ((string)$this->direction === 'missed') {
                     if (isset($log['list_agent']) && !empty($log['list_agent'])) {
                         $list_agent_missed = explode(',', $log['list_agent']);
                         foreach ($list_agent_missed as $agent) {
@@ -264,27 +261,28 @@ class Call extends SugarBean
                         }
                         $text_name_agent = implode(" - ", $user_name);
                     }
-                    $text = '' . $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào ' . $this->call_to . ' - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
-                } else if ($this->direction == 'inbound') {
-                    // Nếu là cuộc gọi đến
+                    $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
+                } else if ((string)$this->direction === 'inbound') {
                     if (isset($log['list_agent']) && !empty($log['list_agent'])) {
                         $list_agent_inbound = explode(',', $log['list_agent']);
+
                         if (count($list_agent_inbound) > 1) {
                             $element_last =  array_pop($list_agent_inbound); //101
                             $text_name_agent = $user_list[custom_get_sip_number($element_last)];
                         } else {
                             $text_name_agent = $user_list[custom_get_sip_number($list_agent_inbound[0])];
                         }
+
                     } else {
-                        // dialed
                         $text_name_agent = $user_list[custom_get_sip_number($log['dialed'])];
                     }
-                    $text = '' . $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào ' . $this->call_to . ' - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
+                    $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
                 }
 
                 myTelegramSendMessage(
                     json_encode(array(
                         'text' => $text,
+                        'parse_mode' => 'HTML',
                         'reply_markup' => array(
                             'inline_keyboard' => array(
                                 array(
@@ -1179,7 +1177,7 @@ class Call extends SugarBean
         }
 
         $sql = "
-            SELECT id, name, description, network_provider, proxy, brand_name, website, label, only_inbound
+            SELECT id, name, description, format_phone, network_provider, proxy, brand_name, website, label, only_inbound
             FROM ec_outbound_phone
             WHERE status = 'active'
             AND deleted = 0

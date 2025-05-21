@@ -47,8 +47,7 @@ class Viewsendconfirm extends SugarView {
 			$db->query("UPDATE ec_flight_bookings SET is_mail_confirm=1 WHERE id='".$_POST['return_id']."' ");
 			header("Location: index.php?module=EC_Flight_Bookings&action=DetailView&record=".$_POST['return_id']);
 			exit;
-		}
-		else {
+		} else {
 			header("Location: index.php?module=EC_Flight_Bookings&action=Error&error_string=".urlencode('Email xác nhận gửi thất bại.'));
 			exit;
 		}
@@ -66,15 +65,9 @@ class Viewsendconfirm extends SugarView {
 		$department_info 	= myGetDepartmentInfo("f15f801d-a9bc-cc92-4152-655f5e89867f"); // Security MHV
 		$com_address 		= $department_info['com_address'];
 
-		if(!is_null($department_info['com_address2']) && !empty($department_info['com_address2'])){
-			$com_address .= ' hoặc '.$department_info['com_address2'];
-		}
-		if(!is_null($department_info['com_address3']) && !empty($department_info['com_address3'])){
-			$com_address .= ' hoặc '.$department_info['com_address3'];
-		}
-		if(!is_null($department_info['com_address4']) && !empty($department_info['com_address4'])){
-			$com_address .= ' hoặc '.$department_info['com_address4'];
-		}
+		// if(!is_null($department_info['com_address2']) && !empty($department_info['com_address2'])){
+		// 	$com_address .= ' hoặc '.$department_info['com_address2'];
+		// }
 
 		$contact_name 		= ucwords(myRemoveUnicodeChars($this->bean->contact_name));
 		$booking_status 	= $app_list_strings['booking_status_list'][$this->bean->booking_status];
@@ -113,11 +106,12 @@ class Viewsendconfirm extends SugarView {
 
 		$name_site = array(
 			'TCB' => 'timchuyenbay.com',
+			'GV2' => 'vietjet.net',
 			'VJ2' => 'vietjet.net',
 		);
 		$name_website 	= substr($this->bean->name, 0, 3);
 		if(isset($nganluong_code) && !empty($nganluong_code)){
-			$payment_link 	= $name_site[$name_website].'/thanh-toan-online?paymentlink='.$nganluong_code.'&datepaid='.$nganluong_datepaid.'';
+			$payment_link 	= 'https://'.$name_site[$name_website].'/thanh-toan-online?paymentlink='.$nganluong_code.'&datepaid='.$nganluong_datepaid.'';
 		} else {
 			$payment_link = '#';
 		}
@@ -326,6 +320,8 @@ class Viewsendconfirm extends SugarView {
 					,p.luggage_price_inbound AS bag_in
 					,p.luggage_index_outbound
 					,p.luggage_index_inbound
+					,p.cic
+					,p.passport_number
 				FROM ec_booking_passengers p
 				WHERE p.deleted=0 AND add_type IS NULL
 				AND p.booking_id='".$booking_id."'
@@ -334,13 +330,14 @@ class Viewsendconfirm extends SugarView {
 		$res = $db->query($sql);
 
 		$html = '<tr>
-					<td style="width:12%; border:1px solid #e7e7e7; padding: 5px;">Đối tượng</td>
-					<td style="width:30%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Họ tên hành khách</td>
-					<td style="width:14%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Ngày sinh</td>';
+					<td style="width:10%; border:1px solid #e7e7e7; padding: 5px;">Đối tượng</td>
+					<td style="width:25%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Họ tên hành khách</td>
+					<td style="width:15%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Ngày sinh</td>
+					<td style="width:10%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">CCCD/Passport</td>';
 
 		  if($flight_type == '0'){
-			  $html .= '<td style="width:22%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều đi</td>
-						<td style="width:22%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều về</td>';
+			  $html .= '<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều đi</td>
+						<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều về</td>';
 		  } else {
 			  $html .= '<td style="width:40%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý</td>';
 		  }
@@ -350,6 +347,7 @@ class Viewsendconfirm extends SugarView {
 		while($row = $db->fetchByAssoc($res)){
 
 			$dob = '';
+			$cic_pass = !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
 			if ($row['pax_dob'] != '' && $row['pax_dob'] != '0000-00-00') {
 				try {
 					$dob = new DateTime($row['pax_dob']);
@@ -364,7 +362,8 @@ class Viewsendconfirm extends SugarView {
 			$html .= '<tr>
 				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$app_list_strings['passenger_type_list'][$row['pax_type']].'</td>
 				<td style="border:1px solid #e7e7e7; padding: 5px;"><label style="text-transform:uppercase;">'.$row['pax_name'].'</label></td>
-				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$dob.'</td>';
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$dob.'</td>
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$cic_pass.'</td>';
 
 			$bag_out = generateLuggage($row['date_entered'], $row['aircode_out'], $row['ticket_class_out'], $row['pax_type'], $row['luggage_index_outbound']);
 			if (!is_null($row['luggage_index_outbound']) && !empty($row['luggage_index_outbound'])) {

@@ -27,6 +27,13 @@ $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 
 $job_strings[] = 'saveReportWeekly'; // Lưu kết quả doanh số cuối ngày vào table ec_report_weekly
 
+$job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
+
+function updateLogAutocall(){
+	return update_log_autocall();
+}
+
+
 function saveReportWeekly()
 {
 	global $db;

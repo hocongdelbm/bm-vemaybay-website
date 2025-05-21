@@ -246,7 +246,7 @@ class Viewstatistics extends SugarView
                               <td align="left" class="fw-semibold">' . $sdt . '</td>
                               <td align="center" class="fw-semibold text-primary">' . $count['outbound'] . '</td>
                               <td align="center" class="fw-semibold text-success">' . $count['inbound'] . '</td>
-                              <td align="center" class="fw-semibold text-danger">' . $count['status'] . '</td>
+                              <td align="center" class="fw-semibold text-danger hide-mobile">' . $count['status'] . '</td>
                          </tr>';
           }
 
@@ -667,15 +667,15 @@ class Viewstatistics extends SugarView
                                    <td align="left" class="full_name">' . $user['name'] . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="outbound">' . $outbound . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="ob_answer">' . $outbound_answer . '</td>
-                                   <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="kpi_answer">' . $outbound_kpi . '</td>
-                                   <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="ob_noanswer">' . $outbound_noanswer . '</td>
+                                   <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="kpi_answer">' . $outbound_kpi . '</td>
+                                   <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="ob_noanswer">' . $outbound_noanswer . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="inbound">' . $inbound . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="missed">' . $missed . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="spam">' . $spam . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="suddenly">' . $suddenly . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="internal">' . $internal . '</td>
                                    <td align="center" class="cursor-pointer hide-mobile text-dark"><strong>' . $total_calls . '</strong></td>
-                                   <td align="center" class="cursor-pointer hide-mobile">
+                                   <td align="center" class="cursor-pointer">
                                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewEmpModal_' . $user_id . '">
                                              CallSales
                                         </button>

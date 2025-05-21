@@ -195,6 +195,15 @@ $viewdefs['Contacts'] = array(
 						'customCode' => '{$INFO_POINTS}',
 					),
 				),
+			),
+			'LBL_INFO_CALLS' => array(
+				array(
+					array(
+						'name' => 'line_items',
+						'label' => 'LBL_LINE_ITEMS',
+						'customCode' => '{$INFO_CALLS}',
+					),
+				),
 			)
 			// 'LBL_PANEL_ADVANCED' => array(
 			// 	array(

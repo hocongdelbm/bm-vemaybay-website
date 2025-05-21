@@ -155,13 +155,21 @@ class EC_Zalo extends Basic {
                     $Contact->zalo_is_follower      = (int)$user_data['user_is_follower'] ?? 0;
                     $Contact->zalo_last_interaction = $user_data_last_interaction;
                     if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
-                        if(!empty($Contact->primary_address_street)) $Contact->primary_address_street = $user_data['shared_info']['address'] ?? '';
-                        if(!empty($Contact->primary_address_city)) $Contact->primary_address_city = $user_data['shared_info']['city'] ?? '';
-                        if(!empty($Contact->primary_address_state)) $Contact->primary_address_state = $user_data['shared_info']['district'] ?? '';
-                        if(!empty($Contact->phone_mobile)) $Contact->phone_mobile = $Zalo->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
-                        if(!empty($Contact->birthdate)) {
-                            $Contact->birthdate = $user_data['shared_info']['user_dob'] ?? '';
-                            if(!empty($Contact->birthdate)) $Contact->birthdate = date('d-m-Y', strtotime($Contact->birthdate));
+                        if(!$Contact->primary_address_street || empty($Contact->primary_address_street)) {
+                            $Contact->primary_address_street = $user_data['shared_info']['address'] ?? '';
+                        }  
+                        if(!$Contact->primary_address_city || empty($Contact->primary_address_city)) {
+                            $Contact->primary_address_city = $user_data['shared_info']['city'] ?? '';
+                        }
+                        if(!$Contact->primary_address_state || empty($Contact->primary_address_state)) {
+                            $Contact->primary_address_state = $user_data['shared_info']['district'] ?? '';
+                        }
+                        if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
+                            $Contact->phone_mobile = $Zalo->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
+                        }
+                        if(!$Contact->birthdate || empty($Contact->birthdate)) {
+                            $user_dob = $user_data['shared_info']['user_dob'] ?? '';
+                            if(!empty($user_dob)) $Contact->birthdate = date('d-m-Y', strtotime($user_dob));
                         }
                     }
                     if(isset($user_data['tags_and_notes_info']) && !empty($user_data['tags_and_notes_info'])) {
@@ -170,6 +178,7 @@ class EC_Zalo extends Basic {
                             $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
                         }
                     }
+                    $Contact->description = "Cập nhật thông tin qua EC_Zalo ($Contact->phone_mobile) ($zalo_id)";
                 }
                 $Contact->save();
 
@@ -195,6 +204,11 @@ class EC_Zalo extends Basic {
         if($last_timestamp > 0) $where_clause = "AND zm.timestamp < $last_timestamp AND zm.deleted = 0";
         else $where_clause = "AND zm.deleted = 0";
 
+        if(!empty($current_list_user)) {
+            $l = implode(',', $current_list_user);
+            $where_clause = " AND zm.from_id NOT IN($l) AND zm.to_id NOT IN($l)";
+        }
+
         $sql = "SELECT DISTINCT(CONCAT(zm.from_id, zm.to_id)) AS chat_id
             ,zm.message_id
             ,zm.src
@@ -219,7 +233,7 @@ class EC_Zalo extends Basic {
         while($row = $this->db->fetchByAssoc($res)) {
             $zalo_id = $row['src'] == 1 ? $row['from_id'] : $row['to_id'];
 
-            if(in_array($zalo_id, $current_list_user)) continue;
+            // if(in_array($zalo_id, $current_list_user)) continue;
             if(in_array($zalo_id, $list_zalo_id['no_interaction']) || in_array($zalo_id, $list_zalo_id['interaction'])) continue;
 
             // Lấy thông tin người dùng

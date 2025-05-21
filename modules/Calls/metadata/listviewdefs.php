@@ -87,7 +87,7 @@ $listViewDefs['Calls'] = array(
 	array (
 		'width' => '10%',
 		'label' => 'LBL_LIST_CALL_MOS',
-		'default' => true,
+		'default' => false,
 		'type' => 'FLOAT',
 		// 'align' => 'center',
 	),
@@ -117,6 +117,12 @@ $listViewDefs['Calls'] = array(
 	    'width' => '8%',
 		'link' => true,
 	    'default' => true,
+	),
+	'CALL_SOURCES' => array(
+		'width' => '10%',
+		'label' => 'LBL_CALL_SOURCES',
+		'link' => false,
+		'default' => true,
 	),
 	'ASSIGNED_USER_NAME' => array(
 		'width' => '2%',
