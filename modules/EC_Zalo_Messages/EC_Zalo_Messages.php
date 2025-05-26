@@ -23,6 +23,7 @@ class EC_Zalo_Messages extends Basic {
     public $assigned_user_link;
     public $SecurityGroups;
 
+    public $message_id;
     public $src;
     public $from_id;
     public $to_id;
@@ -70,14 +71,14 @@ class EC_Zalo_Messages extends Basic {
             'user_send_link'            => 'link',
             'user_send_business_card'   => 'business_card',
             'user_feedback'             => 'feedback',
-            'user_submit_info'          => 'info',
+            'user_submit_info'          => 'submit_info',
 
             'oa_send_text'      => 'text',
             'oa_send_image'     => 'image',
             'oa_send_gif'       => 'gif',
             'oa_send_sticker'   => 'sticker',
             'oa_send_file'      => 'file',
-            'oa_send_list'      => 'links',
+            'oa_send_list'      => 'links', // Request user info here
             'oa_send_template'  => 'template',
         ];
 

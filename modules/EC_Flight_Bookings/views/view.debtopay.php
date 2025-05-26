@@ -377,6 +377,20 @@ class Viewdebtopay extends SugarView
 	{
 		global $db, $current_user;
 
+		/**
+		 * Loại thu "Thu tiền khách sạn phát sinh từ ngày 17/05/2025"
+		 * Nếu cả $post_fdate và $post_tdate đều trước ngày 17/05/2025, dùng: AND p.loai_thu IN ('4', '5')
+		 * Nếu bất kỳ ngày nào sau hoặc đúng 17/05/2025, dùng: AND p.loai_thu IN ('4', '5', '14')
+		 */
+		$targetDate = '2025-05-17';
+		$fromDate = date('Y-m-d', strtotime($post_fdate));
+		$toDate   = date('Y-m-d', strtotime($post_tdate));
+		if ($fromDate < $targetDate && $toDate < $targetDate) {
+			$sql_hotel = " AND p.loai_thu IN ('4', '5') ";
+		} else {
+			$sql_hotel = " AND p.loai_thu IN ('4', '5', '14') ";
+		}
+
 		// Get opening amount
 		$sql = "
 			SELECT 
@@ -421,7 +435,7 @@ class Viewdebtopay extends SugarView
 			AND p.booking_status IN ('7', '8')
 			AND p.is_ticket_exported = 1
 			AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.date_ticket_issue < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.date_ticket_issue < '" . $fromDate . "'
 			AND d.total_bought_price > 0
 			AND d.supplier_id = '" . $supplier_id . "'
 
@@ -437,7 +451,7 @@ class Viewdebtopay extends SugarView
 			AND p.booking_status IN ('7', '8')
 			AND p.is_ticket_exported = 1
 			AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.date_ticket_issue < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.date_ticket_issue < '" . $fromDate . "'
 			AND d.luggage_price > 0
 			AND d.luggage_purchase > 0
 			AND d.supplier_id = '" . $supplier_id . "'
@@ -455,7 +469,7 @@ class Viewdebtopay extends SugarView
 			AND p.booking_status IN ('7', '8')
 			AND p.is_ticket_exported = 1
 			AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.date_ticket_issue < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.date_ticket_issue < '" . $fromDate . "'
 			AND d.luggage_price_inbound > 0
 			AND d.luggage_purchase_inbound > 0
 			AND d.supplier_inbound_id = '" . $supplier_id . "'
@@ -471,7 +485,7 @@ class Viewdebtopay extends SugarView
 			WHERE p.deleted = 0
 			AND p.loai_thu = '9'
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.account_id_c = '" . $supplier_id . "'
 
 			-- SUPPLIER 1
@@ -482,9 +496,9 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
+			".$sql_hotel."
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.supplier_id = '" . $supplier_id . "'
 
 			-- SUPPLIER 2
@@ -495,9 +509,9 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
+			".$sql_hotel."
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.supplier2_id = '" . $supplier_id . "'
 
 			-- SUPPLIER 3
@@ -508,9 +522,9 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
+			".$sql_hotel."
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.supplier3_id = '" . $supplier_id . "'
 
 			-- TICKET REFUND
@@ -524,7 +538,7 @@ class Viewdebtopay extends SugarView
 			AND c.dahoan = 1
 			AND p.tinhtrang = '1'
 			AND p.ngayhachtoan >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngayhachtoan < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.ngayhachtoan < '" . $fromDate . "'
 			AND c.nhacc_id = '" . $supplier_id . "'
 
 			-- PAYMENT VOUCHER
@@ -537,7 +551,7 @@ class Viewdebtopay extends SugarView
 			WHERE p.deleted = 0
 			AND p.pv_status = '3'
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . date('Y-m-d', strtotime($post_fdate)) . "'
+			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.supplier_id = '" . $supplier_id . "'
 		) AS tmp";
 
@@ -563,8 +577,7 @@ class Viewdebtopay extends SugarView
 		WHERE d.deleted = 0
 		AND p.booking_status IN ('7', '8')
 		AND p.is_ticket_exported = 1
-		AND p.date_ticket_issue >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		AND p.date_ticket_issue BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND d.supplier_id = '" . $supplier_id . "'
 		GROUP BY d.booking_id
 		
@@ -588,8 +601,7 @@ class Viewdebtopay extends SugarView
 		WHERE d.deleted = 0
 		AND p.booking_status IN ('7', '8')
 		AND p.is_ticket_exported = 1
-		AND p.date_ticket_issue >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		AND p.date_ticket_issue BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND d.luggage_price > 0
 		AND d.luggage_purchase > 0
 		AND d.supplier_id = '" . $supplier_id . "'
@@ -616,8 +628,7 @@ class Viewdebtopay extends SugarView
 		WHERE d.deleted = 0
 		AND p.booking_status IN ('7', '8')
 		AND p.is_ticket_exported = 1
-		AND p.date_ticket_issue >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		AND p.date_ticket_issue BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND d.luggage_price_inbound > 0
 		AND d.luggage_purchase_inbound > 0
 		AND d.supplier_inbound_id = '" . $supplier_id . "'
@@ -642,8 +653,7 @@ class Viewdebtopay extends SugarView
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
 		AND p.loai_thu = '9'
-		AND p.ngaychungtu >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND p.account_id_c = '" . $supplier_id . "'
 
 		-- SUPPLIER 1
@@ -663,9 +673,8 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		AND p.loai_thu IN ('4', '5')
-		AND p.ngaychungtu >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		".$sql_hotel."
+		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND p.supplier_id = '" . $supplier_id . "'
 
 		-- SUPPLIER 2
@@ -685,11 +694,8 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		AND p.loai_thu IN ('4', '5')
-		-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
-		AND p.ngaychungtu >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		".$sql_hotel."
+		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND p.supplier2_id = '" . $supplier_id . "'
 
 		-- SUPPLIER 3
@@ -709,11 +715,8 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		AND p.loai_thu IN ('4', '5')
-		-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		-- AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
-		AND p.ngaychungtu >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		".$sql_hotel."
+		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND p.supplier3_id = '" . $supplier_id . "'
 
 		-- TICKET REFUND
@@ -736,8 +739,8 @@ class Viewdebtopay extends SugarView
 		WHERE c.deleted = 0
 		AND c.dahoan = 1
 		AND p.tinhtrang = '1'
-		AND p.ngayhachtoan >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.ngayhachtoan <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		AND p.ngayhachtoan >= '" . $fromDate . "'
+		AND p.ngayhachtoan <= '" . $toDate . "'
 		AND c.nhacc_id = '" . $supplier_id . "'
 		GROUP BY c.hoanve_id
 
@@ -759,10 +762,14 @@ class Viewdebtopay extends SugarView
 		FROM ec_payment_voucher p
 		WHERE p.deleted = 0
 		AND p.pv_status = '3'
-		AND p.ngaychungtu >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-		AND p.ngaychungtu <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
+		AND p.ngaychungtu >= '" . $fromDate . "'
+		AND p.ngaychungtu <= '" . $toDate . "'
 		AND p.supplier_id = '" . $supplier_id . "'
 		ORDER BY posted_date, order_date";
+
+		// if($GLOBALS['current_user']->user_name == 'hungnh') {
+		// 	pr($sql);
+		// } 
 
 		$res 		= $db->query($sql);
 		$i 			= 0;

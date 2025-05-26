@@ -4942,8 +4942,7 @@ body.modal-active {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 2;
-
+  z-index: 100;
   transform: scale(0);
   animation: zoomIn 0.5s 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }
@@ -5928,6 +5927,11 @@ table.table-details__booking tbody td {
 #pagecontent[data-module="Calls"] .list-view-rounded-corners table.list.view.table-responsive tr td[field="call_from"],
 #pagecontent[data-module="Calls"] .list-view-rounded-corners table.list.view.table-responsive tr td[field="call_to"] {
   width: fit-content;
+}
+
+#pagecontent[data-module="Calls"][data-current-user="ngocthu"] .list-view-rounded-corners table.list.view.table-responsive #actionLinkTop .sugar_action_button ul.subnav #delete_listview_top,
+#pagecontent[data-module="Calls"][data-current-user="ngocthu"] .list-view-rounded-corners table.list.view.table-responsive #actionLinkBottom .sugar_action_button ul.subnav #delete_listview_bottom{
+  display: none;
 }
 
 /* =============== ONEPAY ================== */

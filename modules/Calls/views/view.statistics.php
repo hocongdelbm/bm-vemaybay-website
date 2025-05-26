@@ -246,7 +246,7 @@ class Viewstatistics extends SugarView
                               <td align="left" class="fw-semibold">' . $sdt . '</td>
                               <td align="center" class="fw-semibold text-primary">' . $count['outbound'] . '</td>
                               <td align="center" class="fw-semibold text-success">' . $count['inbound'] . '</td>
-                              <td align="center" class="fw-semibold text-danger">' . $count['status'] . '</td>
+                              <td align="center" class="fw-semibold text-danger hide-mobile">' . $count['status'] . '</td>
                          </tr>';
           }
 
@@ -289,6 +289,7 @@ class Viewstatistics extends SugarView
                          c.call_sources,
                          c.call_reason,
                          c.other_caller,
+                         c.type_call_sources,
                          c.description
                FROM calls c
                LEFT JOIN users u ON c.assigned_user_id = u.id AND u.deleted = 0
@@ -511,7 +512,7 @@ class Viewstatistics extends SugarView
                                                             <td align="center" class="status ' . $status_class . '"><strong>' . $app_list_strings['call_status_dom'][$call['status']] . '</strong></td>
                                                             <td class="call_from">' . $call['call_from'] . '</td>
                                                             <td class="call_to">' . $call['call_to'] . '</td>
-                                                            <td class="call_sources">' . $call['call_sources'] . '</td>
+                                                            <td class="type_call_sources">' . $call['type_call_sources'] . '</td>
                                                             <td align="center" class="time-call">' . $call['date_start'] . '</td>
                                                             <td align="center" class="duration">' . $duration . '</td>
                                                             <td align="center" class="call_talk">' . global_secondsToTimeFormat($call['call_talk']) . '</td>
@@ -666,15 +667,15 @@ class Viewstatistics extends SugarView
                                    <td align="left" class="full_name">' . $user['name'] . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="outbound">' . $outbound . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="ob_answer">' . $outbound_answer . '</td>
-                                   <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="kpi_answer">' . $outbound_kpi . '</td>
-                                   <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="ob_noanswer">' . $outbound_noanswer . '</td>
+                                   <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="kpi_answer">' . $outbound_kpi . '</td>
+                                   <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="ob_noanswer">' . $outbound_noanswer . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="inbound">' . $inbound . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="missed">' . $missed . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="spam">' . $spam . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="suddenly">' . $suddenly . '</td>
                                    <td align="center" class="cursor-pointer view-detail-calls hide-mobile" data-username="' . $user['name'] . '" data-user_id="' . $user_id . '" data-direction="internal">' . $internal . '</td>
                                    <td align="center" class="cursor-pointer hide-mobile text-dark"><strong>' . $total_calls . '</strong></td>
-                                   <td align="center" class="cursor-pointer hide-mobile">
+                                   <td align="center" class="cursor-pointer">
                                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewEmpModal_' . $user_id . '">
                                              CallSales
                                         </button>

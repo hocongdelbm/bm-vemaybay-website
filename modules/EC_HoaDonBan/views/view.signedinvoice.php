@@ -2,6 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once("include/Sugar_Smarty.php");
 require 'vendor/autoload.php';
+
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -49,12 +50,12 @@ class Viewsignedinvoice extends SugarView
           $inv = new WinInvoice();
           $list_invoice_signed = json_decode($inv->get_list($from_date, $to_date), true);
 
-          foreach ($list_invoice_signed as $invoice){
-               if($invoice['buyerName'] == ""){
+          foreach ($list_invoice_signed as $invoice) {
+               if ($invoice['buyerName'] == "") {
                     $contact = $invoice['buyerCompany'];
-               } else{
+               } else {
                     $contact = $invoice['buyerName'];
-               } 
+               }
 
                $html .= '<tr>';
                $html .= '<td align="center">
@@ -78,34 +79,41 @@ class Viewsignedinvoice extends SugarView
           $html .= '
                <tr class="footer-tr">
                     <td colspan="6"></td>
-                    <td class="invSubTotal">'.format_number($total_amount_bought).'</td>
-                    <td class="invVatAmount">'.format_number($total_amount_vat).'</td>
-                    <td class="invTotalAmount">'.format_number($total_amount_total).'</td>
+                    <td class="invSubTotal">' . format_number($total_amount_bought) . '</td>
+                    <td class="invVatAmount">' . format_number($total_amount_vat) . '</td>
+                    <td class="invTotalAmount">' . format_number($total_amount_total) . '</td>
                </tr>';
-          
+
           return $html;
      }
 
-     function getRecordInvoice($from_date, $to_date){
+     function getRecordInvoice($from_date, $to_date)
+     {
           $sql = '
-               SELECT *
+               SELECT id, name, ngayhoadon, sohoadon, tinhtrang, diachi, masothue, tongthanhtoan, company_unit, tencongty, lienhe
                FROM ec_hoadonban
-               WHERE tinhtrang = 1
-               AND DATE_FORMAT(DATE_ADD(ngayhoadon, INTERVAL 7 HOUR), "%Y-%m-%d") >= "'.date('Y-m-d', strtotime($from_date)).'"
-               AND DATE_FORMAT(DATE_ADD(ngayhoadon, INTERVAL 7 HOUR), "%Y-%m-%d") <= "'.date('Y-m-d', strtotime($to_date)).'"
-               AND deleted = 0
+               WHERE tinhtrang IN (1, 2)
+                    AND DATE_FORMAT(DATE_ADD(ngayhoadon, INTERVAL 7 HOUR), "%Y-%m-%d")
+                         BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" 
+                         AND "' . date('Y-m-d', strtotime($to_date)) . '"
+                    AND deleted = 0
                ORDER BY date_entered DESC
-          ';
+               ';
+
+
+          // if($GLOBALS['current_user']->user_name == 'hungnh'){
+          //      pr($sql);
+          // }
 
           $res = $this->bean->db->query($sql);
-          $html = ''; 
+          $html = '';
           $i = $total_thanhtoan = 0;
-          while($row = $this->bean->db->fetchByAssoc($res)) {
-               if($row['lienhe'] == ""){
+          while ($row = $this->bean->db->fetchByAssoc($res)) {
+               if ($row['lienhe'] == "") {
                     $contact = $row['tencongty'];
-               } else{
+               } else {
                     $contact = $row['lienhe'];
-               } 
+               }
 
                $html .= '<tr>
                               <td align="center">
@@ -113,6 +121,7 @@ class Viewsignedinvoice extends SugarView
                               </td>
                               <td class="text-center ngayhoadon">' . date('d-m-Y', strtotime($row['ngayhoadon'])) . '</td>
                               <td class="text-center sochungtu"><a target="_blank" href="https://timchuyenbay.com/tra-cuu?invRef=' . $row['name'] . '">' . $row['name'] . '</a></td>
+                              <td class="text-center tinhtrang">' . $GLOBALS['app_list_strings']['invoice_status_list'][$row['tinhtrang']] . '</td>
                               <td class="text-center sohoadon">' . $row['sohoadon'] . '</td>
                               <td class="text-start name_customer">' . $contact . '</td>
                               <td class="text-start diachi">' . $row['diachi'] . '</td>
@@ -126,16 +135,17 @@ class Viewsignedinvoice extends SugarView
           }
           $html .= '
                <tr class="footer-tr">
-                    <td colspan="7"></td>
-                    <td class="invSubTotal">'.format_number($total_thanhtoan).'</td>
+                    <td colspan="8"></td>
+                    <td class="invSubTotal">' . format_number($total_thanhtoan) . '</td>
                     <td></td>
                </tr>';
-          
+
 
           return $html;
      }
 
-     function exportExcelInvoice(){
+     function exportExcelInvoice()
+     {
           global $current_user;
           require_once('modules/EC_HoaDonBan/WinInvoice.php');
           $inv       = new WinInvoice();
@@ -172,40 +182,40 @@ class Viewsignedinvoice extends SugarView
                $buyerAddress = $iv_get['buyerAddress'];
                // mst
                $buyerTax = $iv_get['buyerTax'];
-               
-               foreach($list_item as $index => $item){
-                    $sheet->setCellValue("A".($index + 2), '');
-                    $sheet->setCellValue("B".($index + 2), '');
-                    $sheet->setCellValue("C".($index + 2), '');
-                    $sheet->setCellValue("D".($index + 2), 0);
-                    $sheet->setCellValue("E".($index + 2), '');
-                    $sheet->setCellValue("F".($index + 2), '');
-                    $sheet->setCellValue("G".($index + 2), '');
-                    $sheet->setCellValue("H".($index + 2), $date_accounting);
-                    $sheet->setCellValue("I".($index + 2), $date_invoice);
-                    $sheet->setCellValue("J".($index + 2), $sochungtu_id);
-                    $sheet->setCellValue("K".($index + 2), '');
-                    $sheet->setCellValue("L".($index + 2), '');
-                    $sheet->setCellValue("M".($index + 2), $number_invoice);
-                    $sheet->setCellValue("N".($index + 2), '');
-                    $sheet->setCellValue("O".($index + 2), $buyerCode);
-                    $sheet->setCellValue("P".($index + 2), $name_customer);
-                    $sheet->setCellValue("Q".($index + 2), $buyerAddress);
-                    $sheet->setCellValue("R".($index + 2), $buyerTax);
-                    $sheet->setCellValue("S".($index + 2), '');
-                    $sheet->setCellValue("T".($index + 2), '');
-                    $sheet->setCellValue("U".($index + 2), '');
-                    $sheet->setCellValue("V".($index + 2), $item['itemCode']);
-                    $sheet->setCellValue("W".($index + 2), $item['itemName']);
-                    $sheet->setCellValue("X".($index + 2), '');
-                    $sheet->setCellValue("Y".($index + 2), '131');
-                    $sheet->setCellValue("Z".($index + 2), '5111');
-                    $sheet->setCellValue("AA".($index + 2), $item['itemUnit']);
-                    $sheet->setCellValue("AB".($index + 2), (int)$item['itemQuantity']);
-                    $sheet->setCellValue("AC".($index + 2), $this->formatCurrencyInvoice($item['itemPrice']));
-                    $sheet->setCellValue("AD".($index + 2), $this->formatCurrencyInvoice($item['itemPrice']));
-                    $sheet->setCellValue("AE".($index + 2), $this->formatCurrencyInvoice($item['itemAmountNoVat']));
-                    $sheet->setCellValue("AP".($index + 2), '33311');
+
+               foreach ($list_item as $index => $item) {
+                    $sheet->setCellValue("A" . ($index + 2), '');
+                    $sheet->setCellValue("B" . ($index + 2), '');
+                    $sheet->setCellValue("C" . ($index + 2), '');
+                    $sheet->setCellValue("D" . ($index + 2), 0);
+                    $sheet->setCellValue("E" . ($index + 2), '');
+                    $sheet->setCellValue("F" . ($index + 2), '');
+                    $sheet->setCellValue("G" . ($index + 2), '');
+                    $sheet->setCellValue("H" . ($index + 2), $date_accounting);
+                    $sheet->setCellValue("I" . ($index + 2), $date_invoice);
+                    $sheet->setCellValue("J" . ($index + 2), $sochungtu_id);
+                    $sheet->setCellValue("K" . ($index + 2), '');
+                    $sheet->setCellValue("L" . ($index + 2), '');
+                    $sheet->setCellValue("M" . ($index + 2), $number_invoice);
+                    $sheet->setCellValue("N" . ($index + 2), '');
+                    $sheet->setCellValue("O" . ($index + 2), $buyerCode);
+                    $sheet->setCellValue("P" . ($index + 2), $name_customer);
+                    $sheet->setCellValue("Q" . ($index + 2), $buyerAddress);
+                    $sheet->setCellValue("R" . ($index + 2), $buyerTax);
+                    $sheet->setCellValue("S" . ($index + 2), '');
+                    $sheet->setCellValue("T" . ($index + 2), '');
+                    $sheet->setCellValue("U" . ($index + 2), '');
+                    $sheet->setCellValue("V" . ($index + 2), $item['itemCode']);
+                    $sheet->setCellValue("W" . ($index + 2), $item['itemName']);
+                    $sheet->setCellValue("X" . ($index + 2), '');
+                    $sheet->setCellValue("Y" . ($index + 2), '131');
+                    $sheet->setCellValue("Z" . ($index + 2), '5111');
+                    $sheet->setCellValue("AA" . ($index + 2), $item['itemUnit']);
+                    $sheet->setCellValue("AB" . ($index + 2), (int)$item['itemQuantity']);
+                    $sheet->setCellValue("AC" . ($index + 2), $this->formatCurrencyInvoice($item['itemPrice']));
+                    $sheet->setCellValue("AD" . ($index + 2), $this->formatCurrencyInvoice($item['itemPrice']));
+                    $sheet->setCellValue("AE" . ($index + 2), $this->formatCurrencyInvoice($item['itemAmountNoVat']));
+                    $sheet->setCellValue("AP" . ($index + 2), '33311');
                }
 
                $outputFilePath = 'custom/templates_export/' . $sochungtu_id . '.xlsx';
@@ -214,16 +224,16 @@ class Viewsignedinvoice extends SugarView
                $filesToDownload[] = $outputFilePath;
           }
 
-          if(count($filesToDownload) == 1){
+          if (count($filesToDownload) == 1) {
                header("Pragma: public");
                header("Expires: 0");
                header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
                header("Content-Type: application/force-download");
                header("Content-Type: application/octet-stream");
                header("Content-Type: application/download");;
-               header("Content-Disposition: attachment;filename=" . $sochungtu_id . "_".time().".xlsx");
+               header("Content-Disposition: attachment;filename=" . $sochungtu_id . "_" . time() . ".xlsx");
                header("Content-Transfer-Encoding: binary ");
-     
+
                ob_end_clean();
                ob_start();
                $writer->save('php://output');
@@ -243,16 +253,16 @@ class Viewsignedinvoice extends SugarView
                     }
                     $zip->close();
                }
-     
+
                // Tải về zip file
                header("Pragma: public");
                header("Content-Type: application/zip");
-               header("Content-disposition: attachment;filename=XUATHD_".date('dmY').".zip");
+               header("Content-disposition: attachment;filename=XUATHD_" . date('dmY') . ".zip");
                header("Content-Length: " . filesize($zipFile));
                ob_clean();
                flush();
                readfile($zipFile);
-     
+
                // Xóa các file tạm sau khi đã tạo zip
                unlink($zipFile);
                foreach ($filesToDownload as $file) {
@@ -265,8 +275,7 @@ class Viewsignedinvoice extends SugarView
 
      public function formatCurrencyInvoice($amount)
      {
-         // Chuyển đổi giá trị thành số thực và sau đó định dạng số
-         $formattedNumber = number_format(floatval($amount), 0, '', '');
+          $formattedNumber = number_format(floatval($amount), 0, '', '');
           return $formattedNumber;
      }
 }

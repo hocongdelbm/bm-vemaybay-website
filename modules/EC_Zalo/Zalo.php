@@ -992,14 +992,14 @@ class Zalo {
      * 
      * @param string $phone
      * @param string $template_id
-     * @param string $template_data json
+     * @param string|array $template_data json|array
      * @return string json
      */
     public function send_zns($phone, $template_id, $template_data) {
         $body_request = json_encode([
             'phone'         => $this->format_phone_number($phone, 'zalo'),
             'template_id'   => $template_id,
-            'template_data' => json_decode($template_data, true),
+            'template_data' => is_array($template_data) ? $template_data : json_decode($template_data, true),
             'tracking_id'   => $phone . time()
         ]);
 
@@ -1075,7 +1075,10 @@ class Zalo {
                 return "346651"; // Nhắc nhở giờ bay
                 break;
             case 'points':
-                return "411270";
+                return "411270"; // Thông báo tích điểm
+                break;
+            case 'share-phone':
+                return "433046"; // Gửi thông tin chương trình chia sẻ SĐT
                 break;
             default:
                 return "";
@@ -1114,6 +1117,9 @@ class Zalo {
                 break;
             case '411270':
                 return "Thông báo tích điểm";
+                break;
+            case '433046':
+                return "Gửi thông tin chương trình chia sẻ SĐT";
                 break;
             default:
                 return "";
@@ -1163,13 +1169,14 @@ class Zalo {
 
     /***************  UPLOAD  ***************/
     /** 
-     * Upload to zalo
+     * Get file extension is supported
+     * 
      * @param string $type
      * @return array
      */
     public function get_file_extension($type) {
         if($type == 'image') return ['png', 'jpg', 'gif'];
-        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv', 'txt'];
+        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv'];
     }
 
     /** 
@@ -1296,9 +1303,9 @@ class Zalo {
     }
 
     public function unformat_zalo_phone($zalo_phone) {
+        if(!$zalo_phone || empty($zalo_phone)) return '';
         if(substr($zalo_phone, 0, 2) == 84) return '0' . substr($zalo_phone, 2);
         elseif(substr($zalo_phone, 0, 3) == "+84") return '0' . substr($zalo_phone, 3);
-
         return $zalo_phone;
     }
 

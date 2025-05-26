@@ -129,9 +129,9 @@ class Viewsendeticket extends SugarView {
 			$booking_infos['list_of_itineraries'] = $iti_html;
 		}
 
-		$booking_infos['com_name'] 				= $department_info['com_name'];
+		$booking_infos['com_name'] 				= $lang === 'vn' ? $department_info['com_name'] : removeAccents($department_info['com_name']);
 		$booking_infos['com_taxcode'] 			= $department_info['com_taxcode'];
-		$booking_infos['com_address'] 			= $department_info['com_address'];
+		$booking_infos['com_address'] 			= $lang === 'vn' ? $department_info['com_address'] : $department_info['com_address2'];
 		$booking_infos['com_phone'] 			= $department_info['com_phone'].' - '.$department_info['com_hotline1'].' - '.$department_info['com_hotline2'];
 		$booking_infos['com_phone_support'] 	= $department_info['com_phone'];
 		$booking_infos['com_website'] 			= $department_info['com_website2'];

@@ -366,7 +366,7 @@
                     <th>SĐT</th>
                     <th width="25%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
                     <th width="25%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
-                    <th width="10%" align="center">Status</th>
+                    <th width="10%" align="center" class="hide-mobile">Status</th>
                </tr>
           </thead>
           <tbody>
@@ -375,7 +375,7 @@
                     <td align="center" colspan="2"><span title="total"></span>Tổng cộng</td>
                     <td align="center"><span title="total_outbound">{$COUNT_SDT_OUTBOUND}</span></td>
                     <td align="center"><span title="total_inbound">{$COUNT_SDT_INBOUND}</span></td>
-                    <td align="center"></td>
+                    <td align="center" class="hide-mobile"></td>
                </tr>
           </tbody>
      </table>
@@ -392,15 +392,15 @@
                     <th>Họ tên</th>
                     <th width="8%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
                     <th width="8%" align="center"><span title="outbound (Dưới 20s thoại)">Gọi đi (trả lời)</span></th>
-                    <th width="8%" align="center"><span title="outbound (Trên 20s thoại)">Gọi đi (>=20s)</span></th>
-                    <th width="8%" align="center"><span title="outbound">0 trả lời</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="outbound (Trên 20s thoại)">Gọi đi (>=20s)</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="outbound">0 trả lời</span></th>
                     <th width="8%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
                     <th width="8%" align="center"><span title="missed">Cuộc gọi nhỡ</span></th>
                     <th width="8%" align="center" class="hide-mobile"><span title="spam">Số rác</span></th>
                     <th width="8%" align="center" class="hide-mobile"><span title="suddenly">Nhá máy</span></th>
                     <th width="8%" align="center" class="hide-mobile"><span title="internal">Nội bộ</span></th>
                     <th width="8%" align="center" class="hide-mobile"><span title="internal">Tổng cộng</span></th>
-                    <th width="8%" align="center" class="hide-mobile"></th>
+                    <th width="8%" align="center"></th>
                </tr>
           </thead>
           <tbody>
@@ -410,15 +410,15 @@
                     <td align="center"><span title="total"></span>Tổng cộng</td>
                     <td align="center"><span title="outbound">{$TTL_OUTBOUND}</span></td>
                     <td align="center"><span title="outbound_answer">{$TTL_OUTBOUND_ANSWER}</span></td>
-                    <td align="center"><span title="outbound_kpi">{$TTL_OUTBOUND_KPI}</span></td>
-                    <td align="center"><span title="outbound_noanswer">{$TTL_OUTBOUND_NOANSWER}</span></td>
+                    <td align="center" class="hide-mobile"><span title="outbound_kpi">{$TTL_OUTBOUND_KPI}</span></td>
+                    <td align="center" class="hide-mobile"><span title="outbound_noanswer">{$TTL_OUTBOUND_NOANSWER}</span></td>
                     <td align="center"><span title="inbound">{$TTL_INBOUND}</span></td>
                     <td align="center"><span title="missed">{$TTL_MISSED}</span></td>
                     <td align="center" class="hide-mobile"><span title="spam">{$TTL_SPAM}</span></td>
                     <td align="center" class="hide-mobile"><span title="suddenly">{$TTL_SUDDENLY}</span></td>
                     <td align="center" class="hide-mobile"><span title="internal">{$TTL_INTERNAL}</span></td>
                     <td align="center" class="hide-mobile"><span title="total_emp">{$TTL_EMP}</span></td>
-                    <td align="center" class="hide-mobile"></td>
+                    <td align="center"></td>
                </tr>
           </tbody>
      </table>
@@ -435,7 +435,7 @@
                               <th width="10%" align="center">Trạng thái</th>
                               <th width="8%" align="center">Gọi từ</th>
                               <th width="8%" align="center">Gọi đến</th>
-                              <th width="8%" align="center">Site</th>
+                              <th width="8%" align="center">Nguồn</th>
                               <th width="10%" align="center">Thời gian</th>
                               <th width="8%" align="center">Thời lượng</th>
                               <th width="8%" align="center">Hội thoại</th>

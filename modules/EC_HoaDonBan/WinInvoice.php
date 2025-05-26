@@ -414,15 +414,13 @@ class WinInvoice extends InvoiceLogs
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 20,
+            CURLOPT_TIMEOUT => 30,
             CURLOPT_CUSTOMREQUEST => 'GET',
         ));
         $json = curl_exec($curl);
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
-
-        if ($httpcode == 200) return $json;
-        return null;
+        return $json;
     }
 
 
@@ -566,7 +564,8 @@ class InvoiceLogs
 
     protected function write_file($text)
     {
-        if (empty($text)) return false;
+        if(empty($text)) return false;
+        if(!is_dir($this->PATH)) mkdir($this->PATH, 0640, true);
 
         $file_name = $this->PATH . $this->FILENAME;
         $myfile = fopen($file_name, "a") or die("Error something !!!");

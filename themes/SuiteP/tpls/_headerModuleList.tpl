@@ -48,26 +48,31 @@
           // Kiểm tra trạng thái đã lưu trong localStorage
           const savedTheme = localStorage.getItem("theme") || "light";
           htmlElement.setAttribute("data-bs-theme", savedTheme);
-          themeIcon.innerHTML = savedTheme === "light" ? sunIcon : moonIcon;
 
-          themeToggleItems.forEach(item => {
-               item.classList.toggle("active", item.getAttribute("data-bs-theme-value") === savedTheme);
-          });
+          if(themeIcon){
+               themeIcon.innerHTML = savedTheme === "light" ? sunIcon : moonIcon;
+          }
 
-          themeToggleItems.forEach(item => {
-               item.addEventListener("click", function () {
-                    console.warn('click');
-                    const selectedTheme = this.getAttribute("data-bs-theme-value");
-                    htmlElement.setAttribute("data-bs-theme", selectedTheme);
-                    localStorage.setItem("theme", selectedTheme);
-
-                    themeIcon.innerHTML = selectedTheme === "light" ? sunIcon : moonIcon;
-
-                    // Cập nhật class active
-                    themeToggleItems.forEach(el => el.classList.remove("active"));
-                    this.classList.add("active");
+          if(themeToggleItems){
+               themeToggleItems.forEach(item => {
+                    item.classList.toggle("active", item.getAttribute("data-bs-theme-value") === savedTheme);
                });
-          });
+
+               themeToggleItems.forEach(item => {
+                    item.addEventListener("click", function () {
+                         console.warn('click');
+                         const selectedTheme = this.getAttribute("data-bs-theme-value");
+                         htmlElement.setAttribute("data-bs-theme", selectedTheme);
+                         localStorage.setItem("theme", selectedTheme);
+     
+                         themeIcon.innerHTML = selectedTheme === "light" ? sunIcon : moonIcon;
+     
+                         // Cập nhật class active
+                         themeToggleItems.forEach(el => el.classList.remove("active"));
+                         this.classList.add("active");
+                    });
+               });
+          }
      });
 
      function setCookie(name, value, seconds = 0) {

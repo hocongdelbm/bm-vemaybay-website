@@ -158,6 +158,9 @@ $mod_strings = array(
 
     // REPORT PROFIT
     'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
+
+    // AUTOCALL
+    'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
 );
 
 global $sugar_config;

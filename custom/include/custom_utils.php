@@ -1619,10 +1619,10 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
 
     if (!$mail->send()) {
         $send_ok = false;
-        $GLOBALS['log']->info("Mailer error: " . $mail->ErrorInfo);
+        $GLOBALS['log']->fatal("Mailer error: " . $mail->ErrorInfo . " Mailer fullSmtpLog: " . $mail->fullSmtpLog);
+        $GLOBALS['log']->fatal("Mail Host: " . $mail->Host . " Mail Port: " . $mail->Port . " Mail Username: " . $mail->Username . " Mail Password: " . $mail->Password);
     }
 
-    // END SUGAR SENDMAIL
     return  $send_ok;
 }
 
@@ -2123,20 +2123,6 @@ function global_test_input($data)
     return $data;
 }
 
-// Format seconds to time
-function global_secondsToTimeFormat($seconds)
-{
-    if (empty($seconds)) {
-        return '00:00:00';
-    }
-
-    $hours      = floor($seconds / 3600);
-    $minutes    = floor(($seconds % 3600) / 60);
-    $seconds    = $seconds % 60;
-
-    return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
-}
-
 
 function custom_get_sip_number($key = '')
 {
@@ -2284,7 +2270,6 @@ function secondsToTimeFormat($seconds)
 // ======================================
 function read_file_logs_online($user_id)
 {
-    // $file_name = 'secure_sessions/check_online_logs/' . str_replace('-', '_', date('d-m-Y') . '.json');
     $file_name = 'secure_sessions/check_online_logs/' . str_replace('-', '_', $user_id) . '.json';
 
     if (file_exists($file_name)) {
@@ -2299,7 +2284,6 @@ function write_file_logs_online($json, $user_id)
 {
     if (empty($json)) return false;
 
-    // $file_name = 'secure_sessions/check_online_logs/' . str_replace('-', '_', date('d-m-Y') . '.json');
     $file_name = 'secure_sessions/check_online_logs/' . str_replace('-', '_', $user_id) . '.json';
 
     $myfile = fopen($file_name, "w") or die("Error something !!!");
@@ -2446,3 +2430,4 @@ require_once 'custom/include/utils/tele.php';
 require_once 'custom/include/utils/exits.php';
 require_once 'custom/include/utils/booking.php';
 require_once 'custom/include/utils/calls.php';
+require_once 'custom/include/utils/string.php';

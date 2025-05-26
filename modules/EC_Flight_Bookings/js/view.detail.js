@@ -239,11 +239,13 @@ $(document).ready(function () {
 
 	$(document).on('click', '#confirm-remind', function () {
 		let journey_id = $(this).attr('iti_id');
+		let booking_id = $(this).attr('booking_id');
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointFlightBookings",
 			data: {
 				journey_id: journey_id,
+				booking_id: booking_id,
 				for: "remindFlightSchedules",
 			},
 			type: "POST",
@@ -1088,8 +1090,42 @@ $(document).ready(function () {
 	});
 	$('#select_bank_get_qr_code').change(function () {
 		let selectedValue = $(this).val();
-		$("#img_qr_code").attr('src', selectedValue);
+		if(selectedValue){
+			$("#img_qr_code").attr('src', selectedValue);
+			$("#copyQRCodeImage").show();
+			$(".wrap-redo").show();
+		}
 	});
+	$(document).on("click", "#copyQRCodeImage", async function () {
+        let img = document.getElementById("img_qr_code");
+        
+        try {
+			if(img){
+				const response = await fetch(img.src);
+				const blob = await response.blob();
+				const clipboardItem = new ClipboardItem({ "image/png": blob });
+				await navigator.clipboard.write([clipboardItem]);
+		
+				showToastNotify("success", "Đã sao chép ảnh QR Code");
+			} else {
+            	showToastNotify("error", "Không tìm thấy QR Code");
+			}
+        } catch (error) {
+            showToastNotify("error", "Không thể sao chép ảnh!");
+            console.error("Lỗi copy ảnh:", error);
+        }
+    });
+	$(document).on("click", "#btnRenderQRCode", async function () {
+		let qrcode = $('#img_qr_code').attr("src");
+		let new_amount = parseInt($('#new_payment_amount').val().trim() ?? 0);
+		if(!new_amount || !Number.isInteger(new_amount) || new_amount < 1000) {
+			alert("Số tiền không hợp lệ");
+			return false;
+		}
+		$('#img_qr_code').attr("src", updateAmountInUrl(qrcode, new_amount));
+		$('#new_payment_amount').val('');
+	});
+
 
 	// GET THÔNG TIN BANK - SEND CUSTOMER
 	$('#get_bank').on('click', function () {
@@ -1184,6 +1220,7 @@ $(document).ready(function () {
 			$('input[name="points_discount"]').val(p*1000);
 		} 
 	});
+	
 	$('#btn_apply_points_discount').click(function() {
 		let p 	 = $('input[name="point_of_use"]').val();
 		let step = parseInt($('input[name="point_of_use"]').attr('min'));
@@ -1813,4 +1850,10 @@ function getAirLineInf() {
 	}
 
 	return iti_airline;
+}
+
+function updateAmountInUrl(url, newAmount) {
+  const urlObj = new URL(url);
+  urlObj.searchParams.set('amount', newAmount);
+  return urlObj.toString();
 }

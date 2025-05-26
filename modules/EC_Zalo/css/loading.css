@@ -55,7 +55,6 @@
 
 
 /**********  LOADING MESSAGES  **********/
-/* HTML: <div class="loader_messages"></div> */
 .loader_messages, .loader_send_message {
     width: 24px;
     aspect-ratio: 1;
@@ -90,7 +89,6 @@
 
 
 /**********  LOADING TYPING  **********/
-/* HTML: <div class="loader_typing"></div> */
 .loader_typing {
     width: 20px;
     aspect-ratio: 2;
@@ -99,7 +97,7 @@
       var(--_g) 0%   50%,
       var(--_g) 50%  50%,
       var(--_g) 100% 50%;
-    background-size: calc(100%/3) 55%;
+    background-size: calc(100%/3) 50%;
     animation: l_typing 1s infinite linear;
 
     display: inline-block;

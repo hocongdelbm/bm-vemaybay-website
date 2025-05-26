@@ -29,6 +29,12 @@ $listViewDefs[$module_name] = array(
         'default' => true,
         'link' => false
     ),
+    'LABEL' => array(
+        'width' => '32',
+        'label' => 'LBL_LABEL',
+        'default' => true,
+        'link' => false
+    ),
     'STATUS' => array(
         'width' => '32',
         'label' => 'LBL_STATUS',
