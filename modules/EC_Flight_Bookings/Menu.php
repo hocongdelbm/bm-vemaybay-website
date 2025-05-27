@@ -51,7 +51,7 @@ if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
 
 	$module_menu[] = [
 		"index.php?module=EC_Flight_Bookings&action=clientphonetcb",
-		"Thao khảo - TCB",
+		"Tham khảo - TCB",
 		"recovery-order-16",
 		"",
 	];
