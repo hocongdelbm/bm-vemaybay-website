@@ -3,7 +3,6 @@
 // GR TELE SUPPORT
 function sendGrSupportTele($content, $parseMode = 'HTML', $timeout = 8)
 {
-    return false;
     // $chat_id = '-1773893748'; // Group support
     $chat_id = '-618676080'; // Group support
     $token = '6713845742:AAF3ilFQEFrUgIN69bpNOeJknCJQhBR4nHU';
@@ -17,15 +16,12 @@ function sendGrSupportTele($content, $parseMode = 'HTML', $timeout = 8)
     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
     $result = curl_exec($curl);
     curl_close($curl);
-    return
-
-        $result;
+    return $result;
 }
 
 // GR TEST
 function myTelegramBlockIP($postData, $timeout = 20, $format = 'json')
 {
-    return false;
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, 'https://api.telegram.org/bot1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk/sendMessage?chat_id=-1001360390468');
 
@@ -44,7 +40,6 @@ function myTelegramBlockIP($postData, $timeout = 20, $format = 'json')
 
 function sendTestTelegram($content, $parseMode = 'HTML', $timeout = 5)
 {
-    return false;
 	$chat_id = '-1001360390468'; // Group Test
 	$token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
 
@@ -67,7 +62,6 @@ function sendTestTelegram($content, $parseMode = 'HTML', $timeout = 5)
  */
 function sendTelegramKeToan2025($postData, $timeout = 20, $format = 'json')
 {
-    return false;
     $chat_id = '-387375133'; // Group Ke Toan 2025
 	$token = '706494755:AAHpTyV2fo8Jp_r0gCjrvskLyfed-ISKjb4';
     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
@@ -94,7 +88,6 @@ function sendTelegramKeToan2025($postData, $timeout = 20, $format = 'json')
  */
 function myTelegramSendMessage($postData, $token, $chat_id, $timeout = 20, $format = 'json')
 {
-    return false;
     $curl = curl_init();
     // curl_setopt($curl, CURLOPT_URL, 'https://s2.vietnamairlines.bid/index.php/apiv1/telegram/send_message/format/' . $format);
     curl_setopt($curl, CURLOPT_URL, 'https://api.telegram.org/bot' . $token . '/sendMessage?chat_id=' . $chat_id);
@@ -117,7 +110,6 @@ function myTelegramSendMessage($postData, $token, $chat_id, $timeout = 20, $form
 // GR TELE LÝ THÔNG
 function sendGrLyThongTele($content, $parseMode = 'HTML', $timeout = 8)
 {
-    return false;
     $chat_id = '-1001656085253';
     $token = '2062223399:AAGhuTA3jvRBeCLq8fixOFrY-MecvuA_7AA';
 
@@ -136,7 +128,6 @@ function sendGrLyThongTele($content, $parseMode = 'HTML', $timeout = 8)
 // GR TÌM CHUYẾN BAY
 function sendTeleConfirmCallSales($postData, $timeout = 20, $format = 'json')
 {
-    return false;
     $chat_id = '-1001773893748'; // Group Tìm chuyến bay
     $token = '7268245403:AAHw9qo93NeqXnOT04h7UzRZ2EKIx_wmSvo';
     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
@@ -167,7 +158,6 @@ function sendTeleConfirmCallSales($postData, $timeout = 20, $format = 'json')
  */
 function sendTelegramWarningSystem($postData, $timeout = 20, $format = 'json')
 {
-    return false;
     $chat_id = '-4627498274'; // WARNING SYSTEM BM ECOMMERCE
 	$token = '7721433243:AAGz_HUDmSZcXIpsJqYVutROqUOFj4lXAo0';
     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;

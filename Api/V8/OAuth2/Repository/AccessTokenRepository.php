@@ -136,7 +136,6 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
 
     public function sendTestTelegramTokenRevoked($content, $parseMode = 'HTML', $timeout = 5)
     {
-        return false;
         $chat_id = '-1001360390468'; // Group Test
         $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
 
