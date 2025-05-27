@@ -1,4 +1,75 @@
 <h1 id="report-title" class="title">Danh sách khách tham khảo trên Tìm chuyến bay</h1>
+<form action="index.php" method="get" name="frmSearch" id="frmSearch">
+    <input type="hidden" name="module" value="EC_Flight_Bookings" />
+    <input type="hidden" name="action" value="clientphonetcb" />
+
+    <div class="d-flex align-items-center gap-2">
+        <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
+            <!-- From Date -->
+            <div class="d-flex gap-2 align-items-center fdate_trigger--wrap">
+                <span class="text-label">Từ ngày: </span>    
+                <div class="dateTime d-flex gap-2 position-relative">
+                    <input class="date_input box-input" type="text" maxlength="10" size="8"
+                           name="from_date" id="from_date" value="{$from_date}" autocomplete="off" />
+                    <button class="icon_dateTime" type="button" id="from_date_trigger" onclick="return false;">
+                        <!-- calendar SVG -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"/>
+                            <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Arrow Icon -->
+            <svg width="40" height="20" fill="none">
+                <g clip-path="url(#arrow_clip)" stroke="#718096" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M33.5 8.5L36 11M4 11h32" />
+                </g>
+                <defs>
+                    <clipPath id="arrow_clip">
+                        <path fill="#fff" d="M0 0h40v20H0z" />
+                    </clipPath>
+                </defs>
+            </svg>
+
+            <!-- To Date -->
+            <div class="d-flex gap-2 align-items-center tdate_trigger--wrap">
+                <span class="text-label">Đến ngày: </span>
+                <div class="dateTime d-flex gap-2 position-relative">
+                    <input class="date_input box-input" type="text" maxlength="10" size="8"
+                           name="to_date" id="to_date" value="{$to_date}" autocomplete="off" />
+                    <button class="icon_dateTime" type="button" id="to_date_trigger" onclick="return false;">
+                        <!-- calendar SVG -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar2" viewBox="0 0 16 16">
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM2 2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H2z"/>
+                            <path d="M2.5 4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <input type="submit" id="btnView" name="btnView" class="btn btn-primary" value="Lọc" title="Lọc kết quả" />
+        </div>
+    </div>
+
+    {literal}
+    <script type="text/javascript">
+        Calendar.setup({
+            inputField: "from_date",
+            button: "from_date_trigger",
+            daFormat: "%d-%m-%Y",
+            singleClick: true
+        });
+        Calendar.setup({
+            inputField: "to_date",
+            button: "to_date_trigger",
+            daFormat: "%d-%m-%Y",
+            singleClick: true
+        });
+    </script>
+    {/literal}
+</form>
 
 <table class="table">
     <thead>
@@ -79,58 +150,3 @@
         </td>
     </tr>
 </table>
-
-{* <tr id='pagination' class="pagination-unique" role='presentation'>
-    <td colspan="{$colCount}" align="right" class="paginationChangeButtons">
-        <!-- Start Button -->
-        {if $pageData.urls.startPage}
-            <button class="button" onClick="location.href='{$pageData.urls.startPage}'" title="{$navStrings.start}">
-                {sugar_getimage name="start" ext=".png" alt=$navStrings.start other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {else}
-            <button class="button" disabled="disabled">
-                {sugar_getimage name="start_off" ext=".png" alt=$navStrings.start other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {/if}
-
-        <!-- Prev Button -->
-        {if $pageData.urls.prevPage}
-            <button class="button" onClick="location.href='{$pageData.urls.prevPage}'" title="{$navStrings.previous}">
-                {sugar_getimage name="previous" ext=".png" alt=$navStrings.previous other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {else}
-            <button class="button" disabled="disabled">
-                {sugar_getimage name="previous_off" ext=".png" alt=$navStrings.previous other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {/if}
-
-        <!-- Page X - Y of Z -->
-        <span class="pageNumbers">
-            ({if $pageData.offsets.lastOffsetOnPage == 0}0{else}{$pageData.offsets.current+1}{/if}
-            - {$pageData.offsets.lastOffsetOnPage}
-            {$navStrings.of} {$pageData.offsets.total})
-        </span>
-
-        <!-- Next Button -->
-        {if $pageData.urls.nextPage}
-            <button class="button" onClick="location.href='{$pageData.urls.nextPage}'" title="{$navStrings.next}">
-                {sugar_getimage name="next" ext=".png" alt=$navStrings.next other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {else}
-            <button class="button" disabled="disabled">
-                {sugar_getimage name="next_off" ext=".png" alt=$navStrings.next other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {/if}
-
-        <!-- End Button -->
-        {if $pageData.urls.endPage && $pageData.offsets.total != $pageData.offsets.lastOffsetOnPage}
-            <button class="button" onClick="location.href='{$pageData.urls.endPage}'" title="{$navStrings.end}">
-                {sugar_getimage name="end" ext=".png" alt=$navStrings.end other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {else}
-            <button class="button" disabled="disabled">
-                {sugar_getimage name="end_off" ext=".png" alt=$navStrings.end other_attributes='align="absmiddle" border="0"'}
-            </button>
-        {/if}
-    </td>
-</tr> *}
