@@ -3,36 +3,75 @@ require_once("include/Sugar_Smarty.php");
 
 class Viewclientphonetcb extends SugarView
 {
-    // function display()
-    // {
-    //     $this->displayStyle();
-    //     $smarty = new Sugar_Smarty();
-    //     $responseData = $this->getDataFromTCB();
-    //     // var_dump($responseData);
-    //     // Make sure it's valid before assigning
-    //     if (isset($responseData['status']) && $responseData['status'] === 'success') {
-    //         $smarty->assign('phone_data', $responseData['data']);
-    //     } else {
-    //         $smarty->assign('phone_data', array()); // fallback empty
-    //     }
-    //     $smarty->display('modules/' . $this->bean->module_dir . '/tpls/view_phone_request_tcb.tpl');
-    //     $this->displayScript();
-    // }
-
     function display()
     {
         $this->displayStyle();
         $smarty = new Sugar_Smarty();
 
-        // Get data from external API
-        $responseData = $this->getDataFromTCB();
+        // Helper function to convert dd-mm-yyyy to yyyy-mm-ddS
+        function convertToYMD($dateStr)
+        {
+            $parts = explode('-', $dateStr); // dd-mm-yyyy
+            if (count($parts) === 3) {
+                return $parts[2] . '-' . $parts[1] . '-' . $parts[0];
+            }
+            return '';
+        }
 
+        // Get date filters from GET parameters
+        $fromDate = isset($_GET['from_date']) ? $_GET['from_date'] : '';
+        $toDate   = isset($_GET['to_date']) ? $_GET['to_date'] : '';
+        $smarty->assign('from_date', $fromDate);
+        $smarty->assign('to_date', $toDate);
+
+        // Convert to Y-m-d for filtering
+        $fromYMD = !empty($fromDate) ? convertToYMD($fromDate) : '';
+        $toYMD   = !empty($toDate)   ? convertToYMD($toDate)   : '';
+
+        $fromTimestamp = !empty($fromYMD) ? strtotime($fromYMD) : null;
+        $toTimestamp   = !empty($toYMD)   ? strtotime($toYMD)   : null;
+
+        // Fetch data from API
+        $responseData = $this->getDataFromTCB();
         $data = [];
+
         if (isset($responseData['status']) && $responseData['status'] === 'success') {
             $data = $responseData['data'];
         }
 
-        // Pagination config
+        // ✅ Fetch existing phone numbers from calls table
+        global $db;
+        $callMap = []; // call_to => call_id
+
+        $res = $db->query("SELECT DISTINCT call_to, id FROM calls WHERE deleted = 0");
+        while ($row = $db->fetchByAssoc($res)) {
+            if (!empty($row['call_to']) && !empty($row['id'])) {
+                $callMap[$row['call_to']] = $row['id'];
+            }
+        }
+
+        foreach ($data as &$entry) {
+            $phone = $entry['phone_number'];
+            if (isset($callMap[$phone])) {
+                $entry['in_calls'] = true;
+                $entry['call_id'] = $callMap[$phone];
+            } else {
+                $entry['in_calls'] = false;
+                $entry['call_id'] = '';
+            }
+        }
+        unset($entry);
+
+        if ($fromTimestamp || $toTimestamp) {
+            $data = array_filter($data, function ($item) use ($fromTimestamp, $toTimestamp) {
+                $itemDate = strtotime(substr($item['date_entered'], 0, 10)); // 'YYYY-MM-DD'
+                return (!$fromTimestamp || $itemDate >= $fromTimestamp) &&
+                    (!$toTimestamp   || $itemDate <= $toTimestamp);
+            });
+
+            $data = array_values($data); // reindex
+        }
+
         $page = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
         $perPage = 50;
         $totalRows = count($data);
@@ -40,15 +79,17 @@ class Viewclientphonetcb extends SugarView
         $start = ($page - 1) * $perPage;
         $pagedData = array_slice($data, $start, $perPage);
 
-        // URLs for navigation
         $baseUrl = 'index.php?module=EC_Flight_Bookings&action=clientphonetcb';
+        if (!empty($fromDate)) $baseUrl .= '&from_date=' . urlencode($fromDate);
+        if (!empty($toDate))   $baseUrl .= '&to_date=' . urlencode($toDate);
 
+        // Pagination URLs
         $pageData = [
             'urls' => [
                 'startPage' => $page > 1 ? $baseUrl . '&page=1' : '',
-                'prevPage' => $page > 1 ? $baseUrl . '&page=' . ($page - 1) : '',
-                'nextPage' => $page < $totalPages ? $baseUrl . '&page=' . ($page + 1) : '',
-                'endPage'  => $page < $totalPages ? $baseUrl . '&page=' . $totalPages : '',
+                'prevPage'  => $page > 1 ? $baseUrl . '&page=' . ($page - 1) : '',
+                'nextPage'  => $page < $totalPages ? $baseUrl . '&page=' . ($page + 1) : '',
+                'endPage'   => $page < $totalPages ? $baseUrl . '&page=' . $totalPages : '',
             ],
             'offsets' => [
                 'current' => $start,
@@ -60,7 +101,7 @@ class Viewclientphonetcb extends SugarView
             ],
         ];
 
-        // Add navigation labels
+        // Navigation labels
         $navStrings = [
             'start' => 'Trang đầu',
             'previous' => 'Trước',
@@ -69,19 +110,18 @@ class Viewclientphonetcb extends SugarView
             'of' => 'trên tổng số',
         ];
 
-        // Assign all needed variables to Smarty
+        // Assign to Smarty
         $smarty->assign('phone_data', $pagedData);
         $smarty->assign('pageData', $pageData);
         $smarty->assign('navStrings', $navStrings);
-        $smarty->assign('action_menu_location', 'bottom'); // or top/middle depending on layout
-        $smarty->assign('prerow', false); // true if you're using checkboxes
-        $smarty->assign('colCount', 6); // update based on your table column count
+        $smarty->assign('action_menu_location', 'bottom');
+        $smarty->assign('prerow', false);
+        $smarty->assign('colCount', 6);
 
-        // Show view
+        // Display the template
         $smarty->display('modules/' . $this->bean->module_dir . '/tpls/view_phone_request_tcb.tpl');
         $this->displayScript();
     }
-
 
     function displayStyle()
     {
