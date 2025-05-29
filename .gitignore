@@ -13,8 +13,8 @@ cache/*
 /custom/working/
 /custom/modules/*/Ext/
 /custom/application/Ext/*
-!/custom/application/Ext/Api/*
 /custom/Extension/application/Ext/Language/
+!/custom/application/Ext/Api/*
 # Custom configuration should also be ignored.
 /config.php
 /config_override.php
