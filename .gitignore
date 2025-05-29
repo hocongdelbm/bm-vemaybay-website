@@ -15,6 +15,8 @@ cache/*
 /custom/application/Ext/*
 /custom/Extension/application/Ext/Language/
 !/custom/application/Ext/Api/*
+custom/configs/*
+!custom/configs/.gitkeep
 # Custom configuration should also be ignored.
 /config.php
 /config_override.php

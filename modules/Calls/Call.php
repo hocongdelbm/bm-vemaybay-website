@@ -279,24 +279,32 @@ class Call extends SugarBean
                     $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
                 }
 
-                myTelegramSendMessage(
-                    json_encode(array(
-                        'text' => $text,
-                        'parse_mode' => 'HTML',
-                        'reply_markup' => array(
-                            'inline_keyboard' => array(
-                                array(
-                                    array(
-                                        'text' => 'Mở cuộc gọi',
-                                        'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
-                                    ),
-                                ),
-                            ),
-                        ),
-                    )),
-                    $app_list_strings['system_config_list']['telegram_token_id'],
-                    $app_list_strings['system_config_list']['telegram_chat_id'],
-                );
+                // myTelegramSendMessage(
+                //     json_encode(array(
+                //         'text' => $text,
+                //         'parse_mode' => 'HTML',
+                //         'reply_markup' => array(
+                //             'inline_keyboard' => array(
+                //                 array(
+                //                     array(
+                //                         'text' => 'Mở cuộc gọi',
+                //                         'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
+                //                     ),
+                //                 ),
+                //             ),
+                //         ),
+                //     )),
+                //     $app_list_strings['system_config_list']['telegram_token_id'],
+                //     $app_list_strings['system_config_list']['telegram_chat_id'],
+                // );
+
+                $conf = Mattermost::getConfig('channel_cty');
+                $link = $sugar_config['site_url'] . "/index.php?module={$this->object_name}s&record={$this->id}&action=DetailView&dothis=true";
+                $link = "[$link](url)";
+                $message = "`------------------------------`\n";
+                $message .= "$text\n\n";
+                $message .= "**Mở cuộc gọi:** $link\n";
+                Mattermost::sendMessage($message, $conf['channel_id'], $conf['bot_token']);
             }
         }
 

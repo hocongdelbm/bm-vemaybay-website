@@ -12,6 +12,34 @@ class Viewrequestinvoice extends SugarView {
     function populateOIVoucherList($smarty, $post_fields) {
         $where = $this->populateCondition($smarty, $post_fields);
 
+        // $sql = "SELECT
+        //         rv.id AS receipt_voucher_id
+        //         ,bk.name AS booking_name
+        //         ,bk.company_name
+        //         ,bk.tax_code
+        //         ,bk.company_address
+        //         ,bk.shipping_address
+        //         ,DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS date_entered
+        //         ,(SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
+        //             FROM ec_chitiethoadon ct
+        //                 INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id AND hd.deleted = 0
+        //             WHERE ct.deleted = 0 AND ct.booking_id = bk.id
+        //         ) AS output_inv
+        //     FROM ec_receipt_voucher rv
+        //         LEFT JOIN ec_flight_bookings bk ON bk.id = rv.booking_id
+        //     WHERE rv.loai_thu IN('1', '4', '5') 
+        //         AND rv.booking_id IS NOT NULL AND rv.booking_id <> ''
+        //         AND receipt_type = 'credit_transfer'
+        //         AND tknganhang_id IN(
+        //             'c0b01f56-0778-de4a-da11-65f937520972',
+        //             'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
+        //             '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
+        //             '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
+        //         )
+        //         AND rv.deleted = 0
+        //         $where
+        //     ORDER BY rv.date_entered DESC";
+
         $sql    = '
             SELECT id, name, DATE_ADD(date_entered, INTERVAL 7 HOUR) AS date_entered,
                 company_name, tax_code, company_address, shipping_address

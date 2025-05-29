@@ -255,24 +255,32 @@ class EC_Flight_BookingsLogicHook
 
 	function reSendTele($content, $booking_id, $booking_name, $is_resend = 0, $params = array())
 	{
-		global $app_list_strings, $sugar_config;
-		myTelegramSendMessage(
-			json_encode(array(
-				'text' => $content,
-				'reply_markup' => array(
-					'inline_keyboard' => array(
-						array(
-							array(
-								'text' => 'Mở booking',
-								'url' => $sugar_config['site_url'] . '/index.php?module=EC_Flight_Bookings&record=' . $booking_id . '&action=DetailView&dothis=true',
-							),
-						),
-					),
-				)
-			)),
-			$app_list_strings['system_config_list']['telegram_token_id'],
-			$app_list_strings['system_config_list']['telegram_chat_id'],
-		);
+		global $sugar_config;
+		$conf = Mattermost::getConfig('channel_cty');
+		$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&record=$booking_id&action=DetailView&dothis=true";
+		$link = "[$link](url)";
+		$message = "`------------------------------`\n";
+		$message .= "$content\n\n";
+		$message .= "**Mở booking:** $link\n";
+		Mattermost::sendMessage($message, $conf['channel_id'], $conf['bot_token']);
+
+		// myTelegramSendMessage(
+		// 	json_encode(array(
+		// 		'text' => $content,
+		// 		'reply_markup' => array(
+		// 			'inline_keyboard' => array(
+		// 				array(
+		// 					array(
+		// 						'text' => 'Mở booking',
+		// 						'url' => $sugar_config['site_url'] . '/index.php?module=EC_Flight_Bookings&record=' . $booking_id . '&action=DetailView&dothis=true',
+		// 					),
+		// 				),
+		// 			),
+		// 		)
+		// 	)),
+		// 	$app_list_strings['system_config_list']['telegram_token_id'],
+		// 	$app_list_strings['system_config_list']['telegram_chat_id'],
+		// );
 	}
 
 	// Show column recall
