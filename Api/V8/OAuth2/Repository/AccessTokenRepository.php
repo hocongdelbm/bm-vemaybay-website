@@ -119,36 +119,45 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             ['access_token' => $tokenId]
         );
 
-        // Sentele test
-        $log_token = array(
-            'path' => 'API/V8/OAuth2/Repository/AccessTokenRepository.php',
-            'tokenId' => $tokenId,
-            'token_is_revoked' => $token->token_is_revoked,
-            'access_token_expires' => $token->access_token_expires,
-            'newDateTime' => new DateTime(),
-            'expiresDateTime' => new DateTime($token->access_token_expires),
-        );
-        if($token->id === null || $token->token_is_revoked === '1' || new DateTime() > new DateTime($token->access_token_expires))
-            $this->sendTestTelegramTokenRevoked(json_encode($log_token));
+        try {
+            // Send problem about token
+            $log_token = array(
+                'path' => 'API/V8/OAuth2/Repository/AccessTokenRepository.php',
+                'tokenId' => $tokenId,
+                'token_is_revoked' => $token->token_is_revoked,
+                'access_token_expires' => $token->access_token_expires,
+                'newDateTime' => new DateTime(),
+                'expiresDateTime' => new DateTime($token->access_token_expires),
+            );
+            if($token->id === null || $token->token_is_revoked === '1' || new DateTime() > new DateTime($token->access_token_expires)) {
+                global $sugar_config;
+                $message = Mattermost::$line_separation;
+                $message .= Mattermost::markdownHeading("[ERROR] The problem with tokens\n");
+                $message .= json_encode($log_token);
+                Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+            }
+        }
+        catch(\Throwable $th) {
+            $GLOBALS['log']->fatal($th->getMessage());
+        }
 
         return $token->id === null || $token->token_is_revoked === '1' || new DateTime() > new DateTime($token->access_token_expires);
     }
 
-    public function sendTestTelegramTokenRevoked($content, $parseMode = 'HTML', $timeout = 5)
-    {
-        $chat_id = '-1001360390468'; // Group Test
-        $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
+    // public function sendTestTelegramTokenRevoked($content, $parseMode = 'HTML', $timeout = 5)
+    // {
+    //     $chat_id = '-1001360390468'; // Group Test
+    //     $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
 
-        $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-        $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-        $result = curl_exec($curl);
-        curl_close($curl);
-        return $result;
-    }
-
+    //     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
+    //     $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
+    //     $curl = curl_init();
+    //     curl_setopt($curl, CURLOPT_URL, $url);
+    //     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    //     curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+    //     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+    //     $result = curl_exec($curl);
+    //     curl_close($curl);
+    //     return $result;
+    // }
 }

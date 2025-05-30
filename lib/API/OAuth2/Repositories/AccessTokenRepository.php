@@ -45,6 +45,7 @@ use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\AccessTokenRepositoryInterface;
 use SuiteCRM\API\OAuth2\Entities\AccessTokenEntity;
+use Throwable;
 
 class AccessTokenRepository implements AccessTokenRepositoryInterface
 {
@@ -115,43 +116,55 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
             if (!empty($expires)) {
                 $now = new \DateTime('now', $expires->getTimezone());
                 if ($now > $expires || (bool)$token->token_is_revoked === true) {
-                    // Sentele test
-                    $log_token = array(
-                        'path' => 'lib/API/OAuth2/Repositories/AccessTokenRepository.php',
-                        'tokenId' => $tokenId,
-                        'now' => $now,
-                        'expires' => $expires,
-                        'getTimezone' => $expires->getTimezone(),
-                        'token_is_revoked' => $token->token_is_revoked,
-                        'access_token_expires' => $token->access_token_expires,
-                    );
-                    $this->sendTestTelegramToken(json_encode($log_token));
+                    try {
+                        // Sentele test
+                        $log_token = array(
+                            'path' => 'lib/API/OAuth2/Repositories/AccessTokenRepository.php',
+                            'tokenId' => $tokenId,
+                            'now' => $now,
+                            'expires' => $expires,
+                            'getTimezone' => $expires->getTimezone(),
+                            'token_is_revoked' => $token->token_is_revoked,
+                            'access_token_expires' => $token->access_token_expires,
+                        );
+                        // $this->sendTestTelegramToken(json_encode($log_token));
 
-                    $token->token_is_revoked = true;
-                    $token->save();
-                    return true;
+                        global $sugar_config;
+                        $message = Mattermost::$line_separation;
+                        $message .= Mattermost::markdownHeading("[ERROR] The problem with tokens\n");
+                        $message .= json_encode($log_token);
+                        Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                    }
+                    catch(Throwable $th) {
+                        $GLOBALS['log']->fatal($th->getMessage());
+                    }
+                    finally {
+                        $token->token_is_revoked = true;
+                        $token->save();
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
 
-    public function sendTestTelegramToken($content, $parseMode = 'HTML', $timeout = 5)
-    {
-        $chat_id = '-1001360390468'; // Group Test
-        $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
+    // public function sendTestTelegramToken($content, $parseMode = 'HTML', $timeout = 5)
+    // {
+    //     $chat_id = '-1001360390468'; // Group Test
+    //     $token = '1668507961:AAF76B96rWELQlN9lG1g0TO22wcm66jkvTk';
 
-        $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
-        $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
-        $result = curl_exec($curl);
-        curl_close($curl);
-        return $result;
-    }
+    //     $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chat_id;
+    //     $url = $url . "&parse_mode=" . $parseMode . "&text=" . urlencode($content);
+    //     $curl = curl_init();
+    //     curl_setopt($curl, CURLOPT_URL, $url);
+    //     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    //     curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+    //     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+    //     $result = curl_exec($curl);
+    //     curl_close($curl);
+    //     return $result;
+    // }
 
     /**
      * {@inheritdoc}

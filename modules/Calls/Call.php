@@ -202,9 +202,8 @@ class Call extends SugarBean
                 case 'called':
                     if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
                         myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
-
-                        // sendTestTelegram('KPI Booking empty - '.isWorkingProcessExisting($this->module_dir, $this->id, 'called').' - '.$this->name.' - '.$current_user->user_name);
-                    } else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
+                    }
+                    else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
                         if ($this->is_ExitsRowKpi('EC_Flight_Bookings', $this->booking_id)) {
                             $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
                         } else {
@@ -279,24 +278,34 @@ class Call extends SugarBean
                     $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
                 }
 
-                myTelegramSendMessage(
-                    json_encode(array(
-                        'text' => $text,
-                        'parse_mode' => 'HTML',
-                        'reply_markup' => array(
-                            'inline_keyboard' => array(
-                                array(
-                                    array(
-                                        'text' => 'Mở cuộc gọi',
-                                        'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
-                                    ),
-                                ),
-                            ),
-                        ),
-                    )),
-                    $app_list_strings['system_config_list']['telegram_token_id'],
-                    $app_list_strings['system_config_list']['telegram_chat_id'],
-                );
+                // myTelegramSendMessage(
+                //     json_encode(array(
+                //         'text' => $text,
+                //         'parse_mode' => 'HTML',
+                //         'reply_markup' => array(
+                //             'inline_keyboard' => array(
+                //                 array(
+                //                     array(
+                //                         'text' => 'Mở cuộc gọi',
+                //                         'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
+                //                     ),
+                //                 ),
+                //             ),
+                //         ),
+                //     )),
+                //     $app_list_strings['system_config_list']['telegram_token_id'],
+                //     $app_list_strings['system_config_list']['telegram_chat_id'],
+                // );
+                try {
+                    $text = str_replace('<b>', '**', $text);
+                    $text = str_replace('</b>', '**', $text);
+                    $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module={$this->object_name}s&record={$this->id}&action=DetailView&dothis=true");
+                    $message = Mattermost::$line_separation;
+                    $message .= $text;
+                    $message .= "\n\n**Mở cuộc gọi:** $link";
+                    Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+                }
+                catch(Throwable $th) {}
             }
         }
 

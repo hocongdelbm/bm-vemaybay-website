@@ -168,7 +168,6 @@ function saveReportWeekly()
 			$rp->to_date = $today;
 			$rp->report_date = date('Y-m-d');
 			$rp->save();
-			// sendTestTelegram("create EC_Report_Weekly: " . $date_report);
 		}
 	} else {
 		// UPDATE
@@ -204,15 +203,7 @@ function saveReportWeekly()
 						AND type = "BOOKING"
 						AND deleted = 0
 				';
-
 				$result_update = $db->query($update_sql);
-
-				// if($result_update){
-				// 	sendTestTelegram("update EC_Report_Weekly : " . $date_report);
-				// } else {
-				// 	sendTestTelegram("update failed: " . $date_report);
-				// }
-
 			} else {
 				$rp = new EC_Report_Weekly();
 				$rp->user_id = $row['user_id'];
@@ -234,7 +225,6 @@ function saveReportWeekly()
 				$rp->to_date = $date_report;
 				$rp->report_date = $today;
 				$rp->save();
-				// sendTestTelegram("count_rows > 0. Create successed: " . $date_report);
 			}
 		}
 	}
@@ -2259,20 +2249,25 @@ function checkBookingHandle()
 
 	// user off thì thông báo
 	if (count($user_off_arr) > 0) {
-		$sendStatus = myTelegramSendMessage(
-			json_encode(array(
-				'text' => 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr),
-			)),
-			$app_list_strings['system_config_list']['telegram_token_id'],
-			$app_list_strings['system_config_list']['telegram_chat_id'],
-		);
-		if ($sendStatus['code'] != 201) {
+		// $sendStatus = myTelegramSendMessage(
+		// 	json_encode(array(
+		// 		'text' => 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr),
+		// 	)),
+		// 	$app_list_strings['system_config_list']['telegram_token_id'],
+		// 	$app_list_strings['system_config_list']['telegram_chat_id'],
+		// );
+		// if ($sendStatus['code'] != 201) {
+		// 	$GLOBALS['log']->error('Telegram sent message failed.');
+		// }
+
+		global $sugar_config;
+		$message = Mattermost::$line_separation;
+		$message .= 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
+		$res = Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+		if(!$res || !isset($res['id']) || is_null($res['id'])) {
 			$GLOBALS['log']->error('Telegram sent message failed.');
 		}
 	}
-	// if(count($user_off_arr) > 0) {
-	// 	sendTestTelegram('User ' .implode(", ", $user_off_arr). ' đã bị off vì quá 2 phút không xử lý booking '.implode(", ", $booking_off).' được giao');
-	// }
 
 	// Giao lại các booking cho user onl khác
 	if (is_array($reassign_bk_arr) && count($reassign_bk_arr) > 0) {
@@ -2284,18 +2279,24 @@ function checkBookingHandle()
 			$user = new User;
 			$user->retrieve($user_reassign_id);
 
-			$sendStatus = myTelegramSendMessage(
-				json_encode(array(
-					'text' => 'Booking ' . $reassign_bk['booking_name'] . ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name . '',
-				)),
-				$app_list_strings['system_config_list']['telegram_token_id'],
-				$app_list_strings['system_config_list']['telegram_chat_id'],
-			);
-			if ($sendStatus['code'] != 201) {
+			// $sendStatus = myTelegramSendMessage(
+			// 	json_encode(array(
+			// 		'text' => 'Booking ' . $reassign_bk['booking_name'] . ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name . '',
+			// 	)),
+			// 	$app_list_strings['system_config_list']['telegram_token_id'],
+			// 	$app_list_strings['system_config_list']['telegram_chat_id'],
+			// );
+			// if ($sendStatus['code'] != 201) {
+			// 	$GLOBALS['log']->error('Telegram sent message failed.');
+			// }
+
+			global $sugar_config;
+			$message = Mattermost::$line_separation;
+			$message .= 'Booking '. $reassign_bk['booking_name'] ." được giao lại cho $user->last_name $user->first_name";
+			$res = Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+			if(!$res || !isset($res['id']) || is_null($res['id'])) {
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
-
-			// sendTestTelegram('Booking ' .$reassign_bk['booking_name']. ' được giao lại cho ' . $user->last_name . ' ' . $user->first_name .'');
 		}
 	}
 
@@ -2371,17 +2372,23 @@ function reAssignBooking()
 			}
 
 			if (count($reassign_bk) > 0) {
-				$sendStatus = myTelegramSendMessage(
-					json_encode(array(
-						'text' => 'Thông tin giao lại: ' . implode("\n", $reassign_bk),
-					)),
-					$app_list_strings['system_config_list']['telegram_token_id'],
-					$app_list_strings['system_config_list']['telegram_chat_id'],
-				);
-				if ($sendStatus['code'] != 201) {
+				// $sendStatus = myTelegramSendMessage(
+				// 	json_encode(array(
+				// 		'text' => 'Thông tin giao lại: ' . implode("\n", $reassign_bk),
+				// 	)),
+				// 	$app_list_strings['system_config_list']['telegram_token_id'],
+				// 	$app_list_strings['system_config_list']['telegram_chat_id'],
+				// );
+				// if ($sendStatus['code'] != 201) {
+				// 	$GLOBALS['log']->error('Telegram sent message failed.');
+				// }
+
+				$message = Mattermost::$line_separation;
+				$message .= 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
+				$res = Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+				if(!$res || !isset($res['id']) || is_null($res['id'])) {
 					$GLOBALS['log']->error('Telegram sent message failed.');
 				}
-				// sendTestTelegram('Thông tin giao lại: ' . implode("\n", $reassign_bk));
 			}
 		}
 	}

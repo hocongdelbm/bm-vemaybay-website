@@ -121,10 +121,7 @@
         require_once('modules/EC_HoaDonBan/WinInvoice.php');
         $tax_code = $_REQUEST['mst'];
         $inv = new WinInvoice();
-        $info = $inv->get_company_info($tax_code);
-
-        if($info != null) echo "";
-        echo $info;
+        echo $inv->get_company_info($tax_code);
         exit();
     }
 
