@@ -10,7 +10,7 @@ class Mattermost {
      * @return string JSON
      */
     public static function sendMessage($channel_id, $message, $props = []) {
-        if(!$message || !$channel_id) return json_encode(['id' => null, 'message_error' => 'Invalid params']);
+        if(!$channel_id) return json_encode(['id' => null, 'message_error' => 'Invalid params']);
 
         try {
             global $sugar_config;

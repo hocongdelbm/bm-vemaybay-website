@@ -276,7 +276,7 @@ class EC_Flight_BookingsLogicHook
 					"attachments" => [
 						[
 							"color" => "#65676b",
-							"title" => "Demo booking, test hệ thống $focus->name",
+							"title" => "Demo booking, test hệ thống - $focus->name",
 							"title_link" => $link,
 							"text" => "" 
 						]
