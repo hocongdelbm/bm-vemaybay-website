@@ -41,7 +41,7 @@
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-$app_list_strings['moduleList']['EC_Zalo_Messages'] = 'Zalo Messages';
+$app_list_strings['moduleList']['EC_Outbound_Phone'] = 'SĐT gọi ra';
 
 
 /**
@@ -83,7 +83,7 @@ $app_list_strings['moduleList']['EC_Zalo_Messages'] = 'Zalo Messages';
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  */
 
-$app_list_strings['moduleList']['EC_Outbound_Phone'] = 'SĐT gọi ra';
+$app_list_strings['moduleList']['EC_Zalo_Messages'] = 'Zalo Messages';
 
 
 /**
