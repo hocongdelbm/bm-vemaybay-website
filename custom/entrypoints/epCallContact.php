@@ -418,7 +418,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             $message .= "\n- Description: **" . $call['description'] . "**";
                             $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
                             $message .= "\n$link";
-                            Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message, );
                         }
 
                         $bean_note                      = new Note();
@@ -502,7 +502,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         $message .= "\n- Description: **" . $call['description'] . "**";
                         $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
                         $message .= "\n$link";
-                        Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                     }
                 } 
             }

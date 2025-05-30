@@ -384,7 +384,7 @@ class Bug extends SugarBean
                 $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
                 $message .= "\n- Description: **$this->description**";
                 $message .= "\n$link";
-                Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
             }
             unset($_POST['type']);
         }

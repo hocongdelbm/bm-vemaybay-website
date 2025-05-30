@@ -2263,7 +2263,7 @@ function checkBookingHandle()
 		global $sugar_config;
 		$message = Mattermost::$line_separation;
 		$message .= 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
-		$res = Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+		$res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 		if(!$res || !isset($res['id']) || is_null($res['id'])) {
 			$GLOBALS['log']->error('Telegram sent message failed.');
 		}
@@ -2293,7 +2293,7 @@ function checkBookingHandle()
 			global $sugar_config;
 			$message = Mattermost::$line_separation;
 			$message .= 'Booking '. $reassign_bk['booking_name'] ." được giao lại cho $user->last_name $user->first_name";
-			$res = Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+			$res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 			if(!$res || !isset($res['id']) || is_null($res['id'])) {
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
@@ -2385,7 +2385,7 @@ function reAssignBooking()
 
 				$message = Mattermost::$line_separation;
 				$message .= 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
-				$res = Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+				$res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 				if(!$res || !isset($res['id']) || is_null($res['id'])) {
 					$GLOBALS['log']->error('Telegram sent message failed.');
 				}

@@ -350,9 +350,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                $message .= "\n- Đổ chuông ngắn: **$emp_noanswer_under_15**";
                $message .= "\n- Số không liên lạc: **$emp_noanswer_unconnected**";
                $message .= ((int)$emp_noanswer_nonote > 0) ? "\n- Không ghi chú/phân loại: **$emp_noanswer_nonote**" : "";
-               $message .= "\n- Khách hỏi vé: **$emp_question_ticket**\n";
+               $message .= "\n- Khách hỏi vé: **$emp_question_ticket** \n";
                $message .= Mattermost::markdownQuote(proposeCallImprovementStrategy($asr));
-               Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_activity'] ?? '');
+               Mattermost::sendMessage($sugar_config['mattermost']['channel_id_activity'] ?? '', $message);
           }
           catch(Throwable $th) {
                // Nothing to do

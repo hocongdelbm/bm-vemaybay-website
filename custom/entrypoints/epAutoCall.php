@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $message .= Mattermost::markdownHeading("[INFO] Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại!\n");
                 $message .= "SĐT: **$call_to**\n\n";
                 $message .= json_encode($params);
-                Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
             }
 
             // if (!empty($uuid) || !empty($call_id)) {

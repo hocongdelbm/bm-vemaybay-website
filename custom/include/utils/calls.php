@@ -665,10 +665,10 @@ function update_log_autocall(){
 
                             // Notify Mattermost
                             $message = Mattermost::$line_separation;
-                            $message .= Mattermost::markdownHeading("[ERROR] Updated autocall failed\n");
-                            $message .= "- Call ID: **$call_id**";
-                            $message .= "- SQL query: **$sql_update**";
-                            Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                            $message .= Mattermost::markdownHeading("[ERROR] Updated autocall failed");
+                            $message .= "\n- Call ID: **$call_id**";
+                            $message .= "\n- SQL query: **$sql_update**";
+                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                         }
                         else {
                             $index++;

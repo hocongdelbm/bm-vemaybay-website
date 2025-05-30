@@ -269,7 +269,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$content .= "\nExtra points: **$point**";
 										$content .= "\nTotal points: **$total_point**";
 										$content .= "\n\n$json";
-										Mattermost::sendMessage($content, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
 									}
 								}
 								else {
@@ -315,7 +315,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$content .= "\nExtra points: **$point**";
 										$content .= "\nTotal points: **$total_point**";
 										$content .= "\n\n$json";
-										Mattermost::sendMessage($content, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
 									}
 								}
 							}

@@ -480,7 +480,7 @@ class CustomController extends BaseController
                     $message = Mattermost::$line_separation;
                     $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed\n");
                     $message .= "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\n\n$json";
-                    Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
                 
                 // $Zalo->send_to_telegram("<b>Hệ thống</b>: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo <b>$phone</b>");
@@ -553,7 +553,7 @@ class CustomController extends BaseController
                     $message .= Mattermost::markdownHeading("[ERROR] Save contact failed\n");
                     $message .= "Lưu thông tin liên hệ Apps script thất bại!\n\n";
                     $message .= json_encode($contactData);
-                    Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
             }
         } 

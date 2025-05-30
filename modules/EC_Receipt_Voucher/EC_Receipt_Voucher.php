@@ -163,7 +163,7 @@ class EC_Receipt_Voucher extends Basic
 				$message .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
 				$message .= "\n- Nội dung: $this->description";
 				$message .= "\n$link";
-				Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_accounting'] ?? '');
+				Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', $message);
 			}
 			catch(Throwable $th) {}
 		}

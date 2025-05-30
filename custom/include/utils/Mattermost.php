@@ -5,20 +5,21 @@ class Mattermost {
     /**
      * Send message (text)
      * 
-     * @param string $message
      * @param string $channel_id
+     * @param string $message
      * @return string JSON
      */
-    public static function sendMessage($message, $channel_id) {
+    public static function sendMessage($channel_id, $message, $props = []) {
         if(!$message || !$channel_id) return json_encode(['id' => null, 'message_error' => 'Invalid params']);
 
         try {
             global $sugar_config;
             $bot_token = $sugar_config['mattermost']['bot_token'] ?? '';
-            $body_request = json_encode([
+            $body_request = [
                 "channel_id" => $channel_id,
                 "message" => trim($message),
-            ]);
+            ];
+            if(is_array($props) && !empty($props)) $body_request['props'] = $props;
 
             $curl = curl_init();
             curl_setopt_array($curl, [
@@ -28,7 +29,7 @@ class Mattermost {
                     "Authorization: Bearer $bot_token"
                 ],
                 CURLOPT_CUSTOMREQUEST => "POST",
-                CURLOPT_POSTFIELDS => $body_request,
+                CURLOPT_POSTFIELDS => json_encode($body_request),
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_MAXREDIRS => 10,

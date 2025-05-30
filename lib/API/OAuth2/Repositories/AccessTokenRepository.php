@@ -133,7 +133,7 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
                         $message = Mattermost::$line_separation;
                         $message .= Mattermost::markdownHeading("[ERROR] The problem with tokens\n");
                         $message .= json_encode($log_token);
-                        Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                     }
                     catch(Throwable $th) {
                         $GLOBALS['log']->fatal($th->getMessage());

@@ -24,7 +24,7 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         if(empty($contact_id)) {
             $message = Mattermost::$line_separation;
             $message .= "Tạo liên hệ mới thất bại với số điện thoại: **$phoneNumber**";
-            Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
         }
     } else {
         $contact->retrieve($contact_id);

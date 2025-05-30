@@ -303,7 +303,7 @@ class Call extends SugarBean
                     $message = Mattermost::$line_separation;
                     $message .= $text;
                     $message .= "\n\n$link";
-                    Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
                 }
                 catch(Throwable $th) {}
             }

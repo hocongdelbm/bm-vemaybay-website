@@ -558,7 +558,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $message = Mattermost::$line_separation;
                 $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
                 $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json";
-                Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
             }
             
             $fullname = $current_user->last_name.' '.$current_user->first_name;

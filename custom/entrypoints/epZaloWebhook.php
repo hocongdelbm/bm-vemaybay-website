@@ -179,7 +179,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $message = Mattermost::$line_separation;
                     $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
                     $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                    Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
                 finally {
                     header("HTTP/1.1 200 OK");

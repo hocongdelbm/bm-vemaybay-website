@@ -974,7 +974,7 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
             $message .= "\n- User: **$current_user->user_name**";
             $message .= "\n- Description: **$description**";
             $message .= "\n$link";
-            Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
+            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
         }
     }
 }
