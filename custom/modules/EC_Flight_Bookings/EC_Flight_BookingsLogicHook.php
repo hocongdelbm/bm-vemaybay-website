@@ -256,13 +256,11 @@ class EC_Flight_BookingsLogicHook
 	function reSendTele($content, $booking_id, $booking_name, $is_resend = 0, $params = array())
 	{
 		global $sugar_config;
-		$conf = Mattermost::getConfig('channel_cty');
-		$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&record=$booking_id&action=DetailView&dothis=true";
-		$link = "[$link](url)";
-		$message = "`------------------------------`\n";
-		$message .= "$content\n\n";
-		$message .= "**Mở booking:** $link\n";
-		Mattermost::sendMessage($message, $conf['channel_id'], $conf['bot_token']);
+		$link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&record=$booking_id&action=DetailView&dothis=true");
+		$message = Mattermost::$line_separation;
+		$message .= $content;
+		$message .= "\n\n**Mở booking:** $link";
+		Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
 
 		// myTelegramSendMessage(
 		// 	json_encode(array(

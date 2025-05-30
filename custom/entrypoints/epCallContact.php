@@ -385,28 +385,40 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         $work->save();
 
                         if(empty($work->id)) {
-                            // SEND TELE WARNING SAVE KPI FAILED
-                            $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                            "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
-                            "- User: <b>" . $current_user->user_name . "</b>\n" .
-                            "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
-                            $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                            sendTelegramWarningSystem(
-                                json_encode(array(
-                                    'text' => $content,
-                                    'parse_mode' => 'HTML',
-                                    'reply_markup' => array(
-                                        'inline_keyboard' => array(
-                                            array(
-                                                array(
-                                                    'text' => 'Redirect url',
-                                                    'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
-                                                ),
-                                            ),
-                                        ),
-                                    ),
-                                ), JSON_UNESCAPED_UNICODE),
-                            );
+                            // // SEND TELE WARNING SAVE KPI FAILED
+                            // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                            // "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
+                            // "- User: <b>" . $current_user->user_name . "</b>\n" .
+                            // "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+                            // sendTelegramWarningSystem(
+                            //     json_encode(array(
+                            //         'text' => $content,
+                            //         'parse_mode' => 'HTML',
+                            //         'reply_markup' => array(
+                            //             'inline_keyboard' => array(
+                            //                 array(
+                            //                     array(
+                            //                         'text' => 'Redirect url',
+                            //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
+                            //                     ),
+                            //                 ),
+                            //             ),
+                            //         ),
+                            //     ), JSON_UNESCAPED_UNICODE),
+                            // );
+
+                            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id']);
+                            $message = Mattermost::$line_separation;
+                            $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed\n");
+                            $message .= "- Domain: **" . $sugar_config['host_name'] . "**";
+                            $message .= "- Call: **" . $call['name'] . " - " . $booking_name . "**";
+                            $message .= "- User: **$current_user->user_name**";
+                            $message .= "- Description: **" . $call['description'] . "**";
+                            $message .= "- Hội thoại: **" . $call['call_talk'] . "**";
+                            $message .= "\nRedirect url: $link";
+                            Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
                         }
 
                         $bean_note                      = new Note();
@@ -458,28 +470,39 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $work->save();
 
                     if(empty($work->id)) {
-                        // SEND TELE WARNING SAVE KPI FAILED
-                        $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                        "- Call: <b>" . $call['name'] . "</b>\n" .
-                        "- User: <b>" . $current_user->user_name . "</b>\n" .
-                        "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
-                        $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                        sendTelegramWarningSystem(
-                            json_encode(array(
-                                'text' => $content,
-                                'parse_mode' => 'HTML',
-                                'reply_markup' => array(
-                                    'inline_keyboard' => array(
-                                        array(
-                                            array(
-                                                'text' => 'Redirect url',
-                                                'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
-                                            ),
-                                        ),
-                                    ),
-                                ),
-                            ), JSON_UNESCAPED_UNICODE),
-                        );
+                        // // SEND TELE WARNING SAVE KPI FAILED
+                        // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                        // "- Call: <b>" . $call['name'] . "</b>\n" .
+                        // "- User: <b>" . $current_user->user_name . "</b>\n" .
+                        // "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                        // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        // sendTelegramWarningSystem(
+                        //     json_encode(array(
+                        //         'text' => $content,
+                        //         'parse_mode' => 'HTML',
+                        //         'reply_markup' => array(
+                        //             'inline_keyboard' => array(
+                        //                 array(
+                        //                     array(
+                        //                         'text' => 'Redirect url',
+                        //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
+                        //                     ),
+                        //                 ),
+                        //             ),
+                        //         ),
+                        //     ), JSON_UNESCAPED_UNICODE),
+                        // );
+
+                        $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id']);
+                        $message = Mattermost::$line_separation;
+                        $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed\n");
+                        $message .= "- Domain: **" . $sugar_config['host_name'] . "**";
+                        $message .= "- Call: **" . $call['name'] . "**";
+                        $message .= "- User: **" . $current_user->user_name . "**";
+                        $message .= "- Description: **" . $call['description'] . "**";
+                        $message .= "- Hội thoại: **" . $call['call_talk'] . "**";
+                        $message .= "\nRedirect url: $link";
+                        Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
                     }
                 } 
             }

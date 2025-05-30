@@ -130,28 +130,42 @@ class EC_Receipt_Voucher extends Basic
 			$date_entered = date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($this->date_entered)));
 			$user_list = get_user_array(true, '', '', true);
 
-			$messages = "- Phiếu thu: " . $this->name . "\n" .
-				"- Loại thu: " . $app_list_strings['loai_thu_list'][(int)$this->loai_thu] . "\n" .
-				"- Ngày tạo: " . $date_entered . " bởi " . $user_list[$this->created_by] . "\n" .
-				"- Số tiền: " . format_number($this->amount) . " VNĐ\n" .
-				"- Nội dung: " . $this->description . "\n";
+			// $messages = "- Phiếu thu: " . $this->name . "\n" .
+			// 	"- Loại thu: " . $app_list_strings['loai_thu_list'][(int)$this->loai_thu] . "\n" .
+			// 	"- Ngày tạo: " . $date_entered . " bởi " . $user_list[$this->created_by] . "\n" .
+			// 	"- Số tiền: " . format_number($this->amount) . " VNĐ\n" .
+			// 	"- Nội dung: " . $this->description . "\n";
 
-			$content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-			sendTelegramKeToan2025(
-				json_encode(array(
-					'text' => $content,
-					'reply_markup' => array(
-						'inline_keyboard' => array(
-							array(
-								array(
-									'text' => 'Phiếu thu',
-									'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . '&record=' . $this->id . '&action=DetailView&dothis=true',
-								),
-							),
-						),
-					),
-				), JSON_UNESCAPED_UNICODE),
-			);
+			// $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			// sendTelegramKeToan2025(
+			// 	json_encode(array(
+			// 		'text' => $content,
+			// 		'reply_markup' => array(
+			// 			'inline_keyboard' => array(
+			// 				array(
+			// 					array(
+			// 						'text' => 'Phiếu thu',
+			// 						'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . '&record=' . $this->id . '&action=DetailView&dothis=true',
+			// 					),
+			// 				),
+			// 			),
+			// 		),
+			// 	), JSON_UNESCAPED_UNICODE),
+			// );
+
+			try {
+				$link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->object_name&record=$this->id&action=DetailView&dothis=true");
+				$message = Mattermost::$line_separation;
+				$message .= Mattermost::markdownHeading("[INFO] Phiếu thu\n");
+				$message .= "- Phiếu thu: **$this->name**";
+				$message .= "- Loại thu: **". $app_list_strings['loai_thu_list'][(int)$this->loai_thu] ."**";
+				$message .= "- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
+				$message .= "- Số tiền: **". format_number($this->amount) ." VNĐ**";
+				$message .= "- Nội dung: **$this->description**";
+				$message .= "\n**Mở phiếu:** $link";
+				Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_accounting'] ?? '');
+			}
+			catch(Throwable $th) {}
 		}
 	}
 }

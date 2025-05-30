@@ -202,9 +202,8 @@ class Call extends SugarBean
                 case 'called':
                     if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
                         myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
-
-                        // sendTestTelegram('KPI Booking empty - '.isWorkingProcessExisting($this->module_dir, $this->id, 'called').' - '.$this->name.' - '.$current_user->user_name);
-                    } else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
+                    }
+                    else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
                         if ($this->is_ExitsRowKpi('EC_Flight_Bookings', $this->booking_id)) {
                             $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
                         } else {
@@ -297,14 +296,16 @@ class Call extends SugarBean
                 //     $app_list_strings['system_config_list']['telegram_token_id'],
                 //     $app_list_strings['system_config_list']['telegram_chat_id'],
                 // );
-
-                $conf = Mattermost::getConfig('channel_cty');
-                $link = $sugar_config['site_url'] . "/index.php?module={$this->object_name}s&record={$this->id}&action=DetailView&dothis=true";
-                $link = "[$link](url)";
-                $message = "`------------------------------`\n";
-                $message .= "$text\n\n";
-                $message .= "**Mở cuộc gọi:** $link\n";
-                Mattermost::sendMessage($message, $conf['channel_id'], $conf['bot_token']);
+                try {
+                    $text = str_replace('<b>', '**', $text);
+                    $text = str_replace('</b>', '**', $text);
+                    $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module={$this->object_name}s&record={$this->id}&action=DetailView&dothis=true");
+                    $message = Mattermost::$line_separation;
+                    $message .= $text;
+                    $message .= "\n\n**Mở cuộc gọi:** $link";
+                    Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
+                }
+                catch(Throwable $th) {}
             }
         }
 
