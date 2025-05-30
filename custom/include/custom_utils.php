@@ -967,13 +967,13 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
             //     ), JSON_UNESCAPED_UNICODE),
             // );
 
-            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=$parent_name&action=DetailView&record=$parent_id");
+            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=$parent_name&action=DetailView&record=$parent_id", "Redirect url");
             $message = Mattermost::$line_separation;
-            $message .= Mattermost::markdownHeading("[WARNING]: Function myCreateWorkingProcess() failed\n");
-            $message .= "- Domain: **" . $sugar_config['host_name'] . "**";
-            $message .= "- User: **$current_user->user_name**";
-            $message .= "- Description: **$description**";
-            $message .= "\nRedirect url: $link";
+            $message .= Mattermost::markdownHeading("[WARNING]: Function myCreateWorkingProcess() failed");
+            $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+            $message .= "\n- User: **$current_user->user_name**";
+            $message .= "\n- Description: **$description**";
+            $message .= "\n$link";
             Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
         }
     }

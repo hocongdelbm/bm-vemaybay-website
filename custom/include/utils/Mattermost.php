@@ -58,8 +58,8 @@ class Mattermost {
         }
     }
 
-    public static function markdownLink($link) {
-        return "[$link](url)";
+    public static function markdownLink($link, $name = 'Link') {
+        return "[$name]($link)";
     }
 
     public static function markdownHeading($str) {

@@ -299,10 +299,10 @@ class Call extends SugarBean
                 try {
                     $text = str_replace('<b>', '**', $text);
                     $text = str_replace('</b>', '**', $text);
-                    $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module={$this->object_name}s&record={$this->id}&action=DetailView&dothis=true");
+                    $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module={$this->object_name}s&record={$this->id}&action=DetailView&dothis=true", "Mở cuộc gọi");
                     $message = Mattermost::$line_separation;
                     $message .= $text;
-                    $message .= "\n\n**Mở cuộc gọi:** $link";
+                    $message .= "\n\n$link";
                     Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_cty'] ?? '');
                 }
                 catch(Throwable $th) {}

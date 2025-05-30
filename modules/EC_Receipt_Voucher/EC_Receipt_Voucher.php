@@ -154,15 +154,15 @@ class EC_Receipt_Voucher extends Basic
 			// );
 
 			try {
-				$link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->object_name&record=$this->id&action=DetailView&dothis=true");
+				$link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->object_name&record=$this->id&action=DetailView&dothis=true", "Mở phiếu thu");
 				$message = Mattermost::$line_separation;
-				$message .= Mattermost::markdownHeading("[INFO] Phiếu thu\n");
-				$message .= "- Phiếu thu: **$this->name**";
-				$message .= "- Loại thu: **". $app_list_strings['loai_thu_list'][(int)$this->loai_thu] ."**";
-				$message .= "- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
-				$message .= "- Số tiền: **". format_number($this->amount) ." VNĐ**";
-				$message .= "- Nội dung: **$this->description**";
-				$message .= "\n**Mở phiếu:** $link";
+				$message .= Mattermost::markdownHeading("[INFO] Phiếu thu");
+				$message .= "\n- Phiếu thu: **$this->name**";
+				$message .= "\n- Loại thu: **". $app_list_strings['loai_thu_list'][(int)$this->loai_thu] ."**";
+				$message .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
+				$message .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
+				$message .= "\n- Nội dung: $this->description";
+				$message .= "\n$link";
 				Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_accounting'] ?? '');
 			}
 			catch(Throwable $th) {}

@@ -409,15 +409,15 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             //     ), JSON_UNESCAPED_UNICODE),
                             // );
 
-                            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id']);
+                            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
                             $message = Mattermost::$line_separation;
-                            $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed\n");
-                            $message .= "- Domain: **" . $sugar_config['host_name'] . "**";
-                            $message .= "- Call: **" . $call['name'] . " - " . $booking_name . "**";
-                            $message .= "- User: **$current_user->user_name**";
-                            $message .= "- Description: **" . $call['description'] . "**";
-                            $message .= "- Hội thoại: **" . $call['call_talk'] . "**";
-                            $message .= "\nRedirect url: $link";
+                            $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed");
+                            $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                            $message .= "\n- Call: **" . $call['name'] . " - " . $booking_name . "**";
+                            $message .= "\n- User: **$current_user->user_name**";
+                            $message .= "\n- Description: **" . $call['description'] . "**";
+                            $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
+                            $message .= "\n$link";
                             Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
                         }
 
@@ -493,15 +493,15 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         //     ), JSON_UNESCAPED_UNICODE),
                         // );
 
-                        $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id']);
+                        $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
                         $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed\n");
-                        $message .= "- Domain: **" . $sugar_config['host_name'] . "**";
-                        $message .= "- Call: **" . $call['name'] . "**";
-                        $message .= "- User: **" . $current_user->user_name . "**";
-                        $message .= "- Description: **" . $call['description'] . "**";
-                        $message .= "- Hội thoại: **" . $call['call_talk'] . "**";
-                        $message .= "\nRedirect url: $link";
+                        $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed");
+                        $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                        $message .= "\n- Call: **" . $call['name'] . "**";
+                        $message .= "\n- User: **" . $current_user->user_name . "**";
+                        $message .= "\n- Description: **" . $call['description'] . "**";
+                        $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
+                        $message .= "\n$link";
                         Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
                     }
                 } 

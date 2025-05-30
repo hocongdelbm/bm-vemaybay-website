@@ -377,13 +377,13 @@ class Bug extends SugarBean
                 // );
 
                 // Send message to Mattermost
-                $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->parent_type&action=DetailView&record=$this->parent_id");
+                $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->parent_type&action=DetailView&record=$this->parent_id", "Redirect");
                 $message = Mattermost::$line_separation;
-                $message = Mattermost::markdownHeading("[ERROR] Call\n");
-                $message .= "- Nhân viên: **$current_user->full_name**";
-                $message .= "- Domain: **" . $sugar_config['host_name'] . "**";
-                $message .= "- Description: **$this->description**";
-                $message .= "\nRedirect: $link";
+                $message = Mattermost::markdownHeading("[ERROR] Call");
+                $message .= "\n- Nhân viên: **$current_user->full_name**";
+                $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                $message .= "\n- Description: **$this->description**";
+                $message .= "\n$link";
                 Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_logs'] ?? '');
             }
             unset($_POST['type']);

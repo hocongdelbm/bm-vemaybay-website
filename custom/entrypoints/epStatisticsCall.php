@@ -339,18 +339,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           try {
                global $sugar_config;
                $message = Mattermost::$line_separation;
-               $message .= Mattermost::markdownHeading("Kết quả Call sales\n");
-               $message .= "- Nhân viên: **$full_name**";
-               $message .= "- Ngày: **$mess_date**";
-               $message .= "- Cuộc gọi đi: **$emp_outbound**";
-               $message .= "- Nghe máy: **$emp_outbound_answer**";
-               $message .= "- Tỉ lệ nghe máy: **$asr%**";
-               $message .= "- Thời gian nghe máy trung bình: **$avg_talks**";
-               $message .= "- Không nghe máy (>15s): **$emp_noanswer_up_15**";
-               $message .= "- Đổ chuông ngắn: **$emp_noanswer_under_15**";
-               $message .= "- Số không liên lạc: **$emp_noanswer_unconnected**";
-               $message .= ((int)$emp_noanswer_nonote > 0) ? "- Không ghi chú/phân loại: **$emp_noanswer_nonote**" : "";
-               $message .= "- Khách hỏi vé: **$emp_question_ticket**";
+               $message .= Mattermost::markdownHeading("Kết quả Call sales");
+               $message .= "\n- Nhân viên: **$full_name**";
+               $message .= "\n- Ngày: **$mess_date**";
+               $message .= "\n- Cuộc gọi đi: **$emp_outbound**";
+               $message .= "\n- Nghe máy: **$emp_outbound_answer**";
+               $message .= "\n- Tỉ lệ nghe máy: **$asr% **";
+               $message .= "\n- Thời gian nghe máy trung bình: **$avg_talks**";
+               $message .= "\n- Không nghe máy (>15s): **$emp_noanswer_up_15**";
+               $message .= "\n- Đổ chuông ngắn: **$emp_noanswer_under_15**";
+               $message .= "\n- Số không liên lạc: **$emp_noanswer_unconnected**";
+               $message .= ((int)$emp_noanswer_nonote > 0) ? "\n- Không ghi chú/phân loại: **$emp_noanswer_nonote**" : "";
+               $message .= "\n- Khách hỏi vé: **$emp_question_ticket**\n";
                $message .= Mattermost::markdownQuote(proposeCallImprovementStrategy($asr));
                Mattermost::sendMessage($message, $sugar_config['mattermost']['channel_id_activity'] ?? '');
           }
