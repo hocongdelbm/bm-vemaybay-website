@@ -264,9 +264,9 @@ class EC_Flight_BookingsLogicHook
 					"attachments" => [
 						[
 							"color" => "#0b58ca",
-							"title" => "Booking báo giá: Báo giá khách $focus->name",
+							"title" => "Booking báo giá khách: $focus->name",
 							"title_link" => $link,
-							"text" => "SĐT: $focus->phone" 
+							"text" => "SĐT: $focus->phone",
 						]
 					]
 				];
@@ -276,9 +276,9 @@ class EC_Flight_BookingsLogicHook
 					"attachments" => [
 						[
 							"color" => "#65676b",
-							"title" => "Demo booking, test hệ thống - $focus->name",
+							"title" => "Demo booking, test hệ thống",
 							"title_link" => $link,
-							"text" => "" 
+							"text" => $focus->name 
 						]
 					]
 				];
@@ -301,9 +301,21 @@ class EC_Flight_BookingsLogicHook
 						"attachments" => [
 							[
 								"color" => "#0b58ca",
-								"title" => "Booking mới: $focus->name - " . strip_tags(htmlspecialchars($focus->contact_name)) . " - $focus->phone",
+								"title" => "Booking mới: $focus->name",
 								"title_link" => $link,
-								"text" => trim("Giao cho: $user->last_name $user->first_name")
+								"text" => trim("Giao cho: $user->last_name $user->first_name"),
+								"fields"=> [
+									[
+										"short" => true,
+										"title" => $focus->phone,
+										"value" => ""
+									],
+									[
+										"short" => true,
+										"title" => strip_tags(htmlspecialchars($focus->contact_name)),
+										"value" => ""
+									]
+								]
 							]
 						]
 					];
@@ -313,9 +325,21 @@ class EC_Flight_BookingsLogicHook
 						"attachments" => [
 							[
 								"color" => "#0b58ca",
-								"title" => "Booking mới: $focus->name - " . strip_tags(htmlspecialchars($focus->contact_name)) . " - $focus->phone",
+								"title" => "Booking mới: $focus->name",
 								"title_link" => $link,
-								"text" => ""
+								"text" => "",
+								"fields"=> [
+									[
+										"short" => true,
+										"title" => $focus->phone,
+										"value" => ""
+									],
+									[
+										"short" => true,
+										"title" => strip_tags(htmlspecialchars($focus->contact_name)),
+										"value" => ""
+									]
+								]
 							]
 						]
 					];
@@ -327,15 +351,6 @@ class EC_Flight_BookingsLogicHook
 
 	function reSendTele($content, $booking_id, $booking_name, $is_resend = 0, $params = array()) {
 		return false;
-		global $sugar_config;
-		$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=$booking_id";
-
-		$link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&record=$booking_id&action=DetailView", "Mở booking");
-		$message = Mattermost::$line_separation;
-		$message .= $content;
-		$message .= "\n\n$link";
-		Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-
 		// myTelegramSendMessage(
 		// 	json_encode(array(
 		// 		'text' => $content,

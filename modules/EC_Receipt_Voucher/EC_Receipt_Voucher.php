@@ -38,6 +38,14 @@ class EC_Receipt_Voucher extends Basic
 	public $amount_type;
 	public $guest_address;
 	public $tknganhang;
+	public $loai_thu;
+	public $rv_status;
+	public $booking_id;
+	public $booking_name;
+	public $ngayhachtoan;
+	public $is_debt;
+	public $delivery_man_id;
+	public $delivery_man;
 
 	public function bean_implements($interface)
 	{
@@ -154,16 +162,21 @@ class EC_Receipt_Voucher extends Basic
 			// );
 
 			try {
-				$link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->object_name&record=$this->id&action=DetailView&dothis=true", "Mở phiếu thu");
-				$message = Mattermost::$line_separation;
-				$message .= Mattermost::markdownHeading("[INFO] Phiếu thu");
-				$message .= "\n- Phiếu thu: **$this->name**";
-				$message .= "\n- Loại thu: **". $app_list_strings['loai_thu_list'][(int)$this->loai_thu] ."**";
-				$message .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
-				$message .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
-				$message .= "\n- Nội dung: $this->description";
-				$message .= "\n$link";
-				Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', $message);
+				$text = "- Loại thu: **". $app_list_strings['loai_thu_list'][(int)$this->loai_thu] ."**";
+				$text .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
+				$text .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
+				$text .= "\n- Nội dung: $this->description";
+				$props = [
+					"attachments" => [
+						[
+							"color" => "#0084ff",
+							"title" => "Phiếu thu $this->name",
+							"title_link" => $sugar_config['site_url'] . "/index.php?module=$this->object_name&action=DetailView&record=$this->id",
+							"text" => $text,
+						]
+					]
+				];
+				Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', '', $props);
 			}
 			catch(Throwable $th) {}
 		}

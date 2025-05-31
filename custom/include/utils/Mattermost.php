@@ -7,9 +7,11 @@ class Mattermost {
      * 
      * @param string $channel_id
      * @param string $message
+     * @param array $props https://developers.mattermost.com/integrate/reference/message-attachments/
+     * @param array $metadata https://developers.mattermost.com/integrate/reference/message-priority/
      * @return string JSON
      */
-    public static function sendMessage($channel_id, $message, $props = []) {
+    public static function sendMessage($channel_id, $message, $props = [], $metadata = []) {
         if(!$channel_id) return json_encode(['id' => null, 'message_error' => 'Invalid params']);
 
         try {
@@ -20,6 +22,7 @@ class Mattermost {
                 "message" => trim($message),
             ];
             if(is_array($props) && !empty($props)) $body_request['props'] = $props;
+            if(is_array($metadata) && !empty($metadata)) $body_request['metadata'] = $metadata;
 
             $curl = curl_init();
             curl_setopt_array($curl, [

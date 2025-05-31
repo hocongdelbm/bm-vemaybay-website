@@ -141,16 +141,21 @@ class EC_Payment_Voucher extends Basic
 			// );
 
 			try {
-				$link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->object_name&record=$this->id&action=DetailView&dothis=true", "Mở phiếu chi");
-				$message = Mattermost::$line_separation;
-				$message = Mattermost::markdownHeading("[INFO] Phiếu chi");
-				$message .= "\n- Phiếu chi: **$this->name**";
-				$message .= "\n- Loại chi: **$this->payment_type**";
-				$message .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
-				$message .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
-				$message .= "\n- Nội dung: $this->description";
-				$message .= "\n$link";
-				Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', $message);
+				$text = "- Loại chi: **$this->payment_type**";
+				$text .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
+				$text .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
+				$text .= "\n- Nội dung: $this->description";
+				$props = [
+					"attachments" => [
+						[
+							"color" => "#fcc00d",
+							"title" => "Phiếu chi $this->name",
+							"title_link" => $sugar_config['site_url'] . "/index.php?module=$this->object_name&action=DetailView&record=$this->id",
+							"text" => $text,
+						]
+					]
+				];
+				Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', '', $props);
 			}
 			catch(Throwable $th) {}
 		}
