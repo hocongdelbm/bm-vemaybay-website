@@ -563,19 +563,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// support customer
 		$support = '';
-		if (in_array((int)$this->bean->booking_status, [1, 8])) {
-			$support_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'support');
-			$support .= '</form>
-			<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmSupportCustomer" id="frmSupportCustomer">
-				<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-				<input type="hidden" name="action" value="Save" />
-				<input type="hidden" name="record" value="' . $this->bean->id . '" />
-				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-				<input type="hidden" name="support_customer" value="2" />
-				<input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
-				<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnSupportCustomer" id="btnSupportCustomer" value="Hỗ trợ KH (' . $support_count . ')" title="Hỗ trợ KH (' . $support_count . ')" />
-			</form>';
-		}
+		$support_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'support');
+		$support .= '</form>
+		<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmSupportCustomer" id="frmSupportCustomer">
+			<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+			<input type="hidden" name="action" value="Save" />
+			<input type="hidden" name="record" value="' . $this->bean->id . '" />
+			<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+			<input type="hidden" name="support_customer" value="2" />
+			<input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
+			<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnSupportCustomer" id="btnSupportCustomer" value="Hỗ trợ KH (' . $support_count . ')" title="Hỗ trợ KH (' . $support_count . ')" />
+		</form>';
 
 		/*if(is_admin($current_user)){
 			// bonus
