@@ -31,8 +31,11 @@ class Viewclientphonetcb extends SugarView
         $fromTimestamp = !empty($fromYMD) ? strtotime($fromYMD) : null;
         $toTimestamp   = !empty($toYMD)   ? strtotime($toYMD)   : null;
 
+
+        $source = isset($_GET['source']) ? $_GET['source'] : 'vietjet.net';
+        $smarty->assign('source', $source);
         // Fetch data from API
-        $responseData = $this->getDataFromTCB();
+        $responseData = $this->getDataFromTCB($source);
         $data = [];
 
         if (isset($responseData['status']) && $responseData['status'] === 'success') {
@@ -135,12 +138,23 @@ class Viewclientphonetcb extends SugarView
         $script .= '<script src="modules/' . $this->bean->module_dir . '/js/phone_request_tcb.js"></script>';
         echo $script;
     }
-    function getDataFromTCB()
+    function getDataFromTCB($source)
     {
-        $curl = curl_init();
 
+        $url = '';
+        if ($source === 'timchuyenbay.vn') {
+            $url = 'https://timchuyenbay.vn/ajax';
+        } elseif ($source === 'vietjet.net') {
+            $url = 'https://vietjet.net/ajax';
+        } elseif ($source === 'timchuyenbay.com') {
+            $url = 'https://timchuyenbay.com/ajax';
+        } else {
+            $url = 'https://vietjet.net/ajax'; // default fallback
+        }
+
+        $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://timchuyenbay.com/ajax',
+            CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -155,7 +169,6 @@ class Viewclientphonetcb extends SugarView
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
         ));
-
         $response = curl_exec($curl);
 
         if (curl_errno($curl)) {

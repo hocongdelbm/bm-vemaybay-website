@@ -1,8 +1,14 @@
-<h1 id="report-title" class="title">Danh sách khách tham khảo trên Tìm chuyến bay</h1>
+<h1 id="report-title" class="title">Danh sách khách tham khảo vé trên các site</h1>
 <form action="index.php" method="get" name="frmSearch" id="frmSearch">
     <input type="hidden" name="module" value="EC_Flight_Bookings" />
     <input type="hidden" name="action" value="clientphonetcb" />
 
+    <select class="source box-select" name="source">
+        <option value="timchuyenbay.vn" {if $source eq "timchuyenbay.vn"}selected{/if}>timchuyenbay.vn</option>
+        <option value="vietjet.net" {if $source eq "vietjet.net"}selected{/if}>vietjet.net</option>
+        <option value="timchuyenbay.com" {if $source eq "timchuyenbay.com"}selected{/if}>timchuyenbay.com</option>
+    </select>
+    <button type="submit" class="btn btn-primary">Chọn Site</button>
     <div class="d-flex align-items-center gap-2">
         <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
             <!-- From Date -->
@@ -86,7 +92,7 @@
                 <th scope="col">Voucher</th>
                 <th scope="col">Ngày Đăng Kí</th>
                 <th scope="col">Đã gọi</th>
-                <th scope="col">Đã Sử dụng</th>
+                <th scope="col">Dùng voucher</th>
             </tr>
         </thead>
         <tbody>
