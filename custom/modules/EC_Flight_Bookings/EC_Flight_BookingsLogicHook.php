@@ -218,48 +218,33 @@ class EC_Flight_BookingsLogicHook
 	// Booking mới tạo thì tự động giao cho theo công thức
 	function autoAssignBooking($focus, $event, $arguments)
 	{
-		global $app_list_strings, $sugar_config;
-		// nếu là nhân đôi không tự động giao booking
+		global $sugar_config;
+		// Nếu là nhân đôi không tự động giao booking
 		if (empty($focus->fetched_row)
 			// && in_array($focus->created_by, $allow_site)
 		) {
 			$onl = new EC_Online_Report;
 			$list_name_test = ['DEMO', 'IT', 'CUONG NGUYEN', 'CUONG NG'];
 			$list_name_help = ['PANDA PO', 'BAO GIA KHACH'];
-
-			// if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
-			// 	$this->reSendTele('Booking báo giá: Báo giá khách - ' . $focus->name . ' - ' . $focus->phone, $focus->id, $focus->name);
-			// }
-			// else if (in_array(strtoupper($focus->contact_name), $list_name_test)) {
-			// 	$this->reSendTele('Demo booking, test hệ thống . . .', $focus->id, $focus->name);
-			// }
-			// else {
-			// 	$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
-
-			// 	// user admin, ksnb
-			// 	if ($focus->assigned_user_id != '1' || $focus->assigned_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
-			// 		// Cập nhật lại người giao cho
-			// 		$sql = '
-			// 			UPDATE ec_flight_bookings
-			// 			SET assigned_user_id = "' . $focus->assigned_user_id . '"
-			// 			WHERE id = "' . $focus->id . '"
-			// 		';
-			// 		$focus->db->query($sql);
-			// 		$user = new User;
-			// 		$user->retrieve($focus->assigned_user_id);
-			// 		$this->reSendTele(
-			// 			'Booking mới: ' . $focus->name . ' - ' . strip_tags(htmlspecialchars($focus->contact_name)) . ' - ' . $focus->phone . "\nGiao cho: " . $user->last_name . ' ' . $user->first_name, $focus->id, $focus->name);
-			// 	}
-			// 	else {
-			// 		$this->reSendTele('Booking mới: ' . $focus->name . ' - ' . strip_tags(htmlspecialchars($focus->contact_name)) . ' - ' . $focus->phone, $focus->id, $focus->name);
-			// 	}
-			// }
+			$list_name_reference = ['THAM KHAO'];
 
 			// Send Mattermost
 			$message = '';
 			$props = [];
 			$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=" . $focus->id;
-			if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
+			if (in_array(strtoupper($focus->contact_name), $list_name_reference)) {
+				$props = [
+					"attachments" => [
+						[
+							"color" => "#0b58ca",
+							"title" => "Booking tham khảo: $focus->name",
+							"title_link" => $link,
+							"text" => "SĐT: $focus->phone",
+						]
+					]
+				];
+			}
+			else if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
 				$props = [
 					"attachments" => [
 						[
