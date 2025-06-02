@@ -22,7 +22,9 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         $contact->description = 'Liên hệ mới tạo từ booking';
         $contact_id = $contact->save();
         if(empty($contact_id)) {
-            sendTestTelegram('Tạo liên hệ mới thất bại với số điện thoại: ' . $phoneNumber);
+            $message = Mattermost::$line_separation;
+            $message .= "Tạo liên hệ mới thất bại với số điện thoại: **$phoneNumber**";
+            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
         }
     } else {
         $contact->retrieve($contact_id);

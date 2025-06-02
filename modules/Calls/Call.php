@@ -66,6 +66,25 @@ class Call extends SugarBean
     public $importable = true;
     public $syncing = false;
     public $recurring_source;
+    // Custom field
+    public $call_id;
+    public $call_from;
+    public $call_to;
+    public $call_talk;
+    public $call_wait;
+    public $call_duration;
+    public $call_type;
+    public $record_file;
+    public $log;
+    public $booking_id;
+    public $journey_id;
+    public $type_call_sources;
+    public $call_reason;
+    public $call_sources;
+    public $hangup_cause;
+    public $other_caller;
+    public $is_success;
+    public $call_mos;
 
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array('assigned_user_name', 'assigned_user_id', 'contact_id', 'user_id', 'contact_name');
@@ -202,9 +221,8 @@ class Call extends SugarBean
                 case 'called':
                     if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && empty($this->booking_id)) {
                         myCreateWorkingProcess($this->module_dir, $this->id, $this->name, $this->description . ' (Calls)', $current_user->id, 'called');
-
-                        // sendTestTelegram('KPI Booking empty - '.isWorkingProcessExisting($this->module_dir, $this->id, 'called').' - '.$this->name.' - '.$current_user->user_name);
-                    } else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
+                    }
+                    else if (!isWorkingProcessExisting($this->module_dir, $this->id, 'called') && !empty($this->booking_id)) {
                         if ($this->is_ExitsRowKpi('EC_Flight_Bookings', $this->booking_id)) {
                             $this->updateKpiField('EC_Flight_Bookings', $this->booking_id, 'called');
                         } else {
@@ -261,8 +279,9 @@ class Call extends SugarBean
                         }
                         $text_name_agent = implode(" - ", $user_name);
                     }
-                    $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
-                } else if ((string)$this->direction === 'inbound') {
+                    // $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
+                }
+                else if ((string)$this->direction === 'inbound') {
                     if (isset($log['list_agent']) && !empty($log['list_agent'])) {
                         $list_agent_inbound = explode(',', $log['list_agent']);
 
@@ -276,27 +295,41 @@ class Call extends SugarBean
                     } else {
                         $text_name_agent = $user_list[custom_get_sip_number($log['dialed'])];
                     }
-                    $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
+                    // $text = $app_list_strings['calls_direction_list'][$this->direction] . ' : ' . $this->call_from . ' - gọi vào <b>' . $format_phone . '</b> - ' . $site . ' - thời lượng ' . $log['call_duration'] . 's - lời chào & chuông ' . ($log['call_duration'] - $log['call_talk']) . 's - hội thoại ' . $log['call_talk'] . 's lúc ' . date('H:i:s', strtotime($this->date_start)) . ' - ' . $text_name_agent . '';
                 }
 
-                myTelegramSendMessage(
-                    json_encode(array(
-                        'text' => $text,
-                        'parse_mode' => 'HTML',
-                        'reply_markup' => array(
-                            'inline_keyboard' => array(
-                                array(
-                                    array(
-                                        'text' => 'Mở cuộc gọi',
-                                        'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
-                                    ),
-                                ),
-                            ),
-                        ),
-                    )),
-                    $app_list_strings['system_config_list']['telegram_token_id'],
-                    $app_list_strings['system_config_list']['telegram_chat_id'],
-                );
+                // myTelegramSendMessage(
+                //     json_encode(array(
+                //         'text' => $text,
+                //         'parse_mode' => 'HTML',
+                //         'reply_markup' => array(
+                //             'inline_keyboard' => array(
+                //                 array(
+                //                     array(
+                //                         'text' => 'Mở cuộc gọi',
+                //                         'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . 's&record=' . $this->id . '&action=DetailView&dothis=true',
+                //                     ),
+                //                 ),
+                //             ),
+                //         ),
+                //     )),
+                //     $app_list_strings['system_config_list']['telegram_token_id'],
+                //     $app_list_strings['system_config_list']['telegram_chat_id'],
+                // );
+                try {
+                    $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=Calls&action=DetailView&record=$this->id", "Mở cuộc gọi");
+                    $message = Mattermost::$line_separation;
+                    $message .= "**".$app_list_strings['calls_direction_list'][$this->direction]." : $this->call_from**";
+                    $message .= "\n- Gọi vào: **$format_phone** ($site)";
+                    $message .= "\n- Thời lượng: **". $log['call_duration'] ."s**";
+                    $message .= "\n- Lời chào & chuông: **". ($log['call_duration'] - $log['call_talk']) ."s**";
+                    $message .= "\n- Hội thoại: **". ($log['call_talk']) ."s**";
+                    $message .= " lúc ". date('H:i:s', strtotime($this->date_start));
+                    if(!empty($text_name_agent)) $message .= "\n- NV: **$text_name_agent**";
+                    $message .= "\n\n$link";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
+                }
+                catch(Throwable $th) {}
             }
         }
 

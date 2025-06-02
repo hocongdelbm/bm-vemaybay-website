@@ -261,14 +261,15 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$Zalo->send_to_telegram($content);
 									}
 									else {
-										$content = "Gửi tin nhắn tích điểm đến zalo id thất bại\n";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nSố điện thoại: <b>$con_phone</b>";
-										$content .= "\nZalo ID: <b>$con_zalo_id</b>";
-										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
-										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+										$content = Mattermost::$line_separation;
+										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation message to Zalo ID\n");
+										$content .= "\nBooking: **$record_name**";
+										$content .= "\nPhone: **$con_phone**";
+										$content .= "\nZalo ID: **$con_zalo_id**";
+										$content .= "\nExtra points: **$point**";
+										$content .= "\nTotal points: **$total_point**";
 										$content .= "\n\n$json";
-										sendTestTelegram($content);
+										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
 									}
 								}
 								else {
@@ -307,13 +308,14 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$Zalo->send_to_telegram($content);
 									}
 									else {
-										$content = "Gửi tin nhắn ZNS tích điểm thất bại\n";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nSố điện thoại: <b>$con_phone</b>";
-										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
-										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+										$content = Mattermost::$line_separation;
+										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation ZNS message\n");
+										$content .= "\nBooking: **$record_name**";
+										$content .= "\nPhone: **$con_phone**";
+										$content .= "\nExtra points: **$point**";
+										$content .= "\nTotal points: **$total_point**";
 										$content .= "\n\n$json";
-										sendTestTelegram($content);
+										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
 									}
 								}
 							}

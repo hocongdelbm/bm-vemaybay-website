@@ -353,28 +353,38 @@ class Bug extends SugarBean
                 $alert         = new Alert();
                 $alert->autoCreateAlert('Bugs', $list_user, $alertData);
 
-                // Send message to telegram
-                $messages = "- Nhân viên: <b>" . $current_user->full_name . "</b>\n" .
-                            "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                            "<pre>[LỖI CUỘC GỌI]: " . $this->description . "</pre>";
+                // // Send message to telegram
+                // $messages = "- Nhân viên: <b>" . $current_user->full_name . "</b>\n" .
+                //             "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                //             "<pre>[LỖI CUỘC GỌI]: " . $this->description . "</pre>";
 
-                $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                sendTelegramWarningSystem(
-                    json_encode(array(
-                        'text' => $content,
-                        'parse_mode' => 'HTML',
-                        'reply_markup' => array(
-                            'inline_keyboard' => array(
-                                array(
-                                    array(
-                                        'text' => 'Redirect',
-                                        'url' => $sugar_config['site_url'].'/index.php?module='.$this->parent_type.'&&action=DetailView&record='.$this->parent_id.'',
-                                    ),
-                                ),
-                            ),
-                        ),
-                    ), JSON_UNESCAPED_UNICODE),
-                );
+                // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                // sendTelegramWarningSystem(
+                //     json_encode(array(
+                //         'text' => $content,
+                //         'parse_mode' => 'HTML',
+                //         'reply_markup' => array(
+                //             'inline_keyboard' => array(
+                //                 array(
+                //                     array(
+                //                         'text' => 'Redirect',
+                //                         'url' => $sugar_config['site_url'].'/index.php?module='.$this->parent_type.'&&action=DetailView&record='.$this->parent_id.'',
+                //                     ),
+                //                 ),
+                //             ),
+                //         ),
+                //     ), JSON_UNESCAPED_UNICODE),
+                // );
+
+                // Send message to Mattermost
+                $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=$this->parent_type&action=DetailView&record=$this->parent_id", "Redirect");
+                $message = Mattermost::$line_separation;
+                $message = Mattermost::markdownHeading("[ERROR] Call");
+                $message .= "\n- Nhân viên: **$current_user->full_name**";
+                $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                $message .= "\n- Description: **$this->description**";
+                $message .= "\n$link";
+                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
             }
             unset($_POST['type']);
         }

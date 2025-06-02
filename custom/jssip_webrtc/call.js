@@ -357,6 +357,8 @@ ua.on('newRTCSession', function (ev) {
             <option value="out_no_response">Không nghe máy</option>
             <option value="out_no_uncomfortable">Khách khó chịu, không hài lòng, cảm thấy phiền...</option>
             <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc được</option>
+            <option value="out_remind">Nhắc ngày bay</option>
+            <option value="out_other">Khác</option>
         `)
 
         if (session._connection.addEventListener) {

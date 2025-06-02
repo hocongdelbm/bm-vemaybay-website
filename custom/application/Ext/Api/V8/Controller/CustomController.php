@@ -415,7 +415,13 @@ class CustomController extends BaseController
             $template_data  = isset($params['template_data']) ? $params['template_data'] : []; // array
             $request_ip     = $request->getServerParam('REMOTE_ADDR');
 
-            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
+            if(!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
+            if(date('H') > 21 || date('H') < 6) {
+                return $response->withJson([
+                    "error" => true,
+                    "message" => "ZNS chỉ được gửi trong khoảng thời gian từ 6h đến 22h mỗi ngày"
+                ], 400);
+            }
             if(empty($phone) || empty($type_zns) || empty($template_data)) {
                 return $response->withJson([
                     "error" => true,
@@ -470,8 +476,11 @@ class CustomController extends BaseController
                     $zalomes->response      = trim($json);
                     $zalomes->save();
                 }
-                catch(Exception $e) {
-                    sendTestTelegram("<b>ZNS message saved failed</b>\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json");
+                catch(Throwable $th) {
+                    $message = Mattermost::$line_separation;
+                    $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed\n");
+                    $message .= "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\n\n$json";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
                 
                 // $Zalo->send_to_telegram("<b>Hệ thống</b>: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo <b>$phone</b>");
@@ -529,15 +538,22 @@ class CustomController extends BaseController
                 $contact_id = $contact->save();
     
                 if (!$contact_id) {
-                    $messages = "- SAVE CONTACT - APPS SCRIPT - ERROR:\n" .
-                        "<pre>[ERROR]: Lưu thông tin liên hệ Apps script thất bại! " . json_encode($contactData) . "</pre>";
-                    $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    sendTelegramWarningSystem(
-                        json_encode(array(
-                            'text' => $content,
-                            'parse_mode' => 'HTML',
-                        ), JSON_UNESCAPED_UNICODE),
-                    );
+                    // $messages = "- SAVE CONTACT - APPS SCRIPT - ERROR:\n" .
+                    //     "<pre>[ERROR]: Lưu thông tin liên hệ Apps script thất bại! " . json_encode($contactData) . "</pre>";
+                    // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    // sendTelegramWarningSystem(
+                    //     json_encode(array(
+                    //         'text' => $content,
+                    //         'parse_mode' => 'HTML',
+                    //     ), JSON_UNESCAPED_UNICODE),
+                    // );
+
+                    global $sugar_config;
+                    $message = Mattermost::$line_separation;
+                    $message .= Mattermost::markdownHeading("[ERROR] Save contact failed\n");
+                    $message .= "Lưu thông tin liên hệ Apps script thất bại!\n\n";
+                    $message .= json_encode($contactData);
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
             }
         } 

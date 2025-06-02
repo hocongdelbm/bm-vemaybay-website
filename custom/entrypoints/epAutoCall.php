@@ -26,17 +26,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $result = '';
 
             if($is_take_care){
-                $messages = "- SĐT: <b>" . $call_to . "</b>\n" .
-                            "<pre>[INFO]: Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại! ".json_encode($params)."</pre>";
-                $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                // $messages = "- SĐT: <b>" . $call_to . "</b>\n" .
+                //             "<pre>[INFO]: Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại! ".json_encode($params)."</pre>";
+                // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     
-                $result = sendTelegramWarningSystem(
-                    // $result = sendTeleConfirmCallSales(
-                    json_encode(array(
-                        'text' => $content,
-                        'parse_mode' => 'HTML',
-                    ), JSON_UNESCAPED_UNICODE),
-                );
+                // $result = sendTelegramWarningSystem(
+                //     json_encode(array(
+                //         'text' => $content,
+                //         'parse_mode' => 'HTML',
+                //     ), JSON_UNESCAPED_UNICODE),
+                // );
+
+                global $sugar_config;
+                $message = Mattermost::$line_separation;
+                $message .= Mattermost::markdownHeading("[INFO] Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại!\n");
+                $message .= "SĐT: **$call_to**\n\n";
+                $message .= json_encode($params);
+                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
             }
 
             // if (!empty($uuid) || !empty($call_id)) {

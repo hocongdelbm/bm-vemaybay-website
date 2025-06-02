@@ -2077,6 +2077,8 @@ $GLOBALS['app_list_strings']['call_reason_list'] = array(
   'out_no_response' => 'Không nghe máy (Gọi đi)',
   'out_no_uncomfortable' => 'Khách khó chịu, không hài lòng, cảm thấy phiền... (Gọi đi)',
   'out_no_subscriber_unreachable' => 'Số thuê bao, không liên lạc được. (Gọi đi)',
+  'out_remind' => 'Nhắc ngày bay (Gọi đi)',
+  'out_other' => 'Khác (Gọi đi)',
 );
 
 

@@ -117,28 +117,47 @@ class EC_Payment_Voucher extends Basic
 			$date_entered = date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($this->date_entered)));
 			$user_list = get_user_array(true, '', '', true);
 
-			$messages = "- Phiếu chi: " . $this->name . "\n" .
-				"- Loai chi: " . $this->payment_type . "\n" .
-				"- Ngày tạo: " . $date_entered . " bởi " . $user_list[$this->created_by] . "\n" .
-				"- Số tiền: " . format_number($this->amount) . " VNĐ\n" .
-				"- Nội dung: " . $this->description . "\n";
+			// $messages = "- Phiếu chi: " . $this->name . "\n" .
+			// 	"- Loai chi: " . $this->payment_type . "\n" .
+			// 	"- Ngày tạo: " . $date_entered . " bởi " . $user_list[$this->created_by] . "\n" .
+			// 	"- Số tiền: " . format_number($this->amount) . " VNĐ\n" .
+			// 	"- Nội dung: " . $this->description . "\n";
 
-			$content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-			sendTelegramKeToan2025(
-				json_encode(array(
-					'text' => $content,
-					'reply_markup' => array(
-						'inline_keyboard' => array(
-							array(
-								array(
-									'text' => 'Phiếu chi',
-									'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . '&record=' . $this->id . '&action=DetailView&dothis=true',
-								),
-							),
-						),
-					),
-				), JSON_UNESCAPED_UNICODE),
-			);
+			// $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+			// sendTelegramKeToan2025(
+			// 	json_encode(array(
+			// 		'text' => $content,
+			// 		'reply_markup' => array(
+			// 			'inline_keyboard' => array(
+			// 				array(
+			// 					array(
+			// 						'text' => 'Phiếu chi',
+			// 						'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . '&record=' . $this->id . '&action=DetailView&dothis=true',
+			// 					),
+			// 				),
+			// 			),
+			// 		),
+			// 	), JSON_UNESCAPED_UNICODE),
+			// );
+
+			try {
+				$text = "- Loại chi: **$this->payment_type**";
+				$text .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
+				$text .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
+				$text .= "\n- Nội dung: $this->description";
+				$props = [
+					"attachments" => [
+						[
+							"color" => "#fcc00d",
+							"title" => "Phiếu chi $this->name",
+							"title_link" => $sugar_config['site_url'] . "/index.php?module=$this->object_name&action=DetailView&record=$this->id",
+							"text" => $text,
+						]
+					]
+				];
+				Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', '', $props);
+			}
+			catch(Throwable $th) {}
 		}
 	}
 

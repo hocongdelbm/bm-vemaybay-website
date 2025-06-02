@@ -652,17 +652,25 @@ function update_log_autocall(){
                             $mess_log = '[' . date('Y-m-d H:i:s', strtotime('+7 hour')) . ']: CẬP NHẬT LOG AUTOCALL THẤT BẠI ' . $sql_update;
                             save_log_call($mess_log);
 
-                            // notify telegram
-                            $messages = "- Call_ID: <b>" . $call_id . "</b>\n" .
-                                    "<pre>[ERROR]: UPDATED AUTOCALL FAILED! ".$sql_update."</pre>";
-                            $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                            $result = sendTelegramWarningSystem(
-                                json_encode(array(
-                                    'text' => $content,
-                                    'parse_mode' => 'HTML',
-                                ), JSON_UNESCAPED_UNICODE),
-                            );
-                        } else {
+                            // // notify telegram
+                            // $messages = "- Call_ID: <b>" . $call_id . "</b>\n" .
+                            //         "<pre>[ERROR]: UPDATED AUTOCALL FAILED! ".$sql_update."</pre>";
+                            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            // $result = sendTelegramWarningSystem(
+                            //     json_encode(array(
+                            //         'text' => $content,
+                            //         'parse_mode' => 'HTML',
+                            //     ), JSON_UNESCAPED_UNICODE),
+                            // );
+
+                            // Notify Mattermost
+                            $message = Mattermost::$line_separation;
+                            $message .= Mattermost::markdownHeading("[ERROR] Updated autocall failed");
+                            $message .= "\n- Call ID: **$call_id**";
+                            $message .= "\n- SQL query: **$sql_update**";
+                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                        }
+                        else {
                             $index++;
                         }
                     }

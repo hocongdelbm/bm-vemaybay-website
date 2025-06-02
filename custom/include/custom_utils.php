@@ -945,27 +945,36 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
         $work->save();
         
         if(empty($work->id)) {
-            // SEND TELE WARNING SAVE KPI FAILED
-            $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-            "- User: <b>" . $current_user->user_name . "</b>\n" .
-            "<pre>[WARNING]: myCreateWorkingProcess FAILED ".$description.".</pre>";
-            $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            sendTelegramWarningSystem(
-                json_encode(array(
-                    'text' => $content,
-                    'parse_mode' => 'HTML',
-                    'reply_markup' => array(
-                        'inline_keyboard' => array(
-                            array(
-                                array(
-                                    'text' => 'Redirect url',
-                                    'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module='.$parent_name.'&action=DetailView&record=' . $parent_id,
-                                ),
-                            ),
-                        ),
-                    ),
-                ), JSON_UNESCAPED_UNICODE),
-            );
+            // // SEND TELE WARNING SAVE KPI FAILED
+            // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+            // "- User: <b>" . $current_user->user_name . "</b>\n" .
+            // "<pre>[WARNING]: myCreateWorkingProcess FAILED ".$description.".</pre>";
+            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            // sendTelegramWarningSystem(
+            //     json_encode(array(
+            //         'text' => $content,
+            //         'parse_mode' => 'HTML',
+            //         'reply_markup' => array(
+            //             'inline_keyboard' => array(
+            //                 array(
+            //                     array(
+            //                         'text' => 'Redirect url',
+            //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module='.$parent_name.'&action=DetailView&record=' . $parent_id,
+            //                     ),
+            //                 ),
+            //             ),
+            //         ),
+            //     ), JSON_UNESCAPED_UNICODE),
+            // );
+
+            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=$parent_name&action=DetailView&record=$parent_id", "Redirect url");
+            $message = Mattermost::$line_separation;
+            $message .= Mattermost::markdownHeading("[WARNING]: Function myCreateWorkingProcess() failed");
+            $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+            $message .= "\n- User: **$current_user->user_name**";
+            $message .= "\n- Description: **$description**";
+            $message .= "\n$link";
+            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
         }
     }
 }
@@ -2426,7 +2435,8 @@ function get_payment_link()
 }
 
 require_once 'custom/include/utils/address.php';
-require_once 'custom/include/utils/tele.php';
+// require_once 'custom/include/utils/tele.php';
+require_once 'custom/include/utils/Mattermost.php';
 require_once 'custom/include/utils/exits.php';
 require_once 'custom/include/utils/booking.php';
 require_once 'custom/include/utils/calls.php';
