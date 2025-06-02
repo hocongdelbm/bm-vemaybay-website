@@ -114,9 +114,16 @@ class EC_HoaDonBan extends Basic
 			$cthd->deleted 	= $_POST['ct_deleted'][$i];
 			$cthd->order_by_no 	= $i;
 
-			if ($this->loaihoadon == 0) {
+			if ($this->loaihoadon == 0) { // HĐ GTGT
 				$cthd->name = trim(stripslashes($_POST['ct_ticket_number'][$i]));
 
+				// if($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
+				// 	$receipt_voucher_name = trim($_POST['ct_booking'][$i] ?? '');
+				// 	if(!empty($receipt_voucher_name)) {
+				// 		$receipt_voucher_id = $this->db->getOne("SELECT id FROM ec_receipt_voucher WHERE name='$receipt_voucher_name' AND deleted=0 ORDER BY date_entered DESC LIMIT 1");
+				// 	}
+				// }
+				// else
 				if($cthd->mahang == 'PK'){
 					$cthd->name = 'PK';
 				}
@@ -124,9 +131,8 @@ class EC_HoaDonBan extends Basic
 				$cthd->ticket_number_id = $_POST['ct_ticket_number_id'][$i];
 				$cthd->booking_id = $_POST['ct_booking_id'][$i];
 				$cthd->booking = $_POST['ct_booking'][$i];
-
 			}
-			else if ($this->loaihoadon == 1) {
+			else if ($this->loaihoadon == 1) { // HĐ DV
 				$cthd->name = trim(stripslashes($_POST['ct_name'][$i]));
 			}
 

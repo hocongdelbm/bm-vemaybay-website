@@ -45,6 +45,8 @@ class EC_ChiTietHoaDon extends Basic
     public $ticket_number_id;
     public $booking_id;
     public $booking;
+    public $thuesuat;
+    public $mahang;
 	
     public function bean_implements($interface)
     {
