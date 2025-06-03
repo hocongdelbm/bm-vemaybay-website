@@ -46,18 +46,30 @@ class Viewclientphonetcb extends SugarView
         global $db;
         $callMap = []; // call_to => call_id
 
-        $res = $db->query("SELECT DISTINCT call_to, id FROM calls WHERE deleted = 0");
+       
+        $res = $db->query("SELECT DISTINCT call_to, id, date_modified FROM calls WHERE deleted = 0");
         while ($row = $db->fetchByAssoc($res)) {
-            if (!empty($row['call_to']) && !empty($row['id'])) {
-                $callMap[$row['call_to']] = $row['id'];
+            if (!empty($row['call_to']) && !empty($row['id']) && !empty($row['date_modified'])) {
+                $callMap[$row['call_to']] = [
+                    'id' => $row['id'],
+                    'date_modified' => $row['date_modified'],
+                ];
             }
         }
 
         foreach ($data as &$entry) {
             $phone = $entry['phone_number'];
+            $entryDate = $entry['date_entered'];
+
             if (isset($callMap[$phone])) {
-                $entry['in_calls'] = true;
-                $entry['call_id'] = $callMap[$phone];
+                // Compare dates: $entryDate < call's date_modified
+                if (strtotime($entryDate) < strtotime($callMap[$phone]['date_modified'])) {
+                    $entry['in_calls'] = true;
+                    $entry['call_id'] = $callMap[$phone]['id'];
+                } else {
+                    $entry['in_calls'] = false;
+                    $entry['call_id'] = '';
+                }
             } else {
                 $entry['in_calls'] = false;
                 $entry['call_id'] = '';
