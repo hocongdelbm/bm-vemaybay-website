@@ -43,11 +43,23 @@ class Viewclientphonetcb extends SugarView
         }
 
         // ✅ Fetch existing phone numbers from calls table
+        
         global $db;
-        $callMap = []; // call_to => call_id
+        $callMap = []; // call_to => ['id' => ..., 'date_modified' => ...]
 
-       
-        $res = $db->query("SELECT DISTINCT call_to, id, date_modified FROM calls WHERE deleted = 0");
+                $query = "
+            SELECT c.call_to, c.id, c.date_modified
+            FROM calls c
+            INNER JOIN (
+                SELECT call_to, MAX(date_modified) AS max_date
+                FROM calls
+                WHERE deleted = 0
+                GROUP BY call_to
+            ) grouped_calls ON c.call_to = grouped_calls.call_to AND c.date_modified = grouped_calls.max_date
+            WHERE c.deleted = 0
+        ";
+
+        $res = $db->query($query);
         while ($row = $db->fetchByAssoc($res)) {
             if (!empty($row['call_to']) && !empty($row['id']) && !empty($row['date_modified'])) {
                 $callMap[$row['call_to']] = [
@@ -62,7 +74,6 @@ class Viewclientphonetcb extends SugarView
             $entryDate = $entry['date_entered'];
 
             if (isset($callMap[$phone])) {
-                // Compare dates: $entryDate < call's date_modified
                 if (strtotime($entryDate) < strtotime($callMap[$phone]['date_modified'])) {
                     $entry['in_calls'] = true;
                     $entry['call_id'] = $callMap[$phone]['id'];
