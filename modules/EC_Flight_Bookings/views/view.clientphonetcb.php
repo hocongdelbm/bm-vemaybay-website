@@ -36,51 +36,60 @@ class Viewclientphonetcb extends SugarView
         $smarty->assign('source', $source);
         // Fetch data from API
         $responseData = $this->getDataFromTCB($source);
+
         $data = [];
 
         if (isset($responseData['status']) && $responseData['status'] === 'success') {
             $data = $responseData['data'];
         }
 
-        // ✅ Fetch existing phone numbers from calls table
-
-        global $db;
-
-        // Get the latest calls per phone number
-        $query = "
-            SELECT c.call_to, c.id, c.date_modified
-            FROM calls c
-            INNER JOIN (
-                SELECT call_to, MAX(date_modified) AS max_date
-                FROM calls
-                WHERE deleted = 0
-                GROUP BY call_to
-            ) grouped_calls ON c.call_to = grouped_calls.call_to AND c.date_modified = grouped_calls.max_date
-            WHERE c.deleted = 0
-        ";
-
-        $res = $db->query($query);
-        $callMap = [];
-        while ($row = $db->fetchByAssoc($res)) {
-            if (!empty($row['call_to'])) {
-                $callMap[$row['call_to']] = [
-                    'id' => $row['id'],
-                    'date_modified' => $row['date_modified'],
-                ];
+        $minDateEntered = null;
+        foreach ($data as $entry) {
+            $currentDate = strtotime($entry['date_entered']);
+            if ($minDateEntered === null || $currentDate < $minDateEntered) {
+                $minDateEntered = $currentDate;
             }
         }
 
-        // Loop over your data entries
+        $minDateAdjusted = $minDateEntered - 7 * 3600;
+
+        global $db;
+
+        $query = "
+            SELECT call_to, id, date_modified
+            FROM calls
+            WHERE deleted = 0
+            AND date_modified > '" . date('Y-m-d H:i:s', $minDateAdjusted) . "'
+        ";
+
+        $res = $db->query($query);
+
+        $callMap = [];
+        while ($row = $db->fetchByAssoc($res)) {
+            if (!empty($row['call_to'])) {
+                $phone = $row['call_to'];
+                $dateModified = strtotime($row['date_modified']);
+
+                // Keep the call with the latest date_modified per phone
+                if (!isset($callMap[$phone]) || $dateModified > strtotime($callMap[$phone]['date_modified'])) {
+                    $callMap[$phone] = [
+                        'id' => $row['id'],
+                        'date_modified' => $row['date_modified'],
+                    ];
+                }
+            }
+        }
+
         foreach ($data as &$entry) {
             $phone = $entry['phone_number'];
-            $entryDate = $entry['date_entered'];
+
+            // Adjust the entry's date_entered by subtracting 7 hours
+            $entryDateAdjusted = strtotime($entry['date_entered']) - 7 * 3600;
 
             if (isset($callMap[$phone])) {
-                // Subtract 7 hours (7 * 3600 seconds) from entryDate timestamp
-                $entryTimestamp = strtotime($entryDate) - 7 * 3600;
-                $callTimestamp = strtotime($callMap[$phone]['date_modified']);
+                $callDate = strtotime($callMap[$phone]['date_modified']);
 
-                if ($entryTimestamp < $callTimestamp) {
+                if ($entryDateAdjusted < $callDate) {
                     $entry['in_calls'] = true;
                     $entry['call_id'] = $callMap[$phone]['id'];
                 } else {
@@ -169,7 +178,6 @@ class Viewclientphonetcb extends SugarView
     }
     function getDataFromTCB($source)
     {
-
         $url = '';
         if ($source === 'timchuyenbay.vn') {
             $url = 'https://timchuyenbay.vn/ajax';
@@ -180,7 +188,7 @@ class Viewclientphonetcb extends SugarView
         } else {
             $url = 'https://vietjet.net/ajax'; // default fallback
         }
-
+        // $url = 'https://timchuyenbay.com/ajax';
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
