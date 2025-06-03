@@ -43,11 +43,11 @@ class Viewclientphonetcb extends SugarView
         }
 
         // ✅ Fetch existing phone numbers from calls table
-        
-        global $db;
-        $callMap = []; // call_to => ['id' => ..., 'date_modified' => ...]
 
-                $query = "
+        global $db;
+
+        // Get the latest calls per phone number
+        $query = "
             SELECT c.call_to, c.id, c.date_modified
             FROM calls c
             INNER JOIN (
@@ -60,8 +60,9 @@ class Viewclientphonetcb extends SugarView
         ";
 
         $res = $db->query($query);
+        $callMap = [];
         while ($row = $db->fetchByAssoc($res)) {
-            if (!empty($row['call_to']) && !empty($row['id']) && !empty($row['date_modified'])) {
+            if (!empty($row['call_to'])) {
                 $callMap[$row['call_to']] = [
                     'id' => $row['id'],
                     'date_modified' => $row['date_modified'],
@@ -69,12 +70,17 @@ class Viewclientphonetcb extends SugarView
             }
         }
 
+        // Loop over your data entries
         foreach ($data as &$entry) {
             $phone = $entry['phone_number'];
             $entryDate = $entry['date_entered'];
 
             if (isset($callMap[$phone])) {
-                if (strtotime($entryDate) < strtotime($callMap[$phone]['date_modified'])) {
+                // Subtract 7 hours (7 * 3600 seconds) from entryDate timestamp
+                $entryTimestamp = strtotime($entryDate) - 7 * 3600;
+                $callTimestamp = strtotime($callMap[$phone]['date_modified']);
+
+                if ($entryTimestamp < $callTimestamp) {
                     $entry['in_calls'] = true;
                     $entry['call_id'] = $callMap[$phone]['id'];
                 } else {
