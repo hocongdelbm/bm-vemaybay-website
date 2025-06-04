@@ -416,7 +416,7 @@ class CustomController extends BaseController
             $request_ip     = $request->getServerParam('REMOTE_ADDR');
 
             if(!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
-            if(date('H') > 21 || date('H') < 6) {
+            if(date('H') + 7 > 21 || date('H') + 7 < 6) {
                 return $response->withJson([
                     "error" => true,
                     "message" => "ZNS chỉ được gửi trong khoảng thời gian từ 6h đến 22h mỗi ngày"
