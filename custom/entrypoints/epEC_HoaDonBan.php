@@ -152,7 +152,8 @@
     // Lấy thông tin sl tồn hiện tại của số vé
     if(isset($_POST['for']) && $_POST['for'] == 'getMaxQty') {
         $ticket_num_arr = explode(",", $_POST['ticket_num']);
-        if(!empty($_POST['invoice'])) {
+
+        if(isset($_POST['invoice']) && !empty($_POST['invoice'])) {
             $exist_invoice = ' AND parent_id <> "' . $_POST['invoice'] . '"';
         }
 

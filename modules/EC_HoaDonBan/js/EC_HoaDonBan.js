@@ -4,7 +4,6 @@ $(document).ready(function() {
 	var sig_digits 	= $('#sig_digits').val();
 
 	$('.allow-number-only').number( true, sig_digits, dec_seperator, grp_seperator);
-	$('input:text[name="ct_ptramgg[]"]').number( true, 4, dec_seperator, grp_seperator);
 
 	changeInvoiceType();
 	$('#sohoadon').attr('maxlength', 8);
@@ -54,6 +53,18 @@ $(document).ready(function() {
 				$inputs.eq(ind + 1).select();
 			}
 		});
+	});
+
+	$(document).on('change', 'select[name="ct_code[]"]', function() {
+		const index = $('select[name="ct_code[]"]').index(this);
+		const value = $(this).val();
+
+		if(value == 'PHL' || value == 'PD') {
+			$(`input[name="ct_receipt_voucher[]"]`).eq(index).attr('type', 'text');
+		}
+		else {
+			$(`input[name="ct_receipt_voucher[]"]`).eq(index).attr('type', 'hidden');
+		}
 	});
 
 	$("#loaihoadon").change(function() {
@@ -404,7 +415,7 @@ $(document).ready(function() {
 		e.preventDefault(); // Don't remove it
 
 		if($('#company_unit').val() == ''){
-			showToastWarning('Vui lòng lựa chọn đơn vị hóa đơn please!');
+			showToastWarning('Vui lòng lựa chọn đơn vị hóa đơn!');
 			preventSubmit();
 			return false;
 		}
@@ -420,8 +431,10 @@ $(document).ready(function() {
 			// Check list items
 			var ticket_num_str = '';
 			$(".ac_ticket_number").each(function (ind) {
-				if (ticket_num_str != '') ticket_num_str += ",";
-				ticket_num_str += $("#ct_ticket_number_id" + ind).val();
+				if (ticket_num_str != '') {
+					ticket_num_str += ",";
+					ticket_num_str += $("#ct_ticket_number_id" + ind).val();
+				}
 			});
 
 			$.ajax({
@@ -432,18 +445,20 @@ $(document).ready(function() {
 					ticket_num: ticket_num_str,
 					for: "getMaxQty",
 				},
+				beforeSend: function () {
+					$('.container-waiting').show();
+				},
 				success: function (response) {
 					ticket_number_max_qty = JSON.parse(response);
 					var arr = document.getElementsByName('ct_deleted[]');
 
 					let check = true;
 					for (var i = 0; i < arr.length; i++) {
+						let type_code = $(`#ct_code${i}`).val();
 
-						// Nếu PK thì continue
-						if($(`#ct_code${i}`).val() == 'PK'){
-							continue;
-						}
-
+						// Các loại không check số vé, booking
+						if(type_code == 'PK') continue;
+						
 						$(`#ct_ticket_number${i}, #ct_booking${i}, #ct_qty${i}`).removeClass("ln_error");
 						$(`#err_ticket_number${i}, #err_booking${i}, #err_qty${i}`).remove();
 
@@ -488,6 +503,7 @@ $(document).ready(function() {
 
 					if(check) $('#EditView').submit();
 					else {
+						$('.container-waiting').hide();
 						preventSubmit();
 						return false;
 					}
@@ -497,20 +513,6 @@ $(document).ready(function() {
 		else {
 			$('#EditView').submit();
 		}
-
-		// $(document).ajaxComplete(function () {
-		// 	var err_ln = $(".ln_error").length;
-		// 	if (err_ln > 0) {
-		// 		setTimeout(function (e) {
-		// 			if (confirm("Có lỗi. Bạn có muốn lưu không?")) {
-		// 				$('#EditView').submit();
-		// 			}
-		// 		}, 100);
-		// 	}
-		// 	else {
-		// 		$('#EditView').submit();
-		// 	}
-		// });
 	});
 });
 
@@ -542,90 +544,85 @@ function insertRow(ln, invoice_type) {
 			</select>
 		</td>`;
 
-		html += "<td><input class='ac_booking text-start' ln='" + ln + "' type='text' name='ct_booking[]' id='ct_booking" + ln + "' maxlength='255' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id" + ln + "\",\"name\":\"ct_booking" + ln + "\"}' value='" + booking_bef + "'/><input type='hidden' name='ct_booking_id[]' id='ct_booking_id" + ln + "' value='" +  booking_id_bef + "'></td>";
+		html += `<td>
+			<input type="text" name="ct_booking[]" id="ct_booking${ln}" ln="${ln}" class="ac_booking text-start" maxlength="32" size="30" autocomplete="off" fld='{\"id\":\"ct_booking_id" + ln + "\",\"name\":\"ct_booking" + ln + "\"}' value="${booking_bef}" />
+			<input type="hidden" name="ct_booking_id[]" id="ct_booking_id${ln}" value="${booking_id_bef}" />
+			<input type="hidden" name="ct_receipt_voucher[]" class="input-receipt-voucher" value="" placeholder="Mã phiếu thu" style="border:1px solid #c2c2c2 !important; border-radius:4px; margin-top:5px; padding-left:5px !important;" />
+		</td>`;
 
 		html += `<td>
-					<div class="d-flex align-items-center gap-1">
-						<input class="ac_ticket_number text-start" ln="${ln}" type="text" name="ct_ticket_number[]" id="ct_ticket_number${ln}" maxlength="255" size="30" autocomplete="off" />
-						<input type="hidden" name="ct_ticket_number_id[]" id="ct_ticket_number_id${ln}" value="" />
-						<button title="Tìm" class="button-pick" type="button" onclick="openTicketNumberPopup(${ln})">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
-						</button>
-					</div>
-				</td>`;
-
-		// html += `<td>
-		// 			<div class="d-flex align-items-center gap-1">
-		// 				<input class="ac_ticket_code" ln="${ln}" type="text" name="ct_ticket_code[]" id="ct_ticket_code${ln}" maxlength="255" size="30" autocomplete="off" />
-		// 				<button title="Tìm" type="button" class="button-pick" onclick="openTicketNumberPopup(${ln})">
-		// 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
-		// 				</button>
-		// 			</div>
-		// 		</td>`;
+			<div class="d-flex align-items-center gap-1">
+				<input class="ac_ticket_number text-start" ln="${ln}" type="text" name="ct_ticket_number[]" id="ct_ticket_number${ln}" maxlength="255" size="30" autocomplete="off" />
+				<input type="hidden" name="ct_ticket_number_id[]" id="ct_ticket_number_id${ln}" value="" />
+				<button title="Tìm" class="button-pick" type="button" onclick="openTicketNumberPopup(${ln})">
+					<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#333"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
+				</button>
+			</div>
+		</td>`;
 
 		// Số lượng
 		html += `<td class="text-center">
-					<input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" value="1" type="text" name="ct_qty[]" id="ct_qty${ln}" size="5" maxlength="20" />
-				</td>`;
+			<input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" value="1" type="text" name="ct_qty[]" id="ct_qty${ln}" size="5" maxlength="20" />
+		</td>`;
 		
 		// Giá mua
 		html += `<td class="text-end">
-					<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_purchase_price[]" id="ct_purchase_price${ln}" />
-				</td>`;
+			<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_purchase_price[]" id="ct_purchase_price${ln}" />
+		</td>`;
 
 		// Thu hộ
 		html += `<td>
-				<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_authorized[]" id="ct_authorized${ln}" />
-			</td>`;
+			<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_authorized[]" id="ct_authorized${ln}" />
+		</td>`;
 
 		// Phí sân bay
 		html += `<td>
-				<input class="allow-number-only text-end" value="0" type="text" name="ct_airport_fee[]" id="ct_airport_fee${ln}" />
-			</td>`;
+			<input class="allow-number-only text-end" value="0" type="text" name="ct_airport_fee[]" id="ct_airport_fee${ln}" />
+		</td>`;
 
 		// Phí khác
 		html += `<td>
-				<input class="allow-number-only text-end" value="0" type="text" name="ct_other_fee[]" id="ct_other_fee${ln}" />
-			</td>`;
+			<input class="allow-number-only text-end" value="0" type="text" name="ct_other_fee[]" id="ct_other_fee${ln}" />
+		</td>`;
 
 		// Phí dịch vụ
 		html += `<td>
-				<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_service[]" id="ct_service${ln}" />
-			</td>`;
+			<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_service[]" id="ct_service${ln}" />
+		</td>`;
 		
 		// Thuế suất (%)
 		html += `<td>
-					<select name="ct_percent_vat[]" id="ct_percent_vat${ln}" onchange="calculateLineTotal(${ln})">
-						<option value="0">0%</option>
-						<option value="0.08">8%</option>
-						<option value="0.1">10%</option>
-						<option value="-1">KCT</option>
-						<option value="-2">KKKNT</option>
-					</select>
-				</td>`;
+			<select name="ct_percent_vat[]" id="ct_percent_vat${ln}" onchange="calculateLineTotal(${ln})">
+				<option value="0">0%</option>
+				<option value="0.08">8%</option>
+				<option value="0.1">10%</option>
+				<option value="-1">KCT</option>
+				<option value="-2">KKKNT</option>
+			</select>
+		</td>`;
 
 		// Giá bán
 		html += `<td>
-					<input class="allow-number-only text-end" value="0" type="text" name="ct_price[]" id="ct_price${ln}" readonly />
-				</td>`;
+			<input class="allow-number-only text-end" value="0" type="text" name="ct_price[]" id="ct_price${ln}" readonly />
+		</td>`;
 
 		// VAT
 		html += `<td>
-					<input class="allow-number-only text-end" onblur="calculateChangeVAT(${ln})" value="0" type="text" name="ct_vat[]" id="ct_vat${ln}" />
-				</td>`;
+			<input class="allow-number-only text-end" onblur="calculateChangeVAT(${ln})" value="0" type="text" name="ct_vat[]" id="ct_vat${ln}" />
+		</td>`;
 		
 		// Thành tiền
 		html += `<td>
-					<input class="allow-number-only text-end" value="0" type="text" name="ct_total[]" id="ct_total${ln}" readonly />
-				</td>`;
+			<input class="allow-number-only text-end" value="0" type="text" name="ct_total[]" id="ct_total${ln}" readonly />
+		</td>`;
 		
 		html += `<td class="text-center">
-					<button title="Xóa" class="button-remove-in-edit" type="button" onclick="markRowDeleted(${ln})" >
-						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-					</button>
-					<input type="hidden" value="0" name="ct_deleted[]" id="ct_deleted${ln}" />
-					<input type="hidden" name="ct_detail_id[]" id="ct_detail_id${ln}" value="" />
-				</td>`;
+			<button title="Xóa" class="button-remove-in-edit" type="button" onclick="markRowDeleted(${ln})" >
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#333"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+			</button>
+			<input type="hidden" value="0" name="ct_deleted[]" id="ct_deleted${ln}" />
+			<input type="hidden" name="ct_detail_id[]" id="ct_detail_id${ln}" value="" />
+		</td>`;
 	}
 	else if(invoice_type == 1) {
 		html += `<td><input class="text-start" ln="${ln}" type="text" name="ct_name[]" id="ct_name${ln}" maxlength="255" size="30" autocomplete="off" /></td>`;
@@ -642,7 +639,7 @@ function insertRow(ln, invoice_type) {
 
 		html += `<td class="text-center">
 				<button title="Xóa" class="button-remove-in-edit" type="button" onclick="markRowDeleted(${ln})" >
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#333"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
 				</button>
 				<input type="hidden" value="0" name="ct_deleted[]" id="ct_deleted${ln}" />
 				<input type="hidden" name="ct_detail_id[]" id="ct_detail_id${ln}" value="" />
@@ -769,7 +766,7 @@ function changeInvoiceType() {
 		$("#last-row").children().eq(0).attr("colspan", 3);
 		$("#first-row").html(`
 			<th width="6%" align="left">Mã hàng</th> 
-			<th width="9%" align="left">Booking</th> 
+			<th width="9%" align="left">Booking<br />(Phiếu thu)</th> 
 			<th width="14%" align="left">Số vé</th> 
 			<th width="3%" align="center">SL</th> 
 

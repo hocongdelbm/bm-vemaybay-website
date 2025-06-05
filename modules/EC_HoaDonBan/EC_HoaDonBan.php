@@ -79,8 +79,12 @@ class EC_HoaDonBan extends Basic
 		parent::save($check_notify);
 
 		if (
-			(isset($_POST['ct_ticket_number_id']) && !empty($_POST['ct_ticket_number_id'])
-				&& isset($_POST['ct_ticket_number']) && !empty($_POST['ct_ticket_number']) && $this->loaihoadon == 0) || ($this->loaihoadon == 1 && !empty($_POST['ct_name']))
+			($this->loaihoadon == '0'
+			&& isset($_POST['ct_ticket_number_id']) && !empty($_POST['ct_ticket_number_id'])
+			&& isset($_POST['ct_ticket_number']) && !empty($_POST['ct_ticket_number'])
+			)	
+			|| 
+			($this->loaihoadon == '1' && !empty($_POST['ct_name']))
 		) {
 			$this->saveListItems();
 		}
@@ -111,39 +115,36 @@ class EC_HoaDonBan extends Basic
 			$cthd->thanhtien 	= unformat_number($_POST['ct_total'][$i]);
 			$cthd->parent_id 	= $this->id;
 			$cthd->parent_type 	= 'EC_HoaDonBan';
-			$cthd->deleted 	= $_POST['ct_deleted'][$i];
+			$cthd->deleted 		= (int)$_POST['ct_deleted'][$i];
 			$cthd->order_by_no 	= $i;
 
-			if ($this->loaihoadon == 0) { // HĐ GTGT
+			if ($this->loaihoadon == '0') { // HĐ GTGT
 				$cthd->name = trim(stripslashes($_POST['ct_ticket_number'][$i]));
 
-				// if($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
-				// 	$receipt_voucher_name = trim($_POST['ct_booking'][$i] ?? '');
-				// 	if(!empty($receipt_voucher_name)) {
-				// 		$receipt_voucher_id = $this->db->getOne("SELECT id FROM ec_receipt_voucher WHERE name='$receipt_voucher_name' AND deleted=0 ORDER BY date_entered DESC LIMIT 1");
-				// 	}
-				// }
-				// else
-				if($cthd->mahang == 'PK'){
+				if($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
+					// Lưu thông tin phiếu thu
+					$receipt_voucher_name = trim($_POST['ct_receipt_voucher'][$i] ?? '');
+					$receipt_voucher_id = '';
+					if(!empty($receipt_voucher_name)) {
+						$receipt_voucher_id = $this->db->getOne("SELECT id FROM ec_receipt_voucher WHERE name='$receipt_voucher_name' AND deleted=0 ORDER BY date_entered DESC LIMIT 1");
+					}
+					$cthd->receipt_voucher_id = $receipt_voucher_id;
+				}
+				else if($cthd->mahang == 'PK') {
 					$cthd->name = 'PK';
 				}
 
-				$cthd->ticket_number_id = $_POST['ct_ticket_number_id'][$i];
-				$cthd->booking_id = $_POST['ct_booking_id'][$i];
-				$cthd->booking = $_POST['ct_booking'][$i];
+				$cthd->ticket_number_id = $_POST['ct_ticket_number_id'][$i] ?? '';
+				$cthd->booking_id = $_POST['ct_booking_id'][$i] ?? '';
+				$cthd->booking = $_POST['ct_booking'][$i] ?? '';
 			}
-			else if ($this->loaihoadon == 1) { // HĐ DV
+			else if ($this->loaihoadon == '1') { // HĐ DV
 				$cthd->name = trim(stripslashes($_POST['ct_name'][$i]));
 			}
 
-			if ($cthd->deleted == 1) {
-				$cthd->mark_deleted($cthd->id);
-			}
-			else {
-				if (!empty($cthd->name)) {
-					$cthd->save();
-				}
-			}
+			if ($cthd->deleted == 1) $cthd->mark_deleted($cthd->id);
+			else if (!empty($cthd->name)) $cthd->save();
+			
 
 			if (!empty($cthd->ticket_number_id)) {
 				// kiếm tra lại số tồn của số vé nếu hết thì đánh dấu

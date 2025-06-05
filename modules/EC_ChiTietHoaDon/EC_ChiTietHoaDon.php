@@ -47,6 +47,8 @@ class EC_ChiTietHoaDon extends Basic
     public $booking;
     public $thuesuat;
     public $mahang;
+    public $receipt_voucher_id;
+    public $receipt_voucher;
 	
     public function bean_implements($interface)
     {
