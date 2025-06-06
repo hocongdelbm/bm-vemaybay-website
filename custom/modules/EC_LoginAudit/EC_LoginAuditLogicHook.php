@@ -45,10 +45,10 @@ class loginActions
 
         $db->query($query, false);
         
-        // Update change status agent and update agent status
-        if (!empty($la_event) && !empty($agent_status) && !empty($current_user->td_sip)) {
-            agent_change_status($current_user->td_sip, $agent_status);
-        }
+        // // Update change status agent and update agent status
+        // if (!empty($la_event) && !empty($agent_status) && !empty($current_user->td_sip)) {
+        //     agent_change_status($current_user->td_sip, $agent_status);
+        // }
 
         // Nếu login lần đầu cập nhật start_online
         if ($la_event === 'after_login' && $la_result === 'Success') {

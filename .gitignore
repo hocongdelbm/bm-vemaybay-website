@@ -11,7 +11,7 @@ cache/*
 # Ignore some files and directories from the custom directory.
 custom/history/
 custom/working/
-custom/modules/*/Ext/
+custom/modules/*/Ext/*
 custom/application/Ext/*
 !custom/application/Ext/Api
 custom/Extension/application/Ext/Language/*

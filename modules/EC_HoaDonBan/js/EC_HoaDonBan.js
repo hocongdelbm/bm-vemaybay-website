@@ -766,7 +766,7 @@ function changeInvoiceType() {
 		$("#last-row").children().eq(0).attr("colspan", 3);
 		$("#first-row").html(`
 			<th width="6%" align="left">Mã hàng</th> 
-			<th width="9%" align="left">Booking<br />(Phiếu thu)</th> 
+			<th width="9%" align="left">Booking</th> 
 			<th width="14%" align="left">Số vé</th> 
 			<th width="3%" align="center">SL</th> 
 
