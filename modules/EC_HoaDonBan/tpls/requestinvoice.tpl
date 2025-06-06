@@ -1,40 +1,6 @@
-{literal}
-    <style>
-        #output_invoice #output_inv tbody tr:hover {
-            background-color: #cfeafe;
-        }
-
-        #output_invoice #output_inv thead tr:first-child th {
-            position: sticky;
-            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
-            top: 0;
-        }
-
-        #output_invoice #output_inv thead tr:not(first-child) th {
-            position: sticky;
-            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
-            top: 23px;
-        }
-
-        .break-word {
-            word-break: break-word;
-        }
-    </style>
-    <script>
-        $(document).ready(function() {
-            addToValidate('search_form', 'from_date', 'date', false, 'Ngày phải nhập theo cú pháp: 28-02-2022');
-            addToValidate('search_form', 'to_date', 'date', false, 'Ngày phải nhập theo cú pháp: 28-02-2022');
-            $("#search_form").submit(function() {
-                if(!check_form('search_form')) {
-                    return false;
-                }
-            });
-        });
-    </script>
-{/literal}
+<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.requestinvoice.css">
 
 <h1 class="title">DANH SÁCH BK YÊU CẦU XUẤT HOÁ ĐƠN</h1>
-
 <div class="box-section">
 <div id="output_invoice">
     <form name="search_form" id="search_form" method="post" action="index.php">
@@ -55,14 +21,13 @@
                     {literal}
                         <script type="text/javascript">
                             Calendar.setup({
-                                        inputField: "from_date",
-                                        daFormat: "%d-%m-%Y",
-                                        button: "fdate_trigger",
-                                        singleClick: true,
-                                        dateStr: "",
-                                        step: 1
-                                    }
-                            );
+                                inputField: "from_date",
+                                daFormat: "%d-%m-%Y",
+                                button: "fdate_trigger",
+                                singleClick: true,
+                                dateStr: "",
+                                step: 1
+                            });
                         </script>
                     {/literal}
                 </div>
@@ -92,14 +57,13 @@
                     {literal}
                         <script type="text/javascript">
                             Calendar.setup({
-                                        inputField: "to_date",
-                                        daFormat: "%d-%m-%Y",
-                                        button: "tdate_trigger",
-                                        singleClick: true,
-                                        dateStr: "",
-                                        step: 2
-                                    }
-                            );
+                                inputField: "to_date",
+                                daFormat: "%d-%m-%Y",
+                                button: "tdate_trigger",
+                                singleClick: true,
+                                dateStr: "",
+                                step: 2
+                            });
                         </script>
                     {/literal}
                 </div>
@@ -118,18 +82,13 @@
     <table id="output_inv" class="table-details__booking table-request__invoice" cellspacing="0" cellpadding="0">
         <thead>
             <tr>
-                <th width="3%" rowspan="2">STT</th>
-                <th width="9%" rowspan="2">Ngày tạo</th>
-                <th width="10%" rowspan="2">Booking</th>
-                <th colspan="5">Thông tin hoá đơn</th>
-                <th width="18%" rowspan="2">Thông tin HĐ đầu ra</th>
-            </tr>
-            <tr>
-                <th width="10%">Họ tên KH</th>
-                <th width="14%">Công ty</th>
-                <th width="10%">MST / Mã KH</th>
-                <th width="14%">Địa chỉ</th>
-                <th width="14%">Email</th>
+                <th width="3%">STT</th>
+                <th width="9%">Ngày tạo</th>
+                <th width="10%">Booking</th>
+                <th width="14%">Phiếu thu</th>
+                <th>Thông tin hoá đơn</th>
+                <th width="12%">HĐ ra</th>
+                <th width="15%">HĐ vào</th>
             </tr>
         </thead>
         <tbody>
@@ -138,3 +97,17 @@
     </table>
 </div>
 </div>
+
+{literal}
+<script>
+    $(document).ready(function() {
+        addToValidate('search_form', 'from_date', 'date', false, 'Ngày phải nhập theo cú pháp: 28-02-2022');
+        addToValidate('search_form', 'to_date', 'date', false, 'Ngày phải nhập theo cú pháp: 28-02-2022');
+        $("#search_form").submit(function() {
+            if(!check_form('search_form')) {
+                return false;
+            }
+        });
+    });
+</script>
+{/literal}

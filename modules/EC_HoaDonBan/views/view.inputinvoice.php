@@ -15,9 +15,6 @@ class Viewinputinvoice extends SugarView
     {
         global $app_list_strings;
 
-        // pr($_FILE);
-        // die();
-
         // Xử lý import file excel trong tab import
         if (isset($_POST['importfile'])) {
             $this->importData($_POST);
