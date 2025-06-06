@@ -50,9 +50,6 @@ class EC_Flight_Bookings extends Basic
 	public $city;
 	public $airline;
 	public $airline_inbound;
-	// public $has_voucher;
-	// public $voucher_id;
-	// public $voucher;
 	public $shipping_address;
 	public $agent_id;
 	public $total_bought_amount;

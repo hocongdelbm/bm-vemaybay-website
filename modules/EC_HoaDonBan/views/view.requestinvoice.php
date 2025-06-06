@@ -102,7 +102,6 @@ class Viewrequestinvoice extends SugarView {
                     break;
             }
 
-
             // Phiếu thu
             $receipt_data = $this->extractConcat($row['receipt_vouchers_data']);
             $receipt_html = '';
@@ -132,6 +131,8 @@ class Viewrequestinvoice extends SugarView {
                     </button>
                 </form>';
             }
+
+            if(empty($inv_tax_code) && empty($inv_account_name) && empty($inv_company_name) && empty($receipt_data)) continue;
 
             $html .= '<tr>
                 <td class="text-center">'. (++$i) .'</td>
