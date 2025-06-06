@@ -5,7 +5,7 @@
 
     <select class="source box-select" name="source">
         <option value="timchuyenbay.vn" {if $source eq "timchuyenbay.vn"}selected{/if}>timchuyenbay.vn</option>
-        <option value="vietjet.net" {if $source eq "vietjet.net"}selected{/if}>vietjet.net</option>
+        <option value="dailyve.net" {if $source eq "dailyve.net"}selected{/if}>dailyve.net</option>
         <option value="timchuyenbay.com" {if $source eq "timchuyenbay.com"}selected{/if}>timchuyenbay.com</option>
     </select>
     <button type="submit" class="btn btn-primary">Chọn Site</button>
@@ -89,8 +89,10 @@
             <tr>
                 <th scope="col">STT</th>
                 <th scope="col">Số ĐT</th>
+                <th scope="col">Nguồn</th>
                 <th scope="col">Voucher</th>
                 <th scope="col">Ngày Đăng Kí</th>
+                <th scope="col">Đã gửi SMS Zalo</th>
                 <th scope="col">Đã gọi</th>
                 <th scope="col">Dùng voucher</th>
             </tr>
@@ -102,8 +104,10 @@
                 <tr>
                     <th scope="row">{$counter}</th>
                     <td>{$row.phone_number}</td>
+                    <td>{$row.source}</td>
                     <td>{$row.discount_value|default:'0'}</td>
                     <td>{$row.date_entered|date_format:"%H:%M %d/%m/%Y"}</td>
+                    <td>{if $row.is_zns == '1'}✅{else}❌{/if}</td>
                     <td>
                         {if $row.in_calls && $row.call_id}
                             <a href="/index.php?module=Calls&return_module=Calls&action=DetailView&record={$row.call_id}"
