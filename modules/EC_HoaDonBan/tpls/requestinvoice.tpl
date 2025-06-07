@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.requestinvoice.css">
+<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.requestinvoice.css?v=1.0">
 
 <h1 class="title">DANH SÁCH BK YÊU CẦU XUẤT HOÁ ĐƠN</h1>
 <div class="box-section">
@@ -89,6 +89,7 @@
                 <th>Thông tin hoá đơn</th>
                 <th width="12%">HĐ ra</th>
                 <th width="15%">HĐ vào</th>
+                <th width="6%">Đã check</th>
             </tr>
         </thead>
         <tbody>
@@ -98,16 +99,4 @@
 </div>
 </div>
 
-{literal}
-<script>
-    $(document).ready(function() {
-        addToValidate('search_form', 'from_date', 'date', false, 'Ngày phải nhập theo cú pháp: 28-02-2022');
-        addToValidate('search_form', 'to_date', 'date', false, 'Ngày phải nhập theo cú pháp: 28-02-2022');
-        $("#search_form").submit(function() {
-            if(!check_form('search_form')) {
-                return false;
-            }
-        });
-    });
-</script>
-{/literal}
+<script src="modules/EC_HoaDonBan/js/view.requestinvoice.js?v=1.0" type="text/javascript"></script>

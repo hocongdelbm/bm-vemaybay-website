@@ -3798,6 +3798,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 	echo $html_summary . $html;
 }
 
+// Handle points to booking
 if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
 	$apply_points 	= $_POST['apply_points'] ?? 0;
 	$contact_id 	= $_POST['contact_id'] ?? '';
@@ -3921,4 +3922,31 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 
 	echo json_encode(['error' => 1, 'message' => 'Failed']);
 	exit(); 
+}
+
+// Update output invoice checked
+if (isset($_POST['for']) && $_POST['for'] == 'check_output_invoice') {
+	try {
+		$booking_id = $_POST['booking_id'] ?? '';
+		$is_checked = isset($_POST['is_checked']) ? (int)$_POST['is_checked'] : null;
+	
+		if(!empty($booking_id) && !is_null($is_checked)) {
+			$sql = "UPDATE ec_flight_bookings 
+					SET is_output_invoice_checked = $is_checked
+					WHERE id = '$booking_id' AND deleted = 0";
+			$db->query($sql);
+			echo json_encode([
+				'error' => 0,
+				'message' => $is_checked == 1 ? 'Checked success' : 'Unchecked success'
+			]);
+			exit(); 
+		}
+
+		echo json_encode(['error' => 1, 'message' => 'Invalid params']);
+		exit(); 
+	}
+	catch (Exception $e) {
+		echo json_encode(['error' => 1, 'message' => $e->getMessage()]);
+		exit(); 
+	}
 }
