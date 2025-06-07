@@ -5,10 +5,12 @@ const AGENT_STATUS = document.getElementById('agent_status').value || 'Available
 const CURRENT_USER = document.getElementById('sip_instance_id').value;
 
 // const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
-const SIP_DOMAIN = 'td.timchuyenbay.net';
+// const SIP_DOMAIN = 'td.timchuyenbay.net';
+// const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
+const SIP_DOMAIN = 'td.vemaybay.website';
+const WS_SERVERS = `wss://${SIP_DOMAIN}:7443`;
 const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
 const SIP_CONTACT = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
-const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
 const RINGTONE_FILE = 'ringtone.mp3';
 const TITLE_PAGE = document.getElementsByTagName("title")[0].innerHTML;
 

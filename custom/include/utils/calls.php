@@ -546,7 +546,7 @@ function get_log_call($call_id, $uuid = '')
 {
 
     global $db, $sugar_config;
-    $domain_name = $sugar_config['postgreconfig']['domain_name'] ?? 'td.timchuyenbay.net';
+    $domain_name = $sugar_config['postgreconfig']['domain_name'] ?? 'td.vemaybay.website';
     $token  = 'f47a2d3b91e8c0f6b5d44a13c8a7e2dd38f9627aef1b79c452e0ad5e68f3c1db65f8e2a9374d1a26c6f5b8e49b029fd03a4c78b821c1a2fe56d74e9b3a8fc2f';
 
     $body_request = array(

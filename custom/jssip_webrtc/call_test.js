@@ -5,10 +5,12 @@ const AGENT_STATUS = document.getElementById('agent_status').value || 'Available
 const CURRENT_USER = document.getElementById('sip_instance_id').value;
 
 // const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
-const SIP_DOMAIN = 'td.timchuyenbay.net';
+// const SIP_DOMAIN = 'td.timchuyenbay.net';
+// const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
+const SIP_DOMAIN = 'td.vemaybay.website';
+const WS_SERVERS = `wss://${SIP_DOMAIN}:7443`;
 const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
 const SIP_CONTACT = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
-const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
 const RINGTONE_FILE = 'ringtone.mp3';
 const TITLE_PAGE = document.getElementsByTagName("title")[0].innerHTML;
 
@@ -247,19 +249,20 @@ ua.on('newRTCSession', function (ev) {
         }, 100);
 
         $(document).prop('title', 'Có cuộc gọi đến...');
-
         extract_hotline(INVITE).then(hotline => {
             showToastCall('incoming__call', call_id, zalo_id, phone, hotline);
         });
 
         // ADD template-notes CHO cuộc gọi đến
         $('#template-notes').html(`
+            <option value="">--Trống--</option>
             <option value="in_journey">Khách hỏi hành trình</option>
             <option value="in_ticket_hunt">Nhu cầu săn vé máy bay</option>
             <option value="in_group_booking">Đặt vé đoàn nhiều người</option>
             <option value="in_complaint_delay">Phàn nàn sự cố delay</option>
             <option value="in_invoice_contact">Liên hệ kế toán hóa đơn</option>
             <option value="in_mistake">Nhầm lẫn, Lý Thông linh tinh</option>
+            <option value="in_no_need">Khách chưa có nhu cầu</option>
             <option value="in_other">Khác, chưa định nghĩa</option>
         `)
 
@@ -323,11 +326,11 @@ ua.on('newRTCSession', function (ev) {
                         $('#call-overlay').removeClass('opened');
                         $(`.toast__main[type="incoming__call"][call_id="${call_id}"]`).parent().remove();
 
-                        if (response == 1){
+                        if (response == 1) {
                             extract_hotline(INVITE).then(hotline => {
                                 showToastCall('missed__call', call_id, zalo_id, phone, hotline);
                             });
-                        } 
+                        }
                     }
                 });
             }, 1000);
@@ -349,12 +352,15 @@ ua.on('newRTCSession', function (ev) {
     if (session._connection && session.direction === "outgoing") {
         // ADD template-notes CHO cuộc gọi ĐI
         $('#template-notes').html(`
+            <option value="">--Trống--</option>
             <option value="out_no_need">Khách chưa có nhu cầu</option>
             <option value="out_question_ticket">Khách hỏi vé</option>
             <option value="out_interest">Đang quan tâm sơ bộ</option>
             <option value="out_no_response">Không nghe máy</option>
             <option value="out_no_uncomfortable">Khách khó chịu, không hài lòng, cảm thấy phiền...</option>
             <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc được</option>
+            <option value="out_remind">Nhắc ngày bay</option>
+            <option value="out_other">Khác</option>
         `)
 
         if (session._connection.addEventListener) {
@@ -395,7 +401,7 @@ ua.on('newRTCSession', function (ev) {
                 }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             };
         }
-    } 
+    }
 });
 
 $(document).ready(function () {
@@ -443,7 +449,6 @@ $(document).ready(function () {
 
     // Nút gọi đi - Phone
     $(document).on('click', '.btn-voiceip-calling', function () {
-        let rcid =  $(this).attr('rcid');
         let id = $(this).attr('id');
         let number = '', call_id = '';
         let booking_id = booking_name = type_call_booking = journey_id = '';
@@ -457,7 +462,7 @@ $(document).ready(function () {
             number = $(this).attr('phone');
             booking_id = $(this).attr('booking_id');
             booking_name = $(this).attr('booking_name');
-            type_call_booking = (id === 'btnCalled') ? 'called' : (id === 'btnRemind') ? 'remind' : 'recall';
+            type_call_booking = (id == 'btnCalled') ? 'called' : (id == 'btnRemind') ? 'remind' : 'recall';
             journey_id = $(this).attr('iti_id');
         } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             number = $(this).attr('phone');
@@ -469,10 +474,7 @@ $(document).ready(function () {
         }
 
         if (number.length > 2 && number != SIP_USER) {
-            callOptions.extraHeaders = [
-                'X-Caller: ' + outbound_phone,
-                'X-rcid: ' + rcid
-            ]
+            callOptions.extraHeaders = ['X-Caller: ' + outbound_phone]
 
             resetPopupVoiceip();
             $('.call-phone__numpad').hide();
@@ -783,6 +785,11 @@ $(document).ready(function () {
         }
         else if (call_id.length == 0) {
             showToastWarning('Thiếu dữ liệu call_id, liên hệ IT');
+            $(this).css("pointer-events", "");
+            return false;
+        }
+        else if (call_reason.length == 0) {
+            showToastWarning('Vui lòng phân loại cuộc gọi!');
             $(this).css("pointer-events", "");
             return false;
         }
@@ -1223,7 +1230,7 @@ if ('serviceWorker' in navigator) {
 
                         $('#voiceip-info-name').html(name);
                         $('#voiceip-name').val(name);
-                        
+
                         $('#voiceip-info-phone').html(formatPhoneNumber(phone));
                         $('#voiceip-phone').val(phone);
                         $('#voiceip-phone').prop('readonly', true);
@@ -1409,6 +1416,7 @@ function extract_call_id(str) {
 }
 
 async function extract_hotline(str) {
+
     const pattern = /X-Hotline:(?<regex_x_cid>\s*[\w\.-]+).*/;
     const matches = str.match(pattern);
 
@@ -1425,7 +1433,7 @@ async function extract_hotline(str) {
             },
             type: "POST",
             cache: false,
-            dataType: "json", 
+            dataType: "json",
         });
 
         const { label = '', website = '' } = response;
@@ -1470,7 +1478,7 @@ function handleButtons(type) {
         $('.voiceip-button').hide();
         $('.voiceip-update').show();
         $('.voiceip-dtmf').show();
-        
+
         $('.wrap-info-voiceip').hide();
         $('.wrap-form-voiceip').show();
     }
