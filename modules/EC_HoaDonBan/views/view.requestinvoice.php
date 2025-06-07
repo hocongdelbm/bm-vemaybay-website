@@ -19,6 +19,7 @@ class Viewrequestinvoice extends SugarView {
                 ,bk.tax_code
                 ,bk.company_address
                 ,bk.shipping_address
+                ,bk.is_output_invoice_checked
                 ,DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS date_entered
                 ,(
                     SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') 
@@ -134,6 +135,12 @@ class Viewrequestinvoice extends SugarView {
 
             if(empty($inv_tax_code) && empty($inv_account_name) && empty($inv_company_name) && empty($receipt_data)) continue;
 
+            if(isset($row['is_output_invoice_checked']) && $row['is_output_invoice_checked'] == 1) {
+                $out_invoice_checked_html = '<input type="checkbox" name="output_invoice_checked" class="form-check-input checkbox_output_invoice_checked" booking_id="'. $row['booking_id'] .'" selected="selected" checked="checked" />';
+            } else {
+                $out_invoice_checked_html = '<input type="checkbox" name="output_invoice_checked" class="form-check-input checkbox_output_invoice_checked" booking_id="'. $row['booking_id'] .'" />';
+            }
+
             $html .= '<tr>
                 <td class="text-center">'. (++$i) .'</td>
                 <td class="text-center">'. date('d-m-Y', strtotime($row['date_entered'])) .'</td>
@@ -154,7 +161,7 @@ class Viewrequestinvoice extends SugarView {
                         <input type="submit" name="create_invoice" value="Tạo hoá đơn" class="btn btn-primary">
                     </form>
                 </td>
-                <td>'. $receipt_html .'</td>
+                <td class="text-center">'. $receipt_html .'</td>
                 <td class="td-info-invoice">
                     '. $inv_tax_code_html .'
                     '. $inv_account_name_html .'
@@ -164,6 +171,7 @@ class Viewrequestinvoice extends SugarView {
                 </td>
                 <td>'. $out_invoice_html .'</td>
                 <td>'. $in_invoice_html .'</td>
+                <td class="text-center">'. $out_invoice_checked_html .'</td>
             </tr>';
 
 
@@ -279,11 +287,19 @@ class Viewrequestinvoice extends SugarView {
 
             // Booking
             $post_fields['booking'] = '';
+
+            // Limit within 30 days
+            $day = (strtotime($post_fields['to_date']) - strtotime($post_fields['from_date'])) / (60 * 60 * 24);
+            if($day > 30) {
+                $post_fields['from_date'] = $post_fields['to_date'] = date('d-m-Y');
+                $sql = 'AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
+            }
         }
 
         $smarty->assign('FROM_DATE', $post_fields['from_date']);
         $smarty->assign('TO_DATE', $post_fields['to_date']);
         $smarty->assign('BOOKING', $post_fields['booking']);
+
         return $sql;
     }
 }

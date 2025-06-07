@@ -1,6 +1,11 @@
 .break-word {word-break: break-word;}
 .d-block {display: block;}
 
+.form-check-input:checked::before,
+.form-check-input:checked::after {
+  display: none !important;
+}
+
 .table-request__invoice tbody tr td,
 .table-request__invoice tbody tr td * {
     font-size: 12px;
