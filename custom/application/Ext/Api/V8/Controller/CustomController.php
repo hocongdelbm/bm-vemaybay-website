@@ -141,6 +141,8 @@ class CustomController extends BaseController
         $call_id        = isset($params['call_id']) ? global_test_input($params['call_id']) : '';
         $call_direction = isset($params['call_direction']) ? global_test_input($params['call_direction']) : '';
 
+        $arr_whitelist = ['0898888280', '0348650381'];
+
         // Xử lý cuộc gọi đến thiếu số 0
         if (isset($params['call_from']) && $call_direction == 'inbound' && strlen($params['call_from']) < 10 && substr($params['call_from'], 0, 1) != 0) {
             $call_from      = '0' . trim($params['call_from']);
@@ -241,7 +243,9 @@ class CustomController extends BaseController
                     $call->direction = 'spam';
 
                     // Update số đó vào file JSON
-                    add_blacklist_phone($call_from);
+                    if(!in_array(trim($call_from), $arr_whitelist)){
+                        add_blacklist_phone($call_from);
+                    }
                 } else {
                     $call->direction = 'missed';
                 }
