@@ -73,6 +73,7 @@ class Viewrequestinvoice extends SugarView {
             // MST
             $inv_tax_code = $row['tax_code'] ?? '';
             $inv_tax_code_html = !empty($inv_tax_code) ? $this->renderItem('MST / Mã KH', $inv_tax_code) : '';
+            $inv_tax_code = str_replace("CCCD", "", $inv_tax_code);
             // Tên KH
             $inv_account_name = $inv_arr['iv_account_name'] ?? '';
             $inv_account_name_html = !empty($inv_account_name) ? $this->renderItem('Tên KH', $inv_account_name) : '';
@@ -82,6 +83,7 @@ class Viewrequestinvoice extends SugarView {
             // Email
             $inv_email = $inv_arr['iv_email'] ?? '';
             $inv_email_html = !empty($inv_email) ? $this->renderItem('Email', $inv_email) : '';
+            if(strpos($inv_email, '@') === false) $inv_email = '';
             // Địa chỉ
             $inv_address = mb_convert_case(mb_strtolower($row['company_address'], 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
             $inv_address_html = !empty($inv_address) ? $this->renderItem('Địa chỉ', $inv_address) : '';

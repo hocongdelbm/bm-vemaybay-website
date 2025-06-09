@@ -431,10 +431,8 @@ $(document).ready(function() {
 			// Check list items
 			var ticket_num_str = '';
 			$(".ac_ticket_number").each(function (ind) {
-				if (ticket_num_str != '') {
-					ticket_num_str += ",";
-					ticket_num_str += $("#ct_ticket_number_id" + ind).val();
-				}
+				if (ticket_num_str != '') ticket_num_str += ",";
+				ticket_num_str += $("#ct_ticket_number_id" + ind).val();
 			});
 
 			$.ajax({
