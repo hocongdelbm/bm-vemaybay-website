@@ -2193,6 +2193,8 @@ function custom_get_sip_number($key = '')
 
         // Tiên TĐ
         'c57196c6-e211-9856-43d5-6695498f39ae' => ['user' => '998', 'password' => 'Bhq*B1rWSZ%n!dFEBJ$k'],
+        // BinhLD
+        '6eb3570d-ee8d-d834-c016-6846ed8c8811' => ['user' => '996', 'password' => 'oH.1JxtenKcIbVVnz7N0'],
 
     ];
 

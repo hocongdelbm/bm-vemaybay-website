@@ -679,4 +679,8 @@ $mod_strings = array(
     'LBL_DOMAIN' => 'Domain',
     'LBL_TICKET_TARGET' => 'Chỉ tiêu vé',
 
+    'LBL_TD_SIP' => 'Máy nhánh',
+    'LBL_TD_PASSWORD' => 'Mật khẩu máy nhánh',
+    'LBL_AGENT_STATUS' => 'Trạng thái Agent',
+
 ); // END STRINGS DEFS
