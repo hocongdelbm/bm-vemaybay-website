@@ -93,8 +93,7 @@ function write_file_backup_log_calls($json)
  *
  * @return void
  */
-function agent_change_status($agent, $status)
-{
+function agent_change_status($agent, $status) {
     global $db, $sugar_config;
     $domain = $sugar_config['postgreconfig']['domain_name'] ?? '';
 
@@ -104,39 +103,33 @@ function agent_change_status($agent, $status)
     $array_admin = [
         '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
         '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-        '1', //DDuc
+        '1', //DucPham
     ];
 
-    global $db, $current_user;
     if (empty($agent) || empty($status) || empty($domain)) {
-        $response['success'] = array(
-            'code' => 400,
-            'title' => 'agent status bad request',
-        );
-        echo json_encode($response);
-        exit();
+        return json_encode(['error' => 1, 'httpcode' => 400, 'message' => 'Agent status bad request']);
     }
 
     $agent_domain  = $agent . '@' . $domain;
     $token  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
-    $body_request = array(
+    $body_request = [
         'agent' => $agent_domain,
         'status' => $status,
         'token' => $token,
-    );
+    ];
 
     try {
         $curl = curl_init();
         if ($curl === false) {
-            echo json_encode(array('error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize'));
+            return json_encode(['error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize']);
         }
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL             => "https://" . $domain . "/agent_status/change_status.php",
+            CURLOPT_URL             => "https://$domain/agent_status/change_status.php",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYHOST => false, // Use at localhost
-            CURLOPT_SSL_VERIFYPEER => false, // Use at localhost
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_TIMEOUT        => 0,
             CURLOPT_CUSTOMREQUEST   => 'POST',
             CURLOPT_POSTFIELDS      => $body_request,
@@ -185,7 +178,7 @@ function agent_change_status($agent, $status)
             }
         }
     } catch (Exception $e) {
-        return json_encode(array('error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()));
+        return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
     }
 }
 
