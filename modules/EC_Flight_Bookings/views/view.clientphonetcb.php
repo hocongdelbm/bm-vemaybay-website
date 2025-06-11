@@ -3,12 +3,13 @@ require_once("include/Sugar_Smarty.php");
 
 class Viewclientphonetcb extends SugarView
 {
+
     function display()
     {
         $this->displayStyle();
         $smarty = new Sugar_Smarty();
 
-        // Function to convert date format from dd-mm-yyyy to yyyy-mm-dd
+
         function convertToYMD($dateStr)
         {
             $parts = explode('-', $dateStr); // dd-mm-yyyy
@@ -27,39 +28,51 @@ class Viewclientphonetcb extends SugarView
         // Convert to Y-m-d for filtering
         $fromYMD = !empty($fromDate) ? convertToYMD($fromDate) : '';
         $toYMD   = !empty($toDate)   ? convertToYMD($toDate)   : '';
-
         $fromTimestamp = !empty($fromYMD) ? strtotime($fromYMD) : null;
         $toTimestamp   = !empty($toYMD)   ? strtotime($toYMD)   : '';
 
-        $sources = ['timchuyenbay.vn', 'dailyve.net', 'timchuyenbay.com']; 
+        // Get the source from GET parameter (defaults to first source if not set)
+        $source = isset($_GET['source']) ? $_GET['source'] : 'timchuyenbay.vn';
+        $smarty->assign('source', $source);
+
+        // Array of possible sources
+        $sources = ['timchuyenbay.vn', 'dailyve.net', 'timchuyenbay.com'];
 
         $data = [];
-        foreach ($sources as $source) {
-            $smarty->assign('source', $source);
-
-            $responseData = $this->getDataFromTCB($source);
-
-            if (isset($responseData['status']) && $responseData['status'] === 'success') {
-                $data = array_merge($data, $responseData['data']);
+        foreach ($sources as $currentSource) {
+            if ($currentSource === $source) {
+                $responseData = $this->getDataFromTCB($currentSource);
+                if (isset($responseData['status']) && $responseData['status'] === 'success') {
+                    $data = array_merge($data, $responseData['data']);
+                }
             }
         }
 
-        // Get Zalo ZNS Data
         global $db;
         $zaloZnsQuery = "
-            SELECT parent_id
-            FROM ec_message
+            SELECT send_to, id
+            FROM ec_messages
             WHERE type = 'zalo_zns'
-              AND category = 'customer care'
-              AND parent_type != 'EC_Flight_Bookings'
+            AND category = 'customer_care'
+            AND parent_type != 'EC_Flight_Bookings'
         ";
         $zaloZnsRes = $db->query($zaloZnsQuery);
         $zaloZnsMap = [];
         while ($row = $db->fetchByAssoc($zaloZnsRes)) {
-            $zaloZnsMap[$row['parent_id']] = true;
+            // Map send_to (phone_number) to its corresponding zns_id
+            $zaloZnsMap[$row['send_to']] = $row['id'];
         }
 
-        $minDateAdjusted = time() - 7 * 3600; // Subtract 7 hours for adjusted date
+        // Get Calls Data
+        $minDateEntered = null;
+        foreach ($data as $entry) {
+            $currentDate = strtotime($entry['date_entered']);
+            if ($minDateEntered === null || $currentDate < $minDateEntered) {
+                $minDateEntered = $currentDate;
+            }
+        }
+        $minDateAdjusted = $minDateEntered - 7 * 3600;
+
         $query = "
             SELECT call_to, id, date_modified
             FROM calls
@@ -68,13 +81,11 @@ class Viewclientphonetcb extends SugarView
         ";
 
         $res = $db->query($query);
-
         $callMap = [];
         while ($row = $db->fetchByAssoc($res)) {
             if (!empty($row['call_to'])) {
                 $phone = $row['call_to'];
                 $dateModified = strtotime($row['date_modified']);
-
                 if (!isset($callMap[$phone]) || $dateModified > strtotime($callMap[$phone]['date_modified'])) {
                     $callMap[$phone] = [
                         'id' => $row['id'],
@@ -83,30 +94,37 @@ class Viewclientphonetcb extends SugarView
                 }
             }
         }
-
+        // Get the call_recheck parameter to see if the user has checked the checkbox
+        $callCheck = isset($_GET['call_recheck']) && $_GET['call_recheck'] == 'on';
+        $smarty->assign('callCheck', $callCheck);
         foreach ($data as &$entry) {
-            $phone = $entry['phone_number'];
+            $entry['is_zns'] = isset($zaloZnsMap[$entry['phone_number']]) ? true : false;
 
-            $entry['source'] = isset($source) ? $source : 'Unknown';
+            if ($entry['is_zns']) {
+                $entry['zns_id'] = $zaloZnsMap[$entry['phone_number']];
+            }
 
             $entryDateAdjusted = strtotime($entry['date_entered']) - 7 * 3600;
 
-            $entry['is_zalo_zns'] = isset($zaloZnsMap[$entry['id']]) ? true : false;
-
+            $phone = $entry['phone_number'];
             if (isset($callMap[$phone])) {
                 $callDate = strtotime($callMap[$phone]['date_modified']);
-
-                if ($entryDateAdjusted < $callDate) {
-                    $entry['in_calls'] = true;
-                    $entry['call_id'] = $callMap[$phone]['id'];
-                } else {
-                    $entry['in_calls'] = false;
-                    $entry['call_id'] = '';
-                }
+                $entry['in_calls'] = $entryDateAdjusted < $callDate;
+                $entry['call_id'] = $entry['in_calls'] ? $callMap[$phone]['id'] : '';
             } else {
                 $entry['in_calls'] = false;
                 $entry['call_id'] = '';
             }
+
+            $entry['source'] = isset($source) ? $source : 'Unknown';
+        }
+
+        // Apply the filter if the user has checked the "Chưa gọi" checkbox
+        if ($callCheck) {
+            // Filter the data to only include entries where `in_calls` is false (not called)
+            $data = array_filter($data, function ($entry) {
+                return !$entry['in_calls']; // Only include entries where in_calls is false
+            });
         }
         unset($entry);
 
@@ -120,7 +138,6 @@ class Viewclientphonetcb extends SugarView
             $data = array_values($data);
         }
 
-        // Pagination logic
         $page = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
         $perPage = 50;
         $totalRows = count($data);
@@ -128,12 +145,20 @@ class Viewclientphonetcb extends SugarView
         $start = ($page - 1) * $perPage;
         $pagedData = array_slice($data, $start, $perPage);
 
-        // Pagination URLs
         $baseUrl = 'index.php?module=EC_Flight_Bookings&action=clientphonetcb';
-        if (!empty($fromDate)) $baseUrl .= '&from_date=' . urlencode($fromDate);
-        if (!empty($toDate))   $baseUrl .= '&to_date=' . urlencode($toDate);
-        if (!empty($source))   $baseUrl .= '&source=' . urlencode($source);
 
+        if ($fromDate !== '' && $fromDate !== null) {
+            $baseUrl .= '&from_date=' . urlencode($fromDate);
+        }
+        if ($toDate !== '' && $toDate !== null) {
+            $baseUrl .= '&to_date=' . urlencode($toDate);
+        }
+
+
+        if (!empty($source))   $baseUrl .= '&source=' . urlencode($source);
+        if (isset($_GET['call_recheck']) && $_GET['call_recheck'] == 'on') {
+            $baseUrl .= '&call_recheck=on'; // Add call_recheck to the URL if the checkbox is checked
+        }
         $pageData = [
             'urls' => [
                 'startPage' => $page > 1 ? $baseUrl . '&page=1' : '',
