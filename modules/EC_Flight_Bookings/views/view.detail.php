@@ -66,7 +66,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.6"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.98"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3"></script>
@@ -77,15 +77,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			var win_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '0')) . '";
 			var lose_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '1')) . '";
 			var domestic_airport_lst = ["' . implode('","', array_keys($app_list_strings['domestic_airport_list'])) . '"];
-
 			let bba_ticket_class = ["Eco Saver max", "Eco Saver", "Eco Smart", "Eco Flex", "Pre smart", "Pre Flex", "Buz smart", "Buz Flex"];
 			let vja_ticket_class = ["Eco", "Eco1", "B1 Eco", "W1 Eco", "E1 Eco", "R1 Eco"];
 			let vna_ticket_class = ["Economy (EL)-Q", "Economy (EP)-A", "Economy (EL)-R", "Economy (EL)-C", "Economy (EC)-K", "Economy (EL)-T", "Economy (EL)-N", "Economy (EL)-E", "Economy (EP)-E", "Economy (EP)-P", "E", "A", "Economy (EC)-L"];
 			let vta_ticket_class = ["Dregow (D)", "Cregow (C)", "Bregow (B)", "Aregow (A)", "Eregow (E)", "Kregow (K)", "Hregow (H)", "Mregow (M)", "Nfleow (N)", "Lregow (L)", "Vfleow (V)", "Yfleow (Y)"];
 			const all_ticket_class = [].concat(bba_ticket_class, vja_ticket_class, vna_ticket_class, vta_ticket_class);
-
 			const current_user_title = "' . trim($current_user->title) . '";
-
 			const is_invoice_export = "' . $this->bean->is_invoice_export . '";
 			const is_invoice_input_export = "' . $this->bean->is_invoice_input_export . '";
 		</script>';
@@ -97,7 +94,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			function checkIsCreatedRV() {
 				if(' . $this->_is_had_rv . ' != 1 && ' . $this->bean->is_agent . ' != 1) {
 					$("#frmCheckIsPaid").addClass("error unerror");
-
 					let text_warning = "Bạn phải tạo phiếu thu trước.";
 					showToastWarning(text_warning);
 					return false;
@@ -485,7 +481,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			} else $bk_stt = '';
 
 			$is_paid = '</form>
-			<form class="frmBookingStatus d-flex align-items-center gap-1" action="index.php" method="post" name="frmCheckIsPaid" id="frmCheckIsPaid" onsubmit="return checkIsCreatedRV()">
+			<form name="frmCheckIsPaid" id="frmCheckIsPaid" action="index.php" method="post" class="frmBookingStatus d-flex align-items-center gap-1" onsubmit="return checkIsCreatedRV()">
 			  	<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
 			  	<input type="hidden" name="action" value="Save" />
 			  	<input type="hidden" name="record" value="' . $this->bean->id . '" />

@@ -283,12 +283,16 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         
                 $contact_id = $found_ids[0]; 
                 if (count($found_ids) > 1) {
-                    // Thông báo TELEGRAM LIÊN HỆ BỊ TRÙNG SỐ ĐIỆN THOẠI / ZALOID
-                    $content = "<b>Có nhiều hơn 1 liên hệ trùng thông tin</b>\n";
-                    $content .= "\nSố điện thoại: <b>$phone</b>";
-                    $content .= "\nZaloID: <b>$zalo_id</b>";
-                    $content .= "\nCall_ID: <b>$call_id</b>";
-                    $objZalo->send_to_telegram($content);
+                    $content = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
+                    $content .= "\nSố điện thoại: **$phone**";
+                    $content .= "\nZaloID: **$zalo_id**";
+                    $content .= "\nCall_ID: **$call_id**";
+                    $metadata = [
+                        "priority" => [
+                            "priority" => "important",
+                        ]
+                    ];
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content, [], $metadata);
                 }
             }
         }
@@ -523,7 +527,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     if (empty($objZalo->get_phone_by_alias($arr['data']['user_alias']))) {
                         $data['element'] = $objZalo->get_template('request_user_info');
                         $objZalo->send_consultation('request_user_info', $zalo_id, $data);
-                        $objZalo->send_to_telegram('Gửi yêu cầu thông tin đến Zalo <b>' . $zalo_id . '</b>');
+                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
                     }
                 }
             }

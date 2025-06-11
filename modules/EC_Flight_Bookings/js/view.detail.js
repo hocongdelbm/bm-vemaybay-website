@@ -695,13 +695,13 @@ $(document).ready(function () {
 		$(this).attr("disabled", "disabled");
 		var frmSaveWorkingProcess = $('#frmSaveWorkingProcess').val();
 
-		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="booking_status"]').val() == '8') {
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="lydothangthua_id"]').val($('input:radio[name="radWinLoseReason"]:checked').val());
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="ghichuthangthua"]').val($.trim($('#txtWorkingProcessNote').val()));
+		if ($(`#${frmSaveWorkingProcess} input:hidden[name="booking_status"]`).val() == '8') {
+			$(`#${frmSaveWorkingProcess} input:hidden[name="lydothangthua_id"]`).val($('input:radio[name="radWinLoseReason"]:checked').val());
+			$(`#${frmSaveWorkingProcess} input:hidden[name="ghichuthangthua"]`).val($.trim($('#txtWorkingProcessNote').val()));
 		}
 
-		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').length > 0) {
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').val($.trim($('#txtBonus').val()));
+		if ($(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).length > 0) {
+			$(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).val($.trim($('#txtBonus').val()));
 		}
 
 		// Kiểm tra diễn giải phải dài hơn 30 ký tự và tối đa 200 ký tự, không tính khoảng trắng, chấm và phẩy
@@ -723,7 +723,7 @@ $(document).ready(function () {
 			$('.modal-overlay, .btn-modal-close').addClass('reload');
 		}
 		else {
-			var save_post_data = $('#' + frmSaveWorkingProcess).serialize();
+			var save_post_data = $(`#${frmSaveWorkingProcess}`).serialize();
 			save_post_data += '&txtWorkingProcessNote=' + $.trim($('#txtWorkingProcessNote').val());
 
 			$.ajax({
@@ -737,7 +737,7 @@ $(document).ready(function () {
 				success: function (res) {
 					res = parseInt(res);
 					if (res == 1) {
-						$('#' + frmSaveWorkingProcess).unbind('submit');
+						$(`#${frmSaveWorkingProcess}`).unbind('submit');
 						event.preventDefault();
 						$('.container-waiting').show();
 						location.reload();

@@ -1,12 +1,12 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-$GLOBALS['current_user']->retrieve($_SESSION['authenticated_user_id']);
-$GLOBALS['current_language'] = $_SESSION['authenticated_user_language'];
-$app_strings = return_application_language($GLOBALS['current_language']);
-$mod_strings = return_module_language($GLOBALS['current_language'], 'ACL');
-
-global $app_list_strings, $app_strings, $mod_strings, $db, $current_user;
+// $GLOBALS['current_user']->retrieve($_SESSION['authenticated_user_id']);
+// $GLOBALS['current_language'] = $_SESSION['authenticated_user_language'];
+// $app_strings = return_application_language($GLOBALS['current_language']);
+// $mod_strings = return_module_language($GLOBALS['current_language'], 'ACL');
+// global $app_list_strings, $app_strings, $mod_strings, $db, $current_user;
+global $db, $current_user;
 
 if (!empty($_SESSION['authenticated_user_id'])) {
 	$module 					= trim($_POST['module']);
@@ -29,9 +29,9 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 		// Kiểm tra đối với trường hợp booking đã gọi, chỉ tính 1 lần
 		if ($booking_status == '6') {
-			$sql_exist = 'SELECT IF(id IS NOT NULL, 1, 0) 
-						  FROM ec_working_process
-						  WHERE parent_id = "'.$record.'" deleted = 0 AND called > 0';
+			$sql_exist = "SELECT IF(id IS NOT NULL, 1, 0) 
+						FROM ec_working_process
+						WHERE parent_id = '$record' AND deleted = 0 AND called > 0";
 
 			$is_exist = $db->getOne($sql_exist);
 			if ($is_exist) {
@@ -43,9 +43,9 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		// Kiểm tra đối với trường hợp booking đã thanh toán, chỉ tính 1 lần
 		if (!is_null($is_paid) && $is_paid != 0) {
 			// Kiểm tra đã tồn tại
-			$sql_exist = 'SELECT IF(id IS NOT NULL, 1, 0) 
-						  FROM ec_working_process 
-						  WHERE parent_id = "' . $record . '" AND paid > 0 AND deleted = 0';
+			$sql_exist = "SELECT IF(id IS NOT NULL, 1, 0) 
+						FROM ec_working_process 
+						WHERE parent_id = '$record' AND paid > 0 AND deleted = 0";
 
 			$is_exist = $db->getOne($sql_exist);
 			if ($is_exist) {
@@ -57,7 +57,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		// Save note in db
 		if (!empty($txtWorkingProcessNote)) {
 			$note = new Note();
-			$note->id 			= '';
+			$note->id = '';
 			$note->name 			= $record_name;
 			$note->description 		= $txtWorkingProcessNote;
 			$note->parent_type 		= $module;
@@ -95,8 +95,9 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 				// Update booking description
 				$update = "UPDATE ec_flight_bookings 
-						   SET is_paid = 1, description = CONCAT(IFNULL(description, ''), IF(description IS NOT NULL AND description <> '', ', ', ''), '" . $txtWorkingProcessNote . "') 
-						   WHERE id = '" . $record . "' ";
+						SET is_paid = 1
+							,description = CONCAT(IFNULL(description, ''), IF(description IS NOT NULL AND description <> '', ', ', ''), '$txtWorkingProcessNote') 
+						WHERE id = '$record' AND deleted = 0";
 				$db->query($update);
 			} 
 			else if (!is_null($is_invoice_export) && $is_invoice_export == 1) {
@@ -110,8 +111,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			else if ($booking_status == '4' && !empty($txtWorkingProcessNote)) {
 				// Update booking description when cancel or complete
 				$update = "UPDATE ec_flight_bookings 
-						   SET description = '" . $txtWorkingProcessNote . "'
-						   WHERE id = '" . $record . "' ";
+						   SET description = '$txtWorkingProcessNote'
+						   WHERE id = '$record'";
 				$db->query($update);
 			} 
 			else {
@@ -148,9 +149,9 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			if (!empty($work->id)) {
 				// Kiểm tra nếu booking hoàn tất thì recheck x2
 				if(!is_null($booking_status) && $booking_status == '8'){
-					$sql_udt_recheck = 'UPDATE ec_working_process 
+					$sql_udt_recheck = "UPDATE ec_working_process 
 									SET recheck = IF(recheck > 0, 2, recheck) 
-									WHERE parent_id = "' . $record . '" AND deleted = 0';
+									WHERE parent_id = '$record' AND deleted = 0";
 					$db->query($sql_udt_recheck);
 				}
 
@@ -201,11 +202,11 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 							// Update point to contact
 							$point = calculatePointsFromBooking($record);
 							if($point > 0) {
-								$sql_update_point = "UPDATE contacts SET points = points + $point WHERE id = '$con_id'";
+								$sql_update_point = "UPDATE contacts SET points = points + $point WHERE id = '$con_id' AND deleted = 0";
 								$db->query($sql_update_point);
 
 								// Get total point
-								$sql = "SELECT points FROM contacts WHERE id = '$con_id'";
+								$sql = "SELECT points FROM contacts WHERE id = '$con_id' AND deleted = 0";
 								$total_point = $db->getOne($sql);
 
 								// Record point log
@@ -252,17 +253,17 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									$arr = json_decode($json, true);
 
 									if(isset($arr['error']) && $arr['error'] == 0) {
-										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
-										$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nSố điện thoại: <b>$con_phone</b>";
-										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
-										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
-										$Zalo->send_to_telegram($content);
+										$content = "**(AUTO) TIN NHẮN TÍCH ĐIỂM**";
+										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
+										$content .= "- Booking: **$record_name**\n";
+										$content .= "- Số điện thoại: **$con_phone**\n";
+										$content .= "- Điểm cộng thêm: **$point điểm**\n";
+										$content .= "- Tổng tích lũy: **$total_point điểm**";
+										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
 									}
 									else {
 										$content = Mattermost::$line_separation;
-										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation message to Zalo ID\n");
+										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation message to Zalo ID");
 										$content .= "\nBooking: **$record_name**";
 										$content .= "\nPhone: **$con_phone**";
 										$content .= "\nZalo ID: **$con_zalo_id**";
@@ -272,7 +273,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
 									}
 								}
-								else {
+								else if(5 < date('H') && date('H') < 22) {
 									$template_id = $Zalo->get_template_id_zns('points');
 									$template_data = json_encode([
 										"point" => $point,
@@ -299,17 +300,17 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$m->cost            = 220;
 										$m->save();
 
-										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>\n";
-										$content .= "Đã gửi tin nhắn tích điểm đến khách hàng qua ZNS\n";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nSố điện thoại: <b>$con_phone</b>";
-										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
-										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
-										$Zalo->send_to_telegram($content);
+										$content = "**(AUTO) TIN NHẮN TÍCH ĐIỂM**";
+										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua ZNS\n";
+										$content .= "- Booking: **$record_name**\n";
+										$content .= "- Số điện thoại: **$con_phone**\n";
+										$content .= "- Điểm cộng thêm: **$point điểm**\n";
+										$content .= "- Tổng tích lũy: **$total_point điểm**";
+										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
 									}
 									else {
 										$content = Mattermost::$line_separation;
-										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation ZNS message\n");
+										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation ZNS message");
 										$content .= "\nBooking: **$record_name**";
 										$content .= "\nPhone: **$con_phone**";
 										$content .= "\nExtra points: **$point**";
@@ -340,13 +341,10 @@ function update_field_booking($id, $field, $value, $datatype = 'string') {
 	if(is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
 
 	global $db;
-
-	if($datatype == 'string') $value_format = '"'.$value.'"';
-	else $value_format = $value;
- 
-	$sql = 'UPDATE ec_flight_bookings
-			SET '.$field.' = '.$value_format.' 
-			WHERE id = "'. $id .'" AND deleted = 0';
+	$value_format = $datatype == 'string' ? "'$value'" : $value;
+	$sql = "UPDATE ec_flight_bookings
+			SET $field = $value_format
+			WHERE id = '$id' AND deleted = 0";
 
 	$db->query($sql);
 }

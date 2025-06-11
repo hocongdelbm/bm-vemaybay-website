@@ -1310,6 +1310,7 @@ class Zalo {
     }
 
     public function send_to_telegram($content, $parseMode = 'HTML', $timeout = 15) {
+        return false;
         $token  = '6940954517:AAFINEfJWBOcuoThjXNycvNRRZjT3ZgLey8'; // TimChuyenBayOA_bot
         $chatId = '-1002134640739'; // Tìm Chuyến Bay OA Zalo ZNS
     

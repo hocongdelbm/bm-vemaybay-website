@@ -211,7 +211,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
 
                         if($count_contact > 1) {
-                            $ZaloObj->send_to_telegram("Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM");
+                            Mattermost::sendMessage(
+                                $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM**",
+                                [],
+                                ["priority" => [ "priority" => "important"]]
+                            );
                         }
                         else {
                             if(empty($contact_id)) {
@@ -221,7 +226,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                 $db->query($sql);
 
-                                $ZaloObj->send_to_telegram("Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id");
+                                Mattermost::sendMessage(
+                                    $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                    "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
+                                );
                             }
                             elseif(empty($contact_phone)) {
                                 // Cập nhật $zalo_user_id cho contact có $input_phone
@@ -230,7 +238,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                 $db->query($sql);
 
-                                $ZaloObj->send_to_telegram("Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id");
+                                Mattermost::sendMessage(
+                                    $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                    "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (contact id)**",
+                                    [],
+                                    ["priority" => [ "priority" => "important"]]
+                                );
                             }
                             elseif(!empty($contact_phone) && $contact_phone != $input_phone) {
                                 // Get zalo phone
@@ -254,7 +267,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                             WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                         $db->query($sql_2);
 
-                                        $ZaloObj->send_to_telegram("Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id");
+                                        Mattermost::sendMessage(
+                                            $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                            "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
+                                        );
                                     }
                                 }
                             }

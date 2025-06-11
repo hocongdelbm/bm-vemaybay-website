@@ -561,8 +561,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
             }
             
-            $fullname = $current_user->last_name.' '.$current_user->first_name;
-            $Zalo->send_to_telegram("<b>".$fullname.'</b>: Gửi '.$Zalo->get_template_name_zns($template_id).' đến Zalo <b>' . $phone .'</b>');
+            $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo **$phone**");
 
             echo json_encode([
                 "error"   => 0,

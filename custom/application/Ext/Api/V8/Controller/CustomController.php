@@ -487,7 +487,7 @@ class CustomController extends BaseController
                     Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
                 
-                // $Zalo->send_to_telegram("<b>Hệ thống</b>: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo <b>$phone</b>");
+                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**Hệ thống**: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo **$phone**");
                 return $response->withJson([
                     "error"   => false,
                     "message" => "Success",
