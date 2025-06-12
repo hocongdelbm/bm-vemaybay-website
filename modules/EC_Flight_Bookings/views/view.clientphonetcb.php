@@ -36,7 +36,7 @@ class Viewclientphonetcb extends SugarView
     //     $smarty->assign('source', $source);
 
     //     // Array of possible sources
-    //     $sources = ['timchuyenbay.vn', 'dailyve.net', 'timchuyenbay.com'];
+    //     $sources = ['timchuyenbay.vn', 'vietjet.net', 'timchuyenbay.com'];
 
     //     $data = [];
 
@@ -270,7 +270,7 @@ class Viewclientphonetcb extends SugarView
         $smarty->assign('source', $source);
 
         // Possible sources
-        $sources = ['timchuyenbay.vn', 'dailyve.net', 'timchuyenbay.com'];
+        $sources = ['timchuyenbay.vn', 'vietjet.net', 'timchuyenbay.com'];
 
         // Get the current page and calculate offset
         $page = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
@@ -487,12 +487,12 @@ class Viewclientphonetcb extends SugarView
         $url = '';
         if ($source === 'timchuyenbay.vn') {
             $url = 'https://timchuyenbay.vn/api';
-        } elseif ($source === 'dailyve.net') {
-            $url = 'https://dailyve.net/api';
+        } elseif ($source === 'vietjet.net') {
+            $url = 'https://vietjet.net/api';
         } elseif ($source === 'timchuyenbay.com') {
             $url = 'https://timchuyenbay.com/api';
         } else {
-            $url = 'https://dailyve.net/api'; // Default fallback
+            $url = 'https://vietjet.net/api'; // Default fallback
         }
 
         if ($fromDate === '') {
@@ -562,12 +562,12 @@ class Viewclientphonetcb extends SugarView
     //     $url = '';
     //     if ($source === 'timchuyenbay.vn') {
     //         $url = 'https://timchuyenbay.vn/api';
-    //     } elseif ($source === 'dailyve.net') {
-    //         $url = 'https://dailyve.net/api';
+    //     } elseif ($source === 'vietjet.net') {
+    //         $url = 'https://vietjet.net/api';
     //     } elseif ($source === 'timchuyenbay.com') {
     //         $url = 'https://timchuyenbay.com/api';
     //     } else {
-    //         $url = 'https://dailyve.net/api'; // Default fallback
+    //         $url = 'https://vietjet.net/api'; // Default fallback
     //     }
     //     if ($fromDate === '') {
     //         $fromDate = date('d-m-Y');

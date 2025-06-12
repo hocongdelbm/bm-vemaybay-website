@@ -5,7 +5,7 @@
 
     <select class="source box-select" name="source">
         <option value="timchuyenbay.vn" {if $source eq "timchuyenbay.vn"}selected{/if}>timchuyenbay.vn</option>
-        <option value="dailyve.net" {if $source eq "dailyve.net"}selected{/if}>dailyve.net</option>
+        <option value="vietjet.net" {if $source eq "vietjet.net"}selected{/if}>vietjet.net</option>
         <option value="timchuyenbay.com" {if $source eq "timchuyenbay.com"}selected{/if}>timchuyenbay.com</option>
     </select>
     <button type="submit" class="btn btn-primary">Chọn Site</button>
