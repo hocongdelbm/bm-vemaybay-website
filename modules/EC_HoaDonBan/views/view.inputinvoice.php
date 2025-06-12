@@ -94,8 +94,6 @@ class Viewinputinvoice extends SugarView
 
     function updateInvoiceData($post_fields)
     {
-        pr($post_fields);
-        exit;
         // Lưu lại thông tin giá vốn mới
         if (isset($post_fields['confirmed'])) {
             $bk_arr = array();
@@ -290,7 +288,7 @@ class Viewinputinvoice extends SugarView
         $res = $this->bean->db->query($sql);
         $row = $this->bean->db->fetchByAssoc($res);
 
-        return array(
+        return [
             'total_qty'         => (int)$row['total_qty'],
             'total_export'      => (int)$row['total_export'],
             'total_left'        => (int)($row['total_qty'] - $row['total_export']),
@@ -300,7 +298,7 @@ class Viewinputinvoice extends SugarView
             'total_authorized'  => (int)$row['total_authorized'],
             'total'             => (int)$row['total_cost_vat'] + $row['total_authorized'],
             'row_num'           => (int)$row['row_num'],
-        );
+        ];
     }
 
     function showData($request_fields)
@@ -578,7 +576,7 @@ class Viewinputinvoice extends SugarView
 
             // Lưu trữ file tải lên vào đường dẫn cache/upload/inputinvoices/
             $fileName = $this->sys_uploads('cache/upload/inputinvoices/', 'from_file', $file_type);
-            $data_arr = array('ticket_code', 'pass_qty', 'itinerary', 'ticket_price');
+            $data_arr = ['ticket_code', 'pass_qty', 'itinerary', 'ticket_price'];
 
             // Nếu là VJA thì thêm cột thu hộ, cột vat
             if ($post_fields['supplier'] == 'VJA') {
@@ -671,23 +669,29 @@ class Viewinputinvoice extends SugarView
     {
         $data = '';
         if (!empty($col_letter)) {
+            /**
+             * Use getValue() for return formula
+             * Use getCalculatedValue() for return value
+             */
+
             if (strpos($col_letter, ',') !== false) {
                 $cols = explode(',', $col_letter);
                 foreach ($cols as $c) {
                     $cell = $sheet->getCell($c . $ln);
-                    $cell_val = $cell->getValue();
+                    // $cell_val = $cell->getValue();
+                    $cell_val = $cell->getCalculatedValue();
                     if (!empty($cell_val)) {
                         $data = trim($cell_val);
                     }
                 }
             } else {
                 $cell = $sheet->getCell($col_letter . $ln);
-                $data = trim($cell->getValue());
+                // $data = trim($cell->getValue());
+                $data = trim($cell->getCalculatedValue());
             }
         }
 
         $data = str_replace("'", '', $data);
-
         return $data;
     }
 
@@ -1030,7 +1034,38 @@ class Viewinputinvoice extends SugarView
     {
         global $db;
 
-        if ($supplier != 'VJA') {
+        if ($supplier == 'VJA') {
+            $sql = '
+                SELECT p.booking_id
+                FROM ec_booking_passengers p 
+                    INNER JOIN ec_flight_bookings b ON b.id = p.booking_id AND b.deleted = 0
+                        AND b.booking_status = 8
+                WHERE p.deleted = 0 
+                    AND (
+                        TRIM(eticket_outbound) LIKE "' . $data_arr['ticket_code'] . '%"
+                        OR TRIM(eticket_inbound) LIKE "' . $data_arr['ticket_code'] . '%"
+                    ) LIMIT 1';
+            $res = $this->bean->db->query($sql);
+            $row = $this->bean->db->fetchByAssoc($res);
+            $data_arr['booking_id'] = $row['booking_id'];
+        }
+        elseif($supplier == 'PNA') {
+            $sql = "SELECT p.booking_id
+                FROM ec_booking_passengers p 
+                    INNER JOIN ec_flight_bookings b ON b.id = p.booking_id
+                        AND b.deleted = 0
+                        AND b.booking_status = 8
+                WHERE p.deleted = 0 
+                    AND (
+                        TRIM(p.eticket_outbound) = '". $data_arr['ticket_code'] ."'
+                        OR TRIM(p.eticket_inbound) = '". $data_arr['ticket_code'] ."'
+                    )
+                LIMIT 1";
+            $res = $this->bean->db->query($sql);
+            $row = $this->bean->db->fetchByAssoc($res);
+            $data_arr['booking_id'] = $row['booking_id'];
+        }
+        else {
             // Tính sl khách
             // Tuỳ hãng trong hoá đơn sẽ gộp số vé hay không
             // Nghĩa là 1 số vé dùng cho nhiều khách
@@ -1305,20 +1340,6 @@ class Viewinputinvoice extends SugarView
                 $data_arr['pass_qty'] = 1;
                 $data_arr['is_other_fee'] = 1;
             }
-        } else {
-            $sql = '
-                SELECT p.booking_id
-                FROM ec_booking_passengers p 
-                    INNER JOIN ec_flight_bookings b ON b.id = p.booking_id AND b.deleted = 0
-                        AND b.booking_status = 8
-                WHERE p.deleted = 0 
-                    AND (
-                        TRIM(eticket_outbound) LIKE "' . $data_arr['ticket_code'] . '%"
-                        OR TRIM(eticket_inbound) LIKE "' . $data_arr['ticket_code'] . '%"
-                    ) LIMIT 1';
-            $res = $this->bean->db->query($sql);
-            $row = $this->bean->db->fetchByAssoc($res);
-            $data_arr['booking_id'] = $row['booking_id'];
         }
 
         return $data_arr;
