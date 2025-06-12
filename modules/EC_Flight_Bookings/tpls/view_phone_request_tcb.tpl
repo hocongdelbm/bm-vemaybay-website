@@ -93,14 +93,13 @@
     <table class="table">
         <thead>
             <tr>
-                <th scope="col">STT</th>
-                <th scope="col">Số ĐT</th>
-                <th scope="col">Site</th>
-                <th scope="col">Voucher</th>
-                <th scope="col">Ngày Đăng Kí</th>
-                <th scope="col">Đã gửi SMS Zalo</th>
-                <th scope="col">Đã gọi</th>
-                <th scope="col">Dùng voucher</th>
+                <th scope="col" style="width: 10%;">STT</th>
+                <th scope="col" style="width: 20%;">Số ĐT</th>
+                <th scope="col" style="width: 20%;">Booking</th>
+                <th scope="col" style="width: 10%;">Voucher</th>
+                <th scope="col" style="width: 20%;">Ngày Đăng Kí</th>
+                <th scope="col" style="width: 10%;">Gửi Zalo</th>
+                <th scope="col" style="width: 10%;">Đã gọi</th>
             </tr>
         </thead>
         <tbody>
@@ -110,7 +109,22 @@
                 <tr>
                     <th scope="row">{$counter}</th>
                     <td>{$row.phone_number}</td>
-                    <td>{$row.source}</td>
+                    <td>
+                        {if isset($row.booking_name) && $row.booking_name !== ''}
+                            <a
+                                href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record={$row.booking_id}">
+                                {$row.booking_name}
+                            </a>
+
+                            {if $row.is_used != '1'}
+                                (Tham khảo)
+                            {/if}
+
+                        {/if}
+                    </td>
+
+
+                    {* <td>{$row.source}</td> *}
                     <td>{$row.discount_value|default:'0'}</td>
                     <td>{$row.date_entered|date_format:"%H:%M %d/%m/%Y"}</td>
                     {* <td>{if $row.is_zns == '1'}✅{else}❌{/if}</td> *}
@@ -130,7 +144,6 @@
                             ❌
                         {/if}
                     </td>
-                    <td>{if $row.is_used == '1'}✅{else}❌{/if}</td>
                 </tr>
             {/foreach}
 
