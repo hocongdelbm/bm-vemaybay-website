@@ -23,11 +23,6 @@
         #data_tbl thead tr.line_2 th {
             position: sticky;
         }
-/* 
-        #data_tbl tbody tr:hover
-        , #data_tbl thead tr.line_2:hover {
-            background-color: #cfeafe;
-        } */
 
         #data_tbl .available {
             font-weight: bold;
@@ -593,7 +588,7 @@
                                             <option value="VTA" data-ticket-code="B" data-pass-qty="" data-itinerary="C,D" data-ticket-price="G">Vietravel</option>
                                             <option value="HNH" data-ticket-code="B" data-pass-qty="F,G" data-itinerary="C" data-ticket-price="H,I">Hồng Ngọc Hà</option>
                                             <option value="TH" data-ticket-code="B" data-pass-qty="D" data-itinerary="B" data-ticket-price="E">Thành Hoàng</option>
-                                            <option value="PNA" data-ticket-code="B,C,D" data-pass-qty="F" data-itinerary="B,C,D" data-ticket-price="G,H">Phương Nam</option>
+                                            <option value="PNA" data-ticket-code="C" data-pass-qty="F" data-itinerary="D" data-ticket-price="H">Phương Nam</option>
                                         </select>
                                         <input type="hidden" name="supplier_name" id="supplier_name" value="VietjetAir">
                                     </td>

@@ -94,7 +94,8 @@ class Viewinputinvoice extends SugarView
 
     function updateInvoiceData($post_fields)
     {
-
+        pr($post_fields);
+        exit;
         // Lưu lại thông tin giá vốn mới
         if (isset($post_fields['confirmed'])) {
             $bk_arr = array();
@@ -572,13 +573,12 @@ class Viewinputinvoice extends SugarView
         global $current_user;
 
         if ($_FILES['from_file']['name'] != '') {
-
             $path_parts = pathinfo($_FILES["from_file"]["name"]);
-            $file_type  = $path_parts['extension'];
+            $file_type = $path_parts['extension'];
 
             // Lưu trữ file tải lên vào đường dẫn cache/upload/inputinvoices/
-            $fileName   = $this->sys_uploads('cache/upload/inputinvoices/', 'from_file', $file_type);
-            $data_arr   = array('ticket_code', 'pass_qty', 'itinerary', 'ticket_price');
+            $fileName = $this->sys_uploads('cache/upload/inputinvoices/', 'from_file', $file_type);
+            $data_arr = array('ticket_code', 'pass_qty', 'itinerary', 'ticket_price');
 
             // Nếu là VJA thì thêm cột thu hộ, cột vat
             if ($post_fields['supplier'] == 'VJA') {
@@ -598,12 +598,11 @@ class Viewinputinvoice extends SugarView
             $accounting_date    = $post_fields['accounting_date'];
 
             if (!empty($fileName)) {
-                if ($file_type == 'xls') {
-
+                if (in_array($file_type, ['xls', 'xlsx'])) {
                     $objReader      = new Spreadsheet();
-                    $objReader      = IOFactory::load('cache/upload/inputinvoices/' . $fileName);
+                    $objReader      = IOFactory::load("cache/upload/inputinvoices/$fileName");
                     $sheet          = $objReader->getActiveSheet();
-                    $array_data     = array();
+                    $array_data     = [];
 
                     $k = 0;
                     for ($i = 1; $i <= $sheet->getHighestRow(); $i++) {
@@ -642,7 +641,8 @@ class Viewinputinvoice extends SugarView
                     $err = $this->insertData($array_data);
                     header("Location: index.php?module=EC_HoaDonBan&action=inputinvoice&preview&supplier=" . $post_fields['supplier'] . "&supplier_name=" . $post_fields['supplier_name'] . "&invoice_number=" . trim($post_fields['invoice_number']) . "&invoice_serial=" . trim($post_fields['invoice_serial']) . "&invoice_date=" . trim($post_fields['invoice_date']) . "&status=0" . $err);
                     exit;
-                } else {
+                }
+                else {
                     header("Location: index.php?module=EC_HoaDonBan&action=Error&error_string=" . urlencode("Đuôi file excel phải là .xls"));
                     exit;
                 }
@@ -655,11 +655,13 @@ class Viewinputinvoice extends SugarView
                 //     echo "Định dạng file không được hỗ trợ!!!";
                 //     exit;
                 // }
-            } else {
+            }
+            else {
                 header("Location: index.php?module=EC_HoaDonBan&action=Error&error_string=" . urlencode("Vui lòng đặt lại tên file excel."));
                 exit;
             }
-        } else {
+        }
+        else {
             header("Location: index.php?module=EC_HoaDonBan&action=Error&error_string=" . urlencode("Chưa có thông tin file import. Vui lòng import lại"));
             exit;
         }
@@ -717,7 +719,6 @@ class Viewinputinvoice extends SugarView
             if (!$is_exist && !empty($data[$i]['booking_id']) && $data[$i]['pass_qty'] > 0) {
 
                 $input_iv = new EC_Input_Invoices;
-
                 $input_iv->name                 = $data[$i]['ticket_code'];
                 $input_iv->assigned_user_id     = $current_user->id;
                 $input_iv->qty                  = $data[$i]['pass_qty'];
@@ -748,7 +749,7 @@ class Viewinputinvoice extends SugarView
                     else {
                         // Cột giá vốn trước vat là tổng tiền của các phí chịu vat
                         // Cột phí thu hộ là tổng tiền của các phí không chịu vat
-                        $spe_airline = array('VNA', 'HNH', 'TH');
+                        $spe_airline = ['VNA', 'HNH', 'TH'];
                         if (in_array($input_iv->supplier, $spe_airline)) {
                             // Tính phí thu hộ
                             // NCC có phí thu hộ = phí admin + phí sân bay
@@ -768,7 +769,8 @@ class Viewinputinvoice extends SugarView
                         // Tính vat
                         $input_iv->vat = $input_iv->cost - $input_iv->cost_no_vat;
                     }
-                } else {
+                }
+                else {
                     $input_iv->authorized_fee   = $data[$i]['authorized_collection'];
                     $input_iv->vat              = $data[$i]['vat'];
                     $input_iv->cost_no_vat      = $data[$i]['ticket_price'];
@@ -781,16 +783,20 @@ class Viewinputinvoice extends SugarView
                 }
 
                 $input_iv->save2();
-            } else if ($is_exist) {
+            }
+            else if ($is_exist) {
                 if (!empty($is_exist_err)) $is_exist_err .= ",";
                 $is_exist_err .= $data[$i]['ticket_code'];
-            } else if (empty($data[$i]['booking_id'])) {
+            }
+            else if (empty($data[$i]['booking_id'])) {
                 if (!empty($missing_bk_err)) $missing_bk_err .= ",";
                 $missing_bk_err .= $data[$i]['ticket_code'];
-            } else if ($data[$i]['pass_qty'] == 0) {
+            }
+            else if ($data[$i]['pass_qty'] == 0) {
                 if (!empty($missing_qty_err)) $missing_qty_err .= ",";
                 $missing_qty_err .= $data[$i]['ticket_code'];
-            } else {
+            }
+            else {
                 if (!empty($other_err)) $other_err = ",";
                 $other_err .= $data[$i]['ticket_code'];
             }
