@@ -2,6 +2,10 @@ $(document).ready(function () {
     // những input chỉ cho nhập số và format currency
     $(".allow_number_only").number(true, 0, dec_sep, num_grp_sep);
 
+    // Default current date
+    if($('input[name="accounting_date"]').val().length < 10) $('input[name="accounting_date"]').val(getCurrentDate());
+    if($('input[name="invoice_date"]').val().length < 10) $('input[name="invoice_date"]').val(getCurrentDate());
+
     $("#supplier").change(function () {
         $("#ticket_code").val($(this).children("option:selected").attr("data-ticket-code"));
         $("#pass_qty").val($(this).children("option:selected").attr("data-pass-qty"));
@@ -530,4 +534,12 @@ function markInvRowDeleted(ln) {
 
     markInvOrder();
     calculateInvTotal();
+}
+
+function getCurrentDate() {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0'); // Day with leading zero
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Month (0-based)
+    const yyyy = today.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
 }

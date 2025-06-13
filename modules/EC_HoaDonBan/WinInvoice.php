@@ -127,11 +127,11 @@ class WinInvoice extends InvoiceLogs
             CURLOPT_TIMEOUT         => $this->TIMEOUT,
             CURLOPT_CUSTOMREQUEST   => 'POST',
             CURLOPT_HTTPHEADER      => $this->header(),
-            CURLOPT_POSTFIELDS      => json_encode($post_data),
+            CURLOPT_POSTFIELDS      => json_encode($post_data, JSON_UNESCAPED_UNICODE),
 
         ));
         $json = curl_exec($curl);
-        $this->log(json_encode($post_data) . "   " . $json, 'info', $url);
+        $this->log(json_encode($post_data, JSON_UNESCAPED_UNICODE) . "   " . $json, 'info', $url);
         if (curl_errno($curl)) {
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $error_msg = curl_error($curl);
@@ -224,11 +224,11 @@ class WinInvoice extends InvoiceLogs
             CURLOPT_TIMEOUT         => $this->TIMEOUT,
             CURLOPT_CUSTOMREQUEST   => 'POST',
             CURLOPT_HTTPHEADER      => $this->header(),
-            CURLOPT_POSTFIELDS      => json_encode($post_data),
+            CURLOPT_POSTFIELDS      => json_encode($post_data, JSON_UNESCAPED_UNICODE),
 
         ));
         $json = curl_exec($curl);
-        $this->log(json_encode($post_data) . "   " . $json, 'info', $url);
+        $this->log(json_encode($post_data, JSON_UNESCAPED_UNICODE) . "   " . $json, 'info', $url);
         if (curl_errno($curl)) {
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $error_msg = curl_error($curl);

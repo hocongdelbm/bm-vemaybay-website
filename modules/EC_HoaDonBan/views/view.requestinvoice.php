@@ -89,21 +89,21 @@ class Viewrequestinvoice extends SugarView {
             $inv_address_html = !empty($inv_address) ? $this->renderItem('Địa chỉ', $inv_address) : '';
             // Thanh toán
             $inv_bank_account = $inv_arr['iv_bank_account'] ?? '';
-            $inv_payment_method = mb_convert_encoding($inv_arr['iv_payment_method'], 'UTF-8', 'HTML-ENTITIES');
-            switch($inv_payment_method) {
-                case 'Tiền mặt':
-                    $payment_method = 'TM';
-                    break;
-                case 'Chuyển khoản':
-                    $payment_method = 'CK';
-                    break;
-                case 'Tiền mặt hoặc Chuyển khoản':
-                    $payment_method = 'TM/CK';
-                    break;
-                default:
-                    $payment_method = 'CK';
-                    break;
-            }
+            // $inv_payment_method = mb_convert_encoding($inv_arr['iv_payment_method'], 'UTF-8', 'HTML-ENTITIES');
+            // switch($inv_payment_method) {
+            //     case 'Tiền mặt':
+            //         $payment_method = 'TM';
+            //         break;
+            //     case 'Chuyển khoản':
+            //         $payment_method = 'CK';
+            //         break;
+            //     case 'Tiền mặt hoặc Chuyển khoản':
+            //         $payment_method = 'TM/CK';
+            //         break;
+            //     default:
+            //         $payment_method = 'CK';
+            //         break;
+            // }
 
             // Phiếu thu
             $receipt_data = $this->extractConcat($row['receipt_vouchers_data']);
@@ -156,7 +156,7 @@ class Viewrequestinvoice extends SugarView {
                         <input type="hidden" name="masothue" value="'. $inv_tax_code .'">
                         <input type="hidden" name="diachi" value="'. $inv_address .'">
                         <input type="hidden" name="email" value="'. $inv_email .'">
-                        <input type="hidden" name="hinhthuctt" value="'. $payment_method .'">
+                        <input type="hidden" name="hinhthuctt" value="TM/CK">
                         <input type="hidden" name="sotaikhoan" value="' . $inv_bank_account .'">
                         <input type="hidden" name="booking" value="'. $row['booking_name'] .'">
                         <input type="hidden" name="booking_id" value="'. $row['booking_id'] .'">
