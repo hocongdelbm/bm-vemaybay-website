@@ -9,6 +9,12 @@
         <option value="timchuyenbay.com" {if $source eq "timchuyenbay.com"}selected{/if}>timchuyenbay.com</option>
     </select>
     <button type="submit" class="btn btn-primary">Chọn Site</button>
+
+    <div class="group-button__checkbox flex__wrap mb-3">
+        <input type="checkbox" name="call_recheck" id="call_recheck"
+            {if isset($callCheck) && $callCheck == 'on'}checked{/if}>
+        <label for="call_recheck">Chưa gọi</label>
+    </div>
     <div class="d-flex align-items-center gap-2">
         <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
             <!-- From Date -->
@@ -87,12 +93,13 @@
     <table class="table">
         <thead>
             <tr>
-                <th scope="col">STT</th>
-                <th scope="col">Số ĐT</th>
-                <th scope="col">Voucher</th>
-                <th scope="col">Ngày Đăng Kí</th>
-                <th scope="col">Đã gọi</th>
-                <th scope="col">Dùng voucher</th>
+                <th scope="col" style="width: 14%;">STT</th>
+                <th scope="col" style="width: 14%;">Số ĐT</th>
+                <th scope="col" style="width: 14%;">Booking</th>
+                <th scope="col" style="width: 14%;">Voucher</th>
+                <th scope="col" style="width: 14%;">Ngày Đăng Kí</th>
+                <th scope="col" style="width: 14%;">Gửi Zalo</th>
+                <th scope="col" style="width: 14%;">Đã gọi</th>
             </tr>
         </thead>
         <tbody>
@@ -102,8 +109,33 @@
                 <tr>
                     <th scope="row">{$counter}</th>
                     <td>{$row.phone_number}</td>
-                    <td>{$row.discount_value|default:'0'}</td>
+                    <td>
+                        {if isset($row.booking_name) && $row.booking_name !== ''}
+                            <a
+                                href="index.php?module=EC_Flight_Bookings&return_module=EC_Flight_Bookings&action=DetailView&record={$row.booking_id}">
+                                {$row.booking_name}
+                            </a>
+
+                            {if $row.is_used != '1'}
+                                (Tham khảo)
+                            {/if}
+
+                        {/if}
+                    </td>
+
+
+                    {* <td>{$row.source}</td> *}
+                    <td>{sugar_number_format var=$row.discount_value|default:0}</td>
                     <td>{$row.date_entered|date_format:"%H:%M %d/%m/%Y"}</td>
+                    {* <td>{if $row.is_zns == '1'}✅{else}❌{/if}</td> *}
+                    <td>
+                        {if $row.is_zns == true}
+                            <a href="index.php?module=EC_Messages&return_module=EC_Messages&action=DetailView&record={$row.zns_id}"
+                                target="_blank">✅</a>
+                        {else}
+                            ❌
+                        {/if}
+                    </td>
                     <td>
                         {if $row.in_calls && $row.call_id}
                             <a href="/index.php?module=Calls&return_module=Calls&action=DetailView&record={$row.call_id}"
@@ -112,7 +144,6 @@
                             ❌
                         {/if}
                     </td>
-                    <td>{if $row.is_used == '1'}✅{else}❌{/if}</td>
                 </tr>
             {/foreach}
 
