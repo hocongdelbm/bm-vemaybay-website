@@ -37,7 +37,7 @@ class Viewclientphonetcb extends SugarView
         $sources = ['timchuyenbay.vn', 'vietjet.net', 'timchuyenbay.com'];
 
         $page = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
-        $perPage = 50; 
+        $perPage = 50;
         $offset = ($page - 1) * $perPage;
         $data = [];
 
@@ -257,11 +257,13 @@ class Viewclientphonetcb extends SugarView
             $url = 'https://vietjet.net/api'; // Default fallback
         }
 
-        if ($fromDate === '') {
-             $fromDate = date('d-m-Y', strtotime('-30 days'));
-        }
-        if ($toDate === '') {
+        if (empty($fromDate) && empty($toDate)) {
+            $fromDate = date('d-m-Y', strtotime('-30 days'));
             $toDate = date('d-m-Y');
+        } elseif (empty($fromDate)) {
+            $fromDate = date('d-m-Y', strtotime($toDate . ' -30 days'));
+        } elseif (empty($toDate)) {
+            $toDate = date('d-m-Y', strtotime($fromDate . ' +30 days'));
         }
 
         // Prepare the request payload with dynamic parameters
@@ -270,7 +272,7 @@ class Viewclientphonetcb extends SugarView
             'from_date' => $fromDate,
             'to_date' => $toDate,
             'offset' => $offset,
-            'limit' => 50,
+            'limit' => 5000,
             'is_used' => $isUsed
         ]);
 
@@ -286,7 +288,7 @@ class Viewclientphonetcb extends SugarView
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_HTTPHEADER => [
-                'Api-Key: 4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM', 
+                'Api-Key: 4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM',
                 'Content-Type: application/json',
             ],
             CURLOPT_POSTFIELDS => $data,
