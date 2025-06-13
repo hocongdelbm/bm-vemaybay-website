@@ -93,13 +93,13 @@
     <table class="table">
         <thead>
             <tr>
-                <th scope="col" style="width: 10%;">STT</th>
-                <th scope="col" style="width: 20%;">Số ĐT</th>
-                <th scope="col" style="width: 20%;">Booking</th>
-                <th scope="col" style="width: 10%;">Voucher</th>
-                <th scope="col" style="width: 20%;">Ngày Đăng Kí</th>
-                <th scope="col" style="width: 10%;">Gửi Zalo</th>
-                <th scope="col" style="width: 10%;">Đã gọi</th>
+                <th scope="col" style="width: 14%;">STT</th>
+                <th scope="col" style="width: 14%;">Số ĐT</th>
+                <th scope="col" style="width: 14%;">Booking</th>
+                <th scope="col" style="width: 14%;">Voucher</th>
+                <th scope="col" style="width: 14%;">Ngày Đăng Kí</th>
+                <th scope="col" style="width: 14%;">Gửi Zalo</th>
+                <th scope="col" style="width: 14%;">Đã gọi</th>
             </tr>
         </thead>
         <tbody>
@@ -125,7 +125,7 @@
 
 
                     {* <td>{$row.source}</td> *}
-                    <td>{$row.discount_value|default:'0'}</td>
+                    <td>{sugar_number_format var=$row.discount_value|default:0}</td>
                     <td>{$row.date_entered|date_format:"%H:%M %d/%m/%Y"}</td>
                     {* <td>{if $row.is_zns == '1'}✅{else}❌{/if}</td> *}
                     <td>
