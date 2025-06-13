@@ -442,4 +442,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.0"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.1"></script>
