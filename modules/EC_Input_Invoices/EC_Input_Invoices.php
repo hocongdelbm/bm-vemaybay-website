@@ -40,6 +40,7 @@ class EC_Input_Invoices extends Basic
     public $is_other_fee;
     public $status;
     public $booking_id;
+    public $booking;
     public $order_by_no;
     public $cost;
     public $cost_no_vat;
@@ -163,6 +164,6 @@ class EC_Input_Invoices extends Basic
 
     function save2($check_notify = FALSE)
     {
-        parent::save($check_notify);
+        return parent::save($check_notify);
     }
 }

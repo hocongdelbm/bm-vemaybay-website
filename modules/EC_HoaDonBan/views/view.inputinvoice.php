@@ -1,18 +1,15 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once("include/Sugar_Smarty.php");
-
 require 'vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class Viewinputinvoice extends SugarView
-{
+class Viewinputinvoice extends SugarView {
     var $page_row_num = 30;
 
-    function display()
-    {
+    function display() {
         global $app_list_strings;
 
         // Xử lý import file excel trong tab import
@@ -161,9 +158,7 @@ class Viewinputinvoice extends SugarView
 
         $res1 = $this->bean->db->query($sql1);
 
-        $rm_note = array();
-        $rm_bk = array();
-        $rm_id = array();
+        $rm_note = $rm_bk = $rm_id = [];
         while ($row1 = $this->bean->db->fetchByAssoc($res1)) {
             if (!empty($row1['booking_id'])) {
                 $rm_bk[] = $row1['booking_id'];
@@ -301,32 +296,43 @@ class Viewinputinvoice extends SugarView
         ];
     }
 
-    function showData($request_fields)
-    {
-        global $app_list_strings, $current_user;
+    function showData($request_fields) {
+        global $app_list_strings;
 
         $sql_search = $this->populateSearchCondition($request_fields);
         $sql_limit = $this->populateLimitCondition($request_fields);
 
-        $sql = '
-            SELECT *
-                , (
-                    SELECT name FROM ec_flight_bookings 
+        $sql = "SELECT id
+                ,name
+                ,is_other_fee
+                ,cost_no_vat
+                ,vat
+                ,cost
+                ,authorized_fee
+                ,qty
+                ,accounting_date
+                ,invoice_date
+                ,supplier
+                ,company_unit
+                ,invoice_number
+                ,invoice_serial
+                ,itinerary
+                ,booking_id
+                ,(
+                    SELECT name
+                    FROM ec_flight_bookings
                     WHERE id = ec_input_invoices.booking_id
                 ) AS booking 
-                , (
-                    SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
+                ,(
+                    SELECT IFNULL(SUM(soluong), 0)
+                    FROM ec_chitiethoadon 
                     WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
                 ) AS export
-            FROM ec_input_invoices 
-            WHERE deleted = 0 ' . $sql_search . '
+            FROM ec_input_invoices
+            WHERE deleted = 0 $sql_search
             ORDER BY invoice_date DESC, supplier, invoice_serial, invoice_number, order_by_no
-        ' . $sql_limit;
-
-
-        // if($current_user->user_name == 'hungnh'){
-        //     pr($sql);
-        // }
+            $sql_limit
+        ";
 
         $res        = $this->bean->db->query($sql);
         $html       = '';
@@ -337,9 +343,7 @@ class Viewinputinvoice extends SugarView
         $total_cost = $total_vat = $total_cost_vat = $total_authorized = $total = 0;
         while ($row = $this->bean->db->fetchByAssoc($res)) {
             // Nếu là dòng tính phí, thì thêm class để đánh dấu
-            if ($row['is_other_fee']) {
-                $row_class = 'other_fee';
-            } else $row_class = '';
+            $row_class = $row['is_other_fee'] ? "other_fee" : "";
 
             // Màn hình preview trước khi nạp hoá đơn vào hệ thống
             if (isset($request_fields['preview'])) {
@@ -370,14 +374,78 @@ class Viewinputinvoice extends SugarView
                 } else $error_minus = '';
             }
 
+            // Format accounting date
             if (strtotime($row['accounting_date']) != false) {
                 $accounting_date = date('d-m-Y', strtotime($row['accounting_date']));
             } else {
                 $accounting_date = "";
             }
 
+            // Update elements which do not have array('name', 'value') structure to use that structure
+            $icon_dup_form_data = base64_encode(json_encode([
+                'supplier'=> [
+                    'label'     => 'Nhà cung cấp',
+                    'value'     => $row['supplier'] ?? '',
+                    'type'      => 'select',
+                    'options'   => $app_list_strings['supplier_invoice_list'] ?? [],
+                ],
+                'company_unit' => [
+                    'label'      => 'Đơn vị',
+                    'value'     => $row['company_unit'] ?? '',
+                    'type'      => 'select',
+                    'options'   => $app_list_strings['company_unit_invoice_list'] ?? [],
+                ],
+                'accounting_date'   => ['label' => 'Ngày hạch toán', 'value' => $accounting_date],
+                'invoice_date'      => ['label' => 'Ngày hóa đơn', 'value' => date('d-m-Y', strtotime($row['invoice_date']))],
+                'invoice_number'    => ['label' => 'Số HĐ', 'value' => $row['invoice_number']],
+                'invoice_serial'    => ['label' => 'KHHĐ', 'value' => $row['invoice_serial']],
+                'name'              => ['label' => 'Số vé', 'value' => $row['name']],
+                'itinerary'         => ['label' => 'Hành trình', 'value' => $row['itinerary']],
+                'booking'           => ['label' => 'Booking', 'value' => $row['booking']],
+                'booking_id'        => ['value' => $row['booking_id'], 'type' => 'hidden'],
+                'qty' => [
+                    'label' => 'Số lượng',
+                    'value' => (int)$row['qty'],
+                    'type'  => 'number'
+                ],
+                'cost_no_vat' => [
+                    'label' => 'Giá vốn',
+                    'value' => $cost_input,
+                    'class' => 'money'
+                ],
+                'vat'=> [
+                    'label' => 'VAT',
+                    'value' => $vat_input,
+                    'class' => 'money'
+                ],
+                'cost' => [
+                    'label' => 'Giá vốn (VAT)',
+                    'value' => $cost_input_vat,
+                    'class' => 'money'
+                ],
+                'authorized_fee' => [
+                    'label' => 'Thu hộ',
+                    'value' => $author_input,
+                    'class' => 'money'
+                ],
+            ]));
+            $icon_duplicate = '<i class="icon-duplicate" form-data="'.$icon_dup_form_data .'" title="Nhân bản">
+                <svg fill="#454545" width="13px" height="13px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" stroke="#454545">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <title>ionicons-v5-j</title>
+                        <path d="M408,112H184a72,72,0,0,0-72,72V408a72,72,0,0,0,72,72H408a72,72,0,0,0,72-72V184A72,72,0,0,0,408,112ZM375.55,312H312v63.55c0,8.61-6.62,16-15.23,16.43A16,16,0,0,1,280,376V312H216.45c-8.61,0-16-6.62-16.43-15.23A16,16,0,0,1,216,280h64V216.45c0-8.61,6.62-16,15.23-16.43A16,16,0,0,1,312,216v64h64a16,16,0,0,1,16,16.77C391.58,305.38,384.16,312,375.55,312Z"></path><path d="M395.88,80A72.12,72.12,0,0,0,328,32H104a72,72,0,0,0-72,72V328a72.12,72.12,0,0,0,48,67.88V160a80,80,0,0,1,80-80Z"></path>
+                    </g>
+                </svg>
+            </i>'; 
             $html .= '<tr class="' . $row_class . ' ' . $error_minus . '">';
-            $html .= '<td class="text-center sep_order">' . ($i + 1) . '</td>';
+            $html .= '<td class="text-center sep_order">
+                '. (++$i) .'
+                '. $icon_duplicate .'
+            </td>';
+
+
             $html .= '<td class="text-center accounting_date">' . $accounting_date . '</td>';
             $html .= '<td class="text-center invoice_date">' . date('d-m-Y', strtotime($row['invoice_date'])) . '</td>';
             $html .= '<td class="text-center invoice_number">' . $row['invoice_number'] . '</td>';
@@ -407,7 +475,6 @@ class Viewinputinvoice extends SugarView
             // }
 
             $html .= '</tr>';
-            $i++;
 
             $total_qty          += (int)$row['qty'];
             $total_export       += (int)$row['export'];
@@ -566,9 +633,8 @@ class Viewinputinvoice extends SugarView
         return $sql_limit;
     }
 
-    function importData($post_fields)
-    {
-        global $current_user;
+    public function importData($post_fields) {
+        // global $current_user;
 
         if ($_FILES['from_file']['name'] != '') {
             $path_parts = pathinfo($_FILES["from_file"]["name"]);
@@ -580,10 +646,17 @@ class Viewinputinvoice extends SugarView
 
             // Nếu là VJA thì thêm cột thu hộ, cột vat
             if ($post_fields['supplier'] == 'VJA') {
-                $data_arr[]             = 'authorized_collection';
+                $data_arr[] = 'authorized_collection';
                 $post_fields['authorized_collection'] = 'N';
-                $data_arr[]             = 'vat';
-                $post_fields['vat']     = 'M';
+                $data_arr[] = 'vat';
+                $post_fields['vat'] = 'M';
+            }
+            // Nếu là PNA thì thêm cột thu hộ, cột vat
+            elseif($post_fields['supplier'] == 'PNA') {
+                $data_arr[] = 'authorized_collection';
+                $post_fields['authorized_collection'] = 'J';
+                $data_arr[] = 'vat';
+                $post_fields['vat'] = 'I';
             }
 
             $invoice_number     = trim($post_fields['invoice_number']);
