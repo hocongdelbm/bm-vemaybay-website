@@ -66,7 +66,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.7"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.8"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.98"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3"></script>
@@ -589,7 +589,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt . $support);
 
 		// Is invoice export
-		$is_invoice_export_title = $this->bean->is_invoice_export ? 'Chưa XHĐ đầu ra' : 'Đã XHĐ đầu ra';
+		$is_invoice_export_title = $this->bean->is_invoice_export ? 'Xuất thêm HĐ' : 'Đã xuất HĐ ra';
 		$is_invoice_export = '</form>
 		<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceExport" id="frmCheckInvoiceExport">
 		  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -597,16 +597,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		  <input type="hidden" name="record" value="' . $this->bean->id . '" />
 		  <input type="hidden" name="record_name" value="' . $this->bean->name . '" />
 		  <input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
-		  <input type="hidden" name="is_invoice_export" value="' . ($this->bean->is_invoice_export ? 0 : 1) . '" />
+		  <input type="hidden" name="is_invoice_export" value="1" />
 		  <span class="w-50">Hóa đơn đầu ra: </span>
 		  <span class="d-flex align-items-center gap-2 flex-fill">
-		  <input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked="checked"' : '') . ' />
-		  ' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
+		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked="checked"' : '') . ' />
+		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
 		  </span>
 		</form>';
 
 		// Is invoice input export
-		$is_invoice_input_export_title = $this->bean->is_invoice_input_export ? 'Chưa XHĐ đầu vào' : 'Đã XHĐ đầu vào';
+		$is_invoice_input_export_title = $this->bean->is_invoice_input_export ? 'Chưa xuất HĐ vào' : 'Đã xuất HĐ vào';
 		$is_invoice_input_export = '</form>
 			<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceInputExport" id="frmCheckInvoiceInputExport">
 			<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />

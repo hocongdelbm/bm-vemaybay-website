@@ -224,9 +224,9 @@ $(document).ready(function () {
 		$('form[name="DetailView"] input:button[name="Edit"]').remove();
 	}
 
-	if (booking_status == '8' && is_invoice_export == '1') {
-		$('#btnCheckInvoiceExport').hide();
-	}
+	// if (booking_status == '8' && is_invoice_export == '1') {
+	// 	$('#btnCheckInvoiceExport').hide();
+	// }
 	if (booking_status == '8' && is_invoice_input_export == '1') {
 		$('#btnCheckInvoiceInputExport').hide();
 	}
