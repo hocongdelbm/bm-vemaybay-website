@@ -9,11 +9,9 @@ class Viewdashboard extends SugarView
     public function display()
     {
         $this->Smarty = new Sugar_Smarty();
-        // Get the selected period (default is current month)
         $selectedPeriod = isset($_GET['period']) ? $_GET['period'] : 'current_month';
         $this->Smarty->assign('selectedPeriod', $selectedPeriod);
 
-        // Get the date range based on the selected period
         list($from_date, $to_date) = $this->getDateRange($selectedPeriod);
 
         $this->getDataStatistics();
