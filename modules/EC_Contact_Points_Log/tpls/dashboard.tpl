@@ -171,7 +171,7 @@
                 <option value="previous_month" disabled>Tháng trước</option>
                 <option value="year" disabled>Năm</option>
             </select> *}
-            <form method="get" action="index.php">
+            <form method="get" action="index.php?module=EC_Contact_Points_Log&action=dashboard">
                 <select name="period" class="form-select form-select-sm select-period" onchange="this.form.submit()">
                     <option value="current_month" {if $selectedPeriod == 'current_month'}selected{/if}>Tháng</option>
                     <option value="previous_month" {if $selectedPeriod == 'previous_month'}selected{/if}>Tháng trước
@@ -179,6 +179,7 @@
                     <option value="year" {if $selectedPeriod == 'year'}selected{/if}>Năm</option>
                 </select>
             </form>
+
 
             <table class="table table-hover" id="table_ranking">
                 <thead>
