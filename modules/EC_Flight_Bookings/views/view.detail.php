@@ -312,8 +312,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_IS_EXPORTED', $is_exported);
 
 		// Đã giữ chỗ
-		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . '> <label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp;<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '>&nbsp;<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '"></a>';
-		$this->ss->assign('CUSTOM_IS_HOLD', $is_hold);
+		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" '. ($this->bean->is_hold ? 'checked="checked"' : '') .' />';
+		$is_agent = '
+			<label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp
+			<input disabled type="checkbox" name="is_agent" id="is_agent" '. ($this->bean->is_agent ? 'checked="checked"' : '') .'/>&nbsp;
+			<a '. ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
+				'. $this->bean->agent_name .'
+			</a>
+		';
+		$this->ss->assign('CUSTOM_IS_HOLD', $is_hold . $is_agent);
 
 		// Date ticket issue (ngày xuất vé) - giao vé
 		$ticket_issue = '<span class="is_ticket_exported d-flex align-items-center">
@@ -2321,9 +2328,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUS_IV_ACCOUNT_NAME', $iv_account_name);
 		$this->ss->assign('CUS_IV_EMAIL', $iv_email);
 		$this->ss->assign('CUS_IV_PAYMENT_METHOD', $iv_payment_method);
-		$this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
-		$this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
-		$this->ss->assign('CUS_IV_NAME_BANK', $iv_name_banks);
+		// $this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
+		// $this->ss->assign('CUS_IV_NAME_BANK', $iv_name_banks);
 	}
 
 	// Kiểm tra booker có quyền quản lý booking -> cho thay đổi trạng thái
