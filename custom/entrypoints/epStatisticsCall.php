@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
      $user = BeanFactory::newBean('Users');
      $user->retrieve($user_id);
-     $full_name     = $user->full_name;
+     $full_name     = trim($user->full_name);
      $title         = $user->title;
 
      if (
@@ -294,5 +294,71 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           ';
 
           echo $html;
+     } else if ($type == 'sendTeleConfirmCallSales'){
+          $emp_outbound                 = $_POST['emp_outbound'] ?? 0;
+          $emp_outbound_answer          = $_POST['emp_outbound_answer'] ?? 0;
+          $emp_question_ticket          = $_POST['emp_question_ticket'] ?? 0;
+          $emp_noanswer_nonote          = $_POST['emp_noanswer_nonote'] ?? 0;
+          $emp_noanswer_up_15           = $_POST['emp_noanswer_up_15'] ?? 0;
+          $emp_noanswer_under_15        = $_POST['emp_noanswer_under_15'] ?? 0;
+          $emp_noanswer_unconnected     = $_POST['emp_noanswer_unconnected'] ?? 0;
+          $total_talk_outbound          = $_POST['total_talk_outbound'] ?? 0;
+          $asr                          = ($emp_outbound > 0) ? round(($emp_outbound_answer / $emp_outbound) * 100, 2) : 0;
+          $avg_talk                     = ($emp_outbound_answer > 0) ? round($total_talk_outbound / $emp_outbound_answer) : 0;
+               
+          if(strtotime($from_date) === strtotime($to_date)){
+               $mess_date = date('d/m/Y', strtotime($from_date));
+          } else{
+               $mess_date = date('d/m/Y', strtotime($from_date)) . ' - ' . date('d/m/Y', strtotime($to_date));
+          }
+
+          // $mess_nonote = "";
+          // if ((int)$emp_noanswer_nonote > 0) {
+          //      $mess_nonote .= "- Không ghi chú/phân loại: <b>" . $emp_noanswer_nonote . "</b>\n";
+          // } 
+          // $messages = "- Nhân viên: <b>" . $full_name . "</b>\n" .
+          //           "- Ngày: <b>" . $mess_date . "</b>\n" .
+          //           "- Cuộc gọi đi: <b>" . $emp_outbound . "</b>\n" .
+          //           "- Nghe máy: <b>" . $emp_outbound_answer . "</b>\n" .
+          //           "- Tỉ lệ nghe máy: <b>" . $asr . "%</b>\n" .
+          //           "- Thời gian nghe máy trung bình: <b>" . $avg_talk . "s</b>\n" .
+          //           "- Không nghe máy (>15s): <b>" . $emp_noanswer_up_15 . "</b>\n" .
+          //           "- Đổ chuông ngắn: <b>" . $emp_noanswer_under_15 . "</b>\n" .
+          //           "- Số không liên lạc: <b>" . $emp_noanswer_unconnected . "</b>\n" .
+          //           $mess_nonote .
+          //           "- Khách hỏi vé: <b>" . $emp_question_ticket . "</b>\n" .
+          //           "<pre>[INFO]: " . proposeCallImprovementStrategy($asr) . "</pre>";
+          // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+          // $result = sendTeleConfirmCallSales(
+          //      json_encode(array(
+          //           'text' => $content,
+          //           'parse_mode' => 'HTML'
+          //      ), JSON_UNESCAPED_UNICODE) 
+          // );
+          
+          try {
+               global $sugar_config;
+               $message = Mattermost::$line_separation;
+               $message .= Mattermost::markdownHeading("Kết quả Call sales");
+               $message .= "\n- Nhân viên: **$full_name**";
+               $message .= "\n- Ngày: **$mess_date**";
+               $message .= "\n- Cuộc gọi đi: **$emp_outbound**";
+               $message .= "\n- Nghe máy: **$emp_outbound_answer**";
+               $message .= "\n- Tỉ lệ nghe máy: **$asr% **";
+               $message .= "\n- Thời gian nghe máy trung bình: **$avg_talks**";
+               $message .= "\n- Không nghe máy (>15s): **$emp_noanswer_up_15**";
+               $message .= "\n- Đổ chuông ngắn: **$emp_noanswer_under_15**";
+               $message .= "\n- Số không liên lạc: **$emp_noanswer_unconnected**";
+               $message .= ((int)$emp_noanswer_nonote > 0) ? "\n- Không ghi chú/phân loại: **$emp_noanswer_nonote**" : "";
+               $message .= "\n- Khách hỏi vé: **$emp_question_ticket** \n";
+               $message .= Mattermost::markdownQuote(proposeCallImprovementStrategy($asr));
+               Mattermost::sendMessage($sugar_config['mattermost']['channel_id_activity'] ?? '', $message);
+          }
+          catch(Throwable $th) {
+               // Nothing to do
+          }
+
+          echo json_encode($result);
+          exit();
      }
 }

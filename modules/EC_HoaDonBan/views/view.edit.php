@@ -23,12 +23,12 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 	}
 
 	function populateLineItems() {
-		global $app_list_strings, $locale;
+		global $locale;
 
+		$mst_value = $this->bean->masothue ?? ($_REQUEST['masothue'] ?? '');
 		$custom_mst = '
 			<div class="wrap-masothue">
-				<input type="text" name="masothue" id="masothue" size="30" maxlength="25" value="'.$this->bean->masothue.'">
-
+				<input type="text" name="masothue" id="masothue" size="30" maxlength="25" value="'.$mst_value.'">
 				<span class="mst-active">
 					<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#28a745" stroke-width="1.5">
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM7.53044 11.9697C7.23755 11.6768 6.76268 11.6768 6.46978 11.9697C6.17689 12.2626 6.17689 12.7374 6.46978 13.0303L9.46978 16.0303C9.76268 16.3232 10.2376 16.3232 10.5304 16.0303L17.5304 9.03033C17.8233 8.73744 17.8233 8.26256 17.5304 7.96967C17.2375 7.67678 16.7627 7.67678 16.4698 7.96967L10.0001 14.4393L7.53044 11.9697Z" fill="#28a745"></path>
@@ -39,10 +39,9 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M1.25 12C1.25 6.06294 6.06294 1.25 12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12ZM12 6.25C12.4142 6.25 12.75 6.58579 12.75 7V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 13V7C11.25 6.58579 11.5858 6.25 12 6.25ZM12.5675 17.5008C12.8446 17.1929 12.8196 16.7187 12.5117 16.4416C12.2038 16.1645 11.7296 16.1894 11.4525 16.4973L11.4425 16.5084C11.1654 16.8163 11.1904 17.2905 11.4983 17.5676C11.8062 17.8447 12.2804 17.8197 12.5575 17.5119L12.5675 17.5008Z" fill="#dc3545"></path>
 					</svg>
 				</span>
-
 				<span id="icon-search-masothue" class="icon-search">
-					<svg width="22px" height="22px" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000">
-						<path d="M17 17L21 21" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 11C3 15.4183 6.58172 19 11 19C13.213 19 15.2161 18.1015 16.6644 16.6493C18.1077 15.2022 19 13.2053 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11Z" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#333">
+						<path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path>
 					</svg>
 				</span>
 	  		</div>
@@ -110,15 +109,13 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 		}
 		else {
 			$sql = '
-				SELECT ct.*,
-					(
-						SELECT qty
-						FROM ec_input_invoices
-						WHERE id = ct.ticket_number_id
-					) AS max_qty,
-					in_iv.ticket_code
+				SELECT ct.*
+					,(SELECT qty FROM ec_input_invoices WHERE id = ct.ticket_number_id) AS max_qty
+					,in_iv.ticket_code
+					,IFNULL(re.name, "") AS receipt_voucher_name
 				FROM ec_chitiethoadon ct 
 					LEFT JOIN ec_input_invoices in_iv ON in_iv.id = ct.ticket_number_id
+					LEFT JOIN ec_receipt_voucher re ON re.id = ct.receipt_voucher_id
 				WHERE ct.parent_id = "' . $this->bean->id . '" AND ct.deleted = 0
 				ORDER BY ct.order_by_no';
 
@@ -136,12 +133,12 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 						'</select>
 					</td>';
 
-					$html .= "
-						<td>
-							<input style='text-align:left;' class='ac_booking' ln='" . $i . "' type='text' name='ct_booking[]' id='ct_booking" . $i . "' value='" . $row['booking'] . "' maxlength='255' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id" . $i . "\",\"name\":\"ct_booking" . $i . "\"}'/>
-							<input type='hidden' name='ct_booking_id[]' id='ct_booking_id" . $i . "' value='" . $row['booking_id'] . "' />
-						</td>
-					";
+					$input_type_receipt = !empty($row['receipt_voucher_name']) ? 'text' : 'hidden';
+					$html .= "<td>
+						<input type='text' name='ct_booking[]' id='ct_booking$i' ln='$i' class='ac_booking' value='". $row['booking'] ."' maxlength='32' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id$i\",\"name\":\"ct_booking$i\"}' style='text-align:left' />
+						<input type='hidden' name='ct_booking_id[]' id='ct_booking_id$i' value='". $row['booking_id'] ."' />
+						<input type='$input_type_receipt' name='ct_receipt_voucher[]' class='input-receipt-voucher' value='". $row['receipt_voucher_name'] ."' placeholder='Mã phiếu thu' style='border:1px solid #c2c2c2 !important; border-radius:4px; margin-top:5px; padding-left:5px !important;' />
+					</td>";
 
 					$html .= '
 						<td>

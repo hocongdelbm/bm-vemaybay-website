@@ -17,7 +17,6 @@ $app_list_strings['moduleList']['SurveyResponses']        = 'Phản hồi khảo
 $app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
 $app_list_strings['moduleList']['SurveyQuestions']        = 'Câu hỏi khảo sát';
 $app_list_strings['moduleList']['SurveyQuestionOptions']  = 'Tùy chọn câu hỏi khảo sát';
-
 $app_list_strings['moduleList']['OAuth2Clients']          = 'OAuth2Clients';
 $app_list_strings['moduleList']['OAuthKeys']              = 'OAuthKeys';
 $app_list_strings['moduleList']['Bugs']                   = 'Lỗi';
@@ -46,19 +45,10 @@ $app_list_strings['moduleList']['Documents']              = 'Tài liệu';
 $app_list_strings['moduleList']['Activities']             = 'Hoạt động';
 $app_list_strings['moduleList']['Cases']                  = 'Tình huống';
 $app_list_strings['moduleList']['SecurityGroups']         = 'Security Groups';
-
-$app_strings['LBL_LOGIN_AS'] = "Login as ";
-$app_strings['LBL_LOGOUT_AS'] = "Logout as ";
-
 $app_list_strings['moduleList']['OutboundEmailAccounts']  = 'Tài khoản email gửi đi';
 $app_list_strings['moduleList']['InboundEmail']           = 'Hộp thư đến';
 $app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
 $app_list_strings['moduleList']['Notes']                  = 'Ghi chú';
-
-$app_list_strings['receipt_type_list']['cash']            = 'Tiền mặt';
-$app_list_strings['receipt_type_list']['credit_transfer'] = 'Chuyển khoản';
-$app_list_strings['amount_type_list']['vnd']              = 'VNĐ';
-
 $app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
 $app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
 $app_list_strings['moduleList']['EC_Request_Flight']      = 'Yêu cầu';
@@ -73,56 +63,45 @@ $app_list_strings['moduleList']['EC_ChiTietTaiKhoan']     = 'Nhập số dư ban
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
 $app_list_strings['moduleList']['EC_Customer']            = 'Khách hàng';
-
 $app_list_strings['moduleList']['EC_HoanVe']              = 'Hoàn vé';
 $app_list_strings['moduleList']['EC_ChiTietHoanVe']       = 'Chi tiết Hoàn vé';
-
 $app_list_strings['moduleList']['EC_Flight_Bookings']     = 'Booking';
 $app_list_strings['moduleList']['EC_Completed_Bookings']  = 'Completed_Bookings';
 $app_list_strings['moduleList']['EC_Booking_Details']     = 'Booking_Details';
 $app_list_strings['moduleList']['EC_Booking_Itineraries'] = 'Booking_Itineraries';
 $app_list_strings['moduleList']['EC_Booking_Passengers']  = 'Booking_Passengers';
-
 $app_list_strings['moduleList']['EC_Employee_Salary']     = 'Bảng lương';
 $app_list_strings['moduleList']['EC_Commission']          = 'Thưởng doanh số';
-
 $app_list_strings['moduleList']['EC_WorkingOverTimes']    = 'Ngoài giờ';
-$app_list_strings['overtime_status_list']['0']            = 'Mới tạo';
-$app_list_strings['overtime_status_list']['1']            = 'Chờ duyệt';
-$app_list_strings['overtime_status_list']['2']            = 'Đã duyệt';
-
 $app_list_strings['moduleList']['EC_ChuyenTienNoiBo']     = 'Chuyển tiền NB';
 $app_list_strings['moduleList']['EC_Banks']               = 'Ngân hàng';
 $app_list_strings['moduleList']['EC_Bank_Account']        = 'Tài khoản NH';
 $app_list_strings['moduleList']['LZ_Redirect_Login']      = 'Điều hướng';
-
 $app_list_strings['moduleList']['Administration']         = 'Quản trị viên'; // Fix Notice: Undefined index
 $app_list_strings['moduleList']['Employees']              = 'Nhân viên';
 $app_list_strings['moduleList']['Users']                  = 'Người dùng';
 $app_list_strings['moduleList']['ACLRoles']               = 'Quyền người dùng';
-
 $app_list_strings['moduleList']['EC_Vouchers']            = 'Vouchers';
-
-$app_strings['LBL_TABGROUP_MARKETING']    = 'Kế toán';
-$app_strings['LBL_GROUPTAB6_1384221712']  = 'QLDA';
-$app_strings['LBL_GROUPTAB6_1384221746']  = 'QLDA';
-$app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
-$app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
-
-//aor
+$app_list_strings['moduleList']['EC_Zalo']                = 'Zalo OA';
+$app_list_strings['moduleList']['EC_TongHop']             = 'Tổng hợp';
+$app_list_strings['moduleList']['EC_LeaveAbsenceTypes']   = 'Loại nghỉ phép';
+$app_list_strings['moduleList']['EC_LeaveAbsences']       = 'Nghỉ phép';
+$app_list_strings['moduleList']['EC_LyDoThangThua']       = 'Lý do thắng thua';
+$app_list_strings['moduleList']['EC_Location']            = 'Địa điểm';
+$app_list_strings['moduleList']['EC_LoginAudit']          = 'Login Audit';
+$app_list_strings['moduleList']['EC_Contact_Points_Log']  = 'Quá trình tích điểm';
+// AOR
 $app_list_strings['moduleList']['AOR_Reports'] = 'Báo cáo';
 $app_list_strings['moduleList']['AOR_Conditions'] = 'Báo cáo điều kiện';
 $app_list_strings['moduleList']['AOR_Charts'] = 'Biểu đồ báo cáo';
 $app_list_strings['moduleList']['AOR_Fields'] = 'Báo cáo lĩnh vực';
 $app_list_strings['moduleList']['AOR_Scheduled_Reports'] = 'Theo lịch trình báo cáo';
-
-//aow PR 5775
+// AOW PR 5775
 $app_list_strings['moduleList']['AOW_WorkFlow'] = 'Quy trình công việc';
 $app_list_strings['moduleList']['AOW_Conditions'] = 'Quy trình làm việc điều kiện';
 $app_list_strings['moduleList']['AOW_Processed'] = 'Quá trình kiểm toán';
 $app_list_strings['moduleList']['AOW_Actions'] = 'Quy trình làm việc hành động';
-
-//aos
+// AOS
 $app_list_strings['moduleList']['AOS_Contracts'] = 'Hợp đồng';
 $app_list_strings['moduleList']['AOS_Invoices'] = 'QL Hóa đơn';
 $app_list_strings['moduleList']['AOS_PDF_Templates'] = 'Các mẫu PDF';
@@ -131,13 +110,7 @@ $app_list_strings['moduleList']['AOS_Products'] = 'Sản phẩm';
 $app_list_strings['moduleList']['AOS_Products_Quotes'] = 'Các hàng mục';
 $app_list_strings['moduleList']['AOS_Line_Item_Groups'] = 'Line Item Groups';
 $app_list_strings['moduleList']['AOS_Quotes'] = 'Báo giá';
-
-// externalOauth
-$app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
-$app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
-$app_list_strings['moduleList']['EAPM'] = 'External Account Password Management';
-
-//aod
+// AOD
 $app_list_strings['moduleList']['AOD_IndexEvent'] = 'Chỉ số sự kiện';
 $app_list_strings['moduleList']['AOD_Index'] = 'Chỉ số';
 $app_list_strings['moduleList']['AOP_Case_Events'] = 'Trường hợp các sự kiện';
@@ -148,6 +121,30 @@ $app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; 
 $app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
 $app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
 $app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
+// ExternalOauth
+$app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
+$app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
+$app_list_strings['moduleList']['EAPM'] = 'External Account Password Management';
+
+$app_strings['LBL_LOGIN_AS'] = "Login as ";
+$app_strings['LBL_LOGOUT_AS'] = "Logout as ";
+
+
+
+$app_list_strings['receipt_type_list']['cash']            = 'Tiền mặt';
+$app_list_strings['receipt_type_list']['credit_transfer'] = 'Chuyển khoản';
+$app_list_strings['amount_type_list']['vnd']              = 'VNĐ';
+
+$app_list_strings['overtime_status_list']['0']            = 'Mới tạo';
+$app_list_strings['overtime_status_list']['1']            = 'Chờ duyệt';
+$app_list_strings['overtime_status_list']['2']            = 'Đã duyệt';
+
+$app_strings['LBL_TABGROUP_MARKETING']    = 'Kế toán';
+$app_strings['LBL_GROUPTAB6_1384221712']  = 'QLDA';
+$app_strings['LBL_GROUPTAB6_1384221746']  = 'QLDA';
+$app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
+$app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
+
 
 //gmaps
 $app_strings['LBL_MAP']                               = 'Bản đồ';
@@ -507,13 +504,6 @@ $GLOBALS['app_list_strings']['system_config_list'] = array(
   'telegram_chat_id' => '-343974810',
 );
 
-/************  EC_SMS_Logs  ************/
-$GLOBALS['app_list_strings']['sms_logs_status'] = array(
-  'new' => 'Mới tạo',
-  'scheduled' => 'Đã lên lịch',
-  'done' => 'Đã gửi',
-  'fail' => 'Thất bại'
-);
 
 /************  EC_Messages  ************/
 $GLOBALS['app_list_strings']['message_type_list'] = [
@@ -535,7 +525,6 @@ $GLOBALS['app_list_strings']['message_status'] = [
   'done' => 'Đã gửi',
   'fail' => 'Thất bại'
 ];
-
 
 
 $GLOBALS['app_list_strings']['user_title_allow_full_report'] = array(
@@ -626,12 +615,6 @@ $GLOBALS['app_list_strings']['vietnam_mobile_new_network_list'] = array(
   '058' => '0,2,4,5,6,7',
   '099' => '0,2,4,5,6,7',
   '059' => '0,2,4,5,6,7',
-);
-
-$GLOBALS['app_list_strings']['sms_template_list'] = array(
-  // 'Đơn hàng không nghe máy' => 'Chao Anh/Chi, ve may bay cua anh/chi da duoc xac nhan thanh cong. Vui long LH: ... de biet chi tiet va thanh toan truoc ... Xin cam on! (No reply)',
-  // 'Vé KM, Vé cận giờ bay (Ko nghe máy)' => 'Chao Anh/Chi, ve may bay cua anh/chi khong giu duoc cho. Vui long LH: ... Som de xac nhan thanh toan lay ve. Xin cam on! (No reply)',
-  'Không nghe máy, vé KM, cận' => 'Xin chao ban, so DT hien khong lien lac duoc. Truong hop ve KM hoac gan gio bay vui long goi cho chung toi 1900 63 6060 hoac Zalo/SMS ...',
 );
 
 $GLOBALS['app_list_strings']['bk_holding_status_list'] = array(
@@ -2079,16 +2062,23 @@ $GLOBALS['app_list_strings']['call_type_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['call_reason_list'] = array(
-  'in_journey' => 'Khách hỏi hành trình',
-  'in_ticket_hunt' => 'Nhu cầu săn vé máy bay',
-  'in_group_booking' => 'Đặt vé đoàn nhiều người',
-  'in_complaint_delay' => 'Phàn nàn sự cố delay',
-  'in_invoice_contact' => 'Liên hệ kế toán hóa đơn',
-  'in_mistake' => 'Nhầm lẫn, Lý Thông linh tinh',
-  'in_other' => 'Khác, chưa định nghĩa',
-  'out_no_need' => 'Khách chưa có nhu cầu',
-  'out_interest' => 'Đang quan tâm sơ bộ',
-  'out_no_response' => 'Không nghe máy, bực mình'
+  'in_journey' => 'Khách hỏi hành trình (Gọi đến)',
+  'in_ticket_hunt' => 'Nhu cầu săn vé máy bay (Gọi đến)',
+  'in_group_booking' => 'Đặt vé đoàn nhiều người (Gọi đến)',
+  'in_complaint_delay' => 'Phàn nàn sự cố delay (Gọi đến)',
+  'in_invoice_contact' => 'Liên hệ kế toán hóa đơn (Gọi đến)',
+  'in_mistake' => 'Nhầm lẫn, Lý Thông linh tinh (Gọi đến)',
+  'in_no_need' => 'Khách chưa có nhu cầu (Gọi đến)',
+  'in_other' => 'Khác (Gọi đến)',
+  'horizontal' => '---------------------------------------',
+  'out_no_need' => 'Khách chưa có nhu cầu (Gọi đi)',
+  'out_question_ticket' => 'Khách hỏi vé (Gọi đi)',
+  'out_interest' => 'Đang quan tâm sơ bộ (Gọi đi)',
+  'out_no_response' => 'Không nghe máy (Gọi đi)',
+  'out_no_uncomfortable' => 'Khách khó chịu, không hài lòng, cảm thấy phiền... (Gọi đi)',
+  'out_no_subscriber_unreachable' => 'Số thuê bao, không liên lạc được. (Gọi đi)',
+  'out_remind' => 'Nhắc ngày bay (Gọi đi)',
+  'out_other' => 'Khác (Gọi đi)',
 );
 
 
@@ -2216,6 +2206,7 @@ $GLOBALS['app_list_strings']['vietnamair_infant_luggage_price_list'] = array(
 $GLOBALS['app_list_strings']['pacificair_luggage_price_list'] = array(
   0 => '23kg (0 VND/Khách)',
   1 => 'Không mang hành lý',
+  2 => '1 kiện 32kg (0 VND/Khách)',
   3 => '10kg (0 VND/Khách)',
   4 => 'Đợi kiểm tra',
   350000  => '1 kiện 23kg (350.000 VND/Khách)',
@@ -2561,9 +2552,69 @@ $app_list_strings['network_provider_list'] = array(
 $app_list_strings['outbound_phone_status_list'] = array(
   'active' => 'Đang hoạt động',
   'inactive' => 'Không hoạt động',
-  'blocked' => 'Bị chặn',
 );
 
-$app_list_strings['website_list'] = array(
-  '' => '',
+$app_list_strings['document_category_dom'] = array(
+    '' => '',
+    'Contracts' => 'Hợp đồng',
+    'Internal Documents' => 'Tài liệu nội bộ',
+    'Reports' => 'Báo cáo',
+    'Plans & Strategies' => 'Kế hoạch & Chiến lược',
+    'Training Materials' => 'Tài liệu đào tạo',
+    'Accounting Documents' => 'Chứng từ kế toán',
+    'Legal Documents' => 'Tài liệu pháp lý',
+    'HR Files' => 'Hồ sơ nhân sự',
+    'Marketing' => 'Marketing',
+    'Knowledge Base' => 'Trung tâm hỗ trợ',
+    'Sales' => 'Bán hàng',
+    'Technical Documents' => 'Tài liệu kỹ thuật',
+    'Other' => 'Khác',
 );
+
+$app_list_strings['document_subcategory_dom'] = array(
+    '' => '',
+    'Marketing Collateral' => 'Tư liệu tiếp thị',
+    'Product Brochures' => 'Tài liệu giới thiệu sản phẩm',
+    'FAQ' => 'Câu hỏi thường gặp',
+    'Contracts - NDA' => 'Hợp đồng - NDA',
+    'Contracts - Service' => 'Hợp đồng - Dịch vụ',
+    'Contracts - Sales' => 'Hợp đồng - Bán hàng',
+    'Training - Guidelines' => 'Đào tạo - Hướng dẫn',
+    'Training - Onboarding' => 'Đào tạo - Nhập môn',
+    'Reports - Financial' => 'Báo cáo - Tài chính',
+    'Reports - Sales' => 'Báo cáo - Bán hàng',
+    'HR - Policies' => 'Nhân sự - Chính sách',
+    'HR - Employee Records' => 'Nhân sự - Hồ sơ nhân viên',
+    'Legal - Compliance' => 'Pháp lý - Tuân thủ',
+    'Legal - Agreements' => 'Pháp lý - Thỏa thuận',
+    'Technical - Manuals' => 'Kỹ thuật - Hướng dẫn sử dụng',
+    'Technical - Specifications' => 'Kỹ thuật - Thông số kỹ thuật',
+    'Other' => 'Khác',
+);
+
+$app_list_strings['document_template_type_dom'] = array(
+    '' => '',
+    'license' => 'Thỏa thuận cấp phép',
+    'contract' => 'Hợp đồng',
+    'proposal' => 'Đề xuất',
+    'invoice' => 'Hóa đơn',
+    'report' => 'Báo cáo',
+    'policy' => 'Chính sách',
+    'manual' => 'Hướng dẫn sử dụng',
+    'training' => 'Tài liệu đào tạo',
+    'guideline' => 'Hướng dẫn quy trình',
+    'compliance' => 'Tài liệu tuân thủ',
+    'marketing' => 'Tài liệu tiếp thị',
+    'brochure' => 'Tài liệu giới thiệu',
+    'other' => 'Khác',
+);
+
+
+$app_list_strings['absence_status_list'] = array(
+  0 => 'Mới tạo',
+  1 => 'Chờ duyệt',
+  2 => 'Đã duyệt',
+  
+);
+
+

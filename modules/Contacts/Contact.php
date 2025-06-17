@@ -72,7 +72,6 @@ class Contact extends Person implements EmailInterface
     public $note_id;
     public $meeting_id;
     public $call_id;
-    public $zalo_id;
     public $email_id;
     public $assigned_user_name;
     public $accept_status;
@@ -97,6 +96,14 @@ class Contact extends Person implements EmailInterface
     public $module_dir = 'Contacts';
     public $new_schema = true;
     public $importable = true;
+
+    public $points;
+    public $zalo_id;
+    public $zalo_last_interaction;
+    public $zalo_name;
+    public $zalo_avatar;
+    public $zalo_is_follower;
+    public $zalo_tags;
 
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array(
@@ -466,8 +473,9 @@ class Contact extends Person implements EmailInterface
 
     public function get_list_view_data($filter_fields = array())
     {
-        $temp_array = parent::get_list_view_data();
+        global $current_user;
 
+        $temp_array = parent::get_list_view_data();
         if ($filter_fields && !empty($filter_fields['sync_contact'])) {
             $this->load_contacts_users_relationship();
             $temp_array['SYNC_CONTACT'] = !empty($this->contacts_users_id) ? 1 : 0;

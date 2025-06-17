@@ -62,7 +62,7 @@
 					</td>
 				</tr>
 				<tr class="row-quantity">
-					<td class="label">Số lượng: <span class="fw-bold color-red">*</span></td>
+					<td class="label">Số lượng:</td>
 					<td class="value">
 						<input type="text" class="allow-number-only box-input" id="voucher_qty" name="voucher_qty" required />
 					</td>
@@ -92,7 +92,8 @@
 								</button>
 							</div>
 							<svg width="40" height="20" fill="none">
-								<g clip-path="url(#icon_arrow_flight_long_svg__clip0)" stroke="#718096" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+								<g clip-path="url(#icon_arrow_flight_long_svg__clip0)" stroke="#718096"
+									stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
 									<path d="M33.5 8.5L36 11M4 11h32"></path>
 								</g>
 								<defs>
@@ -180,11 +181,13 @@
 				<tr class="row-description">
 					<td class="label align-top">Mô tả:</td>
 					<td class="value">
-						<textarea class="box-textarea" name="voucher_description" id="voucher_description" rows="5"></textarea>
+						<textarea name="description" id="description" class="box-textarea" rows="5"></textarea>
 					</td>
 				</tr>
 				<tr>
-					<td colspan="2" align="center"><input type="submit" id="create_voucher_btn" class="btn btn-primary extra_amt" value="Phát hành"></td>
+					<td colspan="2" align="center">
+						<input type="submit" id="create_voucher_btn" class="btn btn-primary extra_amt" value="Phát hành">
+					</td>
 				</tr>
 			</tbody>
 		</table>

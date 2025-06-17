@@ -157,4 +157,9 @@ $mod_strings = array(
 
     'LBL_TYPE_CALL_SOURCES' => 'Nguồn chi tiết',
     'LBL_CALL_REASON' => 'Phân loại cuộc gọi',
+    'LBL_IS_SUCCESS' => 'Trạng thái',
+    'LBL_CALL_WAIT' => 'Thời gian chờ',
+    'LBL_CALL_MOS' => 'Chất lượng âm thanh',
+    'LBL_LIST_CALL_MOS' => 'Mos',
+    'LBL_CALL_FAILED_CAUSE' => 'Nguyên nhân thất bại',
 );

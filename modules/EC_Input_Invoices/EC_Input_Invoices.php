@@ -33,6 +33,21 @@ class EC_Input_Invoices extends Basic
     public $airline;
     public $departure;
     public $arrival;
+    public $supplier;
+    public $company_unit;
+    public $accounting_date;
+    public $itinerary;
+    public $is_other_fee;
+    public $status;
+    public $booking_id;
+    public $booking;
+    public $order_by_no;
+    public $cost;
+    public $cost_no_vat;
+    public $vat;
+    public $authorized_fee;
+    public $ticket_code;
+    public $total;
 
     public function bean_implements($interface)
     {
@@ -149,6 +164,6 @@ class EC_Input_Invoices extends Basic
 
     function save2($check_notify = FALSE)
     {
-        parent::save($check_notify);
+        return parent::save($check_notify);
     }
 }

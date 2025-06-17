@@ -356,23 +356,23 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
 
-            array(
-                array(),
-                array(
-                    'name' => 'iv_name_banks',
-                    'label' => 'LBL_IV_NAME_BANKS',
-                    'customCode' => '{$CUS_IV_NAME_BANK}',
-                ),
-            ),
+            // array(
+            //     array(),
+            //     array(
+            //         'name' => 'iv_name_banks',
+            //         'label' => 'LBL_IV_NAME_BANKS',
+            //         'customCode' => '{$CUS_IV_NAME_BANK}',
+            //     ),
+            // ),
 
-            array(
-                array(),
-                array(
-                    'name' => 'iv_bank_account',
-                    'label' => 'LBL_IV_BANK_ACCOUNT',
-                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
-                ),
-            ),
+            // array(
+            //     array(),
+            //     array(
+            //         'name' => 'iv_bank_account',
+            //         'label' => 'LBL_IV_BANK_ACCOUNT',
+            //         'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
+            //     ),
+            // ),
 
             array(
                 array(),

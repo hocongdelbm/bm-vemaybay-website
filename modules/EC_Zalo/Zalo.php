@@ -60,7 +60,7 @@ class Zalo {
     }
     
     /** 
-     * Get access token by authorization cod
+     * Get access token by authorization code
      * 
      * @param string $code
      * @return string json
@@ -938,7 +938,13 @@ class Zalo {
                 "content" => $table
             ];
         }
-        if(!empty($text2)) $body_request["message"]["attachment"]["payload"]["elements"][] = $text2;
+        if(!empty($text2)) {
+            $body_request["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "text",
+                "align" => "center",
+                "content" => $text2
+            ];
+        }
         if(!empty($buttons)) $body_request["message"]["attachment"]["payload"]["buttons"] = $buttons;
 
         try {
@@ -986,14 +992,14 @@ class Zalo {
      * 
      * @param string $phone
      * @param string $template_id
-     * @param string $template_data json
+     * @param string|array $template_data json|array
      * @return string json
      */
     public function send_zns($phone, $template_id, $template_data) {
         $body_request = json_encode([
             'phone'         => $this->format_phone_number($phone, 'zalo'),
             'template_id'   => $template_id,
-            'template_data' => json_decode($template_data, true),
+            'template_data' => is_array($template_data) ? $template_data : json_decode($template_data, true),
             'tracking_id'   => $phone . time()
         ]);
 
@@ -1068,6 +1074,12 @@ class Zalo {
             case 'remind-flight':
                 return "346651"; // Nhắc nhở giờ bay
                 break;
+            case 'points':
+                return "411270"; // Thông báo tích điểm
+                break;
+            case 'share-phone':
+                return "433046"; // Gửi thông tin chương trình chia sẻ SĐT
+                break;
             default:
                 return "";
         }
@@ -1076,13 +1088,13 @@ class Zalo {
     /** 
      * Send template name
      * 
-     * @param string $id
+     * @param string $template_id
      * @return string
      */
-    public function get_template_name_zns($id = null) {
-        if(is_null($id) || empty($id)) return "";
+    public function get_template_name_zns($template_id = null) {
+        if(is_null($template_id) || empty($template_id)) return "";
     
-        switch ($id) {
+        switch ($template_id) {
             case '347078':
             case '347088':
                 return "Thông tin hành trình";
@@ -1102,6 +1114,12 @@ class Zalo {
                 break;
             case '346699':
                 return "Chăm sóc khách hàng (Call sale)";
+                break;
+            case '411270':
+                return "Thông báo tích điểm";
+                break;
+            case '433046':
+                return "Gửi thông tin chương trình chia sẻ SĐT";
                 break;
             default:
                 return "";
@@ -1151,13 +1169,14 @@ class Zalo {
 
     /***************  UPLOAD  ***************/
     /** 
-     * Upload to zalo
+     * Get file extension is supported
+     * 
      * @param string $type
      * @return array
      */
     public function get_file_extension($type) {
         if($type == 'image') return ['png', 'jpg', 'gif'];
-        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv', 'txt'];
+        elseif($type == 'file') return ['pdf', 'doc', 'docx', 'csv'];
     }
 
     /** 
@@ -1282,5 +1301,30 @@ class Zalo {
         }
         return $randomString;
     }
+
+    public function unformat_zalo_phone($zalo_phone) {
+        if(!$zalo_phone || empty($zalo_phone)) return '';
+        if(substr($zalo_phone, 0, 2) == 84) return '0' . substr($zalo_phone, 2);
+        elseif(substr($zalo_phone, 0, 3) == "+84") return '0' . substr($zalo_phone, 3);
+        return $zalo_phone;
+    }
+
+    public function send_to_telegram($content, $parseMode = 'HTML', $timeout = 15) {
+        return false;
+        $token  = '6940954517:AAFINEfJWBOcuoThjXNycvNRRZjT3ZgLey8'; // TimChuyenBayOA_bot
+        $chatId = '-1002134640739'; // Tìm Chuyến Bay OA Zalo ZNS
+    
+        $url = "https://api.telegram.org/bot" . $token . "/sendMessage?chat_id=" . $chatId;
+        $url = $url . "&parse_mode=".$parseMode."&text=" . urlencode($content);
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+        $result = curl_exec($curl);
+        curl_close($curl);
+        return $result;
+    }
 }
-?>

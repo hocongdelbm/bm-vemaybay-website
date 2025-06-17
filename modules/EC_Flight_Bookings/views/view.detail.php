@@ -1,8 +1,8 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
-require_once('modules/EC_SMS_Logs/Zalo.php');
-require_once('modules/EC_SMS_Logs/SMS.php');
+require_once('modules/EC_Zalo/Zalo.php');
+require_once('modules/EC_Messages/SMS.php');
 
 class EC_Flight_BookingsViewDetail extends ViewDetail
 {
@@ -52,6 +52,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->createModal(); // Modal for confirm action
 
+		if($current_user->user_name == 'hungnh') {
+			pr(calculateBKAmt($this->bean->id));
+			pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
+		}
+
 		parent::display();
 		$this->displayJS();
 	}
@@ -61,10 +66,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.2"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.97"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.8"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_vietjet/booking.js?v=1.98"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.7"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3"></script>
 		';
 
 		$js .= '<script>
@@ -72,15 +77,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			var win_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '0')) . '";
 			var lose_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '1')) . '";
 			var domestic_airport_lst = ["' . implode('","', array_keys($app_list_strings['domestic_airport_list'])) . '"];
-
 			let bba_ticket_class = ["Eco Saver max", "Eco Saver", "Eco Smart", "Eco Flex", "Pre smart", "Pre Flex", "Buz smart", "Buz Flex"];
 			let vja_ticket_class = ["Eco", "Eco1", "B1 Eco", "W1 Eco", "E1 Eco", "R1 Eco"];
 			let vna_ticket_class = ["Economy (EL)-Q", "Economy (EP)-A", "Economy (EL)-R", "Economy (EL)-C", "Economy (EC)-K", "Economy (EL)-T", "Economy (EL)-N", "Economy (EL)-E", "Economy (EP)-E", "Economy (EP)-P", "E", "A", "Economy (EC)-L"];
 			let vta_ticket_class = ["Dregow (D)", "Cregow (C)", "Bregow (B)", "Aregow (A)", "Eregow (E)", "Kregow (K)", "Hregow (H)", "Mregow (M)", "Nfleow (N)", "Lregow (L)", "Vfleow (V)", "Yfleow (Y)"];
 			const all_ticket_class = [].concat(bba_ticket_class, vja_ticket_class, vna_ticket_class, vta_ticket_class);
-
 			const current_user_title = "' . trim($current_user->title) . '";
-
 			const is_invoice_export = "' . $this->bean->is_invoice_export . '";
 			const is_invoice_input_export = "' . $this->bean->is_invoice_input_export . '";
 		</script>';
@@ -92,7 +94,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			function checkIsCreatedRV() {
 				if(' . $this->_is_had_rv . ' != 1 && ' . $this->bean->is_agent . ' != 1) {
 					$("#frmCheckIsPaid").addClass("error unerror");
-
 					let text_warning = "Bạn phải tạo phiếu thu trước.";
 					showToastWarning(text_warning);
 					return false;
@@ -110,7 +111,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		$css = '';
 		$css .= '<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.1">';
+		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.4">';
 		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=1.9">';
 		echo $css;
 	}
@@ -311,8 +312,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_IS_EXPORTED', $is_exported);
 
 		// Đã giữ chỗ
-		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . '> <label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp;<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '>&nbsp;<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '"></a>';
-		$this->ss->assign('CUSTOM_IS_HOLD', $is_hold);
+		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" '. ($this->bean->is_hold ? 'checked="checked"' : '') .' />';
+		$is_agent = '
+			<label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp
+			<input disabled type="checkbox" name="is_agent" id="is_agent" '. ($this->bean->is_agent ? 'checked="checked"' : '') .'/>&nbsp;
+			<a '. ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
+				'. $this->bean->agent_name .'
+			</a>
+		';
+		$this->ss->assign('CUSTOM_IS_HOLD', $is_hold . $is_agent);
 
 		// Date ticket issue (ngày xuất vé) - giao vé
 		$ticket_issue = '<span class="is_ticket_exported d-flex align-items-center">
@@ -331,18 +339,19 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 
 		/************  CONTACT OLD  ************/
-		$contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
-		$contact_name 		= '<span class="contact_name" data="' . $this->bean->contact_name . '">' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span>';
-		$check_contact_info = '<button class="btn btn-primary-2 d-flex gap-2 align-items-center" id="btnCheckContactInfo" ct_name="' . $this->bean->contact_name . '" ct_mobile="' . $this->bean->phone . '" ct_email="' . $this->bean->email . '" ct_id_booking="' . $this->bean->id . '">
-		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-		<span class="check_infor_customer">Check</span>
-		</button>
-		<div id="CheckContactInfoDialog" title="Kiểm tra thông tin" style="display:none;"></div>';
+		// $contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
+		// $contact_name 		= '<span class="contact_name" data="' . $this->bean->contact_name . '">' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span>';
+		// $check_contact_info = '<button class="btn btn-primary-2 d-flex gap-2 align-items-center" id="btnCheckContactInfo" ct_name="' . $this->bean->contact_name . '" ct_mobile="' . $this->bean->phone . '" ct_email="' . $this->bean->email . '" ct_id_booking="' . $this->bean->id . '">
+		// <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+		// <span class="check_infor_customer">Check</span>
+		// </button>
+		// <div id="CheckContactInfoDialog" title="Kiểm tra thông tin" style="display:none;"></div>';
 		// $this->ss->assign('CONTACT_NAME', $contact_name . $check_contact_info);
 		
 		
 		/************  CONTACT NEW  ************/
-		$link_contact 		= $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id . "" : "#";
+		$contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
+		$link_contact 		= $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id : "#";
 		// $type_contact 		= classifyContact($this->bean->contact_id);
 		$type_contact 		= classifyContactv2($this->bean->contact_id);
 
@@ -479,7 +488,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			} else $bk_stt = '';
 
 			$is_paid = '</form>
-			<form class="frmBookingStatus d-flex align-items-center gap-1" action="index.php" method="post" name="frmCheckIsPaid" id="frmCheckIsPaid" onsubmit="return checkIsCreatedRV()">
+			<form name="frmCheckIsPaid" id="frmCheckIsPaid" action="index.php" method="post" class="frmBookingStatus d-flex align-items-center gap-1" onsubmit="return checkIsCreatedRV()">
 			  	<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
 			  	<input type="hidden" name="action" value="Save" />
 			  	<input type="hidden" name="record" value="' . $this->bean->id . '" />
@@ -557,19 +566,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// support customer
 		$support = '';
-		if (in_array((int)$this->bean->booking_status, [1, 8])) {
-			$support_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'support');
-			$support .= '</form>
-			<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmSupportCustomer" id="frmSupportCustomer">
-				<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-				<input type="hidden" name="action" value="Save" />
-				<input type="hidden" name="record" value="' . $this->bean->id . '" />
-				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-				<input type="hidden" name="support_customer" value="2" />
-				<input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
-				<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnSupportCustomer" id="btnSupportCustomer" value="Hỗ trợ KH (' . $support_count . ')" title="Hỗ trợ KH (' . $support_count . ')" />
-			</form>';
-		}
+		$support_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'support');
+		$support .= '</form>
+		<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmSupportCustomer" id="frmSupportCustomer">
+			<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+			<input type="hidden" name="action" value="Save" />
+			<input type="hidden" name="record" value="' . $this->bean->id . '" />
+			<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+			<input type="hidden" name="support_customer" value="2" />
+			<input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
+			<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnSupportCustomer" id="btnSupportCustomer" value="Hỗ trợ KH (' . $support_count . ')" title="Hỗ trợ KH (' . $support_count . ')" />
+		</form>';
 
 		/*if(is_admin($current_user)){
 			// bonus
@@ -589,7 +596,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt . $support);
 
 		// Is invoice export
-		$is_invoice_export_title = $this->bean->is_invoice_export ? 'Chưa XHĐ đầu ra' : 'Đã XHĐ đầu ra';
+		$is_invoice_export_title = $this->bean->is_invoice_export ? 'Xuất thêm HĐ' : 'Đã xuất HĐ ra';
 		$is_invoice_export = '</form>
 		<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceExport" id="frmCheckInvoiceExport">
 		  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -597,16 +604,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		  <input type="hidden" name="record" value="' . $this->bean->id . '" />
 		  <input type="hidden" name="record_name" value="' . $this->bean->name . '" />
 		  <input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
-		  <input type="hidden" name="is_invoice_export" value="' . ($this->bean->is_invoice_export ? 0 : 1) . '" />
+		  <input type="hidden" name="is_invoice_export" value="1" />
 		  <span class="w-50">Hóa đơn đầu ra: </span>
 		  <span class="d-flex align-items-center gap-2 flex-fill">
-		  <input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked="checked"' : '') . ' />
-		  ' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
+		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked="checked"' : '') . ' />
+		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
 		  </span>
 		</form>';
 
 		// Is invoice input export
-		$is_invoice_input_export_title = $this->bean->is_invoice_input_export ? 'Chưa XHĐ đầu vào' : 'Đã XHĐ đầu vào';
+		$is_invoice_input_export_title = $this->bean->is_invoice_input_export ? 'Chưa xuất HĐ vào' : 'Đã xuất HĐ vào';
 		$is_invoice_input_export = '</form>
 			<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmCheckInvoiceInputExport" id="frmCheckInvoiceInputExport">
 			<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -627,11 +634,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$nganluong_code = '';
 		$server_name = get_server_name($this->bean->created_by);
 		$datepaid = date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
-		$payment_link = $server_name . '/thanh-toan-online?paymentlink=' . $this->bean->nganluong_code . '&datepaid=' . $datepaid . '';
-		$array_servername = array(
+		if($server_name === 'timchuyenbay.com') $payment_link = "$server_name/thanh-toan-online?bkid=". $this->bean->id ."&datepaid=$datepaid";
+		else $payment_link = "$server_name/thanh-toan-online?paymentlink=". $this->bean->nganluong_code ."&datepaid=$datepaid";
+		$array_servername = [
 			'vietjet.net',
 			'timchuyenbay.com'
-		);
+		];
 
 		if (in_array($server_name, $array_servername)) {
 			$nganluong_code = '
@@ -649,13 +657,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</svg>
 						<span>Ngân hàng</span>
 					</button>
-					<button type="button" class="flex-fill history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
+					<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
 							<path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483m.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
 							<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
 							<path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
 						</svg>
-						<p class="title-history">Lịch sử giao dịch</p>
+						<p class="title-history">Các giao dịch</p>
 					</button>
 				</div>';
 			if (empty($this->bean->nganluong_info) || is_null($this->bean->nganluong_info)) {
@@ -747,16 +755,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 		$this->ss->assign('CUSTOM_ASSIGNED_TO_NAME', $assigned_user_name);
 
-		// Giảm giá hiện thêm mã voucher
+		// Giảm giá
 		$discount_html = '<span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
+		// Giảm giá voucher
 		$vouchers = $this->getVoucherApplied();
 		if(!empty($vouchers)) {
 			$discount_html .= '<div class="wrap-voucher">';
 			foreach($vouchers as $v) {
-				$discount_html .= '<a class="'.$v['type'].'-voucher voucher" title="Xem chi tiết">
+				$discount_html .= '<a class="'.$v['type'].'-voucher voucher" for="dialog_voucher_detail_'.$v['code'].'" title="Xem chi tiết">
 					<span class="code">'.$v['code'].'</span>
 				</a>
-				<dialog id="dialog_voucher_detail" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
+				<dialog id="dialog_voucher_detail_'.$v['code'].'" class="dialog dialog-voucher-detail" style="display:none; border-radius:0">
 					<ul class="voucher-list-items">
 						<li class="voucher-item">
 							<span class="label">Sự kiện/Chiến dịch:</span>
@@ -780,6 +789,39 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				</dialog>';
 			}
 			$discount_html .= '</div>';
+		}
+		if(in_array($this->bean->booking_status, ['1', '6', '2'])) {
+			// Giảm giá tích điểm
+			$points = $this->bean->db->getOne('SELECT points FROM contacts WHERE id = "'.$this->bean->contact_id.'" AND deleted = 0');
+			if($points && $points > 0) {
+				$max_point = (int)($points / $this->bean->point_step) * $this->bean->point_step;
+				$discount_html .= '<div class="wrap-points">
+					<button class="btn btn btn-primary-2 btn-sm btn-use-point" for="dialog_use_point" title="Dùng điểm tích lũy">Dùng điểm</button>
+					<dialog id="dialog_use_point" class="dialog dialog-use-point" style="display:none">
+						<div class="content">
+							<div class="point">
+								<label for="point_of_use">Nhập điểm áp dụng:</label>
+								<div class="input-group">
+									<input type="number" name="point_of_use" id="point_of_use" class="form-control allow-number-only" min="'.$this->bean->point_step.'" max="'.$max_point.'" step="'.$this->bean->point_step.'" />
+									<span class="input-group-text">/<b class="tt_points" id="tt_points" data="'.$points.'">'.$points.' điểm</b></span>
+								</div>
+							</div>
+							<div class="equal">=</div>
+							<div class="amount">
+								<label for="points_discount">Tổng tiền giảm:</label>
+								<div class="input-group">
+									<input type="text" name="points_discount" id="points_discount" value="0" class="form-control points_discount allow-number-only" readonly="true"/>
+									<span class="input-group-text">đ</span>
+								</div>
+							</div>
+						</div>
+						<div class="description">
+							<p>Các mốc điểm được sử dụng: 50, 100, 150, 200, 250,...</p>
+						</div>
+						<button id="btn_apply_points_discount" class="btn btn btn-primary btn-apply-points-discount" contact_id="'.$this->bean->contact_id.'" booking_id="'.$this->bean->id.'" disabled="true">Áp dụng</button>
+					</dialog>
+				</div>';
+			}
 		}
 		$this->ss->assign('CUS_DISCOUNT_AMOUNT', $discount_html);
 	}
@@ -1705,21 +1747,21 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<th scope="col" width="8%">Loại HK</th>
 						<th scope="col" width="8%">Danh xưng</th>';
 		if ($add_type != 2) {
-			$html .= '<th scope="col" width="20%">Họ tên</th>';
+			$html .= '<th scope="col" width="12%">Họ tên</th>';
 		} else {
-			$html .= '<th scope="col" width="20%">Tên HK mới</th>';
+			$html .= '<th scope="col" width="12%">Tên HK mới</th>';
 		}
 
-		$html .= '<th scope="col" width="10%">Ngày sinh</th>
-					<th scope="col" width="10%">CCCD / Passport</th>
-					<th scope="col" width="10%">Số vé đi</th>
-					<th scope="col" width="10%">Số vé về</th>';
+		$html .= '<th scope="col" width="8%">Ngày sinh</th>
+					<th scope="col" width="8%">CCCD / Passport</th>
+					<th scope="col" width="8%">Số vé đi</th>
+					<th scope="col" width="8%">Số vé về</th>';
 
 		if ($add_type != 2) {
-			$html .= '<th scope="col" width="10%">PNR đi</th>
-						<th scope="col" width="10%">PNR về</th>';
+			$html .= '<th scope="col" width="8%">PNR đi</th>
+						<th scope="col" width="8%">PNR về</th>';
 		} else {
-			$html .= '<th scope="col" width="20%">Tên HK cũ</th>';
+			$html .= '<th scope="col" width="12%">Tên HK cũ</th>';
 		}
 
 		$html .= '</tr>
@@ -1732,6 +1774,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				p.type,
 				p.eticket_outbound,
 				p.eticket_inbound,
+				p.eluggage_outbound,
+				p.eluggage_inbound,
 				p.pnr_outbound,
 				p.pnr_inbound,
 				p.direction,
@@ -1790,12 +1834,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</td>
 						<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
 							' . strtoupper($row['eticket_outbound']) . '
-							<img class="editinline" src="./custom/themes/default/images/custom/edit_inline.gif" style="display:none;">
 							<input type="hidden" name="eticket_outbound[]" id="eticket_outbound' . $i . '" value="' . strtoupper($row['eticket_outbound']) . '"  />
 						</td>
 						<td data-label="Số vé về" class="text-center" class="eticket_inbound" content="' . strtoupper($row['eticket_inbound']) . '" row_no="' . $row['id'] . '">
 							' . strtoupper($row['eticket_inbound']) . '
-							<img class="editinline" src="./custom/themes/default/images/custom/edit_inline.gif" style="display:none;">
 							<input type="hidden" name="eticket_inbound[]" id="eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '"  />
 						</td>';
 
@@ -1838,11 +1880,22 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				}
 
 				if ($bag_weight_out > 0) {
+					$lug_purchase_inf = '';
 					if ($row['luggage_purchase'] > 0) {
-						$lug_purchase_inf = ' - Giá mua: ' . format_number($row['luggage_purchase_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase']);
-					} else $lug_purchase_inf = '';
+						$lug_purchase_inf .= ' - Giá mua: ' . format_number($row['luggage_purchase_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase']);
+					} 
 
-					$luggage_price .= '<div class="luggage__outbound"><span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . $lug_purchase_inf . ')</div>';
+					$eluggage_outbound = '';
+					if(strlen($row['eluggage_outbound']) > 0) {
+						$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
+												(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($row['eluggage_outbound']) . '</strong>)
+												<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '"  />
+											</span>';
+					}
+					$luggage_price .= '<div class="luggage__outbound">
+											<span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . $lug_purchase_inf . ')
+											'.$eluggage_outbound.'
+										</div>';
 				}
 
 				// Hành lý chiều về
@@ -1861,13 +1914,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
 					}
 
-					// if ($bag_weight_in >= 0) {
 					if ($bag_weight_in > 0) {
+						$in_lug_purchase_inf = '';
 						if ($row['luggage_purchase_inbound'] > 0) {
-							$in_lug_purchase_inf = ' - Giá mua: ' . format_number($row['luggage_purchase_inbound_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase_inbound']);
-						} else $in_lug_purchase_inf = '';
+							$in_lug_purchase_inf .= ' - Giá mua: ' . format_number($row['luggage_purchase_inbound_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase_inbound']);
+						} 
 
-						$luggage_price .= '<div class="luggage__inbound mt-2"><span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . $in_lug_purchase_inf . ')</div>';
+						$eluggage_inbound = '';
+						if(strlen($row['eluggage_inbound']) > 0) {
+							$eluggage_inbound .= '<span data-label="Số vé HL về" class="text-center" class="eluggage_inbound">
+													(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($row['eluggage_inbound']) . '</strong>)
+													<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '"  />
+												</span>';
+						}
+
+						$luggage_price .= '<div class="luggage__inbound mt-2">
+												<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . $in_lug_purchase_inf . ')
+												'.$eluggage_inbound.'
+											</div>';
 					}
 				}
 
@@ -2015,7 +2079,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$html = '';
 		switch ($type) {
 			case 2:
-				$html = '<tfoot><tr class="footer-tr edited_pass_line hide-mobile"><td class="text-start" colspan="11"><b>Thông tin hành khách có thay đổi:</b> <span id="no-change__edit-pass"></span></td></tr></tfoot>';
+				$html = '<tfoot><tr class="footer-tr edited_pass_line hide-mobile"><td class="text-start" colspan="13"><b>Thông tin hành khách có thay đổi:</b> <span id="no-change__edit-pass"></span></td></tr></tfoot>';
 				break;
 			case 3:
 				$html = '<tfoot><tr class="footer-tr edited_iti_line hide-mobile"><td class="text-start" colspan="13"><b>Thông tin đổi ngày bay / hành trình:</b><span id="no-change__edit-iti"></span></td></tr></tfoot>';
@@ -2264,9 +2328,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUS_IV_ACCOUNT_NAME', $iv_account_name);
 		$this->ss->assign('CUS_IV_EMAIL', $iv_email);
 		$this->ss->assign('CUS_IV_PAYMENT_METHOD', $iv_payment_method);
-		$this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
-		$this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
-		$this->ss->assign('CUS_IV_NAME_BANK', $iv_name_banks);
+		// $this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
+		// $this->ss->assign('CUS_IV_NAME_BANK', $iv_name_banks);
 	}
 
 	// Kiểm tra booker có quyền quản lý booking -> cho thay đổi trạng thái
@@ -2478,7 +2541,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$Zalo = new Zalo();
 		// Information
-		$info = json_decode($Zalo->get_user_info($zalo_id), true);
+		$info = json_decode($Zalo->get_user($zalo_id), true);
 		if ($info['error'] == 1 || empty($info['data'])) return ['message' => 'Zalo ID không hợp lệ', 'send_promotion' => 0, 'data' => null];
 		$data = [
 			'id' 		=> $zalo_id,
@@ -2612,13 +2675,19 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$options .= '<option value="' . $url . '">' . $row['name'] . '</option>';
 		}
 
-		return '
-			<dialog id="dialog_qr_code" class="dialog_qr_code">
-				<h3 class="title">QR thanh toán booking</h3>
-				<select id="select_bank_get_qr_code" class="select_bank">' . $options . '</select>
-				<img id="img_qr_code" class="img_qr_code" src="" />
+		global $current_user;
+		return '<dialog id="dialog_qr_code" class="dialog_qr_code">
+			<h3 class="title">QR thanh toán booking</h3>
+			<select id="select_bank_get_qr_code" class="select_bank">' . $options . '</select>
+			<img id="img_qr_code" class="img_qr_code" src="" />
+			<div class="wrap-redo flex-center p-3" style="display:none;">
+				<input type="text" name="new_payment_amount" id="new_payment_amount" placeholder="Nhập số tiền" />
+				<button class="btn btn-primary" id="btnRenderQRCode">Tạo lại mã</button>
+			</div>
+			<div class="flex-center">
 				<button class="btn btn-secondary" onclick="closeDialog(\'dialog_qr_code\')">Đóng</button>
-			</dialog
-		';
+				<button class="btn btn-primary" style="display: none;" id="copyQRCodeImage">Sao chép QR</button>
+			</div>
+		</dialog';
 	}
 }

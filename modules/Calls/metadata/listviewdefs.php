@@ -76,29 +76,20 @@ $listViewDefs['Calls'] = array(
 			'time_start',
 		),
 	),
-	// 'DATE_END' =>
-	// array(
-	// 	'width' => '15%',
-	// 	'label' => 'LBL_LIST_DATE_END',
-	// 	'link' => false,
-	// 	'default' => true,
-	// 	'related_fields' =>
-	// 	array(
-	// 		0 => 'time_end',
-	// 	),
-	// ),
-	// 'CALL_DURATION_C' => 
-	// array (
-	// 	'width' => '10%',
-	// 	'label' => 'LBL_CALL_DURATION_C',
-	// 	'default' => true,
-	// ),
 	'CALL_TALK' => 
 	array (
 		'width' => '10%',
 		'label' => 'LBL_CALL_TALK',
 		'default' => true,
 		'type' => 'text',
+	),
+	'CALL_MOS' => 
+	array (
+		'width' => '10%',
+		'label' => 'LBL_LIST_CALL_MOS',
+		'default' => false,
+		'type' => 'FLOAT',
+		// 'align' => 'center',
 	),
 
 	'STATUS' => array(
@@ -127,6 +118,12 @@ $listViewDefs['Calls'] = array(
 		'link' => true,
 	    'default' => true,
 	),
+	'CALL_SOURCES' => array(
+		'width' => '10%',
+		'label' => 'LBL_CALL_SOURCES',
+		'link' => false,
+		'default' => true,
+	),
 	'ASSIGNED_USER_NAME' => array(
 		'width' => '2%',
 		'label' => 'LBL_LIST_ASSIGNED_TO_NAME',
@@ -134,9 +131,4 @@ $listViewDefs['Calls'] = array(
 		'id' => 'ASSIGNED_USER_ID',
 		'default' => true,
 	),
-	// 'DATE_ENTERED' => array(
-	// 	'width' => '10%',
-	// 	'label' => 'LBL_DATE_ENTERED',
-	// 	'default' => true
-	// ),
 );

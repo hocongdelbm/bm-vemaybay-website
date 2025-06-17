@@ -22,10 +22,14 @@ $viewdefs[$module_name]['DetailView'] = array(
 
     'panels' => array (
         'default' => array(
-            array(
+            array (
+                array(
+                    'name' => 'name',
+                    'label' => 'LBL_NAME',
+                ),
                 array(
                     'name' => 'campaign_name',
-                    'label' => 'LBL_CAMPAIGN_NAME',
+                    'label' => 'LBL_EVENT',
                 ),
             ),
             array (
@@ -106,6 +110,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'colspan' => 4,
                     'customCode' => '{$BOOKINGS}',
                 )
+            ),
+            array (
+                'description',
             ),
         )
     ),

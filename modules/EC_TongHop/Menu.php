@@ -46,6 +46,14 @@ if(isAllowedUser()) {
     // if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] 	= array("index.php?module=EC_TongHop&action=analytics&return_module=EC_TongHop&return_action=analytics", "Analytics TCB", "analytics", 'EC_TongHop');
 }
 
+if(ACLController::checkAccess('EC_Contact_Points_Log', 'list', true)) {
+    $module_menu[] = [
+        'index.php?module=EC_Contact_Points_Log&action=dashboard',
+        $mod_strings['LNK_DASHBOARD'],
+        'linechart_16x16',
+        'EC_Contact_Points_Log'
+    ];
+}
 
 
 if(is_admin($current_user)){

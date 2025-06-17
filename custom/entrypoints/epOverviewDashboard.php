@@ -43,6 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             GROUP BY week_type, day_of_week
             ORDER BY week_type, day_of_week
         ";
+
         $result_bookings = $db->query($query_bookings);
 
         $data_bookings = [
@@ -92,24 +93,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ORDER BY w.total_kpi DESC
                     LIMIT 1";
 
-            $result_kpi = $db->query($query_kpi);
-            $data_kpi = [
-                'full_name' => '',
-                'total_kpi' => 0,
-            ];
+        $result_kpi = $db->query($query_kpi);
+        $data_kpi = [
+            'full_name' => '',
+            'total_kpi' => 0,
+        ];
 
-            while ($row = $db->fetchByAssoc($result_kpi)) {
-                $data_kpi = [
-                    'full_name' => $row['full_name'],
-                    'total_kpi' => (int)$row['total_kpi']
-                ];
-            }
-  
+        while ($row = $db->fetchByAssoc($result_kpi)) {
+            $data_kpi = [
+                'full_name' => $row['full_name'],
+                'total_kpi' => (int)$row['total_kpi']
+            ];
+        }
+
         echo json_encode([
             'calls' => $data_calls,
             'bookings' => $data_bookings,
             'kpi' => $data_kpi,
         ]);
+        exit;
+    } elseif (strtoupper($type) == 'GET_DATA_CDR_CALLS') {
+        $calls = BeanFactory::getBean('Calls');
+        $cdr_stats = $calls->getCDRStatistics();
+        
+        $result_cdr = [
+            'total' => $cdr_stats['total'] ?? [],
+            'failed' => $cdr_stats['failed'] ?? [],
+            'answered' => $cdr_stats['answered'] ?? [],
+            'minutes' => $cdr_stats['minutes'] ?? [],
+            'call_per_min' => $cdr_stats['call_per_min'] ?? [],
+            'asr' => $cdr_stats['asr'] ?? [],
+            'aloc' => $cdr_stats['aloc'] ?? [],
+        ];
+
+        echo json_encode($result_cdr);
         exit;
     }
 }

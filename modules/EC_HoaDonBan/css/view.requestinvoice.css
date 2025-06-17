@@ -1,0 +1,54 @@
+.break-word {word-break: break-word;}
+.d-block {display: block;}
+
+.form-check-input:checked::before,
+.form-check-input:checked::after {
+  display: none !important;
+}
+
+.table-request__invoice tbody tr td,
+.table-request__invoice tbody tr td * {
+    font-size: 12px;
+}
+.table-request__invoice tbody tr td a.d-block:nth-child(n+2) {
+    margin-top: 6px;
+}
+
+.table-request__invoice tbody tr td.td-info-invoice .item {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    padding: 3px 0;
+}
+.table-request__invoice tbody tr td.td-info-invoice .item .label {
+    width: 30%;
+    font-weight: 600;
+}
+.table-request__invoice tbody tr td.td-info-invoice .item .value {
+    flex: 1;
+}
+
+#output_invoice #output_inv tbody tr:hover {
+    background-color: #cfeafe;
+}
+#output_invoice #output_inv thead tr:first-child th {
+    position: sticky;
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+    top: 0;
+}
+#output_invoice #output_inv thead tr:not(first-child) th {
+    position: sticky;
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+    top: 23px;
+}
+
+.open-input-invoice {
+    border: none;
+    background: none;
+    display: block;
+    width: fit-content;
+    color: var(--text-primary-color);
+    font-weight: 600;
+    text-decoration: underline;
+    padding: 1px;
+}

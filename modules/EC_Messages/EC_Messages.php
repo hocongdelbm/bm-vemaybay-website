@@ -108,9 +108,6 @@ class EC_Messages extends Basic {
             }
     
             return json_encode($array);
-        } else {
-            header("Location: index.php?module=EC_Messages&action=Error&error_string=" . urlencode("Chưa có thông tin file. Vui lòng import lại"));
-            exit;
         }
     }
 

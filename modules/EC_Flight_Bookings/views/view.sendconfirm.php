@@ -47,8 +47,7 @@ class Viewsendconfirm extends SugarView {
 			$db->query("UPDATE ec_flight_bookings SET is_mail_confirm=1 WHERE id='".$_POST['return_id']."' ");
 			header("Location: index.php?module=EC_Flight_Bookings&action=DetailView&record=".$_POST['return_id']);
 			exit;
-		}
-		else {
+		} else {
 			header("Location: index.php?module=EC_Flight_Bookings&action=Error&error_string=".urlencode('Email xác nhận gửi thất bại.'));
 			exit;
 		}
@@ -65,30 +64,19 @@ class Viewsendconfirm extends SugarView {
 		// $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // Security travelpass
 		$department_info 	= myGetDepartmentInfo("f15f801d-a9bc-cc92-4152-655f5e89867f"); // Security MHV
 		$com_address 		= $department_info['com_address'];
-
-		if(!is_null($department_info['com_address2']) && !empty($department_info['com_address2'])){
-			$com_address .= ' hoặc '.$department_info['com_address2'];
-		}
-		if(!is_null($department_info['com_address3']) && !empty($department_info['com_address3'])){
-			$com_address .= ' hoặc '.$department_info['com_address3'];
-		}
-		if(!is_null($department_info['com_address4']) && !empty($department_info['com_address4'])){
-			$com_address .= ' hoặc '.$department_info['com_address4'];
-		}
-
 		$contact_name 		= ucwords(myRemoveUnicodeChars($this->bean->contact_name));
 		$booking_status 	= $app_list_strings['booking_status_list'][$this->bean->booking_status];
-		$trip_type 		= $app_list_strings['bk_flight_type_list'][$this->bean->flight_type];
+		$trip_type 			= $app_list_strings['bk_flight_type_list'][$this->bean->flight_type];
 		$payment_type 		= $app_list_strings['booking_payment_type_list'][$this->bean->payment_type];
-		$pax_infos 		= $this->getPaxInfos($this->bean->id, $this->bean->flight_type);
+		$pax_infos 			= $this->getPaxInfos($this->bean->id, $this->bean->flight_type);
 		$route_infos 		= $this->getRouteInfos($this->bean->id);
 		$bank_infos 		= $this->getBankInfos($created_by->department_id);	
-		$time_limit		= $this->getTripType($route_infos['time_limit']);
+		$time_limit			= $this->getTripType($route_infos['time_limit']);
 
-		$form_mail 		= isset($_POST['form_mail']) && !empty($_POST['form_mail']) ? $_POST['form_mail'] : 'sendmail_confirm.html';
+		$form_mail 			= isset($_POST['form_mail']) && !empty($_POST['form_mail']) ? $_POST['form_mail'] : 'sendmail_confirm.html';
 		$form_header 		= file_get_contents('modules/EC_Flight_Bookings/tpls/sendmail_header.html');
 		$form_footer 		= file_get_contents('modules/EC_Flight_Bookings/tpls/sendmail_footer.html');
-		$form_body 		= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail).$form_footer;
+		$form_body 			= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail).$form_footer;
 
 		// EMAIL SUBJECT
 		$subject = 'Xác nhận đơn hàng '.$this->bean->name.' - '.$contact_name;
@@ -99,29 +87,25 @@ class Viewsendconfirm extends SugarView {
 			$subject = 'Đặt vé khuyến mãi '.$this->bean->name.' - '.$contact_name;
 		}
 		if($form_mail == 'sendmail_voucher.html') {
-			$this->changeVoucherStatus($this->bean->id);
 			$voucher 	= $this->getVoucherInfo($this->bean->id);
 			$form_body 	= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail);	
 			$subject 	= 'Voucher Timchuyenbay gởi tặng!';
-		} 
-		else $voucher = array(
+		} else $voucher = array(
 			'name' => '',
 			'amt' => 0,
 		);
 
 		// Ngân lượng (Thanh toán online)
-		$nganluong_code = $this->bean->nganluong_code;
 		$nganluong_datepaid =  date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
-
 		$name_site = array(
 			'TCB' => 'timchuyenbay.com',
+			'GV2' => 'vietjet.net',
 			'VJ2' => 'vietjet.net',
 		);
-		$name_website 	= substr($this->bean->name, 0, 3);
-		if(isset($nganluong_code) && !empty($nganluong_code)){
-			$payment_link 	= $name_site[$name_website].'/thanh-toan-online?paymentlink='.$nganluong_code.'&datepaid='.$nganluong_datepaid.'';
-		} else {
-			$payment_link = '#';
+		$name_website = strtoupper(substr((string) $this->bean->name, 0, 3));
+		$payment_link = '#';
+		if (array_key_exists($name_website, $name_site)) {
+			$payment_link = 'https://' . $name_site[$name_website] . '/thanh-toan-online?bkid=' . $this->bean->id . '&datepaid=' . $nganluong_datepaid;
 		}
 
 		$body = str_replace(
@@ -328,6 +312,8 @@ class Viewsendconfirm extends SugarView {
 					,p.luggage_price_inbound AS bag_in
 					,p.luggage_index_outbound
 					,p.luggage_index_inbound
+					,p.cic
+					,p.passport_number
 				FROM ec_booking_passengers p
 				WHERE p.deleted=0 AND add_type IS NULL
 				AND p.booking_id='".$booking_id."'
@@ -336,13 +322,14 @@ class Viewsendconfirm extends SugarView {
 		$res = $db->query($sql);
 
 		$html = '<tr>
-					<td style="width:12%; border:1px solid #e7e7e7; padding: 5px;">Đối tượng</td>
-					<td style="width:30%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Họ tên hành khách</td>
-					<td style="width:14%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Ngày sinh</td>';
+					<td style="width:10%; border:1px solid #e7e7e7; padding: 5px;">Đối tượng</td>
+					<td style="width:25%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Họ tên hành khách</td>
+					<td style="width:15%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Ngày sinh</td>
+					<td style="width:10%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">CCCD/Passport</td>';
 
 		  if($flight_type == '0'){
-			  $html .= '<td style="width:22%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều đi</td>
-						<td style="width:22%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều về</td>';
+			  $html .= '<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều đi</td>
+						<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều về</td>';
 		  } else {
 			  $html .= '<td style="width:40%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý</td>';
 		  }
@@ -352,6 +339,7 @@ class Viewsendconfirm extends SugarView {
 		while($row = $db->fetchByAssoc($res)){
 
 			$dob = '';
+			$cic_pass = !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
 			if ($row['pax_dob'] != '' && $row['pax_dob'] != '0000-00-00') {
 				try {
 					$dob = new DateTime($row['pax_dob']);
@@ -366,7 +354,8 @@ class Viewsendconfirm extends SugarView {
 			$html .= '<tr>
 				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$app_list_strings['passenger_type_list'][$row['pax_type']].'</td>
 				<td style="border:1px solid #e7e7e7; padding: 5px;"><label style="text-transform:uppercase;">'.$row['pax_name'].'</label></td>
-				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$dob.'</td>';
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$dob.'</td>
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$cic_pass.'</td>';
 
 			$bag_out = generateLuggage($row['date_entered'], $row['aircode_out'], $row['ticket_class_out'], $row['pax_type'], $row['luggage_index_outbound']);
 			if (!is_null($row['luggage_index_outbound']) && !empty($row['luggage_index_outbound'])) {
@@ -791,10 +780,13 @@ class Viewsendconfirm extends SugarView {
 															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px">
 																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
-																		HD Bank - Số TK : <strong>081704070006171</strong>
+																		<strong>CÔNG TY TNHH MINH HỒNG VÕ</strong>
 																	</p>
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
-																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>
+																		Ngân hàng TMCP Quân Đội – PGD Bến Thành – CN Sài Gòn
+																	</p>
+																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
+																		Số TK: <strong>0000920990898</strong>
 																	</p>
 																</div>
 															</td>
@@ -812,22 +804,15 @@ class Viewsendconfirm extends SugarView {
 		return array('html' => $html, 'bank_owner' => $bank_owner, 'bank_main' => $bank_main);
 	}
 
-	function changeVoucherStatus($booking_id) {
-		$sql = 'UPDATE ec_vouchers SET status = 2 
-				WHERE booking_receive_id = "' . $booking_id . '"
-				AND deleted = 0';
-		$this->bean->db->query($sql);
-	}
-
 	function getVoucherInfo($booking_id) {
-		$sql = 'SELECT name, reduce_amount, validate_to_date
+		$sql = 'SELECT name, reduce_amount, end_time
 				FROM ec_vouchers 
-				WHERE booking_receive_id = "' . $booking_id . '"
+				WHERE booking_id = "' . $booking_id . '"
 				AND deleted = 0';
 
 		$res = $this->bean->db->query($sql);
 		$row = $this->bean->db->fetchByAssoc($res);
 
-		return array('name' => $row['name'], 'amt' => $row['reduce_amount'], 'expire_date' => date('d-m-Y', strtotime($row['validate_to_date'])));
+		return array('name' => $row['name'], 'amt' => $row['reduce_amount'], 'expire_date' => date('d-m-Y', strtotime($row['end_time'])));
 	}
 }

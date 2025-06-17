@@ -263,12 +263,6 @@ $searchdefs[$module_name] = array(
                 'name' => 'email_reservation',
             ),
 
-            'has_voucher' => array(
-                'name'       => 'has_voucher',
-                'vname'      => 'LBL_HAS_VOUCHER',
-                'type'       => 'bool',
-                'default'    => true,
-            ),
             // 'favorites_only' => 
             // array(
             //   'name' => 'favorites_only', 

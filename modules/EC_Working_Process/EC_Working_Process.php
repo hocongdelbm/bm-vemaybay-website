@@ -35,6 +35,7 @@ class EC_Working_Process extends Basic {
     public $recall;
     public $check_debt;
     public $bonus;
+    public $support;
 
     public $manner;
     public $effected;

@@ -103,19 +103,14 @@ class Viewbookingqtyreport extends SugarView
 
 	function genBKSale($from_date, $to_date, $type = 0)
 	{
-		global $current_user;
 		$sql = '
 			SELECT last_name, user_name, user_id,
-				SUM(bk_created) AS bk_created,
-				SUM(bk_called) AS bk_called,
-				SUM(bk_paying) AS bk_paying,
 				SUM(bk_confirmed) AS bk_confirmed,
 				SUM(bk_printed) AS bk_printed,
 				SUM(bk_completed) AS bk_completed,
 				SUM(bk_cancelled) AS bk_cancelled,
 				SUM(total) AS total,
 				SUM(total_sales) AS total_sales,
-				type,
 				SUM(total_ticket) AS total_ticket,
 				SUM(my_bk) AS my_bk,
 				SUM(com_my_bk) AS com_my_bk,
@@ -127,10 +122,6 @@ class Viewbookingqtyreport extends SugarView
 				SUM(com_4_8ticket_qty) AS com_4_8ticket_qty,
 				SUM(com_4_8ticket) AS com_4_8ticket,
 				SUM(bk_4to8ticket_sales) AS bk_4to8ticket_sales,
-				SUM(bk_9_ticket) AS bk_9_ticket,
-				SUM(com_9ticket_qty) AS com_9ticket_qty,
-				SUM(com_9ticket) AS com_9ticket,
-				SUM(bk_9ticket_sales) AS bk_9ticket_sales,
 				SUM(prior_bk) AS prior_bk,
 				SUM(com_prior_bk) AS com_prior_bk,
 				SUM(com_prior_ticket) AS com_prior_ticket,
@@ -142,20 +133,17 @@ class Viewbookingqtyreport extends SugarView
 				SUM(bk_inter_ticket_sales) AS bk_inter_ticket_sales,
 
 				SUM(inbound) AS c_inbound,
-				SUM(missed) AS c_missed
+				SUM(missed) AS c_missed,
+				SUM(inbound_bk) AS c_inbound_bk
 			FROM (
 				SELECT
 					u.last_name, u.user_name, u.id AS user_id,
-					COUNT(IF(bk.booking_status = 1, bk.id, NULL)) AS bk_created,
-					COUNT(IF(bk.booking_status = 6, bk.id, NULL)) AS bk_called,
-					COUNT(IF(bk.booking_status = 2, bk.id, NULL)) AS bk_paying,
 					COUNT(IF(bk.booking_status = 3, bk.id, NULL)) AS bk_confirmed,
 					COUNT(IF(bk.booking_status = 7, bk.id, NULL)) AS bk_printed,
 					COUNT(IF(bk.booking_status = 8, bk.id, NULL)) AS bk_completed,
 					COUNT(IF(bk.booking_status = 4, bk.id, NULL)) AS bk_cancelled,
 					COUNT(bk.id) AS total,
 					SUM(IF(bk.booking_status IN (3, 7, 8), bk.total_amount - bk.total_bought_amount, 0)) AS total_sales,
-					0 AS type,
 					SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
 					SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi")), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi"))) AS my_bk,
 					SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND bk.booking_status IN (3, 7, 8)), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND booking_status IN (3, 7, 8))) AS com_my_bk,
@@ -167,10 +155,6 @@ class Viewbookingqtyreport extends SugarView
 					SUM(IF(bk.total_qty >= 4 AND bk.total_qty <= 8 AND bk.booking_status IN (3, 7, 8), 1, 0)) AS com_4_8ticket_qty,
 					SUM(IF(bk.total_qty >= 4 AND bk.total_qty <= 8 AND bk.booking_status IN (3, 7, 8), bk.total_qty, 0)) AS com_4_8ticket,
 					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.total_qty >= 4 AND bk.total_qty <= 8, bk.total_amount - bk.total_bought_amount, 0)) AS bk_4to8ticket_sales,
-					SUM(IFNULL((SELECT IF(SUM(quantity) >= 9, 1, 0) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS bk_9_ticket,
-					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.total_qty >= 9, 1, 0)) AS com_9ticket_qty,
-					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.total_qty >= 9, bk.total_qty, 0)) AS com_9ticket,
-					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.total_qty >= 9, bk.total_amount - bk.total_bought_amount, 0)) AS bk_9ticket_sales,
 					0 AS prior_bk,
 					0 AS com_prior_bk,
 					0 AS com_prior_ticket,
@@ -184,17 +168,16 @@ class Viewbookingqtyreport extends SugarView
 
 					0 AS inbound,
 					0 AS missed,
+					0 AS inbound_bk,
 
 					(SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0) AS min_dep_time,
 					DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
 				FROM ec_flight_bookings bk
 					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
 				WHERE u.title = "Bot" 
-					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d', strtotime($from_date)) . '"
-					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
 					AND bk.deleted = 0 
 				GROUP BY bk.id
-				-- HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440) OR  (ticket_type = 2)
 				HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440)
 				
 				UNION
@@ -202,9 +185,6 @@ class Viewbookingqtyreport extends SugarView
 					IF(u.title = "Bot", u.last_name, "Chưa xác định") AS last_name,
 					IF(u.title = "Bot", u.user_name, "") AS user_name,
 					IF(u.title = "Bot", u.id, "BK_UNK") AS user_id,
-					0 AS bk_created,
-					0 AS bk_called,
-					0 AS bk_paying,
 					0 AS bk_confirmed,
 					0 AS bk_printed,
 					0 AS bk_completed,
@@ -212,9 +192,7 @@ class Viewbookingqtyreport extends SugarView
 					0 AS total,
 					- (
 						SUM(IFNULL(bk_psg.luggage_purchase, 0)) + SUM(IFNULL(bk_psg.luggage_purchase_inbound, 0))
-						-- + SUM(IF(bk.id = (SELECT DISTINCT i.booking_id FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0 AND TIMESTAMPDIFF(MINUTE, DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), i.departure_date) > 1440 AND bk.booking_status IN (3, 7, 8) AND bk.ticket_type = 2), IFNULL(bk_psg.luggage_purchase, 0) + IFNULL(bk_psg.luggage_purchase_inbound, 0), 0))
 					) AS total_sales,
-					0 AS type,
 					0 AS total_ticket,
 					0 AS my_bk,
 					0 AS com_my_bk,
@@ -226,16 +204,11 @@ class Viewbookingqtyreport extends SugarView
 					0 AS com_4_8ticket_qty,
 					0 AS com_4_8ticket,
 					- SUM(IF(bk.id = (SELECT DISTINCT i.booking_id FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0 AND TIMESTAMPDIFF(MINUTE, DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), i.departure_date) > 1440 AND bk.booking_status IN (3, 7, 8) AND bk.total_qty >= 4 AND bk.total_qty <= 9), IFNULL(bk_psg.luggage_purchase, 0) + IFNULL(bk_psg.luggage_purchase_inbound, 0), 0)) AS bk_4to8ticket_sales, 
-					0 AS bk_9_ticket,
-					0 AS com_9ticket_qty,
-					0 AS com_9ticket,
-					- SUM(IF(bk.id = (SELECT DISTINCT i.booking_id FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0 AND TIMESTAMPDIFF(MINUTE, DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), i.departure_date) > 1440 AND bk.booking_status IN (3, 7, 8) AND bk.total_qty >= 9), IFNULL(bk_psg.luggage_purchase, 0) + IFNULL(bk_psg.luggage_purchase_inbound, 0), 0)) AS bk_9ticket_sales,
 					0 AS prior_bk,
 					0 AS com_prior_bk,
 					0 AS com_prior_ticket,
 					- (
 						SUM(IF(TIMESTAMPDIFF(MINUTE, DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), (SELECT MIN(departure_date) FROM ec_booking_itineraries WHERE booking_id = bk.id AND deleted = 0)) <= 1440, IFNULL(bk_psg.luggage_purchase, 0) + IFNULL(bk_psg.luggage_purchase_inbound, 0), 0))
-						-- + SUM(IF(bk.id = (SELECT DISTINCT i.booking_id FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0 AND TIMESTAMPDIFF(MINUTE, DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), i.departure_date) > 1440 AND bk.booking_status IN (3, 7, 8) AND bk.ticket_type = 2), IFNULL(bk_psg.luggage_purchase, 0) + IFNULL(bk_psg.luggage_purchase_inbound, 0), 0))
 					) AS prior_bk_sales,
 					
 					0 AS bk_inter_ticket,
@@ -246,14 +219,14 @@ class Viewbookingqtyreport extends SugarView
 
 					0 AS inbound,
 					0 AS missed,
-					
+					0 AS inbound_bk,
+
 					"" AS min_dep_time,
 					"" AS bk_date_entered
 				FROM ec_booking_passengers bk_psg
 					INNER JOIN ec_flight_bookings bk ON bk.id = bk_psg.booking_id
-						AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d', strtotime($from_date)) . '"
-						AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
-						AND bk.booking_status IN (3, 7, 8)
+					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+					AND bk.booking_status IN (3, 7, 8)
 					INNER JOIN users u ON bk.created_by = u.id 
 				WHERE (bk_psg.add_type IS NULL OR bk_psg.add_type = "") AND bk_psg.deleted = 0
 				GROUP BY user_id
@@ -261,16 +234,12 @@ class Viewbookingqtyreport extends SugarView
 				UNION
 				SELECT 
 					u.last_name, u.user_name, u.id AS user_id,
-					COUNT(IF(bk.booking_status = 1, bk.id, NULL)) AS bk_created,
-					COUNT(IF(bk.booking_status = 6, bk.id, NULL)) AS bk_called,
-					COUNT(IF(bk.booking_status = 2, bk.id, NULL)) AS bk_paying,
 					COUNT(IF(bk.booking_status = 3, bk.id, NULL)) AS bk_confirmed,
 					COUNT(IF(bk.booking_status = 7, bk.id, NULL)) AS bk_printed,
 					COUNT(IF(bk.booking_status = 8, bk.id, NULL)) AS bk_completed,
 					COUNT(IF(bk.booking_status = 4, bk.id, NULL)) AS bk_cancelled,
 					COUNT(bk.id) AS total,
 					SUM(IF(bk.booking_status IN (3, 7, 8), bk.total_amount - bk.total_bought_amount, 0)) AS total_sales,
-					0 AS type,
 					SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
 					SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi")), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi"))) AS my_bk,
 					SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND bk.booking_status IN (3, 7, 8)), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND booking_status IN (3, 7, 8))) AS com_my_bk,
@@ -282,10 +251,6 @@ class Viewbookingqtyreport extends SugarView
 					0 AS com_4_8ticket_qty,
 					0 AS com_4_8ticket,
 					0 AS bk_4to8ticket_sales,
-					0 AS bk_9_ticket,
-					0 AS com_9ticket_qty,
-					0 AS com_9ticket,
-					0 AS bk_9ticket_sales,
 					COUNT(bk.id) AS prior_bk,
 					SUM(IF(bk.booking_status IN (3, 7, 8), 1, 0)) AS com_prior_bk,
 					SUM(IF(bk.booking_status IN (3, 7, 8), bk.total_qty, 0)) AS com_prior_ticket,
@@ -299,32 +264,27 @@ class Viewbookingqtyreport extends SugarView
 
 					0 AS inbound,
 					0 AS missed,
+					0 AS inbound_bk,
 
 					(SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0) AS min_dep_time,
 					DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
 				FROM ec_flight_bookings bk
 					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
 				WHERE u.title = "Bot" 
-					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d', strtotime($from_date)) . '"
-					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
 					AND bk.deleted = 0
 				GROUP BY bk.id
-				-- HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) <= 1440) OR (ticket_type = 2)
 				HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) <= 1440)
 				
 				UNION
 				SELECT
 					"Booking chưa xác định" AS last_name, "" AS user_name, "BK_UNK" AS user_id,
-					COUNT(IF(bk.booking_status = 1, bk.id, NULL)) AS bk_created,
-					COUNT(IF(bk.booking_status = 6, bk.id, NULL)) AS bk_called,
-					COUNT(IF(bk.booking_status = 2, bk.id, NULL)) AS bk_paying,
 					COUNT(IF(bk.booking_status = 3, bk.id, NULL)) AS bk_confirmed,
 					COUNT(IF(bk.booking_status = 7, bk.id, NULL)) AS bk_printed,
 					COUNT(IF(bk.booking_status = 8, bk.id, NULL)) AS bk_completed,
 					COUNT(IF(bk.booking_status = 4, bk.id, NULL)) AS bk_cancelled,
 					COUNT(bk.id) AS total,
 					SUM(IF(bk.booking_status = 8, bk.total_amount - bk.total_bought_amount - bk.luggage_fee, 0)) AS total_sales,
-					1 AS type,
 					SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
 					0 AS my_bk,
 					0 AS com_my_bk,
@@ -336,10 +296,6 @@ class Viewbookingqtyreport extends SugarView
 					0 AS com_4_8ticket_qty,
 					0 AS com_4_8ticket,
 					0 AS bk_4to8ticket_sales,
-					0 AS bk_9_ticket,
-					0 AS com_9ticket_qty,
-					0 AS com_9ticket,
-					0 AS bk_9ticket_sales,
 					0 AS prior_bk,
 					0 AS com_prior_bk,
 					0 AS com_prior_ticket,
@@ -353,37 +309,31 @@ class Viewbookingqtyreport extends SugarView
 
 					0 AS inbound,
 					0 AS missed,
+					0 AS inbound_bk,
 
 					(SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0) AS min_dep_time,
 					DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
 				FROM ec_flight_bookings bk
 					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
-				WHERE
-					DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d', strtotime($from_date)) . '"
-					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+				WHERE DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
 					AND (
 						(u.title = "Bot" AND LOWER(bk.contact_name) IN ("tim chuyen bay", "callnow", "call now"))
 						OR u.title <> "Bot"
 					)
 					AND bk.deleted = 0 
 				GROUP BY bk.id
-				-- HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440) OR (ticket_type = 2)
 				HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440)
 
 				-- CUOC GOI THEO SITE
 				UNION
 				SELECT 
 					u.last_name, u.user_name, u.id AS user_id,
-					0 AS bk_created,
-					0 AS bk_called,
-					0 AS bk_paying,
 					0 AS bk_confirmed,
 					0 AS bk_printed,
 					0 AS bk_completed,
 					0 AS bk_cancelled,
 					0 AS total,
 					0 AS total_sales,
-					1 AS type,
 					0 AS total_ticket,
 					0 AS my_bk,
 					0 AS com_my_bk,
@@ -395,10 +345,6 @@ class Viewbookingqtyreport extends SugarView
 					0 AS com_4_8ticket_qty,
 					0 AS com_4_8ticket,
 					0 AS bk_4to8ticket_sales,
-					0 AS bk_9_ticket,
-					0 AS com_9ticket_qty,
-					0 AS com_9ticket,
-					0 AS bk_9ticket_sales,
 					0 AS prior_bk,
 					0 AS com_prior_bk,
 					0 AS com_prior_ticket,
@@ -411,22 +357,22 @@ class Viewbookingqtyreport extends SugarView
 					
 					COUNT(IF(c.direction = "inbound", c.id, NULL)) AS inbound,
 					COUNT(IF(c.direction = "missed", c.id, NULL)) AS missed,
+					COUNT(IF(c.direction = "inbound" AND c.booking_id IS NOT NULL AND c.booking_id <> "", c.id, NULL)) AS inbound_bk,
 					
 					"" AS min_dep_time,
 					"" AS bk_date_entered
 				FROM calls c
 				LEFT JOIN users u ON c.call_sources = u.last_name AND c.deleted = 0
 				WHERE u.title = "Bot" 
-				AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) >= "' . date('Y-m-d', strtotime($from_date)) . '"
-				AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) <= "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+				AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
 				AND c.deleted = 0
 				GROUP BY last_name
 
 			) AS tmp
 			GROUP BY user_id
-			ORDER BY type, total_sales DESC';
+			ORDER BY total_sales DESC';
 
-		// if($current_user->user_name == 'hungnh'){
+		// if($GLOBALS['current_user']->user_name == 'hungnh'){
 		// 	pr($sql);
 		// }
 
@@ -434,11 +380,10 @@ class Viewbookingqtyreport extends SugarView
 		$html 	= '<tbody><form id="booking_search" name="search_form" method="POST" action="index.php?module=EC_TongHop&action=ListView" target="_blank">';
 		$i 		= 0;
 
-		$total_created 			= $total_called = $total_paying = $total_confirmed = $total_printed = 0;
 		$total_completed 		= $total_cancelled = $total = $total_sale = $total_sale_qty = 0;
 		$total_sale_ticket 		= $total_my_bk = $total_prior_bk = $total_1_3ticket_bk = 0;
-		$total_4_8ticket_bk 	= $total_9ticket_bk = $total_com_mybk = 0;
-		$total_comprior 		= $total_com1_3ticket = $total_com4_8ticket = $total_com9ticket = 0;
+		$total_4_8ticket_bk 	= $total_com_mybk = 0;
+		$total_comprior 		= $total_com1_3ticket = $total_com4_8ticket = 0;
 		$total_inter_bk 		=  $total_com_inter_ticket_qty = $total_com_inter_ticket = $total_inter_ticket_sales = 0;
 		$total_ticket_prior_bk 	= $total_sale_prior_bk = $total_ticket_1_3bk = $total_sale_1_3bk = $total_ticket_4_8bk = $total_sale_4_8bk = 0;
 		$total_ticket_inter 	= $total_sale_inter = 0;
@@ -453,12 +398,10 @@ class Viewbookingqtyreport extends SugarView
 			$total_prior_bk 	+= $row['prior_bk'];
 			$total_1_3ticket_bk += $row['bk_1_3_ticket'];
 			$total_4_8ticket_bk += $row['bk_4_8_ticket'];
-			$total_9ticket_bk 	+= $row['bk_9_ticket'];
 			$total_com_mybk		+= $row['com_my_bk'];
 			$total_comprior 	+= $row['com_prior_bk'];
 			$total_com1_3ticket += $row['com_1_3ticket_qty'];
 			$total_com4_8ticket += $row['com_4_8ticket_qty'];
-			$total_com9ticket 	+= $row['com_9ticket_qty'];
 
 			$total_inter_bk += $row['bk_inter_ticket'];
 			$total_com_inter_ticket_qty += $row['com_inter_ticket_qty'];
@@ -477,11 +420,6 @@ class Viewbookingqtyreport extends SugarView
 			$total_sale_inter += $row['bk_inter_ticket_sales'];
 
 			if (!empty($row['user_name'])) {
-				$total_created 		+= $row['bk_created'];
-				$total_called 		+= $row['bk_called'];
-				$total_paying 		+= $row['bk_paying'];
-				$total_confirmed 	+= $row['bk_confirmed'];
-				$total_printed 		+= $row['bk_printed'];
 				$total_completed 	+= $row['bk_completed'];
 				$total_cancelled 	+= $row['bk_cancelled'];
 				$total 				+= $row['total'];
@@ -490,10 +428,8 @@ class Viewbookingqtyreport extends SugarView
 				$last_name = str_replace(".", " ", $row['last_name']);
 
 				$total_ticket = '<a href="#" onclick="' . (empty($row['user_name']) ? 'document.getElementById(\'contact_name_advanced_OPER\').setAttribute(\'name\', \'contact_name_advanced_OPER\'); document.getElementById(\'contact_name_advanced\').setAttribute(\'name\', \'contact_name_advanced\');document.getElementById(\'created_by_name_advanced\').removeAttribute(\'name\'); ' : 'document.getElementById(\'contact_name_advanced_OPER\').removeAttribute(\'name\'); document.getElementById(\'contact_name_advanced\').removeAttribute(\'name\'); document.getElementById(\'created_by_name_advanced\').setAttribute(\'name\', \'created_by_name_advanced\'); document.getElementById(\'created_by_name_advanced\').value = \'' . $row['user_name'] . '\';') . 'document.getElementById(\'booking_status_advanced1\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced2\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced3\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_search\').submit(); return false;">' . ($row['total_ticket']) . '</a>';
-				$name = '<a href="#" onclick="document.getElementById(\'contact_name_advanced_OPER\').removeAttribute(\'name\'); document.getElementById(\'contact_name_advanced\').removeAttribute(\'name\'); document.getElementById(\'booking_status_advanced1\').removeAttribute(\'name\'); document.getElementById(\'booking_status_advanced2\').removeAttribute(\'name\'); document.getElementById(\'booking_status_advanced3\').removeAttribute(\'name\'); document.getElementById(\'created_by_name_advanced\').setAttribute(\'name\', \'created_by_name_advanced\'); document.getElementById(\'created_by_name_advanced\').value = \'' . $row['user_name'] . '\'; document.getElementById(\'booking_search\').submit(); return false;">' . $last_name . '</a>';
 			} else {
 				$total_ticket = $row['total_ticket'];
-				$name = $row['last_name'];
 			}
 
 			$sales[$row['user_id']] = $row['total_sales'];
@@ -504,6 +440,7 @@ class Viewbookingqtyreport extends SugarView
 			} else {
 				$my_bk = format_number($row['my_bk']);
 			}
+
 			if ($row['com_my_bk'] == 0) {
 				$com_my_bk = 0;
 			} else {
@@ -528,13 +465,13 @@ class Viewbookingqtyreport extends SugarView
 			$denominator_total = ($row['total'] == 0 || empty($row['total'])) ? 1 : $row['total'];
 
 			// CALLS
-			$total_inbound += $row['c_inbound']; 
-			$total_missed += $row['c_missed']; 
+			$total_inbound += (int)$row['c_inbound']; 
+			$total_missed += (int)$row['c_missed']; 
 			
 			$html .= '
 				<tr>
 					<!-- <td class="text-center fw-semibold">' . ($i + 1) . '</td> -->
-					<td class="text-start fw-semibold">' . $name . '</td>
+					<td class="text-start fw-semibold">' . $last_name . '</td>
 
 					<td colspan="2" class="text-start">
 						<div class="d-flex align-items-center justify-content-between gap-1">
@@ -557,7 +494,7 @@ class Viewbookingqtyreport extends SugarView
 						<span class="show_detail_bk show_detail" type="show_booker_bk" sname="' . $row['last_name'] . '" user="' . $row['user_id'] . '">' . $my_bk . '&nbsp;/&nbsp;' . $com_my_bk . '</span>
 					</td>
 
-					<td class="text-end c_inbound">'.$row['c_inbound'].'</td>
+					<td class="text-end c_inbound">'.$row['c_inbound'].' / '.$row['c_inbound_bk'].'</td>
 					<td class="text-end c_missed">'.$row['c_missed'].'</td>
 					
 					<td class="text-end"><span class="show_detail_bk show_detail" sname="' . $row['last_name'] . '" type="show_prior_bk" user="' . $row['user_id'] . '">' . $prior_bk . '&nbsp;/&nbsp;' . $com_prior_bk . '</span></td>
@@ -622,8 +559,6 @@ class Viewbookingqtyreport extends SugarView
 		$html .= '<input type="hidden" name="from" value="bkqtyreport"/>';
 		$html .= '</form></tbody>';
 
-		// $total = ($total == 0 || empty($total)) ? 1 : $total;
-
 		$html .= '<tfoot>
 			<tr class="footer-tr">
 				<td colspan="1" class="text-center fw-semibold">Tổng cộng</td>
@@ -680,15 +615,6 @@ class Viewbookingqtyreport extends SugarView
 				<td style="text-align: right; background-color: #E94560; color: #fff">' . round($total_cancelled / $total * 100, 1) . '%</td>
 			</tr>
 		</tfoot>';
-		
-
-		// Đã gọi
-		// <td style="text-align: right; background-color: #068FFF; ">' . format_number($total_called) . '</td>
-		// <td style="text-align: right; background-color: #068FFF; ">' . round($total_called / $total * 100, 1) . '%</td>
-		
-		// Xác nhận
-		// <td style="text-align: right; background-color: #3d8bfd; color: #fff">'.format_number($total_confirmed).'</td>
-		// <td style="text-align: right; background-color: #3d8bfd; color: #fff">'.round($total_confirmed / $total * 100, 1).'%</td>
 		return $html;
 	}
 }

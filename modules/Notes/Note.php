@@ -44,6 +44,8 @@ class Note extends File
     public $object_name = "Note";
     public $importable = true;
 
+    public $working_process_id;
+
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array(
         'contact_name',

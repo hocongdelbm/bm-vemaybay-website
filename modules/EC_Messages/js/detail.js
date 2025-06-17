@@ -7,11 +7,11 @@ $(document).ready(function () {
         let send_time   = $('span#send_time').text();
 
         if(!message || message.length < 10) {
-            alert("Lỗi: Nội dung tin nhắn không hợp lệ");
+            showModalNotify(0, "Nội dung tin nhắn không hợp lệ");
             return false;
         }
         if(!send_time || send_time.length == 0) {
-            alert("Lỗi: Ngày gửi không hợp lệ");
+            showModalNotify(0, "Thời gian gửi tin không hợp lệ");
             return false;
         }
 
@@ -28,15 +28,14 @@ $(document).ready(function () {
                 type: "POST",
                 cache: false,
                 success: function (response) {
-                    let data = JSON.parse(response);
-
                     $('.container-waiting').hide();
+
+                    let data = JSON.parse(response);
                     if(data.Status == 1) {
                         showModalNotify(1, "Đã lên lịch");
                         $('.modal-overlay, .btn-modal-close').addClass('reload');
                     }
                     else if(data.Description) showModalNotify(0, data.Description);
-                    else if(data.error) showModalNotify(0, data.error);
                     else showModalNotify(0, "Lên lịch thất bại");
                 }
             });

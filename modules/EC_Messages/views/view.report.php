@@ -10,17 +10,34 @@ class Viewreport extends SugarView {
 		$smarty->display('modules/'.$this->bean->module_dir.'/tpls/report.tpl');
 
 		$this->display_script();
+
+		// global $current_user;
+		// if($current_user->id == '1') {
+		// 	$json_data = $this->bean->db->getOne("SELECT m.data FROM ec_messages m WHERE id = '1aa06259-4880-2386-3857-67ca7200e76a'");
+		// 	$data = json_decode(html_entity_decode($json_data), true);
+
+		// 	$sql = "SELECT id
+		// 		FROM ec_vouchers
+		// 		WHERE campaign_id = '5010948939e4e8bb7393781f9258069867cb' AND deleted = 0";
+			
+		// 	$res = $this->bean->db->query($sql);
+		// 	while($row = $this->bean->db->fetchByAssoc($res)) {
+		// 		$voucher_id = $row['id'];
+		// 		$p = trim(array_shift($data));
+
+		// 		$sql_update = "UPDATE ec_vouchers SET name = '$p' WHERE id = '$voucher_id'";
+		// 		if(!$this->bean->db->query($sql_update)) pr("ERROR");
+		// 	}
+		// }
 	}
 
 	function display_style() {
-		$style = '';
-		$style .= '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/report.css?v=1.0.7">';
+		$style = '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/report.css?v=1.0.7">';
         echo $style;
     }
 
 	function display_script() {
-		$script = '';
-		$script .= '<script src="modules/'.$this->bean->module_dir.'/js/report.js?v=1.0.6"></script>';
+		$script = '<script src="modules/'.$this->bean->module_dir.'/js/report.js?v=1.0.6"></script>';
         echo $script;
     }
 	
@@ -67,7 +84,7 @@ class Viewreport extends SugarView {
 		}
 
 		// SMS
-		$sql_sms = "SELECT COUNT(id) AS total_qty, SUM(cost) as total_amount
+		$sql_sms = "SELECT COUNT(id) AS total_qty, SUM(cost) * 300 as total_amount
 				FROM ec_messages m
 				WHERE $where_date
 					AND m.type = 'sms'

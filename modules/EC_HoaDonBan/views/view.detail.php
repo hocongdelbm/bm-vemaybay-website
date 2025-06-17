@@ -87,13 +87,15 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		}
 		
 		$deleted = $this->bean->tinhtrang != '-1' ? 0 : 1;
-		$sql = "
-			SELECT c.*, in_iv.ticket_code
+		$sql = "SELECT c.*
+				,in_iv.ticket_code
+				,IFNULL(re.name, '') AS receipt_voucher_name
 			FROM ec_chitiethoadon c
 				LEFT JOIN ec_input_invoices in_iv ON in_iv.id = c.ticket_number_id
-			WHERE c.parent_id = '" . $this->bean->id . "'
+				LEFT JOIN ec_receipt_voucher re ON re.id = c.receipt_voucher_id
+			WHERE c.parent_id = '{$this->bean->id}'
 				AND c.parent_type = 'EC_HoaDonBan'
-				AND c.deleted = ".$deleted."
+				AND c.deleted = $deleted
 			ORDER BY order_by_no";
 			
 		$res = $this->bean->db->query($sql);
@@ -106,6 +108,11 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		];
 		while($row = $this->bean->db->fetchByAssoc($res)) {
 			if($this->bean->loaihoadon == 0) {
+				$receipt = '';
+				if(!empty($row['receipt_voucher_id'])) {
+					$receipt = '<br /><a href="index.php?module=EC_Receipt_Voucher&action=DetailView&record='.$row['receipt_voucher_id'].'" target="_blank">'.$row['receipt_voucher_name'].'</a>';
+				}
+
 				$bk = new EC_Flight_Bookings;
 				$bk->retrieve($row['booking_id']);
 				if($bk->name != $row['booking']) $error_txt = '<br><font color="red">(Chưa khớp thông tin bk)</font>';
@@ -113,7 +120,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 				$html .= '<tr>
 					<td class="text-center">' . (++$i) . '</td>
-					<td class="text-start"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='.$row['booking_id'].'" target="_blank">'.$row['booking'].'</a>'.$error_txt.'</td>
+					<td class="text-start">
+						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='.$row['booking_id'].'" target="_blank">'.$row['booking'].'</a>
+						'.$error_txt.$receipt.'
+					</td>
 					<td class="text-start">' . $row['name'] . '</td>
 					<td class="text-end">' . format_number($row['soluong']) . '</td>
 					<td class="text-end">' . format_number($row['dongia']) . '</td>
@@ -522,7 +532,9 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		return $arr[$code];
 	}
 
-	/** Tách phí thu hộ thành từng loại phí (Not use)
+	/** 
+	 * Tách phí thu hộ thành từng loại phí (Not use)
+	 *
 	 * @author DucPham
 	 * @param int $amount : Phí thu hộ
 	 * @param string $booking_id

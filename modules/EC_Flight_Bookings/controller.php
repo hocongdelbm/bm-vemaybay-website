@@ -1,7 +1,9 @@
 <?php
-class EC_Flight_BookingsController extends SugarController{
-	public function process(){
-		switch ($this->action) {
+class EC_Flight_BookingsController extends SugarController
+{
+    public function process()
+    {
+        switch ($this->action) {
             case "DetailView":
                 $this->action = "DetailView";
                 break;
@@ -71,41 +73,43 @@ class EC_Flight_BookingsController extends SugarController{
             case "updateflightfare":
                 $this->action = "updateflightfare";
                 break;
+            case "clientphonetcb":
+                $this->action = "clientphonetcb";
+                break;
             default:
                 $this->action = "ListView";
                 break;
-		}		
+        }
 
-		parent::process();
+        parent::process();
 
-		if( $this->return_action == "EditView" )
-			$this->action = "EditView";
-		if( $this->return_action == "DetailView" )
-			$this->action = "DetailView";
-		if( $this->return_action == "index" )
-			$this->action = "ListView";
-		if( $this->return_action == "printeticket" )
-			$this->action = "printeticket";
-		if( $this->return_action == "sendeticket" )
-			$this->action = "sendeticket";
-		if( $this->return_action == "employeereport" )
-			$this->action = "employeereport";
-		if( $this->return_action == "monthlyreport" )
-			$this->action = "monthlyreport";
-		if( $this->return_action == "agentreport" )
-			$this->action = "agentreport";
-		if( $this->return_action == "checkflydate" )
-			$this->action = "checkflydate";
-		if( $this->return_action == "debtopay" )
-			$this->action = "debtopay";
-		if( $this->return_action == "sendconfirm" )
-			$this->action = "sendconfirm";
-        if( $this->return_action == "recoveryorder" )
+        if ($this->return_action == "EditView")
+            $this->action = "EditView";
+        if ($this->return_action == "DetailView")
+            $this->action = "DetailView";
+        if ($this->return_action == "index")
+            $this->action = "ListView";
+        if ($this->return_action == "printeticket")
+            $this->action = "printeticket";
+        if ($this->return_action == "sendeticket")
+            $this->action = "sendeticket";
+        if ($this->return_action == "employeereport")
+            $this->action = "employeereport";
+        if ($this->return_action == "monthlyreport")
+            $this->action = "monthlyreport";
+        if ($this->return_action == "agentreport")
+            $this->action = "agentreport";
+        if ($this->return_action == "checkflydate")
+            $this->action = "checkflydate";
+        if ($this->return_action == "debtopay")
+            $this->action = "debtopay";
+        if ($this->return_action == "sendconfirm")
+            $this->action = "sendconfirm";
+        if ($this->return_action == "recoveryorder")
             $this->action = "recoveryorder";
-        if( $this->return_action == "airportstatistics" )
+        if ($this->return_action == "airportstatistics")
             $this->action = "airportstatistics";
-     	if( $this->return_action == "issueticket" )
+        if ($this->return_action == "issueticket")
             $this->action = "issueticket";
-	}
+    }
 }
-?>

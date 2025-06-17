@@ -183,4 +183,5 @@ $mod_strings = array(
     'LBL_LIST_ASSIGNED_USER' => 'Assigned user',
     'LBL_PHONE_MOBILE' => 'Phone',
     'LBL_POINTS' => 'Cumulative points',
+    'LNK_POINTS_LOG' => 'Points log',
 );

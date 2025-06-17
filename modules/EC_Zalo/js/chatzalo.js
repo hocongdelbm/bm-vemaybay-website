@@ -6,12 +6,15 @@ const ADMIN_NAME = $(`input[name="admin_name"]`).val();
 const URL = $(`input[name="entrypoint"]`).val();
 const DEFAULT_AVATAR = $(`input[name="default_avatar"]`).val();
 const URL_CHAT_WEBSOCKET = $(`input[name="websocket_url"]`).val();
-const USER_EVENT_LIST = ['user_send_text', 'user_send_image', 'user_send_gif', 'user_send_link', 'user_send_sticker', 'user_send_location', 'user_send_file', 'user_send_audio', 'user_send_video', 'user_send_business_card'];
-const OA_EVENT_LIST = ['oa_send_text', 'oa_send_image', 'oa_send_gif', 'oa_send_sticker', 'oa_send_file', 'oa_send_list'];
+const IMAGE_EXTENSION = $(`input[name="image_extension"]`).val().split(",");
+const FILE_EXTENSION = $(`input[name="file_extension"]`).val().split(",");
+// const LIMIT_MESSAGE = parseInt($(`input[name="limit_message"]`).val() ?? 0);
 var zsocket;
 var count_connect_error = 0;
 
 $(document).ready(function () {
+    resetGlobalContent();
+    getListUser()
     connectWebSocket();
 
     // Click
@@ -29,47 +32,134 @@ $(document).ready(function () {
             // Update value
             $('#text_display_type_list').text(text);
             $('input[name="user_type_list"]').val(value);
+            // Reset list chat
+            $('#list_mess_main').html('');
 
-            $.ajax({
-                url: URL,
-                type: "POST",
-                data: {
-                    action: "get_list_user",
-                    offset: 0,
-                    value: value,
-                    format_list_chat: 1
-                },
-                contentType: "application/x-www-form-urlencoded; charset=utf-8",
-                beforeSend: function() {
-                    $('#list_mess_main').html('<div class="loader_list_user mt-3"></div>');
-                },
-                success: function (response) { // html
-                    $('.loader_list_user').remove();
+            if(value == 'default') getListUser();
+            else {
+                $.ajax({
+                    url: URL,
+                    type: "POST",
+                    data: {
+                        action: "get_list_user",
+                        offset: 0,
+                        value: value
+                    },
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    beforeSend: function() {
+                        loadingSkeleton('list_user', 9);
+                    },
+                    success: function (response) { // json
+                        removeLoadingSkeleton();
 
-                    if(response.length > 0) {
-                        $('#list_mess_main').html(response);
-                        $('input[name="offset_list_user"]').val(50);
+                        if(response.length > 0) {
+                            let obj = JSON.parse(response);
+
+                            if(obj.error == 0) {
+                                for (const [key, row_data] of Object.entries(obj.data)) {
+                                    let message_info = row_data.message_info;
+                                    let user_info = row_data.user_info;
+    
+                                    let html = create_li_chat(message_info, user_info);
+                                    $('#list_mess_main').append(html);
+                                };
+                                $('input[name="offset_list_user"]').val(50);
+                            }
+                        }
+                        else {
+                            $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
+                        }
+
+                        // if(response.length > 0) {
+                        //     $('#list_mess_main').html(response);
+                        //     $('input[name="offset_list_user"]').val(50);
+                        // }
+                        // else {
+                        //     $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
+                        // }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        removeLoadingSkeleton();
+                        console.error(XMLHttpRequest);
+                        console.error("Status: " + textStatus);
+                        console.error("Error: " + errorThrown);
                     }
-                    else {
-                        $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
-                    }
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    $('.loader_list_user').remove();
-                    console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
-                    console.error("Error: " + errorThrown);
-                }
-            });
+                });
+            }
         }
     });
 
-    // List messages
+    // Load more user
+    $('#list_mess_main').on('scroll', function() {
+        if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 5) {
+            if(!$('.loader_list_user').length && $(`input[name="is_loading_list_user"]`).val() == '0') {
+                let type_load = $('input[name="user_type_list"]').val();
+                let last_timestamp = parseInt($('input[name="last_timestamp"]').val());
+                let offset = parseInt($('input[name="offset_list_user"]').val());
+                let count_li = $("#list_mess_main").children().length;
+
+                let current_list_user = '';
+                $('li.item_mess').each(function() {
+                    if($(this).hasClass('item_mess_skeleton')) return;
+                    let id = $(this).attr('id').toString().replaceAll("li", "");
+                    current_list_user += current_list_user.length == 0 ? id : `,${id}`;
+                });
+
+                if(type_load == 'default') getListUser('default', last_timestamp, current_list_user);
+                else {
+                    if(offset < 0 || (type_load != 'L7D' && count_li < offset)) return false;
+
+                    $.ajax({
+                        url: URL,
+                        type: "POST",
+                        data: {
+                            action: "get_list_user",
+                            value: type_load,
+                            offset: offset
+                        },
+                        beforeSend: function() {
+                            loadingSkeleton('list_user', 6);
+                            $(`input[name="is_loading_list_user"]`).val(1);
+                        },
+                        success: function (response) { // json
+                            removeLoadingSkeleton();
+                            $(`input[name="is_loading_list_user"]`).val(0);
+
+                            if(response.length > 0) {
+                                let obj = JSON.parse(response);
+                                if(obj.error == 0) {
+                                    for (const [key, row_data] of Object.entries(obj.data)) {
+                                        let message_info = row_data.message_info;
+                                        let user_info = row_data.user_info;
+            
+                                        let html = create_li_chat(message_info, user_info);
+                                        $('#list_mess_main').append(html);
+                                    };
+                                    offset += 50;
+                                    $('input[name="offset_list_user"]').val(offset);
+                                }
+                                else $('input[name="offset_list_user"]').val(-1);
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            removeLoadingSkeleton();
+                            $(`input[name="is_loading_list_user"]`).val(0);
+                            console.error(XMLHttpRequest);
+                            console.error("Status: " + textStatus);
+                            console.error("Error: " + errorThrown);
+                        }
+                    });   
+                }
+            }
+        }
+    });
+
+    // List messages (Open chat)
     $(document).on("click", "li.item_mess", function() {
         let zalo_id = $(this).attr('id').replace("li", "");
 
         if (zalo_id) {
-            let user_info = $(`#liuserinfo${zalo_id}`).text();
+            let user_info = $(`input#user_data_${zalo_id}`).val();
             let is_get_user_info = user_info.length > 10 ? 0 : 1;
 
             // Hide
@@ -86,7 +176,7 @@ $(document).ready(function () {
             $('#user_tag_display').attr('data', '');
             $('#user_tag_display').attr('data', '');
             $('#user_tag_display .title').text('Nhãn');
-            
+
             $.ajax({
                 url: URL,
                 type: "POST",
@@ -94,7 +184,8 @@ $(document).ready(function () {
                     action: "get_messages",
                     oa_id: OA_ID,
                     zalo_id: zalo_id,
-                    is_get_user_info: is_get_user_info
+                    is_get_user_info: is_get_user_info,
+                    user_info: user_info
                 },
                 beforeSend: function() {
                     $('.container-waiting').show();
@@ -106,7 +197,7 @@ $(document).ready(function () {
                     /************  1. User  ************/
                     let data_user = {};
                     if(is_get_user_info === 0) {
-                        data_user['data'] = JSON.parse(user_info);
+                        data_user['data'] = JSON.parse(decodeURIComponent(atob(user_info)));
                     }
                     else {
                         data_user = data['user_info'];
@@ -135,7 +226,7 @@ $(document).ready(function () {
                         let data_quota = data['quota_info'];
                         let cs = data['quota_info']['cs_reply']['remain'];
                         let oa_cs = data['quota_info']['oa_cs'] ? data['quota_info']['oa_cs'] : 0;
-                        handle_quota_user(cs, data_quota['last_interaction'], oa_cs);
+                        handleQuotaUser(cs, data_quota['last_interaction'], oa_cs);
                     }
                   
                     // Reset
@@ -211,7 +302,7 @@ $(document).ready(function () {
     $('#send_message').click(function () {
         if($(`textarea[name="message_content"]`).val().trim().length == 0 && !isUploading()) return false;
         let formData = generate_form_data();
-        reset_chat_box();
+        resetChatBox();
         send_message(formData);
     });
     $(`textarea[name="message_content"]`).on('keydown', function (e) {
@@ -233,7 +324,7 @@ $(document).ready(function () {
             e.preventDefault();
             if($(this).val().trim().length == 0 && !isUploading()) return false;
             let formData = generate_form_data();
-            reset_chat_box();
+            resetChatBox();
             send_message(formData);
         }
     });
@@ -255,21 +346,28 @@ $(document).ready(function () {
         $('input[name="image_upload"]').trigger("click");
     });
     $('input[name=image_upload]').change(function() {
-        reset_upload_content('file');
-
+        resetContentUpload('file');
         let fileInput = $(this)[0];
-        let reader = new FileReader();
-        reader.onload = function (e) {
-            $('#preview_image_upload').attr('src', e.target.result).show();
-        }
-        reader.readAsDataURL(fileInput.files[0]);
+        if(fileInput.files.length > 0) handleFile(fileInput.files[0]);
     });
+
+    // Choose file to send
+    $('#upload_file').click(function () {
+        $('input[name="file_upload"]').trigger("click");
+    });
+    $('input[name=file_upload]').change(function() {
+        resetContentUpload('image');
+        let fileInput = $(this)[0];
+        if(fileInput.files.length > 0) handleFile(fileInput.files[0]);
+    });
+
+    // Paste text or image/file
     $(`textarea[name="message_content"]`).bind("paste", function(event){
         event.preventDefault();
                 
         const items = event.originalEvent.clipboardData.items;
         let textContent = $(this).val();
-        let imageBlob = null;
+        let fileBlob = null;
 
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
@@ -278,134 +376,42 @@ $(document).ready(function () {
                 item.getAsString(text => {
                     textContent += text;
                     $(this).val(textContent);
+
+                    if(text && text.length > 0) broadcastAdminAction('', 'typing');
                 });
             }
-            else if (item.kind === 'file' && item.type.startsWith('image/')) {
-                imageBlob = item.getAsFile();
+            else if (item.kind === 'file') {
+                fileBlob = item.getAsFile();
             }
 
-            if (imageBlob) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#preview_image_upload').attr('src', e.target.result).show();
-
-                    // Create a new Blob and File object
-                    const blob = new Blob([imageBlob], { type: imageBlob.type });
-                    const newFile = new File([blob], imageBlob.name, { type: imageBlob.type });
-
-                    // Create a DataTransfer object to simulate file input
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(newFile);
-
-                    // Set the files to the file input
-                    $('input[name=image_upload]')[0].files = dataTransfer.files;
-                };
-                reader.readAsDataURL(imageBlob);
+            if (fileBlob) {
+                // Create a new Blob and File object
+                const blob = new Blob([fileBlob], { type: fileBlob.type });
+                const newFile = new File([blob], fileBlob.name, { type: fileBlob.type });
+                handleFile(newFile);
             }
         }
     });
 
-    // Choose file to send
-    $('#upload_file').click(function () {
-        $('input[name="file_upload"]').trigger("click");
+    // Drag image/file over
+    const dropArea = document.getElementById('textarea_message_content');
+    dropArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
     });
-    $('input[name=file_upload]').change(function() {
-        reset_upload_content('image');
-
-        let fileInput = $(this)[0];
-        let filename  = $(this).val().split('\\').pop();
-        let ext  = filename.replace(/^.*\./, '');
-        let size = this.files[0].size
-
-        $('#preview_file_upload .file-image img').attr('src', getImageFile(ext));
-        $('#preview_file_upload .file-name').text(filename);
-        $('#preview_file_upload .file-size').text(formatFileSize(size));
-        $('#preview_file_upload').css('display', 'flex');
+    dropArea.addEventListener('dragleave', () => {
+        dropArea.classList.remove('dragover');
+    });
+    dropArea.addEventListener('drop', (e) => {
+        resetContentUpload('file');
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length) handleFile(files[0]);
     });
 
     // Reset display upload content
-    $('#reset_upload_content').click(function() { reset_upload_content(); });
-
-    // Load more user
-    $('#list_mess_main').on('scroll', function() {
-        if($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 10) {
-            if(!$('.loader_list_user').length) {
-                let type_load = $('input[name="user_type_list"]').val();
-                let offset = parseInt($('input[name="offset_list_user"]').val());
-                let count_li = $("#list_mess_main").children().length;
-
-                let current_list_user = '';
-                $('li.item_mess').each(function() {
-                    let id = $(this).attr('id').toString().replaceAll("li", "");
-                    current_list_user += current_list_user.length == 0 ? id : `,${id}`;
-                });
-
-                if(type_load == 'default') {
-                    $.ajax({
-                        url: URL,
-                        type: "POST",
-                        data: {
-                            action: "get_recent_messages", 
-                            offset: offset,
-                            current_list_user: current_list_user
-                        },
-                        beforeSend: function() {
-                            $('#list_mess_main').append('<div class="loader_list_user"></div>');
-                        },
-                        success: function (response) { // html
-                            $('.loader_list_user').remove();
-
-                            offset = getNumberAtEndString(response);
-                            html = response.slice(0, -offset.length);
-    
-                            $('input[name="offset_list_user"]').val(offset);
-                            $('#list_mess_main').append(html);
-                        },
-                        error: function (XMLHttpRequest, textStatus, errorThrown) {
-                            $('.loader_list_user').remove();
-                            console.error(XMLHttpRequest);
-                            console.error("Status: " + textStatus);
-                            console.error("Error: " + errorThrown);
-                        }
-                    });
-                }
-                else {
-                    if(offset == -1 || (type_load != 'L7D' && count_li < offset)) return false;
-
-                    $.ajax({
-                        url: URL,
-                        type: "POST",
-                        data: {
-                            action: "get_list_user",
-                            offset: offset,
-                            value: type_load,
-                            format_list_chat: 1
-                        },
-                        beforeSend: function() {
-                            $('#list_mess_main').append('<div class="loader_list_user"></div>');
-                        },
-                        success: function (response) { // html
-                            $('.loader_list_user').remove();
-
-                            if(response == 'No data') offset = -1;
-                            else {
-                                offset += 50;
-                                $('#list_mess_main').append(response);
-                            }
-    
-                            $('input[name="offset_list_user"]').val(offset);
-                        },
-                        error: function (XMLHttpRequest, textStatus, errorThrown) {
-                            $('.loader_list_user').remove();
-                            console.error(XMLHttpRequest);
-                            console.error("Status: " + textStatus);
-                            console.error("Error: " + errorThrown);
-                        }
-                    });   
-                }
-            }
-        }
-    })
+    $('#reset_upload_content').click(function() { resetContentUpload(); });
 
     // Quote
     $(document).on("click", ".more .btn_quote", function() {
@@ -465,52 +471,52 @@ $(document).ready(function () {
         $('.content_mess_input').before(quote);
     });
 
-    // Save contact
-    $('#btn_save_contact').click(function () {
-        let zalo_id     = $('#content_chat').attr('zalo_id');
-        let phone       = $('#profile_mobile').attr('data');
-        let name        = $('#profile_zalo_name').attr('data');
-        let alias       = $('#header_name_chat').text();
-        let city        = $('input[name="profile_address_city"]').val();
-        let district    = $('input[name="profile_address_district"]').val();
-        let address     = $('input[name="profile_address_number"]').val();
+    // // Save contact
+    // $('#btn_save_contact').click(function () {
+    //     let zalo_id     = $('#content_chat').attr('zalo_id');
+    //     let phone       = $('#profile_mobile').attr('data');
+    //     let name        = $('#profile_zalo_name').attr('data');
+    //     let alias       = $('#header_name_chat').text();
+    //     let city        = $('input[name="profile_address_city"]').val();
+    //     let district    = $('input[name="profile_address_district"]').val();
+    //     let address     = $('input[name="profile_address_number"]').val();
 
-        if(zalo_id && zalo_id.length > 0) {
-            $.ajax({
-                url: URL,
-                type: "POST",
-                data: {
-                    action: "save_contact",
-                    zalo_id : zalo_id,
-                    phone : phone,
-                    name : name,
-                    alias : alias,
-                    city : city,
-                    district : district,
-                    address : address
-                },
-                beforeSend: function() {
-                    $('.container-waiting').show();
-                },
-                success: function (response) {
-                    $('.container-waiting').hide();
+    //     if(zalo_id && zalo_id.length > 0) {
+    //         $.ajax({
+    //             url: URL,
+    //             type: "POST",
+    //             data: {
+    //                 action: "save_contact",
+    //                 zalo_id : zalo_id,
+    //                 phone : phone,
+    //                 name : name,
+    //                 alias : alias,
+    //                 city : city,
+    //                 district : district,
+    //                 address : address
+    //             },
+    //             beforeSend: function() {
+    //                 $('.container-waiting').show();
+    //             },
+    //             success: function (response) {
+    //                 $('.container-waiting').hide();
 
-                    res = JSON.parse(response);
-                    let m = res['message'] ? res['message'] : 'Thao tác thất bại';
-                    let d = res['description'] ? res['description'] : '';
+    //                 res = JSON.parse(response);
+    //                 let m = res['message'] ? res['message'] : 'Thao tác thất bại';
+    //                 let d = res['description'] ? res['description'] : '';
 
-                    if (res['error'] !== 0) showModalNotify('error', m, d);
-                    else showModalNotify(1, m);
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
-                    console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
-                    console.error("Error: " + errorThrown);
-                }
-            });x
-        }
-    });
+    //                 if (res['error'] !== 0) showModalNotify('error', m, d);
+    //                 else showModalNotify(1, m);
+    //             },
+    //             error: function (XMLHttpRequest, textStatus, errorThrown) {
+    //                 showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
+    //                 console.error(XMLHttpRequest);
+    //                 console.error("Status: " + textStatus);
+    //                 console.error("Error: " + errorThrown);
+    //             }
+    //         });x
+    //     }
+    // });
 
     // Call zalo
     $('#func-call').click(function () {
@@ -561,35 +567,15 @@ $(document).ready(function () {
         }
         else {
             $('#zalochat_profile').show();
-            $('#zalochat_main').css('flex', 'unset');
+            // $('#zalochat_main').css('flex', 'unset');
         }
     });
 
     // Display typing with other users
-    $('textarea[name="message_content"], input[name="image_upload"], input[name="file_upload"]').on('input', function() {
+    $('textarea[name="message_content"]').on('input', function() {
         let zalo_id = $('#content_chat').attr('zalo_id');
         let value = $(this).val();
-
-        if(zalo_id && zalo_id.length > 0 && value && value.length > 0) {
-            let event = {
-                sender : {
-                    id: OA_ID,
-                    admin_id: ADMIN_ID,
-                    admin_name: ADMIN_NAME
-                },
-                recipient : {
-                    id: zalo_id
-                },
-                message : {
-                    msg_id: '',
-                    text: 'đang soạn tin'
-                },
-                event_name: "oa_typing",
-                timestamp: Date.now()
-            }
-
-            if(zsocket) zsocket.send(JSON.stringify(event));
-        }
+        if(value && value.length > 0) broadcast_admin_action('typing', zalo_id);
     });
 
     // Edit alias
@@ -817,10 +803,21 @@ $(document).ready(function () {
                     $('#loader_list_user').remove();
 
                     if (response && response.length > 0) {
-                        $('#list_mess_search').html(response);
+                        let obj = JSON.parse(response);
+                        if(obj['error'] === 0) {
+                            let html = '';
+                            $.each(obj['data'], function(index, item) {
+                                html += create_li_chat(item.message_info, item.user_info);
+                            });
+                            if(html.length > 0) $('#list_mess_search').html(html);
+                            else $('#list_mess_search').html(`<li class="no-results-found">Không tìm thấy kết quả vui lòng tìm kiếm với từ khóa khác</li>`);
+                        }
+                        else {
+                            $('#list_mess_search').html(`<li class="no-results-found">${obj['message']}</li>`);
+                        }
                     }
                     else {
-                        $('#list_mess_search').html(`<li class="no-results-found">Không tìm thấy kết quả vui lòng tìm kiếm với từ khóa khác</li>`);
+                        $('#list_mess_search').html(`<li class="no-results-found">Xảy ra lỗi trong quá trình tìm kiếm</li>`);
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -837,7 +834,69 @@ $(document).ready(function () {
             $('#list_mess_search').hide();
         }
     });
+
+    // Hide show assign user
+    $(document).on('mouseenter', '.avatar-assign', function(e) {
+        e.preventDefault();
+        let element = $(this).attr('for');
+        $(`.assign-fullname#${element}`).stop().fadeIn(300);
+        return false;
+    });
+    $(document).on('mouseleave', '.avatar-assign', function(e) {
+        e.preventDefault();
+        let element = $(this).attr('for');
+        $(`.assign-fullname#${element}`).stop().fadeOut(300);
+        return false;
+    });
 });
+
+/**
+ * Get list user
+ * 
+ * @param {string} type
+ * @param {number} timestamp
+ * @param {string} current_list_user
+ */
+function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
+    if(type == 'default') {
+        $.ajax({
+            url: URL,
+            type: "POST",
+            data: {
+                action: "get_recent_messages", 
+                timestamp: timestamp,
+                current_list_user: current_list_user
+            },
+            beforeSend: function() {
+                loadingSkeleton('list_user', 9);
+                $(`input[name="is_loading_list_user"]`).val(1);
+            },
+            success: function (response) { // JSON
+                removeLoadingSkeleton();
+                $(`input[name="is_loading_list_user"]`).val(0);
+
+                if(response.length > 0) {
+                    let obj = JSON.parse(response);
+                    obj.data.forEach(row_data => {
+                        let message_info = row_data.message_info;
+                        let user_info = row_data.user_info;
+
+                        let html = create_li_chat(message_info, user_info);
+                        $('#list_mess_main').append(html);
+                    });
+                    $('input[name="last_timestamp"]').val(obj.last_timestamp);
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                removeLoadingSkeleton();
+                $(`input[name="is_loading_list_user"]`).val(0);
+                console.error(XMLHttpRequest);
+                console.error("Status: " + textStatus);
+                console.error("Error: " + errorThrown);
+            }
+        });
+    }
+}
 
 function connectWebSocket() {
     if(!OA_ID || OA_ID.length === 0) return false;
@@ -853,209 +912,24 @@ function connectWebSocket() {
         if(!e.data) return false;
 
         data = JSON.parse(e.data);
-        let event = data['event_name'] ? data['event_name'] : '';
-        let mid = data['message']['msg_id'] ? data['message']['msg_id'] : '';
-        let app_id = data['app_id'] ? data['app_id'] : '';
-        let sender_id = data['sender']['id'] ? data['sender']['id'] : '';
-        let recipient_id = data['recipient']['id'] ? data['recipient']['id'] : '';
-        let timestamp = data['timestamp'] ? data['timestamp'] : 0;
+        let event           = data['event_name'] ?? '';
+        let app_id          = data['app_id'] ?? '';
+        let src             = parseInt(data['src']) ?? 0;
+        let mid             = data['message_id'] ?? '';
+        let sender_id       = data['from_id'] ?? '';
+        let recipient_id    = data['to_id'] ?? '';
+        let timestamp       = data['timestamp'] ?? 0;
+        let type            = data['type'] ?? '';
+        // let message         = data['message'] ?? '';
+        if(sender_id == '7658987821159451152' || recipient_id == '7658987821159451152') console.log('ZALO_SOCKET: ', e.data); // For test
 
-        /**********  USER EVENT  **********/
-        if(USER_EVENT_LIST.includes(event)) {
-            let src = 1;
-            let type = event.replace("user_send_", "");
-            let message = data['message']['text'] ? data['message']['text'] : '';
-            let quote_id = data['message']['quote_msg_id'] ? data['message']['quote_msg_id'] : '';
-            let current_user_id_chat = $('#content_chat').attr('zalo_id');
-
-            // The event belongs to the user who is texting
-            if(sender_id === current_user_id_chat) {
-                let avatar = $('#header_avatar_chat').attr('src');
-                let previous_sender_id = $('#section-message__details .section-item:last').attr('sender_id');
-                let previous_timestamp = $('#section-message__details .section-item:last').attr('timestamp');
-                
-                // Basic field
-                if(type == 'business_card') type = 'link';
-                let obj = {
-                    'src' : src,
-                    'time' : timestamp,
-                    'type' : type,
-                    'message' : message,
-                    'message_id' : mid,
-                    'quote_id' : quote_id,
-                    'from_id' : sender_id,
-                    'from_avatar' : avatar,
-                    'previous_sender_id' : previous_sender_id,
-                    'previous_timestamp' : previous_timestamp
-                };
-
-                // Add additional fields 
-                let attachments = data['message']['attachments'] ? data['message']['attachments'] : null;
-                if(attachments) {
-                    if(type == 'image' || type == 'photo' || type == 'gif' || type == 'sticker') {
-                        obj['url'] = attachments[0]['payload']['url'];
-                    }
-                    else if(type == 'audio' || type == 'voice') {
-                        obj['url'] = attachments[0]['payload']['url'];
-                    }
-                    else if(type == 'video') {
-                        obj['url'] = attachments[0]['payload']['url'];
-                        obj['thumb'] = attachments[0]['payload']['thumbnail'];
-                        obj['description'] = attachments[0]['payload']['description'];
-                    }
-                    else if(type == 'file') {
-                        obj['file'] = attachments[0]['payload'];
-                    }
-                    else if(type == 'link' || type == 'links') {
-                        obj['links'] = [];
-                        $.each(attachments , function(index, att) {
-                            let url = att.payload.url;
-                            let title = att.payload.title;
-                            let thumb = att.payload.thumbnail;
-                            let description = att.payload.description;
-                            obj['links'].push({'url':url, 'title':title, 'thumb':thumb, 'description':description});
-                        });
-                    }
-                    else if(type == 'location') {
-                        obj['location'] = attachments[0]['payload']['coordinates'];
-                    }
-                }
-
-                let row = create_chat_row(obj, 'new');
-                $(`#section-message__details`).append(row);
-                $(`#section-message__details .section-item:last .snippet .borHak`).show();
-
-                let message_format = create_li_chat(obj, {}, true);
-                $(`#li${sender_id} .lastest_message`).html(message_format);
-                $(`#li${sender_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
-
-                // Update quota user
-                handle_quota_user(8, timestamp);
-
-                scroll_messages_bottom();
-            }
-            // The event belongs to the user currently on the list
-            else if($(`#li${sender_id}`).length) {
-                let sender = $(`#li${sender_id}`);
-                let num = sender.find('.mess_number').text() ? sender.find('.mess_number').text() : 0;
-
-                let messageObj = {
-                    src : src,
-                    type : type,
-                    time : timestamp,
-                    message : message,
-                    num : parseInt(num) + 1
-                }
-
-                let userObj = {
-                    id : sender_id,
-                    name : sender.find('.mess_name').text(),
-                    avatar : sender.find('.avatar-user-list').attr('src')
-                }
-
-                let li = create_li_chat(messageObj, userObj);
-                sender.remove();
-                $('#list_mess_main').prepend(li);
-            }
-            // The event belongs to the new user
-            else {
-                if($('input[name="user_type_list"]').val() !== 'default') return false;
-                create_li_chat_new(src, type, message, timestamp, sender_id);
-            }
-        }
-        /**********  OA EVENT  **********/
-        else if(OA_EVENT_LIST.includes(event)) {
-            let src = 0;
-            let type = event.replace("oa_send_", "");
-            let message = data['message']['text'] ? data['message']['text'] : '';
-            let quote_id = data['message']['quote_msg_id'] ? data['message']['quote_msg_id'] : '';
-            let current_user_id_chat = $('#content_chat').attr('zalo_id');
-
-            // The event belongs to the user who is texting
-            if(recipient_id === current_user_id_chat) {
-                let previous_sender_id = $('#section-message__details .section-item:last').attr('sender_id');
-                let previous_timestamp = $('#section-message__details .section-item:last').attr('timestamp');
-
-                // Basic field
-                let obj = {
-                    'src' : src,
-                    'time' : timestamp,
-                    'type' : type,
-                    'message' : message,
-                    'message_id' : mid,
-                    'quote_id' : quote_id,
-                    'from_id' : OA_ID,
-                    'from_avatar' : OA_AVATAR,
-                    'previous_sender_id' : previous_sender_id,
-                    'previous_timestamp' : previous_timestamp
-                };
-
-                // Add additional fields 
-                let attachments = data['message']['attachments'] ? data['message']['attachments'] : null;
-                if(attachments) {
-                    if(type == 'image' || type == 'photo' || type == 'gif' || type == 'sticker') {
-                        obj['url'] = attachments[0]['payload']['url'];
-                    }
-                    else if(type == 'file') {
-                        obj['file'] = attachments[0]['payload'];
-                    }
-                    else if(type == 'list') {
-                        obj['links'] = [];
-                        $.each(attachments , function(index, att) {
-                            let url = att.payload.url;
-                            let title = att.payload.title;
-                            let thumb = att.payload.thumbnail;
-                            let description = att.payload.description;
-                            obj['links'].push({'url':url, 'title':title, 'thumb':thumb, 'description':description});
-                        });
-                        obj.type = 'links';
-                    }
-                }
-
-                let row = create_chat_row(obj, 'new');
-                $(`#section-message__details`).append(row);
-                $(`#section-message__details .section-item:last .snippet .borHak`).show();
-
-                let message_format = create_li_chat(obj, {}, true);
-                $(`#li${recipient_id} .lastest_message`).html(message_format);
-                $(`#li${recipient_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
-
-                scroll_messages_bottom();
-            }
-            // The event belongs to the user currently on the list
-            else if($(`#li${recipient_id}`).length) {
-                let recipient = $(`#li${recipient_id}`);
-
-                let messageObj = {
-                    src : src,
-                    type : type,
-                    time : timestamp,
-                    message : message,
-                }
-
-                let userObj = {
-                    id : recipient_id,
-                    name : recipient.find('.mess_name').text(),
-                    avatar : recipient.find('.avatar-user-list').attr('src')
-                }
-
-                let li = create_li_chat(messageObj, userObj);
-                recipient.remove();
-                $('#list_mess_main').prepend(li);
-            }
-            // The event belongs to the new user
-            else {
-                if($('input[name="user_type_list"]').val() !== 'default') return false;
-                create_li_chat_new(src, type, message, timestamp, recipient_id);
-            }
-        }
         /**********  OA EVENT CUSTOM **********/
-        else if(event == 'oa_typing') {
-            let sender_admin_id = data['sender']['admin_id'] ? data['sender']['admin_id'] : '';
+        if(event == 'oa_typing') {
+            let sender_admin_id = data['assigned_user_id'] ?? '';
             let current_user_id_chat = $('#content_chat').attr('zalo_id');
 
             if(sender_admin_id !== ADMIN_ID && recipient_id === current_user_id_chat) {
-                let sender_admin_name = data['sender']['admin_name'] ? data['sender']['admin_name'] : '';
+                let sender_admin_name = data['assigned_user_name'] ?? '';
                 let admin_typing = $('#admin_typing').text();
 
                 if(admin_typing.length > 0) {
@@ -1066,18 +940,214 @@ function connectWebSocket() {
                         if(sender_admin_name === item.trim()) check = false;
                     });
 
-                    if(check) $('#admin_typing').text(`${admin_typing}, ${sender_admin_name}`);
+                    if(check) {
+                        $('#admin_typing').text(`${admin_typing}, ${sender_admin_name}`);
+                        $('#admin_action').text('đang soạn tin');
+                    }
                 }
-                else $('#admin_typing').text(sender_admin_name);
-                $('.display-admin-typing').show();
+                else {
+                    $('#admin_typing').text(sender_admin_name);
+                    if(type == 'sending_image') $('#admin_action').text('đang gửi hình ảnh');
+                    else if(type == 'sending_file') $('#admin_action').text('đang gửi tệp');
+                    else $('#admin_action').text('đang soạn tin');
+                }
 
-                // Hide after 2 seconds
+                $('.display-admin-typing').show();
+                // Hide after 3 seconds
                 setTimeout(function() {
                     $('#admin_typing').text('');
+                    $('#admin_action').text('');
                     $('.display-admin-typing').hide();
                 }, 3000);
             }
         }
+        /**********  USER EVENT  **********/
+        else if(src == 1) {
+            let current_user_id_chat = $('#content_chat').attr('zalo_id');
+
+            // The event belongs to the user who is texting
+            if(sender_id === current_user_id_chat) {
+                let avatar = $('#header_avatar_chat').attr('src');
+                let previous_sender_id = $('#section-message__details .section-item:last').attr('sender_id');
+                let previous_timestamp = $('#section-message__details .section-item:last').attr('timestamp');
+
+                data.from_avatar = avatar;  
+                data.previous_sender_id = previous_sender_id;
+                data.previous_timestamp = previous_timestamp;
+
+                // Get current position first
+                let chatBox = document.getElementById('section_chatbox');
+                let scrollPosition = chatBox.scrollTop;
+                let scrollHeight = chatBox.scrollHeight;
+                let clientHeight = chatBox.clientHeight;
+
+                let row = create_chat_row(data, 'new');
+                $(`#section-message__details`).append(row);
+                $(`#section-message__details .section-item:last .snippet .borHak`).show();
+
+                let message_format = create_li_chat(data, {}, true);
+                $(`#li${sender_id} .lastest_message`).html(message_format);
+                $(`#li${sender_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
+
+                // Update quota user
+                handleQuotaUser(8, timestamp);
+
+                // Check if the user has been to the bottom
+                if (scrollPosition + clientHeight >= scrollHeight - 200) scroll_messages_bottom();
+            }
+            // The event belongs to the user currently on the list
+            else if($(`#li${sender_id}`).length) {
+                let sender = $(`#li${sender_id}`);
+                let num = sender.find('.mess_number').text() ? sender.find('.mess_number').text() : 0;
+                data.num = parseInt(num) + 1;
+
+                let user_data = {};
+                let user_data_raw = $(`input#user_data_${sender_id}`).val();
+                if(user_data_raw && user_data_raw.length > 16) {
+                    user_data = JSON.parse(decodeURIComponent(atob(user_data_raw)));
+                }
+
+                let li = create_li_chat(data, user_data);
+                sender.remove();
+                $('#list_mess_main').prepend(li);
+            }
+            // The event belongs to the new user
+            else {
+                if($('input[name="user_type_list"]').val() !== 'default') return false;
+                create_li_chat_new(sender_id, data);
+            }
+        }
+        /**********  OA EVENT  **********/
+        else if(src == 0) {
+            let current_user_id_chat = $('#content_chat').attr('zalo_id');
+
+            // The event belongs to the user who is texting
+            if(recipient_id === current_user_id_chat) {
+                let previous_sender_id = $('#section-message__details .section-item:last').attr('sender_id');
+                let previous_timestamp = $('#section-message__details .section-item:last').attr('timestamp');
+                let previous_assign_user_id = $('#section-message__details .section-item:last').attr('assign_user_id');
+
+                data.previous_sender_id = previous_sender_id;
+                data.previous_timestamp = previous_timestamp;
+                data.previous_assign_user_id = previous_assign_user_id;
+
+                let row = create_chat_row(data, 'new');
+                $(`#section-message__details`).append(row);
+                $(`#section-message__details .section-item:last .snippet .borHak`).show();
+
+                let message_format = create_li_chat(data, {}, true);
+                $(`#li${recipient_id} .lastest_message`).html(message_format);
+                $(`#li${recipient_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
+
+                scroll_messages_bottom();
+            }
+            // The event belongs to the user currently on the list
+            else if($(`#li${recipient_id}`).length) {
+                let recipient = $(`#li${recipient_id}`);
+
+                let user_data = {};
+                let user_data_raw = $(`input#user_data_${recipient_id}`).val();
+                if(user_data_raw && user_data_raw.length > 16) {
+                    user_data = JSON.parse(decodeURIComponent(atob(user_data_raw)));
+                }
+
+                let li = create_li_chat(data, user_data);
+                recipient.remove();
+                $('#list_mess_main').prepend(li);
+            }
+            // The event belongs to the new user
+            else {
+                if($('input[name="user_type_list"]').val() !== 'default') return false;
+                create_li_chat_new(recipient_id, data);
+            }
+        }
+        // else if(OA_EVENT_LIST.includes(event)) {
+        //     let src = 0;
+        //     let type = event.replace("oa_send_", "");
+        //     let message = data['message']['text'] ? data['message']['text'] : '';
+        //     let quote_id = data['message']['quote_msg_id'] ? data['message']['quote_msg_id'] : '';
+        //     let current_user_id_chat = $('#content_chat').attr('zalo_id');
+
+        //     // The event belongs to the user who is texting
+        //     if(recipient_id === current_user_id_chat) {
+        //         let previous_sender_id = $('#section-message__details .section-item:last').attr('sender_id');
+        //         let previous_timestamp = $('#section-message__details .section-item:last').attr('timestamp');
+        //         let previous_assign_user_id = $('#section-message__details .section-item:last').attr('assign_user_id');
+
+        //         // Basic field
+        //         let obj = {
+        //             'src' : src,
+        //             'time' : timestamp,
+        //             'type' : type,
+        //             'message' : message,
+        //             'message_id' : mid,
+        //             'quote_id' : quote_id,
+        //             'from_id' : OA_ID,
+        //             'from_avatar' : OA_AVATAR,
+        //             'previous_sender_id' : previous_sender_id,
+        //             'previous_timestamp' : previous_timestamp,
+        //             'previous_assign_user_id' : previous_assign_user_id,
+        //         };
+
+        //         // Add additional fields 
+        //         let attachments = data['message']['attachments'] ? data['message']['attachments'] : null;
+        //         if(attachments) {
+        //             if(type == 'image' || type == 'photo' || type == 'gif' || type == 'sticker') {
+        //                 obj['url'] = attachments[0]['payload']['url'];
+        //             }
+        //             else if(type == 'file') {
+        //                 obj['file'] = attachments[0]['payload'];
+        //             }
+        //             else if(type == 'list') {
+        //                 obj['links'] = [];
+        //                 $.each(attachments , function(index, att) {
+        //                     let url = att.payload.url;
+        //                     let title = att.payload.title;
+        //                     let thumb = att.payload.thumbnail;
+        //                     let description = att.payload.description;
+        //                     obj['links'].push({'url':url, 'title':title, 'thumb':thumb, 'description':description});
+        //                 });
+        //                 obj.type = 'links';
+        //             }
+        //         }
+
+        //         let row = create_chat_row(obj, 'new');
+        //         $(`#section-message__details`).append(row);
+        //         $(`#section-message__details .section-item:last .snippet .borHak`).show();
+
+        //         let message_format = create_li_chat(obj, {}, true);
+        //         $(`#li${recipient_id} .lastest_message`).html(message_format);
+        //         $(`#li${recipient_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
+
+        //         scroll_messages_bottom();
+        //     }
+        //     // The event belongs to the user currently on the list
+        //     else if($(`#li${recipient_id}`).length) {
+        //         let recipient = $(`#li${recipient_id}`);
+
+        //         let messageObj = {
+        //             src : src,
+        //             type : type,
+        //             time : timestamp,
+        //             message : message,
+        //         }
+
+        //         let userObj = {
+        //             id : recipient_id,
+        //             name : recipient.find('.mess_name').text(),
+        //             avatar : recipient.find('.avatar-user-list').attr('src')
+        //         }
+
+        //         let li = create_li_chat(messageObj, userObj);
+        //         recipient.remove();
+        //         $('#list_mess_main').prepend(li);
+        //     }
+        //     // The event belongs to the new user
+        //     else {
+        //         if($('input[name="user_type_list"]').val() !== 'default') return false;
+        //         create_li_chat_new(src, type, message, timestamp, recipient_id);
+        //     }
+        // }
     };
 
     zsocket.onerror = function(error) {
@@ -1086,16 +1156,14 @@ function connectWebSocket() {
     
     zsocket.onclose = function(event) {
         if (event.wasClean) {
-            console.log(`ZALO_SOCKET: WebSocket connection closed cleanly, code=${event.code} reason=${event.reason}`);
+            console.log(`ZALO_SOCKET: Connection closed cleanly, code=${event.code} reason=${event.reason}`);
         }
         else {
-            console.error('ZALO_SOCKET: WebSocket connection closed unexpectedly', event);
-
+            console.warn('ZALO_SOCKET: Connection closed unexpectedly', event);
             if(count_connect_error < 10) {
                 count_connect_error++;
                 setTimeout(connectWebSocket, 3000); // Retry after 3 seconds
             }
-
             if(count_connect_error == 5) {
                 showModalNotify('error', 'Kết nối thất bại, vui lòng thử lại');
             }
@@ -1104,11 +1172,32 @@ function connectWebSocket() {
 }
 
 /**
- * Create chat box with user
+ * Broadcast admin action
+ * 
+ * @param {String} action
+ * @param {String} zalo_id (Auto detect from content chat)
+ */
+function broadcast_admin_action(action = 'typing', zalo_id = '') {
+    if(!zalo_id || zalo_id.length == 0) zalo_id = $('#content_chat').attr('zalo_id').trim();
+    let event = {
+        to_id : zalo_id,
+        from_id : OA_ID,
+        assigned_user_id: ADMIN_ID,
+        assigned_user_name: ADMIN_NAME,
+        event_name: "oa_typing",
+        type: action,
+        timestamp: Date.now()
+    }
+    if(zalo_id && zalo_id.length > 0 && zsocket) zsocket.send(JSON.stringify(event));
+}
+
+/**
+ * Create chat box with user (Only call this function after updating offset_load_more_message)
  * 
  * @param {Object} data_user
  * @param {Object} data_message
- * @returns 
+ * @param {Boolean} is_return
+ * @returns {String} HTML
  */
 function create_chat_box(data_user, data_message, is_return = false) {
     if(data_user) {
@@ -1185,20 +1274,29 @@ function create_chat_box(data_user, data_message, is_return = false) {
     }
 
     let html = '';
+    let more_message = '<div id="top_chat" class="_section-mt"><div class="loader_messages" style="display:none"></div></div>';
+    let first_timestamp = null;
     if (data_message) {
         let previous_message_id = null;
         let previous_sender_id = null;
         let previous_timestamp = null;
+        let previous_assign_user_id = null;
         $.each(data_message.slice().reverse(), function (key, valueObj) {
-            if(html.length == 0) html = `<div id="top_chat" class="_section-mt"><div class="loader_messages" style="display:none"></div></div>`;
+            if(html.length == 0) {
+                html = more_message;
+                first_timestamp = valueObj.timestamp ? valueObj.timestamp : (valueObj.time ? valueObj.time : 0);
+            }
 
             let mid = valueObj.message_id ? valueObj.message_id : '';
             let sender_id = valueObj.from_id ? valueObj.from_id : '';
-            let timestamp = valueObj.time ? valueObj.time : 0;
-
+            let timestamp = valueObj.timestamp ? valueObj.timestamp : (valueObj.time ? valueObj.time : 0);
+            let assign_user_id = valueObj.assigned_user_id ? valueObj.assigned_user_id : '';
+            
+            valueObj['from_avatar'] = parseInt(valueObj.src) == 1 ? (data_user && data_user['avatar'] ? data_user['avatar'] : $('#header_avatar_chat').attr('src')) : OA_AVATAR;
             valueObj['previous_sender_id'] = previous_sender_id;
             valueObj['previous_timestamp'] = previous_timestamp;
-            let row = create_chat_row(valueObj);
+            valueObj['previous_assign_user_id'] = previous_assign_user_id;
+            let row = create_chat_row(valueObj, is_return ? 'load' : 'new');
 
             // Handling time message 
             if (previous_sender_id && (sender_id !== previous_sender_id || row.includes("_sectionTimestamp"))) {
@@ -1213,7 +1311,9 @@ function create_chat_box(data_user, data_message, is_return = false) {
 
             // Handling avatar
             if (previous_sender_id && sender_id === previous_sender_id) {
-                row = row.replace(`{{style-avatar-${mid}}}`, `style="visibility:hidden"`);
+                if(assign_user_id === previous_assign_user_id) {
+                    row = row.replace(`{{style-avatar-${mid}}}`, `style="visibility:hidden"`);
+                }
             }
 
             html += row;
@@ -1221,18 +1321,25 @@ function create_chat_box(data_user, data_message, is_return = false) {
             previous_message_id = mid;
             previous_sender_id = sender_id;
             previous_timestamp = timestamp;
+            previous_assign_user_id = assign_user_id;
         });
+    }
+
+    let offset_load_more_message = $(`input[name="offset_load_more_message"]`).val();
+    if(offset_load_more_message < 0 && first_timestamp) {
+        let timeline_html = getTimeline(first_timestamp);
+        html = timeline_html + html.replace(more_message, "");
     }
 
     if(is_return) return html;
 
     $(`#section-message__details`).html(html);
     $(`#section-message__details .section-item:last .snippet .borHak`).show();
-    setTimeout(scroll_messages_bottom(), 500);
+    setTimeout(scroll_messages_bottom, 100);
 }
 
 /**
- * Create HTML chat row in chat box
+ * Create a chat row in chat box
  * 
  * @param {Object} obj
  * @param {String} ctype load, new
@@ -1240,34 +1347,36 @@ function create_chat_box(data_user, data_message, is_return = false) {
  */
 function create_chat_row(obj, ctype = 'load') {
     let mid = obj.message_id ? obj.message_id : '';
+    if($(`#mess-${mid}`).length > 0) return '';
+
     let quote_id = obj.quote_id ? obj.quote_id : '';
+    let parent_type = obj.message_type ? obj.message_type : 'consultation';
     let type = obj.type ? obj.type : '';
     let message = obj.message ? formatText(obj.message) : '';
-    let src = obj.src ? obj.src : 0;
-    let timestamp = obj.time ? parseInt(obj.time) : 0;
+    let src = obj.src ? parseInt(obj.src) : 0;
+    let timestamp = obj.time ? parseInt(obj.time) : (obj.timestamp ? parseInt(obj.timestamp) : 0);
     let sent_time = formatTimestampZalo(timestamp, 'd/m/Y', 'H:i:s', 'time');
     let sender_id = obj.from_id ? obj.from_id : '';
-    let avatar = obj.from_avatar ? obj.from_avatar : DEFAULT_AVATAR;
+    let avatar = obj.from_avatar ? obj.from_avatar : (src == 0 ? OA_AVATAR : DEFAULT_AVATAR); // Here
     let previous_sender_id = obj.previous_sender_id ? obj.previous_sender_id : null;
     let previous_timestamp = obj.previous_timestamp ? obj.previous_timestamp : null;
     let timeout = ctype == 'load' ? 60 * 60 * 1000 : 20 * 60 * 1000;
     let html = '';
 
+
     // Time line
-    let datetimeline    = new Date(timestamp);
-    let dateofweek      = map_date_of_week_zalo(datetimeline.getDay());
-    let timeline        = getSentTimeZalo(sent_time);
-    let text_timeline   = `${timeline} ${dateofweek}, ` + sent_time.split(' ')[1];
-    let new_timeline    = false;
+    let new_timeline = false;
     if (previous_sender_id && sender_id != previous_sender_id) {
         if (previous_timestamp && timestamp - previous_timestamp > timeout) {
-            html += `<div class="_sectionTimestamp"><span>${text_timeline}</span></div>`;
+            html += getTimeline(timestamp);
+            // html += `<div class="_sectionTimestamp"><span>${text_timeline}</span></div>`;
             new_timeline = true;
         }
     }
     else if(previous_sender_id && sender_id == previous_sender_id) {
         if (previous_timestamp && timestamp - previous_timestamp > timeout) {
-            html += `<div class="_sectionTimestamp"><span>${text_timeline}</span></div>`;
+            html += getTimeline(timestamp);
+            // html += `<div class="_sectionTimestamp"><span>${text_timeline}</span></div>`;
             new_timeline = true;
         }
     }
@@ -1275,64 +1384,93 @@ function create_chat_row(obj, ctype = 'load') {
 
     // Content
     let content = '', classnamepicture = '';
-    if (type == 'text') {
-        content += `<span class="content"><span>${message}</span></span>`;
-    }
-    else if (type == 'photo' || type == 'image' || type == 'gif') {
-        let url = obj.url ? obj.url : '#';
-        if(message.length == 0) message = obj.description ? obj.description.trim() : '';
-        let text = message.length > 0 ? `<span class="content"><span>${message}</span></span>` : '';
-        classnamepicture = text.length > 0 ? 'picture_text' : '';
+    if (parent_type == 'zns') {
+        let zns_items = '';
+        let template_data = obj.message_data ? obj.message_data : {};
 
-        content += `
-            <div class="content-picture item">
+        for (let key in template_data) {
+            let label_name = get_label_name_template_zns(key);
+            if(!label_name || label_name.length == 0) continue;
+            zns_items += `<div class="item">
+                <div class="label">${label_name}</div>
+                <div class="value">${template_data[key]}</div>
+            </div>`;
+        }
+        
+        content = `<div class="card-container content-zns">
+            <div class="header-zns">Tin nhắn ZNS</div>
+            <div class="body-zns">
+                <h6 class="title-zns">${message}</h6>
+                <div class="data-zns">${zns_items}</div>
+            </div>
+        </div>`;
+        type = parent_type;
+    }
+    else if (parent_type == 'call') {
+        let template_data = obj.message_data ? obj.message_data : {};
+        let call_type = get_style_call_message(type);
+        let assign_html = obj.assigned_user_name && obj.assigned_user_name.length > 0 ? `<p class="assign-fullname">Tiếp nhận: ${obj.assigned_user_name}</p>` : ''; 
+        let record_html = '';
+        if(template_data['record_file'] && template_data['record_file'].length > 0) {
+            record_html = `<div class="call-record-file">
+                <audio controls=""><source src="${template_data['record_file']}" type="audio/wav"></audio>
+            </div>`;
+        }
+
+        content = `<div class="card-container content-call">
+            <div class="call-title ${call_type.classname}">
+                <i>${call_type.icon}</i>
+                <span>${type}</span>
+            </div>
+            ${assign_html}
+            ${record_html}
+        </div>`;
+        type = parent_type;
+    }
+    else {
+        if (type == 'text') {
+            content += `<span class="content"><span>${message}</span></span>`;
+        }
+        else if (type == 'image' || type == 'gif' || type == 'photo') {
+            let url = obj.url ? obj.url : '#';
+            if(message.length == 0) message = obj.description ? obj.description.trim() : '';
+            let text = message.length > 0 ? `<span class="content"><span>${message}</span></span>` : '';
+            classnamepicture = text.length > 0 ? 'picture_text' : '';
+    
+            content += `<div class="content-picture item">
                 <img src="${url}">
                 ${text}
-            </div>
-        `;
-    }
-    else if (type == 'sticker') {
-        let url = obj.url ? obj.url : '#';
-        content += `<img src="${url}">`;
-    }
-    else if (type == 'voice' || type == 'audio') {
-        let url = obj.url ? obj.url : '#';
-        content += `
-            <div class="sound-container">
-                <a class="func-play control" href="${url}" target="_blank" title="Play">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-play-circle-fill" viewBox="0 0 16 16">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
-                    </svg>
-                </a>
-                <div class="ic_load">
-                    <div class="line"></div>
-                    <div class="line"></div>
-                    <div class="line"></div>
-                </div>
-                <span class="timer">00:00</span>
-            </div>
-        `;
-    }
-    else if (type == 'video') {
-        let url = obj.url ? obj.url : '#';
-        content += `
-            <video id="video" width="320" controls="">
-                <source src="${url}" type="video/mp4">
-                <source src="${url}" type="video/ogg">
-            </video>
-        `;
-    }
-    else if (type == 'file') {
-        let file = obj.file ? obj.file : null;
-        if(file) {
-            let file_size = file.size ? formatFileSize(parseInt(file.size)) : '';
-            let file_name = file.name ? file.name : '';
-            let file_type = file.type ? file.type : '';
-            let file_url = file.url ? file.url : '#';
-            let file_image = getImageFile(file_type);
-
+            </div>`;
+        }
+        else if (type == 'sticker') {
+            let url = obj.url ? obj.url : '#';
+            content += `<img src="${url}">`;
+        }
+        else if (type == 'audio' || type == 'voice') {
+            let url = obj.url ? obj.url : '#';
+            content += `<div class="sound-container">
+                <audio controls=""><source src="${url}" type="audio/wav"></audio>
+            </div>`;
+        }
+        else if (type == 'video') {
+            let url = obj.url ? obj.url : '#';
             content += `
-                <div class="card-container">
+                <video id="video" width="320" controls="">
+                    <source src="${url}" type="video/mp4">
+                    <source src="${url}" type="video/ogg">
+                </video>
+            `;
+        }
+        else if (type == 'file') {
+            let file = obj.message_data ?? null;
+            if(file) {
+                let file_size = file.size ? formatFileSize(parseInt(file.size)) : '';
+                let file_name = file.name ? file.name : '';
+                let file_type = file.type ? file.type : '';
+                let file_url = file.url ? file.url : '#';
+                let file_image = getImageFile(file_type);
+    
+                content += `<div class="card-container">
                     <div class="avatar avatar--m avatar-square">
                         <div class="avatar-img">
                             <img src="${file_image}">
@@ -1343,70 +1481,55 @@ function create_chat_row(obj, ctype = 'load') {
                         <div>${file_size}</div>
                         <a title="Mở tập tin" href="${file_url}" target="_blank" download="${file_url}">Xem tệp tin</a>
                     </div>
-                </div>
-            `;
+                </div>`;
+            }
         }
-    }
-    else if (type == 'location') {
-        let location = obj.location ? obj.location : '';
-        if(typeof location !== 'object') location = JSON.parse(location);
-        let latitude  = location.latitude ? location.latitude : '';
-        let longitude = location.longitude ? location.longitude : '';
-
-        content += `
-            <div class="content">
+        else if (type == 'location') {
+            let latitude  = obj.latitude ?? '';
+            let longitude = obj.longitude ?? '';
+    
+            content += `<div class="content">
                 <div>
                     <iframe title="map" width="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?q=${latitude},${longitude}&amp;hl=es;z=14&amp;output=embed"></iframe>
                 </div>
-            </div>
-        `;
-    }
-    else if (type == 'link' || type == 'links') {
-        let links = obj.links ? obj.links : null;
-        $.each(links , function(index, link) { 
-            let title = link.title ? link.title : '';
-            let url = link.url ? link.url : '';
-            let thumb = link.thumb ? link.thumb : '';
-            let description = link.description ? link.description : '';
-
-            // Business card
-            if(isJSON(description)) {
-                let card = JSON.parse(description);
-                if(title.length == 0) title = message; // Name
-
-                content += `
-                    <div class="card business-card bg-primary text-white">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-8 col-8 left">
-                                    <img class="avatar" src="${thumb}" />
-                                    <div class="info">
-                                        <p>${title}</p>
-                                        <span id="card_phone" class="card-phone">${card.phone}</span>
-                                    </div>
-                                </div>
-                                <div class="col-sm-4 col-4 right">
-                                    <img class="qrcode" src="${card.qrCodeUrl}" />
-                                </div>
+            </div>`;
+        }
+        else if (type == 'business_card') {
+            let json        = obj.description ? obj.description : '';
+            let thumbnail   = obj.thumbnail ? obj.thumbnail : '';
+            let username    = message;
+            content += getBusinessCard(json, thumbnail, username);
+        }
+        else if (type == 'link' || type == 'links') {
+            let links = obj.message_data ?? null;
+   
+            $.each(links , function(index, link) {
+                let title = link.title ?? '';
+                let url = link.url ?? '';
+                let thumb = link.thumbnail ?? (link.thumb ? link.thumb : '');
+                let description = link.description ?? '';
+    
+                // Business card
+                if(isJSON(description)) {
+                    let username = message;
+                    content += getBusinessCard(description, thumb, username);
+                }
+                else {
+                    content += `
+                        <div class="product-container">    
+                            <div class="main-product">
+                                <a class="img" style="background-image: url('${thumb}');" href="${url}" target="_blank"></a>
+                                <h6 class="title mt-2 mb-2 p-0">${title}</h6>
+                                <p class="desc">${description}</p>
                             </div>
                         </div>
-                    </div>
-                `;
-            }
-            else {
-                content += `
-                    <div class="product-container">    
-                        <div class="main-product">
-                            <a class="img" style="background-image: url('${thumb}');" href="${url}" target="_blank"></a>
-                            <h6 class="title mt-2 mb-2 p-0" style="font-size:0.8rem">${title}</h6>
-                            <p class="desc">${description}</p>
-                        </div>
-                    </div>
-                `;
-            }
-        });
+                    `;
+                }
+            });
+        }
+        else content = '<i>Tin nhắn chưa hỗ trợ</i>';
     }
-    else content = '<i>Tin nhắn chưa hỗ trợ</i>';
+
 
     // Display
     let classname = src == 1 ? 'mess_filter ': 'me';
@@ -1427,17 +1550,60 @@ function create_chat_row(obj, ctype = 'load') {
         $(`#${previous_message_id}`).css('padding-bottom', '0');
     }
 
+
     // Quote
     let quote_html = '', classquote = '';
     if(quote_id.length > 0) {
         classquote = 'quote';
-        quote_html = create_quote_content(quote_id);
+        let quote_data = obj.quote_data ? obj.quote_data : null;
+        quote_html = create_quote_content(quote_id, quote_data);
     }
 
+
+    // Assigned user
+    let avatar_assign = '';
+    let assigned_user_id = '';
+    if(src == 0) {
+        assigned_user_id = obj.assigned_user_id ? obj.assigned_user_id : '';
+        let assigned_user_name = obj.assigned_user_name ? obj.assigned_user_name : '';
+
+        if(assigned_user_id.length > 0) {
+            if(obj.assigned_user_avatar && obj.assigned_user_avatar.length > 0) {
+                avatar_assign = `
+                    <img class="avatar-assign avatar-assign-img" src="${obj.assigned_user_avatar}" for="assign${mid}"/>
+                    <span id="assign${mid}" class="assign-fullname">${assigned_user_name}</span>
+                `;
+            }
+            else {
+                let arrName = assigned_user_name.split(" ");
+                let firstName = arrName[arrName.length - 1];
+                avatar_assign = `
+                    <span class="avatar-assign avatar-assign-name" for="assign${mid}">${firstName.charAt(0)}</span>
+                    <span id="assign${mid}" class="assign-fullname">${assigned_user_name}</span>
+                `;
+            }
+        }
+    }
+
+
+    // Action message
+    $action_message = `<div class="more ${classname}">
+        <div class="inner">
+            <div class="btn_quote" data-message-id="${mid}">
+                <i class="icon icon_quote_black">
+                    ${getIcons('quote', '#808080', '18px', '18px')}
+                </i>
+            </div>
+        </div>   
+    </div>`;
+    if(parent_type == 'zns' || parent_type == 'call' || parent_type == 'transaction') $action_message = '';
+
+
     html += `
-        <div id="mess-${mid}" class="section-item ${classname}" sender_id="${sender_id}" timestamp="${timestamp}" style="${style_item}">
+        <div id="mess-${mid}" class="section-item ${classname}" sender_id="${sender_id}" timestamp="${timestamp}" assign_user_id="${assigned_user_id}" style="${style_item}">
             <div class="avatar avatar--sm" ${style_avatar}>
                 <span class="avatar-img" style="background-image: url('${avatar}');"></span>
+                ${avatar_assign}
             </div>
             <div class="item-content">
                 <div class="item-headline-container">
@@ -1447,20 +1613,12 @@ function create_chat_row(obj, ctype = 'load') {
                                 <div class="item-message ${getClassMessage(type)} ${classnamepicture} ${classquote}">
                                     ${quote_html}
                                     ${content}
-                                    <div class="more ${classname}">
-                                        <div class="inner">
-                                            <div class="btn_quote" data-message-id="${mid}">
-                                                <i class="icon icon_quote_black">
-                                                    ${getIcons('quote', '#808080', '18px', '18px')}
-                                                </i>
-                                            </div>
-                                        </div>   
-                                    </div>
+                                    ${$action_message}
                                 </div>
                             </div>
                         </div>
                         <div class="borHak ${src == 0 ? 'me' : ''}" ${style_borHak}>
-                            <span class="">${timeline}</span>
+                            <span class="">${getSentTimeZalo(sent_time)}</span>
                         </div>
                     </div>
                 </div>
@@ -1475,55 +1633,62 @@ function create_chat_row(obj, ctype = 'load') {
  * Create HTML quote in chat box
  * 
  * @param {String} quote_id
+ * @param {Object} quote_data
  * @returns {String} HTML
  */
-function create_quote_content(quote_id) {
-    let check = false;
-    let name = '', img = '', text = ''; 
+function create_quote_content(quote_id, quote_data) {
+    if(!quote_data) return '';
 
-    if($(`#mess-${quote_id}`).length) {
-        let src = $(`#mess-${quote_id}`).hasClass('me') ? 0 : 1;
-        name = src == 1 ? $('#profile_zalo_name').attr('data') : OA_NAME;
-        let element = $(`#mess-${quote_id} .item-message`);
+    let src         = quote_data.src ? quote_data.src : '';
+    let parent_type = quote_data.parent_type ? quote_data.parent_type : '';
+    let type        = quote_data.type ? quote_data.type : '';
+    let message     = quote_data.message ? quote_data.message : '';
+    let thumbnail   = quote_data.thumbnail ? quote_data.thumbnail : '';  
+    let name = src == 1 ? $('#profile_zalo_name').attr('data') : OA_NAME;
 
-        if(element.hasClass('message_notfound')) {
-            text = element.find('.content span').text();
-            check = true;
-        }
-        else if(element.hasClass('product')) {
-            let src = element.find('.img').css("background-image");
-            src = src.substring(str.indexOf("'") + 1, str.lastIndexOf("'"));
-            img = `<img src="${src}" alt="Image reply">`;
-            text = '[Tin liên kết]';
-            check = true;
-        }
-        else if(element.hasClass('picture') || element.hasClass('sticker')) {
-            let src = element.find('img').attr('src');
-            img  = `<img src="${src}" alt="Image reply">`;
-            text = '[Hình ảnh]';
-            check = true;
-        }
-        else if(element.hasClass('sticker')) {
-            let src = element.find('img').attr('src');
-            img  = `<img src="${src}" alt="Image reply">`;
-            text = '[Sticker]';
-            check = true;
-        }
-        else if(element.hasClass('location-message')) {
-            text = '[Vị trí]';
-            check = true;
-        }
-        else if(element.hasClass('voice-message')) {
-            text = '[Tin nhắn thoại]';
-            check = true;
-        }
+    let text = '';
+    let img = '';
+
+    if(parent_type == 'call') {
+        text = message;
+    }
+    else if(type == 'text') {
+        text = message;
+    }
+    else if(type == 'image') {
+        img = `<img src="${thumbnail}" alt="Image reply">`;
+        text = '[Hình ảnh]';
+    }
+    else if(type == 'sticker') {
+        img = `<img src="${thumbnail}" alt="Image reply">`;
+        text = '[Sticker]';
+    }
+    else if(type == 'links') {
+        img = `<img src="${thumbnail}" alt="Image reply">`;
+        text = '[Tin liên kết]';
+    }
+    else if(type == 'location-message') {
+        text = '[Vị trí]';
+    }
+    else if(type == 'voice-message') {
+        text = '[Tin nhắn thoại]';
+    }
+    else if(type == 'file') {
+        let file_name = quote_data.filename ? quote_data.filename : 'Tệp đính kèm';
+        img = `<img src="${thumbnail}" alt="Image reply">`;
+        text = `[File] ${file_name}`;
+    }
+    else if(type == 'video') {
+        text = '[Video]';
+    }
+    else {
+        text = '[Tin nhắn chưa hỗ trợ]';
     }
 
-    if(!check) return '';
     return `
         <div class="quote-content">
             <div class="line"></div>
-            <div class="app__quote-content">
+            <a class="app__quote-content" href="#mess-${quote_id}">
                 ${img}
                 <div>
                     <div class="user-name">${name}</div>
@@ -1531,7 +1696,7 @@ function create_quote_content(quote_id) {
                         <span>${text}</span>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     `;
 }
@@ -1546,14 +1711,19 @@ function create_quote_content(quote_id) {
  */
 function create_li_chat(message_data, user_data, return_only_content = false) {
     // Message data
+    let parent_type = message_data.message_type ? message_data.message_type : 'consultation';
     let type    = message_data.type ? message_data.type : '';
-    let prefix  = message_data.src === 0 ? '<span style="margin-right:4px">OA:</span>' : '';
+    let prefix  = parseInt(message_data.src) === 0 ? '<span style="margin-right:4px">OA:</span>' : '';
     let text    = message_data.message ? message_data.message : '';
-    let time    = message_data.time ? formatTimestampZalo(message_data.time, '', 'H:i') : '';
+    let time    = message_data.timestamp ? formatTimestampListChat(message_data.timestamp) : (message_data.time ? formatTimestampListChat(message_data.time) : '');
     let num     = message_data.num ? message_data.num : '';
+
     // User data
-    let zalo_id = user_data.id ? user_data.id : '';
-    let name    = user_data.name ? user_data.name : '';
+    let zalo_id = user_data.user_id ? user_data.user_id : '';
+    if(zalo_id == '') zalo_id = user_data.id ? user_data.id : '';
+    let name = user_data.user_alias ? user_data.user_alias : '';
+    if(name == '') name = user_data.display_name ? user_data.display_name : '';
+    if(name == '') name = user_data.name ? user_data.name : '';
     let avatar  = user_data.avatar ? user_data.avatar : DEFAULT_AVATAR;
     let tags    = user_data.tags_and_notes_info ? user_data.tags_and_notes_info.tag_names : [];
     let html_tags = tags.length > 0 ? '<div class="tag-content mt-1">' : '<div class="tag-content">';
@@ -1561,77 +1731,99 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
     html_tags += '</div>';
 
     let content = '';
-    if(type == 'text') {
+    if(parent_type == 'zns') {
         content = `<div class="lastest_message">${prefix + text}</div>`;
     }
-    else if(type == 'photo' || type == 'image') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('image', '#8D8D8F', 20, 21)}</div>
-                Hình ảnh
-            </div>
-        `;
+    else if(parent_type == 'call') {
+        let call_type = get_style_call_message(type, '#bdbdbd');
+
+        content = `<div class="lastest_message">
+            ${prefix}
+            <div class="icon icon_call">${call_type.icon}</div>
+            ${type}
+        </div>`;
     }
-    else if(type == 'gif') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('gif', '#8D8D8F', 20, 17)}</div>
-                GIF
-            </div>
-        `;
+    else if(parent_type == 'custom') {
+        content = `<div class="lastest_message"><i>${prefix + text}</i></div>`;
     }
-    else if(type == 'sticker') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('sticker', '#8D8D8F', 20, 21)}</div>
-                Sticker
-            </div>
-        `;
-    }
-    else if(type == 'voice' || type == 'audio') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('voice', '#8D8D8F', 20, 21)}</div>
-                Tin nhắn thoại
-            </div>
-        `;
-    }
-    else if(type == 'video') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('video', '#8D8D8F')}</div>
-                Video
-            </div>
-        `;
-    }
-    else if(type == 'file') {
-        content = `
-            <div class="lastest_message">
-                ${prefix}
-                <div class="icon icon_${type}">${getIcons('file', '#8D8D8F', '20px', '18px')}</div>
-                Tệp đính kèm
-            </div>
-        `;
-    }
-    else if(type == 'link' || type == 'links') {
-        content = `<div class="lastest_message">${prefix}[Tin liên kết]</div>`;
-    }
-    else if(type == 'location') {
-        content = `
-            <div class="lastest_message">
+    else {
+        if(type == 'text') {
+            content = `<div class="lastest_message">${prefix + text}</div>`;
+        }
+        else if(type == 'photo' || type == 'image') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('image', '#8D8D8F', 20, 21)}</div>
+                    Hình ảnh
+                </div>
+            `;
+        }
+        else if(type == 'gif') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('gif', '#8D8D8F', 20, 17)}</div>
+                    GIF
+                </div>
+            `;
+        }
+        else if(type == 'sticker') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('sticker', '#8D8D8F', 20, 21)}</div>
+                    Sticker
+                </div>
+            `;
+        }
+        else if(type == 'voice' || type == 'audio') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('voice', '#8D8D8F', 20, 21)}</div>
+                    Tin nhắn thoại
+                </div>
+            `;
+        }
+        else if(type == 'video') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('video', '#8D8D8F')}</div>
+                    Video
+                </div>
+            `;
+        }
+        else if(type == 'file') {
+            content = `
+                <div class="lastest_message">
+                    ${prefix}
+                    <div class="icon icon_${type}">${getIcons('file', '#8D8D8F', '20px', '18px')}</div>
+                    Tệp đính kèm
+                </div>
+            `;
+        }
+        else if(type == 'link' || type == 'links') {
+            content = `<div class="lastest_message">${prefix}[Tin liên kết]</div>`;
+        }
+        else if(type == 'location') {
+            content = `<div class="lastest_message">
                 ${prefix}
                 <div class="icon icon_${type}">${getIcons('location', '#8D8D8F', 20, 21)}</div>
                 Vị trí
-            </div>
-        `;
-    }
-    else {
-        content = `<div class="lastest_message">${prefix}Bạn có một tin nhắn mới</div>`;
+            </div>`;
+        }
+        else if(type == 'business_card') {
+            content = `<div class="lastest_message">
+                ${prefix}
+                <div class="icon icon_${type}">${getIcons('bcard', '#8D8D8F', 20, 17)}</div>
+                Danh thiếp
+            </div>`;
+        }
+        else {
+            content = `<div class="lastest_message">${prefix}Bạn có một tin nhắn mới</div>`;
+        }
     }
 
     if(return_only_content) return content;
@@ -1657,6 +1849,7 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
                 </div>
                 ${html_tags}
             </div>
+            <input type="hidden" id="user_data_${zalo_id}" value="${user_data ? btoa(encodeURIComponent(JSON.stringify(user_data))) : ''}">
         </li>
     `;
 }
@@ -1664,14 +1857,11 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
 /**
  * Create HTML <li> for new user chat
  * 
- * @param {Int} src
- * @param {String} type
- * @param {String} message
- * @param {String} timestamp
  * @param {String} zalo_id
+ * @param {Object} message_data
  * @returns 
  */
-function create_li_chat_new(src, type, message, timestamp, zalo_id) {
+function create_li_chat_new(zalo_id, message_data) {
     if(zalo_id) {
         $.ajax({
             url: URL,
@@ -1685,23 +1875,7 @@ function create_li_chat_new(src, type, message, timestamp, zalo_id) {
                 obj = JSON.parse(response); // Object
     
                 if (obj['error'] == 0) {
-                    let value = obj['data'];
-
-                    let user_data = {
-                        id : zalo_id,
-                        name : value['user_alias'] ? value['user_alias'] : value['display_name'],
-                        avatar : value['avatar']
-                    };
-
-                    let message_data = {
-                        src  : src,
-                        type : type,
-                        time : timestamp,
-                        message : message,
-                        num : 1
-                    };
-
-                    let li = create_li_chat(message_data, user_data);
+                    let li = create_li_chat(message_data, obj['data']);
                     $('#list_mess_main').prepend(li);
                 }
             },
@@ -1787,13 +1961,13 @@ function send_message(data) {
                 if(res['data']['quota']) {
                     let quota = res['data']['quota'];
                     if(quota['quota_type'] == 'reply') {
-                        handle_quota_user(quota['remain'], '', 0);
+                        handleQuotaUser(quota['remain'], '', 0);
                     }
                     else if(quota['quota_type'] == 'sub_quota') {
-                        handle_quota_user(0, '', quota['remain']);
+                        handleQuotaUser(0, '', quota['remain']);
                     }
                 }
-                else handle_quota_user(0, '', 0);
+                else handleQuotaUser(0, '', 0);
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 $('.loader_send_message').remove();
@@ -1814,7 +1988,7 @@ function send_message(data) {
  * @param {int} oa_cs
  * @returns
  */
-function handle_quota_user(cs, last_interaction, oa_cs = 0) {
+function handleQuotaUser(cs, last_interaction, oa_cs = 0) {
     let quota_html = '';
     let time_check_day = (last_interaction && last_interaction.length > 0) ? ~~((Date.now() - parseInt(last_interaction)) / 1000 / 3600 / 24) : 0;
 
@@ -1844,6 +2018,69 @@ function handle_quota_user(cs, last_interaction, oa_cs = 0) {
     }
 
     $('#quota_content').html(quota_html);
+}
+
+/**
+* Handle file 
+* 
+* @param {File} file
+* @return {void}
+*/
+function handleFile(file) {
+    const fileName = file.name;
+    const fileSize = file.size;
+    const fileExt = fileName.split('.').pop().toLowerCase();
+    const listImageExtension = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'heic', 'heif', 'bmp', 'tif', 'tiff', 'ico', 'svg'];
+    var isImage = listImageExtension.includes(fileExt) ? true : false;
+
+    // Validate file
+    var inputID = '';
+    if(IMAGE_EXTENSION.includes(fileExt)) {
+        if(fileExt == 'gif' && fileSize > 5*1024*1024) {
+            showModalNotify('warning', `Dung lượng GIF tối đa 5MB`);
+            return false;
+        }
+        else if(fileSize > 1024*1024) {
+            showModalNotify('warning', `Dung lượng hình ảnh tối đa 1MB`);
+            return false;
+        }
+        inputID = 'input_image_upload';
+    }
+    else if(FILE_EXTENSION.includes(fileExt)) {
+        if(fileSize > 5*1024*1024) {
+            showModalNotify('warning', `Dung lượng tệp tối đa 5MB`);
+            return false;
+        }
+        inputID = 'input_file_upload';
+    }
+    if(!inputID || inputID == '') {
+        if(isImage) showModalNotify('error', `Không hỗ trợ định dạng .${fileExt}`, `Các định dạng ảnh hỗ trợ: <b>${IMAGE_EXTENSION.join(', ')}</b>`);
+        else showModalNotify('error', `Không hỗ trợ định dạng .${fileExt}`, `Các định dạng tệp hỗ trợ: <b>${FILE_EXTENSION.join(', ')}</b>`);
+        return false;
+    }
+
+    // Handle display
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        if(isImage) {
+            $('#preview_image_upload').attr('src', e.target.result).show();
+            broadcast_admin_action('sending_image');
+        }
+        else {
+            $('#preview_file_upload .file-image img').attr('src', getImageFile(fileExt));
+            $('#preview_file_upload .file-name').text(fileName);
+            $('#preview_file_upload .file-size').text(formatFileSize(fileSize));
+            $('#preview_file_upload').css('display', 'flex');
+            broadcast_admin_action('sending_file');
+        }
+    };
+    reader.readAsDataURL(file);
+
+    // Put the file data into file input
+    const dataTransfer = new DataTransfer();
+    const fileInput = document.getElementById(inputID);
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
 }
 
 /**
@@ -1960,23 +2197,32 @@ function remove_tag_user(zalo_id, tag_name) {
 }
 
 /**
- * Reset all content in chat box (textarea)
+ * Reset global content
  */
-function reset_chat_box() {
-    // Reset text
-    $('textarea[name="message_content"]').val("");
-
-    // Reset quote
-    $('.preview_mess').remove();
-
-    reset_upload_content();
+function resetGlobalContent() {
+    $('body').addClass('sidebar-icon-only');
+    $('#sidebar').removeClass('expanded-sidebar');
+    $('#sidebar').addClass('collapsed-sidebar');
+    $('#buttontoggle').hide();
 }
 
 /**
- * Reset upload content in chat box
+ * Reset all content in chat box (textarea)
+ */
+function resetChatBox() {
+    // Reset text
+    $('textarea[name="message_content"]').val("");
+    // Reset quote
+    $('.preview_mess').remove();
+    resetContentUpload();
+}
+
+/**
+ * Reset content upload in chat box
+ * 
  * @param {String} type image, file,...
  */
-function reset_upload_content(type = 'all') {
+function resetContentUpload(type = 'all') {
     // Reset image upload
     if(type == 'all' || type == 'image') {
         $('#preview_image_upload').hide();
@@ -2009,7 +2255,9 @@ function enable_send_message() {
 }
 
 function scroll_messages_bottom() {
-    $('.section-post').scrollTop($('.section-post')[0].scrollHeight);
+    let chatBox = document.getElementById('section_chatbox');
+    chatBox.scrollTop = chatBox.scrollHeight;
+    // $('.section-post').scrollTop($('.section-post')[0].scrollHeight);
 }
 
 /**
@@ -2058,6 +2306,124 @@ function getSentTimeZalo(sent_time) {
 }
 
 /**
+ * Get label name from key in ZNS template
+ * 
+ * @param {string} key
+ * @return {string}
+ */
+function get_label_name_template_zns(key) {
+    switch (key) {
+        case 'booking':
+            return 'Booking';
+        case 'lien_he':
+        case 'full_name':
+            return 'Liên hệ';
+        case 'hang_hang_khong':
+            return 'Hãng hàng không';
+        case 'ma_chuyen':
+        case 'flight_no':
+            return 'Mã chuyến';
+        case 'hang_ve':
+            return 'Hạng vé';
+        case 'noi_di':
+            return 'Nơi đi';
+        case 'noi_di':
+            return 'Nơi đến';
+        case 'chieu_di':
+            return 'Chiều đi';
+        case 'chieu_ve':
+            return 'Chiều về';
+        case 'ngay_gio_di':
+            return 'Ngày giờ đi';
+        case 'ngay_gio_ve':
+            return 'Ngày giờ về';
+        case 'chuyen_bay_di':
+            return 'Chuyến bay đi';
+        case 'chuyen_bay_ve':
+            return 'Chuyến bay về';
+        case 'datetime':
+            return 'Ngày giờ bay';
+        case 'hanh_khach':
+            return 'Hành khách';
+        case 'hanh_ly':
+            return 'Hành lý';
+        case 'ten_hk':
+            return 'Tên hành khách';
+        case 'han_giu_cho':
+            return 'Hạn giữ chỗ';
+        case 'dia_chi_vp_1':
+            return 'Địa chỉ VP'
+        case 'transfer_amount':
+            return 'Số tiền';
+        case 'bank_transfer_note':
+            return 'Nội dung CK';
+        case 'code_pnr':
+        case 'pnr':
+            return 'PNR';
+        case 'journey':
+        case 'journey_old':
+            return 'Hành trình';
+        case 'journey_new':
+            return 'Chuyển sang';
+        case 'point':
+            return 'Điểm tích lũy';
+        case 'total_point':
+            return 'Tổng điểm';
+        default:
+            return '';
+    }
+}
+
+/**
+ * Get style call message
+ * 
+ * @param {string} type
+ * @param {string} color
+ * @return {object}
+ */
+function get_style_call_message(type, color = '') {
+    switch (type) {
+        case 'Cuộc gọi đến':
+            color = color.length == 0 ? '#00ac47' : color;
+            return {'classname': 'text-success', 'icon': getIcons('inbound_call', color, 15, 15)};
+        case 'Cuộc gọi đi':
+            color = color.length == 0 ? '#0d6efd' : color;
+            return {'classname': 'text-primary', 'icon': getIcons('outbound_call', color, 15, 15)};
+        case 'Cuộc gọi nhỡ':
+            color = color.length == 0 ? '#dc3545' : color;
+            return {'classname': 'text-danger', 'icon': getIcons('missed_call', color, 15, 15)};
+        default:
+            color = color.length == 0 ? '#8c8c8c' : color;
+            return {'classname': '', 'icon': getIcons('call', color, 15, 15)};
+    }
+}
+
+/**
+ * Format call duration
+ * 
+ * @param {int} seconds
+ * @return {string}
+ */
+function format_call_duration(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    seconds %= 3600;
+    const minutes = Math.floor(seconds / 60);
+    seconds %= 60;
+
+    let result = '';
+    if (hours > 0) {
+        result += `${hours} giờ`;
+    }
+    if (minutes > 0) {
+        result += `${minutes} phút`;
+    }
+    if (seconds > 0 || result === '') {
+        result += `${seconds} giây`;
+    }
+    return result.trim();
+}
+
+/**
  * Get number at the end string
  * 
  * @param {string} str
@@ -2081,6 +2447,10 @@ function getImageFile(type) {
     let image_file = JSON.parse($(`input[name="image_file"]`).val().replace(/'/g, '"'));
 
     switch (type) {
+        case 'png':
+        case 'jpg':
+        case 'jpeg':
+            return image_file.image;
         case 'xls':
         case 'xlsx':
         case 'csv':
@@ -2126,12 +2496,46 @@ function getIcons(key, color = '#000', width = '20px', height = '20px') {
  * @return {string} HTML
  */
 function getTimeline(timestamp) {
+    timestamp           = parseInt(timestamp);
     let sent_time       = formatTimestampZalo(timestamp, 'd/m/Y', 'H:i:s', 'time');
     let datetimeline    = new Date(timestamp);
-    let dateofweek      = map_date_of_week_zalo(datetimeline.getDay());
+    let dateofweek      = mapDateOfWeek(datetimeline.getDay());
     let timeline        = getSentTimeZalo(sent_time);
     let text_timeline   = `${timeline} ${dateofweek}, ` + sent_time.split(' ')[1];
     return `<div class="_sectionTimestamp" id="_sectionTimestamp${timestamp}"><span>${text_timeline}</span></div>`;
+}
+
+/**
+ * Create business card from json data
+ * 
+ * @param {string} json
+ * @param {string} thumbnail
+ * @param {string} name
+ * @return {string} HTML
+ */
+function getBusinessCard(json, thumbnail, name = '') {
+    if(isJSON(json)) {
+        let card = JSON.parse(json);
+        if(!card.title || card.title.length == 0) card.title = name;
+
+        return `<div class="card business-card bg-primary text-white">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-8 col-8 left">
+                        <img class="avatar" src="${thumbnail}" />
+                        <div class="info">
+                            <p>${card.title}</p>
+                            <span id="card_phone" class="card-phone">${card.phone ?? ''}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-4 right">
+                        <img class="qrcode" src="${card.qrCodeUrl ?? '#'}" />
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+    return '';
 }
 
 /**
@@ -2159,7 +2563,15 @@ function get_phone_by_alias(alias) {
 }
 
 function formatText(text) {
-    return text.trim().replace(/\r\n/g, "<br />");
+    let text_format = text;
+    // Format new line
+    text_format = text_format.trim().replace(/\r\n/g, "<br />");
+    // Format URL
+    const regex = /\bhttps?:\/\/\S+/g;
+    text_format = text_format.replace(regex, (url) => {
+        return `<a href="${url}" target="_blank">${url}</a>`;
+    });
+    return text_format;
 }
 
 /**
@@ -2212,10 +2624,14 @@ function formatTimestampZalo(timestamp, date_format = 'd/m/Y', time_format = 'H:
 	let date = '';
 	if(date_format.length > 0) {
 		let sep = date_format.indexOf('/') !== -1 ? '/' : '-';
-		if(date_format.charAt(0) === 'd') date = `${day}${sep}${month}${sep}${year}`;
-		else if(date_format.charAt(0) === 'Y') date = `${year}${sep}${month}${sep}${day}`;
-		else date = `${month}${sep}${day}${sep}${year}`;
-	}
+
+		if(date_format.charAt(0) === 'd')
+            date = `${day}${sep}${month}${sep}${year}`;
+		else if(date_format.charAt(0) === 'Y')
+            date = `${year}${sep}${month}${sep}${day}`;
+		else
+            date = `${month}${sep}${day}${sep}${year}`;
+	}   
 
 	let time = '';
 	if(time_format.length == 5) time = `${hours}:${minutes}:${seconds}`;
@@ -2228,6 +2644,81 @@ function formatTimestampZalo(timestamp, date_format = 'd/m/Y', time_format = 'H:
 
 	let datetime = first === 'date' ? `${date} ${time}` : `${time} ${date}`;
 	return datetime.trim();
+}
+
+/**
+ * Format datetime from timestamp
+ * 
+ * @param {Int} timestamp
+ * @param {string} date_format
+ * @param {string} time_format 
+ * @return {string}
+ */
+function formatTimestampListChat(timestamp, date_format = 'd/m/Y', time_format = 'H:i') {
+    // Create a new Date object using the timestamp
+	if(typeof timestamp === 'string') timestamp = parseInt(timestamp);
+	const Date_ = new Date(timestamp);
+
+	// Extract the components
+	const day = String(Date_.getDate()).padStart(2, '0');
+	const month = String(Date_.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+	const year = Date_.getFullYear();
+	const hours = String(Date_.getHours()).padStart(2, '0');
+	const minutes = String(Date_.getMinutes()).padStart(2, '0');
+	const seconds = String(Date_.getSeconds()).padStart(2, '0');
+
+    const current_date = new Date();
+    const current_day = String(current_date.getDate()).padStart(2, '0');
+    const current_month = String(current_date.getMonth() + 1).padStart(2, '0');
+    const current_year = current_date.getFullYear();
+
+    // Format date 
+    let date_result = '';
+    let fullcurrentdate = '';
+    let sep = '/';
+	if(date_format.length > 0) {
+		sep = date_format.indexOf('/') !== -1 ? '/' : '-';
+
+		if(date_format.charAt(0) === 'd') {
+            date_result = `${day}${sep}${month}${sep}${year}`;
+            fullcurrentdate = `${current_day}${sep}${current_month}${sep}${current_year}`;
+        }
+		else if(date_format.charAt(0) === 'Y') {
+            date_result = `${year}${sep}${month}${sep}${day}`;
+            fullcurrentdate = `${current_day}${sep}${current_month}${sep}${current_year}`;
+        }
+		else {
+            date_result = `${month}${sep}${day}${sep}${year}`;
+            fullcurrentdate = `${current_month}${sep}${current_day}${sep}${current_year}`;
+        }
+	}   
+
+    // Format time
+    let time_result = '';
+	if(time_format.length == 5) time_result = `${hours}:${minutes}:${seconds}`;
+	else if(time_format.length == 3) time_result = `${hours}:${minutes}`;
+	else if(time_format.length == 1) {
+		if(time_format === 'H') time_result = hours;
+		else if(time_format === 'i') time_result = minutes;
+		else if(time_format === 's') time_result = seconds;
+	}
+
+    // Format step 2
+    if(date_result == fullcurrentdate) date_result = '';
+    else if(year == current_year && month == current_month) {
+        let diff = parseInt(current_day) - parseInt(day);
+        if(diff == 1) date_result = 'Hôm qua';
+        else if(diff > 1 && diff < 6) date_result = mapDateOfWeek(Date_.getDay());
+        else date_result = `${day}${sep}${month}`;
+        time_result = '';
+    }
+    else if(year == current_year) {
+        date_result = `${day}${sep}${month}`;
+        time_result = '';
+    }
+    else time_result = '';
+
+    return `${date_result} ${time_result}`.trim();
 }
 
 /**
@@ -2265,7 +2756,45 @@ function formatFullAddress(address, district, city) {
     return full_address;
 }
 
-function map_date_of_week_zalo(num) {
+function loadingSkeleton(type = 'list_user', qty = 6) {
+    if(type == 'list_user') {
+        let html = '';
+        for(let i = 0; i < qty; i++) {
+            html += `<li class="item_mess item_mess_new mess_links item_mess_skeleton">
+                <div class="mess_avt">
+                    <div class="imgDrop skeleton-item skeleton-imgDrop"></div>
+                </div>
+                <div class="__content">
+                    <div class="info_content">  
+                        <div class="mess_content">
+                            <div class="mess_name truncate skeleton-item skeleton-mess_name"></div>
+                        </div>
+                        <div class="mess_more has_btn_more">
+                            <div class="mess_time skeleton-item skeleton-mess_time"></div>
+                            <div class="mess_number"></div>
+                        </div>
+                    </div>
+                    <div class="box-parent box-lastest_message skeleton-item skeleton-lastest_message"></div>
+                </div>
+            </li>`
+        }
+        $('#list_mess_main').append(html);
+    }
+}
+function removeLoadingSkeleton() {
+    $('.item_mess_skeleton').remove();
+}
+
+function decodeUrl(encodedUrl) {
+    // Create a temporary element to decode HTML entities
+    const element = document.createElement('div');
+    element.innerHTML = encodedUrl;
+    
+    // Return the decoded URL
+    return element.textContent || element.innerText;
+}
+
+function mapDateOfWeek(num) {
     let name = ['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
     return name[num];
 }

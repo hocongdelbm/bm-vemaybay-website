@@ -8,29 +8,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if($type == 'sms' || $type == 'send_sms') {
         $direction   = isset($_POST['direction']) ? global_test_input($_POST['direction']) : '';
         $phone       = isset($_POST['phone']) ? global_test_input($_POST['phone']) : '';
-        $messessage     = isset($_POST['message']) ? $_POST['message'] : '';
+        $messessage  = isset($_POST['message']) ? $_POST['message'] : '';
         $parent_id   = isset($_POST['parent_id']) ? global_test_input($_POST['parent_id']) : '';
         $parent_type = isset($_POST['parent_type']) ? global_test_input($_POST['parent_type']) : '';
 
         if(empty($phone) || strlen($phone) < 10 || strlen($phone) > 12) {
-            echo json_encode(["status" => 0, "errorcode" => 1, "description" => "Số điện thoại không hợp lệ"]);
+            echo json_encode(["status" => 0, "errorcode" => 53, "description" => "Số điện thoại không hợp lệ"]);
             exit();
         }
         if (empty($messessage)) {
-            echo json_encode(["status" => 0, "errorcode" => 1, "description" => "Nội dung tin nhắn không hợp lệ"]);
+            echo json_encode(["status" => 0, "errorcode" => 55, "description" => "Nội dung tin nhắn không hợp lệ"]);
             exit();
         }
 
         global $current_user;
-        $obj = new SMS();
-        $json = $obj->send($phone, $messessage);
+        $sms = new SMS();
+        $json = $sms->send($phone, $messessage);
 
         $arr = json_decode($json, true);
-
-        if($arr !== false && !is_null($arr) && $arr['status'] == 1) {
+        if(isset($arr['status']) && $arr['status'] == 1) {
             $mess = new EC_Messages();
             $mess->id          = '';
-            $mess->send_from   = $obj->SENDER;
+            $mess->send_from   = $sms->SENDER;
             $mess->send_to     = $phone;
             $mess->content     = $messessage;
             $mess->type        = 'sms';
@@ -39,6 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mess->parent_type = $parent_type;
             $mess->parent_id   = $parent_id;
             $mess->response    = $json;
+            $mess->const       = $sms->caculate_fee('sms', $messessage);
             $mess->status      = 'done';
             $mess->description = "Gửi tin nhắn " . ($direction == '0' ? "lượt đi" : "lượt về");
             $mess->assigned_user_id = $current_user->id;
@@ -50,53 +50,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     elseif($type == 'sms_campaign_static') {
         $record_id = isset($_POST['record_id']) ? global_test_input($_POST['record_id']) : '';
+
         if(empty($record_id)) {
             echo json_encode([
-                "Status" => -1,
-                "Description" => "Dữ liệu gửi tin không hợp lệ"
+                "Status" => 0,
+                "Code" => null,
+                "Description" => "Dữ liệu gửi tin không hợp lệ (No record id)"
             ]);
             exit();
         }
 
         $mess = new EC_Messages();
         $mess->retrieve($record_id);
-        if((int)((strtotime($mess->send_time) - time()) / 3600) < 24) {
+        if((int)((strtotime($mess->send_time) - time()) / 60) < 10) {
             echo json_encode([
-                "Status" => -1,
-                "Description" => "Yêu cầu lên lịch gửi tin trước 24 tiếng"
+                "Status" => 0,
+                "Code" => null,
+                "Description" => "Tin được gửi phải lên lịch trước 10 phút"
             ]);
             exit();
         }
 
         if(isset($mess->id) && !empty($mess->id)) {
-            $obj = new SMS();
-            $json = $obj->send_list_static($mess->name, $mess->id, $mess->send_time, $mess->content, json_decode(html_entity_decode($mess->data), true));
+            $sms = new SMS();
+            $json = $sms->send_list_static($mess->send_time, $mess->content, json_decode(html_entity_decode($mess->data), true), $mess->name, $mess->id);
             if(substr($json, -1) == 'n') $json = substr($json, 0, -1); // Fix error json
 
-            if($json) {
-                // $arr = json_decode($json, true);
-                // if(isset($arr['Status']) && $arr['Status'] == 1) {
-                //     $mess->status = 'scheduled';
-                //     $mess->campaign_id = $arr['CampaignId'];
-                //     $mess->save();
-                // }
-
+            if($json && strlen($json) > 2) {
+                $arr = json_decode($json, true);
+                if(isset($arr['Status']) && $arr['Status'] == 1) {
+                    $mess->status = 'scheduled';
+                }
                 $mess->response = $json;
                 $mess->save();
-
                 echo $json;
             }
-            else echo json_encode([
-                "Status" => -1,
-                "Description" => "Gửi tin thất bại",
-                "json_static" => json_decode($json, true)
-            ]);
+            else {
+                echo json_encode([
+                    "Status"        => 0,
+                    "Code"          => null,
+                    "Description"   => "Gửi tin thất bại",
+                    "Response"      => json_decode($json, true)
+                ]);
+            }
             exit();
         }
         else {
             echo json_encode([
-                "Status" => -1,
-                "Description" => "Dữ liệu gửi tin không hợp lệ"
+                "Status" => 0,
+                "Code" => null,
+                "Description" => "Dữ liệu gửi tin không hợp lệ (Not found record $record_id)"
             ]);
             exit();
         }

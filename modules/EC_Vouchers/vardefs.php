@@ -5,7 +5,7 @@ $dictionary['EC_Vouchers'] = array(
 	'inline_edit' => false,
 	'duplicate_merge' => true,
 	'fields' => array(
-		// Loại voucher (Đơn hoặc Nhóm)
+		// Voucher type (Group or Single)
 		'type' => array(
 			'name' => 'type',
 			'vname' => 'LBL_TYPE',
@@ -22,14 +22,13 @@ $dictionary['EC_Vouchers'] = array(
 			'dependency' => false,
 		),
 
-		// Tình trạng voucher
 		'status' => array(
 			'name' => 'status',
 			'vname' => 'LBL_STATUS',
 			'type' => 'enum',
 			'options' => 'voucher_status_list',
-			'len' => 16,
-			'default' => 'new',
+			'len' => 10,
+			'default' => 'pending',
 			'audited' => 1,
 			'massupdate' => 0,
 			'reportable' => 0,
@@ -95,6 +94,16 @@ $dictionary['EC_Vouchers'] = array(
 			'reportable' => false,
 			'audited'    => false,
 		),
+		'campaign_name' => array(
+			'name'       => 'campaign_name',
+			'vname'      => 'LBL_CAMPAIGN_NAME',
+			'type'       => 'varchar',
+			'len'        => 255,
+			'default'    => '',
+			'importable' => true,
+			'reportable' => false,
+			'audited' => false,
+		),
 
 		// Thông tin khách hàng được tặng voucher (Dành cho voucher đơn)
 		'contact_id' => array(
@@ -120,38 +129,38 @@ $dictionary['EC_Vouchers'] = array(
 			'studio' => 'visible',
 		),
 
-		// Số tiền giảm
 		'reduce_amount' => array(
 			'name' => 'reduce_amount',
 			'vname' => 'LBL_REDUCE_AMOUNT',
 			'type' => 'int',
 			'len' => 11,
+			'default' => 0,
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
 			'audited' => 0,
 			'reportable' => 0,
-			'disable_num_format' => '',
+			'disable_num_format' => true,
 			'duplicate_merge' => 'disabled',
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Số phần trăm giảm
 		'reduce_percent' => array(
 			'name' => 'reduce_percent',
 			'vname' => 'LBL_REDUCE_PERCENT',
 			'type' => 'int',
 			'len' => 3,
+			'default' => 0,
 			'required' => 0,
 			'massupdate' => 0,
 			'importable' => 1,
 			'audited' => 0,
 			'reportable' => 0,
+			'disable_num_format' => false,
 			'duplicate_merge' => 'disabled',
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Giảm tối đa
 		'max_discount' => array(
 			'name' => 'max_discount',
 			'vname' => 'LBL_MAX_DISCOUNT',
@@ -185,7 +194,7 @@ $dictionary['EC_Vouchers'] = array(
 			'duplicate_merge_dom_value' => '0',
 		),
 
-		// Điều kiện áp dụng
+		// Conditions apply
 		'condition_voucher' => array(
 			'name' => 'condition_voucher',
 			'vname' => 'LBL_CONDITION_VOUCHER',

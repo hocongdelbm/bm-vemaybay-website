@@ -73,16 +73,16 @@ $viewdefs['Calls'] = array(
 		'panels' => array(
 			'lbl_call_information' => array(
 				// array(
-					// array(
-					// 	'name' => 'direction',
-					// 	'label' => 'LBL_LIST_DIRECTION',
-					// ),
-					// array(
-					// 	'name' => 'parent_name',
-					// 	'label' => 'LBL_LIST_RELATED_TO',
-					// ),
+				// array(
+				// 	'name' => 'direction',
+				// 	'label' => 'LBL_LIST_DIRECTION',
 				// ),
-				
+				// array(
+				// 	'name' => 'parent_name',
+				// 	'label' => 'LBL_LIST_RELATED_TO',
+				// ),
+				// ),
+
 				// array(
 				// 	array(
 				// 		'name' => 'call_from',
@@ -111,17 +111,35 @@ $viewdefs['Calls'] = array(
 				// 	),
 				// ),
 
+				// array(
+				// 	array(
+				// 	    'name' => 'status',
+				// 	    'label' => 'LBL_STATUS',
+				// 	),
+				// 	array(
+				// 	)
+				//  ),
 				array(
 					array(
-					    'name' => 'booking',
-					    'studio' => 'visible',
-					    'label' => 'LBL_BOOKING',
+						'name' => 'booking',
+						'studio' => 'visible',
+						'label' => 'LBL_BOOKING',
 					),
 					array(
 						'name' => 'parent_name',
 						'label' => 'LBL_LIST_RELATED_TO',
 					)
-				 ),
+				),
+				array(
+					array(
+						'name' => 'call_reason',
+						'label' => 'LBL_CALL_REASON',
+					),
+					array(
+						// 'name' => 'status',
+						// 'label' => 'LBL_STATUS',
+					)
+				),
 				array(
 					array(
 						'name' => 'description',

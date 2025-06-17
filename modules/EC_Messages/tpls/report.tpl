@@ -42,4 +42,11 @@
             </tfoot>
         </table>
     </div>
+
+    <div class="mt-4">
+        <h5 class="subtitle">Web Portal kiểm tra chiến dịch tin nhắn</h5>
+        <p><a href="https://portal.worldsms.vn/login" target="_blank">portal.worldsms.vn</a></p>
+        <p><b>Username:</b> snext_travelqc</p>
+        <p><b>Password:</b> Wa876cWv</p>
+    </div>
 </div>

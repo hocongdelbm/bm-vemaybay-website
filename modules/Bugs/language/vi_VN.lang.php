@@ -4,6 +4,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 }
 
 $mod_strings = array(
+    'LBL_PARENT_NAME' => 'Liên quan',
     'LBL_MODULE_NAME' => 'Lỗi',
     'LBL_MODULE_TITLE' => 'Theo dõi Lỗi: Tr.chính',
     'LBL_MODULE_ID' => 'Lỗi',

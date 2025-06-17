@@ -224,9 +224,9 @@ $(document).ready(function () {
 		$('form[name="DetailView"] input:button[name="Edit"]').remove();
 	}
 
-	if (booking_status == '8' && is_invoice_export == '1') {
-		$('#btnCheckInvoiceExport').hide();
-	}
+	// if (booking_status == '8' && is_invoice_export == '1') {
+	// 	$('#btnCheckInvoiceExport').hide();
+	// }
 	if (booking_status == '8' && is_invoice_input_export == '1') {
 		$('#btnCheckInvoiceInputExport').hide();
 	}
@@ -239,11 +239,13 @@ $(document).ready(function () {
 
 	$(document).on('click', '#confirm-remind', function () {
 		let journey_id = $(this).attr('iti_id');
+		let booking_id = $(this).attr('booking_id');
 
 		$.ajax({
 			url: "index.php?entryPoint=entryPointFlightBookings",
 			data: {
 				journey_id: journey_id,
+				booking_id: booking_id,
 				for: "remindFlightSchedules",
 			},
 			type: "POST",
@@ -693,13 +695,13 @@ $(document).ready(function () {
 		$(this).attr("disabled", "disabled");
 		var frmSaveWorkingProcess = $('#frmSaveWorkingProcess').val();
 
-		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="booking_status"]').val() == '8') {
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="lydothangthua_id"]').val($('input:radio[name="radWinLoseReason"]:checked').val());
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="ghichuthangthua"]').val($.trim($('#txtWorkingProcessNote').val()));
+		if ($(`#${frmSaveWorkingProcess} input:hidden[name="booking_status"]`).val() == '8') {
+			$(`#${frmSaveWorkingProcess} input:hidden[name="lydothangthua_id"]`).val($('input:radio[name="radWinLoseReason"]:checked').val());
+			$(`#${frmSaveWorkingProcess} input:hidden[name="ghichuthangthua"]`).val($.trim($('#txtWorkingProcessNote').val()));
 		}
 
-		if ($('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').length > 0) {
-			$('#' + frmSaveWorkingProcess + ' input:hidden[name="bonus"]').val($.trim($('#txtBonus').val()));
+		if ($(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).length > 0) {
+			$(`#${frmSaveWorkingProcess} input:hidden[name="bonus"]`).val($.trim($('#txtBonus').val()));
 		}
 
 		// Kiểm tra diễn giải phải dài hơn 30 ký tự và tối đa 200 ký tự, không tính khoảng trắng, chấm và phẩy
@@ -721,7 +723,7 @@ $(document).ready(function () {
 			$('.modal-overlay, .btn-modal-close').addClass('reload');
 		}
 		else {
-			var save_post_data = $('#' + frmSaveWorkingProcess).serialize();
+			var save_post_data = $(`#${frmSaveWorkingProcess}`).serialize();
 			save_post_data += '&txtWorkingProcessNote=' + $.trim($('#txtWorkingProcessNote').val());
 
 			$.ajax({
@@ -735,7 +737,7 @@ $(document).ready(function () {
 				success: function (res) {
 					res = parseInt(res);
 					if (res == 1) {
-						$('#' + frmSaveWorkingProcess).unbind('submit');
+						$(`#${frmSaveWorkingProcess}`).unbind('submit');
 						event.preventDefault();
 						$('.container-waiting').show();
 						location.reload();
@@ -1009,7 +1011,6 @@ $(document).ready(function () {
 
 	// Nút chia doanh số
 	$("#share_profit_btn").on("click", function () {
-
 		$("#share_profit_frm").dialog({
 			title: "Thông tin chia doanh số",
 			width: 400,
@@ -1026,7 +1027,6 @@ $(document).ready(function () {
 			},
 			beforeSend: function () {
 				$("#bk_ttl_amt").text("");
-				// $("#share_profit_tbl>tbody").html("<tr class='share_profit_loading'><td><img src='custom/themes/default/images/loading.gif' width='23'></td></tr>");
 			},
 			success: function (response) {
 				res = JSON.parse(response);
@@ -1090,8 +1090,42 @@ $(document).ready(function () {
 	});
 	$('#select_bank_get_qr_code').change(function () {
 		let selectedValue = $(this).val();
-		$("#img_qr_code").attr('src', selectedValue);
+		if(selectedValue){
+			$("#img_qr_code").attr('src', selectedValue);
+			$("#copyQRCodeImage").show();
+			$(".wrap-redo").show();
+		}
 	});
+	$(document).on("click", "#copyQRCodeImage", async function () {
+        let img = document.getElementById("img_qr_code");
+        
+        try {
+			if(img){
+				const response = await fetch(img.src);
+				const blob = await response.blob();
+				const clipboardItem = new ClipboardItem({ "image/png": blob });
+				await navigator.clipboard.write([clipboardItem]);
+		
+				showToastNotify("success", "Đã sao chép ảnh QR Code");
+			} else {
+            	showToastNotify("error", "Không tìm thấy QR Code");
+			}
+        } catch (error) {
+            showToastNotify("error", "Không thể sao chép ảnh!");
+            console.error("Lỗi copy ảnh:", error);
+        }
+    });
+	$(document).on("click", "#btnRenderQRCode", async function () {
+		let qrcode = $('#img_qr_code').attr("src");
+		let new_amount = parseInt($('#new_payment_amount').val().trim() ?? 0);
+		if(!new_amount || !Number.isInteger(new_amount) || new_amount < 1000) {
+			alert("Số tiền không hợp lệ");
+			return false;
+		}
+		$('#img_qr_code').attr("src", updateAmountInUrl(qrcode, new_amount));
+		$('#new_payment_amount').val('');
+	});
+
 
 	// GET THÔNG TIN BANK - SEND CUSTOMER
 	$('#get_bank').on('click', function () {
@@ -1149,13 +1183,95 @@ $(document).ready(function () {
 
 	// Voucher
 	$('.voucher').on('click', function () {
-		$('#dialog_voucher_detail').dialog({
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
 			width: 500,
 			modal: true,
 			resizable: false,
 			closeOnEscape: false,
 			title: "Chi tiết voucher"
 		});
+	});
+
+	// Points
+	$('.btn-use-point').on('click', function () {
+		let id = $(this).attr('for');
+
+		$(`#${id}`).dialog({
+			width: 400,
+			modal: true,
+			resizable: false,
+			closeOnEscape: false,
+			title: "Dùng điểm tích lũy"
+		});
+	});
+	$('input[name="point_of_use"]').on('input', function () {
+		let p 	 = $(this).val();
+		let step = parseInt($(this).attr('min'));
+		let ttp  = parseInt($('#tt_points').attr('data'));
+
+		if(p < step || p > ttp || p%step != 0) {
+			$('#btn_apply_points_discount').prop('disabled', true);
+			$('input[name="points_discount"]').val(0);
+		}
+		else {
+			$('#btn_apply_points_discount').prop('disabled', false);
+			$('input[name="points_discount"]').val(p*1000);
+		} 
+	});
+	
+	$('#btn_apply_points_discount').click(function() {
+		let p 	 = $('input[name="point_of_use"]').val();
+		let step = parseInt($('input[name="point_of_use"]').attr('min'));
+		let ttp  = parseInt($('#tt_points').attr('data'));
+		let contact_id = $(this).attr('contact_id');
+		let booking_id = $(this).attr('booking_id');
+
+		if(p < step || p > ttp || p%step != 0) {
+			showModalNotify(2, "Số điểm áp dụng không hợp lệ");
+			return false;
+		}
+
+		if(contact_id.length > 0) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					for: "apply_points",
+					apply_points: p,
+					contact_id: contact_id,
+					booking_id: booking_id
+				},
+				type: "POST",
+				cache: false,
+				beforeSend: function () {$('.container-waiting').show();},
+				success: function (response) {
+					$('.container-waiting').hide();
+					try {
+						let obj = JSON.parse(response);
+
+						if(obj.error == 0) {
+							showModalNotify(1, "Áp điểm thành công");
+							$('.modal-overlay, .btn-modal-close').addClass('reload');
+						}
+						else {
+							let m = obj.message ? obj.message : 'Thao tác không thành công. Liên hệ IT để được hỗ trợ.';
+							showModalNotify(0, m);
+						}
+					}
+					catch(err) {
+						console.error(err);
+						showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+					}
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$('.container-waiting').hide();
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+				}
+			});
+		}
 	});
 });
 
@@ -1591,7 +1707,6 @@ function markShareProfitDelete(ln) {
 }
 
 function checkShareProfit() {
-	// DS chia không thể cao hơn tổng DS
 	var total_profit = unformatNumber($("#bk_ttl_amt").text());
 	var share_profit = calculateTotalShareProfit();
 	if (share_profit > total_profit) {
@@ -1735,4 +1850,10 @@ function getAirLineInf() {
 	}
 
 	return iti_airline;
+}
+
+function updateAmountInUrl(url, newAmount) {
+  const urlObj = new URL(url);
+  urlObj.searchParams.set('amount', newAmount);
+  return urlObj.toString();
 }

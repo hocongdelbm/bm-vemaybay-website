@@ -2,100 +2,100 @@
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 {literal}
 	<style>
-	table.list-data-all tbody tr:nth-child(1) td a.admin-view-detail,
-	table.list-data-all tbody tr:nth-child(1) td span{
-		color: #4154f1;
-		font-weight: 600;
-	}
+		table.list-data-all tbody tr:nth-child(1) td a.admin-view-detail,
+		table.list-data-all tbody tr:nth-child(1) td span{
+			color: #4154f1;
+			font-weight: 600;
+		}
 
-	table.list-data-all tbody tr:nth-last-child(2) td a.admin-view-detail,
-	table.list-data-all tbody tr:nth-last-child(2) td span{
-		color: var(--red-vj-color);
-		font-weight: 600;
-	}
+		table.list-data-all tbody tr:nth-last-child(2) td a.admin-view-detail,
+		table.list-data-all tbody tr:nth-last-child(2) td span{
+			color: var(--red-vj-color);
+			font-weight: 600;
+		}
 
-	table.list-data-all a.showdt:hover {
-		color: var(--yellow-color);
-	}
+		table.list-data-all a.showdt:hover {
+			color: var(--yellow-color);
+		}
 
-	table.list-data-all thead th{
-		white-space: nowrap;
-	}
+		table.list-data-all thead th{
+			white-space: nowrap;
+		}
 
-	.remaining-credit span.credit{
-		color: var(--red-vj-color);
-		font-size:16px;
-	}
+		.remaining-credit span.credit{
+			color: var(--red-vj-color);
+			font-size:16px;
+		}
 
-	a.view-detail{
-		float:right;
-	}
+		a.view-detail{
+			float:right;
+		}
 
-	#dlgViewDetail{
-		display:none;
-		font-family:Arial, Helvetica, sans-serif;
-		font-size:11px;
-		overflow: auto;
-	}
+		#dlgViewDetail{
+			display:none;
+			font-family:Arial, Helvetica, sans-serif;
+			font-size:11px;
+			overflow: auto;
+		}
 
-	#dlgViewDetailContent{
-		overflow-y: scroll;
-		max-height: 500px;
-	}
+		#dlgViewDetailContent{
+			overflow-y: scroll;
+			max-height: 500px;
+		}
 
-	table.detail-data-list{
-		line-height:20px;
-		border-collapse:collapse;
-	}
+		table.detail-data-list{
+			line-height:20px;
+			border-collapse:collapse;
+		}
 
-	table.detail-data-list th{
-		position: sticky;
-		top: -1px;
-	}
+		table.detail-data-list th{
+			position: sticky;
+			top: -1px;
+		}
 
-	table.detail-data-list tr:last-child td{
-		background:#e2e2e2;
-		font-weight:bold;
-	}
+		table.detail-data-list tr:last-child td{
+			background:#e2e2e2;
+			font-weight:bold;
+		}
 
-	.calendar {
-		width: 300px;
-		height: 250px;
-		top: 202px !important;
-	}
+		.calendar {
+			width: 300px;
+			height: 250px;
+			top: 202px !important;
+		}
 
-	.calendar table {
-		width: 100%;
-		height: 100%;
-	}
+		.calendar table {
+			width: 100%;
+			height: 100%;
+		}
 
-	/* #mark_detail_tbl { */
-	#mark_detail_tbl--wrap {
-		display: none;
-		position: relative;
-	}
+		/* #mark_detail_tbl { */
+		#mark_detail_tbl--wrap {
+			display: none;
+			position: relative;
+		}
 
-	#mark-loading {
-		padding-top: 8px;
-	}
-	.showall {
-		position: relative;
-	}
+		#mark-loading {
+			padding-top: 8px;
+		}
+		.showall {
+			position: relative;
+		}
 
-	.list-data tbody tr:not(:first-child, :last-child):hover {
-		background-color: #cfeafe !important;
-	}
+		.list-data tbody tr:not(:first-child, :last-child):hover {
+			background-color: #cfeafe !important;
+		}
 
-	/* NOTES */
-	ul.kpi-notes{
-		list-style: none;
-		border-left: 2px solid #ffc107;
-		padding: 0 10px;
-		font-size: 13px;
-		line-height: 2;
-		margin: 15px 0 0;
-		text-align: left;
-	}
+		/* NOTES */
+		ul.kpi-notes{
+			list-style: none;
+			border-left: 2px solid #ffc107;
+			padding: 0 10px;
+			font-size: 13px;
+			line-height: 2;
+			margin: 15px 0 0;
+			text-align: left;
+		}
 
 	</style>
     <script>
@@ -113,17 +113,17 @@
 					modal: true,
 					resizable: false,
 					closeOnEscape: false,
-					title: 'Xem chi tiết '+ $(this).attr('load_name') +' từ ' + from_date + ' đến ' + to_date,
+					title: 'Xem chi tiết '+ $(this).attr('load_name') +' của nhân viên '+ $(this).attr('full_name') +' từ ' + from_date + ' đến ' + to_date,
 					position: { my: "center", at: "center", of: window } // Căn giữa màn hình
 				});
 			});
 			
 			// When dialog open
 			$('#dlgViewDetail').on('dialogopen', function(event, ui){					
-				var load_type 	= $.trim($('#load_type').val());
-				var user_id 	= $.trim($('#user_id').val());
-				var from_date 	= $('#from_date').val();
-				var to_date 	= $('#to_date').val();
+				let load_type 	= $.trim($('#load_type').val());
+				let user_id 	= $.trim($('#user_id').val());
+				let from_date 	= $('#from_date').val();
+				let to_date 	= $('#to_date').val();
 
 				if(load_type != ''){
 					$.ajax({	
@@ -141,11 +141,11 @@
 
 			// Filter by employee kpi type
 			$('#btnSearchViewDetail').on('click', function(){
-				var kpi_type 	= $.trim($('#employee_kpi_type :selected').val());
-				var load_type 	= $.trim($('#load_type').val());
-				var user_id 	= $.trim($('#user_id').val());
-				var from_date 	= $('#from_date').val();
-				var to_date 	= $('#to_date').val();
+				let kpi_type 	= $.trim($('#employee_kpi_type :selected').val());
+				let load_type 	= $.trim($('#load_type').val());
+				let user_id 	= $.trim($('#user_id').val());
+				let from_date 	= $('#from_date').val();
+				let to_date 	= $('#to_date').val();
 
 				$.ajax({	
 					cache: false,
@@ -157,37 +157,6 @@
 						$('#dlgViewDetailContent').html(output);
 					}
 				});
-			});
-			
-			// Xem số dư của hãng vietjet và jetstar
-			$('#btnCheckRemainingCredit').on('click',function(){
-				var supplier_select 	= $('#aircode :selected');
-				var aircode 			= supplier_select.val();
-				var agent_id 			= supplier_select.attr('agent_id');
-				var agent_pwd 			= supplier_select.attr('agent_pwd');
-				var supplier 			= supplier_select.text();
-
-				$.ajax({
-					url:'index.php?entryPoint=entryPointGetRemainingCredit',
-					data: 'aircode='+ aircode +'&agent_id='+ agent_id +'&agent_pwd=' + agent_pwd,
-					type: 'POST',
-					cache: false,
-					beforeSend:function(){
-						$('#total_credit').text('');
-						$('#total_credit').addClass('loading');
-					},
-					error:function(data){
-						console.log(data);
-					},
-					success:function(data){
-						data = $.parseJSON(data);
-						$('#total_credit').text(supplier + ' : ' + formatNumber(data.data.total_credit));
-					},
-					complete:function(){
-						$('#total_credit').removeClass('loading');
-					}
-				});
-
 			});
 			
 			$('.allow-number-only2').on('keydown', function (event) {
@@ -213,7 +182,6 @@
 					}
 				});
 
-				// $("#mark_detail_tbl").dialog({
 				$("#mark_detail_tbl--wrap").dialog({
 					width: 700,
 					title: "Chi tiết chấm điểm",

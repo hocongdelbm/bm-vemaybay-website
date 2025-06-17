@@ -124,6 +124,7 @@ $vardefs = array(
             'full_text_search' => array('boost' => 1),
             'comment' => 'Mobile phone number of the contact',
             'merge_filter' => 'enabled',
+            'audited' => true,
         ),
         'phone_work' => array(
             'name' => 'phone_work',

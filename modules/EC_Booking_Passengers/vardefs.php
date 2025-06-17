@@ -92,7 +92,20 @@ $dictionary['EC_Booking_Passengers'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
-
+        'eluggage_outbound' => array(
+            'required' => false,
+            'name' => 'eluggage_outbound',
+            'vname' => 'LBL_ELUGGAGE_OUTBOUND',
+            'type' => 'varchar',
+            'comment' => 'Số vé hành lý, Hãng BBA và VNA có số vé hành lý riêng',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '25',
+        ),
         'eticket_inbound' => array(
             'required' => false,
             'name' => 'eticket_inbound',
@@ -106,7 +119,20 @@ $dictionary['EC_Booking_Passengers'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
-
+        'eluggage_inbound' => array(
+            'required' => false,
+            'name' => 'eluggage_inbound',
+            'vname' => 'LBL_ELUGGAGE_INBOUND',
+            'type' => 'varchar',
+            'comment' => 'Số vé hành lý, Hãng BBA và VNA có số vé hành lý riêng',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '25',
+        ),
         'pnr_outbound' => array(
             'required' => false,
             'name' => 'pnr_outbound',
@@ -502,7 +528,7 @@ $dictionary['EC_Booking_Passengers'] = array(
         array('name' => 'idx_psg_suin', 'type' => 'index', 'fields' => array('supplier_id')),
         array('name' => 'idx_psg_suout', 'type' => 'index', 'fields' => array('supplier_inbound_id')),
     ),
-    'relationships' => array (),
+    'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,
 );
@@ -510,4 +536,4 @@ $dictionary['EC_Booking_Passengers'] = array(
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('EC_Booking_Passengers', 'EC_Booking_Passengers', array('basic','assignable','security_groups'));
+VardefManager::createVardef('EC_Booking_Passengers', 'EC_Booking_Passengers', array('basic', 'assignable', 'security_groups'));

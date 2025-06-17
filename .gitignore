@@ -7,14 +7,15 @@
 # For development the cache directory can be safely ignored and
 # therefore it is ignored.
 cache/*
-!cache/upload/inputinvoices
 # Ignore some files and directories from the custom directory.
-/custom/history/
-/custom/working/
-/custom/modules/*/Ext/
-/custom/application/Ext/*
-!/custom/application/Ext/Api/*
-/custom/Extension/application/Ext/Language/
+custom/history/
+custom/working/
+custom/modules/*/Ext/*
+custom/application/Ext/*
+!custom/application/Ext/Api
+custom/Extension/application/Ext/Language/*
+custom/configs/*
+!custom/configs/.gitkeep
 # Custom configuration should also be ignored.
 /config.php
 /config_override.php
@@ -35,7 +36,3 @@ secure_sessions/*
 
 # Ignore vendor
 vendor
-
-# Ignore folder server
-awstats-icon
-awstatsicons

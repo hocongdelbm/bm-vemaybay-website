@@ -23,12 +23,12 @@ $viewdefs[$module_name]['EditView'] = array(
             ),
             array(
                 array(
-                    'name' => 'proxy',
-                    'label' => 'LBL_PROXY',
+                    'name' => 'format_phone',
+                    'label' => 'LBL_FORMAT_PHONE',
                 ),
                 array(
-                    'name' => 'only_inbound',
-                    'label' => 'LBL_ONLY_INBOUND',
+                    'name' => 'proxy',
+                    'label' => 'LBL_PROXY',
                 ),
             ),
             array(
@@ -52,11 +52,18 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
             ),
             array(
-                'description',
+                array(
+                    'name' => 'only_inbound',
+                    'label' => 'LBL_ONLY_INBOUND',
+                ),
                 array(
                     'name' => 'round_robin',
                     'label' => 'LBL_ROUND_ROBIN',
                 ),
+            ),
+            array(
+                'description',
+                array(),
             ),
         ),
 

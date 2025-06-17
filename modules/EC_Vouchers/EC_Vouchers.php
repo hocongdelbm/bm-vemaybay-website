@@ -121,23 +121,6 @@ class EC_Vouchers extends Basic {
 				$this->status 			= 'new';
 				$this->assigned_user_id = $current_user->id;
 				parent::save();
-
-				// if(!is_null($this->id) && !empty($this->id)) {
-				// 	$this->uploadWebsite($this->website, [
-				// 		'name' => $this->name,
-				// 		'status' => $this->status,
-				// 		'campaign_name' => $this->campaign_name,
-				// 		'campaign_id' => $this->campaign_id,
-				// 		'validate_from_date' => $this->validate_from_date,
-				// 		'validate_to_date' => $this->validate_to_date,
-				// 		'reduce_amount' => $this->reduce_amount,
-				// 		'reduce_percent' => $this->reduce_percent,
-				// 		'max_discount' => $this->max_discount,
-				// 		'quantity' => $this->quantity,
-				// 		'quantity_used' => 0,
-				// 		'condition_voucher' => $this->condition_voucher
-				// 	]);
-				// }
 			}
 		}
 		elseif($voucher_type == 'single') {

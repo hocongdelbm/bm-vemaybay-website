@@ -1287,6 +1287,15 @@ $dictionary['User'] = array(
             'len' => '50',
             'comment' => 'td Password',
         ),
+        'zalo_id' => array(
+            'name'       => 'zalo_id',
+            'vname'      => 'LBL_ZALO_ID',
+            'type'       => 'varchar',
+            'len'        => 25,
+            'default'    => '',
+            'importable' => true,
+            'audited'    => true,
+        ),
     ),
     'indices' => array(
         array(
@@ -1308,6 +1317,7 @@ $dictionary['User'] = array(
                 'id'
             )
         ),
+        array('name' => 'idx_user_zaloid', 'type' => 'index', 'fields' => array('zalo_id')),
     ),
     'relationships' => array(
         'user_direct_reports' => array(

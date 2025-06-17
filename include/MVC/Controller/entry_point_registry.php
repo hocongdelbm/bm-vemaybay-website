@@ -121,8 +121,10 @@ $entry_point_registry = array(
     
     // DASHBOARD - HOME
     'entryPointOverviewDashBoard'           => array('file' => 'custom/entrypoints/epOverviewDashboard.php', 'auth' => true),
+    
+    // AUTOCALL
+    'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
 
-    // SUMMARY - ONLINE_USER_COUNTER
-    'entryPointSummaryOnlineUserCounter'  =>array('file' => 'custom/entrypoints/epCounter_Online.php', 'auth' => true)
-
+    // TEST
+    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => false),
 );

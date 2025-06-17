@@ -40,6 +40,12 @@
           gap: 8px;
      }
 
+     @keyframes spinner-modal-loader {
+          100% {
+               transform: rotate(1turn);
+          }
+     }
+
      @media screen and (max-width: 575px),
      (orientation: landscape) and (max-width: 950px) {
           .call-statistics__wrap {
@@ -60,7 +66,6 @@
                width: 100% !important;
           }
      }
-
 </style>
 <script type="text/javascript">
 	$(document).ready(function() {	
@@ -165,6 +170,67 @@
 
           $(document).on("click", "#hide_detail_btn", function() {
 			$("#detail-calls__wrap").addClass('hidden');
+		});
+
+          $(document).on("click", ".btnSendTeleBriefEmp", function() {
+               let emp_id = $(this).attr("data-id");
+               let modal_id = $(this).attr("data-modal-id");
+               let emp_name = $("#reviewEmp_name_" + emp_id + "").val() || '';
+               let from_date = $("#reviewEmp_fromdate_" + emp_id + "").val() || '';
+               let to_date = $("#reviewEmp_todate_" + emp_id + "").val() || '';
+               let emp_outbound = $("#reviewEmp_outbound_" + emp_id + "").val() || '';
+               let emp_outbound_answer = $("#reviewEmp_outbound_answer_" + emp_id + "").val() || '';
+               let emp_question_ticket = $("#reviewEmp_question_ticket_" + emp_id + "").val() || 0;
+               let emp_noanswer_up_15 = $("#reviewEmp_outbound_noanswer_up_15_" + emp_id + "").val() || 0;
+               let emp_noanswer_under_15 = $("#reviewEmp_outbound_noanswer_under_15_" + emp_id + "").val() || 0;
+               let emp_noanswer_unconnected = $("#reviewEmp_outbound_noanswer_unconnected_" + emp_id + "").val() || 0;
+               let emp_noanswer_nonote = $("#reviewEmp_outbound_noanswer_nonote_" + emp_id + "").val() || 0;
+               let total_talk_outbound = $("#reviewEmp_outbound_answer_total_talk_" + emp_id + "").val() || 0;
+
+               if (parseInt(to_date.length) === 0) {
+                    to_date = from_date;
+               }
+
+               $.ajax({
+                url: "index.php?entryPoint=entryPointStatisticsCall",
+                type: "POST",
+                cache: false,
+                data: {
+                    employee_id: emp_id,
+                    from_date: from_date,
+                    to_date: to_date,
+                    emp_outbound: emp_outbound,
+                    emp_outbound_answer: emp_outbound_answer,
+                    emp_question_ticket: emp_question_ticket,
+                    emp_noanswer_up_15: emp_noanswer_up_15,
+                    emp_noanswer_under_15: emp_noanswer_under_15,
+                    emp_noanswer_unconnected: emp_noanswer_unconnected,
+                    emp_noanswer_nonote: emp_noanswer_nonote,
+                    total_talk_outbound: total_talk_outbound,
+                    for: 'sendTeleConfirmCallSales',
+                },
+                beforeSend: function () {},
+                success: function (response) {
+                    $("#" + modal_id).modal("hide");
+                    try {
+                         let result = JSON.parse(response);
+                         console.warn(result);
+                         if (result.ok === true) { 
+                              showModalNotify('success', 'Gửi thông tin callsales qua Tele thành công!');
+                         } else {
+                              $mess_error = result.description || '';
+                              showModalNotify('error', 'Gửi thông tin callsales thất bại. Liên hệ IT để được hỗ trợ!', $mess_error);
+                         }
+                    } catch (error) {
+                         console.error("Lỗi xử lý JSON:", error);
+                    }
+                },
+               error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.error(XMLHttpRequest);
+                    console.error("Status: " + textStatus);
+                    console.error("Error: " + errorThrown);
+               }
+            });
 		});
      });
  </script>
@@ -300,7 +366,7 @@
                     <th>SĐT</th>
                     <th width="25%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
                     <th width="25%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
-                    <th width="10%" align="center">Status</th>
+                    <th width="10%" align="center" class="hide-mobile">Status</th>
                </tr>
           </thead>
           <tbody>
@@ -309,7 +375,7 @@
                     <td align="center" colspan="2"><span title="total"></span>Tổng cộng</td>
                     <td align="center"><span title="total_outbound">{$COUNT_SDT_OUTBOUND}</span></td>
                     <td align="center"><span title="total_inbound">{$COUNT_SDT_INBOUND}</span></td>
-                    <td align="center"></td>
+                    <td align="center" class="hide-mobile"></td>
                </tr>
           </tbody>
      </table>
@@ -326,13 +392,15 @@
                     <th>Họ tên</th>
                     <th width="8%" align="center"><span title="outbound">Cuộc gọi đi</span></th>
                     <th width="8%" align="center"><span title="outbound (Dưới 20s thoại)">Gọi đi (trả lời)</span></th>
-                    <th width="8%" align="center"><span title="outbound (Trên 20s thoại)">Gọi đi (KPI)</span></th>
-                    <th width="8%" align="center"><span title="outbound">0 trả lời</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="outbound (Trên 20s thoại)">Gọi đi (>=20s)</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="outbound">0 trả lời</span></th>
                     <th width="8%" align="center"><span title="inbound">Cuộc gọi đến</span></th>
                     <th width="8%" align="center"><span title="missed">Cuộc gọi nhỡ</span></th>
                     <th width="8%" align="center" class="hide-mobile"><span title="spam">Số rác</span></th>
                     <th width="8%" align="center" class="hide-mobile"><span title="suddenly">Nhá máy</span></th>
                     <th width="8%" align="center" class="hide-mobile"><span title="internal">Nội bộ</span></th>
+                    <th width="8%" align="center" class="hide-mobile"><span title="internal">Tổng cộng</span></th>
+                    <th width="8%" align="center"></th>
                </tr>
           </thead>
           <tbody>
@@ -342,13 +410,15 @@
                     <td align="center"><span title="total"></span>Tổng cộng</td>
                     <td align="center"><span title="outbound">{$TTL_OUTBOUND}</span></td>
                     <td align="center"><span title="outbound_answer">{$TTL_OUTBOUND_ANSWER}</span></td>
-                    <td align="center"><span title="outbound_kpi">{$TTL_OUTBOUND_KPI}</span></td>
-                    <td align="center"><span title="outbound_noanswer">{$TTL_OUTBOUND_NOANSWER}</span></td>
+                    <td align="center" class="hide-mobile"><span title="outbound_kpi">{$TTL_OUTBOUND_KPI}</span></td>
+                    <td align="center" class="hide-mobile"><span title="outbound_noanswer">{$TTL_OUTBOUND_NOANSWER}</span></td>
                     <td align="center"><span title="inbound">{$TTL_INBOUND}</span></td>
                     <td align="center"><span title="missed">{$TTL_MISSED}</span></td>
                     <td align="center" class="hide-mobile"><span title="spam">{$TTL_SPAM}</span></td>
                     <td align="center" class="hide-mobile"><span title="suddenly">{$TTL_SUDDENLY}</span></td>
                     <td align="center" class="hide-mobile"><span title="internal">{$TTL_INTERNAL}</span></td>
+                    <td align="center" class="hide-mobile"><span title="total_emp">{$TTL_EMP}</span></td>
+                    <td align="center"></td>
                </tr>
           </tbody>
      </table>
@@ -365,7 +435,7 @@
                               <th width="10%" align="center">Trạng thái</th>
                               <th width="8%" align="center">Gọi từ</th>
                               <th width="8%" align="center">Gọi đến</th>
-                              <th width="8%" align="center">Site</th>
+                              <th width="8%" align="center">Nguồn</th>
                               <th width="10%" align="center">Thời gian</th>
                               <th width="8%" align="center">Thời lượng</th>
                               <th width="8%" align="center">Hội thoại</th>

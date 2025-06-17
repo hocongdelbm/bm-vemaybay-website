@@ -384,12 +384,12 @@ select::-webkit-scrollbar {
   position: relative;
 }
 
-.navbar .navbar-menu-wrapper .count-indicator .count-symbol{
+.navbar .navbar-menu-wrapper .count-indicator .count-symbol {
   position: absolute;
   border-radius: 100%;
 }
 
-.navbar .navbar-menu-wrapper .count-indicator .count-symbol.bg-danger{
+.navbar .navbar-menu-wrapper .count-indicator .count-symbol.bg-danger {
   border: 1px solid var(--white-color);
 }
 
@@ -419,7 +419,6 @@ select::-webkit-scrollbar {
 }
 
 .navbar .navbar-menu-wrapper .navbar-nav .nav-item .nav-link {
-  color: inherit;
   font-size: 0.875rem;
   height: var(--height-header);
   display: -webkit-box;
@@ -1779,6 +1778,7 @@ select::-webkit-scrollbar {
   line-height: 20px;
   color: var(--text-primary-color);
   font-weight: 600;
+  margin: 0 8px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1968,8 +1968,10 @@ ul.clickMenu .subnav li,
 }
 
 .box-list .box-item svg {
-  fill: var(--text-color);
+  /* fill: var(--text-color); */
   margin: 0 2px 0 5px;
+  width: 20px;
+  height: 20px;
 }
 
 ul.clickMenu .subnav li a,
@@ -2006,12 +2008,14 @@ ul.clickMenu .subnav li:hover,
   fill: var(--primary-color);
 }
 
+.box-list .box-item a.active,
 ul.clickMenu .subnav li:hover a,
 .box-list .box-item:hover a,
 .box-list .box-item:hover input {
   color: var(--primary-color);
   font-weight: 600;
 }
+
 
 /* UL LIST */
 .admin_tabs-list {
@@ -2058,6 +2062,7 @@ ul.clickMenu .subnav li:hover a,
   color: var(--text-color);
   line-height: 1.428571429;
   cursor: pointer;
+  border-bottom: none;
 }
 
 .admin_tabs-item a:hover {
@@ -4937,8 +4942,7 @@ body.modal-active {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 2;
-
+  z-index: 100;
   transform: scale(0);
   animation: zoomIn 0.5s 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
 }
@@ -5024,6 +5028,8 @@ body.modal-active {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+#modal-container .modal-main .modal-body .description {word-break: break-word;}
 
 #modal-container .modal-main.modal-success .modal-footer .btn-modal-close,
 #modal-container .modal-main.modal-success .icon-box {
@@ -5825,6 +5831,13 @@ table.table-details__booking tbody td {
   gap: 10px;
 }
 
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
 .flex-end {
   display: flex;
   align-items: center;
@@ -5914,6 +5927,11 @@ table.table-details__booking tbody td {
 #pagecontent[data-module="Calls"] .list-view-rounded-corners table.list.view.table-responsive tr td[field="call_from"],
 #pagecontent[data-module="Calls"] .list-view-rounded-corners table.list.view.table-responsive tr td[field="call_to"] {
   width: fit-content;
+}
+
+#pagecontent[data-module="Calls"][data-current-user="ngocthu"] .list-view-rounded-corners table.list.view.table-responsive #actionLinkTop .sugar_action_button ul.subnav #delete_listview_top,
+#pagecontent[data-module="Calls"][data-current-user="ngocthu"] .list-view-rounded-corners table.list.view.table-responsive #actionLinkBottom .sugar_action_button ul.subnav #delete_listview_bottom{
+  display: none;
 }
 
 /* =============== ONEPAY ================== */
@@ -6190,7 +6208,7 @@ h4.alert-header {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  
+
   font-size: 16px;
   line-height: 20px;
   color: var(--text-primary-color);
@@ -6207,7 +6225,7 @@ h4.alert-header {
   font-size: 14px;
 }
 
-.alert-bottom span{
+.alert-bottom span {
   font-size: 12px;
   line-height: 16px;
 }

@@ -17,7 +17,12 @@ $listViewDefs[$module_name] = array(
         'default' => true,
         'link' => true,
     ),
- 
+    'GHISO' => array(
+        'type' => 'bool',
+        'label' => 'LBL_GHISO',
+        'width' => '5%',
+        'default' => true,
+    ),
     'TUTKNGANHANG' => array(
         'type' => 'relate',
         'studio' => 'visible',

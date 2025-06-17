@@ -20,9 +20,9 @@ $mod_strings = array (
   'LBL_LIST_FORM_TITLE' => 'D/s Chuyển tiền nội bộ',
   'LBL_MODULE_NAME' => 'Chuyển tiền nội bộ',
   'LBL_MODULE_TITLE' => 'Chuyển tiền nội bộ',
-  'LBL_HOMEPAGE_TITLE' => '  Chuyển tiền nội bộ',
-  'LNK_NEW_RECORD' => 'Tạo Chuyển tiền NB',
-  'LNK_LIST' => 'D/s Chuyển tiền NB',
+  'LBL_HOMEPAGE_TITLE' => 'Chuyển tiền nội bộ',
+  'LNK_NEW_RECORD' => 'Tạo phiếu chuyển tiền',
+  'LNK_LIST' => 'D/s phiếu chuyển tiền',
   'LBL_SEARCH_FORM_TITLE' => 'Tìm kiếm Chuyển tiền nội bộ',
   'LBL_HISTORY_SUBPANEL_TITLE' => 'Xem Quá trình',
   'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Hoạt động',
@@ -32,6 +32,7 @@ $mod_strings = array (
 
   /*====================  CUSTOM  ====================*/
 
+  'LBL_GHISO' => 'Ghi sổ',
   'LBL_NGAYCHUNGTU' => 'Ngày chứng từ',
   'LBL_NGAYHACHTOAN' => 'Ngày ghi sổ',
   'LBL_TUTKNGANHANG' => 'Từ TK ngân hàng',

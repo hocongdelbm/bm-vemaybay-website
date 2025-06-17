@@ -1,0 +1,80 @@
+<?php
+class Mattermost {
+    public static $line_separation = "\n`------------------------------`\n";
+
+    /**
+     * Send message (text)
+     * 
+     * @param string $channel_id
+     * @param string $message
+     * @param array $props https://developers.mattermost.com/integrate/reference/message-attachments/
+     * @param array $metadata https://developers.mattermost.com/integrate/reference/message-priority/
+     * @return string JSON
+     */
+    public static function sendMessage($channel_id, $message, $props = [], $metadata = []) {
+        if(!$channel_id) return json_encode(['id' => null, 'message_error' => 'Invalid params']);
+
+        try {
+            global $sugar_config;
+            $bot_token = $sugar_config['mattermost']['bot_token'] ?? '';
+            $body_request = [
+                "channel_id" => $channel_id,
+                "message" => trim($message),
+            ];
+            if(is_array($props) && !empty($props)) $body_request['props'] = $props;
+            if(is_array($metadata) && !empty($metadata)) $body_request['metadata'] = $metadata;
+
+            $curl = curl_init();
+            curl_setopt_array($curl, [
+                CURLOPT_URL => "https://chat.timchuyenbay.vn/api/v4/posts",
+                CURLOPT_HTTPHEADER => [
+                    "Content-Type: application/json",
+                    "Authorization: Bearer $bot_token"
+                ],
+                CURLOPT_CUSTOMREQUEST => "POST",
+                CURLOPT_POSTFIELDS => json_encode($body_request),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 25,
+                CURLOPT_CONNECTTIMEOUT => 15
+            ]);
+            $response = curl_exec($curl);
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno  = curl_errno($curl);
+            $error    = curl_error($curl);
+            curl_close($curl);
+
+            if ($response === false || $errorno) {
+                $m = "cURL error ($errorno): $error";
+                return json_encode(["id" => null, "message_error" => $m]);
+            }
+            elseif($httpcode > 300 ) {
+                return json_encode(["id" => null, "message_error" => "Response HTTP code $httpcode"]);
+            }
+            return $response;
+        }
+        catch(Throwable $th) {
+            return json_encode([
+                "id" => null,
+                "message_error" => $th->getMessage()
+            ]);
+        }
+    }
+
+    public static function markdownLink($link, $name = 'Link') {
+        return "[$name]($link)";
+    }
+
+    public static function markdownHeading($str) {
+        return "### $str";
+    }
+
+    public static function markdownQuote($str) {
+        return "> $str";
+    }
+
+    public static function markdownCode($str) {
+        return "`$str`";
+    }
+}

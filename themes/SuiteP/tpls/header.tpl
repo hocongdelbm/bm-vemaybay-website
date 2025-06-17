@@ -78,6 +78,6 @@
 {if $AUTHENTICATED}
 <div id="bootstrap-container" class="main bootstrap-container">
     <div id="content" class="content">
-        <div id="pagecontent" class=".pagecontent" data-module="{$MODULE_NAME}">
+        <div id="pagecontent" class=".pagecontent" data-module="{$MODULE_NAME}" data-current-user="{$CURRENT_USER}">
 {/if}
 

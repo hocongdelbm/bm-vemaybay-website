@@ -111,7 +111,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'saveMark') {
 					AND assigned_user_id = "' . $_POST['assigned_user'] . '"';
 
 		$db->query($sql);
-		$wp 		= new EC_Working_Process;
+		$wp 	= new EC_Working_Process;
 		$type 	= $_POST['type']; //manner, effected, awareness, minus
 
 		$wp->name 				= $_POST['type'];
@@ -330,17 +330,15 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		$passenger_arr = explode(',', $_POST['pass_id']);
 		$sql_con = ' AND id IN ("' . implode('","', $passenger_arr) . '")';
 	}
-	$sql = 'SELECT * FROM ec_booking_passengers 
-				WHERE deleted = 0' . $sql_con;
+	$sql = 'SELECT * FROM ec_booking_passengers WHERE deleted = 0' . $sql_con;
 	$res = $db->query($sql);
 
+	$html = "";
 	if ($_POST['type'] != 'insert') {
-		$html = '<div class="line_pass d-flex flex-column gap-2 p-2 border border-radius mt-3">
+		$html .= '<div class="line_pass d-flex flex-column gap-2 p-2 border border-radius mt-3">
 						<h2 class="change-title">Thông tin hành khách đã chọn:</h2>
 						<table id="passenger_tbl" class="table-change-passengers" cellpadding="0" cellspacing="0"><tbody>';
-	} else {
-		$html = "";
-	}
+	} 
 	$i = 0;
 
 	while ($row = $db->fetchByAssoc($res)) {
@@ -351,13 +349,17 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 					<td width="20%" class="text-label text-nowrap">Số vé lượt về:</td>
 					<td><input class="box-input" type="text" value="' . $row['eticket_inbound'] . '" name="pass_eticket_inbound[]"></td>';
 
+			// số vé HL lượt về
+			$eluggage_inbound = '
+					<td width="20%" class="text-label text-nowrap">Số vé HL lượt về:</td>
+					<td><input class="box-input" type="text" value="' . $row['eluggage_inbound'] . '" name="pass_eluggage_inbound[]"></td>';
+
 			// pnr lượt về
 			$pnr_inbound = '
 					<td width="20%" class="text-label text-nowrap">PNR lượt về:</td>
 					<td><input class="box-input" type="text" value="' . $row['pnr_inbound'] . '" name="pass_pnr_inbound[]"></td>';
 
-			// đánh dấu hành lý của VJ thì lưu cách khác
-			// lượt về
+			// đánh dấu hành lý của VJ thì lưu cách khác - lượt về
 			if (
 				$booking->airline_inbound == 'VJ' || $booking->airline_inbound == 'VJA'
 			) {
@@ -391,6 +393,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 					</td>';
 		} else {
 			$eticket_inbound 		= '<td></td><td></td>';
+			$eluggage_inbound 		= '<td></td><td></td>';
 			$pnr_inbound 			= '<td></td><td></td>';
 			$luggage_inbound 		= '<td></td><td></td>';
 			$bought_price_inbound 	= '<td></td><td></td>';
@@ -414,6 +417,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 				<td class="text-label text-nowrap" width="20%">Số vé lượt đi:</td>
 				<td><input class="box-input" type="text" value="' . $row['eticket_outbound'] . '" name="pass_eticket_outbound[]"></td>
 				' . $eticket_inbound . '
+			</tr>';
+		$html .= '<tr class="line_pass' . $row['id'] . '">
+				<td class="text-label text-nowrap" width="20%">Số vé HL lượt đi:</td>
+				<td><input class="box-input" type="text" value="' . $row['eluggage_outbound'] . '" name="pass_eluggage_outbound[]"></td>
+				' . $eluggage_inbound . '
 			</tr>';
 		$html .= '<tr class="line_pass' . $row['id'] . '">
 				<td class="text-label text-nowrap" width="20%">PNR lượt đi:</td>
@@ -704,18 +712,34 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeOnlinePosition') {
 // Nhắc nhở khách hàng lịch bay - button Remind
 if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 	$journey_id 	 = (isset($_POST["journey_id"]) && !empty($_POST["journey_id"])) ? $_POST["journey_id"] : null;
+	$booking_id 	 = (isset($_POST["booking_id"]) && !empty($_POST["booking_id"])) ? $_POST["booking_id"] : null;
 
-	if (is_null($journey_id)) {
+	if (is_null($journey_id) || is_null($booking_id)) {
 		echo 0;
 		exit();
 	}
 
-	if (!empty($journey_id)) {
-		// Update is_remind trong bảng ec_booking_itineraries = true
-		$update_remind = "UPDATE ec_booking_itineraries 
-		SET is_remind = 1
-		WHERE id = '" . trim($journey_id) . "'";
-		$db->query($update_remind);
+	if (!empty($journey_id) && !empty($booking_id)) {
+		$update_remind = "UPDATE ec_booking_itineraries SET is_remind = 1 WHERE id = '" . trim($journey_id) . "'";
+		$result = $db->query($update_remind);
+
+		if($result){
+			$sql_booking = "SELECT id, name, booking_status FROM ec_flight_bookings WHERE id = '" . trim($booking_id) . "' AND deleted = 0";
+			$res = $db->query($sql_booking);
+			$row = $db->fetchByAssoc($res);
+			$booking_status = $row['booking_status'];
+			$record_name = $row['name'];
+			$id = $row['id'];
+
+			$note = new Note();
+			$note->id 			= '';
+			$note->name 			= $record_name ?? '';
+			$note->description 		= 'Đã nhắc lịch bay cho khách (remind)';
+			$note->parent_type 		= 'EC_Flight_Bookings';
+			$note->parent_id 		= $booking_id ?? $id;
+			$note->booking_status 	= $booking_status ?? '';
+			$note->save();
+		}
 
 		echo 1;
 		exit();
@@ -869,6 +893,8 @@ function populateLinePassengers($booking_id, $flight_type, $type, $airline_in = 
 					  ,p.birthday
 					  ,p.eticket_outbound
 					  ,p.eticket_inbound
+					  ,p.eluggage_outbound
+					  ,p.eluggage_inbound
 					  ,p.pnr_outbound
 					  ,p.pnr_inbound
 					  ,p.luggage_price
@@ -910,22 +936,6 @@ function populateLinePassengers($booking_id, $flight_type, $type, $airline_in = 
 		// kiểm tra có tên mới hay chưa
 		$new_name = checkNewPassengerName($row['detail_id']);
 
-		if ($airline_out == 'BBA' && !empty($ticket_class_out) && $row['type'] != '2') {
-			$ob_ticket_class = '_' . strtolower($ticket_class_out);
-		} else if (($airline_out == 'VNA' || $airline_out == 'BBA') && $row['type'] == '2') {
-			$ob_ticket_class = '_infant';
-		} else {
-			$ob_ticket_class = '';
-		}
-
-		if ($airline_in == 'BBA' && !empty($ticket_class_in) && $row['type'] != '2') {
-			$ib_ticket_class = '_' . strtolower($ticket_class_in);
-		} else if (($airline_in == 'VNA' || $airline_in == 'BBA') && $row['type'] == '2') {
-			$ib_ticket_class = '_infant';
-		} else {
-			$ib_ticket_class = '';
-		}
-
 		// line 1
 		$html .= '<tr id="psg_line_' . $i . '">';
 
@@ -942,16 +952,28 @@ function populateLinePassengers($booking_id, $flight_type, $type, $airline_in = 
 		$html .= '<td class="text-center">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date('d-m-Y', strtotime($row['birthday'])) : '') . '<input type="hidden" name="psg_birthday[]" id="psg_birthday' . $i . '" value="' . $row['birthday'] . '"></td>';
 
 		// Nếu code vé đã nhập thì không cho sửa trừ kế toán, admin
-		if ((empty($row['eticket_outbound']) || ACLController::checkAccess("Bugs", "edit", true)) && $type == '0') {
+		if ((empty($row['eticket_outbound']) || ACLController::checkAccess("EC_Flight_Bookings", "edit", true)) && $type == '0') {
 			$html .= '<td class="text-center"><input class="text-center box-input detail_ticket_input" type="text" maxlength="25" name="psg_eticket_outbound[]" id="psg_eticket_outbound' . $i . '" value="' . strtoupper($row['eticket_outbound']) . '" /></td>';
 		} else {
 			$html .= '<td class="text-center">' . $row['eticket_outbound'] . '<input type="hidden" id="psg_eticket_outbound' . $i . '" name="psg_eticket_outbound[]" value="' . strtoupper($row['eticket_outbound']) . '"></td>';
 		}
 
-		if ((empty($row['eticket_inbound']) || ACLController::checkAccess("Bugs", "edit", true)) && $flight_type == '0' && $type == '0') {
+		if ((empty($row['eticket_inbound']) || ACLController::checkAccess("EC_Flight_Bookings", "edit", true)) && $flight_type == '0' && $type == '0') {
 			$html .= '<td><input class="box-input text-center" type="text" maxlength="25" name="psg_eticket_inbound[]" id="psg_eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '" /></td>';
 		} else {
 			$html .= '<td class="text-center">' . strtoupper($row['eticket_inbound']) . '<input type="hidden" id="psg_eticket_inbound' . $i . '" name="psg_eticket_inbound[]" value="' . strtoupper($row['eticket_inbound']) . '"></td>';
+		}
+
+		if ((empty($row['eluggage_outbound']) || ACLController::checkAccess("EC_Flight_Bookings", "edit", true)) && $type == '0') {
+			$html .= '<td class="text-center"><input class="text-center box-input detail_ticket_input" type="text" maxlength="25" name="psg_eluggage_outbound[]" id="psg_eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '" /></td>';
+		} else {
+			$html .= '<td class="text-center">' . $row['eluggage_outbound'] . '<input type="hidden" id="psg_eluggage_outbound' . $i . '" name="psg_eluggage_outbound[]" value="' . strtoupper($row['eluggage_outbound']) . '"></td>';
+		}
+
+		if ((empty($row['eluggage_inbound']) || ACLController::checkAccess("EC_Flight_Bookings", "edit", true)) && $flight_type == '0' && $type == '0') {
+			$html .= '<td><input class="box-input text-center" type="text" maxlength="25" name="psg_eluggage_inbound[]" id="psg_eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '" /></td>';
+		} else {
+			$html .= '<td class="text-center">' . strtoupper($row['eluggage_inbound']) . '<input type="hidden" id="psg_eluggage_inbound' . $i . '" name="psg_eluggage_inbound[]" value="' . strtoupper($row['eluggage_inbound']) . '"></td>';
 		}
 
 		$html .= '<td class="text-center">' . strtoupper($row['pnr_outbound']) . '<input type="hidden" name="psg_pnr_outbound[]" id="psg_pnr_outbound' . $i . '" value="' . strtoupper($row['pnr_outbound']) . '"></td>';
@@ -972,47 +994,12 @@ function populateLinePassengers($booking_id, $flight_type, $type, $airline_in = 
 		}
 
 		$html .= '</td>';
-
-
-		// if($type == '1') {
-		// 	// line 2
-		// 	// $html .= '<tr id="psg_line_desc_'.$i.'">';
-		// 	// $html .= '<td colspan="12" style="border-bottom:1px dashed #8D8D8D; padding:3px 0px;">
-		// 	// 	Giá mua lượt đi: <input class="allow-number-only" style="width:150px; text-align:right;" type="text" maxlength="25" name="psg_luggage_purchase[]" id="psg_luggage_purchase'.$i.'" value="'.format_number($row['luggage_purchase']).'" />
-		// 	// 	NCC lượt đi: <select style="width: 150px; font-family: monospace;" name="psg_luggage_supplier[]" id="psg_luggage_supplier'.$i.'" ><option value=""></option>'.myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $row['supplier_id'], 'id', $sql_supplier).'</select>';
-		// 	// if($flight_type == 0) {
-		// 	// 	$html .= ' -
-		// 	// 		Giá mua lượt về: <input class="allow-number-only" style="width:150px; text-align:right;" type="text" maxlength="25" name="psg_luggage_purchase_inbound[]" id="psg_luggage_purchase_inbound'.$i.'" value="'.format_number($row['luggage_purchase_inbound']).'" />
-		// 	// 		NCC lượt về: <select style="width: 150px; font-family: monospace;" name="psg_luggage_supplier_inbound[]" id="psg_luggage_supplier_inbound'.$i.'" ><option value=""></option>'.myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $row['supplier_inbound_id'], 'id', $sql_supplier).'</select>
-		// 	// 	</td>';
-		// 	// }
-		// } else {
-		// 	$html .= '<input type="hidden" name="psg_luggage_purchase[]" value="'.format_number($row['luggage_purchase']).'"><input type="hidden" name="psg_luggage_supplier[]" value="'.$row['supplier_id'].'"><input type="hidden" name="psg_luggage_purchase_inbound[]" value="'.format_number($row['luggage_purchase_inbound']).'"><input type="hidden" name="psg_luggage_supplier_inbound[]" value="'.$row['supplier_inbound_id'].'">';
-		// }
-
 		$html .= '</tr>';
 
 		$i++;
 	} // while
 
 	$html .= '</table>';
-
-	// line 3
-	// thông tin người nộp tiền trên phiếu thu 
-	if ($type == '1') {
-		// $department_id = $GLOBALS['current_user']->department_id;
-		// $html .= '<div style="padding:10px 0; font-weight:bold;">Thông tin người nộp tiền trên phiếu thu: </div>
-		// <table width="100%" cellpadding="0" cellspacing="0">
-		// 	<tbody>
-		// 		<tr>
-		// 			<td>Người nộp: <input type="text" id="receipt_contact_name" name="contact_name" value="'.$contact_name.'"></td>
-		// 			<td>Điện thoại: <input type="text" id="receipt_contact_phone" name="contact_phone" value="'.$contact_phone.'"></td>
-		// 			<td>Hình thức: <select id="receipt_type" name="receipt_type">'.get_select_options_with_id($app_list_strings['receipt_type_list'], '').'</select>&nbsp;<select style="font-family:monospace; font-size:14px; width:150px; display:none;" id="tknganhang_id" name="tknganhang_id"><option value=""></option>'.myGetBankAccountList('', $tknganhang_group).'</select>&nbsp;<select id="com_location_id" name="com_location_id">'.myGetLocationListByDepID($department_id, '').'</select></td>
-		// 		</tr>
-		// 	</tbody>
-		// </table>
-		// <div style="padding:10px 0; font-weight:bold;">Lưu ý: Khi bạn thêm hành lý, phiếu thu sẽ được tạo tự động. Vui lòng kiểm tra phiếu thu đã được tạo sau khi lưu.</div>';
-	}
 	return $html;
 }
 
@@ -1450,6 +1437,8 @@ function populateEditedLinePassenger($booking_id)
 			,p.type
 			,p.eticket_outbound
 			,p.eticket_inbound
+			,p.eluggage_outbound
+			,p.eluggage_inbound
 			,p.pnr_outbound
 			,p.pnr_inbound
 			,p.description
@@ -1529,7 +1518,7 @@ function populateEditedLinePassenger($booking_id)
 			$html1 = '';
 			$pass_changed_name_arr = array();
 			$html = '';
-			$html1 .= '<tr><td colspan="11" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': ';
+			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': ';
 			$i = 0;
 		}
 
@@ -1593,7 +1582,20 @@ function populateEditedLinePassenger($booking_id)
 		}
 
 		if ($bag_weight_out > 0) {
-			$luggage_price .= '<span class="text-conpleted-status fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')<br>';
+			$eluggage_outbound = '';
+			if(strlen($row['eluggage_outbound']) > 0) {
+				$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
+										(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($row['eluggage_outbound']) . '</strong>)
+										<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '"  />
+									</span>';
+			}
+
+			$luggage_price .= '';
+
+			$luggage_price .= '<div class="luggage__outbound">
+									<span class="color-primary fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')
+									'.$eluggage_outbound.'
+								</div>';
 		}
 
 
@@ -1613,14 +1615,25 @@ function populateEditedLinePassenger($booking_id)
 			$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
 		}
 		if ($bag_weight_in > 0) {
-			$luggage_price .= '<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in . ' (Giá mua: ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . ')';
+			$luggage_price .= '';
+			$eluggage_inbound = '';
+			if(strlen($row['eluggage_inbound']) > 0) {
+				$eluggage_inbound .= '<span data-label="Số vé HL về" class="text-center" class="eluggage_inbound">
+										(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($row['eluggage_inbound']) . '</strong>)
+										<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '"  />
+									</span>';
+			}
+
+			$luggage_price .= '<div class="luggage__inbound mt-2">
+									<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in . ' (Giá mua: ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . ')
+									'.$eluggage_inbound.'
+								</div>';
 		}
 		/* END Thông tin hành lý lượt về*/
-
 		$html .= '
 				<tr ' . (trim($luggage_price) == '' ? 'style="display:none;"' : '') . '>
 					<td class="text-center align-middle hide-mobile">&nbsp;</td>
-					<td colspan="9" class="text-start align-middle fst-italic">' . $luggage_price . '</td>
+					<td colspan="10" class="text-start align-middle fst-italic">' . $luggage_price . '</td>
 				</tr>';
 
 		$i++;
@@ -1642,17 +1655,7 @@ function populateEditedLinePassenger($booking_id)
 if ($_POST['for'] == 'getShareProfit') {
 	$bk = new EC_Flight_Bookings;
 	// tính ds 1 booking
-	$bk_profit = $bk->calculateBKTotalAmt($_POST['bk']);
-
-	// bảng chia ds
-	// $html = '<thead>
-	// 	<tr>
-	// 		<td width="5%" style="font-weight: bold;">STT</td>
-	// 		<td width="55%" style="font-weight: bold;">Booker</td>
-	// 		<td style="text-align: right;font-weight: bold;">Số tiền</td>
-	// 		<td width="5%" style="text-align: center;font-weight: bold;"></td>
-	// 	</tr></thead>
-	// ';
+	$bk_profit = (int)calculateBKTotalAmt($_POST['bk']);
 	$html = '';
 
 	$sql = '
@@ -3652,6 +3655,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 	Danh sách booking của liên hệ - QUY ĐỊNH 1 SDT LÀ 1 LIÊN HỆ
 */
 if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
+	global $current_user;
+
 	$contact_id  = isset($_POST['contact_id']) ? $_POST['contact_id'] : '';
 	$where  	 = (isset($_POST['purpose']) && $_POST['purpose'] == 'get_completed_status') ? ' AND booking_status = 8' : '';
 	$booking_id  = $_POST['booking_id'] ?? '';
@@ -3690,7 +3695,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered
 				FROM ec_flight_bookings
-				WHERE  contact_id = '" . $contact_id . "' AND deleted = 0
+				WHERE contact_id = '$contact_id' AND deleted = 0
 				".$where."
 				ORDER BY date_entered DESC";
 
@@ -3702,22 +3707,22 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 		$name_contact 	= $con->last_name;
 		$phone_contact 	= $con->phone_mobile;
 		$email_contact 	= $con->email1;
+		$points_contact = $con->points ?? 0;
 
 		if ($count_booking > 0) {
 			$i = 1;
 			while ($row = $db->fetchByAssoc($res)) {
-
 				// Infor contact
-				$current_date 			= date('Y-m-d');
-				if ($row['booking_status'] == 2) { //CHỜ THANH TOÁN
+				$current_date = date('Y-m-d');
+				if ($row['booking_status'] == 2) { // CHỜ THANH TOÁN
 					$class_color = 'text-warning';
-				} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { //XÁC NHẬN
+				} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { // XÁC NHẬN
 					$class_color = 'text-success';
-				} elseif ($row['booking_status'] == 4) { //HỦY
+				} elseif ($row['booking_status'] == 4) { // HỦY
 					$class_color = 'text-danger';
-				} elseif ($row['booking_status'] == 6) { //ĐÃ GỌI
+				} elseif ($row['booking_status'] == 6) { // ĐÃ GỌI
 					$class_color = 'text-info';
-				} elseif ($row['booking_status'] == 8) { //HOÀN TẤT
+				} elseif ($row['booking_status'] == 8) { // HOÀN TẤT
 					$class_color = 'text-primary';
 				} else {
 					$class_color = 'text-dark';
@@ -3731,19 +3736,17 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 					$journey 		= $journey_array["departure"] . '-' . $journey_array["arrival"];
 				}
 
-				// if ($row['booking_status'] == 8 || $row['booking_status'] == 7 || $row['booking_status'] == 3) {
 				if ($row['booking_status'] == 8) {
 					$count_booking_completed++;
 
-					$total_revenue  += $row['total_amount'];
-					$total_profit 	+= calculateBKTotalAmt($row['id']);
+					$total_revenue  += (int)$row['total_amount'];
+					$total_profit 	+= (int)calculateBKTotalAmt($row['id']);
 				} else if ($row['booking_status'] == 4) {
 					$count_booking_cancel++;
 				} else {
 					$count_booking_other++;
 				}
 
-				// pr($row);
 				$current_booking = ($row['id'] == $booking_id) ? 'current_booking' : '';
 
 				$html .= '<tr>
@@ -3754,8 +3757,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 							<td class="' . $current_booking . ' text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
 							<td class="' . $current_booking . '">' . $row['contact_name'] . '</td>
 							<td class="' . $current_booking . ' text-center fw-bold">' . $row['total_qty'] . '</td>
-							<td class="' . $current_booking . ' text-end fw-bold">' . format_number($row['total_amount']) . '</td>
-							<td class="' . $current_booking . ' text-end fw-bold">' . format_number(calculateBKTotalAmt($row['id'])) . '</td>
+							<td class="' . $current_booking . ' text-end fw-bold">' . format_number((int)$row['total_amount']) . '</td>
+							<td class="' . $current_booking . ' text-end fw-bold">' . format_number((int)calculateBKTotalAmt($row['id'])) . '</td>
 						</tr>';
 				$i++;
 			}
@@ -3773,13 +3776,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 								<p>👤 *Họ tên: ' . $name_contact . '</p>  
 								<p>📞 *SĐT: ' . $phone_contact . '</p>
 								<p>📧 *Email: ' . $email_contact . '</p>
-								<p>🏷️ *Mô tả: ' . $type_contact['desc'] . '</p>  
+								<p>⭐ *Điểm tích lũy: <span style="color:red">' . $points_contact . ' điểm</span></p>
 							</div>
 							<div class="flex-fill lh-base">
 								<p>🏷️ *Loại khách hàng: <span class="fw-bold">' . $type_contact['label'] . '</span></p>  
 								<p>📊 *Tổng booking: ' . $count_booking . ' (<span class="text-primary fw-bold">' . $count_booking_completed . ' hoàn tất</span>, <span class="text-danger fw-bold">' . $count_booking_cancel . ' hủy</span>, <span class="text-dark fw-bold">' . $count_booking_other . ' Khác</span>)</p>
 								<p>✅ *Tỷ lệ hoàn tất: <span class="fw-bold">' . round(($count_booking_completed / $count_booking * 100), 2) . '%</span></p>
 								<p>❌ *Tỷ lệ hủy: <span class="fw-bold">' . round(($count_booking_cancel / $count_booking * 100), 2) . '%</span></p>
+								<p>🏷️ *Mô tả: ' . $type_contact['desc'] . '</p>
 							</div>
 							<div class="flex-fill lh-base">
 								<p>💰 *Tổng doanh thu: <span class="fw-bold">' . format_number($total_revenue) . '</span></p>  
@@ -3792,4 +3796,157 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 
 	echo $html_summary . $html;
+}
+
+// Handle points to booking
+if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
+	$apply_points 	= $_POST['apply_points'] ?? 0;
+	$contact_id 	= $_POST['contact_id'] ?? '';
+	$booking_id 	= $_POST['booking_id'] ?? '';
+
+	if(strlen($contact_id) == 36 && strlen($booking_id) == 36) {
+		$Booking = new EC_Flight_Bookings();
+		$total_points = $db->getOne("SELECT points FROM contacts WHERE id = '$contact_id' AND deleted = 0");
+
+		if($apply_points < $Booking->point_step || $apply_points > $total_points || $apply_points % $Booking->point_step != 0) {
+			echo json_encode([
+				'error' => 1,
+				'message' => 'Số điểm áp dụng không hợp lệ',
+				'data' => [
+					'apply_points' => $apply_points,
+					'total_points' => $total_points,
+					'point_step' => $Booking->point_step,
+				]
+			]);
+			exit();
+		}
+
+		$discount = $apply_points*1000;
+		$sql_update_contact = "UPDATE contacts SET points = points - $apply_points WHERE id = '$contact_id' AND deleted = 0;";
+		$sql_update_booking = "UPDATE ec_flight_bookings SET discount_amount = discount_amount + $discount, total_amount = total_amount - $discount WHERE id = '$booking_id' AND deleted = 0;";
+		$res_contact = $db->query($sql_update_contact);
+		$res_booking = $db->query($sql_update_booking);
+
+		if($res_contact === false) {
+			echo json_encode([
+				'error' => 1,
+				'message' => 'Lỗi! Vui lòng thử lại sau',
+				'data' => $sql_update_contact
+			]);
+			exit();
+		}
+		if($res_booking === false) {
+			// Rollback
+			$sql_update_contact = "UPDATE contacts SET points = points + $apply_points WHERE id = '$contact_id' AND deleted = 0;";
+			$res_contact = $db->query($sql_update_contact);
+
+			echo json_encode([
+				'error' => 1,
+				'message' => 'Lỗi! Vui lòng thử lại sau',
+				'data' => $sql_update_booking
+			]);
+			exit();
+		}
+
+		// Record point log
+		$point_log = new EC_Contact_Points_Log();
+		$point_log->id = '';
+		$point_log->name = 'Dùng điểm tích lũy cho booking';
+		$point_log->contact_id = $contact_id;
+		$point_log->contact_phone = $db->getOne("SELECT phone_mobile FROM contacts WHERE id = '$contact_id' AND deleted = 0");
+		$point_log->up = 0;
+		$point_log->down = $apply_points;
+		$point_log->current_point = $total_points - $apply_points;
+		$point_log->parent_type = 'EC_Flight_Bookings';
+		$point_log->parent_id = $booking_id;
+		$point_log->save();
+
+		echo json_encode(['error' => 0, 'message' => 'Success']);
+		exit(); 
+	}
+
+	echo json_encode(['error' => 1, 'message' => 'Invalid params']);
+	exit(); 
+}
+if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
+	$parent_id 	= $_POST['parent_id'] ?? '';
+	$contact_id = $_POST['contact_id'] ?? '';
+	$reason 	= $_POST['reason'] ?? '';
+
+	if(strlen($contact_id) == 36 && strlen($parent_id) == 36) {
+		$point_log = new EC_Contact_Points_Log();
+		$point_log->retrieve($parent_id);
+		if($point_log->id == $parent_id && $point_log->down > 0) {
+			$refund_points = (int)$point_log->down; // Used point
+			$refund_amount = $refund_points*1000;
+
+			if($point_log->parent_type == 'EC_Flight_Bookings') {
+				$sql_refund_discount = "UPDATE ec_flight_bookings
+					SET discount_amount = discount_amount - $refund_amount, total_amount = total_amount + $refund_amount
+					WHERE id = '$point_log->parent_id'
+						AND booking_status IN('1', '2', '6')
+						AND discount_amount >= $refund_amount
+						AND deleted = 0";
+
+				$sql_refund_point = "UPDATE contacts SET points = points + $refund_points WHERE id = '$contact_id' AND deleted = 0";
+
+				if($db->query($sql_refund_discount) && $db->query($sql_refund_point)) {
+					$total_points = $db->getOne("SELECT points FROM contacts WHERE id = '$contact_id' AND deleted = 0");
+					$booking_name = $db->getOne("SELECT name FROM ec_flight_bookings WHERE id = '$point_log->parent_id' AND deleted = 0");
+
+					$point_log_refund = new EC_Contact_Points_Log();
+					$point_log_refund->id = '';
+					$point_log_refund->name = "Hoàn điểm từ booking $booking_name";
+					$point_log_refund->contact_id = $contact_id;
+					$point_log_refund->contact_phone = $db->getOne("SELECT phone_mobile FROM contacts WHERE id = '$contact_id' AND deleted = 0");
+					$point_log_refund->up = $refund_points;
+					$point_log_refund->down = 0;
+					$point_log_refund->current_point = $total_points + $refund_points;
+					$point_log_refund->parent_type = 'EC_Contact_Points_Log';
+					$point_log_refund->parent_id = $parent_id;
+					$point_log_refund->description = $reason;
+					$point_log_refund->save();
+
+					echo json_encode(['error' => 0, 'message' => 'Success']);
+					exit(); 
+				}
+
+				echo json_encode(['error' => 1, 'message' => 'Booking cannot be refunded points']);
+				exit(); 
+			}
+
+			echo json_encode(['error' => 1, 'message' => 'There is no refund policy']);
+			exit(); 
+		}
+	}
+
+	echo json_encode(['error' => 1, 'message' => 'Failed']);
+	exit(); 
+}
+
+// Update output invoice checked
+if (isset($_POST['for']) && $_POST['for'] == 'check_output_invoice') {
+	try {
+		$booking_id = $_POST['booking_id'] ?? '';
+		$is_checked = isset($_POST['is_checked']) ? (int)$_POST['is_checked'] : null;
+	
+		if(!empty($booking_id) && !is_null($is_checked)) {
+			$sql = "UPDATE ec_flight_bookings 
+					SET is_output_invoice_checked = $is_checked
+					WHERE id = '$booking_id' AND deleted = 0";
+			$db->query($sql);
+			echo json_encode([
+				'error' => 0,
+				'message' => $is_checked == 1 ? 'Checked success' : 'Unchecked success'
+			]);
+			exit(); 
+		}
+
+		echo json_encode(['error' => 1, 'message' => 'Invalid params']);
+		exit(); 
+	}
+	catch (Exception $e) {
+		echo json_encode(['error' => 1, 'message' => $e->getMessage()]);
+		exit(); 
+	}
 }

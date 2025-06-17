@@ -126,10 +126,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ];
             }
             else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 2) {
+                $message = '';
+  
+                $m = isset($response['message']) ? $response['message'] : '';
+                if($m == 'Get flight fail') $message = "Lỗi 02: Lấy dữ liệu chuyến bay bị lỗi, vui lòng thử lại sau";
+                elseif($m == 'Not found departure flight') {
+                    $message = "Lỗi 02: Thông tin chuyến bay lượt đi không chính xác, vui lòng kiểm tra lại giá, mã chuyến và thời gian bay";
+                }
+                elseif($m == 'Not found return flight') {
+                    $message = "Lỗi 02: Thông tin chuyến bay lượt về không chính xác, vui lòng kiểm tra lại giá, mã chuyến và thời gian bay";
+                }
+                else {
+                    $message = "Lỗi 02: Lỗi tìm chuyến bay";
+                    $description = isset($response['check_params']) ? json_encode($response['check_params']) : '';;
+                }
+
                 $result = [
                     "code"          => 0,
-                    "message"       => "Lỗi 02: Thông tin chuyến bay đã bị thay đổi, vui lòng kiểm tra lại giá, mã chuyến và thời gian bay",
-                    "description"   => $json
+                    "message"       => $message,
+                    "description"   => $description,
+                    "list_flight"   => $response['list_flight'] ?? ''
                 ];
             }
             else if (isset($response['error']) && $response['error'] != 0 && $response['error_code'] == 3) {
@@ -258,7 +274,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $round_trip = false;
                 foreach($data_key['journeys'] as $index => $j) {
                     $result['journeys'][$index] = [
-                        'key'   => $j['key']
+                        'key' => $j['key']
                     ];
     
                     foreach($j['segments'] as $seg) {
@@ -285,6 +301,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if($index == 1) {
                         $result['journeys'][$index]['itinerary'] = $ARV_CODE . " - " . $DEP_CODE;
                         $round_trip = true;
+                    }
+
+                    // Add booking key
+                    $result['journeys'][$index]['booking_keys'] = [];
+                    foreach($j['passengerJourneyDetails'] as $pdetail) {
+                        $passkey = $pdetail['passenger']['key'] ?? '';
+                        $result['journeys'][$index]['booking_keys'][$passkey] = $pdetail['bookingKey']['key'] ?? '';
                     }
                 }
     
@@ -336,10 +359,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     foreach($passengers['data'] as $p) {
                         // Button
                         $button_add_luggage_dep = $button_add_luggage_ret = $button_update_passenger = "";
-                        if(!in_array($p['key'], $list_pass_key['dep'])) 
-                            $button_add_luggage_dep = '<button type="button" class="btn btn-primary btn-add-luggage btn-add-luggage-dep me-2" re_key="'.$reservation_key.'" pass_key="'.$p['key'].'" >'.$icon_add_luggage.'Hành lý đi</button>';
-                        if($round_trip && !in_array($p['key'], $list_pass_key['ret']))
-                            $button_add_luggage_ret = '<button type="button" class="btn btn-primary btn-add-luggage btn-add-luggage-ret" re_key="'.$reservation_key.'" pass_key="'.$p['key'].'" >'.$icon_add_luggage.'Hành lý về</button>';
+                        if(!in_array($p['key'], $list_pass_key['dep'])) {
+                            $button_add_luggage_dep = '<button type="button" class="btn btn-primary btn-add-luggage btn-add-luggage-dep me-2"
+                                re_key="'.$reservation_key.'"
+                                pass_key="'.$p['key'].'"
+                            >
+                                '.$icon_add_luggage.'Hành lý đi
+                            </button>';
+                        }
+                        if($round_trip && !in_array($p['key'], $list_pass_key['ret'])) {
+                            $button_add_luggage_ret = '<button type="button" class="btn btn-primary btn-add-luggage btn-add-luggage-ret"
+                                re_key="'.$reservation_key.'"
+                                pass_key="'.$p['key'].'"
+                            >
+                                '.$icon_add_luggage.'Hành lý về
+                            </button>';
+                        }
                         
                         if($p['type'] == 'Em bé') {
                             $button_add_luggage_dep = $button_add_luggage_ret = "";
@@ -399,7 +434,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'name' => $data_pnr['company']['name']
                 ];
 
-                ##### AGEENCY #####
+                ##### AGENCY #####
                 $agency = json_decode($VJHelper->getAgency(), true);
                 if(isset($agency['error']) && $agency['error'] == 0) {
                     $result['supplier']['iataNumber'] = $agency['data'][0]['iataNumber'];

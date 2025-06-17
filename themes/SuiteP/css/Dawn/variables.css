@@ -1,7 +1,5 @@
 /* ==========  GLOBALS  ========== */
-:root {
-    /* --primary-color: #4154f1; */
-    /* --primary-color: #135ca0; */
+:root, [data-bs-theme=light] {
     --primary-color: #0a58ca;
     --white-color: #fff;
     --black-color: #000000;
@@ -80,4 +78,21 @@
     --main-bg-color: #f6f9ff;
     --bgdecs-color: #f3f7fe;
     --hidden-color: #7F8487;
+}
+
+[data-bs-theme=dark]{
+    --main-bg-color: #232333;
+    --white-color: #2b2c40;
+    --black-color: #fff;
+    --text-color: #d5d5e2;
+    --text-primary-color: #e6e6f1;
+    --border-color: #2b2c40;
+    --bs-black-rgb: 255, 255, 255;
+    --bs-white-rgb: 0, 0, 0;
+}
+
+[data-bs-theme=dark] .card {
+    --bs-card-bg: #2b2c40;
+    --bs-card-subtitle-color: color-mix(in srgb, #e6e6f1 55%, #393a5a);
+    --bs-card-color: #e6e6f1;
 }

@@ -112,7 +112,7 @@
                     <!-- <input tabindex='2' title='{$APP.LBL_CLEAR_BUTTON_TITLE}' onclick='SUGAR.searchForm.clear_form(this.form); if(document.getElementById("saved_search_select")){ldelim}document.getElementById("saved_search_select").options[0].selected=true;{rdelim} return false;' class='btn btn-danger' type='button' name='clear' id='search_form_clear_advanced' value='{$APP.LBL_CLEAR_BUTTON_LABEL}'/> -->
                     <input tabindex='2' title='{$APP.LBL_CLEAR_BUTTON_TITLE}' onclick="SUGAR.searchForm.clear_form(this.form); SUGAR.ajaxUI.submitForm(this.form); return false;" class='btn btn-secondary' type='button' name='clear' id='search_form_clear_advanced' value='{$APP.LBL_CLEAR_BUTTON_LABEL}'/>
                     {if $DOCUMENTS_MODULE}
-                        <input title="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_TITLE}" type="button" class="btn btn-primary" value="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_LABEL}" onclick='open_popup("Documents", 600, 400, "&caller=Documents", true, false, "");'/>
+                        <!-- <input title="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_TITLE}" type="button" class="btn btn-primary" value="{$APP.LBL_BROWSE_DOCUMENTS_BUTTON_LABEL}" onclick='open_popup("Documents", 600, 400, "&caller=Documents", true, false, "");'/> -->
                     {/if}
                 </div>
     

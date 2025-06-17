@@ -92,8 +92,8 @@ class WinInvoice extends InvoiceLogs
                 'itemName'        => isset($i['itemName']) ? $i['itemName'] : '',
                 'itemQuantity'    => isset($i['itemQuantity']) ? $i['itemQuantity'] : 1,
                 'itemPrice'       => isset($i['itemPrice']) ? $i['itemPrice'] : 0, // GIÁ CHƯA VAT
-                'itemVatRate'     => isset($i['itemVatRate']) ? $i['itemVatRate'] : 0, // VAT SẢN PHẨM
-                'itemVatAmnt'     => isset($i['itemVatAmnt']) ? $i['itemVatAmnt'] : 0, // TIỀN VAT
+                'itemVatRate'     => isset($i['itemVatRate']) ? (int)$i['itemVatRate'] : 0, // VAT SẢN PHẨM
+                'itemVatAmnt'     => isset($i['itemVatAmnt']) ? (int)$i['itemVatAmnt'] : 0, // TIỀN VAT
                 'itemAmountNoVat' => isset($i['itemAmountNoVat']) ? $i['itemAmountNoVat'] : 0, // THÀNH TIỀN CHƯA VAT
                 // Optional
                 'itemPack'       => isset($i['itemPack']) ? $i['itemPack'] : '',
@@ -127,11 +127,11 @@ class WinInvoice extends InvoiceLogs
             CURLOPT_TIMEOUT         => $this->TIMEOUT,
             CURLOPT_CUSTOMREQUEST   => 'POST',
             CURLOPT_HTTPHEADER      => $this->header(),
-            CURLOPT_POSTFIELDS      => json_encode($post_data),
+            CURLOPT_POSTFIELDS      => json_encode($post_data, JSON_UNESCAPED_UNICODE),
 
         ));
         $json = curl_exec($curl);
-        $this->log(json_encode($post_data) . "   " . $json, 'info', $url);
+        $this->log(json_encode($post_data, JSON_UNESCAPED_UNICODE) . "   " . $json, 'info', $url);
         if (curl_errno($curl)) {
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $error_msg = curl_error($curl);
@@ -224,11 +224,11 @@ class WinInvoice extends InvoiceLogs
             CURLOPT_TIMEOUT         => $this->TIMEOUT,
             CURLOPT_CUSTOMREQUEST   => 'POST',
             CURLOPT_HTTPHEADER      => $this->header(),
-            CURLOPT_POSTFIELDS      => json_encode($post_data),
+            CURLOPT_POSTFIELDS      => json_encode($post_data, JSON_UNESCAPED_UNICODE),
 
         ));
         $json = curl_exec($curl);
-        $this->log(json_encode($post_data) . "   " . $json, 'info', $url);
+        $this->log(json_encode($post_data, JSON_UNESCAPED_UNICODE) . "   " . $json, 'info', $url);
         if (curl_errno($curl)) {
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $error_msg = curl_error($curl);
@@ -414,15 +414,13 @@ class WinInvoice extends InvoiceLogs
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 20,
+            CURLOPT_TIMEOUT => 30,
             CURLOPT_CUSTOMREQUEST => 'GET',
         ));
         $json = curl_exec($curl);
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
-
-        if ($httpcode == 200) return $json;
-        return null;
+        return $json;
     }
 
 
@@ -566,7 +564,8 @@ class InvoiceLogs
 
     protected function write_file($text)
     {
-        if (empty($text)) return false;
+        if(empty($text)) return false;
+        if(!is_dir($this->PATH)) mkdir($this->PATH, 0640, true);
 
         $file_name = $this->PATH . $this->FILENAME;
         $myfile = fopen($file_name, "a") or die("Error something !!!");

@@ -75,7 +75,7 @@
 {$multiSelectData}
 {if $hideTable == false}
 	<div class="list-view-rounded-corners list-view-generic__in-themes">
-		<table cellpadding='0' cellspacing='0' border='0' class='list view table-responsive'>
+		<table cellpadding='0' cellspacing='0' border='0' class='list view table-responsive table table-hover'>
 	<thead>
 		{assign var="link_select_id" value="selectLinkTop"}
 		{assign var="link_action_id" value="actionLinkTop"}
@@ -183,7 +183,7 @@
 			{/if}
 			<tr height='20' class='{$_rowColor}S1'>
 				{if $prerow}
-				<td>
+				<td align="center">
 				 {if !$is_admin && $is_admin_for_user && $rowData.IS_ADMIN==1}
 					<input type='checkbox' disabled="disabled" class='listview-checkbox' value='{$rowData.ID}'>
 				 {else}
@@ -296,11 +296,11 @@
 		    </td>
 		</tr>
 		{/foreach}
-    {assign var="link_select_id" value="selectLinkBottom"}
-    {assign var="link_action_id" value="actionLinkBottom"}
-    {assign var="selectLink" value=$selectLinkBottom}
-    {assign var="actionsLink" value=$actionsLinkBottom}
-    {assign var="action_menu_location" value="bottom"}
+		{assign var="link_select_id" value="selectLinkBottom"}
+		{assign var="link_action_id" value="actionLinkBottom"}
+		{assign var="selectLink" value=$selectLinkBottom}
+		{assign var="actionsLink" value=$actionsLinkBottom}
+		{assign var="action_menu_location" value="bottom"}
 	</tbody>
 	<tfoot>
     	{include file='themes/SuiteP/include/ListView/ListViewPaginationBottom.tpl'}

@@ -84,6 +84,7 @@ $viewdefs['Contacts'] = array(
 				array('label' => '10', 'field' => '30'),
 			),
 			'includes' => array(
+				array('file' => 'themes/SuiteP/js/reset.js'),
 				array('file' => 'modules/Contacts/Contact.js'),
 				array('file' => 'modules/Contacts/js/view.detail.js'),
 			),
@@ -186,7 +187,24 @@ $viewdefs['Contacts'] = array(
 					),
 				)
 			),
-
+			'LBL_INFO_POINTS' => array(
+				array(
+					array(
+						'name' => 'line_items',
+						'label' => 'LBL_LINE_ITEMS',
+						'customCode' => '{$INFO_POINTS}',
+					),
+				),
+			),
+			'LBL_INFO_CALLS' => array(
+				array(
+					array(
+						'name' => 'line_items',
+						'label' => 'LBL_LINE_ITEMS',
+						'customCode' => '{$INFO_CALLS}',
+					),
+				),
+			)
 			// 'LBL_PANEL_ADVANCED' => array(
 			// 	array(
 			// 		array(
@@ -195,7 +213,6 @@ $viewdefs['Contacts'] = array(
 			// 			'label' => 'LBL_LEAD_SOURCE',
 			// 		),
 			// 	),
-
 			// 	array(
 			// 		array(
 			// 			'name' => 'report_to_name',

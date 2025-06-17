@@ -1,10 +1,10 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=2.9">
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.0">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
         <div id="content_main" class="content_main">
             <div class="zalochat_component">
-                <div id="zalochat_sidebar" class="chat_sidebar">
+                <div id="zalochat_sidebar" class="zalochat_sidebar">
                     <div class="chat-sidebar__top">
                         <div class="type">
                             <div class="dropdown dropdown-type-list">
@@ -54,12 +54,12 @@
                     </div>
                     <div class="chat-sidebar__bottom">
                         <div class="noti_statistics"></div>
-                        <ul id="list_mess_main" class="list_mess">{$LIST_USER}</ul>
+                        <ul id="list_mess_main" class="list_mess"></ul>
                         <ul id="list_mess_search" class="list_mess"></ul>
                     </div>
                 </div>
 
-                <div id="zalochat_main" class="chat_main">
+                <div id="zalochat_main" class="zalochat_main">
                     <div id="chat_welcome" class="content chat_welcome"></div>
                     <div class="zalochat_content" id="content_chat">
                         <div class="group-feed">
@@ -130,14 +130,14 @@
                             </section>
                             <section class="section-message">
                                 <div class="message__list">
-                                    <div class="section-post">
+                                    <div class="section-post" id="section_chatbox">
                                         <input type="hidden" name="offset_load_more_message" value="0" readonly>
                                         <div id="section-message__details" class="section-message__details"></div>
                                     </div>
                                 </div>
                                 <div class="display-admin-typing">
                                     <div>
-                                        <b id="admin_typing"></b> đang soạn tin
+                                        <b id="admin_typing"></b> <span id="admin_action"></span>
                                         <div class="loader_typing"></div>
                                     </div>
                                 </div>
@@ -152,7 +152,7 @@
                                     </div>
                                     <div class="add-msg-box-func">
                                         <div class="chat_item choose-image">
-                                            <input type="file" name="image_upload" class="hidden"
+                                            <input type="file" name="image_upload" id="input_image_upload" class="hidden"
                                                 accept="image/png, image/jpg, image/gif" />
                                             <button id="upload_image" class="btn-action btn-upload-image">
                                                 <svg width="20" height="21" viewBox="0 0 20 21" fill="none"
@@ -164,7 +164,7 @@
                                             </button>
                                         </div>
                                         <div class="chat_item choose-file">
-                                            <input type="file" name="file_upload" class="hidden"
+                                            <input type="file" name="file_upload" id="input_file_upload" class="hidden"
                                                 accept="application/pdf, application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint, text/plain" />
                                             <button id="upload_file" class="btn-action btn-upload-file">
                                                 <svg width="20px" height="18px" stroke-width="1.5" viewBox="0 0 24 24"
@@ -201,7 +201,7 @@
                                             </i>
                                         </div>
                                         <div class="content_mess_input">
-                                            <textarea name="message_content" class="textarea" maxlength="2000"
+                                            <textarea name="message_content" id="textarea_message_content" class="textarea" maxlength="2000"
                                                 placeholder="Nhập nội dung tin nhắn..."></textarea>
                                             <button id="send_message" class="content_send btn btn-primary"
                                                 action="text">Gửi</button>
@@ -213,7 +213,7 @@
                     </div>
                 </div>
 
-                <div id="zalochat_profile">
+                <div id="zalochat_profile" class="zalochat_profile">
                     <div style="min-width: 100%; display: table;">
                         <div class="zalochat_profile--wrap">
                             <div class="head py-12">
@@ -252,13 +252,9 @@
                                         <dd id="profile_mobile">Chưa công khai</dd>
                                     </dl>
                                 </div>
-                                <button id="btn_request_user_info" class="btn_info btn btn_bg btn-blue2 mt-2">Gửi yêu
-                                    cầu chia sẻ thông tin</button>
+                                <button id="btn_request_user_info" class="btn_info btn btn_bg btn-blue2 mt-2">Gửi yêu cầu chia sẻ thông tin</button>
                                 <button id="btn_update_user_info" class="btn_info btn btn_bg btn-blue2 mt-2"
-                                    data-bs-toggle="modal" data-bs-target="#modal_update_info_user">Cập nhật thông
-                                    tin</button>
-                                <button id="btn_save_contact" class="btn_info btn btn_bg btn-blue2 mt-2">Lưu liên
-                                    hệ</button>
+                                    data-bs-toggle="modal" data-bs-target="#modal_update_info_user">Cập nhật thông tin</button>
                             </div>
                             <div class="line mt-20"></div>
                             <div class="fun_item func-filter mt-20">
@@ -337,6 +333,11 @@
 <input type="hidden" name="image_file" value="{$IMAGE_FILE}" readonly />
 <input type="hidden" name="entrypoint" value="{$ENTRYPOINT}" readonly />
 <input type="hidden" name="websocket_url" value="{$WEBSOCKET_URL}" readonly />
-<input type="hidden" name="offset_list_user" value="{$OFFSET_LIST_USER}" readonly />
+<input type="hidden" name="offset_list_user" value="0" readonly />
+<input type="hidden" name="is_loading_list_user" value="0" readonly />
+<input type="hidden" name="last_timestamp" value="0" readonly />
+<input type="hidden" name="limit_message" value="{$LIMIT_MESSAGE}" readonly />
+<input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
+<input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.0"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=3.2"></script>

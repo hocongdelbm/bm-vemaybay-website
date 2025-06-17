@@ -1328,20 +1328,12 @@ EOHTML;
                 </div>
             ';
 
-            if($current_user->id == '1' || $current_user->id == '168889bb-54c2-59c7-8b3f-649102530d3c'){
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call2.css?ver=3.6">';
-                $js .= '<audio id="audio_jssip" loop="true"></audio>
-                        <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call2.js?ver=3.6"></script>
-                ';
-            } else {
-                $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=3.6">';
-                $js .= '<audio id="audio_jssip" loop="true"></audio>
-                        <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                        <script src="custom/jssip_webrtc/call.js?ver=3.6"></script>
-
-                ';
-            }
+            $js_file = ($current_user->user_name == 'hungnh') ? 'call_test.js' : 'call.js';
+            $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver='.date("YmdHi").'">';
+            $js .= '<audio id="audio_jssip" loop="true"></audio>
+                    <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
+                    <script src="custom/jssip_webrtc/'.$js_file.'?ver='.date("YmdHi").'"></script>
+            ';
         }
         else {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="" disabled />';
@@ -1788,18 +1780,28 @@ EOHTML;
                     if (!empty($this->bean->id) &&
                         (empty($_REQUEST['isDuplicate']) || $_REQUEST['isDuplicate'] === 'false')
                     ) {
-                        $params[] =
-                            "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
-                            $this->bean->get_summary_text() .
-                            "</a>";
+                        // $params[] =
+                        //     "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
+                        //     $this->bean->get_summary_text() .
+                        //     "</a>";
+                        if (isset($this->bean)) {
+                            $params[] =
+                                "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" .
+                                $this->bean->get_summary_text() .
+                                "</a>";
+                        }
                         $params[] = $GLOBALS['app_strings']['LBL_EDIT_BUTTON_LABEL'];
                     } else {
                         $params[] = $GLOBALS['app_strings']['LBL_CREATE_BUTTON_LABEL'];
                     }
                     break;
                 case 'DetailView':
-                    $beanName = $this->bean->get_summary_text();
-                    $params[] = $beanName;
+                    if (isset($this->bean)) {
+                        $beanName = $this->bean->get_summary_text();
+                        $params[] = $beanName;
+                    }
+                    // $beanName = $this->bean->get_summary_text();
+                    // $params[] = $beanName;
                     break;
             }
         }

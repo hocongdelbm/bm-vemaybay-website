@@ -373,7 +373,7 @@
 
 	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3" cellpadding="0" cellspacing="0">
 		<thead>
-			<tr>
+			<tr class="text-nowrap">
 				<!-- <th rowspan="2" style="width: 3%;">STT</th> -->
 				<th rowspan="2" style="width: 10%;">Trang web</th>
 				<th colspan="4" style="width: 12%;">Doanh số</th>
@@ -395,12 +395,12 @@
 				<!-- <th colspan="2" style="width: 8%; background-color: #BBD6B8;">Đã gọi</th> -->
 				<th colspan="2" style="width: 8%; background-color: #E94560; color: #fff">Hủy</th>
 			</tr>
-			<tr>
+			<tr class="text-nowrap">
 				<th colspan="2" style="width: 7%;">Số tiền</th>
 				<th style="width: 3%;">Vé</th>	
 				<th style="width: 3%;">BK OK</th>
 
-				<th style="width: 3%; background-color: #068FFF; color: #fff">Gọi đến</th>
+				<th style="width: 3%; background-color: #068FFF; color: #fff">Gọi đến /<br> Tạo BK</th>
 				<th style="width: 4%; background-color: #068FFF; color: #fff">Gọi nhỡ</th>
 
 				<!-- vé cận -->

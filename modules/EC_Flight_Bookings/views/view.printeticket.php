@@ -186,6 +186,8 @@ class Viewprinteticket extends SugarView {
 				p.type,
 				p.luggage_index_outbound,
 				p.luggage_index_inbound,
+				p.cic,
+				p.passport_number,
 				p.booking_id,
 				(SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings WHERE id = p.booking_id) AS date_entered,
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id=p.booking_id AND i.direction='0' AND i.deleted=0 LIMIT 1) AS aircode_outbound,
@@ -196,6 +198,10 @@ class Viewprinteticket extends SugarView {
 			WHERE p.booking_id = '" . $booking_id . "' AND p.deleted = 0 
 				" . $sql_con . "
 			ORDER BY p.type, p.date_entered ";
+
+		// if($current_user->user_name == 'admin'){
+		// 	pr($sql);
+		// }
 
 		$res = $db->query($sql);
 		$rowCount = $db->countRows($res);
@@ -448,14 +454,10 @@ class Viewprinteticket extends SugarView {
 			ORDER BY i.direction, i.departure_date, i.date_entered
 		";
 
-		// if($current_user->user_name == 'admin'){
-		// 	pr($sql);
-		// }
-
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
 
-			if($row['airline_code'] == 'VN'){
+			if(strtoupper($row['airline_code']) === 'VN'){
 				$row['airline_code'] = 'VNA';
 			}
 

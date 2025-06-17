@@ -7863,13 +7863,6 @@ td.dashlet-title>h3>span {
      }
 }
 
-.list #pagination td .paginationTable .paginationActionButtons,
-.list #pagination td .paginationTable .paginationChangeButtons {
-     /* background-color: #BFCAD3; */
-     background-color: #fff;
-     padding: 5px;
-}
-
 #listViewEndButton_top img,
 #listViewEndButton_bottom img,
 #listViewStartButton_top img,
@@ -8593,10 +8586,6 @@ ul.clickMenu.selectmenu.SugarActionMenu.listViewLinkButton>li.desktopOnly>a.glyp
 
      .paginationChangeButtons {
           max-width: 125px
-     }
-
-     .paginationActionButtons {
-          padding: 30px
      }
 
      #listViewStartButton_top,
@@ -9385,17 +9374,6 @@ p.error {
 .error a:link {
      font-weight: 600;
      text-decoration: underline
-}
-
-.rssItemDate {
-     color: #778591
-}
-
-.date {
-     font-size: 13px;
-     font-weight: bold;
-     padding-right: 10px;
-     border-bottom: 1px solid
 }
 
 .selectActions.clickMenu {
