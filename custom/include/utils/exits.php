@@ -12,11 +12,19 @@ function isExitsPhoneNumber($module_table, $phoneNumber)
 {
     global $db;
 
-    $phoneNumber = $db->quote($phoneNumber);
+    if (empty($phoneNumber)) {
+        return false;
+    }
 
-    $sql = "SELECT id FROM " . strtolower($module_table) . "
-               WHERE phone_mobile = '{$phoneNumber}' 
-               AND deleted = 0";
+    $column = strlen($phoneNumber) > 15 ? 'zalo_id' : 'phone_mobile';
+    $phoneNumber = $db->quote($phoneNumber);
+    $table = strtolower($module_table);
+
+    $sql = "SELECT id FROM {$table}
+            WHERE {$column} = '{$phoneNumber}' 
+            AND deleted = 0
+            LIMIT 1";
+
     $result = $db->query($sql);
     $row = $db->fetchByAssoc($result);
     return $row ? true : false;
