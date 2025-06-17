@@ -4,6 +4,7 @@ const dia_chi_vp_1 = "252/12 Nguyễn Thượng Hiền, Phường 1, Q. Gò Vấ
 $(document).ready(function () {
     $("#send-zalo").click(function () {
         showDialog("dialog-send-zalo");
+        $("#dialog-send-zalo").draggable();
         return;
     });
 
@@ -430,7 +431,11 @@ $(document).ready(function () {
                         <div class="row">
                             <div class="col-3">Hành trình</div>
                             <div class="col-9">
-                                <input type="text" name="zalo_field_journey_old" id="zalo_field_journey_old" class="zalo_field" value="" maxlength="100" placeholder="VJ123 HAN-SGN lúc 15:00 08/07/2024" />
+                                <div class="input-group">
+                                    <input type="text" name="zalo_field_journey_old" id="zalo_field_journey_old" class="zalo_field form-control" value="" maxlength="100" placeholder="VJ123 HAN đi SGN lúc 15:00 08-07-2024" />
+                                    <button type="button" class="btn btn-secondary fw-normal" onclick="get_info_itinerary(0)" style="font">Đi</button>
+                                    <button type="button" class="btn btn-secondary fw-normal" onclick="get_info_itinerary(1)" style="font">Về</button>
+                                </div>
                             </div>
                         </div>
                     </li>
@@ -490,25 +495,25 @@ $(document).ready(function () {
                 <p style="font-weight:400">Vui lòng theo dõi bảng điện tử và lưu ý cổng ra máy bay.<br />Quý khách nhấn nút quan tâm để cập nhật thông tin hành trình mới nhất.</p>
             `;
         }
-        else if (this.value == 'promotion') {
-            $('#phone_zalo').attr('readonly', true);
+        // else if (this.value == 'promotion') {
+        //     $('#phone_zalo').attr('readonly', true);
 
-            html = `
-                <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
-                <div class="d-flex align-items-center gap-2">
-                    <select name="template_choose" id="template_choose">
-                        <option value="">Chọn mẫu</option>
-                        <option value="voucher_83">Voucher khuyến mãi 8/3</option>
-                        <option value="voucher_30">Voucher bạn mới</option>
-                        <option value="voucher_50">Voucher thành viên</option>
-                        <option value="voucher_100">Voucher năm mới</option>
-                        <option value="voucher_300">Voucher tháng 3</option>
-                    </select>
-                    <!-- <p id="template_desc"></p> -->
-                </div>
-                <div id="template_promotion"></div>
-            `;
-        }
+        //     html = `
+        //         <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
+        //         <div class="d-flex align-items-center gap-2">
+        //             <select name="template_choose" id="template_choose">
+        //                 <option value="">Chọn mẫu</option>
+        //                 <option value="voucher_83">Voucher khuyến mãi 8/3</option>
+        //                 <option value="voucher_30">Voucher bạn mới</option>
+        //                 <option value="voucher_50">Voucher thành viên</option>
+        //                 <option value="voucher_100">Voucher năm mới</option>
+        //                 <option value="voucher_300">Voucher tháng 3</option>
+        //             </select>
+        //             <!-- <p id="template_desc"></p> -->
+        //         </div>
+        //         <div id="template_promotion"></div>
+        //     `;
+        // }
 
         $('#zalo-message').html(html);
     });
@@ -799,8 +804,7 @@ function closeDialogZaloZNS() {
     $('#zalo-message').html('');
     $('input[name="zalo_type"]').prop('checked', false);
 
-    dialog = document.getElementById("dialog-send-zalo");
-    dialog.close();
+    document.getElementById("dialog-send-zalo").close();
 }
 
 function templatePromotion(index_template){
@@ -869,7 +873,6 @@ function templatePromotion(index_template){
                             <option value="url_tcb" type-button="oa.open.url">Đặt vé ngay (timchuyenbay.com)</option>
                             <option value="show_consultant" type-button="oa.query.show">Cần tư vấn</option>
                             <option value="phone_callnow" type-button="oa.open.phone">Hotline</option>
-                            <!-- <option value="oa.query.hide">Ẩn</option> -->
                         </select>
                         <input type="hidden" id="button__count" value="0" />
                         <input type="hidden" id="button__current" value="0" />
@@ -880,4 +883,47 @@ function templatePromotion(index_template){
         `;
 
     return html;
+}
+
+function get_info_itinerary(dir = 0) {
+    const rows = document.querySelectorAll("#itinerary_tbl tbody tr");
+    const directionsMap = {};
+
+    rows.forEach(row => {
+        const directionCell = row.querySelector('td[data-direction]');
+        if (!directionCell) return;
+
+        const direction = parseInt(directionCell.getAttribute("data-direction"));
+        if (!directionsMap[direction]) directionsMap[direction] = [];
+
+        const rowData = {};
+        row.querySelectorAll("td").forEach(td => {
+            const label = td.getAttribute("data-label");
+            const value = td.textContent.trim();
+            if (label) rowData[label] = value;
+        });
+
+        directionsMap[direction].push(rowData);
+    });
+
+    const result = [];
+    for (const direction in directionsMap) {
+        const group = directionsMap[direction];
+        const soHieu = (group[0]["Số hiệu"] || "").replace(/\s+/g, '');
+        const noiDi = group[0]["Nơi đi"] || "";
+        const noiDen = group[group.length - 1]["Nơi đến"] || "";
+        const ngayGioDiRaw = group[0]["Ngày giờ đi"] || "";
+        
+        // Change format ngayGioDi;
+        let ngayGioDi = ngayGioDiRaw;
+        if (ngayGioDiRaw.includes(" ")) {
+            const [date, time] = ngayGioDiRaw.split(" ");
+            ngayGioDi = `${time} ${date}`;
+        }
+
+        result[direction] = `${soHieu} ${noiDi} đi ${noiDen} lúc ${ngayGioDi}`;
+    }
+
+    $('#zalo_field_journey_old').val(result[dir] || "");
+    return result[dir] || "";
 }
