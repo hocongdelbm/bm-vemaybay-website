@@ -127,17 +127,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             else echo json_encode(['error' => 1, 'message' => "Nothing to do"]);
         }
         else {
-            $contact->id = '';
-            $contact->phone_mobile              = $phone;
-            $contact->zalo_id                   = $zalo_id;
-            $contact->last_name                 = $name;
-            $contact->primary_address_city      = $city;
-            $contact->primary_address_state     = $district;
-            $contact->primary_address_street    = $street;
-            $contact->description               = "Liên hệ tạo từ Zalo OA";
-            $contact->save();
+            // $contact->id = '';
+            // $contact->phone_mobile              = $phone;
+            // $contact->zalo_id                   = $zalo_id;
+            // $contact->last_name                 = $name;
+            // $contact->primary_address_city      = $city;
+            // $contact->primary_address_state     = $district;
+            // $contact->primary_address_street    = $street;
+            // $contact->description               = "Liên hệ tạo từ Zalo OA";
+            // $contact->save();
 
-            echo json_encode(['error' => 0, 'message' => "New contact created successfully"]);
+            echo json_encode(['error' => 1, 'message' => "Stop create contact here"]);
         }
 
         exit();
