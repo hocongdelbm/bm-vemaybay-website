@@ -281,6 +281,68 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 header("HTTP/1.1 200 OK");
                 exit();
             }
+            else if($event == 'follow') {
+                try {
+                    $zalo_user_id = $data['follower']['id'] ?? '';
+                    $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
+
+                    if(!empty($zalo_user_id)) {
+                        $ZaloObj = new Zalo();
+
+                        // Get contact by zalo id
+                        $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_user_id' AND deleted = 0 LIMIT 1");
+                        if(is_string($contact_id) && strlen($contact_id) == 36) {
+                            $sql = "UPDATE contacts
+                                SET zalo_id_follower = 1,
+                                    zalo_last_interaction = '$zalo_last_interaction'
+                                WHERE id = '$contact_id' AND deleted = 0";
+                            $db->query($sql);
+                        }
+                    }
+
+                    header("HTTP/1.1 200 OK");
+                    exit();
+                }
+                catch (Throwable $th) {
+                    echo json_encode([
+                        "error"     => 1,
+                        "message"   => "Error: " . $th->getMessage(),
+                        "data"      => $data
+                    ]);
+                    exit();
+                }
+            }
+            else if($event == 'unfollow') {
+                try {
+                    $zalo_user_id = $data['follower']['id'] ?? '';
+                    $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
+
+                    if(!empty($zalo_user_id)) {
+                        $ZaloObj = new Zalo();
+
+                        // Get contact by zalo id
+                        $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_user_id' AND deleted = 0 LIMIT 1");
+                        if(is_string($contact_id) && strlen($contact_id) == 36) {
+                            $sql = "UPDATE contacts
+                                SET zalo_id_follower = 0,
+                                    zalo_last_interaction = '$zalo_last_interaction'
+                                WHERE id = '$contact_id' AND deleted = 0";
+                            $db->query($sql);
+                        }
+                    }
+
+                    header("HTTP/1.1 200 OK");
+                    exit();
+                }
+                catch (Throwable $th) {
+                    echo json_encode([
+                        "error"     => 1,
+                        "message"   => "Error: " . $th->getMessage(),
+                        "data"      => $data
+                    ]);
+                    exit();
+                }
+            }
             else {
                 echo json_encode(["error" => 0, "message" => "Nothing"]);
                 exit();

@@ -176,7 +176,7 @@ $(document).ready(function () {
             $('#user_tag_display').attr('data', '');
             $('#user_tag_display').attr('data', '');
             $('#user_tag_display .title').text('Nhãn');
-            
+
             $.ajax({
                 url: URL,
                 type: "POST",
@@ -184,7 +184,8 @@ $(document).ready(function () {
                     action: "get_messages",
                     oa_id: OA_ID,
                     zalo_id: zalo_id,
-                    is_get_user_info: is_get_user_info
+                    is_get_user_info: is_get_user_info,
+                    user_info: user_info
                 },
                 beforeSend: function() {
                     $('.container-waiting').show();
@@ -1399,7 +1400,7 @@ function create_chat_row(obj, ctype = 'load') {
         content = `<div class="card-container content-zns">
             <div class="header-zns">Tin nhắn ZNS</div>
             <div class="body-zns">
-                <h6 class="title-zns">Xác nhận hành trình</h6>
+                <h6 class="title-zns">${message}</h6>
                 <div class="data-zns">${zns_items}</div>
             </div>
         </div>`;

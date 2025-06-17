@@ -26,12 +26,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $result = [];
 
         // User info
-        $zalo_phone = '';
         if($is_get_user_info == 1) {
             $user_data = $bean_zalo->get_zalo_user_info($zalo_id);
             $result['user_info']['data'] = $user_data;
             $result['user_info']['error'] = !empty($user_data) ? 0 : 1;
         }
+        else $user_data = json_decode(urldecode(base64_decode(trim($_POST['user_info'] ?? ''))), true);
 
         // Message info
         $zalo_phone = $user_data['shared_info']['phone'] ?? '';
