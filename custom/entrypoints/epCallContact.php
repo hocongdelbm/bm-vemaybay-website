@@ -302,11 +302,11 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $save = false;
             $con->retrieve($contact_id);
 
-            if (empty($con->phone_mobile)) {
+            if (empty($con->phone_mobile) && !empty($phone) && !isExitsPhoneNumber('contacts', $phone)) {
                 $con->phone_mobile = $phone;
                 $save = true;
             }
-            if (empty($con->zalo_id)) {
+            if (empty($con->zalo_id) && !empty($zalo_id)) {
                 $con->zalo_id = $zalo_id;
                 $save = true;
             }
@@ -318,12 +318,14 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $con->email1 = $email;
                 $save = true;
             }
+
             if ($save === true){
                 $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: " . $call_id;
+                
                 $con->save();
             } 
         } else {
-            if(!empty($call_id)){
+            if(!empty($call_id) & !isExitsPhoneNumber('contacts', $phone)){
                 $con->phone_mobile = $phone;
                 $con->zalo_id = $zalo_id;
                 $con->last_name = $name;

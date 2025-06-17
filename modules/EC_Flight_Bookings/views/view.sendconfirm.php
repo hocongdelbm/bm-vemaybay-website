@@ -64,24 +64,19 @@ class Viewsendconfirm extends SugarView {
 		// $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // Security travelpass
 		$department_info 	= myGetDepartmentInfo("f15f801d-a9bc-cc92-4152-655f5e89867f"); // Security MHV
 		$com_address 		= $department_info['com_address'];
-
-		// if(!is_null($department_info['com_address2']) && !empty($department_info['com_address2'])){
-		// 	$com_address .= ' hoặc '.$department_info['com_address2'];
-		// }
-
 		$contact_name 		= ucwords(myRemoveUnicodeChars($this->bean->contact_name));
 		$booking_status 	= $app_list_strings['booking_status_list'][$this->bean->booking_status];
-		$trip_type 		= $app_list_strings['bk_flight_type_list'][$this->bean->flight_type];
+		$trip_type 			= $app_list_strings['bk_flight_type_list'][$this->bean->flight_type];
 		$payment_type 		= $app_list_strings['booking_payment_type_list'][$this->bean->payment_type];
-		$pax_infos 		= $this->getPaxInfos($this->bean->id, $this->bean->flight_type);
+		$pax_infos 			= $this->getPaxInfos($this->bean->id, $this->bean->flight_type);
 		$route_infos 		= $this->getRouteInfos($this->bean->id);
 		$bank_infos 		= $this->getBankInfos($created_by->department_id);	
-		$time_limit		= $this->getTripType($route_infos['time_limit']);
+		$time_limit			= $this->getTripType($route_infos['time_limit']);
 
-		$form_mail 		= isset($_POST['form_mail']) && !empty($_POST['form_mail']) ? $_POST['form_mail'] : 'sendmail_confirm.html';
+		$form_mail 			= isset($_POST['form_mail']) && !empty($_POST['form_mail']) ? $_POST['form_mail'] : 'sendmail_confirm.html';
 		$form_header 		= file_get_contents('modules/EC_Flight_Bookings/tpls/sendmail_header.html');
 		$form_footer 		= file_get_contents('modules/EC_Flight_Bookings/tpls/sendmail_footer.html');
-		$form_body 		= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail).$form_footer;
+		$form_body 			= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail).$form_footer;
 
 		// EMAIL SUBJECT
 		$subject = 'Xác nhận đơn hàng '.$this->bean->name.' - '.$contact_name;
@@ -101,19 +96,16 @@ class Viewsendconfirm extends SugarView {
 		);
 
 		// Ngân lượng (Thanh toán online)
-		$nganluong_code = $this->bean->nganluong_code;
 		$nganluong_datepaid =  date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
-
 		$name_site = array(
 			'TCB' => 'timchuyenbay.com',
 			'GV2' => 'vietjet.net',
 			'VJ2' => 'vietjet.net',
 		);
-		$name_website 	= substr($this->bean->name, 0, 3);
-		if(isset($nganluong_code) && !empty($nganluong_code)){
-			$payment_link 	= 'https://'.$name_site[$name_website].'/thanh-toan-online?paymentlink='.$nganluong_code.'&datepaid='.$nganluong_datepaid.'';
-		} else {
-			$payment_link = '#';
+		$name_website = strtoupper(substr((string) $this->bean->name, 0, 3));
+		$payment_link = '#';
+		if (array_key_exists($name_website, $name_site)) {
+			$payment_link = 'https://' . $name_site[$name_website] . '/thanh-toan-online?bkid=' . $this->bean->id . '&datepaid=' . $nganluong_datepaid;
 		}
 
 		$body = str_replace(
@@ -788,10 +780,13 @@ class Viewsendconfirm extends SugarView {
 															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px">
 																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
-																		HD Bank - Số TK : <strong>081704070006171</strong>
+																		<strong>CÔNG TY TNHH MINH HỒNG VÕ</strong>
 																	</p>
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
-																	Chủ TK: <strong>Công ty TNHH Minh Hồng Võ</strong>
+																		Ngân hàng TMCP Quân Đội – PGD Bến Thành – CN Sài Gòn
+																	</p>
+																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; margin-top: 5px;">
+																		Số TK: <strong>0000920990898</strong>
 																	</p>
 																</div>
 															</td>
