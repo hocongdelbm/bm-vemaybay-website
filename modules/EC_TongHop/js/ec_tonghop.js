@@ -1,5 +1,9 @@
 $(document).ready(function(){
     sendRequest();
+    createChart("access_year", "bar");
+    createChart("access_month", "bar");
+    createChart("access_platform", "doughnut");
+    createChart("access_os", "doughnut");
     $(".search_button.btn.btn-primary").on("click", function(){
         sendRequest();
         $(".overlay-mobile").css("display", "none");
@@ -26,7 +30,7 @@ $(document).ready(function(){
                     $('.online_user_waiting').show();
                 },
                 success: function(response){
-                    $('.online_user_waiting').hide();
+                    // $('.online_user_waiting').hide();
                     try {
                         if(typeof response === "string"){
                             response = JSON.parse(response);
@@ -39,9 +43,12 @@ $(document).ready(function(){
                         // $(".online_user_value").text(" " + response.data.online_visitor);
                         $(".online_data").html(`
                             <div class="mini_title_wrap col-lg-12">
-                                <span class="domain">${domain_name}</span>
-                                <span class="online_user">Khách online</span>
-                                <span class="online_user_value">${response.data.online_visitor}</span>
+                                <h1 class="domain title">${domain_name}</h1>
+                                <span class="online_user">Khách online:
+                                    <span class="online_user_value">
+                                        ${response.data.online_visitor}
+                                    </span>
+                                </span>
                             </div>   
                         `);
                         removeOverFlow();
@@ -77,5 +84,48 @@ $(document).ready(function(){
                 $(".online_data").css("overflow", "unset");
                 $(".online_data").css("justify-content", "center");
             }
+    }
+
+    function createChart(id, type_chart, data){
+        let chart_id = document.getElementById(id);
+        var ctx = chart_id.getContext("2d");
+        var myChart = new Chart(ctx, {
+            type: type_chart,
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                datasets: [
+                    {
+                        label: "Người",
+                        data:[1000, 920, 880, 898, 1200, 1000, 900, 800, 700, 600, 500, 1500],
+                        backgroundColor: 'rgba(54, 162, 235, 1)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        fill: true
+                    },
+                    {
+                        label: "Bot",
+                        data:[400, 490, 300, 420, 80, 333, 120, 60, 40, 200, 120, 600],
+                        backgroundColor: 'rgba(255, 0, 55, 0.2)',
+                        borderColor: 'rgba(255, 0, 55, 1)',
+                        borderWidth: 2,
+                        fill: true
+                    }
+                ]
+             },
+             options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+             }
+        });
     }
 });

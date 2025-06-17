@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=1.0.5">
+<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=1.0.3">
 <div class="container-waiting">
     <div id="waiting-loading">
         <div class="spinner"></div>
@@ -92,67 +92,341 @@
 					</div>
 				 </div>
 			</div>
+			<div class="d-flex align-items-center">
+				<input type="radio" value="yesterday" id="yesterday" class="rd_time form-check-input" name="optionRadio" fromdate="{$YESTERDAY_FROMDATE}" todate="{$YESTERDAY_TODATE}">
+				<label class="cursor-pointer" for="yesterday">Hôm qua</label> 
+
+				<input type="radio" value="daybefore" id="daybefore" class="rd_time form-check-input" name="optionRadio" fromdate="{$DAYBEFORE_FROMDATE}" todate="{$DAYBEFORE_TODATE}">
+				<label class="cursor-pointer" for="daybefore">Hôm trước</label> 
+
+				<input type="radio" value="current_week" id="current_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$CURRENT_WEEK_FROMDATE}" todate="{$CURRENT_WEEK_TODATE}">
+				<label class="cursor-pointer" for="current_week">Tuần này</label>
+
+				<input type="radio" value="previous_week" id="previous_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$PREVIOUS_WEEK_FROMDATE}" todate="{$PREVIOUS_WEEK_TODATE}"> 
+				<label class="cursor-pointer" for="previous_week">Tuần trước</label> 
+			</div>
             </div>
 			<div class="button-action--wrap">
 			{* <input type="button" id="btnView" name="btnView" class="btn btn-primary button-action" value="Xem" title="Xem" /> *}
 				<button class="search_button btn btn-primary" type="button">Xem</button>
+				<button class="reset_button btn btn-warning" type="button">Reset</button>
 				<input type="button" id="btnSearch_cancel" value="Hủy bỏ" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" title="Hủy bỏ"/>
 			</div>
 		</form>
     </div>
 </div>
 <div class="box-section">
-	<div class="online_data col-12">
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">timchuyenbay.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+	<div class="online_data row">
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vietjet.net</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vietjett.net</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">timchuyenbay.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">timchuyenbay.vn</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">timchuyenbay.vn</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vemaybay.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybay.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vemaybaygiare.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vemaybaygiare.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vemaybaygiare.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vemaybaygiare.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vemaybaygiare.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>
+			
 		</div>
-		<div class = "mini_title_wrap col-lg-3">
-			<span class="domain">vemaybaygiare.com</span>
-			<span class="online_user">Khách online</span>
-			<span class="online_user_value"><div class="spinner online_user_waiting"></div></span>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>	
+		</div>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>	
+		</div>
+		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+			<h1 class="domain title">vemaybaygiare.com</h1>
+			<span class="online_user">Khách online:
+				<span class="online_user_value">
+					<div class="spinner online_user_waiting"></div>
+				</span>
+			</span>	
 		</div>
 	</div>
 </div>
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.5"></script>
+<div class="box-section">
+	<h1 class="title table">Tổng Quát</h1>
+	<table class="table summary table-striped table-borderless table-sm two-column-table mb-0">
+		<thead>
+			<tr>
+				<th>Người dùng mới</th>
+				<th>Người dùng cũ</th>
+				<th>Bot</th>
+				<th>Page view</th>
+				<th>Truy cập</th>
+				<th>tương tác</th>
+				<th>Loại thiết bị</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+			<tr>
+				<td>30</td>
+				<td>87</td>
+				<td>12</td>
+				<td>http://vietjet.net</td>
+				<td>http://vietjet.net</td>
+				<td>80%</td>
+				<td>Mobile</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div class="box-section">
+	<h1 class="title detail">Số liệu thống kê</h1>
+	<div class="entrance_content">					
+		<div class="total_entrance">
+			<h1 class="entrance_heading title">Số lượng truy cập</h1>
+			<div class="total_entrance_detail row">
+				<div class="access_wrap col-lg-6 col-sm-12">			
+					<div class="user_access">
+						<svg width="50" height="50" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M8 7C9.65685 7 11 5.65685 11 4C11 2.34315 9.65685 1 8 1C6.34315 1 5 2.34315 5 4C5 5.65685 6.34315 7 8 7Z" fill="#000000"/>
+							<path d="M14 12C14 10.3431 12.6569 9 11 9H5C3.34315 9 2 10.3431 2 12V15H14V12Z" fill="#000000"/>
+						</svg>
+					</div>
+					<span class="access_title user">LƯỢNG NGƯỜI THỰC TRUY CẬP: <span class="access_value user">50000</span></span>
+					<span class="access_title user">TRUY CẬP NHIỀU NHẤT: <span class="access_value user">https://timchuyenbay.com</span></span>
+					<span class="access_title user">TÌNH TRẠNG TRUY CẬP: <span class="access_value user">TỐT</span></span>
+					<span class="access_title user">THIẾT BỊ TRUY CẬP NHIỀU NHẤT: <span class="access_value user">DI ĐỘNG</span></span>
+
+				</div>
+				<div class="access_wrap col-lg-6 col-sm-12">
+					<div class="bot_access">
+						<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"viewBox="0 0 24 24"fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<rect x="3" y="11" width="18" height="10" rx="2" />
+							<circle cx="12" cy="5" r="2" />
+							<path d="M12 7v4" />
+							<line x1="8" y1="16" x2="8" y2="16" />
+							<line x1="16" y1="16" x2="16" y2="16" />
+						</svg>			
+					</div>
+					<span class="access_title bot">LƯỢNG BOT TRUY CẬP: <span class="access_value bot">1857491222</span></span>
+					<span class="access_title bot">TRUY CẬP NHIỀU NHẤT: <span class="access_value bot">https://timchuyenbay.com</span></span>
+					<span class="access_title bot">TÌNH TRẠNG TRUY CẬP: <span class="access_value bot">TRUNG BÌNH</span></span>
+					<span class="access_title bot">THIẾT BỊ TRUY CẬP NHIỀU NHẤT: <span class="access_value bot">DESKTOP</span></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="chart_content">
+		<div class="total_chart">
+			<h1 class="chart_heading title">Biểu đồ thống kê</h1>
+			<div class="total_chart_detail">
+				<div class="access_chart wrap">
+					<div class="access_chart_by_year">
+						<div class="chart_title_wrap">
+							<h1 class="title" id="chartTitle">Biểu đồ lượt truy cập trong năm 2024</h1>
+						</div>	
+						<canvas id="access_year"></canvas>
+					</div>
+					<div class="access_chart_by_month">
+					<h1 class="title" id="chartTitle">Biểu đồ lượt truy cập trong tháng 1-2025</h1>
+						<canvas id="access_month"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="chart_content">
+		<div class="total_chart">
+			<h1 class="chart_heading title">Chi tiết truy cập</h1>
+			<div class="total_chart_detail">
+				<div class="access_chart wrap">
+					<div class="access_chart_by_year">
+						<div class="chart_title_wrap">
+							<h1 class="title" id="chartTitle">Platform</h1>
+						</div>	
+						<canvas id="access_platform"></canvas>
+					</div>
+					<div class="access_chart_by_month">
+						<h1 class="title" id="chartTitle">Operating System</h1>
+					</div>
+					<canvas id="access_os"></canvas>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="chart_content">
+		<div class="total_chart">
+			<h1 class="chart_heading title">Chi tiết bot</h1>
+			<div class="total_chart_detail">
+				<div class="access_chart wrap">
+					<div class="access_chart_by_year">
+						<div class="chart_title_wrap">
+							<h1 class="title" id="chartTitle">loại bot</h1>
+						</div>	
+						<canvas id="access_bot_type"></canvas>
+					</div>
+					<div class="access_chart_by_month">
+					<h1 class="title" id="chartTitle">số lượng request</h1>
+						<canvas id="access_bot_request"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="chart_content">
+		<div class="total_chart">
+			<h1 class="chart_heading title">Chi tiết thiết bị</h1>
+			<div class="total_chart_detail">
+				<div class="access_chart wrap">
+					<div class="access_chart_by_year">
+						<div class="chart_title_wrap">
+							<h1 class="title" id="chartTitle">Phân giải</h1>
+						</div>	
+						<canvas id="access_resolution"></canvas>
+					</div>
+					<div class="access_chart_by_month">
+					<h1 class="title" id="chartTitle">Loại thiết bị</h1>
+						<canvas id="access_device"></canvas>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.8"></script>

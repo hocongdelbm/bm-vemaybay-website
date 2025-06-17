@@ -33,6 +33,16 @@ class CounterUserOnline {
             return $return_data;
      }
     public function fetchDataFromURL(){
+        $protocol = "";
+        $host = $_SERVER["HTTP_HOST"];
+        $URI = $_SERVER["REQUEST_URI"];
+        if(!empty($_SERVER["HTTP"])&& $_SERVER["HTTPS"] !== 'off' || $_SERVER["SERVER_PORT"] == 443){
+            $protocol = "https://";
+        }else{
+            $protocol = "http://";
+        }
+        $called_url = $protocol.$host.$URI;
+        $access_url = $_SERVER["HTTP_REFERER"];
         if($_SERVER['REQUEST_METHOD'] !== 'POST'){
             return $this -> response(
                 $error = 1,

@@ -46,16 +46,25 @@
     flex-direction: column;
     /* width: 100%; */
     text-align: center;
+    border-right: solid 1px var(--text-primary-color);
+    margin-bottom: 1.5rem;
 }
 
+/* .mini_title_wrap:last-child{
+    border-right: none;
+} */
+
 .online_user{
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: large;
     white-space: nowrap;
 }
 
 .online_user_value{
-    font-size:xx-large;
-    display: flex;
+    /* font-size:xx-large;
+    display: flex; */
     justify-content: center;
     text-align: center;
 }
@@ -71,11 +80,86 @@
 .online_data{
     display: flex;
     margin-top: 1rem;
-    overflow-x: scroll;
+    /* overflow-x: scroll; */
     overflow-y: auto;
 }
 
+/* summary_detail */
+.entrance_content{
+    border-bottom: 1px solid var(--border-color);
+    margin: 1rem 0;
+}
+.entrance_heading.title, .title.detail{
+    text-align: center;
+}
+.access_wrap{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.total_entrance_detail{
+    margin-bottom: 1rem;
+}
+
+.access_wrap .user_access, .access_wrap .bot_access{
+    width: fit-content;
+    padding: 1rem;
+    border-radius: 50%;
+    border: 4px solid var(--border-color);
+}
+
+.access_wrap:first-child{
+    border-right: 1px solid var(--border-color);
+}
+
+.access_wrap .access_title, .access_value{
+    font-size: larger;
+    font-weight: bolder;
+}
+
+.access_wrap .access_title.bot, .access_value.bot{
+    color: red;
+}
+
+.access_wrap .access_title.user, .access_value.user{
+    color: darkgreen;
+}
+
+.total_chart{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.total_chart .access_chart.wrap, .total_chart .access_chart.wrap .access_chart_by_year, .total_chart .access_chart.wrap .access_chart_by_month{
+    display: flex;
+}
+
+.total_chart .access_chart.wrap .access_chart_by_year, .total_chart .access_chart.wrap .access_chart_by_month{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.chart_title_wrap{
+    text-align: center;
+}
+canvas {
+    width: 500px !important; 
+    height: 300px !important;
+    margin: auto;
+}
+
+.table.summary thead th, td{
+    text-align: center;
+}
+
 @media (max-width: 768px) {
+    .normal_search{
+        flex-direction: column;
+    }
     .normal_search_form{
         min-height: 35vh !important;
         gap: 1.5rem !important;
@@ -101,6 +185,25 @@
     }
 
     .mini_title_wrap{
-        padding: 0.5rem;
+        padding: 0 1.5rem;
     }
+
+    .box-section.overflow-auto.position-relative.mt-0{
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* summary_detail */
+    .access_wrap:first-child{
+        border-right: unset;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+
+    canvas {
+        width: 325px !important; 
+        height: 150px !important;
+        margin: auto;
+    }
+
 }
