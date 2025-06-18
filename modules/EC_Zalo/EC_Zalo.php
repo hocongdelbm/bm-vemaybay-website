@@ -83,7 +83,7 @@ class EC_Zalo extends Basic {
 
         $res = $this->db->query($sql);
         $row_info = $this->db->fetchByAssoc($res);
-        $refresh_time = 86400*7; // Week
+        $refresh_time = 86400*2; // 2 days
         if(!empty($row_info) && time() - strtotime($row_info['date_modified']) < $refresh_time) {
             $zalo_name   = $row_info['zalo_name'] ?? '';
             $zalo_avatar = $row_info['zalo_avatar'] ?? '';
