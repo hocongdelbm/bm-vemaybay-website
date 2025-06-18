@@ -56,21 +56,17 @@ $viewdefs['Contacts'] = array(
 						'label' => 'LBL_ZALO_ID',
 					),
 					array(
-						'name' => 'telegram_id',
-						'label' => 'LBL_TELEGRAM_ID',
-					),
-				),
-
-				array(
-					array(
 						'name' => 'birthdate',
 						'label' => 'LBL_BIRTHDATE',
 					),
-					array(
-						// 'name' => 'assigned_user_name',
-						// 'label' => 'LBL_ASSIGNED_TO_NAME',
-					),
 				),
+
+				// array(
+				// 	array(
+				// 		'name' => 'assigned_user_name',
+				// 		'label' => 'LBL_ASSIGNED_TO_NAME',
+				// 	),
+				// ),
 
 				array(
 					array(

@@ -26,7 +26,7 @@ $dictionary['Contact'] = array(
             'vname' => 'LBL_LEAD_SOURCE',
             'type' => 'enum',
             'options' => 'lead_source_dom',
-            'len' => '255',
+            'len' => '50',
             'comment' => 'How did the contact come about',
         ),
 
@@ -664,17 +664,6 @@ $dictionary['Contact'] = array(
             'len'        => 128,
             'default'    => '',
             'importable' => true,
-            'audited'    => true,
-        ),
-
-        'telegram_id' => array(
-            'name'       => 'telegram_id',
-            'vname'      => 'LBL_TELEGRAM_ID',
-            'type'       => 'varchar',
-            'len'        => 30,
-            'default'    => '',
-            'importable' => true,
-            'reportable' => false,
             'audited'    => true,
         ),
 

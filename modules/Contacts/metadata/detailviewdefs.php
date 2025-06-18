@@ -134,8 +134,8 @@ $viewdefs['Contacts'] = array(
 						'label' => 'LBL_ZALO_ID',
 					),
 					array(
-						'name' => 'telegram_id',
-						'label' => 'LBL_TELEGRAM_ID',
+						'name' => 'points',
+						'label' => 'LBL_POINTS',
 					),
 				),
 				array(
@@ -155,13 +155,6 @@ $viewdefs['Contacts'] = array(
 							'key' => 'alt',
 						),
 					),
-				),
-				array(
-					array(
-						'name' => 'points',
-						'label' => 'LBL_POINTS',
-					),
-					array(),
 				),
 				array(
 					array(
