@@ -11,7 +11,7 @@ function createContactsForBooking($phoneNumber, $contactName = '')
     global $db, $current_user;
 
     $phoneNumber = trim($phoneNumber);
-    if(!$phoneNumber && empty($phoneNumber)) return false;
+    if(!$phoneNumber || empty($phoneNumber)) return false;
 
     $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$phoneNumber' AND deleted = 0";
     $contact_id = $db->getOne($sql_contact);
