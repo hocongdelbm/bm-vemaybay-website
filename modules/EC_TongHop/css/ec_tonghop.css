@@ -99,9 +99,9 @@
     gap: 0.5rem;
 }
 
-.total_entrance_detail{
+/* .total_entrance_detail{
     margin-bottom: 1rem;
-}
+} */
 
 .access_wrap .user_access, .access_wrap .bot_access{
     width: fit-content;
@@ -207,3 +207,62 @@ canvas {
     }
 
 }
+.online_data.row{
+    overflow-y: hidden;
+    max-height: 400px;
+    transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+.online_data.row.expanded{
+    /* overflow-y: auto; */
+    max-height: 2000px;
+}
+.box-section.traffic{
+    position: relative;
+}
+.extend_btn{
+    display: block;
+}
+
+.extend_btn.hide{
+    display: none;
+}
+
+
+.visitor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+.visitor-table th,
+.visitor-table td {
+    /* border: 1px solid #ddd; */
+    padding: 8px 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.visitor-table thead {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}
+
+.pagination {
+    margin-top: 15px;
+    text-align: center;
+}
+.pagination button {
+    padding: 6px 12px;
+    margin: 0 4px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+.pagination button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+

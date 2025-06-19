@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=1.0.3">
+<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=1.0.9">
 <div class="container-waiting">
     <div id="waiting-loading">
         <div class="spinner"></div>
@@ -115,9 +115,10 @@
 		</form>
     </div>
 </div>
-<div class="box-section">
+<div class="box-section traffic">
 	<div class="online_data row">
-		<div class = "mini_title_wrap col-lg-3 col-sm-12">
+		{* <div class="online_data_content row"></div> *}
+		{* <div class = "mini_title_wrap col-lg-3 col-sm-12">
 			<h1 class="domain title">vietjet.net</h1>
 			<span class="online_user">Khách online:
 				<span class="online_user_value">
@@ -221,10 +222,13 @@
 					<div class="spinner online_user_waiting"></div>
 				</span>
 			</span>	
-		</div>
+		</div> *}
 	</div>
+	<div class="extend_accordion mb-3 d-flex justify-content-center align-items-center" style="position: absolute; bottom: 0; width: 100%; background: rgba(255,255,255,0.8);">
+            <button class="btn btn-primary extend_btn hide" id="extend_accordion">&#x25BC;</button>
+        </div>
 </div>
-<div class="box-section">
+{* <div class="box-section">
 	<h1 class="title table">Tổng Quát</h1>
 	<table class="table summary table-striped table-borderless table-sm two-column-table mb-0">
 		<thead>
@@ -313,14 +317,29 @@
 			</tr>
 		</tbody>
 	</table>
-</div>
+</div> *}
 <div class="box-section">
-	<h1 class="title detail">Số liệu thống kê</h1>
+	<h1 class="title detail">Các truy cập gần nhất</h1>
 	<div class="entrance_content">					
 		<div class="total_entrance">
-			<h1 class="entrance_heading title">Số lượng truy cập</h1>
+			{* <h1 class="entrance_heading title">Số lượng truy cập</h1> *}
 			<div class="total_entrance_detail row">
-				<div class="access_wrap col-lg-6 col-sm-12">			
+				<table id="visitor_table" class="visitor-table">
+				<thead>
+					<tr>
+					<th>Time</th>
+					<th>IP</th>
+					<th>Host</th>
+					<th>Path</th>
+					</tr>
+				</thead>
+				<tbody id="visitor_tbody">
+					<!-- Dữ liệu sẽ được thêm ở đây -->
+				</tbody>
+				</table>
+				<div id="pagination" class="pagination"></div>
+
+				{* <div class="access_wrap col-lg-6 col-sm-12">			
 					<div class="user_access">
 						<svg width="50" height="50" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 							<path d="M8 7C9.65685 7 11 5.65685 11 4C11 2.34315 9.65685 1 8 1C6.34315 1 5 2.34315 5 4C5 5.65685 6.34315 7 8 7Z" fill="#000000"/>
@@ -347,7 +366,7 @@
 					<span class="access_title bot">TRUY CẬP NHIỀU NHẤT: <span class="access_value bot">https://timchuyenbay.com</span></span>
 					<span class="access_title bot">TÌNH TRẠNG TRUY CẬP: <span class="access_value bot">TRUNG BÌNH</span></span>
 					<span class="access_title bot">THIẾT BỊ TRUY CẬP NHIỀU NHẤT: <span class="access_value bot">DESKTOP</span></span>
-				</div>
+				</div> *}
 			</div>
 		</div>
 	</div>
@@ -370,7 +389,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="chart_content">
+	{* <div class="chart_content">
 		<div class="total_chart">
 			<h1 class="chart_heading title">Chi tiết truy cập</h1>
 			<div class="total_chart_detail">
@@ -426,7 +445,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> *}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.8"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.9"></script>
