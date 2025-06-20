@@ -14,8 +14,8 @@ class Viewsummaryview extends SugarView {
     }
     function display(){
         $smarty = new Sugar_Smarty();
-        $from_date_value = date('d-m-Y');
-        $to_date_value = date('d-m-Y');
+        $from_date_value = date('Y-m-d 00:00:00');
+        $to_date_value = date('Y-m-d 23:59:59');
         $new_domain_list = [];
         foreach (Viewsummaryview::$domain_list as $key => $domain) {
             $domain_name = $this->getDomainFromURL($domain);

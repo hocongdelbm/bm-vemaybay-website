@@ -132,4 +132,5 @@ $entry_point_registry = array(
     'entryPointCounterOnline' => array('file' => 'custom/entrypoints/epCounter_Online.php',  'auth'  => false),
     'entryPointGetTraffic'    => array('file' => 'custom/entrypoints/epTraffic_Summary.php', 'auth' => false),
     'entryPointAccessLogs'    => array('file' => 'custom/entrypoints/epAccess_logs.php',     'auth' => false),
+    'entryPointDetailLogs'    => array('file' => 'custom/entrypoints/epDetail_Logs.php',     'auth' => false),
 );

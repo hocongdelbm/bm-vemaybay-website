@@ -1,4 +1,6 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=1.0.9">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=1.0.1">
 <div class="container-waiting">
     <div id="waiting-loading">
         <div class="spinner"></div>
@@ -40,16 +42,34 @@
 					    </button>
 					    {literal}
 						<script type="text/javascript">
-							Calendar.setup ({
-							inputField : "from_date",
-							daFormat : "%d-%m-%Y",
-							button : "fdate_trigger",
-							singleClick : true,
-							dateStr : "",
-							step : 1,
-							position: [230, 202],
-							}
-							);
+							document.addEventListener("DOMContentLoaded", function () {
+							const now = new Date();
+
+							// Tạo thời gian bắt đầu là 00:00:00 hôm nay
+							const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+							// Tạo thời gian kết thúc là 23:59:59 hôm nay
+							const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+							let fromPicker = flatpickr("#from_date", {
+								enableTime: true,
+								time_24hr: true,
+								dateFormat: "d-m-Y H:i:S",
+								defaultDate: startOfDay,
+								maxDate: now,
+								onChange: function (selectedDates) {
+									toPicker.set("minDate", selectedDates[0]);
+								}
+							});
+
+							let toPicker = flatpickr("#to_date", {
+								enableTime: true,
+								time_24hr: true,
+								dateFormat: "d-m-Y H:i:S",
+								defaultDate: endOfDay,
+								maxDate: now,
+							});
+						});
 						</script>
 						{/literal}
 					</div>
@@ -78,39 +98,58 @@
 					    </button>
 					    {literal}
 						<script type="text/javascript">
-							Calendar.setup ({
-							inputField : "to_date",
-							daFormat : "%d-%m-%Y",
-							button : "tdate_trigger",
-							singleClick : true,
-							dateStr : "",
-							step : 2
-							}
-							);
+						document.addEventListener("DOMContentLoaded", function () {
+								const now = new Date();
+
+								// Tạo thời gian bắt đầu là 00:00:00 hôm nay
+								const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+								// Tạo thời gian kết thúc là 23:59:59 hôm nay
+								const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+								let fromPicker = flatpickr("#from_date", {
+									enableTime: true,
+									time_24hr: true,
+									dateFormat: "d-m-Y H:i:S",
+									defaultDate: startOfDay,
+									maxDate: now,
+									onChange: function (selectedDates) {
+										toPicker.set("minDate", selectedDates[0]);
+									}
+								});
+
+								let toPicker = flatpickr("#to_date", {
+									enableTime: true,
+									time_24hr: true,
+									dateFormat: "d-m-Y H:i:S",
+									defaultDate: endOfDay,
+									maxDate: now,
+								});
+							});
 						</script>
 						{/literal}
 					</div>
 				 </div>
-			</div>
-			<div class="d-flex align-items-center">
-				<input type="radio" value="yesterday" id="yesterday" class="rd_time form-check-input" name="optionRadio" fromdate="{$YESTERDAY_FROMDATE}" todate="{$YESTERDAY_TODATE}">
-				<label class="cursor-pointer" for="yesterday">Hôm qua</label> 
-
-				<input type="radio" value="daybefore" id="daybefore" class="rd_time form-check-input" name="optionRadio" fromdate="{$DAYBEFORE_FROMDATE}" todate="{$DAYBEFORE_TODATE}">
-				<label class="cursor-pointer" for="daybefore">Hôm trước</label> 
-
-				<input type="radio" value="current_week" id="current_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$CURRENT_WEEK_FROMDATE}" todate="{$CURRENT_WEEK_TODATE}">
-				<label class="cursor-pointer" for="current_week">Tuần này</label>
-
-				<input type="radio" value="previous_week" id="previous_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$PREVIOUS_WEEK_FROMDATE}" todate="{$PREVIOUS_WEEK_TODATE}"> 
-				<label class="cursor-pointer" for="previous_week">Tuần trước</label> 
-			</div>
+				</div>
+				<div class="d-flex align-items-center">
+					<div class = "select_option">
+						<label>Thời gian:</label>
+						<select class="box-select" name="time_selected" default = "">
+							<option value = ""></option>
+							<option value = "yesterday">Hôm qua</option>
+							<option value = "daybefore">Hôm trước</option>
+							<option value = "current_week">Tuần này</option>
+							<option value = "previous_week">Tuần trước</option>
+							<option value = "current_month">Tháng này</option>
+							<option value = "previous_month">Tháng trước</option>
+						</select>
+					</div>
+				</div>
             </div>
 			<div class="button-action--wrap">
-			{* <input type="button" id="btnView" name="btnView" class="btn btn-primary button-action" value="Xem" title="Xem" /> *}
 				<button class="search_button btn btn-primary" type="button">Xem</button>
 				<button class="reset_button btn btn-warning" type="button">Reset</button>
-				<input type="button" id="btnSearch_cancel" value="Hủy bỏ" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" title="Hủy bỏ"/>
+				{* <input type="button" id="btnSearch_cancel" value="Hủy bỏ" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" title="Hủy bỏ"/> *}
 			</div>
 		</form>
     </div>
@@ -224,8 +263,8 @@
 			</span>	
 		</div> *}
 	</div>
-	<div class="extend_accordion mb-3 d-flex justify-content-center align-items-center" style="position: absolute; bottom: 0; width: 100%; background: rgba(255,255,255,0.8);">
-            <button class="btn btn-primary extend_btn hide" id="extend_accordion">&#x25BC;</button>
+	<div class="extend_accordion mb-3 d-flex justify-content-center align-items-center">
+            <button class="extend_btn hide" id="extend_accordion">&#x25BC;</button>
         </div>
 </div>
 {* <div class="box-section">
@@ -319,7 +358,7 @@
 	</table>
 </div> *}
 <div class="box-section">
-	<h1 class="title detail">Các truy cập gần nhất</h1>
+	<h1 class="title detail mt-3" style="color: unset !important;">Các truy cập gần nhất</h1>
 	<div class="entrance_content">					
 		<div class="total_entrance">
 			{* <h1 class="entrance_heading title">Số lượng truy cập</h1> *}
@@ -327,18 +366,17 @@
 				<table id="visitor_table" class="visitor-table">
 				<thead>
 					<tr>
-					<th>Time</th>
-					<th>IP</th>
-					<th>Host</th>
-					<th>Path</th>
+					<th class="col-lg-3">Time</th>
+					<th class="col-lg-3">IP</th>
+					<th class="col-lg-3">Name</th>
+					<th class="col-lg-3">Path</th>
 					</tr>
 				</thead>
 				<tbody id="visitor_tbody">
 					<!-- Dữ liệu sẽ được thêm ở đây -->
 				</tbody>
 				</table>
-				<div id="pagination" class="pagination"></div>
-
+				{* <div id="pagination" class="pagination"></div> *}
 				{* <div class="access_wrap col-lg-6 col-sm-12">			
 					<div class="user_access">
 						<svg width="50" height="50" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -368,9 +406,30 @@
 					<span class="access_title bot">THIẾT BỊ TRUY CẬP NHIỀU NHẤT: <span class="access_value bot">DESKTOP</span></span>
 				</div> *}
 			</div>
+			<div class="pagination-controls px-2">
+				<div class="page-info">
+					<span id="itemRange"></span>
+					<label>
+					Items per page:
+					<select id="itemsPerPage">
+						<option value="10">10</option>
+						<option value="25">25</option>
+						<option value="50">50</option>
+						<option value="max">Tối đa</option>
+					</select>
+					</label>
+				</div>
+				<div class="page-nav">
+					<button id="firstPage">«</button>
+					<button id="prevPage">‹</button>
+					<span>Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+					<button id="nextPage">›</button>
+					<button id="lastPage">»</button>
+				</div>
+				</div>
 		</div>
 	</div>
-	<div class="chart_content">
+	{* <div class="chart_content">
 		<div class="total_chart">
 			<h1 class="chart_heading title">Biểu đồ thống kê</h1>
 			<div class="total_chart_detail">
@@ -388,7 +447,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	</div> *}
 	{* <div class="chart_content">
 		<div class="total_chart">
 			<h1 class="chart_heading title">Chi tiết truy cập</h1>
@@ -448,4 +507,4 @@
 	</div> *}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.9"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.5"></script>
