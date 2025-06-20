@@ -100,6 +100,7 @@
                 <th scope="col" style="width: 14%;">Ngày Đăng Kí</th>
                 <th scope="col" style="width: 14%;">Gửi Zalo</th>
                 <th scope="col" style="width: 14%;">Đã gọi</th>
+                <th scope="col" style="width: 14%;">Recall</th>
             </tr>
         </thead>
         <tbody>
@@ -131,7 +132,10 @@
                     <td>
                         {if $row.is_zns == true}
                             <a href="index.php?module=EC_Messages&return_module=EC_Messages&action=DetailView&record={$row.zns_id}"
-                                target="_blank">✅</a>
+                                target="_blank">✅
+                                {if $row.zns_status == 'fail'} (thất bại)
+                                {/if}
+                            </a>
                         {else}
                             ❌
                         {/if}
@@ -144,6 +148,7 @@
                             ❌
                         {/if}
                     </td>
+                    <td>{$row.recall_count}</td>
                 </tr>
             {/foreach}
 
