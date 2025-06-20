@@ -370,7 +370,7 @@ $(document).ready(function () {
 
     rows.forEach(entry => {
         const path = new URL(entry.url).pathname;
-        const date = entry.created_at;
+        const date = formatDateTime(entry.created_at);
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td class="visitor_cell col-lg-3">
@@ -451,6 +451,22 @@ $(document).ready(function () {
         wrapper.style.overflowX = "unset";
     }
     }
+
+    function formatDateTime(dateString) {
+    const date = new Date(dateString.replace(" ", "T"));
+    const options = {
+        weekday: 'long',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Ho_Chi_Minh'
+    };
+    return new Intl.DateTimeFormat('vi-VN', options).format(date);
+}
 });
 $(document).on('click', '.copy-ip-btn', function () {
     const ip = $(this).data('ip');
