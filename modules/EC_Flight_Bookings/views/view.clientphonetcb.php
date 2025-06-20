@@ -52,10 +52,11 @@ class Viewclientphonetcb extends SugarView
             }
         }
 
-        // Zalo ZNS
+        // // Zalo ZNS
+        
         global $db;
         $zaloZnsQuery = "
-            SELECT send_to, id
+            SELECT send_to, id, status
             FROM ec_messages
             WHERE type = 'zalo_zns'
             AND category = 'customer_care'
@@ -64,7 +65,10 @@ class Viewclientphonetcb extends SugarView
         $zaloZnsRes = $db->query($zaloZnsQuery);
         $zaloZnsMap = [];
         while ($row = $db->fetchByAssoc($zaloZnsRes)) {
-            $zaloZnsMap[$row['send_to']] = $row['id'];
+            $zaloZnsMap[$row['send_to']] = [
+                'id' => $row['id'],
+                'status' => $row['status'],
+            ];
         }
 
         // Get Calls Data
@@ -97,7 +101,7 @@ class Viewclientphonetcb extends SugarView
                 }
             }
         }
-        // check recall
+        // check Called
         $callCheck = isset($_GET['call_recheck']) && $_GET['call_recheck'] == 'on';
         $smarty->assign('callCheck', $callCheck);
 
@@ -108,6 +112,7 @@ class Viewclientphonetcb extends SugarView
         if (!empty($bookingIds)) {
             $bookingIdsStr = "'" . implode("', '", $bookingIds) . "'";
 
+            // Get booking name
             $query = "
                 SELECT id, name
                 FROM ec_flight_bookings
@@ -121,6 +126,7 @@ class Viewclientphonetcb extends SugarView
                 $bookingMap[$booking['id']] = $booking['name'];
             }
 
+            // Add booking_name to $data
             foreach ($data as &$entry) {
                 if (!empty($entry['booking_id']) && isset($bookingMap[$entry['booking_id']])) {
                     $entry['booking_name'] = $bookingMap[$entry['booking_id']];
@@ -128,18 +134,58 @@ class Viewclientphonetcb extends SugarView
                     $entry['booking_name'] = '';
                 }
             }
+
+            // NOW → Add Recall Count by booking_name
+            $bookingNames = array_column($data, 'booking_name');
+            $bookingNames = array_filter($bookingNames);
+
+            if (!empty($bookingNames)) {
+                $bookingNamesStr = "'" . implode("','", array_map(function ($name) use ($db) {
+                    return $db->quote($name);  // safe quote
+                }, $bookingNames)) . "'";
+
+                $sql = "
+            SELECT name, SUM(IFNULL(recall, 0)) AS total_recall
+            FROM ec_working_process
+            WHERE deleted = 0
+            AND name IN ($bookingNamesStr)
+            GROUP BY name
+        ";
+
+                $recallRes = $db->query($sql);
+                $recallMap = [];
+
+                while ($row = $db->fetchByAssoc($recallRes)) {
+                    $recallMap[$row['name']] = $row['total_recall'];
+                }
+
+                // Add recall_count into $data
+                foreach ($data as &$entry) {
+                    $name = $entry['booking_name'];
+
+                    if (!empty($name) && isset($recallMap[$name])) {
+                        $entry['recall_count'] = $recallMap[$name];
+                    } else {
+                        $entry['recall_count'] = 0;
+                    }
+                }
+            }
         }
 
-        // Add additional information to the data
         foreach ($data as &$entry) {
-            $entry['is_zns'] = isset($zaloZnsMap[$entry['phone_number']]) ? true : false;
+            $phone = $entry['phone_number'];
 
-            if ($entry['is_zns']) {
-                $entry['zns_id'] = $zaloZnsMap[$entry['phone_number']];
+            if (isset($zaloZnsMap[$phone])) {
+                $entry['is_zns'] = true;
+                $entry['zns_id'] = $zaloZnsMap[$phone]['id'];
+                $entry['zns_status'] = $zaloZnsMap[$phone]['status'];
+            } else {
+                $entry['is_zns'] = false;
+                $entry['zns_id'] = '';
+                $entry['zns_status'] = '';
             }
 
             $entryDateAdjusted = strtotime($entry['date_entered']) - 7 * 3600;
-            $phone = $entry['phone_number'];
 
             if (isset($callMap[$phone])) {
                 $callDate = strtotime($callMap[$phone]['date_modified']);
@@ -275,6 +321,15 @@ class Viewclientphonetcb extends SugarView
             'limit' => 5000,
             'is_used' => $isUsed
         ]);
+
+        // $data = json_encode([
+        //     'action' => 'get_list_phone_request',
+        //     'from_date' => $fromDate,
+        //     'to_date' => $toDate,
+        //     'offset' => $offset,
+        //     'limit' => $limit,
+        //     'is_used' => $isUsed
+        // ]);
 
         $curl = curl_init();
 
