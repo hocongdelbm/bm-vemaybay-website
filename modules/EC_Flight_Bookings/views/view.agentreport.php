@@ -221,18 +221,21 @@ class Viewagentreport extends SugarView
 		$total_debt = 0;
 		$html = '';
 		while ($row = $db->fetchByAssoc($res)) {
-			$html .= '<tr>
-			<td align="center">
-				<input type="checkbox" name="agent_id[]" value="' . $row['agent_id'] . '" />
-				<input type="hidden" name="agtcode_' . $row['agent_id'] . '" value="' . $row['agent_code'] . '" />
-				<input type="hidden" name="agtname_' . $row['agent_id'] . '" value="' . $row['agent_name'] . '" />
-			</td>
-			<td align="left">' . $row['agent_code'] . '</td>
-			<td align="left">' . $row['agent_name'] . '</td>
-			<td align="left" class="hide-mobile">' . $row['address'] . '</td>
-			<td align="left" class="hide-mobile">' . $row['phone'] . '</td>
-			<td align="right">' . format_number($row['total_debt']) . '</td>
-				</tr>';
+
+			if($row['total_debt'] != 0){
+				$html .= '<tr>
+				<td align="center">
+					<input type="checkbox" name="agent_id[]" value="' . $row['agent_id'] . '" />
+					<input type="hidden" name="agtcode_' . $row['agent_id'] . '" value="' . $row['agent_code'] . '" />
+					<input type="hidden" name="agtname_' . $row['agent_id'] . '" value="' . $row['agent_name'] . '" />
+				</td>
+				<td align="left">' . $row['agent_code'] . '</td>
+				<td align="left">' . $row['agent_name'] . '</td>
+				<td align="left" class="hide-mobile">' . $row['address'] . '</td>
+				<td align="left" class="hide-mobile">' . $row['phone'] . '</td>
+				<td align="right">' . format_number($row['total_debt']) . '</td>
+					</tr>';
+			}
 
 			//========== Begin close opening amount ==========//
 			// if ($GLOBALS['current_user']->user_name == 'nponline' && $post_fdate == '01-01-2019' && $post_tdate == '31-12-2019' && $row['total_debt'] != 0) {
