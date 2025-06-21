@@ -507,4 +507,4 @@
 	</div> *}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.5"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=1.0.6"></script>

@@ -9,8 +9,10 @@ class AccessLogs{
             $curl = curl_init();
             $request_data = file_get_contents('php://input');
             $request_data = json_decode($request_data, true);
-            $domain  = $request["domain"] = $request_data["domain"] ?? "";
-            $request = json_encode($request);
+            $from_time = $request["options"]["from_time"] = date_format(new DateTime($request_data["from_date"]), "Y-m-d H:i:s");
+            $to_time   = $request["options"]["to_time"]   = date_format(new DateTime($request_data["to_date"]),"Y-m-d H:i:s");
+            $domain    = $request["domain"] = $request_data["domain"] ?? "";
+            $request   = json_encode($request);
             curl_setopt($curl,CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);

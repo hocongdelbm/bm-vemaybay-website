@@ -11,8 +11,8 @@ class TrafficSummary{
         $request_data = json_decode($request_data, true);
         // $from_time = $request_data["from_time"] = new DateTime($request_data["from_date"]);
         // $to_time   = $request_data["to_time"]   = new DateTime($request_data["to_date"]);
-        $from_time = $request["from_time"] = date_format(new DateTime($request_data["from_date"]), "Y-m-d H:i:s");
-        $to_time   = $request["to_time"]   = date_format(new DateTime($request_data["to_date"]),"Y-m-d H:i:s");
+        $from_time = $request["options"]["from_time"] = date_format(new DateTime($request_data["from_date"]), "Y-m-d H:i:s");
+        $to_time   = $request["options"]["to_time"]   = date_format(new DateTime($request_data["to_date"]),"Y-m-d H:i:s");
         $domain    = $request["domain"]    = $request_data["domain"] ?? "";
         $request = json_encode($request);
         curl_setopt($curl,CURLOPT_URL, $url);
