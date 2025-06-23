@@ -1,4 +1,4 @@
-$(function () {
+$(document).ready(function () {
     init();
     function init() {
         bindEvents();
