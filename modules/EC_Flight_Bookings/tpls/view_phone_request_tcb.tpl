@@ -93,15 +93,16 @@
     <table class="table">
         <thead>
             <tr>
-                <th scope="col" style="width: 10%;">STT</th>
-                <th scope="col" style="width: 10%;">Số ĐT</th>
+                <th scope="col" style="width: 8%;">STT</th>
+                <th scope="col" style="width: 14%;">Số ĐT</th>
                 <th scope="col" style="width: 30%;">Booking</th>
-                <th scope="col" style="width: 10%;">Voucher</th>
-                <th scope="col" style="width: 10%;">Ngày Đăng Kí</th>
-                <th scope="col" style="width: 10%;">Gửi Zalo</th>
-                <th scope="col" style="width: 10%;">Đã gọi</th>
+                <th scope="col" style="width: 8%;">Voucher</th>
+                <th scope="col" style="width: 14%;">Ngày Đăng Kí</th>
+                <th scope="col" style="width: 8%;">Gửi Zalo</th>
+                <th scope="col" style="width: 8%;">Đã gọi</th>
                 <th scope="col" style="width: 10%;">Recall</th>
             </tr>
+
         </thead>
         <tbody>
             {assign var="counter" value=$pageData.offsets.current}
