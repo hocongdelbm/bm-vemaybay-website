@@ -63,7 +63,7 @@ $(document).ready(function () {
                 result.from = format(db);
                 result.to = format(db, true);
                 break;
-            case "current_week":
+            case "this_week":
                 const cw = new Date(now);
                 const day = cw.getDay() || 7;
                 cw.setDate(cw.getDate() - day + 1);
@@ -72,7 +72,7 @@ $(document).ready(function () {
                 result.from = format(cw);
                 result.to = format(cwEnd, true);
                 break;
-            case "previous_week":
+            case "last_week":
                 const pw = new Date(now);
                 const currentDay = pw.getDay() || 7;
                 pw.setDate(pw.getDate() - currentDay - 6);
@@ -81,13 +81,13 @@ $(document).ready(function () {
                 result.from = format(pw);
                 result.to = format(pwEnd, true);
                 break;
-            case "current_month":
+            case "this_month":
                 const cmStart = new Date(now.getFullYear(), now.getMonth(), 1);
                 const cmEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
                 result.from = format(cmStart);
                 result.to = format(cmEnd, true);
                 break;
-            case "previous_month":
+            case "last_month":
                 const pmStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
                 const pmEnd = new Date(now.getFullYear(), now.getMonth(), 0);
                 result.from = format(pmStart);
@@ -98,7 +98,8 @@ $(document).ready(function () {
     }
 
     function fetchTraffic() {
-        const endPoint = "index.php?entryPoint=entryPointGetTraffic";
+        const endPoint = "index.php?entryPoint=entryPointSummarySite";
+        const quickRange = $("select[name='time_selected']").val();
         let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
         let fromDate = $("#from_date").val();
         let toDate = $("#to_date").val();
@@ -114,11 +115,11 @@ $(document).ready(function () {
             type: "POST",
             url: endPoint,
             contentType: 'application/json',
-            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate }),
+            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, flag: quickRange, action: "get_traffic"}),
             success: function (response) {
                 const data = Object.entries(response.data);
                 if (isAllGroupsEmpty(data)) {
-                    renderEmptyData(".online_data", "Không có dữ liệu, vui lòng chọn ngày hoặc tên miền khác");
+                    renderEmptyData(".online_data", "Không có dữ liệu, vui lòng chọn ngày hoặc tên miền khác", domainName);
                     return;
                 }
                 renderTrafficGroups(".online_data", domainName, data);
@@ -129,55 +130,87 @@ $(document).ready(function () {
                 if (xhr.status === 401) message = "Bạn không có quyền truy cập dữ liệu này";
                 else if (xhr.status === 400) message = "Thời gian hoặc tên miền không hợp lệ, vui lòng kiểm tra lại";
                 else if (xhr.status === 500) message = "Lỗi máy chủ, vui lòng thử lại sau";
-                renderEmptyData(".online_data", message);
+                renderEmptyData(".online_data", message, domainName);
             }
         });
     }
-
     function renderTrafficGroups(selector, domainName, data) {
         const $container = $(selector);
-        $container.empty().append(`<div class="online_data_title col-lg-12 d-flex flex-column align-items-center"><h3>Traffic của ${domainName}</h3></div>`);
-        const fragment = document.createDocumentFragment();
+        $container.empty().append(`
+            <div class="online_data_title col-lg-12 d-flex flex-column align-items-center pb-3">
+                <h3 style="margin-bottom:unset">Traffic của ${domainName}</h3>
+            </div>
+        `);
 
-        data.forEach(([key, values]) => {
-            fragment.appendChild(renderTrafficGroup(key, values));
-        });
-        $container.append(fragment);
-    }
-
-    function renderTrafficGroup(key, values) {
-        let formattedKey = key.replace("top_", "");
-        formattedKey = capitalizeFirstLetter(formattedKey);
-        const translate = {
+        const desiredOrder = ['IPs', 'Urls', 'Referers', 'Bots'];
+        const translateMap = {
             "Channels": "Referers",
             "Devices": "Thiết bị",
             "Browsers": "Trình duyệt",
             "Countries": "Quốc gia",
             "Ips": "IPs"
         };
-        if (translate[formattedKey]) formattedKey = translate[formattedKey];
 
+        const normalizeKey = (key) => {
+            let formatted = key.replace("top_", "");
+            formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+            return translateMap[formatted] || formatted;
+        };
+
+        data.sort((a, b) => {
+            const indexA = desiredOrder.indexOf(normalizeKey(a[0]));
+            const indexB = desiredOrder.indexOf(normalizeKey(b[0]));
+            return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+        });
+
+        const fragment = document.createDocumentFragment();
+        data.forEach(([key, values]) => {
+            fragment.appendChild(renderTrafficGroup(key, values, normalizeKey));
+        });
+
+        $container.append(fragment);
+    }
+
+    function renderTrafficGroup(key, values, normalizeKey) {
+        const formattedKey = normalizeKey(key);
         const groupDiv = document.createElement("div");
         groupDiv.className = "online_data_content mb-4 col-lg-3";
         groupDiv.innerHTML = `<h6 class="attribute_title">${formattedKey}</h6>`;
 
         const total = values.reduce((sum, item) => sum + item.value, 0);
+
         values.forEach(item => {
             const percent = total ? ((item.value / total) * 100).toFixed(1) : 0;
-            groupDiv.innerHTML += `
-                <div class="traffic_value d-flex flex-row-reverse mb-2" style="justify-content:space-between">
-                    <div class="d-flex align-items-center">
-                        <div class="mx-1">${item.value}</div>
-                        <div class="progress px-0" style="width: 150px">
-                            <div class="progress-bar" role="progressbar" style="width:${percent}%;"></div>
-                        </div>
+
+            const progressHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="mx-1">${item.value}</div>
+                    <div class="progress px-0" style="width: 150px">
+                        <div class="progress-bar" role="progressbar" style="width:${percent}%;"></div>
                     </div>
-                    <label title="${item.label}" for="progress">${item.label}</label>
-                </div>
-            `;
+                </div>`;
+
+            const labelHTML = (formattedKey === "IPs")
+                ? `<label title="${item.label}" for="progress">
+                        <div class="visitor_cell col-lg-3 ip_address d-flex">
+                            <a href="https://ipinfo.io/${item.label}" target="_blank">
+                                <span title="${item.label}">${item.label}</span>
+                            </a>
+                            <button data-ip="${item.label}" class="copy-ip-btn">${getCopyIcon()}</button>
+                        </div>
+                </label>`
+                : `<label title="${item.label}" for="progress">${item.label}</label>`;
+
+            groupDiv.innerHTML += `
+                <div class="traffic_value ${formattedKey} d-flex flex-row-reverse mb-2" style="justify-content:space-between">
+                    ${progressHTML}
+                    ${labelHTML}
+                </div>`;
         });
+
         return groupDiv;
     }
+
 
     function handleAccordion() {
         const accordion = $(".online_data.row");
@@ -211,7 +244,7 @@ $(document).ready(function () {
     }
 
     function fetchLogs() {
-        const endPoint = "index.php?entryPoint=entryPointAccessLogs";
+        const endPoint = "index.php?entryPoint=entryPointSummarySite";
         let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
         let fromDate = $("#from_date").val();
         let toDate = $("#to_date").val();
@@ -225,14 +258,23 @@ $(document).ready(function () {
             type: "POST",
             url: endPoint,
             contentType: 'application/json',
-            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate }),
+            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, action: "get_logs"}),
             success: function (response) {
+                const data = response.data;
                 $("#visitor_tbody").empty();
-                renderVisitorTableRows(response.data, 1, 10);
-                setupPagination(response.data, 1, 10);
+                $(".access_log.title").text(`Truy cập gần nhất của ${domainName}`);
+                if(Array.isArray(data)&&data.length === 0){
+                    $("#visitor_tbody").html(`<td class="text-center"><span class="my-5">Không có dữ liệu, vui lòng chọn ngày hoặc tên miền khác</span></td>`);
+                    setupPagination(data, 1, 0);
+                    return;
+                }else{
+                    renderVisitorTableRows(data, 1, 25);
+                    setupPagination(data, 1, 25);
+                    return
+                }
             },
             error: function (err) {
-                console.error("Lỗi khi lấy dữ liệu:", err);
+                // $("#visitor_tbody").append(`<div><h5>Lỗi khi tải dữ liệu, vui lòng thử lại sau!</h5></div>`);
             }
         });
     }
@@ -244,7 +286,7 @@ $(document).ready(function () {
             detailRow.toggle();
             return;
         }
-        const endPoint = "index.php?entryPoint=entryPointDetailLogs";
+        const endPoint = "index.php?entryPoint=entryPointSummarySite";
         let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
         currentRow.after(`
             <tr class="detail-row">
@@ -255,7 +297,7 @@ $(document).ready(function () {
             type: "POST",
             url: endPoint,
             contentType: 'application/json',
-            data: JSON.stringify({ domain: domainName, id }),
+            data: JSON.stringify({ domain: domainName, id: id, action: "get_log_detail"}),
             success: function (response) {
                 const data = response.data[0];
                 currentRow.next(".detail-row").find("td").html(renderLogDetail(data));
@@ -298,10 +340,11 @@ $(document).ready(function () {
         `;
     }
 
-    function renderEmptyData(selector, message) {
+    function renderEmptyData(selector, message, domainName) {
         $(selector).empty().append(`
             <div class="online_data_content d-flex flex-column justify-content-center align-items-center">
-                <span class="online_data_failed_text">${message}</span>
+                <h3 style="margin-bottom:unset">Traffic của ${domainName}</h3>
+                <span class="online_data_failed_text my-5">${message}</span>
             </div>
         `);
     }
@@ -373,9 +416,9 @@ $(document).ready(function () {
 
     function toggleTableScroll(perPage) {
         const wrapper = document.querySelector('.total_entrance_detail');
-        if (perPage > 10) {
+        if (perPage > 25) {
             wrapper.classList.add('scrolling');
-            wrapper.style.maxHeight = "400px";
+            wrapper.style.maxHeight = "950px";
             wrapper.style.overflowY = "scroll";
             wrapper.style.overflowX = "hidden";
         } else {

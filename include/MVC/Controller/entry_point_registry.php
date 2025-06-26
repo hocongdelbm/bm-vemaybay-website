@@ -129,8 +129,5 @@ $entry_point_registry = array(
     'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => false),
 
     // CUSTOM BY DATLNT
-    'entryPointCounterOnline' => array('file' => 'custom/entrypoints/epCounter_Online.php',  'auth'  => false),
-    'entryPointGetTraffic'    => array('file' => 'custom/entrypoints/epTraffic_Summary.php', 'auth' => false),
-    'entryPointAccessLogs'    => array('file' => 'custom/entrypoints/epAccess_logs.php',     'auth' => false),
-    'entryPointDetailLogs'    => array('file' => 'custom/entrypoints/epDetail_Logs.php',     'auth' => false),
+    'entryPointSummarySite'   => array('file' => 'custom/entrypoints/ep_Summary_sites.php',     'auth' => false),
 );
