@@ -44,8 +44,11 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CHANGE_FLIGHT_TIME}',
                 ),
                 array(
-                    'customCode' => '{$RESERVATION_VJA}',
+                    'customCode' => '{$BUTTON_AUTO_BOOK}',
                 ),
+                // array(
+                //     'customCode' => '{$RESERVATION_VJA}',
+                // ),
                 // Chia doanh số
                 // array(
                 //     'customCode' => '{$SHARE_PROFIT}',

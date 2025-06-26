@@ -65,17 +65,18 @@ $entry_point_registry = array(
     'setExternalOAuthToken'                 => array('file' => 'modules/ExternalOAuthConnection/entrypoint/setExternalOAuthToken.php', 'auth' => true),
 
     /*====================  CUSTOM  ====================*/
-    'entryPointCheckValueExist'             => array('file' => 'custom/entrypoints/epCheckValueExist.php', 'auth' => true),
-    'entryPointSaveWorkingProcess'          => array('file' => 'custom/entrypoints/epSaveWorkingProcess.php', 'auth' => true),
-    'entryPointFlightBookings'              => array('file' => 'custom/entrypoints/epFlightBookings.php', 'auth' => true),
+    'entryPointCheckValueExist'     => ['file' => 'custom/entrypoints/epCheckValueExist.php', 'auth' => true],
+    'entryPointSaveWorkingProcess'  => ['file' => 'custom/entrypoints/epSaveWorkingProcess.php', 'auth' => true],
+    'entryPointFlightBookings'      => ['file' => 'custom/entrypoints/epFlightBookings.php', 'auth' => true],
     
     // Custom by DucPham
-	'entryPointAPIVietjet'                  => array('file' => 'custom/entrypoints/epAPIVietjet.php', 'auth' => true),
-	'entryPointSaveNote'                    => array('file' => 'custom/entrypoints/epSaveNote.php', 'auth' => true),
-    'entryPointCallContact'                 => array('file' => 'custom/entrypoints/epCallContact.php', 'auth' => true),
-    'entryPointWinInvoice'                  => array('file' => 'custom/entrypoints/epWinInvoice.php', 'auth' => true),
-    'entryPointSMS'                         => array('file' => 'custom/entrypoints/epSMS.php', 'auth' => true),
-    'entryPointSaveResultSMS'               => array('file' => 'custom/entrypoints/epSaveResultSMS.php', 'auth' => false),
+	'entryPointAPIVietjet'      => ['file' => 'custom/entrypoints/epAPIVietjet.php', 'auth' => true],
+	'entryPointAutoBook'        => ['file' => 'custom/entrypoints/epAutoBook.php', 'auth' => true],
+	'entryPointSaveNote'        => ['file' => 'custom/entrypoints/epSaveNote.php', 'auth' => true],
+    'entryPointCallContact'     => ['file' => 'custom/entrypoints/epCallContact.php', 'auth' => true],
+    'entryPointWinInvoice'      => ['file' => 'custom/entrypoints/epWinInvoice.php', 'auth' => true],
+    'entryPointSMS'             => ['file' => 'custom/entrypoints/epSMS.php', 'auth' => true],
+    'entryPointSaveResultSMS'   => ['file' => 'custom/entrypoints/epSaveResultSMS.php', 'auth' => false],
     'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),
     'entryPointZaloAuthCallback'    => array('file' => 'custom/entrypoints/epZaloAuthCallback.php', 'auth' => false),
 	'entryPointZaloWebhook'         => array('file' => 'custom/entrypoints/epZaloWebhook.php', 'auth' => false),
