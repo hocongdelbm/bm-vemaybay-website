@@ -93,14 +93,14 @@
     <table class="table">
         <thead>
             <tr>
-                <th scope="col" style="width: 14%;">STT</th>
-                <th scope="col" style="width: 14%;">Số ĐT</th>
-                <th scope="col" style="width: 14%;">Booking</th>
-                <th scope="col" style="width: 14%;">Voucher</th>
-                <th scope="col" style="width: 14%;">Ngày Đăng Kí</th>
-                <th scope="col" style="width: 14%;">Gửi Zalo</th>
-                <th scope="col" style="width: 14%;">Đã gọi</th>
-                <th scope="col" style="width: 14%;">Recall</th>
+                <th scope="col" style="width: 10%;">STT</th>
+                <th scope="col" style="width: 10%;">Số ĐT</th>
+                <th scope="col" style="width: 30%;">Booking</th>
+                <th scope="col" style="width: 10%;">Voucher</th>
+                <th scope="col" style="width: 10%;">Ngày Đăng Kí</th>
+                <th scope="col" style="width: 10%;">Gửi Zalo</th>
+                <th scope="col" style="width: 10%;">Đã gọi</th>
+                <th scope="col" style="width: 10%;">Recall</th>
             </tr>
         </thead>
         <tbody>
