@@ -12,3 +12,4 @@ $action_view_map['businessreport']      = 'businessreport'; //Báo cáo kinh doa
 $action_view_map['iplist'] = 'iplist';
 $action_view_map['analytics'] = 'analytics';
 
+$action_view_map['summaryview'] = 'summaryview';

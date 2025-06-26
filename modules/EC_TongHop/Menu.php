@@ -54,3 +54,8 @@ if(ACLController::checkAccess('EC_Contact_Points_Log', 'list', true)) {
         'EC_Contact_Points_Log'
     ];
 }
+
+
+if(is_admin($current_user)){
+    if(ACLController::checkAccess('EC_TongHop', 'view', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=summaryview&return_module=EC_TongHop&return_action=summaryview", "Chỉ số website", 'EC_TongHop');
+}

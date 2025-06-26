@@ -1,0 +1,412 @@
+$(document).ready(function () {
+    init();
+    function init() {
+        bindEvents();
+        handleQuickRange();
+        fetchTraffic();
+        fetchLogs();
+        handleAccordion();
+    }
+
+    function bindEvents() {
+        $(".search_button.btn.btn-primary").on("click", () => {
+            $(".online_data.row").empty();
+            handleQuickRange();
+            fetchTraffic();
+            fetchLogs();
+        });
+
+        $(".reset_button.btn.btn-warning").on("click", () => {
+            $("select[name='url_selected'], select[name='time_selected']").val("");
+        });
+
+        $(document).on("click", ".extend_log_detail", function () {
+            $(this).toggleClass("rotated");
+            fetchLogDetails($(this).attr("log-id"), this);
+        });
+
+        $(document).on('click', '.copy-ip-btn', function () {
+            const ip = $(this).data('ip');
+            navigator.clipboard.writeText(ip).then(() => {
+                $(this).text('✔');
+                setTimeout(() => $(this).html(getCopyIcon()), 1500);
+            }).catch(() => alert("Không thể sao chép IP."));
+        });
+    }
+
+    function handleQuickRange() {
+        const quickRange = $("select[name='time_selected']").val();
+        if (quickRange) {
+            const range = getQuickTimeRange(quickRange);
+            $("#from_date").val(range.from);
+            $("#to_date").val(range.to);
+        }
+    }
+
+    function getQuickTimeRange(value) {
+        const now = new Date();
+        const pad = num => String(num).padStart(2, "0");
+        const format = (date, endOfDay = false) =>
+            `${pad(date.getDate())}-${pad(date.getMonth() + 1)}-${date.getFullYear()} ${endOfDay ? "23:59:59" : "00:00:00"}`;
+        const result = { from: "", to: "" };
+
+        switch (value) {
+            case "yesterday":
+                const y = new Date(now);
+                y.setDate(y.getDate() - 1);
+                result.from = format(y);
+                result.to = format(y, true);
+                break;
+            case "daybefore":
+                const db = new Date(now);
+                db.setDate(db.getDate() - 2);
+                result.from = format(db);
+                result.to = format(db, true);
+                break;
+            case "current_week":
+                const cw = new Date(now);
+                const day = cw.getDay() || 7;
+                cw.setDate(cw.getDate() - day + 1);
+                const cwEnd = new Date(cw);
+                cwEnd.setDate(cw.getDate() + 6);
+                result.from = format(cw);
+                result.to = format(cwEnd, true);
+                break;
+            case "previous_week":
+                const pw = new Date(now);
+                const currentDay = pw.getDay() || 7;
+                pw.setDate(pw.getDate() - currentDay - 6);
+                const pwEnd = new Date(pw);
+                pwEnd.setDate(pw.getDate() + 6);
+                result.from = format(pw);
+                result.to = format(pwEnd, true);
+                break;
+            case "current_month":
+                const cmStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                const cmEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                result.from = format(cmStart);
+                result.to = format(cmEnd, true);
+                break;
+            case "previous_month":
+                const pmStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const pmEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+                result.from = format(pmStart);
+                result.to = format(pmEnd, true);
+                break;
+        }
+        return result;
+    }
+
+    function fetchTraffic() {
+        const endPoint = "index.php?entryPoint=entryPointGetTraffic";
+        let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
+        let fromDate = $("#from_date").val();
+        let toDate = $("#to_date").val();
+
+        $.ajaxSetup({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        });
+
+        $(".online_data").html(renderLoading());
+        $(".btn.btn-primary.extend_btn").addClass("hide");
+
+        $.ajax({
+            type: "POST",
+            url: endPoint,
+            contentType: 'application/json',
+            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate }),
+            success: function (response) {
+                const data = Object.entries(response.data);
+                if (isAllGroupsEmpty(data)) {
+                    renderEmptyData(".online_data", "Không có dữ liệu, vui lòng chọn ngày hoặc tên miền khác");
+                    return;
+                }
+                renderTrafficGroups(".online_data", domainName, data);
+                handleAccordion();
+            },
+            error: function (xhr) {
+                let message = "Không truy xuất được dữ liệu, vui lòng thử lại sau";
+                if (xhr.status === 401) message = "Bạn không có quyền truy cập dữ liệu này";
+                else if (xhr.status === 400) message = "Thời gian hoặc tên miền không hợp lệ, vui lòng kiểm tra lại";
+                else if (xhr.status === 500) message = "Lỗi máy chủ, vui lòng thử lại sau";
+                renderEmptyData(".online_data", message);
+            }
+        });
+    }
+
+    function renderTrafficGroups(selector, domainName, data) {
+        const $container = $(selector);
+        $container.empty().append(`<div class="online_data_title col-lg-12 d-flex flex-column align-items-center"><h3>Traffic của ${domainName}</h3></div>`);
+        const fragment = document.createDocumentFragment();
+
+        data.forEach(([key, values]) => {
+            fragment.appendChild(renderTrafficGroup(key, values));
+        });
+        $container.append(fragment);
+    }
+
+    function renderTrafficGroup(key, values) {
+        let formattedKey = key.replace("top_", "");
+        formattedKey = capitalizeFirstLetter(formattedKey);
+        const translate = {
+            "Channels": "Referers",
+            "Devices": "Thiết bị",
+            "Browsers": "Trình duyệt",
+            "Countries": "Quốc gia",
+            "Ips": "IPs"
+        };
+        if (translate[formattedKey]) formattedKey = translate[formattedKey];
+
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "online_data_content mb-4 col-lg-3";
+        groupDiv.innerHTML = `<h6 class="attribute_title">${formattedKey}</h6>`;
+
+        const total = values.reduce((sum, item) => sum + item.value, 0);
+        values.forEach(item => {
+            const percent = total ? ((item.value / total) * 100).toFixed(1) : 0;
+            groupDiv.innerHTML += `
+                <div class="traffic_value d-flex flex-row-reverse mb-2" style="justify-content:space-between">
+                    <div class="d-flex align-items-center">
+                        <div class="mx-1">${item.value}</div>
+                        <div class="progress px-0" style="width: 150px">
+                            <div class="progress-bar" role="progressbar" style="width:${percent}%;"></div>
+                        </div>
+                    </div>
+                    <label title="${item.label}" for="progress">${item.label}</label>
+                </div>
+            `;
+        });
+        return groupDiv;
+    }
+
+    function handleAccordion() {
+        const accordion = $(".online_data.row");
+        const extendBtn = $(".extend_btn");
+        // const contentHeight = $(".online_data_content").height() || 365;
+
+        if ($(".traffic_value").length === 0) return;
+
+        extendBtn.removeClass("hide");
+        accordion.css({
+            "transition": "max-height 0.5s cubic-bezier(0.4,0,0.2,1)",
+            // "max-height": (contentHeight + 100) + "px",
+            "overflow-y": "hidden"
+        });
+
+        extendBtn.off("click").on("click", function () {
+            if (!accordion.hasClass('expanded')) {
+                accordion.addClass('expanded').css({
+                    "max-height": "2000px",
+                    "overflow-y": "auto"
+                });
+                $(this).html('&#x25B2;');
+            } else {
+                accordion.removeClass('expanded').css({
+                    "max-height": "350px",
+                    "overflow-y": "hidden"
+                });
+                $(this).html('&#x25BC;');
+            }
+        });
+    }
+
+    function fetchLogs() {
+        const endPoint = "index.php?entryPoint=entryPointAccessLogs";
+        let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
+        let fromDate = $("#from_date").val();
+        let toDate = $("#to_date").val();
+        $.ajaxSetup({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        });
+
+        $("#visitor_tbody").html(renderLoading());
+
+        $.ajax({
+            type: "POST",
+            url: endPoint,
+            contentType: 'application/json',
+            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate }),
+            success: function (response) {
+                $("#visitor_tbody").empty();
+                renderVisitorTableRows(response.data, 1, 10);
+                setupPagination(response.data, 1, 10);
+            },
+            error: function (err) {
+                console.error("Lỗi khi lấy dữ liệu:", err);
+            }
+        });
+    }
+
+    function fetchLogDetails(id, btn) {
+        const currentRow = $(btn).closest("tr");
+        const detailRow = currentRow.next(".detail-row");
+        if (detailRow.length > 0) {
+            detailRow.toggle();
+            return;
+        }
+        const endPoint = "index.php?entryPoint=entryPointDetailLogs";
+        let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
+        currentRow.after(`
+            <tr class="detail-row">
+                <td colspan="4">${renderLoading()}</td>
+            </tr>
+        `);
+        $.ajax({
+            type: "POST",
+            url: endPoint,
+            contentType: 'application/json',
+            data: JSON.stringify({ domain: domainName, id }),
+            success: function (response) {
+                const data = response.data[0];
+                currentRow.next(".detail-row").find("td").html(renderLogDetail(data));
+            },
+            error: function (xhr) {
+                let message = "Không truy xuất được chi tiết log.";
+                if (xhr.status === 401) message = "Bạn không có quyền truy cập dữ liệu này!";
+                else if (xhr.status === 400) message = "Không tìm thấy tên miền hoặc ID log, vui lòng kiểm tra lại!";
+                else if (xhr.status === 500) message = "Lỗi máy chủ, vui lòng thử lại sau!";
+                currentRow.next(".detail-row").find("td").html(`<span class="text-danger">${message}</span>`);
+            }
+        });
+    }
+
+    function renderLogDetail(data) {
+        const query = data.query || "...";
+        const referer = data.referer || "...";
+        return `
+            <div class="detail_logs_wrapper">
+                <div class="detail_logs_content row">
+                    <div class="col-lg-6 detail_logs_data"><strong>URL:</strong> <span>${data.url}</span></div>
+                    <div class="col-lg-6 detail_logs_data"><strong>Query:</strong> <span>${query}</span></div>
+                    <div class="col-lg-6 detail_logs_data"><strong>Referer:</strong> <span>${referer}</span></div>
+                    <div class="col-lg-6 detail_logs_data"><strong>User-Agent:</strong> <span>${data.user_agent}</span></div>
+                    <div class="col-lg-3 detail_logs_data"><strong>Content-Type:</strong> <span>${data.content_type}</span></div>
+                    <div class="col-lg-3 detail_logs_data"><strong>Device:</strong> <span title="device-os-cpu">${data.device}, ${data.os}, ${data.cpu_cores}</span></div>
+                    <div class="col-lg-3 detail_logs_data"><strong>Interface:</strong> <span title="browser-resolution-pixel-ratio">${data.browser}, ${data.resolution}, ${data.pixel_ratio}</span></div>
+                    <div class="col-lg-3 detail_logs_data"><strong>Location:</strong> <span title="country-city-region-long-lat">${data.country}, ${data.city}, ${data.region}, ${data.longtitude}, ${data.latitude}</span></div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderLoading() {
+        return `
+            <div class="online_data_content_loading d-flex flex-column justify-content-center align-items-center">
+                <div class="spinner online_data_waiting"></div>
+                <span class="online_data_waiting_text">Đang tải dữ liệu...</span>
+            </div>
+        `;
+    }
+
+    function renderEmptyData(selector, message) {
+        $(selector).empty().append(`
+            <div class="online_data_content d-flex flex-column justify-content-center align-items-center">
+                <span class="online_data_failed_text">${message}</span>
+            </div>
+        `);
+    }
+
+    function isAllGroupsEmpty(data) {
+        return data.every(([key, value]) => Array.isArray(value) && value.length === 0);
+    }
+
+    function renderVisitorTableRows(data, page, perPage) {
+        const start = (page - 1) * perPage;
+        const end = start + perPage;
+        const rows = data.slice(start, end);
+        const tbody = document.getElementById("visitor_tbody");
+        tbody.innerHTML = '';
+
+        rows.forEach(entry => {
+            const path = new URL(entry.url).pathname;
+            const date = formatDateTime(entry.created_at);
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td class="visitor_cell col-lg-3">
+                    <button class="extend_log_detail" log-id="${entry.id}">&#9654;</button>
+                    <strong>${date}</strong>
+                </td>
+                <td class="visitor_cell col-lg-3 ip_address">
+                    <a href="https://ipinfo.io/${entry.client_ip}" target="_blank">
+                        <span title="${entry.client_ip}">${entry.client_ip}</span>
+                    </a>
+                    <button data-ip="${entry.client_ip}" class="copy-ip-btn">${getCopyIcon()}</button>
+                </td>
+                <td class="visitor_cell col-lg-3">${entry.bot_name}</td>
+                <td class="visitor_cell col-lg-3" title="${path}">${path}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById("itemRange").innerText = `${start + 1} - ${Math.min(end, data.length)} of ${data.length} items`;
+        document.getElementById("currentPage").innerText = page;
+        document.getElementById("totalPages").innerText = Math.ceil(data.length / perPage);
+    }
+
+    function setupPagination(data, currentPage, itemsPerPage) {
+        const totalPages = Math.ceil(data.length / itemsPerPage);
+
+        function renderPage(page) {
+            currentPage = page;
+            renderVisitorTableRows(data, currentPage, itemsPerPage);
+            updatePaginationButtons(currentPage, totalPages);
+        }
+
+        $('#firstPage').off().on('click', () => renderPage(1));
+        $('#prevPage').off().on('click', () => { if (currentPage > 1) renderPage(currentPage - 1); });
+        $('#nextPage').off().on('click', () => { if (currentPage < totalPages) renderPage(currentPage + 1); });
+        $('#lastPage').off().on('click', () => renderPage(totalPages));
+        $('#itemsPerPage').off().on('change', function () {
+            itemsPerPage = this.value === "max" ? data.length : parseInt(this.value);
+            currentPage = 1;
+            setupPagination(data, currentPage, itemsPerPage);
+            toggleTableScroll(itemsPerPage);
+        });
+
+        renderPage(currentPage);
+    }
+
+    function updatePaginationButtons(currentPage, totalPages) {
+        $('#firstPage, #prevPage').prop('disabled', currentPage <= 1);
+        $('#nextPage, #lastPage').prop('disabled', currentPage >= totalPages);
+    }
+
+    function toggleTableScroll(perPage) {
+        const wrapper = document.querySelector('.total_entrance_detail');
+        if (perPage > 10) {
+            wrapper.classList.add('scrolling');
+            wrapper.style.maxHeight = "400px";
+            wrapper.style.overflowY = "scroll";
+            wrapper.style.overflowX = "hidden";
+        } else {
+            wrapper.classList.remove('scrolling');
+            wrapper.style.maxHeight = "unset";
+            wrapper.style.overflowY = "unset";
+            wrapper.style.overflowX = "unset";
+        }
+    }
+
+    function formatDateTime(dateString) {
+        const date = new Date(dateString.replace(" ", "T"));
+        const options = {
+            weekday: 'long',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Ho_Chi_Minh'
+        };
+        return new Intl.DateTimeFormat('vi-VN', options).format(date);
+    }
+
+    function capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function getCopyIcon() {
+        return `<svg width="12px" height="12px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M6 11C6 8.17157 6 6.75736 6.87868 5.87868C7.75736 5 9.17157 5 12 5H15C17.8284 5 19.2426 5 20.1213 5.87868C21 6.75736 21 8.17157 21 11V16C21 18.8284 21 20.2426 20.1213 21.1213C19.2426 22 17.8284 22 15 22H12C9.17157 22 7.75736 22 6.87868 21.1213C6 20.2426 6 18.8284 6 16V11Z" stroke="#7d7d7d" stroke-width="1.5"></path> <path d="M6 19C4.34315 19 3 17.6569 3 16V10C3 6.22876 3 4.34315 4.17157 3.17157C5.34315 2 7.22876 2 11 2H15C16.6569 2 18 3.34315 18 5" stroke="#7d7d7d" stroke-width="1.5"></path> </g></svg>`;
+    }
+});
