@@ -1,0 +1,137 @@
+.auto-book-dialog {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+}
+
+.auto-book-dialog b {font-weight: 500;}
+.auto-book-dialog .npvalue {
+	border: none;
+	color: unset;
+	width: fit-content;
+	width: 120px;
+	min-height: unset;
+	text-align: right;
+	font-weight: unset;
+	padding-left: 5px;
+}
+
+.auto-book-dialog .dialog-box {
+	background: white;
+	padding: 20px;
+	border-radius: 8px;
+	width: 90%;
+	max-width: 650px;
+	max-height: 90%;
+	overflow-y: auto;
+	position: relative;
+}
+
+.auto-book-dialog .header {
+	font-size: 20px;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.auto-book-dialog .close-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background: #dcdcdd;
+	border: none;
+	border-radius: 50%;
+	width: 22px;
+	height: 22px;
+	cursor: pointer;
+	font-weight: bold;
+	text-align: center;
+	vertical-align: text-top;
+	padding: 0;
+	padding-bottom: 1px;
+	margin: 0;
+}
+
+.auto-book-dialog .section {
+	margin-top: 15px;
+}
+
+.auto-book-dialog .section-title {
+	font-size: 16px;
+	font-weight: bold;
+	color: var(--primary-color);
+	padding: 5px 0;
+}
+
+.auto-book-dialog .flight-info,
+.auto-book-dialog .passenger-info {
+	border-radius: 6px;
+	padding: 10px;
+	margin-bottom: 10px;
+}
+
+.auto-book-dialog .flight-info {
+	box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+	padding: 12px;
+}
+
+.auto-book-dialog .passenger-info {
+	border: 1px solid #ccc;
+}
+
+.auto-book-dialog .info-row {
+	margin: 4px 0;
+	margin-bottom: 8px;
+}
+
+.auto-book-dialog .fare-row {
+	display: flex;
+	gap: 8px;
+}
+
+.auto-book-dialog .fare-row .fare-column {
+	flex: 1;
+	border-radius: 6px;
+	border: 1px solid #ccc;
+	padding: 10px;
+}
+
+.auto-book-dialog .fare-row .fare-column .info-row {
+	display: flex;
+	gap: 2px;
+	justify-content: space-between;
+}
+
+.auto-book-dialog .dialog-footer {
+	display: flex;
+	justify-content: flex-end;
+	padding: 12px;
+	gap: 10px;
+	border-top: 1px solid #ccc;
+	margin-top: 20px;
+}
+
+.auto-book-dialog .dialog-btn {
+	padding: 8px 16px;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.auto-book-dialog .confirm-btn {
+	background-color: #007bff;
+	color: white;
+}
+
+.auto-book-dialog .cancel-btn {
+	background-color: #ccc;
+	color: black;
+}
