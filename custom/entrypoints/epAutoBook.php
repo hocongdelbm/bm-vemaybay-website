@@ -3,13 +3,14 @@ try {
     require_once("modules/EC_Flight_Bookings/PhuongNamAPI.php");
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        global $db, $current_user; 
-        $action = isset($_POST['action']) ? $_POST['action'] : "";
+        global $db, $current_user;
+        $requestData = json_decode(file_get_contents('php://input'), true) ?? [];
+        $action = isset($requestData['action']) ? $requestData['action'] : "";
 
         if($action == 'get_info_to_auto_book') {
-            $booking_id = $_POST['booking_id'] ?? '';
-            $list_journey_id = $_POST['list_journey_id'] ?? [];
-            $list_passenger_id = $_POST['list_passenger_id'] ?? [];
+            $booking_id = $requestData['booking_id'] ?? '';
+            $list_journey_id = $requestData['list_journey_id'] ?? [];
+            $list_passenger_id = $requestData['list_passenger_id'] ?? [];
             $arrMapAirlineCode = ['VJA' => 'VJ', 'VNA' => 'VN', 'VNP' => 'VN', 'BBA' => 'QH', 'VTA' => 'VU'];
 
             if(!empty($booking_id) && !empty($list_journey_id) && !empty($list_passenger_id)) {
@@ -160,55 +161,112 @@ try {
             exit();
         }
         elseif($action == 'research') {
-            $requestData    = json_decode(file_get_contents('php://input'), true) ?? [];
-            $airlineCode    =  $requestData['airlineCode'] ?? '';
-            $depCode        =  $requestData['depCode'] ?? '';
-            $desCode        =  $requestData['desCode'] ?? '';
-            $flightDate     =  $requestData['flightDate'] ?? '';
-            $ticketClass    =  $requestData['ticketClass'] ?? '';
-            $adt            =  $requestData['adt'] ?? 1;
-            $chd            =  $requestData['chd'] ?? 0;
-            $inf            =  $requestData['inf'] ?? 0;
-            $cabin          = detectCabin($airlineCode, $ticketClass); // Detect cabin from ticket class
-            
             $phuongnamapi = new PhuongNamAPI();
-            $json = $phuongnamapi->searchFlights($airlineCode, $depCode, $desCode, $flightDate, '', $adt, $chd, $inf, $cabin);
+
+            $requestData    = json_decode(file_get_contents('php://input'), true) ?? [];
+            $airlineCode    = $requestData['airlineCode'] ?? '';
+            $depCode        = $requestData['depCode'] ?? '';
+            $desCode        = $requestData['desCode'] ?? '';
+            $flightDate     = $requestData['flightDate'] ?? ''; // d-m-Y H:i
+            $ticketClass    = $requestData['ticketClass'] ?? '';
+            $flightNo       = $requestData['flightNo'] ?? '';
+            $adt            = $requestData['adt'] ?? 1;
+            $chd            = $requestData['chd'] ?? 0;
+            $inf            = $requestData['inf'] ?? 0;
+            $adtPrice       = $requestData['adtPrice'] ?? 0;
+            $chdPrice       = $requestData['chdPrice'] ?? 0;
+            $infPrice       = $requestData['infPrice'] ?? 0;
+            $cabin          = $phuongnamapi->detectCabin($airlineCode, $ticketClass); // Detect cabin from ticket class
+            
+            $json = $phuongnamapi->searchFlights($airlineCode, $depCode, $desCode, date('Y-m-d', strtotime($flightDate)), '', $adt, $chd, $inf, $cabin);
             $arr = json_decode($json, true);
 
             // Recheck data
             if(isset($arr['error']) && $arr['error'] == 0) {
                 $fareSumAmount = 0;
 
+                $result = [];
                 $flights = $arr['data']['dep'] ?? [];
                 foreach($flights as $f) {
-                    $f['flightNo'];
-                    $f['flightNo'];
-                    $f['flightNo'];
-                    $f['flightNo'];
+                    if($f['flightNo'] != $flightNo) continue;
 
-                    $fareSumAmount += $f["adtTotalAmount"];
-                    if($chd > 0) $fareSumAmount += $f["chdTotalAmount"];
-                    if($inf > 0) $fareSumAmount += $f["infTotalAmount"];
+                    // Standard data for automatic booking in the next step
+                    $standardData = [
+                        "SystemCode" => $f['airlineCode'],
+                        "TransactionId" => $f['transactionID'] ?? '',
+                        "FlightNumber" => preg_replace('/\D/', '', $flightNo),
+                        "FarePricings" => [
+                            [
+                                "FareBasis" => $f['fareClass'],
+                                "PassengerTypeId" => 1,
+                                "FareSumAmount" => $f["adtPrice"] * $adt
+                            ]
+                        ],
+                    ];
+                    if($chd > 0) {
+                        $standardData["FarePricings"][] = [
+                            "FareBasis" => $f['fareClass'],
+                            "PassengerTypeId" => 6,
+                            "FareSumAmount" => $f["chdPrice"] * $chd
+                        ];
+                    }
+                    if($inf > 0) {
+                        $standardData["FarePricings"][] = [
+                            "FareBasis" => $f['fareClass'],
+                            "PassengerTypeId" => 5,
+                            "FareSumAmount" => $f["infPrice"] * $inf
+                        ];
+                    }
 
-                    // $f["adtFare"];
-                    // $f["adtTax"];
-                    // $f["adtFee"];
-                    // $f["adtPrice"];
-                    // $f["adtTotalAmount"];
-                    // $f["chdFare"];
-                    // $f["chdFee"];
-                    // $f["chdTax"];
-                    // $f["chdPrice"];
-                    // $f["chdTotalAmount"];
-                    // $f["infFare"];
-                    // $f["infFee"];
-                    // $f["infTax"];
-                    // $f["infPrice"];
-                    // $f["infTotalAmount"];
+                    // Data needs to be updated in BM
+                    $updateData = [];
+                    if(date('Y-m-d H:i', strtotime($flightDate)) == ($f['depDate'] . ' ' .$f['depTime'])) {
+                        $updateData['flightDate'] = $f['depDate'] . ' ' . $f['depTime'];
+                    }
+                    if(isset($f["adtPrice"]) && $f["adtPrice"] != $adtPrice) {
+                        $updateData['adtFare'] = [
+                            "adtFare"   => $f["adtFare"],
+                            "adtTax"    => $f["adtTax"],
+                            "adtFee"    => $f["adtFee"],
+                            "adtPrice"  => $f["adtPrice"]
+                        ];
+                    }
+                    if($chd > 0 && isset($f["chdPrice"]) && $f["chdPrice"] != $chdPrice) {
+                        $updateData['chdFare'] = [
+                            "chdFare"   => $f["chdFare"],
+                            "chdTax"    => $f["chdTax"],
+                            "chdFee"    => $f["chdFee"],
+                            "chdPrice"  => $f["chdPrice"]
+                        ];
+                    }
+                    if($inf > 0 && isset($f["infPrice"]) && $infPrice != $f["infPrice"]) {
+                        $updateData['infFare'] = [
+                            "infFare"   => $f["infFare"],
+                            "infTax"    => $f["infTax"],
+                            "infFee"    => $f["infFee"],
+                            "infPrice"  => $f["infPrice"]
+                        ];
+                    }
+
+                    echo json_encode([
+                        "status" => empty($updateData) ? 1 : 0,
+                        "message" => empty($updateData) ? "Matched information" : "Unmatched information",
+                        "data" => [
+                            "standardData" => $standardData,
+                            "updateData" => $updateData
+                        ]
+                    ]);
+                    exit();
                 }
+                echo json_encode([
+                    "status" => -1,
+                    "message" => "Không tìm thấy chuyến bay tương ứng",
+                    "data" => $flights
+                ]);
+                exit();
             }
             else {
-                echo json_encode(["status" => 0, "message" => "Đối sánh thông tin chuyến bay thất bại", "description" => $arr['message'] ?? '']);
+                echo json_encode(["status" => 0, "message" => "Đối sánh thông tin chuyến bay thất bại", "data" => $arr]);
                 exit();
             }
         }
@@ -225,45 +283,4 @@ catch(Throwable $th) {
     http_response_code(500);
     echo json_encode(["status" => 0, "message" => "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}"]);
     exit();
-}
-
-function detectCabin($airlineCode, $ticketClass) {
-    if($airlineCode == 'VJ') {
-        // M: Phổ thông
-        // W: Phổ thông đặc biệt (Deluxe, Skyboss)
-        // C: thương gia: Business
-        $cMatches = ['boss', 'bus'];
-        $wMatches = ['dlx', 'deluxe', 'sboss', 'sky'];
-        foreach ($wMatches as $w) if (stripos($ticketClass, $w) !== false) return 'W';
-        foreach ($cMatches as $c) if (stripos($ticketClass, $c) !== false) return 'C';
-        return 'M';
-    }
-    elseif($airlineCode == 'VN') {
-        // M: Phổ thông
-        // W: Phổ thông đặc biệt
-        // C: Thương gia
-        // F: Hạng nhất
-        $last_character = substr($ticketClass, -1);
-        if(in_array($last_character, ['J','C','D', 'I'])) return 'C';
-        elseif(in_array($last_character, ['W','Z','U'])) return 'W';
-        elseif(in_array($last_character, ['B','M','S','H','K','L','Q','N','R','T','E','P','A','G'])) return 'M';
-        else return 'M';
-    }
-    elseif($airlineCode == 'QH') {
-        // M: Phổ thông (Economy Smart, Economy Saver, Hot Deal)
-        // W: Phổ thông đặc biệt (Economy Flex)
-        // C: thương gia (Business Smart, Business Flex)
-        $cMatches = ['buz', 'bus'];
-        $wMatches = ['flex'];
-        foreach ($cMatches as $c) if (stripos($ticketClass, $c) !== false) return 'C';
-        foreach ($wMatches as $w) if (stripos($ticketClass, $w) !== false) return 'W';
-        return 'M';
-    }
-    elseif($airlineCode == 'VU') {
-        // M: Phổ thông (Economy Saver, Economy Flex)
-        // W: Phổ thông đặc biệt (Economy Premium)
-        $wMatches = ['pre'];
-        foreach ($wMatches as $w) if (stripos($ticketClass, $w) !== false) return 'W';
-        return 'M';
-    }
 }

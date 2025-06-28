@@ -21,12 +21,13 @@ $(document).ready(function () {
             $.ajax({
                 url: ENDPOINT_AUTO_BOOK,
                 type: "POST",
-                data: {
+                contentType: "application/json", 
+                data: JSON.stringify({
                     action: "get_info_to_auto_book",
                     booking_id: booking_id,
                     list_journey_id: list_journey_id,
                     list_passenger_id: list_passenger_id
-                },
+                }),
                 beforeSend: function () {
                     $('.container-waiting').show();
                 },
@@ -43,6 +44,7 @@ $(document).ready(function () {
                         }
                     }
                     catch (e) {
+                        showToastNotify("error", "Lỗi trong quá trình xử lý");
                         console.error("JSON parse error:", e);
                         console.error("Response was:", response);
                     }
@@ -60,28 +62,70 @@ $(document).ready(function () {
         else if(!list_passenger_id.length) showToastNotify("warning", "Vui lòng chọn hành khách");
     });
 
-    $(document).on("click", "#confirmAutoBook", function() {
-        var airlineCodes = $('input[name="airlineCode[]"]').map((i, el) => el.value).get();
-        var depCodes = $('input[name="depCode[]"]').map((i, el) => el.value).get();
-        var desCodes = $('input[name="desCode[]"]').map((i, el) => el.value).get();
-        var flightDate = $('input[name="flightDate[]"]').map((i, el) => el.value).get();
-        var ticketClass = $('input[name="ticketClass[]"]').map((i, el) => el.value).get();
-        var adt = $('input[name="adt[]"]').map((i, el) => el.value).get();
-        var chd = $('input[name="chd[]"]').map((i, el) => el.value).get();
-        var inf = $('input[name="inf[]"]').map((i, el) => el.value).get();
+    // STEP 1: Researching flights info
+    $(document).on("click", "#confirmAutoBook", async function() {
+        try {
+            var airlineCodes = $('input[name="airlineCode[]"]').map((i, el) => el.value).get();
+            var depCodes = $('input[name="depCode[]"]').map((i, el) => el.value).get();
+            var desCodes = $('input[name="desCode[]"]').map((i, el) => el.value).get();
+            var flightDate = $('input[name="flightDate[]"]').map((i, el) => el.value).get();
+            var ticketClass = $('input[name="ticketClass[]"]').map((i, el) => el.value).get();
+            var flightNo = $('input[name="flightNo[]"]').map((i, el) => el.value).get();
+            var adt = $('input[name="adt[]"]').map((i, el) => el.value).get();
+            var chd = $('input[name="chd[]"]').map((i, el) => el.value).get();
+            var inf = $('input[name="inf[]"]').map((i, el) => el.value).get();
+            var adtPrice = $('input[name="adtPrice[]"]').map((i, el) => el.value).get();
+            var chdPrice = $('input[name="chdPrice[]"]').map((i, el) => el.value).get();
+            var infPrice = $('input[name="infPrice[]"]').map((i, el) => el.value).get();
 
-        var searchInfo = airlineCodes.map((_, i) => ({
-            airlineCode: airlineCodes[i],
-            depCode: depCodes[i],
-            desCode: desCodes[i],
-            flightDate: flightDate[i],
-            ticketClass: ticketClass[i],
-            adt: adt[i],
-            chd: chd[i],
-            inf: inf[i]
-        }));
+            var searchInfo = airlineCodes.map((_, i) => ({
+                action: 'research', // Add action to call entrypoint
+                airlineCode: airlineCodes[i],
+                depCode: depCodes[i],
+                desCode: desCodes[i],
+                flightDate: flightDate[i],
+                ticketClass: ticketClass[i],
+                flightNo: flightNo[i],
+                adt: adt[i],
+                chd: chd[i],
+                inf: inf[i],
+                adtPrice: adtPrice[i],
+                chdPrice: chdPrice[i],
+                infPrice: infPrice[i]
+            }));
 
-        console.log(searchInfo);
+            showStepsInDialogAutoBook(1, 'Thông tin lượt đi');
+            const response1 = await $.ajax({
+                url: ENDPOINT_AUTO_BOOK,
+                method: 'POST',
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify(searchInfo[0])
+            });
+            if(response1.status == -1) {
+                showStepsInDialogAutoBook(1, 'Thông tin lượt đi', response1.message);
+                return;
+            }
+            else if(response1.status == 0) {
+                showStepsInDialogAutoBook(1, 'Thông tin lượt đi', 'Cần cập nhật lại dữ liệu');
+                return;
+            }
+
+
+            // Second, research inbound if available
+            showStepsInDialogAutoBook(1, 'Thông tin lượt về');
+            const response2 = await $.ajax({
+                url: ENDPOINT_AUTO_BOOK,
+                method: 'POST',
+                contentType: "application/json",
+                dataType: "json",  
+                data: JSON.stringify(searchInfo[1])
+            });
+            console.log('Second response:', response2);
+        }
+        catch (error) {
+            console.error('Error during AJAX calls:', error);
+        }
     });
 });
 
@@ -108,6 +152,7 @@ function showDiaglogAutoBook(bookingData) {
 
     const content = document.createElement('div');
 
+
     // Render Flight + Fare Section
     const { dep, ret } = bookingData.journeys;
     const depFare = bookingData.fareDetails.dep;
@@ -129,6 +174,8 @@ function showDiaglogAutoBook(bookingData) {
 
             return `<div class="fare-column">
                 <input type="hidden" name="${passengerTextTypes[type]}[]" value="${fare.qty}" readonly />
+                <input type="hidden" name="${passengerTextTypes[type]}Price[]" value="${fare.price}" readonly />
+
                 <div class="info-row"><b>${passengerTypes[type]}</b></div>
                 <div class="info-row">Giá vé: <b>${fare.fareFormat}</b></div>
                 <div class="info-row">Thuế (VAT): <b>${fare.taxFormat}</b></div>
@@ -157,6 +204,7 @@ function showDiaglogAutoBook(bookingData) {
             <input type="hidden" name="desCode[]" value="${flight.desCode}" readonly />
             <input type="hidden" name="flightDate[]" value="${flight.flightDate}" readonly />
             <input type="hidden" name="ticketClass[]" value="${flight.ticketClass}" readonly />
+            <input type="hidden" name="flightNo[]" value="${flight.flightNo}" readonly />
 
             <div class="section-title">${title}<span class="airline ms-3">(${flight.airlineCode})</span></div>
             <div class="info-row d-flex justify-content-between">
@@ -178,19 +226,25 @@ function showDiaglogAutoBook(bookingData) {
     if (dep) content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
     if (ret) content.innerHTML += renderFlightWithFare(ret, retFare, 'ret');
 
+
     // Passengers
     const passengersHTML = Object.values(bookingData.passengers).map(p => `
         <div class="passenger-info">
-            <div class="info-row">Họ tên: <b>${p.salutation}. ${p.name}</b></div>
-            <div class="info-row">Loại: <b>${passengerTypes[p.type]}</b></div>
-            <div class="info-row">Ngày sinh: <b>${p.birthday}</b></div>
-            <div class="info-row">CCCD/Passport: <b>${p.passportNumber || p.cic}</b></div>
+            <div class="info-row d-flex justify-content-between">
+                <div><b>${p.salutation}. ${p.name}</b></div>
+                <div><b>${passengerTypes[p.type]}</b></div>
+            </div>
+            <div class="info-row d-flex justify-content-between">
+                <div>CCCD/Passport: <b>${p.passportNumber || p.cic}</b></div>
+                <div>Ngày sinh: <b>${p.birthday}</b></div>
+            </div>
         </div>
     `).join('');
     content.innerHTML += `<div class="section">
         <div class="section-title">Thông tin hành khách</div>
         ${passengersHTML}
     </div>`;
+
 
     // Contact
     const contactInfo = bookingData.contact;
@@ -201,6 +255,7 @@ function showDiaglogAutoBook(bookingData) {
         <div class="info-row">Email: <b>${contactInfo.email || ''}</b></div>
     </div>`;
     content.innerHTML += contactHTML;
+
 
     // Footer
     const footer = document.createElement('div');
@@ -220,11 +275,78 @@ function showDiaglogAutoBook(bookingData) {
     // Add both buttons to footer
     footer.appendChild(confirmBtn);
     footer.appendChild(cancelBtn);
+    
+
+    // Loading
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+
 
     autoBookForm.appendChild(closeBtn);
     autoBookForm.appendChild(header);
     autoBookForm.appendChild(content);
     autoBookForm.appendChild(footer);
+    autoBookForm.appendChild(loadingOverlay);
     dialog.appendChild(autoBookForm);
     document.body.appendChild(dialog);
+}
+
+function showStepsInDialogAutoBook(current_step = 1, current_caption = '', current_error = '') {
+    // Show overlay
+    const dialogForm = $('#autoBookForm');
+    const dialogOverlay = dialogForm.find('.loading-overlay');
+    dialogOverlay.css('height', dialogForm[0].scrollHeight + 'px').addClass('active');
+
+    let icon_finished = `<svg width="22px" height="22px" viewBox="0 0 16 16" stroke="#fff" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><polyline points="2.75 8.75,6.25 12.25,13.25 4.75"></polyline></g></svg>`;
+    let steps = {
+        1: {
+            title: "Đối sánh thông tin chuyến bay",
+            caption: "",
+            error: ""
+        },
+        2: {
+            title: "Xác thực thông tin",
+            caption: "Quá trình xác thực với NCC",
+            error: ""
+        },
+        3: {
+            title: "Tiến hành đặt chỗ trên hãng",
+            caption: "Sẽ xuất vé nếu là vé cận",
+            error: ""
+        },
+    };
+
+    let stepsHTML = '';
+    $.each(steps, function(stepNum, stepData) {
+        let stepClass = '';
+        if(stepNum == current_step) stepClass = 'step-active';
+        else if(stepNum < current_step) stepClass = 'step-finished';
+
+        let caption = '', error = '', loaderHTML = '';
+        if(stepNum == current_step) {
+            caption = current_caption && current_caption.length > 0 ? current_caption : stepData.caption;
+            error = current_error && current_error.length > 0 ? current_error : stepData.error;
+            if(error.length == 0) loaderHTML = '<div class="loader-step"></div>';
+        }
+        else {
+            caption = stepData.caption;
+        }
+
+        stepsHTML += `<div class="step ${stepClass}">
+            <div>
+                <div class="circle">${stepNum < current_step ? icon_finished : stepNum}</div>
+            </div>
+            <div>
+                <div class="title">${stepData.title}</div>
+                <div class="caption">${caption}</div>
+                <div class="error">${error}</div>
+            </div>
+            ${loaderHTML}
+        </div>`;
+    });
+
+    let content = `<div class="loading-content">${stepsHTML}</div>`;
+
+    dialogOverlay.html(content);
+    dialogOverlay.addClass('active');
 }
