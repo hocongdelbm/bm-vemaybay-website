@@ -1,4 +1,5 @@
 const ENDPOINT_AUTO_BOOK = "index.php?entryPoint=entryPointAutoBook";
+var statusAutoBook = 1;
 
 $(document).ready(function () {
     let booking_id = $(`#formDetailView input[name="record"]`).val();
@@ -62,6 +63,18 @@ $(document).ready(function () {
         else if(!list_passenger_id.length) showToastNotify("warning", "Vui lòng chọn hành khách");
     });
 
+    $(document).on("click", "#cancelAutoBook", function() {
+        if(statusAutoBook == 1) {
+            statusAutoBook = 0;
+            $(this).html("Đóng");
+        }
+        else if(statusAutoBook == 0) {
+            statusAutoBook = 1;
+            $('#autoBookDialog .loading-overlay').html('');
+            $('#autoBookDialog .loading-overlay').removeClass('active');
+        }
+    });
+
     // STEP 1: Researching flights info
     $(document).on("click", "#confirmAutoBook", async function() {
         try {
@@ -94,34 +107,48 @@ $(document).ready(function () {
                 infPrice: infPrice[i]
             }));
 
-            showStepsInDialogAutoBook(1, 'Thông tin lượt đi');
-            const response1 = await $.ajax({
-                url: ENDPOINT_AUTO_BOOK,
-                method: 'POST',
-                contentType: "application/json",
-                dataType: "json",
-                data: JSON.stringify(searchInfo[0])
-            });
-            if(response1.status == -1) {
-                showStepsInDialogAutoBook(1, 'Thông tin lượt đi', response1.message);
-                return;
-            }
-            else if(response1.status == 0) {
-                showStepsInDialogAutoBook(1, 'Thông tin lượt đi', 'Cần cập nhật lại dữ liệu');
-                return;
+            if(statusAutoBook == 1) {
+                let iti0 = `Hành trình ${searchInfo[0]['depCode']} đi ${searchInfo[0]['desCode']}`;
+                showStepsInDialogAutoBook(1, iti0);
+                const response1 = await $.ajax({
+                    url: ENDPOINT_AUTO_BOOK,
+                    method: 'POST',
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: JSON.stringify(searchInfo[0])
+                });
+                if(response1.status == -1) {
+                    showStepsInDialogAutoBook(1, iti0, response1.message);
+                    return;
+                }
+                else if(response1.status == 0) {
+                    showStepsInDialogAutoBook(1, iti0, 'Cần cập nhật lại dữ liệu');
+                    showUpdateFlightData(searchInfo[0]['depCode'], searchInfo[0]['desCode'], searchInfo[0]['adt'], searchInfo[0]['chd'], searchInfo[0]['inf'], response1.data.updateData ?? {});
+                    return;
+                }
             }
 
-
-            // Second, research inbound if available
-            showStepsInDialogAutoBook(1, 'Thông tin lượt về');
-            const response2 = await $.ajax({
-                url: ENDPOINT_AUTO_BOOK,
-                method: 'POST',
-                contentType: "application/json",
-                dataType: "json",  
-                data: JSON.stringify(searchInfo[1])
-            });
-            console.log('Second response:', response2);
+            // Research inbound if available
+            if(statusAutoBook == 1 && searchInfo[1] !== undefined) {
+                let iti0 = `Hành trình ${searchInfo[0]['depCode']} đi ${searchInfo[0]['desCode']} <b style="color:#4285f4">OK</b></br>`;
+                let iti1 = `${iti0}Hành trình ${searchInfo[1]['depCode']} đi ${searchInfo[1]['desCode']}`;
+                showStepsInDialogAutoBook(1, iti1);
+                const response2 = await $.ajax({
+                    url: ENDPOINT_AUTO_BOOK,
+                    method: 'POST',
+                    contentType: "application/json",
+                    dataType: "json",  
+                    data: JSON.stringify(searchInfo[1])
+                });
+                if(response2.status == -1) {
+                    showStepsInDialogAutoBook(1, iti1, response2.message);
+                    return;
+                }
+                else if(response2.status == 0) {
+                    showStepsInDialogAutoBook(1, iti1, 'Cần cập nhật lại dữ liệu');
+                    return;
+                }
+            }
         }
         catch (error) {
             console.error('Error during AJAX calls:', error);
@@ -133,13 +160,13 @@ function showDiaglogAutoBook(bookingData) {
     const existingDialog = document.getElementById('autoBookDialog');
     if (existingDialog) existingDialog.remove(); // Prevent multiple dialogs
 
-    const dialog = document.createElement('div');
+    const dialog = document.createElement('dialog');
     dialog.className = 'auto-book-dialog';
     dialog.id = 'autoBookDialog';
 
     const autoBookForm = document.createElement('form');
     autoBookForm.id = 'autoBookForm';
-    autoBookForm.className = 'dialog-box';
+    autoBookForm.className = 'dialog-form';
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
@@ -175,28 +202,45 @@ function showDiaglogAutoBook(bookingData) {
             return `<div class="fare-column">
                 <input type="hidden" name="${passengerTextTypes[type]}[]" value="${fare.qty}" readonly />
                 <input type="hidden" name="${passengerTextTypes[type]}Price[]" value="${fare.price}" readonly />
+                <input type="hidden" id="${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}" value="${fare.fare}" readonly />
+                <input type="hidden" id="${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}" value="${fare.tax}" readonly />
+                <input type="hidden" id="${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}" value="${fare.fee}" readonly />
+                <input type="hidden" id="${passengerTextTypes[type]}Price${flight.depCode}${flight.desCode}" value="${fare.price}" readonly />
 
-                <div class="info-row"><b>${passengerTypes[type]}</b></div>
-                <div class="info-row">Giá vé: <b>${fare.fareFormat}</b></div>
-                <div class="info-row">Thuế (VAT): <b>${fare.taxFormat}</b></div>
-                <div class="info-row">Phí: <b>${fare.feeFormat}</b></div>
-                <div class="info-row">Tổng mua: <b style="color:red">${fare.priceFormat}</b></div>
+                <div class="info-row"><b>${passengerTypes[type]} x1</b></div>
+                <div class="info-row">
+                    <div class="lbl">Giá vé:</div>
+                    <div class="value" id="${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}Display">
+                        <span class="old-value"></span>
+                        <span class="cur-value">${fare.fareFormat}</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="lbl">Thuế (VAT):</div>
+                    <div class="value" id="${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}Display">
+                        <span class="old-value"></span>
+                        <span class="cur-value">${fare.taxFormat}</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="lbl">Phí:</div>
+                    <div class="value" id="${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}Display">
+                        <span class="old-value"></span>
+                        <span class="cur-value">${fare.feeFormat}</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="lbl">Tổng mua:</div>
+                    <div class="value" id="${passengerTextTypes[type]}Price${flight.depCode}${flight.desCode}Display">
+                        <b class="old-value"></b>
+                        <b class="cur-value">${fare.priceFormat}</b>
+                    </div>
+                </div>
             </div>`;
         }).join('');
 
         // Only display the fare section if there is at least one fare column
         if (!fareColumns) return '';
-
-        function formatNumber(number) {
-            sep = num_grp_sep;
-            dec = dec_sep;
-            const parts = number.toString().split('.');
-            const integerPart = parts[0];
-            const decimalPart = parts[1] || '';
-
-            const formattedInt = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
-            return decimalPart ? `${formattedInt}${dec}${decimalPart}` : formattedInt;
-        }
 
         return `<div class="flight-info">
             <input type="hidden" name="airlineCode[]" value="${flight.airlineCode}" readonly />
@@ -219,8 +263,13 @@ function showDiaglogAutoBook(bookingData) {
             <div class="fare-row">${fareColumns}</div>
             <div class="d-flex justify-content-end align-items-center mt-2">
                 <label style="font-size:15px">Tổng mua ${label}: </label>
-                <b style="color:red !important; font-size:15px"><input type="text" value="${formatNumber(totalAmount)} VND" class="npvalue" readonly /></b>
+                <b style="color:red !important; font-size:15px">
+                    <input type="text" value="${formatNumber(totalAmount)} VND" id="totalAmount${flight.depCode}${flight.desCode}" class="npvalue" readonly />
+                </b>
             </div>
+            <center class="mt-3">
+                <button type="button" id="btnUpdate${flight.depCode}${flight.desCode}" class="btn btn-warning" style="display:none">Cập nhật</button>
+            </center>
         </div>`;
     }
     if (dep) content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
@@ -286,16 +335,23 @@ function showDiaglogAutoBook(bookingData) {
     autoBookForm.appendChild(header);
     autoBookForm.appendChild(content);
     autoBookForm.appendChild(footer);
-    autoBookForm.appendChild(loadingOverlay);
-    dialog.appendChild(autoBookForm);
+    // autoBookForm.appendChild(loadingOverlay);
+    
+    // Create the wrapper div
+    const formWrapper = document.createElement('div');
+    formWrapper.classList.add('form-wrapper');
+    formWrapper.appendChild(autoBookForm);
+    formWrapper.appendChild(loadingOverlay);
+
+    dialog.appendChild(formWrapper);
     document.body.appendChild(dialog);
 }
 
 function showStepsInDialogAutoBook(current_step = 1, current_caption = '', current_error = '') {
     // Show overlay
-    const dialogForm = $('#autoBookForm');
-    const dialogOverlay = dialogForm.find('.loading-overlay');
-    dialogOverlay.css('height', dialogForm[0].scrollHeight + 'px').addClass('active');
+    const dialog = $('#autoBookDialog');
+    const dialogOverlay = dialog.find('.loading-overlay');
+    // dialogOverlay.css('height', dialog[0].scrollHeight + 'px').addClass('active');
 
     let icon_finished = `<svg width="22px" height="22px" viewBox="0 0 16 16" stroke="#fff" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><polyline points="2.75 8.75,6.25 12.25,13.25 4.75"></polyline></g></svg>`;
     let steps = {
@@ -321,12 +377,14 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         let stepClass = '';
         if(stepNum == current_step) stepClass = 'step-active';
         else if(stepNum < current_step) stepClass = 'step-finished';
+        stepClass += (stepNum == Object.keys(steps).length) ? ' last-step' : '';
 
         let caption = '', error = '', loaderHTML = '';
         if(stepNum == current_step) {
             caption = current_caption && current_caption.length > 0 ? current_caption : stepData.caption;
             error = current_error && current_error.length > 0 ? current_error : stepData.error;
-            if(error.length == 0) loaderHTML = '<div class="loader-step"></div>';
+            if(error.length == 0) loaderHTML = '<div><div class="loader-step"></div></div>';
+            else error = `&#128712; ` + error;
         }
         else {
             caption = stepData.caption;
@@ -345,8 +403,76 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         </div>`;
     });
 
-    let content = `<div class="loading-content">${stepsHTML}</div>`;
-
+    let content = `<div class="loading-content">
+        ${stepsHTML}
+        <div class="buttons">
+            <button type="button" id="cancelAutoBook" class="btn btn-secondary">Hủy</button>
+        </div>
+    </div>`;
     dialogOverlay.html(content);
     dialogOverlay.addClass('active');
+}
+
+function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, updateData) {
+    let updateTotalAmount = 0;
+    const passengerTypes = [
+        { type: 'adt', count: adtCount },
+        { type: 'chd', count: chdCount },
+        { type: 'inf', count: infCount }
+    ];
+    passengerTypes.forEach(({ type, count }) => {
+        const fareKey = `${type}Fare`;
+        const fareData = updateData[fareKey];
+
+        if (fareData) {
+            for (let key in fareData) {
+                const capKey = key.charAt(0).toUpperCase() + key.slice(1);
+                const newValue = fareData[key];
+                const inputId = `input#${type}${capKey}${depCode}${desCode}`;
+                const displayPrefix = `#${type}${capKey}${depCode}${desCode}Display`;
+                const oldValue = $(inputId).val();
+
+                if (newValue != oldValue) {
+                    $(`${displayPrefix} .cur-value`).text(formatNumber(newValue));
+                    $(`${displayPrefix} .old-value`).text(formatNumber(oldValue));
+                }
+
+                if (key === 'price') {
+                    updateTotalAmount += newValue * count;
+                }
+            }
+        }
+    });
+    $(`input#totalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
+    $(`#btnUpdate${flight.depCode}${flight.desCode}`).show();
+
+    // Update datetime
+    
+}
+
+function formatNumber(number) {
+    sep = num_grp_sep;
+    dec = dec_sep;
+    const parts = number.toString().split('.');
+    const integerPart = parts[0];
+    const decimalPart = parts[1] || '';
+
+    const formattedInt = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+    return decimalPart ? `${formattedInt}${dec}${decimalPart}` : formattedInt;
+}
+
+function unformatNumber(formattedStr) {
+    const sep = num_grp_sep;
+    const dec = dec_sep;
+
+    // Escape group separator if needed (e.g., dot)
+    const escapedSep = sep.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedDec = dec.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Remove group separator, replace decimal with dot
+    const cleaned = formattedStr
+        .replace(new RegExp(escapedSep, 'g'), '')
+        .replace(new RegExp(escapedDec), '.');
+
+    return parseFloat(cleaned);
 }

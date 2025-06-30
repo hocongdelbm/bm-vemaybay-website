@@ -91,9 +91,9 @@ try {
                         'type' => $row['type'], // 0:Adt ; 1:Chd ; 2:Inf
                         'salutation' => $row['salutation'] == 0 ? 'Mr' : 'Ms', // 0:Mr ; 1:Ms
                         'name'=> $row['name'],
-                        'birthday' => date('d-m-Y', strtotime($row['birthday'])),
-                        'cic' => $row['cic'],
-                        'passportNumber' => $row['passport_number']
+                        'birthday' => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
+                        'cic' => $row['cic'] ?? '',
+                        'passportNumber' => $row['passport_number'] ?? ''
                     ];
                 }
                 if(empty($dataPassengers)) $dataPassengers = $sql_2;
@@ -121,10 +121,10 @@ try {
                         'fee'   => $row['fee'],
                         'price' => $row['fare'] + $row['tax'] + $row['fee'],
                         'qty'   => $row['quantity'],
-                        'fareFormat'  => format_number($row['fare']) . " VND",
-                        'taxFormat'   => format_number($row['tax']) . " VND",
-                        'feeFormat'   => format_number($row['fee']) . " VND",
-                        'priceFormat' => format_number($row['fare'] + $row['tax'] + $row['fee']) . " VND",
+                        'fareFormat'  => format_number($row['fare']),
+                        'taxFormat'   => format_number($row['tax']),
+                        'feeFormat'   => format_number($row['fee']),
+                        'priceFormat' => format_number($row['fare'] + $row['tax'] + $row['fee']),
                     ];
                 }
 
@@ -170,9 +170,9 @@ try {
             $flightDate     = $requestData['flightDate'] ?? ''; // d-m-Y H:i
             $ticketClass    = $requestData['ticketClass'] ?? '';
             $flightNo       = $requestData['flightNo'] ?? '';
-            $adt            = $requestData['adt'] ?? 1;
-            $chd            = $requestData['chd'] ?? 0;
-            $inf            = $requestData['inf'] ?? 0;
+            $adt            = (int)($requestData['adt'] ?? 1);
+            $chd            = (int)($requestData['chd'] ?? 0);
+            $inf            = (int)($requestData['inf'] ?? 0);
             $adtPrice       = $requestData['adtPrice'] ?? 0;
             $chdPrice       = $requestData['chdPrice'] ?? 0;
             $infPrice       = $requestData['infPrice'] ?? 0;
@@ -220,31 +220,31 @@ try {
 
                     // Data needs to be updated in BM
                     $updateData = [];
-                    if(date('Y-m-d H:i', strtotime($flightDate)) == ($f['depDate'] . ' ' .$f['depTime'])) {
+                    if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
                         $updateData['flightDate'] = $f['depDate'] . ' ' . $f['depTime'];
                     }
                     if(isset($f["adtPrice"]) && $f["adtPrice"] != $adtPrice) {
                         $updateData['adtFare'] = [
-                            "adtFare"   => $f["adtFare"],
-                            "adtTax"    => $f["adtTax"],
-                            "adtFee"    => $f["adtFee"],
-                            "adtPrice"  => $f["adtPrice"]
+                            "fare"   => $f["adtFare"],
+                            "tax"    => $f["adtTax"],
+                            "fee"    => $f["adtFee"],
+                            "price"  => $f["adtPrice"]
                         ];
                     }
                     if($chd > 0 && isset($f["chdPrice"]) && $f["chdPrice"] != $chdPrice) {
                         $updateData['chdFare'] = [
-                            "chdFare"   => $f["chdFare"],
-                            "chdTax"    => $f["chdTax"],
-                            "chdFee"    => $f["chdFee"],
-                            "chdPrice"  => $f["chdPrice"]
+                            "fare"   => $f["chdFare"],
+                            "tax"    => $f["chdTax"],
+                            "fee"    => $f["chdFee"],
+                            "price"  => $f["chdPrice"]
                         ];
                     }
                     if($inf > 0 && isset($f["infPrice"]) && $infPrice != $f["infPrice"]) {
                         $updateData['infFare'] = [
-                            "infFare"   => $f["infFare"],
-                            "infTax"    => $f["infTax"],
-                            "infFee"    => $f["infFee"],
-                            "infPrice"  => $f["infPrice"]
+                            "fare"   => $f["infFare"],
+                            "tax"    => $f["infTax"],
+                            "fee"    => $f["infFee"],
+                            "price"  => $f["infPrice"]
                         ];
                     }
 
