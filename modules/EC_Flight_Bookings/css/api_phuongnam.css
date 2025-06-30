@@ -118,12 +118,12 @@
 }
 .auto-book-dialog .fare-row .fare-column .info-row .lbl {width: 45%;}
 .auto-book-dialog .fare-row .fare-column .info-row .value {flex: 1; text-align: right;}
-.auto-book-dialog .fare-row .fare-column .info-row .value .old-value {
+.auto-book-dialog .info-row .old-value {
 	display: block;
-	color: #7b7b7b;
+	color: #949494;
 	text-align: right;
 	text-decoration: line-through;
-	font-weight: normal;
+	font-weight: normal !important;
 }
 
 .auto-book-dialog .dialog-footer {

@@ -1,9 +1,10 @@
 const ENDPOINT_AUTO_BOOK = "index.php?entryPoint=entryPointAutoBook";
+var bookingID = '';
 var statusAutoBook = 1;
 
 $(document).ready(function () {
-    let booking_id = $(`#formDetailView input[name="record"]`).val();
-    let ticket_type = $(`input[name="ticket_type"]`).val(); // '1':Domestic ; '2':International
+    bookingID = $(`#formDetailView input[name="record"]`).val();
+    var ticket_type = $(`input[name="ticket_type"]`).val(); // '1':Domestic ; '2':International
 
     $("#btn-auto-book").click(function () {
         let list_journey_id = [];
@@ -18,14 +19,14 @@ $(document).ready(function () {
             if (pass_id !== undefined && pass_id.length > 30) list_passenger_id.push(pass_id);
         });
 
-        if(booking_id.length * list_journey_id.length * list_passenger_id.length != 0) {
+        if(bookingID.length * list_journey_id.length * list_passenger_id.length != 0) {
             $.ajax({
                 url: ENDPOINT_AUTO_BOOK,
                 type: "POST",
                 contentType: "application/json", 
                 data: JSON.stringify({
                     action: "get_info_to_auto_book",
-                    booking_id: booking_id,
+                    booking_id: bookingID,
                     list_journey_id: list_journey_id,
                     list_passenger_id: list_passenger_id
                 }),
@@ -72,6 +73,46 @@ $(document).ready(function () {
             statusAutoBook = 1;
             $('#autoBookDialog .loading-overlay').html('');
             $('#autoBookDialog .loading-overlay').removeClass('active');
+        }
+    });
+
+    $(document).on("click", ".btn-update-auto-book", function() {
+        let data = $(this).attr('data');
+
+        if(data && data.length > 0) {
+            $.ajax({
+                url: ENDPOINT_AUTO_BOOK,
+                type: "POST",
+                contentType: "application/json", 
+                data: atob(data),
+                beforeSend: function () {
+                    $('.container-waiting').show();
+                },
+                success: function (response) {
+                    try {
+                        $('.container-waiting').hide();
+                        const objData = JSON.parse(response);
+                        if(objData.status == 1) {
+                            showToastNotify("success", "Cập nhật thành công");
+                        }
+                        else {
+                            showToastNotify("error", objData.message ?? "Lỗi trong quá trình xử lý");
+                            console.error(objData);
+                        }
+                    }
+                    catch (e) {
+                        showToastNotify("error", "Lỗi trong quá trình xử lý");
+                        console.error("JSON parse error:", e);
+                        console.error("Response was:", response);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('.container-waiting').hide();
+                    console.error(XMLHttpRequest);
+                    console.error("Status: " + textStatus);
+                    console.error("Error: " + errorThrown);
+                }
+            });
         }
     });
 
@@ -190,6 +231,7 @@ function showDiaglogAutoBook(bookingData) {
         var totalAmount = 0;
         var title = dir == 'ret' ? '✈️ Chuyến về' : '✈️ Chuyến đi';
         var label = dir == 'ret' ? 'chuyến về' : 'chuyến đi';
+        var direction = dir == 'ret' ? 1 : 0;
         const fareByType = {};
 
         // Create fare HTML for each type: Adult, Child, Infant
@@ -256,10 +298,16 @@ function showDiaglogAutoBook(bookingData) {
                 <div>Mã chuyến: <b>${flight.flightNo}</b></div>
             </div>
             <div class="info-row d-flex justify-content-between">
-                <div>Ngày giờ bay: <b>${flight.flightDate.replace(' ', ' lúc ')}</b></div>
+                <div class="d-flex gap-1">
+                    <div>Ngày giờ bay:</div>
+                    <div id="flightDate${flight.depCode}${flight.desCode}Display">
+                        <span class="old-value"></span>
+                        <b class="cur-value">${flight.flightDate.replace(' ', ' lúc ')}</b>
+                    </div>
+                </div>
                 <div>Hạng vé: <b>${flight.ticketClass}</b></div>
             </div>
-            <div class="info-row"><b>💰 Chi tiết giá vé</b></div>
+            <div class="info-row mt-1"><b>💰 Chi tiết giá vé</b></div>
             <div class="fare-row">${fareColumns}</div>
             <div class="d-flex justify-content-end align-items-center mt-2">
                 <label style="font-size:15px">Tổng mua ${label}: </label>
@@ -267,8 +315,8 @@ function showDiaglogAutoBook(bookingData) {
                     <input type="text" value="${formatNumber(totalAmount)} VND" id="totalAmount${flight.depCode}${flight.desCode}" class="npvalue" readonly />
                 </b>
             </div>
-            <center class="mt-3">
-                <button type="button" id="btnUpdate${flight.depCode}${flight.desCode}" class="btn btn-warning" style="display:none">Cập nhật</button>
+            <center>
+                <button type="button" id="btnUpdate${flight.depCode}${flight.desCode}" class="btn-update-auto-book btn btn-warning mt-2" direction="${direction}" style="display:none">Cập nhật</button>
             </center>
         </div>`;
     }
@@ -315,7 +363,6 @@ function showDiaglogAutoBook(bookingData) {
     confirmBtn.className = 'dialog-btn confirm-btn';
     confirmBtn.type = 'button';
     confirmBtn.textContent = 'Xác nhận';
-    // confirmBtn.addEventListener('click', () => {dialog.remove(); });
     // Create Cancel button
     const cancelBtn = document.createElement('button');
     cancelBtn.className = 'dialog-btn cancel-btn';
@@ -414,6 +461,15 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
 }
 
 function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, updateData) {
+    // Update flightDate
+    if('flightDate' in updateData) {
+        let oldFlightDate = $(`#flightDate${depCode}${desCode}Display .cur-value`).text();
+        let newFlightDate = updateData.flightDate.replace(' ', ' lúc ');
+        $(`#flightDate${depCode}${desCode}Display .cur-value`).text(newFlightDate);
+        $(`#flightDate${depCode}${desCode}Display .old-value`).text(oldFlightDate);
+    }
+
+    // Update fares
     let updateTotalAmount = 0;
     const passengerTypes = [
         { type: 'adt', count: adtCount },
@@ -444,10 +500,14 @@ function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, up
         }
     });
     $(`input#totalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
-    $(`#btnUpdate${flight.depCode}${flight.desCode}`).show();
 
-    // Update datetime
-    
+    // Button update
+    let direction = $(`#btnUpdate${depCode}${desCode}`).attr('direction'); 
+    updateData.action = 'update_data';
+    updateData.bookingID = bookingID;
+    updateData.direction = parseInt(direction);
+    $(`#btnUpdate${depCode}${desCode}`).attr('data', btoa(JSON.stringify(updateData)));
+    $(`#btnUpdate${depCode}${desCode}`).show();
 }
 
 function formatNumber(number) {

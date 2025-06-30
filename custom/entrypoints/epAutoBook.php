@@ -21,7 +21,6 @@ try {
                         ,iti.departure
                         ,iti.arrival
                         ,iti.departure_date AS departure_date
-                        ,iti.arrival_date AS arrival_date
                         ,iti.base_price
                         ,iti.ticket_class
                         ,iti.direction
@@ -221,7 +220,7 @@ try {
                     // Data needs to be updated in BM
                     $updateData = [];
                     if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
-                        $updateData['flightDate'] = $f['depDate'] . ' ' . $f['depTime'];
+                        $updateData['flightDate'] = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
                     }
                     if(isset($f["adtPrice"]) && $f["adtPrice"] != $adtPrice) {
                         $updateData['adtFare'] = [
@@ -269,6 +268,66 @@ try {
                 echo json_encode(["status" => 0, "message" => "Đối sánh thông tin chuyến bay thất bại", "data" => $arr]);
                 exit();
             }
+        }
+        elseif($action == 'update_data') {
+            $bookingID = $requestData['bookingID'] ?? '';
+            $direction = $requestData['direction'] ?? null;
+
+            if(is_null($direction) || empty($bookingID)) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "params" => [
+                        "bookingID" => $bookingID,
+                        "direction" => $direction
+                    ]
+                ]);
+                exit();
+            }
+
+            // Update fares
+            $basePrice = null;
+            $passengerTypes = ['adt', 'chd', 'inf'];
+            foreach($passengerTypes as $i => $type) {
+                $k = $type . "Fare";
+                if(isset($requestData[$k]) && !empty($requestData[$k])) {
+                    $fare = $requestData[$k]["fare"];
+                    $tax = $requestData[$k]["tax"];
+                    $fee = $requestData[$k]["fee"];
+                    $price = $requestData[$k]["price"];
+
+                    $sql = "UPDATE ec_booking_details
+                        SET unit_price = $fare
+                            ,tax_and_fee = $tax
+                            ,airport_fee = ($fee - admin_fee)
+                            ,total_bought_price = $price * quantity
+                            ,total_price = ($price + service_fee) * quantity
+                        WHERE booking_id = '$bookingID'
+                            AND direction = '$direction'
+                            AND passenger_type = '$i'
+                            AND deleted = 0";
+                    $db->query($sql);
+
+                    if($type == 'adt') $basePrice = $fare;
+                }
+            }
+
+            // Update flight date
+            if(isset($requestData['flightDate']) && !empty($requestData['flightDate'])) {
+                $fdate = date('Y-m-d H:i:00', strtotime($requestData['flightDate']));
+
+                $sql = "UPDATE ec_booking_itineraries
+                        SET departure_date = '$fdate'
+                            ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
+                        WHERE booking_id = '$bookingID'
+                            AND direction = '$direction'
+                            AND deleted = 0
+                            AND add_type = 0";
+                $db->query($sql);
+            }
+
+            echo json_encode(["status" => 1, "message" => "Update success"]);
+            exit();
         }
 
         echo json_encode(["status" => 0, "message" => "Nothing to do"]);
