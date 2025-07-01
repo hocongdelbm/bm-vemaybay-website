@@ -1163,7 +1163,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Auto book
 		if(in_array($this->bean->booking_status, [1,2,3,6]) && $this->bean->ticket_type == 1 && !$this->bean->is_hold && !$this->bean->holding_status)
-			$this->ss->assign('BUTTON_AUTO_BOOK', '<button type="button" id="btn-auto-book" class="btn btn-danger fw-semibold">Auto book</button>');
+			$this->ss->assign('BUTTON_AUTO_BOOK', '<button type="button" id="btnAutoBook" class="btn btn-danger fw-semibold">Auto book</button>');
 		else
 			$this->ss->assign('BUTTON_AUTO_BOOK', '');
 

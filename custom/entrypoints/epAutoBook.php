@@ -258,14 +258,18 @@ try {
                     exit();
                 }
                 echo json_encode([
-                    "status" => -1,
-                    "message" => "Không tìm thấy chuyến bay tương ứng",
+                    "status" => 0,
+                    "message" => "Flight not found",
                     "data" => $flights
                 ]);
                 exit();
             }
             else {
-                echo json_encode(["status" => 0, "message" => "Đối sánh thông tin chuyến bay thất bại", "data" => $arr]);
+                echo json_encode([
+                    "status" => 0,
+                    "message" => $arr['message'] ?? "Fail",
+                    "data" => $arr
+                ]);
                 exit();
             }
         }

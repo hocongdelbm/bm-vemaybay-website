@@ -178,7 +178,7 @@
 }
 .auto-book-dialog .loading-content {
     width: 100%;
-	background: #fff;
+	background: #f6faff;
     padding: 2rem 4rem 2rem 8rem;
 }
 .auto-book-dialog .buttons {
@@ -238,14 +238,13 @@
   display: block;
   top: 1px;
   right: 50%;
-  bottom: 1px;
   left: 50%;
+  bottom: 1px;
   height: 100%;
   width: 1px;
   transform: scale(1, 2);
   transform-origin: 50% -100%;
   background-color: rgba(0, 0, 0, 0.25);
-  z-index: 1;
 }
 .step:last-child .circle:after {display: none}
 .step.last-step .circle::after {

@@ -1,12 +1,13 @@
 const ENDPOINT_AUTO_BOOK = "index.php?entryPoint=entryPointAutoBook";
 var bookingID = '';
+var ticketType = ''; // '1':Domestic ; '2':International
 var statusAutoBook = 1;
 
 $(document).ready(function () {
     bookingID = $(`#formDetailView input[name="record"]`).val();
-    var ticket_type = $(`input[name="ticket_type"]`).val(); // '1':Domestic ; '2':International
+    ticketType = $(`input[name="ticket_type"]`).val();
 
-    $("#btn-auto-book").click(function () {
+    $("#btnAutoBook").click(function () {
         let list_journey_id = [];
         $('#itinerary_tbl input[name=check-journey]:checked').each(function () {
             let journey_id = $(this).attr("journey-id");
@@ -38,15 +39,15 @@ $(document).ready(function () {
                         $('.container-waiting').hide();
                         const objData = JSON.parse(response);
                         if(objData.status == 1) {
-                            showDiaglogAutoBook(objData.data);
+                            showDialogAutoBook(objData.data);
                         }
                         else {
-                            showToastNotify("error", objData.message ?? "Lỗi trong quá trình xử lý");
+                            showModalNotify("error", objData.message ?? "Lỗi trong quá trình xử lý");
                             console.error(objData);
                         }
                     }
                     catch (e) {
-                        showToastNotify("error", "Lỗi trong quá trình xử lý");
+                        showModalNotify("error", "Lỗi trong quá trình xử lý");
                         console.error("JSON parse error:", e);
                         console.error("Response was:", response);
                     }
@@ -90,18 +91,21 @@ $(document).ready(function () {
                 },
                 success: function (response) {
                     try {
-                        $('.container-waiting').hide();
+                        // $('.container-waiting').hide();
                         const objData = JSON.parse(response);
                         if(objData.status == 1) {
-                            showToastNotify("success", "Cập nhật thành công");
+                            // showModalNotify("success", "Cập nhật thành công");
+                            $("#btnAutoBook").trigger("click");
                         }
                         else {
-                            showToastNotify("error", objData.message ?? "Lỗi trong quá trình xử lý");
+                            hideDialogAutoBook();
+                            showModalNotify("error", objData.message ?? "Lỗi trong quá trình xử lý");
                             console.error(objData);
                         }
                     }
                     catch (e) {
-                        showToastNotify("error", "Lỗi trong quá trình xử lý");
+                        hideDialogAutoBook();
+                        showModalNotify("error", "Lỗi trong quá trình xử lý");
                         console.error("JSON parse error:", e);
                         console.error("Response was:", response);
                     }
@@ -158,13 +162,12 @@ $(document).ready(function () {
                     dataType: "json",
                     data: JSON.stringify(searchInfo[0])
                 });
-                if(response1.status == -1) {
-                    showStepsInDialogAutoBook(1, iti0, response1.message);
-                    return;
-                }
-                else if(response1.status == 0) {
-                    showStepsInDialogAutoBook(1, iti0, 'Cần cập nhật lại dữ liệu');
-                    showUpdateFlightData(searchInfo[0]['depCode'], searchInfo[0]['desCode'], searchInfo[0]['adt'], searchInfo[0]['chd'], searchInfo[0]['inf'], response1.data.updateData ?? {});
+                if(response2.status == 0) {
+                    if(response1.message == "Unmatched information") {
+                        showStepsInDialogAutoBook(1, iti0, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
+                        showUpdateFlightData(searchInfo[0]['depCode'], searchInfo[0]['desCode'], searchInfo[0]['adt'], searchInfo[0]['chd'], searchInfo[0]['inf'], response1.data.updateData ?? {});
+                    }
+                    else showStepsInDialogAutoBook(1, iti0, response1.message);
                     return;
                 }
             }
@@ -181,12 +184,12 @@ $(document).ready(function () {
                     dataType: "json",  
                     data: JSON.stringify(searchInfo[1])
                 });
-                if(response2.status == -1) {
-                    showStepsInDialogAutoBook(1, iti1, response2.message);
-                    return;
-                }
-                else if(response2.status == 0) {
-                    showStepsInDialogAutoBook(1, iti1, 'Cần cập nhật lại dữ liệu');
+                if(response2.status == 0) {
+                    if(response2.message == "Unmatched information") {
+                        showStepsInDialogAutoBook(1, iti1, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
+                        showUpdateFlightData(searchInfo[1]['depCode'], searchInfo[1]['desCode'], searchInfo[1]['adt'], searchInfo[1]['chd'], searchInfo[1]['inf'], response2.data.updateData ?? {});
+                    }
+                    else showStepsInDialogAutoBook(1, iti1, response2.message);
                     return;
                 }
             }
@@ -197,7 +200,7 @@ $(document).ready(function () {
     });
 });
 
-function showDiaglogAutoBook(bookingData) {
+function showDialogAutoBook(bookingData) {
     const existingDialog = document.getElementById('autoBookDialog');
     if (existingDialog) existingDialog.remove(); // Prevent multiple dialogs
 
@@ -392,6 +395,11 @@ function showDiaglogAutoBook(bookingData) {
 
     dialog.appendChild(formWrapper);
     document.body.appendChild(dialog);
+}
+
+function hideDialogAutoBook() {
+    let dialog = document.getElementById('autoBookDialog');
+    if (dialog) dialog.removeChild(dialog);
 }
 
 function showStepsInDialogAutoBook(current_step = 1, current_caption = '', current_error = '') {

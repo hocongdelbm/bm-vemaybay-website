@@ -80,12 +80,12 @@ class PhuongNamAPI {
             $error = curl_error($curl);
 
             if ($json === false || $errorno) {
-                return json_encode(["error" => 1, "message" => "Không thể kết nối tới API", "description" => "cURL error $errorno: $error"]);
+                return json_encode(["error" => 1, "message" => "Can not connect to API", "description" => "cURL error $errorno: $error"]);
             }
             if($httpcode != 200) {
                 return json_encode([
                     "error" => 1,
-                    "message" => "Không thể kết nối tới API",
+                    "message" => "Can not connect to API",
                     "data" => is_string($json) ? json_decode($json, true) : $json,
                     "description" => "HTTP error $httpcode"
                 ]);
