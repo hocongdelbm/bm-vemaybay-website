@@ -14,6 +14,7 @@ class SummaryStie{
 
     public function call_api() {
         $input = file_get_contents('php://input');
+        // var_dump($input);die;
         $request_data = json_decode($input, true);
 
         $action = $request_data['action'] ?? '';
@@ -25,9 +26,10 @@ class SummaryStie{
         switch ($action) {
             case 'get_traffic':
             case 'get_logs':
-                $data['options']['from_time'] = date_format(new DateTime($request_data['from_date']), "Y-m-d H:i:s");
-                $data['options']['to_time']   = date_format(new DateTime($request_data['to_date']), "Y-m-d H:i:s");
-                $data["options"]["flag"]      = $request_data["flag"] ?? null;
+                $data['options']['from_time'] = date_format(new DateTime($request_data["options"]['from_date']), "Y-m-d H:i:s");
+                $data['options']['to_time']   = date_format(new DateTime($request_data["options"]['to_date']), "Y-m-d H:i:s");
+                $data["options"]["flag"]      = $request_data["options"]["flag"] ?? null;
+                $data["options"]["filters"]    = $request_data["options"]["filter"] ?? [];
                 $data['domain']               = $request_data['domain'] ?? "";
                 break;
             case 'get_log_detail':

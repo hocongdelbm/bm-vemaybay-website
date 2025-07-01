@@ -158,8 +158,27 @@
 	<div class="online_data row">
 	</div>
 	<div class="extend_accordion mb-3">
-            <button class="extend_btn hide" id="extend_accordion">&#x25BC;</button>
-        </div>
+        <button class="extend_btn hide" id="extend_accordion">&#x25BC;</button>
+    </div>
+	<div class="traffic filter_tag">
+		{* <h5>Filter tags:</h5>
+		<div class="filter_tag_wrapper">
+			<div class="filter_tag_content d-flex">
+				<div class="tag_wrapper d-flex">
+					<span class="tag_content" id="client_ip">171.248.255.121</span>
+					<div class="close_tag">
+					<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Menu / Close_SM"> <path id="Vector" d="M16 16L12 12M12 12L8 8M12 12L16 8M12 12L8 16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
+					</div>
+				</div>
+				<div class="tag_wrapper d-flex">
+					<span class="tag_content" id="url">https://timchuyenbay.com</span>
+					<div class="close_tag">
+					<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g id="Menu / Close_SM"> <path id="Vector" d="M16 16L12 12M12 12L8 8M12 12L16 8M12 12L8 16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
+					</div>
+				</div>
+			</div>
+		</div> *}
+	</div>
 </div>
 <div class="box-section">
 	<h3 class="access_log title pb-3">Truy cập gần nhất</h3>

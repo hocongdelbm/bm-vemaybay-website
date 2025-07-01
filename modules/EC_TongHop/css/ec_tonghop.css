@@ -429,3 +429,54 @@ canvas {
   overflow-wrap: break-word;
   white-space: normal;
 }
+
+/* filter btn */
+.filter-btn{
+    font-size: 13px;
+    padding: 0 5px 0 5px;
+}
+.traffic-item .filter-btns {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+}
+.traffic-item:hover .filter-btns {
+    display: flex;
+    width: 200px;
+    background: white;
+    opacity: 80%;
+    justify-content: end;
+    gap: 4px;
+}
+
+.traffic-item .filter-btn.remove.inactive{
+    display: none;
+}
+
+.traffic-item .filter-btn.inactive{
+    display: none;
+}
+
+.traffic-item {
+    transition: background 0.2s;
+}
+.traffic-item:hover {
+    background: #f5f7fa;
+}
+
+/* filter tag zone */
+.filter_tag_wrapper{
+    gap: 10px;
+}
+.tag_wrapper{
+    padding: 0.5rem;
+    border: 1px solid black;
+    border-radius: 10px;
+    background: #ededed;
+}
+
+.tag_wrapper .close_tag svg{
+    width: 16px;
+}

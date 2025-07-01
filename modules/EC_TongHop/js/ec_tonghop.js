@@ -1,19 +1,69 @@
 $(document).ready(function () {
+    let currentFilters = {};
     init();
     function init() {
+        const data = getSearchData();
         bindEvents();
         handleQuickRange();
-        fetchTraffic();
-        fetchLogs();
+        fetchTraffic(data.domain, data.option);
+        fetchLogs(data.domain, data.option);
         handleAccordion();
     }
 
+    function getSearchData(){
+        let domain = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
+        let fromDate = $("#from_date").val();
+        let toDate = $("#to_date").val();
+        let quickRange = $("select[name='time_selected']").val();
+        let option = {"from_date": fromDate, "to_date": toDate, "flag": quickRange};
+        return {domain, option};
+    }
+
     function bindEvents() {
+        $(document).on("click", ".close_tag", function(){
+            const key = $(this).data("key");
+            delete currentFilters[key];
+            const data = getSearchData();
+            let domain = data.domain;
+            let option = data.option;
+            if(Object.entries(currentFilters).length !==0){
+                option.filter = currentFilters;
+            }
+            handleQuickRange();
+            fetchTraffic(domain, option);
+            fetchLogs(domain, option);
+            renderFilterTag(currentFilters);
+        });
+        $(document).on("click", ".filter-btn", function(){
+            const filter_key  = $(this).data("key");
+            let filter_data = $(this).data("filter");
+            const data = getSearchData();
+            let domain = data.domain;
+            let option = data.option;
+            if(filter_key == "urls" || filter_key == "channels"){
+                filter_data = `https://${domain}${filter_data}`;   
+            }
+            const filter_array = { [filter_key] : filter_data};
+            option["filter"] = filter_array;
+            option.filter = convertFilterKey(option.filter);
+            for (const key in option.filter) {
+                currentFilters[key] = option.filter[key];
+            }
+            option.filter = currentFilters;
+            handleQuickRange();
+            fetchTraffic(domain, option);
+            fetchLogs(domain, option);
+            renderFilterTag(currentFilters);
+            const $container = $(this).closest(".filter-btns");
+            $container.find(".filter-btn").addClass("inactive");
+            $container.find(".filter-btn.remove").removeClass("inactive");
+        });
         $(".search_button.btn.btn-primary").on("click", () => {
             $(".online_data.row").empty();
             handleQuickRange();
-            fetchTraffic();
-            fetchLogs();
+            const data = getSearchData();
+            fetchTraffic(data.domain, data.option);
+            fetchLogs(data.domain, data.option);
         });
 
         $(".reset_button.btn.btn-warning").on("click", () => {
@@ -41,6 +91,49 @@ $(document).ready(function () {
             $("#from_date").val(range.from);
             $("#to_date").val(range.to);
         }
+    }
+
+    function convertFilterKey(filter){
+        const converted = {};
+        const keyMap = {
+            "ips"     : "client_ip",
+            "urls"    : "url",
+            "channels": "referer",
+            "bots"    : "bot_name",
+            "devices" : "device",
+            "os"      : "os",
+            "countries": "country",
+            "browsers": "browser"
+        };
+        for (const key in filter) {
+            const converted_key = keyMap[key] || key;
+            converted[converted_key] = filter[key];
+        }
+        return converted;
+    }
+
+    function renderFilterTag(filter){
+        const filter_zone = $(".traffic.filter_tag");
+        filter_zone.empty().append(`<h5>Filter tags:</h5><div class="filter_tag_wrapper d-flex"></div>`);
+        const wrapper = filter_zone.find(".filter_tag_wrapper");
+        if(Object.entries(filter).length === 0){
+            filter_zone.empty();
+            return;
+        }
+        Object.entries(filter).forEach(([key, value]) => {
+             const tagHTML = `
+            <div class="filter_tag_content d-flex">
+                <div class="tag_wrapper d-flex">
+                    <span class="tag_content" data-tag="${key}">${key}: ${value}</span>
+                    <div class="close_tag" data-key="${key}">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16 16L12 12M12 12L8 8M12 12L16 8M12 12L8 16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>`;
+            wrapper.append(tagHTML);
+        });
     }
 
     function getQuickTimeRange(value) {
@@ -97,12 +190,12 @@ $(document).ready(function () {
         return result;
     }
 
-    function fetchTraffic() {
+    function fetchTraffic(domain, option) {
         const endPoint = "index.php?entryPoint=entryPointSummarySite";
-        const quickRange = $("select[name='time_selected']").val();
-        let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
-        let fromDate = $("#from_date").val();
-        let toDate = $("#to_date").val();
+        // const quickRange = $("select[name='time_selected']").val();
+        // let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
+        // let fromDate = $("#from_date").val();
+        // let toDate = $("#to_date").val();
 
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
@@ -115,14 +208,15 @@ $(document).ready(function () {
             type: "POST",
             url: endPoint,
             contentType: 'application/json',
-            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, flag: quickRange, action: "get_traffic"}),
+            // data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, flag: quickRange, action: "get_traffic"}),
+            data: JSON.stringify({domain: domain, options: option, action: "get_traffic"}),
             success: function (response) {
                 const data = Object.entries(response.data);
                 if (isAllGroupsEmpty(data)) {
-                    renderEmptyData(".online_data", "Không có dữ liệu, vui lòng chọn ngày hoặc tên miền khác", domainName);
+                    renderEmptyData(".online_data", "Không có dữ liệu, vui lòng chọn ngày hoặc tên miền khác", domain);
                     return;
                 }
-                renderTrafficGroups(".online_data", domainName, data);
+                renderTrafficGroups(".online_data", domain, data);
                 handleAccordion();
             },
             error: function (xhr) {
@@ -130,7 +224,7 @@ $(document).ready(function () {
                 if (xhr.status === 401) message = "Bạn không có quyền truy cập dữ liệu này";
                 else if (xhr.status === 400) message = "Thời gian hoặc tên miền không hợp lệ, vui lòng kiểm tra lại";
                 else if (xhr.status === 500) message = "Lỗi máy chủ, vui lòng thử lại sau";
-                renderEmptyData(".online_data", message, domainName);
+                renderEmptyData(".online_data", message, domain);
             }
         });
     }
@@ -165,6 +259,7 @@ $(document).ready(function () {
 
         const fragment = document.createDocumentFragment();
         data.forEach(([key, values]) => {
+            if (!Array.isArray(values) || values.length === 0) return null;
             fragment.appendChild(renderTrafficGroup(key, values, normalizeKey));
         });
 
@@ -176,9 +271,8 @@ $(document).ready(function () {
         const groupDiv = document.createElement("div");
         groupDiv.className = "online_data_content mb-4 col-lg-3";
         groupDiv.innerHTML = `<h6 class="attribute_title">${formattedKey}</h6>`;
-
+        const data_key = key.replace("top_","").toLowerCase();
         const total = values.reduce((sum, item) => sum + item.value, 0);
-
         values.forEach(item => {
             const percent = total ? ((item.value / total) * 100).toFixed(1) : 0;
 
@@ -201,16 +295,23 @@ $(document).ready(function () {
                 </label>`
                 : `<label title="${item.label}" for="progress">${item.label}</label>`;
 
+            const filterBtns = `
+                <div class="filter-btns">
+                    <button class="btn btn-sm btn-primary filter-btn" data-filter="${item.label}" data-key="${data_key}">Filter</button>
+                    <button class="btn btn-sm btn-primary filter-btn remove inactive" data-filter="${item.label}" data-key="${data_key}">Remove filter</button>
+                </div>`;
+                // use later
+                // <button class="btn btn-sm btn-outline-secondary exclude-btn" data-exclude="${item.label}" data-key="${formattedKey}">Exclude</button>
             groupDiv.innerHTML += `
-                <div class="traffic_value ${formattedKey} d-flex flex-row-reverse mb-2" style="justify-content:space-between">
+                <div class="traffic_value ${formattedKey} d-flex flex-row-reverse mb-2 traffic-item" style="justify-content:space-between; position:relative;">
                     ${progressHTML}
                     ${labelHTML}
+                    ${filterBtns}
                 </div>`;
         });
 
         return groupDiv;
     }
-
 
     function handleAccordion() {
         const accordion = $(".online_data.row");
@@ -243,11 +344,11 @@ $(document).ready(function () {
         });
     }
 
-    function fetchLogs() {
+    function fetchLogs(domain, option) {
         const endPoint = "index.php?entryPoint=entryPointSummarySite";
-        let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
-        let fromDate = $("#from_date").val();
-        let toDate = $("#to_date").val();
+        // let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
+        // let fromDate = $("#from_date").val();
+        // let toDate = $("#to_date").val();
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
@@ -258,11 +359,12 @@ $(document).ready(function () {
             type: "POST",
             url: endPoint,
             contentType: 'application/json',
-            data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, action: "get_logs"}),
+            // data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, action: "get_logs"}),
+            data: JSON.stringify({domain: domain, options: option, action: "get_logs"}),
             success: function (response) {
                 const data = response.data;
                 $("#visitor_tbody").empty();
-                $(".access_log.title").text(`Truy cập gần nhất của ${domainName}`);
+                $(".access_log.title").text(`Truy cập gần nhất của ${domain}`);
                 if(Array.isArray(data)&&data.length === 0){
                     $("#visitor_tbody").html(`<td class="text-center"><span class="my-5">Không có dữ liệu, vui lòng chọn ngày hoặc tên miền khác</span></td>`);
                     setupPagination(data, 1, 0);
