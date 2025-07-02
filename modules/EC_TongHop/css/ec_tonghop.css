@@ -431,7 +431,7 @@ canvas {
 }
 
 /* filter btn */
-.filter-btn{
+.filter-btn, .filter-remove{
     font-size: 13px;
     padding: 0 5px 0 5px;
 }
@@ -445,13 +445,12 @@ canvas {
 .traffic-item:hover .filter-btns {
     display: flex;
     width: 200px;
-    background: white;
-    opacity: 80%;
+    /* background: white; */
     justify-content: end;
     gap: 4px;
 }
 
-.traffic-item .filter-btn.remove.inactive{
+.traffic-item .filter-remove.inactive{
     display: none;
 }
 
@@ -466,17 +465,25 @@ canvas {
     background: #f5f7fa;
 }
 
+.traffic-item:hover .progress_wrapper{
+    opacity: 40%;
+}
+
 /* filter tag zone */
 .filter_tag_wrapper{
     gap: 10px;
 }
 .tag_wrapper{
     padding: 0.5rem;
-    border: 1px solid black;
+    border: 1px solid #f5f7fa;
     border-radius: 10px;
-    background: #ededed;
+    background: #f5f7fa;
 }
 
 .tag_wrapper .close_tag svg{
     width: 16px;
+}
+
+.close_tag{
+    cursor: pointer;
 }

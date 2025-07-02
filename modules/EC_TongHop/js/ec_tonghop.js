@@ -1,5 +1,16 @@
 $(document).ready(function () {
     let currentFilters = {};
+    const keyMap = {
+            "ips"     : "client_ip",
+            "urls"    : "url",
+            "channels": "referer",
+            "bots"    : "bot_name",
+            "devices" : "device",
+            "os"      : "os",
+            "countries": "country",
+            "browsers": "browser"
+    };
+
     init();
     function init() {
         const data = getSearchData();
@@ -20,6 +31,32 @@ $(document).ready(function () {
     }
 
     function bindEvents() {
+        $(document).on("click", ".filter-remove", function(){
+            const reverseKeyMap = Object.fromEntries(Object.entries(keyMap).map(([k, v]) => [v, k]));
+            const originalKey = $(this).data("key");
+            const filterValue = $(this).data("filter");
+            const convertedKey = keyMap[originalKey];
+            const data = getSearchData();
+            const domain = data.domain;
+
+            let fullValue = filterValue;
+            if (convertedKey === "url" || convertedKey === "referer") {
+                fullValue = `https://${domain}${filterValue}`;
+            }
+
+            if (currentFilters[convertedKey] === fullValue) {
+                delete currentFilters[convertedKey];
+            }
+
+            const option = data.option;
+            option.filter = currentFilters;
+
+            handleQuickRange();
+            fetchTraffic(domain, option);
+            fetchLogs(domain, option);
+            renderFilterTag(currentFilters);
+            updateFilterBTN(currentFilters, domain);
+        });
         $(document).on("click", ".close_tag", function(){
             const key = $(this).data("key");
             delete currentFilters[key];
@@ -56,14 +93,16 @@ $(document).ready(function () {
             renderFilterTag(currentFilters);
             const $container = $(this).closest(".filter-btns");
             $container.find(".filter-btn").addClass("inactive");
-            $container.find(".filter-btn.remove").removeClass("inactive");
+            $container.find(".filter-remove").removeClass("inactive");
         });
         $(".search_button.btn.btn-primary").on("click", () => {
             $(".online_data.row").empty();
             handleQuickRange();
             const data = getSearchData();
+            data.option.filter = currentFilters;
             fetchTraffic(data.domain, data.option);
             fetchLogs(data.domain, data.option);
+            renderFilterTag(currentFilters);
         });
 
         $(".reset_button.btn.btn-warning").on("click", () => {
@@ -84,6 +123,33 @@ $(document).ready(function () {
         });
     }
 
+     function updateFilterBTN(filters, domain) {
+        const reverseKeyMap = Object.fromEntries(Object.entries(keyMap).map(([k, v]) => [v, k]));
+        $(".filter-btn").removeClass("inactive").show();
+        $(".filter-remove").addClass("inactive").hide();
+
+        for (const [convertedKey, value] of Object.entries(filters)) {
+            const originalKey = reverseKeyMap[convertedKey];
+            let selectorValue = value;
+
+            if (convertedKey === "url" || convertedKey === "referer") {
+                const domainPrefix = `https://${domain}`;
+                if (selectorValue.startsWith(domainPrefix)) {
+                    selectorValue = selectorValue.replace(domainPrefix, "");
+                }
+            }
+
+            $(`[data-key="${originalKey}"][data-filter="${selectorValue}"]`).each(function () {
+                const $btn = $(this);
+                if ($btn.hasClass("filter-remove")) {
+                    $btn.removeClass("inactive").show();
+                } else if ($btn.hasClass("filter-btn")) {
+                    $btn.addClass("inactive").hide();
+                }
+            });
+        }
+    }
+
     function handleQuickRange() {
         const quickRange = $("select[name='time_selected']").val();
         if (quickRange) {
@@ -95,16 +161,6 @@ $(document).ready(function () {
 
     function convertFilterKey(filter){
         const converted = {};
-        const keyMap = {
-            "ips"     : "client_ip",
-            "urls"    : "url",
-            "channels": "referer",
-            "bots"    : "bot_name",
-            "devices" : "device",
-            "os"      : "os",
-            "countries": "country",
-            "browsers": "browser"
-        };
         for (const key in filter) {
             const converted_key = keyMap[key] || key;
             converted[converted_key] = filter[key];
@@ -125,7 +181,7 @@ $(document).ready(function () {
             <div class="filter_tag_content d-flex">
                 <div class="tag_wrapper d-flex">
                     <span class="tag_content" data-tag="${key}">${key}: ${value}</span>
-                    <div class="close_tag" data-key="${key}">
+                    <div class="close_tag d-flex" data-key="${key}">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M16 16L12 12M12 12L8 8M12 12L16 8M12 12L8 16" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                         </svg>
@@ -218,6 +274,7 @@ $(document).ready(function () {
                 }
                 renderTrafficGroups(".online_data", domain, data);
                 handleAccordion();
+                updateFilterBTN(currentFilters, domain);
             },
             error: function (xhr) {
                 let message = "Không truy xuất được dữ liệu, vui lòng thử lại sau";
@@ -277,7 +334,7 @@ $(document).ready(function () {
             const percent = total ? ((item.value / total) * 100).toFixed(1) : 0;
 
             const progressHTML = `
-                <div class="d-flex align-items-center">
+                <div class="progress_wrapper d-flex align-items-center">
                     <div class="mx-1">${item.value}</div>
                     <div class="progress px-0" style="width: 150px">
                         <div class="progress-bar" role="progressbar" style="width:${percent}%;"></div>
@@ -298,7 +355,7 @@ $(document).ready(function () {
             const filterBtns = `
                 <div class="filter-btns">
                     <button class="btn btn-sm btn-primary filter-btn" data-filter="${item.label}" data-key="${data_key}">Filter</button>
-                    <button class="btn btn-sm btn-primary filter-btn remove inactive" data-filter="${item.label}" data-key="${data_key}">Remove filter</button>
+                    <button class="btn btn-sm btn-primary filter-remove inactive" data-filter="${item.label}" data-key="${data_key}">Remove</button>
                 </div>`;
                 // use later
                 // <button class="btn btn-sm btn-outline-secondary exclude-btn" data-exclude="${item.label}" data-key="${formattedKey}">Exclude</button>
