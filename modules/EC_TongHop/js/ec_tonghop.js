@@ -523,6 +523,11 @@ $(document).ready(function () {
             const path = new URL(entry.url).pathname;
             const date = formatDateTime(entry.created_at);
             const tr = document.createElement("tr");
+            let bot_name = entry.bot_name;
+            let display_name = bot_name;
+            if(bot_name == "Unknown"){
+                display_name = "";
+            }
             tr.innerHTML = `
                 <td class="visitor_cell col-lg-3">
                     <button class="extend_log_detail" log-id="${entry.id}">&#9654;</button>
@@ -534,7 +539,7 @@ $(document).ready(function () {
                     </a>
                     <button data-ip="${entry.client_ip}" class="copy-ip-btn">${getCopyIcon()}</button>
                 </td>
-                <td class="visitor_cell col-lg-3">${entry.bot_name}</td>
+                <td class="visitor_cell col-lg-3">${display_name}</td>
                 <td class="visitor_cell col-lg-3" title="${path}">${path}</td>
             `;
             tbody.appendChild(tr);
