@@ -1426,10 +1426,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			// Checkbox auto book journey
 			$booking_cutoff_time = (strtotime($row['departure_date']) - time()) - 10800;
 			if ($row['direction'] == '0' && $check_dep === false && $booking_cutoff_time > 0) {
-				$html .= '<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-journey" class="check-journey" journey-id="'. $row['id'] .'" /></td>';
+				$html .= '<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-journey" class="check-journey" itinerary-id="'. $row['id'] .'" /></td>';
 				$check_dep = true;
 			} else if ($row['direction'] == '1' && $check_ret === false && $booking_cutoff_time > 0) {
-				$html .= '<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-journey" class="check-journey" journey-id="'. $row['id'] .'" /></td>';
+				$html .= '<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-journey" class="check-journey" itinerary-id="'. $row['id'] .'" /></td>';
 				$check_ret = true;
 			} else $html .= '<td data-label="" class="text-center"></td>';
 

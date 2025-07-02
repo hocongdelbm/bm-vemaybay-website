@@ -1,21 +1,28 @@
 <?php
 class PhuongNamAPI {
+    private $ENDPOINT_SEARCH;
+    private $API_KEY_SEARCH;
     private $ENDPOINT;
     private $API_KEY;
+    private $SECRET_KEY;
 
     public function __construct() {
-        $this->ENDPOINT = "https://data01.timchuyenbay.vn/api/v3";
-        // $this->ENDPOINT = "https://data01.timchuyenbay.net/api/v1";
-        $this->API_KEY = "1r2Lm4Rof1KsOM_SHbiCx1zx59@G54TmQq1T7XY5fK85OG28S+";
+        global $sugar_config;
+        $this->ENDPOINT_SEARCH = "https://data01.timchuyenbay.vn/api/v3";
+        $this->API_KEY_SEARCH = "1r2Lm4Rof1KsOM_SHbiCx1zx59@G54TmQq1T7XY5fK85OG28S+";
+        // $this->ENDPOINT_SEARCH = "https://data01.timchuyenbay.net/api/v1";
+        $this->ENDPOINT = $sugar_config['phuongnam']['Endpoint'] ?? '';
+        $this->API_KEY = $sugar_config['phuongnam']['ApiKey'] ?? '';
+        $this->SECRET_KEY = $sugar_config['phuongnam']['SecretKey'] ?? '';
     }
 
     public function getSessionKey() {
         try {
-            $headers = ["API-Key: $this->API_KEY"];
+            $headers = ["API-Key: $this->API_KEY_SEARCH"];
 
             $curl = curl_init();
-            if ($curl === false) return json_encode(["error" => 1, "message" => "Lỗi hệ thống", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/getSessionKey");
+            if ($curl === false) return json_encode(["error" => 1, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT_SEARCH/getSessionKey");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -28,16 +35,16 @@ class PhuongNamAPI {
             $error = curl_error($curl);
 
             if ($json === false || $errorno) {
-                return json_encode(["error" => 1, "message" => "Không thể kết nối tới API", "description" => "cURL error $errorno: $error"]);
+                return json_encode(["error" => 1, "message" => "Can not connect to API", "description" => "cURL error $errorno: $error"]);
             }
             if($httpcode != 200) {
-                return json_encode(["error" => 1, "message" => "Không thể kết nối tới API", "description" => "HTTP error $httpcode"]);
+                return json_encode(["error" => 1, "message" => "Can not connect to API", "description" => "HTTP error $httpcode"]);
             }
 
             return $json;
         }
         catch(Exception $e) {
-            return json_encode(['error' => 1, 'code' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage(), 'data' => null]);
+            return json_encode(['error' => 1, 'message' => $e->getCode() . ': ' . $e->getMessage(), 'data' => null]);
         }
         finally {
             if (is_resource($curl)) curl_close($curl);
@@ -48,7 +55,7 @@ class PhuongNamAPI {
         try {
             $headers = [
                 "Content-Type: multipart/form-data",
-                "API-Key: $this->API_KEY",
+                "API-Key: $this->API_KEY_SEARCH",
             ];
             $requestBody = [
                 "airlineCode"   => $airlineCode,
@@ -64,20 +71,21 @@ class PhuongNamAPI {
             ];
 
             $curl = curl_init();
-            if ($curl === false) return json_encode(["error" => 1, "message" => "Lỗi hệ thống", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/getFlights");
+            if ($curl === false) return json_encode(["error" => 1, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT_SEARCH/getFlights");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 45);
             $json = curl_exec($curl);
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
             $error = curl_error($curl);
+            curl_close($curl);
 
             if ($json === false || $errorno) {
                 return json_encode(["error" => 1, "message" => "Can not connect to API", "description" => "cURL error $errorno: $error"]);
@@ -94,13 +102,83 @@ class PhuongNamAPI {
             return $json;
         }
         catch(Exception $e) {
-            return json_encode(['error' => 1, 'code' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage(), 'data' => null]);
+            return json_encode(['error' => 1, 'message' => $e->getCode() . ': ' . $e->getMessage(), 'data' => null]);
         }
         finally {
             if (is_resource($curl)) curl_close($curl);
         }
     }
 
+    /**
+     * Verify flight info before booking
+     * 
+     * @param array $requestBody
+     * @return string JSON
+     */
+    public function verify($requestBody) {
+        try {
+            $str = $this->getSessionKey();
+            $arr = json_decode($str, true);
+            if(!isset($arr['error']) || $arr['error'] != 0 || !isset($arr['data']) || empty($arr['data'])) return $str;
+            $sessionKey = $arr['data'] ?? '';
+
+            $headers = [
+                "Content-Type: application/json",
+                "ApiKey: $this->API_KEY",
+                "SecretKey: $this->SECRET_KEY",
+                "Authorization: Bearer $sessionKey",
+            ];
+
+            $curl = curl_init();
+            if ($curl === false) return json_encode(["error" => 1, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Booking/VerifyFlight");
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 20);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            $response = curl_exec($curl);
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if ($response === false || $errorno) {
+                return json_encode(["error" => 1, "message" => "Can not connect to agency", "description" => "cURL error $errorno: $error"]);
+            }
+            if($httpcode != 200) {
+                return json_encode([
+                    "error" => 1,
+                    "message" => "Verify failed",
+                    "data" => is_string($response) ? json_decode($response, true) : $response,
+                    "description" => "HTTP error $httpcode"
+                ]);
+            }
+
+            return json_encode([
+                "error"     => 0,
+                "message"   => "Verify success",
+                "data"      => is_string($response) ? json_decode($response, true) : $response
+            ]);
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'message' => $e->getCode() . ': ' . $e->getMessage(), 'data' => null]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /**
+     * Detecting cabin (class) for searching flights
+     * 
+     * @param string $airlineCode VJ, VN, QH, VU
+     * @param string $ticketClass
+     * @return string M,W,C,F
+     */
     public function detectCabin($airlineCode, $ticketClass) {
         if($airlineCode == 'VJ') {
             // M: Phổ thông
@@ -140,5 +218,38 @@ class PhuongNamAPI {
             foreach ($wMatches as $w) if (stripos($ticketClass, $w) !== false) return 'W';
             return 'M';
         }
+    }
+
+    /**
+     * Mapping passenger type ID
+     * 
+     * @param int|string $type 0, 1, 2
+     * @return int
+     */
+    public function mappingPassengerType($type) {
+        $arr = [1, 6, 5]; // (1: Người lớn, 6: Trẻ em, 5: Em bé)
+        $type = (int)$type;
+        return $arr[$type] ?? $type;
+    } 
+
+    public function getAge($birthdate) {
+        $birthDate = new DateTime($birthdate); // Create a DateTime object for the birthdate
+        $currentDate = new DateTime(); // Current date and time
+        $age = $currentDate->diff($birthDate); // Difference between current date and birthdate
+        return $age->y; // Return the age in years
+    }
+
+    public function getLastName($fullname) {
+        if (!is_string($fullname) || empty($fullname)) return $fullname;
+        return explode(' ', $fullname)[0];
+    }
+
+    public function getFirstName($fullname) {
+        if (!is_string($fullname) || empty($fullname)) return $fullname;
+        $arr = explode(' ', $fullname);
+        $n = count($arr);
+        $result = '';
+        for ($i = 1 ; $i < $n; $i++) $result .= $arr[$i] . ' ';
+        return trim($result);
     }
 }

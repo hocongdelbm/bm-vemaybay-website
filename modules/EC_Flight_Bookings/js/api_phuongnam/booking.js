@@ -1,35 +1,26 @@
 const ENDPOINT_AUTO_BOOK = "index.php?entryPoint=entryPointAutoBook";
-var bookingID = '';
+var bookingId = '';
 var ticketType = ''; // '1':Domestic ; '2':International
 var statusAutoBook = 1;
 
 $(document).ready(function () {
-    bookingID = $(`#formDetailView input[name="record"]`).val();
+    bookingId = $(`#formDetailView input[name="record"]`).val();
     ticketType = $(`input[name="ticket_type"]`).val();
 
     $("#btnAutoBook").click(function () {
-        let list_journey_id = [];
-        $('#itinerary_tbl input[name=check-journey]:checked').each(function () {
-            let journey_id = $(this).attr("journey-id");
-            if (journey_id !== undefined && journey_id.length > 30) list_journey_id.push(journey_id);
-        });
+        let listItineraryId = getSelectedItinerariesData();
+        let listPassengerId = getSelectedPassengersData();
 
-        let list_passenger_id = [];
-        $('#tbl_pax input[name=check-passenger]:checked').each(function () {
-            let pass_id = $(this).attr("passenger-id");
-            if (pass_id !== undefined && pass_id.length > 30) list_passenger_id.push(pass_id);
-        });
-
-        if(bookingID.length * list_journey_id.length * list_passenger_id.length != 0) {
+        if(bookingId.length * listItineraryId.length * listPassengerId.length != 0) {
             $.ajax({
                 url: ENDPOINT_AUTO_BOOK,
                 type: "POST",
                 contentType: "application/json", 
                 data: JSON.stringify({
                     action: "get_info_to_auto_book",
-                    booking_id: bookingID,
-                    list_journey_id: list_journey_id,
-                    list_passenger_id: list_passenger_id
+                    bookingId: bookingId,
+                    listItineraryId: listItineraryId,
+                    listPassengerId: listPassengerId
                 }),
                 beforeSend: function () {
                     $('.container-waiting').show();
@@ -61,17 +52,26 @@ $(document).ready(function () {
             });
         }
 
-        if(!list_journey_id.length) showToastNotify("warning", "Vui lòng chọn hành trình");
-        else if(!list_passenger_id.length) showToastNotify("warning", "Vui lòng chọn hành khách");
+        if(!listItineraryId.length) showToastNotify("warning", "Vui lòng chọn hành trình");
+        else if(!listPassengerId.length) showToastNotify("warning", "Vui lòng chọn hành khách");
     });
 
     $(document).on("click", "#cancelAutoBook", function() {
-        if(statusAutoBook == 1) {
-            statusAutoBook = 0;
-            $(this).html("Đóng");
+        let action = $(this).attr('action');
+
+        if(action == 'cancel') {
+            if(statusAutoBook == 1) {
+                statusAutoBook = 0;
+                $(this).attr("action", "close");
+                $(this).html("Đóng");
+            }
+            else if(statusAutoBook == 0) {
+                statusAutoBook = 1;
+                $('#autoBookDialog .loading-overlay').html('');
+                $('#autoBookDialog .loading-overlay').removeClass('active');
+            }
         }
-        else if(statusAutoBook == 0) {
-            statusAutoBook = 1;
+        else if(action == 'close') {
             $('#autoBookDialog .loading-overlay').html('');
             $('#autoBookDialog .loading-overlay').removeClass('active');
         }
@@ -120,9 +120,11 @@ $(document).ready(function () {
         }
     });
 
-    // STEP 1: Researching flights info
+    // STEPS
     $(document).on("click", "#confirmAutoBook", async function() {
         try {
+            // STEP 1: RESEARCHING FLIGHTS INFO
+            var step = 1;
             var airlineCodes = $('input[name="airlineCode[]"]').map((i, el) => el.value).get();
             var depCodes = $('input[name="depCode[]"]').map((i, el) => el.value).get();
             var desCodes = $('input[name="desCode[]"]').map((i, el) => el.value).get();
@@ -152,9 +154,10 @@ $(document).ready(function () {
                 infPrice: infPrice[i]
             }));
 
+            var response1 = {}, response2 = {};
             if(statusAutoBook == 1) {
                 let iti0 = `Hành trình ${searchInfo[0]['depCode']} đi ${searchInfo[0]['desCode']}`;
-                showStepsInDialogAutoBook(1, iti0);
+                showStepsInDialogAutoBook(step, iti0);
                 const response1 = await $.ajax({
                     url: ENDPOINT_AUTO_BOOK,
                     method: 'POST',
@@ -162,12 +165,16 @@ $(document).ready(function () {
                     dataType: "json",
                     data: JSON.stringify(searchInfo[0])
                 });
-                if(response2.status == 0) {
+                if(response1 && response1.status && response1.status == 0) {
                     if(response1.message == "Unmatched information") {
-                        showStepsInDialogAutoBook(1, iti0, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
+                        showStepsInDialogAutoBook(step, iti0, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
                         showUpdateFlightData(searchInfo[0]['depCode'], searchInfo[0]['desCode'], searchInfo[0]['adt'], searchInfo[0]['chd'], searchInfo[0]['inf'], response1.data.updateData ?? {});
                     }
-                    else showStepsInDialogAutoBook(1, iti0, response1.message);
+                    else showStepsInDialogAutoBook(step, iti0, response1.message);
+                    return;
+                }
+                else {
+                    showStepsInDialogAutoBook(step, iti0, response1.message ?? 'Lỗi, vui lòng thử lại sau');
                     return;
                 }
             }
@@ -176,7 +183,7 @@ $(document).ready(function () {
             if(statusAutoBook == 1 && searchInfo[1] !== undefined) {
                 let iti0 = `Hành trình ${searchInfo[0]['depCode']} đi ${searchInfo[0]['desCode']} <b style="color:#4285f4">OK</b></br>`;
                 let iti1 = `${iti0}Hành trình ${searchInfo[1]['depCode']} đi ${searchInfo[1]['desCode']}`;
-                showStepsInDialogAutoBook(1, iti1);
+                showStepsInDialogAutoBook(step, iti1);
                 const response2 = await $.ajax({
                     url: ENDPOINT_AUTO_BOOK,
                     method: 'POST',
@@ -184,13 +191,45 @@ $(document).ready(function () {
                     dataType: "json",  
                     data: JSON.stringify(searchInfo[1])
                 });
-                if(response2.status == 0) {
+                if(response2 && response2.status && response2.status == 0) {
                     if(response2.message == "Unmatched information") {
-                        showStepsInDialogAutoBook(1, iti1, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
+                        showStepsInDialogAutoBook(step, iti1, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
                         showUpdateFlightData(searchInfo[1]['depCode'], searchInfo[1]['desCode'], searchInfo[1]['adt'], searchInfo[1]['chd'], searchInfo[1]['inf'], response2.data.updateData ?? {});
                     }
-                    else showStepsInDialogAutoBook(1, iti1, response2.message);
+                    else showStepsInDialogAutoBook(step, iti1, response2.message);
                     return;
+                }
+                else {
+                    showStepsInDialogAutoBook(step, iti1, response2.message ?? 'Lỗi, vui lòng thử lại sau');
+                    return;
+                }
+            }
+
+            // STEP 2: VERIFY
+            if(statusAutoBook == 1) {
+                let flights = {};
+                if(response1.data && response1.data.standartData && Object.keys(response1.data.standartData).length > 0) {
+                    flights[0] = response1.data.standartData;
+                }
+                if(response2.data && response2.data.standartData && Object.keys(response2.data.standartData).length > 0) {
+                    flights[1] = response2.data.standartData;
+                }
+
+                if (Object.keys(flights).length > 0) {
+                    const verifyResponse = await $.ajax({
+                        url: ENDPOINT_AUTO_BOOK,
+                        method: 'POST',
+                        contentType: "application/json",
+                        dataType: "json",  
+                        data: JSON.stringify({
+                            'action': 'verify',
+                            'bookingId': bookingId,
+                            'flights': flights,
+                            'listPassengerId': getSelectedPassengersData()
+                        })
+                    });
+
+                    console.log(verifyResponse);
                 }
             }
         }
@@ -427,6 +466,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         },
     };
 
+    let actionButton = 'cancel';
     let stepsHTML = '';
     $.each(steps, function(stepNum, stepData) {
         let stepClass = '';
@@ -439,7 +479,10 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
             caption = current_caption && current_caption.length > 0 ? current_caption : stepData.caption;
             error = current_error && current_error.length > 0 ? current_error : stepData.error;
             if(error.length == 0) loaderHTML = '<div><div class="loader-step"></div></div>';
-            else error = `&#128712; ` + error;
+            else {
+                error = `&#128712; ` + error;
+                actionButton = 'close';
+            }
         }
         else {
             caption = stepData.caption;
@@ -461,7 +504,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
     let content = `<div class="loading-content">
         ${stepsHTML}
         <div class="buttons">
-            <button type="button" id="cancelAutoBook" class="btn btn-secondary">Hủy</button>
+            <button type="button" id="cancelAutoBook" class="btn btn-secondary" action="${actionButton}">${actionButton == 'cancel' ? 'Hủy' : 'Đóng'}</button>
         </div>
     </div>`;
     dialogOverlay.html(content);
@@ -512,10 +555,28 @@ function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, up
     // Button update
     let direction = $(`#btnUpdate${depCode}${desCode}`).attr('direction'); 
     updateData.action = 'update_data';
-    updateData.bookingID = bookingID;
+    updateData.bookingId = bookingId;
     updateData.direction = parseInt(direction);
     $(`#btnUpdate${depCode}${desCode}`).attr('data', btoa(JSON.stringify(updateData)));
     $(`#btnUpdate${depCode}${desCode}`).show();
+}
+
+function getSelectedPassengersData() {
+    let list_passenger_id = [];
+    $('#tbl_pax input[name=check-passenger]:checked').each(function () {
+        let pass_id = $(this).attr("passenger-id");
+        if (pass_id !== undefined && pass_id.length > 30) list_passenger_id.push(pass_id);
+    });
+    return list_passenger_id;
+}
+
+function getSelectedItinerariesData() {
+    let list_itinerary_id = [];
+    $('#itinerary_tbl input[name=check-journey]:checked').each(function () {
+        let itinerary_id = $(this).attr("itinerary-id");
+        if (itinerary_id !== undefined && itinerary_id.length > 30) list_itinerary_id.push(itinerary_id);
+    });
+    return list_itinerary_id;
 }
 
 function formatNumber(number) {

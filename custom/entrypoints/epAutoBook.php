@@ -8,12 +8,12 @@ try {
         $action = isset($requestData['action']) ? $requestData['action'] : "";
 
         if($action == 'get_info_to_auto_book') {
-            $booking_id = $requestData['booking_id'] ?? '';
-            $list_journey_id = $requestData['list_journey_id'] ?? [];
-            $list_passenger_id = $requestData['list_passenger_id'] ?? [];
+            $bookingId = $requestData['bookingId'] ?? '';
+            $listItineraryId = $requestData['listItineraryId'] ?? [];
+            $listPassengerId = $requestData['listPassengerId'] ?? [];
             $arrMapAirlineCode = ['VJA' => 'VJ', 'VNA' => 'VN', 'VNP' => 'VN', 'BBA' => 'QH', 'VTA' => 'VU'];
 
-            if(!empty($booking_id) && !empty($list_journey_id) && !empty($list_passenger_id)) {
+            if(!empty($bookingId) && !empty($listItineraryId) && !empty($listPassengerId)) {
                 // Thông tin hành trình
                 $dataJourneys = [];
                 $stt_dep = $stt_ret = 0;
@@ -27,7 +27,7 @@ try {
                         ,iti.airline_code
                         ,iti.flight_number
                     FROM ec_booking_itineraries iti
-                    WHERE iti.booking_id = '$booking_id' 
+                    WHERE iti.booking_id = '$bookingId' 
                         AND iti.deleted = 0
                         AND iti.add_type = 0
                     ORDER BY iti.direction, iti.date_entered, iti.departure_date";
@@ -35,7 +35,7 @@ try {
                 while ($row = $db->fetchByAssoc($res_1)) {
                     // Lượt đi
                     if ($row['direction'] == '0') {
-                        if ($stt_dep == 0 && in_array($row['id'], $list_journey_id)) {
+                        if ($stt_dep == 0 && in_array($row['id'], $listItineraryId)) {
                             $flightDate = date('d-m-Y H:i', strtotime($row['departure_date']));
                             $dataJourneys['dep'] = [
                                 'id'            => $row['id'],
@@ -52,7 +52,7 @@ try {
 
                     // Lượt về
                     if ($row['direction'] == '1') {
-                        if ($stt_ret == 0 && in_array($row['id'], $list_journey_id)) {
+                        if ($stt_ret == 0 && in_array($row['id'], $listItineraryId)) {
                             $flightDate = date('d-m-Y H:i', strtotime($row['departure_date']));
                             $dataJourneys['ret'] = [
                                 'id'            => $row['id'],
@@ -70,7 +70,7 @@ try {
 
                 // Thông tin hành khách
                 $dataPassengers = [];
-                $in_list_passenger_id = "'".implode("','", $list_passenger_id)."'";
+                $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 $sql_2 = "SELECT p.id
                         ,p.type
                         ,p.salutation
@@ -79,8 +79,8 @@ try {
                         ,p.cic
                         ,p.passport_number
                     FROM ec_booking_passengers p
-                    WHERE p.booking_id = '$booking_id' 
-                        AND p.id IN ($in_list_passenger_id)
+                    WHERE p.booking_id = '$bookingId' 
+                        AND p.id IN ($inListPassengerId)
                         AND p.deleted = 0
                     ORDER BY p.type";
                 $res_2 = $db->query($sql_2);
@@ -107,7 +107,7 @@ try {
                         ,bkd.tax_and_fee AS tax
                         ,(IFNULL(bkd.airport_fee, 0) + IFNULL(bkd.admin_fee, 0)) AS fee
                     FROM ec_booking_details bkd
-                    WHERE bkd.booking_id = '$booking_id' AND bkd.deleted = 0
+                    WHERE bkd.booking_id = '$bookingId' AND bkd.deleted = 0
                     ORDER BY bkd.direction, bkd.passenger_type";
                 $res_3 = $db->query($sql_3);
                 while ($row = $db->fetchByAssoc($res_3)) {
@@ -130,7 +130,7 @@ try {
                 // Thông tin liên hệ
                 $dataContact = []; 
                 $booking = new EC_Flight_Bookings();
-                $booking->retrieve($booking_id);
+                $booking->retrieve($bookingId);
                 $dataContact['name'] = $booking->contact_name;
                 $dataContact['email'] = $booking->email_reservation;
                 $dataContact['phone'] = trim($booking->phone);
@@ -148,13 +148,14 @@ try {
                 exit(); 
             }
 
+            http_response_code(400);
             echo json_encode([
                 'status' => 0,
                 'message' => 'Invalid params',
-                'data' => [
-                    'contact' => $booking_id,
-                    'list_journey_id' => $list_journey_id,
-                    'list_passenger_id' => $list_passenger_id
+                'params' => [
+                    'bookingId' => $bookingId,
+                    'listItineraryId' => $listItineraryId,
+                    'listPassengerId' => $listPassengerId
                 ]
             ]);
             exit();
@@ -257,9 +258,10 @@ try {
                     ]);
                     exit();
                 }
+
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Flight not found",
+                    "message" => "Flight $flightNo not found",
                     "data" => $flights
                 ]);
                 exit();
@@ -278,6 +280,7 @@ try {
             $direction = $requestData['direction'] ?? null;
 
             if(is_null($direction) || empty($bookingID)) {
+                http_response_code(400);
                 echo json_encode([
                     "status" => 0,
                     "message" => "Invalid params",
@@ -331,6 +334,114 @@ try {
             }
 
             echo json_encode(["status" => 1, "message" => "Update success"]);
+            exit();
+        }
+        elseif($action == 'verify') {
+            $bookingId = $requestData['bookingId'] ?? '';
+            $flights = $requestData['flights'] ?? [];
+            $listPassengerId = $requestData['listPassengerId'] ?? [];
+
+            if(!$flights || !is_array($flights) || empty($flights) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
+                http_response_code(400);
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "params" => [
+                        "bookingId" => $bookingId,
+                        "flights" => $flights,
+                        "listPassengerId" => $listPassengerId,
+                    ]]);
+                exit();
+            }
+
+            $phuongnamapi = new PhuongNamAPI();
+
+            // Thông tin liên hệ
+            $booking = new EC_Flight_Bookings();
+            $booking->retrieve($bookingId);
+            $contactName = trim($booking->contact_name);
+            $contactTitle = $booking->contact_title == '0' ? 'Mr' : 'Ms';
+            $contactPhone = trim($booking->phone);
+            $contactEmail = trim($booking->email_reservation);
+            $contactAddress = trim($booking->address);
+
+            // Thông tin hành khách
+            $customerInfos = [];
+            $inListPassengerId = "'".implode("','", $listPassengerId)."'";
+            $sql_pass = "SELECT p.id
+                    ,p.type
+                    ,p.salutation
+                    ,p.name
+                    ,p.birthday
+                    ,p.cic
+                    ,p.passport_number
+                FROM ec_booking_passengers p
+                WHERE p.booking_id = '$bookingId' 
+                    AND p.id IN ($inListPassengerId)
+                    AND p.deleted = 0
+                ORDER BY p.type";
+            $num = 1;
+            $res_pass = $db->query($sql_pass);
+            while ($row = $db->fetchByAssoc($res_pass)) {
+                $gender = $row['salutation'] == 0 ? 'M' : 'F';
+                $title = null;
+                if($row['type'] === '0') $title = $row['salutation'] === '0' ? 'Mr' : 'Ms';
+                $birthday = !is_null($row['birthday']) && !empty($row['birthday']) && strtotime($row['birthday']) ? $row['birthday'] : null;
+                $passport = $row['cic'] && !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
+
+                $customerInfos[] = [
+                    "PersonOrgId" => $num,
+                    "PersonOrgIdConfirmed" => null,
+                    "PersonOrgCode" => null,
+                    "CustomerKey" => null,
+                    "PassengerTypeId" => $phuongnamapi->mappingPassengerType($row['type']),
+                    "FirstName"     => $phuongnamapi->getLastName($row['name'] ?? ''),
+                    "LastName"      => $phuongnamapi->getLastName($row['name'] ?? ''),
+                    "Age"           => $phuongnamapi->getAge($birthday),
+                    "BirthDay"      => $birthday,
+                    "Gender"        => $gender,
+                    "Title"         => $title,
+                    "Phone"         => $contactPhone,
+                    "Email"         => $contactEmail,
+                    "AddressFull"   => null,
+                    "IsContract"    => true,
+                    "RowNumber"     => $num,
+                    "PassportType"      => null,
+                    "PassportCode"      => null,
+                    "Passport"          => $passport,
+                    "PassportIssuer"    => null,
+                    "PassportExpired"   => null,
+                    "Nationality"       => null,
+                    "ParentGuestId" => null,
+                    "ParentGuestIdConfirmed" => null,
+                    "SortOrder" => $num,
+                    "ParentGuestCode" => null,
+                    "LoyaltyNumber" => null
+                ];
+            }
+            
+            $requestBody = [
+                "UserId" => null,
+                "UserCode" => null,
+                "UserFullName" => null,
+                "TransactionId" => null,
+                "IsIssueTicket" => false, // Issue immediately
+                "Itinerary" => count($flights), // 1:Một chiều 2:Khứ hồi, 3:Đa chặng
+                "ContactTitle" => $contactTitle,
+                "ContactName" => $contactName,
+                "ContactPhone" => $contactPhone,
+                "ContactEmail" => $contactEmail,
+                "ContactAddress" => $contactAddress,
+                "PromotionCode" => "",
+                "PromoCode" => "",
+                "IsCombine" => false,
+                "Flights" => $flights,
+                "CustomerInfos" => $customerInfos,
+            ];
+
+            $response = $phuongnamapi->verify($requestBody); // JSON
+
+            echo $response;
             exit();
         }
 
