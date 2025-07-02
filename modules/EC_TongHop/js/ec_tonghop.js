@@ -22,7 +22,7 @@ $(document).ready(function () {
     }
 
     function getSearchData(){
-        let domain = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
+        let domain = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.vn";
         let fromDate = $("#from_date").val();
         let toDate = $("#to_date").val();
         let quickRange = $("select[name='time_selected']").val();

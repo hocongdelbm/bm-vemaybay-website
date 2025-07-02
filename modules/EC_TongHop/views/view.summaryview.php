@@ -4,8 +4,8 @@ require_once("include/Sugar_Smarty.php");
 class Viewsummaryview extends SugarView {
     
     public static $domain_list = [
-        'domain1' => 'https://timchuyenbay.com/analytics',
-        'domain2' => 'https://timchuyenbay.vn/analytics',
+        'domain1' => 'https://timchuyenbay.vn/analytics',
+        'domain2' => 'https://timchuyenbay.com/analytics',
         'domain3' => 'https://vietjet.net/analytics',
         'domain4' => 'https://timchuyenbay.com/analytics',
     ];
