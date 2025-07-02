@@ -134,6 +134,8 @@ try {
                 $dataContact['name'] = $booking->contact_name;
                 $dataContact['email'] = $booking->email_reservation;
                 $dataContact['phone'] = trim($booking->phone);
+                $dataContact['title'] = $booking->contact_title == '0' ? 'Mr.' : 'Ms.';
+                $dataContact['address'] = !empty($booking->address) ? trim($booking->address) : '';
                 
                 echo json_encode([
                     'status' => 1,
@@ -148,7 +150,6 @@ try {
                 exit(); 
             }
 
-            http_response_code(400);
             echo json_encode([
                 'status' => 0,
                 'message' => 'Invalid params',
@@ -276,16 +277,15 @@ try {
             }
         }
         elseif($action == 'update_data') {
-            $bookingID = $requestData['bookingID'] ?? '';
+            $bookingId = $requestData['bookingId'] ?? '';
             $direction = $requestData['direction'] ?? null;
 
-            if(is_null($direction) || empty($bookingID)) {
-                http_response_code(400);
+            if(is_null($direction) || empty($bookingId)) {
                 echo json_encode([
                     "status" => 0,
                     "message" => "Invalid params",
                     "params" => [
-                        "bookingID" => $bookingID,
+                        "bookingId" => $bookingId,
                         "direction" => $direction
                     ]
                 ]);
@@ -309,7 +309,7 @@ try {
                             ,airport_fee = ($fee - admin_fee)
                             ,total_bought_price = $price * quantity
                             ,total_price = ($price + service_fee) * quantity
-                        WHERE booking_id = '$bookingID'
+                        WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND passenger_type = '$i'
                             AND deleted = 0";
@@ -326,7 +326,7 @@ try {
                 $sql = "UPDATE ec_booking_itineraries
                         SET departure_date = '$fdate'
                             ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
-                        WHERE booking_id = '$bookingID'
+                        WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND deleted = 0
                             AND add_type = 0";
@@ -342,7 +342,6 @@ try {
             $listPassengerId = $requestData['listPassengerId'] ?? [];
 
             if(!$flights || !is_array($flights) || empty($flights) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
-                http_response_code(400);
                 echo json_encode([
                     "status" => 0,
                     "message" => "Invalid params",
@@ -350,11 +349,10 @@ try {
                         "bookingId" => $bookingId,
                         "flights" => $flights,
                         "listPassengerId" => $listPassengerId,
-                    ]]);
+                    ]
+                ]);
                 exit();
             }
-
-            $phuongnamapi = new PhuongNamAPI();
 
             // Thông tin liên hệ
             $booking = new EC_Flight_Bookings();
@@ -363,9 +361,23 @@ try {
             $contactTitle = $booking->contact_title == '0' ? 'Mr' : 'Ms';
             $contactPhone = trim($booking->phone);
             $contactEmail = trim($booking->email_reservation);
-            $contactAddress = trim($booking->address);
+            $contactAddress = !empty($booking->address) ? trim($booking->address) : '';
+            $contactRequiredFields = [
+                "contactTitle" => "Danh xưng liên hệ (Mr/Ms)",
+                "contactName" => "Họ tên người liên hệ",
+                "contactPhone" => "Số điện thoại liên hệ",
+                "contactEmail" => "Email liên hệ (Email đặt chỗ)",
+                "contactAddress" => "Địa chỉ liên hệ",
+            ];
+            foreach($contactRequiredFields as $key => $name) {
+                if(empty($$key)) {
+                    echo json_encode(["status" => 0, "message" => "$name là bắt buộc"]);
+                    exit();
+                }
+            }
 
             // Thông tin hành khách
+            $phuongnamapi = new PhuongNamAPI();
             $customerInfos = [];
             $inListPassengerId = "'".implode("','", $listPassengerId)."'";
             $sql_pass = "SELECT p.id
@@ -390,12 +402,12 @@ try {
                 $passport = $row['cic'] && !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
 
                 $customerInfos[] = [
-                    "PersonOrgId" => $num,
+                    "PersonOrgId" => (string)$num,
                     "PersonOrgIdConfirmed" => null,
                     "PersonOrgCode" => null,
                     "CustomerKey" => null,
                     "PassengerTypeId" => $phuongnamapi->mappingPassengerType($row['type']),
-                    "FirstName"     => $phuongnamapi->getLastName($row['name'] ?? ''),
+                    "FirstName"     => $phuongnamapi->getFirstName($row['name'] ?? ''),
                     "LastName"      => $phuongnamapi->getLastName($row['name'] ?? ''),
                     "Age"           => $phuongnamapi->getAge($birthday),
                     "BirthDay"      => $birthday,
@@ -418,6 +430,8 @@ try {
                     "ParentGuestCode" => null,
                     "LoyaltyNumber" => null
                 ];
+
+                $num++;
             }
             
             $requestBody = [
@@ -440,8 +454,74 @@ try {
             ];
 
             $response = $phuongnamapi->verify($requestBody); // JSON
+            $responseArr = json_decode($response, true);
+            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
+            $responseData = $responseArr['data'] ?? [];
+            // Preparing request body for next step
+            foreach($requestBody['Flights'] as $i => $f) {
+                foreach($responseData as $res) {
+                    if($f['SystemCode'] == $res['SystemCode']) {
+                        $requestBody['Flights'][$i]['VerifySession'] = $res['SessionVerify'] ?? '';
+                    }
+                }
+            }
+            $responseArr['requestBody'] = $requestBody;
+            unset($responseArr['error']);
+            echo json_encode($responseArr);
+            exit();
+        }
+        elseif($action == 'booking') {
+            $bookingId = $requestData['bookingId'] ?? '';
+            $listPassengerId = $requestData['listPassengerId'] ?? [];
+            $requestBody = $requestData['requestBody'] ?? [];
+            
+            if(!$requestBody || !is_array($requestBody) || empty($requestBody) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "params" => [
+                        "requestBody" => $requestBody,
+                        "listPassengerId" => $listPassengerId,
+                        "bookingId" => $bookingId,
+                    ]
+                ]);
+                exit();
+            }
 
-            echo $response;
+            $phuongnamapi = new PhuongNamAPI();
+            $response = $phuongnamapi->booking($requestBody);
+            $responseArr = json_decode($response, true);
+            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
+
+            // Save to BM
+            if($responseArr['status'] == 1) {
+                $inListPassengerId = "'".implode("','", $listPassengerId)."'";
+                foreach($responseArr['data'] as $i => $f) {
+                    // $f["ID"];
+                    // $f["TransactionId"];
+                    $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
+                    $systemCode = trim($bookingCode[0] ?? ''); // Airline code
+                    $pnr = trim($bookingCode[1] ?? '');
+                    
+                    // Update PNR
+                    $colNamePNR = $i == 0 ? 'pnr_outbound' : 'pnr_inbound';
+                    $sql = "UPDATE ec_booking_passengers
+                        SET $colNamePNR = '$pnr'
+                        WHERE booking_id = '$bookingId'
+                            AND id IN ($inListPassengerId)
+                            AND deleted = 0";
+                    $db->query($sql);
+
+                    // Update supplier
+                    $sql = "UPDATE ec_booking_details
+                        SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
+                        WHERE booking_id = '$bookingId' AND direction = '$i'";
+                    $db->query($sql);
+                }
+            }
+
+            unset($responseArr['error']);
+            echo json_encode($responseArr);
             exit();
         }
 
