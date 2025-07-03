@@ -855,6 +855,29 @@ function showToastNotify(type = '', content = '') {
   return true;
 }
 
+function showDialog(id) {
+  // Show dialog
+  const dialog = document.getElementById(id);
+  // If a browser doesn't support the dialog, then hide the dialog contents by default.
+  if (typeof dialog.showModal !== 'function') {dialog.hidden = true;}
+  // "Update details" button opens the <dialog> modally
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    $('.toast-warning').addClass('active');
+    $('.toast-warning #toast-content').text('Chức năng không được hỗ trợ trên trình duyệt này!');
+    $('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
+    setTimeout(function () {
+      $(".toast-warning").removeClass('active');
+      location.reload();
+    }, 4000);
+  }
+}
+function closeDialog(id) {
+  dialog = document.getElementById(id);
+  dialog.close();
+}
+
 
 /** 
  * Copy content

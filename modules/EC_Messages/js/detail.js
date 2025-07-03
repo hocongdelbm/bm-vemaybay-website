@@ -79,13 +79,3 @@ $(document).ready(function () {
 		});
     })
 });
-
-function showDialog(id) {
-	let dialog = document.getElementById(id); 
-	dialog.showModal(); 
-} 
-  
-function closeDialog(id) {
-	let dialog = document.getElementById(id); 
-	dialog.close(); 
-} 

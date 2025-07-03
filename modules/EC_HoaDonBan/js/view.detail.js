@@ -297,13 +297,3 @@ function check_date(str) {
 	if (DataCheck.getTime() < ToDate.getTime()) return false;
 	return true;
 }
-
-function showDialog(id) {
-	let dialog = document.getElementById(id); 
-	dialog.showModal(); 
-} 
-  
-function closeDialog(id) {
-	let dialog = document.getElementById(id); 
-	dialog.close(); 
-} 

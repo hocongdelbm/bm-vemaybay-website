@@ -37,7 +37,7 @@ if(isAllowedUser()) {
 if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
 	$module_menu[] = [
 		"index.php?module=EC_Flight_Bookings&action=issueticket&return_module=EC_Flight_Bookings&return_action=issueticket",
-		"Xuất vé Vietjet",
+		"Xuất vé",
 		"justice-scale",
 		"EC_Flight_Bookings"
 	];

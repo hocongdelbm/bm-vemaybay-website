@@ -29,6 +29,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 6);
             curl_setopt($curl, CURLOPT_TIMEOUT, 12);
             $json = curl_exec($curl);
@@ -81,6 +83,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($curl, CURLOPT_TIMEOUT, 45);
             $json = curl_exec($curl);
@@ -242,7 +246,87 @@ class PhuongNamAPI {
             return json_encode([
                 "error"     => 0,
                 "message"   => "Booking success",
-                "data"      => $responseArr
+                "data"      => $responseArr['Data'] ?? null
+            ]);
+        }
+        catch(Exception $e) {
+            return json_encode(['error' => 1, 'message' => $e->getCode() . ': ' . $e->getMessage(), 'data' => null]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /**
+     * Get booking detail
+     * 
+     * @param string $systemCode VJ, VN, QH, VU,...
+     * @param string $bookingCode PNR
+     */
+    public function getBooking($systemCode, $bookingCode) {
+        try {
+            if(!$systemCode || !$bookingCode || empty($systemCode) || empty($bookingCode))
+            return json_encode([
+                'error' => 1,
+                'message' => 'Invalid params',
+                'params' => [
+                    'systemCode' => $systemCode,
+                    'bookingCode' => $bookingCode
+                ]
+            ]);
+
+            $str = $this->getSessionKey();
+            $arr = json_decode($str, true);
+            if(!isset($arr['error']) || $arr['error'] != 0 || !isset($arr['data']) || empty($arr['data'])) return $str;
+            $sessionKey = $arr['data'] ?? '';
+
+            $url = "$this->ENDPOINT/api/Booking/BookingDetail?systemCode=$systemCode&bookingCode=$bookingCode";
+            $headers = [
+                "ApiKey: $this->API_KEY",
+                "SecretKey: $this->SECRET_KEY",
+                "Authorization: Bearer $sessionKey",
+            ];
+
+            $curl = curl_init();
+            if ($curl === false) return json_encode(["error" => 1, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            $response = curl_exec($curl); // JSON
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if ($response === false || $errorno) {
+                return json_encode(["error" => 1, "message" => "Can not connect to agency", "description" => "cURL error $errorno: $error"]);
+            }
+            if($httpcode != 200) {
+                return json_encode([
+                    "error" => 1,
+                    "message" => "Get booking failed",
+                    "data" => is_string($response) ? json_decode($response, true) : $response,
+                    "description" => "HTTP error $httpcode"
+                ]);
+            }
+
+            $responseArr = is_string($response) ? json_decode($response, true) : $response;
+            if($responseArr['ID'] != 1) {
+                return json_encode([
+                    "error"     => 1,
+                    "message"   => $responseArr["Message"] ?? "Get booking failed",
+                    "data"      => $responseArr['Data'] ?? null
+                ]);
+            }
+            return json_encode([
+                "error"     => 0,
+                "message"   => "Success",
+                "data"      => $responseArr['Data'] ?? null
             ]);
         }
         catch(Exception $e) {

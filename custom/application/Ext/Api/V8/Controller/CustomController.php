@@ -553,8 +553,7 @@ class CustomController extends BaseController
                     // );
 
                     global $sugar_config;
-                    $message = Mattermost::$line_separation;
-                    $message .= Mattermost::markdownHeading("[ERROR] Save contact failed\n");
+                    $message = Mattermost::markdownHeading("[ERROR] Save contact failed\n");
                     $message .= "Lưu thông tin liên hệ Apps script thất bại!\n\n";
                     $message .= json_encode($contactData);
                     Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);

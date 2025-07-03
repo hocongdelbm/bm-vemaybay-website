@@ -7,6 +7,7 @@ $(document).ready(function () {
     bookingId = $(`#formDetailView input[name="record"]`).val();
     ticketType = $(`input[name="ticket_type"]`).val();
 
+    // Open auto book dialog
     $("#btnAutoBook").click(function () {
         let listItineraryId = getSelectedItinerariesData();
         let listPassengerId = getSelectedPassengersData();
@@ -38,8 +39,8 @@ $(document).ready(function () {
                         }
                     }
                     catch (e) {
-                        showModalNotify("error", "Lỗi trong quá trình xử lý");
-                        console.error("JSON parse error:", e);
+                        showModalNotify("error", "Lỗi trong quá trình xử lý", e.message);
+                        console.error(e);
                         console.error("Response was:", response);
                     }
                 },
@@ -56,76 +57,12 @@ $(document).ready(function () {
         else if(!listPassengerId.length) showToastNotify("warning", "Vui lòng chọn hành khách");
     });
 
-    $(document).on("click", "#cancelAutoBook", function() {
-        let action = $(this).attr('action');
-
-        if(action == 'cancel') {
-            if(statusAutoBook == 1) {
-                statusAutoBook = 0;
-                $(this).attr("action", "close");
-                $(this).html("Đóng");
-            }
-            else if(statusAutoBook == 0) {
-                statusAutoBook = 1;
-                $('#autoBookDialog .loading-overlay').html('');
-                $('#autoBookDialog .loading-overlay').removeClass('active');
-            }
-        }
-        else if(action == 'close') {
-            $('#autoBookDialog .loading-overlay').html('');
-            $('#autoBookDialog .loading-overlay').removeClass('active');
-        }
-    });
-
-    $(document).on("click", ".btn-update-auto-book", function() {
-        let data = $(this).attr('data');
-
-        if(data && data.length > 0) {
-            $.ajax({
-                url: ENDPOINT_AUTO_BOOK,
-                type: "POST",
-                contentType: "application/json", 
-                data: atob(data),
-                beforeSend: function () {
-                    $('.container-waiting').show();
-                },
-                success: function (response) {
-                    try {
-                        // $('.container-waiting').hide();
-                        const objData = JSON.parse(response);
-                        if(objData.status == 1) {
-                            // showModalNotify("success", "Cập nhật thành công");
-                            $("#btnAutoBook").trigger("click");
-                        }
-                        else {
-                            hideDialogAutoBook();
-                            showModalNotify("error", objData.message ?? "Lỗi trong quá trình xử lý");
-                            console.error(objData);
-                        }
-                    }
-                    catch (e) {
-                        hideDialogAutoBook();
-                        showModalNotify("error", "Lỗi trong quá trình xử lý");
-                        console.error("JSON parse error:", e);
-                        console.error("Response was:", response);
-                    }
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    $('.container-waiting').hide();
-                    console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
-                    console.error("Error: " + errorThrown);
-                }
-            });
-        }
-    });
-
-    // STEPS
+    // Show steps in auto book dialog
     $(document).on("click", "#confirmAutoBook", async function() {
         try {
             statusAutoBook = 1;
             
-            // STEP 1: RESEARCHING FLIGHTS INFO
+            /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
             var step = 1;
             var airlineCodes = $('input[name="airlineCode[]"]').map((i, el) => el.value).get();
             var depCodes = $('input[name="depCode[]"]').map((i, el) => el.value).get();
@@ -203,12 +140,12 @@ $(document).ready(function () {
                 showStepsInDialogAutoBook(step, iti1 + textItiSuccess);
             }
 
-            // STEP 2: VERIFY
+            /******  STEP 2: VERIFY  ******/
             step = 2;
             var verifyResponse = {};
             var listPassengerId = getSelectedPassengersData();
             if(statusAutoBook == 1) {
-                showStepsInDialogAutoBook(step);
+                setTimeout(() => {showStepsInDialogAutoBook(step);}, 300);
 
                 var flights = {};
                 if(response1.data && response1.data.standardData && Object.keys(response1.data.standardData).length > 0) {
@@ -243,11 +180,12 @@ $(document).ready(function () {
                 }
             }
 
-            // STEP 3: BOOKING
+            /******  STEP 3: BOOKING  ******/
             step = 3;
             var bookingResponse = {};
             if(statusAutoBook == 1) {
                 showStepsInDialogAutoBook(step);
+                $('#btnAutoBookAction').prop('disabled', true); // Disable button action
                 
                 bookingResponse = await $.ajax({
                     url: ENDPOINT_AUTO_BOOK,
@@ -262,16 +200,99 @@ $(document).ready(function () {
                     })
                 });
 
+                // Enable button action
+                $('#btnAutoBookAction').html('Đóng');
+                $('#btnAutoBookAction').attr("action", "close");
+                $('#btnAutoBookAction').prop('disabled', false);
+
                 if(!bookingResponse || !bookingResponse.status || bookingResponse.status == 0) {
                     showStepsInDialogAutoBook(step, '', bookingResponse.message ?? 'Lỗi, vui lòng thử lại sau');
                     return;
                 }
 
-                showStepsInDialogAutoBook(step, 'Đặt chỗ thành công', '', 1);
+                // Display BookingCodes (PNR) to client
+                let caption = 'Đặt chỗ thành công';
+                const bookingCodes = bookingResponse.data.Data.map(item => item.BookingCode);
+                bookingCodes.forEach(code => {
+                    caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
+                });
+                showStepsInDialogAutoBook(step, caption, '', 1);
             }
         }
-        catch (error) {
-            console.error('Error during AJAX calls:', error);
+        catch (e) {
+            console.error(e);
+            hideDialogAutoBook();
+            showModalNotify(0, 'Lỗi trong quá trình giữ chỗ, vui lòng thử lại sau', e.message);
+        }
+    });
+
+    $(document).on("click", "#btnAutoBookAction", function() {
+        let action = $(this).attr('action');
+
+        if(action == 'cancel') {
+            if(statusAutoBook == 1) {
+                statusAutoBook = 0;
+                $(this).attr("action", "close");
+                $(this).html("Đóng");
+            }
+            else if(statusAutoBook == 0) {
+                statusAutoBook = 1;
+                $('#autoBookDialog .loading-overlay').html('');
+                $('#autoBookDialog .loading-overlay').removeClass('active');
+            }
+        }
+        else if(action == 'close') {
+            $('#autoBookDialog .loading-overlay').html('');
+            $('#autoBookDialog .loading-overlay').removeClass('active');
+        }
+        else if(action == 'complete') {
+            hideDialogAutoBook();
+        }
+    });
+
+    // Update data (flight datetime, fares) to BM
+    $(document).on("click", ".btn-update-auto-book", function() {
+        let data = $(this).attr('data');
+
+        if(data && data.length > 0) {
+            $.ajax({
+                url: ENDPOINT_AUTO_BOOK,
+                type: "POST",
+                contentType: "application/json", 
+                data: atob(data),
+                beforeSend: function () {
+                    hideDialogAutoBook();
+                    $('.container-waiting').show();
+                },
+                success: function (response) {
+                    try {
+                        const objData = JSON.parse(response);
+                        if(objData.status == 1) {
+                            $("#btnAutoBook").trigger("click");
+                            return;
+                        }
+                        else {
+                            $('.container-waiting').hide();
+                            hideDialogAutoBook();
+                            showModalNotify("error", objData.message ?? "Cập nhật không thành công, vui lòng F5 và thử lại");
+                            console.error(objData);
+                        }
+                    }
+                    catch (e) {
+                        $('.container-waiting').hide();
+                        hideDialogAutoBook();
+                        showModalNotify("error", "Cập nhật không thành công, vui lòng F5 và thử lại", e.message);
+                        console.error(e);
+                        console.error("Response was:", response);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('.container-waiting').hide();
+                    console.error(XMLHttpRequest);
+                    console.error("Status: " + textStatus);
+                    console.error("Error: " + errorThrown);
+                }
+            });
         }
     });
 });
@@ -288,17 +309,17 @@ function showDialogAutoBook(bookingData) {
     autoBookForm.id = 'autoBookForm';
     autoBookForm.className = 'dialog-form';
 
+    // Header
+    const header = document.createElement('div');
+    header.className = 'header';
+    header.innerHTML = `<h4 class="title">Auto book</h4>`;
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
     closeBtn.textContent = '✕';
     closeBtn.onclick = () => dialog.remove();
-
-    const header = document.createElement('div');
-    header.className = 'header';
-    header.textContent = 'Auto book';
+    header.appendChild(closeBtn);
 
     const content = document.createElement('div');
-
 
     // Render Flight + Fare Section
     const { dep, ret } = bookingData.journeys;
@@ -406,7 +427,7 @@ function showDialogAutoBook(bookingData) {
     const passengersHTML = Object.values(bookingData.passengers).map(p => `
         <div class="passenger-info">
             <div class="info-row d-flex justify-content-between">
-                <div><b>${p.salutation}. ${p.name}</b></div>
+                <div><b><span style="color:${p.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${p.salutation}.</span> ${p.name}</b></div>
                 <div><b>${passengerTypes[p.type]}</b></div>
             </div>
             <div class="info-row d-flex justify-content-between">
@@ -451,13 +472,10 @@ function showDialogAutoBook(bookingData) {
     footer.appendChild(confirmBtn);
     footer.appendChild(cancelBtn);
     
-
     // Loading
     const loadingOverlay = document.createElement('div');
     loadingOverlay.className = 'loading-overlay';
 
-
-    autoBookForm.appendChild(closeBtn);
     autoBookForm.appendChild(header);
     autoBookForm.appendChild(content);
     autoBookForm.appendChild(footer);
@@ -471,11 +489,13 @@ function showDialogAutoBook(bookingData) {
 
     dialog.appendChild(formWrapper);
     document.body.appendChild(dialog);
+    dialog.showModal();
+    $('#autoBookDialog').draggable(); // Using only by Jquery
 }
 
 function hideDialogAutoBook() {
     let dialog = document.getElementById('autoBookDialog');
-    if (dialog) dialog.removeChild(dialog);
+    if (dialog) dialog.remove();
 }
 
 function showStepsInDialogAutoBook(current_step = 1, current_caption = '', current_error = '', is_finished = 0) {
@@ -485,6 +505,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
     // dialogOverlay.css('height', dialog[0].scrollHeight + 'px').addClass('active');
 
     let icon_finished = `<svg width="22px" height="22px" viewBox="0 0 16 16" stroke="#fff" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><polyline points="2.75 8.75,6.25 12.25,13.25 4.75"></polyline></g></svg>`;
+    let icon_error = `<svg width="18px" height="18px" class="me-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:sub;"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zm-1.5-5.009c0-.867.659-1.491 1.491-1.491.85 0 1.509.624 1.509 1.491 0 .867-.659 1.509-1.509 1.509-.832 0-1.491-.642-1.491-1.509zM11.172 6a.5.5 0 0 0-.499.522l.306 7a.5.5 0 0 0 .5.478h1.043a.5.5 0 0 0 .5-.478l.305-7a.5.5 0 0 0-.5-.522h-1.655z" fill="#ff0000"></path></g></svg>`;
     let steps = {
         1: {
             title: "Đối sánh thông tin chuyến bay",
@@ -503,7 +524,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         },
     };
 
-    let actionButton = 'cancel';
+    let buttonAction = 'cancel';
     let stepsHTML = '';
     $.each(steps, function(stepNum, stepData) {
         let stepClass = '';
@@ -516,10 +537,10 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         if(stepNum == current_step) {
             caption = current_caption && current_caption.length > 0 ? current_caption : stepData.caption;
             error = current_error && current_error.length > 0 ? current_error : stepData.error;
-            if(error.length == 0) loaderHTML = '<div><div class="loader-step"></div></div>';
-            else {
-                error = `&#128712; ` + error;
-                actionButton = 'close';
+            if(error.length == 0 && is_finished == 0) loaderHTML = '<div><div class="loader-step"></div></div>';
+            else if(error.length > 0) {
+                error = icon_error + error;
+                buttonAction = 'close';
             }
         }
         else {
@@ -539,10 +560,17 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         </div>`;
     });
 
+    let buttonClass = 'btn-secondary';
+    let buttonText = buttonAction == 'cancel' ? 'Hủy' : 'Đóng';
+    if(is_finished == 1) {
+        buttonAction = 'complete';
+        buttonClass = 'btn-primary reload'; // For reload
+        buttonText = 'Hoàn tất';
+    }
     let content = `<div class="loading-content">
         ${stepsHTML}
         <div class="buttons">
-            <button type="button" id="cancelAutoBook" class="btn btn-secondary" action="${actionButton}">${actionButton == 'cancel' ? 'Hủy' : 'Đóng'}</button>
+            <button type="button" id="btnAutoBookAction" class="btn ${buttonClass}" action="${buttonAction}">${buttonText}</button>
         </div>
     </div>`;
     dialogOverlay.html(content);

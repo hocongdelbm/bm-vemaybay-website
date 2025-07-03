@@ -292,29 +292,38 @@ try {
                 exit();
             }
 
+            global $sugar_config;
+            $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
+            $statusUpdate = true;
+
             // Update fares
             $basePrice = null;
             $passengerTypes = ['adt', 'chd', 'inf'];
             foreach($passengerTypes as $i => $type) {
                 $k = $type . "Fare";
                 if(isset($requestData[$k]) && !empty($requestData[$k])) {
-                    $fare = $requestData[$k]["fare"];
-                    $tax = $requestData[$k]["tax"];
-                    $fee = $requestData[$k]["fee"];
-                    $price = $requestData[$k]["price"];
+                    $fare   = $requestData[$k]["fare"];
+                    $tax    = $requestData[$k]["tax"];
+                    $fee    = $requestData[$k]["fee"];
+                    $vatFee = $fee*$sugar_config['vat_percentage'];
+                    $price  = $requestData[$k]["price"];
 
                     $sql = "UPDATE ec_booking_details
                         SET unit_price = $fare
                             ,tax_and_fee = $tax
-                            ,airport_fee = ($fee - admin_fee)
+                            ,airport_fee        = IF($fee > admin_fee, $fee - admin_fee, 0)
+                            ,admin_fee          = IF($fee > admin_fee, admin_fee, $fee)
+                            ,vat_admin          = IF($fee > admin_fee, vat_admin, $vatFee)
+                            ,admin_fee_no_vat   = IF($fee > admin_fee, admin_fee_no_vat, $fee - $vatFee)
                             ,total_bought_price = $price * quantity
                             ,total_price = ($price + service_fee) * quantity
+                            ,modified_user_id = '$current_user->id'
+                            ,date_modified = '$dateModified'
                         WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND passenger_type = '$i'
                             AND deleted = 0";
-                    $db->query($sql);
-
+                    if(!$db->query($sql)) $statusUpdate = false;
                     if($type == 'adt') $basePrice = $fare;
                 }
             }
@@ -326,6 +335,20 @@ try {
                 $sql = "UPDATE ec_booking_itineraries
                         SET departure_date = '$fdate'
                             ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
+                            ,modified_user_id = '$current_user->id'
+                            ,date_modified = '$dateModified'
+                        WHERE booking_id = '$bookingId'
+                            AND direction = '$direction'
+                            AND deleted = 0
+                            AND add_type = 0";
+                if(!$db->query($sql)) $statusUpdate = false;
+            }
+            // Update base price
+            elseif(!is_null($basePrice)) {
+                $sql = "UPDATE ec_booking_itineraries
+                        SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
+                            ,modified_user_id = '$current_user->id'
+                            ,date_modified = '$dateModified'
                         WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND deleted = 0
@@ -333,7 +356,8 @@ try {
                 $db->query($sql);
             }
 
-            echo json_encode(["status" => 1, "message" => "Update success"]);
+            if($statusUpdate === true) echo json_encode(["status" => 1, "message" => "Update success"]);
+            else echo json_encode(["status" => 0, "message" => "Update fail"]);
             exit();
         }
         elseif($action == 'verify') {
@@ -488,38 +512,127 @@ try {
                 exit();
             }
 
+            global $sugar_config;
+
+            // Booking type: oneway (Một chiều), roundtrip (Khứ hồi cùng hãng) , twoway (Khứ hồi 2 hãng khác nhau)
+            $bookingType = null;
+            $countItinerary = count($requestBody['Flights']);
+            if($countItinerary == 1) $bookingType = 'oneway';
+            elseif($countItinerary == 2) {
+                if($requestBody['Flights'][0]['SystemCode'] != $requestBody['Flights'][1]['SystemCode']) $bookingType = 'twoway';
+                else $bookingType = 'roundtrip';
+            }
+
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->booking($requestBody);
             $responseArr = json_decode($response, true);
-            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
 
             // Save to BM
-            if($responseArr['status'] == 1) {
+            $mappingSystemCodeName = ['VJ' => 'Vietjet Air', 'VN' => 'Vietnam Airlines', 'QH' => 'Bamboo Airways', 'VU' => 'Vietravel Airlines']; 
+            if($responseArr['error'] == 0) {
                 $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 foreach($responseArr['data'] as $i => $f) {
-                    // $f["ID"];
-                    // $f["TransactionId"];
-                    $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
-                    $systemCode = trim($bookingCode[0] ?? ''); // Airline code
-                    $pnr = trim($bookingCode[1] ?? '');
-                    
-                    // Update PNR
-                    $colNamePNR = $i == 0 ? 'pnr_outbound' : 'pnr_inbound';
-                    $sql = "UPDATE ec_booking_passengers
-                        SET $colNamePNR = '$pnr'
-                        WHERE booking_id = '$bookingId'
-                            AND id IN ($inListPassengerId)
-                            AND deleted = 0";
-                    $db->query($sql);
+                    if(isset($f["ID"]) && $f["ID"] == 1) {
+                        // $f["TransactionId"];
+                        $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
+                        $systemCode = trim($bookingCode[0] ?? ''); // Airline code
+                        $systemName = $mappingSystemCodeName[$systemCode] ?? 'Quốc tế'; // Airline name
+                        $pnr = trim($bookingCode[1] ?? '');
+                        $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
-                    // Update supplier
-                    $sql = "UPDATE ec_booking_details
-                        SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
-                        WHERE booking_id = '$bookingId' AND direction = '$i'";
-                    $db->query($sql);
+                        // Send to Mattermost
+                        $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+                        $linkBooking = $sugar_config['host_name']."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
+                        $m = "Giữ chỗ thành công: **$pnr** ($systemName) bởi **$fullname**";
+                        $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
+                        $m .= "\n- " . Mattermost::markdownLink($linkBooking, "Mở booking");
+                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+
+                        if($bookingType == 'roundtrip') {
+                            // Update PNR
+                            $sql = "UPDATE ec_booking_passengers
+                                    SET pnr_outbound = '$pnr'
+                                        ,pnr_inbound = '$pnr'
+                                        ,modified_user_id = '$current_user->id'
+                                        ,date_modified = '$dateModified'
+                                    WHERE booking_id = '$bookingId'
+                                        AND id IN ($inListPassengerId)
+                                        AND deleted = 0";
+                            if(!$db->query($sql)) {
+                                $m = "**RUN QUEYRY FAIL**";
+                                $m .= "`$sql`";
+                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                            }
+
+                            // Update supplier
+                            $sql = "UPDATE ec_booking_details
+                                    SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
+                                        ,modified_user_id = '$current_user->id'
+                                        ,date_modified = '$dateModified'
+                                    WHERE booking_id = '$bookingId' AND deleted = 0";
+                            if(!$db->query($sql)) {
+                                $m = "**RUN QUEYRY FAIL**";
+                                $m .= "`$sql`";
+                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                            }
+                        }
+                        else {
+                            // Update PNR
+                            $colNamePNR = $i == 0 ? 'pnr_outbound' : 'pnr_inbound';
+                            $sql = "UPDATE ec_booking_passengers
+                                    SET $colNamePNR = '$pnr'
+                                        ,modified_user_id = '$current_user->id'
+                                        ,date_modified = '$dateModified'
+                                    WHERE booking_id = '$bookingId'
+                                        AND id IN ($inListPassengerId)
+                                        AND deleted = 0";
+                            if(!$db->query($sql)) {
+                                $m = "**RUN QUEYRY FAIL**";
+                                $m .= "`$sql`";
+                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                            }
+
+                            // Update supplier
+                            $sql = "UPDATE ec_booking_details
+                                    SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
+                                        ,modified_user_id = '$current_user->id'
+                                        ,date_modified = '$dateModified'
+                                    WHERE booking_id = '$bookingId' AND direction = '$i' AND deleted = 0";
+                            if(!$db->query($sql)) {
+                                $m = "**RUN QUEYRY FAIL**";
+                                $m .= "`$sql`";
+                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                            }
+                        }
+                    }
                 }
             }
+            
+            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
+            unset($responseArr['error']);
+            echo json_encode($responseArr);
+            exit();
+        }
+        elseif($action == 'get_booking') {
+            $systemCode = $requestData['systemCode'] ?? '';
+            $bookingCode = $requestData['bookingCode'] ?? '';
 
+            if(empty($systemCode) || empty($bookingCode)) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "params" => [
+                        "systemCode" => $systemCode,
+                        "bookingCode" => $bookingCode,
+                    ]
+                ]);
+                exit();
+            }
+
+            $phuongnamapi = new PhuongNamAPI();
+            $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
+            $responseArr = json_decode($response, true);
+            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
             unset($responseArr['error']);
             echo json_encode($responseArr);
             exit();
