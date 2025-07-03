@@ -18,6 +18,7 @@ $(document).ready(function () {
         handleQuickRange();
         fetchTraffic(data.domain, data.option);
         fetchLogs(data.domain, data.option);
+        fetchTrafficInsights(data.domain, data.option);
         handleAccordion();
     }
 
@@ -54,6 +55,7 @@ $(document).ready(function () {
             handleQuickRange();
             fetchTraffic(domain, option);
             fetchLogs(domain, option);
+            fetchTrafficInsights(domain, option);
             renderFilterTag(currentFilters);
             updateFilterBTN(currentFilters, domain);
         });
@@ -69,6 +71,7 @@ $(document).ready(function () {
             handleQuickRange();
             fetchTraffic(domain, option);
             fetchLogs(domain, option);
+            fetchTrafficInsights(domain, option);
             renderFilterTag(currentFilters);
         });
         $(document).on("click", ".filter-btn", function(){
@@ -90,6 +93,7 @@ $(document).ready(function () {
             handleQuickRange();
             fetchTraffic(domain, option);
             fetchLogs(domain, option);
+            fetchTrafficInsights(domain, option);
             renderFilterTag(currentFilters);
             const $container = $(this).closest(".filter-btns");
             $container.find(".filter-btn").addClass("inactive");
@@ -103,6 +107,7 @@ $(document).ready(function () {
             fetchTraffic(data.domain, data.option);
             fetchLogs(data.domain, data.option);
             renderFilterTag(currentFilters);
+            fetchTrafficInsights(data.domain, data.option);
         });
 
         $(".reset_button.btn.btn-warning").on("click", () => {
@@ -248,10 +253,6 @@ $(document).ready(function () {
 
     function fetchTraffic(domain, option) {
         const endPoint = "index.php?entryPoint=entryPointSummarySite";
-        // const quickRange = $("select[name='time_selected']").val();
-        // let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
-        // let fromDate = $("#from_date").val();
-        // let toDate = $("#to_date").val();
 
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
@@ -264,7 +265,6 @@ $(document).ready(function () {
             type: "POST",
             url: endPoint,
             contentType: 'application/json',
-            // data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, flag: quickRange, action: "get_traffic"}),
             data: JSON.stringify({domain: domain, options: option, action: "get_traffic"}),
             success: function (response) {
                 const data = Object.entries(response.data);
@@ -285,6 +285,218 @@ $(document).ready(function () {
             }
         });
     }
+    function fetchTrafficInsights(domain, option){
+        const endPoint = "index.php?entryPoint=entryPointSummarySite";
+        $.ajaxSetup({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+        });
+
+        $(".online_data").html(renderLoading());
+        $(".btn.btn-primary.extend_btn").addClass("hide");
+        $.ajax({
+            type: "POST",
+            url: endPoint,
+            contentType: 'application/json',
+            data: JSON.stringify({domain: domain, options: option, action: "get_traffic_insights"}),
+            success: function(response){
+                console.log(response);
+                const selector = $(".box-section.insight_traffic");
+                renderTrafficInsights(selector, domain, response.data);
+            },
+            error: function(xhr){
+                console.log(xhr);
+            }
+        });
+    }
+    function renderTrafficInsights(selector, domainName, data) {
+        const container = $(selector);
+        container.empty();
+
+        container.append(` 
+                    <div class="online_data_title col-lg-12 d-flex flex-column align-items-center pb-3">
+                        <h3 style="margin-bottom:unset">Chỉ số traffic của ${domainName}</h3>
+                    </div>
+                `);
+        container.append(`
+            <div class="insight-numbers mb-4 row">
+                <div class="col-lg-6 mb-4 text-center">
+                    <div class="total_traffic d-flex justify-content-center">
+                        <h6 class="total_traffic_title">Tổng traffic:</h6>
+                        <span class="total_traffic_value">${data.total_traffic}</span>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4 text-center">
+                    <div class="unique_ip d-flex justify-content-center">
+                        <h6 class="unique_ip_title">IP duy nhất:</h6>
+                        <span class="unique_ip_value">${data.unique_ips}</span>
+                    </div>
+                </div>
+            </div>
+            <hr style="border: none; border-top: 2px dashed #ccc; margin: 20px 0;">
+        `);
+
+        container.append(`
+            <div class="row chart-row mb-4">
+                <div class="col-lg-12 mb-4">
+                    <h6 class="text-center mb-3">Tổng nguồn truy cập</h6>
+                    <canvas id="totalChart"></canvas>
+                </div>
+            </div>
+            <div class="row chart-row mb-4">
+                <div class="col-lg-12 mb-4">
+                    <h6 class="text-center mb-3">Phân loại truy cập</h6>
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        `);
+
+        const colorSet = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#00C49F', '#FF6666'];
+
+        function renderPie(canvasId, items) {
+            const total = items.reduce((sum, i) => sum + i.value, 0);
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            if (total === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('Không có dữ liệu', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            const labels = items.map(i => i.label);
+            const values = items.map(i => i.value);
+            const backgroundColor = labels.map((_, idx) => colorSet[idx % colorSet.length]);
+
+            new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: backgroundColor,
+                        pieThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => `${ctx.label}: ${ctx.parsed}`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        renderPie('totalChart', data.source || []);
+
+        const labels = (data.user_type || []).map(item => item.label);
+        const byUserData = (data.user_type || []).map(item => item.by_user);
+        const byBotData = (data.user_type || []).map(item => item.by_bot);
+
+        new Chart(document.getElementById('barChart'), {
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Người dùng',
+                        data: byUserData,
+                        backgroundColor: '#36A2EB',
+                        borderColor: '#007BFF',
+                        type: 'bar',
+                        order: 1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Người dùng',
+                        data: byUserData,
+                        type: 'line',
+                        borderColor: '#007BFF',
+                        backgroundColor: 'transparent',
+                        fill: true,
+                        pointRadius: 3,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        order: 0,
+                        yAxisID: 'y',
+                        datalabels: { display: true },
+                        hoverRadius: 4,
+                        segment: { borderDash: [5, 5] },
+                        hidden: false
+                    },
+                    {
+                        label: 'Bot',
+                        data: byBotData,
+                        backgroundColor: '#FF6384',
+                        borderColor: '#FF6384',
+                        type: 'bar',
+                        order: 1,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'Bot',
+                        data: byBotData,
+                        type: 'line',
+                        borderColor: '#FF6384',
+                        backgroundColor: 'transparent',
+                        fill: true,
+                        pointRadius: 3,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        order: 0,
+                        yAxisID: 'y',
+                        datalabels: { display: true },
+                        hoverRadius: 4,
+                        segment: { borderDash: [5, 5] },
+                        hidden: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Thời gian'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Lượt truy cập'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            filter: function(item, chart) {
+                                return item.datasetIndex === 0 || item.datasetIndex === 2;
+                            }
+                        },
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+
     function renderTrafficGroups(selector, domainName, data) {
         const $container = $(selector);
         $container.empty().append(`
@@ -403,9 +615,6 @@ $(document).ready(function () {
 
     function fetchLogs(domain, option) {
         const endPoint = "index.php?entryPoint=entryPointSummarySite";
-        // let domainName = $("select[name='url_selected'] option:selected").text() || "timchuyenbay.com";
-        // let fromDate = $("#from_date").val();
-        // let toDate = $("#to_date").val();
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
@@ -416,7 +625,6 @@ $(document).ready(function () {
             type: "POST",
             url: endPoint,
             contentType: 'application/json',
-            // data: JSON.stringify({ domain: domainName, from_date: fromDate, to_date: toDate, action: "get_logs"}),
             data: JSON.stringify({domain: domain, options: option, action: "get_logs"}),
             success: function (response) {
                 const data = response.data;

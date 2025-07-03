@@ -5,7 +5,8 @@ class SummaryStie{
     private $endpoints = [
         'get_traffic'     => '/get_traffic',
         'get_logs'        => '/get_logs',
-        'get_log_detail'  => '/get_detail'
+        'get_log_detail'  => '/get_detail',
+        'get_traffic_insights' => '/get_traffic_insights'
     ];
 
     function __construct() {
@@ -29,7 +30,13 @@ class SummaryStie{
                 $data['options']['from_time'] = date_format(new DateTime($request_data["options"]['from_date']), "Y-m-d H:i:s");
                 $data['options']['to_time']   = date_format(new DateTime($request_data["options"]['to_date']), "Y-m-d H:i:s");
                 $data["options"]["flag"]      = $request_data["options"]["flag"] ?? null;
-                $data["options"]["filters"]    = $request_data["options"]["filter"] ?? [];
+                $data["options"]["filters"]   = $request_data["options"]["filter"] ?? [];
+                $data['domain']               = $request_data['domain'] ?? "";
+                break;
+            case 'get_traffic_insights':
+                $data['options']['from_time'] = date_format(new DateTime($request_data["options"]['from_date']), "Y-m-d H:i:s");
+                $data['options']['to_time']   = date_format(new DateTime($request_data["options"]['to_date']), "Y-m-d H:i:s");
+                $data["options"]["filters"]   = $request_data["options"]["filter"] ?? [];
                 $data['domain']               = $request_data['domain'] ?? "";
                 break;
             case 'get_log_detail':

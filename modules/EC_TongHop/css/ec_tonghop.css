@@ -487,3 +487,26 @@ canvas {
 .close_tag{
     cursor: pointer;
 }
+
+/* chart zone */
+.chart-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.chart-row canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100%;
+    max-height: 350px;
+}
+
+.total_traffic, .unique_ip{
+    flex-direction: column;
+}
+
+.total_traffic .total_traffic_value, .unique_ip .unique_ip_value{
+    font-size: 3rem;
+}
