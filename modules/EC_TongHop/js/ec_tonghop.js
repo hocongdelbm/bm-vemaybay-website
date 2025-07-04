@@ -291,7 +291,8 @@ $(document).ready(function () {
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
         });
 
-        $(".online_data").html(renderLoading());
+        $(".total_traffic_value").html(renderLoading());
+        $(".row.chart-row").html(renderLoading());
         $(".btn.btn-primary.extend_btn").addClass("hide");
         $.ajax({
             type: "POST",
@@ -319,13 +320,19 @@ $(document).ready(function () {
                 `);
         container.append(`
             <div class="insight-numbers mb-4 row">
-                <div class="col-lg-6 mb-4 text-center">
+                <div class="col-lg-4 mb-4 text-center">
                     <div class="total_traffic d-flex justify-content-center">
                         <h6 class="total_traffic_title">Tổng traffic:</h6>
                         <span class="total_traffic_value">${data.total_traffic}</span>
                     </div>
                 </div>
-                <div class="col-lg-6 mb-4 text-center">
+                <div class="col-lg-4 mb-4 text-center">
+                    <div class="total_traffic d-flex justify-content-center">
+                        <h6 class="total_traffic_title">Tổng bot:</h6>
+                        <span class="total_traffic_value">${data.total_bot}</span>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4 text-center">
                     <div class="unique_ip d-flex justify-content-center">
                         <h6 class="unique_ip_title">IP duy nhất:</h6>
                         <span class="unique_ip_value">${data.unique_ips}</span>
@@ -337,9 +344,13 @@ $(document).ready(function () {
 
         container.append(`
             <div class="row chart-row mb-4">
-                <div class="col-lg-12 mb-4">
+                <div class="col-lg-5 mb-4">
                     <h6 class="text-center mb-3">Tổng nguồn truy cập</h6>
                     <canvas id="totalChart"></canvas>
+                </div>
+                <div class="col-lg-5 mb-4">
+                    <h6 class="text-center mb-3">Truy cập của các trang chính</h6>
+                    <canvas id="totalChartDemo"></canvas>
                 </div>
             </div>
             <div class="row chart-row mb-4">
@@ -356,7 +367,17 @@ $(document).ready(function () {
             const total = items.reduce((sum, i) => sum + i.value, 0);
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
-            
+            const labelMap = {
+                '/chon-hanh-trinh': 'Hành trình',
+                '/thong-tin-hanh-khach': 'Hành khách',
+                '/thong-tin-thanh-toan': 'Thanh toán',
+                '/hoan-tat-don-hang': 'Hoàn tất'
+            }
+            items.forEach(item => {
+                if(labelMap[item.label]){
+                    item.label = labelMap[item.label];
+                }
+            });
             if (total === 0) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.font = '16px Arial';
@@ -395,7 +416,9 @@ $(document).ready(function () {
         }
 
         renderPie('totalChart', data.source || []);
-
+        renderPie('totalChartDemo', data.main_page || []);
+        const search_data = getSearchData();
+        console.log(search_data.option)
         const labels = (data.user_type || []).map(item => item.label);
         const byUserData = (data.user_type || []).map(item => item.by_user);
         const byBotData = (data.user_type || []).map(item => item.by_bot);
