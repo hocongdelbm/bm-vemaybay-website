@@ -193,7 +193,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 					'itemUnit' 			=> 'Vé',
 					'itemQuantity' 		=> 1,
 					'itemPrice' 		=> $phisanbay,
-					'itemVatRate' 	 	=> -2,
+					'itemVatRate' 	 	=> -1, // KCT (Không chịu thuế)
 					'itemVatAmnt' 	 	=> '',
 					'itemAmountNoVat' 	=> $phisanbay,
 				];
@@ -220,7 +220,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 					'itemUnit' 			=> 'Vé',
 					'itemQuantity' 		=> 1,
 					'itemPrice' 		=> $phikhac,
-					'itemVatRate' 	 	=> -2,
+					'itemVatRate' 	 	=> -1, // KCT (Không chịu thuế)
 					'itemVatAmnt' 	 	=> '',
 					'itemAmountNoVat' 	=> $phikhac,
 				];
@@ -246,7 +246,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				'itemUnit' 			=> 'Vé',
 				'itemQuantity' 		=> 1,
 				'itemPrice' 		=> $tongthuho,
-				'itemVatRate' 	 	=> -2,
+				'itemVatRate' 	 	=> -1, // KCT (Không chịu thuế)
 				'itemVatAmnt' 	 	=> '',
 				'itemAmountNoVat' 	=> $tongthuho,
 			];

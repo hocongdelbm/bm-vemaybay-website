@@ -36,5 +36,5 @@ $mod_strings = array (
   'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Hoạt động',
   'LBL_EC_TONGHOP_SUBPANEL_TITLE' => 'Tổng hợp',
   'LBL_NEW_FORM_TITLE' => 'Mới Tổng hợp',
-  'LNK_DASHBOARD' => 'Thống kê tích điểm',
+  'LNK_DASHBOARD' => 'BXH tích điểm',
 );

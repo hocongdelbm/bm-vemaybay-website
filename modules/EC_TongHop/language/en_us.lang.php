@@ -36,5 +36,5 @@ $mod_strings = array (
   'LBL_ACTIVITIES_SUBPANEL_TITLE' => 'Activities',
   'LBL_EC_TONGHOP_SUBPANEL_TITLE' => 'Tổng hợp',
   'LBL_NEW_FORM_TITLE' => 'New Tổng hợp',
-  'LNK_DASHBOARD' => 'Points statistics',
+  'LNK_DASHBOARD' => 'Points rankings',
 );
