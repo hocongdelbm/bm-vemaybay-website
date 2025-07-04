@@ -11,6 +11,8 @@ $(document).ready(function () {
         let bookingCode = $('input[name="bookingCode"]').val();
         let systemCode = $('select[name="systemCode"]').val();
 
+		if(!systemCode || !bookingCode || bookingCode.length < 6 || systemCode.length < 2) return false;
+
         $.ajax({
             url: ENDPOINT_AUTO_BOOK,
             type: "POST",
@@ -29,241 +31,622 @@ $(document).ready(function () {
                     const objData = JSON.parse(response);
                     if (objData.status == 1) {
                         renderBooking(objData.data);
+						showBookingContent();
                     }
                     else {
                         showModalNotify("error", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
+						clearBooking();
                         console.error(objData);
                     }
                 }
                 catch (e) {
                     showModalNotify("error", "Lỗi trong quá trình lấy dữ liệu", e.message);
+					clearBooking();
                     console.error(e);
                     console.error("Response was:", response);
                 }
-            }
+            },
+			error: function(xhr, status, error) {
+				$('.container-waiting').hide();
+				let errorMessage = 'Failed to load booking data';
+				if (status === 'timeout') errorMessage = 'Request timed out. Please try again.';
+				else if (xhr.status === 404) errorMessage = 'Booking not found.';
+				else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
+				showModalNotify("error", errorMessage);
+				clearBooking();
+			}
         });
+    });
+
+	// Add click handlers for status icons (optional functionality)
+    $('.status-icon').on('click', function() {
+        const tooltip = $(this).attr('data-tooltip');
+        console.log('Status clicked:', tooltip);
+        // You can add more functionality here if needed
+    });
+
+	// Payment button click handler
+    $('#payNowButton').on('click', function() {
+        const bookingCode = $('input[name="bookingCode"]').val();
+        const systemCode = $('select[name="systemCode"]').val();
+		const unpaidAmount = $('#paymentUnpaidAmount').text();
+
+        if(!bookingCode || !systemCode || bookingCode.length < 6 || systemCode.length < 2) {
+            showModalNotify("warning", "Vui lòng kiểm tra lại PNR và Mã hãng");
+            return;
+        }
+        
+		// Show confirmation dialog
+		if (confirm(`Tiến hành thanh toán cho ${bookingCode} hãng ${systemCode}\nAmount: ${unpaidAmount}`)) {
+			// Disable button during processing
+			$('#payNowButton').prop('disabled', true).text('Processing...');
+			
+			$.ajax({
+				url: ENDPOINT_AUTO_BOOK,
+                type: "POST",
+                contentType: "application/json",
+                dataType: 'json',
+                data: JSON.stringify({
+                    action: "pay_booking",
+                    systemCode: systemCode,
+                    bookingCode: bookingCode
+                }),
+				success: function(response) {
+					if (response.status) {
+                        showModalNotify("success", "Thanh toán thành công");
+                        $('#btnSearch').trigger('click');
+					}
+                    else {
+						showModalNotify("error", response.message ?? "Thanh toán không thành công");
+						resetPaymentButton();
+					}
+				},
+				error: function(xhr, status, error) {
+                    showModalNotify("error", "Xử lý thanh toán không thành công. Vui lòng thử lại");
+					resetPaymentButton();
+				}
+			});
+		}
+	});
+    
+    // Cancel booking button click handler
+    $('#cancelBookingButton').on('click', function() {
+        showModalNotify("warning", "Tính năng này sắp có");
+        return;
+        const bookingCode = $('#bookingCode').text();
+    
+		if (confirm(`Are you sure you want to cancel booking ${bookingCode}?\nThis action cannot be undone.`)) {
+			$.ajax({
+				url: '/api/booking/cancel', // Replace with your cancel API endpoint
+				method: 'POST',
+				dataType: 'json',
+				data: {
+					bookingCode: bookingCode
+				},
+				success: function(response) {
+					if (response.success) {
+						alert('Booking cancelled successfully.');
+						loadBookingData(); // Reload to update status
+					} else {
+						alert('Failed to cancel booking: ' + (response.message || 'Unknown error'));
+					}
+				},
+				error: function(xhr, status, error) {
+					alert('Failed to cancel booking. Please try again.');
+				}
+			});
+		}
     });
 });
 
-// Helper functions
-function formatDateTime(dt) {
-    if (!dt) return '';
-    const d = new Date(dt);
-    return d.toLocaleString('en-GB', { hour12: false });
-}
-function formatDate(dt) {
-    if (!dt) return '';
-    const d = new Date(dt);
-    return d.toLocaleDateString('en-GB');
-}
-function formatTime(dt) {
-    if (!dt) return '';
-    const d = new Date(dt);
-    return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-}
-function formatMoney(n) {
-    return n ? n.toLocaleString('en-US') : '0';
-}
-function getPassengerTypeName(id) {
-    switch (id) {
-        case 1: return 'Người lớn';
-        case 5: return 'Em bé';
-        case 6: return 'Trẻ em';
-        default: return '';
-    }
-}
-function getPassengerNote(id) {
-    switch (id) {
-        case 1: return 'Contact';
-        case 5: return 'Under 2 years';
-        case 6: return '2-12 years';
-        default: return '';
-    }
-}
-function getGenderName(gender) {
-    return gender === 'M' ? 'Nam' : gender === 'F' ? 'Nữ' : '';
-}
-
-// Group fare charges by FareBasis (usually unique per segment/airline)
-function groupFareChargesBySegment(fareCharges) {
-    const map = {};
-    fareCharges.forEach(fc => {
-    // Use FareBasis as a key (e.g., "I1_ECO,J1_ECO"), or combine with CarrierCode if needed
-    const key = fc.FareBasis;
-    if (!map[key]) map[key] = [];
-    map[key].push(fc);
-    });
-    return map;
-}
-
-// Get readable segment label from FareBasis and Flights
-function getSegmentLabel(fareBasis, flights, flightDetails) {
-    // Try to find the matching flight(s) by FareBasis
-    // Fallback: show FareBasis
-    let label = '';
-    const fareBasisArr = fareBasis.split(',');
-    let foundFlights = [];
-    fareBasisArr.forEach(fb => {
-    // Try to find a flight with this FareBasis
-    let f = flightDetails.find(fd => fd.FareBasis === fb);
-    if (f) foundFlights.push(f);
-    });
-    if (foundFlights.length === 0) {
-    // Try to match by FareClass
-    fareBasisArr.forEach(fb => {
-        let f = flightDetails.find(fd => fd.FareClass === fb.split('_')[0]);
-        if (f) foundFlights.push(f);
-    });
-    }
-    if (foundFlights.length > 0) {
-    label = foundFlights.map(f =>
-        `${f.Origin} (${f.OriginNameEn}) → ${f.Destination} (${f.DestinationNameEn}) [${f.CarrierCode}]`
-    ).join(', ');
-    } else {
-    label = fareBasis;
-    }
-    return label;
-}
-
-// Main rendering function
 function renderBooking(data) {
-    const d = data;
-    // Booking Overview
-    const overviewHtml = `
-      <div class="section">
-        <h2>Booking Overview</h2>
-        <div class="overview-columns">
-          <ul class="info-list">
-            <li><span class="highlight">Booking Code:</span> ${d.BookingCode}</li>
-            <li><span class="highlight">Status:</span> <span style="color:#d8242a;">${d.IsPaid ? 'Paid' : 'Unpaid'}</span></li>
-            <li><span class="highlight">Total Amount:</span> ${formatMoney(d.TotalAmount)} VND</li>
-            <li><span class="highlight">Booking Date:</span> ${formatDateTime(d.BookingDate)}</li>
-            <li><span class="highlight">Booking Expiry:</span> ${formatDateTime(d.BookingExpired)}</li>
-          </ul>
-          <ul class="info-list">
-            <li><span class="highlight">Contact:</span> ${d.ContactName}</li>
-            <li><span class="highlight">Phone:</span> ${d.ContactPhone}</li>
-            <li><span class="highlight">Email:</span> ${d.ContactEmail}</li>
-            <li><span class="highlight">Address:</span> ${d.ContactAddress}</li>
-          </ul>
-        </div>
-      </div>`;
-
-    // Flight Itinerary
-    const flightsHtml = d.FlightDetails.map(f => `
-        <tr>
-          <td>${f.FlightNumber}</td>
-          <td>${f.Origin} (${f.OriginNameEn}) → ${f.Destination} (${f.DestinationNameEn})</td>
-          <td>${formatTime(f.DepartureTime)}, ${formatDate(f.DepartureTime)}</td>
-          <td>${formatTime(f.Arrivaltime)}, ${formatDate(f.Arrivaltime)}</td>
-          <td>${f.CabinNameEN}</td>
-          <td>${f.AirCraftType ? 'Airbus ' + f.AirCraftType : ''}</td>
-          <td>${f.FlightDuration}</td>
-        </tr>
-      `).join('');
-    const itineraryHtml = `
-      <div class="section">
-        <h2>Flight Itinerary</h2>
-        <table class="flight-table">
-          <thead>
-            <tr>
-              <th>Flight</th>
-              <th>From → To</th>
-              <th>Departure</th>
-              <th>Arrival</th>
-              <th>Class</th>
-              <th>Aircraft</th>
-              <th>Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${flightsHtml}
-          </tbody>
-        </table>
-      </div>`;
-
-    // Passenger List
-    const passengersHtml = d.Customers.map(c => `
-        <tr>
-          <td>${c.LastName} ${c.FirstName}</td>
-          <td>${getPassengerTypeName(c.PassengerTypeId)}</td>
-          <td>${formatDate(c.BirthDay)}</td>
-          <td>${getGenderName(c.Gender)}</td>
-          <td>${getPassengerNote(c.PassengerTypeId)}</td>
-        </tr>
-      `).join('');
-    const passengerListHtml = `
-      <div class="section">
-        <h2>Passenger List</h2>
-        <table class="passenger-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Birthday</th>
-              <th>Gender</th>
-              <th>Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${passengersHtml}
-          </tbody>
-        </table>
-      </div>`;
-
-    // Price Details (by passenger type, whole trip)
-    // Price Details - group by FareBasis (segment)
-      const fareCharges = d.SumCharge.FareCharges || [];
-      const grouped = groupFareChargesBySegment(fareCharges);
-
-      let priceHtml = `<div class="section"><h2>Price Details by Segment</h2>`;
-      Object.keys(grouped).forEach((fareBasis, idx) => {
-        const segmentLabel = getSegmentLabel(fareBasis, d.Flights, d.FlightDetails);
-        const rows = grouped[fareBasis].map(fc => `
-          <tr>
-            <td>${getPassengerTypeName(fc.PassengerTypeId)}</td>
-            <td>${formatMoney(fc.FareBaseAmount + fc.TaxAmount + fc.AirportFeesAmount + fc.VATAmount)}</td>
-            <td>${formatMoney(fc.TotalAmount)}</td>
-          </tr>
-        `).join('');
-        const total = grouped[fareBasis].reduce((sum, fc) => sum + (fc.TotalAmount || 0), 0);
-        priceHtml += `
-          <h3>Segment ${idx + 1}: ${segmentLabel}</h3>
-          <table class="price-table">
-            <thead>
-              <tr>
-                <th>Passenger Type</th>
-                <th>Fare + Taxes/Fees</th>
-                <th>Total (VND)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows}
-              <tr>
-                <td colspan="2" class="highlight">Total for Segment</td>
-                <td class="highlight">${formatMoney(total)}</td>
-              </tr>
-            </tbody>
-          </table>
-        `;
-      });
-      priceHtml += `</div>`;
-
-    // Note
-    const noteHtml = `
-      <div class="note">
-        <ul>
-          <li><b>${d.IsPaid ? 'Paid' : 'Unpaid'}:</b> Please complete payment before <b>${formatDateTime(d.BookingExpired)}</b> to secure your booking.</li>
-          <li><b>No e-ticket number issued yet.</b> (Ticket will be issued after payment.)</li>
-          <li><b>No checked baggage included.</b> (Contact agency to add baggage if needed.)</li>
-          <li>Check your email for updates and further instructions.</li>
-        </ul>
-      </div>`;
-
-    document.getElementById('booking-container').innerHTML =
-        overviewHtml +
-        itineraryHtml +
-        passengerListHtml +
-        priceHtml +
-        noteHtml;
+    // Render booking information
+    renderBookingInfo(data);
+    
+    // Render passengers
+    renderPassengers(data.Customers);
+    
+    // Render flights
+    renderFlights(data.Flights);
+    
+    // Render fare breakdown
+    renderFareBreakdown(data.SumCharge.FareCharges);
 }
+
+function renderBookingInfo(data) {
+    $('#bookingCode').text(data.BookingCode);
+	// Status
+    const statusInfo = getBookingStatusInfo(data.BookingStatusId);
+    $('#bookingStatus').text(statusInfo.text)
+                        .removeClass('paid unpaid holding cancelled completed error update-required change-paid change-payment special manual-update trip-cancelled ticket-error unknown')
+                        .addClass(statusInfo.class)
+                        .attr('title', statusInfo.description);
+	// Total amount
+    $('#totalAmount').text(formatCurrency(data.TotalAmount));
+    // Paid Amount
+    const paidAmountElement = $('#paidAmount');
+    paidAmountElement.text(formatCurrency(data.PaidAmount));
+    if (data.PaidAmount === 0) {
+        paidAmountElement.addClass('zero');
+    } else {
+        paidAmountElement.removeClass('zero');
+    }
+    // Unpaid Amount
+    const unpaidAmountElement = $('#unpaidAmount');
+    unpaidAmountElement.text(formatCurrency(data.UnPaidAmount));
+    if (data.UnPaidAmount === 0) {
+        unpaidAmountElement.addClass('zero');
+    } else {
+        unpaidAmountElement.removeClass('zero');
+    }
+    $('#bookingDate').text(formatDateTime(data.BookingDate));
+    // Handle null BookingExpired
+    if (!data.BookingExpired || data.BookingExpired === null) {
+        $('#bookingExpiry').text('');
+    } else {
+        $('#bookingExpiry').text(formatDateTime(data.BookingExpired));
+    }
+    $('#contactName').text(data.ContactName);
+    $('#contactEmail').text(data.ContactEmail);
+    $('#contactPhone').text(data.ContactPhone);
+    $('#contactAddress').text(data.ContactAddress);
+
+	// Update status icons
+    updateStatusIcons(data);
+
+	// Update expiry badge
+    updateExpiryBadge(data);
+
+	// Update payment section
+    updatePaymentSection(data);
+}
+
+function updateStatusIcons(data) {
+    // Payment Status Badge
+    const paidBadge = $('#paidBadge');
+    if (data.IsPaid) {
+        paidBadge.removeClass('unpaid').addClass('paid');
+        paidBadge.text('PAID');
+        paidBadge.attr('data-tooltip', 'Tất cả các khoản thanh toán đã được xử lý thành công');
+    } else {
+        paidBadge.removeClass('paid').addClass('unpaid');
+        paidBadge.text('UNPAID');
+        paidBadge.attr('data-tooltip', 'Đang chờ xử lý – Chưa thanh toán đầy đủ');
+    }
+    
+    // Void Status Badge
+    const voidBadge = $('#voidBadge');
+    if (data.IsVoid) {
+        voidBadge.removeClass('void-not-allowed').addClass('void-allowed');
+        voidBadge.text('HOÀN');
+        voidBadge.attr('data-tooltip', 'Booking có thể hoàn/hủy');
+    } else {
+        voidBadge.removeClass('void-allowed').addClass('void-not-allowed');
+        voidBadge.text('HOÀN');
+        voidBadge.attr('data-tooltip', 'Booking không thể hoàn/hủy');
+    }
+    
+    // Refund Status Badge
+    const refundBadge = $('#refundBadge');
+    if (data.IsRefund) {
+        refundBadge.removeClass('refund-not-allowed').addClass('refund-allowed');
+        refundBadge.text('HOÀN TIỀN');
+        refundBadge.attr('data-tooltip', 'Booking được hoàn tiền');
+    } else {
+        refundBadge.removeClass('refund-allowed').addClass('refund-not-allowed');
+        refundBadge.text('HOÀN TIỀN');
+        refundBadge.attr('data-tooltip', 'Booking không được hoàn tiền');
+    }
+    
+    // Edit Status Badge
+    const editBadge = $('#editBadge');
+    if (data.IsEdit) {
+        editBadge.removeClass('edit-not-allowed').addClass('edit-allowed');
+        editBadge.text('SỬA');
+        editBadge.attr('data-tooltip', 'Booking có thể được điều chỉnh hoặc cập nhật');
+    } else {
+        editBadge.removeClass('edit-allowed').addClass('edit-not-allowed');
+        editBadge.text('SỬA');
+        editBadge.attr('data-tooltip', 'Booking không thể chỉnh sửa');
+    }
+}
+
+function updateExpiryBadge(data) {
+    const expiryBadge = $('#expiryBadge');
+    
+    // Only show badge for BookingStatusId 100 (Giữ chỗ)
+    if (data.BookingStatusId !== 100) {
+        expiryBadge.hide();
+        return;
+    }
+
+    // Check if BookingExpired is null or empty
+    if (!data.BookingExpired || data.BookingExpired === null) {
+        // No expiry time - unlimited booking, hide badge
+        expiryBadge.hide();
+        return;
+    }
+    
+    // Parse booking expiry date
+    const bookingExpired = new Date(data.BookingExpired);
+    
+    // Check if date is valid
+    if (isNaN(bookingExpired.getTime())) {
+        // Invalid date, treat as unlimited
+        expiryBadge.hide();
+        return;
+    }
+    
+    const now = new Date();
+    const timeDiff = bookingExpired - now;
+    const minutesLeft = Math.floor(timeDiff / (1000 * 60));
+    
+    // Determine badge display
+    if (timeDiff <= 0) {
+        // Booking has expired
+        expiryBadge.removeClass('warning').addClass('expired');
+        expiryBadge.text('Holding expired');
+        expiryBadge.show();
+    } else if (minutesLeft <= 15) {
+        // Booking expires within 15 minutes
+        expiryBadge.removeClass('expired').addClass('warning');
+        expiryBadge.text('Expired soon');
+        expiryBadge.show();
+    } else {
+        // No badge needed
+        expiryBadge.hide();
+    }
+}
+
+function updatePaymentSection(data) {
+    const paymentSection = $('#paymentSection');
+    
+    // Only show payment section for BookingStatusId 100 and not expired
+    if (data.BookingStatusId === 100 && !isBookingExpired(data.BookingExpired)) {
+        // Update payment information
+        $('#paymentTotalAmount').text(formatCurrency(data.TotalAmount));
+        $('#paymentUnpaidAmount').text(formatCurrency(data.UnPaidAmount));
+        
+        // Handle null BookingExpired with enhanced styling
+        const deadlineElement = $('#paymentDeadline');
+        if (!data.BookingExpired || data.BookingExpired === null) {
+            deadlineElement.text('')
+                          .removeClass('expiry-time')
+                          .addClass('unlimited-deadline');
+        } else {
+            deadlineElement.text(formatDateTime(data.BookingExpired))
+                          .removeClass('unlimited-deadline')
+                          .addClass('expiry-time');
+        }
+        
+        $('#payButtonAmount').text(formatCurrency(data.UnPaidAmount));
+        
+        // Show payment section
+        paymentSection.show();
+    } else {
+        // Hide payment section
+        paymentSection.hide();
+    }
+}
+
+// Reset payment button state
+function resetPaymentButton() {
+    $('#payNowButton').prop('disabled', false);
+    $('#payNowButton').html(`
+        <span class="btn-icon">💳</span>
+        <span class="btn-text">Pay Now</span>
+        <span class="btn-amount">${$('#paymentUnpaidAmount').text()}</span>
+    `);
+}
+
+// Helper function to check if booking is expired
+function isBookingExpired(bookingExpiredString) {
+    // If BookingExpired is null or empty, treat as unlimited (never expired)
+    if (!bookingExpiredString || bookingExpiredString === null) {
+        return false;
+    }
+    
+    const bookingExpired = new Date(bookingExpiredString);
+    
+    // Check if date is valid
+    if (isNaN(bookingExpired.getTime())) {
+        // Invalid date, treat as unlimited (never expired)
+        return false;
+    }
+    
+    const now = new Date();
+    return now > bookingExpired;
+}
+
+function getBookingStatusInfo(bookingStatusId) {
+    const statusMap = {
+        100: {
+            text: "Giữ chỗ",
+            class: "holding",
+            description: "Booking đang được giữ chỗ"
+        },
+        200: {
+            text: "Hủy",
+            class: "cancelled",
+            description: "Booking đã bị hủy"
+        },
+        300: {
+            text: "Đã xuất vé & Thanh toán",
+            class: "completed",
+            description: "Đã xuất vé và thanh toán thành công"
+        },
+        400: {
+            text: "Booking Lỗi",
+            class: "error",
+            description: "Booking gặp lỗi trong quá trình xử lý"
+        },
+        310: {
+            text: "Cập nhật thông tin Booking sau khi xuất vé",
+            class: "update-required",
+            description: "Cần cập nhật thông tin booking sau khi xuất vé và cần thanh toán"
+        },
+        320: {
+            text: "Thanh toán cho chi phí thay đổi booking",
+            class: "change-paid",
+            description: "Đã thanh toán đủ cho chi phí thay đổi booking"
+        },
+        350: {
+            text: "Thanh toán cho chi phí thay đổi booking",
+            class: "change-payment",
+            description: "Cần thanh toán cho chi phí thay đổi booking"
+        },
+        330: {
+            text: "Trạng thái đặc biệt",
+            class: "special",
+            description: "Trạng thái đặc biệt"
+        },
+        329: {
+            text: "Trạng thái thanh toán được update bằng tay",
+            class: "manual-update",
+            description: "Trạng thái thanh toán được cập nhật thủ công"
+        },
+        210: {
+            text: "Hủy hành trình",
+            class: "trip-cancelled",
+            description: "Hành trình đã bị hủy"
+        },
+        304: {
+            text: "Xuất vé lỗi",
+            class: "ticket-error",
+            description: "Gặp lỗi trong quá trình xuất vé"
+        }
+    };
+    
+    return statusMap[bookingStatusId] || {
+        text: `Trạng thái ${bookingStatusId}`,
+        class: "unknown",
+        description: "Trạng thái không xác định"
+    };
+}
+
+function renderPassengers(customers) {
+    const tbody = $('#passengersTable tbody');
+    tbody.empty();
+    
+    customers.forEach(function(customer) {
+        const passengerLabel = getPassengerLabel(customer.PassengerTypeId);
+        const badgeClass = getPassengerType(customer.PassengerTypeId);
+        const row = `
+            <tr>
+                <td><strong>${customer.LastName} ${customer.FirstName}</strong></td>
+                <td><span class="badge ${badgeClass}">${passengerLabel}</span></td>
+                <td>${customer.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
+                <td>${customer.Age}</td>
+                <td>${formatDate(customer.BirthDay)}</td>
+                <td>
+                    ${customer.Email ? `<div>${customer.Email}</div>` : ''}
+                    ${customer.Phone ? `<div>${customer.Phone}</div>` : ''}
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function renderFlights(flights) {
+    const container = $('#flightsList');
+    container.empty();
+    
+    flights.forEach(function(flight, index) {
+        const isReturn = index > 0;
+        const carrierClass = flight.CarrierCode.toLowerCase();
+        const flightCard = `
+            <div class="flight-card ${isReturn ? 'return' : ''} ${carrierClass}">
+                <div class="flight-header">
+                    <div class="flight-number ${carrierClass}">${flight.CarrierCode}${flight.FlightNumber}</div>
+                    <div class="flight-date">${formatDate(flight.DepartureDate)}</div>
+                </div>
+                
+                <div class="flight-route">
+                    <div class="airport">
+                        <div class="airport-code">${flight.Origin}</div>
+                        <div class="airport-name">${flight.OriginCityName}</div>
+                        <div class="airport-name">${flight.OriginName}</div>
+                        <div class="time">${formatTime(flight.DepartureTime)}</div>
+                    </div>
+                    
+                    <div class="flight-arrow">
+                        <i class="arrow">→</i>
+                        <div class="duration">${flight.FlightDuration}</div>
+                    </div>
+                    
+                    <div class="airport">
+                        <div class="airport-code">${flight.Destination}</div>
+                        <div class="airport-name">${flight.DestinationCityName}</div>
+                        <div class="airport-name">${flight.DestinationName}</div>
+                        <div class="time">${formatTime(flight.Arrivaltime)}</div>
+                    </div>
+                </div>
+                
+                <div class="flight-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Cabin</div>
+                        <div class="detail-value">${flight.CabinName}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Fare Class</div>
+                        <div class="detail-value">${flight.FareClass}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Aircraft</div>
+                        <div class="detail-value">${flight.AirCratfType || ''}</div>
+                    </div>
+					<!--
+                    <div class="detail-item">
+                        <div class="detail-label">Type</div>
+                        <div class="detail-value">${isReturn ? 'Lượt về' : 'Lượt đi'}</div>
+                    </div>
+					-->
+                </div>
+            </div>
+        `;
+        container.append(flightCard);
+    });
+}
+
+function renderFareBreakdown(fareCharges) {
+    const tbody = $('#fareTable tbody');
+    tbody.empty();
+    
+    fareCharges.forEach(function(fare) {
+        const passengerType = getPassengerLabel(fare.PassengerTypeId);
+        const row = `
+            <tr>
+                <td><strong>${passengerType}</strong></td>
+                <td>${formatCurrency(fare.FareBaseAmount)}</td>
+                <td>${formatCurrency(fare.AirportFeesAmount)}</td>
+                <td>${formatCurrency(fare.TaxAmount)}</td>
+                <td>${formatCurrency(fare.VATAmount)}</td>
+                <td><strong>${formatCurrency(fare.TotalAmount)}</strong></td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function clearBooking() {
+    hideBookingContent();
+    
+    // Clear all form fields
+    $('#bookingCode').text('');
+    $('#bookingStatus').text('');
+    $('#totalAmount').text('');
+    $('#paidAmount').text('');
+    $('#unpaidAmount').text('');
+    $('#bookingDate').text('');
+    $('#bookingExpiry').text('');
+    $('#contactName').text('');
+    $('#contactEmail').text('');
+    $('#contactPhone').text('');
+    $('#contactAddress').text('');
+    
+    // Clear tables
+    $('#passengersTable tbody').empty();
+    $('#fareTable tbody').empty();
+    $('#flightsList').empty();
+    
+    // Reset status badges
+    $('.status-badge').removeClass().addClass('status-badge').text('').attr('data-tooltip', '');
+}
+
+// Utility functions
+function showBookingContent() {
+    $('#bookingContent').removeClass('hidden');
+}
+function hideBookingContent() {
+    $('#bookingContent').addClass('hidden');
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount);
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return dateString;
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateTime(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return dateString;
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+function formatTime(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) return dateString;
+    
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
+}
+
+function getPassengerType(typeId) {
+    const types = {
+        1: 'adult',
+        5: 'infant',
+        6: 'child'
+    };
+    return types[typeId] || '';
+}
+
+function getPassengerLabel(typeId) {
+    const types = {
+        1: 'Người lớn',
+        5: 'Em bé',
+        6: 'Trẻ em'
+    };
+    return types[typeId] || 'Unknown';
+}
+
+// // Alternative AJAX call for testing with mock data
+// function loadMockData() {
+//     // You can use this function to test with the provided JSON data
+//     const mockResponse = {
+//         "message": "Success",
+//         "data": {
+//             // Insert your JSON data here for testing
+//         },
+//         "status": 1
+//     };
+    
+//     setTimeout(() => {
+//         // hideLoading();
+//         renderBooking(mockResponse.data);
+//         showBookingContent();
+//     }, 1000);
+// }

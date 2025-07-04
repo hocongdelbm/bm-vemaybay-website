@@ -423,7 +423,7 @@ try {
                 $title = null;
                 if($row['type'] === '0') $title = $row['salutation'] === '0' ? 'Mr' : 'Ms';
                 $birthday = !is_null($row['birthday']) && !empty($row['birthday']) && strtotime($row['birthday']) ? $row['birthday'] : null;
-                $passport = $row['cic'] && !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
+                $passport = ($row['cic'] && !empty($row['cic'])) ? $row['cic'] : ($row['passport_number'] ?? null);
 
                 $customerInfos[] = [
                     "PersonOrgId" => (string)$num,
@@ -483,7 +483,7 @@ try {
             $responseData = $responseArr['data'] ?? [];
             // Preparing request body for next step
             foreach($requestBody['Flights'] as $i => $f) {
-                foreach($responseData as $res) {
+                foreach($responseData as $res) { // check here baby
                     if($f['SystemCode'] == $res['SystemCode']) {
                         $requestBody['Flights'][$i]['VerifySession'] = $res['SessionVerify'] ?? '';
                     }
@@ -543,9 +543,9 @@ try {
                         // Send to Mattermost
                         $fullname = trim($current_user->last_name.' '.$current_user->first_name);
                         $linkBooking = $sugar_config['host_name']."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
-                        $m = "Giữ chỗ thành công: **$pnr** ($systemName) bởi **$fullname**";
+                        $m = "Giữ chỗ: **$pnr** ($systemName) bởi **$fullname**";
                         $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
-                        $m .= "\n- " . Mattermost::markdownLink($linkBooking, "Mở booking");
+                        $m .= "\n" . Mattermost::markdownLink($linkBooking, "Mở booking");
                         Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
 
                         if($bookingType == 'roundtrip') {
@@ -631,6 +631,30 @@ try {
 
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
+            $responseArr = json_decode($response, true);
+            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
+            unset($responseArr['error']);
+            echo json_encode($responseArr);
+            exit();
+        }
+        elseif($action == 'pay_booking') {
+            $systemCode = $requestData['systemCode'] ?? '';
+            $bookingCode = $requestData['bookingCode'] ?? '';
+
+            if(empty($systemCode) || empty($bookingCode)) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "params" => [
+                        "systemCode" => $systemCode,
+                        "bookingCode" => $bookingCode,
+                    ]
+                ]);
+                exit();
+            }
+
+            $phuongnamapi = new PhuongNamAPI();
+            $response = $phuongnamapi->payForBooking($systemCode, $bookingCode);
             $responseArr = json_decode($response, true);
             $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
             unset($responseArr['error']);

@@ -212,7 +212,7 @@ $(document).ready(function () {
 
                 // Display BookingCodes (PNR) to client
                 let caption = 'Đặt chỗ thành công';
-                const bookingCodes = bookingResponse.data.Data.map(item => item.BookingCode);
+                const bookingCodes = bookingResponse.data.map(item => item.BookingCode);
                 bookingCodes.forEach(code => {
                     caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
                 });
