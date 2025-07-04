@@ -4,6 +4,7 @@ const dia_chi_vp_1 = "252/12 Nguyễn Thượng Hiền, Phường 1, Q. Gò Vấ
 $(document).ready(function () {
     $("#send-zalo").click(function () {
         showDialog("dialog-send-zalo");
+        $("#dialog-send-zalo").draggable();
         return;
     });
 
@@ -430,7 +431,11 @@ $(document).ready(function () {
                         <div class="row">
                             <div class="col-3">Hành trình</div>
                             <div class="col-9">
-                                <input type="text" name="zalo_field_journey_old" id="zalo_field_journey_old" class="zalo_field" value="" maxlength="100" placeholder="VJ123 HAN-SGN lúc 15:00 08/07/2024" />
+                                <div class="input-group">
+                                    <input type="text" name="zalo_field_journey_old" id="zalo_field_journey_old" class="zalo_field form-control" value="" maxlength="100" placeholder="VJ123 HAN đi SGN lúc 15:00 08-07-2024" />
+                                    <button type="button" class="btn btn-secondary fw-normal" onclick="get_info_itinerary(0)" style="font">Đi</button>
+                                    <button type="button" class="btn btn-secondary fw-normal" onclick="get_info_itinerary(1)" style="font">Về</button>
+                                </div>
                             </div>
                         </div>
                     </li>
@@ -490,25 +495,25 @@ $(document).ready(function () {
                 <p style="font-weight:400">Vui lòng theo dõi bảng điện tử và lưu ý cổng ra máy bay.<br />Quý khách nhấn nút quan tâm để cập nhật thông tin hành trình mới nhất.</p>
             `;
         }
-        else if (this.value == 'promotion') {
-            $('#phone_zalo').attr('readonly', true);
+        // else if (this.value == 'promotion') {
+        //     $('#phone_zalo').attr('readonly', true);
 
-            html = `
-                <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
-                <div class="d-flex align-items-center gap-2">
-                    <select name="template_choose" id="template_choose">
-                        <option value="">Chọn mẫu</option>
-                        <option value="voucher_83">Voucher khuyến mãi 8/3</option>
-                        <option value="voucher_30">Voucher bạn mới</option>
-                        <option value="voucher_50">Voucher thành viên</option>
-                        <option value="voucher_100">Voucher năm mới</option>
-                        <option value="voucher_300">Voucher tháng 3</option>
-                    </select>
-                    <!-- <p id="template_desc"></p> -->
-                </div>
-                <div id="template_promotion"></div>
-            `;
-        }
+        //     html = `
+        //         <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
+        //         <div class="d-flex align-items-center gap-2">
+        //             <select name="template_choose" id="template_choose">
+        //                 <option value="">Chọn mẫu</option>
+        //                 <option value="voucher_83">Voucher khuyến mãi 8/3</option>
+        //                 <option value="voucher_30">Voucher bạn mới</option>
+        //                 <option value="voucher_50">Voucher thành viên</option>
+        //                 <option value="voucher_100">Voucher năm mới</option>
+        //                 <option value="voucher_300">Voucher tháng 3</option>
+        //             </select>
+        //             <!-- <p id="template_desc"></p> -->
+        //         </div>
+        //         <div id="template_promotion"></div>
+        //     `;
+        // }
 
         $('#zalo-message').html(html);
     });
@@ -597,8 +602,7 @@ $(document).ready(function () {
                     console.error(XMLHttpRequest);
                 }
             });
-        }
-        else {
+        } else {
             // Validate
             let error = false;
             $('.zalo_field').each(function (i, obj) {
@@ -642,7 +646,11 @@ $(document).ready(function () {
     
                     let res_data = JSON.parse(response);
                     if (res_data['error'] === 0) showModalNotify(1, res_data['message']);
-                    else showModalNotify(0, res_data['message']);
+                    else {
+                        const msg = getZaloErrorMessage(res_data);
+                        showModalNotify(0, msg)
+                        // showModalNotify(0, res_data['message']);
+                    } 
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
                     $('.container-waiting').hide();
@@ -697,6 +705,93 @@ $(document).ready(function () {
         $('#full_name_copy').html(value);
     });
 });
+
+function getZaloErrorMessage(response) {
+    const errorMap = {
+        [-100]: 'Unknown error: Xảy ra lỗi không xác định, vui lòng thử lại sau',
+        [-101]: 'Appllication invalid: Ứng dụng gửi ZNS không hợp lệ. Kiểm tra lại ID ứng dụng của bạn.',
+        [-102]: 'Application not existed: Ứng dụng gửi ZNS không tồn tại. Kiểm tra lại ID ứng dụng của bạn.',
+        [-103]: 'Application not activated: Ứng dụng chưa được kích hoạt. Vui lòng liên hệ Admin để kích hoạt ứng dụng của bạn.',
+        [-104]: 'App secret key invalid: Secret key của ứng dụng không hợp lệ.',
+        [-105]: 'Application not link to any OA: Ứng dụng gửi ZNS chưa đươc liên kết với OA nào.',
+        [-106]: 'Method unsupported: Phương thức không được hỗ trợ.',
+        [-107]: 'Message ID invalid: ID thông báo không hợp lệ.',
+        [-108]: 'Phone number invalid: Số điện thoại không hợp lệ.',
+        [-109]: 'Template ID invalid: ID mẫu ZNS không hợp lệ.',
+        [-1091]: 'Can not edit this type of template: Template không có trạng thái Reject hoặc Template được tạo từ Admin tool.',
+        [-110]: 'Zalo version unsupported: Phiên bản Zalo app không được hỗ trợ. Người dùng cần cập nhật phiên bản mới nhất.',
+        [-111]: 'Template data empty: Mẫu ZNS không có dữ liệu.',
+        [-112]: 'Template data type is not define: Dữ liệu mẫu ZNS không hợp lệ. Data type chưa được định nghĩa. Sử dụng các loại data type được định nghĩa.',
+        [-1121]: 'Parameter_name data breaks max length: Dữ liệu tham số vượt quá giới hạn ký tự.',
+        [-1122]: 'Template data is missing a parameter parameter_name: Dữ liệu mẫu ZNS thiếu tham số.',
+        [-1123]: 'QR code cannot be generated: Không thể tạo QR code, vui lòng kiểm tra lại.',
+        [-1124]: 'Parameter_name has invalid format: Dữ liệu tham số không đúng format.',
+        [-113]: 'Button invalid: Button không hợp lệ.',
+        [-1131]: 'Invalid button content format: Đường dẫn liên kết không đúng định dạng.',
+        [-114]: 'Người dùng không nhận được ZNS vì các lý do: Trạng thái tài khoản, Tùy chọn nhận ZNS, Sử dụng Zalo phiên bản cũ, hoặc các lỗi nội bộ khác.',
+        [-115]: 'Out of quota: Tài khoản ZNS không đủ số dư.',
+        [-116]: 'Text invalid: Nội dung tham số không hợp lệ.',
+        [-117]: 'OA hoặc ứng dụng gửi ZNS chưa được cấp quyền sử dụng mẫu ZNS này.',
+        [-118]: 'Tài khoản Zalo không tồn tại hoặc đã bị vô hiệu hoá.',
+        [-119]: 'Tài khoản không thể nhận ZNS.',
+        [-120]: 'OA chưa được cấp quyền sử dụng tính năng này.',
+        [-1201]: 'OA chưa có quyền tạo template tag 3.',
+        [-1202]: 'OA không có quyền sử dụng media resources (image/logo).',
+        [-121]: 'Mẫu ZNS không có nội dung.',
+        [-122]: 'Body request không đúng định dạng JSON.',
+        [-123]: 'Giải mã nội dung thông báo RSA thất bại.',
+        [-124]: 'Mã truy cập không hợp lệ.',
+        [-1241]: 'Appsecret_proof không hợp lệ.',
+        [-125]: 'ID Official Account không hợp lệ.',
+        [-126]: 'Ví (development mode) không đủ số dư.',
+        [-127]: 'Template test chỉ có thể được gửi cho quản trị viên.',
+        [-128]: 'Mã encoding key không tồn tại.',
+        [-129]: 'Không thể tạo RSA key, vui lòng thử lại sau.',
+        [-130]: 'Nội dung mẫu ZNS vượt quá giới hạn kí tự. Lượng ký tự vượt quá 100k',
+        [-131]: 'Mẫu ZNS chưa được phê duyệt.',
+        [-132]: 'Parameter invalid: Tham số không hợp lệ.',
+        [-133]: 'Mẫu ZNS này không được phép gửi vào ban đêm (từ 22h-6h).',
+        [-1351]: 'OA không có quyền gửi ZNS (Hệ thống chặn do phát hiện vi phạm).',
+        [-136]: 'Cần kết nối với ZCA để sử dụng tính năng này.',
+        [-137]: 'Thanh toán ZCA thất bại (ví không đủ số dư, ...)',
+        [-138]: 'Ứng dụng gửi ZNS chưa có quyền sử dụng tính năng này.',
+        [-1381]: 'OA chưa cấp quyền cho Extension về quyền sử dụng ZCA của OA.',
+        [-139]: 'Người dùng từ chối nhận loại ZNS này.',
+        [-140]: 'Người dùng không đủ điều kiện để nhận loại ZNS này dựa trên chính sách gửi tin hiện tại.',
+        [-141]: 'Người dùng từ chối nhận ZNS từ Official Account.',
+        [-142]: 'RSA key không tồn tại, vui lòng gọi API tạo RSA key.',
+        [-143]: 'RSA key đã tồn tại, vui lòng gọi API lấy RSA key.',
+        [-144]: 'OA đã vượt giới hạn gửi ZNS trong ngày.',
+        [-1441]: 'OA request gửi vượt ngưỡng monthly promotion quota.',
+        [-145]: 'OA không được phép gửi loại nội dung ZNS này.',
+        [-146]: 'Mẫu ZNS này đã bị vô hiệu hoá do chất lượng gửi thấp.',
+        [-147]: 'Mẫu ZNS đã vượt giới hạn gửi trong ngày.',
+        [-1471]: 'OA đã vượt giới hạn gửi tin ZNS hậu mãi cho người dùng này trong tháng.',
+        [-148]: 'Không tìm thấy ZNS journey token.',
+        [-149]: 'ZNS journey token không hợp lệ.',
+        [-1491]: 'ZNS journey token type không tương thích với template.',
+        [-150]: 'ZNS journey token đã hết hạn.',
+        [-151]: 'Không phải mẫu ZNS E2EE.',
+        [-152]: 'Lấy E2EE key thất bại.',
+        [-153]: 'Dữ liệu truyền vào sai quy định.',
+        [-158]: 'Dung lượng file vượt qua dung lượng cho phép.',
+        [-159]: 'Định dạng file upload không được cho phép.',
+        [-160]: 'Số lượng tạo/edit template hoặc upload attachment vượt quá daily quota.',
+        [-161]: 'sending_mode truyền sai giá trị cho phép.',
+        [-162]: 'Chế độ Gửi vượt hạn mức (sending_mode = 3) không hỗ trợ để gửi tin tag 1, 2.',
+    };
+
+    const topError = response?.error;
+    const topMessage = response?.message;
+    const innerError = response?.data?.error;
+    const innerMessage = response?.data?.message;
+
+    if (topError === 0) return 'Gửi tin nhắn thành công.';
+
+    let detail = errorMap[innerError] || innerMessage || 'Lỗi không xác định';
+    return `${topMessage || 'Thao tác thất bại'} (${innerError}): ${detail}`;
+}
+
 
 function insertRowSMS(ln){
 	let html = '';
@@ -799,8 +894,7 @@ function closeDialogZaloZNS() {
     $('#zalo-message').html('');
     $('input[name="zalo_type"]').prop('checked', false);
 
-    dialog = document.getElementById("dialog-send-zalo");
-    dialog.close();
+    document.getElementById("dialog-send-zalo").close();
 }
 
 function templatePromotion(index_template){
@@ -869,7 +963,6 @@ function templatePromotion(index_template){
                             <option value="url_tcb" type-button="oa.open.url">Đặt vé ngay (timchuyenbay.com)</option>
                             <option value="show_consultant" type-button="oa.query.show">Cần tư vấn</option>
                             <option value="phone_callnow" type-button="oa.open.phone">Hotline</option>
-                            <!-- <option value="oa.query.hide">Ẩn</option> -->
                         </select>
                         <input type="hidden" id="button__count" value="0" />
                         <input type="hidden" id="button__current" value="0" />
@@ -880,4 +973,47 @@ function templatePromotion(index_template){
         `;
 
     return html;
+}
+
+function get_info_itinerary(dir = 0) {
+    const rows = document.querySelectorAll("#itinerary_tbl tbody tr");
+    const directionsMap = {};
+
+    rows.forEach(row => {
+        const directionCell = row.querySelector('td[data-direction]');
+        if (!directionCell) return;
+
+        const direction = parseInt(directionCell.getAttribute("data-direction"));
+        if (!directionsMap[direction]) directionsMap[direction] = [];
+
+        const rowData = {};
+        row.querySelectorAll("td").forEach(td => {
+            const label = td.getAttribute("data-label");
+            const value = td.textContent.trim();
+            if (label) rowData[label] = value;
+        });
+
+        directionsMap[direction].push(rowData);
+    });
+
+    const result = [];
+    for (const direction in directionsMap) {
+        const group = directionsMap[direction];
+        const soHieu = (group[0]["Số hiệu"] || "").replace(/\s+/g, '');
+        const noiDi = group[0]["Nơi đi"] || "";
+        const noiDen = group[group.length - 1]["Nơi đến"] || "";
+        const ngayGioDiRaw = group[0]["Ngày giờ đi"] || "";
+        
+        // Change format ngayGioDi;
+        let ngayGioDi = ngayGioDiRaw;
+        if (ngayGioDiRaw.includes(" ")) {
+            const [date, time] = ngayGioDiRaw.split(" ");
+            ngayGioDi = `${time} ${date}`;
+        }
+
+        result[direction] = `${soHieu} ${noiDi} đi ${noiDen} lúc ${ngayGioDi}`;
+    }
+
+    $('#zalo_field_journey_old').val(result[dir] || "");
+    return result[dir] || "";
 }

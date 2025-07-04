@@ -174,7 +174,6 @@ $(document).ready(function () {
             $('li.item_mess').removeClass('active');
             $(`#li${zalo_id}`).addClass('active');
             $('#user_tag_display').attr('data', '');
-            $('#user_tag_display').attr('data', '');
             $('#user_tag_display .title').text('Nhãn');
 
             $.ajax({
@@ -620,6 +619,10 @@ $(document).ready(function () {
                         $('#header_name_chat').text(alias); // Name chat
                         $('#profile_zalo_alias').text(alias); // In profile
                         $(`#li${zalo_id} .info_content .mess_name`).text(alias); // List user
+                        // User data (base64 string)
+                        let user_data = JSON.parse(decodeURIComponent(atob($(`#user_data_${zalo_id}`).val().trim())));
+                        user_data.user_alias = alias;
+                        $(`#user_data_${zalo_id}`).val(btoa(encodeURIComponent(JSON.stringify(user_data))));
                     }
                     else {
                         let m = res['message'] ? res['message'] : 'Thao tác thất bại';
@@ -1192,7 +1195,8 @@ function broadcast_admin_action(action = 'typing', zalo_id = '') {
 }
 
 /**
- * Create chat box with user (Only call this function after updating offset_load_more_message)
+ * Create chat box with user
+ * (Only call this function after updating offset_load_more_message)
  * 
  * @param {Object} data_user
  * @param {Object} data_message
@@ -1205,10 +1209,9 @@ function create_chat_box(data_user, data_message, is_return = false) {
         let avatar = data_user['avatar'] ? data_user['avatar'] : DEFAULT_AVATAR;
         let name = data_user['display_name'] ? data_user['display_name'] : '';
         let alias = data_user['user_alias'] ? data_user['user_alias'] : name;
-        let is_follower = data_user['user_is_follower'] ? data_user['user_is_follower'] : false;
+        let is_follower = data_user['user_is_follower'] ? parseInt(data_user['user_is_follower']) : 0;
         let shared_info = data_user['shared_info'] ? data_user['shared_info'] : [];
         let tags = (data_user['tags_and_notes_info'] && data_user['tags_and_notes_info']['tag_names']) ? data_user['tags_and_notes_info']['tag_names'] : [];
-
 
         /******  1.1 Header chat  ******/
         // DOM avatar
@@ -1751,58 +1754,46 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
             content = `<div class="lastest_message">${prefix + text}</div>`;
         }
         else if(type == 'photo' || type == 'image') {
-            content = `
-                <div class="lastest_message">
-                    ${prefix}
-                    <div class="icon icon_${type}">${getIcons('image', '#8D8D8F', 20, 21)}</div>
-                    Hình ảnh
-                </div>
-            `;
+            content = `<div class="lastest_message">
+                ${prefix}
+                <div class="icon icon_${type}">${getIcons('image', '#8D8D8F', 20, 21)}</div>
+                Hình ảnh
+            </div>`;
         }
         else if(type == 'gif') {
-            content = `
-                <div class="lastest_message">
-                    ${prefix}
-                    <div class="icon icon_${type}">${getIcons('gif', '#8D8D8F', 20, 17)}</div>
-                    GIF
-                </div>
-            `;
+            content = `<div class="lastest_message">
+                ${prefix}
+                <div class="icon icon_${type}">${getIcons('gif', '#8D8D8F', 20, 17)}</div>
+                GIF
+            </div>`;
         }
         else if(type == 'sticker') {
-            content = `
-                <div class="lastest_message">
-                    ${prefix}
-                    <div class="icon icon_${type}">${getIcons('sticker', '#8D8D8F', 20, 21)}</div>
-                    Sticker
-                </div>
-            `;
+            content = `<div class="lastest_message">
+                ${prefix}
+                <div class="icon icon_${type}">${getIcons('sticker', '#8D8D8F', 20, 21)}</div>
+                Sticker
+            </div>`;
         }
         else if(type == 'voice' || type == 'audio') {
-            content = `
-                <div class="lastest_message">
-                    ${prefix}
-                    <div class="icon icon_${type}">${getIcons('voice', '#8D8D8F', 20, 21)}</div>
-                    Tin nhắn thoại
-                </div>
-            `;
+            content = `<div class="lastest_message">
+                ${prefix}
+                <div class="icon icon_${type}">${getIcons('voice', '#8D8D8F', 20, 21)}</div>
+                Tin nhắn thoại
+            </div>`;
         }
         else if(type == 'video') {
-            content = `
-                <div class="lastest_message">
-                    ${prefix}
-                    <div class="icon icon_${type}">${getIcons('video', '#8D8D8F')}</div>
-                    Video
-                </div>
-            `;
+            content = `<div class="lastest_message">
+                ${prefix}
+                <div class="icon icon_${type}">${getIcons('video', '#8D8D8F')}</div>
+                Video
+            </div>`;
         }
         else if(type == 'file') {
-            content = `
-                <div class="lastest_message">
-                    ${prefix}
-                    <div class="icon icon_${type}">${getIcons('file', '#8D8D8F', '20px', '18px')}</div>
-                    Tệp đính kèm
-                </div>
-            `;
+            content = `<div class="lastest_message">
+                ${prefix}
+                <div class="icon icon_${type}">${getIcons('file', '#8D8D8F', '20px', '18px')}</div>
+                Tệp đính kèm
+            </div>`;
         }
         else if(type == 'link' || type == 'links') {
             content = `<div class="lastest_message">${prefix}[Tin liên kết]</div>`;
@@ -1827,31 +1818,29 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
     }
 
     if(return_only_content) return content;
-    return `
-        <li class="item_mess item_mess_new mess_links" id="li${zalo_id}">
-            <div class="mess_avt">
-                <div class="imgDrop">
-                    <img class="avatar-user-list" src="${avatar}" alt="Avatar user" />
+    return `<li class="item_mess item_mess_new mess_links" id="li${zalo_id}">
+        <div class="mess_avt">
+            <div class="imgDrop">
+                <img class="avatar-user-list" src="${avatar}" alt="Avatar user" />
+            </div>
+        </div>
+        <div class="__content">
+            <div class="info_content">  
+                <div class="mess_content">
+                    <div class="mess_name truncate">${name}</div>
+                </div>
+                <div class="mess_more has_btn_more">
+                    <div class="mess_time">${time}</div>
+                    <div class="mess_number">${num}</div>
                 </div>
             </div>
-            <div class="__content">
-                <div class="info_content">  
-                    <div class="mess_content">
-                        <div class="mess_name truncate">${name}</div>
-                    </div>
-                    <div class="mess_more has_btn_more">
-                        <div class="mess_time">${time}</div>
-                        <div class="mess_number">${num}</div>
-                    </div>
-                </div>
-                <div class="box-parent box-lastest_message">
-                    ${content}
-                </div>
-                ${html_tags}
+            <div class="box-parent box-lastest_message">
+                ${content}
             </div>
-            <input type="hidden" id="user_data_${zalo_id}" value="${user_data ? btoa(encodeURIComponent(JSON.stringify(user_data))) : ''}">
-        </li>
-    `;
+            ${html_tags}
+        </div>
+        <input type="hidden" id="user_data_${zalo_id}" value="${user_data ? btoa(encodeURIComponent(JSON.stringify(user_data))) : ''}">
+    </li>`;
 }
 
 /**

@@ -534,6 +534,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $m->save();
 
             try {
+                // Save zalo message
                 $msg_id = $arr['data']['msg_id'] ?? '';
                 $timestamp = $arr['data']['sent_time'] ?? 0;
 
@@ -552,6 +553,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $zalomes->response      = trim($json);
                 $zalomes->assigned_user_id = $current_user->id;
                 $zalomes->save();
+
+                // Save notes
+                $n = new Note();
+                $n->name            = "Gửi Zalo ZNS";
+                $n->description     = "Gửi Zalo ". $Zalo->get_template_name_zns($template_id) ." đến $phone";
+                $n->parent_type     = "EC_Flight_Bookings";
+                $n->parent_id       = $parent_id;
+                $n->assigned_user_id = $current_user->id;
+                $n->save();
             }
             catch(Exception $e) {
                 global $sugar_config;
@@ -563,7 +573,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             
             $fullname = trim($current_user->last_name.' '.$current_user->first_name);
             Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo **$phone**");
-
+            
             echo json_encode([
                 "error"   => 0,
                 "message" => "Gửi tin nhắn thành công",

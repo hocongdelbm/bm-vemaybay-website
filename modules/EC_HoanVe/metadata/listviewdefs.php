@@ -50,7 +50,7 @@ $listViewDefs[$module_name] = array(
         'currency_format' => true,
         'width' => '10%',
         'default' => true,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'TONGTIENKHACH' =>
     array(
@@ -59,7 +59,7 @@ $listViewDefs[$module_name] = array(
         'currency_format' => true,
         'width' => '10%',
         'default' => true,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'TONGTIENDV' =>
     array(
@@ -68,7 +68,7 @@ $listViewDefs[$module_name] = array(
         'currency_format' => true,
         'width' => '10%',
         'default' => true,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'THONGBAO' =>
     array(
@@ -77,7 +77,7 @@ $listViewDefs[$module_name] = array(
         'width' => '10%',
         'default' => true,
         'sortable' => false,
-        'align' => 'right',
+        'align' => 'center',
     ),
     'ASSIGNED_USER_NAME' =>
     array(

@@ -653,7 +653,7 @@ class Viewcashflow extends SugarView {
 					FROM ec_receipt_voucher p
 					WHERE p.deleted=0
 					AND p.is_margin=0
-					AND p.loai_thu IN ('4','5')
+					AND p.loai_thu IN ('4','5', '14')
 					AND (
 						(p.account_id_c='".$nhacungcap_id."' AND IFNULL(p.bought_amount,0) > 0) 
 						 OR (p.supplier2_id='".$nhacungcap_id."' AND IFNULL(p.bought_amount2,0) > 0) 
@@ -855,7 +855,7 @@ class Viewcashflow extends SugarView {
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5')
+				AND p.loai_thu IN ('4', '5', '14')
 				AND p.supplier_id IS NOT NULL
 				AND p.bought_amount IS NOT NULL
 				AND p.supplier_id IS NOT NULL
@@ -873,7 +873,7 @@ class Viewcashflow extends SugarView {
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5')
+				AND p.loai_thu IN ('4', '5', '14')
 				AND p.supplier2_id IS NOT NULL
 				AND p.bought_amount2 IS NOT NULL
 				AND p.supplier2_id IS NOT NULL
@@ -891,7 +891,7 @@ class Viewcashflow extends SugarView {
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5')
+				AND p.loai_thu IN ('4', '5', '14')
 				AND p.supplier3_id IS NOT NULL
 				AND p.bought_amount3 IS NOT NULL
 				AND p.supplier3_id IS NOT NULL

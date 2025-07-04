@@ -59,7 +59,6 @@
     background: #ffc107;
     padding: 8px 12px;
     border-radius: 0.375rem;
-    /* color: #fff; */
 }
 
 input#zalo_field_lien_he,
@@ -105,4 +104,10 @@ input#zalo_field_ten_hk {
 .payment_tag .wrap .text-important {
     color: #096bff;
     font-weight: 500;
+}
+
+#zalo_field_journey_old {
+    width: auto !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
 }

@@ -243,7 +243,7 @@ class Viewdebtopay extends SugarView
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5')
+				AND p.loai_thu IN ('4', '5', '14')
 				AND p.supplier_id IS NOT NULL
 				AND p.bought_amount IS NOT NULL
 				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
@@ -258,7 +258,7 @@ class Viewdebtopay extends SugarView
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5')
+				AND p.loai_thu IN ('4', '5', '14')
 				AND p.supplier2_id IS NOT NULL
 				AND p.bought_amount2 IS NOT NULL
 				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
@@ -273,7 +273,7 @@ class Viewdebtopay extends SugarView
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5')
+				AND p.loai_thu IN ('4', '5', '14')
 				AND p.supplier3_id IS NOT NULL
 				AND p.bought_amount3 IS NOT NULL
 				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
@@ -318,23 +318,28 @@ class Viewdebtopay extends SugarView
 		-- HAVING total_debt <> 0
 		ORDER BY supplier_code ";
 
+		// if($GLOBALS['current_user']->user_name == 'hungnh') {
+		// 	pr($sql);
+		// }
 
 
 		$res = $db->query($sql);
 		$total_debt = 0;
 		$html = '';
 		while ($row = $db->fetchByAssoc($res)) {
-			$html .= '<tr>
-			<td align="center">
-				<input type="checkbox" name="supplier_id[]" value="' . $row['supplier_id'] . '" />
-				<input type="hidden" name="supcode_' . $row['supplier_id'] . '" value="' . $row['supplier_code'] . '" />
-				<input type="hidden" name="supname_' . $row['supplier_id'] . '" value="' . $row['supplier_name'] . '" />
-				<input type="hidden" name="acc_code_' . $row['supplier_id'] . '" value="' . $row['accounting_code'] . '" />
-			</td>
-			<td align="left">' . $row['supplier_code'] . '</td>
-			<td align="left">' . $row['supplier_name'] . '</td>
-			<td align="right" data-realnumber="' . $row['total_debt'] . '">' . format_number($row['total_debt']) . '</td>
+			if($row['total_debt'] != 0){
+				$html .= '<tr>
+					<td align="center">
+						<input type="checkbox" name="supplier_id[]" value="' . $row['supplier_id'] . '" />
+						<input type="hidden" name="supcode_' . $row['supplier_id'] . '" value="' . $row['supplier_code'] . '" />
+						<input type="hidden" name="supname_' . $row['supplier_id'] . '" value="' . $row['supplier_name'] . '" />
+						<input type="hidden" name="acc_code_' . $row['supplier_id'] . '" value="' . $row['accounting_code'] . '" />
+					</td>
+					<td align="left">' . $row['supplier_code'] . '</td>
+					<td align="left">' . $row['supplier_name'] . '</td>
+					<td align="right" data-realnumber="' . $row['total_debt'] . '">' . format_number($row['total_debt']) . '</td>
 				</tr>';
+			}
 
 			//========== Begin close opening amount ==========//
 			// if ($GLOBALS['current_user']->user_name == 'nponline' && $post_fdate == '01-01-2019' && $post_tdate == '31-12-2019' && $row['total_debt'] != 0) {
@@ -496,7 +501,7 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			".$sql_hotel."
+			" . $sql_hotel . "
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
 			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.supplier_id = '" . $supplier_id . "'
@@ -509,7 +514,7 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			".$sql_hotel."
+			" . $sql_hotel . "
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
 			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.supplier2_id = '" . $supplier_id . "'
@@ -522,7 +527,7 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			".$sql_hotel."
+			" . $sql_hotel . "
 			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
 			AND p.ngaychungtu < '" . $fromDate . "'
 			AND p.supplier3_id = '" . $supplier_id . "'
@@ -673,7 +678,7 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		".$sql_hotel."
+		" . $sql_hotel . "
 		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND p.supplier_id = '" . $supplier_id . "'
 
@@ -694,7 +699,7 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		".$sql_hotel."
+		" . $sql_hotel . "
 		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND p.supplier2_id = '" . $supplier_id . "'
 
@@ -715,7 +720,7 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		".$sql_hotel."
+		" . $sql_hotel . "
 		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
 		AND p.supplier3_id = '" . $supplier_id . "'
 

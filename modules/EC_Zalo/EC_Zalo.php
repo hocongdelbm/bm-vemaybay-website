@@ -78,11 +78,12 @@ class EC_Zalo extends Basic {
             ,DATE_ADD(c.date_modified, INTERVAL 7 HOUR) AS date_modified
         FROM contacts c
         WHERE zalo_id = '$zalo_id' AND deleted = 0
+        ORDER BY date_entered
         LIMIT 1";
 
         $res = $this->db->query($sql);
         $row_info = $this->db->fetchByAssoc($res);
-        $refresh_time = 86400*7; // Week
+        $refresh_time = 86400*2; // 2 days
         if(!empty($row_info) && time() - strtotime($row_info['date_modified']) < $refresh_time) {
             $zalo_name   = $row_info['zalo_name'] ?? '';
             $zalo_avatar = $row_info['zalo_avatar'] ?? '';
@@ -124,7 +125,7 @@ class EC_Zalo extends Basic {
                 if(!empty($user_data_last_interaction)) $user_data_last_interaction = date('Y-m-d', strtotime(str_replace("/", "-", $user_data_last_interaction))) . ' 00:00:00';
 
                 $Contact = new Contact();
-                if(!$row_info || empty($row_info)) {
+                if((!$row_info || empty($row_info)) && (!isset($row_info['contact_id']) || !$row_info['contact_id'] || empty($row_info['contact_id']))) {
                     $Contact->last_name     = $user_data_name;
                     $Contact->zalo_id       = $user_data['user_id'];
                     $Contact->zalo_name     = $user_data_name;
@@ -146,7 +147,7 @@ class EC_Zalo extends Basic {
                             $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
                         }
                     }
-                    $Contact->description = "Liên hệ tạo từ Zalo OA";
+                    $Contact->description = "Liên hệ tạo từ Zalo OA " . json_encode($row_info, JSON_UNESCAPED_UNICODE);
                 }
                 else {
                     $Contact->retrieve($row_info['contact_id']);

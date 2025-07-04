@@ -188,23 +188,18 @@ $(document).ready(function() {
 			}
 
 			// Bought amount
-			if(loai_thu_arr.includes(loai_thu) && bought_amount == '' && loai_thu != '4' && loai_thu != '5'){
-				$text_warning = 'Giá mua không được trống!';
-				showToastWarning($text_warning);
-				$('#bought_amount').focus();
-				return false;
-			}
-			if(supplier2_id != '' && bought_amount2 == '' && loai_thu != '4' && loai_thu != '5'){
-				$text_warning = 'Giá mua không được trống!';
-				showToastWarning($text_warning);
-				$('#bought_amount2').focus();
-				return false;
-			}
-			if(supplier3_id != '' && bought_amount3 == '' && loai_thu != '4' && loai_thu != '5'){
-				$text_warning = 'Giá mua không được trống!';
-				showToastWarning($text_warning);
-				$('#bought_amount3').focus();
-				return false;
+			const suppliers = [
+				{ id: '', amount: bought_amount, selector: '#bought_amount', alwaysCheck: true },
+				{ id: supplier2_id, amount: bought_amount2, selector: '#bought_amount2' },
+				{ id: supplier3_id, amount: bought_amount3, selector: '#bought_amount3' }
+			];
+			for (const sup of suppliers) {
+				const shouldCheck = sup.alwaysCheck || (sup.id !== '' && loai_thu !== '4' && loai_thu !== '5');
+				if (shouldCheck && sup.amount.trim() === '') {
+					showToastWarning('Giá mua không được trống!');
+					$(sup.selector).focus();
+					return false;
+				}
 			}
 
 			// Check total sell and amount
