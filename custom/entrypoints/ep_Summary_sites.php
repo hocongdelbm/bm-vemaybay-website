@@ -14,41 +14,46 @@ class SummaryStie{
     }
 
     public function call_api() {
-        $input = file_get_contents('php://input');
-        // var_dump($input);die;
-        $request_data = json_decode($input, true);
+        try {
+            $input = file_get_contents('php://input');
+            // var_dump($input);die;
+            $request_data = json_decode($input, true);
 
-        $action = $request_data['action'] ?? '';
-        if (!$action || !isset($this->endpoints[$action])) {
-            return $this->response(1, 'Invalid action', null, 400);
+            $action = $request_data['action'] ?? '';
+            if (!$action || !isset($this->endpoints[$action])) {
+                return $this->response(1, 'Invalid action', null, 400);
+            }
+
+            $data = [];
+            switch ($action) {
+                case 'get_traffic':
+                case 'get_logs':
+                    $data['options']['from_time'] = date_format(new DateTime($request_data["options"]['from_date']), "Y-m-d H:i:s");
+                    $data['options']['to_time']   = date_format(new DateTime($request_data["options"]['to_date']), "Y-m-d H:i:s");
+                    $data["options"]["flag"]      = $request_data["options"]["flag"] ?? null;
+                    $data["options"]["filters"]   = $request_data["options"]["filter"] ?? [];
+                    $data['domain']               = $request_data['domain'] ?? "";
+                    break;
+                case 'get_traffic_insights':
+                    $data['options']['from_time'] = date_format(new DateTime($request_data["options"]['from_date']), "Y-m-d H:i:s");
+                    $data['options']['to_time']   = date_format(new DateTime($request_data["options"]['to_date']), "Y-m-d H:i:s");
+                    $data["options"]["filters"]   = $request_data["options"]["filter"] ?? [];
+                    $data['domain']               = $request_data['domain'] ?? "";
+                    break;
+                case 'get_log_detail':
+                    $data['domain'] = $request_data['domain'] ?? "";
+                    $data['id']     = $request_data['id'] ?? "";
+                    break;
+                default:
+                    break;
+            }
+
+            $endpoint = $this->url . $this->endpoints[$action];
+            return $this->exc_curl($endpoint, $data);
+        } catch (\Throwable $th) {
+            //throw $th;
+            return $this->response('1', $th->getMessage(), [], 500);
         }
-
-        $data = [];
-        switch ($action) {
-            case 'get_traffic':
-            case 'get_logs':
-                $data['options']['from_time'] = date_format(new DateTime($request_data["options"]['from_date']), "Y-m-d H:i:s");
-                $data['options']['to_time']   = date_format(new DateTime($request_data["options"]['to_date']), "Y-m-d H:i:s");
-                $data["options"]["flag"]      = $request_data["options"]["flag"] ?? null;
-                $data["options"]["filters"]   = $request_data["options"]["filter"] ?? [];
-                $data['domain']               = $request_data['domain'] ?? "";
-                break;
-            case 'get_traffic_insights':
-                $data['options']['from_time'] = date_format(new DateTime($request_data["options"]['from_date']), "Y-m-d H:i:s");
-                $data['options']['to_time']   = date_format(new DateTime($request_data["options"]['to_date']), "Y-m-d H:i:s");
-                $data["options"]["filters"]   = $request_data["options"]["filter"] ?? [];
-                $data['domain']               = $request_data['domain'] ?? "";
-                break;
-            case 'get_log_detail':
-                $data['domain'] = $request_data['domain'] ?? "";
-                $data['id']     = $request_data['id'] ?? "";
-                break;
-            default:
-                break;
-        }
-
-        $endpoint = $this->url . $this->endpoints[$action];
-        return $this->exc_curl($endpoint, $data);
     }
 
     public function exc_curl($url, $request_data) {
