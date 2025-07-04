@@ -1,6 +1,5 @@
 .search_wrap, .normal_search_form, .normal_search{
     display: flex;
-    /* justify-content: space-between; */
     align-items: center;
 }
 .normal_search, .normal_search_form{
@@ -44,15 +43,10 @@
 .mini_title_wrap{
     display: flex;
     flex-direction: column;
-    /* width: 100%; */
     text-align: center;
     border-right: solid 1px var(--text-primary-color);
     margin-bottom: 1.5rem;
 }
-
-/* .mini_title_wrap:last-child{
-    border-right: none;
-} */
 
 .online_user{
     display: flex;
@@ -63,8 +57,6 @@
 }
 
 .online_user_value{
-    /* font-size:xx-large;
-    display: flex; */
     justify-content: center;
     text-align: center;
 }
@@ -79,15 +71,12 @@
 
 .online_data{
     display: flex;
-    margin-top: 1rem;
-    /* overflow-x: scroll; */
     overflow-y: auto;
 }
 
 /* summary_detail */
 .entrance_content{
     border-bottom: 1px solid var(--border-color);
-    margin: 1rem 0;
 }
 .entrance_heading.title, .title.detail{
     text-align: center;
@@ -98,11 +87,6 @@
     align-items: center;
     gap: 0.5rem;
 }
-
-/* .total_entrance_detail{
-    margin-bottom: 1rem;
-} */
-
 .access_wrap .user_access, .access_wrap .bot_access{
     width: fit-content;
     padding: 1rem;
@@ -213,23 +197,35 @@ canvas {
     transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1);
 }
 .online_data.row.expanded{
-    /* overflow-y: auto; */
     max-height: 2000px;
 }
 
-.online_data.row .extend_accordion{
-    position: absolute; 
-    bottom: 0; 
-    width: 100%; 
-    background: rgba(255,255,255,0.8);
+.extend_accordion{
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .traffic_value label{
-    white-space: nowrap;         /* Không cho xuống dòng */
-    overflow: hidden;            /* Ẩn phần tràn ra ngoài */
-    text-overflow: ellipsis;     /* Thêm dấu ba chấm (...) */
-    display: inline-block;       /* Đảm bảo hoạt động đúng */
-    max-width: 100%;             /* Giới hạn độ rộng nếu cần */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.traffic_value.IPs .visitor_cell span{
+        overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 110px;
+    max-width: 110px;
+    display: block;
+}
+
+.traffic_value.IPs .copy-ip-btn{
+    border: none;
+    background: none;
+    padding: unset;
 }
 
 .progress{
@@ -256,19 +252,22 @@ canvas {
     display: none;
 }
 
+.access_log.title{
+    color: unset !important;
+    text-align:center; 
+    margin-bottom:unset;
+}
 
 .visitor-table {
     width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
-    /* font-family: Arial, sans-serif; */
     font-size: 14px;
     margin-top: 15px;
 }
 
 .visitor-table th,
 .visitor-table td {
-    /* border: 1px solid #ddd; */
     padding: 8px 12px;
     text-align: left;
     white-space: nowrap;
@@ -404,7 +403,7 @@ canvas {
 }
 
 .extend_log_detail.rotated {
-  transform: rotate(90deg); /* hoặc 180deg nếu muốn xoay xuống */
+  transform: rotate(90deg);
 }
 
 .detail_logs_wrapper {
@@ -429,4 +428,85 @@ canvas {
   width: 100%;
   overflow-wrap: break-word;
   white-space: normal;
+}
+
+/* filter btn */
+.filter-btn, .filter-remove{
+    font-size: 13px;
+    padding: 0 5px 0 5px;
+}
+.traffic-item .filter-btns {
+    display: none;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+}
+.traffic-item:hover .filter-btns {
+    display: flex;
+    width: 200px;
+    /* background: white; */
+    justify-content: end;
+    gap: 4px;
+}
+
+.traffic-item .filter-remove.inactive{
+    display: none;
+}
+
+.traffic-item .filter-btn.inactive{
+    display: none;
+}
+
+.traffic-item {
+    transition: background 0.2s;
+}
+.traffic-item:hover {
+    background: #f5f7fa;
+}
+
+.traffic-item:hover .progress_wrapper{
+    opacity: 40%;
+}
+
+/* filter tag zone */
+.filter_tag_wrapper{
+    gap: 10px;
+}
+.tag_wrapper{
+    padding: 0.5rem;
+    border: 1px solid #f5f7fa;
+    border-radius: 10px;
+    background: #f5f7fa;
+}
+
+.tag_wrapper .close_tag svg{
+    width: 16px;
+}
+
+.close_tag{
+    cursor: pointer;
+}
+
+/* chart zone */
+.chart-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.chart-row canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100%;
+    max-height: 350px;
+}
+
+.total_traffic, .unique_ip{
+    flex-direction: column;
+}
+
+.total_traffic .total_traffic_value, .unique_ip .unique_ip_value{
+    font-size: 3rem;
 }
