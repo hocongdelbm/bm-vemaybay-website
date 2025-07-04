@@ -346,7 +346,7 @@ $(document).ready(function () {
         container.append(`
             <div class="row chart-row mb-4">
                 <div class="col-lg-5 mb-4">
-                    <h6 class="text-center mb-3">Tổng nguồn truy cập</h6>
+                    <h6 class="text-center mb-3" title="Lượng truy cập người dùng thực(không bot)">Tổng truy cập người dùng</h6>
                     <canvas id="totalChart"></canvas>
                 </div>
                 <div class="col-lg-5 mb-4">
@@ -370,6 +370,7 @@ $(document).ready(function () {
             const ctx = canvas.getContext('2d');
             const labelMap = {
                 '/chon-hanh-trinh': 'Hành trình',
+                '/tim-chuyen-bay': 'Hành trình',
                 '/thong-tin-hanh-khach': 'Hành khách',
                 '/thong-tin-thanh-toan': 'Thanh toán',
                 '/hoan-tat-don-hang': 'Hoàn tất'
