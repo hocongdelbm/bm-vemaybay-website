@@ -64,12 +64,14 @@ class SummaryStie{
         ];
         $curl = curl_init();
         $request = json_encode($request_data);
-
+        ini_set('memory_limit', '256M');
+        ini_set('max_execution_time', 300);
         curl_setopt($curl, CURLOPT_URL, $url);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 300);
+        curl_setopt($curl, CURLOPT_BUFFERSIZE, 128000);
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, $request);
 
