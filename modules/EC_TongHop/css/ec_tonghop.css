@@ -222,6 +222,10 @@ canvas {
     display: block;
 }
 
+.visitor_path{
+    max-width: unset !important;
+}
+
 .traffic_value.IPs .copy-ip-btn{
     border: none;
     background: none;

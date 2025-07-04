@@ -773,7 +773,7 @@ $(document).ready(function () {
                     <button data-ip="${entry.client_ip}" class="copy-ip-btn">${getCopyIcon()}</button>
                 </td>
                 <td class="visitor_cell col-lg-3">${display_name}</td>
-                <td class="visitor_cell col-lg-3" title="${path}">${path}</td>
+                <td class="visitor_cell col-lg-3" title="${path}"><span class="visitor_path">${path}<span></td>
             `;
             tbody.appendChild(tr);
         });
