@@ -292,6 +292,7 @@ $(document).ready(function () {
         });
 
         $(".total_traffic_value").html(renderLoading());
+        $(".unique_ip_value").html(renderLoading());
         $(".row.chart-row").html(renderLoading());
         $(".btn.btn-primary.extend_btn").addClass("hide");
         $.ajax({
