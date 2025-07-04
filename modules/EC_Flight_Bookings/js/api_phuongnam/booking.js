@@ -34,7 +34,7 @@ $(document).ready(function () {
                             showDialogAutoBook(objData.data);
                         }
                         else {
-                            showModalNotify("error", objData.message ?? "Lỗi trong quá trình xử lý");
+                            showModalNotify("error", objData.message ?? "Lỗi trong quá trình xử lý", objData.description ?? "");
                             console.error(objData);
                         }
                     }

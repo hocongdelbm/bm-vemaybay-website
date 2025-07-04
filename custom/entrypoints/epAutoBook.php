@@ -183,7 +183,7 @@ try {
             $arr = json_decode($json, true);
 
             // Recheck data
-            if(isset($arr['error']) && $arr['error'] == 0) {
+            if(isset($arr['status']) && $arr['status'] == 1) {
                 $fareSumAmount = 0;
 
                 $result = [];
@@ -479,18 +479,36 @@ try {
 
             $response = $phuongnamapi->verify($requestBody); // JSON
             $responseArr = json_decode($response, true);
-            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
-            $responseData = $responseArr['data'] ?? [];
-            // Preparing request body for next step
-            foreach($requestBody['Flights'] as $i => $f) {
-                foreach($responseData as $res) { // check here baby
-                    if($f['SystemCode'] == $res['SystemCode']) {
-                        $requestBody['Flights'][$i]['VerifySession'] = $res['SessionVerify'] ?? '';
+
+            if($responseArr['status'] == 1) {
+                $isVerifyFailed = true;
+                $verifyFailedMessage = '';
+
+                // Preparing request body for next step
+                $responseData = $responseArr['data'] ?? [];
+                foreach($requestBody['Flights'] as $i => $f) {
+                    foreach($responseData as $res) { // check here baby
+                        if(!isset($res['ID']) || $res['ID'] != 1
+                            || !isset($res['SessionVerify']) || !$res['SessionVerify'] || empty($res['SessionVerify'])
+                        ) {
+                            $isVerifyFailed = false;
+                            $verifyFailedMessage = $res['Message'] ?? '';
+                            break;
+                        }
+
+                        if($f['SystemCode'] == $res['SystemCode']) {
+                            $requestBody['Flights'][$i]['VerifySession'] = $res['SessionVerify'] ?? '';
+                        }
                     }
                 }
+                $responseArr['requestBody'] = $requestBody;
+
+                if(!$isVerifyFailed) {
+                    $responseArr['status'] = 0;
+                    $responseArr['message'] = $verifyFailedMessage;
+                }
             }
-            $responseArr['requestBody'] = $requestBody;
-            unset($responseArr['error']);
+
             echo json_encode($responseArr);
             exit();
         }
@@ -529,7 +547,7 @@ try {
 
             // Save to BM
             $mappingSystemCodeName = ['VJ' => 'Vietjet Air', 'VN' => 'Vietnam Airlines', 'QH' => 'Bamboo Airways', 'VU' => 'Vietravel Airlines']; 
-            if($responseArr['error'] == 0) {
+            if($responseArr['status'] == 1) {
                 $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 foreach($responseArr['data'] as $i => $f) {
                     if(isset($f["ID"]) && $f["ID"] == 1) {
@@ -608,8 +626,6 @@ try {
                 }
             }
             
-            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
-            unset($responseArr['error']);
             echo json_encode($responseArr);
             exit();
         }
@@ -631,10 +647,7 @@ try {
 
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
-            $responseArr = json_decode($response, true);
-            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
-            unset($responseArr['error']);
-            echo json_encode($responseArr);
+            echo $response;
             exit();
         }
         elseif($action == 'pay_booking') {
@@ -655,10 +668,7 @@ try {
 
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->payForBooking($systemCode, $bookingCode);
-            $responseArr = json_decode($response, true);
-            $responseArr['status'] = (int)!$responseArr['error']; // Convert key error to status
-            unset($responseArr['error']);
-            echo json_encode($responseArr);
+            echo $response;
             exit();
         }
 
