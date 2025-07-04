@@ -57,6 +57,7 @@ class SummaryStie{
     }
 
     public function exc_curl($url, $request_data) {
+      try {
         $header = [
             "Content-Type: application/json",
             "api-key: {$this->apiKey}"
@@ -91,6 +92,10 @@ class SummaryStie{
         } else {
             return $this->response(1, "Invalid response format", null, 500);
         }
+      } catch (\Throwable $th) {
+        //throw $th;
+        return $this->response(1, $th->getMessage(), [], 500);
+      }
     }
 
     public function response($error = 0, $message = '', $data = null, $http_code = 200) {
