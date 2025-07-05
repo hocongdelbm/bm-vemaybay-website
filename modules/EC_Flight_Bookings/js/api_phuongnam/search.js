@@ -285,12 +285,12 @@ function updateExpiryBadge(data) {
     if (timeDiff <= 0) {
         // Booking has expired
         expiryBadge.removeClass('warning').addClass('expired');
-        expiryBadge.text('Holding expired');
+        expiryBadge.text('Đã hết hạn giữ chỗ');
         expiryBadge.show();
     } else if (minutesLeft <= 15) {
         // Booking expires within 15 minutes
         expiryBadge.removeClass('expired').addClass('warning');
-        expiryBadge.text('Expired soon');
+        expiryBadge.text('Sắp hết hạn giữ chỗ');
         expiryBadge.show();
     } else {
         // No badge needed
