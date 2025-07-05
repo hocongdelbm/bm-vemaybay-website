@@ -70,6 +70,7 @@ $(document).ready(function () {
             var flightDate = $('input[name="flightDate[]"]').map((i, el) => el.value).get();
             var ticketClass = $('input[name="ticketClass[]"]').map((i, el) => el.value).get();
             var flightNo = $('input[name="flightNo[]"]').map((i, el) => el.value).get();
+            var within24h = $('input[name="within24h[]"]').map((i, el) => el.value).get();
             var adt = $('input[name="adt[]"]').map((i, el) => el.value).get();
             var chd = $('input[name="chd[]"]').map((i, el) => el.value).get();
             var inf = $('input[name="inf[]"]').map((i, el) => el.value).get();
@@ -144,6 +145,7 @@ $(document).ready(function () {
             step = 2;
             var verifyResponse = {};
             var listPassengerId = getSelectedPassengersData();
+            var isWithin24h = within24h.includes('1') ? 1 : 0;
             if(statusAutoBook == 1) {
                 setTimeout(() => {showStepsInDialogAutoBook(step);}, 300);
 
@@ -165,7 +167,8 @@ $(document).ready(function () {
                             'action': 'verify',
                             'bookingId': bookingId,
                             'flights': flights,
-                            'listPassengerId': listPassengerId
+                            'listPassengerId': listPassengerId,
+                            'isWithin24h': isWithin24h
                         })
                     });
 
@@ -184,7 +187,8 @@ $(document).ready(function () {
             step = 3;
             var bookingResponse = {};
             if(statusAutoBook == 1) {
-                showStepsInDialogAutoBook(step);
+                let caption = isWithin24h ? 'Xuất vé cận' : 'Đặt chỗ';
+                showStepsInDialogAutoBook(step, caption + "...");
                 $('#btnAutoBookAction').prop('disabled', true); // Disable button action
                 
                 bookingResponse = await $.ajax({
@@ -206,12 +210,12 @@ $(document).ready(function () {
                 $('#btnAutoBookAction').prop('disabled', false);
 
                 if(!bookingResponse || !bookingResponse.status || bookingResponse.status == 0) {
-                    showStepsInDialogAutoBook(step, '', bookingResponse.message ?? 'Lỗi, vui lòng thử lại sau');
+                    showStepsInDialogAutoBook(step, caption, bookingResponse.message ?? 'Lỗi, vui lòng thử lại sau');
                     return;
                 }
 
                 // Display BookingCodes (PNR) to client
-                let caption = 'Đặt chỗ thành công';
+                caption = isWithin24h ? 'Xuất vé thành công' : 'Đặt chỗ thành công';
                 const bookingCodes = bookingResponse.data.map(item => item.BookingCode);
                 bookingCodes.forEach(code => {
                     caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
@@ -247,6 +251,8 @@ $(document).ready(function () {
         }
         else if(action == 'complete') {
             hideDialogAutoBook();
+            $('.container-waiting').show();
+            setTimeout(function () {location.reload();}, 500);
         }
     });
 
@@ -390,8 +396,13 @@ function showDialogAutoBook(bookingData) {
             <input type="hidden" name="flightDate[]" value="${flight.flightDate}" readonly />
             <input type="hidden" name="ticketClass[]" value="${flight.ticketClass}" readonly />
             <input type="hidden" name="flightNo[]" value="${flight.flightNo}" readonly />
+            <input type="hidden" name="within24h[]" value="${flight.within24h}" readonly />
 
-            <div class="section-title">${title}<span class="airline ms-3">(${flight.airlineCode})</span></div>
+            <div class="section-title">
+                ${title}
+                <span class="airline ms-3">(${flight.airlineCode})</span>
+                ${flight.within24h ? '<span class="within24h">Vé cận</span>' : ''}
+            </div>
             <div class="info-row d-flex justify-content-between">
                 <div>Hành trình: <b>${flight.depCode} → ${flight.desCode}</b></div>
                 <div>Mã chuyến: <b>${flight.flightNo}</b></div>
@@ -452,6 +463,14 @@ function showDialogAutoBook(bookingData) {
         <div class="info-row">Địa chỉ: <b>${contactInfo.address || ''}</b></div>
     </div>`;
     content.innerHTML += contactHTML;
+
+
+    // Note
+    let noteHTML = `<div class="note p-2 mt-3" style="background:#e0ecfc">
+        <p>- <b>Vé cận</b> sẽ tiến hành thanh toán ngay.</p>
+        <p>- Trường hợp khứ hồi, <b>vé cận</b> chỉ được autobook khi cùng 1 hãng.</p>
+    </div>`;
+    content.innerHTML += noteHTML;
 
 
     // Footer
@@ -519,7 +538,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         },
         3: {
             title: "Tiến hành đặt chỗ trên hãng",
-            caption: "Sẽ xuất vé nếu là vé cận",
+            caption: "",
             error: ""
         },
     };
@@ -549,7 +568,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
 
         stepsHTML += `<div class="step ${stepClass}">
             <div>
-                <div class="circle">${stepNum < current_step ? icon_finished : stepNum}</div>
+                <div class="circle">${(stepNum < current_step || is_finished == 1) ? icon_finished : stepNum}</div>
             </div>
             <div>
                 <div class="title">${stepData.title}</div>
@@ -564,7 +583,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
     let buttonText = buttonAction == 'cancel' ? 'Hủy' : 'Đóng';
     if(is_finished == 1) {
         buttonAction = 'complete';
-        buttonClass = 'btn-primary reload'; // For reload
+        buttonClass = 'btn-primary';
         buttonText = 'Hoàn tất';
     }
     let content = `<div class="loading-content">

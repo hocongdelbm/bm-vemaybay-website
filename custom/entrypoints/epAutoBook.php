@@ -4,6 +4,7 @@ try {
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         global $db, $current_user;
+        $mappingSystemCodeName = ['VJ' => 'Vietjet Air', 'VN' => 'Vietnam Airlines', 'QH' => 'Bamboo Airways', 'VU' => 'Vietravel Airlines']; 
         $requestData = json_decode(file_get_contents('php://input'), true) ?? [];
         $action = isset($requestData['action']) ? $requestData['action'] : "";
 
@@ -36,7 +37,10 @@ try {
                     // Lượt đi
                     if ($row['direction'] == '0') {
                         if ($stt_dep == 0 && in_array($row['id'], $listItineraryId)) {
+                            $within24h = 0;
+                            if(strtotime($row['departure_date']) - time() < 86400) $within24h = 1;
                             $flightDate = date('d-m-Y H:i', strtotime($row['departure_date']));
+
                             $dataJourneys['dep'] = [
                                 'id'            => $row['id'],
                                 'depCode' 	    => $row['departure'],
@@ -44,7 +48,8 @@ try {
                                 'flightDate'  	=> $flightDate,
                                 'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
                                 'flightNo'	    => $row['flight_number'],
-                                'ticketClass'   => $row['ticket_class']
+                                'ticketClass'   => $row['ticket_class'],
+                                'within24h'     => $within24h
                             ];
                         } elseif(isset($dataJourneys['dep'])) $dataJourneys['dep']['desCode'] = $row['arrival'];
                         $stt_dep++;
@@ -53,6 +58,8 @@ try {
                     // Lượt về
                     if ($row['direction'] == '1') {
                         if ($stt_ret == 0 && in_array($row['id'], $listItineraryId)) {
+                            $within24h = 0;
+                            if(strtotime($row['departure_date']) - time() < 86400) $within24h = 1;
                             $flightDate = date('d-m-Y H:i', strtotime($row['departure_date']));
                             $dataJourneys['ret'] = [
                                 'id'            => $row['id'],
@@ -61,7 +68,8 @@ try {
                                 'flightDate'  	=> $flightDate,
                                 'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
                                 'flightNo'	    => $row['flight_number'],
-                                'ticketClass'	=> $row['ticket_class']
+                                'ticketClass'	=> $row['ticket_class'],
+                                'within24h'     => $within24h
                             ];
                         } elseif(isset($dataJourneys['ret'])) $dataJourneys['ret']['desCode'] = $row['arrival'];
                         $stt_ret++;
@@ -364,6 +372,7 @@ try {
             $bookingId = $requestData['bookingId'] ?? '';
             $flights = $requestData['flights'] ?? [];
             $listPassengerId = $requestData['listPassengerId'] ?? [];
+            $isWithin24h = isset($requestData['isWithin24h']) ? (int)$requestData['isWithin24h'] : 0;
 
             if(!$flights || !is_array($flights) || empty($flights) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
                 echo json_encode([
@@ -463,7 +472,7 @@ try {
                 "UserCode" => null,
                 "UserFullName" => null,
                 "TransactionId" => null,
-                "IsIssueTicket" => false, // Issue immediately
+                "IsIssueTicket" => (bool)$isWithin24h, // Issue immediately
                 "Itinerary" => count($flights), // 1:Một chiều 2:Khứ hồi, 3:Đa chặng
                 "ContactTitle" => $contactTitle,
                 "ContactName" => $contactName,
@@ -509,6 +518,7 @@ try {
                 }
             }
 
+            $responseArr['isWithin24h'] = $isWithin24h;
             echo json_encode($responseArr);
             exit();
         }
@@ -546,7 +556,6 @@ try {
             $responseArr = json_decode($response, true);
 
             // Save to BM
-            $mappingSystemCodeName = ['VJ' => 'Vietjet Air', 'VN' => 'Vietnam Airlines', 'QH' => 'Bamboo Airways', 'VU' => 'Vietravel Airlines']; 
             if($responseArr['status'] == 1) {
                 $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 foreach($responseArr['data'] as $i => $f) {
@@ -559,12 +568,16 @@ try {
                         $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
                         // Send to Mattermost
-                        $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-                        $linkBooking = $sugar_config['host_name']."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
-                        $m = "Giữ chỗ: **$pnr** ($systemName) bởi **$fullname**";
-                        $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
-                        $m .= "\n" . Mattermost::markdownLink($linkBooking, "Mở booking");
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                        try {
+                            $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+                            $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
+                            $m = "Giữ chỗ $systemName: **$pnr** bởi **$fullname**";
+                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "Xuất vé cận $systemName: **$pnr** bởi **$fullname**";
+                            $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
+                            $m .= "\n" . Mattermost::markdownLink($linkBooking, "Mở booking $pnr");
+                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                        }
+                        catch(Throwable $th) {}
 
                         if($bookingType == 'roundtrip') {
                             // Update PNR
@@ -668,6 +681,24 @@ try {
 
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->payForBooking($systemCode, $bookingCode);
+
+            // Send to Mattermost
+            try {
+                $responseArr = json_decode($response, true);
+                if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+                    global $sugar_config;
+                    $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+                    $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
+                    $systemName = $mappingSystemCodeName[$systemCode] ?? 'Quốc tế'; // Airline name
+
+                    $m = "Xuất vé $systemName: **$bookingCode** bởi **$fullname**";
+                    $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
+                    $m .= "\n" . Mattermost::markdownLink($linkBooking, "Mở booking $bookingCode");
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                }
+            }
+            catch(Throwable $th) {}
+
             echo $response;
             exit();
         }
