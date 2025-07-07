@@ -301,12 +301,11 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify({domain: domain, options: option, action: "get_traffic_insights"}),
             success: function(response){
-                console.log(response);
                 const selector = $(".box-section.insight_traffic");
                 renderTrafficInsights(selector, domain, response.data);
             },
             error: function(xhr){
-                console.log(xhr);
+                // console.log(xhr);
             }
         });
     }
@@ -421,7 +420,6 @@ $(document).ready(function () {
         renderPie('totalChart', data.source || []);
         renderPie('totalChartDemo', data.main_page || []);
         const search_data = getSearchData();
-        console.log(search_data.option)
         const labels = (data.user_type || []).map(item => item.label);
         const byUserData = (data.user_type || []).map(item => item.by_user);
         const byBotData = (data.user_type || []).map(item => item.by_bot);
