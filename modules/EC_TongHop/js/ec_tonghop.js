@@ -372,6 +372,7 @@ $(document).ready(function () {
                 '/chon-hanh-trinh': 'Hành trình',
                 '/tim-chuyen-bay': 'Hành trình',
                 '/thong-tin-hanh-khach': 'Hành khách',
+                '/thanh-toan': 'Thanh toán',
                 '/thong-tin-thanh-toan': 'Thanh toán',
                 '/hoan-tat-don-hang': 'Hoàn tất'
             }
