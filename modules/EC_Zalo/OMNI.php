@@ -1,5 +1,6 @@
 <?php
 global $sugar_config;
+define("SUGAR_CONFIG", $sugar_config);
 
 class OMNI {
     private $endpoint;
@@ -7,9 +8,9 @@ class OMNI {
     private $password;
 
     public function __construct() {
-        $this->endpoint = $sugar_config['endpoint'] ?? '';
-        $this->username = $sugar_config['username'] ?? '';
-        $this->password = $sugar_config['password'] ?? '';
+        $this->endpoint = SUGAR_CONFIG['zalo_config']['omni']['endpoint'] ?? '';
+        $this->username = SUGAR_CONFIG['zalo_config']['omni']['username'] ?? '';
+        $this->password = SUGAR_CONFIG['zalo_config']['omni']['password'] ?? '';
     }
 
     /**
@@ -252,5 +253,6 @@ class OMNI {
         $phoneFormat = preg_replace('/^84/', 0, $phoneFormat);
         $phoneFormat = preg_replace('/^00/', 0, $phoneFormat);
         $phoneFormat = preg_replace('/^0/', '84', $phoneFormat);
+        return $phoneFormat;
     }
 }
