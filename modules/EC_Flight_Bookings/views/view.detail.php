@@ -1162,10 +1162,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('SHARE_PROFIT', $this->createShareProfitBtn());
 
 		// Auto book
-		if(in_array($this->bean->booking_status, [1,2,3,6]) && $this->bean->ticket_type == 1 && !$this->bean->is_hold && !$this->bean->holding_status)
+		if(in_array($this->bean->booking_status, [1, 2, 3, 6]) && $this->bean->ticket_type == 1 && !$this->bean->is_hold && !$this->bean->holding_status)
 			$this->ss->assign('BUTTON_AUTO_BOOK', '<button type="button" id="btnAutoBook" class="btn btn-danger fw-semibold">Auto book</button>');
 		else
-			$this->ss->assign('BUTTON_AUTO_BOOK', '');
+			$this->ss->assign('BUTTON_AUTO_BOOK', 'asd');
 
 		// // Reservation with API Vietjet
 		// $allowed_holding_status = [1,2,3,6];

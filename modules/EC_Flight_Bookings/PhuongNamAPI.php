@@ -61,7 +61,7 @@ class PhuongNamAPI {
     public function searchFlights($airlineCode, $depCode, $desCode, $departDate, $returnDate, $adt, $chd = 0, $inf = 0, $cabin = 'M') {
         try {
             $headers = [
-                "Content-Type: multipart/form-data",
+                "Content-Type: application/json",
                 "API-Key: $this->API_KEY_SEARCH",
             ];
             $requestBody = [
@@ -73,8 +73,10 @@ class PhuongNamAPI {
                 "adt"           => $adt,
                 "chd"           => $chd,
                 "inf"           => $inf,
-                "options"       => json_encode(['cabin' => $cabin]),
-                "isLive"        => 1
+                "options"       => [
+                    'cabin' => $cabin,
+                    'api' => 'PN'
+                ],
             ];
 
             $curl = curl_init();
@@ -82,7 +84,7 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT_SEARCH/getFlights");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 10);
@@ -331,7 +333,7 @@ class PhuongNamAPI {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to agency",
+                    "message" => "Can not connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -341,7 +343,7 @@ class PhuongNamAPI {
             if($httpcode != 200) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Get booking failed",
+                    "message" => "Getting booking failed",
                     "data" => $responseArr,
                     "description" => "HTTP error $httpcode"
                 ]);
@@ -350,7 +352,7 @@ class PhuongNamAPI {
             if($responseArr['ID'] != 1) {
                 return json_encode([
                     "status"     => 0,
-                    "message"   => $responseArr["Message"] ?? "Get booking failed",
+                    "message"   => $responseArr["Message"] ?? "Getting booking failed",
                     "data"      => $responseArr['Data'] ?? [],
                 ]);
             }
@@ -465,6 +467,288 @@ class PhuongNamAPI {
         }
         finally {
             if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /**
+     * Get baggage info by booking code
+     * 
+     * @param string $systemCode VJ, VN, QH, VU,...
+     * @param string $bookingCode PNR
+     * @return string JSON {status, message, data}
+     */
+    public function getBaggageChange($systemCode, $bookingCode) {
+        try {
+            if(!$systemCode || !$bookingCode || empty($systemCode) || empty($bookingCode)) {
+                return json_encode([
+                    'status' => 0,
+                    'message' => 'Invalid params',
+                    'params' => [
+                        'systemCode' => $systemCode,
+                        'bookingCode' => $bookingCode
+                    ]
+                ]);
+            }
+
+            $str = $this->getSessionKey();
+            $arr = json_decode($str, true);
+            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
+            $sessionKey = $arr['data'] ?? '';
+
+            $url = "$this->ENDPOINT/api/Service/GetBaggageChange";
+            $headers = [
+                "ApiKey: $this->API_KEY",
+                "SecretKey: $this->SECRET_KEY",
+                "Authorization: Bearer $sessionKey",
+            ];
+            $requestBody = [
+                "SystemCode" => $systemCode,
+                "BookingCode" => $bookingCode
+            ];
+
+            $curl = curl_init();
+            if($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            $response = curl_exec($curl); // JSON
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if($response === false || $errorno) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Can not connect to API",
+                    "description" => "cURL error $errorno: $error"
+                ]);
+            }
+
+            $responseArr = is_string($response) ? json_decode($response, true) : $response;
+
+            if($httpcode != 200) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Getting baggage info failed",
+                    "data" => $responseArr,
+                    "description" => "HTTP error $httpcode"
+                ]);
+            }
+
+            if($responseArr['ID'] != 1) {
+                return json_encode([
+                    "status"     => 0,
+                    "message"   => $responseArr["Message"] ?? "Getting baggage info failed",
+                    "data"      => $responseArr['Data'] ?? [],
+                ]);
+            }
+
+            if(!isset($responseArr['Data']) || !$responseArr['Data'] || empty($responseArr['Data'])) {
+                return json_encode([
+                    "status"     => 0,
+                    "message"   => "No baggage data for $bookingCode in $systemCode",
+                    "data"      => [],
+                ]);
+            }
+
+            return json_encode([
+                "status"     => 1,
+                "message"   => "Success",
+                "data"      => $responseArr['Data'] ?? [],
+            ]);
+        }
+        catch(Exception $e) {
+            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /**
+     * Get seat maps info by booking code
+     * 
+     * @param string $systemCode VJ, VN, QH, VU,...
+     * @param string $bookingCode PNR
+     * @return string JSON {status, message, data}
+     */
+    public function getSeatMapsChange($systemCode, $bookingCode) {
+        try {
+            if(!$systemCode || !$bookingCode || empty($systemCode) || empty($bookingCode)) {
+                return json_encode([
+                    'status' => 0,
+                    'message' => 'Invalid params',
+                    'params' => [
+                        'systemCode' => $systemCode,
+                        'bookingCode' => $bookingCode
+                    ]
+                ]);
+            }
+
+            $str = $this->getSessionKey();
+            $arr = json_decode($str, true);
+            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
+            $sessionKey = $arr['data'] ?? '';
+
+            $url = "$this->ENDPOINT/api/Seat/GetSeatMapsChange";
+            $headers = [
+                "ApiKey: $this->API_KEY",
+                "SecretKey: $this->SECRET_KEY",
+                "Authorization: Bearer $sessionKey",
+            ];
+            $requestBody = [
+                "SystemCode" => $systemCode,
+                "BookingCode" => $bookingCode
+            ];
+
+            $curl = curl_init();
+            if($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            $response = curl_exec($curl); // JSON
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if($response === false || $errorno) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Can not connect to API",
+                    "description" => "cURL error $errorno: $error"
+                ]);
+            }
+
+            $responseArr = is_string($response) ? json_decode($response, true) : $response;
+
+            if($httpcode != 200) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Getting seat maps failed",
+                    "data" => $responseArr,
+                    "description" => "HTTP error $httpcode"
+                ]);
+            }
+
+            if($responseArr['ID'] != 1) {
+                return json_encode([
+                    "status"     => 0,
+                    "message"   => $responseArr["Message"] ?? "Getting seat maps failed",
+                    "data"      => $responseArr['Data'] ?? [],
+                ]);
+            }
+
+            if(!isset($responseArr['Data']) || !$responseArr['Data'] || empty($responseArr['Data'])) {
+                return json_encode([
+                    "status"     => 0,
+                    "message"   => "No seat maps data for $bookingCode in $systemCode",
+                    "data"      => [],
+                ]);
+            }
+
+            return json_encode([
+                "status"     => 1,
+                "message"   => "Success",
+                "data"      => $responseArr['Data'] ?? [],
+            ]);
+        }
+        catch(Exception $e) {
+            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
+        }
+        finally {
+            if (is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /**
+     * Get info baggage
+     * 
+     * @param array $requestBody
+     * @return string JSON {status, message, data}
+     */
+    public function getBaggage($requestBody) {
+        try {
+            $str = $this->getSessionKey();
+            $arr = json_decode($str, true);
+            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
+            $sessionKey = $arr['data'] ?? '';
+
+            $headers = [
+                "Content-Type: application/json",
+                "ApiKey: $this->API_KEY",
+                "SecretKey: $this->SECRET_KEY",
+                "Authorization: Bearer $sessionKey",
+            ];
+
+            $curl = curl_init();
+            if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Service/GetBaggage");
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 20);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            $response = curl_exec($curl); // JSON
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if($response === false || $errorno) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Can not connect to API",
+                    "description" => "cURL error $errorno: $error"
+                ]);
+            }
+
+            $responseArr = is_string($response) ? json_decode($response, true) : $response;
+
+            if($httpcode != 200 && $httpcode != 201) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Getting baggage info failed",
+                    "data" => $responseArr,
+                    "description" => "HTTP error $httpcode"
+                ]);
+            }
+
+            if($responseArr['ID'] != 1) {
+                return json_encode([
+                    "status"     => 0,
+                    "message"   => $responseArr["Message"] ?? ("Getting baggage info failed with ID " . $responseArr['ID']),
+                    "data"      => $responseArr['Data'] ?? []
+                ]);
+            }
+
+            return json_encode([
+                "status"    => 1,
+                "message"   => "Success",
+                "data"      => $responseArr['Data'] ?? []
+            ]);
+        }
+        catch(Exception $e) {
+            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
+        }
+        finally {
+            if(isset($curl) && is_resource($curl)) curl_close($curl);
         }
     }
 

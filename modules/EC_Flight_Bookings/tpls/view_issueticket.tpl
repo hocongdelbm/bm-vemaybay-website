@@ -110,6 +110,7 @@
                             <th>Tuổi</th>
                             <th>Ngày sinh</th>
                             <th>Liên hệ</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody></tbody>

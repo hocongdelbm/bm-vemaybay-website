@@ -660,7 +660,91 @@ try {
 
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
-            echo $response;
+            $responseArr = json_decode($response, true);
+
+            try {
+                // Tất cả người lớn dùng chung 1 chi tiết vé theo từng chặng
+                $passInfo = [];
+                $sql_pass = "SELECT id as pass_id, type, booking_id, pnr_outbound, pnr_inbound
+                        FROM ec_booking_passengers
+                        WHERE (pnr_outbound = '$bookingCode' OR pnr_inbound = '$bookingCode')
+                            AND type <> '2'
+                            AND deleted = 0";
+                $res_pass = $db->query($sql_pass);
+                while ($row = $db->fetchByAssoc($res_pass)) {
+                    $pass_id        = $row['id'] ?? '';
+                    $passenger_type = $row['type'] ?? '';
+                    $booking_id     = $row['booking_id'] ?? '';
+                    $pnr_outbound   = $row['pnr_outbound'] ?? '';
+                    $pnr_inbound    = $row['pnr_inbound'] ?? '';
+
+                    if(empty($booking_id) || (empty($pnr_outbound) && empty($pnr_inbound))) continue;
+                    if($bookingCode == $pnr_outbound) {
+                        if(!isset($passInfo[0]) || !isset($passInfo[0][$passenger_type])) {
+                            $sql_detail = "SELECT total_bought_price
+                                FROM ec_booking_details
+                                WHERE booking_id = '$booking_id'
+                                    AND direction = '0'
+                                    AND passenger_type = '$passenger_type'
+                                    AND deleted = 0";
+                            $fareSumAmount = $db->getOne($sql_detail) ?? 0;
+                            
+                            $passInfo[0][$passenger_type] = [
+                                'fareSumAmount' => $fareSumAmount,
+                            ];
+                        }
+                    }
+                    if($bookingCode == $pnr_inbound) {
+                        if(!isset($passInfo[1]) || !isset($passInfo[1][$passenger_type])) {
+                            $sql_detail = "SELECT total_bought_price
+                                FROM ec_booking_details
+                                WHERE booking_id = '$booking_id'
+                                    AND direction = '1'
+                                    AND passenger_type = '$passenger_type'
+                                    AND deleted = 0";
+                            $fareSumAmount = $db->getOne($sql_detail) ?? 0;
+                            
+                            $passInfo[1][$passenger_type] = [
+                                'fareSumAmount' => $fareSumAmount,
+                            ];
+                        }
+                    }
+                }
+
+                $requestBodyServices = [];
+                foreach($responseArr['data']['Flights'] as $d => $f) {
+                    $fareBasic = $f["FareBasis"] ?? '';
+
+                    foreach($passInfo[$d] as $type => $p) {
+                        $tid = $phuongnamapi->mappingPassengerType($type);
+
+                        $requestBodyServices[$d][$tid] = [
+                            "Flights" => [
+                                [
+                                    "SystemCode"    => $systemCode,
+                                    "TransactionId" => $responseArr['data']['TransactionId'] ?? '',
+                                    "FlightNumber"  => $f['FlightNumber'],
+                                    "FarePricings"  => [
+                                        [
+                                            "FareBasis" => $fareBasic,
+                                            "PassengerTypeId" => $tid,
+                                            "FareSumAmount" => (int)$p['fareSumAmount']
+                                        ]
+                                    ],
+                                    "VerifySession" => ""
+                                ]
+                            ],
+                            "IsCombine" => false
+                        ];
+                    }
+                }
+                $responseArr['data']['requestBodyServices'] = $requestBodyServices;
+            }   
+            catch(Exception $e) {
+                $responseArr['data']['requestBodyServices'] = $e->getMessage();
+            }
+
+            echo json_encode($responseArr);
             exit();
         }
         elseif($action == 'pay_booking') {
@@ -698,6 +782,29 @@ try {
                 }
             }
             catch(Throwable $th) {}
+
+            echo $response;
+            exit();
+        }
+        elseif($action == 'get_baggage') {
+            $direction = $requestData['direction'];
+            $requestBody = $requestData['requestBody'] ?? '';
+
+            if(is_null($direction) || empty($requestBody)) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "params" => [
+                        "direction" => $direction,
+                        "requestBody" => $requestBody,
+                    ]
+                ]);
+                exit();
+            }
+
+            $requestBody = json_decode(base64_decode($requestBody), true);
+            $phuongnamapi = new PhuongNamAPI();
+            $response = $phuongnamapi->getBaggage($requestBody);
 
             echo $response;
             exit();

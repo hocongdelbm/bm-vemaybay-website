@@ -43,7 +43,6 @@ $(document).ready(function () {
                     showModalNotify("error", "Lỗi trong quá trình lấy dữ liệu", e.message);
 					clearBooking();
                     console.error(e);
-                    console.error("Response was:", response);
                 }
             },
 			error: function(xhr, status, error) {
@@ -61,8 +60,52 @@ $(document).ready(function () {
 	// Add click handlers for status icons (optional functionality)
     $('.status-icon').on('click', function() {
         const tooltip = $(this).attr('data-tooltip');
-        console.log('Status clicked:', tooltip);
-        // You can add more functionality here if needed
+    });
+
+    $(document).on('click', '.add-baggage',function (e) {
+        e.preventDefault();
+        let direction = $(this).attr('direction');
+        let requestBody = $(this).attr('data');
+
+        if(requestBody.length > 0 && direction.length > 0) {
+            $.ajax({
+                url: ENDPOINT_AUTO_BOOK,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    'action': 'get_baggage',
+                    'direction': direction,
+                    'requestBody': requestBody
+                }),
+                beforeSend: function() {
+                    $('.container-waiting').show();
+                },
+                success: function(response) {
+                    try {
+                        $('.container-waiting').hide();
+                        const objData = JSON.parse(response);
+                        if (objData.status == 1) {
+                            console.log(objData);
+                        }
+                        else {
+                            showModalNotify("error", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
+                            console.error(objData);
+                        }
+                    }
+                    catch (e) {
+                        showModalNotify("error", "Lỗi trong quá trình lấy dữ liệu", e.message);
+                        console.error(e);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('.container-waiting').hide();
+                    let errorMessage = 'Lấy thông tin hành lý thất bại';
+                    if (status === 'timeout') errorMessage = 'Thời gian phản hồi quá lâu. Vui lòng thử lại.';
+                    else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
+                    showModalNotify("error", errorMessage);
+                }
+            });
+        }
     });
 
 	// Payment button click handler
@@ -144,7 +187,7 @@ function renderBooking(data) {
     renderBookingInfo(data);
     
     // Render passengers
-    renderPassengers(data.Customers);
+    renderPassengers(data.Customers, data.requestBodyServices);
     
     // Render flights
     renderFlights(data.Flights);
@@ -424,26 +467,46 @@ function getBookingStatusInfo(bookingStatusId) {
     };
 }
 
-function renderPassengers(customers) {
+function renderPassengers(customers, requestBodyServices) {
     const tbody = $('#passengersTable tbody');
     tbody.empty();
     
     customers.forEach(function(customer) {
         const passengerLabel = getPassengerLabel(customer.PassengerTypeId);
         const badgeClass = getPassengerType(customer.PassengerTypeId);
-        const row = `
-            <tr>
-                <td><strong>${customer.LastName} ${customer.FirstName}</strong></td>
-                <td><span class="badge ${badgeClass}">${passengerLabel}</span></td>
-                <td>${customer.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
-                <td>${customer.Age}</td>
-                <td>${formatDate(customer.BirthDay)}</td>
-                <td>
-                    ${customer.Email ? `<div>${customer.Email}</div>` : ''}
-                    ${customer.Phone ? `<div>${customer.Phone}</div>` : ''}
-                </td>
-            </tr>
-        `;
+
+        let optBaggageServiceDep = '';
+        if(customer.PassengerTypeId != 5 && requestBodyServices[0][customer.PassengerTypeId]) {
+            let data = btoa(JSON.stringify(requestBodyServices[0][customer.PassengerTypeId]));
+            optBaggageServiceDep = `<a class="dropdown-item add-baggage" direction="0" data="${data}">Thêm hành lý đi</a>`;
+        }
+
+        let optBaggageServiceRet = '';
+        if(customer.PassengerTypeId != 5 && 1 in requestBodyServices && requestBodyServices[1][customer.PassengerTypeId]) {
+            let data = btoa(JSON.stringify(requestBodyServices[0][customer.PassengerTypeId]));
+            optBaggageServiceRet = `<a class="dropdown-item add-baggage" direction="1" data="${data}">Thêm hành lý về</a>`;
+        }
+
+        const row = `<tr>
+            <td><strong>${customer.LastName} ${customer.FirstName}</strong></td>
+            <td><span class="badge ${badgeClass}">${passengerLabel}</span></td>
+            <td>${customer.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
+            <td>${customer.Age}</td>
+            <td>${formatDate(customer.BirthDay)}</td>
+            <td>
+                ${customer.Email ? `<div>${customer.Email}</div>` : ''}
+                ${customer.Phone ? `<div>${customer.Phone}</div>` : ''}
+            </td>
+            <td>
+                <div class="btn-group ${customer.PassengerTypeId == 5 ? 'd-none' : ''}">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" style="padding:3px 12px;"></button>
+                    <div class="dropdown-menu">
+                        ${optBaggageServiceDep}
+                        ${optBaggageServiceRet}
+                    </div>
+                </div>
+            </td>
+        </tr>`;
         tbody.append(row);
     });
 }
