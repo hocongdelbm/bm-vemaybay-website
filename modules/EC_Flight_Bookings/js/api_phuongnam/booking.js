@@ -110,10 +110,17 @@ $(document).ready(function () {
                     if(response1.message == "Unmatched information") {
                         showStepsInDialogAutoBook(step, iti0, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
                         showUpdateFlightData(searchInfo[0]['depCode'], searchInfo[0]['desCode'], searchInfo[0]['adt'], searchInfo[0]['chd'], searchInfo[0]['inf'], response1.data.updateData ?? {});
+                        $('#autoBookForm').animate({
+                            scrollTop: $('#flight-info-dep').position().top
+                        }, 500);
                     }
                     else showStepsInDialogAutoBook(step, iti0, response1.message ?? 'Lỗi, vui lòng thử lại sau');
                     return;
                 }
+            }
+            else if(statusAutoBook == 0) {
+                showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
+                return;
             }
 
             // Research inbound if available
@@ -133,12 +140,19 @@ $(document).ready(function () {
                     if(response2.message == "Unmatched information") {
                         showStepsInDialogAutoBook(step, iti1, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
                         showUpdateFlightData(searchInfo[1]['depCode'], searchInfo[1]['desCode'], searchInfo[1]['adt'], searchInfo[1]['chd'], searchInfo[1]['inf'], response2.data.updateData ?? {});
+                        $('#autoBookForm').animate({
+                            scrollTop: $('#flight-info-dep').position().top
+                        }, 500);
                     }
                     else showStepsInDialogAutoBook(step, iti1, response2.message ?? 'Lỗi, vui lòng thử lại sau');
                     return;
                 }
 
                 showStepsInDialogAutoBook(step, iti1 + textItiSuccess);
+            }
+            else if(statusAutoBook == 0) {
+                showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
+                return;
             }
 
             /******  STEP 2: VERIFY  ******/
@@ -182,6 +196,10 @@ $(document).ready(function () {
                     console.error(flights);
                 }
             }
+            else if(statusAutoBook == 0) {
+                showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
+                return;
+            }
 
             /******  STEP 3: BOOKING  ******/
             step = 3;
@@ -222,6 +240,10 @@ $(document).ready(function () {
                 });
                 showStepsInDialogAutoBook(step, caption, '', 1);
             }
+            else if(statusAutoBook == 0) {
+                showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
+                return;
+            }
         }
         catch (e) {
             console.error(e);
@@ -238,6 +260,7 @@ $(document).ready(function () {
                 statusAutoBook = 0;
                 $(this).attr("action", "close");
                 $(this).html("Đóng");
+                $(this).prop('disabled', true);
             }
             else if(statusAutoBook == 0) {
                 statusAutoBook = 1;
@@ -328,6 +351,7 @@ function showDialogAutoBook(bookingData) {
     const content = document.createElement('div');
 
     // Render Flight + Fare Section
+    var BookingWithin24h = false;
     const { dep, ret } = bookingData.journeys;
     const depFare = bookingData.fareDetails.dep;
     const retFare = bookingData.fareDetails.ret ?? [];
@@ -389,7 +413,8 @@ function showDialogAutoBook(bookingData) {
         // Only display the fare section if there is at least one fare column
         if (!fareColumns) return '';
 
-        return `<div class="flight-info">
+        if(!BookingWithin24h) BookingWithin24h = flight.within24h;
+        return `<div id="flight-info-${dir}" class="flight-info">
             <input type="hidden" name="airlineCode[]" value="${flight.airlineCode}" readonly />
             <input type="hidden" name="depCode[]" value="${flight.depCode}" readonly />
             <input type="hidden" name="desCode[]" value="${flight.desCode}" readonly />
@@ -467,8 +492,8 @@ function showDialogAutoBook(bookingData) {
 
     // Note
     let noteHTML = `<div class="note p-2 mt-3" style="background:#e0ecfc">
-        <p>- <b>Vé cận</b> sẽ tiến hành thanh toán ngay.</p>
-        <p>- Trường hợp khứ hồi, <b>vé cận</b> chỉ được autobook khi cùng 1 hãng.</p>
+        ${BookingWithin24h ? '<p style="color:red">- Đây là <b>vé cận</b>, sẽ tiến hành thanh toán ngay.</p>' : '<p>- <b>Vé cận</b> sẽ tiến hành thanh toán ngay.</p>'}
+        <p>- Với booking khứ hồi, <b>vé cận</b> chỉ được autobook khi cả 2 lượt cùng 1 hãng.</p>
     </div>`;
     content.innerHTML += noteHTML;
 
@@ -556,7 +581,7 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
         if(stepNum == current_step) {
             caption = current_caption && current_caption.length > 0 ? current_caption : stepData.caption;
             error = current_error && current_error.length > 0 ? current_error : stepData.error;
-            if(error.length == 0 && is_finished == 0) loaderHTML = '<div><div class="loader-step"></div></div>';
+            if(error.length == 0 && is_finished == 0 && statusAutoBook == 1) loaderHTML = '<div><div class="loader-step"></div></div>';
             else if(error.length > 0) {
                 error = icon_error + error;
                 buttonAction = 'close';

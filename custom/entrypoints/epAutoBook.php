@@ -231,6 +231,7 @@ try {
                     $updateData = [];
                     if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
                         $updateData['flightDate'] = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
+                        $updateData['arrivalDate'] = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
                     }
                     if(isset($f["adtPrice"]) && $f["adtPrice"] != $adtPrice) {
                         $updateData['adtFare'] = [
@@ -339,9 +340,11 @@ try {
             // Update flight date
             if(isset($requestData['flightDate']) && !empty($requestData['flightDate'])) {
                 $fdate = date('Y-m-d H:i:00', strtotime($requestData['flightDate']));
+                $adate = date('Y-m-d H:i:00', strtotime($requestData['arrivalDate']));
 
                 $sql = "UPDATE ec_booking_itineraries
                         SET departure_date = '$fdate'
+                            ,arrival_date = '$adate'
                             ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
@@ -660,91 +663,92 @@ try {
 
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
-            $responseArr = json_decode($response, true);
 
-            try {
-                // Tất cả người lớn dùng chung 1 chi tiết vé theo từng chặng
-                $passInfo = [];
-                $sql_pass = "SELECT id as pass_id, type, booking_id, pnr_outbound, pnr_inbound
-                        FROM ec_booking_passengers
-                        WHERE (pnr_outbound = '$bookingCode' OR pnr_inbound = '$bookingCode')
-                            AND type <> '2'
-                            AND deleted = 0";
-                $res_pass = $db->query($sql_pass);
-                while ($row = $db->fetchByAssoc($res_pass)) {
-                    $pass_id        = $row['id'] ?? '';
-                    $passenger_type = $row['type'] ?? '';
-                    $booking_id     = $row['booking_id'] ?? '';
-                    $pnr_outbound   = $row['pnr_outbound'] ?? '';
-                    $pnr_inbound    = $row['pnr_inbound'] ?? '';
+            // $responseArr = json_decode($response, true);
+            // try {
+            //     // Tất cả người lớn dùng chung 1 chi tiết vé theo từng chặng
+            //     $passInfo = [];
+            //     $sql_pass = "SELECT id as pass_id, type, booking_id, pnr_outbound, pnr_inbound
+            //             FROM ec_booking_passengers
+            //             WHERE (pnr_outbound = '$bookingCode' OR pnr_inbound = '$bookingCode')
+            //                 AND type <> '2'
+            //                 AND deleted = 0";
+            //     $res_pass = $db->query($sql_pass);
+            //     while ($row = $db->fetchByAssoc($res_pass)) {
+            //         $pass_id        = $row['id'] ?? '';
+            //         $passenger_type = $row['type'] ?? '';
+            //         $booking_id     = $row['booking_id'] ?? '';
+            //         $pnr_outbound   = $row['pnr_outbound'] ?? '';
+            //         $pnr_inbound    = $row['pnr_inbound'] ?? '';
 
-                    if(empty($booking_id) || (empty($pnr_outbound) && empty($pnr_inbound))) continue;
-                    if($bookingCode == $pnr_outbound) {
-                        if(!isset($passInfo[0]) || !isset($passInfo[0][$passenger_type])) {
-                            $sql_detail = "SELECT total_bought_price
-                                FROM ec_booking_details
-                                WHERE booking_id = '$booking_id'
-                                    AND direction = '0'
-                                    AND passenger_type = '$passenger_type'
-                                    AND deleted = 0";
-                            $fareSumAmount = $db->getOne($sql_detail) ?? 0;
+            //         if(empty($booking_id) || (empty($pnr_outbound) && empty($pnr_inbound))) continue;
+            //         if($bookingCode == $pnr_outbound) {
+            //             if(!isset($passInfo[0]) || !isset($passInfo[0][$passenger_type])) {
+            //                 $sql_detail = "SELECT total_bought_price
+            //                     FROM ec_booking_details
+            //                     WHERE booking_id = '$booking_id'
+            //                         AND direction = '0'
+            //                         AND passenger_type = '$passenger_type'
+            //                         AND deleted = 0";
+            //                 $fareSumAmount = $db->getOne($sql_detail) ?? 0;
                             
-                            $passInfo[0][$passenger_type] = [
-                                'fareSumAmount' => $fareSumAmount,
-                            ];
-                        }
-                    }
-                    if($bookingCode == $pnr_inbound) {
-                        if(!isset($passInfo[1]) || !isset($passInfo[1][$passenger_type])) {
-                            $sql_detail = "SELECT total_bought_price
-                                FROM ec_booking_details
-                                WHERE booking_id = '$booking_id'
-                                    AND direction = '1'
-                                    AND passenger_type = '$passenger_type'
-                                    AND deleted = 0";
-                            $fareSumAmount = $db->getOne($sql_detail) ?? 0;
+            //                 $passInfo[0][$passenger_type] = [
+            //                     'fareSumAmount' => $fareSumAmount,
+            //                 ];
+            //             }
+            //         }
+            //         if($bookingCode == $pnr_inbound) {
+            //             if(!isset($passInfo[1]) || !isset($passInfo[1][$passenger_type])) {
+            //                 $sql_detail = "SELECT total_bought_price
+            //                     FROM ec_booking_details
+            //                     WHERE booking_id = '$booking_id'
+            //                         AND direction = '1'
+            //                         AND passenger_type = '$passenger_type'
+            //                         AND deleted = 0";
+            //                 $fareSumAmount = $db->getOne($sql_detail) ?? 0;
                             
-                            $passInfo[1][$passenger_type] = [
-                                'fareSumAmount' => $fareSumAmount,
-                            ];
-                        }
-                    }
-                }
+            //                 $passInfo[1][$passenger_type] = [
+            //                     'fareSumAmount' => $fareSumAmount,
+            //                 ];
+            //             }
+            //         }
+            //     }
 
-                $requestBodyServices = [];
-                foreach($responseArr['data']['Flights'] as $d => $f) {
-                    $fareBasic = $f["FareBasis"] ?? '';
+            //     $requestBodyServices = [];
+            //     foreach($responseArr['data']['Flights'] as $d => $f) {
+            //         $fareBasic = $f["FareBasis"] ?? '';
 
-                    foreach($passInfo[$d] as $type => $p) {
-                        $tid = $phuongnamapi->mappingPassengerType($type);
+            //         foreach($passInfo[$d] as $type => $p) {
+            //             $tid = $phuongnamapi->mappingPassengerType($type);
 
-                        $requestBodyServices[$d][$tid] = [
-                            "Flights" => [
-                                [
-                                    "SystemCode"    => $systemCode,
-                                    "TransactionId" => $responseArr['data']['TransactionId'] ?? '',
-                                    "FlightNumber"  => $f['FlightNumber'],
-                                    "FarePricings"  => [
-                                        [
-                                            "FareBasis" => $fareBasic,
-                                            "PassengerTypeId" => $tid,
-                                            "FareSumAmount" => (int)$p['fareSumAmount']
-                                        ]
-                                    ],
-                                    "VerifySession" => ""
-                                ]
-                            ],
-                            "IsCombine" => false
-                        ];
-                    }
-                }
-                $responseArr['data']['requestBodyServices'] = $requestBodyServices;
-            }   
-            catch(Exception $e) {
-                $responseArr['data']['requestBodyServices'] = $e->getMessage();
-            }
+            //             $requestBodyServices[$d][$tid] = [
+            //                 "Flights" => [
+            //                     [
+            //                         "SystemCode"    => $systemCode,
+            //                         "TransactionId" => $responseArr['data']['TransactionId'] ?? '',
+            //                         "FlightNumber"  => $f['FlightNumber'],
+            //                         "FarePricings"  => [
+            //                             [
+            //                                 "FareBasis" => $fareBasic,
+            //                                 "PassengerTypeId" => $tid,
+            //                                 "FareSumAmount" => (int)$p['fareSumAmount']
+            //                             ]
+            //                         ],
+            //                         "VerifySession" => ""
+            //                     ]
+            //                 ],
+            //                 "IsCombine" => false
+            //             ];
+            //         }
+            //     }
+            //     $responseArr['data']['requestBodyServices'] = $requestBodyServices;
+            // }   
+            // catch(Exception $e) {
+            //     $responseArr['data']['requestBodyServices'] = $e->getMessage();
+            // }
+            // echo json_encode($responseArr);
 
-            echo json_encode($responseArr);
+            echo $response;
             exit();
         }
         elseif($action == 'pay_booking') {
@@ -786,27 +790,77 @@ try {
             echo $response;
             exit();
         }
-        elseif($action == 'get_baggage') {
-            $direction = $requestData['direction'];
-            $requestBody = $requestData['requestBody'] ?? '';
+        elseif($action == 'get_baggage_info') {
+            $direction = (int)($requestData['direction'] ?? 0);
+            $systemCode = $requestData['systemCode'] ?? '';
+            $bookingCode = $requestData['bookingCode'] ?? '';
 
-            if(is_null($direction) || empty($requestBody)) {
+            if(empty($systemCode) || strlen($bookingCode) < 6) {
                 echo json_encode([
                     "status" => 0,
                     "message" => "Invalid params",
                     "params" => [
-                        "direction" => $direction,
-                        "requestBody" => $requestBody,
+                        "systemCode" => $systemCode,
+                        "bookingCode" => $bookingCode,
+                    ]
+                ]);
+                exit();
+            }
+            
+            $phuongnamapi = new PhuongNamAPI();
+            $response = $phuongnamapi->getBaggageInfo($systemCode, $bookingCode);
+            $responseArr = json_decode($response, true);
+
+            if($responseArr['status'] == 1 && is_array($responseArr['data']) && isset($responseArr['data'][$direction]) && !empty($responseArr['data'][$direction])) {
+                $responseArr['data'] = $responseArr['data'][$direction];
+            }
+            else $responseArr['data'] = [];
+
+            echo json_encode($responseArr);
+            exit();
+        }
+        elseif($action == 'add_baggage') {
+            $direction = $requestData['direction'] ?? 0;
+            $systemCode = $requestData['systemCode'] ?? '';
+            $bookingCode = $requestData['bookingCode'] ?? '';
+            $serviceKey = $requestData['serviceKey'] ?? '';
+            $personOrgId = $requestData['personOrgId'] ?? '';
+            $personOrgIdConfirmed = $requestData['bookipersonOrgIdConfirmedngCode'] ?? '';
+
+            if(empty($systemCode) || strlen($bookingCode) < 6 || empty($serviceKey) || empty($personOrgId)) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "params" => [
+                        "systemCode" => $systemCode,
+                        "bookingCode" => $bookingCode,
+                        "services" => [[
+                            "ServiceKey" => $serviceKey,
+                            "PersonOrgId" => $personOrgId,
+                            "PersonOrgIdConfirmed"=> $personOrgIdConfirmed
+                        ]],
                     ]
                 ]);
                 exit();
             }
 
-            $requestBody = json_decode(base64_decode($requestBody), true);
+            $services = [[
+                "ServiceKey" => $serviceKey,
+                "PersonOrgId" => $personOrgId,
+                "PersonOrgIdConfirmed"=> $personOrgIdConfirmed
+            ]];
             $phuongnamapi = new PhuongNamAPI();
-            $response = $phuongnamapi->getBaggage($requestBody);
+            $response = $phuongnamapi->addBaggage($systemCode, $bookingCode, $services);
+            $responseArr = json_decode($response, true);
 
-            echo $response;
+            // try {
+
+            // }
+            // catch {
+
+            // }
+
+            echo json_encode($responseArr);
             exit();
         }
 

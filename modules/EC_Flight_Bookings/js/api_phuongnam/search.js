@@ -8,10 +8,10 @@ $(document).ready(function () {
         }
     });
     $('#btnSearch').click(function () {
-        let bookingCode = $('input[name="bookingCode"]').val();
-        let systemCode = $('select[name="systemCode"]').val();
+        let airlineCode  = $('select[name="airlineCode"]').val();
+        let pnr = $('input[name="pnr"]').val();
 
-		if(!systemCode || !bookingCode || bookingCode.length < 6 || systemCode.length < 2) return false;
+        if (!airlineCode || !pnr || pnr.length < 6 || airlineCode.length < 2) return false;
 
         $.ajax({
             url: ENDPOINT_AUTO_BOOK,
@@ -19,73 +19,81 @@ $(document).ready(function () {
             contentType: "application/json",
             data: JSON.stringify({
                 action: "get_booking",
-                systemCode: systemCode,
-                bookingCode: bookingCode
+                systemCode: airlineCode,
+                bookingCode: pnr
             }),
             beforeSend: function () {
                 $('.container-waiting').show();
             },
             success: function (response) {
                 try {
+                    $('input[name="systemCode"]').val(airlineCode);
+                    $('input[name="bookingCode"]').val(pnr);
+
                     $('.container-waiting').hide();
                     const objData = JSON.parse(response);
                     if (objData.status == 1) {
                         renderBooking(objData.data);
-						showBookingContent();
+                        showBookingContent();
                     }
                     else {
                         showModalNotify("error", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
-						clearBooking();
+                        clearBooking();
                         console.error(objData);
                     }
                 }
                 catch (e) {
                     showModalNotify("error", "Lỗi trong quá trình lấy dữ liệu", e.message);
-					clearBooking();
+                    clearBooking();
                     console.error(e);
                 }
             },
-			error: function(xhr, status, error) {
-				$('.container-waiting').hide();
-				let errorMessage = 'Failed to load booking data';
-				if (status === 'timeout') errorMessage = 'Request timed out. Please try again.';
-				else if (xhr.status === 404) errorMessage = 'Booking not found.';
-				else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
-				showModalNotify("error", errorMessage);
-				clearBooking();
-			}
+            error: function (xhr, status, error) {
+                $('.container-waiting').hide();
+                let errorMessage = 'Failed to load booking data';
+                if (status === 'timeout') errorMessage = 'Request timed out. Please try again.';
+                else if (xhr.status === 404) errorMessage = 'Booking not found.';
+                else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
+                showModalNotify("error", errorMessage);
+                clearBooking();
+            }
         });
     });
 
-	// Add click handlers for status icons (optional functionality)
-    $('.status-icon').on('click', function() {
+    // Add click handlers for status icons (optional functionality)
+    $('.status-icon').on('click', function () {
         const tooltip = $(this).attr('data-tooltip');
     });
 
-    $(document).on('click', '.add-baggage',function (e) {
+    $(document).on('click', '.add-baggage', function (e) {
         e.preventDefault();
-        let direction = $(this).attr('direction');
-        let requestBody = $(this).attr('data');
+        const direction = $(this).attr('direction');
+        const personOrgId = parseInt($(this).attr('personOrgId') ?? 0);
+        const personOrgIdConfirmed = $(this).attr('personOrgIdConfirmed');
+        const passengerName = $(this).attr('passengerName');
+        const bookingCode = $('input[name="bookingCode"]').val();
+        const systemCode = $('input[name="systemCode"]').val();
 
-        if(requestBody.length > 0 && direction.length > 0) {
+        if (systemCode.length > 0 && bookingCode.length > 0 && direction.length > 0 && personOrgId > 0) {
             $.ajax({
                 url: ENDPOINT_AUTO_BOOK,
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify({
-                    'action': 'get_baggage',
+                    'action': 'get_baggage_info',
                     'direction': direction,
-                    'requestBody': requestBody
+                    'systemCode': systemCode,
+                    'bookingCode': bookingCode
                 }),
-                beforeSend: function() {
+                beforeSend: function () {
                     $('.container-waiting').show();
                 },
-                success: function(response) {
+                success: function (response) {
                     try {
                         $('.container-waiting').hide();
                         const objData = JSON.parse(response);
                         if (objData.status == 1) {
-                            console.log(objData);
+                            createBaggageServiceDialog(objData.data, passengerName, personOrgId, personOrgIdConfirmed);
                         }
                         else {
                             showModalNotify("error", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
@@ -97,7 +105,7 @@ $(document).ready(function () {
                         console.error(e);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     $('.container-waiting').hide();
                     let errorMessage = 'Lấy thông tin hành lý thất bại';
                     if (status === 'timeout') errorMessage = 'Thời gian phản hồi quá lâu. Vui lòng thử lại.';
@@ -108,24 +116,24 @@ $(document).ready(function () {
         }
     });
 
-	// Payment button click handler
-    $('#payNowButton').on('click', function() {
+    // Payment button click handler
+    $('#payNowButton').on('click', function () {
         const bookingCode = $('input[name="bookingCode"]').val();
-        const systemCode = $('select[name="systemCode"]').val();
-		const unpaidAmount = $('#paymentUnpaidAmount').text();
+        const systemCode = $('input[name="systemCode"]').val();
+        const unpaidAmount = $('#paymentUnpaidAmount').text();
 
-        if(!bookingCode || !systemCode || bookingCode.length < 6 || systemCode.length < 2) {
+        if (!bookingCode || !systemCode || bookingCode.length < 6 || systemCode.length < 2) {
             showModalNotify("warning", "Vui lòng kiểm tra lại PNR và Mã hãng");
             return;
         }
-        
-		// Show confirmation dialog
-		if (confirm(`Tiến hành thanh toán cho ${bookingCode} hãng ${systemCode}\nAmount: ${unpaidAmount}`)) {
-			// Disable button during processing
-			$('#payNowButton').prop('disabled', true).text('Processing...');
-			
-			$.ajax({
-				url: ENDPOINT_AUTO_BOOK,
+
+        // Show confirmation dialog
+        if (confirm(`Tiến hành thanh toán ${bookingCode} hãng ${systemCode}\nTổng tiền: ${unpaidAmount}`)) {
+            // Disable button during processing
+            $('#payNowButton').prop('disabled', true).text('Processing...');
+
+            $.ajax({
+                url: ENDPOINT_AUTO_BOOK,
                 type: "POST",
                 contentType: "application/json",
                 dataType: 'json',
@@ -134,77 +142,77 @@ $(document).ready(function () {
                     systemCode: systemCode,
                     bookingCode: bookingCode
                 }),
-				success: function(response) {
-					if (response.status) {
-                        showModalNotify("success", "Thanh toán thành công");
+                success: function (response) {
+                    if (response.status) {
                         $('#btnSearch').trigger('click');
-					}
+                        showModalNotify("success", "Thanh toán thành công");
+                    }
                     else {
-						showModalNotify("error", response.message ?? "Thanh toán không thành công");
-						resetPaymentButton();
-					}
-				},
-				error: function(xhr, status, error) {
+                        showModalNotify("error", response.message ?? "Thanh toán không thành công");
+                        resetPaymentButton();
+                    }
+                },
+                error: function (xhr, status, error) {
                     showModalNotify("error", "Xử lý thanh toán không thành công. Vui lòng thử lại");
-					resetPaymentButton();
-				}
-			});
-		}
-	});
-    
+                    resetPaymentButton();
+                }
+            });
+        }
+    });
+
     // Cancel booking button click handler
-    $('#cancelBookingButton').on('click', function() {
+    $('#cancelBookingButton').on('click', function () {
         showModalNotify("warning", "Tính năng này sắp có");
         return;
         const bookingCode = $('#bookingCode').text();
-    
-		if (confirm(`Are you sure you want to cancel booking ${bookingCode}?\nThis action cannot be undone.`)) {
-			$.ajax({
-				url: '/api/booking/cancel', // Replace with your cancel API endpoint
-				method: 'POST',
-				dataType: 'json',
-				data: {
-					bookingCode: bookingCode
-				},
-				success: function(response) {
-					if (response.success) {
-						alert('Booking cancelled successfully.');
-						loadBookingData(); // Reload to update status
-					} else {
-						alert('Failed to cancel booking: ' + (response.message || 'Unknown error'));
-					}
-				},
-				error: function(xhr, status, error) {
-					alert('Failed to cancel booking. Please try again.');
-				}
-			});
-		}
+
+        if (confirm(`Are you sure you want to cancel booking ${bookingCode}?\nThis action cannot be undone.`)) {
+            $.ajax({
+                url: '/api/booking/cancel', // Replace with your cancel API endpoint
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    bookingCode: bookingCode
+                },
+                success: function (response) {
+                    if (response.success) {
+                        alert('Booking cancelled successfully.');
+                        loadBookingData(); // Reload to update status
+                    } else {
+                        alert('Failed to cancel booking: ' + (response.message || 'Unknown error'));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('Failed to cancel booking. Please try again.');
+                }
+            });
+        }
     });
 });
 
 function renderBooking(data) {
     // Render booking information
     renderBookingInfo(data);
-    
+
     // Render passengers
-    renderPassengers(data.Customers, data.requestBodyServices);
-    
+    renderPassengers(data);
+
     // Render flights
     renderFlights(data.Flights);
-    
+
     // Render fare breakdown
     renderFareBreakdown(data.SumCharge.FareCharges);
 }
 
 function renderBookingInfo(data) {
     $('#bookingCode').text(data.BookingCode);
-	// Status
+    // Status
     const statusInfo = getBookingStatusInfo(data.BookingStatusId);
     $('#bookingStatus').text(statusInfo.text)
-                        .removeClass('paid unpaid holding cancelled completed error update-required change-paid change-payment special manual-update trip-cancelled ticket-error unknown')
-                        .addClass(statusInfo.class)
-                        .attr('title', statusInfo.description);
-	// Total amount
+        .removeClass('paid unpaid holding cancelled completed error update-required change-paid change-payment special manual-update trip-cancelled ticket-error unknown')
+        .addClass(statusInfo.class)
+        .attr('title', statusInfo.description);
+    // Total amount
     $('#totalAmount').text(formatCurrency(data.TotalAmount));
     // Paid Amount
     const paidAmountElement = $('#paidAmount');
@@ -234,13 +242,13 @@ function renderBookingInfo(data) {
     $('#contactPhone').text(data.ContactPhone);
     $('#contactAddress').text(data.ContactAddress);
 
-	// Update status icons
+    // Update status icons
     updateStatusIcons(data);
 
-	// Update expiry badge
+    // Update expiry badge
     updateExpiryBadge(data);
 
-	// Update payment section
+    // Update payment section
     updatePaymentSection(data);
 }
 
@@ -256,7 +264,7 @@ function updateStatusIcons(data) {
         paidBadge.text('UNPAID');
         paidBadge.attr('data-tooltip', 'Đang chờ xử lý – Chưa thanh toán đầy đủ');
     }
-    
+
     // Void Status Badge
     const voidBadge = $('#voidBadge');
     if (data.IsVoid) {
@@ -268,7 +276,7 @@ function updateStatusIcons(data) {
         voidBadge.text('HOÀN');
         voidBadge.attr('data-tooltip', 'Booking không thể hoàn/hủy');
     }
-    
+
     // Refund Status Badge
     const refundBadge = $('#refundBadge');
     if (data.IsRefund) {
@@ -280,7 +288,7 @@ function updateStatusIcons(data) {
         refundBadge.text('HOÀN TIỀN');
         refundBadge.attr('data-tooltip', 'Booking không được hoàn tiền');
     }
-    
+
     // Edit Status Badge
     const editBadge = $('#editBadge');
     if (data.IsEdit) {
@@ -296,7 +304,7 @@ function updateStatusIcons(data) {
 
 function updateExpiryBadge(data) {
     const expiryBadge = $('#expiryBadge');
-    
+
     // Only show badge for BookingStatusId 100 (Giữ chỗ)
     if (data.BookingStatusId !== 100) {
         expiryBadge.hide();
@@ -309,21 +317,21 @@ function updateExpiryBadge(data) {
         expiryBadge.hide();
         return;
     }
-    
+
     // Parse booking expiry date
     const bookingExpired = new Date(data.BookingExpired);
-    
+
     // Check if date is valid
     if (isNaN(bookingExpired.getTime())) {
         // Invalid date, treat as unlimited
         expiryBadge.hide();
         return;
     }
-    
+
     const now = new Date();
     const timeDiff = bookingExpired - now;
     const minutesLeft = Math.floor(timeDiff / (1000 * 60));
-    
+
     // Determine badge display
     if (timeDiff <= 0) {
         // Booking has expired
@@ -343,27 +351,27 @@ function updateExpiryBadge(data) {
 
 function updatePaymentSection(data) {
     const paymentSection = $('#paymentSection');
-    
+
     // Only show payment section for BookingStatusId 100 and not expired
     if (data.BookingStatusId === 100 && !isBookingExpired(data.BookingExpired)) {
         // Update payment information
         $('#paymentTotalAmount').text(formatCurrency(data.TotalAmount));
         $('#paymentUnpaidAmount').text(formatCurrency(data.UnPaidAmount));
-        
-        // Handle null BookingExpired with enhanced styling
-        const deadlineElement = $('#paymentDeadline');
-        if (!data.BookingExpired || data.BookingExpired === null) {
-            deadlineElement.text('')
-                          .removeClass('expiry-time')
-                          .addClass('unlimited-deadline');
-        } else {
-            deadlineElement.text(formatDateTime(data.BookingExpired))
-                          .removeClass('unlimited-deadline')
-                          .addClass('expiry-time');
-        }
-        
+
+        // // Handle null BookingExpired with enhanced styling
+        // const deadlineElement = $('#paymentDeadline');
+        // if (!data.BookingExpired || data.BookingExpired === null) {
+        //     deadlineElement.text('')
+        //         .removeClass('expiry-time')
+        //         .addClass('unlimited-deadline');
+        // } else {
+        //     deadlineElement.text(formatDateTime(data.BookingExpired))
+        //         .removeClass('unlimited-deadline')
+        //         .addClass('expiry-time');
+        // }
+
         $('#payButtonAmount').text(formatCurrency(data.UnPaidAmount));
-        
+
         // Show payment section
         paymentSection.show();
     } else {
@@ -388,15 +396,15 @@ function isBookingExpired(bookingExpiredString) {
     if (!bookingExpiredString || bookingExpiredString === null) {
         return false;
     }
-    
+
     const bookingExpired = new Date(bookingExpiredString);
-    
+
     // Check if date is valid
     if (isNaN(bookingExpired.getTime())) {
         // Invalid date, treat as unlimited (never expired)
         return false;
     }
-    
+
     const now = new Date();
     return now > bookingExpired;
 }
@@ -459,7 +467,7 @@ function getBookingStatusInfo(bookingStatusId) {
             description: "Gặp lỗi trong quá trình xuất vé"
         }
     };
-    
+
     return statusMap[bookingStatusId] || {
         text: `Trạng thái ${bookingStatusId}`,
         class: "unknown",
@@ -467,55 +475,83 @@ function getBookingStatusInfo(bookingStatusId) {
     };
 }
 
-function renderPassengers(customers, requestBodyServices) {
+function renderPassengers(data) {
     const tbody = $('#passengersTable tbody');
     tbody.empty();
-    
-    customers.forEach(function(customer) {
+
+    var icon_baggage = `<svg fill="#3d3d3d" height="16px" width="16px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 248.35 248.35" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M186.057,66.136h-15.314V19.839C170.743,8.901,161.844,0,150.904,0H97.448c-10.938,0-19.84,8.901-19.84,19.839v46.296 H62.295c-9.567,0-17.324,7.757-17.324,17.324V214.26c0,9.571,7.759,17.326,17.324,17.326h2.323v12.576 c0,2.315,1.876,4.188,4.186,4.188h19.811c2.315,0,4.188-1.876,4.188-4.188v-12.576h62.741v12.576c0,2.315,1.878,4.188,4.188,4.188 h19.809c2.317,0,4.188-1.876,4.188-4.188v-12.576h2.326c9.567,0,17.324-7.757,17.324-17.326V83.46 C203.381,73.891,195.624,66.136,186.057,66.136z M157.514,66.135H90.832V19.839c0-3.646,2.967-6.613,6.613-6.613h53.456 c3.646,0,6.613,2.967,6.613,6.613V66.135z"></path> </g> </g> </g></svg>`;
+
+    const baggages = data.Baggages;
+    const customers = data.Customers;
+    customers.forEach(function (customer) {
         const passengerLabel = getPassengerLabel(customer.PassengerTypeId);
         const badgeClass = getPassengerType(customer.PassengerTypeId);
 
-        let optBaggageServiceDep = '';
-        if(customer.PassengerTypeId != 5 && requestBodyServices[0][customer.PassengerTypeId]) {
-            let data = btoa(JSON.stringify(requestBodyServices[0][customer.PassengerTypeId]));
-            optBaggageServiceDep = `<a class="dropdown-item add-baggage" direction="0" data="${data}">Thêm hành lý đi</a>`;
+        // Purchased services
+        let purchasedServicesHTML = '';
+        let purchasedBaggageDep = false
+        let purchasedBaggageRet = false;
+        if(baggages) {
+            baggages.forEach(function (baggage) {
+                if(customer.PersonOrgId == baggage.PersonOrgId) {
+                    if(baggage.FlightId == 1) purchasedBaggageDep = true;
+                    else purchasedBaggageRet = true;
+                    purchasedServicesHTML += `<p class="purchased-item">
+                        ${icon_baggage} ${baggage.FlightId == 1 ? 'Lượt đi' : 'Lượt về'} ${baggage.ServiceName} <b style="color:blue;">${formatCurrency(baggage.TotalAmount)}</b>
+                    </p>`;
+                }
+            });
         }
-
-        let optBaggageServiceRet = '';
-        if(customer.PassengerTypeId != 5 && 1 in requestBodyServices && requestBodyServices[1][customer.PassengerTypeId]) {
-            let data = btoa(JSON.stringify(requestBodyServices[0][customer.PassengerTypeId]));
-            optBaggageServiceRet = `<a class="dropdown-item add-baggage" direction="1" data="${data}">Thêm hành lý về</a>`;
+ 
+        // Service actions
+        let showAddBag = true;
+        let optBaggageServiceHTML = '';
+        if (customer.PassengerTypeId != 5 && (data.BookingStatusId != 100 || !isBookingExpired(data.BookingExpired))) {
+            for (let i = 0; i < Object.keys(data.Flights).length; i++) {
+                if((i == 0 && purchasedBaggageDep) || (i == 1 && purchasedBaggageRet)) continue
+                let text = i == 0 ? 'Thêm hành lý đi' : 'Thêm hành lý về';
+                let direction = i == 0 ? '0' : '1';
+                optBaggageServiceHTML += `<a class="dropdown-item add-baggage"
+                    direction="${i}"
+                    personOrgId="${customer.PersonOrgId}"
+                    personOrgIdConfirmed="${customer.personOrgIdConfirmed ?? ''}"
+                    passengerName="${customer.LastName} ${customer.FirstName}"
+                >
+                    ${text}
+                </a>`;
+            }
         }
+        else showAddBag = false;
 
-        const row = `<tr>
-            <td><strong>${customer.LastName} ${customer.FirstName}</strong></td>
+        tbody.append(`<tr>
+            <td>
+                <strong>${customer.PersonOrgId}. ${customer.LastName} ${customer.FirstName}</strong>
+                ${purchasedServicesHTML}
+            </td>
             <td><span class="badge ${badgeClass}">${passengerLabel}</span></td>
             <td>${customer.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
-            <td>${customer.Age}</td>
-            <td>${formatDate(customer.BirthDay)}</td>
+            <td>${formatDate(customer.BirthDay)} <i class="ms-1">(${customer.Age} tuổi)</i></td>
             <td>
                 ${customer.Email ? `<div>${customer.Email}</div>` : ''}
                 ${customer.Phone ? `<div>${customer.Phone}</div>` : ''}
             </td>
             <td>
-                <div class="btn-group ${customer.PassengerTypeId == 5 ? 'd-none' : ''}">
+                <div class="btn-group ${!showAddBag ? 'd-none' : ''}">
                     <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" style="padding:3px 12px;"></button>
                     <div class="dropdown-menu">
-                        ${optBaggageServiceDep}
-                        ${optBaggageServiceRet}
+                        ${optBaggageServiceHTML}
                     </div>
                 </div>
             </td>
-        </tr>`;
-        tbody.append(row);
+        </tr>`);
     });
 }
 
 function renderFlights(flights) {
     const container = $('#flightsList');
     container.empty();
-    
-    flights.forEach(function(flight, index) {
+
+    flights.forEach(function (flight, index) {
         const isReturn = index > 0;
         const carrierClass = flight.CarrierCode.toLowerCase();
         const flightCard = `
@@ -529,7 +565,7 @@ function renderFlights(flights) {
                     <div class="airport">
                         <div class="airport-code">${flight.Origin}</div>
                         <div class="airport-name">${flight.OriginCityName}</div>
-                        <div class="airport-name">${flight.OriginName}</div>
+                        <div class="airport-name">Sân bay ${flight.OriginName}</div>
                         <div class="time">${formatTime(flight.DepartureTime)}</div>
                     </div>
                     
@@ -541,7 +577,7 @@ function renderFlights(flights) {
                     <div class="airport">
                         <div class="airport-code">${flight.Destination}</div>
                         <div class="airport-name">${flight.DestinationCityName}</div>
-                        <div class="airport-name">${flight.DestinationName}</div>
+                        <div class="airport-name">Sân bay ${flight.DestinationName}</div>
                         <div class="time">${formatTime(flight.Arrivaltime)}</div>
                     </div>
                 </div>
@@ -575,8 +611,8 @@ function renderFlights(flights) {
 function renderFareBreakdown(fareCharges) {
     const tbody = $('#fareTable tbody');
     tbody.empty();
-    
-    fareCharges.forEach(function(fare) {
+
+    fareCharges.forEach(function (fare) {
         const passengerType = getPassengerLabel(fare.PassengerTypeId);
         const row = `
             <tr>
@@ -594,8 +630,10 @@ function renderFareBreakdown(fareCharges) {
 
 function clearBooking() {
     hideBookingContent();
-    
+
     // Clear all form fields
+    $('input[name="systemCode"]').val('');
+    $('input[name="bookingCode"]').val('');
     $('#bookingCode').text('');
     $('#bookingStatus').text('');
     $('#totalAmount').text('');
@@ -607,12 +645,12 @@ function clearBooking() {
     $('#contactEmail').text('');
     $('#contactPhone').text('');
     $('#contactAddress').text('');
-    
+
     // Clear tables
     $('#passengersTable tbody').empty();
     $('#fareTable tbody').empty();
     $('#flightsList').empty();
-    
+
     // Reset status badges
     $('.status-badge').removeClass().addClass('status-badge').text('').attr('data-tooltip', '');
 }
@@ -634,47 +672,47 @@ function formatCurrency(amount) {
 
 function formatDate(dateString) {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
-    
+
     // Check if date is valid
     if (isNaN(date.getTime())) return dateString;
-    
+
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
-    
+
     return `${day}/${month}/${year}`;
 }
 
 function formatDateTime(dateString) {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
-    
+
     // Check if date is valid
     if (isNaN(date.getTime())) return dateString;
-    
+
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    
+
     return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
 function formatTime(dateString) {
     if (!dateString) return '';
-    
+
     const date = new Date(dateString);
-    
+
     // Check if date is valid
     if (isNaN(date.getTime())) return dateString;
-    
+
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    
+
     return `${hours}:${minutes}`;
 }
 
@@ -698,7 +736,7 @@ function getPassengerLabel(typeId) {
 
 // // Alternative AJAX call for testing with mock data
 // function loadMockData() {
-//     // You can use this function to test with the provided JSON data
+//     // You can use this function to test with the provided JFON data
 //     const mockResponse = {
 //         "message": "Success",
 //         "data": {
@@ -706,10 +744,127 @@ function getPassengerLabel(typeId) {
 //         },
 //         "status": 1
 //     };
-    
+
 //     setTimeout(() => {
 //         // hideLoading();
 //         renderBooking(mockResponse.data);
 //         showBookingContent();
 //     }, 1000);
 // }
+
+function createBaggageServiceDialog(serviceData, passengerName, personOrgId, personOrgIdConfirmed = '') {
+    return new Promise((resolve) => {
+        const wrapper = document.createElement('div');
+        const firstService = serviceData.ListService[0];
+        wrapper.innerHTML = `<div class="baggage-dialog-overlay">
+            <div class="baggage-dialog">
+                <div class="baggage-header">
+                    <h2>${firstService.Origin} ➝ ${firstService.Destination}, ${firstService.CarrierCode}</h2>
+                    <p>Ngày bay: <b>${formatDateTime(firstService.DepartureDate)}</b></p>
+                    <p>Hành khách: <b>${passengerName}</b></p>
+                </div>
+                <div id="baggageServiceList" class="service-list"></div>
+                <div class="baggage-dialog-actions">
+                    <button class="baggage-btn baggage-cancel">Hủy</button>
+                    <button class="baggage-btn baggage-confirm">Thêm</button>
+                </div>
+            </div>
+        </div>`;
+
+        document.body.appendChild(wrapper);
+
+        const overlay = wrapper.querySelector('.baggage-dialog-overlay');
+        const serviceListEl = wrapper.querySelector('#baggageServiceList');
+        const confirmBtn = wrapper.querySelector('.baggage-confirm');
+        const cancelBtn = wrapper.querySelector('.baggage-cancel');
+
+        // Render available services
+        const list = serviceData.ListService;
+        serviceListEl.innerHTML = '';
+        list.forEach(service => {
+            const div = document.createElement('div');
+            div.className = 'baggage-service-item';
+            div.innerHTML = `
+                <input type="radio" name="baggageOption"
+                    id="${service.ServiceKey}"
+                    value="${service.ServiceKey}"
+                    data-description="${service.ServiceDescription}"
+                    data-amount="${service.ServiceTotalAmount}"
+                    data-person-org-id="${personOrgId}"
+                    data-person-org-id-confirmed="${personOrgIdConfirmed}"
+                />
+                <label for="${service.ServiceKey}">
+                    ${service.ServiceDescription}
+                    <br>
+                    <strong>${formatCurrency(service.ServiceTotalAmount)}</strong>
+                </label
+            `;
+            serviceListEl.appendChild(div);
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            const selectedRadio = wrapper.querySelector('input[name="baggageOption"]:checked');
+            if (!selectedRadio) return;
+
+            const serviceKey = selectedRadio.value;
+            const description = selectedRadio.dataset.description;
+            const amount = parseInt(selectedRadio.dataset.amount);
+            const personOrgId = selectedRadio.dataset.personOrgId;
+            const personOrgIdConfirmed = selectedRadio.dataset.personOrgIdConfirmed || '';
+
+            if(confirm(`Tiến hành thêm ${description}\nHành khách ${passengerName}\nTổng phí: ${formatCurrency(amount)}`)) {
+                let systemCode = $('input[name="systemCode"]').val();
+                let bookingCode = $('input[name="bookingCode"]').val();
+
+                $.ajax({
+                    url: ENDPOINT_AUTO_BOOK,
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        action: "add_baggage",
+                        systemCode: systemCode,
+                        bookingCode: bookingCode,
+                        serviceKey: serviceKey,
+                        personOrgId: personOrgId,
+                        personOrgIdConfirmed: personOrgIdConfirmed,
+                    }),
+                    beforeSend: function () {
+                        $('.container-waiting').show();
+                    },
+                    success: function (response) {
+                        try {
+                            document.body.removeChild(wrapper);
+                            resolve(null);
+
+                            const objRes = JSON.parse(response);
+                            if (objRes.status == 1) {
+                                $('#btnSearch').trigger('click');
+                                showModalNotify("success", "Thêm hành lý thành công");
+                            }
+                            else {
+                                showModalNotify("error", objRes.message ?? "Lỗi thêm hành lý, vui lòng thử lại sau");
+                                console.error(objRes);
+                            }
+                        }
+                        catch (e) {
+                            showModalNotify("error", "Lỗi thêm hành lý, vui lòng thử lại sau", e.message);
+                            console.error(e);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('.container-waiting').hide();
+                        let errorMessage = 'Failed to adding baggage';
+                        if (status === 'timeout') errorMessage = 'Request timed out. Please try again.';
+                        else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
+                        showModalNotify("error", errorMessage);
+                    }
+                });
+            }
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(wrapper);
+            resolve(null);
+        });
+    });
+}

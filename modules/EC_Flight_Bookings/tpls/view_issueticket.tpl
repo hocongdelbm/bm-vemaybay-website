@@ -5,14 +5,14 @@
         <h3>XUẤT VÉ</h3>
         <div class="box-frm__wrap">
             <form method="post" action="index.php" name="frmIssueTicket" id="frmIssueTicket">
-                <select name="systemCode" class="form-select" style="width:210px;">
+                <select name="airlineCode" class="form-select" style="width:210px;">
                     <option value="VJ">Vietjet Air (VJ)</option>
                     <option value="VN">Vietnam Airlines (VN)</option>
                     <option value="QH">Bamboo Airways (QH)</option>
                     <option value="VU">Vietravel (VU)</option>
                 </select>
                 <div class="wrap-input">
-                    <input type="text" name="bookingCode" class="form-control" placeholder="Nhập PNR">
+                    <input type="text" name="pnr" class="form-control" placeholder="Nhập PNR">
                     <button type="button" class="btn" id="btnSearch">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
                     </button>
@@ -22,6 +22,9 @@
     </header>
 
     <div id="bookingContent" class="booking-content hidden">
+        <input type="hidden" name="systemCode" value="" />
+        <input type="hidden" name="bookingCode" value="" />
+
         <!-- Booking Information Section -->
         <section class="booking-info-section">
             <h2>
@@ -107,7 +110,6 @@
                             <th>Họ tên</th>
                             <th>Loại</th>
                             <th>Giới tính</th>
-                            <th>Tuổi</th>
                             <th>Ngày sinh</th>
                             <th>Liên hệ</th>
                             <th></th>
@@ -144,20 +146,19 @@
         <div class="payment-container">
             <div class="payment-info">
                 <h3>Thanh toán Booking</h3>
-                <p>Đặt chỗ của bạn hiện đang bị giữ. Hãy hoàn tất thanh toán để đảm bảo đặt chỗ của bạn.</p>
                 <div class="payment-details">
                     <div class="payment-row">
                         <span class="label">Tổng giá mua:</span>
                         <span class="amount" id="paymentTotalAmount"></span>
                     </div>
-                    <div class="payment-row">
+                    <div class="payment-row expiry-info">
                         <span class="label">Cần thanh toán:</span>
                         <span class="amount unpaid" id="paymentUnpaidAmount"></span>
                     </div>
-                    <div class="payment-row expiry-info">
+                    <!-- <div class="payment-row expiry-info">
                         <span class="label">Hạn thanh toán:</span>
                         <span class="expiry-time" id="paymentDeadline"></span>
-                    </div>
+                    </div> -->
                 </div>
             </div>
             <div class="payment-actions">
