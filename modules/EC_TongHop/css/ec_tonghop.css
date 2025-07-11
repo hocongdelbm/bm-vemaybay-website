@@ -222,6 +222,10 @@ canvas {
     display: block;
 }
 
+.visitor_path{
+    max-width: unset !important;
+}
+
 .traffic_value.IPs .copy-ip-btn{
     border: none;
     background: none;
@@ -500,7 +504,7 @@ canvas {
     width: 100% !important;
     height: auto !important;
     max-width: 100%;
-    max-height: 350px;
+    max-height: 250px;
 }
 
 .total_traffic, .unique_ip{
@@ -508,5 +512,5 @@ canvas {
 }
 
 .total_traffic .total_traffic_value, .unique_ip .unique_ip_value{
-    font-size: 3rem;
+    font-size: 2rem;
 }
