@@ -6,10 +6,10 @@
         <div class="box-frm__wrap">
             <form method="post" action="index.php" name="frmIssueTicket" id="frmIssueTicket">
                 <select name="airlineCode" class="form-select" style="width:210px;">
-                    <option value="VJ">Vietjet Air (VJ)</option>
-                    <option value="VN">Vietnam Airlines (VN)</option>
-                    <option value="QH">Bamboo Airways (QH)</option>
-                    <option value="VU">Vietravel (VU)</option>
+                    <option value="VJ">VJ (Vietjet Air)</option>
+                    <option value="VN">VN (Vietnam Airlines)</option>
+                    <option value="QH">QH (Bamboo Airways)</option>
+                    <option value="VU">VU (Vietravel)</option>
                 </select>
                 <div class="wrap-input">
                     <input type="text" name="pnr" class="form-control" placeholder="Nhập PNR">
@@ -138,6 +138,7 @@
                     <tbody></tbody>
                 </table>
             </div>
+            <p class="mt-2 ms-2"><i>Đây là thông tin giá vé trên mỗi loại hành khách (Nhân số lượng để ra số tổng)</i></p>
         </section>
     </div>
 
@@ -175,4 +176,4 @@
     </section>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/api_phuongnam/search.js?v=1.0"></script>
+<script src="modules/EC_Flight_Bookings/js/api_phuongnam/issueticket.js?v=1.0"></script>

@@ -1821,7 +1821,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			// Line 1
 			$html .= '<tr class="psg-line ' . $even_or_odd . '" data-id="' . $row['id'] . '">
-				<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-passenger" class="check-passenger" passenger-id="'. $row['id'] .'" /></td>
+				<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-passenger" class="check-passenger" passenger-id="'. $row['id'] .'" passenger-type="'. $row['type'] .'" /></td>
 				<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 				<td data-label="Loại HK" class="passenger_type text-center" data="' . $row['type'] . '" class="text-center">' . $app_list_strings['passenger_type_list'][(int)$row['type']] . '</td>
 				<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int)$row['salutation']] . '</td>

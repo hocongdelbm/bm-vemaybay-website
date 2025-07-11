@@ -58,7 +58,7 @@ class PhuongNamAPI {
         }
     }
 
-    public function searchFlights($airlineCode, $depCode, $desCode, $departDate, $returnDate, $adt, $chd = 0, $inf = 0, $cabin = 'M') {
+    public function searchFlights($airlineCode, $depCode, $desCode, $departDate, $returnDate = '', $adt = 1, $chd = 0, $inf = 0, $cabin = 'M') {
         try {
             $headers = [
                 "Content-Type: application/json",
@@ -264,7 +264,7 @@ class PhuongNamAPI {
                 return json_encode([
                     "status"     => 0,
                     "message"   => $responseArr["Message"] ?? ("Booking failed with ID " . $responseArr['ID']),
-                    "data"      => $responseArr['Data'] ?? []
+                    "data"      => $responseArr
                 ]);
             }
 
@@ -1089,7 +1089,7 @@ class PhuongNamAPI {
         $arr = [1, 6, 5]; // (1: Người lớn, 6: Trẻ em, 5: Em bé)
         $type = (int)$type;
         return $arr[$type] ?? $type;
-    } 
+    }
 
     public function getAge($birthdate) {
         $birthDate = new DateTime($birthdate); // Create a DateTime object for the birthdate
@@ -1110,5 +1110,10 @@ class PhuongNamAPI {
         $result = '';
         for ($i = 1 ; $i < $n; $i++) $result .= $arr[$i] . ' ';
         return trim($result);
+    }
+
+    public function getOnlyFirstName($fullName) {
+        $parts = preg_split('/\s+/', trim($fullName));
+        return end($parts);
     }
 }

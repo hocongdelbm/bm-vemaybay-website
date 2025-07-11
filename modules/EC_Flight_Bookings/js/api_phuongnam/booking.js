@@ -10,9 +10,27 @@ $(document).ready(function () {
     // Open auto book dialog
     $("#btnAutoBook").click(function () {
         let listItineraryId = getSelectedItinerariesData();
-        let listPassengerId = getSelectedPassengersData();
+        let listPassengers = getSelectedPassengersData(); // Object
+        let listPassengerId = Object.keys(listPassengers);
 
         if(bookingId.length * listItineraryId.length * listPassengerId.length != 0) {
+            let adtCount = 0;
+            let chdCount = 0;
+            let infCount = 0;
+            Object.entries(listPassengers).forEach(([key, value]) => {
+                if(value === '0' || value === 0) adtCount++;
+                else if(value === '1' || value === 1) chdCount++;
+                else if(value === '2' || value === 2) infCount++;
+            });
+            if(adtCount < 1) {
+                showToastNotify("warning", "Booking phải có người lớn");
+                return;
+            }
+            if(adtCount < infCount) {
+                showToastNotify("warning", "Số lượng em bé nhiều hơn người lớn");
+                return;
+            }
+
             $.ajax({
                 url: ENDPOINT_AUTO_BOOK,
                 type: "POST",
@@ -71,9 +89,18 @@ $(document).ready(function () {
             var ticketClass = $('input[name="ticketClass[]"]').map((i, el) => el.value).get();
             var flightNo = $('input[name="flightNo[]"]').map((i, el) => el.value).get();
             var within24h = $('input[name="within24h[]"]').map((i, el) => el.value).get();
-            var adt = $('input[name="adt[]"]').map((i, el) => el.value).get();
-            var chd = $('input[name="chd[]"]').map((i, el) => el.value).get();
-            var inf = $('input[name="inf[]"]').map((i, el) => el.value).get();
+            var adt = 0;
+            var chd = 0;
+            var inf = 0;
+            var listPassengers = getSelectedPassengersData();
+            var listPassengerId = Object.keys(listPassengers);
+            if(listPassengers) {
+                Object.entries(listPassengers).forEach(([key, value]) => {
+                    if(value == '0') adt++;
+                    else if(value == '1') chd++;
+                    else if(value == '2') inf++;
+                });
+            }
             var adtPrice = $('input[name="adtPrice[]"]').map((i, el) => el.value).get();
             var chdPrice = $('input[name="chdPrice[]"]').map((i, el) => el.value).get();
             var infPrice = $('input[name="infPrice[]"]').map((i, el) => el.value).get();
@@ -86,9 +113,9 @@ $(document).ready(function () {
                 flightDate: flightDate[i],
                 ticketClass: ticketClass[i],
                 flightNo: flightNo[i],
-                adt: adt[i],
-                chd: chd[i],
-                inf: inf[i],
+                adt: adt,
+                chd: chd,
+                inf: inf,
                 adtPrice: adtPrice[i],
                 chdPrice: chdPrice[i],
                 infPrice: infPrice[i]
@@ -110,9 +137,11 @@ $(document).ready(function () {
                     if(response1.message == "Unmatched information") {
                         showStepsInDialogAutoBook(step, iti0, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
                         showUpdateFlightData(searchInfo[0]['depCode'], searchInfo[0]['desCode'], searchInfo[0]['adt'], searchInfo[0]['chd'], searchInfo[0]['inf'], response1.data.updateData ?? {});
-                        $('#autoBookForm').animate({
-                            scrollTop: $('#flight-info-dep').position().top
-                        }, 500);
+                        if($('#flight-info-dep').length) {
+                            $('#autoBookForm').animate({
+                                scrollTop: $('#flight-info-dep').position().top
+                            }, 500);
+                        }
                     }
                     else showStepsInDialogAutoBook(step, iti0, response1.message ?? 'Lỗi, vui lòng thử lại sau');
                     return;
@@ -140,9 +169,11 @@ $(document).ready(function () {
                     if(response2.message == "Unmatched information") {
                         showStepsInDialogAutoBook(step, iti1, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
                         showUpdateFlightData(searchInfo[1]['depCode'], searchInfo[1]['desCode'], searchInfo[1]['adt'], searchInfo[1]['chd'], searchInfo[1]['inf'], response2.data.updateData ?? {});
-                        $('#autoBookForm').animate({
-                            scrollTop: $('#flight-info-dep').position().top
-                        }, 500);
+                        if($('#flight-info-ret').length) {
+                            $('#autoBookForm').animate({
+                                scrollTop: $('#flight-info-ret').position().top
+                            }, 500);
+                        }
                     }
                     else showStepsInDialogAutoBook(step, iti1, response2.message ?? 'Lỗi, vui lòng thử lại sau');
                     return;
@@ -158,7 +189,6 @@ $(document).ready(function () {
             /******  STEP 2: VERIFY  ******/
             step = 2;
             var verifyResponse = {};
-            var listPassengerId = getSelectedPassengersData();
             var isWithin24h = within24h.includes('1') ? 1 : 0;
             if(statusAutoBook == 1) {
                 setTimeout(() => {showStepsInDialogAutoBook(step);}, 300);
@@ -411,7 +441,7 @@ function showDialogAutoBook(bookingData) {
         }).join('');
 
         // Only display the fare section if there is at least one fare column
-        if (!fareColumns) return '';
+        if(!fareColumns) return '';
 
         if(!BookingWithin24h) BookingWithin24h = flight.within24h;
         return `<div id="flight-info-${dir}" class="flight-info">
@@ -425,7 +455,7 @@ function showDialogAutoBook(bookingData) {
 
             <div class="section-title">
                 ${title}
-                <span class="airline ms-3">(${flight.airlineCode})</span>
+                <img class="ms-3" src="${getLinkImageAirline(flight.airlineCode)}" alt="${flight.airlineCode}" style="max-width:90px" />
                 ${flight.within24h ? '<span class="within24h">Vé cận</span>' : ''}
             </div>
             <div class="info-row d-flex justify-content-between">
@@ -463,7 +493,7 @@ function showDialogAutoBook(bookingData) {
     const passengersHTML = Object.values(bookingData.passengers).map(p => `
         <div class="passenger-info">
             <div class="info-row d-flex justify-content-between">
-                <div><b><span style="color:${p.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${p.salutation}.</span> ${p.name}</b></div>
+                <div><b><span style="font-weight:700;color:${p.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${p.salutation}.</span> ${p.name}</b></div>
                 <div><b>${passengerTypes[p.type]}</b></div>
             </div>
             <div class="info-row d-flex justify-content-between">
@@ -493,7 +523,7 @@ function showDialogAutoBook(bookingData) {
     // Note
     let noteHTML = `<div class="note p-2 mt-3" style="background:#e0ecfc">
         ${BookingWithin24h ? '<p style="color:red">- Đây là <b>vé cận</b>, sẽ tiến hành thanh toán ngay.</p>' : '<p>- <b>Vé cận</b> sẽ tiến hành thanh toán ngay.</p>'}
-        <p>- Với booking khứ hồi, <b>vé cận</b> chỉ được autobook khi cả 2 lượt cùng 1 hãng.</p>
+        <p>- Kiểm tra kỹ càng thông tin trước khi xác nhận.</p>
     </div>`;
     content.innerHTML += noteHTML;
 
@@ -672,12 +702,15 @@ function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, up
 }
 
 function getSelectedPassengersData() {
-    let list_passenger_id = [];
+    let list_passenger = {};
     $('#tbl_pax input[name=check-passenger]:checked').each(function () {
         let pass_id = $(this).attr("passenger-id");
-        if (pass_id !== undefined && pass_id.length > 30) list_passenger_id.push(pass_id);
+        let pass_type = $(this).attr("passenger-type");
+        if (pass_id !== undefined && pass_id.length > 30) {
+            list_passenger[pass_id] = pass_type;
+        }
     });
-    return list_passenger_id;
+    return list_passenger;
 }
 
 function getSelectedItinerariesData() {
@@ -714,4 +747,12 @@ function unformatNumber(formattedStr) {
         .replace(new RegExp(escapedDec), '.');
 
     return parseFloat(cleaned);
+}
+
+function getLinkImageAirline(airlineCode) {
+    return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
+    // let domesticAirline = ["VJ", "VN", "BL", "QH", "VU"];
+    // if(domesticAirline.includes(airlineCode)) {
+    //     return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
+    // }
 }

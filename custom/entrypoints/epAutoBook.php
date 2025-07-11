@@ -76,7 +76,16 @@ try {
                     }
                 }
 
+                if(isset($dataJourneys['dep']) && isset($dataJourneys['ret']) && $dataJourneys['dep']['airlineCode'] != $dataJourneys['ret']['airlineCode']) {
+                    echo json_encode([
+                        'status' => 0,
+                        'message' => 'Chỉ được autobook 1 hãng duy nhất',
+                    ]);
+                    exit();
+                }
+
                 // Thông tin hành khách
+                $adtCount = $chdCount = $infCount = 0;
                 $dataPassengers = [];
                 $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 $sql_2 = "SELECT p.id
@@ -93,6 +102,10 @@ try {
                     ORDER BY p.type";
                 $res_2 = $db->query($sql_2);
                 while ($row = $db->fetchByAssoc($res_2)) {
+                    if($row['type'] === '0') $adtCount++;
+                    elseif($row['type'] === '1') $chdCount++;
+                    elseif($row['type'] === '2') $infCount++;
+
                     $dataPassengers[$row['id']] = [
                         'id' => $row['id'],
                         'type' => $row['type'], // 0:Adt ; 1:Chd ; 2:Inf
@@ -103,7 +116,6 @@ try {
                         'passportNumber' => $row['passport_number'] ?? ''
                     ];
                 }
-                if(empty($dataPassengers)) $dataPassengers = $sql_2;
 
                 // Thông tin chi tiết vé
                 $dateFareDetails = [];
@@ -119,8 +131,11 @@ try {
                     ORDER BY bkd.direction, bkd.passenger_type";
                 $res_3 = $db->query($sql_3);
                 while ($row = $db->fetchByAssoc($res_3)) {
-                    $direction_name = $row['direction'] == '1' ? 'ret' : 'dep';
+                    if($row['passenger_type'] === '0' && $adtCount < 1) continue;
+                    elseif($row['passenger_type'] === '1' && $chdCount < 1) continue;
+                    elseif($row['passenger_type'] === '2' && $infCount < 1) continue;
 
+                    $direction_name = $row['direction'] == '1' ? 'ret' : 'dep';
                     $dateFareDetails[$direction_name][$row['passenger_type']] = [
                         'id' => $row['id'],
                         'fare'  => $row['fare'],
@@ -197,13 +212,13 @@ try {
                 $result = [];
                 $flights = $arr['data']['dep'] ?? [];
                 foreach($flights as $f) {
-                    if($f['flightNo'] != $flightNo) continue;
+                    if(!isset($f['transactionID']) || $f['flightNo'] != $flightNo) continue;
 
                     // Standard data for automatic booking in the next step
                     $standardData = [
                         "SystemCode" => $f['airlineCode'],
                         "TransactionId" => $f['transactionID'] ?? '',
-                        "FlightNumber" => preg_replace('/\D/', '', $flightNo),
+                        "FlightNumber" => preg_replace('/\D/', '', $f['flightNo']),
                         "FarePricings" => [
                             [
                                 "FareBasis" => $f['fareClass'],
@@ -265,6 +280,7 @@ try {
                             "standardData" => $standardData,
                             "updateData" => $updateData
                         ]
+                        ,'flights'=>$flights
                     ]);
                     exit();
                 }
@@ -413,6 +429,9 @@ try {
             }
 
             // Thông tin hành khách
+            $airlineCode = '';
+            foreach($flights as $f) $airlineCode = $f['SystemCode'];
+
             $phuongnamapi = new PhuongNamAPI();
             $customerInfos = [];
             $inListPassengerId = "'".implode("','", $listPassengerId)."'";
@@ -437,33 +456,39 @@ try {
                 $birthday = !is_null($row['birthday']) && !empty($row['birthday']) && strtotime($row['birthday']) ? $row['birthday'] : null;
                 $passport = ($row['cic'] && !empty($row['cic'])) ? $row['cic'] : ($row['passport_number'] ?? null);
 
+                $lastName  = $phuongnamapi->getLastName($row['name'] ?? '');
+                $firstName = $phuongnamapi->getFirstName($row['name'] ?? '');
+                if($airlineCode == 'QH' && $row['type'] === '2') {
+                    $firstName = $phuongnamapi->getOnlyFirstName($row['name'] ?? '');
+                }
+
                 $customerInfos[] = [
                     "PersonOrgId" => (string)$num,
                     "PersonOrgIdConfirmed" => null,
                     "PersonOrgCode" => null,
                     "CustomerKey" => null,
                     "PassengerTypeId" => $phuongnamapi->mappingPassengerType($row['type']),
-                    "FirstName"     => $phuongnamapi->getFirstName($row['name'] ?? ''),
-                    "LastName"      => $phuongnamapi->getLastName($row['name'] ?? ''),
+                    "FirstName"     => $firstName,
+                    "LastName"      => $lastName,
                     "Age"           => $phuongnamapi->getAge($birthday),
                     "BirthDay"      => $birthday,
                     "Gender"        => $gender,
                     "Title"         => $title,
-                    "Phone"         => $contactPhone,
-                    "Email"         => $contactEmail,
+                    "Phone"         => $row['type'] != '2' ? $contactPhone : null,
+                    "Email"         => $row['type'] != '2' ? $contactEmail : null,
                     "AddressFull"   => null,
                     "IsContract"    => true,
                     "RowNumber"     => $num,
                     "PassportType"      => null,
                     "PassportCode"      => null,
-                    "Passport"          => $passport,
+                    "Passport"          => $row['type'] != '2' ? $passport : null,
                     "PassportIssuer"    => null,
                     "PassportExpired"   => null,
                     "Nationality"       => null,
                     "ParentGuestId" => null,
-                    "ParentGuestIdConfirmed" => null,
+                    "ParentGuestIdConfirmed" => null, // QH uses
                     "SortOrder" => $num,
-                    "ParentGuestCode" => null,
+                    "ParentGuestCode" => null, // VJ uses
                     "LoyaltyNumber" => null
                 ];
 
@@ -499,7 +524,7 @@ try {
                 // Preparing request body for next step
                 $responseData = $responseArr['data'] ?? [];
                 foreach($requestBody['Flights'] as $i => $f) {
-                    foreach($responseData as $res) { // check here baby
+                    foreach($responseData as $res) {
                         if(!isset($res['ID']) || $res['ID'] != 1
                             || !isset($res['SessionVerify']) || !$res['SessionVerify'] || empty($res['SessionVerify'])
                         ) {
@@ -511,6 +536,23 @@ try {
                         if($f['SystemCode'] == $res['SystemCode']) {
                             $requestBody['Flights'][$i]['VerifySession'] = $res['SessionVerify'] ?? '';
                         }
+
+                        // Bamboo has to update request body into verify data
+                        if($airlineCode == 'QH' && isset($res['VerifyData']) && !empty($res['VerifyData'])) {
+                            // Verify customers info data
+                            $verifyCustomerInfos = $res['VerifyData']['CustomerInfos'] ?? [];
+                            if(is_array($verifyCustomerInfos) && !empty($verifyCustomerInfos)) $requestBody['CustomerInfos'] = $verifyCustomerInfos;
+
+                            // Verify flights data
+                            $verifyFlights = [];
+                            foreach($res['VerifyData']['Flights'] as $i => $f) {
+                                $verifyFlights[$i] = $f;
+                                $verifyFlights[$i]['FarePricings'] = $requestBody['Flights'][$i]['FarePricings'];
+                            }
+                            if(is_array($verifyFlights) && !empty($verifyFlights)) $requestBody['Flights'] = $verifyFlights;
+                        }
+
+                        
                     }
                 }
                 $responseArr['requestBody'] = $requestBody;
@@ -574,10 +616,9 @@ try {
                         try {
                             $fullname = trim($current_user->last_name.' '.$current_user->first_name);
                             $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
-                            $m = "Giữ chỗ $systemName: **$pnr** bởi **$fullname**";
+                            $m = "Giữ chỗ $systemName: ".Mattermost::markdownLink($linkBooking, $pnr)." bởi **$fullname**";
                             if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "Xuất vé cận $systemName: **$pnr** bởi **$fullname**";
                             $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
-                            $m .= "\n" . Mattermost::markdownLink($linkBooking, "Mở booking $pnr");
                             Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
                         }
                         catch(Throwable $th) {}

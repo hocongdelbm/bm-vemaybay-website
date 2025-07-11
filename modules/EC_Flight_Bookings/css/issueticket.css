@@ -694,7 +694,7 @@ section h2 {
   border-radius: 10px;
   box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
   border-left: 6px solid #007bff;
-  padding: 18px;
+  padding: 14px;
   position: relative;
 }
 
@@ -702,7 +702,7 @@ section h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 4px;
 }
 
 .flight-number {
@@ -722,7 +722,7 @@ section h2 {
   grid-template-columns: 1fr auto 1fr;
   gap: 15px;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .airport {
@@ -762,9 +762,9 @@ section h2 {
 .flight-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px;
-  margin-top: 15px;
-  padding-top: 15px;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid #dee2e6;
 }
 
@@ -956,12 +956,12 @@ section h2 {
   }
 
   .flight-route {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
 
   .flight-details {
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
   }
 }
 

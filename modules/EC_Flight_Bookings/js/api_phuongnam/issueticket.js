@@ -50,10 +50,10 @@ $(document).ready(function () {
             },
             error: function (xhr, status, error) {
                 $('.container-waiting').hide();
-                let errorMessage = 'Failed to load booking data';
-                if (status === 'timeout') errorMessage = 'Request timed out. Please try again.';
-                else if (xhr.status === 404) errorMessage = 'Booking not found.';
-                else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
+                let errorMessage = 'Không tải được dữ liệu Booking';
+                if (status === 'timeout') errorMessage = 'Thời gian phản hồi từ máy chủ quá lâu. Vui lòng thử lại.';
+                else if (xhr.status === 404) errorMessage = 'Không tìm thấy Booking';
+                else if (xhr.status === 500) errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
                 showModalNotify("error", errorMessage);
                 clearBooking();
             }
@@ -93,7 +93,7 @@ $(document).ready(function () {
                         $('.container-waiting').hide();
                         const objData = JSON.parse(response);
                         if (objData.status == 1) {
-                            createBaggageServiceDialog(objData.data, passengerName, personOrgId, personOrgIdConfirmed);
+                            createBaggageServiceDialog(objData.data, systemCode, direction, passengerName, personOrgId, personOrgIdConfirmed);
                         }
                         else {
                             showModalNotify("error", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
@@ -108,8 +108,8 @@ $(document).ready(function () {
                 error: function (xhr, status, error) {
                     $('.container-waiting').hide();
                     let errorMessage = 'Lấy thông tin hành lý thất bại';
-                    if (status === 'timeout') errorMessage = 'Thời gian phản hồi quá lâu. Vui lòng thử lại.';
-                    else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
+                    if (status === 'timeout') errorMessage = 'Thời gian phản hồi từ máy chủ quá lâu. Vui lòng thử lại.';
+                    else if (xhr.status === 500) errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
                     showModalNotify("error", errorMessage);
                 }
             });
@@ -129,8 +129,7 @@ $(document).ready(function () {
 
         // Show confirmation dialog
         if (confirm(`Tiến hành thanh toán ${bookingCode} hãng ${systemCode}\nTổng tiền: ${unpaidAmount}`)) {
-            // Disable button during processing
-            $('#payNowButton').prop('disabled', true).text('Processing...');
+            $('#payNowButton').prop('disabled', true).text('Processing...'); // Disable button during processing
 
             $.ajax({
                 url: ENDPOINT_AUTO_BOOK,
@@ -479,7 +478,7 @@ function renderPassengers(data) {
     const tbody = $('#passengersTable tbody');
     tbody.empty();
 
-    var icon_baggage = `<svg fill="#3d3d3d" height="16px" width="16px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 248.35 248.35" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M186.057,66.136h-15.314V19.839C170.743,8.901,161.844,0,150.904,0H97.448c-10.938,0-19.84,8.901-19.84,19.839v46.296 H62.295c-9.567,0-17.324,7.757-17.324,17.324V214.26c0,9.571,7.759,17.326,17.324,17.326h2.323v12.576 c0,2.315,1.876,4.188,4.186,4.188h19.811c2.315,0,4.188-1.876,4.188-4.188v-12.576h62.741v12.576c0,2.315,1.878,4.188,4.188,4.188 h19.809c2.317,0,4.188-1.876,4.188-4.188v-12.576h2.326c9.567,0,17.324-7.757,17.324-17.326V83.46 C203.381,73.891,195.624,66.136,186.057,66.136z M157.514,66.135H90.832V19.839c0-3.646,2.967-6.613,6.613-6.613h53.456 c3.646,0,6.613,2.967,6.613,6.613V66.135z"></path> </g> </g> </g></svg>`;
+    var icon_baggage = `<svg fill="#3d3d3d" height="16px" width="16px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 248.35 248.35" xml:space="preserve"><title>Hành lý</title><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M186.057,66.136h-15.314V19.839C170.743,8.901,161.844,0,150.904,0H97.448c-10.938,0-19.84,8.901-19.84,19.839v46.296 H62.295c-9.567,0-17.324,7.757-17.324,17.324V214.26c0,9.571,7.759,17.326,17.324,17.326h2.323v12.576 c0,2.315,1.876,4.188,4.186,4.188h19.811c2.315,0,4.188-1.876,4.188-4.188v-12.576h62.741v12.576c0,2.315,1.878,4.188,4.188,4.188 h19.809c2.317,0,4.188-1.876,4.188-4.188v-12.576h2.326c9.567,0,17.324-7.757,17.324-17.326V83.46 C203.381,73.891,195.624,66.136,186.057,66.136z M157.514,66.135H90.832V19.839c0-3.646,2.967-6.613,6.613-6.613h53.456 c3.646,0,6.613,2.967,6.613,6.613V66.135z"></path> </g> </g> </g></svg>`;
 
     const baggages = data.Baggages;
     const customers = data.Customers;
@@ -510,7 +509,6 @@ function renderPassengers(data) {
             for (let i = 0; i < Object.keys(data.Flights).length; i++) {
                 if((i == 0 && purchasedBaggageDep) || (i == 1 && purchasedBaggageRet)) continue
                 let text = i == 0 ? 'Thêm hành lý đi' : 'Thêm hành lý về';
-                let direction = i == 0 ? '0' : '1';
                 optBaggageServiceHTML += `<a class="dropdown-item add-baggage"
                     direction="${i}"
                     personOrgId="${customer.PersonOrgId}"
@@ -585,7 +583,7 @@ function renderFlights(flights) {
                 <div class="flight-details">
                     <div class="detail-item">
                         <div class="detail-label">Cabin</div>
-                        <div class="detail-value">${flight.CabinName}</div>
+                        <div class="detail-value">${flight.CabinName ?? ''}</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Fare Class</div>
@@ -653,6 +651,12 @@ function clearBooking() {
 
     // Reset status badges
     $('.status-badge').removeClass().addClass('status-badge').text('').attr('data-tooltip', '');
+
+    // Reset payment
+    $('#paymentTotalAmount').text('');
+    $('#paymentUnpaidAmount').text('');
+    $('#payButtonAmount').text('');
+    $('#paymentSection').hide();
 }
 
 // Utility functions
@@ -663,11 +667,19 @@ function hideBookingContent() {
     $('#bookingContent').addClass('hidden');
 }
 
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-    }).format(amount);
+function formatCurrency(amount, showUnit = true) {
+    if (showUnit) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    } else {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'decimal',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    }
 }
 
 function formatDate(dateString) {
@@ -734,6 +746,10 @@ function getPassengerLabel(typeId) {
     return types[typeId] || 'Unknown';
 }
 
+function getLinkImageAirline(airlineCode) {
+    return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
+}
+
 // // Alternative AJAX call for testing with mock data
 // function loadMockData() {
 //     // You can use this function to test with the provided JFON data
@@ -752,21 +768,25 @@ function getPassengerLabel(typeId) {
 //     }, 1000);
 // }
 
-function createBaggageServiceDialog(serviceData, passengerName, personOrgId, personOrgIdConfirmed = '') {
+function createBaggageServiceDialog(serviceData, systemCode, direction, passengerName, personOrgId, personOrgIdConfirmed = '') {
     return new Promise((resolve) => {
         const wrapper = document.createElement('div');
-        const firstService = serviceData.ListService[0];
         wrapper.innerHTML = `<div class="baggage-dialog-overlay">
             <div class="baggage-dialog">
                 <div class="baggage-header">
-                    <h2>${firstService.Origin} ➝ ${firstService.Destination}, ${firstService.CarrierCode}</h2>
-                    <p>Ngày bay: <b>${formatDateTime(firstService.DepartureDate)}</b></p>
+                    <h2>
+                        <span style="margin-right:12px">${direction == '0' ? 'Lượt đi' : 'Lượt về'}</span>
+                        ${serviceData.Origin} ➝ ${serviceData.Destination}
+                        <img src="${getLinkImageAirline(systemCode)}" alt="${systemCode}" style="max-width:90px;margin-left:12px" />
+                    </h2>
+                    <p>Ngày bay: <b>${formatDateTime(serviceData.FlightDate)}</b></p>
                     <p>Hành khách: <b>${passengerName}</b></p>
                 </div>
                 <div id="baggageServiceList" class="service-list"></div>
+                <center class="note"><i class="text-danger">Vui lòng kiểm tra kỹ càng thông tin hành trình, hành khách</i></center>
                 <div class="baggage-dialog-actions">
                     <button class="baggage-btn baggage-cancel">Hủy</button>
-                    <button class="baggage-btn baggage-confirm">Thêm</button>
+                    <button class="baggage-btn baggage-confirm">Thêm hành lý</button>
                 </div>
             </div>
         </div>`;
@@ -780,27 +800,33 @@ function createBaggageServiceDialog(serviceData, passengerName, personOrgId, per
 
         // Render available services
         const list = serviceData.ListService;
-        serviceListEl.innerHTML = '';
-        list.forEach(service => {
-            const div = document.createElement('div');
-            div.className = 'baggage-service-item';
-            div.innerHTML = `
-                <input type="radio" name="baggageOption"
-                    id="${service.ServiceKey}"
-                    value="${service.ServiceKey}"
-                    data-description="${service.ServiceDescription}"
-                    data-amount="${service.ServiceTotalAmount}"
-                    data-person-org-id="${personOrgId}"
-                    data-person-org-id-confirmed="${personOrgIdConfirmed}"
-                />
-                <label for="${service.ServiceKey}">
-                    ${service.ServiceDescription}
-                    <br>
-                    <strong>${formatCurrency(service.ServiceTotalAmount)}</strong>
-                </label
-            `;
-            serviceListEl.appendChild(div);
-        });
+        if(!list || list.length == 0) {
+            serviceListEl.innerHTML = '<center><i>Không có hành lý để thêm</i></center>';
+            $('.baggage-dialog center.note').remove();
+        }
+        else {
+            serviceListEl.innerHTML = '';
+            list.forEach(service => {
+                const div = document.createElement('div');
+                div.className = 'baggage-service-item';
+                div.innerHTML = `
+                    <input type="radio" name="baggageOption"
+                        id="${service.ServiceKey}"
+                        value="${service.ServiceKey}"
+                        data-description="${service.ServiceDescription || service.ServiceName}"
+                        data-amount="${service.ServiceTotalAmount}"
+                        data-person-org-id="${personOrgId}"
+                        data-person-org-id-confirmed="${personOrgIdConfirmed}"
+                    />
+                    <label for="${service.ServiceKey}">
+                        ${service.ServiceDescription || service.ServiceName}
+                        <br>
+                        <span>${formatCurrency(service.ServiceAmount, false)} + ${formatCurrency(service.ServiceVATAmount, false)} (VAT) = <strong>${formatCurrency(service.ServiceTotalAmount)}</strong></span>
+                    </label
+                `;
+                serviceListEl.appendChild(div);
+            });
+        }
 
         confirmBtn.addEventListener('click', () => {
             const selectedRadio = wrapper.querySelector('input[name="baggageOption"]:checked');
@@ -842,20 +868,20 @@ function createBaggageServiceDialog(serviceData, passengerName, personOrgId, per
                                 showModalNotify("success", "Thêm hành lý thành công");
                             }
                             else {
-                                showModalNotify("error", objRes.message ?? "Lỗi thêm hành lý, vui lòng thử lại sau");
+                                showModalNotify("error", objRes.message ?? "Lỗi thêm hành lý, vui lòng thử lại");
                                 console.error(objRes);
                             }
                         }
                         catch (e) {
-                            showModalNotify("error", "Lỗi thêm hành lý, vui lòng thử lại sau", e.message);
+                            showModalNotify("error", "Lỗi thêm hành lý, vui lòng thử lại", e.message);
                             console.error(e);
                         }
                     },
                     error: function (xhr, status, error) {
                         $('.container-waiting').hide();
-                        let errorMessage = 'Failed to adding baggage';
-                        if (status === 'timeout') errorMessage = 'Request timed out. Please try again.';
-                        else if (xhr.status === 500) errorMessage = 'Server error. Please try again later.';
+                        let errorMessage = 'Thêm hành lý không thành công';
+                        if (status === 'timeout') errorMessage = 'Thời gian phản hồi từ máy chủ quá lâu. Vui lòng thử lại.';
+                        else if (xhr.status === 500) errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
                         showModalNotify("error", errorMessage);
                     }
                 });
