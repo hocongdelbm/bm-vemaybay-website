@@ -96,19 +96,21 @@ class EC_Flight_Bookings extends Basic
 
 		// Set name of booking
         $is_alert = 0;
-		if (empty($this->name)) {
+		$isDuplicate = false;
+		// If duplicate save
+		if (isset($_POST['duplicateSave']) && $_POST['duplicateSave'] == 'true' && isset($_POST['booking_prev_name']) && !empty($_POST['booking_prev_name'])) {
+			$isDuplicate = true;
+			$prefix = substr($_POST['booking_prev_name'], 0, 2);
+			$this->name = $prefix . $this->generate_booking_name();
+		}
+		else if (empty($this->name)) {
 			if (isset($current_user->agent_prefix) && !empty($current_user->agent_prefix)) $prefix = $current_user->agent_prefix;
 			else $prefix = 'BK';
 
-			// If duplicate save
-			if (isset($_POST['duplicateSave']) && $_POST['duplicateSave'] == 'true' && isset($_POST['booking_prev_name']) && !empty($_POST['booking_prev_name'])) {
-				$prefix = substr($_POST['booking_prev_name'], 0, 2);
-			}
-
 			$this->name = $prefix . $this->generate_booking_name();
-
 			$is_alert = 1;
-		} else {
+		}
+		else {
 			// Edit name of booking
 			// Lấy booking_name hiện tại từ db
 			$sql_get_current_name 	= 'SELECT name FROM ec_flight_bookings WHERE id = "' . $this->id . '"';
@@ -176,7 +178,7 @@ class EC_Flight_Bookings extends Basic
 			$this->city = ucwords(strtolower(trim(stripslashes($this->city))));
 		}
 
-		parent::save($check_notify);
+		$recordId = parent::save($check_notify);
 
 		// Lưu thông tin hoá đơn
 		$this->saveInvoiceInf($_POST, $this->id);
@@ -251,6 +253,12 @@ class EC_Flight_Bookings extends Basic
 
 		// LƯU THÔNG TIN KHÁCH HÀNG
 		// $this->saveInforCustomer($journey);
+
+		if($isDuplicate) {
+			$redirect_url = "index.php?module={$this->module_dir}&action=DetailView&record=$recordId";
+			header("Location: {$redirect_url}");
+			exit();
+		}
 	}
 
 	function save2($check_notify = FALSE)

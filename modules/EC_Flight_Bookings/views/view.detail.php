@@ -1674,13 +1674,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<td data-label="Phí sân bay" class="text-end">' . format_number($row['airport_fee']) . '</td>
 						<td data-label="Phí admin" class="text-end"><div class="admin_fee">' . format_number($row['admin_fee']) . '</div>' . $admin_fee_inf . '</td>
 						<td data-label="Phí dịch vụ" class="text-end">' . format_number($row['service_fee']) . '</td>
-						<td data-label="Thành tiền" class="text-end">' . format_number($row['total_price']) . '</td>';
+						<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>';
 
 			// $html .= '<td class="text-end">
 			// 	<input type="hidden" name="bkd_total_bought_price[]" id="bkd_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
 			// 	' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
 			// </td>';
-			$html .= '<td data-label="Giá mua" class="text-end">
+			$html .= '<td data-label="Giá mua" class="text-end" title="Đã gồm số lượng">
 				<input type="hidden" name="check_total_bought_price[]" id="check_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
 				' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
 			</td>';

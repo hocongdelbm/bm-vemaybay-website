@@ -129,7 +129,7 @@ $(document).ready(function () {
 
         // Show confirmation dialog
         if (confirm(`Tiến hành thanh toán ${bookingCode} hãng ${systemCode}\nTổng tiền: ${unpaidAmount}`)) {
-            $('#payNowButton').prop('disabled', true).text('Processing...'); // Disable button during processing
+            $('#payNowButton').prop('disabled', true).text('Đang xử lý...'); // Disable button during processing
 
             $.ajax({
                 url: ENDPOINT_AUTO_BOOK,
@@ -141,17 +141,22 @@ $(document).ready(function () {
                     systemCode: systemCode,
                     bookingCode: bookingCode
                 }),
+                beforeSend: function () {
+                    $('.container-waiting').show();
+                },
                 success: function (response) {
                     if (response.status) {
                         $('#btnSearch').trigger('click');
                         showModalNotify("success", "Thanh toán thành công");
                     }
                     else {
+                        $('.container-waiting').hide();
                         showModalNotify("error", response.message ?? "Thanh toán không thành công");
                         resetPaymentButton();
                     }
                 },
                 error: function (xhr, status, error) {
+                    $('.container-waiting').hide();
                     showModalNotify("error", "Xử lý thanh toán không thành công. Vui lòng thử lại");
                     resetPaymentButton();
                 }
@@ -384,7 +389,7 @@ function resetPaymentButton() {
     $('#payNowButton').prop('disabled', false);
     $('#payNowButton').html(`
         <span class="btn-icon">💳</span>
-        <span class="btn-text">Pay Now</span>
+        <span class="btn-text">Thanh toán ngay</span>
         <span class="btn-amount">${$('#paymentUnpaidAmount').text()}</span>
     `);
 }
@@ -528,7 +533,7 @@ function renderPassengers(data) {
             </td>
             <td><span class="badge ${badgeClass}">${passengerLabel}</span></td>
             <td>${customer.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
-            <td>${formatDate(customer.BirthDay)} <i class="ms-1">(${customer.Age} tuổi)</i></td>
+            <td>${formatDate(customer.BirthDay)}${(customer.Age !== undefined && customer.Age > 0) ? `<i class="ms-1">(${customer.Age} tuổi)</i>` : ''}</td>
             <td>
                 ${customer.Email ? `<div>${customer.Email}</div>` : ''}
                 ${customer.Phone ? `<div>${customer.Phone}</div>` : ''}

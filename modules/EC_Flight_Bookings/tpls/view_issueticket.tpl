@@ -9,7 +9,7 @@
                     <option value="VJ">VJ (Vietjet Air)</option>
                     <option value="VN">VN (Vietnam Airlines)</option>
                     <option value="QH">QH (Bamboo Airways)</option>
-                    <option value="VU">VU (Vietravel)</option>
+                    <option value="VU">VU (Vietravel Airlines)</option>
                 </select>
                 <div class="wrap-input">
                     <input type="text" name="pnr" class="form-control" placeholder="Nhập PNR">
@@ -165,7 +165,7 @@
             <div class="payment-actions">
                 <button id="payNowButton" class="btn-pay-now">
                     <span class="btn-icon">💳</span>
-                    <span class="btn-text">Pay Now</span>
+                    <span class="btn-text">Thanh toán ngay</span>
                     <span class="btn-amount" id="payButtonAmount"></span>
                 </button>
                 <button id="cancelBookingButton" class="btn-cancel">

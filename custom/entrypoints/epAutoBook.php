@@ -353,6 +353,15 @@ try {
                 }
             }
 
+            // Update total number in booking (Don't update total amount)
+            $total_bought_amount = $db->getOne("SELECT SUM(total_bought_price) FROM ec_booking_details WHERE booking_id = '$bookingId' AND deleted = 0") ?? 0;
+            $subtotal_amount = $db->getOne("SELECT SUM(total_price) FROM ec_booking_details WHERE booking_id = '$bookingId' AND deleted = 0") ?? 0;
+            $sql = "UPDATE ec_flight_bookings
+                    SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
+                        ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
+                    WHERE id = '$bookingId' AND deleted = 0";
+            $db->query($sql);
+
             // Update flight date
             if(isset($requestData['flightDate']) && !empty($requestData['flightDate'])) {
                 $fdate = date('Y-m-d H:i:00', strtotime($requestData['flightDate']));
@@ -405,8 +414,14 @@ try {
                 ]);
                 exit();
             }
+            
+            $phuongnamapi = new PhuongNamAPI();
 
-            // Thông tin liên hệ
+            // Get airline code
+            $airlineCode = '';
+            foreach($flights as $f) $airlineCode = $f['SystemCode'];
+
+            // Contact info
             $booking = new EC_Flight_Bookings();
             $booking->retrieve($bookingId);
             $contactName = trim($booking->contact_name);
@@ -428,11 +443,7 @@ try {
                 }
             }
 
-            // Thông tin hành khách
-            $airlineCode = '';
-            foreach($flights as $f) $airlineCode = $f['SystemCode'];
-
-            $phuongnamapi = new PhuongNamAPI();
+            // Passengers info
             $customerInfos = [];
             $inListPassengerId = "'".implode("','", $listPassengerId)."'";
             $sql_pass = "SELECT p.id
@@ -517,45 +528,58 @@ try {
             $response = $phuongnamapi->verify($requestBody); // JSON
             $responseArr = json_decode($response, true);
 
+            // Preparing request body for next step
             if($responseArr['status'] == 1) {
+                $responseData = $responseArr['data'] ?? [];
                 $isVerifyFailed = true;
                 $verifyFailedMessage = '';
 
-                // Preparing request body for next step
-                $responseData = $responseArr['data'] ?? [];
-                foreach($requestBody['Flights'] as $i => $f) {
-                    foreach($responseData as $res) {
-                        if(!isset($res['ID']) || $res['ID'] != 1
-                            || !isset($res['SessionVerify']) || !$res['SessionVerify'] || empty($res['SessionVerify'])
-                        ) {
-                            $isVerifyFailed = false;
-                            $verifyFailedMessage = $res['Message'] ?? '';
-                            break;
+                // VN combines round trips with the same session verification and fare pricing
+                if($airlineCode == 'VN' && count($flights) == 2) {
+                    $sessionVerify = $responseArr['data'][0]['SessionVerify'] ?? '';
+                    $verifyData = $responseArr['data'][0]['VerifyData'] ?? [];
+
+                    if(!empty($sessionVerify) && is_array($verifyData) && !empty($verifyData)) {
+                        foreach($requestBody['Flights'] as $i => $f) {
+                            $requestBody['Flights'][$i]['VerifySession'] = $sessionVerify;
                         }
-
-                        if($f['SystemCode'] == $res['SystemCode']) {
-                            $requestBody['Flights'][$i]['VerifySession'] = $res['SessionVerify'] ?? '';
-                        }
-
-                        // Bamboo has to update request body into verify data
-                        if($airlineCode == 'QH' && isset($res['VerifyData']) && !empty($res['VerifyData'])) {
-                            // Verify customers info data
-                            $verifyCustomerInfos = $res['VerifyData']['CustomerInfos'] ?? [];
-                            if(is_array($verifyCustomerInfos) && !empty($verifyCustomerInfos)) $requestBody['CustomerInfos'] = $verifyCustomerInfos;
-
-                            // Verify flights data
-                            $verifyFlights = [];
-                            foreach($res['VerifyData']['Flights'] as $i => $f) {
-                                $verifyFlights[$i] = $f;
-                                $verifyFlights[$i]['FarePricings'] = $requestBody['Flights'][$i]['FarePricings'];
-                            }
-                            if(is_array($verifyFlights) && !empty($verifyFlights)) $requestBody['Flights'] = $verifyFlights;
-                        }
-
-                        
+                    }
+                    else {
+                        $isVerifyFailed = false;
+                        $verifyFailedMessage = $responseArr['data'][0]['Message'] ?? '';
                     }
                 }
-                $responseArr['requestBody'] = $requestBody;
+                else {
+                    foreach($requestBody['Flights'] as $i => $f) {
+                        foreach($responseData as $res) {
+                            if(!isset($res['SessionVerify']) || !$res['SessionVerify'] || empty($res['SessionVerify'])) {
+                                $isVerifyFailed = false;
+                                $verifyFailedMessage = $res['Message'] ?? '';
+                                break;
+                            }
+
+                            if($f['SystemCode'] == $res['SystemCode']) {
+                                $requestBody['Flights'][$i]['VerifySession'] = $res['SessionVerify'] ?? '';
+                            }
+
+                            // Bamboo has to update request body into verify data
+                            if($airlineCode == 'QH' && isset($res['VerifyData']) && !empty($res['VerifyData'])) {
+                                // Verify customers info data
+                                $verifyCustomerInfos = $res['VerifyData']['CustomerInfos'] ?? [];
+                                if(is_array($verifyCustomerInfos) && !empty($verifyCustomerInfos)) $requestBody['CustomerInfos'] = $verifyCustomerInfos;
+
+                                // Verify flights data
+                                $verifyFlights = [];
+                                foreach($res['VerifyData']['Flights'] as $i => $f) {
+                                    $verifyFlights[$i] = $f;
+                                    $verifyFlights[$i]['FarePricings'] = $requestBody['Flights'][$i]['FarePricings'];
+                                }
+                                if(is_array($verifyFlights) && !empty($verifyFlights)) $requestBody['Flights'] = $verifyFlights;
+                            }
+                        }
+                    }
+                }
+                $responseArr['requestBody'] = $requestBody; // Update request body
 
                 if(!$isVerifyFailed) {
                     $responseArr['status'] = 0;
