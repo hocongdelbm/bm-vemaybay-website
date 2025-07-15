@@ -1,68 +1,23 @@
 <?php
 class PhuongNamAPI {
-    private $ENDPOINT_SEARCH;
-    private $API_KEY_SEARCH;
     private $ENDPOINT;
-    private $API_KEY;
-    private $SECRET_KEY;
+    private $API_SEARCH_KEY;
+    private $API_BOOKING_KEY;
     public $SUPPLIER_ID;
 
     public function __construct() {
         global $sugar_config;
-        $this->ENDPOINT_SEARCH = "https://data01.timchuyenbay.vn/api/v3";
-        $this->API_KEY_SEARCH = "1r2Lm4Rof1KsOM_SHbiCx1zx59@G54TmQq1T7XY5fK85OG28S+";
-        // $this->ENDPOINT_SEARCH = "https://data01.timchuyenbay.net/api/v1";
-        $this->ENDPOINT = $sugar_config['phuongnam']['Endpoint'] ?? '';
-        $this->API_KEY = $sugar_config['phuongnam']['ApiKey'] ?? '';
-        $this->SECRET_KEY = $sugar_config['phuongnam']['SecretKey'] ?? '';
-        $this->SUPPLIER_ID = $sugar_config['phuongnam']['SupplierID'] ?? '';
-    }
-
-    public function getSessionKey() {
-        try {
-            $headers = ["API-Key: $this->API_KEY_SEARCH"];
-
-            $curl = curl_init();
-            if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT_SEARCH/getSessionKey");
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_POST, 1);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 20);
-            $json = curl_exec($curl);
-            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            $errorno = curl_errno($curl);
-            $error = curl_error($curl);
-
-            if ($json === false || $errorno) {
-                return json_encode(["status" => 0, "message" => "Can not connect to API", "description" => "cURL error $errorno: $error"]);
-            }
-            if($httpcode != 200) {
-                return json_encode(["status" => 0, "message" => "Can not connect to API", "description" => "HTTP error $httpcode"]);
-            }
-
-            $arr = json_decode($json, true);
-            $arr['status'] = (int)!$arr['error']; // Convert key error to status
-            unset($arr['error']);
-            return json_encode($arr);
-        }
-        catch(Exception $e) {
-            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
-        }
-        finally {
-            if(isset($curl) && is_resource($curl)) curl_close($curl);
-        }
+        $this->ENDPOINT         = $sugar_config['phuongnam']['Endpoint'] ?? '';
+        $this->API_SEARCH_KEY   = $sugar_config['phuongnam']['SearchKey'] ?? '';
+        $this->API_BOOKING_KEY  = $sugar_config['phuongnam']['BookingKey'] ?? '';
+        $this->SUPPLIER_ID      = $sugar_config['phuongnam']['SupplierID'] ?? '';
     }
 
     public function searchFlights($airlineCode, $depCode, $desCode, $departDate, $returnDate = '', $adt = 1, $chd = 0, $inf = 0, $cabin = 'M') {
         try {
             $headers = [
                 "Content-Type: application/json",
-                "API-Key: $this->API_KEY_SEARCH",
+                "API-Key: $this->API_SEARCH_KEY",
             ];
             $requestBody = [
                 "airlineCode"   => $airlineCode,
@@ -81,17 +36,17 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT_SEARCH/getFlights");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/v3/getFlights");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 12);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $json = curl_exec($curl);
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -99,7 +54,7 @@ class PhuongNamAPI {
             curl_close($curl);
 
             if ($json === false || $errorno) {
-                return json_encode(["status" => 0, "message" => "Can not connect to API", "description" => "cURL error $errorno: $error"]);
+                return json_encode(["status" => 0, "message" => "Can not connect to $this->ENDPOINT", "description" => "cURL error $errorno: $error"]);
             }
 
             $arr = is_string($json) ? json_decode($json, true) : $json;
@@ -107,7 +62,7 @@ class PhuongNamAPI {
             if($httpcode != 200) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "data" => $arr,
                     "description" => "HTTP error $httpcode"
                 ]);
@@ -134,29 +89,24 @@ class PhuongNamAPI {
      */
     public function verify($requestBody) {
         try {
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Booking/VerifyFlight");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/verify");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 20);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -166,7 +116,7 @@ class PhuongNamAPI {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -212,29 +162,24 @@ class PhuongNamAPI {
      */
     public function booking($requestBody) {
         try {
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Booking/CreateBooking");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/booking");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 20);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -244,7 +189,7 @@ class PhuongNamAPI {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -302,28 +247,27 @@ class PhuongNamAPI {
                 ]);
             }
 
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
-            $url = "$this->ENDPOINT/api/Booking/BookingDetail?systemCode=$systemCode&bookingCode=$bookingCode";
             $headers = [
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "Content-Type: application/json",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/getBooking");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode([
+                'systemCode' => $systemCode,
+                'bookingCode' => $bookingCode
+            ]));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -333,7 +277,7 @@ class PhuongNamAPI {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -399,16 +343,9 @@ class PhuongNamAPI {
                 ]);
             }
 
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
 
             $requestBody = [
@@ -418,15 +355,17 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Booking/BookingPayment");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/payForBooking");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -436,7 +375,7 @@ class PhuongNamAPI {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -490,17 +429,9 @@ class PhuongNamAPI {
                 ]);
             }
 
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
-            $url = "$this->ENDPOINT/api/Service/GetBaggageChange";
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
             $requestBody = [
                 "SystemCode" => $systemCode,
@@ -509,15 +440,17 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/getBaggageInfo");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -527,7 +460,7 @@ class PhuongNamAPI {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -593,16 +526,9 @@ class PhuongNamAPI {
                 ]);
             }
 
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
-            $url = "$this->ENDPOINT/api/Seat/GetSeatMapsChange";
             $headers = [
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "Content-Type: application/json",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
             $requestBody = [
                 "SystemCode" => $systemCode,
@@ -611,15 +537,17 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/getSeatMapsInfo");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -629,7 +557,7 @@ class PhuongNamAPI {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -697,17 +625,9 @@ class PhuongNamAPI {
                 ]);
             }
 
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
-            $url = "$this->ENDPOINT/api/Booking/ChangeAncillary";
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
             $requestBody = [
                 "SystemCode" => $systemCode,
@@ -717,15 +637,17 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/addBaggage");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -735,7 +657,7 @@ class PhuongNamAPI {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -781,27 +703,23 @@ class PhuongNamAPI {
      */
     public function getBaggage($requestBody) {
         try {
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
+            return '';
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Service/GetBaggage");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/v3/getBaggage");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 20);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
             curl_setopt($curl, CURLOPT_TIMEOUT, 60);
             $response = curl_exec($curl); // JSON
@@ -813,7 +731,7 @@ class PhuongNamAPI {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -860,42 +778,29 @@ class PhuongNamAPI {
      */
     public function checkPriceBooking($systemCode, $bookingCode) {
         try {
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
 
             $requestBody = [
-                "UserId" => 0,
-                "UserCode" => "",
-                "UserFullName" => "",
-                "TransactionId" => "",
-                "TrackId" => "",
-                "CarrierCode" => "",
                 "SystemCode" => $systemCode,
                 "BookingCode" => $bookingCode,
-                "CentralId" => 0,
-                "IsForceProcess" => true
             ];
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Booking/CheckPriceBooking");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/checkPriceBooking");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 20);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -905,7 +810,7 @@ class PhuongNamAPI {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -958,17 +863,10 @@ class PhuongNamAPI {
                     ]
                 ]);
             }
-
-            $str = $this->getSessionKey();
-            $arr = json_decode($str, true);
-            if(!isset($arr['status']) || $arr['status'] != 1 || !isset($arr['data']) || empty($arr['data'])) return $str;
-            $sessionKey = $arr['data'] ?? '';
-
+           
             $headers = [
                 "Content-Type: application/json",
-                "ApiKey: $this->API_KEY",
-                "SecretKey: $this->SECRET_KEY",
-                "Authorization: Bearer $sessionKey",
+                "API-Key: $this->API_BOOKING_KEY"
             ];
 
             $requestBody = [
@@ -979,15 +877,17 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/api/Booking/CancelBooking");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/cancelBooking");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -997,7 +897,7 @@ class PhuongNamAPI {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to API",
+                    "message" => "Can not connect to $this->ENDPOINT",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
