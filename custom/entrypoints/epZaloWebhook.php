@@ -137,13 +137,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
                     else $zalomes->save();
 
-                    // Update zalo last interaction
-                    if($zalomes->src == 1) {
-                        $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
-                        $sql_update_contact = "UPDATE contacts SET zalo_last_interaction = '$zalo_last_interaction' WHERE zalo_id = '$sender_id' AND deleted = 0";
-                        $db->query($sql_update_contact);
-                    }
+                    // Add new or update user (zalo last interaction)
+                    try {
+                        if($zalomes->src == 1) {
+                            // Search by Zalo ID
+                            $sql_get_contact = "SELECT id
+                                                FROM contacts
+                                                WHERE zalo_id = '$sender_id' AND zalo_id IS NOT NULL AND deleted = 0
+                                                ORDER BY date_entered
+                                                LIMIT 1";
+                            $res_get_contact = $db->query($sql_get_contact);
+                            $row_get_contact = $db->fetchByAssoc($res_get_contact);
+                            $contact_id      = $row_get_contact['id'] ?? '';
+                            if(!$contact_id || empty($contact_id)) {
+                                // Search by phone if present
+                                $Zalo = new Zalo();
+                                $json_user = $Zalo->get_user($sender_id);
+                                $user_info = json_decode($json_user, true);
+                                if(isset($result['error']) && $result['error'] == 0) {
+                                    $alias = $user_info['data']['user_alias'] ?? '';
+                                    $phone = $Zalo->get_phone_by_alias($alias); // Get more phone in shared info
+                                    if($phone && !empty($phone)) {
+                                        $sql_get_contact = "SELECT id
+                                                            FROM contacts
+                                                            WHERE phone_mobile = '$phone' AND deleted = 0
+                                                            ORDER BY date_entered
+                                                            LIMIT 1";
+                                        $res_get_contact = $db->query($sql_get_contact);
+                                        $row_get_contact = $db->fetchByAssoc($res_get_contact);
+                                        $contact_id      = $row_get_contact['id'] ?? '';
 
+                                        $bean_zalo = new EC_Zalo();
+                                        if($contact_id && !empty($contact_id)) {
+                                            $bean_zalo->update_zalo_info_to_contact($contact_id, $user_info['data']);
+                                        }
+                                        else {
+                                            $bean_zalo->add_new_contact_by_zalo_info($user_info['data'], ["source" => "Created auto from webhook with $phone"]);
+                                        }
+                                    }
+                                    else $bean_zalo->add_new_contact_by_zalo_info($user_info['data'], ["source" => "Created auto from webhook"]);
+                                }
+                            }
+                            else {
+                                $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
+                                $sql_update_contact = "UPDATE contacts SET zalo_last_interaction = '$zalo_last_interaction' WHERE zalo_id = '$sender_id' AND deleted = 0";
+                                $db->query($sql_update_contact);
+                            }
+                        }
+                    }
+                    catch(Exception $e) {}
+                    
                     // Send data to chat
                     $data_chat = [
                         'event_name'            => $event,

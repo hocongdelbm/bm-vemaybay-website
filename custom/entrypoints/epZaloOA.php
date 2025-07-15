@@ -829,8 +829,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             exit();
         }
 
+        $Zalo = new Zalo();
+        $beanZalo = new EC_Zalo();
+        $results = [];
+
         $sql_search = "";
-        if(is_numeric($search_value)) {
+        // Search by chat link
+        if(filter_var($search_value, FILTER_VALIDATE_URL)) {
+            parse_str(parse_url($search_value, PHP_URL_QUERY), $query);
+            $zalo_id = $query['uid'] ?? '';
+            if(!empty($zalo_id)) {
+                $user_info = $beanZalo->get_zalo_user_info($zalo_id);
+                if(is_array($user_info) && !empty($user_info)) {
+                    // Message info
+                    $lastest_message = $beanZalo->get_lastest_message_user($zalo_id);
+                    if(empty($lastest_message)) {
+                        $lastest_message['message_type'] = 'custom';
+                        $lastest_message['type'] = 'custom';
+                        $lastest_message['message'] = 'Tương tác cuối vào ' . date('d/m/Y', strtotime($user_info['user_last_interaction_date']));
+                        $lastest_message['src'] = 1;
+                        $lastest_message['timestamp'] = strtotime($user_info['user_last_interaction_date']) * 1000;
+                        $lastest_message['from_id'] = $zalo_id;
+                        $lastest_message['to_id'] = $Zalo->get_oa_id();
+                    }
+
+                    $results[] = [
+                        'message_info' => $lastest_message,
+                        'user_info' => $user_info
+                    ];
+                }
+            }
+        }
+        // Search by phone
+        elseif(is_numeric($search_value)) {
             $condition = strlen($search_value) < 10 ? "c.phone_mobile LIKE '%$search_value'" : "c.phone_mobile = $search_value";
             $sql_search = "SELECT c.zalo_id
                 ,c.phone_mobile AS contact_phone
@@ -850,6 +881,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 AND c.zalo_id <> ''
                 AND c.deleted = 0";
         }
+        // Search by name
         else {
             $sql_search = "SELECT c.zalo_id
                 ,c.phone_mobile AS contact_phone
@@ -871,54 +903,53 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ORDER BY c.zalo_last_interaction DESC";
         }
 
-        $Zalo = new Zalo();
-        $bean_zalo = new EC_Zalo();
-        $results = [];
-        $res = $db->query($sql_search);
-        while ($row = $db->fetchByAssoc($res)) {
-            $zalo_name   = $row['zalo_name'] ?? '';
-            $zalo_avatar = $row['zalo_avatar'] ?? '';
-            $zalo_tags   = !empty($row['zalo_tags']) ? explode(',', $row['zalo_tags']) : [];
-
-            // User info
-            $user_info = [
-                'user_id'       => $row['zalo_id'],
-                'display_name'  => $row['contact_name'] ?? '',
-                'user_alias'    => $zalo_name,
-                'avatar'        => $zalo_avatar,
-                'user_last_interaction_date' => $row['zalo_last_interaction'] ? date('d/m/Y', strtotime($row['zalo_last_interaction'])) : '',
-                'user_is_follower' => $row['zalo_is_follower'] ?? 0,
-                'tags_and_notes_info' => [
-                    'notes' => [],
-                    'tag_names' => $zalo_tags,
-                ],
-                'shared_info' => [
-                    "address"   => $row['contact_address'] ?? '',
-                    "city"      => $row['contact_city'] ?? '',
-                    "district"  => $row['contact_district'] ?? '',
-                    "phone"     => isset($row['contact_phone']) && strlen($row['contact_phone']) > 9 ? $row['contact_phone'] : '',
-                    "name"      => $row['contact_name'] ?? '',
-                    "user_dob"  => $row['birthdate'] ? date('d/m/Y', strtotime($row['birthdate'])) : ''
-                ],
-                'chat_link' => $Zalo->get_chat_link($zalo_id)
-            ];
-
-            // Message info
-            $lastest_message = $bean_zalo->get_lastest_message_user($row['zalo_id']);
-            if(empty($lastest_message)) {
-                $lastest_message['message_type'] = 'custom';
-                $lastest_message['type'] = 'custom';
-                $lastest_message['message'] = 'Tương tác cuối vào ' . date('d/m/Y', strtotime($row['zalo_last_interaction']));
-                $lastest_message['src'] = 1;
-                $lastest_message['timestamp'] = strtotime($row['zalo_last_interaction']) * 1000;
-                $lastest_message['from_id'] = $row['zalo_id'];
-                $lastest_message['to_id'] = $Zalo->get_oa_id();
+        if(!empty($sql_search)) {
+            $res = $db->query($sql_search);
+            while ($row = $db->fetchByAssoc($res)) {
+                $zalo_name   = $row['zalo_name'] ?? '';
+                $zalo_avatar = $row['zalo_avatar'] ?? '';
+                $zalo_tags   = !empty($row['zalo_tags']) ? explode(',', $row['zalo_tags']) : [];
+    
+                // User info
+                $user_info = [
+                    'user_id'       => $row['zalo_id'],
+                    'display_name'  => $row['contact_name'] ?? '',
+                    'user_alias'    => $zalo_name,
+                    'avatar'        => $zalo_avatar,
+                    'user_last_interaction_date' => $row['zalo_last_interaction'] ? date('d/m/Y', strtotime($row['zalo_last_interaction'])) : '',
+                    'user_is_follower' => $row['zalo_is_follower'] ?? 0,
+                    'tags_and_notes_info' => [
+                        'notes' => [],
+                        'tag_names' => $zalo_tags,
+                    ],
+                    'shared_info' => [
+                        "address"   => $row['contact_address'] ?? '',
+                        "city"      => $row['contact_city'] ?? '',
+                        "district"  => $row['contact_district'] ?? '',
+                        "phone"     => isset($row['contact_phone']) && strlen($row['contact_phone']) > 9 ? $row['contact_phone'] : '',
+                        "name"      => $row['contact_name'] ?? '',
+                        "user_dob"  => $row['birthdate'] ? date('d/m/Y', strtotime($row['birthdate'])) : ''
+                    ],
+                    'chat_link' => $Zalo->get_chat_link($zalo_id)
+                ];
+    
+                // Message info
+                $lastest_message = $beanZalo->get_lastest_message_user($row['zalo_id']);
+                if(empty($lastest_message)) {
+                    $lastest_message['message_type'] = 'custom';
+                    $lastest_message['type'] = 'custom';
+                    $lastest_message['message'] = 'Tương tác cuối vào ' . date('d/m/Y', strtotime($row['zalo_last_interaction']));
+                    $lastest_message['src'] = 1;
+                    $lastest_message['timestamp'] = strtotime($row['zalo_last_interaction']) * 1000;
+                    $lastest_message['from_id'] = $row['zalo_id'];
+                    $lastest_message['to_id'] = $Zalo->get_oa_id();
+                }
+    
+                $results[] = [
+                    'message_info' => $lastest_message,
+                    'user_info' => $user_info
+                ];
             }
-
-            $results[] = [
-                'message_info' => $lastest_message,
-                'user_info' => $user_info
-            ];
         }
 
         echo json_encode([

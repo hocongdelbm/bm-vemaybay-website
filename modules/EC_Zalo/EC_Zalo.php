@@ -348,4 +348,91 @@ class EC_Zalo extends Basic {
 
         return $result;
     }
+
+    public function update_zalo_info_to_contact($contact_id, $user_data) {
+        $zalo_id = $user_data['user_id'] ?? '';
+        $user_data_name = $user_data['user_alias'] ?? ($user_data['display_name'] ?? '');
+        $user_data_last_interaction = $user_data['user_last_interaction_date'] ?? '';
+        if(!empty($user_data_last_interaction)) $user_data_last_interaction = date('Y-m-d', strtotime(str_replace("/", "-", $user_data_last_interaction))) . ' 00:00:00';
+
+        $Zalo = new Zalo();
+        $Contact = new Contact();
+        $Contact->retrieve($contact_id);
+        $Contact->zalo_id               = $zalo_id;
+        $Contact->zalo_name             = $user_data_name;
+        $Contact->zalo_avatar           = $user_data['avatar'] ?? '';
+        $Contact->zalo_is_follower      = (int)$user_data['user_is_follower'] ?? 0;
+        $Contact->zalo_last_interaction = $user_data_last_interaction;
+        if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
+            $alias_phone = $Zalo->get_phone_by_alias($user_data['user_alias'] ?? '');
+            if(!empty($alias_phone) && strlen($alias_phone) > 9) $Contact->phone_mobile = $alias_phone;
+        }
+        if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
+            if(!$Contact->primary_address_street || empty($Contact->primary_address_street)) {
+                $Contact->primary_address_street = $user_data['shared_info']['address'] ?? '';
+            }  
+            if(!$Contact->primary_address_city || empty($Contact->primary_address_city)) {
+                $Contact->primary_address_city = $user_data['shared_info']['city'] ?? '';
+            }
+            if(!$Contact->primary_address_state || empty($Contact->primary_address_state)) {
+                $Contact->primary_address_state = $user_data['shared_info']['district'] ?? '';
+            }
+            if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
+                $shared_phone = $user_data['shared_info']['phone'] ?? '';
+                if(!empty($shared_phone)) $Contact->phone_mobile = $Zalo->unformat_zalo_phone($shared_phone);
+            }
+            if(!$Contact->birthdate || empty($Contact->birthdate)) {
+                $user_dob = $user_data['shared_info']['user_dob'] ?? '';
+                if(!empty($user_dob)) $Contact->birthdate = date('d-m-Y', strtotime($user_dob));
+            }
+        }
+        if(isset($user_data['tags_and_notes_info']) && !empty($user_data['tags_and_notes_info'])) {
+            if(isset($user_data['tags_and_notes_info']['tag_names']) && !empty($user_data['tags_and_notes_info']['tag_names'])) {
+                $tag_names = $user_data['tags_and_notes_info']['tag_names'];
+                $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
+            }
+        }
+        $Contact->description = "Cập nhật thông tin qua EC_Zalo ($Contact->phone_mobile) ($zalo_id)";
+        $Contact->save();
+    }
+
+    public function add_new_contact_by_zalo_info($user_data, $debug_data = []) {
+        global $current_user;
+        $Zalo = new Zalo();
+
+        $user_data_name = $user_data['user_alias'] ?? ($user_data['display_name'] ?? '');
+        $user_data_last_interaction = $user_data['user_last_interaction_date'] ?? '';
+        if(!empty($user_data_last_interaction)) $user_data_last_interaction = date('Y-m-d', strtotime(str_replace("/", "-", $user_data_last_interaction))) . ' 00:00:00';
+        $alias_phone = $Zalo->get_phone_by_alias($user_data['user_alias'] ?? '');
+
+        $Contact = new Contact();
+        $Contact->last_name     = $user_data_name;
+        $Contact->zalo_id       = $user_data['user_id'] ?? '';
+        $Contact->zalo_name     = $user_data_name;
+        $Contact->phone_mobile  = (!empty($alias_phone) && strlen($alias_phone) > 9) ? $alias_phone : '';
+        $Contact->zalo_avatar   = $user_data['avatar'] ?? '';
+        $Contact->zalo_is_follower = (int)$user_data['user_is_follower'] ?? 0;
+        $Contact->zalo_last_interaction = $user_data_last_interaction;
+        $Contact->assigned_user_id = $current_user->id ?? '';
+        if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
+            $Contact->primary_address_street = $user_data['shared_info']['address'] ?? '';
+            $Contact->primary_address_city = $user_data['shared_info']['city'] ?? '';
+            $Contact->primary_address_state = $user_data['shared_info']['district'] ?? '';
+            if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
+                $Contact->phone_mobile = $Zalo->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
+            }
+            $Contact->birthdate = $user_data['shared_info']['user_dob'] ?? '';
+            if(!empty($Contact->birthdate)) $Contact->birthdate = date('d-m-Y', strtotime($Contact->birthdate));
+        }
+        if(isset($user_data['tags_and_notes_info']) && !empty($user_data['tags_and_notes_info'])) {
+            if(isset($user_data['tags_and_notes_info']['tag_names']) && !empty($user_data['tags_and_notes_info']['tag_names'])) {
+                $tag_names = $user_data['tags_and_notes_info']['tag_names'];
+                $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
+            }
+        }
+        
+        if(is_array($debug_data)) $Contact->description = "Liên hệ tạo từ Zalo OA " . json_encode($debug_data, JSON_UNESCAPED_UNICODE);
+        else $Contact->description = "Liên hệ tạo từ Zalo OA";
+        $Contact->save();
+    }
 }
