@@ -728,8 +728,16 @@ try {
 
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
+            $responseArr = json_decode($response, true);
 
-            // $responseArr = json_decode($response, true);
+            // // Get seat map
+            // try {
+            //     $responseSeatMap = $phuongnamapi->getSeatMapsInfo($systemCode, $bookingCode);
+            //     $seatMapArr = json_decode($responseSeatMap, true);
+            //     if(isset($seatMapArr['status']) && $seatMapArr['status'] === 1) $responseArr['data']['seatMap'] = $seatMapArr['data'];
+            // }
+            // catch(Exception $e) {}
+
             // try {
             //     // Tất cả người lớn dùng chung 1 chi tiết vé theo từng chặng
             //     $passInfo = [];
@@ -811,9 +819,9 @@ try {
             // catch(Exception $e) {
             //     $responseArr['data']['requestBodyServices'] = $e->getMessage();
             // }
-            // echo json_encode($responseArr);
 
-            echo $response;
+            // echo $response;
+            echo json_encode($responseArr);
             exit();
         }
         elseif($action == 'pay_booking') {

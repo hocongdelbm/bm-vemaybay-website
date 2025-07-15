@@ -98,6 +98,7 @@
 	color: var(--primary-color);
 	padding: 5px 0;
 }
+.auto-book-dialog .section-title img[alt="VN"] {max-width: 110px !important;}
 
 .auto-book-dialog .flight-info,
 .auto-book-dialog .passenger-info {

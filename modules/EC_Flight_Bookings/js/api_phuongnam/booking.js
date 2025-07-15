@@ -476,7 +476,7 @@ function showDialogAutoBook(bookingData) {
             <div class="fare-row">${fareColumns}</div>
             <div class="d-flex justify-content-end align-items-center mt-2">
                 <label style="font-size:15px">Tổng mua ${label}: </label>
-                <b style="color:red !important; font-size:15px">
+                <b title="Đã gồm số lượng HK bên dưới" style="color:red !important; font-size:15px">
                     <input type="text" value="${formatNumber(totalAmount)} VND" id="totalAmount${flight.depCode}${flight.desCode}" class="npvalue" readonly />
                 </b>
             </div>

@@ -5,7 +5,9 @@ body {
   background-color: #f5f7fa;
 }
 
-b {font-weight: 500 !important;}
+b {
+  font-weight: 500 !important;
+}
 
 h1.title-view {
   display: block;
@@ -654,6 +656,7 @@ section h2 {
   color: #333;
   margin-top: 4px;
 }
+
 .data-table td .purchased-item svg {
   vertical-align: text-bottom;
 }
@@ -1276,6 +1279,7 @@ section h2 {
   display: flex;
   align-items: start;
 }
+
 .baggage-service-item input[type="radio"] {
   display: none;
 }
@@ -1295,7 +1299,8 @@ section h2 {
   transition: all 0.2s ease;
   background: white;
 }
-.baggage-service-item input[type="radio"]:checked + label {
+
+.baggage-service-item input[type="radio"]:checked+label {
   border-color: #007bff;
   background: #eef5ff;
   box-shadow: 0 0 0 2px #007bff22;
@@ -1352,9 +1357,11 @@ section h2 {
   border-radius: 6px;
   background-color: #f9f9f9;
 }
+
 .service-list::-webkit-scrollbar {
   width: 6px;
 }
+
 .service-list::-webkit-scrollbar-thumb {
   background-color: #ccc;
   border-radius: 4px;
