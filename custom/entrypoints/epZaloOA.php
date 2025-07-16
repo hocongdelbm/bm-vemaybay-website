@@ -3,6 +3,7 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     require_once("modules/EC_Zalo/Zalo.php");
+    require_once("modules/EC_Zalo/OMNI.php");
     global $current_user, $db;
 
     $action = isset($_POST['action']) ? $_POST['action'] : "";
@@ -508,19 +509,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         $Zalo = new Zalo();
-        $template_id = $Zalo->get_template_id_zns($type_zns);
-        $json = $Zalo->send_zns($phone, $template_id, $template_data);
-        $arr  = json_decode($json, true);
+        $Omni = new OMNI();
+        $template_id = $template_name = '';
+        if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+            $template_id = $Zalo->get_template_id_zns($type_zns);
+            $template_name = $Zalo->get_template_name_zns($template_id);
+            $json = $Zalo->send_zns($phone, $template_id, $template_data);
+        }
+        else {
+            $template_id = $Omni->getTemplateCode($type_zns);
+            $template_name = $Omni->getTemplateName($template_id);
+            $json = $Omni->sendMessage($phone, $template_id, json_decode($template_data, true));
+        }
 
+        $arr  = json_decode($json, true);
         $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
         $template_data = json_decode($template_data, true);
         $template_data['template_id'] = $template_id;
 
-        if(isset($arr['error']) && $arr['error'] == 0) {
+        if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
             $m = new EC_Messages();
             $m->send_from       = $Zalo->get_oa_id();
             $m->send_to         = $phone;
-            $m->content         = $Zalo->get_template_name_zns($template_id);
+            $m->content         = $template_name;
             $m->type            = 'zalo_zns';
             $m->category        = $category;
             $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
@@ -535,8 +546,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             try {
                 // Save zalo message
-                $msg_id = $arr['data']['msg_id'] ?? '';
-                $timestamp = $arr['data']['sent_time'] ?? 0;
+                $msg_id = $arr['data']['msg_id'] ?? ($arr['idOmniMess'] ?? '');
+                $timestamp = $arr['data']['sent_time'] ?? time();
 
                 $zalomes = new EC_Zalo_Messages();
                 $zalomes->id            = '';
@@ -547,7 +558,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $zalomes->timestamp     = $timestamp;
                 $zalomes->type          = 'zns';
                 $zalomes->sub_type      = $type_zns;
-                $zalomes->description   = $Zalo->get_template_name_zns($template_id);
+                $zalomes->description   = $template_name;
                 $zalomes->template_id   = $template_id;
                 $zalomes->data          = json_encode($template_data);
                 $zalomes->response      = trim($json);
@@ -557,7 +568,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Save notes
                 $n = new Note();
                 $n->name            = "Gửi Zalo ZNS";
-                $n->description     = "Gửi Zalo ". $Zalo->get_template_name_zns($template_id) ." đến $phone";
+                $n->description     = "Gửi Zalo $template_name đến $phone";
                 $n->parent_type     = "EC_Flight_Bookings";
                 $n->parent_id       = $parent_id;
                 $n->assigned_user_id = $current_user->id;
@@ -572,7 +583,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
             
             $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo **$phone**");
+            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi $template_name đến Zalo **$phone**");
             
             echo json_encode([
                 "error"   => 0,
@@ -582,12 +593,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
         else {
             $error_code = isset($arr['error']) ? $arr['error'] : '';
-            $message = $Zalo->get_error_description_zns($error_code);
+            if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
+
+            if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+                $message = $Zalo->get_error_description_zns($error_code);
+            }
+            else {
+                $message = $Omni->getErrorDescription($error_code);
+            }
 
             $m = new EC_Messages();
             $m->send_from       = $Zalo->get_oa_id();
             $m->send_to         = $phone;
-            $m->content         = $Zalo->get_template_name_zns($template_id);
+            $m->content         = $template_name;
             $m->type            = 'zalo_zns';
             $m->category        = $category;
             $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
