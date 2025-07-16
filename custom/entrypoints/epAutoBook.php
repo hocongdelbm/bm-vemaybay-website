@@ -414,6 +414,14 @@ try {
                 ]);
                 exit();
             }
+
+            if($isWithin24h === 1) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Vé cận vui lòng tạm thời xuất qua web portal"
+                ]);
+                exit();
+            }
             
             $phuongnamapi = new PhuongNamAPI();
 
