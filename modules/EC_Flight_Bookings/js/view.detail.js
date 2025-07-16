@@ -293,10 +293,21 @@ $(document).ready(function () {
 	$(document).on('click', 'input[name="btnPrintEticket"]', function () {
 		var ln = $(this).attr('ln');
 		$('#what_form').val($(this).closest('form[name="frmPrintEticket"]').attr('id'));
-		$('#frmPrintEticket' + ln).attr('target', '_blank');
-		$('#frmPrintEticket' + ln).attr('action', 'index.php?print=true');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="action"]').val('printeticket');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="return_action"]').val('');
+		$(`#frmPrintEticket${ln}`).attr('target', '_blank');
+		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=true');
+		$(`#frmPrintEticket${ln} input:hidden[name="action"]`).val('printeticket');
+		$(`#frmPrintEticket${ln} input:hidden[name="return_action"]`).val('');
+
+		let checkBoxPassengers = '';
+		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
+			let passId = $(this).attr('data-id');
+			let passName = $(this).find('td.passenger_name .fullname').text();
+			checkBoxPassengers += `<div class="form-check">
+				<input class="form-check-input" type="checkbox" id="pass${passId}" name="passenger_list_print_eticket[]" value="${passId}" checked />
+				<label class="form-check-label" for="pass${passId}" style="vertical-align:sub;">${passName}</label>
+			</div>`;
+		});
+		$('#dlgChonNgonNgu .option-passenger').html(checkBoxPassengers);
 
 		$('#dlgChonNgonNgu').dialog({
 			height: 80,
@@ -308,12 +319,16 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '#btnChonNgonNgu', function () {
-		var what_form = '#' + $('#what_form').val();
-		var lang = $('input:radio[name="ngonngu"]:checked').val();
-		var khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
-		var wayflight = $(what_form + ' input:hidden[name="direction"]').val();
+		let what_form = '#' + $('#what_form').val();
+		let lang = $('input:radio[name="ngonngu"]:checked').val();
+		let khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
+		let wayflight = $(`${what_form} input:hidden[name="direction"]`).val();
+		let checkedPassIds = $("input[name='passenger_list_print_eticket[]']:checked").map(function () {
+			return $(this).val();
+		}).get();
+		let listPassengers = encodeURIComponent(checkedPassIds.join(','));
 
-		$(what_form).attr('action', $(what_form).attr('action') + '&lang=' + lang + '&khuhoi=' + khuhoi + '&wayflight=' + wayflight);
+		$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&khuhoi=${khuhoi}&wayflight=${wayflight}&listPassengers=${listPassengers}`);
 		$(what_form).submit();
 	});
 
