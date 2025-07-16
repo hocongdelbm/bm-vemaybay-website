@@ -1,6 +1,8 @@
 <?php
-global $sugar_config;
-define("SUGAR_CONFIG", $sugar_config);
+if(!defined('SUGAR_CONFIG')) {
+    global $sugar_config;
+    define("SUGAR_CONFIG", $sugar_config);
+}
 
 class OMNI {
     private $endpoint;
@@ -46,8 +48,8 @@ class OMNI {
                 CURLOPT_URL            => $url,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_SSL_VERIFYHOST => 2,
-                CURLOPT_SSL_VERIFYPEER => 1,
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => 0,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => json_encode($requestBody),
                 CURLOPT_TIMEOUT        => 0,
@@ -60,7 +62,7 @@ class OMNI {
             $errNo = curl_errno($curl);
             curl_close($curl);
 
-            if($res  === false || $errNo) {
+            if($res === false || $errNo) {
                 return json_encode(["status" => 0, "message" => "cURL error $errNo: $err"]);
             }
 
@@ -94,25 +96,25 @@ class OMNI {
                 return "345209"; // Thông tin thanh toán
                 break;
             case 'code-one-way':
-                return "288276"; // Code vé một chiều
+                return "466996"; // Code vé một chiều
                 break;
             case 'code-round-trip':
-                return "288279"; // Code vé khứ hồi
+                return "466998"; // Code vé khứ hồi
                 break;
             case 'after-call-sale': 
-                return "346699"; // CSKH sau khi gọi
+                return "467009"; // CSKH sau khi gọi
                 break;
             case 'delay':
-                return "346656"; // Thông báo delay
+                return "467001"; // Thông báo delay
                 break;
             case 'remind-flight':
-                return "346651"; // Nhắc nhở giờ bay
+                return "467004"; // Nhắc nhở giờ bay
                 break;
             case 'points':
-                return "411270"; // Thông báo tích điểm
+                return "467010"; // Thông báo tích điểm
                 break;
             case 'share-phone':
-                return "433046"; // Gửi thông tin chương trình chia sẻ SĐT
+                return "467011"; // Gửi thông tin chương trình chia sẻ SĐT
                 break;
             default:
                 return "";
@@ -136,23 +138,23 @@ class OMNI {
             case '345209':
                 return "Thông tin thanh toán";
                 break;
-            case '288276':
-            case '288279':
+            case '466996':
+            case '466998':
                 return "Thông tin code vé";
                 break;
-            case '346656':
+            case '467001':
                 return "Thông báo delay";
                 break;
-            case '346651':
+            case '467004':
                 return "Nhắc nhở giờ bay";
                 break;
-            case '346699':
+            case '467009':
                 return "Chăm sóc khách hàng (Call sale)";
                 break;
-            case '411270':
+            case '467010':
                 return "Thông báo tích điểm";
                 break;
-            case '433046':
+            case '467011':
                 return "Gửi thông tin chương trình chia sẻ SĐT";
                 break;
             default:

@@ -1,6 +1,8 @@
 <?php
-global $sugar_config;
-define("SUGAR_CONFIG", $sugar_config);
+if(!defined('SUGAR_CONFIG')) {
+    global $sugar_config;
+    define("SUGAR_CONFIG", $sugar_config);
+}
 
 class Zalo {
     private $token_path;
