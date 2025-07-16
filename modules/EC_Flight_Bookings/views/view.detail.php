@@ -66,7 +66,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.8"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.3.9"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_phuongnam/booking.js?v=1.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.8"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3"></script>
@@ -2227,8 +2227,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $html;
 	}
 
-	function populateWinLoseTemplate()
-	{
+	function populateWinLoseTemplate() {
 		$html = '
 			<div id="dlgLyDoThangThua" style="display:none;" title="Xác nhận hủy Booking">
 				<table cellpadding="0" cellspacing="0" border="0">
@@ -2256,10 +2255,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $html;
 	}
 
-	function populatePrintLanguage()
-	{
-		$html = '
-		<div id="dlgChonNgonNgu" style="display:none;" title="Ngôn ngữ">
+	function populatePrintLanguage() {
+		$html = '<div id="dlgChonNgonNgu" style="display:none;" title="Ngôn ngữ">
 			<div class="d-flex flex-column align-items-center gap-3">
 				<div class="option-group d-flex gap-4">
 					<div class="form-group">
@@ -2275,6 +2272,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<input class="form-check-input" style="vertical-align:middle; margin-top: 0;" ' . ($this->bean->flight_type == '0' ? 'checked="checked"' : '') . ' type="checkbox" name="khuhoi" id="khuhoi" value="' . ($this->bean->flight_type == '0' ? 1 : 0) . '" /> 
 					</div>
 				</div>
+				<div class="option-passenger"></div>
 				<div class="form-group">
 					<input type="hidden" id="what_form" value="" />
 					<input type="button" class="btn btn-primary" id="btnChonNgonNgu" value="Tiếp tục" title="Tiếp tục" />
