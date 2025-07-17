@@ -36,7 +36,7 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/v3/getFlights");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/getFlights");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
@@ -711,7 +711,7 @@ class PhuongNamAPI {
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/v3/getBaggage");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/getBaggage");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
