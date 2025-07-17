@@ -864,9 +864,8 @@ try {
                     $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
                     $systemName = $mappingSystemCodeName[$systemCode] ?? 'Quốc tế'; // Airline name
 
-                    $m = "Xuất vé $systemName: **$bookingCode** bởi **$fullname**";
+                    $m = "Xuất vé $systemName: ".Mattermost::markdownLink($linkBooking, $bookingCode)." bởi **$fullname**";
                     $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
-                    $m .= "\n" . Mattermost::markdownLink($linkBooking, "Mở booking $bookingCode");
                     Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
                 }
             }
