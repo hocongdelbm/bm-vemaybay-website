@@ -449,6 +449,10 @@ try {
                     echo json_encode(["status" => 0, "message" => "$name là bắt buộc"]);
                     exit();
                 }
+                elseif($key == "contactAddress" && $airlineCode == 'VJ' && strlen($contactAddress) > 50) {
+                    echo json_encode(["status" => 0, "message" => "Vietjet địa chỉ liên hệ tối đa 50 ký tự"]);
+                    exit();
+                }
             }
 
             // Passengers info
