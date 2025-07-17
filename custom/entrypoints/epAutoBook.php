@@ -436,7 +436,7 @@ try {
             $contactTitle = $booking->contact_title == '0' ? 'Mr' : 'Ms';
             $contactPhone = trim($booking->phone);
             $contactEmail = trim($booking->email_reservation);
-            $contactAddress = !empty($booking->address) ? trim($booking->address) : '';
+            $contactAddress = !empty($booking->address) ? trim($booking->address) : '48/8 Lam Sơn, P. Gia Định';
             $contactRequiredFields = [
                 "contactTitle" => "Danh xưng liên hệ (Mr/Ms)",
                 "contactName" => "Họ tên người liên hệ",
