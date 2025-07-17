@@ -59,7 +59,6 @@ $(document).ready(function () {
                     catch (e) {
                         showModalNotify("error", "Lỗi trong quá trình xử lý", e.message);
                         console.error(e);
-                        console.error("Response was:", response);
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -191,7 +190,9 @@ $(document).ready(function () {
             var verifyResponse = {};
             var isWithin24h = within24h.includes('1') ? 1 : 0;
             if(statusAutoBook == 1) {
-                setTimeout(() => {showStepsInDialogAutoBook(step);}, 300);
+                const timeoutShowStep2 = setTimeout(() => {
+                    showStepsInDialogAutoBook(step);
+                }, 300);
 
                 var flights = {};
                 if(response1.data && response1.data.standardData && Object.keys(response1.data.standardData).length > 0) {
@@ -216,17 +217,21 @@ $(document).ready(function () {
                         })
                     });
 
-                    if(!verifyResponse || !verifyResponse.status || verifyResponse.status == 0 || !verifyResponse.requestBody) {
-                        showStepsInDialogAutoBook(step, '', verifyResponse.message ?? 'Lỗi, vui lòng thử lại sau');
+                    if(!verifyResponse.hasOwnProperty('status') || verifyResponse.status == 0 || !verifyResponse.hasOwnProperty('requestBody') || verifyResponse.requestBody.length == 0) {
+                        clearTimeout(timeoutShowStep2);
+                        showStepsInDialogAutoBook(step, '', verifyResponse.hasOwnProperty('message') ? verifyResponse.message : 'Lỗi, vui lòng thử lại sau');
                         return;
                     }
                 }
                 else {
+                    clearTimeout(timeoutShowStep2);
                     showStepsInDialogAutoBook(step, '', 'Thiếu thông tin xác thực');
                     console.error(flights);
+                    return;
                 }
             }
             else if(statusAutoBook == 0) {
+                clearTimeout(timeoutShowStep2);
                 showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
                 return;
             }
@@ -342,7 +347,6 @@ $(document).ready(function () {
                         hideDialogAutoBook();
                         showModalNotify("error", "Cập nhật không thành công, vui lòng F5 và thử lại", e.message);
                         console.error(e);
-                        console.error("Response was:", response);
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
