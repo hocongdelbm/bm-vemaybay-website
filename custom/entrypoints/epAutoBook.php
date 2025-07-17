@@ -158,7 +158,7 @@ try {
                 $dataContact['email'] = $booking->email_reservation;
                 $dataContact['phone'] = trim($booking->phone);
                 $dataContact['title'] = $booking->contact_title == '0' ? 'Mr.' : 'Ms.';
-                $dataContact['address'] = !empty($booking->address) ? trim($booking->address) : '';
+                $dataContact['address'] = !empty($booking->address) ? trim($booking->address) : '48/8 Lam Sơn, P. Gia Định';
                 
                 echo json_encode([
                     'status' => 1,
