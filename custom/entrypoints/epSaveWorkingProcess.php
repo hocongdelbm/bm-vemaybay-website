@@ -274,21 +274,23 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									}
 								}
 								else if(5 < date('H') && date('H') < 22) {
-									$template_id = $Zalo->get_template_id_zns('points');
+									require_once("modules/EC_Zalo/OMNI.php");
+									$Omni = new OMNI();
+									$template_id = $Omni->getTemplateCode('points');
 									$template_data = json_encode([
 										"point" => $point,
 										"name" => "bạn",
 										"booking" => $record_name,
 										"total_point" => $total_point
 									]);
-									$json = $Zalo->send_zns($con_phone, $template_id, $template_data);
+									$json = $Omni->sendMessage($con_phone, $template_id, $template_data);
 									$arr  = json_decode($json, true);
 
 									if(isset($arr['error']) && $arr['error'] == 0) {
 										$m = new EC_Messages();
 										$m->send_from       = $Zalo->get_oa_id();
 										$m->send_to         = $con_phone;
-										$m->content         = $Zalo->get_template_name_zns($template_id);
+										$m->content         = $Omni->getTemplateName($template_id);
 										$m->type            = 'zalo_zns';
 										$m->category        = 'transaction';
 										$m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
