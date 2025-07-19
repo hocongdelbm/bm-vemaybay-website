@@ -1018,12 +1018,16 @@ function calculateLineTotal(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
 	// }
 
+	// Chiết khấu
 	if (supplier_discount != 0) {
 		total_bought_price = Math.abs(total_bought_price - supplier_discount);
+		total_price = Math.abs(total_price - supplier_discount);
 	}
 
+	// Phí xuất vé
 	if (supplier_ticketing_fee != 0) {
-		total_bought_price = Math.abs(total_bought_price + supplier_ticketing_fee);
+		total_bought_price += supplier_ticketing_fee;
+		total_price += supplier_ticketing_fee
 	}
 
 	$('#bkd_quantity' + ln).val(qty);
