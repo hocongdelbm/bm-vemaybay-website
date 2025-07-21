@@ -38,11 +38,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // );
 
                 global $sugar_config;
-                $message = Mattermost::$line_separation;
-                $message .= Mattermost::markdownHeading("[INFO] Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại!\n");
-                $message .= "SĐT: **$call_to**\n\n";
-                $message .= json_encode($params);
-                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
+                
+                // $message = Mattermost::$line_separation;
+                // $message .= Mattermost::markdownHeading("[INFO] Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại!\n");
+                // $message .= "SĐT: **$call_to**\n\n";
+                // $message .= json_encode($params);
+                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
+
+                $message = "<b>Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại!</b>";
+                $message .= "\nSĐT: <b>$call_to</b>";
+                $message .= "\n<pre>".json_encode($params)."</pre>";
+                $botToken   = $sugar_config['telegram']['cty']['bot_token'] ?? '';
+				$chatId     = $sugar_config['telegram']['cty']['chat_id'] ?? '';
+				Telegram::sendMessage($message, $botToken, $chatId);
             }
 
             // if (!empty($uuid) || !empty($call_id)) {

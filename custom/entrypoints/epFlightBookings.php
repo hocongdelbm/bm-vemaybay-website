@@ -493,7 +493,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 
 	Sửa trên chi tiết hành trình
 		- 3: đổi ngày bay đi: mở ô ngày h bay đi, lưu thành một dòng chi tiết mới
-	*/
+*/
 if (isset($_POST['for']) && $_POST['for'] == 'populateBookingDetail') {
 	$line_detail = populateLineDetails($_POST['id']);
 	// $pass_detail = populateLinePassengers($_POST['id'], $_POST['flight_type'], '0', $_POST['airline_in'], $_POST['airline_out'], $_POST['ticket_class0'], $_POST['ticket_class1']);

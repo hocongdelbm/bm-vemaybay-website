@@ -1832,11 +1832,11 @@ function calculateTotal() {
 	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
 
 	// Hiện tại đã off % discount
-	var discount_percent = unformatNumber($('#discount_percent :selected').val());
+	// var discount_percent = unformatNumber($('#discount_percent :selected').val());
 	var discount_amount = unformatNumber($.trim($('#discount_amount span.discount_value').text()));
-	if (discount_percent > 0) {
-		discount_amount = total_amount * discount_percent / 100;
-	}
+	// if (discount_percent > 0) {
+	// 	discount_amount = total_amount * discount_percent / 100;
+	// }
 	total_amount -= discount_amount;
 
 	// Display
