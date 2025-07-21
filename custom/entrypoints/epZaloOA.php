@@ -576,14 +576,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
             catch(Exception $e) {
                 global $sugar_config;
-                $message = Mattermost::$line_separation;
-                $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
-                $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json";
-                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                // $message = Mattermost::$line_separation;
+                // $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
+                // $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json";
+                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                $message = "<b>[ERROR] ZNS message saved failed</b>";
+                $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$json</pre>";
+                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
             }
             
+            // $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi $template_name đến Zalo **$phone**");
+
             $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi $template_name đến Zalo **$phone**");
+            $botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+            $chatId = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+            Telegram::sendMessage("<b>$fullname</b>: Gửi $template_name đến Zalo <b>$phone</b>", $botToken, $chatId);
             
             echo json_encode([
                 "error"   => 0,

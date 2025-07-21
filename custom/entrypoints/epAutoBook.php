@@ -76,10 +76,13 @@ try {
                     }
                 }
 
-                if(isset($dataJourneys['dep']) && isset($dataJourneys['ret']) && $dataJourneys['dep']['airlineCode'] != $dataJourneys['ret']['airlineCode']) {
+                if(isset($dataJourneys['dep']) && isset($dataJourneys['ret'])
+                    && $dataJourneys['dep']['airlineCode'] != $dataJourneys['ret']['airlineCode']
+                    && ($dataJourneys['dep']['airlineCode'] == 'QH' || $dataJourneys['ret']['airlineCode'] == 'QH')
+                ) {
                     echo json_encode([
                         'status' => 0,
-                        'message' => 'Chỉ được autobook 1 hãng duy nhất',
+                        'message' => 'Hãng Bamboo phải autobook riêng',
                     ]);
                     exit();
                 }
@@ -174,12 +177,12 @@ try {
             }
 
             echo json_encode([
-                'status' => 0,
-                'message' => 'Invalid params',
-                'params' => [
-                    'bookingId' => $bookingId,
-                    'listItineraryId' => $listItineraryId,
-                    'listPassengerId' => $listPassengerId
+                "status" => 0,
+                "message" => "Dữ liệu không hợp lệ",
+                "params" => [
+                    "bookingId" => $bookingId,
+                    "listItineraryId" => $listItineraryId,
+                    "listPassengerId" => $listPassengerId
                 ]
             ]);
             exit();
@@ -287,7 +290,7 @@ try {
 
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Flight $flightNo not found",
+                    "message" => "Không tìm thấy chuyến bay $flightNo",
                     "data" => $flights
                 ]);
                 exit();
@@ -308,7 +311,7 @@ try {
             if(is_null($direction) || empty($bookingId)) {
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid params",
+                    "message" => "Dữ liệu không hợp lệ",
                     "params" => [
                         "bookingId" => $bookingId,
                         "direction" => $direction
@@ -405,7 +408,7 @@ try {
             if(!$flights || !is_array($flights) || empty($flights) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid params",
+                    "message" => "Dữ liệu không hợp lệ",
                     "params" => [
                         "bookingId" => $bookingId,
                         "flights" => $flights,
@@ -417,9 +420,17 @@ try {
             
             $phuongnamapi = new PhuongNamAPI();
 
-            // Get airline code
-            $airlineCode = '';
-            foreach($flights as $f) $airlineCode = $f['SystemCode'];
+            // Get airline codes
+            $airlineCodes = [];
+            foreach($flights as $f) $airlineCodes[] = $f['SystemCode'];
+
+            if($isWithin24h === 1 && count(array_unique($airlineCodes)) === 2) {
+                echo json_encode([
+                    "status" => 0,
+                    "message" => "Vé cận phải giữ chung 1 hãng",
+                ]);
+                exit();
+            }
 
             // Contact info
             $booking = new EC_Flight_Bookings();
@@ -441,7 +452,7 @@ try {
                     echo json_encode(["status" => 0, "message" => "$name là bắt buộc"]);
                     exit();
                 }
-                elseif($key == "contactAddress" && $airlineCode == 'VJ' && strlen($contactAddress) > 50) {
+                elseif($key == "contactAddress" && in_array('VJ', $airlineCodes) && strlen($contactAddress) > 50) {
                     echo json_encode(["status" => 0, "message" => "Vietjet địa chỉ liên hệ tối đa 50 ký tự"]);
                     exit();
                 }
@@ -473,7 +484,7 @@ try {
 
                 $lastName  = $phuongnamapi->getLastName($row['name'] ?? '');
                 $firstName = $phuongnamapi->getFirstName($row['name'] ?? '');
-                if($airlineCode == 'QH' && $row['type'] === '2') {
+                if(in_array('QH', $airlineCodes) && $row['type'] === '2') {
                     $firstName = $phuongnamapi->getOnlyFirstName($row['name'] ?? '');
                 }
 
@@ -539,7 +550,7 @@ try {
                 $verifyFailedMessage = '';
 
                 // VN combines round trips with the same session verification and fare pricing
-                if($airlineCode == 'VN' && count($flights) == 2) {
+                if(count(array_unique($airlineCodes)) === 1 && $airlineCodes[0] === 'VN' && count($flights) == 2) {
                     $sessionVerify = $responseArr['data'][0]['SessionVerify'] ?? '';
                     $verifyData = $responseArr['data'][0]['VerifyData'] ?? [];
 
@@ -567,7 +578,7 @@ try {
                             }
 
                             // Bamboo has to update request body into verify data
-                            if($airlineCode == 'QH' && isset($res['VerifyData']) && !empty($res['VerifyData'])) {
+                            if(in_array('QH', $airlineCodes) && isset($res['VerifyData']) && !empty($res['VerifyData'])) {
                                 // Verify customers info data
                                 $verifyCustomerInfos = $res['VerifyData']['CustomerInfos'] ?? [];
                                 if(is_array($verifyCustomerInfos) && !empty($verifyCustomerInfos)) $requestBody['CustomerInfos'] = $verifyCustomerInfos;
@@ -603,7 +614,7 @@ try {
             if(!$requestBody || !is_array($requestBody) || empty($requestBody) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid params",
+                    "message" => "Dữ liệu không hợp lệ",
                     "params" => [
                         "requestBody" => $requestBody,
                         "listPassengerId" => $listPassengerId,
@@ -640,14 +651,23 @@ try {
                         $pnr = trim($bookingCode[1] ?? '');
                         $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
-                        // Send to Mattermost
+                        // Send notification
                         try {
                             $fullname = trim($current_user->last_name.' '.$current_user->first_name);
                             $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
-                            $m = "Giữ chỗ $systemName: ".Mattermost::markdownLink($linkBooking, $pnr)." bởi **$fullname**";
-                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "Xuất vé cận $systemName: **$pnr** bởi **$fullname**";
-                            $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+
+                            // $m = "Giữ chỗ $systemName: ".Mattermost::markdownLink($linkBooking, $pnr)." bởi **$fullname**";
+                            // if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "Xuất vé cận $systemName: **$pnr** bởi **$fullname**";
+                            // $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
+                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+
+                            $link = "<a href=\"".$linkBooking."\">$pnr</a>";
+                            $m = "Giữ chỗ $systemName: $link bởi <b>$fullname</b>";
+                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "<b>Xuất vé cận $systemName: $link bởi $fullname</b>";
+                            if(isset($f["TransactionId"]) && !empty($f["TransactionId"]))$m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
+                            $botToken   = $sugar_config['telegram']['phuongnamapi']['bot_token'] ?? '';
+                            $chatId     = $sugar_config['telegram']['phuongnamapi']['chat_id'] ?? '';
+                            Telegram::sendMessage($m, $botToken, $chatId);
                         }
                         catch(Throwable $th) {}
 
@@ -662,9 +682,16 @@ try {
                                         AND id IN ($inListPassengerId)
                                         AND deleted = 0";
                             if(!$db->query($sql)) {
-                                $m = "**RUN QUEYRY FAIL**";
-                                $m .= "`$sql`";
-                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m .= "`$sql`";
+                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+
+                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "<pre>$sql</pre>";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
                             }
 
                             // Update supplier
@@ -674,14 +701,30 @@ try {
                                         ,date_modified = '$dateModified'
                                     WHERE booking_id = '$bookingId' AND deleted = 0";
                             if(!$db->query($sql)) {
-                                $m = "**RUN QUEYRY FAIL**";
-                                $m .= "`$sql`";
-                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m .= "`$sql`";
+                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+
+                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "<pre>$sql</pre>";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
                             }
                         }
                         else {
+                            $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
+                            if($systemCode == $airlineCodeOutbound) {
+                                $colNamePNR = 'pnr_outbound';
+                                $direction = '0';
+                            }
+                            else {
+                                $colNamePNR = 'pnr_inbound';
+                                $direction = '1';
+                            }
+
                             // Update PNR
-                            $colNamePNR = $i == 0 ? 'pnr_outbound' : 'pnr_inbound';
                             $sql = "UPDATE ec_booking_passengers
                                     SET $colNamePNR = '$pnr'
                                         ,modified_user_id = '$current_user->id'
@@ -690,9 +733,16 @@ try {
                                         AND id IN ($inListPassengerId)
                                         AND deleted = 0";
                             if(!$db->query($sql)) {
-                                $m = "**RUN QUEYRY FAIL**";
-                                $m .= "`$sql`";
-                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m .= "`$sql`";
+                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                                
+                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "<pre>$sql</pre>";
+                                $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
                             }
 
                             // Update supplier
@@ -700,11 +750,18 @@ try {
                                     SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
                                         ,modified_user_id = '$current_user->id'
                                         ,date_modified = '$dateModified'
-                                    WHERE booking_id = '$bookingId' AND direction = '$i' AND deleted = 0";
+                                    WHERE booking_id = '$bookingId' AND direction = '$direction' AND deleted = 0";
                             if(!$db->query($sql)) {
-                                $m = "**RUN QUEYRY FAIL**";
-                                $m .= "`$sql`";
-                                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m .= "`$sql`";
+                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+
+                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "<pre>$sql</pre>";
+                                $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
                             }
                         }
                     }
@@ -721,7 +778,7 @@ try {
             if(empty($systemCode) || empty($bookingCode)) {
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid params",
+                    "message" => "Dữ liệu không hợp lệ",
                     "params" => [
                         "systemCode" => $systemCode,
                         "bookingCode" => $bookingCode,
@@ -835,7 +892,7 @@ try {
             if(empty($systemCode) || empty($bookingCode)) {
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid params",
+                    "message" => "Dữ liệu không hợp lệ",
                     "params" => [
                         "systemCode" => $systemCode,
                         "bookingCode" => $bookingCode,
@@ -847,7 +904,7 @@ try {
             $phuongnamapi = new PhuongNamAPI();
             $response = $phuongnamapi->payForBooking($systemCode, $bookingCode);
 
-            // Send to Mattermost
+            // Send notification
             try {
                 $responseArr = json_decode($response, true);
                 if(isset($responseArr['status']) && $responseArr['status'] == 1) {
@@ -856,9 +913,16 @@ try {
                     $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
                     $systemName = $mappingSystemCodeName[$systemCode] ?? 'Quốc tế'; // Airline name
 
-                    $m = "Xuất vé $systemName: ".Mattermost::markdownLink($linkBooking, $bookingCode)." bởi **$fullname**";
-                    $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                    // $m = "Xuất vé $systemName: ".Mattermost::markdownLink($linkBooking, $bookingCode)." bởi **$fullname**";
+                    // $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
+                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+
+                    $link = "<a href=\"".$linkBooking."\">$bookingCode</a>";
+                    $m = "<b>Xuất vé $systemName: $link bởi $fullname</b>";
+                    if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
+                    $botToken   = $sugar_config['telegram']['phuongnamapi']['bot_token'] ?? '';
+                    $chatId     = $sugar_config['telegram']['phuongnamapi']['chat_id'] ?? '';
+                    Telegram::sendMessage($m, $botToken, $chatId);
                 }
             }
             catch(Throwable $th) {}
@@ -874,7 +938,7 @@ try {
             if(empty($systemCode) || strlen($bookingCode) < 6) {
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid params",
+                    "message" => "Dữ liệu không hợp lệ",
                     "params" => [
                         "systemCode" => $systemCode,
                         "bookingCode" => $bookingCode,
@@ -906,7 +970,7 @@ try {
             if(empty($systemCode) || strlen($bookingCode) < 6 || empty($serviceKey) || empty($personOrgId)) {
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid params",
+                    "message" => "Dữ liệu không hợp lệ",
                     "params" => [
                         "systemCode" => $systemCode,
                         "bookingCode" => $bookingCode,

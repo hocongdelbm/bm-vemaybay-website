@@ -219,10 +219,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $client->close();
                 }
                 catch(Exception $e) {
-                    $message = Mattermost::$line_separation;
-                    $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                    $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                    // $message = Mattermost::$line_separation;
+                    // $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
+                    // $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
+                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                    $message = "<b>[WARNING] Webhook Zalo</b>";
+                    $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
+                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                 }
                 finally {
                     header("HTTP/1.1 200 OK");
@@ -254,12 +261,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
 
                         if($count_contact > 1) {
-                            Mattermost::sendMessage(
-                                $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM**",
-                                [],
-                                ["priority" => [ "priority" => "important"]]
-                            );
+                            // Mattermost::sendMessage(
+                            //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                            //     "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM**",
+                            //     [],
+                            //     ["priority" => [ "priority" => "important"]]
+                            // );
+
+                            $message = "<b>Cảnh báo từ Zalo Webhook</b>";
+                            $message .= "\nZalo ID $zalo_user_id có nhiều hơn 1 liên hệ trong BM";
+                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                            $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                         }
                         else {
                             if(empty($contact_id)) {
@@ -269,10 +283,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                 $db->query($sql);
 
-                                Mattermost::sendMessage(
-                                    $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                    "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
-                                );
+                                // Mattermost::sendMessage(
+                                //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                //     "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
+                                // );
+
+                                $message    = "Hệ thống đã map SĐT $input_phone với Zalo ID $zalo_user_id";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                             }
                             elseif(empty($contact_phone)) {
                                 // Cập nhật $zalo_user_id cho contact có $input_phone
@@ -281,12 +301,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                 $db->query($sql);
 
-                                Mattermost::sendMessage(
-                                    $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                    "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (contact id)**",
-                                    [],
-                                    ["priority" => [ "priority" => "important"]]
-                                );
+                                // Mattermost::sendMessage(
+                                //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                //     "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (contact id)**",
+                                //     [],
+                                //     ["priority" => [ "priority" => "important"]]
+                                // );
+
+                                $message = "<b>Cảnh báo từ Zalo Webhook</b>";
+                                $message .= "\nZalo ID $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (Contact ID)";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                             }
                             elseif(!empty($contact_phone) && $contact_phone != $input_phone) {
                                 // Get zalo phone
@@ -310,10 +337,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                             WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                         $db->query($sql_2);
 
-                                        Mattermost::sendMessage(
-                                            $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                            "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
-                                        );
+                                        // Mattermost::sendMessage(
+                                        //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                        //     "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
+                                        // );
+
+                                        $message    = "Hệ thống đã map SĐT $input_phone với Zalo ID $zalo_user_id";
+                                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                        $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                                     }
                                 }
                             }
@@ -357,11 +390,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
             }
             else if($event == 'update_user_info') {
-                Mattermost::sendMessage(
-                    $sugar_config['mattermost']['channel_id_test'] ?? '',
-                    "`$response`"
-                );
-
                 header("HTTP/1.1 200 OK");
                 exit();
             }
