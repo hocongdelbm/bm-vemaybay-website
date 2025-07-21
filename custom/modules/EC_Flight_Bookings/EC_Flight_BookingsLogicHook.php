@@ -228,109 +228,213 @@ class EC_Flight_BookingsLogicHook
 			$list_name_help = ['PANDA PO', 'BAO GIA KHACH'];
 			$list_name_reference = ['THAM KHAO'];
 
-			// Send Mattermost
-			$message = '';
-			$props = [];
-			$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=" . $focus->id;
-			if (in_array(strtoupper($focus->contact_name), $list_name_reference)) {
-				$props = [
-					"attachments" => [
-						[
-							"color" => "#0b58ca",
-							"title" => "Booking tham khảo: $focus->name",
-							"title_link" => $link,
-							"text" => "SĐT: $focus->phone",
-						]
-					]
-				];
-			}
-			else if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
-				$props = [
-					"attachments" => [
-						[
-							"color" => "#0b58ca",
-							"title" => "Booking báo giá khách: $focus->name",
-							"title_link" => $link,
-							"text" => "SĐT: $focus->phone",
-						]
-					]
-				];
-			}
-			else if (in_array(strtoupper($focus->contact_name), $list_name_test)) {
-				$props = [
-					"attachments" => [
-						[
-							"color" => "#65676b",
-							"title" => "Demo booking, test hệ thống",
-							"title_link" => $link,
-							"text" => $focus->name 
-						]
-					]
-				];
-			}
-			else {
-				$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
+			// // Send Mattermost
+			// $message = '';
+			// $props = [];
+			// $link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=" . $focus->id;
+			// if (in_array(strtoupper($focus->contact_name), $list_name_reference)) {
+			// 	$props = [
+			// 		"attachments" => [
+			// 			[
+			// 				"color" => "#0b58ca",
+			// 				"title" => "Booking tham khảo: $focus->name",
+			// 				"title_link" => $link,
+			// 				"text" => "SĐT: $focus->phone",
+			// 			]
+			// 		]
+			// 	];
+			// }
+			// else if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
+			// 	$props = [
+			// 		"attachments" => [
+			// 			[
+			// 				"color" => "#0b58ca",
+			// 				"title" => "Booking báo giá khách: $focus->name",
+			// 				"title_link" => $link,
+			// 				"text" => "SĐT: $focus->phone",
+			// 			]
+			// 		]
+			// 	];
+			// }
+			// else if (in_array(strtoupper($focus->contact_name), $list_name_test)) {
+			// 	$props = [
+			// 		"attachments" => [
+			// 			[
+			// 				"color" => "#65676b",
+			// 				"title" => "Demo booking, test hệ thống",
+			// 				"title_link" => $link,
+			// 				"text" => $focus->name 
+			// 			]
+			// 		]
+			// 	];
+			// }
+			// else {
+			// 	$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
 
-				// User admin, ksnb
-				if ($focus->assigned_user_id != '1' || $focus->assigned_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
-					// Cập nhật lại người giao cho
-					$sql = "UPDATE ec_flight_bookings
-						SET assigned_user_id = '$focus->assigned_user_id'
-						WHERE id = '$focus->id'";
+			// 	// User admin, ksnb
+			// 	if ($focus->assigned_user_id != '1' || $focus->assigned_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
+			// 		// Cập nhật lại người giao cho
+			// 		$sql = "UPDATE ec_flight_bookings
+			// 			SET assigned_user_id = '$focus->assigned_user_id'
+			// 			WHERE id = '$focus->id'";
 
-					$focus->db->query($sql);
-					$user = new User;
-					$user->retrieve($focus->assigned_user_id);
+			// 		$focus->db->query($sql);
+			// 		$user = new User;
+			// 		$user->retrieve($focus->assigned_user_id);
 
-					$props = [
-						"attachments" => [
-							[
-								"color" => "#0b58ca",
-								"title" => "Booking mới: $focus->name",
-								"title_link" => $link,
-								"text" => trim("Giao cho: $user->last_name $user->first_name"),
-								"fields"=> [
+			// 		$props = [
+			// 			"attachments" => [
+			// 				[
+			// 					"color" => "#0b58ca",
+			// 					"title" => "Booking mới: $focus->name",
+			// 					"title_link" => $link,
+			// 					"text" => trim("Giao cho: $user->last_name $user->first_name"),
+			// 					"fields"=> [
+			// 						[
+			// 							"short" => true,
+			// 							"title" => $focus->phone,
+			// 							"value" => ""
+			// 						],
+			// 						[
+			// 							"short" => true,
+			// 							"title" => strip_tags(htmlspecialchars($focus->contact_name)),
+			// 							"value" => ""
+			// 						]
+			// 					]
+			// 				]
+			// 			]
+			// 		];
+			// 	}
+			// 	else {
+			// 		$props = [
+			// 			"attachments" => [
+			// 				[
+			// 					"color" => "#0b58ca",
+			// 					"title" => "Booking mới: $focus->name",
+			// 					"title_link" => $link,
+			// 					"text" => "",
+			// 					"fields"=> [
+			// 						[
+			// 							"short" => true,
+			// 							"title" => $focus->phone,
+			// 							"value" => ""
+			// 						],
+			// 						[
+			// 							"short" => true,
+			// 							"title" => strip_tags(htmlspecialchars($focus->contact_name)),
+			// 							"value" => ""
+			// 						]
+			// 					]
+			// 				]
+			// 			]
+			// 		];
+			// 	}
+			// }
+			// Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message, $props);
+
+			// Send Telegram
+			try {
+				$messageData = [];
+				$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=" . $focus->id;
+				if (in_array(strtoupper($focus->contact_name), $list_name_reference)) {
+					$messageData = [
+						'text' => "Booking tham khảo: $focus->name - $focus->phone",
+						'parse_mode' => 'HTML',
+						'reply_markup' => [
+							'inline_keyboard' => [
+								[
 									[
-										"short" => true,
-										"title" => $focus->phone,
-										"value" => ""
+										'text' => 'Mở booking',
+										'url' => $link,
 									],
+								],
+							],
+						]
+					];
+				}
+				else if (in_array(strtoupper($focus->contact_name), $list_name_help)) {
+					$messageData = [
+						'text' => "Booking báo giá khách: $focus->name - $focus->phone",
+						'parse_mode' => 'HTML',
+						'reply_markup' => [
+							'inline_keyboard' => [
+								[
 									[
-										"short" => true,
-										"title" => strip_tags(htmlspecialchars($focus->contact_name)),
-										"value" => ""
-									]
-								]
-							]
+										'text' => 'Mở booking',
+										'url' => $link,
+									],
+								],
+							],
+						]
+					];
+				}
+				else if (in_array(strtoupper($focus->contact_name), $list_name_test)) {
+					$messageData = [
+						'text' => "Demo booking, test hệ thống: $focus->name",
+						'parse_mode' => 'HTML',
+						'reply_markup' => [
+							'inline_keyboard' => [
+								[
+									[
+										'text' => 'Mở booking',
+										'url' => $link,
+									],
+								],
+							],
 						]
 					];
 				}
 				else {
-					$props = [
-						"attachments" => [
-							[
-								"color" => "#0b58ca",
-								"title" => "Booking mới: $focus->name",
-								"title_link" => $link,
-								"text" => "",
-								"fields"=> [
+					$focus->assigned_user_id = $onl->assignBooking($focus->id, $focus->total_qty);
+
+					// User admin, ksnb
+					if ($focus->assigned_user_id != '1' || $focus->assigned_user_id != 'e3bbb3e5-6660-0bf7-8976-54869c4ee609') {
+						// Cập nhật lại người giao cho
+						$sql = "UPDATE ec_flight_bookings
+							SET assigned_user_id = '$focus->assigned_user_id'
+							WHERE id = '$focus->id'";
+
+						$focus->db->query($sql);
+						$user = new User;
+						$user->retrieve($focus->assigned_user_id);
+
+						$messageData = [
+							'text' => "<b>Booking mới: $focus->name</b> - " . strip_tags(htmlspecialchars($focus->contact_name)) . " " . $focus->phone . "\n" . trim("Giao cho: $user->last_name $user->first_name"),
+							'parse_mode' => 'HTML',
+							'reply_markup' => [
+								'inline_keyboard' => [
 									[
-										"short" => true,
-										"title" => $focus->phone,
-										"value" => ""
+										[
+											'text' => 'Mở booking',
+											'url' => $link,
+										],
 									],
-									[
-										"short" => true,
-										"title" => strip_tags(htmlspecialchars($focus->contact_name)),
-										"value" => ""
-									]
-								]
+								],
 							]
-						]
-					];
+						];
+					}
+					else {
+						$messageData = [
+							'text' => "<b>Booking mới: $focus->name</b> - " . strip_tags(htmlspecialchars($focus->contact_name)) . " " . $focus->phone,
+							'parse_mode' => 'HTML',
+							'reply_markup' => [
+								'inline_keyboard' => [
+									[
+										[
+											'text' => 'Mở booking',
+											'url' => $link,
+										],
+									],
+								],
+							]
+						];
+					}
 				}
+				$botToken = $sugar_config['telegram']['cty']['bot_token'] ?? '';
+				$chatId = $sugar_config['telegram']['cty']['chat_id'] ?? '';
+				Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
 			}
-			Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message, $props);
+			catch(Exception $e) {}
 		}
 	}
 
