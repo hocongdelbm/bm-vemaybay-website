@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 try {
     require_once("modules/EC_Flight_Bookings/PhuongNamAPI.php");
 
