@@ -6,7 +6,8 @@ try {
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         global $db, $current_user;
-        $mappingSystemCodeName = ['VJ' => 'Vietjet Air', 'VN' => 'Vietnam Airlines', 'QH' => 'Bamboo Airways', 'VU' => 'Vietravel Airlines']; 
+        $mappingSystemCodeName = ['VJ' => 'Vietjet Air', 'VN' => 'Vietnam Airlines', 'QH' => 'Bamboo Airways', 'VU' => 'Vietravel Airlines'];
+        $arrMapAirlineCode = ['VJA' => 'VJ', 'VNA' => 'VN', 'VNP' => 'VN', 'BBA' => 'QH', 'VTA' => 'VU'];
         $requestData = json_decode(file_get_contents('php://input'), true) ?? [];
         $action = isset($requestData['action']) ? $requestData['action'] : "";
 
@@ -14,7 +15,6 @@ try {
             $bookingId = $requestData['bookingId'] ?? '';
             $listItineraryId = $requestData['listItineraryId'] ?? [];
             $listPassengerId = $requestData['listPassengerId'] ?? [];
-            $arrMapAirlineCode = ['VJA' => 'VJ', 'VNA' => 'VN', 'VNP' => 'VN', 'BBA' => 'QH', 'VTA' => 'VU'];
 
             if(!empty($bookingId) && !empty($listItineraryId) && !empty($listPassengerId)) {
                 // Thông tin hành trình
@@ -717,7 +717,7 @@ try {
                         }
                         else {
                             $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
-                            if($systemCode == $airlineCodeOutbound) {
+                            if($systemCode == ($arrMapAirlineCode[$airlineCodeOutbound] ?? '')) {
                                 $colNamePNR = 'pnr_outbound';
                                 $direction = '0';
                             }
