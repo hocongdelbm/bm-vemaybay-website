@@ -341,6 +341,18 @@ $(document).ready(function () {
 		$('#frmPrintEticket' + ln).attr('action', 'index.php?print=false');
 		$('#frmPrintEticket' + ln + ' input:hidden[name="action"]').val('sendeticket');
 		$('#frmPrintEticket' + ln + ' input:hidden[name="return_action"]').val('DetailView');
+		
+		let checkBoxPassengers = '';
+		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
+			let passId = $(this).attr('data-id');
+			let passName = $(this).find('td.passenger_name .fullname').text();
+			checkBoxPassengers += `<div class="form-check">
+				<input class="form-check-input" type="checkbox" id="pass${passId}" name="passenger_list_print_eticket[]" value="${passId}" checked />
+				<label class="form-check-label" for="pass${passId}" style="vertical-align:sub;">${passName}</label>
+			</div>`;
+		});
+		$('#dlgChonNgonNgu .option-passenger').html(checkBoxPassengers);
+		
 		$('#dlgChonNgonNgu').dialog({
 			height: 80,
 			width: 320,

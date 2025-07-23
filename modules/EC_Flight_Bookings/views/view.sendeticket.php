@@ -76,8 +76,8 @@ class Viewsendeticket extends SugarView {
 		$booking_infos['image_url_large'] = $department_info['company_logo'];
 		$booking_infos['booking_num'] = $_REQUEST['booking'];
 		$booking_infos['add_type'] = $_REQUEST['add_type'];
-		$pass_inf = $pe->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $smartyobj);
-
+		$listPassengerIDs = explode(',', (isset($_REQUEST['listPassengers']) && !empty($_REQUEST['listPassengers'])) ? $_REQUEST['listPassengers'] : []);
+		$pass_inf = $pe->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $listPassengerIDs, $smartyobj);
 
 		if (
 			$pass_inf['pass_cnt'] <= 1 
