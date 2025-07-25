@@ -433,8 +433,10 @@ class EC_Flight_Bookings extends Basic
 
 			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
 			$psg->eticket_inbound 	= trim(stripslashes($_POST['psg_eticket_inbound'][$i]));
+			
 			$psg->eluggage_outbound = trim(stripslashes($_POST['psg_eluggage_outbound'][$i]));
 			$psg->eluggage_inbound 	= trim(stripslashes($_POST['psg_eluggage_inbound'][$i]));
+
 			$psg->pnr_outbound 		= trim(stripslashes($_POST['psg_pnr_outbound'][$i]));
 			$psg->pnr_inbound 		= trim(stripslashes($_POST['psg_pnr_inbound'][$i]));
 
@@ -465,16 +467,19 @@ class EC_Flight_Bookings extends Basic
 
 			$psg->luggage_purchase 				= unformat_number($_POST['psg_luggage_purchase'][$i]);
 			$psg->luggage_purchase_inbound 		= unformat_number($_POST['psg_luggage_purchase_inbound'][$i]);
+
 			$psg->supplier_id 					= $_POST['psg_luggage_supplier'][$i];
 			$psg->supplier_inbound_id 			= $_POST['psg_luggage_supplier_inbound'][$i];
 			$psg->booking_id 					= $this->id;
 			$psg->add_type 						= $_POST['psg_add_type'][$i];
 			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i];
 			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? '0';
+			
 			$psg->luggage_purchase_no_vat 		= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
 			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
 			$psg->luggage_purchase_inbound_no_vat = unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
 			$psg->vat_luggage_purchase_inbound 	= unformat_number($_POST['psg_detail_lug_pur_ib_vat'][$i]);
+
 			$psg->cic 							= trim($_POST['psg_cic'][$i]) ?? '';
 			$psg->passport_number 				= trim($_POST['psg_passport_number'][$i]) ?? '';
 

@@ -2443,3 +2443,4 @@ require_once 'custom/include/utils/exits.php';
 require_once 'custom/include/utils/booking.php';
 require_once 'custom/include/utils/calls.php';
 require_once 'custom/include/utils/string.php';
+require_once 'custom/include/utils/Baggage.php';

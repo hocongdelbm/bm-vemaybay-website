@@ -29,18 +29,41 @@ class EC_Booking_Passengers extends Basic {
     public $birthday;
     public $booking_id;
     public $booking;
+    public $parent_detail_id;
     public $type;
-    public $eticket_outbound;
-    public $eticket_inbound;
+    public $direction;
     public $pnr_outbound;
     public $pnr_inbound;
+    public $supplier_id;
+    public $supplier_inbound_id;
+    public $add_type;
     public $is_active;
     public $cic;
     public $passport_number;
+    public $eticket_outbound;
+    public $eticket_inbound;
+    public $go_with;
 
-	
-    public function bean_implements($interface)
-    {
+    // Thông tin giá mua hành lý từng lượt (Thông tin lưu từ website)
+    public $luggage_price;
+    public $luggage_price_inbound;
+    public $luggage_index_outbound;
+    public $luggage_index_inbound;
+
+    // Giá mua hành lý từng lượt (Chưa VAT)
+    public $luggage_purchase_no_vat;
+    public $luggage_purchase_inbound_no_vat;
+    // VAT giá mua hành lý từng lượt
+    public $vat_luggage_purchase;
+    public $vat_luggage_purchase_inbound;
+    // Tổng giá mua hành lý từng lượt
+    public $luggage_purchase;
+    public $luggage_purchase_inbound;
+    // Số vé hành lý đã mua từng lượt (VN, QH)
+    public $eluggage_outbound;
+    public $eluggage_inbound;
+
+    public function bean_implements($interface) {
         switch($interface)
         {
             case 'ACL':
