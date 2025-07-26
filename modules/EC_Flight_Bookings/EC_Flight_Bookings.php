@@ -65,6 +65,7 @@ class EC_Flight_Bookings extends Basic
 	public $total_amount;
 	public $ip_address;
 	public $point_step = 50;
+	public $list_website_new_baggage = ['557d4a5b-27ce-5cb1-4531-5800ab9ed31d', '2b2c93b3-e916-113c-29bc-5b4c6de75db4'];
 
 	public function bean_implements($interface)
 	{
@@ -243,7 +244,8 @@ class EC_Flight_Bookings extends Basic
 
 		// Save passengers
 		if (isset($_POST['psg_id']) && !is_null($_POST['psg_id'])) {
-			$this->saveLinePassengers();
+			if(in_array($this->created_by, $this->list_website_new_baggage)) $this->saveLinePassengers2();
+			else $this->saveLinePassengers();
 		}
 
 		// Change flight time
@@ -406,6 +408,115 @@ class EC_Flight_Bookings extends Basic
 					SET total_bought_amount = ' . $total_bought_amount . ' 
 					WHERE id = "' . $this->id . '"';
 			$this->db->query($sql);
+		}
+	}
+
+	public function saveLinePassengers2() {
+		$bk = new EC_Flight_Bookings;
+		$bk->retrieve($this->id);
+
+		$row_count = count($_POST['psg_id']);
+		for ($i = 0; $i < $row_count; $i++) {
+			$psg = new EC_Booking_Passengers();
+			if (!empty($_POST['psg_id'][$i])) $psg->retrieve($_POST['psg_id'][$i]);
+			else $psg->id = '';
+
+			$psg->booking_id 	= $this->id;
+			$psg->type 		 	= $_POST['psg_traveller_type'][$i];
+			$psg->salutation 	= $_POST['psg_salutation'][$i];
+			$psg->name 		 	= strtoupper(myRemoveUnicodeChars(trim(stripslashes($_POST['psg_full_name'][$i]))));
+			if (isset($_POST['psg_birthday'][$i]) && strtotime($_POST['psg_birthday'][$i]) !== false) {
+				$date_str = str_replace('/', '-', $_POST['psg_birthday'][$i]);
+				$psg->birthday = date('d-m-Y', strtotime($date_str));
+			}
+			$psg->pnr_outbound 		= trim(stripslashes($_POST['psg_pnr_outbound'][$i]));
+			$psg->pnr_inbound 		= trim(stripslashes($_POST['psg_pnr_inbound'][$i]));
+			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
+			$psg->eticket_inbound 	= trim(stripslashes($_POST['psg_eticket_inbound'][$i]));
+			$psg->add_type 			= $_POST['psg_add_type'][$i];
+			$psg->parent_detail_id 	= $_POST['psg_parent_detail_id'][$i];
+			$psg->deleted 			= (int)($_POST['psg_deleted'][$i] ?? 0);
+			// CCCD / Passport
+			$id_number = trim($_POST['psg_id_number'][$i] ?? '');
+			if(ctype_digit($id_number) && strlen($id_number) == 12) $psg->cic = $id_number;
+			else $psg->passport_number = $id_number;
+
+			/******  BAGGAGES INFO  ******/
+			// Price
+			$psg->luggage_purchase 			= unformat_number($_POST['psg_luggage_purchase'][$i]);
+			$psg->luggage_purchase_inbound 	= unformat_number($_POST['psg_luggage_purchase_inbound'][$i]);
+			// VAT
+			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_vat_luggage_purchase'][$i]);
+			$psg->vat_luggage_purchase_inbound 	= unformat_number($_POST['psg_vat_luggage_purchase_inbound'][$i]);
+			// Cost
+			$psg->luggage_purchase_no_vat 			= $psg->luggage_purchase - $psg->vat_luggage_purchase;
+			$psg->luggage_purchase_inbound_no_vat 	= $psg->luggage_purchase_inbound - $psg->vat_luggage_purchase_inbound ;
+			// Ticket
+			$psg->eluggage_outbound = trim(stripslashes($_POST['psg_eluggage_outbound'][$i]));
+			$psg->eluggage_inbound 	= trim(stripslashes($_POST['psg_eluggage_inbound'][$i]));
+			// Supplier
+			$psg->supplier_id 			= $_POST['psg_luggage_supplier'][$i];
+			$psg->supplier_inbound_id 	= $_POST['psg_luggage_supplier_inbound'][$i];
+
+			if ((int)$psg->deleted === 1) {
+				if (!empty($psg->id)) $psg->mark_deleted($psg->id);
+				else continue;
+			}
+			elseif (!empty($psg->name)) {
+				$psg->save();
+			}
+		}
+
+		// Khi booking ở trạng thái xác nhận
+		// Kiểm tra nếu có dù chỉ 1 số vé cũng chuyển sang trạng thái đã xuất vé
+		// Sau khi chuyển sang trạng thái đã xuất vé thì cập nhật trạng thái trong bảng ec_customer - info_data
+		if ((int)$this->booking_status === 3) {
+			$booking = new EC_Flight_Bookings;
+			$booking->retrieve($this->id);
+
+			for ($i = 0; $i < $row_count; $i++) {
+				if (!empty($_POST['psg_eticket_outbound'][$i])) {
+					$booking->is_ticket_exported = '1';
+					if (empty($booking->date_ticket_issue)) {
+						$now = date('d-m-Y H:i:s');
+						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+					} else {
+						if (isAllowedUser()) {
+							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+						}
+					}
+					break;
+				} else {
+					$booking->is_ticket_exported = '0';
+					$booking->date_ticket_issue = '';
+				}
+			}
+
+			for ($i = 0; $i < $row_count; $i++) {
+				if (!empty($_POST['psg_eticket_inbound'][$i])) {
+					$booking->is_ticket_inbound_exported = '1';
+					if (empty($booking->date_ticket_inbound_issue)) {
+						$now = date('d-m-Y H:i:s');
+						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+					} else {
+						if (isAllowedUser()) {
+							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+						}
+					}
+					break;
+				} else {
+					$booking->is_ticket_inbound_exported = '0';
+					$booking->date_ticket_inbound_issue = '';
+				}
+			}
+
+			if (!empty($booking->is_ticket_exported) || !empty($booking->is_ticket_inbound_exported)) {
+				$booking->booking_status = '7';
+			}
+			$booking->save2();
+
+			// Cập nhật trạng thái trong ec_customer
+			// UpdateInforBookingOfCustomer($this->id);
 		}
 	}
 
