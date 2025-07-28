@@ -821,6 +821,17 @@ try {
             }
 
             $phuongnamapi = new PhuongNamAPI();
+
+            $responseStatus = $phuongnamapi->getBookingStatus($systemCode, $bookingCode);
+            $responseStatusArr = json_decode($responseStatus, true);
+            if(isset($responseStatusArr['status']) && $responseStatusArr['status'] == 1) {
+                $dataStatus = $responseStatusArr['data'] ?? [];
+                $statusId = $dataStatus['StatusId'] ?? null;
+                if($statusId && !in_array($statusId, [100, 200, 300, 320])) {
+                    $phuongnamapi->syncBooking($systemCode, $bookingCode);
+                }
+            }
+
             $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
             $responseArr = json_decode($response, true);
 
