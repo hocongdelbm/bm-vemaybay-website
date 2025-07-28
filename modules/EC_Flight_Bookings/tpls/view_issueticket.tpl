@@ -176,4 +176,4 @@
     </section>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/api_phuongnam/issueticket.js?v=1.0"></script>
+<script src="modules/EC_Flight_Bookings/js/api_phuongnam/issueticket.js?v=1.1"></script>

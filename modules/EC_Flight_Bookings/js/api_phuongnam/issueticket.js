@@ -96,7 +96,7 @@ $(document).ready(function () {
                             createBaggageServiceDialog(objData.data, systemCode, direction, passengerName, personOrgId, personOrgIdConfirmed);
                         }
                         else {
-                            showModalNotify("error", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
+                            showModalNotify("warning", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
                             console.error(objData);
                         }
                     }
@@ -798,7 +798,7 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
 
         document.body.appendChild(wrapper);
 
-        const overlay = wrapper.querySelector('.baggage-dialog-overlay');
+        // const overlay = wrapper.querySelector('.baggage-dialog-overlay');
         const serviceListEl = wrapper.querySelector('#baggageServiceList');
         const confirmBtn = wrapper.querySelector('.baggage-confirm');
         const cancelBtn = wrapper.querySelector('.baggage-cancel');
@@ -820,6 +820,7 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
                         value="${service.ServiceKey}"
                         data-description="${service.ServiceDescription || service.ServiceName}"
                         data-amount="${service.ServiceTotalAmount}"
+                        data-vat-amount="${service.ServiceVATAmount}"
                         data-person-org-id="${personOrgId}"
                         data-person-org-id-confirmed="${personOrgIdConfirmed}"
                     />
@@ -840,6 +841,7 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
             const serviceKey = selectedRadio.value;
             const description = selectedRadio.dataset.description;
             const amount = parseInt(selectedRadio.dataset.amount);
+            const vatAmount = parseInt(selectedRadio.dataset.vatAmount);
             const personOrgId = selectedRadio.dataset.personOrgId;
             const personOrgIdConfirmed = selectedRadio.dataset.personOrgIdConfirmed || '';
 
@@ -858,6 +860,11 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
                         serviceKey: serviceKey,
                         personOrgId: personOrgId,
                         personOrgIdConfirmed: personOrgIdConfirmed,
+                        // Use for updating data to BM
+                        passengerName: passengerName,
+                        description: description,
+                        amount: amount,
+                        vatAmount: vatAmount
                     }),
                     beforeSend: function () {
                         $('.container-waiting').show();

@@ -62,6 +62,9 @@ class EC_Booking_Passengers extends Basic {
     // Số vé hành lý đã mua từng lượt (VN, QH)
     public $eluggage_outbound;
     public $eluggage_inbound;
+    // Mô tả hành lý đã mua từng lượt
+    public $luggage_purchase_text;
+    public $luggage_purchase_text_inbound;
 
     public function bean_implements($interface) {
         switch($interface)

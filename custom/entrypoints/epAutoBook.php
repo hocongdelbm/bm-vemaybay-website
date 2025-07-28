@@ -202,9 +202,12 @@ try {
             $adt            = (int)($requestData['adt'] ?? 1);
             $chd            = (int)($requestData['chd'] ?? 0);
             $inf            = (int)($requestData['inf'] ?? 0);
-            $adtPrice       = $requestData['adtPrice'] ?? 0;
-            $chdPrice       = $requestData['chdPrice'] ?? 0;
-            $infPrice       = $requestData['infPrice'] ?? 0;
+            // $adtPrice       = $requestData['adtPrice'] ?? 0;
+            // $chdPrice       = $requestData['chdPrice'] ?? 0;
+            // $infPrice       = $requestData['infPrice'] ?? 0;
+            $adtFare        = $requestData['adtFare'] ?? 0;
+            $chdFare        = $requestData['chdFare'] ?? 0;
+            $infFare        = $requestData['infFare'] ?? 0;
             $cabin          = $phuongnamapi->detectCabin($airlineCode, $ticketClass); // Detect cabin from ticket class
             
             $json = $phuongnamapi->searchFlights($airlineCode, $depCode, $desCode, date('Y-m-d', strtotime($flightDate)), '', $adt, $chd, $inf, $cabin);
@@ -253,28 +256,52 @@ try {
                         $updateData['flightDate'] = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
                         $updateData['arrivalDate'] = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
                     }
-                    if(isset($f["adtPrice"]) && $f["adtPrice"] != $adtPrice) {
+                    // if(isset($f["adtPrice"]) && $f["adtPrice"] != $adtPrice) {
+                    //     $updateData['adtFare'] = [
+                    //         "fare"   => $f["adtFare"],
+                    //         "tax"    => $f["adtTax"],
+                    //         "fee"    => $f["adtFee"],
+                    //         "price"  => $f["adtPrice"]
+                    //     ];
+                    // }
+                    // if($chd > 0 && isset($f["chdPrice"]) && $f["chdPrice"] != $chdPrice) {
+                    //     $updateData['chdFare'] = [
+                    //         "fare"   => $f["chdFare"],
+                    //         "tax"    => $f["chdTax"],
+                    //         "fee"    => $f["chdFee"],
+                    //         "price"  => $f["chdPrice"]
+                    //     ];
+                    // }
+                    // if($inf > 0 && isset($f["infPrice"]) && $infPrice != $f["infPrice"]) {
+                    //     $updateData['infFare'] = [
+                    //         "fare"   => $f["infFare"],
+                    //         "tax"    => $f["infTax"],
+                    //         "fee"    => $f["infFee"],
+                    //         "price"  => $f["infPrice"]
+                    //     ];
+                    // }
+                    if(isset($f["adtFare"]) && $f["adtFare"] != $adtFare) {
                         $updateData['adtFare'] = [
                             "fare"   => $f["adtFare"],
-                            "tax"    => $f["adtTax"],
-                            "fee"    => $f["adtFee"],
-                            "price"  => $f["adtPrice"]
+                            // "tax"    => $f["adtTax"],
+                            // "fee"    => $f["adtFee"],
+                            // "price"  => $f["adtPrice"]
                         ];
                     }
-                    if($chd > 0 && isset($f["chdPrice"]) && $f["chdPrice"] != $chdPrice) {
+                    if($chd > 0 && isset($f["chdFare"]) && $f["chdFare"] != $chdFare) {
                         $updateData['chdFare'] = [
                             "fare"   => $f["chdFare"],
-                            "tax"    => $f["chdTax"],
-                            "fee"    => $f["chdFee"],
-                            "price"  => $f["chdPrice"]
+                            // "tax"    => $f["chdTax"],
+                            // "fee"    => $f["chdFee"],
+                            // "price"  => $f["chdPrice"]
                         ];
                     }
-                    if($inf > 0 && isset($f["infPrice"]) && $infPrice != $f["infPrice"]) {
+                    if($inf > 0 && isset($f["infFare"]) && $f["infFare"] != $infFare) {
                         $updateData['infFare'] = [
                             "fare"   => $f["infFare"],
-                            "tax"    => $f["infTax"],
-                            "fee"    => $f["infFee"],
-                            "price"  => $f["infPrice"]
+                            // "tax"    => $f["infTax"],
+                            // "fee"    => $f["infFee"],
+                            // "price"  => $f["infPrice"]
                         ];
                     }
 
@@ -333,20 +360,22 @@ try {
                 $k = $type . "Fare";
                 if(isset($requestData[$k]) && !empty($requestData[$k])) {
                     $fare   = $requestData[$k]["fare"];
-                    $tax    = $requestData[$k]["tax"];
-                    $fee    = $requestData[$k]["fee"];
-                    $vatFee = $fee*$sugar_config['vat_percentage'];
-                    $price  = $requestData[$k]["price"];
+                    // $tax    = $requestData[$k]["tax"];
+                    // $fee    = $requestData[$k]["fee"];
+                    // $vatFee = $fee*$sugar_config['vat_percentage'];
+                    // $price  = $requestData[$k]["price"];
 
                     $sql = "UPDATE ec_booking_details
                         SET unit_price = $fare
-                            ,tax_and_fee = $tax
-                            ,airport_fee        = IF($fee > admin_fee, $fee - admin_fee, 0)
-                            ,admin_fee          = IF($fee > admin_fee, admin_fee, $fee)
-                            ,vat_admin          = IF($fee > admin_fee, vat_admin, $vatFee)
-                            ,admin_fee_no_vat   = IF($fee > admin_fee, admin_fee_no_vat, $fee - $vatFee)
-                            ,total_bought_price = $price * quantity
-                            ,total_price = ($price + service_fee) * quantity
+                            -- ,tax_and_fee = $tax
+                            -- ,airport_fee        = IF($fee > admin_fee, $fee - admin_fee, 0)
+                            -- ,admin_fee          = IF($fee > admin_fee, admin_fee, $fee)
+                            -- ,vat_admin          = IF($fee > admin_fee, vat_admin, $vatFee)
+                            -- ,admin_fee_no_vat   = IF($fee > admin_fee, admin_fee_no_vat, $fee - $vatFee)
+                            -- ,total_bought_price = $price * quantity
+                            -- ,total_price = ($price + service_fee) * quantity
+                            ,total_bought_price = ($fare + tax_and_fee + airport_fee + admin_fee) * quantity
+                            ,total_price = ($fare + tax_and_fee + airport_fee + admin_fee + service_fee) * quantity
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
                         WHERE booking_id = '$bookingId'
@@ -433,6 +462,8 @@ try {
                 ]);
                 exit();
             }
+            // The other domestic airlines allow close-in ticket holds
+            if($isWithin24h === 1 && $airlineCodes[0] != 'VJ') $isWithin24h === 0;
 
             // Contact info
             $booking = new EC_Flight_Bookings();
@@ -474,7 +505,7 @@ try {
                 WHERE p.booking_id = '$bookingId' 
                     AND p.id IN ($inListPassengerId)
                     AND p.deleted = 0
-                ORDER BY p.type";
+                ORDER BY p.type, p.date_entered";
             $num = 1;
             $res_pass = $db->query($sql_pass);
             while ($row = $db->fetchByAssoc($res_pass)) {
@@ -665,8 +696,8 @@ try {
 
                             $link = "<a href=\"".$linkBooking."\">$pnr</a>";
                             $m = "Giữ chỗ $systemName: $link bởi <b>$fullname</b>";
-                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "<b>Xuất vé cận $systemName: $link bởi $fullname</b>";
-                            if(isset($f["TransactionId"]) && !empty($f["TransactionId"]))$m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
+                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "<b>💰 Xuất vé cận $systemName: $link bởi $fullname</b>";
+                            if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
                             $botToken   = $sugar_config['telegram']['phuongnamapi']['bot_token'] ?? '';
                             $chatId     = $sugar_config['telegram']['phuongnamapi']['chat_id'] ?? '';
                             Telegram::sendMessage($m, $botToken, $chatId);
@@ -688,8 +719,8 @@ try {
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
 
-                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
-                                $m .= "<pre>$sql</pre>";
+                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "\n<pre>$sql</pre>";
                                 $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                                 $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
@@ -707,8 +738,8 @@ try {
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
 
-                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
-                                $m .= "<pre>$sql</pre>";
+                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "\n<pre>$sql</pre>";
                                 $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                                 $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
@@ -739,8 +770,8 @@ try {
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
                                 
-                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
-                                $m .= "<pre>$sql</pre>";
+                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "\n<pre>$sql</pre>";
                                 $botToken = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId = $sugar_config['telegram']['chat_id'] ?? '';
                                 $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
@@ -758,8 +789,8 @@ try {
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
 
-                                $m = "<b>ERROR: RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
-                                $m .= "<pre>$sql</pre>";
+                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m .= "\n<pre>$sql</pre>";
                                 $botToken = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId = $sugar_config['telegram']['chat_id'] ?? '';
                                 $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
@@ -920,7 +951,7 @@ try {
                     // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
 
                     $link = "<a href=\"".$linkBooking."\">$bookingCode</a>";
-                    $m = "<b>Xuất vé $systemName: $link bởi $fullname</b>";
+                    $m = "<b>💰 Xuất vé $systemName: $link bởi $fullname</b>";
                     if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
                     $botToken   = $sugar_config['telegram']['phuongnamapi']['bot_token'] ?? '';
                     $chatId     = $sugar_config['telegram']['phuongnamapi']['chat_id'] ?? '';
@@ -962,12 +993,16 @@ try {
             exit();
         }
         elseif($action == 'add_baggage') {
-            $direction = $requestData['direction'] ?? 0;
+            $direction = (int)($requestData['direction'] ?? 0);
             $systemCode = $requestData['systemCode'] ?? '';
             $bookingCode = $requestData['bookingCode'] ?? '';
             $serviceKey = $requestData['serviceKey'] ?? '';
             $personOrgId = $requestData['personOrgId'] ?? '';
             $personOrgIdConfirmed = $requestData['bookipersonOrgIdConfirmedngCode'] ?? '';
+            $passengerName = trim($requestData['passengerName'] ?? '');
+            $description = trim($requestData['description'] ?? '');
+            $amount = $requestData['amount'] ?? 0;
+            $vatAmount = $requestData['vatAmount'] ?? 0;
 
             if(empty($systemCode) || strlen($bookingCode) < 6 || empty($serviceKey) || empty($personOrgId)) {
                 echo json_encode([
@@ -995,12 +1030,49 @@ try {
             $response = $phuongnamapi->addBaggage($systemCode, $bookingCode, $services);
             $responseArr = json_decode($response, true);
 
-            // try {
-
-            // }
-            // catch {
-
-            // }
+            try {
+                if($responseArr['status'] == 1) {
+                    $format_description = str_replace("Baggage", "Hành lý", $description);
+                    $format_description = str_replace("Bag", "Hành lý", $format_description);
+                    $format_description = str_replace("Oversize piece", "Kiện quá khổ", $format_description);
+                    $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
+                    $suffix = $direction === 0 ? "" : "_inbound";
+        
+                    $sql = "UPDATE ec_booking_passengers
+                            SET luggage_purchase_text$suffix = '$format_description'
+                                ,luggage_purchase$suffix = $amount
+                                ,vat_luggage_purchase$suffix = $vatAmount
+                                ,luggage_purchase".$suffix."_no_vat = ".($amount - $vatAmount)."
+                                ,supplier".$suffix."_id = '$phuongnamapi->SUPPLIER_ID'
+                                ,modified_user_id = '$current_user->id'
+                                ,date_modified = '$dateModified'
+                            WHERE bookingCode = '$bookingCode'
+                                AND name = '$passengerName'
+                                AND (luggage_purchase$suffix IS NULL OR luggage_purchase$suffix = 0)
+                                AND date_entered >= NOW() - INTERVAL 120 DAY;
+                                AND deleted = 0";
+                    if(!$db->query($sql)) {
+                        // $m = "**RUN QUEYRY FAIL**";
+                        // $m .= "`$sql`";
+                        // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+                        
+                        $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                        $m .= "\n<pre>$sql</pre>";
+                        $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+                        $chatId = $sugar_config['telegram']['chat_id'] ?? '';
+                        $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                        Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                    }
+                }
+            }
+            catch(Throwable $th) {
+                $m = "<b>[ERROR] THROWABLE IN AUTOBOOK FEATURE</b>";
+                $m .= "\n{$th->getMessage()} on line {$th->getLine()}";
+                $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+                $chatId = $sugar_config['telegram']['chat_id'] ?? '';
+                $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+            }
 
             echo json_encode($responseArr);
             exit();

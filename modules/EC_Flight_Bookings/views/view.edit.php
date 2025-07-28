@@ -66,7 +66,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 	function displayCSS() {
 		$css = '';
-		$css .= '<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.edit.css">';
+		$css .= '<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.edit.css?v=1.0">';
 		echo $css;
 	}
 
@@ -983,64 +983,67 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 				$suffix = $roundName == "outbound" ? "" : "_inbound";
 				$dir = $roundName == "outbound" ? 0 : 1;
 				// Input name
+				$inputNameBagText 	= "psg_luggage_purchase_text$suffix";
 				$inputNameBagPrice 	= "psg_luggage_purchase$suffix";
 				$inputNameBagTax   	= "psg_vat_luggage_purchase$suffix";
 				$inputNameSuppplier = "psg_luggage_supplier$suffix";
 				$inputNameTicketNum = "psg_eluggage_$roundName";
 				// Value
+				$bagText  		= $row["luggage_purchase_text$suffix"] ?? '';
 				$bagPrice  		= $row["luggage_purchase$suffix"] ?? 0;
 				$bagTax 		= $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
-				$bagSuppplier 	= $row["supplier$suffix"] ?? '';
+				$bagSuppplier 	= $row["supplier$suffix" . "_id"] ?? '';
 				$bagTicketNum 	= $row["eluggage_$roundName"] ?? '';
 				// Label
-				if($roundName == "outbound") {
-					$data_label = "Thông tin HL đi";
-					$input_label = "Giá mua HL lượt đi (VAT): ";
-				}
-				else {
-					$data_label = "Thông tin HL về";
-					$input_label = "Giá mua HL lượt về (VAT): ";
-				}
+				$suffix_text = $roundName == "outbound" ? "lượt đi" : "lượt về";
 
 				$html .= '<tr id="psg_baggage_line_'.$roundName.'_'.$i.'">
-					<td data-label="'.$data_label.'" class="row_psg_price" colspan="10">
-						<div class="psg_price-wrap d-flex gap-2 align-items-center">
-							<div class="col_psg_price flex-fill">
-								<span class="text-label">'.$input_label.'</span>
+					<td data-label="'.$roundName.' baggage information" class="row_psg_price" colspan="10">
+						<div class="psg_price-wrap d-flex gap-3 align-items-center">
+							<div class="col_psg_price col-psg-bag-text">
+								<span class="text-label">Hành lý mua thêm '.$suffix_text.'</span>
+								<input type="text" name="'.$inputNameBagText.'[]"
+									id="'. ($inputNameBagText . $i) .'"
+									value="'.$bagText.'"
+									class="psg_luggage_purchase_input"
+									maxlength="100" size="100"
+								/>
+							</div>
+							<div class="col_psg_price col-psg-bag-price">
+								<span class="text-label">Giá mua (VAT): </span>
 								<input type="text" name="'.$inputNameBagPrice.'[]"
 									id="'. ($inputNameBagPrice . $i) .'"
 									value="'. format_number($bagPrice) .'"
 									class="allow-number-only psg_luggage_purchase_input"
-									maxlength="25"
-									size="25"
+									maxlength="12"
 									onkeyup="calculateBagPurchasePrice('.$i.', '.$dir.');"
 									onpaste="calculateBagPurchasePrice('.$i.', '.$dir.');"
 								/>
 							</div>
-							<div class="col_psg_price flex-fill">
+							<div class="col_psg_price col-psg-bag-tax">
 								<span class="text-label">VAT giá mua: </span>
 								<input type="text" name="'.$inputNameBagTax.'[]"
 									id="'. ($inputNameBagTax . $i) .'"
 									value="'. format_number($bagTax) .'"
 									class="allow-number-only psg_luggage_purchase_input"
+									maxlength="12"
 									onkeyup="calculateBagPurchasePrice('.$i.', '.$dir.');"
 								/>
 							</div>
-							<div class="col_psg_price flex-fill">
+							<div class="col_psg_price col-psg-bag-supplier">
 								<span class="text-label">NCC: </span>
 								<select name="'.$inputNameSuppplier.'[]" id="'. ($inputNameSuppplier . $i) .'" class="psg_luggage_purchase_select">
 									<option value=""></option>
 									'. myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $bagSuppplier, 'id', $sql_supplier) .'
 								</select>
 							</div>
-							<div class="col_psg_price flex-fill">
-								<span class="text-label">Số vé HL: </span>
+							<div class="col_psg_price col-psg-bag-ticketnum">
+								<span class="text-label">Số vé HL '.$suffix_text.': </span>
 								<input type="text" name="'.$inputNameTicketNum.'[]"
 									id="'. ($inputNameTicketNum . $i) .'"
 									value="'.$bagTicketNum.'"
 									class="psg_luggage_purchase_input"
-									maxlength="25"
-									size="25"
+									maxlength="25" size="25"
 								/>
 							</div>
 						</div>

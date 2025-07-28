@@ -66,8 +66,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.1"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_phuongnam/booking.js?v=1.1"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_phuongnam/booking.js?v=1.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.8"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3"></script>
 		';
@@ -1891,7 +1891,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 							// $bagTax 	= $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
 							$bagPrice 	= $row["luggage_purchase$suffix"] ?? 0;
 							$bagTicketNum = $row["eluggage_$roundName"] ?? '';
-							$bagTicketNumHTML = !empty($bagTicketNum) ? '<span>Số vé HL: <b>'.$bagTicketNum.'</b></span>' : '';
+							$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal shadow-sm ms-1" style="font-size:13px">Số vé HL: <b>'.$bagTicketNum.'</b></span>' : '';
 							
 							$rowBagHTML .= '<p class="fst-italic">
 								'. $roundNameHTML .'

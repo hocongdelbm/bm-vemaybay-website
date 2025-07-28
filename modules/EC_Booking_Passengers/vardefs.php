@@ -203,7 +203,6 @@ $dictionary['EC_Booking_Passengers'] = array(
             'reportable' => 0,
             'len' => 36,
         ),
-
         'supplier' => array(
             'required' => '0',
             'source' => 'non-db',
@@ -237,7 +236,6 @@ $dictionary['EC_Booking_Passengers'] = array(
             'reportable' => 0,
             'len' => 36,
         ),
-
         'supplier_inbound' => array(
             'required' => '0',
             'source' => 'non-db',

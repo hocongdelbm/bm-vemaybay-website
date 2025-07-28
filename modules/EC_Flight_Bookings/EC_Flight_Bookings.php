@@ -442,6 +442,9 @@ class EC_Flight_Bookings extends Basic
 			else $psg->passport_number = $id_number;
 
 			/******  BAGGAGES INFO  ******/
+			// Text
+			$psg->luggage_purchase_text 		= trim($_POST['psg_luggage_purchase_text'][$i]);
+			$psg->luggage_purchase_text_inbound = trim($_POST['psg_luggage_purchase_text_inbound'][$i]);
 			// Price
 			$psg->luggage_purchase 			= unformat_number($_POST['psg_luggage_purchase'][$i]);
 			$psg->luggage_purchase_inbound 	= unformat_number($_POST['psg_luggage_purchase_inbound'][$i]);

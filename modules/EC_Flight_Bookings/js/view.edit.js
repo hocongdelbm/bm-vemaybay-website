@@ -781,13 +781,13 @@ function insertPassengerLine2(ln) {
 
 	// Họ tên
 	html += `<td data-label="Họ tên">
-		<input type="text" name="psg_full_name[]" id="psg_full_name${ln}" value="" class="text-start" maxlength="128" />
+		<input type="text" name="psg_full_name[]" id="psg_full_name${ln}" class="text-start" maxlength="128" />
 	</td>`;
 
 	// Ngày sinh
 	html += `<td data-label="Ngày sinh">
 		<div class="d-flex align-items-center gap-1">
-			<input type="text" class="w-80" name="psg_birthday[]" id="psg_birthday${ln}" value="" maxlength="10" />
+			<input type="text" class="w-80" name="psg_birthday[]" id="psg_birthday${ln}" maxlength="10" />
 			<img class="cursor-pointer" border="0" src="themes/SuiteP/images/Calendar.svg" alt="Enter Date" id="psg_birthday_trigger${ln}" align="absmiddle" />
 		</div>
 	</td>`;
@@ -796,7 +796,6 @@ function insertPassengerLine2(ln) {
 	html += `<td data-label="CCCD/Passport">
 		<input type="text" name="psg_id_number[]"
 			id="psg_id_number${ln}"
-			value=""
 			class="text-start"
 			maxlength="16"
 			style="padding-left:8px !important; letter-spacing:1px;"
@@ -804,13 +803,13 @@ function insertPassengerLine2(ln) {
 	</td>`;
 
 	// PNR lượt đi
-	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
+	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" class="text-center" maxlength="30" /></td>`;
 	// PNR lượt về
-	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_inbound[]" id="psg_pnr_inbound${ln}" value="" class="text-center" maxlength="30" /></td>`;
+	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_inbound[]" id="psg_pnr_inbound${ln}" class="text-center" maxlength="30" /></td>`;
 	// Số vé lượt đi
-	html += `<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
+	html += `<td data-label="Số vé lượt đi"><input type="text" name="psg_eticket_outbound[]" id="psg_eticket_outbound${ln}" class="text-center" maxlength="25" /></td>`;
 	// Số vé lượt về
-	html += `<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound${ln}" value="" class="text-center" maxlength="25" /></td>`;
+	html += `<td data-label="Số vé lượt về"><input type="text" name="psg_eticket_inbound[]" id="psg_eticket_inbound${ln}" class="text-center" maxlength="25" /></td>`;
 
 	// Nút xóa
 	html += `<td data-label="Xóa dòng" class="align-middle text-center">
@@ -828,54 +827,56 @@ function insertPassengerLine2(ln) {
 		const suffix = roundName === "outbound" ? "" : "_inbound";
 		const direction = roundName === "outbound" ? 0 : 1;
 		// Input names
+		const inputNameBagtext   = `psg_luggage_purchase_text${suffix}`;
 		const inputNameBagPrice  = `psg_luggage_purchase${suffix}`;
 		const inputNameBagTax    = `psg_vat_luggage_purchase${suffix}`;
 		const inputNameSupplier  = `psg_luggage_supplier${suffix}`;
 		const inputNameTicketNum = `psg_eluggage_${roundName}`;
-
 		// Labels
-		const dataLabel = roundName === "outbound" ? "Thông tin HL đi" : "Thông tin HL về";
-		const inputLabel = roundName === "outbound" ? "Giá mua HL lượt đi (VAT): " : "Giá mua HL lượt về (VAT): ";
+		const suffixtext = roundName === "outbound" ? "lượt đi" : "lượt về";
 
 		html += `<tr id="psg_baggage_line_${roundName}_${ln}">
-			<td data-label="${dataLabel}" class="row_psg_price" colspan="10">
-				<div class="psg_price-wrap d-flex gap-2 align-items-center">
-					<div class="col_psg_price flex-fill">
-						<span class="text-label">${inputLabel}</span>
+			<td data-label="${roundName} baggage information" class="row_psg_price" colspan="10">
+				<div class="psg_price-wrap d-flex gap-3 align-items-center">
+					<div class="col_psg_price col-psg-bag-text">
+						<span class="text-label">Hành lý mua thêm ${suffixtext}: </span>
+						<input type="text" name="${inputNameBagtext}[]"
+							id="${inputNameBagtext}${ln}"
+							class="psg_luggage_purchase_input"
+							maxlength="100" size="100"
+						/>
+					</div>
+					<div class="col_psg_price col-psg-bag-price">
+						<span class="text-label">Giá mua (VAT): </span>
 						<input type="text" name="${inputNameBagPrice}[]"
 							id="${inputNameBagPrice}${ln}"
-							value=""
 							class="allow-number-only psg_luggage_purchase_input"
-							maxlength="25"
-							size="25"
+							maxlength="12"
 							onkeyup="calculateBagPurchasePrice(${ln}, ${direction});"
 							onpaste="calculateBagPurchasePrice(${ln}, ${direction});"
 						/>
 					</div>
-					<div class="col_psg_price flex-fill">
+					<div class="col_psg_price col-psg-bag-tax">
 						<span class="text-label">VAT giá mua: </span>
 						<input type="text" name="${inputNameBagTax}[]"
 							id="${inputNameBagTax}${ln}"
-							value=""
 							class="allow-number-only psg_luggage_purchase_input"
 							onkeyup="calculateBagPurchasePrice(${ln}, ${direction});"
 						/>
 					</div>
-					<div class="col_psg_price flex-fill">
+					<div class="col_psg_price col-psg-bag-supplier">
 						<span class="text-label">NCC: </span>
 						<select name="${inputNameSupplier}[]" id="${inputNameSupplier}${ln}" class="psg_luggage_purchase_select">
 							<option value=""></option>
 							${supplier_list}
 						</select>
 					</div>
-					<div class="col_psg_price flex-fill">
-						<span class="text-label">Số vé HL: </span>
+					<div class="col_psg_price col-psg-bag-ticketnum">
+						<span class="text-label">Số vé HL ${suffixtext}: </span>
 						<input type="text" name="${inputNameTicketNum}[]"
 							id="${inputNameTicketNum}${ln}"
-							value=""
 							class="psg_luggage_purchase_input"
-							maxlength="25"
-							size="25"
+							maxlength="25" size="25"
 						/>
 					</div>
 				</div>

@@ -100,9 +100,12 @@ $(document).ready(function () {
                     else if(value == '2') inf++;
                 });
             }
-            var adtPrice = $('input[name="adtPrice[]"]').map((i, el) => el.value).get();
-            var chdPrice = $('input[name="chdPrice[]"]').map((i, el) => el.value).get();
-            var infPrice = $('input[name="infPrice[]"]').map((i, el) => el.value).get();
+            // var adtPrice = $('input[name="adtPrice[]"]').map((i, el) => el.value).get();
+            // var chdPrice = $('input[name="chdPrice[]"]').map((i, el) => el.value).get();
+            // var infPrice = $('input[name="infPrice[]"]').map((i, el) => el.value).get();
+            var adtFare = $('input[name="adtFare[]"]').map((i, el) => el.value).get();
+            var chdFare = $('input[name="chdFare[]"]').map((i, el) => el.value).get();
+            var infFare = $('input[name="infFare[]"]').map((i, el) => el.value).get();
 
             var searchInfo = airlineCodes.map((_, i) => ({
                 action: 'research', // Add action to call entrypoint
@@ -115,9 +118,12 @@ $(document).ready(function () {
                 adt: adt,
                 chd: chd,
                 inf: inf,
-                adtPrice: adtPrice[i],
-                chdPrice: chdPrice[i],
-                infPrice: infPrice[i]
+                // adtPrice: adtPrice[i],
+                // chdPrice: chdPrice[i],
+                // infPrice: infPrice[i]
+                adtFare: adtFare[i],
+                chdFare: chdFare[i],
+                infFare: infFare[i]
             }));
 
             var response1 = {};
@@ -240,7 +246,9 @@ $(document).ready(function () {
             step = 3;
             var bookingResponse = {};
             if(statusAutoBook == 1) {
-                let caption = isWithin24h ? 'Xuất vé cận' : 'Đặt chỗ';
+                let caption = 'Đặt chỗ';
+                if(isWithin24h && searchInfo[0]['airlineCode'] == 'VJ') caption = 'Xuất vé cận';
+
                 showStepsInDialogAutoBook(step, caption + "...");
                 $('#btnAutoBookAction').prop('disabled', true); // Disable button action
                 
@@ -268,7 +276,8 @@ $(document).ready(function () {
                 }
 
                 // Display BookingCodes (PNR) to client
-                caption = isWithin24h ? 'Xuất vé thành công' : 'Đặt chỗ thành công';
+                caption = 'Đặt chỗ thành công';
+                if(isWithin24h && searchInfo[0]['airlineCode'] == 'VJ') caption = 'Xuất vé thành công';
                 const bookingCodes = bookingResponse.data.map(item => item.BookingCode);
                 bookingCodes.forEach(code => {
                     caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
@@ -407,6 +416,7 @@ function showDialogAutoBook(bookingData) {
             return `<div class="fare-column">
                 <input type="hidden" name="${passengerTextTypes[type]}[]" value="${fare.qty}" readonly />
                 <input type="hidden" name="${passengerTextTypes[type]}Price[]" value="${fare.price}" readonly />
+                <input type="hidden" name="${passengerTextTypes[type]}Fare[]" value="${fare.price}" readonly />
                 <input type="hidden" id="${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}" value="${fare.fare}" readonly />
                 <input type="hidden" id="${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}" value="${fare.tax}" readonly />
                 <input type="hidden" id="${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}" value="${fare.fee}" readonly />
@@ -447,7 +457,7 @@ function showDialogAutoBook(bookingData) {
         // Only display the fare section if there is at least one fare column
         if(!fareColumns) return '';
 
-        if(!BookingWithin24h) BookingWithin24h = flight.within24h;
+        if(!BookingWithin24h) BookingWithin24h = flight.within24h && flight.airlineCode == 'VJ';
         return `<div id="flight-info-${dir}" class="flight-info">
             <input type="hidden" name="airlineCode[]" value="${flight.airlineCode}" readonly />
             <input type="hidden" name="depCode[]" value="${flight.depCode}" readonly />
@@ -526,7 +536,7 @@ function showDialogAutoBook(bookingData) {
 
     // Note
     let noteHTML = `<div class="note p-2 mt-3" style="background:#e0ecfc">
-        ${BookingWithin24h ? '<p style="color:red">- Đây là <b>vé cận</b>, sẽ tiến hành thanh toán ngay.</p>' : '<p>- <b>Vé cận</b> sẽ tiến hành thanh toán ngay.</p>'}
+        ${BookingWithin24h ? '<p style="color:red">- Đây là <b>vé cận</b>, sẽ tiến hành thanh toán ngay.</p>' : '<p>- <b>Vé cận Vietjet</b> sẽ tiến hành thanh toán ngay.</p>'}
         <p>- Kiểm tra kỹ càng thông tin trước khi xác nhận.</p>
     </div>`;
     content.innerHTML += noteHTML;
@@ -688,13 +698,13 @@ function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, up
                     $(`${displayPrefix} .old-value`).text(formatNumber(oldValue));
                 }
 
-                if (key === 'price') {
-                    updateTotalAmount += newValue * count;
-                }
+                // if (key === 'price') {
+                //     updateTotalAmount += newValue * count;
+                // }
             }
         }
     });
-    $(`input#totalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
+    // $(`input#totalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
 
     // Button update
     let direction = $(`#btnUpdate${depCode}${desCode}`).attr('direction'); 
