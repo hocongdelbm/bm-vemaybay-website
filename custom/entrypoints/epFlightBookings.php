@@ -1285,23 +1285,33 @@ function populateEditedLineItineraries($booking_id)
 		}
 
 		$html .= '<tr class="edited_iti_line"> 
-					<td class="hide-mobile"></td>
-					<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
-					<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][$row['direction']] . '</td>
-					<td data-label="Mã hãng" class="text-center">' . $img_src . '</td>
-					<td data-label="Số hiệu" class="text-center">' . $row['flight_number'] . '</td>
-					<td data-label="Hạng vé" class="text-center ticket_class' . $row['direction'] . '">' . $row['ticket_class'] . '</td>
-					<td data-label="Nơi đi" class="text-center">' . $row['departure'] . '</td>
-					<td data-label="Nơi đến" class="text-center">' . ($row['is_layover'] ? '' : $row['arrival']) . '</td>
-					<td data-label="Ngày giờ đi" class="text-center">' . (trim($row['departure_date']) != '' ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '') . '</td>
-					<td data-label="Ngày giờ đến" class="text-center">' . (trim($row['arrival_date']) != '' ? date($date_format . ' H:i', strtotime($row['arrival_date'])) : '') . '</td>';
+			<td class="hide-mobile"></td>
+			<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
+			<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][$row['direction']] . '</td>
+			<td data-label="Mã hãng" class="text-center">' . $img_src . '</td>
+			<td data-label="Số hiệu" class="text-center">' . $row['flight_number'] . '</td>
+			<td data-label="Hạng vé" class="text-center ticket_class' . $row['direction'] . '">' . $row['ticket_class'] . '</td>
+			<td data-label="Nơi đi" class="text-center">' . $row['departure'] . '</td>
+			<td data-label="Nơi đến" class="text-center">' . ($row['is_layover'] ? '' : $row['arrival']) . '</td>
+			<td data-label="Ngày giờ đi" class="text-center">' . (trim($row['departure_date']) != '' ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '') . '</td>
+			<td data-label="Ngày giờ đến" class="text-center">' . (trim($row['arrival_date']) != '' ? date($date_format . ' H:i', strtotime($row['arrival_date'])) : '') . '</td>';
 
 		// Nút in vé
 		$print_ticket_btn = $send_ticket_btn = $remind_btn = '';
 		if ($print_iti != $row['sabre_logs']) {
 			$print_iti = $row['sabre_logs'];
-			$print_ticket_btn = '<div class="d-flex align-items-center gap-2 justify-content-between"><input type="button" class="btn btn-primary-2 fw-semibold flex-fill" ln="' . $j . '" name="btnPrintEticket" value="In vé" title="In vé" /><input type="hidden" name="add_type" value="3">';
-			$send_ticket_btn = '<input type="button" class="btn btn-primary-2 fw-semibold flex-fill" ln="' . $j . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" />';
+			$print_ticket_btn = '<input type="hidden" name="add_type" value="3">
+				<input type="button" name="btnPrintEticket" value="In vé" title="In vé"
+					class="btn btn-primary-2 fw-semibold flex-fill"
+					ln="'. $j .'"
+					data-times-change="'. $print_iti .'"
+				/>
+			';
+			$send_ticket_btn = '<input type="button" name="btnSendEticket" value="Gửi vé" title="Gửi vé"
+				class="btn btn-primary-2 fw-semibold flex-fill"
+				ln="'. $j .'"
+				data-times-change="'. $print_iti .'"
+			/>';
 
 			if ($row['is_remind'] == 0) {
 				// $remind_btn .= '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
@@ -1323,35 +1333,39 @@ function populateEditedLineItineraries($booking_id)
 		}
 
 		$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
-		$html .= '
-				<td colspan="2" class="text-center">
-					<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $j . '" target="_blank">
-						<input type="hidden" name="module" value="EC_Flight_Bookings" />
-						<input type="hidden" name="action" value="printeticket" />
-						<input type="hidden" name="record" value="' . $booking->id . '" />
-						<input type="hidden" name="return_module" value="EC_Flight_Bookings" />
-						<input type="hidden" name="return_action" value="" />
-						<input type="hidden" name="return_id" value="' . $booking->id . '" />
-						<input type="hidden" name="booking" value="' . $booking->name . '" />
-						<input type="hidden" name="booking_id" value="' . $booking->id . '" />
-						<input type="hidden" name="contact_email" value="' . $booking->email . '" />
-						<input type="hidden" name="contact_name" value="' . $booking->contact_name . '" />
-						<input type="hidden" name="itinerary_id" value="' . $row['id'] . '" />
-						<input type="hidden" name="direction" value="' . $row['direction'] . '" />
-						<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
-						<input type="hidden" name="ticket_type" value="' . $booking->ticket_type . '" />
-						' . $print_ticket_btn . '
-						' . $send_ticket_btn . '
-						<input class="btn btn-primary-2 fw-semibold flex-fill" type="button" 
-							direction="' . $row['direction'] . '" 
-							flightno="' . $row['flight_number'] . '" 
-							journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']])) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']])) . '" 
-							date="' . explode(' ', $sms_depdate)[0] . '" 
-							time="' . explode(' ', $sms_depdate)[1] . '"
-							applied_pass="' . $applied_pass . '" name="btnSendSMS" value="SMS" title="Send SMS" />
-						' . $remind_btn . '
-					</form>
-				</td>';
+		$html .= '<td colspan="2" class="text-center">
+			<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $j . '" target="_blank">
+				<input type="hidden" name="module" value="EC_Flight_Bookings" />
+				<input type="hidden" name="action" value="printeticket" />
+				<input type="hidden" name="record" value="' . $booking->id . '" />
+				<input type="hidden" name="return_module" value="EC_Flight_Bookings" />
+				<input type="hidden" name="return_action" value="" />
+				<input type="hidden" name="return_id" value="' . $booking->id . '" />
+				<input type="hidden" name="booking" value="' . $booking->name . '" />
+				<input type="hidden" name="booking_id" value="' . $booking->id . '" />
+				<input type="hidden" name="contact_email" value="' . $booking->email . '" />
+				<input type="hidden" name="contact_name" value="' . $booking->contact_name . '" />
+				<input type="hidden" name="itinerary_id" value="' . $row['id'] . '" />
+				<input type="hidden" name="direction" value="' . $row['direction'] . '" />
+				<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
+				<input type="hidden" name="ticket_type" value="' . $booking->ticket_type . '" />
+				<div class="d-flex align-items-center gap-2 justify-content-center">
+					'. $print_ticket_btn .'
+					'. $send_ticket_btn .'
+					<input type="button" name="btnSendSMS" value="SMS" title="Send SMS"
+						class="btn btn-primary-2 fw-semibold flex-fill"
+						direction="' . $row['direction'] . '" 
+						flightno="' . $row['flight_number'] . '" 
+						journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']])) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']])) . '" 
+						date="' . explode(' ', $sms_depdate)[0] . '" 
+						time="' . explode(' ', $sms_depdate)[1] . '"
+						applied_pass="' . $applied_pass . '"
+						style="max-width:30%"
+					/>
+					'. $remind_btn .'
+				</div>
+			</form>
+		</td>';
 
 		// Quá cảnh để trống
 		$html .= '
@@ -1527,45 +1541,43 @@ function populateEditedLinePassenger($booking_id)
 			$pass_changed_name_arr[] = '<font color="blue">' . $row['old_name'] . '</font> <span style="font-size: 16px;">&rarr;</span> ' . $row['name'];
 		}
 
-		$html .= '<tr class="psg-line" data-id="' . $row['id'] . '">
-					<td data-label="Chỉnh sửa" class="text-center align-middle"">
-						<svg xmlns="http://www.w3.org/2000/svg" class="edit_pass_row cursor-pointer" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
-					</td>
-					<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
-					<td data-label="Loại HK" class="text-center passenger_type">' . $app_list_strings['passenger_type_list'][$row['type']] . '</td>
-					<td data-label="Danh xưng" class="text-center passenger_salutation">' . $app_list_strings['passenger_salutation_list'][$row['salutation']] . '</td>
-					<td data-label="Họ tên" class="text-start passenger_name">' . $row['name'] . '</td>
-					<td data-label="Ngày sinh" class="text-center passenger_birthday">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date('d-m-Y', strtotime($row['birthday'])) : '') . '</td>
-					<td data-label="Ngày sinh" class="text-center passenger_id"></td>
-				';
+		$html .= '<tr class="psg-line" data-id="'. $row['id'] .'" data-times-change="'. $row['go_with'] .'">
+			<td data-label="Chỉnh sửa" class="text-center align-middle"">
+				<svg xmlns="http://www.w3.org/2000/svg" class="edit_pass_row cursor-pointer" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
+			</td>
+			<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
+			<td data-label="Loại HK" class="text-center passenger_type">' . $app_list_strings['passenger_type_list'][$row['type']] . '</td>
+			<td data-label="Danh xưng" class="text-center passenger_salutation">' . $app_list_strings['passenger_salutation_list'][$row['salutation']] . '</td>
+			<td data-label="Họ tên" class="text-start passenger_name">
+				<p class="fullname">' . $row['name'] . '</p>
+			</td>
+			<td data-label="Ngày sinh" class="text-center passenger_birthday">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date('d-m-Y', strtotime($row['birthday'])) : '') . '</td>
+			<td data-label="Giấy tờ" class="passenger_id text-start"></td>
+		';
 
-		$html .= '
-			<td data-label="Số vé đi" class="text-center eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
-				' . strtoupper($row['eticket_outbound']) . '
-				<svg xmlns="http://www.w3.org/2000/svg" class="editinline cursor-pointer" style="display:none;" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
-				<input type="hidden" name="eticket_outbound[]" id="eticket_outbound' . $i . '" value="' . strtoupper($row['eticket_outbound']) . '"  />
-			</td>';
+		$html .= '<td data-label="Số vé đi" class="text-center eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
+			' . strtoupper($row['eticket_outbound']) . '
+			<svg xmlns="http://www.w3.org/2000/svg" class="editinline cursor-pointer" style="display:none;" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
+			<input type="hidden" name="eticket_outbound[]" id="eticket_outbound' . $i . '" value="' . strtoupper($row['eticket_outbound']) . '"  />
+		</td>';
+		$html .= '<td data-label="Số vé về" class="text-center eticket_inbound" content="' . strtoupper($row['eticket_inbound']) . '" row_no="' . $row['id'] . '">
+			' . strtoupper($row['eticket_inbound']) . '
+			<svg xmlns="http://www.w3.org/2000/svg" class="editinline cursor-pointer" style="display:none;" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
+			<input type="hidden" name="eticket_inbound[]" id="eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '"  />
+		</td>';
 
-		$html .= '
-			<td data-label="Số vé về" class="text-center eticket_inbound" content="' . strtoupper($row['eticket_inbound']) . '" row_no="' . $row['id'] . '">
-				' . strtoupper($row['eticket_inbound']) . '
-				<svg xmlns="http://www.w3.org/2000/svg" class="editinline cursor-pointer" style="display:none;" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
-				<input type="hidden" name="eticket_inbound[]" id="eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '"  />
-			</td>';
+		$html .= '<td data-label="PNR đi" class="text-center">
+			' . strtoupper($row['pnr_outbound']) . '
+			<input type="hidden" name="pnr_outbound[]" id="pnr_outbound' . $i . '" value="' . strtoupper($row['pnr_outbound']) . '"  />
+		</td>';
+		$html .= '<td data-label="PNR về" class="text-center">
+			' . strtoupper($row['pnr_inbound']) . '
+			<input type="hidden" name="pnr_inbound[]" id="pnr_inbound' . $i . '" value="' . strtoupper($row['pnr_inbound']) . '"  />
+		</td>';
 
-		$html .= '
-			<td data-label="PNR đi" class="text-center">
-				' . strtoupper($row['pnr_outbound']) . '
-				<input type="hidden" name="pnr_outbound[]" id="pnr_outbound' . $i . '" value="' . strtoupper($row['pnr_outbound']) . '"  />
-			</td>';
-		$html .= '
-			<td data-label="PNR về" class="text-center">
-				' . strtoupper($row['pnr_inbound']) . '
-				<input type="hidden" name="pnr_inbound[]" id="pnr_inbound' . $i . '" value="' . strtoupper($row['pnr_inbound']) . '"  />
-			</td>';
 
+		
 		/* Thông tin hành lý lượt đi*/
-		// -------------------------------------
 		$luggage_price = '';
 		// luggage_price_arr là list option hành lý
 		$luggage_price_arr = generateLuggage($booking->date_entered, $booking->airline, $row['ticket_class_ob'], $row['type'], (int)$row['luggage_index_outbound']);

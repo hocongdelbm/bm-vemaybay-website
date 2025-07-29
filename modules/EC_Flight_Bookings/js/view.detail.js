@@ -292,6 +292,7 @@ $(document).ready(function () {
 	// Print eticket button
 	$(document).on('click', 'input[name="btnPrintEticket"]', function () {
 		var ln = $(this).attr('ln');
+		var timesChangeIti = $(this).attr('data-times-change');
 		$('#what_form').val($(this).closest('form[name="frmPrintEticket"]').attr('id'));
 		$(`#frmPrintEticket${ln}`).attr('target', '_blank');
 		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=true');
@@ -299,7 +300,12 @@ $(document).ready(function () {
 		$(`#frmPrintEticket${ln} input:hidden[name="return_action"]`).val('');
 
 		let checkBoxPassengers = '';
-		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
+		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function (index, element) {
+			if(ln > 0 && index + 1 < ln) return true; // Skip
+
+			let timesChangePass = $(this).attr('data-times-change');
+			if(timesChangeIti !== timesChangePass) return true; // Skip
+
 			let passId = $(this).attr('data-id');
 			let passName = $(this).find('td.passenger_name .fullname').text();
 			checkBoxPassengers += `<div class="form-check">
@@ -333,17 +339,22 @@ $(document).ready(function () {
 	});
 
 	// Send mail eticket button
-	$(document).on('click', 'input[name="btnSendEticket"]', function () {
+	$(document).on('click', 'input[name="btnSendEticket"]', function (index, element) {
 		var ln = $(this).attr('ln');
+		var timesChangeIti = $(this).attr('data-times-change');
 		$('#what_form').val($(this).closest('form[name="frmPrintEticket"]').attr('id'));
-
-		$('#frmPrintEticket' + ln).attr('target', '_self');
-		$('#frmPrintEticket' + ln).attr('action', 'index.php?print=false');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="action"]').val('sendeticket');
-		$('#frmPrintEticket' + ln + ' input:hidden[name="return_action"]').val('DetailView');
+		$(`#frmPrintEticket${ln}`).attr('target', '_self');
+		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=false');
+		$(`#frmPrintEticket${ln} input:hidden[name="action"]`).val('sendeticket');
+		$(`#frmPrintEticket${ln} input:hidden[name="return_action"]`).val('DetailView');
 		
 		let checkBoxPassengers = '';
 		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
+			if(ln > 0 && index + 1 < ln) return true; // Skip
+
+			let timesChangePass = $(this).attr('data-times-change');
+			if(timesChangeIti !== timesChangePass) return true; // Skip
+
 			let passId = $(this).attr('data-id');
 			let passName = $(this).find('td.passenger_name .fullname').text();
 			checkBoxPassengers += `<div class="form-check">

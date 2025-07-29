@@ -66,7 +66,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.3"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.4"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_phuongnam/booking.js?v=1.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.8"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3"></script>
@@ -1836,7 +1836,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<td data-label="Ngày sinh" class="passenger_birthdate text-center">
 					<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>
 				</td>
-				<td data-label="Họ tên" class="passenger_id text-start">
+				<td data-label="Giấy tờ" class="passenger_id text-start">
 					<p class="cic text-nowrap" data="' . $row['cic'] . '" ' . $hide_cic . '><b>CCCD: </b><span>' . $row['cic'] . '</span></p>
 					<p class="passport text-nowrap" data="' . $row['passport_number'] . '" ' . $hide_passport . '><b>Passport: </b><span>' . $row['passport_number'] . '</span></p>
 				</td>

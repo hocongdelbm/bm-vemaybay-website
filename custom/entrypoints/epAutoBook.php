@@ -123,7 +123,7 @@ try {
                 }
 
                 // Thông tin chi tiết vé
-                $dateFareDetails = [];
+                $dataFareDetails = [];
                 $sql_3 = "SELECT bkd.id
                         ,bkd.direction
                         ,bkd.passenger_type
@@ -141,7 +141,7 @@ try {
                     elseif($row['passenger_type'] === '2' && $infCount < 1) continue;
 
                     $direction_name = $row['direction'] == '1' ? 'ret' : 'dep';
-                    $dateFareDetails[$direction_name][$row['passenger_type']] = [
+                    $dataFareDetails[$direction_name][$row['passenger_type']] = [
                         'id' => $row['id'],
                         'fare'  => $row['fare'],
                         'tax'   => $row['tax'],
@@ -172,7 +172,7 @@ try {
                         'contact' => $dataContact,
                         'journeys' => $dataJourneys,
                         'passengers' => $dataPassengers,
-                        'fareDetails' => $dateFareDetails
+                        'fareDetails' => $dataFareDetails
                     ]
                 ]);
                 exit(); 
@@ -686,6 +686,13 @@ try {
 
             // Save to BM
             if($responseArr['status'] == 1) {
+                $m = "<b>[INFO] CHECK BOOKING DATA REQUEST BODY</b>";
+                $m .= "\n<pre>".json_encode($requestBody)."</pre>";
+                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+
                 $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 foreach($responseArr['data'] as $i => $f) {
                     if(isset($f["ID"]) && $f["ID"] == 1) {
@@ -708,7 +715,7 @@ try {
 
                             $link = "<a href=\"".$linkBooking."\">$pnr</a>";
                             $m = "Giữ chỗ $systemName: $link bởi <b>$fullname</b>";
-                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "<b>💰 Xuất vé cận $systemName: $link bởi $fullname</b>";
+                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] === true) $m = "<b>💰 Xuất vé cận $systemName: $link bởi $fullname</b>";
                             if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
                             $botToken   = $sugar_config['telegram']['phuongnamapi']['bot_token'] ?? '';
                             $chatId     = $sugar_config['telegram']['phuongnamapi']['chat_id'] ?? '';
@@ -717,10 +724,17 @@ try {
                         catch(Throwable $th) {}
 
                         if($bookingType == 'roundtrip') {
+                            $fareBasicDep = $requestBody['Flights'][0]['FarePricings'][0]['FareBasis'] ?? '';
+                            $fareBasicRet = $requestBody['Flights'][1]['FarePricings'][0]['FareBasis'] ?? '';
+                            $bagIndexDep = '';
+                            $bagIndexRet = '';
+
                             // Update PNR
                             $sql = "UPDATE ec_booking_passengers
                                     SET pnr_outbound = '$pnr'
                                         ,pnr_inbound = '$pnr'
+                                        ,luggage_index_outbound = '$bagIndexDep'
+                                        ,luggage_index_inbound = '$bagIndexRet'
                                         ,modified_user_id = '$current_user->id'
                                         ,date_modified = '$dateModified'
                                     WHERE booking_id = '$bookingId'
@@ -762,16 +776,22 @@ try {
                             $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
                             if($systemCode == ($arrMapAirlineCode[$airlineCodeOutbound] ?? '')) {
                                 $colNamePNR = 'pnr_outbound';
+                                $colNameLugIndex = 'luggage_index_outbound';
                                 $direction = '0';
                             }
                             else {
                                 $colNamePNR = 'pnr_inbound';
+                                $colNameLugIndex = 'luggage_index_inbound';
                                 $direction = '1';
                             }
+
+                            $fareBasic = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
+                            $bagIndex = '';
 
                             // Update PNR
                             $sql = "UPDATE ec_booking_passengers
                                     SET $colNamePNR = '$pnr'
+                                        ,$colNameLugIndex = '$bagIndex'
                                         ,modified_user_id = '$current_user->id'
                                         ,date_modified = '$dateModified'
                                     WHERE booking_id = '$bookingId'
