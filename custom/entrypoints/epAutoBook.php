@@ -190,6 +190,7 @@ try {
             exit();
         }
         elseif($action == 'research') {
+            global $sugar_config;
             $phuongnamapi = new PhuongNamAPI();
 
             $requestData    = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -202,12 +203,15 @@ try {
             $adt            = (int)($requestData['adt'] ?? 1);
             $chd            = (int)($requestData['chd'] ?? 0);
             $inf            = (int)($requestData['inf'] ?? 0);
-            // $adtPrice       = $requestData['adtPrice'] ?? 0;
-            // $chdPrice       = $requestData['chdPrice'] ?? 0;
-            // $infPrice       = $requestData['infPrice'] ?? 0;
             $adtFare        = $requestData['adtFare'] ?? 0;
             $chdFare        = $requestData['chdFare'] ?? 0;
             $infFare        = $requestData['infFare'] ?? 0;
+            $adtTax         = $requestData['adtTax'] ?? 0;
+            $chdTax         = $requestData['chdTax'] ?? 0;
+            $infTax         = $requestData['infTax'] ?? 0;
+            $adtPrice       = $requestData['adtPrice'] ?? 0;
+            $chdPrice       = $requestData['chdPrice'] ?? 0;
+            $infPrice       = $requestData['infPrice'] ?? 0;
             $cabin          = $phuongnamapi->detectCabin($airlineCode, $ticketClass); // Detect cabin from ticket class
             
             $json = $phuongnamapi->searchFlights($airlineCode, $depCode, $desCode, date('Y-m-d', strtotime($flightDate)), '', $adt, $chd, $inf, $cabin);
@@ -280,28 +284,36 @@ try {
                     //         "price"  => $f["infPrice"]
                     //     ];
                     // }
+                    $vat_percentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
                     if(isset($f["adtFare"]) && $f["adtFare"] != $adtFare) {
+                        $newFare = $f["adtFare"] ?? 0;
+                        $newTax  = isset($f["adtTax"]) && $f["adtTax"] > 0 ? $f["adtTax"] : $newFare*$vat_percentage;
                         $updateData['adtFare'] = [
-                            "fare"   => $f["adtFare"],
-                            // "tax"    => $f["adtTax"],
+                            "fare"   => $newFare,
+                            "tax"    => $newTax,
                             // "fee"    => $f["adtFee"],
-                            // "price"  => $f["adtPrice"]
+                            "price"  => $adtPrice - $adtFare - $adtTax + $newFare + $newTax
                         ];
                     }
                     if($chd > 0 && isset($f["chdFare"]) && $f["chdFare"] != $chdFare) {
+                        $newFare = $f["chdFare"] ?? 0;
+                        $newTax = isset($f["chdTax"]) && $f["chdTax"] > 0 ? $f["chdTax"] : $newFare*$vat_percentage;
+
                         $updateData['chdFare'] = [
-                            "fare"   => $f["chdFare"],
-                            // "tax"    => $f["chdTax"],
+                            "fare"   => $newFare,
+                            "tax"    => $newTax,
                             // "fee"    => $f["chdFee"],
-                            // "price"  => $f["chdPrice"]
+                            "price"  => $chdPrice - $chdFare - $chdTax + $newFare + $newTax
                         ];
                     }
                     if($inf > 0 && isset($f["infFare"]) && $f["infFare"] != $infFare) {
+                        $newFare = $f["infFare"] ?? 0;
+                        $newTax = isset($f["infTax"]) && $f["infTax"] > 0 ? $f["infTax"] : $newFare*$vat_percentage;
                         $updateData['infFare'] = [
-                            "fare"   => $f["infFare"],
-                            // "tax"    => $f["infTax"],
+                            "fare"   => $newFare,
+                            "tax"    => $newTax,
                             // "fee"    => $f["infFee"],
-                            // "price"  => $f["infPrice"]
+                            "price"  => $infPrice - $infFare - $infTax + $newFare + $newTax
                         ];
                     }
 
@@ -360,22 +372,22 @@ try {
                 $k = $type . "Fare";
                 if(isset($requestData[$k]) && !empty($requestData[$k])) {
                     $fare   = $requestData[$k]["fare"];
-                    // $tax    = $requestData[$k]["tax"];
+                    $tax    = $requestData[$k]["tax"];
                     // $fee    = $requestData[$k]["fee"];
                     // $vatFee = $fee*$sugar_config['vat_percentage'];
                     // $price  = $requestData[$k]["price"];
 
                     $sql = "UPDATE ec_booking_details
                         SET unit_price = $fare
-                            -- ,tax_and_fee = $tax
+                            ,tax_and_fee = $tax
                             -- ,airport_fee        = IF($fee > admin_fee, $fee - admin_fee, 0)
                             -- ,admin_fee          = IF($fee > admin_fee, admin_fee, $fee)
                             -- ,vat_admin          = IF($fee > admin_fee, vat_admin, $vatFee)
                             -- ,admin_fee_no_vat   = IF($fee > admin_fee, admin_fee_no_vat, $fee - $vatFee)
                             -- ,total_bought_price = $price * quantity
                             -- ,total_price = ($price + service_fee) * quantity
-                            ,total_bought_price = ($fare + tax_and_fee + airport_fee + admin_fee) * quantity
-                            ,total_price = ($fare + tax_and_fee + airport_fee + admin_fee + service_fee) * quantity
+                            ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
+                            ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
                         WHERE booking_id = '$bookingId'
@@ -805,10 +817,10 @@ try {
             exit();
         }
         elseif($action == 'get_booking') {
-            $systemCode = $requestData['systemCode'] ?? '';
-            $bookingCode = $requestData['bookingCode'] ?? '';
+            $systemCode  = trim($requestData['systemCode'] ?? '');
+            $bookingCode = trim($requestData['bookingCode'] ?? '');
 
-            if(empty($systemCode) || empty($bookingCode)) {
+            if(strlen($systemCode) < 2 || strlen($systemCode) > 8 || strlen($bookingCode) != 6) {
                 echo json_encode([
                     "status" => 0,
                     "message" => "Dữ liệu không hợp lệ",
@@ -821,19 +833,26 @@ try {
             }
 
             $phuongnamapi = new PhuongNamAPI();
-
-            $responseStatus = $phuongnamapi->getBookingStatus($systemCode, $bookingCode);
-            $responseStatusArr = json_decode($responseStatus, true);
-            if(isset($responseStatusArr['status']) && $responseStatusArr['status'] == 1) {
-                $dataStatus = $responseStatusArr['data'] ?? [];
-                $statusId = $dataStatus['StatusId'] ?? null;
-                if($statusId && !in_array($statusId, [100, 200, 300, 320])) {
-                    $phuongnamapi->syncBooking($systemCode, $bookingCode);
+            $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
+            $responseArr = json_decode($response, true);
+            $bookingStatusId = $responseArr['data']['BookingStatusId'] ?? null;
+            
+            // Recheck booking status
+            if($bookingStatusId && $bookingStatusId != 200) {
+                $responseStatus = $phuongnamapi->getBookingStatus($systemCode, $bookingCode);
+                $responseStatusArr = json_decode($responseStatus, true);
+                if(isset($responseStatusArr['status']) && $responseStatusArr['status'] == 1) {
+                    $statusId = $responseStatusArr['data']['StatusId'] ?? null;
+                    if($statusId && $statusId != $bookingStatusId) {
+                        // Sync booking data
+                        $phuongnamapi->syncBooking($systemCode, $bookingCode);
+                        // Get new booking detail data
+                        $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
+                        $responseArr = json_decode($response, true);
+                    }
                 }
             }
 
-            $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
-            $responseArr = json_decode($response, true);
 
             // // Get seat map
             // try {

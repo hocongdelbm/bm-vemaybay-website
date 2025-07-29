@@ -100,12 +100,16 @@ $(document).ready(function () {
                     else if(value == '2') inf++;
                 });
             }
-            // var adtPrice = $('input[name="adtPrice[]"]').map((i, el) => el.value).get();
-            // var chdPrice = $('input[name="chdPrice[]"]').map((i, el) => el.value).get();
-            // var infPrice = $('input[name="infPrice[]"]').map((i, el) => el.value).get();
+            
             var adtFare = $('input[name="adtFare[]"]').map((i, el) => el.value).get();
             var chdFare = $('input[name="chdFare[]"]').map((i, el) => el.value).get();
             var infFare = $('input[name="infFare[]"]').map((i, el) => el.value).get();
+            var adtTax = $('input[name="adtTax[]"]').map((i, el) => el.value).get();
+            var chdTax = $('input[name="chdTax[]"]').map((i, el) => el.value).get();
+            var infTax = $('input[name="infTax[]"]').map((i, el) => el.value).get();
+            var adtPrice = $('input[name="adtPrice[]"]').map((i, el) => el.value).get();
+            var chdPrice = $('input[name="chdPrice[]"]').map((i, el) => el.value).get();
+            var infPrice = $('input[name="infPrice[]"]').map((i, el) => el.value).get();
 
             var searchInfo = airlineCodes.map((_, i) => ({
                 action: 'research', // Add action to call entrypoint
@@ -118,12 +122,15 @@ $(document).ready(function () {
                 adt: adt,
                 chd: chd,
                 inf: inf,
-                // adtPrice: adtPrice[i],
-                // chdPrice: chdPrice[i],
-                // infPrice: infPrice[i]
                 adtFare: adtFare[i],
                 chdFare: chdFare[i],
-                infFare: infFare[i]
+                infFare: infFare[i],
+                adtTax: adtTax[i],
+                chdTax: chdTax[i],
+                infTax: infTax[i],
+                adtPrice: adtPrice[i],
+                chdPrice: chdPrice[i],
+                infPrice: infPrice[i]
             }));
 
             var response1 = {};
@@ -415,8 +422,10 @@ function showDialogAutoBook(bookingData) {
 
             return `<div class="fare-column">
                 <input type="hidden" name="${passengerTextTypes[type]}[]" value="${fare.qty}" readonly />
+                <input type="hidden" name="${passengerTextTypes[type]}Fare[]" value="${fare.fare}" readonly />
+                <input type="hidden" name="${passengerTextTypes[type]}Tax[]" value="${fare.fare}" readonly />
+                <input type="hidden" name="${passengerTextTypes[type]}Fee[]" value="${fare.fare}" readonly />
                 <input type="hidden" name="${passengerTextTypes[type]}Price[]" value="${fare.price}" readonly />
-                <input type="hidden" name="${passengerTextTypes[type]}Fare[]" value="${fare.price}" readonly />
                 <input type="hidden" id="${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}" value="${fare.fare}" readonly />
                 <input type="hidden" id="${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}" value="${fare.tax}" readonly />
                 <input type="hidden" id="${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}" value="${fare.fee}" readonly />
@@ -698,13 +707,13 @@ function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, up
                     $(`${displayPrefix} .old-value`).text(formatNumber(oldValue));
                 }
 
-                // if (key === 'price') {
-                //     updateTotalAmount += newValue * count;
-                // }
+                if (key === 'price') {
+                    updateTotalAmount += newValue * count;
+                }
             }
         }
     });
-    // $(`input#totalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
+    $(`input#totalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
 
     // Button update
     let direction = $(`#btnUpdate${depCode}${desCode}`).attr('direction'); 
