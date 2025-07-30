@@ -233,7 +233,7 @@ try {
                         "FlightNumber" => preg_replace('/\D/', '', $f['flightNo']),
                         "FarePricings" => [
                             [
-                                "FareBasis" => $f['fareClass'],
+                                "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
                                 "PassengerTypeId" => 1,
                                 "FareSumAmount" => $f["adtPrice"] * $adt
                             ]
@@ -241,14 +241,14 @@ try {
                     ];
                     if($chd > 0) {
                         $standardData["FarePricings"][] = [
-                            "FareBasis" => $f['fareClass'],
+                            "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
                             "PassengerTypeId" => 6,
                             "FareSumAmount" => $f["chdPrice"] * $chd
                         ];
                     }
                     if($inf > 0) {
                         $standardData["FarePricings"][] = [
-                            "FareBasis" => $f['fareClass'],
+                            "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
                             "PassengerTypeId" => 5,
                             "FareSumAmount" => $f["infPrice"] * $inf
                         ];
@@ -733,8 +733,8 @@ try {
                             $sql = "UPDATE ec_booking_passengers
                                     SET pnr_outbound = '$pnr'
                                         ,pnr_inbound = '$pnr'
-                                        ,luggage_index_outbound = '$bagIndexDep'
-                                        ,luggage_index_inbound = '$bagIndexRet'
+                                        -- ,luggage_index_outbound = '$bagIndexDep'
+                                        -- ,luggage_index_inbound = '$bagIndexRet'
                                         ,modified_user_id = '$current_user->id'
                                         ,date_modified = '$dateModified'
                                     WHERE booking_id = '$bookingId'
@@ -791,7 +791,7 @@ try {
                             // Update PNR
                             $sql = "UPDATE ec_booking_passengers
                                     SET $colNamePNR = '$pnr'
-                                        ,$colNameLugIndex = '$bagIndex'
+                                        -- ,$colNameLugIndex = '$bagIndex'
                                         ,modified_user_id = '$current_user->id'
                                         ,date_modified = '$dateModified'
                                     WHERE booking_id = '$bookingId'
