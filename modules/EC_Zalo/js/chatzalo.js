@@ -15,7 +15,7 @@ var count_connect_error = 0;
 $(document).ready(function () {
     resetGlobalContent();
     getListUser()
-    connectWebSocket();
+    // connectWebSocket();
 
     // Click
     $('.choose_label').click(function () {
@@ -851,6 +851,21 @@ $(document).ready(function () {
         $(`.assign-fullname#${element}`).stop().fadeOut(300);
         return false;
     });
+
+    // Enlarge image
+    $(document).on("click", ".message-image", function() {
+        console.warn("Click");
+        $('#dialogImage').attr('src', $(this).attr('src'));
+        $('#imageDialog').fadeIn(200);
+    });
+    $('#closeDialog').on('click', function () {
+        $('#imageDialog').fadeOut(200);
+    });
+    $('#imageDialog').on('click', function (e) {
+        if (e.target.id === 'imageDialog') {
+            $('#imageDialog').fadeOut(200);
+        }
+    });
 });
 
 /**
@@ -1441,13 +1456,13 @@ function create_chat_row(obj, ctype = 'load') {
             classnamepicture = text.length > 0 ? 'picture_text' : '';
     
             content += `<div class="content-picture item">
-                <img src="${url}">
+                <img src="${url}" class="message-image">
                 ${text}
             </div>`;
         }
         else if (type == 'sticker') {
             let url = obj.url ? obj.url : '#';
-            content += `<img src="${url}">`;
+            content += `<img src="${url}" class="message-image">`;
         }
         else if (type == 'audio' || type == 'voice') {
             let url = obj.url ? obj.url : '#';
@@ -1659,7 +1674,7 @@ function create_quote_content(quote_id, quote_data) {
         text = message;
     }
     else if(type == 'image') {
-        img = `<img src="${thumbnail}" alt="Image reply">`;
+        img = `<img src="${thumbnail}" class="message-image" alt="Image reply">`;
         text = '[Hình ảnh]';
     }
     else if(type == 'sticker') {
@@ -2511,7 +2526,7 @@ function getBusinessCard(json, thumbnail, name = '') {
             <div class="card-body">
                 <div class="row">
                     <div class="col-sm-8 col-8 left">
-                        <img class="avatar" src="${thumbnail}" />
+                        <img class="avatar" class="message-image" src="${thumbnail}" />
                         <div class="info">
                             <p>${card.title}</p>
                             <span id="card_phone" class="card-phone">${card.phone ?? ''}</span>

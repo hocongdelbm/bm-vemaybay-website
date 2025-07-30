@@ -35,11 +35,36 @@
  * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
  * reasonably feasible for technical reasons, the Appropriate Legal Notices must
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */function update_status(percent_complete){if(percent_complete=='0'){document.getElementById('status').value='Not Started';}
-else if(percent_complete=='100'){document.getElementById('status').value='Completed';}
-else if(isNaN(percent_complete)||(percent_complete<0||percent_complete>100)){document.getElementById('percent_complete').value='';}
-else{document.getElementById('status').value='In Progress';}}
-function update_percent_complete(status){if(status=='In Progress'){percent_value='50';}
-else if(status=='Completed'){percent_value='100';}
-else{percent_value='0';}
-document.getElementById('percent_complete').value=percent_value;}
+ */
+
+
+
+
+
+function update_status(percent_complete){
+	if (percent_complete == '0'){
+		document.getElementById('status').value = 'Not Started';
+	}
+	else if (percent_complete == '100'){
+		document.getElementById('status').value = 'Completed';		
+	}
+	else if (isNaN(percent_complete) || (percent_complete < 0 || percent_complete > 100)){
+		document.getElementById('percent_complete').value = '';
+	}
+	else{
+		document.getElementById('status').value = 'In Progress';
+	}
+}
+
+function update_percent_complete(status){
+	if (status == 'In Progress'){
+		percent_value = '50';
+	}
+	else if (status == 'Completed'){
+		percent_value = '100';
+	}
+	else{
+		percent_value = '0';
+	}
+	document.getElementById('percent_complete').value = percent_value;		
+}

@@ -619,12 +619,21 @@ function update_log_autocall(){
                             //     ), JSON_UNESCAPED_UNICODE),
                             // );
 
-                            // Notify Mattermost
-                            $message = Mattermost::$line_separation;
-                            $message .= Mattermost::markdownHeading("[ERROR] Updated autocall failed");
-                            $message .= "\n- Call ID: **$call_id**";
-                            $message .= "\n- SQL query: **$sql_update**";
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                            // // Notify Mattermost
+                            // $message = Mattermost::$line_separation;
+                            // $message .= Mattermost::markdownHeading("[ERROR] Updated autocall failed");
+                            // $message .= "\n- Call ID: **$call_id**";
+                            // $message .= "\n- SQL query: **$sql_update**";
+                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                            // Notify Telegram
+                            $message = "<b>[ERROR] Updated autocall failed</b>";
+                            $message .= "\nCall ID: <b>$call_id</b>";
+                            $message .= "\n<pre>$sql_update</pre>";
+                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                         }
                         else {
                             $index++;

@@ -439,19 +439,30 @@ class CustomController extends BaseController
             }
 
             require_once("modules/EC_Zalo/Zalo.php");
+            require_once("modules/EC_Zalo/OMNI.php");
             $Zalo = new \Zalo();
-            $template_id = $Zalo->get_template_id_zns($type_zns);
-            $json = $Zalo->send_zns($phone, $template_id, $template_data);
-            $arr  = json_decode($json, true);
+            $Omni = new \OMNI();
+            $template_id = $template_name = '';
+            if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+                $template_id = $Zalo->get_template_id_zns($type_zns);
+                $template_name = $Zalo->get_template_name_zns($template_id);
+                $json = $Zalo->send_zns($phone, $template_id, json_encode($template_data));
+            }
+            else {
+                $template_id = $Omni->getTemplateCode($type_zns);
+                $template_name = $Omni->getTemplateName($template_id);
+                $json = $Omni->sendMessage($phone, $template_id, $template_data);
+            }
 
+            $arr  = json_decode($json, true);
             $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
             $template_data['template_id'] = $template_id;
 
-            if(isset($arr['error']) && $arr['error'] == 0) {
+            if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
                 $m = BeanFactory::newBean("EC_Messages");
                 $m->send_from       = $Zalo->get_oa_id();
                 $m->send_to         = $phone;
-                $m->content         = $Zalo->get_template_name_zns($template_id);
+                $m->content         = $template_name;
                 $m->type            = 'zalo_zns';
                 $m->category        = $category;
                 $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
@@ -474,20 +485,32 @@ class CustomController extends BaseController
                     $zalomes->timestamp     = $timestamp;
                     $zalomes->type          = 'zns';
                     $zalomes->sub_type      = $type_zns;
-                    $zalomes->description   = $Zalo->get_template_name_zns($template_id);
+                    $zalomes->description   = $template_name;
                     $zalomes->template_id   = $template_id;
                     $zalomes->data          = json_encode($template_data);
                     $zalomes->response      = trim($json);
                     $zalomes->save();
                 }
                 catch(Throwable $th) {
-                    $message = Mattermost::$line_separation;
-                    $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed\n");
-                    $message .= "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\n\n$json";
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                    // $message = Mattermost::$line_separation;
+                    // $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed\n");
+                    // $message .= "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\n\n$json";
+                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                    $message = "<b>[ERROR] ZNS message saved failed</b>";
+                    $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\n<pre>$json</pre>";
+                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                 }
                 
-                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**Hệ thống**: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo **$phone**");
+                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**Hệ thống**: Gửi $template_name đến Zalo **$phone**");
+                
+                $botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+                $chatId = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+                Telegram::sendMessage("<b>Hệ thống</b>: Gửi $template_name đến Zalo <b>$phone</b>", $botToken, $chatId);
+
                 return $response->withJson([
                     "error"   => false,
                     "message" => "Success",
@@ -496,12 +519,19 @@ class CustomController extends BaseController
             }
             else {
                 $error_code = isset($arr['error']) ? $arr['error'] : '';
-                $message = $Zalo->get_error_description_zns($error_code);
+                if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
+                
+                if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+                    $message = $Zalo->get_error_description_zns($error_code);
+                }
+                else {
+                    $message = $Omni->getErrorDescription($error_code);
+                }
 
                 $m = BeanFactory::newBean("EC_Messages");
                 $m->send_from       = $Zalo->get_oa_id();
                 $m->send_to         = $phone;
-                $m->content         = $Zalo->get_template_name_zns($template_id);
+                $m->content         = $template_name;
                 $m->type            = 'zalo_zns';
                 $m->category        = $category;
                 $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
@@ -525,7 +555,7 @@ class CustomController extends BaseController
     // API TEST SAVE CONTACT - APPS SCRIPT
     public function save_contacts(Request $request, Response $response, array $args)
     {
-        $contacts     = (array)$request->getParsedBody() ?? [];
+        $contacts = (array)$request->getParsedBody() ?? [];
         $request_ip = $request->getServerParam('REMOTE_ADDR');
 
         if(is_array($contacts) && count($contacts) > 0) {
@@ -552,12 +582,11 @@ class CustomController extends BaseController
                     //     ), JSON_UNESCAPED_UNICODE),
                     // );
 
-                    global $sugar_config;
-                    $message = Mattermost::$line_separation;
-                    $message .= Mattermost::markdownHeading("[ERROR] Save contact failed\n");
-                    $message .= "Lưu thông tin liên hệ Apps script thất bại!\n\n";
-                    $message .= json_encode($contactData);
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                    // global $sugar_config;
+                    // $message = Mattermost::markdownHeading("[ERROR] Save contact failed\n");
+                    // $message .= "Lưu thông tin liên hệ Apps script thất bại!\n\n";
+                    // $message .= json_encode($contactData);
+                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
             }
         } 

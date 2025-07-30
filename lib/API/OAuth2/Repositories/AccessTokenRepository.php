@@ -130,10 +130,18 @@ class AccessTokenRepository implements AccessTokenRepositoryInterface
                         // $this->sendTestTelegramToken(json_encode($log_token));
 
                         global $sugar_config;
-                        $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[ERROR] The problem with tokens\n");
-                        $message .= json_encode($log_token);
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                        
+                        // $message = Mattermost::$line_separation;
+                        // $message .= Mattermost::markdownHeading("[ERROR] The problem with tokens\n");
+                        // $message .= json_encode($log_token);
+                        // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                        $message = "<b>[ERROR] The problem with tokens</b>";
+                        $message .= "\n<pre>". json_encode($log_token) ."</pre>";
+                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                     }
                     catch(Throwable $th) {
                         $GLOBALS['log']->fatal($th->getMessage());

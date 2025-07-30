@@ -198,6 +198,9 @@
 #tbl_pax tbody tr.psg-line td {
     vertical-align: baseline;
 }
+#tbl_pax tbody tr.psg-line.luggage {
+    background-color: #fff8e4 !important;
+}
 
 
 /* CART TYPE CONTACTS */

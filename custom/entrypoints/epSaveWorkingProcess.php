@@ -6,7 +6,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 // $app_strings = return_application_language($GLOBALS['current_language']);
 // $mod_strings = return_module_language($GLOBALS['current_language'], 'ACL');
 // global $app_list_strings, $app_strings, $mod_strings, $db, $current_user;
-global $db, $current_user;
+global $db, $current_user, $sugar_config;
 
 if (!empty($_SESSION['authenticated_user_id'])) {
 	$module 					= trim($_POST['module']);
@@ -253,42 +253,66 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									$arr = json_decode($json, true);
 
 									if(isset($arr['error']) && $arr['error'] == 0) {
-										$content = "**(AUTO) TIN NHẮN TÍCH ĐIỂM**";
-										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
-										$content .= "- Booking: **$record_name**\n";
-										$content .= "- Số điện thoại: **$con_phone**\n";
-										$content .= "- Điểm cộng thêm: **$point điểm**\n";
-										$content .= "- Tổng tích lũy: **$total_point điểm**";
-										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
+										// $content = "**(AUTO) TIN NHẮN TÍCH ĐIỂM**";
+										// $content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua zalo id\n";
+										// $content .= "- Booking: **$record_name**\n";
+										// $content .= "- Số điện thoại: **$con_phone**\n";
+										// $content .= "- Điểm cộng thêm: **$point điểm**\n";
+										// $content .= "- Tổng tích lũy: **$total_point điểm**";
+										// Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
+
+										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>";
+										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua Zalo ID";
+										$content .= "\nBooking: <b>$record_name</b>";
+										$content .= "\nSĐT: <b>$con_phone</b>";
+										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+										$botToken 	= $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+										$chatId 	= $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+										Telegram::sendMessage($content, $botToken, $chatId);
 									}
 									else {
-										$content = Mattermost::$line_separation;
-										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation message to Zalo ID");
-										$content .= "\nBooking: **$record_name**";
-										$content .= "\nPhone: **$con_phone**";
-										$content .= "\nZalo ID: **$con_zalo_id**";
-										$content .= "\nExtra points: **$point**";
-										$content .= "\nTotal points: **$total_point**";
-										$content .= "\n\n$json";
-										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
+										// $content = Mattermost::$line_separation;
+										// $content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation message to Zalo ID");
+										// $content .= "\nBooking: **$record_name**";
+										// $content .= "\nPhone: **$con_phone**";
+										// $content .= "\nZalo ID: **$con_zalo_id**";
+										// $content .= "\nExtra points: **$point**";
+										// $content .= "\nTotal points: **$total_point**";
+										// $content .= "\n\n$json";
+										// Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
+
+										$content = "<b>[WARNING] Failed to send point-accumulation message to Zalo ID</b>";
+										$content .= "\nBooking: <b>$record_name</b>";
+										$content .= "\nPhone: <b>$con_phone</b>";
+										$content .= "\nZalo ID: <b>$con_zalo_id</b>";
+										$content .= "\nExtra points: <b>$point</b>";
+										$content .= "\nTotal points: <b>$total_point</b>";
+										$content .= "\n<pre>$json</pre>";
+										$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+										$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+										$threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+										Telegram::sendMessage($message, $botToken, $chatId, $threadId);
 									}
 								}
 								else if(5 < date('H') && date('H') < 22) {
-									$template_id = $Zalo->get_template_id_zns('points');
+									require_once("modules/EC_Zalo/OMNI.php");
+									$Omni = new OMNI();
+									$template_id = $Omni->getTemplateCode('points');
 									$template_data = json_encode([
 										"point" => $point,
 										"name" => "bạn",
 										"booking" => $record_name,
 										"total_point" => $total_point
 									]);
-									$json = $Zalo->send_zns($con_phone, $template_id, $template_data);
+									$json = $Omni->sendMessage($con_phone, $template_id, $template_data);
 									$arr  = json_decode($json, true);
 
-									if(isset($arr['error']) && $arr['error'] == 0) {
+									if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
 										$m = new EC_Messages();
 										$m->send_from       = $Zalo->get_oa_id();
 										$m->send_to         = $con_phone;
-										$m->content         = $Zalo->get_template_name_zns($template_id);
+										$m->content         = $Omni->getTemplateName($template_id);
 										$m->type            = 'zalo_zns';
 										$m->category        = 'transaction';
 										$m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
@@ -300,23 +324,44 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$m->cost            = 220;
 										$m->save();
 
-										$content = "**(AUTO) TIN NHẮN TÍCH ĐIỂM**";
-										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua ZNS\n";
-										$content .= "- Booking: **$record_name**\n";
-										$content .= "- Số điện thoại: **$con_phone**\n";
-										$content .= "- Điểm cộng thêm: **$point điểm**\n";
-										$content .= "- Tổng tích lũy: **$total_point điểm**";
-										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
+										// $content = "**(AUTO) TIN NHẮN TÍCH ĐIỂM**";
+										// $content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua ZNS\n";
+										// $content .= "- Booking: **$record_name**\n";
+										// $content .= "- Số điện thoại: **$con_phone**\n";
+										// $content .= "- Điểm cộng thêm: **$point điểm**\n";
+										// $content .= "- Tổng tích lũy: **$total_point điểm**";
+										// Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
+
+										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>";
+										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua <b>ZNS</b>";
+										$content .= "\nBooking: <b>$record_name</b>";
+										$content .= "\nSĐT: <b>$con_phone</b>";
+										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+										$botToken 	= $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+										$chatId 	= $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+										Telegram::sendMessage($content, $botToken, $chatId);
 									}
 									else {
-										$content = Mattermost::$line_separation;
-										$content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation ZNS message");
-										$content .= "\nBooking: **$record_name**";
-										$content .= "\nPhone: **$con_phone**";
-										$content .= "\nExtra points: **$point**";
-										$content .= "\nTotal points: **$total_point**";
-										$content .= "\n\n$json";
-										Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
+										// $content = Mattermost::$line_separation;
+										// $content .= Mattermost::markdownHeading("[WARNING] Failed to send point-accumulation ZNS message");
+										// $content .= "\nBooking: **$record_name**";
+										// $content .= "\nPhone: **$con_phone**";
+										// $content .= "\nExtra points: **$point**";
+										// $content .= "\nTotal points: **$total_point**";
+										// $content .= "\n\n$json";
+										// Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $content);
+
+										$content = "<b>[WARNING] Failed to send point-accumulation ZNS message</b>";
+										$content .= "\nBooking: <b>$record_name</b>";
+										$content .= "\nPhone: <b>$con_phone</b>";
+										$content .= "\nExtra points: <b>$point</b>";
+										$content .= "\nTotal points: <b>$total_point</b>";
+										$content .= "\n<pre>$json</pre>";
+										$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+										$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+										$threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+										Telegram::sendMessage($message, $botToken, $chatId, $threadId);
 									}
 								}
 							}

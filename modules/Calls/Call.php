@@ -317,19 +317,54 @@ class Call extends SugarBean
                 //     $app_list_strings['system_config_list']['telegram_chat_id'],
                 // );
                 try {
-                    $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=Calls&action=DetailView&record=$this->id", "Mở cuộc gọi");
-                    $message = Mattermost::$line_separation;
-                    $message .= "**".$app_list_strings['calls_direction_list'][$this->direction]." : $this->call_from**";
-                    $message .= "\n- Gọi vào: **$format_phone** ($site)";
-                    $message .= "\n- Thời lượng: **". $log['call_duration'] ."s**";
-                    $message .= "\n- Lời chào & chuông: **". ($log['call_duration'] - $log['call_talk']) ."s**";
-                    $message .= "\n- Hội thoại: **". ($log['call_talk']) ."s**";
-                    $message .= " lúc ". date('H:i:s', strtotime($this->date_start));
-                    if(!empty($text_name_agent)) $message .= "\n- NV: **$text_name_agent**";
-                    $message .= "\n\n$link";
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
+                    // // Send Mattermost
+                    // $link = Mattermost::markdownLink($sugar_config['site_url'] . "/index.php?module=Calls&action=DetailView&record=$this->id", "Mở cuộc gọi");
+                    // $message = Mattermost::$line_separation;
+                    // $message .= "**".$app_list_strings['calls_direction_list'][$this->direction]." : $this->call_from**";
+                    // $message .= "\n- Gọi vào: **$format_phone** ($site)";
+                    // $message .= "\n- Thời lượng: **". $log['call_duration'] ."s**";
+                    // $message .= "\n- Lời chào & chuông: **". ($log['call_duration'] - $log['call_talk']) ."s**";
+                    // $message .= "\n- Hội thoại: **". ($log['call_talk']) ."s**";
+                    // $message .= " lúc ". date('H:i:s', strtotime($this->date_start));
+                    // if(!empty($text_name_agent)) $message .= "\n- NV: **$text_name_agent**";
+                    // $message .= "\n\n$link";
+                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
+
+                    // Send Telegram
+                    $link = $sugar_config['site_url'] . "/index.php?module=Calls&action=DetailView&record=$this->id";
+                    $text = "<b>".($app_list_strings['calls_direction_list'][$this->direction] ?? 'Cuộc gọi')." : $this->call_from</b>";
+                    $text .= "\n- Gọi vào: <b>$format_phone</b> ($site)";
+                    $text .= "\n- Thời lượng: <b>". $log['call_duration'] ."s</b>";
+                    $text .= "\n- Lời chào & chuông: <b>". ($log['call_duration'] - $log['call_talk']) ."s</b>";
+                    $text .= "\n- Hội thoại: <b>". ($log['call_talk']) ."s</b>";
+                    $text .= " lúc ". date('H:i:s', strtotime($this->date_start));
+                    if(!empty($text_name_agent)) $text .= "\n- NV: <b>$text_name_agent</b>";
+                    $messageData = [
+                        'text' => $text,
+                        'parse_mode' => 'HTML',
+                        'reply_markup' => [
+                            'inline_keyboard' => [
+                                [
+                                    [
+                                        'text' => 'Mở cuộc gọi',
+                                        'url' => $link,
+                                    ],
+                                ],
+                            ],
+                        ]
+                    ];
+                    $botToken = $sugar_config['telegram']['cty']['bot_token'] ?? '';
+                    $chatId = $sugar_config['telegram']['cty']['chat_id'] ?? '';
+                    Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
                 }
-                catch(Throwable $th) {}
+                catch(Throwable $th) {
+                    $message = "<b>[ERROR] Send info call failed</b>";
+                    $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                }
             }
         }
 

@@ -35,5 +35,15 @@
  * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
  * reasonably feasible for technical reasons, the Appropriate Legal Notices must
  * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */YAHOO.util.Event.onDOMReady(function(){if(location.href.indexOf('print=true')>-1)
-setTimeout("window.print();",1000);});
+ */
+
+
+/**
+ * Handles loading the theme picker popup
+ */
+YAHOO.util.Event.onDOMReady(function()
+{
+	// open print dialog if we requested the print view
+    if ( location.href.indexOf('print=true') > -1 )
+        setTimeout("window.print();",  1000);
+});

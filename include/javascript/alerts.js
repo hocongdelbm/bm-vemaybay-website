@@ -9,13 +9,13 @@
  * @member {string} options.type warning danger info primary success
  * @see https://getbootstrap.com/docs/3.3/css/#helper-classes
  */
-var AlertObj = function () {
+var AlertObj = function() {
   this.title = 'Alert';
   this.options = {};
   this.options.body = ' ';
   this.options.url_redirect = '';
   this.options.target_module = '';
-  this.options.type = 'info';
+  this.options.type= 'info';
 };
 
 /**
@@ -218,13 +218,13 @@ Alerts.prototype.updateManager = function () {
       alertsDiv.addClass('has-alerts');
       desktopNotificationsDiv.addClass('has-alerts');
       alertButtonDiv.removeClass('btn-').addClass('btn-danger');
-      // alertCountDiv.removeClass('hidden');
+      alertCountDiv.removeClass('hidden');
     }
     else {
       desktopNotificationsDiv.removeClass('has-alerts');
       alertsDiv.removeClass('has-alerts');
       alertButtonDiv.removeClass('btn-danger').addClass('btn-success');
-      // alertCountDiv.addClass('hidden');
+      alertCountDiv.addClass('hidden');
     }
   });
 };
@@ -245,8 +245,8 @@ Alerts.prototype.markAsRead = function (id) {
  */
 $(document).ready(function () {
   Alerts.prototype.replaceMessages = [
-    { search: SUGAR.language.translate("app", "MSG_JS_ALERT_MTG_REMINDER_CALL_MSG"), replace: "" },
-    { search: SUGAR.language.translate("app", "MSG_JS_ALERT_MTG_REMINDER_MEETING_MSG"), replace: "" }
+    {search: SUGAR.language.translate("app", "MSG_JS_ALERT_MTG_REMINDER_CALL_MSG"), replace: ""},
+    {search: SUGAR.language.translate("app", "MSG_JS_ALERT_MTG_REMINDER_MEETING_MSG"), replace: ""}
   ];
   var updateMissed = function () {
     Alerts.prototype.updateManager();

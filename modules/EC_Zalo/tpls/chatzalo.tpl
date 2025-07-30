@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.0">
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.1">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
@@ -323,6 +323,11 @@
     </div>
 </div>
 
+<div class="image-dialog" id="imageDialog">
+    <span class="close" id="closeDialog">&times;</span>
+    <img class="dialog-content" id="dialogImage" />
+</div>
+
 {$ICON_TEMPLATE}
 <input type="hidden" name="oa_id" value="{$OA_ID}" readonly />
 <input type="hidden" name="oa_name" value="{$OA_NAME}" readonly />
@@ -340,4 +345,4 @@
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.3"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=3.4"></script>

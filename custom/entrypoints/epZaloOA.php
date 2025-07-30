@@ -3,6 +3,7 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     require_once("modules/EC_Zalo/Zalo.php");
+    require_once("modules/EC_Zalo/OMNI.php");
     global $current_user, $db;
 
     $action = isset($_POST['action']) ? $_POST['action'] : "";
@@ -508,19 +509,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         $Zalo = new Zalo();
-        $template_id = $Zalo->get_template_id_zns($type_zns);
-        $json = $Zalo->send_zns($phone, $template_id, $template_data);
-        $arr  = json_decode($json, true);
+        $Omni = new OMNI();
+        $template_id = $template_name = '';
+        if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+            $template_id = $Zalo->get_template_id_zns($type_zns);
+            $template_name = $Zalo->get_template_name_zns($template_id);
+            $json = $Zalo->send_zns($phone, $template_id, $template_data);
+        }
+        else {
+            $template_id = $Omni->getTemplateCode($type_zns);
+            $template_name = $Omni->getTemplateName($template_id);
+            $json = $Omni->sendMessage($phone, $template_id, json_decode($template_data, true));
+        }
 
+        $arr  = json_decode($json, true);
         $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
         $template_data = json_decode($template_data, true);
         $template_data['template_id'] = $template_id;
 
-        if(isset($arr['error']) && $arr['error'] == 0) {
+        if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
             $m = new EC_Messages();
             $m->send_from       = $Zalo->get_oa_id();
             $m->send_to         = $phone;
-            $m->content         = $Zalo->get_template_name_zns($template_id);
+            $m->content         = $template_name;
             $m->type            = 'zalo_zns';
             $m->category        = $category;
             $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
@@ -535,8 +546,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             try {
                 // Save zalo message
-                $msg_id = $arr['data']['msg_id'] ?? '';
-                $timestamp = $arr['data']['sent_time'] ?? 0;
+                $msg_id = $arr['data']['msg_id'] ?? ($arr['idOmniMess'] ?? '');
+                $timestamp = $arr['data']['sent_time'] ?? time();
 
                 $zalomes = new EC_Zalo_Messages();
                 $zalomes->id            = '';
@@ -547,7 +558,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $zalomes->timestamp     = $timestamp;
                 $zalomes->type          = 'zns';
                 $zalomes->sub_type      = $type_zns;
-                $zalomes->description   = $Zalo->get_template_name_zns($template_id);
+                $zalomes->description   = $template_name;
                 $zalomes->template_id   = $template_id;
                 $zalomes->data          = json_encode($template_data);
                 $zalomes->response      = trim($json);
@@ -557,7 +568,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 // Save notes
                 $n = new Note();
                 $n->name            = "Gửi Zalo ZNS";
-                $n->description     = "Gửi Zalo ". $Zalo->get_template_name_zns($template_id) ." đến $phone";
+                $n->description     = "Gửi Zalo $template_name đến $phone";
                 $n->parent_type     = "EC_Flight_Bookings";
                 $n->parent_id       = $parent_id;
                 $n->assigned_user_id = $current_user->id;
@@ -565,14 +576,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
             catch(Exception $e) {
                 global $sugar_config;
-                $message = Mattermost::$line_separation;
-                $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
-                $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json";
-                Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                // $message = Mattermost::$line_separation;
+                // $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
+                // $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json";
+                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                $message = "<b>[ERROR] ZNS message saved failed</b>";
+                $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$json</pre>";
+                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
             }
             
+            // $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi $template_name đến Zalo **$phone**");
+
             $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi ".$Zalo->get_template_name_zns($template_id)." đến Zalo **$phone**");
+            $botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+            $chatId = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+            Telegram::sendMessage("<b>$fullname</b>: Gửi $template_name đến Zalo <b>$phone</b>", $botToken, $chatId);
             
             echo json_encode([
                 "error"   => 0,
@@ -582,12 +606,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
         else {
             $error_code = isset($arr['error']) ? $arr['error'] : '';
-            $message = $Zalo->get_error_description_zns($error_code);
+            if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
+
+            if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+                $message = $Zalo->get_error_description_zns($error_code);
+            }
+            else {
+                $message = $Omni->getErrorDescription($error_code);
+            }
 
             $m = new EC_Messages();
             $m->send_from       = $Zalo->get_oa_id();
             $m->send_to         = $phone;
-            $m->content         = $Zalo->get_template_name_zns($template_id);
+            $m->content         = $template_name;
             $m->type            = 'zalo_zns';
             $m->category        = $category;
             $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
@@ -829,8 +860,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             exit();
         }
 
+        $Zalo = new Zalo();
+        $beanZalo = new EC_Zalo();
+        $results = [];
+
         $sql_search = "";
-        if(is_numeric($search_value)) {
+        // Search by chat link
+        if(filter_var($search_value, FILTER_VALIDATE_URL)) {
+            parse_str(parse_url($search_value, PHP_URL_QUERY), $query);
+            $zalo_id = $query['uid'] ?? '';
+            if(!empty($zalo_id)) {
+                $user_info = $beanZalo->get_zalo_user_info($zalo_id);
+                if(is_array($user_info) && !empty($user_info)) {
+                    // Message info
+                    $lastest_message = $beanZalo->get_lastest_message_user($zalo_id);
+                    if(empty($lastest_message)) {
+                        $lastest_message['message_type'] = 'custom';
+                        $lastest_message['type'] = 'custom';
+                        $lastest_message['message'] = 'Tương tác cuối vào ' . date('d/m/Y', strtotime($user_info['user_last_interaction_date']));
+                        $lastest_message['src'] = 1;
+                        $lastest_message['timestamp'] = strtotime($user_info['user_last_interaction_date']) * 1000;
+                        $lastest_message['from_id'] = $zalo_id;
+                        $lastest_message['to_id'] = $Zalo->get_oa_id();
+                    }
+
+                    $results[] = [
+                        'message_info' => $lastest_message,
+                        'user_info' => $user_info
+                    ];
+                }
+            }
+        }
+        // Search by phone
+        elseif(is_numeric($search_value)) {
             $condition = strlen($search_value) < 10 ? "c.phone_mobile LIKE '%$search_value'" : "c.phone_mobile = $search_value";
             $sql_search = "SELECT c.zalo_id
                 ,c.phone_mobile AS contact_phone
@@ -850,6 +912,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 AND c.zalo_id <> ''
                 AND c.deleted = 0";
         }
+        // Search by name
         else {
             $sql_search = "SELECT c.zalo_id
                 ,c.phone_mobile AS contact_phone
@@ -871,54 +934,53 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ORDER BY c.zalo_last_interaction DESC";
         }
 
-        $Zalo = new Zalo();
-        $bean_zalo = new EC_Zalo();
-        $results = [];
-        $res = $db->query($sql_search);
-        while ($row = $db->fetchByAssoc($res)) {
-            $zalo_name   = $row['zalo_name'] ?? '';
-            $zalo_avatar = $row['zalo_avatar'] ?? '';
-            $zalo_tags   = !empty($row['zalo_tags']) ? explode(',', $row['zalo_tags']) : [];
-
-            // User info
-            $user_info = [
-                'user_id'       => $row['zalo_id'],
-                'display_name'  => $row['contact_name'] ?? '',
-                'user_alias'    => $zalo_name,
-                'avatar'        => $zalo_avatar,
-                'user_last_interaction_date' => $row['zalo_last_interaction'] ? date('d/m/Y', strtotime($row['zalo_last_interaction'])) : '',
-                'user_is_follower' => $row['zalo_is_follower'] ?? 0,
-                'tags_and_notes_info' => [
-                    'notes' => [],
-                    'tag_names' => $zalo_tags,
-                ],
-                'shared_info' => [
-                    "address"   => $row['contact_address'] ?? '',
-                    "city"      => $row['contact_city'] ?? '',
-                    "district"  => $row['contact_district'] ?? '',
-                    "phone"     => isset($row['contact_phone']) && strlen($row['contact_phone']) > 9 ? $row['contact_phone'] : '',
-                    "name"      => $row['contact_name'] ?? '',
-                    "user_dob"  => $row['birthdate'] ? date('d/m/Y', strtotime($row['birthdate'])) : ''
-                ],
-                'chat_link' => $Zalo->get_chat_link($zalo_id)
-            ];
-
-            // Message info
-            $lastest_message = $bean_zalo->get_lastest_message_user($row['zalo_id']);
-            if(empty($lastest_message)) {
-                $lastest_message['message_type'] = 'custom';
-                $lastest_message['type'] = 'custom';
-                $lastest_message['message'] = 'Tương tác cuối vào ' . date('d/m/Y', strtotime($row['zalo_last_interaction']));
-                $lastest_message['src'] = 1;
-                $lastest_message['timestamp'] = strtotime($row['zalo_last_interaction']) * 1000;
-                $lastest_message['from_id'] = $row['zalo_id'];
-                $lastest_message['to_id'] = $Zalo->get_oa_id();
+        if(!empty($sql_search)) {
+            $res = $db->query($sql_search);
+            while ($row = $db->fetchByAssoc($res)) {
+                $zalo_name   = $row['zalo_name'] ?? '';
+                $zalo_avatar = $row['zalo_avatar'] ?? '';
+                $zalo_tags   = !empty($row['zalo_tags']) ? explode(',', $row['zalo_tags']) : [];
+    
+                // User info
+                $user_info = [
+                    'user_id'       => $row['zalo_id'],
+                    'display_name'  => $row['contact_name'] ?? '',
+                    'user_alias'    => $zalo_name,
+                    'avatar'        => $zalo_avatar,
+                    'user_last_interaction_date' => $row['zalo_last_interaction'] ? date('d/m/Y', strtotime($row['zalo_last_interaction'])) : '',
+                    'user_is_follower' => $row['zalo_is_follower'] ?? 0,
+                    'tags_and_notes_info' => [
+                        'notes' => [],
+                        'tag_names' => $zalo_tags,
+                    ],
+                    'shared_info' => [
+                        "address"   => $row['contact_address'] ?? '',
+                        "city"      => $row['contact_city'] ?? '',
+                        "district"  => $row['contact_district'] ?? '',
+                        "phone"     => isset($row['contact_phone']) && strlen($row['contact_phone']) > 9 ? $row['contact_phone'] : '',
+                        "name"      => $row['contact_name'] ?? '',
+                        "user_dob"  => $row['birthdate'] ? date('d/m/Y', strtotime($row['birthdate'])) : ''
+                    ],
+                    'chat_link' => $Zalo->get_chat_link($zalo_id)
+                ];
+    
+                // Message info
+                $lastest_message = $beanZalo->get_lastest_message_user($row['zalo_id']);
+                if(empty($lastest_message)) {
+                    $lastest_message['message_type'] = 'custom';
+                    $lastest_message['type'] = 'custom';
+                    $lastest_message['message'] = 'Tương tác cuối vào ' . date('d/m/Y', strtotime($row['zalo_last_interaction']));
+                    $lastest_message['src'] = 1;
+                    $lastest_message['timestamp'] = strtotime($row['zalo_last_interaction']) * 1000;
+                    $lastest_message['from_id'] = $row['zalo_id'];
+                    $lastest_message['to_id'] = $Zalo->get_oa_id();
+                }
+    
+                $results[] = [
+                    'message_info' => $lastest_message,
+                    'user_info' => $user_info
+                ];
             }
-
-            $results[] = [
-                'message_info' => $lastest_message,
-                'user_info' => $user_info
-            ];
         }
 
         echo json_encode([

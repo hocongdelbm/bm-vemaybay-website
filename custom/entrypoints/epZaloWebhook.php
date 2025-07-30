@@ -137,13 +137,56 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
                     else $zalomes->save();
 
-                    // Update zalo last interaction
-                    if($zalomes->src == 1) {
-                        $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
-                        $sql_update_contact = "UPDATE contacts SET zalo_last_interaction = '$zalo_last_interaction' WHERE zalo_id = '$sender_id' AND deleted = 0";
-                        $db->query($sql_update_contact);
-                    }
+                    // Add new or update user (zalo last interaction)
+                    try {
+                        if($zalomes->src == 1) {
+                            // Search by Zalo ID
+                            $sql_get_contact = "SELECT id
+                                                FROM contacts
+                                                WHERE zalo_id = '$sender_id' AND zalo_id IS NOT NULL AND deleted = 0
+                                                ORDER BY date_entered
+                                                LIMIT 1";
+                            $res_get_contact = $db->query($sql_get_contact);
+                            $row_get_contact = $db->fetchByAssoc($res_get_contact);
+                            $contact_id      = $row_get_contact['id'] ?? '';
+                            if(!$contact_id || empty($contact_id)) {
+                                // Search by phone if present
+                                $Zalo = new Zalo();
+                                $json_user = $Zalo->get_user($sender_id);
+                                $user_info = json_decode($json_user, true);
+                                if(isset($result['error']) && $result['error'] == 0) {
+                                    $alias = $user_info['data']['user_alias'] ?? '';
+                                    $phone = $Zalo->get_phone_by_alias($alias); // Get more phone in shared info
+                                    if($phone && !empty($phone)) {
+                                        $sql_get_contact = "SELECT id
+                                                            FROM contacts
+                                                            WHERE phone_mobile = '$phone' AND deleted = 0
+                                                            ORDER BY date_entered
+                                                            LIMIT 1";
+                                        $res_get_contact = $db->query($sql_get_contact);
+                                        $row_get_contact = $db->fetchByAssoc($res_get_contact);
+                                        $contact_id      = $row_get_contact['id'] ?? '';
 
+                                        $bean_zalo = new EC_Zalo();
+                                        if($contact_id && !empty($contact_id)) {
+                                            $bean_zalo->update_zalo_info_to_contact($contact_id, $user_info['data']);
+                                        }
+                                        else {
+                                            $bean_zalo->add_new_contact_by_zalo_info($user_info['data'], ["source" => "Created auto from webhook with $phone"]);
+                                        }
+                                    }
+                                    else $bean_zalo->add_new_contact_by_zalo_info($user_info['data'], ["source" => "Created auto from webhook"]);
+                                }
+                            }
+                            else {
+                                $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
+                                $sql_update_contact = "UPDATE contacts SET zalo_last_interaction = '$zalo_last_interaction' WHERE zalo_id = '$sender_id' AND deleted = 0";
+                                $db->query($sql_update_contact);
+                            }
+                        }
+                    }
+                    catch(Exception $e) {}
+                    
                     // Send data to chat
                     $data_chat = [
                         'event_name'            => $event,
@@ -176,10 +219,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $client->close();
                 }
                 catch(Exception $e) {
-                    $message = Mattermost::$line_separation;
-                    $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                    $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                    // $message = Mattermost::$line_separation;
+                    // $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
+                    // $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
+                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+
+                    $message = "<b>[WARNING] Webhook Zalo</b>";
+                    $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
+                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                 }
                 finally {
                     header("HTTP/1.1 200 OK");
@@ -211,12 +261,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
 
                         if($count_contact > 1) {
-                            Mattermost::sendMessage(
-                                $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM**",
-                                [],
-                                ["priority" => [ "priority" => "important"]]
-                            );
+                            // Mattermost::sendMessage(
+                            //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                            //     "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM**",
+                            //     [],
+                            //     ["priority" => [ "priority" => "important"]]
+                            // );
+
+                            $message = "<b>Cảnh báo từ Zalo Webhook</b>";
+                            $message .= "\nZalo ID $zalo_user_id có nhiều hơn 1 liên hệ trong BM";
+                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                            $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                         }
                         else {
                             if(empty($contact_id)) {
@@ -226,10 +283,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                 $db->query($sql);
 
-                                Mattermost::sendMessage(
-                                    $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                    "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
-                                );
+                                // Mattermost::sendMessage(
+                                //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                //     "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
+                                // );
+
+                                $message    = "Hệ thống đã map SĐT $input_phone với Zalo ID $zalo_user_id";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                             }
                             elseif(empty($contact_phone)) {
                                 // Cập nhật $zalo_user_id cho contact có $input_phone
@@ -238,12 +301,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                 $db->query($sql);
 
-                                Mattermost::sendMessage(
-                                    $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                    "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (contact id)**",
-                                    [],
-                                    ["priority" => [ "priority" => "important"]]
-                                );
+                                // Mattermost::sendMessage(
+                                //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                //     "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (contact id)**",
+                                //     [],
+                                //     ["priority" => [ "priority" => "important"]]
+                                // );
+
+                                $message = "<b>Cảnh báo từ Zalo Webhook</b>";
+                                $message .= "\nZalo ID $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (Contact ID)";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                             }
                             elseif(!empty($contact_phone) && $contact_phone != $input_phone) {
                                 // Get zalo phone
@@ -267,10 +337,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                             WHERE phone_mobile = '$input_phone' AND deleted = 0";
                                         $db->query($sql_2);
 
-                                        Mattermost::sendMessage(
-                                            $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                                            "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
-                                        );
+                                        // Mattermost::sendMessage(
+                                        //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
+                                        //     "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
+                                        // );
+
+                                        $message    = "Hệ thống đã map SĐT $input_phone với Zalo ID $zalo_user_id";
+                                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                        $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                                     }
                                 }
                             }
@@ -314,11 +390,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
             }
             else if($event == 'update_user_info') {
-                Mattermost::sendMessage(
-                    $sugar_config['mattermost']['channel_id_test'] ?? '',
-                    "`$response`"
-                );
-
                 header("HTTP/1.1 200 OK");
                 exit();
             }

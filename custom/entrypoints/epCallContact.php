@@ -283,16 +283,25 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         
                 $contact_id = $found_ids[0]; 
                 if (count($found_ids) > 1) {
-                    $content = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
-                    $content .= "\nSố điện thoại: **$phone**";
-                    $content .= "\nZaloID: **$zalo_id**";
-                    $content .= "\nCall_ID: **$call_id**";
-                    $metadata = [
-                        "priority" => [
-                            "priority" => "important",
-                        ]
-                    ];
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content, [], $metadata);
+                    // $content = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
+                    // $content .= "\nSố điện thoại: **$phone**";
+                    // $content .= "\nZaloID: **$zalo_id**";
+                    // $content .= "\nCall_ID: **$call_id**";
+                    // $metadata = [
+                    //     "priority" => [
+                    //         "priority" => "important",
+                    //     ]
+                    // ];
+                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content, [], $metadata);
+
+                    $content = "<b>Có nhiều hơn 1 liên hệ trùng thông tin</b>";
+                    $content .= "\nSĐT: <b>$phone</b>";
+                    $content .= "\nZalo ID: <b>$zalo_id</b>";
+                    $content .= "\nCall ID: <b>$call_id</b>";
+                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                    $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                    Telegram::sendMessage($content, $botToken, $chatId, $threadId);
                 }
             }
         }
@@ -391,40 +400,41 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         $work->save();
 
                         if(empty($work->id)) {
-                            // // SEND TELE WARNING SAVE KPI FAILED
-                            // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                            // "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
-                            // "- User: <b>" . $current_user->user_name . "</b>\n" .
-                            // "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
-                            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            // SEND TELE WARNING SAVE KPI FAILED
+                            $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                            "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
+                            "- User: <b>" . $current_user->user_name . "</b>\n" .
+                            "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                            $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                            $messageData = json_encode([
+                                'text' => $content,
+                                'parse_mode' => 'HTML',
+                                'reply_markup' => [
+                                    'inline_keyboard' => [
+                                        [
+                                            [
+                                                'text' => 'Redirect url',
+                                                'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ], JSON_UNESCAPED_UNICODE);
+                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                            Telegram::sendMessageData($messageData, $botToken, $chatId, $threadId);
 
-                            // sendTelegramWarningSystem(
-                            //     json_encode(array(
-                            //         'text' => $content,
-                            //         'parse_mode' => 'HTML',
-                            //         'reply_markup' => array(
-                            //             'inline_keyboard' => array(
-                            //                 array(
-                            //                     array(
-                            //                         'text' => 'Redirect url',
-                            //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
-                            //                     ),
-                            //                 ),
-                            //             ),
-                            //         ),
-                            //     ), JSON_UNESCAPED_UNICODE),
-                            // );
-
-                            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
-                            $message = Mattermost::$line_separation;
-                            $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed");
-                            $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-                            $message .= "\n- Call: **" . $call['name'] . " - " . $booking_name . "**";
-                            $message .= "\n- User: **$current_user->user_name**";
-                            $message .= "\n- Description: **" . $call['description'] . "**";
-                            $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
-                            $message .= "\n$link";
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message, );
+                            // $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
+                            // $message = Mattermost::$line_separation;
+                            // $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed");
+                            // $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                            // $message .= "\n- Call: **" . $call['name'] . " - " . $booking_name . "**";
+                            // $message .= "\n- User: **$current_user->user_name**";
+                            // $message .= "\n- Description: **" . $call['description'] . "**";
+                            // $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
+                            // $message .= "\n$link";
+                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message, );
                         }
 
                         $bean_note                      = new Note();
@@ -476,39 +486,41 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $work->save();
 
                     if(empty($work->id)) {
-                        // // SEND TELE WARNING SAVE KPI FAILED
-                        // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                        // "- Call: <b>" . $call['name'] . "</b>\n" .
-                        // "- User: <b>" . $current_user->user_name . "</b>\n" .
-                        // "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
-                        // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                        // sendTelegramWarningSystem(
-                        //     json_encode(array(
-                        //         'text' => $content,
-                        //         'parse_mode' => 'HTML',
-                        //         'reply_markup' => array(
-                        //             'inline_keyboard' => array(
-                        //                 array(
-                        //                     array(
-                        //                         'text' => 'Redirect url',
-                        //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
-                        //                     ),
-                        //                 ),
-                        //             ),
-                        //         ),
-                        //     ), JSON_UNESCAPED_UNICODE),
-                        // );
+                        // SEND TELE WARNING SAVE KPI FAILED
+                        $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                        "- Call: <b>" . $call['name'] . "</b>\n" .
+                        "- User: <b>" . $current_user->user_name . "</b>\n" .
+                        "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                        $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $messageData = json_encode([
+                            'text' => $content,
+                            'parse_mode' => 'HTML',
+                            'reply_markup' => [
+                                'inline_keyboard' => [
+                                    [
+                                        [
+                                            'text' => 'Redirect url',
+                                            'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ], JSON_UNESCAPED_UNICODE);
+                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                        Telegram::sendMessageData($messageData, $botToken, $chatId, $threadId);
 
-                        $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
-                        $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed");
-                        $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-                        $message .= "\n- Call: **" . $call['name'] . "**";
-                        $message .= "\n- User: **" . $current_user->user_name . "**";
-                        $message .= "\n- Description: **" . $call['description'] . "**";
-                        $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
-                        $message .= "\n$link";
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                        // $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
+                        // $message = Mattermost::$line_separation;
+                        // $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed");
+                        // $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                        // $message .= "\n- Call: **" . $call['name'] . "**";
+                        // $message .= "\n- User: **" . $current_user->user_name . "**";
+                        // $message .= "\n- Description: **" . $call['description'] . "**";
+                        // $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
+                        // $message .= "\n$link";
+                        // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                     }
                 } 
             }
@@ -529,7 +541,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     if (empty($objZalo->get_phone_by_alias($arr['data']['user_alias']))) {
                         $data['element'] = $objZalo->get_template('request_user_info');
                         $objZalo->send_consultation('request_user_info', $zalo_id, $data);
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
+                        // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
+                        Telegram::sendMessage("Gửi yêu cầu thông tin đến Zalo <b>$zalo_id</b>", $sugar_config['telegram']['zalo']['bot_token'] ?? '', $sugar_config['telegram']['zalo']['chat_id'] ?? '');
                     }
                 }
             }

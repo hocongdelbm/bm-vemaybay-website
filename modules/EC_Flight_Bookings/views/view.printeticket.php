@@ -4,14 +4,14 @@ class Viewprinteticket extends SugarView {
 	function display() {
 		$smartyCont = new Sugar_Smarty();
 		$lang 	= isset($_REQUEST['lang']) && !empty($_REQUEST['lang']) ? $_REQUEST['lang'] : 'vn'; // mặc định là in tiếng Việt
-		$khuhoi 	= (isset($_REQUEST['khuhoi']) && !empty($_REQUEST['khuhoi'])) ? $_REQUEST['khuhoi'] : 0; // mặc định là in một chiều - $khuhoi = 0
-
-		$this->populateContent($smartyCont, $lang, $khuhoi);
-		$smartyCont->display('modules/EC_Flight_Bookings/tpls/view_printeticket_' . $lang . '.tpl');
+		$khuhoi = (isset($_REQUEST['khuhoi']) && !empty($_REQUEST['khuhoi'])) ? $_REQUEST['khuhoi'] : 0; // mặc định là in một chiều - $khuhoi = 0
+		$listPassengerIDs = explode(',', (isset($_REQUEST['listPassengers']) && !empty($_REQUEST['listPassengers'])) ? $_REQUEST['listPassengers'] : []);
+		$this->populateContent($smartyCont, $lang, $khuhoi, $listPassengerIDs);
+		$smartyCont->display("modules/EC_Flight_Bookings/tpls/view_printeticket_$lang.tpl");
 	}
 
-	function populateContent($smartyobj, $lang, $khuhoi) {
-		global $app_list_strings, $current_user;
+	function populateContent($smartyobj, $lang, $khuhoi, $listPassengerIDs) {
+		global $current_user;
 
 		// Detect department id
 		$created_by = new User();
@@ -27,7 +27,7 @@ class Viewprinteticket extends SugarView {
 			$com_phone .= ' - ' . $department_info['com_hotline2'];
 
 		// Lấy danh sách, số lượng, thông tin hành khách 
-		$pass_inf = $this->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $smartyobj);
+		$pass_inf = $this->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $listPassengerIDs, $smartyobj);
 
 		if ($pass_inf['pass_cnt'] <= 1 && isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 3) {
 			$is_change_inf = 1;
@@ -98,8 +98,8 @@ class Viewprinteticket extends SugarView {
 	}
 
 	// Lấy danh sách hành khách
-	function listOfPassengers($booking_id, $direction, $airline_code, $khuhoi, $lang, $iti_id, $smartyobj = null) {
-		global $db, $app_list_strings, $current_user;
+	function listOfPassengers($booking_id, $direction, $airline_code, $khuhoi, $lang, $iti_id, $listPassengerIDs = [], $smartyobj = null) {
+		global $db, $current_user;
 
 		$iti = new EC_Booking_Itineraries;
 		$iti->retrieve($iti_id);
@@ -111,7 +111,6 @@ class Viewprinteticket extends SugarView {
 
 		// Lấy thông tin của 1 chiều đang có
 		// Lượt đi
-
 		if ($iti->direction == 0) {
 			$departure_date1 	= date('d/m/Y H:i', strtotime(' -7 hours', strtotime($iti->departure_date)));
 			$airline1 		= $airline['data'][0]['name'];
@@ -173,8 +172,7 @@ class Viewprinteticket extends SugarView {
 
 		$html = '';
 		$html_itineraries = '';
-		$sql = "
-			SELECT p.id,
+		$sql = "SELECT p.id,
 				p.name,
 				p.salutation,
 				p.pnr_outbound,
@@ -195,8 +193,10 @@ class Viewprinteticket extends SugarView {
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id=p.booking_id AND i.direction='1' AND i.deleted=0 LIMIT 1) AS aircode_inbound,
 				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id=p.booking_id AND i.direction='1' AND i.deleted=0 LIMIT 1) AS ticket_class_inbound
 			FROM ec_booking_passengers p
-			WHERE p.booking_id = '" . $booking_id . "' AND p.deleted = 0 
-				" . $sql_con . "
+			WHERE p.booking_id = '$booking_id'
+				AND p.id IN('". implode("','", $listPassengerIDs) ."')
+				AND p.deleted = 0
+				$sql_con
 			ORDER BY p.type, p.date_entered ";
 
 		// if($current_user->user_name == 'admin'){

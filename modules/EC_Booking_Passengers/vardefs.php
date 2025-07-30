@@ -175,41 +175,10 @@ $dictionary['EC_Booking_Passengers'] = array(
             'len' => '11',
             'disable_num_format' => '',
         ),
-
         'luggage_price_inbound' => array(
             'required' => false,
             'name' => 'luggage_price_inbound',
             'vname' => 'LBL_LUGGAGE_PRICE_INBOUND',
-            'type' => 'int',
-            'massupdate' => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '11',
-            'disable_num_format' => '',
-        ),
-
-        'luggage_purchase' => array(
-            'required' => false,
-            'name' => 'luggage_purchase',
-            'vname' => 'LBL_LUGGAGE_PURCHASE',
-            'type' => 'int',
-            'massupdate' => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '11',
-            'disable_num_format' => '',
-        ),
-
-        'luggage_purchase_inbound' => array(
-            'required' => false,
-            'name' => 'luggage_purchase_inbound',
-            'vname' => 'LBL_LUGGAGE_PURCHASE_INBOUND',
             'type' => 'int',
             'massupdate' => 0,
             'importable' => 'true',
@@ -234,7 +203,6 @@ $dictionary['EC_Booking_Passengers'] = array(
             'reportable' => 0,
             'len' => 36,
         ),
-
         'supplier' => array(
             'required' => '0',
             'source' => 'non-db',
@@ -268,7 +236,6 @@ $dictionary['EC_Booking_Passengers'] = array(
             'reportable' => 0,
             'len' => 36,
         ),
-
         'supplier_inbound' => array(
             'required' => '0',
             'source' => 'non-db',
@@ -399,7 +366,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'len' => '36',
         ),
 
-        // Phí hành lý chưa vat
+        // Giá mua thêm hành lý từng lượt (Chưa VAT)
         'luggage_purchase_no_vat' => array(
             'required' => false,
             'name' => 'luggage_purchase_no_vat',
@@ -414,7 +381,6 @@ $dictionary['EC_Booking_Passengers'] = array(
             'len' => '11',
             'disable_num_format' => '',
         ),
-
         'luggage_purchase_inbound_no_vat' => array(
             'required' => false,
             'name' => 'luggage_purchase_inbound_no_vat',
@@ -430,7 +396,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'disable_num_format' => '',
         ),
 
-        // Phí vat hành lý
+        // VAT giá mua thêm hành lý từng lượt
         'vat_luggage_purchase' => array(
             'required' => false,
             'name' => 'vat_luggage_purchase',
@@ -445,7 +411,6 @@ $dictionary['EC_Booking_Passengers'] = array(
             'len' => '11',
             'disable_num_format' => '',
         ),
-
         'vat_luggage_purchase_inbound' => array(
             'required' => false,
             'name' => 'vat_luggage_purchase_inbound',
@@ -461,32 +426,98 @@ $dictionary['EC_Booking_Passengers'] = array(
             'disable_num_format' => '',
         ),
 
-        'luggage_index_outbound' => array(
+        // Tổng giá mua thêm hành lý từng lượt
+        'luggage_purchase' => array(
             'required' => false,
-            'name' => 'luggage_index_outbound',
-            'vname' => 'LBL_LUGGAGE_INDEX_OUTBOUND',
-            'type' => 'varchar',
+            'name' => 'luggage_purchase',
+            'vname' => 'LBL_LUGGAGE_PURCHASE',
+            'type' => 'int',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => '3',
+            'len' => '11',
+            'disable_num_format' => '',
+        ),
+        'luggage_purchase_inbound' => array(
+            'required' => false,
+            'name' => 'luggage_purchase_inbound',
+            'vname' => 'LBL_LUGGAGE_PURCHASE_INBOUND',
+            'type' => 'int',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '11',
+            'disable_num_format' => '',
         ),
 
-        'luggage_index_inbound' => array(
-            'required' => false,
-            'name' => 'luggage_index_inbound',
-            'vname' => 'LBL_LUGGAGE_INDEX_INBOUND',
-            'type' => 'varchar',
-            'massupdate' => 0,
-            'importable' => 'true',
+        /**
+         * Mô tả thông tin hành lý mua thêm từng lượt (Không cần dùng tệp ngôn ngữ)
+         * Updated at 25/07/2025 by DucPham
+         */
+        'luggage_purchase_text' => array(
+            'name'  => 'luggage_purchase_text',
+            'vname' => 'LBL_LUGGAGE_PURCHASE_TEXT',
+            'type'  => 'varchar',
+            'len'   => 100,
+            'required'      => 0,
+            'massupdate'    => 0,
+            'importable'    => 1,
+            'audited'       => 1,
+            'reportable'    => 0,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '3',
+        ),
+        'luggage_purchase_text_inbound' => array(
+            'name'  => 'luggage_purchase_text_inbound',
+            'vname' => 'LBL_LUGGAGE_PURCHASE_TEXT_INBOUND',
+            'type'  => 'varchar',
+            'len'   => 100,
+            'required'      => 0,
+            'massupdate'    => 0,
+            'importable'    => 1,
+            'audited'       => 1,
+            'reportable'    => 0,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
+        ),
+
+        /**
+         * Index hành lý từng lượt (Thông tin trường này được lưu từ website)
+         * Cũ: Index dùng cho hãng VJ
+         * Mới: Dùng để lưu số kg sẵn có của các hãng. VD: 14_1 (1 kiện 14kg), 14_2 (2 kiện 14kg, tổng 28kg)
+         * Updated at 25/07/2025 by DucPham
+         */
+        'luggage_index_outbound' => array(
+            'name'  => 'luggage_index_outbound',
+            'vname' => 'LBL_LUGGAGE_INDEX_OUTBOUND',
+            'type'  => 'varchar',
+            'len'   => 6,
+            'required'      => 0,
+            'massupdate'    => 0,
+            'importable'    => 1,
+            'audited'       => 1,
+            'reportable'    => 0,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
+        ),
+        'luggage_index_inbound' => array(
+            'name'  => 'luggage_index_inbound',
+            'vname' => 'LBL_LUGGAGE_INDEX_INBOUND',
+            'type'  => 'varchar',
+            'len'   => 6,
+            'required'      => 0,
+            'massupdate'    => 0,
+            'importable'    => 1,
+            'audited'       => 1,
+            'reportable'    => 0,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
         ),
 
         // Citizen Identity Card (CIC)
