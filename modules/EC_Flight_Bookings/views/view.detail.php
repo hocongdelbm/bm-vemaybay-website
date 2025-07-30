@@ -390,7 +390,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$journeys_info 	= $this->getJourneysByBooking($this->bean->id); // array
 		$pass_and_lug 	= $this->getPassengerAndLuggage($this->bean->id);
 		$zaloinfo 		= $this->getZaloInfo($this->bean->phone);
-		$zaloid			= isset($zaloinfo['data']) ? $zaloinfo['data']['id'] : '';
+		$zaloid			= $zaloinfo['data']['id'] ?? '';
 		$html_zalo_info = $current_user->id == '1' ? $this->htmlZaloInfo($zaloinfo['data']) : '';
 		$zns_history 	= $this->getHistoryZNS($this->bean->phone, $this->bean->id);
 
@@ -2591,41 +2591,45 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$zalo_id = $this->getZaloID($phone);
 		if (empty($zalo_id)) return ['message' => 'Chưa có thông tin Zalo', 'send_promotion' => 0, 'data' => null];
 
-		$Zalo = new Zalo();
 		// Information
-		$info = json_decode($Zalo->get_user($zalo_id), true);
-		if ($info['error'] == 1 || empty($info['data'])) return ['message' => 'Zalo ID không hợp lệ', 'send_promotion' => 0, 'data' => null];
+		$beanZalo = new EC_Zalo();
+		$info = $beanZalo->get_zalo_user_info($zalo_id);
+
+		// $Zalo = new Zalo();
+		// $info = json_decode($Zalo->get_user($zalo_id), true);
+		// if ($info['error'] == 1 || empty($info['data'])) return ['message' => 'Zalo ID không hợp lệ', 'send_promotion' => 0, 'data' => null];
+
 		$data = [
 			'id' 		=> $zalo_id,
 			'phone' 	=> $phone,
-			'name' 		=> $info['data']['display_name'],
-			'is_follow' => $info['data']['user_is_follower'],
-			'avatar' 	=> $info['data']['avatar'],
-			'last_interaction' => ''
+			'name' 		=> $info['display_name'],
+			'is_follow' => $info['user_is_follower'],
+			'avatar' 	=> $info['avatar'],
+			'last_interaction' => $info['user_last_interaction_date']
 		];
 
-		// Quota
-		$quota = json_decode($Zalo->get_quota_user($zalo_id), true);
-		if ($quota['error'] == 1 || empty($quota['data'])) return ['message' => $quota['message'], 'send_promotion' => 0, 'data' => $data];
-		$data['last_interaction'] = date("d/m/Y H:i:s", $quota['data']['last_interaction'] / 1000 + 3600 * 7);
-		$data['cs_reply'] = $quota['data']['cs_reply']['remain'] . '/' . $quota['data']['cs_reply']['total'];
-		$data['promotion']['daily'] = $quota['data']['promotion']['daily_remain'] . '/' . $quota['data']['promotion']['daily_total'];
-		$data['promotion']['monthly'] = $quota['data']['promotion']['monthly_remain'] . '/' . $quota['data']['promotion']['monthly_total'];
+		// // Quota
+		// $quota = json_decode($Zalo->get_quota_user($zalo_id), true);
+		// if ($quota['error'] == 1 || empty($quota['data'])) return ['message' => $quota['message'], 'send_promotion' => 0, 'data' => $data];
+		// $data['last_interaction'] = date("d/m/Y H:i:s", $quota['data']['last_interaction'] / 1000 + 3600 * 7);
+		// $data['cs_reply'] = $quota['data']['cs_reply']['remain'] . '/' . $quota['data']['cs_reply']['total'];
+		// $data['promotion']['daily'] = $quota['data']['promotion']['daily_remain'] . '/' . $quota['data']['promotion']['daily_total'];
+		// $data['promotion']['monthly'] = $quota['data']['promotion']['monthly_remain'] . '/' . $quota['data']['promotion']['monthly_total'];
 
-		// Thời gian gửi tin: Từ 6h00 -> 21h59
-		$now = date("Y-m-d H:i:s");
-		$time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
-		if (strtotime($time_current) < strtotime("06:00:00") || strtotime($time_current) > strtotime("21:59:59")) {
-			return ['message' => 'Ngoài khung giờ gửi tin (6h đến 22h)', 'send_promotion' => 0, 'data' => $data];
-		}
+		// // Thời gian gửi tin: Từ 6h00 -> 21h59
+		// $now = date("Y-m-d H:i:s");
+		// $time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
+		// if (strtotime($time_current) < strtotime("06:00:00") || strtotime($time_current) > strtotime("21:59:59")) {
+		// 	return ['message' => 'Ngoài khung giờ gửi tin (6h đến 22h)', 'send_promotion' => 0, 'data' => $data];
+		// }
 
-		// Khách hàng nhận 5 tin Truyền thông/tháng
-		// SL tin Truyền thông 01 người dùng có thể nhận từ 01 OA trong 01 ngày là 01 tin
-		if ($quota['data']['promotion']['daily_remain'] == 0 || $quota['data']['promotion']['monthly_remain'] == 0) {
-			return ['message' => 'Vượt quá hạn mức gửi tin', 'send_promotion' => 0, 'data' => $data];
-		}
+		// // Khách hàng nhận 5 tin Truyền thông/tháng
+		// // SL tin Truyền thông 01 người dùng có thể nhận từ 01 OA trong 01 ngày là 01 tin
+		// if ($quota['data']['promotion']['daily_remain'] == 0 || $quota['data']['promotion']['monthly_remain'] == 0) {
+		// 	return ['message' => 'Vượt quá hạn mức gửi tin', 'send_promotion' => 0, 'data' => $data];
+		// }
 
-		return ['message' => '', 'send_promotion' => 1, 'data' => $data];
+		return ['message' => '', 'send_promotion' => 0, 'data' => $data];
 	}
 
 	// Get zalo id
@@ -2648,7 +2652,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		if (is_null($data) || empty($data)) return '<p class="text-secondary" style="text-align:center; font-style:italic">Chưa có thông tin Zalo</p>';
 
-		$follow = $data['is_follow'] ? '<b class="text-primary" style="float:right;">Đã quan tâm</b>' : '<span class="text-secondary" style="float:right;">Chưa quan tâm</span>';
+		$follow = $data['is_follow'] ? '<b class="text-primary" style="float:right;margin-left:20px;">Đã quan tâm</b>' : '<span class="text-secondary" style="float:right;margin-left:20px;">Chưa quan tâm</span>';
 		$html = '<div class="wrap-zalo-info" style="display:flex; justify-content:center; padding:10px 0; margin-bottom:15px; gap:20px; box-shadow: rgba(17, 17, 26, 0.05) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 0px 8px;">
 			<div>
 				<div class="wrap-avatar" style="background-image: url(' . $data['avatar'] . '); background-size:contain; width:85px; height:85px; border-radius:50%; margin:0 auto;"></div>
@@ -2657,8 +2661,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			<div style="font-weight:normal">
 				<p><b>Zalo ID: </b>' . $data['id'] . $follow . '</p>
 				<p><b>Số điện thoại: </b>' . $data['phone'] . '</p>
-				<p><b>Hạn mức tin tư vấn: </b>Còn ' . $data['cs_reply'] . ' tin miễn phí</p>
-				<p><b>Hạn mức tin khuyến mãi: </b>Còn ' . $data['promotion']['daily'] . ' tin trong ngày (' . $data['promotion']['monthly'] . ' trong tháng)</p>
+				<!-- <p><b>Hạn mức tin tư vấn: </b>Còn ' . $data['cs_reply'] . ' tin miễn phí</p> -->
+				<!-- <p><b>Hạn mức tin khuyến mãi: </b>Còn ' . $data['promotion']['daily'] . ' tin trong ngày (' . $data['promotion']['monthly'] . ' trong tháng)</p> -->
 				<p><b>Tương tác lần cuối: </b> ' . $data['last_interaction'] . '</p>
 			</div>
 		</div>';

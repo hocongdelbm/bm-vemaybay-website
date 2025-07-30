@@ -993,15 +993,15 @@ try {
                 if(isset($responseArr['status']) && $responseArr['status'] == 1) {
                     global $sugar_config;
                     $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-                    $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
+                    // $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
                     $systemName = $mappingSystemCodeName[$systemCode] ?? 'Quốc tế'; // Airline name
 
                     // $m = "Xuất vé $systemName: ".Mattermost::markdownLink($linkBooking, $bookingCode)." bởi **$fullname**";
                     // $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
                     // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
 
-                    $link = "<a href=\"".$linkBooking."\">$bookingCode</a>";
-                    $m = "<b>💰 Xuất vé $systemName: $link bởi $fullname</b>";
+                    // $link = "<a href=\"".$linkBooking."\">$bookingCode</a>";
+                    $m = "<b>💰 Xuất vé $systemName: $bookingCode bởi $fullname</b>";
                     if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
                     $botToken   = $sugar_config['telegram']['phuongnamapi']['bot_token'] ?? '';
                     $chatId     = $sugar_config['telegram']['phuongnamapi']['chat_id'] ?? '';
