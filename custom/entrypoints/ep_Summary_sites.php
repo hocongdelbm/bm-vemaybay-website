@@ -90,7 +90,7 @@ class SummaryStie{
                 $httpCode
             );
         } else {
-            return $this->response(1, "Invalid response format", null, 500);
+            return $this->response(1, "Invalid response format", $receive_data, 500);
         }
       } catch (\Throwable $th) {
         //throw $th;
