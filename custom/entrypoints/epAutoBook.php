@@ -686,12 +686,12 @@ try {
 
             // Save to BM
             if($responseArr['status'] == 1) {
-                $m = "<b>[INFO] CHECK BOOKING DATA REQUEST BODY</b>";
-                $m .= "\n<pre>".json_encode($requestBody)."</pre>";
-                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                // $m = "<b>[INFO] CHECK BOOKING DATA REQUEST BODY</b>";
+                // $m .= "\n<pre>".json_encode($requestBody)."</pre>";
+                // $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                // $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                // $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                // Telegram::sendMessage($m, $botToken, $chatId, $threadId);
 
                 $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 foreach($responseArr['data'] as $i => $f) {
