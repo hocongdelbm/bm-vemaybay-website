@@ -1,7 +1,7 @@
 <?php
 class SummaryStie{
     public $url;
-    private $apiKey = "c8504e56-c21a-4d34-872a-19cca0cd6b1f";
+    private $apiKey = "4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM";
     private $endpoints = [
         'get_traffic'     => '/get_traffic',
         'get_logs'        => '/get_logs',
