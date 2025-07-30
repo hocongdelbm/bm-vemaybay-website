@@ -244,6 +244,8 @@ function classifyContactv2($contactId)
         AND deleted = 0
     ";
 
+      if($current_user->id == '1') pr($sql);
+
     $completedCurrentPeriod = $completedPastPeriods = $revenueCurrentPeriod = $revenuePastPeriods = 0;
     $re = $db->query($sql);
     while ($row = $db->fetchByAssoc($re)) {
