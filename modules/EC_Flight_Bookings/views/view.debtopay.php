@@ -194,7 +194,7 @@ class Viewdebtopay extends SugarView
 				AND p.is_ticket_exported = 1
 				AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
 				AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
-				AND d.luggage_price > 0
+				-- AND d.luggage_price > 0
 				AND d.luggage_purchase > 0
 				AND d.supplier_id IS NOT NULL
 				AND d.add_type IS NULL
@@ -214,7 +214,7 @@ class Viewdebtopay extends SugarView
 				AND p.is_ticket_exported = 1
 				AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
 				AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($post_tdate)) . "'
-				AND d.luggage_price_inbound > 0
+				-- AND d.luggage_price_inbound > 0
 				AND d.luggage_purchase_inbound > 0
 				AND d.supplier_inbound_id IS NOT NULL
 				AND d.add_type IS NULL
@@ -378,8 +378,7 @@ class Viewdebtopay extends SugarView
 		return array('html' => $html, 'total_debt' => abs($total_debt));
 	}
 
-	function getVoucherList($opening_year, $accounting_code, $supplier_id, $post_fdate, $post_tdate)
-	{
+	public function getVoucherList($opening_year, $accounting_code, $supplier_id, $post_fdate, $post_tdate) {
 		global $db, $current_user;
 
 		/**
@@ -453,14 +452,14 @@ class Viewdebtopay extends SugarView
 			FROM ec_booking_passengers d
 			LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.date_ticket_issue < '" . $fromDate . "'
-			AND d.luggage_price > 0
-			AND d.luggage_purchase > 0
-			AND d.supplier_id = '" . $supplier_id . "'
-			AND d.add_type IS NULL 
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.date_ticket_issue < '" . $fromDate . "'
+				-- AND d.luggage_price > 0
+				AND d.luggage_purchase > 0
+				AND d.supplier_id = '" . $supplier_id . "'
+				AND d.add_type IS NULL 
 
 			-- BOOKING PAXS INBOUND
 			UNION
@@ -471,14 +470,14 @@ class Viewdebtopay extends SugarView
 			FROM ec_booking_passengers d
 			LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.date_ticket_issue < '" . $fromDate . "'
-			AND d.luggage_price_inbound > 0
-			AND d.luggage_purchase_inbound > 0
-			AND d.supplier_inbound_id = '" . $supplier_id . "'
-			AND d.add_type IS NULL
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.date_ticket_issue < '" . $fromDate . "'
+				-- AND d.luggage_price_inbound > 0
+				AND d.luggage_purchase_inbound > 0
+				AND d.supplier_inbound_id = '" . $supplier_id . "'
+				AND d.add_type IS NULL
 
 			-- RECEIPT
 			UNION
@@ -603,14 +602,14 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_booking_passengers d
 		LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
-		WHERE d.deleted = 0
-		AND p.booking_status IN ('7', '8')
-		AND p.is_ticket_exported = 1
-		AND p.date_ticket_issue BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
-		AND d.luggage_price > 0
-		AND d.luggage_purchase > 0
-		AND d.supplier_id = '" . $supplier_id . "'
-		AND d.add_type IS NULL
+		WHERE p.date_ticket_issue BETWEEN '$fromDate' AND '$toDate'
+			AND d.supplier_id = '$supplier_id'
+			AND p.booking_status IN ('7', '8')
+			AND p.is_ticket_exported = 1
+			AND d.deleted = 0
+			-- AND d.luggage_price > 0
+			AND d.luggage_purchase > 0
+			AND d.add_type IS NULL
 		GROUP BY d.booking_id
 		
 		-- BOOKING PAXS INBOUND
@@ -630,14 +629,14 @@ class Viewdebtopay extends SugarView
 			  ,p.date_entered AS order_date
 		FROM ec_booking_passengers d
 		LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
-		WHERE d.deleted = 0
-		AND p.booking_status IN ('7', '8')
-		AND p.is_ticket_exported = 1
-		AND p.date_ticket_issue BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
-		AND d.luggage_price_inbound > 0
-		AND d.luggage_purchase_inbound > 0
-		AND d.supplier_inbound_id = '" . $supplier_id . "'
-		AND d.add_type IS NULL
+		WHERE p.date_ticket_issue BETWEEN '$fromDate' AND '$toDate' 
+			AND d.supplier_inbound_id = '$supplier_id'
+			AND p.booking_status IN ('7', '8')
+			AND p.is_ticket_exported = 1
+			AND d.deleted = 0
+			-- AND d.luggage_price_inbound > 0
+			AND d.luggage_purchase_inbound > 0
+			AND d.add_type IS NULL
 		GROUP BY d.booking_id
 
 		-- RECEIPT
