@@ -659,8 +659,7 @@ function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 
     return $result;
 }
 
-function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
-{
+function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array') {
     $search_by_allow = array('CODE', 'NAME', 'FULL');
     $search_by = $search_by && in_array($search_by, $search_by_allow) ? $search_by : 'FULL';
     $case_sensitive = $case_sensitive ? $case_sensitive : 0; // default is case insensitive
@@ -2443,5 +2442,6 @@ require_once 'custom/include/utils/exits.php';
 require_once 'custom/include/utils/booking.php';
 require_once 'custom/include/utils/calls.php';
 require_once 'custom/include/utils/string.php';
+require_once 'custom/include/utils/Flight.php';
 require_once 'custom/include/utils/FareClass.php';
 require_once 'custom/include/utils/Baggage.php';

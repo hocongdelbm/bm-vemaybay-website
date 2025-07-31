@@ -103,10 +103,10 @@ class Viewprinteticket extends SugarView {
 
 		$iti = new EC_Booking_Itineraries;
 		$iti->retrieve($iti_id);
-		$airline 		= myGetAirlineInfo2(trim($iti->airline_code), 'CODE');
-		$departure 		= myGetAirportInfo2(trim($iti->departure));
-		$arrival 		= myGetAirportInfo2(trim($iti->arrival));
-		$pass_id 		= '';
+		$airline 	= myGetAirlineInfo2(trim($iti->airline_code), 'CODE');
+		$departure 	= myGetAirportInfo2(trim($iti->departure));
+		$arrival 	= myGetAirportInfo2(trim($iti->arrival));
+		$pass_id 	= '';
 
 
 		// Lấy thông tin của 1 chiều đang có
@@ -397,8 +397,7 @@ class Viewprinteticket extends SugarView {
 		return array('html' => $html, 'html_itineraries' => $html_itineraries, 'pass_cnt' => $rowCount, 'pass_id' => $pass_id, 'edit_no' => $iti->sabre_logs);
 	}
 
-	function getAnotherIti($booking_id, $direction, $passenger_id, $line)
-	{
+	function getAnotherIti($booking_id, $direction, $passenger_id, $line) {
 		// assigned_user_id IS NULL or Empty
 		global $db;
 		$sql = 'SELECT * FROM ec_booking_itineraries 

@@ -1,5 +1,6 @@
 <?php
 $action_view_map['printeticket']        = 'printeticket';
+$action_view_map['printeticketnew']     = 'printeticketnew';
 $action_view_map['sendeticket']         = 'sendeticket';
 $action_view_map['employeereport']      = 'employeereport';
 $action_view_map['monthlyreport']       = 'monthlyreport';
