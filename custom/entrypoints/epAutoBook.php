@@ -692,6 +692,8 @@ try {
                 // $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                 // $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
                 // Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                $booking = new EC_Flight_Bookings();
+                $booking->retrieve($bookingId);
 
                 $inListPassengerId = "'".implode("','", $listPassengerId)."'";
                 foreach($responseArr['data'] as $i => $f) {
@@ -724,11 +726,6 @@ try {
                         catch(Throwable $th) {}
 
                         if($bookingType == 'roundtrip') {
-                            $fareBasicDep = $requestBody['Flights'][0]['FarePricings'][0]['FareBasis'] ?? '';
-                            $fareBasicRet = $requestBody['Flights'][1]['FarePricings'][0]['FareBasis'] ?? '';
-                            $bagIndexDep = '';
-                            $bagIndexRet = '';
-
                             // Update PNR
                             $sql = "UPDATE ec_booking_passengers
                                     SET pnr_outbound = '$pnr'
@@ -741,11 +738,11 @@ try {
                                         AND id IN ($inListPassengerId)
                                         AND deleted = 0";
                             if(!$db->query($sql)) {
-                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
 
-                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
                                 $m .= "\n<pre>$sql</pre>";
                                 $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
@@ -760,16 +757,59 @@ try {
                                         ,date_modified = '$dateModified'
                                     WHERE booking_id = '$bookingId' AND deleted = 0";
                             if(!$db->query($sql)) {
-                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
 
-                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
                                 $m .= "\n<pre>$sql</pre>";
                                 $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                                 $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
                                 Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                            }
+
+                            // Update available checked baggage info
+                            if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
+                                $fareBasicDep = $requestBody['Flights'][0]['FarePricings'][0]['FareBasis'] ?? '';
+                                $fareBasicRet = $requestBody['Flights'][1]['FarePricings'][0]['FareBasis']  ?? '';
+                                $letterFareBasicDep = $systemCode != 'VJ' ? substr($fareBasicDep, 0, 1) : '';
+                                $letterFareBasicRet = $systemCode != 'VJ' ? substr($fareBasicRet, 0, 1) : '';
+                                $fareClassDep = FareClass::getFareClass($systemCode, $fareBasicDep);
+                                $fareClassRet = FareClass::getFareClass($systemCode, $fareBasicRet);
+                                $bagIndexDep  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClassDep, 'ADT');
+                                $bagIndexRet  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClassRet, 'ADT');
+
+                                $sql = "UPDATE ec_booking_passengers p
+                                    SET p.luggage_index_outbound = IF(p.luggage_index_outbound IS NOT NULL AND p.luggage_index_outbound <> '', p.luggage_index_outbound, '$bagIndexDep')
+                                        ,p.luggage_index_inbound = IF(p.luggage_index_inbound IS NOT NULL AND p.luggage_index_inbound <> '', p.luggage_index_inbound, '$bagIndexRet')
+                                    WHERE p.booking_id = '$bookingId'
+                                        AND p.id IN ($inListPassengerId)
+                                        AND p.type != '2'
+                                        AND p.deleted = 0";
+
+                                if(!$db->query($sql)) {
+                                    // $m = "**RUN QUERY FAIL**";
+                                    // $m .= "`$sql`";
+                                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+
+                                    $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
+                                    $m .= "\n<pre>$sql</pre>";
+                                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                    Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                                }
+                                else {
+                                    $m = "<b>[INFO] QUERY UPDATE BAGGAGE</b>";
+                                    $m .= "\n$fareBasicDep $fareClassDep";
+                                    $m .= "\n$fareBasicRet $fareClassRet";
+                                    $m .= "\n<pre>$sql</pre>";
+                                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                    Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                                }
                             }
                         }
                         else {
@@ -786,7 +826,8 @@ try {
                             }
 
                             $fareBasic = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
-                            $bagIndex = '';
+                            $fareClass = FareClass::getFareClass($systemCode, $fareBasic);
+                            $bagIndex  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClass, 'ADT');
 
                             // Update PNR
                             $sql = "UPDATE ec_booking_passengers
@@ -798,11 +839,11 @@ try {
                                         AND id IN ($inListPassengerId)
                                         AND deleted = 0";
                             if(!$db->query($sql)) {
-                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
                                 
-                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
                                 $m .= "\n<pre>$sql</pre>";
                                 $botToken = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId = $sugar_config['telegram']['chat_id'] ?? '';
@@ -817,16 +858,52 @@ try {
                                         ,date_modified = '$dateModified'
                                     WHERE booking_id = '$bookingId' AND direction = '$direction' AND deleted = 0";
                             if(!$db->query($sql)) {
-                                // $m = "**RUN QUEYRY FAIL**";
+                                // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";
                                 // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
 
-                                $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                                $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
                                 $m .= "\n<pre>$sql</pre>";
                                 $botToken = $sugar_config['telegram']['bot_token'] ?? '';
                                 $chatId = $sugar_config['telegram']['chat_id'] ?? '';
                                 $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
                                 Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                            }
+
+                            // Update available checked baggage info
+                            if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
+                                $fareBasic          = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
+                                $letterFareBasic    = $systemCode != 'VJ' ? substr($fareBasic, 0, 1) : '';
+                                $fareClass          = FareClass::getFareClass($systemCode, $fareBasic);
+                                $bagIndex           = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClass, 'ADT');
+
+                                $sql = "UPDATE ec_booking_passengers p
+                                    SET p.$colNameLugIndex = IF(p.$colNameLugIndex IS NOT NULL AND p.$colNameLugIndex <> '', p.$colNameLugIndex, '$bagIndex')
+                                    WHERE p.booking_id = '$bookingId'
+                                        AND p.id IN ($inListPassengerId)
+                                        AND p.type != '2'
+                                        AND p.deleted = 0";
+                                if(!$db->query($sql)) {
+                                    // $m = "**RUN QUERY FAIL**";
+                                    // $m .= "`$sql`";
+                                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
+
+                                    $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
+                                    $m .= "\n<pre>$sql</pre>";
+                                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                    Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                                }
+                                else {
+                                    $m = "<b>[INFO] QUERY UPDATE BAGGAGE</b>";
+                                    $m .= "\n$fareBasic $fareClass";
+                                    $m .= "\n<pre>$sql</pre>";
+                                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                    Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+                                }
                             }
                         }
                     }
@@ -1102,11 +1179,11 @@ try {
                                 AND date_entered >= NOW() - INTERVAL 120 DAY;
                                 AND deleted = 0";
                     if(!$db->query($sql)) {
-                        // $m = "**RUN QUEYRY FAIL**";
+                        // $m = "**RUN QUERY FAIL**";
                         // $m .= "`$sql`";
                         // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
                         
-                        $m = "<b>[ERROR] RUN QUEYRY FAIL IN AUTOBOOK FEATURE</b>";
+                        $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
                         $m .= "\n<pre>$sql</pre>";
                         $botToken = $sugar_config['telegram']['bot_token'] ?? '';
                         $chatId = $sugar_config['telegram']['chat_id'] ?? '';
