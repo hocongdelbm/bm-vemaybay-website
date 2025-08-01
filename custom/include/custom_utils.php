@@ -1549,8 +1549,7 @@ function getEmailFromUser($user_id)
     return $email;
 }
 
-function mySendMail($user_id, $to_email, $to_name, $subject, $body)
-{
+function mySendMail($user_id, $to_email, $to_name, $subject, $body) {
     $send_ok = true;
 
     // SUGAR SENDMAIL
@@ -1631,7 +1630,7 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
         $GLOBALS['log']->fatal("Mail Host: " . $mail->Host . " Mail Port: " . $mail->Port . " Mail Username: " . $mail->Username . " Mail Password: " . $mail->Password);
     }
 
-    return  $send_ok;
+    return $send_ok;
 }
 
 // Lấy thông tin hành lý

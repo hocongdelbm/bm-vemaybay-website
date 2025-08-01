@@ -120,16 +120,28 @@ class EC_Zalo extends Basic {
 
             if(isset($result['user_info']['error']) && $result['user_info']['error'] == 0) {
                 $user_data = $result['user_info']['data'];
-                $user_data_name = $user_data['user_alias'] ?? ($user_data['display_name'] ?? '');
+                $user_data_alias    = $user_data['user_alias'] ?? '';
+                $user_data_name     = $user_data['user_alias'] ?? ($user_data['display_name'] ?? '');
+                // Phone
+                $user_data_phone    = $Zalo->get_phone_by_alias($user_data_alias);
+                if(empty($user_data_phone)) $user_data_phone = $Zalo->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
+                // Last interaction
                 $user_data_last_interaction = $user_data['user_last_interaction_date'] ?? '';
                 if(!empty($user_data_last_interaction)) $user_data_last_interaction = date('Y-m-d', strtotime(str_replace("/", "-", $user_data_last_interaction))) . ' 00:00:00';
 
+                $contact_id = '';
+                if(!empty($user_data_phone)) {
+                    $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$user_data_phone' AND deleted = 0";
+                    $contact_id = $this->db->getOne($sql_contact) ?? '';
+                }
+
                 $Contact = new Contact();
-                if((!$row_info || empty($row_info)) && (!isset($row_info['contact_id']) || !$row_info['contact_id'] || empty($row_info['contact_id']))) {
+                if((!$row_info || empty($row_info)) && (!isset($row_info['contact_id']) || !$row_info['contact_id'] || empty($row_info['contact_id'])) && empty($contact_id )) {
                     $Contact->last_name     = $user_data_name;
                     $Contact->zalo_id       = $user_data['user_id'];
                     $Contact->zalo_name     = $user_data_name;
                     $Contact->zalo_avatar   = $user_data['avatar'] ?? '';
+                    $Contact->phone_mobile  = $user_data_phone;
                     $Contact->zalo_is_follower = (int)$user_data['user_is_follower'] ?? 0;
                     $Contact->zalo_last_interaction = $user_data_last_interaction;
                     $Contact->assigned_user_id = $current_user->id;
@@ -137,7 +149,6 @@ class EC_Zalo extends Basic {
                         $Contact->primary_address_street    = $user_data['shared_info']['address'] ?? '';
                         $Contact->primary_address_city      = $user_data['shared_info']['city'] ?? '';
                         $Contact->primary_address_state     = $user_data['shared_info']['district'] ?? '';
-                        $Contact->phone_mobile              = $Zalo->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
                         $Contact->birthdate                 = $user_data['shared_info']['user_dob'] ?? '';
                         if(!empty($Contact->birthdate)) $Contact->birthdate = date('d-m-Y', strtotime($Contact->birthdate));
                     }
@@ -150,7 +161,7 @@ class EC_Zalo extends Basic {
                     $Contact->description = "Liên hệ tạo từ Zalo OA " . json_encode($row_info, JSON_UNESCAPED_UNICODE);
                 }
                 else {
-                    $Contact->retrieve($row_info['contact_id']);
+                    $Contact->retrieve(isset($row_info['contact_id']) && !empty($row_info['contact_id']) ? $row_info['contact_id'] : $contact_id);
                     $Contact->zalo_name             = $user_data_name;
                     $Contact->zalo_avatar           = $user_data['avatar'] ?? '';
                     $Contact->zalo_is_follower      = (int)$user_data['user_is_follower'] ?? 0;
@@ -166,7 +177,7 @@ class EC_Zalo extends Basic {
                             $Contact->primary_address_state = $user_data['shared_info']['district'] ?? '';
                         }
                         if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
-                            $Contact->phone_mobile = $Zalo->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
+                            $Contact->phone_mobile = $user_data_phone;
                         }
                         if(!$Contact->birthdate || empty($Contact->birthdate)) {
                             $user_dob = $user_data['shared_info']['user_dob'] ?? '';

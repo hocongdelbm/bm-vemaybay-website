@@ -3,26 +3,30 @@ require_once("include/Sugar_Smarty.php");
 class Viewprinteticketnew extends SugarView {
 	public $sugarSmarty;
 	public $lang;
+	public $direction;
 	public $isRoundTrip;
 	public $bookingId;
 	public $itineraryId; // Current itinerary ID
 	public $listPassengerId; // List selected passengers
 
-	function display() {
-		if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
-			$this->sugarSmarty = new Sugar_Smarty();
-			$this->lang = isset($_REQUEST['lang']) && !empty($_REQUEST['lang']) ? $_REQUEST['lang'] : 'vn'; // Default is VN;
-			$this->isRoundTrip = (isset($_REQUEST['khuhoi']) && !empty($_REQUEST['khuhoi'])) ? (int)$_REQUEST['khuhoi'] : 0;
-			$this->bookingId = $_REQUEST['booking_id'] ?? '';
-			$this->itineraryId = $_REQUEST['itinerary_id'] ?? '';
-			$this->listPassengerId = explode(',', (isset($_REQUEST['listPassengers']) && !empty($_REQUEST['listPassengers'])) ? $_REQUEST['listPassengers'] : []);
+	public function __construct() {
+        parent::__construct();
 
-			$this->populateContent();
-			$this->sugarSmarty->display("modules/EC_Flight_Bookings/tpls/view_printeticketnew.tpl");
-		}
+		$this->sugarSmarty 	= new Sugar_Smarty();
+		$this->lang 		= isset($_REQUEST['lang']) && !empty($_REQUEST['lang']) ? $_REQUEST['lang'] : 'vn'; // Default is VN
+		$this->direction	= (int)($_REQUEST['directions'] ?? 0);
+		$this->isRoundTrip 	= (isset($_REQUEST['isRoundTrip']) && !empty($_REQUEST['isRoundTrip'])) ? (int)$_REQUEST['isRoundTrip'] : 0;
+		$this->bookingId 	= $_REQUEST['booking_id'] ?? '';
+		$this->itineraryId 	= $_REQUEST['itinerary_id'] ?? '';
+		$this->listPassengerId = explode(',', (isset($_REQUEST['listPassengers']) && !empty($_REQUEST['listPassengers'])) ? $_REQUEST['listPassengers'] : []);
+    }
+
+	public function display() {
+		$this->populateContent();
+		$this->sugarSmarty->display("modules/EC_Flight_Bookings/tpls/view_printeticketnew.tpl");
 	}
 
-	function populateContent() {
+	public function populateContent() {
 		// Detect department id
 		$created_by = new User();
 		$created_by->retrieve($this->bean->created_by);
@@ -34,142 +38,9 @@ class Viewprinteticketnew extends SugarView {
 		if (!empty($department_info['com_hotline1'])) $com_phone .= ' - ' . $department_info['com_hotline1'];
 		if (!empty($department_info['com_hotline2'])) $com_phone .= ' - ' . $department_info['com_hotline2'];
 
-		// Lấy danh sách, số lượng, thông tin hành khách 
 		$passengersData = $this->getListPassengers();
 		$itinerariesData = $this->getListItineraries();
-
-		$borderColor = '#dbdbdb';
-		$tbody = '';
-		foreach($itinerariesData as $round => $segments) {
-			$trHead = '';
-			if(count($itinerariesData) > 1) {
-				$trHead = '<tr>
-					<td colspan="4" style="padding:10px; border-top:2px solid; border-bottom:2px solid;">
-						<h5 style="font-weight:700; margin:0; padding:0">'. ($round == 0 ? 'Lượt đi' : 'Lượt về') .'</h5>
-					</td>
-				</tr>';
-			}
-
-			$trIti = '';
-			foreach($segments as $seg) {
-				$trIti .= '<tr>
-					<td width="10%" style="vertical-align:top; padding:10px">
-						<b style="line-height:1.5;">'. $seg['airline'] .'</b>
-					</td>
-					<td width="39%" style="vertical-align:top; text-align:right; padding:10px 16px 5px 10px">
-						<h5>'. $seg['depCode'] .' <b>'. $seg['depTime'] .'</b></h5>
-						<h6>'. $seg['depDate'] .'</b></h6>
-						<p style="line-height:1.5;">'. ($seg['depAirport']['CityName'] ?? 'Unknown') .', Sân bay '. ($seg['depAirport']['AirPortName'] ?? 'Unknown') .'</p>
-					</td>
-					<td><span style="display:inline-block; font-size:25px; transform:rotate(90deg);">&#128743;</span></td>
-					<td width="39%" style="vertical-align:top; text-align:left; padding:10px 10px 5px 16px">
-						<h5>'. $seg['desCode'] .' <b>'. $seg['desTime'] .'</b></h5>
-						<h6>'. $seg['desDate'] .'</b></h6>
-						<p style="line-height:1.5;">'. ($seg['desAirport']['CityName'] ?? 'Unknown') .', Sân bay '. ($seg['desAirport']['AirPortName'] ?? 'Unknown') .'</p>
-					</td>
-					<td width="10%"></td>
-				</tr>';
-			}
-
-			$trPass = '';
-			foreach($passengersData[$round] as $p) {
-				$salutation = $p['salutation'] == 0 ? 'Mr. ' : 'Ms. ';
-				$trPass .= '<tr style="border-bottom:1px solid; border-color:'.$borderColor.'">
-					<td style="vertical-align:top; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.'; ">
-						'. $salutation . $p['name'] .'
-					</td>
-					<td style="vertical-align:top; text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">'. $p['pnr'] .'</td>
-					<td style="vertical-align:top; text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">'. $p['ticketNo'] .'</td>
-					<td style="vertical-align:top; padding:10px 8px">
-						<p style="line-height:1.5;">'. Baggage::renderAvailableBaggage($p['bagIndex']) .'</p>
-						<p style="line-height:1.5;">'. $p['bagText'] .'</p>
-					</td>
-				</tr>';
-			}
-			$tablePassengers = '<tr>
-				<td colspan="4" style="padding: 30px 20px 30px">
-					<table>
-						<thead>
-							<tr style="border-bottom:1px solid; border-top:2px solid; border-color:'.$borderColor.';">
-								<th width="30%" style="padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">
-									HÀNH KHÁCH
-								</th>
-								<th width="15%" style="text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">
-									MÃ ĐẶT CHỖ
-								</th>
-								<th width="15%" style="text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">
-									SỐ VÉ
-								</th>
-								<th style="padding:10px 8px;">
-									HÀNH LÝ / DỊCH VỤ
-								</th>
-							</tr>
-						</thead>
-						<tbody>'.$trPass .'</tbody>
-					</table>
-				</td>
-			</tr>';
-
-			$tbody .= $trHead . $trIti . $tablePassengers;
-
-		}
-
-		$this->sugarSmarty->assign('DATA', $tbody);
-
-
-		// if ($pass_inf['pass_cnt'] <= 1 && isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 3) {
-		// 	$is_change_inf = 1;
-		// 	$_REQUEST['add_type'] = 0;
-		// } else {
-		// 	$is_change_inf = 0;
-		// 	if(!isset($_REQUEST['add_type'])) {
-		// 		$_REQUEST['add_type'] = 0;
-		// 	}
-		// }
-		// $smartyobj->assign('ADD_TYPE', $_REQUEST['add_type']);
-
-
-		// // KHÔNG THAY ĐỔI HÀNH TRÌNH
-		// if ((isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 0) || !isset($_REQUEST['add_type'])) {
-		// 	$iti_inf = $this->listOfItineraries($_REQUEST['booking_id'], $khuhoi, $_REQUEST['wayflight'], $lang, $_REQUEST['itinerary_id'], $is_change_inf);
-		// 	if ($is_change_inf && $khuhoi) {
-		// 		if ($iti_inf['direction'] == 1) $fdirection = 0;
-		// 		else $fdirection = 1;
-
-		// 		$another_iti 	= $this->getAnotherIti($_REQUEST['booking_id'], $fdirection, $pass_inf['pass_id'], $pass_inf['edit_no']);
-				
-		// 		if(!empty($another_iti)){
-		// 			$airline 			= myGetAirlineInfo2(trim($another_iti['airline_code']), 'CODE');
-		// 			$departure 			= myGetAirportInfo2(trim($another_iti['departure']));
-		// 			$arrival 			= myGetAirportInfo2(trim($another_iti['arrival']));
-		// 			$departure_date 	= date('d/m/Y', strtotime($another_iti['departure_date'])) . ' <br /> ' . date('H:i', strtotime($another_iti['departure_date'])) .' - ' .date('H:i', strtotime($another_iti['arrival_date']));
-		// 			$airline 			= $airline['data'][0]['name'];
-		// 			$flight_number 	= $another_iti['flight_number'];
-		// 			$departure_inf 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
-		// 			$arrival_inf 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
-
-		// 			$html1 = '<tr class="no-change-iti">
-		// 						<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px; line-height: 20px;">' . $departure_date . '</td>
-		// 						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $airline . '</td>
-		// 						<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px;">' . $flight_number . '</td>
-		// 						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $departure_inf . '</td>
-		// 						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $arrival_inf . '</td>
-		// 					</tr>';
-		// 		} else {
-		// 			$html1 = '';
-		// 		}
-
-		// 		if ($fdirection == 0){
-		// 			$iti_html = $html1 . $iti_inf['html'];
-		// 		}
-		// 		else {
-		// 			$iti_html = $iti_inf['html'] . $html1;
-		// 		}
-		// 	} 
-		// 	else $iti_html = $iti_inf['html'];
-
-		// 	$smartyobj->assign('LIST_OF_ITINERARIES', $iti_html);
-		// }
+		$this->sugarSmarty->assign('CONTENT', $this->renderContent($passengersData, $itinerariesData));
 
 		$this->sugarSmarty->assign('BOOKING_NUMBER', $_REQUEST['booking']);
 		// $this->sugarSmarty->assign('LIST_OF_PASSENGER', $pass_inf['html']);
@@ -185,12 +56,111 @@ class Viewprinteticketnew extends SugarView {
 		// 2: quốc tế là 180p
 	}
 
+	public function renderContent($passengersData, $itinerariesData) {
+		$borderColor = '#dbdbdb';
+
+		$tbody = '';
+		foreach($itinerariesData as $round => $segments) {
+			$trHead = '';
+			if(count($itinerariesData) > 1) {
+				$trHead = '<tr>
+					<td colspan="5" style="padding:10px; border-top:2px solid; border-bottom:2px solid;">
+						<p style="font-size:16px; font-weight:600; padding:0; margin:0;">
+							'. ($round == 0 ? 'Lượt đi' : 'Lượt về') .'
+						</p>
+					</td>
+				</tr>';
+			}
+
+			$trIti = '';
+			foreach($segments as $seg) {
+				$trIti .= '<tr>
+					<td width="10%" style="vertical-align:top; padding:10px">
+						<b style="font-size:12px; line-height:1.5;">'. $seg['airline'] .'</b>
+					</td>
+					<td width="39%" style="vertical-align:top; text-align:right; padding:10px 16px 5px 10px">
+						<p style="font-size:16px; font-weight:500; padding:0; margin:0 0 6px 0;">
+							'. $seg['depCode'] .' <b>'. $seg['depTime'] .'</b>
+						</p>
+						<p style="font-size:14px; font-weight:500; padding:0; margin:0 0 6px 0; letter-spacing:.5px;">
+							'. $seg['depDate'] .'
+						</p>
+						<p style="font-size:12px; font-weight:500; line-height:1.5; padding:0; margin:0 0 6px 0;">
+							'. ($seg['depAirport']['CityName'] ?? 'Unknown') .', Sân bay '. ($seg['depAirport']['AirPortName'] ?? 'Unknown') .'
+						</p>
+					</td>
+					<td>
+						<svg fill="#000000" width="20px" height="20px" viewBox="0 -32 576 576" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M480 192H365.71L260.61 8.06A16.014 16.014 0 0 0 246.71 0h-65.5c-10.63 0-18.3 10.17-15.38 20.39L214.86 192H112l-43.2-57.6c-3.02-4.03-7.77-6.4-12.8-6.4H16.01C5.6 128-2.04 137.78.49 147.88L32 256 .49 364.12C-2.04 374.22 5.6 384 16.01 384H56c5.04 0 9.78-2.37 12.8-6.4L112 320h102.86l-49.03 171.6c-2.92 10.22 4.75 20.4 15.38 20.4h65.5c5.74 0 11.04-3.08 13.89-8.06L365.71 320H480c35.35 0 96-28.65 96-64s-60.65-64-96-64z"></path></g></svg>
+					</td>
+					<td width="39%" style="vertical-align:top; text-align:left; padding:10px 10px 5px 16px">
+						<p style="font-size:16px; font-weight:500; padding:0; margin:0 0 6px 0;">
+							'. $seg['desCode'] .' <b>'. $seg['desTime'] .'</b>
+						</p>
+						<p style="font-size:14px; font-weight:500; padding:0; margin:0 0 6px 0; letter-spacing:.5px;">
+							'. $seg['desDate'] .'
+						</p>
+						<p style="font-size:12px; font-weight:500; line-height:1.5; padding:0; margin:0 0 6px 0;">
+							'. ($seg['desAirport']['CityName'] ?? 'Unknown') .', Sân bay '. ($seg['desAirport']['AirPortName'] ?? 'Unknown') .'
+						</p>
+					</td>
+					<td width="10%"></td>
+				</tr>';
+			}
+
+			$trPass = '';
+			foreach($passengersData[$round] as $p) {
+				$salutation = $p['salutation'] == 0 ? 'Mr. ' : 'Ms. ';
+
+				$style = "font-size:12px; vertical-align:top; border-bottom:1px solid; border-right:1px solid; border-color:$borderColor; padding:10px 8px;";
+				$trPass .= '<tr>
+					<td style="'. $style .'">
+						'. $salutation . $p['name'] .'
+					</td>
+					<td style="'. $style .' text-align:center;">'. $p['pnr'] .'</td>
+					<td style="'. $style .' text-align:center;">'. $p['ticketNo'] .'</td>
+					<td style="'. $style .' border-right:none">
+						<p style="font-size:12px; line-height:1.5; padding:0; margin:0 0 4px 0;">'. Baggage::renderAvailableBaggage($p['bagIndex']) .'</p>
+						<p style="font-size:12px; line-height:1.5; padding:0; margin:0 0 4px 0;">'. $p['bagText'] .'</p>
+					</td>
+				</tr>';
+			}
+			$style = "font-size:12px; border-top:2px solid; border-bottom:1px solid; border-right:1px solid; border-color:$borderColor; padding:10px 8px;";
+			$tablePassengers = '<tr>
+				<td colspan="5" style="padding:24px 16px 24px">
+					<table>
+						<thead>
+							<tr>
+								<th width="30%" style="'.$style.'">
+									HÀNH KHÁCH
+								</th>
+								<th width="18%" style="'.$style.' text-align:center;">
+									MÃ ĐẶT CHỖ
+								</th>
+								<th width="17%" style="'.$style.' text-align:center;">
+									SỐ VÉ
+								</th>
+								<th style="'.$style.' border-right:none;">
+									HÀNH LÝ / DỊCH VỤ
+								</th>
+							</tr>
+						</thead>
+						<tbody>'.$trPass .'</tbody>
+					</table>
+				</td>
+			</tr>';
+
+			$tbody .= $trHead . $trIti . $tablePassengers;
+		}
+
+		return $tbody;
+	}
+
 	/**
 	 * Get list passengers
 	 * 
 	 * @return array
 	 */
-	function getListPassengers() {
+	public function getListPassengers() {
 		global $db;
 		$results = [];
 

@@ -30,7 +30,6 @@
                                                                     <div class="" style="font-family:Arial, Helvetica, sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; font-weight: 600;">
                                                                         <p style=" margin: 0; text-align: center; mso-line-height-alt: 16.8px; ">
                                                                             <span style="font-size: 22px;font-weight:bold; text-transform:uppercase;">TÌM CHUYẾN BAY</span><br>
-                                                                            <!-- <span style="font-size: 18px;font-weight:bold; text-transform:uppercase;">Booking: {$BOOKING_NUMBER}</span> -->
                                                                             <span style="font-size: 14px;font-weight:bold; font-style: italic;">Tìm chuyến bay theo cách của bạn</span>
                                                                         </p>
                                                                     </div>
@@ -46,7 +45,6 @@
                                                                 <div style="font-family: sans-serif">
                                                                     <div class="" style="font-size: 15px; font-family:Arial, Helvetica, sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.5; ">
                                                                         <p style="margin: 0; text-align: right; mso-line-height-alt: 14.399999999999999px; ">
-                                                                            <!-- <span style="color: #000"><strong>{$COM_NAME}</strong></span> -->
                                                                             <span style="color: #000"><strong>Booking: {$BOOKING_NUMBER}</strong></span>
                                                                         </p>
                                                                         <p style="margin: 0; text-align: right; mso-line-height-alt: 14.399999999999999px; ">
@@ -72,7 +70,7 @@
                                 <td>
                                     <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 900px; padding: 0 5px 10px;font-size: 14px;" width="900">
                                         <tbody>
-                                            {$DATA}
+                                            {$CONTENT}
                                         </tbody>
                                     </table>
                                 </td>
