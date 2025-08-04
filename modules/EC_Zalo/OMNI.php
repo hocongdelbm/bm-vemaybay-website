@@ -87,13 +87,13 @@ class OMNI {
 
         switch ($type) {
             case 'journey-one-way':
-                return "347078"; // Hành trình một chiều
+                return "466986"; // Hành trình một chiều
                 break;
             case 'journey-round-trip':
-                return "347088"; // Hành trình khứ hồi
+                return "466988"; // Hành trình khứ hồi
                 break;
             case 'payment':
-                return "345209"; // Thông tin thanh toán
+                return "466992"; // Thông tin thanh toán
                 break;
             case 'code-one-way':
                 return "466996"; // Code vé một chiều
@@ -131,11 +131,11 @@ class OMNI {
         if(is_null($templateCode) || empty($templateCode)) return "";
     
         switch ($templateCode) {
-            case '347078':
-            case '347088':
+            case '466986':
+            case '466988':
                 return "Thông tin hành trình";
                 break;
-            case '345209':
+            case '466992':
                 return "Thông tin thanh toán";
                 break;
             case '466996':
