@@ -312,7 +312,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $con->retrieve($contact_id);
 
             if (empty($con->phone_mobile) && !empty($phone) && !isExitsPhoneNumber('contacts', $phone)) {
-                $con->phone_mobile = $phone;
+                $con->phone_mobile = trim($phone);
                 $save = true;
             }
             if (empty($con->zalo_id) && !empty($zalo_id)) {
@@ -335,7 +335,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             } 
         } else {
             if(!empty($call_id) & !isExitsPhoneNumber('contacts', $phone)){
-                $con->phone_mobile = $phone;
+                $con->phone_mobile = trim($phone);
                 $con->zalo_id = $zalo_id;
                 $con->last_name = $name;
                 $con->email1 = $email;

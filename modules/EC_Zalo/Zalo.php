@@ -1310,9 +1310,9 @@ class Zalo {
 
     public function unformat_zalo_phone($zalo_phone) {
         if(!$zalo_phone || empty($zalo_phone)) return '';
-        if(substr($zalo_phone, 0, 2) == 84) return '0' . substr($zalo_phone, 2);
-        elseif(substr($zalo_phone, 0, 3) == "+84") return '0' . substr($zalo_phone, 3);
-        return $zalo_phone;
+        if(substr($zalo_phone, 0, 2) == 84) return trim('0' . substr($zalo_phone, 2));
+        elseif(substr($zalo_phone, 0, 3) == "+84") return trim('0' . substr($zalo_phone, 3));
+        return trim($zalo_phone);
     }
 
     public function send_to_telegram($content, $parseMode = 'HTML', $timeout = 15) {
