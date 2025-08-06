@@ -131,7 +131,7 @@ class EC_Zalo extends Basic {
 
                 $contact_id = '';
                 if(!empty($user_data_phone)) {
-                    $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$user_data_phone' AND deleted = 0";
+                    $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$user_data_phone' AND deleted = 0 ORDER BY date_entered";
                     $contact_id = $this->db->getOne($sql_contact) ?? '';
                 }
 
@@ -361,6 +361,8 @@ class EC_Zalo extends Basic {
     }
 
     public function update_zalo_info_to_contact($contact_id, $user_data) {
+        if(!$contact_id || empty($contact_id)) return false;
+
         $zalo_id = $user_data['user_id'] ?? '';
         $user_data_name = $user_data['user_alias'] ?? ($user_data['display_name'] ?? '');
         $user_data_last_interaction = $user_data['user_last_interaction_date'] ?? '';
@@ -369,6 +371,7 @@ class EC_Zalo extends Basic {
         $Zalo = new Zalo();
         $Contact = new Contact();
         $Contact->retrieve($contact_id);
+        if(!isset($Contact->id) || empty($Contact->id)) return false;
         $Contact->zalo_id               = $zalo_id;
         $Contact->zalo_name             = $user_data_name;
         $Contact->zalo_avatar           = $user_data['avatar'] ?? '';
