@@ -301,10 +301,15 @@ $(document).ready(function () {
 
 		let checkBoxPassengers = '';
 		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function (index, element) {
-			if(ln > 0 && index + 1 < ln) return true; // Skip
+			// if(ln > 0 && index + 1 < ln) {
+			// 	console.warn(ln, index);
+			// 	return true; // Skip
+			// }
 
 			let timesChangePass = $(this).attr('data-times-change');
-			if(timesChangeIti !== timesChangePass) return true; // Skip
+			if(timesChangeIti != timesChangePass) {
+				return true; // Skip
+			}
 
 			let passId = $(this).attr('data-id');
 			let passName = $(this).find('td.passenger_name .fullname').text();
@@ -350,7 +355,7 @@ $(document).ready(function () {
 		
 		let checkBoxPassengers = '';
 		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
-			if(ln > 0 && index + 1 < ln) return true; // Skip
+			// if(ln > 0 && index + 1 < ln) return true; // Skip
 
 			let timesChangePass = $(this).attr('data-times-change');
 			if(timesChangeIti !== timesChangePass) return true; // Skip
