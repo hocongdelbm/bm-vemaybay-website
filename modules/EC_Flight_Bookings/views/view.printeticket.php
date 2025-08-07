@@ -26,7 +26,7 @@ class Viewprinteticket extends SugarView {
 		if (!empty($department_info['com_hotline2']))
 			$com_phone .= ' - ' . $department_info['com_hotline2'];
 
-		// Lấy danh sách, số lượng, thông tin hành khách 
+		// Lấy danh sách, số lượng, thông tin hành khách
 		$pass_inf = $this->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $listPassengerIDs, $smartyobj);
 
 		if ($pass_inf['pass_cnt'] <= 1 && isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 3) {
@@ -210,10 +210,17 @@ class Viewprinteticket extends SugarView {
 			$html_dep_itineraries = $html_ret_itineraries = '';
 
 			while ($row = $db->fetchByAssoc($res)) {
-				$pnr = (trim($row['pnr_outbound']) != '' ? $row['pnr_outbound'] : (trim($row['eticket_outbound']) != '' ? $row['eticket_outbound'] : ''));
+				// $pnr = (trim($row['pnr_outbound']) != '' ? $row['pnr_outbound'] : (trim($row['eticket_outbound']) != '' ? $row['eticket_outbound'] : ''));
 				if ($khuhoi) {
+					$pnr = (trim($row['pnr_outbound']) != '' ? $row['pnr_outbound'] : (trim($row['eticket_outbound']) != '' ? $row['eticket_outbound'] : ''));
 					$pnr .= trim($pnr) != '' ? ' - ' : '';
 					$pnr .= (trim($row['pnr_inbound']) != '' ? $row['pnr_inbound'] : (trim($row['eticket_inbound']) != '' ? $row['eticket_inbound'] : ''));
+				}
+				else if($direction == '1') {
+					$pnr = (trim($row['pnr_inbound']) != '' ? $row['pnr_inbound'] : (trim($row['eticket_inbound']) != '' ? $row['eticket_inbound'] : ''));
+				}
+				else {
+					$pnr = (trim($row['pnr_outbound']) != '' ? $row['pnr_outbound'] : (trim($row['eticket_outbound']) != '' ? $row['eticket_outbound'] : ''));
 				}
 
 				// Hành lý chiều đi
@@ -326,13 +333,18 @@ class Viewprinteticket extends SugarView {
 		else {
 			if ($rowCount > 0) {
 				while ($row = $db->fetchByAssoc($res)) {
-
 					$pass_id 	= $row['id'];
-					$pnr 	= (trim($row['pnr_outbound']) != '' ? $row['pnr_outbound'] : (trim($row['eticket_outbound']) != '' ? $row['eticket_outbound'] : ''));
-					
+
 					if ($khuhoi) {
-						$pnr .= (trim($row['pnr_inbound']) != '') ? ' - ' : '';
+						$pnr = (trim($row['pnr_outbound']) != '' ? $row['pnr_outbound'] : (trim($row['eticket_outbound']) != '' ? $row['eticket_outbound'] : ''));
+						$pnr .= trim($pnr) != '' ? ' - ' : '';
 						$pnr .= (trim($row['pnr_inbound']) != '' ? $row['pnr_inbound'] : (trim($row['eticket_inbound']) != '' ? $row['eticket_inbound'] : ''));
+					}
+					else if($direction == '1') {
+						$pnr = (trim($row['pnr_inbound']) != '' ? $row['pnr_inbound'] : (trim($row['eticket_inbound']) != '' ? $row['eticket_inbound'] : ''));
+					}
+					else {
+						$pnr = (trim($row['pnr_outbound']) != '' ? $row['pnr_outbound'] : (trim($row['eticket_outbound']) != '' ? $row['eticket_outbound'] : ''));
 					}
 
 					// Thông tin hành lý lượt đi
