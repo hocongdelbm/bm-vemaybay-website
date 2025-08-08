@@ -171,7 +171,7 @@
                                             <option value="HNH" data-ticket-code="B" data-pass-qty="F,G" data-itinerary="C" data-ticket-price="H,I">Hồng Ngọc Hà</option>
                                             <option value="TH" data-ticket-code="B" data-pass-qty="D" data-itinerary="B" data-ticket-price="E">Thành Hoàng</option>
                                         </select>
-                                        <input type="hidden" name="supplier_name" id="supplier_name" value="VietjetAir">
+                                        <input type="hidden" name="supplier_name" id="supplier_name" value="Phương Nam">
                                     </td>
                                     <td><span class="label">File</span></td>
                                     <td><input type="file" name="from_file"></td>
@@ -184,7 +184,7 @@
                                     <td><span class="label">Ký hiệu hoá đơn</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="invoice_serial"></td>
                                     <td><span class="label">Cột số lượng</span></td>
-                                    <td><input type="text" class="box-input" name="pass_qty" id="pass_qty" value="F"></td>   
+                                    <td><input type="text" class="box-input" name="pass_qty" id="pass_qty" value="E"></td>   
                                 </tr>
                                 <tr>
                                     <td><span class="label">Ngày hạch toán</span><span class="required">*</span></td>
@@ -192,7 +192,7 @@
                                     <td><span class="label">Ngày hoá đơn</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="invoice_date" id="invoice_date" value="{$INVOICE_DATE}"></td>
                                     <td><span class="label">Cột giá vé</span></td>
-                                    <td><input type="text" class="box-input" name="ticket_price" id="ticket_price" value="L"></td>
+                                    <td><input type="text" class="box-input" name="ticket_price" id="ticket_price" value="G"></td>
                                 </tr>
                                 <tr>
                                     <td width="13%"><span class="label">Đơn vị</span></td>
@@ -206,7 +206,7 @@
                                     <td></td>
                                     <td></td>
                                     <td><span class="label">Cột hành trình</span></td>
-                                    <td><input type="text" class="box-input" name="itinerary" id="itinerary" value="G"></td>
+                                    <td><input type="text" class="box-input" name="itinerary" id="itinerary" value="D"></td>
                                 </tr>
                                 {if !$PREVIEW}
                                     <tr>

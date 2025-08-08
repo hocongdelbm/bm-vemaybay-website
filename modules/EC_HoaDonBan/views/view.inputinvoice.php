@@ -707,9 +707,6 @@ class Viewinputinvoice extends SugarView {
 
                     $array_data = $this->filterData($array_data, $supplier);
 
-                    pr($array_data);
-                    die();
-
                     // Kiểm tra data import => trả về lỗi nếu có
                     $err = $this->insertData($array_data);
                     header("Location: index.php?module=EC_HoaDonBan&action=inputinvoice&preview&supplier=" . $post_fields['supplier'] . "&supplier_name=" . $post_fields['supplier_name'] . "&invoice_number=" . trim($post_fields['invoice_number']) . "&invoice_serial=" . trim($post_fields['invoice_serial']) . "&invoice_date=" . trim($post_fields['invoice_date']) . "&status=0" . $err);
@@ -1080,22 +1077,25 @@ class Viewinputinvoice extends SugarView {
                     $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
                     
                     // Lọc hành trình
-                    $i = 0;
+                    $j = 0;
                     $iti = $data[$i]['itinerary'];
                     $itiFormat = '';
                     while(strlen($iti) > 0) {
                         // Location
-                        if($i % 2 == 0) {
+                        if($j % 2 == 0) {
                             $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
                             $iti = substr($iti, 3);
                         }
-                        // // Airline code
-                        // else {
-
-                        // }
-                        $i++;
+                        // Airline code
+                        else {
+                            $iti = substr($iti, 2);
+                        }
+                        $j++;
                     }
                     $data[$i]['itinerary'] = $itiFormat;
+
+                    $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat']);
+                    $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection']);
                 }
 
                 // Lọc cột đơn giá, 
@@ -1154,8 +1154,8 @@ class Viewinputinvoice extends SugarView {
                         AND b.booking_status = 8
                 WHERE p.deleted = 0 
                     AND (
-                        TRIM(p.eticket_outbound) = '". $data_arr['ticket_code'] ."'
-                        OR TRIM(p.eticket_inbound) = '". $data_arr['ticket_code'] ."'
+                        TRIM(p.eticket_outbound) = '". trim($data_arr['ticket_code']) ."'
+                        OR TRIM(p.eticket_inbound) = '". trim($data_arr['ticket_code']) ."'
                     )
                 LIMIT 1";
             $res = $this->bean->db->query($sql);
