@@ -830,15 +830,19 @@ class Viewinputinvoice extends SugarView {
                             // Tính phí thu hộ
                             // NCC có phí thu hộ = phí admin + phí sân bay
                             $input_iv->authorized_fee   = $data[$i]['admin_fee'] + $data[$i]['authorized_collection'];
-                            // Tính giá vốn (VAT)
-                            $input_iv->cost             = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // // Tính giá vốn (VAT)
+                            // $input_iv->cost             = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // Tính giá vốn (VAT) bỏ nhân SL
+                            $input_iv->cost = $data[$i]['ticket_price'] + $data[$i]['vat'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
                             // Tính giá vốn chưa vat
                             $input_iv->cost_no_vat      = $input_iv->cost - $data[$i]['vat'] - $data[$i]['vat_luggage_outbound'] - $data[$i]['vat_luggage_inbound'];
                         } else {
                             // Phí thu hộ = phí sân bay
                             $input_iv->authorized_fee = $data[$i]['authorized_collection'];
-                            // Tính giá vốn (VAT)
-                            $input_iv->cost = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // // Tính giá vốn (VAT)
+                            // $input_iv->cost = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // Tính giá vốn (VAT) bỏ nhân SL
+                            $input_iv->cost = $data[$i]['ticket_price'] + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
                             // Tính giá vốn chưa vat
                             $input_iv->cost_no_vat = $input_iv->cost - $data[$i]['vat'] - $data[$i]['vat_admin'] - $data[$i]['vat_luggage_outbound'] - $data[$i]['vat_luggage_inbound'];
                         }
