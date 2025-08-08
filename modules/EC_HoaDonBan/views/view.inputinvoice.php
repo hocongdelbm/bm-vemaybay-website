@@ -251,7 +251,6 @@ class Viewinputinvoice extends SugarView {
 
     function calculateTotalLine($request_fields)
     {
-
         global $current_user;
 
         $sql_search = $this->populateSearchCondition($request_fields);
@@ -708,6 +707,9 @@ class Viewinputinvoice extends SugarView {
 
                     $array_data = $this->filterData($array_data, $supplier);
 
+                    pr($array_data);
+                    die();
+
                     // Kiểm tra data import => trả về lỗi nếu có
                     $err = $this->insertData($array_data);
                     header("Location: index.php?module=EC_HoaDonBan&action=inputinvoice&preview&supplier=" . $post_fields['supplier'] . "&supplier_name=" . $post_fields['supplier_name'] . "&invoice_number=" . trim($post_fields['invoice_number']) . "&invoice_serial=" . trim($post_fields['invoice_serial']) . "&invoice_date=" . trim($post_fields['invoice_date']) . "&status=0" . $err);
@@ -1072,6 +1074,28 @@ class Viewinputinvoice extends SugarView {
                             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
                         }
                     }
+                } else if ($supplier == 'PNA') {
+                    // Lọc số vé
+                    $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
+                    $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
+                    
+                    // Lọc hành trình
+                    $i = 0;
+                    $iti = $data[$i]['itinerary'];
+                    $itiFormat = '';
+                    while(strlen($iti) > 0) {
+                        // Location
+                        if($i % 2 == 0) {
+                            $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
+                            $iti = substr($iti, 3);
+                        }
+                        // // Airline code
+                        // else {
+
+                        // }
+                        $i++;
+                    }
+                    $data[$i]['itinerary'] = $itiFormat;
                 }
 
                 // Lọc cột đơn giá, 
