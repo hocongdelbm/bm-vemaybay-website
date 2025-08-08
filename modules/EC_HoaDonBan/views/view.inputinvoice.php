@@ -1077,8 +1077,10 @@ class Viewinputinvoice extends SugarView {
                     }
                 } else if ($supplier == 'PNA') {
                     // Lọc số vé
-                    $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
-                    $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
+                    if(!ctype_digit($data[$i]['ticket_code'])) {
+                        $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
+                        $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
+                    }
                     
                     // Lọc hành trình
                     $j = 0;
