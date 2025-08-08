@@ -292,7 +292,7 @@ $(document).ready(function () {
 	// Print eticket button
 	$(document).on('click', 'input[name="btnPrintEticket"]', function () {
 		var ln = $(this).attr('ln');
-		var timesChangeIti = $(this).attr('data-times-change');
+		// var timesChangeIti = $(this).attr('data-times-change');
 		$('#what_form').val($(this).closest('form[name="frmPrintEticket"]').attr('id'));
 		$(`#frmPrintEticket${ln}`).attr('target', '_blank');
 		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=true');
@@ -306,10 +306,10 @@ $(document).ready(function () {
 			// 	return true; // Skip
 			// }
 
-			let timesChangePass = $(this).attr('data-times-change');
-			if(timesChangeIti != timesChangePass) {
-				return true; // Skip
-			}
+			// let timesChangePass = $(this).attr('data-times-change');
+			// if(timesChangeIti != timesChangePass) {
+			// 	return true; // Skip
+			// }
 
 			let passId = $(this).attr('data-id');
 			let passName = $(this).find('td.passenger_name .fullname').text();
@@ -346,7 +346,7 @@ $(document).ready(function () {
 	// Send mail eticket button
 	$(document).on('click', 'input[name="btnSendEticket"]', function (index, element) {
 		var ln = $(this).attr('ln');
-		var timesChangeIti = $(this).attr('data-times-change');
+		// var timesChangeIti = $(this).attr('data-times-change');
 		$('#what_form').val($(this).closest('form[name="frmPrintEticket"]').attr('id'));
 		$(`#frmPrintEticket${ln}`).attr('target', '_self');
 		$(`#frmPrintEticket${ln}`).attr('action', 'index.php?print=false');
@@ -357,8 +357,8 @@ $(document).ready(function () {
 		$('table#tbl_pax tbody tr.psg-line:not(.luggage)').each(function () {
 			// if(ln > 0 && index + 1 < ln) return true; // Skip
 
-			let timesChangePass = $(this).attr('data-times-change');
-			if(timesChangeIti !== timesChangePass) return true; // Skip
+			// let timesChangePass = $(this).attr('data-times-change');
+			// if(timesChangeIti !== timesChangePass) return true; // Skip
 
 			let passId = $(this).attr('data-id');
 			let passName = $(this).find('td.passenger_name .fullname').text();
