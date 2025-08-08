@@ -650,12 +650,14 @@ class Viewinputinvoice extends SugarView {
                 $data_arr[] = 'vat';
                 $post_fields['vat'] = 'M';
             }
-            // Nếu là PNA thì thêm cột thu hộ, cột vat
+            // Nếu là PNA thì thêm cột thu hộ, cột vat, cột phí khác
             elseif($post_fields['supplier'] == 'PNA') {
                 $data_arr[] = 'authorized_collection';
                 $post_fields['authorized_collection'] = 'J';
                 $data_arr[] = 'vat';
                 $post_fields['vat'] = 'I';
+                $data_arr[] = 'other_charge';
+                $post_fields['other_charge'] = 'K';
             }
 
             $invoice_number     = trim($post_fields['invoice_number']);
@@ -1102,13 +1104,14 @@ class Viewinputinvoice extends SugarView {
 
                     $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat']);
                     $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection']);
+                    $other_charge = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
                 }
 
                 // Lọc cột đơn giá, 
                 // Đầu tiên, bỏ các dấu phân cách
                 // Sau đó, giá < 1000 -> giá * 1000 
                 $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
-
+                if ($supplier == 'PNA') $data[$i]['ticket_price'] += $other_charge;
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
             }
