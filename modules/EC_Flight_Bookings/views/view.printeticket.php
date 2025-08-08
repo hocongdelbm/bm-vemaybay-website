@@ -437,8 +437,8 @@ class Viewprinteticket extends SugarView {
 
 					// Hành lý mới
 					$luggage_price = '';
-					$luggage_purchase_text = $row['luggage_purchase_text'] ?? '';
-					$luggage_purchase_text_inbound = $row['luggage_purchase_text_inbound'] ?? '';
+					$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
+					$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
 					if(!empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
 						if($khuhoi) {
 							if(!empty($luggage_purchase_text)) $luggage_price .=  "$luggage_purchase_text (Lượt đi)";

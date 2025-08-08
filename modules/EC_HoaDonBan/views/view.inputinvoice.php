@@ -637,7 +637,7 @@ class Viewinputinvoice extends SugarView {
 
         if ($_FILES['from_file']['name'] != '') {
             $path_parts = pathinfo($_FILES["from_file"]["name"]);
-            $file_type = $path_parts['extension'];
+            $file_type = strtolower($path_parts['extension'] ?? '');
 
             // Lưu trữ file tải lên vào đường dẫn cache/upload/inputinvoices/
             $fileName = $this->sys_uploads('cache/upload/inputinvoices/', 'from_file', $file_type);
