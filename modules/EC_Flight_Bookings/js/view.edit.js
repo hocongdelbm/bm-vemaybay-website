@@ -1264,6 +1264,7 @@ function calculateTotal() {
 	}
 	total_amount -= discount_amount;
 
+
 	$('#discount_amount').val(discount_amount);
 	$('#total_qty').val(formatNumber(total_qty));
 	$('#subtotal_amount').val(formatNumber(subtotal_amt));
