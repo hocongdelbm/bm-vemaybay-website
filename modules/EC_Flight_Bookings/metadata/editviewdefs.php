@@ -27,9 +27,9 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
             ),
-            array(
-                'file' => 'modules/EC_Flight_Bookings/js/view.edit.js',
-            ),
+            // array(
+            //     'file' => 'modules/EC_Flight_Bookings/js/view.edit.js',
+            // ),
         ),
     ),
 
