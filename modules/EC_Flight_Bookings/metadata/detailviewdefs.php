@@ -314,23 +314,12 @@ $viewdefs[$module_name]['DetailView'] = array(
 
             array(
                 array(
-                    'name' => 'thuephi_quocte',
-                    'label' => 'LBL_THUEPHI_QUOCTE',
-                ),
-                array(
-                    'name' => 'company_name',
-                    'label' => 'LBL_COMPANY_NAME',
-                ),
-            ),
-
-            array(
-                array(
                     'name' => 'other_fee',
                     'label' => 'LBL_OTHER_FEE',
                 ),
                 array(
-                    'name' => 'tax_code',
-                    'label' => 'LBL_TAX_CODE',
+                    'name' => 'company_name',
+                    'label' => 'LBL_COMPANY_NAME',
                 ),
             ),
 
@@ -341,9 +330,8 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUS_DISCOUNT_AMOUNT}',
                 ),
                 array(
-                    'name' => 'iv_email',
-                    'label' => 'LBL_IV_EMAIL',
-                    'customCode' => '{$CUS_IV_EMAIL}',
+                    'name' => 'tax_code',
+                    'label' => 'LBL_TAX_CODE',
                 ),
             ),
 
@@ -352,6 +340,28 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'name' => 'total_amount',
                     'label' => 'LBL_TOTAL_AMOUNT',
                 ),
+                array(
+                    'name' => 'iv_email',
+                    'label' => 'LBL_IV_EMAIL',
+                    'customCode' => '{$CUS_IV_EMAIL}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'company_address',
+                    'studio' => 'visible',
+                    'label' => 'LBL_COMPANY_ADDRESS',
+                    'displayParams' => array(
+                        'cols' => 32,
+                        'rows' => 3,
+                    ),
+                ),
+            ),
+
+            array(
+                array(),
                 array(
                     'name' => 'iv_payment_method',
                     'label' => 'LBL_IV_PAYMENT_METHOD',
@@ -377,18 +387,6 @@ $viewdefs[$module_name]['DetailView'] = array(
             //     ),
             // ),
 
-            array(
-                array(),
-                array(
-                    'name' => 'company_address',
-                    'studio' => 'visible',
-                    'label' => 'LBL_COMPANY_ADDRESS',
-                    'displayParams' => array(
-                        'cols' => 32,
-                        'rows' => 3,
-                    ),
-                ),
-            ),
         ),
     )
 );

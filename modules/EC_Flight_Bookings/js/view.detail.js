@@ -1762,7 +1762,6 @@ function checkShareProfit() {
 
 
 // BUTTON "CHỈNH SỬA CHI TIẾT BOOKING"
-// ==================================
 function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	let ticket_type = $("input[name='ticket_type']").val();
 	let qty = unformatNumber($('#bk_edit_quantity' + ln).val());
@@ -1809,8 +1808,8 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
 	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
 	// } else {
-	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
-	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+		total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+		total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
 	// }
 
 	if (supplier_discount != 0) {
@@ -1818,7 +1817,7 @@ function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	}
 
 	if (supplier_ticketing_fee != 0) {
-		total_bought_price = Math.abs(total_bought_price + supplier_ticketing_fee);
+		total_bought_price += supplier_ticketing_fee;
 	}
 
 	$('#bk_edit_quantity' + ln).val(qty);
@@ -1856,7 +1855,8 @@ function calculateTotal() {
 
 	var luggage_fee = unformatNumber($.trim($('#luggage_fee').text()));
 	var other_fee = unformatNumber($.trim($('#other_fee').text()));
-	var thuephi_quocte = unformatNumber($.trim($('#thuephi_quocte').text()));
+	// var thuephi_quocte = unformatNumber($.trim($('#thuephi_quocte').text()));
+	var thuephi_quocte = 0;
 	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
 
 	// Hiện tại đã off % discount

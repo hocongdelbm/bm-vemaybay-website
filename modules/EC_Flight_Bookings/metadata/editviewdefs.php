@@ -226,8 +226,9 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'thuephi_quocte',
-                    'label' => 'LBL_THUEPHI_QUOCTE',
+                    'name' => 'discount_amount',
+                    'label' => 'LBL_DISCOUNT_AMOUNT',
+                    // 'customCode' => '{$DISCOUNT_AMOUNT}',
                 ),
                 array(
                     'name' => 'tax_code',
@@ -237,44 +238,13 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'discount_amount',
-                    'label' => 'LBL_DISCOUNT_AMOUNT',
-                    // 'customCode' => '{$DISCOUNT_AMOUNT}',
+                    'name' => 'total_amount',
+                    'label' => 'LBL_TOTAL_AMOUNT',
                 ),
                 array(
                     'name' => 'iv_email',
                     'label' => 'LBL_IV_EMAIL',
                     'customCode' => '{$CUS_IV_EMAIL}',
-                ),
-            ),
-
-            array(
-                array(
-                    'name' => 'total_amount',
-                    'label' => 'LBL_TOTAL_AMOUNT',
-                ),
-                array(
-                    'name' => 'iv_payment_method',
-                    'label' => 'LBL_IV_PAYMENT_METHOD',
-                    'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
-                ),
-            ),
-
-            array(
-                array(),
-                array(
-                    'name' => 'iv_bank_account',
-                    'label' => 'LBL_IV_BANK_ACCOUNT',
-                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
-                ),
-            ),
-
-            array(
-                array(),
-                array(
-                    'name' => 'iv_name_banks',
-                    'label' => 'LBL_IV_NAME_BANKS',
-                    'customCode' => '{$CUS_IV_NAME_BANK}',
                 ),
             ),
 
@@ -290,7 +260,33 @@ $viewdefs[$module_name]['EditView'] = array(
                     ),
                 ),
             ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_payment_method',
+                    'label' => 'LBL_IV_PAYMENT_METHOD',
+                    'customCode' => '{$CUS_IV_PAYMENT_METHOD}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_name_banks',
+                    'label' => 'LBL_IV_NAME_BANKS',
+                    'customCode' => '{$CUS_IV_NAME_BANK}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'iv_bank_account',
+                    'label' => 'LBL_IV_BANK_ACCOUNT',
+                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
+                ),
+            ),
         ),
     ),
-
 );

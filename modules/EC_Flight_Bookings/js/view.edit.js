@@ -1,6 +1,8 @@
 $(document).ready(function () {
-	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').addClass('allow-number-only');
-	$('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').css({ 'text-align': 'right' });
+	// $('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').addClass('allow-number-only');
+	// $('#luggage_fee, #other_fee, #thuephi_quocte, #discount_amount, #total_amount').css({ 'text-align': 'right' });
+	$('#luggage_fee, #other_fee, #discount_amount, #total_amount').addClass('allow-number-only');
+	$('#luggage_fee, #other_fee, #discount_amount, #total_amount').css({ 'text-align': 'right' });
 
 	let discount_amount = $("#discount_amount");
 	discount_amount.prop("disabled", true);
@@ -25,7 +27,7 @@ $(document).ready(function () {
 	$('.datetime_h').on('blur', function () {
 		var hour = parseInt($(this).val());
 		if (hour < 0 || hour > 23) {
-			alert('Giờ phải nằm trong khoảng từ 0 - 23');
+			alert('Giờ phải nằm trong khoảng từ 0-23');
 			$(this).val('00');
 			$(this).focus();
 			$(this).select();
@@ -1204,20 +1206,18 @@ function calculateLineTotal(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
 	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
 	// } else {
-	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
-	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+		total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+		total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
 	// }
 
 	// Chiết khấu
 	if (supplier_discount != 0) {
 		total_bought_price = Math.abs(total_bought_price - supplier_discount);
-		total_price = Math.abs(total_price - supplier_discount);
 	}
 
 	// Phí xuất vé
 	if (supplier_ticketing_fee != 0) {
 		total_bought_price += supplier_ticketing_fee;
-		total_price += supplier_ticketing_fee
 	}
 
 	$('#bkd_quantity' + ln).val(qty);
@@ -1253,7 +1253,8 @@ function calculateTotal() {
 
 	var luggage_fee = unformatNumber($('#luggage_fee').val());
 	var other_fee = unformatNumber($('#other_fee').val());
-	var thuephi_quocte = unformatNumber($('#thuephi_quocte').val());
+	// var thuephi_quocte = unformatNumber($('#thuephi_quocte').val());
+	var thuephi_quocte = 0;
 	var total_amount = subtotal_amt + luggage_fee + other_fee + thuephi_quocte;
 
 	var discount_percent = unformatNumber($('#discount_percent :selected').val());
