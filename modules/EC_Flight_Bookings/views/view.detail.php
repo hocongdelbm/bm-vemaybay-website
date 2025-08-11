@@ -1440,7 +1440,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<td data-label="Số hiệu" class="text-center">' . $flight_number . '</td>
 				<td data-label="Hạng vé" class="text-center ticket_class' . $row['direction'] . '">' . $row['ticket_class'] . '</td>
 				<td data-label="Nơi đi" class="text-center">' . $row['departure'] . '</td>
-				<td data-label="Nơi đến" class="text-center">' . ($row['is_layover'] ? '' : $row['arrival']) . '</td>
+				<td data-label="Nơi đến" class="text-center">' . $row['arrival'] . '</td>
 				<td data-label="Ngày giờ đi" class="text-center">' . (trim($row['departure_date']) != '' ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '') . '</td>
 				<td data-label="Ngày giờ đến" class="text-center">' . (trim($row['arrival_date']) != '' ? date($date_format . ' H:i', strtotime($row['arrival_date'])) : '') . '</td>
 				<td data-label="Hạn giữ chỗ" class="text-center">' . (trim($row['time_limit']) != '' ? date($date_format . ' H:i', strtotime($row['time_limit'])) : '') . '</td>
