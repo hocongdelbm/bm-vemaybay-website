@@ -1111,7 +1111,10 @@ class Viewinputinvoice extends SugarView {
                 // Đầu tiên, bỏ các dấu phân cách
                 // Sau đó, giá < 1000 -> giá * 1000 
                 $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
-                if ($supplier == 'PNA') $data[$i]['ticket_price'] += $other_charge;
+                if ($supplier == 'PNA') {
+                    $data[$i]['ticket_price'] += $other_charge;
+                    $data[$i]['vat'] += $other_charge * 0.08;
+                }
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
             }
