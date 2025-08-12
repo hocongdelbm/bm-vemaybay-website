@@ -225,22 +225,32 @@ class Viewprinteticket extends SugarView {
 				
 				// Hành lý mới
 				$luggage_price = '';
-				$luggage_purchase_text = $row['luggage_purchase_text'] ?? '';
-				$luggage_purchase_text_inbound = $row['luggage_purchase_text_inbound'] ?? '';
-				if(!empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
+				$luggage_price = '';
+				// Hành lý có sẵn
+				$luggage_index_outbound = Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '');
+				$luggage_index_inbound = Baggage::renderAvailableBaggage($row['luggage_index_inbound'] ?? '');
+				// Hành lý mua thêm
+				$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
+				$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
+				if(!empty($luggage_index_outbound) || !empty($luggage_index_inbound) || !empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
 					if($khuhoi) {
-						if(!empty($luggage_purchase_text)) $luggage_price .=  "$luggage_purchase_text (Lượt đi)";
+						if(!empty($luggage_index_outbound)) $luggage_price .= "$luggage_index_outbound (Lượt đi)";
+						if(!empty($luggage_index_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_index_inbound (Lượt về)" : " - $luggage_index_inbound (Lượt về)";
+
+						if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? "$luggage_purchase_text (Lượt đi)" : "\n$luggage_purchase_text (Lượt đi)";
 						if(!empty($luggage_purchase_text_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_purchase_text_inbound (Lượt về)" : " - $luggage_purchase_text_inbound (Lượt về)";
 					}
 					elseif($direction == '1') {
-						if(!empty($luggage_purchase_text_inbound)) $luggage_price .= $luggage_purchase_text_inbound;
+						if(!empty($luggage_index_inbound)) $luggage_price .= $luggage_index_inbound;
+						if(!empty($luggage_purchase_text_inbound)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text_inbound : "\n$luggage_purchase_text_inbound";
 					}
 					else {
-						if(!empty($luggage_purchase_text)) $luggage_price .=  $luggage_purchase_text;
+						if(!empty($luggage_index_outbound)) $luggage_price .= $luggage_index_outbound;
+						if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text : "\n$luggage_purchase_text";
 					}
 				}
+				// Hành lý cũ
 				else {
-					// Hành lý cũ
 					if ($khuhoi) {
 						// Hành lý chiều đi
 						$bag_out = generateLuggage($row['date_entered'], $row['aircode_outbound'], $row['ticket_class_outbound'], $row['type'], $row['luggage_index_outbound']);
@@ -437,18 +447,27 @@ class Viewprinteticket extends SugarView {
 
 					// Hành lý mới
 					$luggage_price = '';
+					// Hành lý có sẵn
+					$luggage_index_outbound = Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '');
+					$luggage_index_inbound = Baggage::renderAvailableBaggage($row['luggage_index_inbound'] ?? '');
+					// Hành lý mua thêm
 					$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
 					$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
-					if(!empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
+					if(!empty($luggage_index_outbound) || !empty($luggage_index_inbound) || !empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
 						if($khuhoi) {
-							if(!empty($luggage_purchase_text)) $luggage_price .=  "$luggage_purchase_text (Lượt đi)";
+							if(!empty($luggage_index_outbound)) $luggage_price .= "$luggage_index_outbound (Lượt đi)";
+							if(!empty($luggage_index_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_index_inbound (Lượt về)" : " - $luggage_index_inbound (Lượt về)";
+
+							if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? "$luggage_purchase_text (Lượt đi)" : "\n$luggage_purchase_text (Lượt đi)";
 							if(!empty($luggage_purchase_text_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_purchase_text_inbound (Lượt về)" : " - $luggage_purchase_text_inbound (Lượt về)";
 						}
 						elseif($direction == '1') {
-							if(!empty($luggage_purchase_text_inbound)) $luggage_price .= $luggage_purchase_text_inbound;
+							if(!empty($luggage_index_inbound)) $luggage_price .= $luggage_index_inbound;
+							if(!empty($luggage_purchase_text_inbound)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text_inbound : "\n$luggage_purchase_text_inbound";
 						}
 						else {
-							if(!empty($luggage_purchase_text)) $luggage_price .=  $luggage_purchase_text;
+							if(!empty($luggage_index_outbound)) $luggage_price .= $luggage_index_outbound;
+							if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text : "\n$luggage_purchase_text";
 						}
 					}
 					// Hành lý cũ
