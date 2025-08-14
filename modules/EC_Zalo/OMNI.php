@@ -52,7 +52,8 @@ class OMNI {
                 CURLOPT_SSL_VERIFYPEER => 0,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => json_encode($requestBody),
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 32,
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                 ]

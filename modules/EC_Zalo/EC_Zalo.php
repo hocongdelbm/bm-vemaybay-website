@@ -142,7 +142,7 @@ class EC_Zalo extends Basic {
                     $Contact->zalo_name     = $user_data_name;
                     $Contact->zalo_avatar   = $user_data['avatar'] ?? '';
                     $Contact->phone_mobile  = $user_data_phone;
-                    $Contact->zalo_is_follower = (int)$user_data['user_is_follower'] ?? 0;
+                    $Contact->zalo_is_follower = (int)($user_data['user_is_follower'] ?? 0);
                     $Contact->zalo_last_interaction = $user_data_last_interaction;
                     $Contact->assigned_user_id = $current_user->id;
                     if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
@@ -164,7 +164,7 @@ class EC_Zalo extends Basic {
                     $Contact->retrieve(isset($row_info['contact_id']) && !empty($row_info['contact_id']) ? $row_info['contact_id'] : $contact_id);
                     $Contact->zalo_name             = $user_data_name;
                     $Contact->zalo_avatar           = $user_data['avatar'] ?? '';
-                    $Contact->zalo_is_follower      = (int)$user_data['user_is_follower'] ?? 0;
+                    $Contact->zalo_is_follower      = (int)($user_data['user_is_follower'] ?? 0);
                     $Contact->zalo_last_interaction = $user_data_last_interaction;
                     if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
                         if(!$Contact->primary_address_street || empty($Contact->primary_address_street)) {
@@ -375,7 +375,7 @@ class EC_Zalo extends Basic {
         $Contact->zalo_id               = $zalo_id;
         $Contact->zalo_name             = $user_data_name;
         $Contact->zalo_avatar           = $user_data['avatar'] ?? '';
-        $Contact->zalo_is_follower      = (int)$user_data['user_is_follower'] ?? 0;
+        $Contact->zalo_is_follower      = (int)($user_data['user_is_follower'] ?? 0);
         $Contact->zalo_last_interaction = $user_data_last_interaction;
         if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
             $alias_phone = $Zalo->get_phone_by_alias($user_data['user_alias'] ?? '');
@@ -425,7 +425,7 @@ class EC_Zalo extends Basic {
         $Contact->zalo_name     = $user_data_name;
         $Contact->phone_mobile  = (!empty($alias_phone) && strlen($alias_phone) > 9) ? $alias_phone : '';
         $Contact->zalo_avatar   = $user_data['avatar'] ?? '';
-        $Contact->zalo_is_follower = (int)$user_data['user_is_follower'] ?? 0;
+        $Contact->zalo_is_follower = (int)($user_data['user_is_follower'] ?? 0);
         $Contact->zalo_last_interaction = $user_data_last_interaction;
         $Contact->assigned_user_id = $current_user->id ?? '';
         if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {

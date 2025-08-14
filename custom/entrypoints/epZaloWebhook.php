@@ -366,7 +366,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     if(!empty($zalo_user_id)) {
                         $ZaloObj = new Zalo();
 
-                        // Get contact by zalo id
+                        // Has the user joined (the event) yet ?
+                        try {
+                            require_once("custom/entrypoints/entryNonAuthClass/entryNationalDayEvent25.php");
+                            $ndevent = new entryNationalDayEvent25();
+                            $arrUserInfoEvent = $ndevent->getUserInfo($zalo_user_id);
+                            if(!isset($arrUserInfoEvent['status']) || $arrUserInfoEvent['status'] == 0) {
+                                $res = json_decode($ZaloObj->send_consultation(
+                                    "text",
+                                    $zalo_user_id,
+                                    ["text" => "Mã tham gia sự kiện của bạn là: $zalo_user_id"]
+                                ), true);
+                                if(isset($res['error']) && $res['error'] == 0) {
+                                    $ndevent->addUser($zalo_user_id);
+                                }
+                            }
+                        }
+                        catch(Throwable $th) {
+
+                        }
+
+
+                        
+
+                        // Get contact by zalo id and update info
                         $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_user_id' AND deleted = 0 ORDER BY date_entered LIMIT 1");
                         if(is_string($contact_id) && strlen($contact_id) == 36) {
                             $sql = "UPDATE contacts
