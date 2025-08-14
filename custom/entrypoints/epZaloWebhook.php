@@ -369,7 +369,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         // Send code to engage in event 02/09/2025
                         $eventActive = time() > strtotime('2025-08-17 23:59:59') && time() < strtotime('2025-08-25 00:00:00');
                         if(in_array($zalo_user_id, ['7658987821159451152', '146299248217337693'])) $eventActive = true;
-                        if($eventActive) {
+                        if($eventActive && $follower == 1) {
                             try {
                                 require_once("custom/entrypoints/entryNonAuthClass/entryEvent020925Class.php");
                                 $event020925 = new entryEvent020925Class();
@@ -378,7 +378,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     json_decode($ZaloObj->send_consultation(
                                         "text",
                                         $zalo_user_id,
-                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn mã tham gia sự kiện"]
+                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn mã tham gia sự kiện Quốc Khánh 02/09"]
                                     ), true);
                                     $res = json_decode($ZaloObj->send_consultation(
                                         "text",
