@@ -257,7 +257,7 @@ class Viewprinteticket extends SugarView {
 					}
 				}
 				// Hành lý cũ
-				else {
+				elseif(!in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
 					if ($khuhoi) {
 						// Hành lý chiều đi
 						$bag_out = generateLuggage($row['date_entered'], $row['aircode_outbound'], $row['ticket_class_outbound'], $row['type'], $row['luggage_index_outbound']);
@@ -486,7 +486,7 @@ class Viewprinteticket extends SugarView {
 						}
 					}
 					// Hành lý cũ
-					else {
+					elseif(!in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
 						if ($khuhoi) {
 							// Thông tin hành lý lượt đi
 							$bag_out = generateLuggage($row['date_entered'], $row['aircode_outbound'], $row['ticket_class_outbound'], $row['type'], $row['luggage_index_outbound']);
@@ -548,7 +548,7 @@ class Viewprinteticket extends SugarView {
 									preg_match('/(\d+)kg/isU', $bag_in2, $ib_output);
 									$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
 								}
-								// if ($bag_weight_in >= 0) {
+					
 								if ($bag_weight_in > 0) {
 									// $luggage_price .= $bag_weight_out >= 0 ? ' - ' : '';
 									$luggage_price .= $bag_weight_out > 0 ? ' - ' : '';
