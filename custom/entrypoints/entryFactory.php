@@ -1,8 +1,9 @@
 <?php
 try {
-    $entry_class_dir = (isset($ep_auth) && $ep_auth === false) ? 'custom/entrypoints/entryNonAuthClass/' : 'custom/entrypoints/entryAuthClass/';
+    $entry_class_dir = (isset($entryAuth) && $entryAuth === false) ? 'custom/entrypoints/entryNonAuthClass/' : 'custom/entrypoints/entryAuthClass/';
+    // require_once $entry_class_dir . "entryClass.php";
     foreach (glob("$entry_class_dir*.php") as $filename) {
-        if(preg_match('/^ep.+Class\.php$/', str_replace($entry_class_dir, '', $filename))) require_once $filename;
+        if(preg_match('/^entry.+Class\.php$/', str_replace($entry_class_dir, '', $filename))) require_once $filename;
     }
 }
 catch (Throwable $th) {
