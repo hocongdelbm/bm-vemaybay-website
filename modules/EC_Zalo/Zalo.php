@@ -399,7 +399,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 20,
                 CURLOPT_HTTPHEADER     => ["access_token: ". $this->get_token()]
             ]);
             $json = curl_exec($curl);
@@ -442,7 +443,8 @@ class Zalo {
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => $data,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 20,
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                     "access_token: ". $this->get_token()
@@ -483,7 +485,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 20,
                 CURLOPT_HTTPHEADER     => ["access_token: ". $this->get_token()]
             ]);
             $json = curl_exec($curl);
@@ -528,7 +531,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 20,
                 CURLOPT_CUSTOMREQUEST  => 'POST',
                 CURLOPT_POSTFIELDS     => json_encode($data),
                 CURLOPT_HTTPHEADER     => [
@@ -578,7 +582,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 20,
                 CURLOPT_CUSTOMREQUEST  => 'POST',
                 CURLOPT_POSTFIELDS     => json_encode($data),
                 CURLOPT_HTTPHEADER     => [
@@ -628,7 +633,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 20,
                 CURLOPT_CUSTOMREQUEST  => 'POST',
                 CURLOPT_POSTFIELDS     => json_encode($data),
                 CURLOPT_HTTPHEADER     => [
@@ -683,7 +689,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 32,
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                     "access_token: ". $this->get_token()
@@ -731,7 +738,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 32,
                 CURLOPT_HTTPHEADER     => [
                     "access_token: ". $this->get_token()
                 ]
@@ -858,7 +866,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 24,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => $body_request,
                 CURLOPT_HTTPHEADER     => [
@@ -961,7 +970,8 @@ class Zalo {
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 24,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => json_encode($body_request),
                 CURLOPT_HTTPHEADER     => [
@@ -1019,7 +1029,8 @@ class Zalo {
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
                 CURLOPT_CUSTOMREQUEST  => "POST",
                 CURLOPT_POSTFIELDS     => $body_request,
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 24,
                 CURLOPT_HTTPHEADER     => [
                     "Content-Type: application/json",
                     "access_token: ". $this->get_token()
@@ -1213,7 +1224,8 @@ class Zalo {
                 CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
                 CURLOPT_POST           => true,
                 CURLOPT_POSTFIELDS     => ['file' => new CURLFile($path, null, $name)],
-                CURLOPT_TIMEOUT        => 0,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 32,
                 CURLOPT_HTTPHEADER     => [
                     "access_token: ". $this->get_token()
                 ]

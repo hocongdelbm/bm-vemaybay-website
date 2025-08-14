@@ -366,7 +366,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     if(!empty($zalo_user_id)) {
                         $ZaloObj = new Zalo();
 
-                        // Get contact by zalo id
+                        // Send code to engage in event 02/09/2025
+                        $eventActive = time() > strtotime('2025-08-17 23:59:59') && time() < strtotime('2025-08-25 00:00:00');
+                        if(in_array($zalo_user_id, ['7658987821159451152', '146299248217337693'])) $eventActive = true;
+                        if($eventActive) {
+                            try {
+                                require_once("custom/entrypoints/entryNonAuthClass/entryEvent020925Class.php");
+                                $event020925 = new entryEvent020925Class();
+                                $arrUserInfoEvent = $event020925->getUserInfo($zalo_user_id);
+                                if(!isset($arrUserInfoEvent['status']) || $arrUserInfoEvent['status'] == 0) {
+                                    json_decode($ZaloObj->send_consultation(
+                                        "text",
+                                        $zalo_user_id,
+                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn mã tham gia sự kiện"]
+                                    ), true);
+                                    $res = json_decode($ZaloObj->send_consultation(
+                                        "text",
+                                        $zalo_user_id,
+                                        ["text" => $zalo_user_id]
+                                    ), true);
+                                    if(isset($res['error']) && $res['error'] == 0) {
+                                        $event020925->addUser($zalo_user_id);
+                                    }
+                                }
+                            }
+                            catch(Throwable $th) {}
+                        }
+
+                        // Get contact by zalo id and update info
                         $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_user_id' AND deleted = 0 ORDER BY date_entered LIMIT 1");
                         if(is_string($contact_id) && strlen($contact_id) == 36) {
                             $sql = "UPDATE contacts

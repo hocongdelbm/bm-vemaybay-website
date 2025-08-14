@@ -128,5 +128,8 @@ $entry_point_registry = array(
     'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => false),
 
     // CUSTOM BY DATLNT
-    'entryPointSummarySite'   => array('file' => 'custom/entrypoints/ep_Summary_sites.php',     'auth' => false),
+    'entryPointSummarySite' => ['file' => 'custom/entrypoints/ep_Summary_sites.php', 'auth' => true],
+
+    // New version
+    'entryPointGeneralNA' => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
 );
