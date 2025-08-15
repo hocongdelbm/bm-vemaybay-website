@@ -16,8 +16,8 @@ catch (Throwable $th) {
 }
 
 class entryFactory {
-    public static function create(string $class_name, array $request) {
-        if(class_exists($class_name)) $obj = new $class_name($request);
+    public static function create(string $class_name) {
+        if(class_exists($class_name)) $obj = new $class_name();
         return $obj ?? null;
     }
 }
