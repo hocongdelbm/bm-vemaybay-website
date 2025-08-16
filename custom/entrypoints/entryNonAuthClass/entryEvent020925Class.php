@@ -43,7 +43,8 @@ class entryEvent020925Class extends entryClass {
 
         $fileName = "$this->directoryData/$code.json";
         $data = [
-            "phoneNumber" => $code,
+            "zaloId" => $code,
+            "phoneNumber" => "",
             "emails" => [],
             "status" => 0,
             "point" => 0,
@@ -61,6 +62,32 @@ class entryEvent020925Class extends entryClass {
             return ["status" => 1, "message" => "Success", "data" => $data]; 
         }
         return ["status" => 0, "message" => "Add user failed"];
+    }
+
+    /**
+     * Update user voucher
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function updateUserPhone($params) {
+        $code = $params['code'] ?? '';
+        $phoneNumber = $params['phoneNumber'] ?? 0;
+        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
+        if(!is_string($phoneNumber) || empty($phoneNumber)) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid phone number"];
+
+        $arr = $this->getUserInfo(['code' => $code]);
+        if(isset($arr['status']) && $arr['status'] == 1) {
+            $userData = $arr['data'] ?? [];
+
+            $userData['phoneNumber'] = $phoneNumber;
+            $fileName = "$this->directoryData/$code.json";
+            if($this->writeFile($fileName, json_encode($userData))) {
+                return ["status" => 1, "message" => "Update user phone number success", "data" => $userData];
+            }
+            return ["status" => 0, "message" => "Update user phone number failed"];
+        }
+        return $arr;
     }
 
     /**
