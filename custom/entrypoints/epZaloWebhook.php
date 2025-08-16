@@ -379,7 +379,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     $res = json_decode($ZaloObj->send_consultation(
                                         "text",
                                         $zalo_user_id,
-                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn mã tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/test?code=$zalo_user_id"]
+                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn trang tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/test?code=$zalo_user_id"]
                                     ), true);
 
                                     if(isset($res['error']) && $res['error'] == 0) {
@@ -401,7 +401,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_user_id' AND deleted = 0 ORDER BY date_entered LIMIT 1");
                         if(is_string($contact_id) && strlen($contact_id) == 36) {
                             $sql = "UPDATE contacts
-                                SET zalo_id_follower = $follower,
+                                SET zalo_is_follower = $follower,
                                     zalo_last_interaction = '$zalo_last_interaction'
                                 WHERE id = '$contact_id' AND deleted = 0";
                             $db->query($sql);
