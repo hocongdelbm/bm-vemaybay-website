@@ -14,9 +14,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 	function display()
 	{
-		pr( myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"));
-
-
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 
