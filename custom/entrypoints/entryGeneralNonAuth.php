@@ -30,45 +30,44 @@ try {
         }
 
         // Get data
-        $data = [];
-        if($request_method === 'GET') $data = $_GET;
-        elseif(strpos($contentType, 'application/json') !== false) $data = json_decode(file_get_contents('php://input'), true);
-        // elseif(strpos($contentType, 'multipart/form-data') !== false || strpos($contentType, 'application/x-www-form-urlencoded') !== false) $data = $_POST;
-        else $data = $_REQUEST;
+        $params = $_GET;
+        $reqBody = [];
+        if(stripos($contentType, 'application/json') !== false) $reqBody = json_decode(file_get_contents('php://input'), true);
+        else $reqBody = $_POST;
 
-        $className = isset($data['class']) ? global_test_input($data['class']) : '';
-        $method = isset($data['method']) ? global_test_input($data['method']) : '';
-        $params = $data['params'] ?? [];
+        $className  = global_test_input($reqBody['class'] ?? $params['class'] ?? '');
+        $method     = global_test_input($reqBody['method'] ?? $params['method'] ?? '');
+        $methodParams = $reqBody['params'] ?? $params['params'] ?? [];
 
-        $entryClass = entryFactory::create($className, $data);
+        $entryClass = entryFactory::create($className);
         if($entryClass) {
             if (method_exists($entryClass, $method)) {
-                // Check required params
-                $refMethod = new ReflectionMethod($entryClass, $method);
-                $expectedParams = $refMethod->getParameters();
-                $expectedParamCount = $refMethod->getNumberOfRequiredParameters();
-                $missingParams = [];
+                // // Check required params
+                // $refMethod = new ReflectionMethod($entryClass, $method);
+                // $expectedParams = $refMethod->getParameters();
+                // $expectedParamCount = $refMethod->getNumberOfRequiredParameters();
+                // $missingParams = [];
 
-                foreach ($expectedParams as $index => $param) {
-                    // Check if a required parameter is missing
-                    if (!$param->isOptional() && !array_key_exists($param->getName(), $params)) {
-                        $missingParams[] = $param->getName();
-                    }
-                }
+                // foreach ($expectedParams as $index => $param) {
+                //     // Check if a required parameter is missing
+                //     if (!$param->isOptional() && !array_key_exists($param->getName(), $methodParams)) {
+                //         $missingParams[] = $param->getName();
+                //     }
+                // }
 
-                if (!empty($missingParams)) {
-                    http_response_code(400);
-                    echo json_encode([
-                        "status" => 0,
-                        "message" => "Action expects at least $expectedParamCount parameter(s), but only " . count($params) . " given",
-                        "description" => [
-                            "missingParams" => $missingParams
-                        ]
-                    ]);
-                    exit();
-                }
+                // if (!empty($missingParams)) {
+                //     http_response_code(400);
+                //     echo json_encode([
+                //         "status" => 0,
+                //         "message" => "Action expects at least $expectedParamCount parameter(s), but only " . count($params) . " given",
+                //         "description" => [
+                //             "missingParams" => $missingParams
+                //         ]
+                //     ]);
+                //     exit();
+                // }
 
-                $response = call_user_func_array([$entryClass, $method], $params);
+                $response = $entryClass->$method($methodParams);
                 if(!is_string($response)) $response = json_encode($response);
                 echo $response;
                 exit;
