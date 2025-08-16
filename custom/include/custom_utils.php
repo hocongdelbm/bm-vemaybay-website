@@ -640,25 +640,6 @@ function myRecheckFlight($aircode, $pnr, $fullName, $flightNo, $timeout = 30, $u
     return $result;
 }
 
-// Get airline info
-function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 1, $format = 'array')
-{
-    $api_key = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
-    $url = 'http://api.vemaybaynamphuong.com/index.php/apiv1/api/airline_search/format/json/term/' . $airline_code . '/case_sensitive/' . $case_sensitive . '/search_by/' . $search_by;
-
-    $curl_handle = curl_init();
-    curl_setopt($curl_handle, CURLOPT_URL, $url);
-    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
-    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl_handle, CURLOPT_FOLLOWLOCATION, 0);
-    $data = curl_exec($curl_handle);
-    curl_close($curl_handle);
-    $result = '';
-    if ($format == 'array') $result = json_decode($data, true);
-    else if ($format == 'json') $result = $data;
-    return $result;
-}
-
 function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
 {
     $search_by_allow = array('CODE', 'NAME', 'FULL');

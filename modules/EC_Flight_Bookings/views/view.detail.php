@@ -362,7 +362,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 									' . $contact_name_new . '
 								</div>
 								<div data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="flex-fill card-contact-footer contact-footer flex-end" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '">
-									<span class="temp d-none">' . $type_contact['totalBookings'] . '</span>
+									<span class="temp d-none">' . ($type_contact['totalBookings'] ?? 0) . '</span>
 									<div class="temp-scale">
 										<span>' . $type_contact['label'] . '</span>
 									</div>
@@ -2503,7 +2503,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 						'dep_name' 	=> myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' 	=> myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
-						'airline'  	=> myGetAirlineInfo2($this->bean->airline, 'CODE')['data'][0]['name'],
+						'airline'  	=> myGetAirlineInfo2($this->bean->airline, 'CODE')['data'][0]['name'] ?? '',
 						'datetime' 	=> date('d/m/Y', strtotime($departure_date[0])) . ' ' . substr($departure_date[1], 0, -3),
 						'class'		=> $row['ticket_class'],
 					);
@@ -2531,7 +2531,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 						'dep_name' 	=> myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' 	=> myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
-						'airline' 	=> myGetAirlineInfo2($this->bean->airline_inbound, 'CODE')['data'][0]['name'],
+						'airline' 	=> myGetAirlineInfo2($this->bean->airline_inbound, 'CODE')['data'][0]['name'] ?? '',
 						'datetime' 	=> date('d/m/Y', strtotime($return_date[0])) . ' ' . substr($return_date[1], 0, -3),
 						'class'		=> $row['ticket_class'],
 					);
@@ -2584,12 +2584,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 
 	// Get zalo information
-	function getZaloInfo($phone)
-	{
-		if (is_null($phone) || empty($phone)) return ['message' => 'Số điện thoại không hợp lệ', 'send_promotion' => 0, 'data' => null];
+	function getZaloInfo($phone) {
+		if(is_null($phone) || empty($phone)) return ['message' => 'Số điện thoại không hợp lệ', 'send_promotion' => 0, 'data' => null];
 
 		$zalo_id = $this->getZaloID($phone);
-		if (empty($zalo_id)) return ['message' => 'Chưa có thông tin Zalo', 'send_promotion' => 0, 'data' => null];
+		if(!$zalo_id || empty($zalo_id)) return ['message' => 'Chưa có thông tin Zalo', 'send_promotion' => 0, 'data' => null];
 
 		// Information
 		$beanZalo = new EC_Zalo();
@@ -2633,23 +2632,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	}
 
 	// Get zalo id
-	function getZaloID($phone)
-	{
+	function getZaloID($phone) {
 		if (is_null($phone) || empty($phone)) return '';
-
-		$sql = 'SELECT zalo_id
-			FROM contacts 
-			WHERE phone_mobile = "' . $phone . '" AND zalo_id <> "" AND deleted = 0';
-		$res = $this->bean->db->query($sql);
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			return $row['zalo_id'];
-		}
-
-		return '';
+		return $this->bean->db->getOne("SELECT zalo_id FROM contacts WHERE phone_mobile = '$phone' AND deleted = 0 ORDER BY date_entered LIMIT 1") ?? '';
 	}
 
-	function htmlZaloInfo($data)
-	{
+	function htmlZaloInfo($data) {
 		if (is_null($data) || empty($data)) return '<p class="text-secondary" style="text-align:center; font-style:italic">Chưa có thông tin Zalo</p>';
 
 		$follow = $data['is_follow'] ? '<b class="text-primary" style="float:right;margin-left:20px;">Đã quan tâm</b>' : '<span class="text-secondary" style="float:right;margin-left:20px;">Chưa quan tâm</span>';
