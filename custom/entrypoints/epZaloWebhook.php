@@ -373,24 +373,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             try {
                                 require_once("custom/entrypoints/entryNonAuthClass/entryEvent020925Class.php");
                                 $event020925 = new entryEvent020925Class();
-                                $arrUserInfoEvent = $event020925->getUserInfo($zalo_user_id);
-                                if(!isset($arrUserInfoEvent['status']) || $arrUserInfoEvent['status'] == 0) {
-                                    json_decode($ZaloObj->send_consultation(
-                                        "text",
-                                        $zalo_user_id,
-                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn mã tham gia sự kiện Quốc Khánh 02/09"]
-                                    ), true);
+                                $arrUserInfoEvent = $event020925->getUserInfo(['code' => $zalo_user_id]);
+                                // If user hasn't joined the event, the system will send a link to join
+                                if(isset($arrUserInfoEvent['status']) && $arrUserInfoEvent['status'] == 0) {
                                     $res = json_decode($ZaloObj->send_consultation(
                                         "text",
                                         $zalo_user_id,
-                                        ["text" => $zalo_user_id]
+                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn mã tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/test?code=$zalo_user_id"]
                                     ), true);
+
                                     if(isset($res['error']) && $res['error'] == 0) {
-                                        $event020925->addUser($zalo_user_id);
+                                        $event020925->addUser(['code' => $zalo_user_id]);
                                     }
                                 }
                             }
-                            catch(Throwable $th) {}
+                            catch(Throwable $th) {
+                                $message = "<b>[WARNING] Send link to join event 02/09 failed</b>";
+                                $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\nZalo ID: $zalo_user_id";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                            }
                         }
 
                         // Get contact by zalo id and update info

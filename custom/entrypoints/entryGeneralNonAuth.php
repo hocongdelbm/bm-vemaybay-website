@@ -1,6 +1,8 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+
 try {
+    date_default_timezone_set('Asia/Ho_Chi_Minh');
     $entryAuth = false;
     require_once 'custom/entrypoints/entryFactory.php';
 

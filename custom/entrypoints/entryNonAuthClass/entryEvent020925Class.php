@@ -47,9 +47,10 @@ class entryEvent020925Class extends entryClass {
             "phoneNumber" => "",
             "emails" => [],
             "status" => 0,
-            "point" => 0,
-            "voucher" => 0,
-            "playsRemaining" => 1,
+            "totalPoint" => 0,
+            "voucher" => 20000, // Default voucher 20k
+            "topupCards" => [],
+            "turnsRemaining" => 1,
             "createdAt" => date('Y-m-d H:i:s'),
             "updatedAt" => date('Y-m-d H:i:s'),
             "logs" => [],
@@ -91,58 +92,6 @@ class entryEvent020925Class extends entryClass {
     }
 
     /**
-     * Update user point
-     * 
-     * @param array $params
-     * @return array
-     */
-    public function updateUserPoint($params) {
-        $code   = $params['code'] ?? '';
-        $point  = $params['point'] ?? 0;
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
-        if(!is_numeric($point) || $point < 0 || $point > 14) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid point"];
-
-        $arr = $this->getUserInfo(['code' => $code]);
-        if(isset($arr['status']) && $arr['status'] == 1) {
-            $userData = $arr['data'] ?? [];
-
-            $userData['point'] += $point;
-            $fileName = "$this->directoryData/$code.json";
-            if($this->writeFile($fileName, json_encode($userData))) {
-                return ["status" => 1, "message" => "Successfully added $point points to user", "data" => $userData];
-            }
-            return ["status" => 0, "message" => "Update user point failed"];
-        }
-        return $arr;
-    }
-
-    /**
-     * Update user voucher
-     * 
-     * @param array $params
-     * @return array
-     */
-    public function updateUserVoucher($params) {
-        $code = $params['code'] ?? '';
-        $voucher = $params['voucher'] ?? 0;
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
-        if(!is_numeric($voucher) || $voucher < 0 || $voucher > 200000) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid voucher"];
-
-        $arr = $this->getUserInfo(['code' => $code]);
-        if(isset($arr['status']) && $arr['status'] == 1) {
-            $userData = $arr['data'] ?? [];
-
-            $userData['voucher'] += $voucher;
-            $fileName = "$this->directoryData/$code.json";
-            if($this->writeFile($fileName, json_encode($userData))) {
-                return ["status" => 1, "message" => "Successfully added $voucher value to user voucher", "data" => $userData];
-            }
-            return ["status" => 0, "message" => "Update user voucher value failed"];
-        }
-        return $arr;
-    }
-
-    /**
      * Update user emails
      * 
      * @param array $params
@@ -173,6 +122,42 @@ class entryEvent020925Class extends entryClass {
     }
 
     /**
+     * Update user emails
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function updateUserTopupCards($params) {
+        $code  = $params['code'] ?? '';
+        $value = (int)($params['value'] ?? 0);
+        $status = (int)($params['status'] ?? 0);
+        $cardId = (string)($params['cardId'] ?? ''); // Ymd . timestamp
+        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
+        if(!is_numeric($value) || $value < 10000 || $value > 100000) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid card value"];
+
+        $arr = $this->getUserInfo(['code' => $code]);
+        if(isset($arr['status']) && $arr['status'] == 1) {
+            $userData = $arr['data'] ?? [];
+            $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
+            if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins"];
+
+            if(isset($cardId) && !empty($cardId)) {
+                $date = substr($cardId, 0, 8);
+                $time = substr($cardId, 8);
+                $userData['topupCards'][$date][$time][$value] = $status;
+            }
+            else $userData['topupCards'][date('Ymd')][time()] = [$value => $status];
+
+            $fileName = "$this->directoryData/$code.json";
+            if($this->writeFile($fileName, json_encode($userData))) {
+                return ["status" => 1, "message" => "Update user email success", "data" => $userData];
+            }
+            return ["status" => 0, "message" => "Update user email fail"];
+        }
+        return $arr;
+    }
+
+    /**
      * Set round
      * 
      * @param array $params
@@ -181,19 +166,17 @@ class entryEvent020925Class extends entryClass {
     public function setRound($params) {
         $code       = $params['code'] ?? '';
         $round      = (int)($params['round'] ?? 0);
-        $typePrize  = $params['typePrize'] ?? '';
-        $prize      = (int)($params['prize'] ?? 0);
+        $point      = (int)($params['point'] ?? 0);
         $questions  = $params['questions'] ?? [];
 
         if(!is_string($code) || empty($code)) 
             return ["status" => 0, "message" => "Invalid params", "description" => "Missing code", "params" => $params];
         if(!is_numeric($round) || $round < 1 || $round > 3) 
-            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid round"];
-        if(!is_string($typePrize) || (!empty($typePrize) && !in_array($typePrize, ['point', 'card'])))
-            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid type prize"];
-        if(!is_numeric($prize) || $prize < 0 || ($typePrize == 'point' && $prize > 14) || ($typePrize == 'card' && $prize > 200000)) 
-            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid prize"];
-        if(!is_array($questions) || empty($questions)) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid list question"];
+            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid round value"];
+        if(!is_numeric($point) || $point < 0 || $point > 14) 
+            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid point value"];
+        if(!is_array($questions) || empty($questions))
+            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid list question"];
         
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
@@ -213,24 +196,54 @@ class entryEvent020925Class extends entryClass {
                 "id"        => $roundId,
                 "round"     => $round,
                 "status"    => $roundStatus,
-                "typePrize" => $typePrize,
-                "prize"     => $prize,
+                "point"     => $point,
                 "questions" => $roundQuestions
             ];
 
-            // Map data
+            // Map round data
             $userData = $arr['data'] ?? [];
+            $countTurnsInDay = 0;
             if(!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')])) {
+                // Check result of previous round before adding
+                if($round > 1) return ["status" => 0, "message" => "Previous round invalid"];
+
+                $countTurnsInDay = 1;
                 $userData['logs'][date('Ymd')][] = [$roundId => $roundData];
             }
             else {
                 $index = $round > 1 ? count($userData['logs'][date('Ymd')]) - 1 : count($userData['logs'][date('Ymd')]);
+                if($index > 1) return ["status" => 0, "message" => "Maximum 2 turns per day"];
+
+                // Check result of previous round before adding
+                if($round > 1) {
+                    foreach($userData['logs'][date('Ymd')][$index] as $r) {
+                        if(!isset($r['status']) || $r['status'] == 0) return ["status" => 0, "message" => "Did not complete the previous round"];
+                    }
+                }
+
+                $countTurnsInDay = $index + 1;
                 $userData['logs'][date('Ymd')][$index][$roundId] = $roundData;
             }
+            // Update total point
+            if($roundStatus == 1) {
+                if($round == 1 && $countTurnsInDay > 1) $userData['totalPoint'] = $point; // Reset total point
+                else $userData['totalPoint'] += $point;
+            }
+            if($round == 1) {
+                if(isset($userData['turnsRemaining']) && $userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
+                else return ["status" => 0, "message" => "User has run out of turns"];
+            }
+            if($round == 3) {
+                if($roundStatus == 1) {
+                    $userData['status'] = 1;
+                    $userData['voucher'] += 200000;
+                }
+                else {
+                    $userData['status'] = 0;
+                }
+            }
             $userData['updatedAt'] = date('Y-m-d H:i:s');
-            if($round == 1 && $userData['playsRemaining'] > 0) $userData['playsRemaining'] -= 1;
-            if($round == 3 && $roundStatus == 1) $userData['status'] = 1;
-
+            
             // Save data
             $fileName = "$this->directoryData/$code.json";
             if($this->writeFile($fileName, json_encode($userData))) {
