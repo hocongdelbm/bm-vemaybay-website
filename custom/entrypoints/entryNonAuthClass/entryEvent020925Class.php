@@ -26,6 +26,13 @@ class entryEvent020925Class extends entryClass {
         $fileName = "$this->directoryData/$code.json";
         if (file_exists($fileName)) {
             $userData = json_decode(file_get_contents($fileName), true);
+
+            // Add a new turn in daily if the user has not won
+            if($userData['status'] == 0 && (!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')]))) {
+                $userData['turnsRemaining'] = 1;
+                $this->writeFile($fileName, json_encode($userData));
+            }
+
             return ["status" => 1, "message" => "Success", "data" => $userData];
         }
         return ["status" => 0, "message" => "User $code not found"];
@@ -75,7 +82,7 @@ class entryEvent020925Class extends entryClass {
         $code = $params['code'] ?? '';
         $phoneNumber = $params['phoneNumber'] ?? 0;
         if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
-        if(!is_string($phoneNumber) || empty($phoneNumber)) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid phone number"];
+        if(!is_string($phoneNumber) || strlen($phoneNumber) != 10) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid phone number"];
 
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
@@ -112,6 +119,7 @@ class entryEvent020925Class extends entryClass {
             if(in_array($email, $userData['emails'])) return ["status" => 0, "message" => "Email already exists"];
 
             array_push($userData['emails'], $email);
+            $userData['turnsRemaining'] = 1;
             $fileName = "$this->directoryData/$code.json";
             if($this->writeFile($fileName, json_encode($userData))) {
                 return ["status" => 1, "message" => "Update user email success", "data" => $userData];

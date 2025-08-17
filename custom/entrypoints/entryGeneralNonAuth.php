@@ -78,7 +78,7 @@ try {
                 http_response_code(400);
                 echo json_encode([
                     "status" => 0,
-                    "message" => "Invalid action $method in $className",
+                    "message" => trim("Invalid action $method in $className"),
                 ]);
                 exit();
             }
@@ -87,7 +87,7 @@ try {
         http_response_code(400);
         echo json_encode([
             "status" => 0,
-            "message" => "Invalid class name $className",
+            "message" => trim("Invalid class name $className"),
             "description" => "Not found in ".__DIR__."/entryNonAuthClass/$className.php"
         ]);
         exit;

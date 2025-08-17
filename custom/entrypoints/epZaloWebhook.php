@@ -367,7 +367,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $ZaloObj = new Zalo();
 
                         // Send code to engage in event 02/09/2025
-                        $eventActive = time() > strtotime('2025-08-17 23:59:59') && time() < strtotime('2025-08-25 00:00:00');
+                        // $eventActive = time() > strtotime('2025-08-17 23:59:59') && time() < strtotime('2025-08-25 00:00:00');
+                        $eventActive = false;
                         if(in_array($zalo_user_id, ['7658987821159451152', '146299248217337693'])) $eventActive = true;
                         if($eventActive && $follower == 1) {
                             try {
