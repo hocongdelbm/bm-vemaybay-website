@@ -8,9 +8,39 @@ require_once 'custom/entrypoints/entryNonAuthClass/entryClass.php';
  */
 class entryEvent020925Class extends entryClass {
     private $directoryData;
+    private $userStorage;
+    private $phoneStorage;
+    private $emailStorage;
 
     public function __construct() {
         $this->directoryData = "custom/json_files/event_02_09_2025";
+        $this->phoneStorage = "$this->directoryData/list_phone.json";
+        $this->emailStorage = "$this->directoryData/list_email.json";
+        $this->userStorage = "$this->directoryData/users";
+    }
+
+    /**
+     * Get round number from round ID
+     * 
+     * @return array
+     */
+    public function getListPhone() {
+        if (file_exists($this->phoneStorage)) {
+            return json_decode(file_get_contents($this->phoneStorage), true);
+        }
+        return [];
+    }
+
+    /**
+     * Get round number from round ID
+     * 
+     * @return array
+     */
+    public function getListEmail() {
+        if (file_exists($this->emailStorage)) {
+            return json_decode(file_get_contents($this->emailStorage), true);
+        }
+        return [];
     }
 
     /**
@@ -23,7 +53,7 @@ class entryEvent020925Class extends entryClass {
         $code = $params['code'] ?? '';
         if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
 
-        $fileName = "$this->directoryData/$code.json";
+        $fileName = "$this->userStorage/$code.json";
         if (file_exists($fileName)) {
             $userData = json_decode(file_get_contents($fileName), true);
 
@@ -48,7 +78,7 @@ class entryEvent020925Class extends entryClass {
         $code = $params['code'] ?? '';
         if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
 
-        $fileName = "$this->directoryData/$code.json";
+        $fileName = "$this->userStorage/$code.json";
         $data = [
             "zaloId" => $code,
             "phoneNumber" => "",
@@ -88,12 +118,22 @@ class entryEvent020925Class extends entryClass {
         if(isset($arr['status']) && $arr['status'] == 1) {
             $userData = $arr['data'] ?? [];
 
-            $userData['phoneNumber'] = $phoneNumber;
-            $fileName = "$this->directoryData/$code.json";
-            if($this->writeFile($fileName, json_encode($userData))) {
-                return ["status" => 1, "message" => "Update user phone number success", "data" => $userData];
+            $listPhone = $this->getListPhone();
+            if(!in_array($phoneNumber, $listPhone)) {
+                $userData['phoneNumber'] = $phoneNumber;
+                $userData['updatedAt'] = date('Y-m-d H:i:s');
+
+                $fileName = "$this->userStorage/$code.json";
+                if($this->writeFile($fileName, json_encode($userData))) {
+                    // Update to list
+                    array_push($listPhone, $phoneNumber);
+                    $this->writeFile($this->phoneStorage, json_encode($listPhone));
+
+                    return ["status" => 1, "message" => "Update user phone number success", "data" => $userData];
+                }
+                return ["status" => 0, "message" => "Update user phone number failed"];
             }
-            return ["status" => 0, "message" => "Update user phone number failed"];
+            return ["status" => 0, "message" => "Phone number already in use"];
         }
         return $arr;
     }
@@ -116,15 +156,24 @@ class entryEvent020925Class extends entryClass {
 
             $count = count($userData['logs'][date('Ymd')] ?? 0);
             if($count > 1) return ["status" => 0, "message" => "Can not add more email"];
-            if(in_array($email, $userData['emails'])) return ["status" => 0, "message" => "Email already exists"];
+            
+            $listEmail = $this->getListEmail();
+            if(!in_array($email, $listEmail)) {
+                array_push($userData['emails'], $email);
+                $userData['turnsRemaining'] = 1;
+                $userData['updatedAt'] = date('Y-m-d H:i:s');
 
-            array_push($userData['emails'], $email);
-            $userData['turnsRemaining'] = 1;
-            $fileName = "$this->directoryData/$code.json";
-            if($this->writeFile($fileName, json_encode($userData))) {
-                return ["status" => 1, "message" => "Update user email success", "data" => $userData];
+                $fileName = "$this->userStorage/$code.json";
+                if($this->writeFile($fileName, json_encode($userData))) {
+                    // Update to list
+                    array_push($listEmail, $email);
+                    $this->writeFile($this->emailStorage, json_encode($listEmail));
+
+                    return ["status" => 1, "message" => "Update user email success", "data" => $userData];
+                }
+                return ["status" => 0, "message" => "Update user email failed"];
             }
-            return ["status" => 0, "message" => "Update user email fail"];
+            return ["status" => 0, "message" => "Email already in use"];
         }
         return $arr;
     }
@@ -155,12 +204,13 @@ class entryEvent020925Class extends entryClass {
                 $userData['topupCards'][$date][$time][$value] = $status;
             }
             else $userData['topupCards'][date('Ymd')][time()] = [$value => $status];
+            $userData['updatedAt'] = date('Y-m-d H:i:s');
 
-            $fileName = "$this->directoryData/$code.json";
+            $fileName = "$this->userStorage/$code.json";
             if($this->writeFile($fileName, json_encode($userData))) {
                 return ["status" => 1, "message" => "Update user email success", "data" => $userData];
             }
-            return ["status" => 0, "message" => "Update user email fail"];
+            return ["status" => 0, "message" => "Update user email failed"];
         }
         return $arr;
     }
@@ -253,7 +303,7 @@ class entryEvent020925Class extends entryClass {
             $userData['updatedAt'] = date('Y-m-d H:i:s');
             
             // Save data
-            $fileName = "$this->directoryData/$code.json";
+            $fileName = "$this->userStorage/$code.json";
             if($this->writeFile($fileName, json_encode($userData))) {
                 return ["status" => 1, "message" => "Set round success", "data" => $roundData];
             }
