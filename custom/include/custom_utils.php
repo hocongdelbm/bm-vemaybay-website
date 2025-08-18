@@ -1555,7 +1555,8 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
 
         $mail->Username      = $user_email['primary_email'];
         $mail->Password      = $user_email['primary_pwd'];
-        $mail->SMTPKeepAlive = true;
+        $mail->SMTPKeepAlive = false;
+        $mail->SMTPDebug     = 4;
         $mail->ContentType   = "text/html";
 
         $mail->From          = $from_mail;
@@ -1593,7 +1594,7 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
                 $mail->Password = $admin->settings['mail_smtppass'];
             }
             $mail->Mailer   = "smtp";
-            $mail->SMTPKeepAlive = true;
+            $mail->SMTPKeepAlive = false;
         } else {
             $mail->Mailer = 'sendmail';
         }
@@ -1613,7 +1614,7 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
         $GLOBALS['log']->fatal("Mail Host: " . $mail->Host . " Mail Port: " . $mail->Port . " Mail Username: " . $mail->Username . " Mail Password: " . $mail->Password);
     }
 
-    return  $send_ok;
+    return $send_ok;
 }
 
 // Lấy thông tin hành lý
