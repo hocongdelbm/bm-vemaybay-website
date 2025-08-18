@@ -1546,23 +1546,21 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
         $from_mail = !empty($user_email['second_email']) ? $user_email['second_email'] : $user_email['primary_email'];
 
         // Load from department settings
-        $mail->Host          = $department_info['mail_smtpserver'];
-        $mail->Port          = $department_info['mail_smtpport'];
-
-        $mail->SMTPAuth      = TRUE;
-        $mail->SMTPSecure    = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
-        $mail->Mailer        = "smtp";
-
-        $mail->Username      = $user_email['primary_email'];
-        $mail->Password      = $user_email['primary_pwd'];
+        $mail->Host         = $department_info['mail_smtpserver'];
+        $mail->Port         = $department_info['mail_smtpport'];
+        $mail->SMTPAuth     = TRUE;
+        $mail->SMTPSecure   = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
         $mail->SMTPKeepAlive = false;
-        $mail->SMTPDebug     = 4;
-        $mail->ContentType   = "text/html";
-
-        $mail->From          = $from_mail;
-        $mail->FromName      = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
-        $mail->Subject       = $subject;
-        $mail->Body          = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
+        // $mail->SMTPDebug     = 4;
+        $mail->Mailer       = "smtp";
+        // $mail->Timeout      = 240;
+        $mail->Username     = $user_email['primary_email'];
+        $mail->Password     = $user_email['primary_pwd'];
+        $mail->ContentType  = "text/html";
+        $mail->From         = $from_mail;
+        $mail->FromName     = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
+        $mail->Subject      = $subject;
+        $mail->Body         = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
         $mail->AddAddress($to_email, $to_name);
 
         // Add Bcc for current user 
@@ -2345,6 +2343,7 @@ function get_server_name($created_by = '')
     $arr = [
         'dc22131a-795a-6cd3-2caa-52d40d3b5622', // bookingvj
         '557d4a5b-27ce-5cb1-4531-5800ab9ed31d', // timcbcom
+        '2b2c93b3-e916-113c-29bc-5b4c6de75db4' // timcbvn
     ];
     if (!in_array($created_by, $arr)) return 'timchuyenbay.com';
 
@@ -2355,6 +2354,7 @@ function get_server_name($created_by = '')
     while ($row = $db->fetchByAssoc($res)) {
         return $row['last_name'];
     }
+    return '';
 }
 
 // Function to get the client ip address

@@ -54,7 +54,7 @@ class Viewsendconfirm extends SugarView {
 	}
 
 	function sendConfirm() {
-		global $db, $current_user, $app_list_strings;
+		global $current_user, $app_list_strings;
 		$send_ok = true;
 
 		// Detect department id
@@ -70,13 +70,13 @@ class Viewsendconfirm extends SugarView {
 		$payment_type 		= $app_list_strings['booking_payment_type_list'][$this->bean->payment_type];
 		$pax_infos 			= $this->getPaxInfos($this->bean->id, $this->bean->flight_type);
 		$route_infos 		= $this->getRouteInfos($this->bean->id);
-		$bank_infos 		= $this->getBankInfos($created_by->department_id);	
+		// $bank_infos 		= $this->getBankInfos($created_by->department_id);
 		$time_limit			= $this->getTripType($route_infos['time_limit']);
 
 		$form_mail 			= isset($_POST['form_mail']) && !empty($_POST['form_mail']) ? $_POST['form_mail'] : 'sendmail_confirm.html';
 		$form_header 		= file_get_contents('modules/EC_Flight_Bookings/tpls/sendmail_header.html');
 		$form_footer 		= file_get_contents('modules/EC_Flight_Bookings/tpls/sendmail_footer.html');
-		$form_body 			= $form_header.file_get_contents('modules/EC_Flight_Bookings/tpls/'.$form_mail).$form_footer;
+		$form_body 			= $form_header.file_get_contents("modules/EC_Flight_Bookings/tpls/$form_mail").$form_footer;
 
 		// EMAIL SUBJECT
 		$subject = 'Xác nhận đơn hàng '.$this->bean->name.' - '.$contact_name;
@@ -95,21 +95,14 @@ class Viewsendconfirm extends SugarView {
 			'amt' => 0,
 		);
 
-		// Ngân lượng (Thanh toán online)
-		$nganluong_datepaid =  date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
-		$name_site = array(
-			'TCB' => 'timchuyenbay.com',
-			'GV2' => 'vietjet.net',
-			'VJ2' => 'vietjet.net',
-		);
-		$name_website = strtoupper(substr((string) $this->bean->name, 0, 3));
-		$payment_link = '#';
-		if (array_key_exists($name_website, $name_site)) {
-			$payment_link = 'https://' . $name_site[$name_website] . '/thanh-toan-online?bkid=' . $this->bean->id . '&datepaid=' . $nganluong_datepaid;
-		}
+		// // Ngân lượng (Thanh toán online)
+		// $datepaid =  date('Y-m-d', strtotime('-7 hours', strtotime($this->bean->nganluong_datepaid)));
+		// $server_name = get_server_name($this->bean->created_by);
+		// if($server_name === 'timchuyenbay.com') $payment_link = "$server_name/thanh-toan-online?bkid=". $this->bean->id ."&datepaid=$datepaid";
+		// else $payment_link = "$server_name/thanh-toan-online?paymentlink=". $this->bean->nganluong_code ."&datepaid=$datepaid";
 
 		$body = str_replace(
-			array(
+			[
 				'{$EMAIL_SUBJECT}',
 				'{$COM_LOGO}',
 				'{$COM_DURATION}',
@@ -126,9 +119,6 @@ class Viewsendconfirm extends SugarView {
 				'{$TIME_LIMIT}',
 				'{$PAX_INFOS}',
 				'{$ROUTE_INFOS}',
-				'{$BANK_OWNER}',
-				'{$BANK_INFOS}',
-				'{$BANK_MAIN}',
 				'{$DELIVERY_FEE}',
 				'{$COM_FULL_NAME}',
 				'{$COM_ADDRESS}',
@@ -154,9 +144,9 @@ class Viewsendconfirm extends SugarView {
 				'{$VOUCHER_EXPIRE_DATE}',
 				'{$COM_FULL_NAME_HEADER}',
 				'{$TEXT_RIGHT_TRAVELPASS}',
-				'{$PAYMENT_ONLINE}',
-			),
-			array(
+				// '{$PAYMENT_ONLINE}',
+			],
+			[
 				$subject,
 				// 'https://drive.google.com/uc?export=view&id=141C4go6xNZDmuxWjuZIBCmsijktcdLmB',
 				'https://drive.google.com/uc?export=view&id=15_0lx_uKJcNYiqYTDd6TyyQ0pRc2__OG',
@@ -172,24 +162,21 @@ class Viewsendconfirm extends SugarView {
 				format_number($this->bean->total_amount).' VND',
 				$payment_type,
 				$time_limit,
-				$pax_infos,
-				$route_infos['html'],
-				$bank_infos['bank_owner'],
-				$bank_infos['html'],
-				$bank_infos['bank_main'],
+				$pax_infos ?? '',
+				$route_infos['html'] ?? '',
 				format_number($department_info['delivery_fee']),
 				str_replace("Công ty", "Cty", $department_info['com_name']), // full name str_replace Công ty ==> Cty footer
 				$com_address,
 				$department_info['com_phone'],
 				($department_info['com_phone2'] != '' ? ' - '.$department_info['com_phone2'] : ''),
 				($department_info['com_phone3'] != '' ? ' - '.$department_info['com_phone3'] : ''),
-				$department_info['com_taxcode'],
-				$department_info['com_email'],
-				$department_info['com_email2'],
-				$department_info['com_website'],
+				$department_info['com_taxcode'] ?? '',
+				$department_info['com_email'] ?? '',
+				$department_info['com_email2'] ?? '',
+				$department_info['com_website'] ?? '',
 				(strtolower($department_info['com_website']) == 'vietjet.net' ? 'Vietjet (net)' : $department_info['com_website']),
-				$department_info['com_website2'],
-				$department_info['com_website3'],
+				$department_info['com_website2'] ?? '',
+				$department_info['com_website3'] ?? '',
 				'', // website 4
 				$department_info['color'],
 				from_html($department_info['promo_link']),
@@ -200,10 +187,10 @@ class Viewsendconfirm extends SugarView {
 				format_number($voucher['amt']).' VND',
 				'https://drive.google.com/uc?export=view&id=1L-eMFTQQYbIkK6LqoVnp6q_5hR6FSH0D',
 				$voucher['expire_date'] ?? '',
-				$department_info['com_name'], // header company name
+				$department_info['com_name'] ?? '', // header company name
 				'',
-				$payment_link
-			),
+				// $payment_link ?? ''
+			],
 			$form_body
 		);
 
@@ -406,7 +393,7 @@ class Viewsendconfirm extends SugarView {
 	}
 
 	function getRouteInfos($booking_id) {
-		global $db, $app_list_strings;
+		global $db;
 		$sql = "SELECT i.direction,
 					i.flight_number,
 					i.departure_date,
@@ -778,7 +765,7 @@ class Viewsendconfirm extends SugarView {
 													<table border="0" cellpadding="0" cellspacing="0" class="image_block block-1" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; " width="100%">
 														<tr>
 															<td class="pad" style="width:50%;padding-right:0px;padding-left:35px">
-																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; line-height: 1.2; ">
+																<div class="" style="font-size: 12px; font-family:\'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.39999999999px; line-height: 1.2;">
 																	<p style="margin: 0; font-size: 14px; mso-line-height-alt: 16.8px; ">
 																		<strong>CÔNG TY TNHH MINH HỒNG VÕ</strong>
 																	</p>
