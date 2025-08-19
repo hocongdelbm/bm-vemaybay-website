@@ -2585,6 +2585,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 	// Get zalo information
 	function getZaloInfo($phone) {
+		return ['message' => 'Tạm ẩn thông tin Zalo', 'send_promotion' => 0, 'data' => null];
+
 		if(is_null($phone) || empty($phone)) return ['message' => 'Số điện thoại không hợp lệ', 'send_promotion' => 0, 'data' => null];
 
 		$zalo_id = $this->getZaloID($phone);
