@@ -254,116 +254,118 @@ class Viewsendconfirm extends SugarView {
 
 	function getPaxInfos($booking_id, $flight_type) {
 		global $db, $app_list_strings, $current_user;
-		$sql = "SELECT p.type AS pax_type
-					,p.salutation AS pax_title
-					,p.name AS pax_name
-					,p.birthday AS pax_dob
-					,p.date_entered
-					,(
-						SELECT i.airline_code
-						FROM ec_booking_itineraries i
-						WHERE i.deleted=0
-						AND i.is_layover=0
-						AND i.direction='0'
-						AND i.booking_id=p.booking_id
-						LIMIT 1
-					) AS aircode_out
-					,(
-						SELECT i.ticket_class
-						FROM ec_booking_itineraries i
-						WHERE i.deleted=0
-						AND i.is_layover=0
-						AND i.direction='0'
-						AND i.booking_id=p.booking_id
-						LIMIT 1
-					) AS ticket_class_out
-					,(
-						SELECT i.airline_code
-						FROM ec_booking_itineraries i
-						WHERE i.deleted=0
-						AND i.is_layover=0
-						AND i.direction='1'
-						AND i.booking_id=p.booking_id
-						LIMIT 1
-					) AS aircode_in
-					,(
-						SELECT i.ticket_class
-						FROM ec_booking_itineraries i
-						WHERE i.deleted=0
-						AND i.is_layover=0
-						AND i.direction='1'
-						AND i.booking_id=p.booking_id
-						LIMIT 1
-					) AS ticket_class_in
-					,p.luggage_price AS bag_out
-					,p.luggage_price_inbound AS bag_in
-					,p.luggage_index_outbound
-					,p.luggage_index_inbound
-					,p.cic
-					,p.passport_number
-				FROM ec_booking_passengers p
-				WHERE p.deleted=0 AND add_type IS NULL
-				AND p.booking_id='".$booking_id."'
-				ORDER BY pax_type, p.date_entered ";
+		$sql = "SELECT
+				p.type AS pax_type
+				,p.salutation AS pax_title
+				,p.name AS pax_name
+				,p.birthday AS pax_dob
+				,p.date_entered
+				,p.created_by
+				,(
+					SELECT i.airline_code
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id
+						AND i.direction = '0'
+						AND i.is_layover = 0
+						AND i.deleted = 0
+					LIMIT 1
+				) AS aircode_out
+				,(
+					SELECT i.ticket_class
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id
+						AND i.direction = '0'
+						AND i.is_layover = 0
+						AND i.deleted = 0
+					LIMIT 1
+				) AS ticket_class_out
+				,(
+					SELECT i.airline_code
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id
+						AND i.direction = '1'
+						AND i.is_layover = 0
+						AND i.deleted = 0
+					LIMIT 1
+				) AS aircode_in
+				,(
+					SELECT i.ticket_class
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id 
+						AND i.direction = '1'
+						AND i.is_layover = 0
+						AND i.deleted = 0
+					LIMIT 1
+				) AS ticket_class_in
 
+				,p.luggage_price
+				,p.luggage_price_inbound
+				,p.luggage_index_outbound
+				,p.luggage_index_inbound
+				,p.luggage_purchase_text
+				,p.luggage_purchase_text_inbound
+				,p.cic
+				,p.passport_number
+			FROM ec_booking_passengers p
+			WHERE p.booking_id = '$booking_id'
+				AND add_type IS NULL
+				AND p.deleted = 0
+			ORDER BY pax_type, p.date_entered
+		";
 		$res = $db->query($sql);
 
 		$html = '<tr>
-					<td style="width:10%; border:1px solid #e7e7e7; padding: 5px;">Đối tượng</td>
-					<td style="width:25%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Họ tên hành khách</td>
-					<td style="width:15%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Ngày sinh</td>
-					<td style="width:10%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">CCCD/Passport</td>';
-
-		  if($flight_type == '0'){
-			  $html .= '<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều đi</td>
-						<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều về</td>';
-		  } else {
-			  $html .= '<td style="width:40%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý</td>';
-		  }
-
+			<td style="width:10%; border:1px solid #e7e7e7; padding: 5px;">Đối tượng</td>
+			<td style="width:25%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Họ tên hành khách</td>
+			<td style="width:15%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Ngày sinh</td>
+			<td style="width:10%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">CCCD/Passport</td>
+		';
+		if($flight_type == '0') {
+			$html .= '
+				<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều đi</td>
+				<td style="width:20%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý chiều về</td>
+			';
+		}
+		else {
+			$html .= '<td style="width:40%; border:1px solid #e7e7e7; padding: 5px; text-align:center;">Hành lý</td>';
+		}
 		$html .= '</tr>';
 
 		while($row = $db->fetchByAssoc($res)){
-
 			$dob = '';
 			$cic_pass = !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
 			if ($row['pax_dob'] != '' && $row['pax_dob'] != '0000-00-00') {
 				try {
 					$dob = new DateTime($row['pax_dob']);
 					$dob = date_format($dob, 'd/m/Y');
-				}catch (\Exception $ex) {
+				} catch (\Exception $ex) {
 					$dob = '';
 				}
-			} else {
+			}
+			else {
 				$dob = '';
 			}
 
+			// Baggage
+			$bagOut = $this->bean->getBaggageInfoByData([
+				"airlineCode" 	=> $row['aircode_out'],
+				"ticketClass" 	=> $row['ticket_class_out'],
+				"passType" 		=> $row["pax_type"],
+				"dateEntered" 	=> $row["date_entered"],
+				"createdBy" 	=> $row["created_by"],
+				"bagIndex" 		=> $row["luggage_index_outbound"],
+				"bagPurchaseText" => $row["luggage_purchase_text"],
+			]);
+			$bagOutText = !empty($bagOut['purchase']) ? $bagOut['purchase'] : $bagOut['available'];
+
+			
 			$html .= '<tr>
-				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$app_list_strings['passenger_type_list'][$row['pax_type']].'</td>
-				<td style="border:1px solid #e7e7e7; padding: 5px;"><label style="text-transform:uppercase;">'.$row['pax_name'].'</label></td>
-				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$dob.'</td>
-				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'.$cic_pass.'</td>';
-
-			$bag_out = generateLuggage($row['date_entered'], $row['aircode_out'], $row['ticket_class_out'], $row['pax_type'], $row['luggage_index_outbound']);
-			if (!is_null($row['luggage_index_outbound']) && !empty($row['luggage_index_outbound'])) {
-				$row['bag_out'] = $row['luggage_index_outbound'];
-			}
-
-			$bag_out2 		= $bag_out[(int)$row['bag_out']];
-			$bag_weight_out 	= 0;
-
-			if (isset($bag_out2) && !empty($bag_out2)) {
-				preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-				$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
-			}
-
-			// Hiện luôn hành lý 0đ
-			// if ($bag_weight_out >= 0) {
-			if ($bag_weight_out > 0) {
-				$html .= '<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">' . substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1) . '</td>';
-			} else {
-				$html .= '<td style="border:1px solid #e7e7e7; padding: 5px; text-align: left;"></td>';
-			}
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'. $app_list_strings['passenger_type_list'][$row['pax_type']] .'</td>
+				<td style="border:1px solid #e7e7e7; padding: 5px;"><label style="text-transform:uppercase;">'. $row['pax_name'] .'</label></td>
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'. $dob .'</td>
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'. $cic_pass .'</td>
+				<td style="border:1px solid #e7e7e7; padding: 5px; text-align: center;">'. trim($bagOutText) .'</td>';
+			
 
 			if ($flight_type == '0') {
 				// hành lý chiều về
