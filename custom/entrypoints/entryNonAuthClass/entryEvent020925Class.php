@@ -51,7 +51,7 @@ class entryEvent020925Class extends entryClass {
      */
     public function getUserInfo($params = []) {
         $code = $params['code'] ?? '';
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
+        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
 
         $fileName = "$this->userStorage/$code.json";
         if (file_exists($fileName)) {
@@ -76,7 +76,7 @@ class entryEvent020925Class extends entryClass {
      */
     public function addUser($params = []) {
         $code = $params['code'] ?? '';
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
+        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
 
         $fileName = "$this->userStorage/$code.json";
         $data = [
@@ -111,8 +111,8 @@ class entryEvent020925Class extends entryClass {
     public function updateUserPhone($params) {
         $code = $params['code'] ?? '';
         $phoneNumber = $params['phoneNumber'] ?? 0;
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
-        if(!is_string($phoneNumber) || strlen($phoneNumber) != 10) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid phone number"];
+        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
+        if(!is_string($phoneNumber) || strlen($phoneNumber) != 10) return ["status" => 0, "message" => "Invalid phone number value", "messageVi" => "Số điện thoại không hợp lệ"];
 
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
@@ -133,7 +133,7 @@ class entryEvent020925Class extends entryClass {
                 }
                 return ["status" => 0, "message" => "Update user phone number failed"];
             }
-            return ["status" => 0, "message" => "Phone number already in use"];
+            return ["status" => 0, "message" => "Phone number already in use", "messageVi" => "Số điện thoại đã được sử dụng"];
         }
         return $arr;
     }
@@ -147,15 +147,15 @@ class entryEvent020925Class extends entryClass {
     public function updateUserEmails($params) {
         $code  = $params['code'] ?? '';
         $email = $params['email'] ?? 0;
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
-        if(!is_string($email)) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid email"];
+        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
+        if(!is_string($email) || !$this->checkEmail($email)) return ["status" => 0, "message" => "Invalid email value", "messageVi" => "Email không hợp lệ"];
 
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
             $userData = $arr['data'] ?? [];
 
             $count = count($userData['logs'][date('Ymd')] ?? 0);
-            if($count > 1) return ["status" => 0, "message" => "Can not add more email"];
+            if($count > 1) return ["status" => 0, "message" => "Can not add more email", "messageVi" => "Đã đạt giới hạn thêm lượt chơi trong ngày"];
             
             $listEmail = $this->getListEmail();
             if(!is_array($listEmail)) $listEmail = [];
@@ -175,7 +175,7 @@ class entryEvent020925Class extends entryClass {
                 }
                 return ["status" => 0, "message" => "Update user email failed"];
             }
-            return ["status" => 0, "message" => "Email already in use"];
+            return ["status" => 0, "message" => "Email already in use", "messageVi" => "Email đã được sử dụng"];
         }
         return $arr;
     }
@@ -191,14 +191,14 @@ class entryEvent020925Class extends entryClass {
         $value = (int)($params['value'] ?? 0);
         $status = (int)($params['status'] ?? 0);
         $cardId = (string)($params['cardId'] ?? ''); // Ymd . timestamp
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid params", "description" => "Missing code"];
-        if(!is_numeric($value) || $value < 10000 || $value > 100000) return ["status" => 0, "message" => "Invalid params", "description" => "Invalid card value"];
+        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
+        if(!is_numeric($value) || $value < 10000 || $value > 100000) return ["status" => 0, "message" => "Invalid card value"];
 
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
             $userData = $arr['data'] ?? [];
             $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
-            if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins"];
+            if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
 
             if(isset($cardId) && !empty($cardId)) {
                 $date = substr($cardId, 0, 8);
@@ -230,13 +230,13 @@ class entryEvent020925Class extends entryClass {
         $questions  = $params['questions'] ?? [];
 
         if(!is_string($code) || empty($code)) 
-            return ["status" => 0, "message" => "Invalid params", "description" => "Missing code", "params" => $params];
+            return ["status" => 0, "message" => "Invalid code value"];
         if(!is_numeric($round) || $round < 1 || $round > 3) 
-            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid round value"];
+            return ["status" => 0, "message" => "Invalid round value"];
         if(!is_numeric($point) || $point < 0 || $point > 14) 
-            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid point value"];
+            return ["status" => 0, "message" => "Invalid point value"];
         if(!is_array($questions) || empty($questions))
-            return ["status" => 0, "message" => "Invalid params", "description" => "Invalid list question"];
+            return ["status" => 0, "message" => "Invalid list question"];
         
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
@@ -265,19 +265,31 @@ class entryEvent020925Class extends entryClass {
             $countTurnsInDay = 0;
             if(!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')])) {
                 // Check result of previous round before adding
-                if($round > 1) return ["status" => 0, "message" => "Previous round invalid"];
+                if($round > 1) return [
+                    "status" => 0,
+                    "message" => "Previous round invalid",
+                    "messageVi" => "Chưa hoàn thành vòng chơi trước",
+                ];
 
                 $countTurnsInDay = 1;
                 $userData['logs'][date('Ymd')][] = [$roundId => $roundData];
             }
             else {
                 $index = $round > 1 ? count($userData['logs'][date('Ymd')]) - 1 : count($userData['logs'][date('Ymd')]);
-                if($index > 1) return ["status" => 0, "message" => "Maximum 2 turns per day"];
+                if($index > 1) return [
+                    "status" => 0,
+                    "message" => "Maximum 2 turns per day",
+                    "messageVi" => "Đã đạt số lần chơi tối đa trong ngày"
+                ];
 
                 // Check result of previous round before adding
                 if($round > 1) {
                     foreach($userData['logs'][date('Ymd')][$index] as $r) {
-                        if(!isset($r['status']) || $r['status'] == 0) return ["status" => 0, "message" => "Did not complete the previous round"];
+                        if(!isset($r['status']) || $r['status'] == 0) return [
+                            "status" => 0,
+                            "message" => "Did not complete the previous round",
+                            "messageVi" => "Chưa hoàn thành vòng chơi trước"
+                        ];
                     }
                 }
 
@@ -291,7 +303,7 @@ class entryEvent020925Class extends entryClass {
             }
             if($round == 1) {
                 if(isset($userData['turnsRemaining']) && $userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
-                else return ["status" => 0, "message" => "User has run out of turns"];
+                else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
             }
             if($round == 3) {
                 if($roundStatus == 1) {
@@ -323,6 +335,32 @@ class entryEvent020925Class extends entryClass {
     private function getRoundNumber($roundId) {
         if(!is_string($roundId) || empty($roundId)) return 0;
         return (int)substr(trim($roundId), -1);
+    }
+
+    /**
+     * Is valid email
+     * 
+     * @param string $email
+     * @return bool
+     */
+    private function checkEmail($email) {
+        if(!filter_var($email, FILTER_VALIDATE_EMAIL)) return false;
+
+        $arr = explode("@", $email);
+        $isGmail = stripos($arr[1], "gmail") ? true : false;
+        $localPart = $arr[0] ?? '';
+        $localPartLength = strlen($localPart);
+
+        if($isGmail) {
+            if($localPartLength < 6 || $localPartLength > 30) return false;
+        }
+        else {
+            if(empty($localPart) || strlen($localPartLength) > 64) return false;
+        }
+        
+        if(is_numeric($localPart)) return false;
+        elseif(array_unique(str_split($localPart)) < 4) return false;
+        return true;
     }
 
     /**
