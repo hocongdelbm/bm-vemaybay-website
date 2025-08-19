@@ -290,88 +290,93 @@ class Viewclientphonetcb extends SugarView
         echo $script;
     }
 
+    // function getDataFromTicketWebsite($source, $fromDate, $toDate, $offset = 0, $limit = 50, $isUsed = 0)
+    // {
+    //     $url = '';
+    //     if ($source === 'timchuyenbay.vn') {
+    //         $url = 'https://timchuyenbay.vn/api';
+    //     } elseif ($source === 'vietjet.net') {
+    //         $url = 'https://vietjet.net/api';
+    //     } elseif ($source === 'timchuyenbay.com') {
+    //         $url = 'https://timchuyenbay.com/api';
+    //     } else {
+    //         $url = 'https://vietjet.net/api'; // Default fallback
+    //     }
+
+    //     if (empty($fromDate) && empty($toDate)) {
+    //         $fromDate = date('d-m-Y', strtotime('-30 days'));
+    //         $toDate = date('d-m-Y');
+    //     } elseif (empty($fromDate)) {
+    //         $fromDate = date('d-m-Y', strtotime($toDate . ' -30 days'));
+    //     } elseif (empty($toDate)) {
+    //         $toDate = date('d-m-Y', strtotime($fromDate . ' +30 days'));
+    //     }
+
+    //     // Prepare the request payload with dynamic parameters
+    //     $data = json_encode([
+    //         'action' => 'get_list_phone_request',
+    //         'from_date' => $fromDate,
+    //         'to_date' => $toDate,
+    //         'offset' => $offset,
+    //         'limit' => 5000,
+    //         'is_used' => $isUsed
+    //     ]);
+
+    //     // $data = json_encode([
+    //     //     'action' => 'get_list_phone_request',
+    //     //     'from_date' => $fromDate,
+    //     //     'to_date' => $toDate,
+    //     //     'offset' => $offset,
+    //     //     'limit' => $limit,
+    //     //     'is_used' => $isUsed
+    //     // ]);
+
+    //     $curl = curl_init();
+
+    //     curl_setopt_array($curl, [
+    //         CURLOPT_URL => $url,
+    //         CURLOPT_RETURNTRANSFER => true,
+    //         CURLOPT_ENCODING => '',
+    //         CURLOPT_MAXREDIRS => 10,
+    //         CURLOPT_TIMEOUT => 60,
+    //         CURLOPT_FOLLOWLOCATION => true,
+    //         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    //         CURLOPT_CUSTOMREQUEST => 'POST',
+    //         CURLOPT_HTTPHEADER => [
+    //             'Api-Key: 4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM',
+    //             'Content-Type: application/json',
+    //         ],
+    //         CURLOPT_POSTFIELDS => $data,
+    //         CURLOPT_SSL_VERIFYPEER => false,
+    //         CURLOPT_SSL_VERIFYHOST => false,
+    //     ]);
+
+    //     $response = curl_exec($curl);
+
+    //     if (curl_errno($curl)) {
+    //         echo 'cURL error: ' . curl_error($curl);
+    //         curl_close($curl);
+    //         return false;
+    //     }
+
+    //     curl_close($curl);
+
+    //     if (!$response) {
+    //         echo "No response from API.";
+    //         return false;
+    //     }
+
+    //     $responseData = json_decode($response, true);
+
+    //     if (json_last_error() !== JSON_ERROR_NONE) {
+    //         return false;
+    //     }
+
+    //     return $responseData;
+    // }
+
     function getDataFromTicketWebsite($source, $fromDate, $toDate, $offset = 0, $limit = 50, $isUsed = 0)
     {
-        $url = '';
-        if ($source === 'timchuyenbay.vn') {
-            $url = 'https://timchuyenbay.vn/api';
-        } elseif ($source === 'vietjet.net') {
-            $url = 'https://vietjet.net/api';
-        } elseif ($source === 'timchuyenbay.com') {
-            $url = 'https://timchuyenbay.com/api';
-        } else {
-            $url = 'https://vietjet.net/api'; // Default fallback
-        }
-
-        if (empty($fromDate) && empty($toDate)) {
-            $fromDate = date('d-m-Y', strtotime('-30 days'));
-            $toDate = date('d-m-Y');
-        } elseif (empty($fromDate)) {
-            $fromDate = date('d-m-Y', strtotime($toDate . ' -30 days'));
-        } elseif (empty($toDate)) {
-            $toDate = date('d-m-Y', strtotime($fromDate . ' +30 days'));
-        }
-
-        // Prepare the request payload with dynamic parameters
-        $data = json_encode([
-            'action' => 'get_list_phone_request',
-            'from_date' => $fromDate,
-            'to_date' => $toDate,
-            'offset' => $offset,
-            'limit' => 5000,
-            'is_used' => $isUsed
-        ]);
-
-        // $data = json_encode([
-        //     'action' => 'get_list_phone_request',
-        //     'from_date' => $fromDate,
-        //     'to_date' => $toDate,
-        //     'offset' => $offset,
-        //     'limit' => $limit,
-        //     'is_used' => $isUsed
-        // ]);
-
-        $curl = curl_init();
-
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 60,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_HTTPHEADER => [
-                'Api-Key: 4F3yBy83DIRuHaFp6e@alBkS-sb3T3)kvZ8$-MqM',
-                'Content-Type: application/json',
-            ],
-            CURLOPT_POSTFIELDS => $data,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-        ]);
-
-        $response = curl_exec($curl);
-
-        if (curl_errno($curl)) {
-            echo 'cURL error: ' . curl_error($curl);
-            curl_close($curl);
-            return false;
-        }
-
-        curl_close($curl);
-
-        if (!$response) {
-            echo "No response from API.";
-            return false;
-        }
-
-        $responseData = json_decode($response, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return false;
-        }
-
-        return $responseData;
+        return [];
     }
 }

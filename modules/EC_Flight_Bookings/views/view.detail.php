@@ -18,10 +18,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 
 		// Create and update contact
-		createContactsForBooking($this->bean->phone);
-		if (strlen($this->bean->journey) < 7) {
-			fillJourneyForBooking($this->bean->id);
-		} 
+		// createContactsForBooking($this->bean->phone);
+		// if (strlen($this->bean->journey) < 7) {
+		// 	fillJourneyForBooking($this->bean->id);
+		// } 
 
 		$this->displayCSS();
 		$this->populateCustomButtons($deparment_info);
@@ -52,10 +52,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->createModal(); // Modal for confirm action
 
-		if($current_user->user_name == 'hungnh') {
-			pr(calculateBKAmt($this->bean->id));
-			pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
-		}
+		// if($current_user->user_name == 'hungnh') {
+		// 	pr(calculateBKAmt($this->bean->id));
+		// 	pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
+		// }
 
 		parent::display();
 		$this->displayJS();

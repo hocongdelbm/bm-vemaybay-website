@@ -465,9 +465,10 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             if (!$result_remind) {
                                 $GLOBALS['log']->fatal('updated remind thất bại: ' . $update_remind);
                             }
-                        } else {
-                            $GLOBALS['log']->fatal('updated remind thất bại: ' . json_encode($_POST));
-                        }
+                        } 
+                        // else {
+                        //     $GLOBALS['log']->fatal('updated remind thất bại: ' . json_encode($_POST));
+                        // }
                     }
                 }
             }

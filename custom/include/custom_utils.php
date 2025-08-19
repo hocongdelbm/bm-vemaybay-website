@@ -1553,7 +1553,7 @@ function mySendMail($user_id, $to_email, $to_name, $subject, $body)
         $mail->SMTPKeepAlive = false;
         // $mail->SMTPDebug     = 4;
         $mail->Mailer       = "smtp";
-        // $mail->Timeout      = 240;
+        $mail->Timeout      = 300;
         $mail->Username     = $user_email['primary_email'];
         $mail->Password     = $user_email['primary_pwd'];
         $mail->ContentType  = "text/html";

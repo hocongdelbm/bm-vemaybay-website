@@ -158,6 +158,8 @@ class entryEvent020925Class extends entryClass {
             if($count > 1) return ["status" => 0, "message" => "Can not add more email"];
             
             $listEmail = $this->getListEmail();
+            if(!is_array($listEmail)) $listEmail = [];
+            
             if(!in_array($email, $listEmail)) {
                 array_push($userData['emails'], $email);
                 $userData['turnsRemaining'] = 1;

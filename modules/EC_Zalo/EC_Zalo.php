@@ -256,7 +256,7 @@ class EC_Zalo extends Basic {
             }
             else $list_zalo_id['interaction'][] = $zalo_id;
 
-            if(count($results['data']) >= $this->limit_chat_box) break;
+            if($results['data'] && count($results['data']) >= $this->limit_chat_box) break;
 
             $row['src'] = (int)$row['src'];
             if($row['message_type'] == 'call') $row['type'] = $GLOBALS['app_list_strings']['calls_direction_list'][$row['type']];
