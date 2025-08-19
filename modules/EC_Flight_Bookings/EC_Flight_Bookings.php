@@ -1188,39 +1188,44 @@ class EC_Flight_Bookings extends Basic
 	 * @return array [available, purchase]
 	 */
 	public function getBaggageInfoByData($bagData, $language = 'vi') {
-		$airlineCode = $bagData['airlineCode'] ?? ''; // Using for get available baggage info in old data
-		$ticketClass = $bagData['ticketClass'] ?? ''; // Using for get available baggage info in old data
-		$passType 	 = $bagData['passType'] ?? '0'; // Using for get available baggage info in old data
-		$dateEntered = $bagData['dateEntered'] ?? $this->date_entered; // Using for get available baggage info in old data
-		$createdBy 	 = $bagData['createdBy'] ?? $this->created_by; // Using for get available baggage info in old data
-		$bagIndex 	 = $bagData['bagIndex'] ?? ''; // Using for get available baggage info in new data or in old data with Vietjet
-		$bagPurchaseText = $bagData['bagPurchaseText'] ?? ''; // Using for get purchase baggage info
+		try {
+			$airlineCode = $bagData['airlineCode'] ?? ''; // Using for get available baggage info in old data
+			$ticketClass = $bagData['ticketClass'] ?? ''; // Using for get available baggage info in old data
+			$passType 	 = $bagData['passType'] ?? '0'; // Using for get available baggage info in old data
+			$dateEntered = $bagData['dateEntered'] ?? $this->date_entered; // Using for get available baggage info in old data
+			$createdBy 	 = $bagData['createdBy'] ?? $this->created_by; // Using for get available baggage info in old data
+			$bagIndex 	 = $bagData['bagIndex'] ?? ''; // Using for get available baggage info in new data or in old data with Vietjet
+			$bagPurchaseText = $bagData['bagPurchaseText'] ?? ''; // Using for get purchase baggage info
 
-		$result = ['available' => '', 'purchase' => ''];
+			$result = ['available' => '', 'purchase' => ''];
 
-		if(in_array($createdBy, $this->list_website_new_baggage)) $result['available'] = Baggage::renderAvailableBaggage($bagIndex, $language);
-		else {
-			$bags = generateLuggage($dateEntered, $airlineCode, $ticketClass, $passType, $bagIndex); // Array
-			if($bags && !empty($bags)) {
-				$bagString = is_numeric($bagIndex) ? $bags[(int)$bagIndex] : $bags[0]; // String
+			if(in_array($createdBy, $this->list_website_new_baggage)) $result['available'] = Baggage::renderAvailableBaggage($bagIndex, $language);
+			else {
+				$bags = generateLuggage($dateEntered, $airlineCode, $ticketClass, $passType, $bagIndex); // Array
+				if($bags && !empty($bags)) {
+					$bagString = is_numeric($bagIndex) ? $bags[(int)$bagIndex] : $bags[0]; // String
 
-				$bagWeight = 0;
-				if(is_string($bagString) && !empty($bagString)) {
-					preg_match('/(\d+)kg/isU', $bagString, $output);
-					$bagWeight = isset($output[1]) ? (int)$output[1] : 0;
-				}
+					$bagWeight = 0;
+					if(is_string($bagString) && !empty($bagString)) {
+						preg_match('/(\d+)kg/isU', $bagString, $output);
+						$bagWeight = isset($output[1]) ? (int)$output[1] : 0;
+					}
 
-				if($bagWeight > 0) {
-					if($language == 'en') $result['available'] = $bagIndex > 1000 ? "Extra {$bagWeight}kg" : "{$bagWeight}kg available";
-					else $result['available'] = substr_replace($bagString, '', strpos($bagString, '(') - 1);
+					if($bagWeight > 0) {
+						if($language == 'en') $result['available'] = $bagIndex > 1000 ? "Extra {$bagWeight}kg" : "{$bagWeight}kg available";
+						else $result['available'] = substr_replace($bagString, '', strpos($bagString, '(') - 1);
+					}
 				}
 			}
-		}
 
-		if(!empty($bagPurchaseText)) {
-			$result['purchase'] = preg_replace('/\s*\([^)]*\)/', '', $bagPurchaseText);
-		}
+			if(!empty($bagPurchaseText)) {
+				$result['purchase'] = preg_replace('/\s*\([^)]*\)/', '', $bagPurchaseText);
+			}
 
-		return $result;
+			return $result;
+		}
+		catch(Throwable $th) {
+			return ['available' => '', 'purchase' => ''];
+		}
 	}
 }
