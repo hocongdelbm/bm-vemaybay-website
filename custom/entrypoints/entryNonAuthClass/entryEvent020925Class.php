@@ -232,7 +232,7 @@ class entryEvent020925Class extends entryClass {
         $code      = $params['code'] ?? '';
         $round     = (int)($params['round'] ?? 0);
         $point     = (int)($params['point'] ?? 0);
-        $question  = $params['question'] ?? []; // Current question
+        $question  = $params['question'][0] ?? []; // Current question
 
         if(!is_string($code) || empty($code)) 
             return ["status" => 0, "message" => "Invalid code value"];
@@ -251,8 +251,15 @@ class entryEvent020925Class extends entryClass {
             $currentTurn = [];
             $currentTurnIndex = 0;
             if(isset($userData['logs'][date('Ymd')]) && !empty($userData['logs'][date('Ymd')])) {
-                $currentTurnIndex = $round > 1 ? count($userData['logs'][date('Ymd')]) - 1 : count($userData['logs'][date('Ymd')]);
+                $currentTurnIndex = count($userData['logs'][date('Ymd')]) - 1;
                 $currentTurn = $userData['logs'][date('Ymd')][$currentTurnIndex];
+            }
+
+            // Check new turn
+            $lastQuestion = end($userData['logs'][date('Ymd')][0]['questions']) ?? [];
+            if($round == 1 && !empty($lastQuestion) && $lastQuestion['status'] == 0) {
+                $currentTurn = [];
+                $currentTurnIndex = 1;
             }
             
             // Get current round
