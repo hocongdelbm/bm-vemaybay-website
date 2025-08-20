@@ -232,7 +232,7 @@ class entryEvent020925Class extends entryClass {
         $code      = $params['code'] ?? '';
         $round     = (int)($params['round'] ?? 0);
         $point     = (int)($params['point'] ?? 0);
-        $question  = $params['questions'] ?? []; // Current question
+        $question  = $params['question'] ?? []; // Current question
 
         if(!is_string($code) || empty($code)) 
             return ["status" => 0, "message" => "Invalid code value"];
