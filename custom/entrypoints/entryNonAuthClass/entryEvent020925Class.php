@@ -26,7 +26,9 @@ class entryEvent020925Class extends entryClass {
      */
     public function getListPhone() {
         if (file_exists($this->phoneStorage)) {
-            return json_decode(file_get_contents($this->phoneStorage), true);
+            $json = file_get_contents($this->phoneStorage);
+            if(empty($json)) return [];
+            return json_decode($json, true);
         }
         return [];
     }
@@ -38,7 +40,9 @@ class entryEvent020925Class extends entryClass {
      */
     public function getListEmail() {
         if (file_exists($this->emailStorage)) {
-            return json_decode(file_get_contents($this->emailStorage), true);
+            $json = file_get_contents($this->emailStorage);
+            if(empty($json)) return [];
+            return json_decode($json, true);
         }
         return [];
     }
@@ -163,6 +167,7 @@ class entryEvent020925Class extends entryClass {
             if(!in_array($email, $listEmail)) {
                 array_push($userData['emails'], $email);
                 $userData['turnsRemaining'] = 1;
+                $userData['totalPoint'] = 0;
                 $userData['updatedAt'] = date('Y-m-d H:i:s');
 
                 $fileName = "$this->userStorage/$code.json";
@@ -224,10 +229,10 @@ class entryEvent020925Class extends entryClass {
      * @return array
      */
     public function setRound($params) {
-        $code       = $params['code'] ?? '';
-        $round      = (int)($params['round'] ?? 0);
-        $point      = (int)($params['point'] ?? 0);
-        $questions  = $params['questions'] ?? [];
+        $code      = $params['code'] ?? '';
+        $round     = (int)($params['round'] ?? 0);
+        $point     = (int)($params['point'] ?? 0);
+        $question  = $params['questions'] ?? []; // Current question
 
         if(!is_string($code) || empty($code)) 
             return ["status" => 0, "message" => "Invalid code value"];
@@ -235,14 +240,73 @@ class entryEvent020925Class extends entryClass {
             return ["status" => 0, "message" => "Invalid round value"];
         if(!is_numeric($point) || $point < 0 || $point > 14) 
             return ["status" => 0, "message" => "Invalid point value"];
-        if(!is_array($questions) || empty($questions))
-            return ["status" => 0, "message" => "Invalid list question"];
+        if(!is_array($question) || empty($question))
+            return ["status" => 0, "message" => "Invalid question"];
         
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
+            $userData = $arr['data'] ?? [];
+
+            // Get current turn
+            $currentTurn = [];
+            $currentTurnIndex = 0;
+            if(isset($userData['logs'][date('Ymd')]) && !empty($userData['logs'][date('Ymd')])) {
+                $currentTurnIndex = count($userData['logs'][date('Ymd')]) - 1;
+                $currentTurn = $userData['logs'][date('Ymd')][$currentTurnIndex];
+            }
+            
+            // Get current round
+            $currentRound = [];
+            if(isset($currentTurn[$round - 1]) && !empty($currentTurn[$round - 1])) {
+                $currentRound = $currentTurn[$round - 1];
+            }
+            else {
+                $currentRound = [
+                    "round"     => $round,
+                    "status"    => 0,
+                    "point"     => 0,
+                    "questions" => [],
+                    "createdAt" => date('Y-m-d H:i:s'),
+                    "updatedAt" => date('Y-m-d H:i:s'),
+                ];
+            }
+
+            // Update to round data
+            $currentRound['questions'][$question['id']] = $question;
+            // Complete round
+            if($point > 0 && $question['status'] == 1) {
+                $currentRound['point']  = $point;
+                $currentRound['status'] = 1;
+                $userData['totalPoint'] += $point;
+
+                if($round == 3) {
+                    $userData['status'] = 1;
+                    $userData['voucher'] += 200000;
+                }
+            }
+            $currentRound['updatedAt'] = date('Y-m-d H:i:s');
+
+            // Update to turn data
+            $currentTurn[$round - 1] = $currentRound;
+
+            // Update to user data
+            $userData['logs'][date('Ymd')][$currentTurnIndex] = $currentTurn;
+            $userData['updatedAt'] = date('Y-m-d H:i:s');
+
+            // Save data
+            $fileName = "$this->userStorage/$code.json";
+            if($this->writeFile($fileName, json_encode($userData))) {
+                return ["status" => 1, "message" => "Set round success", "data" => $currentRound];
+            }
+            return ["status" => 0, "message" => "Set round failed"];
+
+
+
+
             // Prepare data
             $roundId = time() . "-$round";
             $roundStatus = 1;
+
             $roundQuestions = [];
             foreach($questions as $q) {
                 if((int)$q['status'] != 1) $roundStatus = 0;
@@ -263,6 +327,7 @@ class entryEvent020925Class extends entryClass {
             // Map round data
             $userData = $arr['data'] ?? [];
             $countTurnsInDay = 0;
+            // First round
             if(!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')])) {
                 // Check result of previous round before adding
                 if($round > 1) return [
