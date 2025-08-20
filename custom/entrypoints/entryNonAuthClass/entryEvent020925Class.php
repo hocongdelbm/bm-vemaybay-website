@@ -272,7 +272,7 @@ class entryEvent020925Class extends entryClass {
             }
 
             // Update to round data
-            if($round > 1 && !isset($currentTurn[$round - 2]) || empty($currentTurn[$round - 2]) || $currentTurn[$round - 2]['status'] != 1) {
+            if($round > 1 && !isset($currentTurn[$round - 2]) && empty($currentTurn[$round - 2]) && $currentTurn[$round - 2]['status'] != 1) {
                 return [
                     "status" => 0,
                     "message" => "Previous round invalid",
