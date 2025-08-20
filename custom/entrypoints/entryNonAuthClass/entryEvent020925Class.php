@@ -272,6 +272,22 @@ class entryEvent020925Class extends entryClass {
             }
 
             // Update to round data
+            if($round > 1 && !isset($currentTurn[$round - 2]) || empty($currentTurn[$round - 2]) || $currentTurn[$round - 2]['status'] != 1) {
+                return [
+                    "status" => 0,
+                    "message" => "Previous round invalid",
+                    "messageVi" => "Vui lòng hoàn thành vòng chơi trước",
+                ];
+            }
+            foreach($currentRound['questions'] as $q) {
+                if(isset($q['status']) && $q['status'] == 0) {
+                    return [
+                        "status" => 0,
+                        "message" => "Previous question invalid",
+                        "messageVi" => "Bạn đã dừng cuộc chơi vì trả lời sai câu hỏi trước",
+                    ];
+                }
+            }
             $currentRound['questions'][$question['id']] = $question;
             // Complete round
             if($point > 0 && $question['status'] == 1) {
