@@ -251,7 +251,7 @@ class entryEvent020925Class extends entryClass {
             $currentTurn = [];
             $currentTurnIndex = 0;
             if(isset($userData['logs'][date('Ymd')]) && !empty($userData['logs'][date('Ymd')])) {
-                $currentTurnIndex = count($userData['logs'][date('Ymd')]) - 1;
+                $currentTurnIndex = $round > 1 ? count($userData['logs'][date('Ymd')]) - 1 : count($userData['logs'][date('Ymd')]);
                 $currentTurn = $userData['logs'][date('Ymd')][$currentTurnIndex];
             }
             
