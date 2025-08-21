@@ -11,12 +11,19 @@ class entryEvent020925Class extends entryClass {
     private $userStorage;
     private $phoneStorage;
     private $emailStorage;
+    private $botToken;
+    private $chatId;
+    private $threadId;
 
     public function __construct() {
+        global $sugar_config;
         $this->directoryData = "custom/json_files/event_02_09_2025";
         $this->phoneStorage = "$this->directoryData/list_phone.json";
         $this->emailStorage = "$this->directoryData/list_email.json";
         $this->userStorage = "$this->directoryData/users";
+        $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
+        $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
+        $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
     }
 
     /**
@@ -64,7 +71,7 @@ class entryEvent020925Class extends entryClass {
             // Add a new turn in daily if the user has not won
             if($userData['status'] == 0 && (!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')]))) {
                 $userData['turnsRemaining'] = 1;
-                $this->writeFile($fileName, json_encode($userData));
+                $this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE));
             }
 
             return ["status" => 1, "message" => "Success", "data" => $userData];
@@ -88,13 +95,14 @@ class entryEvent020925Class extends entryClass {
             "phoneNumber" => "",
             "emails" => [],
             "status" => 0,
+            "turnsRemaining" => 1,
             "totalPoint" => 0,
+            "totalTime" => null,
             "voucher" => 20000, // Default voucher 20k
             "topupCards" => [],
-            "turnsRemaining" => 1,
+            "logs" => [],
             "createdAt" => date('Y-m-d H:i:s'),
             "updatedAt" => date('Y-m-d H:i:s'),
-            "logs" => [],
         ];
         
         if (file_exists($fileName)) {
@@ -128,7 +136,7 @@ class entryEvent020925Class extends entryClass {
                 $userData['updatedAt'] = date('Y-m-d H:i:s');
 
                 $fileName = "$this->userStorage/$code.json";
-                if($this->writeFile($fileName, json_encode($userData))) {
+                if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
                     // Update to list
                     array_push($listPhone, $phoneNumber);
                     $this->writeFile($this->phoneStorage, json_encode($listPhone));
@@ -171,7 +179,7 @@ class entryEvent020925Class extends entryClass {
                 $userData['updatedAt'] = date('Y-m-d H:i:s');
 
                 $fileName = "$this->userStorage/$code.json";
-                if($this->writeFile($fileName, json_encode($userData))) {
+                if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
                     // Update to list
                     array_push($listEmail, $email);
                     $this->writeFile($this->emailStorage, json_encode($listEmail));
@@ -214,7 +222,14 @@ class entryEvent020925Class extends entryClass {
             $userData['updatedAt'] = date('Y-m-d H:i:s');
 
             $fileName = "$this->userStorage/$code.json";
-            if($this->writeFile($fileName, json_encode($userData))) {
+            if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
+                // try {
+                   
+                // }
+                // catch() {
+
+                // }
+
                 return ["status" => 1, "message" => "Update user email success", "data" => $userData];
             }
             return ["status" => 0, "message" => "Update user email failed"];
@@ -232,7 +247,7 @@ class entryEvent020925Class extends entryClass {
         $code      = $params['code'] ?? '';
         $round     = (int)($params['round'] ?? 0);
         $point     = (int)($params['point'] ?? 0);
-        $question  = $params['question'][0] ?? []; // Current question
+        $question  = $params['question'] ?? []; // Current question
 
         if(!is_string($code) || empty($code)) 
             return ["status" => 0, "message" => "Invalid code value"];
@@ -248,33 +263,71 @@ class entryEvent020925Class extends entryClass {
             $userData = $arr['data'] ?? [];
 
             // Get current turn
-            $currentTurn = [];
+            $currentTurnData = [];
             $currentTurnIndex = 0;
             if(isset($userData['logs'][date('Ymd')]) && !empty($userData['logs'][date('Ymd')])) {
-                $currentTurnIndex = count($userData['logs'][date('Ymd')]) - 1;
-                $currentTurn = $userData['logs'][date('Ymd')][$currentTurnIndex];
+                $currentTurnIndex = array_key_last($userData['logs'][date('Ymd')]);
+                $currentTurnData = end($userData['logs'][date('Ymd')]);
             }
 
-            // Check new turn
-            $lastQuestion = end(end($userData['logs'][date('Ymd')][0])['questions']) ?? [];
-            if($round == 1 && !empty($lastQuestion) && $lastQuestion['status'] == 0) {
-                // if(count($userData['logs'][date('Ymd')]) == 2) return [
-                //     "status" => 0,
-                //     "message" => "Maximum 2 turns per day",
-                //     "messageVi" => "Đã đạt số lần chơi tối đa trong ngày"
-                // ];
-
-                $currentTurn = [];
-                $currentTurnIndex = 1;
-            }
-            
             // Get current round
-            $currentRound = [];
-            if(isset($currentTurn[$round - 1]) && !empty($currentTurn[$round - 1])) {
-                $currentRound = $currentTurn[$round - 1];
+            $currentRoundData = [];
+            if(!empty($currentTurnData)) {
+                $currentRoundData = end($currentTurnData);
+
+                if($round > $currentRoundData["round"]) {
+                    if($round > 1 && (!isset($currentTurnData[$round - 2]) || empty($currentTurnData[$round - 2]) || $currentTurnData[$round - 2]['status'] != 1)) {
+                        return [
+                            "status" => 0,
+                            "message" => "Previous round invalid",
+                            "messageVi" => "Vui lòng hoàn thành vòng chơi trước",
+                        ];
+                    }
+
+                    $currentRoundData = [
+                        "round"     => $round,
+                        "status"    => 0,
+                        "point"     => 0,
+                        "questions" => [],
+                        "createdAt" => date('Y-m-d H:i:s'),
+                        "updatedAt" => date('Y-m-d H:i:s'),
+                    ];
+                }
             }
             else {
-                $currentRound = [
+                if($round == 1) {
+                    if($userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
+                    else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
+                }
+                
+                $currentRoundData = [
+                    "round"     => $round,
+                    "status"    => 0,
+                    "point"     => 0,
+                    "questions" => [],
+                    "createdAt" => date('Y-m-d H:i:s'),
+                    "updatedAt" => date('Y-m-d H:i:s'),
+                ];
+            }
+
+            // Play again
+            $isPlayAgain = false;
+            $lastQuestion = end($currentRoundData['questions']);
+            if(is_array($lastQuestion) && $lastQuestion['status'] == 0 && $round == 1) {
+                if(isset($userData['turnsRemaining']) && $userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
+                else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
+
+                $isPlayAgain = true;
+                $currentTurnIndex++;
+                if($currentTurnIndex > 1) {
+                    return [
+                        "status" => 0,
+                        "message" => "Maximum 2 turns per day",
+                        "messageVi" => "Đã đạt số lần chơi tối đa trong ngày"
+                    ]; 
+                }
+                $currentTurnData = [];
+                $currentRoundData = [
                     "round"     => $round,
                     "status"    => 0,
                     "point"     => 0,
@@ -285,15 +338,8 @@ class entryEvent020925Class extends entryClass {
             }
 
             // Update to round data
-            if($round > 1 && (!isset($currentTurn[$round - 2]) || empty($currentTurn[$round - 2]) || $currentTurn[$round - 2]['status'] != 1)) {
-                return [
-                    "status" => 0,
-                    "message" => "Previous round invalid",
-                    "messageVi" => "Vui lòng hoàn thành vòng chơi trước",
-                ];
-            }
-            foreach($currentRound['questions'] as $q) {
-                if(isset($q['status']) && $q['status'] == 0) {
+            foreach($currentRoundData['questions'] as $q) {
+                if((!isset($q['status']) || $q['status'] == 0) && !$isPlayAgain) {
                     return [
                         "status" => 0,
                         "message" => "Previous question invalid",
@@ -301,121 +347,122 @@ class entryEvent020925Class extends entryClass {
                     ];
                 }
             }
-            $currentRound['questions'][$question['id']] = $question;
+            $currentRoundData['questions'][] = $question;
             // Complete round
+            $isCompletedRound = false;
             if($point > 0 && $question['status'] == 1) {
-                $currentRound['point']  = $point;
-                $currentRound['status'] = 1;
+                $isCompletedRound = true;
+                $currentRoundData['point']  = $point;
+                $currentRoundData['status'] = 1;
                 $userData['totalPoint'] += $point;
-
-                if($round == 3) {
-                    $userData['status'] = 1;
-                    $userData['voucher'] += 200000;
-                }
             }
-            $currentRound['updatedAt'] = date('Y-m-d H:i:s');
+            $currentRoundData['updatedAt'] = date('Y-m-d H:i:s');
 
             // Update to turn data
-            $currentTurn[(int)($round - 1)] = $currentRound;
+            $currentTurnData[$round - 1] = $currentRoundData;
 
             // Update to user data
-            $userData['logs'][date('Ymd')][$currentTurnIndex] = $currentTurn;
+            if($isCompletedRound && $round == 3) {
+                $userData['status'] = 1;
+                $userData['voucher'] += 200000;
+                $userData['totalTime'] = $this->getTotalTime($currentTurnData[$round - 1]);
+            }
+            $userData['logs'][date('Ymd')][$currentTurnIndex] = $currentTurnData;
             $userData['updatedAt'] = date('Y-m-d H:i:s');
 
             // Save data
             $fileName = "$this->userStorage/$code.json";
-            if($this->writeFile($fileName, json_encode($userData))) {
-                return ["status" => 1, "message" => "Set round success", "data" => $currentRound];
+            if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
+                return ["status" => 1, "message" => "Set round success", "data" => $currentRoundData];
             }
             return ["status" => 0, "message" => "Set round failed"];
 
 
 
+            // // Prepare data
+            // $roundId = time() . "-$round";
+            // $roundStatus = 1;
 
-            // Prepare data
-            $roundId = time() . "-$round";
-            $roundStatus = 1;
+            // $roundQuestions = [];
+            // foreach($questions as $q) {
+            //     if((int)$q['status'] != 1) $roundStatus = 0;
+            //     $roundQuestions[$q['id']] = [
+            //         "id" => $q['id'],
+            //         "answer" => $q['answer'],
+            //         "status" => (int)$q['status']
+            //     ];
+            // }
+            // $roundData = [
+            //     "id"        => $roundId,
+            //     "round"     => $round,
+            //     "status"    => $roundStatus,
+            //     "point"     => $point,
+            //     "questions" => $roundQuestions
+            // ];
 
-            $roundQuestions = [];
-            foreach($questions as $q) {
-                if((int)$q['status'] != 1) $roundStatus = 0;
-                $roundQuestions[$q['id']] = [
-                    "id" => $q['id'],
-                    "answer" => $q['answer'],
-                    "status" => (int)$q['status']
-                ];
-            }
-            $roundData = [
-                "id"        => $roundId,
-                "round"     => $round,
-                "status"    => $roundStatus,
-                "point"     => $point,
-                "questions" => $roundQuestions
-            ];
+            // // Map round data
+            // $userData = $arr['data'] ?? [];
+            // $countTurnsInDay = 0;
+            // // First round
+            // if(!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')])) {
+            //     // Check result of previous round before adding
+            //     if($round > 1) return [
+            //         "status" => 0,
+            //         "message" => "Previous round invalid",
+            //         "messageVi" => "Chưa hoàn thành vòng chơi trước",
+            //     ];
 
-            // Map round data
-            $userData = $arr['data'] ?? [];
-            $countTurnsInDay = 0;
-            // First round
-            if(!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')])) {
-                // Check result of previous round before adding
-                if($round > 1) return [
-                    "status" => 0,
-                    "message" => "Previous round invalid",
-                    "messageVi" => "Chưa hoàn thành vòng chơi trước",
-                ];
+            //     $countTurnsInDay = 1;
+            //     $userData['logs'][date('Ymd')][] = [$roundId => $roundData];
+            // }
+            // else {
+            //     $index = $round > 1 ? count($userData['logs'][date('Ymd')]) - 1 : count($userData['logs'][date('Ymd')]);
+            //     if($index > 1) return [
+            //         "status" => 0,
+            //         "message" => "Maximum 2 turns per day",
+            //         "messageVi" => "Đã đạt số lần chơi tối đa trong ngày"
+            //     ];
 
-                $countTurnsInDay = 1;
-                $userData['logs'][date('Ymd')][] = [$roundId => $roundData];
-            }
-            else {
-                $index = $round > 1 ? count($userData['logs'][date('Ymd')]) - 1 : count($userData['logs'][date('Ymd')]);
-                if($index > 1) return [
-                    "status" => 0,
-                    "message" => "Maximum 2 turns per day",
-                    "messageVi" => "Đã đạt số lần chơi tối đa trong ngày"
-                ];
+            //     // Check result of previous round before adding
+            //     if($round > 1) {
+            //         foreach($userData['logs'][date('Ymd')][$index] as $r) {
+            //             if(!isset($r['status']) || $r['status'] == 0) return [
+            //                 "status" => 0,
+            //                 "message" => "Did not complete the previous round",
+            //                 "messageVi" => "Chưa hoàn thành vòng chơi trước"
+            //             ];
+            //         }
+            //     }
 
-                // Check result of previous round before adding
-                if($round > 1) {
-                    foreach($userData['logs'][date('Ymd')][$index] as $r) {
-                        if(!isset($r['status']) || $r['status'] == 0) return [
-                            "status" => 0,
-                            "message" => "Did not complete the previous round",
-                            "messageVi" => "Chưa hoàn thành vòng chơi trước"
-                        ];
-                    }
-                }
-
-                $countTurnsInDay = $index + 1;
-                $userData['logs'][date('Ymd')][$index][$roundId] = $roundData;
-            }
-            // Update total point
-            if($roundStatus == 1) {
-                if($round == 1 && $countTurnsInDay > 1) $userData['totalPoint'] = $point; // Reset total point
-                else $userData['totalPoint'] += $point;
-            }
-            if($round == 1) {
-                if(isset($userData['turnsRemaining']) && $userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
-                else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
-            }
-            if($round == 3) {
-                if($roundStatus == 1) {
-                    $userData['status'] = 1;
-                    $userData['voucher'] += 200000;
-                }
-                else {
-                    $userData['status'] = 0;
-                }
-            }
-            $userData['updatedAt'] = date('Y-m-d H:i:s');
+            //     $countTurnsInDay = $index + 1;
+            //     $userData['logs'][date('Ymd')][$index][$roundId] = $roundData;
+            // }
+            // // Update total point
+            // if($roundStatus == 1) {
+            //     if($round == 1 && $countTurnsInDay > 1) $userData['totalPoint'] = $point; // Reset total point
+            //     else $userData['totalPoint'] += $point;
+            // }
+            // if($round == 1) {
+            //     if(isset($userData['turnsRemaining']) && $userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
+            //     else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
+            // }
+            // if($round == 3) {
+            //     if($roundStatus == 1) {
+            //         $userData['status'] = 1;
+            //         $userData['voucher'] += 200000;
+            //     }
+            //     else {
+            //         $userData['status'] = 0;
+            //     }
+            // }
+            // $userData['updatedAt'] = date('Y-m-d H:i:s');
             
-            // Save data
-            $fileName = "$this->userStorage/$code.json";
-            if($this->writeFile($fileName, json_encode($userData))) {
-                return ["status" => 1, "message" => "Set round success", "data" => $roundData];
-            }
-            return ["status" => 0, "message" => "Set round failed"];
+            // // Save data
+            // $fileName = "$this->userStorage/$code.json";
+            // if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
+            //     return ["status" => 1, "message" => "Set round success", "data" => $roundData];
+            // }
+            // return ["status" => 0, "message" => "Set round failed"];
         }
         return $arr;
     }
@@ -429,6 +476,20 @@ class entryEvent020925Class extends entryClass {
     private function getRoundNumber($roundId) {
         if(!is_string($roundId) || empty($roundId)) return 0;
         return (int)substr(trim($roundId), -1);
+    }
+
+    /**
+     * Get total completion time by logs
+     * 
+     * @param array $completedTurn
+     * @return int Second
+     */
+    private function getTotalTime($completedTurn) {
+        $totalTime = 0;
+        foreach($completedTurn as $round) {
+            $totalTime += strtotime($round['updatedAt']) - strtotime($round['createdAt']);
+        }
+        return $totalTime;
     }
 
     /**
