@@ -11,12 +11,19 @@ class entryEvent020925Class extends entryClass {
     private $userStorage;
     private $phoneStorage;
     private $emailStorage;
+    private $botToken;
+    private $chatId;
+    private $threadId;
 
     public function __construct() {
+        global $sugar_config;
         $this->directoryData = "custom/json_files/event_02_09_2025";
         $this->phoneStorage = "$this->directoryData/list_phone.json";
         $this->emailStorage = "$this->directoryData/list_email.json";
         $this->userStorage = "$this->directoryData/users";
+        $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
+        $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
+        $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
     }
 
     /**
@@ -216,6 +223,13 @@ class entryEvent020925Class extends entryClass {
 
             $fileName = "$this->userStorage/$code.json";
             if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
+                // try {
+                   
+                // }
+                // catch() {
+
+                // }
+
                 return ["status" => 1, "message" => "Update user email success", "data" => $userData];
             }
             return ["status" => 0, "message" => "Update user email failed"];
