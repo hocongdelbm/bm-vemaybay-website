@@ -256,8 +256,14 @@ class entryEvent020925Class extends entryClass {
             }
 
             // Check new turn
-            $lastQuestion = end($userData['logs'][date('Ymd')][0]['questions']) ?? [];
+            $lastQuestion = end(end($userData['logs'][date('Ymd')][0])['questions']) ?? [];
             if($round == 1 && !empty($lastQuestion) && $lastQuestion['status'] == 0) {
+                // if(count($userData['logs'][date('Ymd')]) == 2) return [
+                //     "status" => 0,
+                //     "message" => "Maximum 2 turns per day",
+                //     "messageVi" => "Đã đạt số lần chơi tối đa trong ngày"
+                // ];
+
                 $currentTurn = [];
                 $currentTurnIndex = 1;
             }
@@ -279,7 +285,7 @@ class entryEvent020925Class extends entryClass {
             }
 
             // Update to round data
-            if($round > 1 && !isset($currentTurn[$round - 2]) && empty($currentTurn[$round - 2]) && $currentTurn[$round - 2]['status'] != 1) {
+            if($round > 1 && (!isset($currentTurn[$round - 2]) || empty($currentTurn[$round - 2]) || $currentTurn[$round - 2]['status'] != 1)) {
                 return [
                     "status" => 0,
                     "message" => "Previous round invalid",
@@ -310,7 +316,7 @@ class entryEvent020925Class extends entryClass {
             $currentRound['updatedAt'] = date('Y-m-d H:i:s');
 
             // Update to turn data
-            $currentTurn[$round - 1] = $currentRound;
+            $currentTurn[(int)($round - 1)] = $currentRound;
 
             // Update to user data
             $userData['logs'][date('Ymd')][$currentTurnIndex] = $currentTurn;
