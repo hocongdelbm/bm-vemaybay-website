@@ -367,9 +367,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $ZaloObj = new Zalo();
 
                         // Send code to engage in event 02/09/2025
-                        // $eventActive = time() > strtotime('2025-08-17 23:59:59') && time() < strtotime('2025-08-25 00:00:00');
-                        $eventActive = false;
-                        if(in_array($zalo_user_id, ['7658987821159451152', '146299248217337693'])) $eventActive = true;
+                        $eventActive = time() > strtotime('2025-08-22 23:59:59') && time() < strtotime('2025-08-29 00:00:00');
+                        // $eventActive = false;
+                        // if(in_array($zalo_user_id, ['7658987821159451152', '146299248217337693'])) $eventActive = true;
                         if($eventActive && $follower == 1) {
                             try {
                                 require_once("custom/entrypoints/entryNonAuthClass/entryEvent020925Class.php");
@@ -380,7 +380,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     $res = json_decode($ZaloObj->send_consultation(
                                         "text",
                                         $zalo_user_id,
-                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn trang tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/test?code=$zalo_user_id"]
+                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn trang tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/thu-thach-su-viet?code=$zalo_user_id"]
                                     ), true);
 
                                     if(isset($res['error']) && $res['error'] == 0) {

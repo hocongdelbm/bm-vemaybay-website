@@ -223,12 +223,14 @@ class entryEvent020925Class extends entryClass {
 
             $fileName = "$this->userStorage/$code.json";
             if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
-                // try {
-                   
-                // }
-                // catch() {
-
-                // }
+                try {
+                    if($status == 0) {
+                        $phoneNumber = $userData['phoneNumber'];
+                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ".format_number($value)."đ\n<i>Card ID: $cardId</i>";
+                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
+                    }
+                }
+                catch(Throwable $th) {}
 
                 return ["status" => 1, "message" => "Update user email success", "data" => $userData];
             }
