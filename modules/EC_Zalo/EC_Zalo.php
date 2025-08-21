@@ -83,7 +83,7 @@ class EC_Zalo extends Basic {
 
         $res = $this->db->query($sql);
         $row_info = $this->db->fetchByAssoc($res);
-        $refresh_time = 86400*2; // 2 days
+        $refresh_time = 86400*7; // 7 days
         if(!empty($row_info) && time() - strtotime($row_info['date_modified']) < $refresh_time) {
             $zalo_name   = $row_info['zalo_name'] ?? '';
             $zalo_avatar = $row_info['zalo_avatar'] ?? '';
@@ -131,18 +131,18 @@ class EC_Zalo extends Basic {
 
                 $contact_id = '';
                 if(!empty($user_data_phone)) {
-                    $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$user_data_phone' AND deleted = 0";
+                    $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$user_data_phone' AND deleted = 0 ORDER BY date_entered";
                     $contact_id = $this->db->getOne($sql_contact) ?? '';
                 }
 
                 $Contact = new Contact();
-                if((!$row_info || empty($row_info)) && (!isset($row_info['contact_id']) || !$row_info['contact_id'] || empty($row_info['contact_id'])) && empty($contact_id )) {
+                if((!$row_info || empty($row_info)) && (!isset($row_info['contact_id']) || !$row_info['contact_id'] || empty($row_info['contact_id'])) && empty($contact_id)) {
                     $Contact->last_name     = $user_data_name;
                     $Contact->zalo_id       = $user_data['user_id'];
                     $Contact->zalo_name     = $user_data_name;
                     $Contact->zalo_avatar   = $user_data['avatar'] ?? '';
                     $Contact->phone_mobile  = $user_data_phone;
-                    $Contact->zalo_is_follower = (int)$user_data['user_is_follower'] ?? 0;
+                    $Contact->zalo_is_follower = (int)($user_data['user_is_follower'] ?? 0);
                     $Contact->zalo_last_interaction = $user_data_last_interaction;
                     $Contact->assigned_user_id = $current_user->id;
                     if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
@@ -164,7 +164,7 @@ class EC_Zalo extends Basic {
                     $Contact->retrieve(isset($row_info['contact_id']) && !empty($row_info['contact_id']) ? $row_info['contact_id'] : $contact_id);
                     $Contact->zalo_name             = $user_data_name;
                     $Contact->zalo_avatar           = $user_data['avatar'] ?? '';
-                    $Contact->zalo_is_follower      = (int)$user_data['user_is_follower'] ?? 0;
+                    $Contact->zalo_is_follower      = (int)($user_data['user_is_follower'] ?? 0);
                     $Contact->zalo_last_interaction = $user_data_last_interaction;
                     if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
                         if(!$Contact->primary_address_street || empty($Contact->primary_address_street)) {
@@ -190,7 +190,7 @@ class EC_Zalo extends Basic {
                             $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
                         }
                     }
-                    $Contact->description = "Cập nhật thông tin qua EC_Zalo ($Contact->phone_mobile) ($zalo_id)";
+                    $Contact->description = "Cập nhật thông tin qua EC_Zalo get_zalo_user_info($zalo_id) ($Contact->phone_mobile)";
                 }
                 $Contact->save();
 
@@ -256,7 +256,7 @@ class EC_Zalo extends Basic {
             }
             else $list_zalo_id['interaction'][] = $zalo_id;
 
-            if(count($results['data']) >= $this->limit_chat_box) break;
+            if($results['data'] && count($results['data']) >= $this->limit_chat_box) break;
 
             $row['src'] = (int)$row['src'];
             if($row['message_type'] == 'call') $row['type'] = $GLOBALS['app_list_strings']['calls_direction_list'][$row['type']];
@@ -361,6 +361,8 @@ class EC_Zalo extends Basic {
     }
 
     public function update_zalo_info_to_contact($contact_id, $user_data) {
+        if(!$contact_id || empty($contact_id)) return false;
+
         $zalo_id = $user_data['user_id'] ?? '';
         $user_data_name = $user_data['user_alias'] ?? ($user_data['display_name'] ?? '');
         $user_data_last_interaction = $user_data['user_last_interaction_date'] ?? '';
@@ -369,10 +371,11 @@ class EC_Zalo extends Basic {
         $Zalo = new Zalo();
         $Contact = new Contact();
         $Contact->retrieve($contact_id);
+        if(!isset($Contact->id) || empty($Contact->id)) return false;
         $Contact->zalo_id               = $zalo_id;
         $Contact->zalo_name             = $user_data_name;
         $Contact->zalo_avatar           = $user_data['avatar'] ?? '';
-        $Contact->zalo_is_follower      = (int)$user_data['user_is_follower'] ?? 0;
+        $Contact->zalo_is_follower      = (int)($user_data['user_is_follower'] ?? 0);
         $Contact->zalo_last_interaction = $user_data_last_interaction;
         if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
             $alias_phone = $Zalo->get_phone_by_alias($user_data['user_alias'] ?? '');
@@ -403,7 +406,7 @@ class EC_Zalo extends Basic {
                 $Contact->zalo_tags = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
             }
         }
-        $Contact->description = "Cập nhật thông tin qua EC_Zalo ($Contact->phone_mobile) ($zalo_id)";
+        $Contact->description = "Cập nhật thông tin qua EC_Zalo update_zalo_info_to_contact ($Contact->phone_mobile) ($zalo_id)";
         $Contact->save();
     }
 
@@ -422,7 +425,7 @@ class EC_Zalo extends Basic {
         $Contact->zalo_name     = $user_data_name;
         $Contact->phone_mobile  = (!empty($alias_phone) && strlen($alias_phone) > 9) ? $alias_phone : '';
         $Contact->zalo_avatar   = $user_data['avatar'] ?? '';
-        $Contact->zalo_is_follower = (int)$user_data['user_is_follower'] ?? 0;
+        $Contact->zalo_is_follower = (int)($user_data['user_is_follower'] ?? 0);
         $Contact->zalo_last_interaction = $user_data_last_interaction;
         $Contact->assigned_user_id = $current_user->id ?? '';
         if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {

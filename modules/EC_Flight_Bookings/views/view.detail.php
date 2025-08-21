@@ -18,10 +18,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 
 		// Create and update contact
-		createContactsForBooking($this->bean->phone);
-		if (strlen($this->bean->journey) < 7) {
-			fillJourneyForBooking($this->bean->id);
-		} 
+		// createContactsForBooking($this->bean->phone);
+		// if (strlen($this->bean->journey) < 7) {
+		// 	fillJourneyForBooking($this->bean->id);
+		// } 
 
 		$this->displayCSS();
 		$this->populateCustomButtons($deparment_info);
@@ -52,10 +52,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->createModal(); // Modal for confirm action
 
-		if($current_user->user_name == 'hungnh') {
-			pr(calculateBKAmt($this->bean->id));
-			pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
-		}
+		// if($current_user->user_name == 'hungnh') {
+		// 	pr(calculateBKAmt($this->bean->id));
+		// 	pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
+		// }
 
 		parent::display();
 		$this->displayJS();
@@ -66,9 +66,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.4"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_phuongnam/booking.js?v=1.2"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.8"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.9"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3"></script>
 		';
 
@@ -362,7 +362,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 									' . $contact_name_new . '
 								</div>
 								<div data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="flex-fill card-contact-footer contact-footer flex-end" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '">
-									<span class="temp d-none">' . $type_contact['totalBookings'] . '</span>
+									<span class="temp d-none">' . ($type_contact['totalBookings'] ?? 0) . '</span>
 									<div class="temp-scale">
 										<span>' . $type_contact['label'] . '</span>
 									</div>
@@ -973,7 +973,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					<select name="form_mail" class="box-select">
 						<option value="sendmail_confirm.html">Mail xác nhận</option>
 						<option value="sendmail_closetime.html">Mail cận giờ bay</option>
-						<option value="sendmail_promo.html">Mail vé khuyến mãi</option>
+						<!-- <option value="sendmail_promo.html">Mail vé khuyến mãi</option> -->
 					</select>
 					<input type="submit" class="btn btn-primary save-popup-dialog" value="Tiếp tục" title="Tiếp tục" />
 					<input type="button" class="btn btn-secondary" id="btnCancelSendMail" value="Hủy bỏ" title="Hủy bỏ" />
@@ -1440,7 +1440,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<td data-label="Số hiệu" class="text-center">' . $flight_number . '</td>
 				<td data-label="Hạng vé" class="text-center ticket_class' . $row['direction'] . '">' . $row['ticket_class'] . '</td>
 				<td data-label="Nơi đi" class="text-center">' . $row['departure'] . '</td>
-				<td data-label="Nơi đến" class="text-center">' . ($row['is_layover'] ? '' : $row['arrival']) . '</td>
+				<td data-label="Nơi đến" class="text-center">' . $row['arrival'] . '</td>
 				<td data-label="Ngày giờ đi" class="text-center">' . (trim($row['departure_date']) != '' ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '') . '</td>
 				<td data-label="Ngày giờ đến" class="text-center">' . (trim($row['arrival_date']) != '' ? date($date_format . ' H:i', strtotime($row['arrival_date'])) : '') . '</td>
 				<td data-label="Hạn giữ chỗ" class="text-center">' . (trim($row['time_limit']) != '' ? date($date_format . ' H:i', strtotime($row['time_limit'])) : '') . '</td>
@@ -2511,7 +2511,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 						'dep_name' 	=> myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' 	=> myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
-						'airline'  	=> myGetAirlineInfo2($this->bean->airline, 'CODE')['data'][0]['name'],
+						'airline'  	=> myGetAirlineInfo2($this->bean->airline, 'CODE')['data'][0]['name'] ?? '',
 						'datetime' 	=> date('d/m/Y', strtotime($departure_date[0])) . ' ' . substr($departure_date[1], 0, -3),
 						'class'		=> $row['ticket_class'],
 					);
@@ -2539,7 +2539,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 						'dep_name' 	=> myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' 	=> myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
-						'airline' 	=> myGetAirlineInfo2($this->bean->airline_inbound, 'CODE')['data'][0]['name'],
+						'airline' 	=> myGetAirlineInfo2($this->bean->airline_inbound, 'CODE')['data'][0]['name'] ?? '',
 						'datetime' 	=> date('d/m/Y', strtotime($return_date[0])) . ' ' . substr($return_date[1], 0, -3),
 						'class'		=> $row['ticket_class'],
 					);
@@ -2592,12 +2592,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 
 	// Get zalo information
-	function getZaloInfo($phone)
-	{
-		if (is_null($phone) || empty($phone)) return ['message' => 'Số điện thoại không hợp lệ', 'send_promotion' => 0, 'data' => null];
+	function getZaloInfo($phone) {
+		return ['message' => 'Tạm ẩn thông tin Zalo', 'send_promotion' => 0, 'data' => null];
+
+		if(is_null($phone) || empty($phone)) return ['message' => 'Số điện thoại không hợp lệ', 'send_promotion' => 0, 'data' => null];
 
 		$zalo_id = $this->getZaloID($phone);
-		if (empty($zalo_id)) return ['message' => 'Chưa có thông tin Zalo', 'send_promotion' => 0, 'data' => null];
+		if(!$zalo_id || empty($zalo_id)) return ['message' => 'Chưa có thông tin Zalo', 'send_promotion' => 0, 'data' => null];
 
 		// Information
 		$beanZalo = new EC_Zalo();
@@ -2641,23 +2642,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	}
 
 	// Get zalo id
-	function getZaloID($phone)
-	{
+	function getZaloID($phone) {
 		if (is_null($phone) || empty($phone)) return '';
-
-		$sql = 'SELECT zalo_id
-			FROM contacts 
-			WHERE phone_mobile = "' . $phone . '" AND zalo_id <> "" AND deleted = 0';
-		$res = $this->bean->db->query($sql);
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			return $row['zalo_id'];
-		}
-
-		return '';
+		return $this->bean->db->getOne("SELECT zalo_id FROM contacts WHERE phone_mobile = '$phone' AND deleted = 0 ORDER BY date_entered LIMIT 1") ?? '';
 	}
 
-	function htmlZaloInfo($data)
-	{
+	function htmlZaloInfo($data) {
 		if (is_null($data) || empty($data)) return '<p class="text-secondary" style="text-align:center; font-style:italic">Chưa có thông tin Zalo</p>';
 
 		$follow = $data['is_follow'] ? '<b class="text-primary" style="float:right;margin-left:20px;">Đã quan tâm</b>' : '<span class="text-secondary" style="float:right;margin-left:20px;">Chưa quan tâm</span>';

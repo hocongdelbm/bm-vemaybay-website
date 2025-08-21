@@ -366,11 +366,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     if(!empty($zalo_user_id)) {
                         $ZaloObj = new Zalo();
 
-                        // Get contact by zalo id
+                        // Send code to engage in event 02/09/2025
+                        // $eventActive = time() > strtotime('2025-08-17 23:59:59') && time() < strtotime('2025-08-25 00:00:00');
+                        $eventActive = false;
+                        if(in_array($zalo_user_id, ['7658987821159451152', '146299248217337693'])) $eventActive = true;
+                        if($eventActive && $follower == 1) {
+                            try {
+                                require_once("custom/entrypoints/entryNonAuthClass/entryEvent020925Class.php");
+                                $event020925 = new entryEvent020925Class();
+                                $arrUserInfoEvent = $event020925->getUserInfo(['code' => $zalo_user_id]);
+                                // If user hasn't joined the event, the system will send a link to join
+                                if(isset($arrUserInfoEvent['status']) && $arrUserInfoEvent['status'] == 0) {
+                                    $res = json_decode($ZaloObj->send_consultation(
+                                        "text",
+                                        $zalo_user_id,
+                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn trang tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/test?code=$zalo_user_id"]
+                                    ), true);
+
+                                    if(isset($res['error']) && $res['error'] == 0) {
+                                        $event020925->addUser(['code' => $zalo_user_id]);
+                                    }
+                                }
+                            }
+                            catch(Throwable $th) {
+                                $message = "<b>[WARNING] Send link to join event 02/09 failed</b>";
+                                $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\nZalo ID: $zalo_user_id";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                            }
+                        }
+
+                        // Get contact by zalo id and update info
                         $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_user_id' AND deleted = 0 ORDER BY date_entered LIMIT 1");
                         if(is_string($contact_id) && strlen($contact_id) == 36) {
                             $sql = "UPDATE contacts
-                                SET zalo_id_follower = $follower,
+                                SET zalo_is_follower = $follower,
                                     zalo_last_interaction = '$zalo_last_interaction'
                                 WHERE id = '$contact_id' AND deleted = 0";
                             $db->query($sql);

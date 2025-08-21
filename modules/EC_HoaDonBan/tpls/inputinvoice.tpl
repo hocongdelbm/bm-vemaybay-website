@@ -162,15 +162,16 @@
                                     <td width="13%"><span class="label">Nhà cung cấp</span></td>
                                     <td width="20%">
                                         <select class="box-select" name="supplier" id="supplier">
-                                            <option value="VJA" data-ticket-code="B" data-pass-qty="H" data-itinerary="G" data-ticket-price="L">VietjetAir</option>
-                                            <option value="BBA" data-ticket-code="B" data-pass-qty="C" data-itinerary="" data-ticket-price="D,E,F">Bamboo</option>
+                                            <option value="PNA" data-ticket-code="B" data-pass-qty="E" data-itinerary="D" data-ticket-price="G">Phương Nam</option>
+                                            <!-- <option value="PNA" data-ticket-code="C" data-pass-qty="F" data-itinerary="D" data-ticket-price="H">Phương Nam (Cũ)</option> -->
                                             <option value="VNA" data-ticket-code="A" data-pass-qty="C" data-itinerary="A" data-ticket-price="D">Vietnam Airlines</option>
+                                            <option value="BBA" data-ticket-code="B" data-pass-qty="C" data-itinerary="" data-ticket-price="D,E,F">Bamboo</option>
                                             <option value="VTA" data-ticket-code="B" data-pass-qty="" data-itinerary="C,D" data-ticket-price="G">Vietravel</option>
+                                            <option value="VJA" data-ticket-code="B" data-pass-qty="H" data-itinerary="G" data-ticket-price="L">Vietjet</option>
                                             <option value="HNH" data-ticket-code="B" data-pass-qty="F,G" data-itinerary="C" data-ticket-price="H,I">Hồng Ngọc Hà</option>
                                             <option value="TH" data-ticket-code="B" data-pass-qty="D" data-itinerary="B" data-ticket-price="E">Thành Hoàng</option>
-                                            <option value="PNA" data-ticket-code="C" data-pass-qty="F" data-itinerary="D" data-ticket-price="H">Phương Nam</option>
                                         </select>
-                                        <input type="hidden" name="supplier_name" id="supplier_name" value="VietjetAir">
+                                        <input type="hidden" name="supplier_name" id="supplier_name" value="Phương Nam">
                                     </td>
                                     <td><span class="label">File</span></td>
                                     <td><input type="file" name="from_file"></td>
@@ -183,7 +184,7 @@
                                     <td><span class="label">Ký hiệu hoá đơn</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="invoice_serial"></td>
                                     <td><span class="label">Cột số lượng</span></td>
-                                    <td><input type="text" class="box-input" name="pass_qty" id="pass_qty" value="F"></td>   
+                                    <td><input type="text" class="box-input" name="pass_qty" id="pass_qty" value="E"></td>   
                                 </tr>
                                 <tr>
                                     <td><span class="label">Ngày hạch toán</span><span class="required">*</span></td>
@@ -191,7 +192,7 @@
                                     <td><span class="label">Ngày hoá đơn</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="invoice_date" id="invoice_date" value="{$INVOICE_DATE}"></td>
                                     <td><span class="label">Cột giá vé</span></td>
-                                    <td><input type="text" class="box-input" name="ticket_price" id="ticket_price" value="L"></td>
+                                    <td><input type="text" class="box-input" name="ticket_price" id="ticket_price" value="G"></td>
                                 </tr>
                                 <tr>
                                     <td width="13%"><span class="label">Đơn vị</span></td>
@@ -205,7 +206,7 @@
                                     <td></td>
                                     <td></td>
                                     <td><span class="label">Cột hành trình</span></td>
-                                    <td><input type="text" class="box-input" name="itinerary" id="itinerary" value="G"></td>
+                                    <td><input type="text" class="box-input" name="itinerary" id="itinerary" value="D"></td>
                                 </tr>
                                 {if !$PREVIEW}
                                     <tr>

@@ -6,12 +6,13 @@ class Baggage {
      * @param string $str 23_1
      * @return string
      */
-    public static function renderAvailableBaggage($str) {
+    public static function renderAvailableBaggage($str, $language = 'vi') {
         if(!$str || empty($str)) return '';
 
         $arr = explode('_', $str);
-        if(isset($arr[1]) && !empty($arr[1])) return "Đã có sẵn " . $arr[1] . " kiện " . $arr[0] . "kg";
-        return "Đã có sẵn " . $arr[0] . "kg";
+        if(isset($arr[1]) && !empty($arr[1])) 
+            return $language == "en" ? "{$arr[1]} packages of {$arr[0]}kg available" : "Đã có sẵn {$arr[1]} kiện {$arr[0]}kg";
+        return $language == "en" ? "{$arr[0]}kg available" : "Đã có sẵn {$arr[0]}kg";
     }
 
     /**

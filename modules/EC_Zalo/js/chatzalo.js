@@ -15,7 +15,7 @@ var count_connect_error = 0;
 $(document).ready(function () {
     resetGlobalContent();
     getListUser()
-    // connectWebSocket();
+    connectWebSocket();
 
     // Click
     $('.choose_label').click(function () {

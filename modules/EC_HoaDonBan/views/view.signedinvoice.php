@@ -148,24 +148,26 @@ class Viewsignedinvoice extends SugarView
      {
           global $current_user;
           require_once('modules/EC_HoaDonBan/WinInvoice.php');
-          $inv       = new WinInvoice();
+          $inv = new WinInvoice();
 
-          $fileName       = 'HD_BANHANG_TEMPLATE.xls';
-          $objReader      = new Spreadsheet();
-          $objReader      = IOFactory::load('custom/templates_export/' . $fileName);
-          $sheet         = $objReader->getActiveSheet();
+          // $objReader     = new Spreadsheet();
+          // $objReader     = IOFactory::load('custom/templates_export/HD_BANHANG_TEMPLATE.xls');
           $hd_count      = count($_POST['sochungtu_id']);
 
           $filesToDownload = [];
-
           for ($i = 0; $i < $hd_count; $i++) {
-               $sochungtu_id = $_POST['sochungtu_id'][$i];
-               $iv_get    = $inv->get($sochungtu_id, 'array');
-               $list_item = $iv_get['items'];
+               $objReader = IOFactory::load('custom/templates_export/HD_BANHANG_TEMPLATE.xls');
+               $sheet = $objReader->getActiveSheet();
 
-               // if($current_user->user_name == 'hungnh'){
+               $sochungtu_id = $_POST['sochungtu_id'][$i];
+               $iv_get = $inv->get($sochungtu_id, 'array');
+               $list_item = $iv_get['items'] ?? [];
+
+               // if($current_user->user_name == 'admin') {
+               //      var_dump($_POST['sochungtu_id'][$i]);
                //      pr($list_item);
-               //      die();
+               //      if($i < $hd_count - 1) continue;
+               //      else die();
                // }
 
                // Ngày hạch toán
@@ -265,9 +267,7 @@ class Viewsignedinvoice extends SugarView
 
                // Xóa các file tạm sau khi đã tạo zip
                unlink($zipFile);
-               foreach ($filesToDownload as $file) {
-                    unlink($file);
-               }
+               foreach ($filesToDownload as $file) unlink($file);
                exit;
           }
      }

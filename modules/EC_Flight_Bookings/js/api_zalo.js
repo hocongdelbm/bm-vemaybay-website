@@ -235,7 +235,7 @@ $(document).ready(function () {
                                     </div>
                                     <div class="r5">
                                         <span class="col-4">Nội dung</span>
-                                        <input type="text" name="zalo_field_bank_transfer_note" id="zalo_field_bank_transfer_note" class="zalo_field" value="Thanh toan ${phone}" maxlength=90 />
+                                        <input type="text" name="zalo_field_transfer_note" id="zalo_field_transfer_note" class="zalo_field" value="Thanh toan ${phone}" maxlength=90 />
                                     </div>
                                 </div>
                             </div>

@@ -251,7 +251,6 @@ class Viewinputinvoice extends SugarView {
 
     function calculateTotalLine($request_fields)
     {
-
         global $current_user;
 
         $sql_search = $this->populateSearchCondition($request_fields);
@@ -638,7 +637,7 @@ class Viewinputinvoice extends SugarView {
 
         if ($_FILES['from_file']['name'] != '') {
             $path_parts = pathinfo($_FILES["from_file"]["name"]);
-            $file_type = $path_parts['extension'];
+            $file_type = strtolower($path_parts['extension'] ?? '');
 
             // Lưu trữ file tải lên vào đường dẫn cache/upload/inputinvoices/
             $fileName = $this->sys_uploads('cache/upload/inputinvoices/', 'from_file', $file_type);
@@ -651,12 +650,14 @@ class Viewinputinvoice extends SugarView {
                 $data_arr[] = 'vat';
                 $post_fields['vat'] = 'M';
             }
-            // Nếu là PNA thì thêm cột thu hộ, cột vat
+            // Nếu là PNA thì thêm cột thu hộ, cột vat, cột phí khác
             elseif($post_fields['supplier'] == 'PNA') {
                 $data_arr[] = 'authorized_collection';
                 $post_fields['authorized_collection'] = 'J';
                 $data_arr[] = 'vat';
                 $post_fields['vat'] = 'I';
+                $data_arr[] = 'other_charge';
+                $post_fields['other_charge'] = 'K';
             }
 
             $invoice_number     = trim($post_fields['invoice_number']);
@@ -831,15 +832,19 @@ class Viewinputinvoice extends SugarView {
                             // Tính phí thu hộ
                             // NCC có phí thu hộ = phí admin + phí sân bay
                             $input_iv->authorized_fee   = $data[$i]['admin_fee'] + $data[$i]['authorized_collection'];
-                            // Tính giá vốn (VAT)
-                            $input_iv->cost             = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // // Tính giá vốn (VAT)
+                            // $input_iv->cost             = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // Tính giá vốn (VAT) bỏ nhân SL
+                            $input_iv->cost = $data[$i]['ticket_price'] + $data[$i]['vat'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
                             // Tính giá vốn chưa vat
                             $input_iv->cost_no_vat      = $input_iv->cost - $data[$i]['vat'] - $data[$i]['vat_luggage_outbound'] - $data[$i]['vat_luggage_inbound'];
                         } else {
                             // Phí thu hộ = phí sân bay
                             $input_iv->authorized_fee = $data[$i]['authorized_collection'];
-                            // Tính giá vốn (VAT)
-                            $input_iv->cost = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // // Tính giá vốn (VAT)
+                            // $input_iv->cost = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            // Tính giá vốn (VAT) bỏ nhân SL
+                            $input_iv->cost = $data[$i]['ticket_price'] + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
                             // Tính giá vốn chưa vat
                             $input_iv->cost_no_vat = $input_iv->cost - $data[$i]['vat'] - $data[$i]['vat_admin'] - $data[$i]['vat_luggage_outbound'] - $data[$i]['vat_luggage_inbound'];
                         }
@@ -1072,13 +1077,44 @@ class Viewinputinvoice extends SugarView {
                             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
                         }
                     }
+                } else if ($supplier == 'PNA') {
+                    // Lọc số vé
+                    if(!ctype_digit($data[$i]['ticket_code'])) {
+                        $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
+                        $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
+                    }
+                    
+                    // Lọc hành trình
+                    $j = 0;
+                    $iti = $data[$i]['itinerary'];
+                    $itiFormat = '';
+                    while(strlen($iti) > 0) {
+                        // Location
+                        if($j % 2 == 0) {
+                            $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
+                            $iti = substr($iti, 3);
+                        }
+                        // Airline code
+                        else {
+                            $iti = substr($iti, 2);
+                        }
+                        $j++;
+                    }
+                    $data[$i]['itinerary'] = $itiFormat;
+
+                    $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat']);
+                    $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection']);
+                    $other_charge = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
                 }
 
                 // Lọc cột đơn giá, 
                 // Đầu tiên, bỏ các dấu phân cách
                 // Sau đó, giá < 1000 -> giá * 1000 
                 $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
-
+                if ($supplier == 'PNA') {
+                    $data[$i]['ticket_price'] += $other_charge;
+                    $data[$i]['vat'] += $other_charge * 0.08;
+                }
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
             }
@@ -1130,8 +1166,8 @@ class Viewinputinvoice extends SugarView {
                         AND b.booking_status = 8
                 WHERE p.deleted = 0 
                     AND (
-                        TRIM(p.eticket_outbound) = '". $data_arr['ticket_code'] ."'
-                        OR TRIM(p.eticket_inbound) = '". $data_arr['ticket_code'] ."'
+                        TRIM(p.eticket_outbound) = '". trim($data_arr['ticket_code']) ."'
+                        OR TRIM(p.eticket_inbound) = '". trim($data_arr['ticket_code']) ."'
                     )
                 LIMIT 1";
             $res = $this->bean->db->query($sql);

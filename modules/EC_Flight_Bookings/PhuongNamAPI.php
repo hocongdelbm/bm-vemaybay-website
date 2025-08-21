@@ -45,8 +45,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 120);
             $json = curl_exec($curl);
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -105,8 +105,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 180);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -178,7 +178,7 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
             curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -266,8 +266,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 180);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -362,8 +362,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 24);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -450,7 +450,7 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 24);
             curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -540,7 +540,7 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
             curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -625,8 +625,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 24);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 90);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -722,8 +722,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 90);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -822,7 +822,7 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
             curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -896,7 +896,7 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 20);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 15);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 24);
             curl_setopt($curl, CURLOPT_TIMEOUT, 60);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -975,8 +975,8 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 90);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -1062,7 +1062,7 @@ class PhuongNamAPI {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
             curl_setopt($curl, CURLOPT_TIMEOUT, 0);
             $response = curl_exec($curl); // JSON
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);

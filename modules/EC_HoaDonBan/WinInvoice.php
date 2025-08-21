@@ -410,11 +410,13 @@ class WinInvoice extends InvoiceLogs
             CURLOPT_URL => "https://taxinfo.wintvan.vn/api/Tracuu/tracuumst?mst=$tax_code",
             CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
             CURLOPT_USERPWD => "$user_name:$password",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_FOLLOWLOCATION => 1,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 32,
             CURLOPT_CUSTOMREQUEST => 'GET',
         ));
         $json = curl_exec($curl);
