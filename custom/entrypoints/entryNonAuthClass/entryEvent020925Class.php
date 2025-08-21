@@ -365,7 +365,7 @@ class entryEvent020925Class extends entryClass {
             if($isCompletedRound && $round == 3) {
                 $userData['status'] = 1;
                 $userData['voucher'] += 200000;
-                $userData['totalTime'] = $this->getTotalTime($currentTurnData[$round - 1]);
+                $userData['totalTime'] = $this->getTotalTime($currentTurnData);
             }
             $userData['logs'][date('Ymd')][$currentTurnIndex] = $currentTurnData;
             $userData['updatedAt'] = date('Y-m-d H:i:s');
