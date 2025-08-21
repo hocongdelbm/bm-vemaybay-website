@@ -27,12 +27,17 @@ class Viewrequestinvoice extends SugarView {
                     WHERE rv.booking_id = bk.id
                         AND rv.deleted = 0
                         AND rv.loai_thu IN('1', '4', '5')
-                        -- AND rv.receipt_type = 'credit_transfer'
-                        AND rv.tknganhang_id IN(
-                            'c0b01f56-0778-de4a-da11-65f937520972',
-                            'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
-                            '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
-                            '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
+                        AND (
+                            (
+                                rv.receipt_type = 'credit_transfer'
+                                AND rv.tknganhang_id IN(
+                                    'c0b01f56-0778-de4a-da11-65f937520972',
+                                    'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
+                                    '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
+                                    '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
+                                )
+                            )
+                            OR rv.receipt_type = 'cash'
                         )
                 ) AS receipt_vouchers_data
                 ,(
