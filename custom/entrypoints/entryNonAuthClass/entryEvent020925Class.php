@@ -281,6 +281,11 @@ class entryEvent020925Class extends entryClass {
                 }
             }
             else {
+                if($round == 1) {
+                    if($userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
+                    else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
+                }
+                
                 $currentRoundData = [
                     "round"     => $round,
                     "status"    => 0,
