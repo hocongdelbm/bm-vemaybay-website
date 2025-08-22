@@ -14,6 +14,7 @@ class entryEvent020925Class extends entryClass {
     private $botToken;
     private $chatId;
     private $threadId;
+    private $threadId2;
 
     public function __construct() {
         global $sugar_config;
@@ -24,6 +25,7 @@ class entryEvent020925Class extends entryClass {
         $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
         $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
         $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
+        $this->threadId2 = $sugar_config['telegram']['event020925']['thread_id_noti'] ?? '';
     }
 
     /**
@@ -140,6 +142,13 @@ class entryEvent020925Class extends entryClass {
                     // Update to list
                     array_push($listPhone, $phoneNumber);
                     $this->writeFile($this->phoneStorage, json_encode($listPhone));
+
+                    try {
+                        $phoneNumber = $userData['phoneNumber'];
+                        $message = "🇻🇳 Người chơi có SĐT $phoneNumber đã tham gia sự kiện\n<i>Code: <b>$code</b></i>";
+                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId2);
+                    }
+                    catch(Throwable $th) {}
 
                     return ["status" => 1, "message" => "Update user phone number success", "data" => $userData];
                 }
@@ -298,7 +307,10 @@ class entryEvent020925Class extends entryClass {
             }
             else {
                 if($round == 1) {
-                    if($userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
+                    if($userData['turnsRemaining'] > 0) {
+                        $userData['turnsRemaining'] -= 1;
+                        $userData['totalPoint'] = 0; // Reset when playing again in new day
+                    }
                     else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
                 }
                 
