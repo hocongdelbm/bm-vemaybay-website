@@ -223,11 +223,17 @@ class entryEvent020925Class extends entryClass {
             if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
 
             if(isset($cardId) && !empty($cardId)) {
-                $date = substr($cardId, 0, 8);
-                $time = substr($cardId, 8);
+                $status = 1;
+                $date = (string)substr($cardId, 0, 8);
+                $time = (string)substr($cardId, 8);
                 $userData['topupCards'][$date][$time][$value] = $status;
             }
-            else $userData['topupCards'][date('Ymd')][time()] = [$value => $status];
+            else {
+                $date   = (string)substr($cardId, 0, 8);
+                $time   = (string)substr($cardId, 8);
+                $cardId = $date . $time;
+                $userData['topupCards'][$date][$time] = [$value => $status];
+            }
             $userData['updatedAt'] = date('Y-m-d H:i:s');
 
             $fileName = "$this->userStorage/$code.json";
@@ -235,7 +241,7 @@ class entryEvent020925Class extends entryClass {
                 try {
                     if($status == 0) {
                         $phoneNumber = $userData['phoneNumber'];
-                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ".format_number($value)."đ\n<i>Card ID: $cardId</i>";
+                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ". format_number($value, null, 0) ."đ\n<i>Card ID: $cardId</i>";
                         Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
                     }
                 }
