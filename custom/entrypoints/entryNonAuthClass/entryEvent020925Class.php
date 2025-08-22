@@ -229,8 +229,8 @@ class entryEvent020925Class extends entryClass {
                 $userData['topupCards'][$date][$time][$value] = $status;
             }
             else {
-                $date   = (string)substr($cardId, 0, 8);
-                $time   = (string)substr($cardId, 8);
+                $date   = (string)date('Ymd');
+                $time   = (string)time();
                 $cardId = $date . $time;
                 $userData['topupCards'][$date][$time] = [$value => $status];
             }
@@ -241,8 +241,12 @@ class entryEvent020925Class extends entryClass {
                 try {
                     if($status == 0) {
                         $phoneNumber = $userData['phoneNumber'];
-                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ". format_number($value, null, 0) ."đ\n<i>Card ID: $cardId</i>";
-                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
+                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>";
+                        Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->testBotToken, $this->chatId, $this->threadId);
+
+                        // $phoneNumber = $userData['phoneNumber'];
+                        // $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ". format_number($value, null, 0) ."đ\n<i>Card ID: $cardId</i>";
+                        // Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
                     }
                 }
                 catch(Throwable $th) {}
