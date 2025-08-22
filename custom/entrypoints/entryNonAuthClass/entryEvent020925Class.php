@@ -242,7 +242,7 @@ class entryEvent020925Class extends entryClass {
                     if($status == 0) {
                         $phoneNumber = $userData['phoneNumber'];
                         $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>";
-                        Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->testBotToken, $this->chatId, $this->threadId);
+                        Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->botToken, $this->chatId, $this->threadId);
 
                         // $phoneNumber = $userData['phoneNumber'];
                         // $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ". format_number($value, null, 0) ."đ\n<i>Card ID: $cardId</i>";
