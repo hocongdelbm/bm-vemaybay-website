@@ -15,6 +15,8 @@ class entryEvent020925Class extends entryClass {
     private $chatId;
     private $threadId;
 
+    private $testBotToken;
+
     public function __construct() {
         global $sugar_config;
         $this->directoryData = "custom/json_files/event_02_09_2025";
@@ -22,6 +24,8 @@ class entryEvent020925Class extends entryClass {
         $this->emailStorage = "$this->directoryData/list_email.json";
         $this->userStorage = "$this->directoryData/users";
         $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
+        // add by datlnt
+        $this->testBotToken = $sugar_config['telegram']['event020925']['bot_token_2'] ?? '';
         $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
         $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
     }
@@ -218,16 +222,23 @@ class entryEvent020925Class extends entryClass {
                 $time = substr($cardId, 8);
                 $userData['topupCards'][$date][$time][$value] = $status;
             }
-            else $userData['topupCards'][date('Ymd')][time()] = [$value => $status];
+            else{
+                $date = date('Ymd');
+                $time = time();
+                $userData['topupCards'][$date][$time] = [$value => $status];
+            }
             $userData['updatedAt'] = date('Y-m-d H:i:s');
 
             $fileName = "$this->userStorage/$code.json";
             if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
                 try {
                     if($status == 0) {
+                        // code trong inlinekeyboard này
                         $phoneNumber = $userData['phoneNumber'];
+                        $cardId = $date.$time;
                         $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ".format_number($value)."đ\n<i>Card ID: $cardId</i>";
-                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
+                        Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->testBotToken, $this->chatId, $this->threadId);
+                        // Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
                     }
                 }
                 catch(Throwable $th) {}
