@@ -369,6 +369,11 @@ class entryEvent020925Class extends entryClass {
                 $currentRoundData['status'] = 1;
                 $userData['totalPoint'] += $point;
             }
+            elseif($point > 0 && $question['status'] == 0 && $round == 3) {
+                $currentRoundData['point']  = $point;
+                $currentRoundData['status'] = 0;
+                $userData['totalPoint'] += $point;
+            }
             $currentRoundData['updatedAt'] = date('Y-m-d H:i:s');
 
             // Update to turn data
