@@ -224,7 +224,8 @@ class entryEvent020925Class extends entryClass {
                 $status = 1;
                 $date = (string)substr($cardId, 0, 8);
                 $time = (string)substr($cardId, 8);
-                $userData['topupCards'][$date][$time][$value] = $status;
+                if(isset($userData['topupCards'][$date]) && isset($userData['topupCards'][$date][$time]) && isset($userData['topupCards'][$date][$time][$value])) $userData['topupCards'][$date][$time][$value] = $status;
+                else return ["status" => 0, "message" => "Not found card", "messageVi" => "Không tìm thấy mệnh giá nạp"]; 
             }
             else {
                 $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
