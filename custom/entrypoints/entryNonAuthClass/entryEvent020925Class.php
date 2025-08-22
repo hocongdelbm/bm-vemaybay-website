@@ -219,8 +219,6 @@ class entryEvent020925Class extends entryClass {
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
             $userData = $arr['data'] ?? [];
-            $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
-            if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
 
             if(isset($cardId) && !empty($cardId)) {
                 $status = 1;
@@ -229,6 +227,8 @@ class entryEvent020925Class extends entryClass {
                 $userData['topupCards'][$date][$time][$value] = $status;
             }
             else {
+                $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
+                if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
                 $date   = (string)date('Ymd');
                 $time   = (string)time();
                 $cardId = $date . $time;
