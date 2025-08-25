@@ -15,6 +15,7 @@ class entryEvent020925Class extends entryClass {
     private $chatId;
     private $threadId;
     private $threadId2;
+    private $threadId3;
 
     public function __construct() {
         global $sugar_config;
@@ -26,6 +27,7 @@ class entryEvent020925Class extends entryClass {
         $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
         $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
         $this->threadId2 = $sugar_config['telegram']['event020925']['thread_id_noti'] ?? '';
+        $this->threadId3 = $sugar_config['telegram']['event020925']['thread_id_prize_spin'] ?? '';
     }
 
     /**
@@ -109,15 +111,27 @@ class entryEvent020925Class extends entryClass {
             "totalTime" => null,
             "voucher" => 20000, // Default voucher 20k
             "topupCards" => [],
+            "spinPrizes" => [],
             "logs" => [],
             "createdAt" => date('Y-m-d H:i:s'),
             "updatedAt" => date('Y-m-d H:i:s'),
         ];
-        
-        if (file_exists($fileName)) {
+
+        $listPhone = $this->getListPhone();
+        if (file_exists($fileName) || ($idName == "phoneNumber" && isset($listPhone[$code]))) {
             return ["status" => 0, "message" => "User joined the event"]; 
         }
         elseif($this->writeFile($fileName, json_encode($data))) {
+            if($idName == "phoneNumber") {
+                $listPhone[$code] = "";
+                $this->writeFile($this->phoneStorage, json_encode($listPhone));
+                try {
+                    $message = "🇻🇳 Người chơi có SĐT $code đã tham gia sự kiện";
+                    Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId2);
+                }
+                catch(Throwable $th) {}
+            }
+
             return ["status" => 1, "message" => "Success", "data" => $data]; 
         }
         return ["status" => 0, "message" => "Add user failed"];
@@ -125,13 +139,14 @@ class entryEvent020925Class extends entryClass {
 
     /**
      * Update user voucher
+     * Using only for user who indentify by zalo ID
      * 
      * @param array $params
      * @return array
      */
     public function updateUserPhone($params) {
         $code = $params['code'] ?? '';
-        $phoneNumber = $params['phoneNumber'] ?? 0;
+        $phoneNumber = trim($params['phoneNumber'] ?? '');
         if(!is_string($code) || (strlen($code) <= 10 && stripos($code, "-") === false)) return ["status" => 0, "message" => "Invalid code value"];
         if(!is_string($phoneNumber) || strlen($phoneNumber) != 10) return ["status" => 0, "message" => "Invalid phone number value", "messageVi" => "Số điện thoại không hợp lệ"];
 
@@ -174,7 +189,7 @@ class entryEvent020925Class extends entryClass {
      */
     public function updateUserEmails($params) {
         $code  = $params['code'] ?? '';
-        $email = $params['email'] ?? 0;
+        $email = trim($params['email'] ?? '');
         if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
         if(!is_string($email) || !$this->checkEmail($email)) return ["status" => 0, "message" => "Invalid email value", "messageVi" => "Email không hợp lệ"];
 
@@ -219,7 +234,7 @@ class entryEvent020925Class extends entryClass {
         $code  = $params['code'] ?? '';
         $value = (int)($params['value'] ?? 0);
         $status = (int)($params['status'] ?? 0);
-        $cardId = (string)($params['cardId'] ?? ''); // Ymd . timestamp
+        $cardId = trim((string)($params['cardId'] ?? '')); // Ymd . timestamp
         if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
         if(!is_numeric($value) || $value < 10000 || $value > 100000) return ["status" => 0, "message" => "Invalid card value"];
 
@@ -249,7 +264,7 @@ class entryEvent020925Class extends entryClass {
                 try {
                     if($status == 0) {
                         $phoneNumber = $userData['phoneNumber'];
-                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>\n<i>Code: $code</i>";
+                        $message = "🌟 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>\n<i>Code: $code</i>";
                         Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->botToken, $this->chatId, $this->threadId);
 
                         // $phoneNumber = $userData['phoneNumber'];
@@ -500,6 +515,90 @@ class entryEvent020925Class extends entryClass {
             //     return ["status" => 1, "message" => "Set round success", "data" => $roundData];
             // }
             // return ["status" => 0, "message" => "Set round failed"];
+        }
+        return $arr;
+    }
+
+    /**
+     * Set prize
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function setSpinPrize($params) {
+        $code      = trim($params['code'] ?? '');
+        $typePrize = trim($params['typePrize'] ?? '');
+        $prize     = (int)($params['prize'] ?? 0);
+        $prizeId   = trim($params['prizeId'] ?? '');
+        
+        if(!is_string($code) || empty($code))
+            return ["status" => 0, "message" => "Invalid code value"];
+        if(!is_string($typePrize) || !in_array($typePrize, ['voucher', 'topupCard', 'raincoat', 'helmet', 'backpack']))
+            return ["status" => 0, "message" => "Invalid type prize value"];
+        if($prize < 1 || ($typePrize == "topupCard" && $prize > 20000) || ($typePrize == "voucher" && $prize > 50000)) 
+            return ["status" => 0, "message" => "Invalid prize value"];
+
+        $arr = $this->getUserInfo(['code' => $code]);
+        if(isset($arr['status']) && $arr['status'] == 1) {
+            $userData = $arr['data'] ?? [];
+
+            $currentVoucher = $userData['voucher'] ?? 0;
+            $currentPrizes = $userData['spinPrizes'] ?? [];
+            if(empty($currentPrizes)) {
+                if($currentVoucher < 20000) return ["status" => 0, "message" => "Invalid code value", "messageVi" => "Bạn không đủ điểm voucher để quay thưởng"];
+                $currentVoucher -= 20000;
+            }
+            else {
+                if($currentVoucher < 50000) return ["status" => 0, "message" => "Invalid code value", "messageVi" => "Bạn không đủ điểm voucher để quay thưởng"];
+                $currentVoucher -= 50000;
+            }
+
+            if(empty($prizeId) || !$prizeId) {
+                $prizeId = time();
+                if(in_array($typePrize, ['raincoat', 'helmet', 'backpack'])) $prize = 1;
+                $currentPrizes[$prizeId] = [
+                    'type' => $typePrize,
+                    'prize' => $prize,
+                    'status' => 0,
+                    'createdAt' => date("Y-m-d H:i:s"),
+                    'updatedAt' => date("Y-m-d H:i:s")
+                ];
+                if($typePrize == 'voucher') $currentVoucher += $prize;
+
+                try {
+                    $mapLabelPrizes = [
+                        "topupCard" => "Thẻ cào",
+                        "raincoat" => "Áo mưa",
+                        "helmet" => "Nón bảo hiểm",
+                        "backpack" => "Balo",
+                    ];
+                    if(isset($mapLabelPrizes[$typePrize])) {
+                        $phoneNumber = $userData['phoneNumber'] ?? '';
+                        $message = "🎁 Người chơi $phoneNumber đã nhận được <b>". $mapLabelPrizes[$typePrize] ."</b>";
+                        if($typePrize == "topupCard") $message .= " trị giá <b>". format_number($prize, null, 0) ."đ</b>";
+                        $message .= "\n<i>Prize ID: $prizeId</i>";
+                        $message .= "\n<i>Code: $code</i>";
+                        
+                        // Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->botToken, $this->chatId, $this->threadId3);
+                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId3);
+                    }
+                }
+                catch(Throwable $th) {}
+            }
+            elseif(is_string($prizeId) && strlen($prizeId) > 6 && isset($currentPrizes[$prizeId])) {
+                $currentPrizes[$prizeId]['status'] = 1;
+                $currentPrizes[$prizeId]['updatedAt'] = date("Y-m-d H:i:s");
+            }
+
+            $userData['voucher'] = $currentVoucher;
+            $userData['spinPrizes'] = $currentPrizes;
+
+            // Save data
+            $fileName = "$this->userStorage/$code.json";
+            if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
+                return ["status" => 1, "message" => "Set prize success", "data" => $userData];
+            }
+            return ["status" => 0, "message" => "Set prize failed"];
         }
         return $arr;
     }
