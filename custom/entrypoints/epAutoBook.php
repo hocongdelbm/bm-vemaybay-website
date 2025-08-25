@@ -734,8 +734,8 @@ try {
                                         -- ,luggage_index_inbound = '$bagIndexRet'
                                         ,modified_user_id = '$current_user->id'
                                         ,date_modified = '$dateModified'
-                                    WHERE booking_id = '$bookingId'
-                                        AND id IN ($inListPassengerId)
+                                    WHERE id IN ($inListPassengerId) 
+                                        AND booking_id = '$bookingId'
                                         AND deleted = 0";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
@@ -751,11 +751,22 @@ try {
                             }
 
                             // Update supplier
+                            $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
                             $sql = "UPDATE ec_booking_details
-                                    SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
-                                        ,modified_user_id = '$current_user->id'
+                                    SET supplier_id = '{$phuongnamapi->SUPPLIER_ID}'
+                                        ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,modified_user_id = '{$current_user->id}'
                                         ,date_modified = '$dateModified'
-                                    WHERE booking_id = '$bookingId' AND deleted = 0";
+                                    WHERE booking_id = '$bookingId'
+                                        AND deleted = 0
+                                        AND passenger_type IN (
+                                            SELECT DISTINCT p.type
+                                            FROM ec_booking_passengers p
+                                            WHERE p.id IN ($inListPassengerId)
+                                                AND p.booking_id = '$bookingId' 
+                                                AND p.deleted = 0
+                                        )";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";
@@ -852,11 +863,23 @@ try {
                             }
 
                             // Update supplier
+                            $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
                             $sql = "UPDATE ec_booking_details
-                                    SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
-                                        ,modified_user_id = '$current_user->id'
+                                    SET supplier_id = '{$phuongnamapi->SUPPLIER_ID}'
+                                        ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,modified_user_id = '{$current_user->id}'
                                         ,date_modified = '$dateModified'
-                                    WHERE booking_id = '$bookingId' AND direction = '$direction' AND deleted = 0";
+                                    WHERE booking_id = '$bookingId'
+                                        AND direction = '$direction'
+                                        AND deleted = 0
+                                        AND passenger_type IN (
+                                            SELECT DISTINCT p.type
+                                            FROM ec_booking_passengers p
+                                            WHERE p.id IN ($inListPassengerId)
+                                                AND p.booking_id = '$bookingId' 
+                                                AND p.deleted = 0
+                                        )";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";

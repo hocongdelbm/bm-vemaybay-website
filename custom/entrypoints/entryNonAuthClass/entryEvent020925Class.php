@@ -551,7 +551,9 @@ class entryEvent020925Class extends entryClass {
             return ["status" => 0, "message" => "Invalid code value"];
         if(!is_string($typePrize) || !in_array($typePrize, ['voucher', 'topupCard', 'raincoat', 'helmet', 'backpack']))
             return ["status" => 0, "message" => "Invalid type prize value"];
-        if($prize < 1 || ($typePrize == "topupCard" && $prize > 20000) || ($typePrize == "voucher" && $prize > 70000)) 
+        if($prize < 1
+            || ($typePrize == "topupCard" && !in_array($prize, [20000, 10000]))
+            || ($typePrize == "voucher" && !in_array($prize, [30000, 50000, 70000]))) 
             return ["status" => 0, "message" => "Invalid prize value"];
 
         $arr = $this->getUserInfo(['code' => $code]);
