@@ -73,10 +73,15 @@ class entryEvent020925Class extends entryClass {
             // Add a new turn in daily if the user has not won
             if($userData['status'] == 0 && (!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')]))) {
                 $userData['turnsRemaining'] = 1;
+                $userData['updatedAt'] = date('Y-m-d H:i:s');
                 $this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE));
             }
 
             return ["status" => 1, "message" => "Success", "data" => $userData];
+        }
+        elseif(strlen($code) == 10) {
+            $listPhone = $this->getListPhone();
+            if(isset($listPhone[$code]) && !empty($listPhone[$code]) && strlen($listPhone[$code]) > 12) return $this->getUserInfo(['code' => $listPhone[$code]]);
         }
         return ["status" => 0, "message" => "User $code not found"];
     }
@@ -92,9 +97,11 @@ class entryEvent020925Class extends entryClass {
         if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
 
         $fileName = "$this->userStorage/$code.json";
+        $idName = strlen($code) == 10 ? "phoneNumber" : "zaloId";
         $data = [
-            "zaloId" => $code,
-            "phoneNumber" => "",
+            "idName" => $idName,
+            "zaloId" => $idName == "zaloId" ? $code : "",
+            "phoneNumber" => $idName == "phoneNumber" ? $code : "",
             "emails" => [],
             "status" => 0,
             "turnsRemaining" => 1,
@@ -125,7 +132,7 @@ class entryEvent020925Class extends entryClass {
     public function updateUserPhone($params) {
         $code = $params['code'] ?? '';
         $phoneNumber = $params['phoneNumber'] ?? 0;
-        if(!is_string($code) || empty($code)) return ["status" => 0, "message" => "Invalid code value"];
+        if(!is_string($code) || (strlen($code) <= 10 && stripos($code, "-") === false)) return ["status" => 0, "message" => "Invalid code value"];
         if(!is_string($phoneNumber) || strlen($phoneNumber) != 10) return ["status" => 0, "message" => "Invalid phone number value", "messageVi" => "Số điện thoại không hợp lệ"];
 
         $arr = $this->getUserInfo(['code' => $code]);
@@ -133,14 +140,14 @@ class entryEvent020925Class extends entryClass {
             $userData = $arr['data'] ?? [];
 
             $listPhone = $this->getListPhone();
-            if(!in_array($phoneNumber, $listPhone)) {
+            if(!isset($listPhone[$phoneNumber])) {
                 $userData['phoneNumber'] = $phoneNumber;
                 $userData['updatedAt'] = date('Y-m-d H:i:s');
 
                 $fileName = "$this->userStorage/$code.json";
                 if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
                     // Update to list
-                    array_push($listPhone, $phoneNumber);
+                    $listPhone[$phoneNumber] = $code;
                     $this->writeFile($this->phoneStorage, json_encode($listPhone));
 
                     try {
@@ -229,7 +236,7 @@ class entryEvent020925Class extends entryClass {
             }
             else {
                 $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
-                if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
+                if(count($listCardInDay) > 1) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
                 $date   = (string)date('Ymd');
                 $time   = (string)time();
                 $cardId = $date . $time;
@@ -242,7 +249,7 @@ class entryEvent020925Class extends entryClass {
                 try {
                     if($status == 0) {
                         $phoneNumber = $userData['phoneNumber'];
-                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>";
+                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>\n<i>Code: $code</i>";
                         Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->botToken, $this->chatId, $this->threadId);
 
                         // $phoneNumber = $userData['phoneNumber'];
@@ -496,6 +503,29 @@ class entryEvent020925Class extends entryClass {
         }
         return $arr;
     }
+
+    // public function doSomething($params) {
+    //     $files = glob("$this->userStorage/*.json"); // get all .json files in users folder
+
+    //     $newListPhone = [];
+    //     foreach ($files as $file) {
+    //         $filename = basename($file);
+
+    //         if(strlen($filename) > 15) {
+    //             $content = file_get_contents($file);
+    //             $jsonData = json_decode($content, true); // decode JSON into array
+
+    //             $zaloId = $jsonData['zaloId'] ?? '';
+    //             $phoneNumber = $jsonData['phoneNumber'] ?? '';
+
+    //             if(!empty($phoneNumber)) {
+    //                 $newListPhone[$phoneNumber] = $zaloId;
+    //             }
+    //         }
+    //     }
+       
+    //     $this->writeFile($this->phoneStorage, json_encode($newListPhone));
+    // }
 
     /**
      * Get round number from round ID

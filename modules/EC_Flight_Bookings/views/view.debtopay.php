@@ -66,14 +66,18 @@ class Viewdebtopay extends SugarView
 							<td colspan="3">
 								<table class="table-details__booking table-details__debtopay" border="0" cellspacing="0" cellpadding="0" id="tbl-details">
 						  			<thead><tr>
-										<th width="10%"><div align="center"><strong>Ngày hạch toán</strong></div></th>
-										<th width="12%"><div align="center"><strong>Số chứng từ</strong></div></th>
+										<th width="8%"><div align="center"><strong>Ngày hạch toán</strong></div></th>
+										<th width="10%"><div align="center"><strong>Số chứng từ</strong></div></th>
 										<th width="5%"><div align="center"><strong>Số vé</strong></div></th>
-										<th width="30%"><div align="center"><strong>Diễn giải</strong></div></th>
-										<th width="12%"><div align="center"><strong>Số tiền bán</strong></div></th>
-										<th width="12%"><div align="center"><strong>Số tiền nợ</strong></div></th>
-										<th width="12%"><div align="center"><strong>Tiền đã trả</strong></div></th>
-										<th width="12%"><div align="center"><strong>Còn lại</strong></div></th>
+										<th width="25%"><div align="center"><strong>Diễn giải</strong></div></th>
+
+										<th width="7%"><div align="center"><strong>Chiết khấu</strong></div></th>
+										<th width="7%"><div align="center"><strong>Phí xuất vé</strong></div></th>
+
+										<th width="10%"><div align="center"><strong>Số tiền bán</strong></div></th>
+										<th width="10%"><div align="center"><strong>Số tiền nợ</strong></div></th>
+										<th width="10%"><div align="center"><strong>Tiền đã trả</strong></div></th>
+										<th width="10%"><div align="center"><strong>Còn lại</strong></div></th>
 									</tr>
 									<tr>
 										<th><div align="center"><strong>A</strong></div></th>
@@ -84,6 +88,8 @@ class Viewdebtopay extends SugarView
 										<th><div align="center"><strong>2</strong></div></th>
 										<th><div align="center"><strong>3</strong></div></th>
 										<th><div align="center"><strong>4</strong></div></th>
+										<th><div align="center"><strong>5</strong></div></th>
+										<th><div align="center"><strong>6</strong></div></th>
 									</tr>
 									</thead>
 						  			' . $voucher_arr['html'] . '
@@ -91,6 +97,8 @@ class Viewdebtopay extends SugarView
 										<td colspan="2"><strong>Cộng</strong></td>
 										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_qty']) . '</td>
 										<td></td>
+										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_supplier_discount']) . '</td>
+										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_ticketing_fee']) . '</td>
 										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_sell']) . '</td>
 										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_debt']) . '</td>
 										<td style="font-weight:bold;" align="right">' . format_number($voucher_arr['total_pay']) . '</td>
@@ -114,9 +122,9 @@ class Viewdebtopay extends SugarView
 			$smartyobj->assign('SUPPLIER_NAME', $_POST['supname_' . $supplier_id]);
 
 			if (isset($_POST['exportexcel'])) {
-				pr($_POST);
-				pr($html);
-				die;
+				// pr($_POST);
+				// pr($html);
+				// die;
 				ob_clean();
 				header("Pragma: cache");
 				require_once('modules/EC_Flight_Bookings/views/congnophaitra.xls.php');
@@ -403,6 +411,10 @@ class Viewdebtopay extends SugarView
 				,'' AS qty
 				,'' AS date_entered
 				,'' AS posted_date
+				
+				,'' AS ticketing_fee
+				,'' AS supplier_discount
+
 				,'' AS sell_amount
 				,'' AS debt_amount
 				,'' AS pay_amount
@@ -414,17 +426,16 @@ class Viewdebtopay extends SugarView
 			FROM (
 				-- START TERM 
 				SELECT p.id
-					  ,(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
-					  ,0 AS pay_amount
-				FROM ec_chitiettaikhoan" . $opening_year . " p
+					,(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
+					,0 AS pay_amount
+				FROM ec_chitiettaikhoan$opening_year p
 				WHERE p.deleted = 0
-				AND p.parent_type = 'Accounts' ";
+					AND p.parent_type = 'Accounts'";
 
 		if (!empty($accounting_code)) {
-			$sql .= " AND p.sotaikhoan = '" . $accounting_code . "' ";
+			$sql .= " AND p.sotaikhoan = '$accounting_code' ";
 		}
-
-		$sql .= " AND p.parent_id = '" . $supplier_id . "'";
+		$sql .= " AND p.parent_id = '$supplier_id'";
 
 		$sql .= " 
 			-- BOOKING DETAILS
@@ -436,12 +447,12 @@ class Viewdebtopay extends SugarView
 			FROM ec_booking_details d
 			LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.date_ticket_issue < '" . $fromDate . "'
-			AND d.total_bought_price > 0
-			AND d.supplier_id = '" . $supplier_id . "'
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.date_ticket_issue < '$fromDate'
+				AND d.total_bought_price > 0
+				AND d.supplier_id = '$supplier_id'
 
 			-- BOOKING PAXS OUTBOUND
 			UNION
@@ -455,10 +466,10 @@ class Viewdebtopay extends SugarView
 				AND p.booking_status IN ('7', '8')
 				AND p.is_ticket_exported = 1
 				AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-				AND p.date_ticket_issue < '" . $fromDate . "'
+				AND p.date_ticket_issue < '$fromDate'
 				-- AND d.luggage_price > 0
 				AND d.luggage_purchase > 0
-				AND d.supplier_id = '" . $supplier_id . "'
+				AND d.supplier_id = '$supplier_id'
 				AND d.add_type IS NULL 
 
 			-- BOOKING PAXS INBOUND
@@ -473,10 +484,10 @@ class Viewdebtopay extends SugarView
 				AND p.booking_status IN ('7', '8')
 				AND p.is_ticket_exported = 1
 				AND p.date_ticket_issue >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-				AND p.date_ticket_issue < '" . $fromDate . "'
+				AND p.date_ticket_issue < '$fromDate'
 				-- AND d.luggage_price_inbound > 0
 				AND d.luggage_purchase_inbound > 0
-				AND d.supplier_inbound_id = '" . $supplier_id . "'
+				AND d.supplier_inbound_id = '$supplier_id'
 				AND d.add_type IS NULL
 
 			-- RECEIPT
@@ -487,10 +498,10 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu = '9'
-			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . $fromDate . "'
-			AND p.account_id_c = '" . $supplier_id . "'
+				AND p.loai_thu = '9'
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu < '$fromDate'
+				AND p.account_id_c = '$supplier_id'
 
 			-- SUPPLIER 1
 			UNION
@@ -500,10 +511,10 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			" . $sql_hotel . "
-			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . $fromDate . "'
-			AND p.supplier_id = '" . $supplier_id . "'
+				$sql_hotel
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu < '$fromDate'
+				AND p.supplier_id = '$supplier_id'
 
 			-- SUPPLIER 2
 			UNION
@@ -513,10 +524,10 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			" . $sql_hotel . "
-			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . $fromDate . "'
-			AND p.supplier2_id = '" . $supplier_id . "'
+				$sql_hotel
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu < '$fromDate'
+				AND p.supplier2_id = '$supplier_id'
 
 			-- SUPPLIER 3
 			UNION
@@ -526,24 +537,24 @@ class Viewdebtopay extends SugarView
 				,0 AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			" . $sql_hotel . "
-			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . $fromDate . "'
-			AND p.supplier3_id = '" . $supplier_id . "'
+				$sql_hotel
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu < '$fromDate'
+				AND p.supplier3_id = '$supplier_id'
 
 			-- TICKET REFUND
 			UNION
 			SELECT c.id
-					,-IFNULL(c.sotienhang, 0) AS debt_amount
-					,0 AS pay_amount
+				,-IFNULL(c.sotienhang, 0) AS debt_amount
+				,0 AS pay_amount
 			FROM ec_chitiethoanve c
 			LEFT JOIN ec_hoanve p ON c.hoanve_id = p.id AND p.deleted = 0
 			WHERE c.deleted = 0
-			AND c.dahoan = 1
-			AND p.tinhtrang = '1'
-			AND p.ngayhachtoan >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngayhachtoan < '" . $fromDate . "'
-			AND c.nhacc_id = '" . $supplier_id . "'
+				AND c.dahoan = 1
+				AND p.tinhtrang = '1'
+				AND p.ngayhachtoan >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngayhachtoan < '$fromDate'
+				AND c.nhacc_id = '$supplier_id'
 
 			-- PAYMENT VOUCHER
 			UNION
@@ -553,53 +564,63 @@ class Viewdebtopay extends SugarView
 				,IFNULL(p.amount, 0) AS pay_amount
 			FROM ec_payment_voucher p
 			WHERE p.deleted = 0
-			AND p.pv_status = '3'
-			AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-			AND p.ngaychungtu < '" . $fromDate . "'
-			AND p.supplier_id = '" . $supplier_id . "'
+				AND p.pv_status = '3'
+				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+				AND p.ngaychungtu < '$fromDate'
+				AND p.supplier_id = '$supplier_id'
 		) AS tmp";
 
 		// Get voucher list
 		$sql .= "
 		-- TICKET BOOKING
 		UNION
-		SELECT p.id
-			  ,p.name AS voucher_name
-			  ,SUM(IFNULL( d.quantity, 0 )) AS qty
-			  ,p.date_entered
-			  ,IF(d.direction = 0, p.date_ticket_issue, p.date_ticket_inbound_issue) AS posted_date
-			  ,SUM(IFNULL(d.total_price, 0)) AS sell_amount
-			  ,SUM(IFNULL(d.total_bought_price, 0)) AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Flight_Bookings' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT 
+			p.id
+			,p.name AS voucher_name
+			,SUM(IFNULL( d.quantity, 0 )) AS qty
+			,p.date_entered
+			,IF(d.direction = 0, p.date_ticket_issue, p.date_ticket_inbound_issue) AS posted_date
+
+			,SUM(IFNULL(d.fee_bought, 0)) AS ticketing_fee
+			,SUM(IFNULL(d.supplier_discount, 0)) AS supplier_discount
+
+			,SUM(IFNULL(d.total_price, 0)) AS sell_amount
+			,SUM(IFNULL(d.total_bought_price, 0)) AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_Flight_Bookings' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_booking_details d
-		LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
-		WHERE d.deleted = 0
-		AND p.booking_status IN ('7', '8')
-		AND p.is_ticket_exported = 1
-		AND p.date_ticket_issue BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
-		AND d.supplier_id = '" . $supplier_id . "'
+			LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
+		WHERE p.date_ticket_issue BETWEEN '$fromDate' AND '$toDate'
+			AND p.booking_status IN ('7', '8')
+			AND p.is_ticket_exported = 1
+			AND d.supplier_id = '$supplier_id'
+			AND d.deleted = 0
 		GROUP BY d.booking_id
 		
 		-- BOOKING PAXS OUTBOUND
 		UNION
-		SELECT CONCAT(d.id, '-OUTBOUND') AS id
-			  ,CONCAT('HLCD-', p.name) AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,p.date_ticket_issue AS posted_date
-			  ,SUM(IFNULL(d.luggage_price, 0)) AS sell_amount
-			  ,SUM(IFNULL(d.luggage_purchase, 0)) AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Flight_Bookings' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT 
+			CONCAT(d.id, '-OUTBOUND') AS id
+			,CONCAT('HLCD-', p.name) AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,p.date_ticket_issue AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,SUM(IFNULL(d.luggage_price, 0)) AS sell_amount
+			,SUM(IFNULL(d.luggage_purchase, 0)) AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_Flight_Bookings' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_booking_passengers d
 		LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 		WHERE p.date_ticket_issue BETWEEN '$fromDate' AND '$toDate'
@@ -614,19 +635,24 @@ class Viewdebtopay extends SugarView
 		
 		-- BOOKING PAXS INBOUND
 		UNION
-		SELECT CONCAT(d.id, '-INBOUND') AS id
-			  ,CONCAT('HLCV-', p.name) AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,p.date_ticket_issue AS posted_date
-			  ,SUM(IFNULL(d.luggage_price_inbound, 0)) AS sell_amount
-			  ,SUM(IFNULL(d.luggage_purchase_inbound, 0)) AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Flight_Bookings' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT 
+			CONCAT(d.id, '-INBOUND') AS id
+			,CONCAT('HLCV-', p.name) AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,p.date_ticket_issue AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,SUM(IFNULL(d.luggage_price_inbound, 0)) AS sell_amount
+			,SUM(IFNULL(d.luggage_purchase_inbound, 0)) AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_Flight_Bookings' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_booking_passengers d
 		LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 		WHERE p.date_ticket_issue BETWEEN '$fromDate' AND '$toDate' 
@@ -641,148 +667,180 @@ class Viewdebtopay extends SugarView
 
 		-- RECEIPT
 		UNION
-		SELECT p.id AS id
-			  ,p.name AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,p.ngaychungtu AS posted_date
-			  ,0 AS sell_amount
-			  ,p.amount AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Receipt_Voucher' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT
+			p.id AS id
+			,p.name AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,p.ngaychungtu AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,0 AS sell_amount
+			,p.amount AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_Receipt_Voucher' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		AND p.loai_thu = '9'
-		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
-		AND p.account_id_c = '" . $supplier_id . "'
+			AND p.loai_thu = '9'
+			AND p.ngaychungtu BETWEEN '$fromDate' AND '$toDate'
+			AND p.account_id_c = '$supplier_id'
 
 		-- SUPPLIER 1
 		UNION
-		SELECT CONCAT(p.id, '-SUPPLIER1') AS id
-			  ,p.name AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,p.ngaychungtu AS posted_date
-			  ,IFNULL(p.sell_amount, 0) AS sell_amount
-			  ,IFNULL(p.bought_amount, 0) AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Receipt_Voucher' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT
+			CONCAT(p.id, '-SUPPLIER1') AS id
+			,p.name AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,p.ngaychungtu AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,IFNULL(p.sell_amount, 0) AS sell_amount
+			,IFNULL(p.bought_amount, 0) AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_Receipt_Voucher' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		" . $sql_hotel . "
-		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
-		AND p.supplier_id = '" . $supplier_id . "'
+			$sql_hotel
+			AND p.ngaychungtu BETWEEN '$fromDate' AND '$toDate'
+			AND p.supplier_id = '$supplier_id'
 
 		-- SUPPLIER 2
 		UNION
-		SELECT CONCAT(p.id, '-SUPPLIER2') AS id
-			  ,p.name AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,p.ngaychungtu AS posted_date
-			  ,IFNULL(p.sell_amount2, 0) AS sell_amount
-			  ,IFNULL(p.bought_amount2, 0) AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Receipt_Voucher' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT
+			CONCAT(p.id, '-SUPPLIER2') AS id
+			,p.name AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,p.ngaychungtu AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,IFNULL(p.sell_amount2, 0) AS sell_amount
+			,IFNULL(p.bought_amount2, 0) AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_Receipt_Voucher' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		" . $sql_hotel . "
-		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
-		AND p.supplier2_id = '" . $supplier_id . "'
+			$sql_hotel
+			AND p.ngaychungtu BETWEEN '$fromDate' AND '$toDate'
+			AND p.supplier2_id = '$supplier_id'
 
 		-- SUPPLIER 3
 		UNION
-		SELECT CONCAT(p.id, '-SUPPLIER3') AS id
-			  ,p.name AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) AS posted_date
-			  ,IFNULL(p.sell_amount3, 0) AS sell_amount
-			  ,IFNULL(p.bought_amount3, 0) AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Receipt_Voucher' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT
+			CONCAT(p.id, '-SUPPLIER3') AS id
+			,p.name AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,IFNULL(p.sell_amount3, 0) AS sell_amount
+			,IFNULL(p.bought_amount3, 0) AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_Receipt_Voucher' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_receipt_voucher p
 		WHERE p.deleted = 0
-		" . $sql_hotel . "
-		AND p.ngaychungtu BETWEEN '" . $fromDate . "' AND '" . $toDate . "'
-		AND p.supplier3_id = '" . $supplier_id . "'
+			$sql_hotel
+			AND p.ngaychungtu BETWEEN '$fromDate' AND '$toDate'
+			AND p.supplier3_id = '$supplier_id'
 
 		-- TICKET REFUND
 		UNION
-		SELECT p.id
-			  ,p.name AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,p.ngayhachtoan AS posted_date
-			  ,SUM(IFNULL(c.sotienkhach, 0)) AS sell_amount
-			  ,-SUM(IFNULL(c.sotienhang, 0)) AS debt_amount
-			  ,'' AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_HoanVe' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT
+			p.id
+			,p.name AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,p.ngayhachtoan AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,SUM(IFNULL(c.sotienkhach, 0)) AS sell_amount
+			,-SUM(IFNULL(c.sotienhang, 0)) AS debt_amount
+			,'' AS pay_amount
+			,'' AS remain_amount
+			,'EC_HoanVe' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_chitiethoanve c
 		LEFT JOIN ec_hoanve p ON c.hoanve_id = p.id AND p.deleted = 0
 		WHERE c.deleted = 0
-		AND c.dahoan = 1
-		AND p.tinhtrang = '1'
-		AND p.ngayhachtoan >= '" . $fromDate . "'
-		AND p.ngayhachtoan <= '" . $toDate . "'
-		AND c.nhacc_id = '" . $supplier_id . "'
+			AND c.dahoan = 1
+			AND p.tinhtrang = '1'
+			AND p.ngayhachtoan >= '$fromDate'
+			AND p.ngayhachtoan <= '$toDate'
+			AND c.nhacc_id = '$supplier_id'
 		GROUP BY c.hoanve_id
 
 		-- PAYMENT VOUCHER
 		UNION
-		SELECT p.id
-			  ,p.name AS voucher_name
-			  ,'' AS qty
-			  ,p.date_entered
-			  ,p.ngaychungtu AS posted_date
-			  ,'' AS sell_amount
-			  ,'' AS debt_amount
-			  ,IFNULL(p.amount, 0) AS pay_amount
-			  ,'' AS remain_amount
-			  ,'EC_Payment_Voucher' AS parent_type
-			  ,p.id AS parent_id
-			  ,p.description
-			  ,p.date_entered AS order_date
+		SELECT
+			p.id
+			,p.name AS voucher_name
+			,'' AS qty
+			,p.date_entered
+			,p.ngaychungtu AS posted_date
+
+			,0 AS ticketing_fee
+			,0 AS supplier_discount
+
+			,'' AS sell_amount
+			,'' AS debt_amount
+			,IFNULL(p.amount, 0) AS pay_amount
+			,'' AS remain_amount
+			,'EC_Payment_Voucher' AS parent_type
+			,p.id AS parent_id
+			,p.description
+			,p.date_entered AS order_date
 		FROM ec_payment_voucher p
 		WHERE p.deleted = 0
-		AND p.pv_status = '3'
-		AND p.ngaychungtu >= '" . $fromDate . "'
-		AND p.ngaychungtu <= '" . $toDate . "'
-		AND p.supplier_id = '" . $supplier_id . "'
+			AND p.pv_status = '3'
+			AND p.ngaychungtu >= '$fromDate'
+			AND p.ngaychungtu <= '$toDate'
+			AND p.supplier_id = '$supplier_id'
 		ORDER BY posted_date, order_date";
 
-		// if($GLOBALS['current_user']->user_name == 'hungnh') {
+		// if($GLOBALS['current_user']->user_name == 'admin') {
 		// 	pr($sql);
-		// } 
+		// }
 
 		$res 		= $db->query($sql);
 		$i 			= 0;
 		$html 		= '';
-		$total_sell 	= 0;
-		$total_debt 	= 0;
+		$total_sell = 0;
+		$total_debt = 0;
 		$total_pay 	= 0;
-		$total_remain 	= 0;
+		$total_remain = 0;
 		$total_qty = 0;
+		$total_ticketing_fee = 0;
+		$total_supplier_discount = 0;
 
 		while ($row = $db->fetchByAssoc($res)) {
 			if ($row['voucher_name'] == 'OPN') {
@@ -795,29 +853,55 @@ class Viewdebtopay extends SugarView
 					<td>&nbsp;</td>
 					<td>&nbsp;</td>
 					<td>&nbsp;</td>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
 					<td style="font-weight:bold;" align="right">' . format_number($row['remain_amount']) . '</td>
 				</tr>';
-			} else {
+			} 
+			else {
 				$total_sell += (int)$row['sell_amount'];
-				$total_debt += (int)$row['debt_amount'];
+
+				$debt_amount = (int)$row['debt_amount'];
+				$debt_amount += (int)$row['ticketing_fee'];
+				$debt_amount -= (int)$row['supplier_discount'];
+
+				$total_ticketing_fee += (int)$row['ticketing_fee'];
+				$total_supplier_discount += (int)$row['supplier_discount'];
+
+				$total_debt += $debt_amount;
 				$total_pay += (int)$row['pay_amount'];
 				$total_qty += (int)$row['qty'];
-				$total_remain += (int)$row['debt_amount'] - (int)$row['pay_amount'];
+				$total_remain += $debt_amount - (int)$row['pay_amount'];
+
+
 				$html .= '<tr>
-							<td align="center">' . date('d/m/Y', strtotime($row['posted_date'])) . '</td>
-							<td><a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '" target="_blank">' . $row['voucher_name'] . '</a></td>
-							<td align="center">' . $row['qty'] . '</td>
-							<td>' . $row['description'] . '</td>
-							<td align="right">' . (!empty($row['sell_amount']) ? format_number($row['sell_amount']) : '') . '</td>
-							<td align="right">' . (!empty($row['debt_amount']) ? format_number($row['debt_amount']) : '') . '</td>
-							<td align="right">' . (!empty($row['pay_amount']) ? '-' . format_number($row['pay_amount']) : '') . '</td>
-							<td align="right">' . format_number($total_remain) . '</td>
-					</tr>';
+					<td align="center">' . date('d/m/Y', strtotime($row['posted_date'])) . '</td>
+					<td><a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['parent_id'] . '" target="_blank">' . $row['voucher_name'] . '</a></td>
+					<td align="center">' . $row['qty'] . '</td>
+					<td>' . $row['description'] . '</td>
+
+					<td>' . ($row['supplier_discount'] > 0 ? format_number($row['supplier_discount'] ?? 0) : '') . '</td>
+					<td>' . ($row['ticketing_fee'] > 0 ? format_number($row['ticketing_fee'] ?? 0) : '') . '</td>
+
+					<td align="right">' . (!empty($row['sell_amount']) ? format_number($row['sell_amount']) : '') . '</td>
+					<td align="right">' . (!empty($debt_amount) ? format_number($debt_amount) : '') . '</td>
+					<td align="right">' . (!empty($row['pay_amount']) ? '-' . format_number($row['pay_amount']) : '') . '</td>
+					<td align="right">' . format_number($total_remain) . '</td>
+				</tr>';
 			}
 
 			$i++;
 		} // while
 
-		return array('html' => $html, 'total_qty' => $total_qty, 'total_sell' => $total_sell, 'total_debt' => $total_debt, 'total_pay' => '-' . $total_pay, 'total_remain' => $total_remain);
+		return array(
+			'html' => $html,
+			'total_qty' => $total_qty,
+			'total_ticketing_fee' => $total_ticketing_fee,
+			'total_supplier_discount' => $total_supplier_discount,
+			'total_sell' => $total_sell,
+			'total_debt' => $total_debt,
+			'total_pay' => '-' . $total_pay,
+			'total_remain' => $total_remain
+		);
 	}
 }
