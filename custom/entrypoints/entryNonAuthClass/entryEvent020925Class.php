@@ -570,13 +570,13 @@ class entryEvent020925Class extends entryClass {
             }
 
             if(empty($prizeId) || !$prizeId) {
-                // Check limit prize
-                $listSpinPrize = $this->getSpinPrizesStorage();
-                $limit = $listSpinPrize[$typePrize] ?? 0;
-                if($limit < 1 || $limit > 10) return ["status" => 0, "message" => "The reward has run out", "messageVi" => "Rất tiếc, phần thưởng bạn trúng đã hết"]; 
-
                 $prizeId = time();
                 if(in_array($typePrize, ['raincoat', 'helmet', 'backpack'])) {
+                    // Check limit prize
+                    $listSpinPrize = $this->getSpinPrizesStorage();
+                    $limit = $listSpinPrize[$typePrize] ?? 0;
+                    if($limit < 1 || $limit > 10) return ["status" => 0, "message" => "The reward has run out", "messageVi" => "Rất tiếc, phần thưởng bạn trúng đã hết"]; 
+
                     $prize = 1;
                     $listSpinPrize[$typePrize] -= 1;
                     $this->writeFile($this->spinPrizesStorage, json_encode($listSpinPrize));
