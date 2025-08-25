@@ -11,6 +11,7 @@ class entryEvent020925Class extends entryClass {
     private $userStorage;
     private $phoneStorage;
     private $emailStorage;
+    private $spinPrizesStorage;
     private $botToken;
     private $chatId;
     private $threadId;
@@ -22,6 +23,7 @@ class entryEvent020925Class extends entryClass {
         $this->directoryData = "custom/json_files/event_02_09_2025";
         $this->phoneStorage = "$this->directoryData/list_phone.json";
         $this->emailStorage = "$this->directoryData/list_email.json";
+        $this->spinPrizesStorage = "$this->directoryData/list_spin_prizes.json";
         $this->userStorage = "$this->directoryData/users";
         $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
         $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
@@ -31,7 +33,7 @@ class entryEvent020925Class extends entryClass {
     }
 
     /**
-     * Get round number from round ID
+     * Get list phone
      * 
      * @return array
      */
@@ -45,13 +47,27 @@ class entryEvent020925Class extends entryClass {
     }
 
     /**
-     * Get round number from round ID
+     * Get list email
      * 
      * @return array
      */
     public function getListEmail() {
         if (file_exists($this->emailStorage)) {
             $json = file_get_contents($this->emailStorage);
+            if(empty($json)) return [];
+            return json_decode($json, true);
+        }
+        return [];
+    }
+
+    /**
+     * Get list spin prize
+     * 
+     * @return array
+     */
+    public function getSpinPrizesStorage() {
+        if (file_exists($this->spinPrizesStorage)) {
+            $json = file_get_contents($this->spinPrizesStorage);
             if(empty($json)) return [];
             return json_decode($json, true);
         }
@@ -535,7 +551,7 @@ class entryEvent020925Class extends entryClass {
             return ["status" => 0, "message" => "Invalid code value"];
         if(!is_string($typePrize) || !in_array($typePrize, ['voucher', 'topupCard', 'raincoat', 'helmet', 'backpack']))
             return ["status" => 0, "message" => "Invalid type prize value"];
-        if($prize < 1 || ($typePrize == "topupCard" && $prize > 20000) || ($typePrize == "voucher" && $prize > 50000)) 
+        if($prize < 1 || ($typePrize == "topupCard" && $prize > 20000) || ($typePrize == "voucher" && $prize > 70000)) 
             return ["status" => 0, "message" => "Invalid prize value"];
 
         $arr = $this->getUserInfo(['code' => $code]);
@@ -554,8 +570,17 @@ class entryEvent020925Class extends entryClass {
             }
 
             if(empty($prizeId) || !$prizeId) {
+                // Check limit prize
+                $listSpinPrize = $this->getSpinPrizesStorage();
+                $limit = $listSpinPrize[$typePrize] ?? 0;
+                if($limit < 1 || $limit > 10) return ["status" => 0, "message" => "The reward has run out", "messageVi" => "Rất tiếc, phần thưởng bạn trúng đã hết"]; 
+
                 $prizeId = time();
-                if(in_array($typePrize, ['raincoat', 'helmet', 'backpack'])) $prize = 1;
+                if(in_array($typePrize, ['raincoat', 'helmet', 'backpack'])) {
+                    $prize = 1;
+                    $listSpinPrize[$typePrize] -= 1;
+                    $this->writeFile($this->spinPrizesStorage, json_encode($listSpinPrize));
+                }
                 $currentPrizes[$prizeId] = [
                     'type' => $typePrize,
                     'prize' => $prize,
