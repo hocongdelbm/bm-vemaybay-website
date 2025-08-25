@@ -94,95 +94,85 @@ $searchFields['EC_Flight_Bookings'] = array(
     //     ),
     // ),
 
-    'passenger_search' =>
-    array(
+    'passenger_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id FROM ec_booking_passengers WHERE deleted = 0 AND name LIKE',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+        'db_field' => array('id'),
     ),
-    'airline_code_search' =>
-    array(
+
+    'airline_code_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id FROM ec_booking_itineraries WHERE deleted = 0 AND airline_code LIKE',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+        'db_field' => array('id'),
     ),
-    'ticket_class_search' =>
-    array(
+
+    'ticket_class_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id FROM ec_booking_itineraries WHERE deleted = 0 AND ticket_class LIKE',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+        'db_field' => array('id'),
     ),
-    'itinerary_search' =>
-    array(
+
+    'itinerary_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_itineraries
 			WHERE deleted = 0 AND CONCAT(departure,\'-\',arrival) LIKE',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+        'db_field' => array('id'),
     ),
-    'eticket_outbound_search' =>
-    array(
+
+    'eticket_outbound_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
-        FROM ec_booking_passengers
-        WHERE deleted = 0 AND eticket_outbound LIKE',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+            FROM ec_booking_passengers
+            WHERE deleted = 0 AND eticket_outbound LIKE',
+        'db_field' => array('id'),
     ),
-    'eticket_inbound_search' =>
-    array(
+    'eticket_inbound_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
 			WHERE deleted = 0 AND eticket_inbound LIKE',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+        'db_field' => array('id'),
     ),
-    'pnr_outbound_search' =>
-    array(
+
+    'eluggage_outbound_search' => array(
+		'query_type' => 'default',
+		'operator' => 'subquery',
+		'subquery' => 'SELECT booking_id
+			FROM ec_booking_passengers
+			WHERE eluggage_outbound LIKE',
+		'db_field' => array('id'),
+	),
+	'eluggage_inbound_search' => array(
+		'query_type' => 'default',
+		'operator' => 'subquery',
+		'subquery' => 'SELECT booking_id
+			FROM ec_booking_passengers
+			WHERE eluggage_inbound LIKE',
+		'db_field' => array('id'),
+	),
+
+    'pnr_outbound_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
 			WHERE deleted = 0 AND pnr_outbound LIKE',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+        'db_field' => array('id'),
     ),
-    'pnr_inbound_search' =>
-    array(
+    'pnr_inbound_search' => array(
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
-			WHERE deleted = 0 AND pnr_inbound LIKE ',
-        'db_field' =>
-        array(
-            0 => 'id',
-        ),
+			WHERE deleted = 0 AND pnr_inbound LIKE',
+        'db_field' => array('id'),
     ),
     // 'departure_date' =>
     // array(

@@ -47,8 +47,7 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_BOOKING_STATUS',
         'width' => '8%',
     ),
-    'RECALL_C' => 
-	array (
+    'RECALL_C' => array (
 		'width' => '10%',
 		'label' => 'LBL_RECALL_C',
 		'default' => true,

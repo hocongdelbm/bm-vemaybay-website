@@ -76,13 +76,15 @@ $mod_strings = array(
   // 'LBL_ORDER_DATE' => 'Ngày đặt',
 
   'LBL_PASSENGER_SEARCH'        => 'Tên hành khách',
-  'LBL_ITINERARY_SEARCH'        => 'Hành trình (SGN-HAN)',
+  'LBL_ITINERARY_SEARCH'        => 'Hành trình',
   'LBL_TICKET_CLASS_SEARCH'     => 'Hạng vé',
   'LBL_AIRLINE_CODE_SEARCH'     => 'Mã hãng',
   'LBL_ETICKET_OUTBOUND_SEARCH' => 'Số vé đi',
   'LBL_ETICKET_INBOUND_SEARCH'  => 'Số vé về',
   'LBL_PNR_OUTBOUND_SEARCH'     => 'PNR đi',
   'LBL_PNR_INBOUND_SEARCH'      => 'PNR về',
+  'LBL_ELUGGAGE_OUTBOUND_SEARCH' => 'Số vé HL đi',
+  'LBL_ELUGGAGE_INBOUND_SEARCH'  => 'Số vé HL về',
 
   'LBL_SENDMAIL_CONFIRM_DATE' => 'Ngày gửi mail xác nhận',
   'LBL_SENDMAIL_ETICKET_DATE' => 'Gửi vé qua mail',

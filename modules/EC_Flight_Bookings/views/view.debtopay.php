@@ -862,8 +862,8 @@ class Viewdebtopay extends SugarView
 				$total_sell += (int)$row['sell_amount'];
 
 				$debt_amount = (int)$row['debt_amount'];
-				$debt_amount += (int)$row['ticketing_fee'];
-				$debt_amount -= (int)$row['supplier_discount'];
+				// $debt_amount += (int)$row['ticketing_fee'];
+				// $debt_amount -= (int)$row['supplier_discount'];
 
 				$total_ticketing_fee += (int)$row['ticketing_fee'];
 				$total_supplier_discount += (int)$row['supplier_discount'];
