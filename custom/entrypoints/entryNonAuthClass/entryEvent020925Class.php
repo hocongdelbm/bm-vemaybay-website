@@ -114,6 +114,7 @@ class entryEvent020925Class extends entryClass {
         try {
             $offset = (int)($params['offset'] ?? 0);
             $limit  = (int)($params['limit'] ?? 50);
+            if($offset < 0) $offset = 0;
             if($limit > 100) $limit = 100;
             $files  = glob("$this->userStorage/*.json");
 
