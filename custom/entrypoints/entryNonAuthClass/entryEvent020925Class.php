@@ -112,16 +112,17 @@ class entryEvent020925Class extends entryClass {
      */
     public function getListUser($params = []) {
         try {
-            $offset = (int)($params['offset'] ?? 0);
-            $limit  = (int)($params['limit'] ?? 50);
-            if($offset < 0) $offset = 0;
-            if($limit > 100) $limit = 100;
+            // $offset = (int)($params['offset'] ?? 0);
+            // $limit  = (int)($params['limit'] ?? 50);
+            // if($offset < 0) $offset = 0;
+            // if($limit > 100) $limit = 100;
             $files  = glob("$this->userStorage/*.json");
 
             $results = [];
             foreach ($files as $file) {
                 $userFileName = basename($file);
-                if(stripos($userFileName, "-") !== false || strlen($userFileName) < 10) continue;
+                $lengthFileName = strlen($userFileName);
+                if(stripos($userFileName, "-") !== false || $lengthFileName < 10 || $lengthFileName > 32) continue;
 
                 $json = file_get_contents($file);
                 $data = json_decode($json, true);
@@ -134,7 +135,7 @@ class entryEvent020925Class extends entryClass {
             }
             krsort($results); // Sort by key
 
-            $results = array_slice($results, $offset, $limit);
+            // $results = array_slice($results, $offset, $limit);
             return ["status" => 1, "message" => "Success", "data" => array_values($results)];
         }
         catch(Throwable $th) {
@@ -318,8 +319,18 @@ class entryEvent020925Class extends entryClass {
                 try {
                     if($status == 0) {
                         $phoneNumber = $userData['phoneNumber'];
-                        $message = "🌟 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>\n<i>Code: $code</i>";
-                        Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->botToken, $this->chatId, $this->threadId);
+                        $message = "🌟 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>";
+                        $message .= "\n<i>Card ID: $cardId</i>";
+                        $message .= "\n<i>Code: $code</i>";
+                        $inline_keyboard = [
+                            [
+                                [
+                                    "text" => "Đã nạp",
+                                    "callback_data" => "updateUserTopupCards|$code|$value|$cardId"
+                                ]
+                            ]
+                        ];
+                        Telegram::sendInlineKeyboardMessage($message, $inline_keyboard, $this->botToken, $this->chatId, $this->threadId);
 
                         // $phoneNumber = $userData['phoneNumber'];
                         // $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ". format_number($value, null, 0) ."đ\n<i>Card ID: $cardId</i>";
@@ -482,93 +493,6 @@ class entryEvent020925Class extends entryClass {
                 return ["status" => 1, "message" => "Set round success", "data" => $currentRoundData];
             }
             return ["status" => 0, "message" => "Set round failed"];
-
-
-
-            // // Prepare data
-            // $roundId = time() . "-$round";
-            // $roundStatus = 1;
-
-            // $roundQuestions = [];
-            // foreach($questions as $q) {
-            //     if((int)$q['status'] != 1) $roundStatus = 0;
-            //     $roundQuestions[$q['id']] = [
-            //         "id" => $q['id'],
-            //         "answer" => $q['answer'],
-            //         "status" => (int)$q['status']
-            //     ];
-            // }
-            // $roundData = [
-            //     "id"        => $roundId,
-            //     "round"     => $round,
-            //     "status"    => $roundStatus,
-            //     "point"     => $point,
-            //     "questions" => $roundQuestions
-            // ];
-
-            // // Map round data
-            // $userData = $arr['data'] ?? [];
-            // $countTurnsInDay = 0;
-            // // First round
-            // if(!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')])) {
-            //     // Check result of previous round before adding
-            //     if($round > 1) return [
-            //         "status" => 0,
-            //         "message" => "Previous round invalid",
-            //         "messageVi" => "Chưa hoàn thành vòng chơi trước",
-            //     ];
-
-            //     $countTurnsInDay = 1;
-            //     $userData['logs'][date('Ymd')][] = [$roundId => $roundData];
-            // }
-            // else {
-            //     $index = $round > 1 ? count($userData['logs'][date('Ymd')]) - 1 : count($userData['logs'][date('Ymd')]);
-            //     if($index > 1) return [
-            //         "status" => 0,
-            //         "message" => "Maximum 2 turns per day",
-            //         "messageVi" => "Đã đạt số lần chơi tối đa trong ngày"
-            //     ];
-
-            //     // Check result of previous round before adding
-            //     if($round > 1) {
-            //         foreach($userData['logs'][date('Ymd')][$index] as $r) {
-            //             if(!isset($r['status']) || $r['status'] == 0) return [
-            //                 "status" => 0,
-            //                 "message" => "Did not complete the previous round",
-            //                 "messageVi" => "Chưa hoàn thành vòng chơi trước"
-            //             ];
-            //         }
-            //     }
-
-            //     $countTurnsInDay = $index + 1;
-            //     $userData['logs'][date('Ymd')][$index][$roundId] = $roundData;
-            // }
-            // // Update total point
-            // if($roundStatus == 1) {
-            //     if($round == 1 && $countTurnsInDay > 1) $userData['totalPoint'] = $point; // Reset total point
-            //     else $userData['totalPoint'] += $point;
-            // }
-            // if($round == 1) {
-            //     if(isset($userData['turnsRemaining']) && $userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
-            //     else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
-            // }
-            // if($round == 3) {
-            //     if($roundStatus == 1) {
-            //         $userData['status'] = 1;
-            //         $userData['voucher'] += 200000;
-            //     }
-            //     else {
-            //         $userData['status'] = 0;
-            //     }
-            // }
-            // $userData['updatedAt'] = date('Y-m-d H:i:s');
-            
-            // // Save data
-            // $fileName = "$this->userStorage/$code.json";
-            // if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
-            //     return ["status" => 1, "message" => "Set round success", "data" => $roundData];
-            // }
-            // return ["status" => 0, "message" => "Set round failed"];
         }
         return $arr;
     }
@@ -638,14 +562,27 @@ class entryEvent020925Class extends entryClass {
                         "backpack" => "Balo",
                     ];
                     if(isset($mapLabelPrizes[$typePrize])) {
+                        // $phoneNumber = $userData['phoneNumber'] ?? '';
+                        // $message = "🎁 Người chơi $phoneNumber đã nhận được <b>". $mapLabelPrizes[$typePrize] ."</b>";
+                        // if($typePrize == "topupCard") $message .= " trị giá <b>". format_number($prize, null, 0) ."đ</b>";
+                        // $message .= "\n<i>Prize ID: $prizeId</i>";
+                        // $message .= "\n<i>Code: $code</i>";
+                        // Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId3);
+
                         $phoneNumber = $userData['phoneNumber'] ?? '';
                         $message = "🎁 Người chơi $phoneNumber đã nhận được <b>". $mapLabelPrizes[$typePrize] ."</b>";
                         if($typePrize == "topupCard") $message .= " trị giá <b>". format_number($prize, null, 0) ."đ</b>";
                         $message .= "\n<i>Prize ID: $prizeId</i>";
                         $message .= "\n<i>Code: $code</i>";
-                        
-                        // Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->botToken, $this->chatId, $this->threadId3);
-                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId3);
+                        $inline_keyboard = [
+                            [
+                                [
+                                    "text" => "Đã trao thưởng",
+                                    "callback_data" => "setSpinPrize|$code|$typePrize|$prize|$prizeId"
+                                ]
+                            ]
+                        ];
+                        Telegram::sendInlineKeyboardMessage($message, $inline_keyboard, $this->botToken, $this->chatId, $this->threadId3);
                     }
                 }
                 catch(Throwable $th) {}
