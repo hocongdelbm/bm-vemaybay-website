@@ -105,6 +105,43 @@ class entryEvent020925Class extends entryClass {
     }
 
     /**
+     * Get list user
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getListUser($params = []) {
+        try {
+            $offset = (int)($params['offset'] ?? 0);
+            $limit  = (int)($params['limit'] ?? 50);
+            if($limit > 100) $limit = 100;
+            $files  = glob("$this->userStorage/*.json");
+
+            $results = [];
+            foreach ($files as $file) {
+                $userFileName = basename($file);
+                if(stripos($userFileName, "-") !== false || strlen($userFileName) < 10) continue;
+
+                $json = file_get_contents($file);
+                $data = json_decode($json, true);
+                if(!is_array($data) || empty($data)) continue;
+
+                $idName     = $data['idName'] ?? '';
+                $code       = $data[$idName] ?? '';
+                $createdAt  = $data['createdAt'] ?? '';
+                $results[strtotime($createdAt).$code] = $data;
+            }
+            krsort($results); // Sort by key
+
+            $results = array_slice($results, $offset, $limit);
+            return ["status" => 1, "message" => "Success", "data" => array_values($results)];
+        }
+        catch(Throwable $th) {
+            return ["status" => 0, "message" => $th->getMessage(), "data" => null];
+        }
+    }
+
+    /**
      * Add user to event
      * 
      * @param array $params
