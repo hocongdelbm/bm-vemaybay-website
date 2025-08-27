@@ -11,49 +11,93 @@ class Viewrequestinvoice extends SugarView {
 
     public function populateOIVoucherList($smarty, $post_fields) {
         global $app_list_strings;
-        $where = $this->populateCondition($smarty, $post_fields);
+        $whereCondition = $this->populateCondition($smarty, $post_fields);
 
-        $sql = "SELECT bk.id AS booking_id
+        $sql = "SELECT rv.booking_id
+                ,rv.ngaychungtu
+                ,GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') AS receipt_vouchers_data
                 ,bk.name AS booking_name
                 ,bk.company_name
                 ,bk.tax_code
                 ,bk.company_address
                 ,bk.shipping_address
                 ,bk.is_output_invoice_checked
-                ,DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS date_entered
-                ,(
-                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') 
-                    FROM ec_receipt_voucher rv
-                    WHERE rv.booking_id = bk.id
-                        AND rv.deleted = 0
-                        AND rv.loai_thu IN('1', '4', '5')
-                        AND (
-                            (
-                                rv.receipt_type = 'credit_transfer'
-                                AND rv.tknganhang_id IN(
-                                    'c0b01f56-0778-de4a-da11-65f937520972',
-                                    'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
-                                    '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
-                                    '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
-                                )
-                            )
-                            OR rv.receipt_type = 'cash'
-                        )
-                ) AS receipt_vouchers_data
                 ,(
                     SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
                     FROM ec_chitiethoadon ct
                         INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
-                    WHERE ct.booking_id = bk.id AND hd.deleted = 0 AND ct.deleted = 0
+                    WHERE ct.booking_id = rv.booking_id
+                        AND hd.ngayhoadon = rv.ngaychungtu
+                        AND hd.deleted = 0
+                        AND ct.deleted = 0
                 ) AS out_inv_data
                 ,(
                     SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', inv.invoice_number, inv.supplier, inv.name) SEPARATOR '|')
                     FROM ec_input_invoices inv
-                    WHERE inv.booking_id = bk.id AND inv.deleted = 0
+                    WHERE inv.booking_id = rv.booking_id
+                        AND inv.deleted = 0
                 ) AS in_inv_data
-            FROM ec_flight_bookings bk
-            WHERE bk.booking_status = 8 AND bk.deleted = 0 $where
-            ORDER BY bk.date_entered DESC";
+            FROM ec_receipt_voucher rv
+                LEFT JOIN ec_flight_bookings bk ON bk.id = rv.booking_id
+            WHERE $whereCondition
+                AND rv.loai_thu IN('1', '4', '5')
+                AND (
+                    rv.receipt_type = 'cash'
+                    OR (
+                        rv.receipt_type = 'credit_transfer'
+                        AND rv.tknganhang_id IN(
+                            'c0b01f56-0778-de4a-da11-65f937520972',
+                            'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
+                            '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
+                            '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
+                        )
+                    )
+                )
+                AND rv.deleted = 0
+            GROUP BY rv.booking_id
+            ORDER BY rv.ngaychungtu DESC";
+
+        // $sql = "SELECT bk.id AS booking_id
+        //         ,bk.name AS booking_name
+        //         ,bk.company_name
+        //         ,bk.tax_code
+        //         ,bk.company_address
+        //         ,bk.shipping_address
+        //         ,bk.is_output_invoice_checked
+        //         ,DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS date_entered
+        //         ,(
+        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') 
+        //             FROM ec_receipt_voucher rv
+        //             WHERE rv.booking_id = bk.id
+        //                 AND rv.deleted = 0
+        //                 AND rv.loai_thu IN('1', '4', '5')
+        //                 AND (
+        //                     (
+        //                         rv.receipt_type = 'credit_transfer'
+        //                         AND rv.tknganhang_id IN(
+        //                             'c0b01f56-0778-de4a-da11-65f937520972',
+        //                             'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
+        //                             '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
+        //                             '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
+        //                         )
+        //                     )
+        //                     OR rv.receipt_type = 'cash'
+        //                 )
+        //         ) AS receipt_vouchers_data
+        //         ,(
+        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
+        //             FROM ec_chitiethoadon ct
+        //                 INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
+        //             WHERE ct.booking_id = bk.id AND hd.deleted = 0 AND ct.deleted = 0
+        //         ) AS out_inv_data
+        //         ,(
+        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', inv.invoice_number, inv.supplier, inv.name) SEPARATOR '|')
+        //             FROM ec_input_invoices inv
+        //             WHERE inv.booking_id = bk.id AND inv.deleted = 0
+        //         ) AS in_inv_data
+        //     FROM ec_flight_bookings bk
+        //     WHERE bk.booking_status = 8 AND bk.deleted = 0 $where
+        //     ORDER BY bk.date_entered DESC";
 
         // $sql    = '
         //     SELECT id, name, DATE_ADD(date_entered, INTERVAL 7 HOUR) AS date_entered,
@@ -150,7 +194,7 @@ class Viewrequestinvoice extends SugarView {
 
             $html .= '<tr>
                 <td class="text-center">'. (++$i) .'</td>
-                <td class="text-center">'. date('d-m-Y', strtotime($row['date_entered'])) .'</td>
+                <td class="text-center">'. date('d-m-Y', strtotime($row['ngaychungtu'])) .'</td>
                 <td class="text-center">
                     <a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='. $row['booking_id'] .'" target="_blank">'. $row['booking_name'] .'</a>
                     <form action="index.php" method="post" target="_blank" class="mt-2">
@@ -270,7 +314,7 @@ class Viewrequestinvoice extends SugarView {
         // Tìm kiếm theo booking
         if (!empty($post_fields['booking']) && !isset($post_fields['clear_btn'])) {
             $post_fields['from_date'] = $post_fields['to_date'] = '';
-            $sql = ' AND name = "' . $post_fields['booking'] . '"';
+            $sql = 'bk.name = "' . $post_fields['booking'] . '"';
         } 
         // Tìm kiếm mặc định
         else {
@@ -280,7 +324,7 @@ class Viewrequestinvoice extends SugarView {
             } else {
                 $post_fields['from_date'] = date('Y-m-d');
             }
-            $sql .= ' AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . $post_fields['from_date'] . '"';
+            $sql .= 'DATE_FORMAT(DATE_ADD(ngaychungtu, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . $post_fields['from_date'] . '"';
             $post_fields['from_date'] = date('d-m-Y', strtotime($post_fields['from_date']));
 
             // Đến ngày
@@ -289,7 +333,7 @@ class Viewrequestinvoice extends SugarView {
             } else {
                 $post_fields['to_date'] = date('Y-m-d');
             }
-            $sql .= ' AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . $post_fields['to_date'] . '"';
+            $sql .= ' AND DATE_FORMAT(DATE_ADD(ngaychungtu, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . $post_fields['to_date'] . '"';
             $post_fields['to_date'] = date('d-m-Y', strtotime($post_fields['to_date']));
 
             // Booking
@@ -299,7 +343,7 @@ class Viewrequestinvoice extends SugarView {
             $day = (strtotime($post_fields['to_date']) - strtotime($post_fields['from_date'])) / (60 * 60 * 24);
             if($day > 30) {
                 $post_fields['from_date'] = $post_fields['to_date'] = date('d-m-Y');
-                $sql = 'AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
+                $sql = ' AND DATE_FORMAT(DATE_ADD(ngaychungtu, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
             }
         }
 
