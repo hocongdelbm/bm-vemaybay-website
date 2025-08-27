@@ -27,7 +27,7 @@ class Viewrequestinvoice extends SugarView {
                     FROM ec_chitiethoadon ct
                         INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
                     WHERE ct.booking_id = rv.booking_id
-                        AND hd.ngayhoadon = rv.ngaychungtu
+                        -- AND hd.ngayhoadon = rv.ngaychungtu
                         AND hd.deleted = 0
                         AND ct.deleted = 0
                 ) AS out_inv_data
