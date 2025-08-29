@@ -133,7 +133,7 @@ try {
                         ,(IFNULL(bkd.airport_fee, 0) + IFNULL(bkd.admin_fee, 0)) AS fee
                     FROM ec_booking_details bkd
                     WHERE bkd.booking_id = '$bookingId' AND bkd.deleted = 0
-                    ORDER BY bkd.direction, bkd.passenger_type";
+                    ORDER BY bkd.direction, bkd.passenger_type, bkd.date_entered";
                 $res_3 = $db->query($sql_3);
                 while ($row = $db->fetchByAssoc($res_3)) {
                     if($row['passenger_type'] === '0' && $adtCount < 1) continue;
@@ -393,7 +393,13 @@ try {
                         WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND passenger_type = '$i'
-                            AND deleted = 0";
+                            AND deleted = 0
+                            AND date_entered = (
+                                SELECT max(date_entered)
+                                FROM ec_booking_details 
+                                WHERE booking_id = '$bookingId' AND direction = '$direction' AND passenger_type = '$i' AND deleted = 0
+                            )
+                    ";
                     if(!$db->query($sql)) $statusUpdate = false;
                     if($type == 'adt') $basePrice = $fare;
                 }
@@ -766,6 +772,12 @@ try {
                                             WHERE p.id IN ($inListPassengerId)
                                                 AND p.booking_id = '$bookingId' 
                                                 AND p.deleted = 0
+                                        )
+                                        AND date_entered IN (
+                                            SELECT DISTINCT max(date_entered)
+                                            FROM ec_booking_details 
+                                            WHERE booking_id = '$bookingId' AND deleted = 0
+                                            GROUP BY direction, passenger_type
                                         )";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
@@ -879,6 +891,12 @@ try {
                                             WHERE p.id IN ($inListPassengerId)
                                                 AND p.booking_id = '$bookingId' 
                                                 AND p.deleted = 0
+                                        )
+                                        AND date_entered IN (
+                                            SELECT DISTINCT max(date_entered)
+                                            FROM ec_booking_details 
+                                            WHERE booking_id = '$bookingId' AND direction = '$direction' AND deleted = 0
+                                            GROUP BY passenger_type
                                         )";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
