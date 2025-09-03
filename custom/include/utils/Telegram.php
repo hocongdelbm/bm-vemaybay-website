@@ -95,32 +95,64 @@ class Telegram {
         return $res;
     }
 
-    public static function sendWebhookMessage($code, $reward_value, $cardId, $message, $bot_token, $chat_id, $thread_id = '', $parse_mode = "html"){
-        $keyboard = [
-            'inline_keyboard' => [
-                ['text' =>  'Đã trả thưởng', "callback_data" => "$code|$reward_value|$cardId"]    
+    // public static function sendWebhookMessage($code, $reward_value, $cardId, $message, $bot_token, $chat_id, $thread_id = '', $parse_mode = "html"){
+    //     $url = "https://api.telegram.org/bot{$bot_token}/sendMessage";
+    //     $params = [
+    //         "chat_id" => $chat_id,
+    //         "message_thread_id" => $thread_id,
+    //         "text" => $message,
+    //         "parse_mode" => $parse_mode,
+    //         "reply_markup" => [
+    //             "inline_keyboard" => [
+    //                 [
+    //                     [
+    //                         "text" =>  "Đã nạp",
+    //                         "callback_data" => "$code|$reward_value|$cardId"
+    //                     ]
+    //                 ]    
+    //             ]
+    //         ]
+    //     ];
+
+    //     $curl = curl_init();
+    //     curl_setopt($curl, CURLOPT_URL, $url);
+    //     curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    //     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    //     curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+    //     curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+    //     curl_setopt($curl, CURLOPT_TIMEOUT, 16);
+    //     curl_setopt($curl, CONNECTION_TIMEOUT, 10);
+    //     curl_setopt($curl, CURLOPT_POST, true);
+    //     curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
+    //     $response = curl_exec($curl);
+    //     curl_close($curl);
+    //     return $response;
+    // }
+
+    public static function sendInlineKeyboardMessage($message, $bot_token, $chat_id, $thread_id, $inline_keyboard, $parse_mode = "html"){
+        $url = "https://api.telegram.org/bot{$bot_token}/sendMessage";
+        $params = [
+        "chat_id" => $chat_id,
+        "message_thread_id" => $thread_id,
+        "text" => $message,
+        "parse_mode" => $parse_mode,
+        "reply_markup" => [
+                "inline_keyboard" => $inline_keyboard
             ]
         ];
 
-        $url = "https://api.telegram.org/bot{$bot_token}/sendMessage";
-        $params = [
-            'chat_id' => $chat_id,
-            'text' => $message,
-            'parse_mode' => $parse_mode,
-            'reply_markup' => $keyboard
-        ];
         $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 12);
-            curl_setopt($curl, CONNECTION_TIMEOUT, 6);
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
-            $response = curl_exec($curl);
-            curl_close($curl);
-            return $response;
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 16);
+        curl_setopt($curl, CONNECTION_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return $response;
     }
 }

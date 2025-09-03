@@ -14,8 +14,9 @@ class entryEvent020925Class extends entryClass {
     private $botToken;
     private $chatId;
     private $threadId;
-
-    private $testBotToken;
+    private $threadId2;
+    private $testBot;
+    private $testChatId;
 
     public function __construct() {
         global $sugar_config;
@@ -24,10 +25,11 @@ class entryEvent020925Class extends entryClass {
         $this->emailStorage = "$this->directoryData/list_email.json";
         $this->userStorage = "$this->directoryData/users";
         $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
-        // add by datlnt
-        $this->testBotToken = $sugar_config['telegram']['event020925']['bot_token_2'] ?? '';
+        $this->testBot  = $sugar_config['telegram']['test']['bot_token'] ?? '';
+        $this->testChatId   = $sugar_config['telegram']['test']['chat_id'] ?? '';
         $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
         $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
+        $this->threadId2 = $sugar_config['telegram']['event020925']['thread_id_noti'] ?? '';
     }
 
     /**
@@ -75,6 +77,7 @@ class entryEvent020925Class extends entryClass {
             // Add a new turn in daily if the user has not won
             if($userData['status'] == 0 && (!isset($userData['logs'][date('Ymd')]) || empty($userData['logs'][date('Ymd')]))) {
                 $userData['turnsRemaining'] = 1;
+                $userData['updatedAt'] = date('Y-m-d H:i:s');
                 $this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE));
             }
 
@@ -145,6 +148,13 @@ class entryEvent020925Class extends entryClass {
                     array_push($listPhone, $phoneNumber);
                     $this->writeFile($this->phoneStorage, json_encode($listPhone));
 
+                    try {
+                        $phoneNumber = $userData['phoneNumber'];
+                        $message = "🇻🇳 Người chơi có SĐT $phoneNumber đã tham gia sự kiện\n<i>Code: <b>$code</b></i>";
+                        Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId2);
+                    }
+                    catch(Throwable $th) {}
+
                     return ["status" => 1, "message" => "Update user phone number success", "data" => $userData];
                 }
                 return ["status" => 0, "message" => "Update user phone number failed"];
@@ -214,17 +224,20 @@ class entryEvent020925Class extends entryClass {
         $arr = $this->getUserInfo(['code' => $code]);
         if(isset($arr['status']) && $arr['status'] == 1) {
             $userData = $arr['data'] ?? [];
-            $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
-            if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
 
             if(isset($cardId) && !empty($cardId)) {
-                $date = substr($cardId, 0, 8);
-                $time = substr($cardId, 8);
-                $userData['topupCards'][$date][$time][$value] = $status;
+                $status = 1;
+                $date = (string)substr($cardId, 0, 8);
+                $time = (string)substr($cardId, 8);
+                if(isset($userData['topupCards'][$date]) && isset($userData['topupCards'][$date][$time]) && isset($userData['topupCards'][$date][$time][$value])) $userData['topupCards'][$date][$time][$value] = $status;
+                else return ["status" => 0, "message" => "Not found card", "messageVi" => "Không tìm thấy mệnh giá nạp"]; 
             }
-            else{
-                $date = date('Ymd');
-                $time = time();
+            else {
+                $listCardInDay = $userData['topupCards'][date('Ymd')] ?? [];
+                if(count($listCardInDay) > 2) return ["status" => 0, "message" => "Maximum spins", "messageVi" => "Đã đạt số lần quay thưởng tối đa. Ngày mai quay lại nhé"];
+                $date   = (string)date('Ymd');
+                $time   = (string)time();
+                $cardId = $date . $time;
                 $userData['topupCards'][$date][$time] = [$value => $status];
             }
             $userData['updatedAt'] = date('Y-m-d H:i:s');
@@ -233,11 +246,20 @@ class entryEvent020925Class extends entryClass {
             if($this->writeFile($fileName, json_encode($userData, JSON_UNESCAPED_UNICODE))) {
                 try {
                     if($status == 0) {
-                        // code trong inlinekeyboard này
                         $phoneNumber = $userData['phoneNumber'];
-                        $cardId = $date.$time;
-                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ".format_number($value)."đ\n<i>Card ID: $cardId</i>";
-                        Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->testBotToken, $this->chatId, $this->threadId);
+                        $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào <b>". format_number($value, null, 0) ."đ</b>\n<i>Card ID: $cardId</i>";
+                        // Telegram::sendWebhookMessage($code, $value, $cardId, $message, $this->botToken, $this->chatId, $this->threadId);
+                        $inline_keyboard = [
+                            [
+                                [
+                                    "text" => "Đã nạp",
+                                    "callback_data" => "$code|$value|$cardId"
+                                ]
+                            ]
+                        ];
+                        Telegram::sendInlineKeyboardMessage($message, $this->botToken, $this->chatId, $this->threadId, $inline_keyboard);
+                        // $phoneNumber = $userData['phoneNumber'];
+                        // $message = "🎁 Người chơi $phoneNumber đã nhận được thẻ cào ". format_number($value, null, 0) ."đ\n<i>Card ID: $cardId</i>";
                         // Telegram::sendMessage($message, $this->botToken, $this->chatId, $this->threadId);
                     }
                 }
@@ -309,7 +331,10 @@ class entryEvent020925Class extends entryClass {
             }
             else {
                 if($round == 1) {
-                    if($userData['turnsRemaining'] > 0) $userData['turnsRemaining'] -= 1;
+                    if($userData['turnsRemaining'] > 0) {
+                        $userData['turnsRemaining'] -= 1;
+                        $userData['totalPoint'] = 0; // Reset when playing again in new day
+                    }
                     else return ["status" => 0, "message" => "User has run out of turns", "messageVi" => "Bạn đã hết lượt chơi. Mai quay lại nhé"];
                 }
                 
