@@ -416,7 +416,7 @@ class CustomController extends BaseController
             $params         = (array)$request->getParsedBody();
             $phone          = isset($params['phone']) ? $params['phone'] : "";
             $type_zns       = isset($params['type_zns']) ? $params['type_zns'] : "";
-            $template_data  = isset($params['template_data']) ? $params['template_data'] : []; // array
+            $template_data  = (array)(isset($params['template_data']) ? $params['template_data'] : []); // array
             $request_ip     = $request->getServerParam('REMOTE_ADDR');
 
             if(!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
