@@ -293,7 +293,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->populateInvoiceInf();
 
 		// Booking - tình trạng
-		$booking_name = '<b>' . $this->bean->name . '</b> - <span class="fw-bold" style="color:' . $app_list_strings['booking_status_color_list'][(int)$this->bean->booking_status] . ';">' . $app_list_strings['booking_status_list'][(int)$this->bean->booking_status] . '</span>';
+		$booking_name = '<b>' . $this->bean->name . '</b> - <span class="fw-bold" style="color:' . ($app_list_strings['booking_status_color_list'][(int)$this->bean->booking_status] ?? '#333') . ';">' . ($app_list_strings['booking_status_list'][(int)$this->bean->booking_status] ?? '') . '</span>';
 		$this->ss->assign('CUSTOM_NAME', $booking_name);
 
 		// Loại vé - Chuyến bay
@@ -355,7 +355,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		/************  CONTACT NEW  ************/
 		$contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
 		$link_contact 		= $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id : "#";
-		// $type_contact 		= classifyContact($this->bean->contact_id);
+		// $type_contact 	= classifyContact($this->bean->contact_id);
 		$type_contact 		= classifyContactv2($this->bean->contact_id);
 
 		$contact_name_new  	= '<a target="_blank" href="' . $link_contact . '" class="contact_name" data="' . $this->bean->contact_name . '"><span>' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span></a>';
@@ -763,12 +763,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<form style="display:none;" id="reassigned_user_frm">
 					<input type="hidden" name="module" value="' . $this->bean->module_dir . '">
 					<input type="hidden" name="action" value="Save">
-					<input type="hidden" name="assigned_user_id" value="' . $this->bean->assigned_user_id . '">
-					<input type="text" name="assigned_user_name" value="' . $this->bean->assigned_user_name . '">
+					<input type="hidden" name="assigned_user_id" value="' . ($this->bean->assigned_user_id ?? '') . '">
+					<input type="text" name="assigned_user_name" value="' . ($this->bean->assigned_user_name ?? '') . '">
 				</form>
 			';
 		}
-		$this->ss->assign('CUSTOM_ASSIGNED_TO_NAME', $this->bean->assigned_user_name);
+		$this->ss->assign('CUSTOM_ASSIGNED_TO_NAME', $this->bean->assigned_user_name ?? '');
 
 		// Giảm giá
 		$discount_html = '<span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
@@ -1491,13 +1491,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				// SMS BUTTON
 				$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
 				$sms_btn = '<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2"
-						direction="' . $row['direction'] . '" 
-						flightno="' . $flight_number . '"
-						journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']])) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']])) . '"
-						date="' . explode(' ', $sms_depdate)[0] . '"
-						time="' . explode(' ', $sms_depdate)[1] . '"
-						applied_pass="' . ($row['direction'] == 0 ? $departure_applied_pass : $arrival_applied_pass) . '"
-					/>';
+					direction="' . $row['direction'] . '" 
+					flightno="' . $flight_number . '"
+					journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? '')) . '"
+					date="' . explode(' ', $sms_depdate)[0] . '"
+					time="' . explode(' ', $sms_depdate)[1] . '"
+					applied_pass="' . ($row['direction'] == 0 ? $departure_applied_pass : $arrival_applied_pass) . '"
+				/>';
 
 				$html .= '<td data-label="" class="text-center">
 							<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $i . '" target="_blank">
@@ -1933,7 +1933,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 						$row['luggage_price'] = (int)$row['luggage_index_outbound'];
 					}
 
-					$bag_out2 = $bag_out[(int)$row['luggage_price']];
+					$bag_out2 = $bag_out[(int)$row['luggage_price']] ?? '';
 
 					$bag_weight_out = 0;
 					if (isset($bag_out2) && !empty($bag_out2)) {
@@ -1968,7 +1968,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 							$row['luggage_price_inbound'] = (int)$row['luggage_index_inbound'];
 						}
 
-						$bag_in2 = $bag_in[(int)$row['luggage_price_inbound']];
+						$bag_in2 = $bag_in[(int)$row['luggage_price_inbound']] ?? '';
 
 						$bag_weight_in = 0;
 						if (isset($bag_in2) && !empty($bag_in2)) {

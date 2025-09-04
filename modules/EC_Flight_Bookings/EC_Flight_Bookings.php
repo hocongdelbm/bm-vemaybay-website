@@ -52,6 +52,7 @@ class EC_Flight_Bookings extends Basic
 	public $airline_inbound;
 	public $shipping_address;
 	public $agent_id;
+	public $agent_name;
 	public $total_bought_amount;
 	public $total_bought_price;
 	public $invoice_require;

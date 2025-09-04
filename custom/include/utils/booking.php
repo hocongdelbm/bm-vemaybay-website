@@ -218,10 +218,6 @@ function classifyContactv2($contactId)
 
     global $db, $current_user;
 
-    if (empty($contactId)) {
-        return 'contactId is required';
-    }
-
     $type_contact = [
         'type' => '',
         'label' => '',
@@ -231,6 +227,10 @@ function classifyContactv2($contactId)
         'totalRevenue' => 0, // Doanh thu tổng trong chu kỳ
         'totalProfit' => 0, // Doanh thu lợi nhuận tổng
     ];
+
+    if (empty($contactId)) {
+        return $type_contact;
+    }
 
     $sql = "
         SELECT 
