@@ -125,7 +125,7 @@ $entry_point_registry = array(
     'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
 
     // TEST
-    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => false),
+    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => true),
 
     // CUSTOM BY DATLNT
     'entryPointSummarySite' => ['file' => 'custom/entrypoints/ep_Summary_sites.php', 'auth' => true],

@@ -1,5 +1,4 @@
 <?php
-
 global $current_user, $db;
 
 // Loại trừ user Booker - 493ad5e5-ffea-a84f-96d7-6577fed623d6
@@ -21,6 +20,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
 }
 
 if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
+     return false;
      $time     = $_POST['time'] ?? null;
      $status   = $_POST['agent_status'] ?? 'Available';
      $busy     = ($status == 'Available') ? 0 : 1;

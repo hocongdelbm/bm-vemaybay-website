@@ -312,6 +312,7 @@ function myGetMinuteList($minute = '')
 
 /**
  * Kiểm tra 1 trường có tồn tại
+ * 
  * @param string $module tên phân hệ
  * @param string $field tên trường cần kiểm tra
  * @param string $field_value giá trị của trường cần kiểm tra
@@ -331,13 +332,11 @@ function myCheckValueExist($module, $fields = array(), $field_value = array(), $
             $i++;
         }
     }
-    $sql = "
-        SELECT COUNT(id) FROM " . strtolower($module) . "
-        WHERE id <> '" . $id . "' AND deleted = 0" . $field_con;
+
+    $sql = "SELECT COUNT(id) FROM ". strtolower($module) ." WHERE id <> '$id' AND deleted = 0 " . $field_con;
     $rowcount = $db->getOne($sql);
 
-    if ($rowcount > 0)
-        return true;
+    if ($rowcount > 0) return true;
     return false;
 }
 
@@ -815,7 +814,7 @@ function my_get_number_separators($reset_sep = false)
 function myGetDepartmentInfo($department_id)
 {
     global $db;
-    $info = array();
+    $info = [];
     if ($department_id) {
         $sql = "SELECT sg.id,
                     sg.name,
@@ -858,8 +857,7 @@ function myGetDepartmentInfo($department_id)
                     sg.code_book,
                     sg.com_email_bcc
                 FROM securitygroups sg
-                WHERE sg.deleted = 0
-                AND sg.id = '" . $department_id . "' ";
+                WHERE sg.id = '$department_id' AND sg.deleted = 0";
         $res = $db->query($sql);
         $info = $db->fetchByAssoc($res);
     }
@@ -871,13 +869,11 @@ function myGetWorkingProcessCount($parent_type, $parent_id, $field = '')
 {
     global $db;
     $recheck_count = 0;
-    $sql = "SELECT SUM(IFNULL(" . $field . ",0)) 
-				FROM ec_working_process 
-				WHERE deleted=0 
-				AND parent_type='" . $parent_type . "' 
-				AND parent_id='" . $parent_id . "' ";
+    $sql = "SELECT SUM(IFNULL($field, 0)) 
+            FROM ec_working_process 
+            WHERE parent_id = '$parent_id' AND parent_type = '$parent_type' AND deleted = 0";
     if ($field != '') {
-        $sql .= " AND " . $field . " IS NOT NULL ";
+        $sql .= " AND $field IS NOT NULL ";
     }
     $recheck_count += $db->getOne($sql);
     return $recheck_count;
@@ -2367,7 +2363,7 @@ function get_server_name($created_by = '')
     if (!in_array($created_by, $arr)) return 'timchuyenbay.com';
 
     // Query từ db - another
-    $sql = 'SELECT last_name FROM users WHERE id ="' . $created_by . '" AND deleted = 0 LIMIT 1';
+    $sql = "SELECT last_name FROM users WHERE id = '$created_by' AND deleted = 0 LIMIT 1";
     $res = $db->query($sql);
 
     while ($row = $db->fetchByAssoc($res)) {
