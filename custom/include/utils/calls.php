@@ -305,37 +305,35 @@ function getCallSource($call_to)
 }
 
 function getInfoCallSource($call_to){
-    global $db;
-
-    $result = array(
+    $result = [
         'phone' => $call_to ?? '',
         'format_phone' => '',
         'website' => '',
         'label' => '',
         'brand_name' => '',
         'network_provider' => '',
-    );
+    ];
+    if (!$call_to || empty($call_to)) return $result;
 
-    if (empty($call_to)) {
-        return $result;
-    }
-
-    $sql = 'SELECT * FROM ec_outbound_phone WHERE name = "' . $call_to . '" AND deleted = 0 LIMIT 1';
+    global $db;
+    $sql = "SELECT name, format_phone, website, label, brand_name, network_provider
+        FROM ec_outbound_phone
+        WHERE (name = '$call_to' OR mapping = '$call_to')
+            AND deleted = 0
+        LIMIT 1";
     $res = $db->query($sql);
     $total_phone = $db->countRows($res);
     if ($total_phone > 0) {
         $row = $db->fetchByAssoc($res);
-
-        $result = array(
-            'phone' => $row['name'] ?? $call_to,
-            'format_phone' => $row['format_phone'],
-            'website' => $row['website'],
-            'label' => $row['label'],
-            'brand_name' => $row['brand_name'],
-            'network_provider' => $row['network_provider'],
-        );
+        $result = [
+            'phone'             => $row['name'] ?? $call_to,
+            'format_phone'      => $row['format_phone'],
+            'website'           => $row['website'],
+            'label'             => $row['label'],
+            'brand_name'        => $row['brand_name'],
+            'network_provider'  => $row['network_provider'],
+        ];
     }
-
     return $result;
 }
 

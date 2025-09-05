@@ -47,4 +47,5 @@ $mod_strings = array(
   'LBL_ONLY_INBOUND' => 'Chỉ nhận gọi vào?',
   'LBL_ROUND_ROBIN' => 'Xoay vòng gọi ra?',
   'LBL_FORMAT_PHONE' => 'Định dạng SĐT',
+  'LBL_MAPPING' => 'Mapping',
 );

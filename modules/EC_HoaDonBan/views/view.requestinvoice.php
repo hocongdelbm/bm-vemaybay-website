@@ -11,44 +11,104 @@ class Viewrequestinvoice extends SugarView {
 
     public function populateOIVoucherList($smarty, $post_fields) {
         global $app_list_strings;
-        $where = $this->populateCondition($smarty, $post_fields);
+        $whereCondition = $this->populateCondition($smarty, $post_fields);
 
-        $sql = "SELECT bk.id AS booking_id
+        $sql = "SELECT rv.booking_id
+                ,rv.ngaychungtu
+                ,GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') AS receipt_vouchers_data
                 ,bk.name AS booking_name
                 ,bk.company_name
                 ,bk.tax_code
                 ,bk.company_address
                 ,bk.shipping_address
                 ,bk.is_output_invoice_checked
-                ,DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS date_entered
                 ,(
-                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') 
-                    FROM ec_receipt_voucher rv
-                    WHERE rv.booking_id = bk.id
-                        AND rv.deleted = 0
-                        AND rv.loai_thu IN('1', '4', '5')
-                        AND rv.receipt_type = 'credit_transfer'
+                    SELECT GROUP_CONCAT(
+                        DISTINCT CONCAT_WS(',', i.departure, i.arrival)
+                        ORDER BY i.direction, i.date_entered, i.departure_date
+                        SEPARATOR '|'
+                    )
+                    FROM ec_booking_itineraries i
+                    WHERE i.booking_id = rv.booking_id
+                        AND i.add_type = 0
+                        AND i.deleted = 0
+                ) AS itinerary_data 
+                ,(
+                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
+                    FROM ec_chitiethoadon ct
+                        INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
+                    WHERE ct.booking_id = rv.booking_id
+                        -- AND hd.ngayhoadon = rv.ngaychungtu
+                        AND hd.deleted = 0
+                        AND ct.deleted = 0
+                ) AS out_inv_data
+                ,(
+                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', inv.invoice_number, inv.supplier, inv.name, inv.itinerary, inv.total) SEPARATOR '|')
+                    FROM ec_input_invoices inv
+                    WHERE inv.booking_id = rv.booking_id
+                        AND inv.deleted = 0
+                ) AS in_inv_data
+            FROM ec_receipt_voucher rv
+                LEFT JOIN ec_flight_bookings bk ON bk.id = rv.booking_id
+            WHERE $whereCondition
+                AND rv.loai_thu IN('1', '4', '5')
+                AND (
+                    rv.receipt_type = 'cash'
+                    OR (
+                        rv.receipt_type = 'credit_transfer'
                         AND rv.tknganhang_id IN(
                             'c0b01f56-0778-de4a-da11-65f937520972',
                             'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
                             '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
                             '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
                         )
-                ) AS receipt_vouchers_data
-                ,(
-                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
-                    FROM ec_chitiethoadon ct
-                        INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
-                    WHERE ct.booking_id = bk.id AND hd.deleted = 0 AND ct.deleted = 0
-                ) AS out_inv_data
-                ,(
-                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', inv.invoice_number, inv.supplier, inv.name) SEPARATOR '|')
-                    FROM ec_input_invoices inv
-                    WHERE inv.booking_id = bk.id AND inv.deleted = 0
-                ) AS in_inv_data
-            FROM ec_flight_bookings bk
-            WHERE bk.booking_status = 8 AND bk.deleted = 0 $where
-            ORDER BY bk.date_entered DESC";
+                    )
+                )
+                AND rv.deleted = 0
+            GROUP BY rv.booking_id
+            ORDER BY rv.ngaychungtu DESC";
+
+        // $sql = "SELECT bk.id AS booking_id
+        //         ,bk.name AS booking_name
+        //         ,bk.company_name
+        //         ,bk.tax_code
+        //         ,bk.company_address
+        //         ,bk.shipping_address
+        //         ,bk.is_output_invoice_checked
+        //         ,DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS date_entered
+        //         ,(
+        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') 
+        //             FROM ec_receipt_voucher rv
+        //             WHERE rv.booking_id = bk.id
+        //                 AND rv.deleted = 0
+        //                 AND rv.loai_thu IN('1', '4', '5')
+        //                 AND (
+        //                     (
+        //                         rv.receipt_type = 'credit_transfer'
+        //                         AND rv.tknganhang_id IN(
+        //                             'c0b01f56-0778-de4a-da11-65f937520972',
+        //                             'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
+        //                             '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
+        //                             '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
+        //                         )
+        //                     )
+        //                     OR rv.receipt_type = 'cash'
+        //                 )
+        //         ) AS receipt_vouchers_data
+        //         ,(
+        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
+        //             FROM ec_chitiethoadon ct
+        //                 INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
+        //             WHERE ct.booking_id = bk.id AND hd.deleted = 0 AND ct.deleted = 0
+        //         ) AS out_inv_data
+        //         ,(
+        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', inv.invoice_number, inv.supplier, inv.name) SEPARATOR '|')
+        //             FROM ec_input_invoices inv
+        //             WHERE inv.booking_id = bk.id AND inv.deleted = 0
+        //         ) AS in_inv_data
+        //     FROM ec_flight_bookings bk
+        //     WHERE bk.booking_status = 8 AND bk.deleted = 0 $where
+        //     ORDER BY bk.date_entered DESC";
 
         // $sql    = '
         //     SELECT id, name, DATE_ADD(date_entered, INTERVAL 7 HOUR) AS date_entered,
@@ -120,20 +180,76 @@ class Viewrequestinvoice extends SugarView {
             }
 
             // Hoá đơn đầu vào
-            $in_invoice_data = $this->extractConcat($row['in_inv_data']);
             $in_invoice_html = '';
-            foreach($in_invoice_data as $arr) {
-                $in_invoice_html .= '<form action="index.php" method="post" target="_blank" class="d-block">
-                    <input type="hidden" name="module" value="EC_HoaDonBan" />
-                    <input type="hidden" name="action" value="inputinvoice" />
-                    <input type="hidden" name="invoice_number" value="'. $arr[0] .'" />
-                    <input type="hidden" name="ticket_code" value="'. $arr[2] .'" />
-                    <button type="submit" class="open-input-invoice">
-                        <span>'. $arr[0] .'</span>
-                        <span>'. ($app_list_strings['supplier_invoice_list'][$arr[1]] ?? '') .'</span>
-                    </button>
-                </form>';
+            $itinerary_data  = $this->extractConcat($row['itinerary_data']);
+            $in_invoice_data = $this->extractConcat($row['in_inv_data']);
+            foreach($itinerary_data as $iti) {
+                $city_pair = "{$iti[0]}-{$iti[1]}";
+
+                $list_input_invoice_html = '';
+                foreach($in_invoice_data as $key => $arr) {
+                    if($arr[3] == $city_pair) { // SGN-HAN
+                        $list_input_invoice_html .= '<form action="index.php" method="post" target="_blank" class="d-block">
+                            <input type="hidden" name="module" value="EC_HoaDonBan" />
+                            <input type="hidden" name="action" value="inputinvoice" />
+                            <input type="hidden" name="invoice_number" value="'. ($arr[0] ?? "") .'" />
+                            <input type="hidden" name="ticket_code" value="'. ($arr[2] ?? "") .'" />
+                            <button type="submit" class="open-input-invoice" title="'. format_number($arr[4] ?? 0) .'đ">
+                                <span>'. ($arr[0] ?? "") .'</span>
+                                <span>'. ($app_list_strings['supplier_invoice_list'][$arr[1]] ?? '') .'</span>
+                            </button>
+                        </form>';
+                        unset($in_invoice_data[$key]);
+                    }
+                    else if(stripos($arr[3], $city_pair) !== false) { // SGN-HAN-SGN
+                        $list_input_invoice_html .= '<form action="index.php" method="post" target="_blank" class="d-block">
+                            <input type="hidden" name="module" value="EC_HoaDonBan" />
+                            <input type="hidden" name="action" value="inputinvoice" />
+                            <input type="hidden" name="invoice_number" value="'. ($arr[0] ?? "") .'" />
+                            <input type="hidden" name="ticket_code" value="'. ($arr[2] ?? "") .'" />
+                            <button type="submit" class="open-input-invoice" title="'. format_number($arr[4] ?? 0) .'đ">
+                                <span>'. ($arr[0] ?? "") .'</span>
+                                <span>'. ($app_list_strings['supplier_invoice_list'][$arr[1]] ?? '') .'</span>
+                            </button>
+                        </form>';
+                    }
+                }
+
+                $in_invoice_html .= '<div style="display:block; background:#eaf5ff; border-radius:5px; box-shadow:rgba(0, 0, 0, 0.16) 0px 1px 4px; padding:3px 6px; margin-bottom:6px;">
+                    <p style="font-weight:600; text-align:center;">'. $city_pair .'</p>
+                    '. (!empty($list_input_invoice_html) ? $list_input_invoice_html : '<center><i style="color:red;">Chưa nạp HĐ vào</i></center>') .'
+                </div>';
             }
+
+            // // Hoá đơn đầu vào
+            // $in_invoice_data = $this->extractConcat($row['in_inv_data']);
+            // $in_invoice_arr = [];
+            // foreach($in_invoice_data as $arr) {
+            //     if(!isset($arr[3]) || empty($arr[3])) continue;
+            //     $in_invoice_arr[str_replace("-", " - ", $arr[3])][] = [
+            //         "invoice_number" => $arr[0] ?? "",
+            //         "ticket_number" => $arr[2] ?? "",
+            //         "supplier" => ($app_list_strings['supplier_invoice_list'][$arr[1]] ?? ''),
+            //     ];
+            // }
+            // $in_invoice_html = '';
+            // foreach($in_invoice_arr as $iti => $list) {
+            //     $in_invoice_html .= '<div style="display:block; background:#eaf5ff; border-radius:5px; box-shadow:rgba(0, 0, 0, 0.16) 0px 1px 4px; padding:3px 6px; margin-bottom:6px;">
+            //         <p style="font-weight:600; text-align:center;">'. $iti .'</p>';
+            //     foreach($list as $arr) {
+            //         $in_invoice_html .=  '<form action="index.php" method="post" target="_blank" class="d-block">
+            //             <input type="hidden" name="module" value="EC_HoaDonBan" />
+            //             <input type="hidden" name="action" value="inputinvoice" />
+            //             <input type="hidden" name="invoice_number" value="'. $arr["invoice_number"] .'" />
+            //             <input type="hidden" name="ticket_code" value="'. $arr["ticket_number"] .'" />
+            //             <button type="submit" class="open-input-invoice">
+            //                 <span>'. $arr["invoice_number"] .'</span>
+            //                 <span>'. $arr["supplier"] .'</span>
+            //             </button>
+            //         </form>';
+            //     }
+            //     $in_invoice_html .= '</div>';
+            // }
 
             if(empty($inv_tax_code) && empty($inv_account_name) && empty($inv_company_name) && empty($receipt_data)) continue;
 
@@ -145,7 +261,7 @@ class Viewrequestinvoice extends SugarView {
 
             $html .= '<tr>
                 <td class="text-center">'. (++$i) .'</td>
-                <td class="text-center">'. date('d-m-Y', strtotime($row['date_entered'])) .'</td>
+                <td class="text-center">'. date('d-m-Y', strtotime($row['ngaychungtu'])) .'</td>
                 <td class="text-center">
                     <a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='. $row['booking_id'] .'" target="_blank">'. $row['booking_name'] .'</a>
                     <form action="index.php" method="post" target="_blank" class="mt-2">
@@ -240,6 +356,51 @@ class Viewrequestinvoice extends SugarView {
         $smarty->assign('OUTPUT_INV_TBL', $html);
     }
 
+    private function populateCondition($smarty, $post_fields) {
+        $sql = '';
+        // Tìm kiếm theo booking
+        if (!empty($post_fields['booking']) && !isset($post_fields['clear_btn'])) {
+            $post_fields['from_date'] = $post_fields['to_date'] = '';
+            $sql = 'bk.name = "' . $post_fields['booking'] . '"';
+        } 
+        // Tìm kiếm mặc định
+        else {
+            // Từ ngày
+            if(!empty($post_fields['from_date'])) {
+                $post_fields['from_date'] = date('Y-m-d', strtotime($post_fields['from_date']));
+            } else {
+                $post_fields['from_date'] = date('Y-m-d');
+            }
+            $sql .= 'DATE_FORMAT(DATE_ADD(ngaychungtu, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . $post_fields['from_date'] . '"';
+            $post_fields['from_date'] = date('d-m-Y', strtotime($post_fields['from_date']));
+
+            // Đến ngày
+            if (!empty($post_fields['to_date'])) {
+                $post_fields['to_date'] = date('Y-m-d', strtotime($post_fields['to_date']));
+            } else {
+                $post_fields['to_date'] = date('Y-m-d');
+            }
+            $sql .= ' AND DATE_FORMAT(DATE_ADD(ngaychungtu, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . $post_fields['to_date'] . '"';
+            $post_fields['to_date'] = date('d-m-Y', strtotime($post_fields['to_date']));
+
+            // Booking
+            $post_fields['booking'] = '';
+
+            // Limit within 30 days
+            $day = (strtotime($post_fields['to_date']) - strtotime($post_fields['from_date'])) / (60 * 60 * 24);
+            if($day > 30) {
+                $post_fields['from_date'] = $post_fields['to_date'] = date('d-m-Y');
+                $sql = ' AND DATE_FORMAT(DATE_ADD(ngaychungtu, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
+            }
+        }
+
+        $smarty->assign('FROM_DATE', $post_fields['from_date']);
+        $smarty->assign('TO_DATE', $post_fields['to_date']);
+        $smarty->assign('BOOKING', $post_fields['booking']);
+
+        return $sql;
+    }
+
     private function extractConcat($str) {
         $result = [];
         if (!empty($str)) {
@@ -253,55 +414,22 @@ class Viewrequestinvoice extends SugarView {
         return $result;
     }
 
+    private function combineItineraries($arr) {
+        if(count($arr) == 2) {
+            $dep = $arr[0];
+            $ret = $arr[1];
+
+            // Comparing airline code
+            if($dep[2] == $ret[2]) return ["{$dep[0]}-{$dep[1]}-{$dep[0]}"]; // SGN-HAN-SGN
+            else return ["{$dep[0]}-{$dep[1]}", "{$ret[0]}-{$ret[1]}"]; // SGN-HAN HAN-SGN
+        }
+        else return ["{$arr[0][0]}-{$arr[0][1]}"]; // SGN-HAN
+    }
+
     private function renderItem($label, $value) {
         return '<div class="item">
             <span class="label">'. $label .': </span>
             <span class="value">'. $value .'</span>
         </div>';
-    }
-
-    private function populateCondition($smarty, $post_fields) {
-        $sql = '';
-        // Tìm kiếm theo booking
-        if (!empty($post_fields['booking']) && !isset($post_fields['clear_btn'])) {
-            $post_fields['from_date'] = $post_fields['to_date'] = '';
-            $sql = ' AND name = "' . $post_fields['booking'] . '"';
-        } 
-        // Tìm kiếm mặc định
-        else {
-            // Từ ngày
-            if(!empty($post_fields['from_date'])) {
-                $post_fields['from_date'] = date('Y-m-d', strtotime($post_fields['from_date']));
-            } else {
-                $post_fields['from_date'] = date('Y-m-d');
-            }
-            $sql .= ' AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . $post_fields['from_date'] . '"';
-            $post_fields['from_date'] = date('d-m-Y', strtotime($post_fields['from_date']));
-
-            // Đến ngày
-            if (!empty($post_fields['to_date'])) {
-                $post_fields['to_date'] = date('Y-m-d', strtotime($post_fields['to_date']));
-            } else {
-                $post_fields['to_date'] = date('Y-m-d');
-            }
-            $sql .= ' AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . $post_fields['to_date'] . '"';
-            $post_fields['to_date'] = date('d-m-Y', strtotime($post_fields['to_date']));
-
-            // Booking
-            $post_fields['booking'] = '';
-
-            // Limit within 30 days
-            $day = (strtotime($post_fields['to_date']) - strtotime($post_fields['from_date'])) / (60 * 60 * 24);
-            if($day > 30) {
-                $post_fields['from_date'] = $post_fields['to_date'] = date('d-m-Y');
-                $sql = 'AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
-            }
-        }
-
-        $smarty->assign('FROM_DATE', $post_fields['from_date']);
-        $smarty->assign('TO_DATE', $post_fields['to_date']);
-        $smarty->assign('BOOKING', $post_fields['booking']);
-
-        return $sql;
     }
 }

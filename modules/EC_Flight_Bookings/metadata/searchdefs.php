@@ -167,6 +167,28 @@ $searchdefs[$module_name] = array(
                 'name' => 'eticket_inbound_search',
             ),
 
+            'email_reservation' => array(
+                'type' => 'varchar',
+                'label' => 'LBL_EMAIL_RESERVATION',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'email_reservation',
+            ),
+            'eluggage_outbound_search' => array(
+                'type' => 'varchar',
+                'label' => 'LBL_ELUGGAGE_OUTBOUND_SEARCH',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'eluggage_outbound_search',
+            ),
+            'eluggage_inbound_search' => array(
+                'type' => 'varchar',
+                'label' => 'LBL_ELUGGAGE_INBOUND_SEARCH',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'eluggage_inbound_search',
+            ),
+
             'date_entered' => array(
                 'type' => 'datetime',
                 'label' => 'LBL_DATE_ENTERED',
@@ -253,14 +275,6 @@ $searchdefs[$module_name] = array(
                 'width' => '10%',
                 'default' => true,
                 'name' => 'ip_address',
-            ),
-            
-            'email_reservation' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_EMAIL_RESERVATION',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'email_reservation',
             ),
 
             // 'favorites_only' => 

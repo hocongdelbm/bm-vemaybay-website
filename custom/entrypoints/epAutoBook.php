@@ -133,7 +133,7 @@ try {
                         ,(IFNULL(bkd.airport_fee, 0) + IFNULL(bkd.admin_fee, 0)) AS fee
                     FROM ec_booking_details bkd
                     WHERE bkd.booking_id = '$bookingId' AND bkd.deleted = 0
-                    ORDER BY bkd.direction, bkd.passenger_type";
+                    ORDER BY bkd.direction, bkd.passenger_type, bkd.date_entered";
                 $res_3 = $db->query($sql_3);
                 while ($row = $db->fetchByAssoc($res_3)) {
                     if($row['passenger_type'] === '0' && $adtCount < 1) continue;
@@ -393,7 +393,13 @@ try {
                         WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND passenger_type = '$i'
-                            AND deleted = 0";
+                            AND deleted = 0
+                            AND date_entered = (
+                                SELECT max(date_entered)
+                                FROM ec_booking_details 
+                                WHERE booking_id = '$bookingId' AND direction = '$direction' AND passenger_type = '$i' AND deleted = 0
+                            )
+                    ";
                     if(!$db->query($sql)) $statusUpdate = false;
                     if($type == 'adt') $basePrice = $fare;
                 }
@@ -734,8 +740,8 @@ try {
                                         -- ,luggage_index_inbound = '$bagIndexRet'
                                         ,modified_user_id = '$current_user->id'
                                         ,date_modified = '$dateModified'
-                                    WHERE booking_id = '$bookingId'
-                                        AND id IN ($inListPassengerId)
+                                    WHERE id IN ($inListPassengerId) 
+                                        AND booking_id = '$bookingId'
                                         AND deleted = 0";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
@@ -751,11 +757,28 @@ try {
                             }
 
                             // Update supplier
+                            $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
                             $sql = "UPDATE ec_booking_details
-                                    SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
-                                        ,modified_user_id = '$current_user->id'
+                                    SET supplier_id = '{$phuongnamapi->SUPPLIER_ID}'
+                                        ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,modified_user_id = '{$current_user->id}'
                                         ,date_modified = '$dateModified'
-                                    WHERE booking_id = '$bookingId' AND deleted = 0";
+                                    WHERE booking_id = '$bookingId'
+                                        AND deleted = 0
+                                        AND passenger_type IN (
+                                            SELECT DISTINCT p.type
+                                            FROM ec_booking_passengers p
+                                            WHERE p.id IN ($inListPassengerId)
+                                                AND p.booking_id = '$bookingId' 
+                                                AND p.deleted = 0
+                                        )
+                                        AND date_entered IN (
+                                            SELECT DISTINCT max(date_entered)
+                                            FROM ec_booking_details 
+                                            WHERE booking_id = '$bookingId' AND deleted = 0
+                                            GROUP BY direction, passenger_type
+                                        )";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";
@@ -852,11 +875,29 @@ try {
                             }
 
                             // Update supplier
+                            $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
                             $sql = "UPDATE ec_booking_details
-                                    SET supplier_id = '$phuongnamapi->SUPPLIER_ID'
-                                        ,modified_user_id = '$current_user->id'
+                                    SET supplier_id = '{$phuongnamapi->SUPPLIER_ID}'
+                                        ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                        ,modified_user_id = '{$current_user->id}'
                                         ,date_modified = '$dateModified'
-                                    WHERE booking_id = '$bookingId' AND direction = '$direction' AND deleted = 0";
+                                    WHERE booking_id = '$bookingId'
+                                        AND direction = '$direction'
+                                        AND deleted = 0
+                                        AND passenger_type IN (
+                                            SELECT DISTINCT p.type
+                                            FROM ec_booking_passengers p
+                                            WHERE p.id IN ($inListPassengerId)
+                                                AND p.booking_id = '$bookingId' 
+                                                AND p.deleted = 0
+                                        )
+                                        AND date_entered IN (
+                                            SELECT DISTINCT max(date_entered)
+                                            FROM ec_booking_details 
+                                            WHERE booking_id = '$bookingId' AND direction = '$direction' AND deleted = 0
+                                            GROUP BY passenger_type
+                                        )";
                             if(!$db->query($sql)) {
                                 // $m = "**RUN QUERY FAIL**";
                                 // $m .= "`$sql`";

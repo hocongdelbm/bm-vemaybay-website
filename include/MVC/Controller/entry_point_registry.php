@@ -125,8 +125,12 @@ $entry_point_registry = array(
     'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
 
     // TEST
-    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => false),
+    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => true),
 
     // CUSTOM BY DATLNT
-    'entryPointSummarySite'   => array('file' => 'custom/entrypoints/ep_Summary_sites.php',     'auth' => false),
+    'entryPointSummarySite' => ['file' => 'custom/entrypoints/ep_Summary_sites.php', 'auth' => true],
+
+    // New version
+    'entryPointGeneralNA' => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
+    'entryTelegramWebhook' => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
 );

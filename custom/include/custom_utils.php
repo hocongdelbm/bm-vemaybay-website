@@ -312,6 +312,7 @@ function myGetMinuteList($minute = '')
 
 /**
  * Kiểm tra 1 trường có tồn tại
+ * 
  * @param string $module tên phân hệ
  * @param string $field tên trường cần kiểm tra
  * @param string $field_value giá trị của trường cần kiểm tra
@@ -331,13 +332,11 @@ function myCheckValueExist($module, $fields = array(), $field_value = array(), $
             $i++;
         }
     }
-    $sql = "
-        SELECT COUNT(id) FROM " . strtolower($module) . "
-        WHERE id <> '" . $id . "' AND deleted = 0" . $field_con;
+
+    $sql = "SELECT COUNT(id) FROM ". strtolower($module) ." WHERE id <> '$id' AND deleted = 0 " . $field_con;
     $rowcount = $db->getOne($sql);
 
-    if ($rowcount > 0)
-        return true;
+    if ($rowcount > 0) return true;
     return false;
 }
 
@@ -640,26 +639,8 @@ function myRecheckFlight($aircode, $pnr, $fullName, $flightNo, $timeout = 30, $u
     return $result;
 }
 
-// Get airline info
-function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 1, $format = 'array')
+function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
 {
-    $api_key = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
-    $url = 'http://api.vemaybaynamphuong.com/index.php/apiv1/api/airline_search/format/json/term/' . $airline_code . '/case_sensitive/' . $case_sensitive . '/search_by/' . $search_by;
-
-    $curl_handle = curl_init();
-    curl_setopt($curl_handle, CURLOPT_URL, $url);
-    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
-    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl_handle, CURLOPT_FOLLOWLOCATION, 0);
-    $data = curl_exec($curl_handle);
-    curl_close($curl_handle);
-    $result = '';
-    if ($format == 'array') $result = json_decode($data, true);
-    else if ($format == 'json') $result = $data;
-    return $result;
-}
-
-function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array') {
     $search_by_allow = array('CODE', 'NAME', 'FULL');
     $search_by = $search_by && in_array($search_by, $search_by_allow) ? $search_by : 'FULL';
     $case_sensitive = $case_sensitive ? $case_sensitive : 0; // default is case insensitive
@@ -833,7 +814,7 @@ function my_get_number_separators($reset_sep = false)
 function myGetDepartmentInfo($department_id)
 {
     global $db;
-    $info = array();
+    $info = [];
     if ($department_id) {
         $sql = "SELECT sg.id,
                     sg.name,
@@ -876,8 +857,7 @@ function myGetDepartmentInfo($department_id)
                     sg.code_book,
                     sg.com_email_bcc
                 FROM securitygroups sg
-                WHERE sg.deleted = 0
-                AND sg.id = '" . $department_id . "' ";
+                WHERE sg.id = '$department_id' AND sg.deleted = 0";
         $res = $db->query($sql);
         $info = $db->fetchByAssoc($res);
     }
@@ -889,13 +869,11 @@ function myGetWorkingProcessCount($parent_type, $parent_id, $field = '')
 {
     global $db;
     $recheck_count = 0;
-    $sql = "SELECT SUM(IFNULL(" . $field . ",0)) 
-				FROM ec_working_process 
-				WHERE deleted=0 
-				AND parent_type='" . $parent_type . "' 
-				AND parent_id='" . $parent_id . "' ";
+    $sql = "SELECT SUM(IFNULL($field, 0)) 
+            FROM ec_working_process 
+            WHERE parent_id = '$parent_id' AND parent_type = '$parent_type' AND deleted = 0";
     if ($field != '') {
-        $sql .= " AND " . $field . " IS NOT NULL ";
+        $sql .= " AND $field IS NOT NULL ";
     }
     $recheck_count += $db->getOne($sql);
     return $recheck_count;
@@ -1549,89 +1527,107 @@ function getEmailFromUser($user_id)
     return $email;
 }
 
-function mySendMail($user_id, $to_email, $to_name, $subject, $body)
-{
-    $send_ok = true;
+function mySendMail($user_id, $to_email, $to_name, $subject, $body) {
+    try {
+        $send_ok = true;
 
-    // SUGAR SENDMAIL
-    require_once('include/SugarPHPMailer.php');
-    $mail = new SugarPHPMailer();
-    $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // Security travelpass 
+        // SUGAR SENDMAIL
+        require_once('include/SugarPHPMailer.php');
+        $mail = new SugarPHPMailer();
+        $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // Security travelpass 
 
-    if (isset($department_info['mail_smtpserver']) && isset($department_info['mail_smtpport'])) {
-        // get email from user
-        $user_email = getEmailFromUser($user_id);
-        $from_mail = !empty($user_email['second_email']) ? $user_email['second_email'] : $user_email['primary_email'];
+        if (isset($department_info['mail_smtpserver']) && isset($department_info['mail_smtpport'])) {
+            // get email from user
+            $user_email = getEmailFromUser($user_id);
+            $from_mail = !empty($user_email['second_email']) ? $user_email['second_email'] : $user_email['primary_email'];
 
-        // Load from department settings
-        $mail->Host          = $department_info['mail_smtpserver'];
-        $mail->Port          = $department_info['mail_smtpport'];
+            // Load from department settings
+            $mail->Host         = $department_info['mail_smtpserver'];
+            $mail->Port         = $department_info['mail_smtpport'];
+            $mail->SMTPAuth     = TRUE;
+            $mail->SMTPSecure   = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
+            $mail->SMTPKeepAlive = false;
+            // $mail->SMTPDebug     = 4;
+            $mail->Mailer       = "smtp";
+            $mail->Timeout      = 300;
+            $mail->Username     = $user_email['primary_email'];
+            $mail->Password     = $user_email['primary_pwd'];
+            $mail->ContentType  = "text/html";
+            $mail->From         = $from_mail;
+            $mail->FromName     = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
+            $mail->Subject      = $subject;
+            $mail->Body         = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
+            $mail->AddAddress($to_email, $to_name);
 
-        $mail->SMTPAuth      = TRUE;
-        $mail->SMTPSecure    = $department_info['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
-        $mail->Mailer        = "smtp";
+            // Add Bcc for current user 
+            $mail->AddReplyTo($from_mail);
+            $mail->AddReplyTo("info@timchuyenbay.com");
+            $mail->AddBCC("info@timchuyenbay.com");
 
-        $mail->Username      = $user_email['primary_email'];
-        $mail->Password      = $user_email['primary_pwd'];
-        $mail->SMTPKeepAlive = true;
-        $mail->ContentType   = "text/html";
+            // Add Bcc, ReplyTo for user admin
+            // if(isset($department_info['com_email_bcc']) && trim($department_info['com_email_bcc']) != ''){
+            //     $bcc_arr = explode(';', $department_info['com_email_bcc']);
+            //     foreach($bcc_arr as $bcc_add){ 
+            //         $mail->AddReplyTo($bcc_add); 
+            //         $mail->AddBCC($bcc_add);
+            //     }
+            // }
 
-        $mail->From          = $from_mail;
-        $mail->FromName      = ucwords(myRemoveUnicodeChars($user_email['primary_fullname']));
-        $mail->Subject       = $subject;
-        $mail->Body          = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
-        $mail->AddAddress($to_email, $to_name);
-
-        // Add Bcc for current user 
-        $mail->AddReplyTo($from_mail);
-        $mail->AddReplyTo("info@timchuyenbay.com");
-        $mail->AddBCC("info@timchuyenbay.com");
-
-        // Add Bcc, ReplyTo for user admin
-        // if(isset($department_info['com_email_bcc']) && trim($department_info['com_email_bcc']) != ''){
-        //     $bcc_arr = explode(';', $department_info['com_email_bcc']);
-        //     foreach($bcc_arr as $bcc_add){ 
-        //         $mail->AddReplyTo($bcc_add); 
-        //         $mail->AddBCC($bcc_add);
-        //     }
-        // }
-
-    } else {
-        // Load system settings
-        require_once('modules/Administration/Administration.php');
-        $admin = new Administration();
-        $admin->retrieveSettings();
-        if ($admin->settings['mail_sendtype'] == "SMTP") {
-            $mail->Host = $admin->settings['mail_smtpserver'];
-            $mail->Port = $admin->settings['mail_smtpport'];
-            if ($admin->settings['mail_smtpauth_req']) {
-                $mail->SMTPAuth = TRUE;
-                $mail->SMTPSecure = $admin->settings['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
-                $mail->Username = $admin->settings['mail_smtpuser'];
-                $mail->Password = $admin->settings['mail_smtppass'];
-            }
-            $mail->Mailer   = "smtp";
-            $mail->SMTPKeepAlive = true;
         } else {
-            $mail->Mailer = 'sendmail';
+            // Load system settings
+            require_once('modules/Administration/Administration.php');
+            $admin = new Administration();
+            $admin->retrieveSettings();
+            if ($admin->settings['mail_sendtype'] == "SMTP") {
+                $mail->Host = $admin->settings['mail_smtpserver'];
+                $mail->Port = $admin->settings['mail_smtpport'];
+                if ($admin->settings['mail_smtpauth_req']) {
+                    $mail->SMTPAuth = TRUE;
+                    $mail->SMTPSecure = $admin->settings['mail_smtpssl'] == 1 ? 'ssl' : 'tls';
+                    $mail->Username = $admin->settings['mail_smtpuser'];
+                    $mail->Password = $admin->settings['mail_smtppass'];
+                }
+                $mail->Mailer   = "smtp";
+                $mail->SMTPKeepAlive = false;
+            } else {
+                $mail->Mailer = 'sendmail';
+            }
+
+            $mail->From     = $admin->settings['notify_fromaddress'];
+            $mail->FromName = $admin->settings['notify_fromname'];
+
+            $mail->ContentType = "text/html";
+            $mail->Subject = $subject;
+            $mail->Body = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
+            $mail->AddAddress($to_email, $to_name);
         }
 
-        $mail->From     = $admin->settings['notify_fromaddress'];
-        $mail->FromName = $admin->settings['notify_fromname'];
+        if (!$mail->send()) {
+            $send_ok = false;
+            $GLOBALS['log']->fatal(json_encode([
+                "Mailer error" => $mail->ErrorInfo,
+                "Mailer full SMTP log" => $mail->fullSmtpLog,
+                "Mailer Host" => $mail->Host,
+                "Mailer Port" => $mail->Port,
+                "Mailer Username" => $mail->Username,
+                "Mailer Password" => $mail->Password,
+            ]));
+        }
 
-        $mail->ContentType = "text/html";
-        $mail->Subject = $subject;
-        $mail->Body = from_html(wordwrap('&lt;html&gt;&lt;body&gt;' . $body . '&lt;/body&gt;&lt;/html&gt;', 996));
-        $mail->AddAddress($to_email, $to_name);
+        return $send_ok;
     }
-
-    if (!$mail->send()) {
-        $send_ok = false;
-        $GLOBALS['log']->fatal("Mailer error: " . $mail->ErrorInfo . " Mailer fullSmtpLog: " . $mail->fullSmtpLog);
-        $GLOBALS['log']->fatal("Mail Host: " . $mail->Host . " Mail Port: " . $mail->Port . " Mail Username: " . $mail->Username . " Mail Password: " . $mail->Password);
+    catch (RuntimeException $e) {
+        $GLOBALS['log']->fatal("Runtime Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
+        return false;
     }
-
-    return  $send_ok;
+    catch (Exception $e) {
+        $GLOBALS['log']->fatal("Exception: {$e->getMessage()} when calling mySendMail() in custom_utils.php");
+        return false;
+    }
+    catch (Throwable $th) {
+        $GLOBALS['log']->fatal("Throwable: {$th->getMessage()} when calling mySendMail() in custom_utils.php");
+        return false;
+    }
 }
 
 // Lấy thông tin hành lý
@@ -2362,16 +2358,18 @@ function get_server_name($created_by = '')
     $arr = [
         'dc22131a-795a-6cd3-2caa-52d40d3b5622', // bookingvj
         '557d4a5b-27ce-5cb1-4531-5800ab9ed31d', // timcbcom
+        '2b2c93b3-e916-113c-29bc-5b4c6de75db4' // timcbvn
     ];
     if (!in_array($created_by, $arr)) return 'timchuyenbay.com';
 
     // Query từ db - another
-    $sql = 'SELECT last_name FROM users WHERE id ="' . $created_by . '" AND deleted = 0 LIMIT 1';
+    $sql = "SELECT last_name FROM users WHERE id = '$created_by' AND deleted = 0 LIMIT 1";
     $res = $db->query($sql);
 
     while ($row = $db->fetchByAssoc($res)) {
         return $row['last_name'];
     }
+    return '';
 }
 
 // Function to get the client ip address

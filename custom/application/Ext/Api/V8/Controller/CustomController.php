@@ -416,7 +416,7 @@ class CustomController extends BaseController
             $params         = (array)$request->getParsedBody();
             $phone          = isset($params['phone']) ? $params['phone'] : "";
             $type_zns       = isset($params['type_zns']) ? $params['type_zns'] : "";
-            $template_data  = isset($params['template_data']) ? $params['template_data'] : []; // array
+            $template_data  = (array)(isset($params['template_data']) ? $params['template_data'] : []); // array
             $request_ip     = $request->getServerParam('REMOTE_ADDR');
 
             if(!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
@@ -443,22 +443,23 @@ class CustomController extends BaseController
             $Zalo = new \Zalo();
             $Omni = new \OMNI();
             $template_id = $template_name = '';
-            if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
-                $template_id = $Zalo->get_template_id_zns($type_zns);
-                $template_name = $Zalo->get_template_name_zns($template_id);
-                $json = $Zalo->send_zns($phone, $template_id, json_encode($template_data));
-            }
-            else {
+            // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+            //     $template_id = $Zalo->get_template_id_zns($type_zns);
+            //     $template_name = $Zalo->get_template_name_zns($template_id);
+            //     $json = $Zalo->send_zns($phone, $template_id, json_encode($template_data));
+            // }
+            // else {
                 $template_id = $Omni->getTemplateCode($type_zns);
                 $template_name = $Omni->getTemplateName($template_id);
                 $json = $Omni->sendMessage($phone, $template_id, $template_data);
-            }
+            // }
 
             $arr  = json_decode($json, true);
             $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
             $template_data['template_id'] = $template_id;
 
-            if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
+            // if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
+            if(isset($arr['status']) && $arr['status'] == 1) {
                 $m = BeanFactory::newBean("EC_Messages");
                 $m->send_from       = $Zalo->get_oa_id();
                 $m->send_to         = $phone;
@@ -518,15 +519,16 @@ class CustomController extends BaseController
                 ]);
             }
             else {
-                $error_code = isset($arr['error']) ? $arr['error'] : '';
-                if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
+                // $error_code = isset($arr['error']) ? $arr['error'] : '';
+                // if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
+                $error_code = isset($arr['code']) ? $arr['code'] : '';
                 
-                if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
-                    $message = $Zalo->get_error_description_zns($error_code);
-                }
-                else {
+                // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+                //     $message = $Zalo->get_error_description_zns($error_code);
+                // }
+                // else {
                     $message = $Omni->getErrorDescription($error_code);
-                }
+                // }
 
                 $m = BeanFactory::newBean("EC_Messages");
                 $m->send_from       = $Zalo->get_oa_id();

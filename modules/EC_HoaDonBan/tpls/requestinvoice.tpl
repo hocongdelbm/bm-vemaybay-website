@@ -83,7 +83,7 @@
         <thead>
             <tr>
                 <th width="3%">STT</th>
-                <th width="9%">Ngày tạo</th>
+                <th width="9%">Ngày PT</th>
                 <th width="10%">Booking</th>
                 <th width="14%">Phiếu thu</th>
                 <th>Thông tin hoá đơn</th>

@@ -16,6 +16,7 @@ function isExitsPhoneNumber($module_table, $phoneNumber)
         return false;
     }
 
+    $phoneNumber = trim($phoneNumber);
     $column = strlen($phoneNumber) > 15 ? 'zalo_id' : 'phone_mobile';
     $phoneNumber = $db->quote($phoneNumber);
     $table = strtolower($module_table);

@@ -1,4 +1,6 @@
 <?php
+echo 0;
+exit;
 global $current_user, $db;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {

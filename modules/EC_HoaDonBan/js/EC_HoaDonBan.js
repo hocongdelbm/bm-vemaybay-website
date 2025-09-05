@@ -361,7 +361,7 @@ $(document).ready(function() {
 						$('.wrap-masothue .mst-active').hide();
 						$('.wrap-masothue .mst-alert').show();
 					}
-					else if(info.status.indexOf("Đang hoạt động") != -1 || info.status.indexOf("đang hoạt động") != -1) {
+					else if(info.success == true || info.status.indexOf("Đang hoạt động") != -1 || info.status.indexOf("đang hoạt động") != -1) {
 						$('.wrap-masothue .mst-active').show();
 						$('.wrap-masothue .mst-alert').hide();
 

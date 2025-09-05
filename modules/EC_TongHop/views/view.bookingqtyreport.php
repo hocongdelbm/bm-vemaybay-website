@@ -11,7 +11,8 @@ class Viewbookingqtyreport extends SugarView
 		$user_id 	= $current_user->id;
 		$user_title = $current_user->title;
 
-		if (is_admin($current_user) || 
+		if (
+			is_admin($current_user) ||
 			$user_title == 'QuanLy'
 			|| $user_id == '37cd4853-721c-9808-af64-5600c8835d03' // ngandtk
 		) {
@@ -465,9 +466,9 @@ class Viewbookingqtyreport extends SugarView
 			$denominator_total = ($row['total'] == 0 || empty($row['total'])) ? 1 : $row['total'];
 
 			// CALLS
-			$total_inbound += (int)$row['c_inbound']; 
-			$total_missed += (int)$row['c_missed']; 
-			
+			$total_inbound += (int)$row['c_inbound'];
+			$total_missed += (int)$row['c_missed'];
+
 			$html .= '
 				<tr>
 					<!-- <td class="text-center fw-semibold">' . ($i + 1) . '</td> -->
@@ -494,8 +495,8 @@ class Viewbookingqtyreport extends SugarView
 						<span class="show_detail_bk show_detail" type="show_booker_bk" sname="' . $row['last_name'] . '" user="' . $row['user_id'] . '">' . $my_bk . '&nbsp;/&nbsp;' . $com_my_bk . '</span>
 					</td>
 
-					<td class="text-end c_inbound">'.$row['c_inbound'].' / '.$row['c_inbound_bk'].'</td>
-					<td class="text-end c_missed">'.$row['c_missed'].'</td>
+					<td class="text-end c_inbound">' . $row['c_inbound'] . ' / ' . $row['c_inbound_bk'] . '</td>
+					<td class="text-end c_missed">' . $row['c_missed'] . '</td>
 					
 					<td class="text-end"><span class="show_detail_bk show_detail" sname="' . $row['last_name'] . '" type="show_prior_bk" user="' . $row['user_id'] . '">' . $prior_bk . '&nbsp;/&nbsp;' . $com_prior_bk . '</span></td>
 					<td colspan="2">
@@ -573,8 +574,8 @@ class Viewbookingqtyreport extends SugarView
 				<td colspan="2" class="text-end total__booking-today"><span class="show_detail_total show_detail" title="Chi tiết booking trong ngày">' . format_number($total) . '</span></td>
 				<td class="text-end total_my_bk-today">' . format_number($total_my_bk) . '&nbsp;/&nbsp;' . format_number($total_com_mybk) . '</td>
 
-				<td style="text-align: right; background-color: #068FFF;  color: #fff; ">'.$total_inbound.'</td>
-				<td style="text-align: right; background-color: #068FFF;  color: #fff; ">'.$total_missed.'</td>
+				<td style="text-align: right; background-color: #068FFF;  color: #fff; ">' . $total_inbound . '</td>
+				<td style="text-align: right; background-color: #068FFF;  color: #fff; ">' . $total_missed . '</td>
 
 				<td class="text-end total_prior_bk-today">' . format_number($total_prior_bk) . '&nbsp;/&nbsp' . format_number($total_comprior) . '</td>
 				<td colspan="2" class="text-end">

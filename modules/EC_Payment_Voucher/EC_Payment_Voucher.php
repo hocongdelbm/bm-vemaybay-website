@@ -117,45 +117,50 @@ class EC_Payment_Voucher extends Basic
 			$date_entered = date('H:i:s d-m-Y', strtotime('+7 hours', strtotime($this->date_entered)));
 			$user_list = get_user_array(true, '', '', true);
 
-			// $messages = "- Phiếu chi: " . $this->name . "\n" .
-			// 	"- Loai chi: " . $this->payment_type . "\n" .
-			// 	"- Ngày tạo: " . $date_entered . " bởi " . $user_list[$this->created_by] . "\n" .
-			// 	"- Số tiền: " . format_number($this->amount) . " VNĐ\n" .
-			// 	"- Nội dung: " . $this->description . "\n";
-
-			// $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-			// sendTelegramKeToan2025(
-			// 	json_encode(array(
-			// 		'text' => $content,
-			// 		'reply_markup' => array(
-			// 			'inline_keyboard' => array(
-			// 				array(
-			// 					array(
-			// 						'text' => 'Phiếu chi',
-			// 						'url' => $sugar_config['site_url'] . '/index.php?module=' . $this->object_name . '&record=' . $this->id . '&action=DetailView&dothis=true',
-			// 					),
-			// 				),
-			// 			),
-			// 		),
-			// 	), JSON_UNESCAPED_UNICODE),
-			// );
-
 			try {
-				$text = "- Loại chi: **$this->payment_type**";
-				$text .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
-				$text .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
-				$text .= "\n- Nội dung: $this->description";
-				$props = [
-					"attachments" => [
-						[
-							"color" => "#fcc00d",
-							"title" => "Phiếu chi $this->name",
-							"title_link" => $sugar_config['site_url'] . "/index.php?module=$this->object_name&action=DetailView&record=$this->id",
-							"text" => $text,
+				$notiChannel = $sugar_config['notification_channel'] ?? '';
+
+				if($notiChannel == 'Telegram') {
+					$message = "- Phiếu chi: " . $this->name .
+						"\n- Loai chi: " . $this->payment_type .
+						"\n- Ngày tạo: " . $date_entered . " bởi " . $user_list[$this->created_by] .
+						"\n- Số tiền: " . format_number($this->amount) . " VNĐ" .
+						"\n- Nội dung: " . $this->description;
+					$messageData = [
+						'text' => html_entity_decode($message, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+						'parse_mode' => 'HTML',
+						'reply_markup' => [
+							'inline_keyboard' => [
+								[
+									[
+										'text' => 'Phiếu chi',
+										'url' => $sugar_config['site_url'] . "/index.php?module=$this->object_name&record=$this->id&action=DetailView&dothis=true",
+									],
+								],
+							],
 						]
-					]
-				];
-				Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', '', $props);
+					];
+					$botToken = $sugar_config['telegram']['accounting']['bot_token'] ?? '';
+					$chatId = $sugar_config['telegram']['accounting']['chat_id'] ?? '';
+					Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
+				}
+				elseif($notiChannel == 'Mattermost') {
+					$text = "- Loại chi: **$this->payment_type**";
+					$text .= "\n- Ngày tạo: **$date_entered** bởi **" . $user_list[$this->created_by] . "**";
+					$text .= "\n- Số tiền: **". format_number($this->amount) ." VNĐ**";
+					$text .= "\n- Nội dung: $this->description";
+					$props = [
+						"attachments" => [
+							[
+								"color" => "#fcc00d",
+								"title" => "Phiếu chi $this->name",
+								"title_link" => $sugar_config['site_url'] . "/index.php?module=$this->object_name&action=DetailView&record=$this->id",
+								"text" => $text,
+							]
+						]
+					];
+					Mattermost::sendMessage($sugar_config['mattermost']['channel_id_accounting'] ?? '', '', $props);
+				}
 			}
 			catch(Throwable $th) {}
 		}

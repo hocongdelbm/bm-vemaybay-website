@@ -345,4 +345,4 @@
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.4"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=3.5"></script>

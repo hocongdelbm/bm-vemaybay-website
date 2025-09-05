@@ -36,6 +36,8 @@ secure_sessions/*
 
 # JSON config
 custom/json_files/*.json
+custom/json_files/event_02_09_2025/*.json
+custom/json_files/event_02_09_2025/users/*.json
 
 # Ignore vendor
 vendor

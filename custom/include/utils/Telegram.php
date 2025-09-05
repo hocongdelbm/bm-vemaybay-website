@@ -94,4 +94,41 @@ class Telegram {
         curl_close($curl);
         return $res;
     }
+
+    /**
+     * Send message with inline keyboards
+     * @param string $message
+     * @param array $inline_keyboard Inline keyboard array (rows of button arrays)
+     * @param string $bot_token
+     * @param string|int $chat_id
+     * @param string|int $thread_id
+     * @param string $parse_mode
+     * @return string JSON
+     */
+    public static function sendInlineKeyboardMessage($message, $inline_keyboard, $bot_token, $chat_id, $thread_id = '', $parse_mode = "html"){
+        $url = "https://api.telegram.org/bot{$bot_token}/sendMessage";
+        $params = [
+            "chat_id" => $chat_id,
+            "text" => $message,
+            "parse_mode" => $parse_mode,
+            "reply_markup" => [
+                "inline_keyboard" => $inline_keyboard
+            ]
+        ];
+        if(!empty($thread_id)) $params["message_thread_id"] = $thread_id;
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 16);
+        curl_setopt($curl, CONNECTION_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($params));
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return $response;
+    }
 }
