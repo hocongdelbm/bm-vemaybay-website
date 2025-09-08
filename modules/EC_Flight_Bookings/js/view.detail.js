@@ -329,20 +329,6 @@ $(document).ready(function () {
 		Set_Cookie('showLeftCol', 'false', 30, '/', '', '');
 	});
 
-	$(document).on('click', '#btnChonNgonNgu', function () {
-		let what_form = '#' + $('#what_form').val();
-		let lang = $('input:radio[name="ngonngu"]:checked').val();
-		let khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
-		let wayflight = $(`${what_form} input:hidden[name="direction"]`).val();
-		let checkedPassIds = $("input[name='passenger_list_print_eticket[]']:checked").map(function () {
-			return $(this).val();
-		}).get();
-		let listPassengers = encodeURIComponent(checkedPassIds.join(','));
-
-		$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&khuhoi=${khuhoi}&wayflight=${wayflight}&listPassengers=${listPassengers}`);
-		$(what_form).submit();
-	});
-
 	// Send mail eticket button
 	$(document).on('click', 'input[name="btnSendEticket"]', function (index, element) {
 		var ln = $(this).attr('ln');
@@ -375,6 +361,20 @@ $(document).ready(function () {
 			modal: true,
 			resizable: false
 		});
+	});
+
+	$(document).on('click', '#btnChonNgonNgu', function () {
+		let what_form = '#' + $('#what_form').val();
+		let lang = $('input:radio[name="ngonngu"]:checked').val();
+		let khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
+		let wayflight = $(`${what_form} input:hidden[name="direction"]`).val();
+		let checkedPassIds = $("input[name='passenger_list_print_eticket[]']:checked").map(function () {
+			return $(this).val();
+		}).get();
+		let listPassengers = encodeURIComponent(checkedPassIds.join(','));
+
+		$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&khuhoi=${khuhoi}&wayflight=${wayflight}&listPassengers=${listPassengers}`);
+		$(what_form).submit();
 	});
 
 	// Ticket exported button

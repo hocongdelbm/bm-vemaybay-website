@@ -146,6 +146,7 @@ class Viewrequestinvoice extends SugarView {
             if(strpos($inv_email, '@') === false) $inv_email = '';
             // Địa chỉ
             $inv_address = mb_convert_case(mb_strtolower($row['company_address'], 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+            $inv_address = str_replace("Cccd", "CCCD", $inv_address);
             $inv_address_html = !empty($inv_address) ? $this->renderItem('Địa chỉ', $inv_address) : '';
             // Thanh toán
             $inv_bank_account = $inv_arr['iv_bank_account'] ?? '';
