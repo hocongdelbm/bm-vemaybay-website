@@ -71,7 +71,8 @@ var callOptions = {
             // { 'urls': 'stun:stun.cloudflare.com:3478' }, // Máy chủ STUN của Cloudflare
             {
                 'urls': [ 
-                    'stun:turn.quantri.online',
+                    'stun:turn.quantri.online:3478?transport=udp',
+                    'stun:turn.quantri.online:5349?transport=tcp',
                 ],
                 'username': 'quangnd',
                 'credential': 'Super@Secret@123'
