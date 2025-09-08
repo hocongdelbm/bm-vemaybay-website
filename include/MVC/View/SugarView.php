@@ -1328,7 +1328,8 @@ EOHTML;
                 </div>
             ';
 
-            $js_file = ($current_user->user_name == 'hungnh') ? 'call_test.js' : 'call.js';
+            // $js_file = ($current_user->user_name == 'hungnh') ? 'call_test.js' : 'call.js';
+            $js_file = 'call.js';
             $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver='.date("YmdHi").'">';
             $js .= '<audio id="audio_jssip" loop="true"></audio>
                     <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
