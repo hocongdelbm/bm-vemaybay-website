@@ -65,10 +65,18 @@ var callOptions = {
     'mediaConstraints': { 'audio': true, 'video': false },
     'sessionTimersExpires': 180, // Don't set a value lower than 90
     'eventHandlers': eventHandlers, // For debug
-    'pcConfig': { 
+    'pcConfig': {
         'iceServers': [
-            { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
-            { 'urls': 'stun:stun.cloudflare.com:3478' } // Máy chủ STUN của Cloudflare
+            // { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
+            // { 'urls': 'stun:stun.cloudflare.com:3478' }, // Máy chủ STUN của Cloudflare
+            {
+                'urls': [ 
+                    'stun:turn.quantri.online:3478',
+                    // 'stun:turn.quantri.online:5349',
+                ],
+                'username': 'quangnd',
+                'credential': 'Super@Secret@123'
+            }
         ]
     }
 };
@@ -484,7 +492,7 @@ $(document).ready(function () {
             let phone = '', zalo_id = '';
             if (number.length < 15) {
                 phone = number;
-                $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+                $('#voiceip-info-phone').html(phone);
             }
             else {
                 zalo_id = number;
@@ -527,7 +535,7 @@ $(document).ready(function () {
                         if (email && email.length > 0) {
                             $('#voiceip-email').val(email);
                         }
-                        $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+                        $('#voiceip-info-phone').html(phone);
                         $('#voiceip-phone').val(phone);
                         $('#voiceip-phone').prop('readonly', true);
 
@@ -616,7 +624,7 @@ $(document).ready(function () {
         }
 
         if (number.length < 15) {
-            $('#voiceip-info-phone').html(formatPhoneNumber(number));
+            $('#voiceip-info-phone').html(number);
         }
         else {
             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${number}`);
@@ -674,7 +682,7 @@ $(document).ready(function () {
                         $('#voiceip-name').val(name);
                         $('#voiceip-info-name').html(name);
 
-                        $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+                        $('#voiceip-info-phone').html(phone);
                         $('#voiceip-phone').val(phone);
                         $('#voiceip-phone').prop('readonly', true);
 
@@ -992,7 +1000,7 @@ $(document).ready(function () {
                         $('input[name="voiceip-contact-id"]').val(contact_id);
 
                         $('#voiceip-info-name').html(name);
-                        $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+                        $('#voiceip-info-phone').html(phone);
 
                         if (zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zaloid}`);
@@ -1006,7 +1014,7 @@ $(document).ready(function () {
                         }
                     }
                     else {
-                        $('#voiceip-info-phone').html(formatPhoneNumber(arg_phone));
+                        $('#voiceip-info-phone').html(arg_phone);
                         if (arg_zaloid.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${arg_zaloid}`);
                             $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
@@ -1231,7 +1239,7 @@ if ('serviceWorker' in navigator) {
                         $('#voiceip-info-name').html(name);
                         $('#voiceip-name').val(name);
 
-                        $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+                        $('#voiceip-info-phone').html(phone);
                         $('#voiceip-phone').val(phone);
                         $('#voiceip-phone').prop('readonly', true);
 
@@ -1247,7 +1255,7 @@ if ('serviceWorker' in navigator) {
                         }
                     }
                     else {
-                        $('#voiceip-info-phone').html(formatPhoneNumber(call_from));
+                        $('#voiceip-info-phone').html(call_from);
                         if (zalo_id.length > 0) {
                             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zalo_id}`);
                             $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
@@ -1554,17 +1562,6 @@ function resetPopupVoiceip() {
     $('.voiceip-header__title').html('Cuộc gọi');
     hide_avatar_zalo();
     resetTimer();
-}
-
-function formatPhoneNumber(phoneNumber) {
-    const cleaned = ('' + phoneNumber).replace(/\D/g, '');
-    const match = cleaned.match(/^(\d{3})(\d{4})(\d{3})$/);
-
-    if (match) {
-        return match[1] + ' ' + match[2] + ' ' + match[3];
-    }
-
-    return phoneNumber;
 }
 
 /********************   COUNT CALL TIME   ********************/

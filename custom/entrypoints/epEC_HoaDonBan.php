@@ -191,7 +191,7 @@ if(isset($_POST['for']) && $_POST['for'] == 'reasonCancelInvoice') {
                 'invRef' => $_POST['hd_record_name'],
                 'note' => $_POST['description']
             ];
-            $inv->delete($params, (int)$_POST['is_cancel_invoive']);
+            $inv->delete($params, (int)$_POST['is_signed']);
         }
 
         $sql_detail = '

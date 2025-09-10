@@ -49,7 +49,12 @@ class EC_HoaDonBan extends Basic
 	public $tongtien;
 	public $loaichungtu_id;
 	public $loaichungtu;
-	public $pt_thanhtoan;
+	// public $pt_thanhtoan;
+	public $is_signed;
+	public $tinhtrang;
+	public $company_unit;
+	public $tongsl;
+	public $tongthanhtoan;
 
 	public function bean_implements($interface)
 	{

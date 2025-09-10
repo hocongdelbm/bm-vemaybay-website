@@ -17,7 +17,7 @@ $(document).ready(function () {
 	// Hủy hóa đơn
 	$(document).on('click', '#btn-confirm-cancel__invoice', function () {
 		let description = $("#txtCancelInvoice").val();
-		let is_cancel_invoice = $("input[name='is_cancel_invoice']").val();
+		let is_signed = $("input[name='is_signed']").val();
 		let hd_record = $("input[name='record']").val();
 		let hd_record_name = $("input[name='record_name']").val();
 		let company_unit = $("input[name='company_unit']").val();
@@ -34,7 +34,7 @@ $(document).ready(function () {
 			data: {
 				hd_record: hd_record,
 				hd_record_name: hd_record_name,
-				is_cancel_invoice: is_cancel_invoice,
+				is_signed: is_signed,
 				company_unit: company_unit,
 				description: description,
 				for: "reasonCancelInvoice",

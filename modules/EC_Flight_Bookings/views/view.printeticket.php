@@ -11,8 +11,6 @@ class Viewprinteticket extends SugarView {
 	}
 
 	function populateContent($smartyobj, $lang, $khuhoi, $listPassengerIDs) {
-		global $current_user;
-
 		// Detect department id
 		$created_by = new User();
 		$created_by->retrieve($this->bean->created_by);
@@ -112,18 +110,18 @@ class Viewprinteticket extends SugarView {
 		// Lấy thông tin của 1 chiều đang có
 		// Lượt đi
 		if ($iti->direction == 0) {
-			$departure_date1 	= date('d/m/Y H:i', strtotime(' -7 hours', strtotime($iti->departure_date)));
-			$airline1 		= $airline['data'][0]['name'];
-			$flight_number1 	= $iti->flight_number;
-			$departure1 		= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
+			$departure_date1 = date('d/m/Y H:i', strtotime(' -7 hours', strtotime($iti->departure_date)));
+			$airline1 		= $airline['data'][0]['name'] ?? '';
+			$flight_number1 = $iti->flight_number;
+			$departure1 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
 			$arrival1 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
 		} 
 		else {
 			// Lượt về
-			$departure_date2 	= date('d/m/Y H:i', strtotime(' -7 hours', strtotime($iti->departure_date)));
-			$airline2 		= $airline['data'][0]['name'];
-			$flight_number2 	= $iti->flight_number;
-			$departure2 		= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
+			$departure_date2 = date('d/m/Y H:i', strtotime(' -7 hours', strtotime($iti->departure_date)));
+			$airline2 		= $airline['data'][0]['name'] ?? '';
+			$flight_number2 = $iti->flight_number;
+			$departure2 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
 			$arrival2 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
 		}
 
@@ -614,7 +612,7 @@ class Viewprinteticket extends SugarView {
 	// Lấy danh sách hành trình bay
 	function listOfItineraries($booking_id, $khuhoi, $way_flight = '0', $lang, $iti_id, $is_change_inf = 0)
 	{
-		global $db, $app_list_strings, $current_user;
+		global $db;
 		$html = '';
 
 		$sql = "
@@ -665,7 +663,7 @@ class Viewprinteticket extends SugarView {
 
 			$html .= '<tr class="listOfItineraries">
 					<td align="center" style="border:1px solid #ccc; padding: 10px 7px; line-height: 20px;">' . (trim($row['departure_date']) != '' ? date('d/m/Y', strtotime(empty($new_flight_time['departure_date']) ? $row['departure_date'] : $new_flight_time['departure_date'])) : '&nbsp;') . ' <br /> ' . (trim($row['departure_date']) != '' ? date('H:i', strtotime(empty($new_flight_time['departure_date']) ? $row['departure_date'] : $new_flight_time['departure_date'])) : '&nbsp;') . ' - ' . (trim($row['arrival_date']) != '' ? date('H:i', strtotime(empty($new_flight_time['arrival_date']) ? $row['arrival_date'] : $new_flight_time['arrival_date'])) : '&nbsp;') . '</td>
-					<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $airline['data'][0]['name'] . '</td>
+					<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . ($airline['data'][0]['name'] ?? '') . '</td>
 					<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . (empty($new_flight_time['flight_number']) ? $row['flight_number'] : $new_flight_time['flight_number']) . '</td>
 					<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')</td>
 					<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')</td>

@@ -639,8 +639,26 @@ function myRecheckFlight($aircode, $pnr, $fullName, $flightNo, $timeout = 30, $u
     return $result;
 }
 
-function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
+// Get airline info
+function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 1, $format = 'array')
 {
+    $api_key = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
+    $url = 'http://api.vemaybaynamphuong.com/index.php/apiv1/api/airline_search/format/json/term/' . $airline_code . '/case_sensitive/' . $case_sensitive . '/search_by/' . $search_by;
+
+    $curl_handle = curl_init();
+    curl_setopt($curl_handle, CURLOPT_URL, $url);
+    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
+    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl_handle, CURLOPT_FOLLOWLOCATION, 0);
+    $data = curl_exec($curl_handle);
+    curl_close($curl_handle);
+    $result = '';
+    if ($format == 'array') $result = json_decode($data, true);
+    else if ($format == 'json') $result = $data;
+    return $result;
+}
+
+function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array') {
     $search_by_allow = array('CODE', 'NAME', 'FULL');
     $search_by = $search_by && in_array($search_by, $search_by_allow) ? $search_by : 'FULL';
     $case_sensitive = $case_sensitive ? $case_sensitive : 0; // default is case insensitive
@@ -1641,7 +1659,7 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         $booking_date = date('d-m-Y');
     }
 
-    $arr_replace = array(
+    $arr_replace = [
         'VNA' => 'vietnamair',
         'VNP' => 'pacificair',
         'VJA' => 'vietjet',
@@ -1655,32 +1673,32 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         'BL' => 'pacificair',
         'JQ' => 'jetstar',
         '3K' => 'jetstar',
-    );
+    ];
 
     // Phân loại theo hãng bay
     if ($airline == 'VNA' || $airline == 'VN') {
         // array các hạng vé A / P / G
-        $arrayClassEconomy = array('Economy (EP)-A', 'Economy (EP)-P', 'Economy (EP)-G', 'A', 'P', 'G');
+        $arrayClassEconomy = ['Economy (EP)-A', 'Economy (EP)-P', 'Economy (EP)-G', 'A', 'P', 'G'];
         // array các hạng vé Business
-        $arrayClassBusiness = array('Business (BF)-C', 'Business (BF)-J', 'Business (BC)-D', 'C', 'J', 'D');
+        $arrayClassBusiness = ['Business (BF)-C', 'Business (BF)-J', 'Business (BC)-D', 'C', 'J', 'D'];
 
         // Trẻ sơ sinh
         if ($pass_type == 2) {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
             // Hạng vé A / P / G của trẻ sơ sinh không có hành lý xách tay
-            if (in_array($ticket_class, $arrayClassEconomy)) {
+            if (stripos($ticket_class, "Eco Super Lite") !== false || in_array($ticket_class, $arrayClassEconomy)) {
                 unset($luggage_arr[0]);
             }
         }
         // Hạng vé Business
-        else if (in_array($ticket_class, $arrayClassBusiness)) {
+        elseif (in_array($ticket_class, $arrayClassBusiness)) {
             $pass_ticket_class = '_business';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
         }
         // Hạng vé A / P / G thì hành lý như bên dưới
-        else if (in_array($ticket_class, $arrayClassEconomy)) {
-            $luggage_arr = array(
+        elseif (stripos($ticket_class, "Eco Super Lite") !== false || in_array($ticket_class, $arrayClassEconomy)) {
+            $luggage_arr = [
                 '1' => 'Không có hành lý ký gửi ',
                 '0' => '1 kiện 23kg (0 VND/Khách)',
                 '2' => '1 kiện 32kg (0 VND/khách)',
@@ -1693,13 +1711,14 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
                 '220000'    => '1 kiện 10kg (220.000 VND/ Khách)',
                 '440000'    => '2 kiện 10kg (440.000 VND/ Khách)',
                 '660000'    => '3 kiện 10kg (660.000 VND/ Khách)'
-            );
+            ];
         }
         // Từ ngày 14-12-2022, đổi giá hành lý mới cho 1 / 2 / 3 kiện 10kg
         else if (strtotime($booking_date) >= strtotime('2022-12-14 00:00:00')) {
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . '_luggage_price_list2'];
         }
-    } else if ($airline == 'VJA' || $airline == 'VJ') {
+    }
+    else if ($airline == 'VJA' || $airline == 'VJ') {
         // Sau ngày 21-11-2022 đổi sang hành lý mới
         if (strtotime($booking_date) >= strtotime('2022-11-21 00:00:00')) {
             if ($is_new_edited || !is_null($luggage_index)) {
@@ -1715,7 +1734,8 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
                 $luggage_price = $luggage_index;
             }
         }
-    } else if ($airline == 'BBA' || $airline == 'QH') {
+    }
+    else if ($airline == 'BBA' || $airline == 'QH') {
         if ($pass_type == '2') {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
@@ -1725,12 +1745,14 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
             if (empty($luggage_list)) $luggage_list = array();
             $luggage_arr = $luggage_list + $app_list_strings['bambooair_advanced_luggage_price_list'];
         }
-    } else if ($airline == 'VNP' || $airline == 'BL') {
+    }
+    else if ($airline == 'VNP' || $airline == 'BL') {
         if ($pass_type == '2') {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
         }
-    } else if ($airline == 'VTA' || $airline == 'VU') {
+    }
+    else if ($airline == 'VTA' || $airline == 'VU') {
         // Từ ngày 06-01-2023 thì lấy thông tin hành lý mới lần 2
         if (strtotime($booking_date) >= strtotime('2023-01-06')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list2'];
@@ -1739,7 +1761,8 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         else if (strtotime($booking_date) >= strtotime('2022-08-11')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list1'];
         }
-    } else {
+    }
+    else {
         // INTER
         $luggage_arr = $app_list_strings['inter_luggage_price_list'];
     }
