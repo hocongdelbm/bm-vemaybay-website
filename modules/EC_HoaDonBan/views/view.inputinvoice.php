@@ -817,7 +817,7 @@ class Viewinputinvoice extends SugarView {
                 if ($data[$i]['supplier'] != 'VJA') {
                     // Tính giá vốn chưa VAT
                     // Nếu là vé quốc tế, VAT = 0
-                    if ($data[$i]['is_intern']) {
+                    if (isset($data[$i]['is_intern'])) {
                         $input_iv->cost_no_vat      = $input_iv->cost;
                         $input_iv->vat              = 0;
                         $input_iv->authorized_fee   = 0;
@@ -843,9 +843,17 @@ class Viewinputinvoice extends SugarView {
                             // // Tính giá vốn (VAT)
                             // $input_iv->cost = ($data[$i]['ticket_price'] * $data[$i]['pass_qty']) + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
                             // Tính giá vốn (VAT) bỏ nhân SL
-                            $input_iv->cost = $data[$i]['ticket_price'] + $data[$i]['vat'] + $data[$i]['admin_fee'] + $data[$i]['luggage_outbound'] + $data[$i]['luggage_inbound'];
+                            $input_iv->cost = ($data[$i]['ticket_price'] ?? 0)
+                                + ($data[$i]['vat'] ?? 0)
+                                + ($data[$i]['admin_fee'] ?? 0)
+                                + ($data[$i]['luggage_outbound'] ?? 0)
+                                + ($data[$i]['luggage_inbound'] ?? 0);
                             // Tính giá vốn chưa vat
-                            $input_iv->cost_no_vat = $input_iv->cost - $data[$i]['vat'] - $data[$i]['vat_admin'] - $data[$i]['vat_luggage_outbound'] - $data[$i]['vat_luggage_inbound'];
+                            $input_iv->cost_no_vat = $input_iv->cost
+                                - ($data[$i]['vat'] ?? 0)
+                                - ($data[$i]['vat_admin'] ?? 0)
+                                - ($data[$i]['vat_luggage_outbound'] ?? 0)
+                                - ($data[$i]['vat_luggage_inbound'] ?? 0);
                         }
                         // Tính vat
                         $input_iv->vat = $input_iv->cost - $input_iv->cost_no_vat;

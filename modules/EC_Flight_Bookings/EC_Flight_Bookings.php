@@ -586,9 +586,9 @@ class EC_Flight_Bookings extends Basic
 			$psg->supplier_id 					= $_POST['psg_luggage_supplier'][$i];
 			$psg->supplier_inbound_id 			= $_POST['psg_luggage_supplier_inbound'][$i];
 			$psg->booking_id 					= $this->id;
-			$psg->add_type 						= $_POST['psg_add_type'][$i];
-			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i];
-			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? '0';
+			$psg->add_type 						= $_POST['psg_add_type'][$i] ?? '0';
+			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i] ?? '';
+			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? 0;
 			
 			$psg->luggage_purchase_no_vat 		= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
 			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);

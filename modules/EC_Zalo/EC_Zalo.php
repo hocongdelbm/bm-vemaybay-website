@@ -339,7 +339,7 @@ class EC_Zalo extends Basic {
         $result['parent_type'] = $row['message_type'] ?? '';
         $result['thumbnail'] = $row['thumbnail'] ?? '';
 
-        if($row['parent_type'] == 'call') {
+        if($result['parent_type'] == 'call') {
             $result['message'] = $result['type'] == 'outbound' ? 'Cuộc gọi đi' : 'Cuộc gọi đến';
         }
         else {

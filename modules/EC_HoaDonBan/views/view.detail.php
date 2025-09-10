@@ -494,7 +494,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			</form>
 			<form class="frmCancelInvoice" action="index.php" method="post" name="frmCancelInvoice" id="frmCancelInvoice">
 				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-				<input type="hidden" name="is_cancel_invoice" value="'.$this->bean->is_cancel_invoice.'" />
+				<input type="hidden" name="is_signed" value="'.$this->bean->is_signed.'" />
 				<input type="hidden" name="company_unit" value="'.$this->bean->company_unit.'" />
 
 				<div id="dlgCancelInvoice" style="display:none;" title="Hủy hóa đơn">

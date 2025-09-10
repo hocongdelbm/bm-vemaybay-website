@@ -6,7 +6,7 @@ class Viewsendeticket extends SugarView {
 		$smartyCont = new Sugar_Smarty();
 
         // Check email is valid
-        $not_allowed = array(
+        $not_allowed = [
             'gmail.vn',
             'gmail.com.vn',
             'gmall.com',
@@ -30,7 +30,7 @@ class Viewsendeticket extends SugarView {
             'facebook.com',
             'facebook.net',
             'fb.com',
-        );
+		];
         $email_domain = substr(strrchr($this->bean->email, '@'), 1);
 		if(empty($this->bean->email) 
 			|| filter_var($this->bean->email, FILTER_VALIDATE_EMAIL) === false 
@@ -52,11 +52,12 @@ class Viewsendeticket extends SugarView {
 	}
 
 	function sendEticket($smartyobj) {
-		global $db, $current_user, $app_list_strings;
+		global $current_user;
 		$send_ok = true;
 		require_once('modules/EC_Flight_Bookings/views/view.printeticket.php');
 		$pe = new Viewprinteticket();
-		
+		$pe->bean = $this->bean;
+
 		// detect department id
 		$created_by = new User();
 		$created_by->retrieve($this->bean->created_by);
