@@ -2,7 +2,7 @@
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 try {
-    require_once("modules/EC_Flight_Bookings/PhuongNamAPI.php");
+    require_once("modules/EC_Flight_Bookings/APIPhuongNam.php");
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         global $db, $current_user;
@@ -191,7 +191,7 @@ try {
         }
         elseif($action == 'research') {
             global $sugar_config;
-            $phuongnamapi = new PhuongNamAPI();
+            $phuongnamapi = new APIPhuongNam();
 
             $requestData    = json_decode(file_get_contents('php://input'), true) ?? [];
             $airlineCode    = $requestData['airlineCode'] ?? '';
@@ -221,7 +221,6 @@ try {
             if(isset($arr['status']) && $arr['status'] == 1) {
                 $fareSumAmount = 0;
 
-                $result = [];
                 $flights = $arr['data']['dep'] ?? [];
                 foreach($flights as $f) {
                     if(!isset($f['transactionID']) || $f['flightNo'] != $flightNo) continue;
@@ -323,8 +322,8 @@ try {
                         "data" => [
                             "standardData" => $standardData,
                             "updateData" => $updateData
-                        ]
-                        ,'flights'=>$flights
+                        ],
+                        'flights'=> $flights
                     ]);
                     exit();
                 }
@@ -467,7 +466,7 @@ try {
                 exit();
             }
             
-            $phuongnamapi = new PhuongNamAPI();
+            $phuongnamapi = new APIPhuongNam();
 
             // Get airline codes
             $airlineCodes = [];
@@ -686,7 +685,7 @@ try {
                 else $bookingType = 'roundtrip';
             }
 
-            $phuongnamapi = new PhuongNamAPI();
+            $phuongnamapi = new APIPhuongNam();
             $response = $phuongnamapi->booking($requestBody);
             $responseArr = json_decode($response, true);
 
@@ -970,7 +969,7 @@ try {
                 exit();
             }
 
-            $phuongnamapi = new PhuongNamAPI();
+            $phuongnamapi = new APIPhuongNam();
             $response = $phuongnamapi->getBooking($systemCode, $bookingCode);
             $responseArr = json_decode($response, true);
             $bookingStatusId = $responseArr['data']['BookingStatusId'] ?? null;
@@ -1102,7 +1101,7 @@ try {
                 exit();
             }
 
-            $phuongnamapi = new PhuongNamAPI();
+            $phuongnamapi = new APIPhuongNam();
             $response = $phuongnamapi->payForBooking($systemCode, $bookingCode);
 
             // Send notification
@@ -1148,7 +1147,7 @@ try {
                 exit();
             }
             
-            $phuongnamapi = new PhuongNamAPI();
+            $phuongnamapi = new APIPhuongNam();
             $response = $phuongnamapi->getBaggageInfo($systemCode, $bookingCode);
             $responseArr = json_decode($response, true);
 
@@ -1194,7 +1193,7 @@ try {
                 "PersonOrgId" => $personOrgId,
                 "PersonOrgIdConfirmed"=> $personOrgIdConfirmed
             ]];
-            $phuongnamapi = new PhuongNamAPI();
+            $phuongnamapi = new APIPhuongNam();
             $response = $phuongnamapi->addBaggage($systemCode, $bookingCode, $services);
             $responseArr = json_decode($response, true);
 

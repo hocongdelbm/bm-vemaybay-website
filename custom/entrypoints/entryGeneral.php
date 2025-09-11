@@ -22,14 +22,6 @@ try {
             ]);
             exit();
         }
-        if($api_key != ($sugar_config['api_key']['non_auth_entrypoint'] ?? '')) {
-            http_response_code(401);
-            echo json_encode([
-                "status" => 0,
-                "message" => "Unauthorized"
-            ]);
-            exit();
-        }
 
         // Get data
         $params = $_GET;

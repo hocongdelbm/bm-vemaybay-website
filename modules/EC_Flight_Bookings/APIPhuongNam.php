@@ -1,5 +1,5 @@
 <?php
-class PhuongNamAPI {
+class APIPhuongNam {
     private $ENDPOINT;
     private $API_SEARCH_KEY;
     private $API_BOOKING_KEY;
