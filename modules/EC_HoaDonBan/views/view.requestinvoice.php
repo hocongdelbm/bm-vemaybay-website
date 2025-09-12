@@ -23,17 +23,6 @@ class Viewrequestinvoice extends SugarView {
                 ,bk.shipping_address
                 ,bk.is_output_invoice_checked
                 ,(
-                    SELECT GROUP_CONCAT(
-                        DISTINCT CONCAT_WS(',', i.departure, i.arrival)
-                        ORDER BY i.direction, i.date_entered, i.departure_date
-                        SEPARATOR '|'
-                    )
-                    FROM ec_booking_itineraries i
-                    WHERE i.booking_id = rv.booking_id
-                        AND i.add_type = 0
-                        AND i.deleted = 0
-                ) AS itinerary_data 
-                ,(
                     SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
                     FROM ec_chitiethoadon ct
                         INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
@@ -183,7 +172,7 @@ class Viewrequestinvoice extends SugarView {
 
             // Hoá đơn đầu vào
             $in_invoice_html = '';
-            $itinerary_data  = $this->extractConcat($row['itinerary_data']);
+            $itinerary_data  = $this->extractConcat($this->getItinerary($row['booking_id']));
             $in_invoice_data = $this->extractConcat($row['in_inv_data']);
             foreach($itinerary_data as $iti) {
                 $city_pair = "{$iti[0]}-{$iti[1]}";
@@ -414,6 +403,25 @@ class Viewrequestinvoice extends SugarView {
             }
         }
         return $result;
+    }
+
+    private function getItinerary($booking_id) {
+        $sql = "SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', startPoint, endPoint) ORDER BY direction SEPARATOR '|') AS itinerary
+            FROM (
+                SELECT i.direction
+                    ,SUBSTRING_INDEX(GROUP_CONCAT(i.departure ORDER BY i.transit_order, i.departure_date ASC SEPARATOR ','), ',', 1) AS startPoint
+                    ,SUBSTRING_INDEX(GROUP_CONCAT(i.arrival ORDER BY i.transit_order, i.departure_date ASC SEPARATOR ','), ',', -1) AS endPoint
+                FROM ec_booking_itineraries i
+                WHERE i.booking_id = '$booking_id'
+                    AND i.add_type = 0
+                    AND i.deleted = 0
+                GROUP BY i.direction
+                ORDER BY i.direction
+            ) AS listpoint";
+
+        $res = $this->bean->db->query($sql);
+        $row = $this->bean->db->fetchByAssoc($res);
+        return $row['itinerary'] ?? '';
     }
 
     private function combineItineraries($arr) {
