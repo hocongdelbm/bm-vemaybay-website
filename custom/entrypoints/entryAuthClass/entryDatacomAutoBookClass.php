@@ -14,6 +14,7 @@ class entryDatacomAutoBookClass extends entryClass {
     public $supplierName;
 
     public function __construct() {
+        parent::__construct();
         global $sugar_config;
         $this->mappingSystemCodeName = [
             'VJ' => 'Vietjet Air',
@@ -65,12 +66,12 @@ class entryDatacomAutoBookClass extends entryClass {
                     if ($stt_dep == 0 && in_array($row['id'], $listItineraryId)) {
                         $within24h = 0;
                         if(strtotime($row['departure_date']) - time() < 86400) $within24h = 1;
-                        $flightDate = date('d-m-Y H:i', strtotime($row['departure_date']));
+                        $departureDate = date('d-m-Y H:i', strtotime($row['departure_date']));
                         $dataItineraries['dep'] = [
                             'id'            => $row['id'],
                             'depCode' 	    => $row['departure'],
                             'desCode'	    => $row['arrival'],
-                            'flightDate'  	=> $flightDate,
+                            'departureDate' => $departureDate,
                             'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
                             'flightNo'	    => $row['flight_number'],
                             'ticketClass'   => $row['ticket_class'],
@@ -85,12 +86,12 @@ class entryDatacomAutoBookClass extends entryClass {
                     if ($stt_ret == 0 && in_array($row['id'], $listItineraryId)) {
                         $within24h = 0;
                         if(strtotime($row['departure_date']) - time() < 86400) $within24h = 1;
-                        $flightDate = date('d-m-Y H:i', strtotime($row['departure_date']));
+                        $departureDate = date('d-m-Y H:i', strtotime($row['departure_date']));
                         $dataItineraries['ret'] = [
                             'id'            => $row['id'],
                             'depCode' 	    => $row['departure'],
                             'desCode'	    => $row['arrival'],
-                            'flightDate'  	=> $flightDate,
+                            'departureDate' => $departureDate,
                             'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
                             'flightNo'	    => $row['flight_number'],
                             'ticketClass'	=> $row['ticket_class'],
@@ -229,8 +230,11 @@ class entryDatacomAutoBookClass extends entryClass {
         $chd            = (int)($params['chd'] ?? 0);
         $inf            = (int)($params['inf'] ?? 0);
         $isInter        = (int)($params['isInter'] ?? 0);
-        
+        $listItineraryId = $params['listItineraryId'] ?? [];
         $flightNo       = $params['flightNo'] ?? [];
+        $adtDetailId    = $params['adtDetailId'] ?? [];
+        $chdDetailId    = $params['chdDetailId'] ?? [];
+        $infDetailId    = $params['infDetailId'] ?? [];
         $adtFare        = $params['adtFare'] ?? [];
         $chdFare        = $params['chdFare'] ?? [];
         $infFare        = $params['infFare'] ?? [];
@@ -276,40 +280,43 @@ class entryDatacomAutoBookClass extends entryClass {
                         // Check datetime
                         $flightDate = $i == 1 ? $retDate : $depDate;
                         if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
-                            $updateData[$i]['departureDate']  = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
-                            $updateData[$i]['arrivalDate'] = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
+                            $updateData[$i]['itineraryId']      = $listItineraryId[$i] ?? '';
+                            $updateData[$i]['departureDate']    = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
+                            $updateData[$i]['arrivalDate']      = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
                         }
 
                         // Check prices
-                        if(isset($f["adtFare"]) && $f["adtFare"] != $adtFare) {
+                        if(isset($f["adtFare"]) && isset($adtFare[$i]) && $f["adtFare"] != $adtFare[$i]) {
                             $newFare = $f["adtFare"] ?? 0;
                             $newTax  = isset($f["adtTax"]) && $f["adtTax"] > 0 ? $f["adtTax"] : $newFare * $this->vatPercentage;
                             $updateData[$i]['adtFare'] = [
-                                "fare"   => $newFare,
-                                "tax"    => $newTax,
+                                "detailId"  => $adtDetailId[$i] ?? '',
+                                "fare"      => $newFare,
+                                "tax"       => $newTax,
                                 // "fee"    => $f["adtFee"],
-                                "price"  => $f["adtPrice"]
+                                "price"     => $f["adtPrice"]
                             ];
                         }
-                        if($chd > 0 && isset($f["chdFare"]) && $f["chdFare"] != $chdFare) {
+                        if($chd > 0 && isset($f["chdFare"]) && isset($chdFare[$i]) && $f["chdFare"] != $chdFare[$i]) {
                             $newFare = $f["chdFare"] ?? 0;
                             $newTax = isset($f["chdTax"]) && $f["chdTax"] > 0 ? $f["chdTax"] : $newFare * $this->vatPercentage;
-
                             $updateData[$i]['chdFare'] = [
-                                "fare"   => $newFare,
-                                "tax"    => $newTax,
+                                "detailId"  => $chdDetailId[$i] ?? '',
+                                "fare"      => $newFare,
+                                "tax"       => $newTax,
                                 // "fee"    => $f["chdFee"],
-                                "price"  => $f["chdPrice"]
+                                "price"     => $f["chdPrice"]
                             ];
                         }
-                        if($inf > 0 && isset($f["infFare"]) && $f["infFare"] != $infFare) {
+                        if($inf > 0 && isset($f["infFare"]) && isset($infFare[$i]) && $f["infFare"] != $infFare[$i]) {
                             $newFare = $f["infFare"] ?? 0;
                             $newTax = isset($f["infTax"]) && $f["infTax"] > 0 ? $f["infTax"] : $newFare * $this->vatPercentage;
                             $updateData[$i]['infFare'] = [
-                                "fare"   => $newFare,
-                                "tax"    => $newTax,
+                                "detailId"  => $infDetailId[$i] ?? '',
+                                "fare"      => $newFare,
+                                "tax"       => $newTax,
                                 // "fee"    => $f["infFee"],
-                                "price"  => $f["infPrice"]
+                                "price"     => $f["infPrice"]
                             ];
                         }
 
@@ -341,37 +348,40 @@ class entryDatacomAutoBookClass extends entryClass {
                     }
                     
                     // Check prices
-                    if(isset($f["adtPrice"]) && $f["adtPrice"] != $adtPrice) {
+                    if(isset($f["adtPrice"]) && isset($adtPrice[$i]) && $f["adtPrice"] != $adtPrice[$i]) {
                         $newFare    = $f["adtFare"] ?? null;
                         $newTaxFee  = $f["adtTaxFee"] ?? null;
                         $newPrice   = $f["adtPrice"] ?? null;
     
                         $updateData[$i]['adtFare'] = [
-                            "fare"   => $newFare,
-                            "fee"    => $newTaxFee,
-                            "price"  => $newPrice
+                            "detailId"  => $adtDetailId[$i] ?? '',
+                            "fare"      => $newFare,
+                            "fee"       => $newTaxFee,
+                            "price"     => $newPrice
                         ];
                     }
-                    if($chd > 0 && isset($f["chdPrice"]) && $f["chdPrice"] != $chdPrice) {
+                    if($chd > 0 && isset($f["chdPrice"]) && isset($chdPrice[$i]) && $f["chdPrice"] != $chdPrice[$i]) {
                         $newFare    = $f["chdFare"] ?? null;
                         $newTaxFee  = $f["chdTaxFee"] ?? null;
                         $newPrice   = $f["chdPrice"] ?? null;
     
                         $updateData[$i]['chdFare'] = [
-                            "fare"   => $newFare,
-                            "fee"    => $newTaxFee,
-                            "price"  => $newPrice
+                            "detailId"  => $chdDetailId[$i] ?? '',
+                            "fare"      => $newFare,
+                            "fee"       => $newTaxFee,
+                            "price"     => $newPrice
                         ];
                     }
-                    if($inf > 0 && isset($f["infPrice"]) && $f["infPrice"] != $infPrice) {
+                    if($inf > 0 && isset($f["infPrice"]) && isset($infPrice[$i]) && $f["infPrice"] != $infPrice[$i]) {
                         $newFare    = $f["infFare"] ?? null;
                         $newTaxFee  = $f["infTaxFee"] ?? null;
                         $newPrice   = $f["infPrice"] ?? null;
     
                         $updateData[$i]['infFare'] = [
-                            "fare"   => $newFare,
-                            "fee"    => $newTaxFee,
-                            "price"  => $newPrice
+                            "detailId"  => $infDetailId[$i] ?? '',
+                            "fare"      => $newFare,
+                            "fee"       => $newTaxFee,
+                            "price"     => $newPrice
                         ];
                     }
                 }
@@ -423,64 +433,96 @@ class entryDatacomAutoBookClass extends entryClass {
 
         global $db, $current_user;
         $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
-        $statusUpdate = true;
+        $sqlUpdate = '';
 
-        if(!$isInter) {
-            // Update fares
+        if(!$isInter) { // Domestic
+            // Update detail prices
             $basePrice = null;
             $passengerTypes = ['adt', 'chd', 'inf'];
             foreach($passengerTypes as $i => $type) {
                 $k = $type . "Fare";
                 if(isset($params[$k]) && !empty($params[$k])) {
-                    $fare   = $params[$k]["fare"];
-                    $tax    = $params[$k]["tax"];
+                    $detailId = $params[$k]["detailId"];
+                    $fare = $params[$k]["fare"];
+                    $tax = $params[$k]["tax"];
                     // $fee    = $params[$k]["fee"];
-                    // $vatFee = $fee*$sugar_config['vat_percentage'];
+                    // $vatFee = $fee * $this->vatPercentage;
                     // $price  = $params[$k]["price"];
 
-                    $sql = "UPDATE ec_booking_details
+                    // $sqlUpdate = "UPDATE ec_booking_details
+                    //     SET unit_price = $fare
+                    //         ,tax_and_fee = $tax
+                    //         -- ,airport_fee        = IF($fee > admin_fee, $fee - admin_fee, 0)
+                    //         -- ,admin_fee          = IF($fee > admin_fee, admin_fee, $fee)
+                    //         -- ,vat_admin          = IF($fee > admin_fee, vat_admin, $vatFee)
+                    //         -- ,admin_fee_no_vat   = IF($fee > admin_fee, admin_fee_no_vat, $fee - $vatFee)
+                    //         -- ,total_bought_price = $price * quantity
+                    //         -- ,total_price = ($price + service_fee) * quantity
+                    //         ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
+                    //         ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
+                    //         ,modified_user_id = '$current_user->id'
+                    //         ,date_modified = '$dateModified'
+                    //     WHERE id = '$detailId'
+                    //         AND booking_id = '$bookingId'
+                    //         AND direction = '$direction'
+                    //         AND passenger_type = '$i'
+                    //         AND deleted = 0";
+
+                    $sqlUpdate = "UPDATE ec_booking_details
                         SET unit_price = $fare
                             ,tax_and_fee = $tax
-                            -- ,airport_fee        = IF($fee > admin_fee, $fee - admin_fee, 0)
-                            -- ,admin_fee          = IF($fee > admin_fee, admin_fee, $fee)
-                            -- ,vat_admin          = IF($fee > admin_fee, vat_admin, $vatFee)
-                            -- ,admin_fee_no_vat   = IF($fee > admin_fee, admin_fee_no_vat, $fee - $vatFee)
-                            -- ,total_bought_price = $price * quantity
-                            -- ,total_price = ($price + service_fee) * quantity
                             ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                             ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
-                        WHERE booking_id = '$bookingId'
+                        WHERE id = '$detailId'
+                            AND booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND passenger_type = '$i'
-                            AND deleted = 0
-                            AND date_entered = (
-                                SELECT max(date_entered)
-                                FROM ec_booking_details 
-                                WHERE booking_id = '$bookingId' AND direction = '$direction' AND passenger_type = '$i' AND deleted = 0
-                            )";
-                    if(!$db->query($sql)) $statusUpdate = false;
+                            AND deleted = 0";
+
                     if($type == 'adt') $basePrice = $fare;
+                    if(!$db->query($sqlUpdate)) {
+                        if($this->isDebug()) return [
+                            "status" => 0,
+                            "message" => "Cập nhật chi tiết vé không thành công, vui lòng thử lại",
+                            "query" => trim($sqlUpdate)
+                        ];
+                        return [
+                            "status" => 0,
+                            "message" => "Cập nhật chi tiết vé không thành công, vui lòng thử lại",
+                        ];
+                    }
                 }
             }
 
             // Update total number in booking (Don't update total amount)
             $total_bought_amount = $db->getOne("SELECT SUM(total_bought_price) FROM ec_booking_details WHERE booking_id = '$bookingId' AND deleted = 0") ?? 0;
             $subtotal_amount = $db->getOne("SELECT SUM(total_price) FROM ec_booking_details WHERE booking_id = '$bookingId' AND deleted = 0") ?? 0;
-            $sql = "UPDATE ec_flight_bookings
+            $sqlUpdate = "UPDATE ec_flight_bookings
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
                     WHERE id = '$bookingId' AND deleted = 0";
-            $db->query($sql);
+            if(!$db->query($sqlUpdate)) {
+                if($this->isDebug()) return [
+                    "status" => 0,
+                    "message" => "Cập nhật giá tổng không thành công, vui lòng thử lại",
+                    "query" => trim($sqlUpdate)
+                ];
+                return [
+                    "status" => 0,
+                    "message" => "Cập nhật giá tổng không thành công, vui lòng thử lại",
+                ];
+            }
 
             // Update flight date
             if(isset($params['departureDate']) && !empty($params['departureDate'])) {
-                $fdate = date('Y-m-d H:i:00', strtotime($params['departureDate']));
+                $ddate = date('Y-m-d H:i:00', strtotime($params['departureDate']));
                 $adate = date('Y-m-d H:i:00', strtotime($params['arrivalDate']));
 
-                $sql = "UPDATE ec_booking_itineraries
-                        SET departure_date = '$fdate'
+                if(strtotime($ddate) > time() && strtotime($adate) > strtotime($ddate)) {
+                    $sqlUpdate = "UPDATE ec_booking_itineraries
+                        SET departure_date = '$ddate'
                             ,arrival_date = '$adate'
                             ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
                             ,modified_user_id = '$current_user->id'
@@ -489,11 +531,24 @@ class entryDatacomAutoBookClass extends entryClass {
                             AND direction = '$direction'
                             AND deleted = 0
                             AND add_type = 0";
-                if(!$db->query($sql)) $statusUpdate = false;
+
+                    if(!$db->query($sqlUpdate)) {
+                        if($this->isDebug()) return [
+                            "status" => 0,
+                            "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
+                            "query" => trim($sqlUpdate)
+                        ];
+                        return [
+                            "status" => 0,
+                            "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
+                        ];
+                    }
+                }
             }
+            
             // Update base price
-            elseif(!is_null($basePrice)) {
-                $sql = "UPDATE ec_booking_itineraries
+            if(!is_null($basePrice)) {
+                $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
@@ -501,12 +556,13 @@ class entryDatacomAutoBookClass extends entryClass {
                             AND direction = '$direction'
                             AND deleted = 0
                             AND add_type = 0";
-                $db->query($sql);
+                $db->query($sqlUpdate);
             }
+
+            return ["status" => 1, "message" => "Update success"];
         }
 
-        if($statusUpdate === true) return ["status" => 1, "message" => "Update success"];
-        return ["status" => 0, "message" => "Update fail"];
+        return ["status" => 0, "message" => "Nothing to update", "params" => $params];
     }
 
     public function verify() {

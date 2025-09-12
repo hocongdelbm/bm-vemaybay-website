@@ -106,41 +106,50 @@ $(document).ready(function () {
     $(document).on("click", "#confirmAutoBook", async function() {
         try {
             statusAutoBook = 1;
+            var prefix = 'autobook';
             var entryClass = $('input[name="entryClass"]').val();
             
             /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
             var step = 1;
             // Get flight info
-            var airlineCodes = $('input[name="airlineCode[]"]').map((i, el) => el.value).get();
-            var depCodes = $('input[name="depCode[]"]').map((i, el) => el.value).get();
-            var desCodes = $('input[name="desCode[]"]').map((i, el) => el.value).get();
-            var flightDate = $('input[name="flightDate[]"]').map((i, el) => el.value).get();
-            var ticketClass = $('input[name="ticketClass[]"]').map((i, el) => el.value).get();
-            var flightNo = $('input[name="flightNo[]"]').map((i, el) => el.value).get();
-            var within24h = $('input[name="within24h[]"]').map((i, el) => el.value).get();
-            // Get passenger quantity
-            var listPassengers = getSelectedPassengersData();
-            var listPassengerId = Object.keys(listPassengers);
+            var listItineraryId = $(`input[name="${prefix}ItineraryId[]"]`).map((i, el) => el.value).get();
+            var airlineCodes = $(`input[name="${prefix}AirlineCode[]"]`).map((i, el) => el.value).get();
+            var depCodes = $(`input[name="${prefix}DepCode[]"]`).map((i, el) => el.value).get();
+            var desCodes = $(`input[name="${prefix}DesCode[]"]`).map((i, el) => el.value).get();
+            var departureDate = $(`input[name="${prefix}DepartureDate[]"]`).map((i, el) => el.value).get();
+            var ticketClass = $(`input[name="${prefix}TicketClass[]"]`).map((i, el) => el.value).get();
+            var flightNo = $(`input[name="${prefix}FlightNo[]"]`).map((i, el) => el.value).get();
+            var within24h = $(`input[name="${prefix}Within24h[]"]`).map((i, el) => el.value).get();
+            // Get passenger info
             var adt = 0;
             var chd = 0;
             var inf = 0;
-            if(listPassengers) {
-                Object.entries(listPassengers).forEach(([key, value]) => {
-                    if(value == '0') adt++;
-                    else if(value == '1') chd++;
-                    else if(value == '2') inf++;
-                });
-            }
+            var listPassengerId = [];
+            var passIdInputs = document.querySelectorAll(`input[name="${prefix}PassengerId[]"]`);
+            var passTypeInputs = document.querySelectorAll(`input[name="${prefix}PassengerType[]"]`);
+            passIdInputs.forEach((input, index) => {
+                let passId = input.value;
+                if(passId && passId.length > 0) {
+                    let passType = passTypeInputs[index].value;
+                    if(passType == '0') adt++;
+                    else if(passType == '1') chd++;
+                    else if(passType == '2') inf++;
+                    listPassengerId.push(passId);
+                }
+            });
             // Get price info
-            var adtFare = $('input[name="adtFare[]"]').map((i, el) => el.value).get();
-            var chdFare = $('input[name="chdFare[]"]').map((i, el) => el.value).get();
-            var infFare = $('input[name="infFare[]"]').map((i, el) => el.value).get();
-            var adtTax = $('input[name="adtTax[]"]').map((i, el) => el.value).get();
-            var chdTax = $('input[name="chdTax[]"]').map((i, el) => el.value).get();
-            var infTax = $('input[name="infTax[]"]').map((i, el) => el.value).get();
-            var adtPrice = $('input[name="adtPrice[]"]').map((i, el) => el.value).get();
-            var chdPrice = $('input[name="chdPrice[]"]').map((i, el) => el.value).get();
-            var infPrice = $('input[name="infPrice[]"]').map((i, el) => el.value).get();
+            var adtDetailId = $(`input[name="${prefix}AdtDetailId[]"]`).map((i, el) => el.value).get();
+            var chdDetailId = $(`input[name="${prefix}ChdDetailId[]"]`).map((i, el) => el.value).get();
+            var infDetailId = $(`input[name="${prefix}InfDetailId[]"]`).map((i, el) => el.value).get();
+            var adtFare     = $(`input[name="${prefix}AdtFare[]"]`).map((i, el) => el.value).get();
+            var chdFare     = $(`input[name="${prefix}ChdFare[]"]`).map((i, el) => el.value).get();
+            var infFare     = $(`input[name="${prefix}InfFare[]"]`).map((i, el) => el.value).get();
+            var adtTax      = $(`input[name="${prefix}AdtTax[]"]`).map((i, el) => el.value).get();
+            var chdTax      = $(`input[name="${prefix}ChdTax[]"]`).map((i, el) => el.value).get();
+            var infTax      = $(`input[name="${prefix}InfTax[]"]`).map((i, el) => el.value).get();
+            var adtPrice    = $(`input[name="${prefix}AdtPrice[]"]`).map((i, el) => el.value).get();
+            var chdPrice    = $(`input[name="${prefix}ChdPrice[]"]`).map((i, el) => el.value).get();
+            var infPrice    = $(`input[name="${prefix}InfPrice[]"]`).map((i, el) => el.value).get();
 
             // Roundtrip flight has the same airline
             if(airlineCodes.length > 1 && airlineCodes[0] === airlineCodes[1]) {
@@ -148,13 +157,14 @@ $(document).ready(function () {
                     airlineCode: airlineCodes[0],
                     depCode: depCodes[0],
                     desCode: desCodes[0],
-                    depDate: flightDate[0],
-                    desDate: flightDate[1],
+                    depDate: departureDate[0],
+                    desDate: departureDate[1],
                     adt: adt,
                     chd: chd,
                     inf: inf,
                     isInter: isInter,
                     flightNo: flightNo,
+                    listItineraryId: listItineraryId,
                     adtFare: adtFare,
                     chdFare: chdFare,
                     infFare: infFare,
@@ -163,7 +173,10 @@ $(document).ready(function () {
                     infTax: infTax,
                     adtPrice: adtPrice,
                     chdPrice: chdPrice,
-                    infPrice: infPrice
+                    infPrice: infPrice,
+                    adtDetailId: adtDetailId,
+                    chdDetailId: chdDetailId,
+                    infDetailId: infDetailId,
                 };
 
                 var flightResponse = {};
@@ -196,7 +209,7 @@ $(document).ready(function () {
                                 
                                 let flight_info_id = key == 1 ? 'flight-info-ret' : 'flight-info-dep';
                                 if($(`#${flight_info_id}`).length) {
-                                    $('#autoBookForm').animate({
+                                    $('#autobookForm').animate({
                                         scrollTop: $(`#${flight_info_id}`).position().top
                                     }, 500);
                                 }
@@ -221,12 +234,13 @@ $(document).ready(function () {
                         airlineCode: airlineCodes[i],
                         depCode: depCodes[i],
                         desCode: desCodes[i],
-                        depDate: flightDate[i],
+                        depDate: departureDate[i],
                         adt: adt,
                         chd: chd,
                         inf: inf,
                         isInter: isInter,
                         flightNo: flightNo,
+                        listItineraryId: listItineraryId,
                         adtFare: adtFare,
                         chdFare: chdFare,
                         infFare: infFare,
@@ -235,7 +249,10 @@ $(document).ready(function () {
                         infTax: infTax,
                         adtPrice: adtPrice,
                         chdPrice: chdPrice,
-                        infPrice: infPrice
+                        infPrice: infPrice,
+                        adtDetailId: adtDetailId,
+                        chdDetailId: chdDetailId,
+                        infDetailId: infDetailId,
                     };
 
                     let textItiSuccess = '<b style="color:#4285f4; margin-left:8px">OK</b>';
@@ -266,7 +283,7 @@ $(document).ready(function () {
                                 
                                 let flight_info_id = i == 1 ? 'flight-info-ret' : 'flight-info-dep';
                                 if($(`#${flight_info_id}`).length) {
-                                    $('#autoBookForm').animate({
+                                    $('#autobookForm').animate({
                                         scrollTop: $(`#${flight_info_id}`).position().top
                                     }, 500);
                                 }
@@ -477,9 +494,9 @@ function showDialogAutoBook(bookingData) {
     dialog.className = 'auto-book-dialog';
     dialog.id = 'autoBookDialog';
 
-    const autoBookForm = document.createElement('form');
-    autoBookForm.id = 'autoBookForm';
-    autoBookForm.className = 'dialog-form';
+    const autobookForm = document.createElement('form');
+    autobookForm.id = 'autobookForm';
+    autobookForm.className = 'dialog-form';
 
     // Header
     const header = document.createElement('div');
@@ -499,7 +516,7 @@ function showDialogAutoBook(bookingData) {
     const depFare = bookingData.fareDetails.dep;
     const retFare = bookingData.fareDetails.ret ?? [];
     const passengerTypes = {'0': 'Người lớn', '1': 'Trẻ em', '2': 'Em bé'};
-    const passengerTextTypes = {'0': 'adt', '1': 'chd', '2': 'inf'};
+    const passengerTextTypes = {'0': 'Adt', '1': 'Chd', '2': 'Inf'};
     function renderFlightWithFare(flight, fareArray, dir) {
         var totalAmount = 0;
         var title = dir == 'ret' ? '✈️ Chuyến về' : '✈️ Chuyến đi';
@@ -514,41 +531,42 @@ function showDialogAutoBook(bookingData) {
             totalAmount += fare.price * fare.qty;
 
             return `<div class="fare-column">
-                <input type="hidden" name="${passengerTextTypes[type]}[]" value="${fare.qty}" readonly />
-                <input type="hidden" name="${passengerTextTypes[type]}Fare[]" value="${fare.fare}" readonly />
-                <input type="hidden" name="${passengerTextTypes[type]}Tax[]" value="${fare.fare}" readonly />
-                <input type="hidden" name="${passengerTextTypes[type]}Fee[]" value="${fare.fare}" readonly />
-                <input type="hidden" name="${passengerTextTypes[type]}Price[]" value="${fare.price}" readonly />
-                <input type="hidden" id="${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}" value="${fare.fare}" readonly />
-                <input type="hidden" id="${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}" value="${fare.tax}" readonly />
-                <input type="hidden" id="${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}" value="${fare.fee}" readonly />
-                <input type="hidden" id="${passengerTextTypes[type]}Price${flight.depCode}${flight.desCode}" value="${fare.price}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}DetailId[]" value="${fare.id}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}[]" value="${fare.qty}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}Fare[]" value="${fare.fare}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}Tax[]" value="${fare.fare}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}Fee[]" value="${fare.fare}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}Price[]" value="${fare.price}" readonly />
+                <input type="hidden" id="autobook${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}" value="${fare.fare}" readonly />
+                <input type="hidden" id="autobook${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}" value="${fare.tax}" readonly />
+                <input type="hidden" id="autobook${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}" value="${fare.fee}" readonly />
+                <input type="hidden" id="autobook${passengerTextTypes[type]}Price${flight.depCode}${flight.desCode}" value="${fare.price}" readonly />
 
                 <div class="info-row"><b>${passengerTypes[type]} x1</b></div>
                 <div class="info-row">
                     <div class="lbl">Giá vé:</div>
-                    <div class="value" id="${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}Display">
+                    <div class="value" id="autobook${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}Display">
                         <span class="old-value"></span>
                         <span class="cur-value">${fare.fareFormat}</span>
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="lbl">Thuế (VAT):</div>
-                    <div class="value" id="${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}Display">
+                    <div class="value" id="autobook${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}Display">
                         <span class="old-value"></span>
                         <span class="cur-value">${fare.taxFormat}</span>
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="lbl">Phí:</div>
-                    <div class="value" id="${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}Display">
+                    <div class="value" id="autobook${passengerTextTypes[type]}Fee${flight.depCode}${flight.desCode}Display">
                         <span class="old-value"></span>
                         <span class="cur-value">${fare.feeFormat}</span>
                     </div>
                 </div>
                 <div class="info-row">
                     <div class="lbl">Tổng mua:</div>
-                    <div class="value" id="${passengerTextTypes[type]}Price${flight.depCode}${flight.desCode}Display">
+                    <div class="value" id="autobook${passengerTextTypes[type]}Price${flight.depCode}${flight.desCode}Display">
                         <b class="old-value"></b>
                         <b class="cur-value">${fare.priceFormat}</b>
                     </div>
@@ -561,13 +579,14 @@ function showDialogAutoBook(bookingData) {
 
         if(!BookingWithin24h) BookingWithin24h = flight.within24h && flight.airlineCode == 'VJ';
         return `<div id="flight-info-${dir}" class="flight-info">
-            <input type="hidden" name="airlineCode[]" value="${flight.airlineCode}" readonly />
-            <input type="hidden" name="depCode[]" value="${flight.depCode}" readonly />
-            <input type="hidden" name="desCode[]" value="${flight.desCode}" readonly />
-            <input type="hidden" name="flightDate[]" value="${flight.flightDate}" readonly />
-            <input type="hidden" name="ticketClass[]" value="${flight.ticketClass}" readonly />
-            <input type="hidden" name="flightNo[]" value="${flight.flightNo}" readonly />
-            <input type="hidden" name="within24h[]" value="${flight.within24h}" readonly />
+            <input type="hidden" name="autobookItineraryId[]" value="${flight.id}" readonly />
+            <input type="hidden" name="autobookAirlineCode[]" value="${flight.airlineCode}" readonly />
+            <input type="hidden" name="autobookDepCode[]" value="${flight.depCode}" readonly />
+            <input type="hidden" name="autobookDesCode[]" value="${flight.desCode}" readonly />
+            <input type="hidden" name="autobookDepartureDate[]" value="${flight.departureDate}" readonly />
+            <input type="hidden" name="autobookTicketClass[]" value="${flight.ticketClass}" readonly />
+            <input type="hidden" name="autobookFlightNo[]" value="${flight.flightNo}" readonly />
+            <input type="hidden" name="autobookWithin24h[]" value="${flight.within24h}" readonly />
 
             <div class="section-title">
                 ${title}
@@ -581,9 +600,9 @@ function showDialogAutoBook(bookingData) {
             <div class="info-row d-flex justify-content-between">
                 <div class="d-flex gap-1">
                     <div>Ngày giờ bay:</div>
-                    <div id="flightDate${flight.depCode}${flight.desCode}Display">
+                    <div id="departureDate${flight.depCode}${flight.desCode}Display">
                         <span class="old-value"></span>
-                        <b class="cur-value">${flight.flightDate.replace(' ', ' lúc ')}</b>
+                        <b class="cur-value">${flight.departureDate.replace(' ', ' lúc ')}</b>
                     </div>
                 </div>
                 <div>Hạng vé: <b>${flight.ticketClass}</b></div>
@@ -608,6 +627,8 @@ function showDialogAutoBook(bookingData) {
     // Passengers
     const passengersHTML = Object.values(bookingData.passengers).map(p => `
         <div class="passenger-info">
+            <input type="hidden" name="autobookPassengerId[]" value="${p.id}" readonly />
+            <input type="hidden" name="autobookPassengerType[]" value="${p.type}" readonly />
             <div class="info-row d-flex justify-content-between">
                 <div><b><span style="font-weight:700;color:${p.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${p.salutation}.</span> ${p.name}</b></div>
                 <div><b>${passengerTypes[p.type]}</b></div>
@@ -672,16 +693,16 @@ function showDialogAutoBook(bookingData) {
     const loadingOverlay = document.createElement('div');
     loadingOverlay.className = 'loading-overlay';
 
-    autoBookForm.appendChild(header);
-    autoBookForm.appendChild(content);
-    autoBookForm.appendChild(supplierClassInput);
-    autoBookForm.appendChild(footer);
-    // autoBookForm.appendChild(loadingOverlay);
+    autobookForm.appendChild(header);
+    autobookForm.appendChild(content);
+    autobookForm.appendChild(supplierClassInput);
+    autobookForm.appendChild(footer);
+    // autobookForm.appendChild(loadingOverlay);
     
     // Create the wrapper div
     const formWrapper = document.createElement('div');
     formWrapper.classList.add('form-wrapper');
-    formWrapper.appendChild(autoBookForm);
+    formWrapper.appendChild(autobookForm);
     formWrapper.appendChild(loadingOverlay);
 
     dialog.appendChild(formWrapper);
@@ -774,13 +795,19 @@ function showStepsInDialogAutoBook(current_step = 1, current_caption = '', curre
     dialogOverlay.addClass('active');
 }
 
-function showUpdateFlightData(depCode, desCode, adtCount, chdCount, infCount, updateData, entryClass) {
-    // Update flightDate
+function showUpdateFlightData(searchData, updateData, entryClass) {
+    let depCode  = searchData?.depCode ?? '';
+    let desCode  = searchData?.desCode ?? '';
+    let adtCount = searchData?.adt ?? 0;
+    let chdCount = searchData?.chd ?? 0;
+    let infCount = searchData?.inf ?? 0;
+
+    // Update departure date
     if('departureDate' in updateData) {
-        let oldFlightDate = $(`#flightDate${depCode}${desCode}Display .cur-value`).text();
-        let newFlightDate = updateData.departureDate.replace(' ', ' lúc ');
-        $(`#flightDate${depCode}${desCode}Display .cur-value`).text(newFlightDate);
-        $(`#flightDate${depCode}${desCode}Display .old-value`).text(oldFlightDate);
+        let oldDate = $(`#departureDate${depCode}${desCode}Display .cur-value`).text();
+        let newDate = updateData.departureDate.replace(' ', ' lúc ');
+        $(`#departureDate${depCode}${desCode}Display .cur-value`).text(newDate);
+        $(`#departureDate${depCode}${desCode}Display .old-value`).text(oldDate);
     }
 
     // Update fares
