@@ -381,15 +381,3 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		exit();
 	}
 }
-
-function update_field_booking($id, $field, $value, $datatype = 'string') {
-	if(is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
-
-	global $db;
-	$value_format = $datatype == 'string' ? "'$value'" : $value;
-	$sql = "UPDATE ec_flight_bookings
-			SET $field = $value_format
-			WHERE id = '$id' AND deleted = 0";
-
-	$db->query($sql);
-}

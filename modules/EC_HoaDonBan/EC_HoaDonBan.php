@@ -55,6 +55,8 @@ class EC_HoaDonBan extends Basic
 	public $company_unit;
 	public $tongsl;
 	public $tongthanhtoan;
+	public $invoice_data;
+	public $sohoadon;
 
 	public function bean_implements($interface)
 	{
