@@ -1,4 +1,5 @@
 const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
+const PREFIX = "autobook";
 var bookingId = '';
 var isInter = 0;
 var statusAutoBook = 1;
@@ -106,27 +107,26 @@ $(document).ready(function () {
     $(document).on("click", "#confirmAutoBook", async function() {
         try {
             statusAutoBook = 1;
-            var prefix = 'autobook';
             var entryClass = $('input[name="entryClass"]').val();
             
             /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
             var step = 1;
             // Get flight info
-            var listItineraryId = $(`input[name="${prefix}ItineraryId[]"]`).map((i, el) => el.value).get();
-            var airlineCodes = $(`input[name="${prefix}AirlineCode[]"]`).map((i, el) => el.value).get();
-            var depCodes = $(`input[name="${prefix}DepCode[]"]`).map((i, el) => el.value).get();
-            var desCodes = $(`input[name="${prefix}DesCode[]"]`).map((i, el) => el.value).get();
-            var departureDate = $(`input[name="${prefix}DepartureDate[]"]`).map((i, el) => el.value).get();
-            var ticketClass = $(`input[name="${prefix}TicketClass[]"]`).map((i, el) => el.value).get();
-            var flightNo = $(`input[name="${prefix}FlightNo[]"]`).map((i, el) => el.value).get();
-            var within24h = $(`input[name="${prefix}Within24h[]"]`).map((i, el) => el.value).get();
+            var listItineraryId = $(`input[name="${PREFIX}ItineraryId[]"]`).map((i, el) => el.value).get();
+            var airlineCodes = $(`input[name="${PREFIX}AirlineCode[]"]`).map((i, el) => el.value).get();
+            var depCodes = $(`input[name="${PREFIX}DepCode[]"]`).map((i, el) => el.value).get();
+            var desCodes = $(`input[name="${PREFIX}DesCode[]"]`).map((i, el) => el.value).get();
+            var departureDate = $(`input[name="${PREFIX}DepartureDate[]"]`).map((i, el) => el.value).get();
+            var ticketClass = $(`input[name="${PREFIX}TicketClass[]"]`).map((i, el) => el.value).get();
+            var flightNo = $(`input[name="${PREFIX}FlightNo[]"]`).map((i, el) => el.value).get();
+            var within24h = $(`input[name="${PREFIX}Within24h[]"]`).map((i, el) => el.value).get();
             // Get passenger info
             var adt = 0;
             var chd = 0;
             var inf = 0;
             var listPassengerId = [];
-            var passIdInputs = document.querySelectorAll(`input[name="${prefix}PassengerId[]"]`);
-            var passTypeInputs = document.querySelectorAll(`input[name="${prefix}PassengerType[]"]`);
+            var passIdInputs = document.querySelectorAll(`input[name="${PREFIX}PassengerId[]"]`);
+            var passTypeInputs = document.querySelectorAll(`input[name="${PREFIX}PassengerType[]"]`);
             passIdInputs.forEach((input, index) => {
                 let passId = input.value;
                 if(passId && passId.length > 0) {
@@ -138,18 +138,18 @@ $(document).ready(function () {
                 }
             });
             // Get price info
-            var adtDetailId = $(`input[name="${prefix}AdtDetailId[]"]`).map((i, el) => el.value).get();
-            var chdDetailId = $(`input[name="${prefix}ChdDetailId[]"]`).map((i, el) => el.value).get();
-            var infDetailId = $(`input[name="${prefix}InfDetailId[]"]`).map((i, el) => el.value).get();
-            var adtFare     = $(`input[name="${prefix}AdtFare[]"]`).map((i, el) => el.value).get();
-            var chdFare     = $(`input[name="${prefix}ChdFare[]"]`).map((i, el) => el.value).get();
-            var infFare     = $(`input[name="${prefix}InfFare[]"]`).map((i, el) => el.value).get();
-            var adtTax      = $(`input[name="${prefix}AdtTax[]"]`).map((i, el) => el.value).get();
-            var chdTax      = $(`input[name="${prefix}ChdTax[]"]`).map((i, el) => el.value).get();
-            var infTax      = $(`input[name="${prefix}InfTax[]"]`).map((i, el) => el.value).get();
-            var adtPrice    = $(`input[name="${prefix}AdtPrice[]"]`).map((i, el) => el.value).get();
-            var chdPrice    = $(`input[name="${prefix}ChdPrice[]"]`).map((i, el) => el.value).get();
-            var infPrice    = $(`input[name="${prefix}InfPrice[]"]`).map((i, el) => el.value).get();
+            var adtDetailId = $(`input[name="${PREFIX}AdtDetailId[]"]`).map((i, el) => el.value).get();
+            var chdDetailId = $(`input[name="${PREFIX}ChdDetailId[]"]`).map((i, el) => el.value).get();
+            var infDetailId = $(`input[name="${PREFIX}InfDetailId[]"]`).map((i, el) => el.value).get();
+            var adtFare     = $(`input[name="${PREFIX}AdtFare[]"]`).map((i, el) => el.value).get();
+            var chdFare     = $(`input[name="${PREFIX}ChdFare[]"]`).map((i, el) => el.value).get();
+            var infFare     = $(`input[name="${PREFIX}InfFare[]"]`).map((i, el) => el.value).get();
+            var adtTax      = $(`input[name="${PREFIX}AdtTax[]"]`).map((i, el) => el.value).get();
+            var chdTax      = $(`input[name="${PREFIX}ChdTax[]"]`).map((i, el) => el.value).get();
+            var infTax      = $(`input[name="${PREFIX}InfTax[]"]`).map((i, el) => el.value).get();
+            var adtPrice    = $(`input[name="${PREFIX}AdtPrice[]"]`).map((i, el) => el.value).get();
+            var chdPrice    = $(`input[name="${PREFIX}ChdPrice[]"]`).map((i, el) => el.value).get();
+            var infPrice    = $(`input[name="${PREFIX}InfPrice[]"]`).map((i, el) => el.value).get();
 
             // Roundtrip flight has the same airline
             if(airlineCodes.length > 1 && airlineCodes[0] === airlineCodes[1]) {
@@ -201,11 +201,7 @@ $(document).ready(function () {
                             showStepsInDialogAutoBook(step, itiText, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
 
                             Object.entries(flightResponse.data.updateData).forEach(([key, value]) => {
-                                console.warn(typeof key);
-                                let depcode = key == 1 ? searchInfo['desCode'] : searchInfo['depCode'];
-                                let descode = key == 1 ? searchInfo['depCode'] : searchInfo['desCode'];
-
-                                showUpdateFlightData(depcode, descode, searchInfo['adt'], searchInfo['chd'], searchInfo['inf'], value, entryClass);
+                                showUpdateFlightData(searchInfo, value, entryClass);
                                 
                                 let flight_info_id = key == 1 ? 'flight-info-ret' : 'flight-info-dep';
                                 if($(`#${flight_info_id}`).length) {
@@ -239,20 +235,20 @@ $(document).ready(function () {
                         chd: chd,
                         inf: inf,
                         isInter: isInter,
-                        flightNo: flightNo,
-                        listItineraryId: listItineraryId,
-                        adtFare: adtFare,
-                        chdFare: chdFare,
-                        infFare: infFare,
-                        adtTax: adtTax,
-                        chdTax: chdTax,
-                        infTax: infTax,
-                        adtPrice: adtPrice,
-                        chdPrice: chdPrice,
-                        infPrice: infPrice,
-                        adtDetailId: adtDetailId,
-                        chdDetailId: chdDetailId,
-                        infDetailId: infDetailId,
+                        flightNo: [flightNo[i]],
+                        listItineraryId: [listItineraryId[i]],
+                        adtFare: [adtFare[i]],
+                        chdFare: [chdFare[i]],
+                        infFare: [infFare[i]],
+                        adtTax: [adtTax[i]],
+                        chdTax: [chdTax[i]],
+                        infTax: [infTax[i]],
+                        adtPrice: [adtPrice[i]],
+                        chdPrice: [chdPrice[i]],
+                        infPrice: [infPrice[i]],
+                        adtDetailId: [adtDetailId[i]],
+                        chdDetailId: [chdDetailId[i]],
+                        infDetailId: [infDetailId[i]],
                     };
 
                     let textItiSuccess = '<b style="color:#4285f4; margin-left:8px">OK</b>';
@@ -279,7 +275,7 @@ $(document).ready(function () {
                             if(flightResponse[i].message == "Unmatched information") {
                                 showStepsInDialogAutoBook(step, itiText[i], 'Thông tin chưa khớp, vui lòng kiểm tra lại');
 
-                                showUpdateFlightData(searchInfo['depCode'], searchInfo['desCode'], searchInfo['adt'], searchInfo['chd'], searchInfo['inf'], flightResponse[i].data.updateData[i] ?? {}, entryClass);
+                                showUpdateFlightData(searchInfo, flightResponse[i].data.updateData[0] ?? {}, entryClass);
                                 
                                 let flight_info_id = i == 1 ? 'flight-info-ret' : 'flight-info-dep';
                                 if($(`#${flight_info_id}`).length) {
@@ -600,7 +596,7 @@ function showDialogAutoBook(bookingData) {
             <div class="info-row d-flex justify-content-between">
                 <div class="d-flex gap-1">
                     <div>Ngày giờ bay:</div>
-                    <div id="departureDate${flight.depCode}${flight.desCode}Display">
+                    <div id="autobookDepartureDate${flight.depCode}${flight.desCode}Display">
                         <span class="old-value"></span>
                         <b class="cur-value">${flight.departureDate.replace(' ', ' lúc ')}</b>
                     </div>
@@ -612,7 +608,7 @@ function showDialogAutoBook(bookingData) {
             <div class="d-flex justify-content-end align-items-center mt-2">
                 <label style="font-size:15px">Tổng mua ${label}: </label>
                 <b title="Đã gồm số lượng HK bên dưới" style="color:red !important; font-size:15px">
-                    <input type="text" value="${formatNumber(totalAmount)} VND" id="totalAmount${flight.depCode}${flight.desCode}" class="npvalue" readonly />
+                    <input type="text" value="${formatNumber(totalAmount)} VND" id="autobookTotalAmount${flight.depCode}${flight.desCode}" class="npvalue" readonly />
                 </b>
             </div>
             <center>
@@ -804,29 +800,32 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
 
     // Update departure date
     if('departureDate' in updateData) {
-        let oldDate = $(`#departureDate${depCode}${desCode}Display .cur-value`).text();
+        let oldDate = $(`#${PREFIX}DepartureDate${depCode}${desCode}Display .cur-value`).text();
         let newDate = updateData.departureDate.replace(' ', ' lúc ');
-        $(`#departureDate${depCode}${desCode}Display .cur-value`).text(newDate);
-        $(`#departureDate${depCode}${desCode}Display .old-value`).text(oldDate);
+        $(`#${PREFIX}DepartureDate${depCode}${desCode}Display .cur-value`).text(newDate);
+        $(`#${PREFIX}DepartureDate${depCode}${desCode}Display .old-value`).text(oldDate);
     }
 
     // Update fares
     let updateTotalAmount = 0;
     const passengerTypes = [
-        { type: 'adt', count: adtCount },
-        { type: 'chd', count: chdCount },
-        { type: 'inf', count: infCount }
+        { type: 'Adt', count: adtCount },
+        { type: 'Chd', count: chdCount },
+        { type: 'Inf', count: infCount }
     ];
     passengerTypes.forEach(({ type, count }) => {
-        const fareKey = `${type}Fare`;
+        const fareKey = `${type.toLowerCase()}Fare`;
         const fareData = updateData[fareKey];
 
         if (fareData) {
+            const listLabelFare = ["fare", "tax", "fee", "price"];
             for (let key in fareData) {
+                if(!listLabelFare.includes(key)) continue;
+
                 const capKey = key.charAt(0).toUpperCase() + key.slice(1);
                 const newValue = fareData[key];
-                const inputId = `input#${type}${capKey}${depCode}${desCode}`;
-                const displayPrefix = `#${type}${capKey}${depCode}${desCode}Display`;
+                const inputId = `input#${PREFIX}${type}${capKey}${depCode}${desCode}`;
+                const displayPrefix = `#${PREFIX}${type}${capKey}${depCode}${desCode}Display`;
                 const oldValue = $(inputId).val();
 
                 if (newValue != oldValue) {
@@ -840,7 +839,7 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
             }
         }
     });
-    $(`input#totalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
+    $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
 
     // Button update
     let direction = $(`#btnUpdate${depCode}${desCode}`).attr('direction'); 

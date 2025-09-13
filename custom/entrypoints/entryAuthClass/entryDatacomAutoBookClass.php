@@ -226,7 +226,7 @@ class entryDatacomAutoBookClass extends entryClass {
         $desCode        = $params['desCode'] ?? '';
         $depDate        = $params['depDate'] ?? '';
         $retDate        = $params['retDate'] ?? '';
-        $adt            = (int)($params['adt'] ?? 1);
+        $adt            = (int)($params['adt'] ?? 0);
         $chd            = (int)($params['chd'] ?? 0);
         $inf            = (int)($params['inf'] ?? 0);
         $isInter        = (int)($params['isInter'] ?? 0);
@@ -245,11 +245,12 @@ class entryDatacomAutoBookClass extends entryClass {
         $chdPrice       = $params['chdPrice'] ?? [];
         $infPrice       = $params['infPrice'] ?? [];
 
-        if(!empty($depDate)) $depDate = date('Y-m-d', strtotime($depDate));
-        if(!empty($retDate)) $retDate = date('Y-m-d', strtotime($retDate));
+        $depDateSearch = $retDateSearch = '';
+        if(!empty($depDate)) $depDateSearch = date('Y-m-d', strtotime($depDate));
+        if(!empty($retDate)) $retDateSearch = date('Y-m-d', strtotime($retDate));
 
         $agency = new APIDatacom();
-        $json = $agency->searchFlights($airlineCode, $depCode, $desCode, $depDate, $retDate, $adt, $chd, $inf);
+        $json = $agency->searchFlights($airlineCode, $depCode, $desCode, $depDateSearch, $retDateSearch, $adt, $chd, $inf);
         $arr = json_decode($json, true);
 
         // Recheck data
@@ -274,7 +275,7 @@ class entryDatacomAutoBookClass extends entryClass {
                             "CAcode"            => "",
                             "VIPText"           => "",
                             "Remark"            => "",
-                            "AccountCode"       => $f["flightNo"] . " == " . ($flightNo[$i] ?? '')
+                            "AccountCode"       => ""
                         ];
 
                         // Check datetime
@@ -387,7 +388,38 @@ class entryDatacomAutoBookClass extends entryClass {
                 }
             }
 
-            if(!empty($standardData)) {
+            // Return
+            if(!empty($retDate)) {
+                if(count($standardData) == 2) {
+                    return [
+                        "status" => empty($updateData) ? 1 : 0,
+                        "message" => empty($updateData) ? "Matched information" : "Unmatched information",
+                        "data" => [
+                            "standardData" => $standardData,
+                            "updateData" => $updateData
+                        ],
+                        'flights'=> $arr['data'] ?? []
+                    ];
+                }
+                elseif(count($standardData) == 1) {
+                    $i = isset($standardData[1]) ? 1 : 0; 
+                    return [
+                        "status" => 0,
+                        "message" => trim("Không tìm thấy chuyến bay " . ($flightNo[$i] ?? '')),
+                        "data" => null,
+                        'flights' => $arr['data'] ?? []
+                    ];
+                }
+                else {
+                    return [
+                        "status" => 0,
+                        "message" => trim("Không tìm thấy chuyến bay " . implode(", ", $flightNo)),
+                        "data" => null,
+                        "flights" => $arr['data'] ?? []
+                    ];
+                }
+            }
+            else if(!empty($standardData)) {
                 return [
                     "status" => empty($updateData) ? 1 : 0,
                     "message" => empty($updateData) ? "Matched information" : "Unmatched information",
@@ -402,7 +434,8 @@ class entryDatacomAutoBookClass extends entryClass {
                 return [
                     "status" => 0,
                     "message" => trim("Không tìm thấy chuyến bay " . implode(", ", $flightNo)),
-                    "data" => $arr['data'] ?? []
+                    "data" => null,
+                    "flights" => $arr['data'] ?? []
                 ];
             }
         }

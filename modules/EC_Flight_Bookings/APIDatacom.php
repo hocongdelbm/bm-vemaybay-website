@@ -48,7 +48,7 @@ class APIDatacom {
                 "chd"           => $chd,
                 "inf"           => $inf,
                 "options"       => [
-                    'api' => 'Datacom',
+                    'api' => 'DATACOM',
                     'cabin' => $cabin,
                 ],
             ];
