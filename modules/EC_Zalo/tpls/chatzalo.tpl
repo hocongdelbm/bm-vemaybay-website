@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.1">
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.6">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
@@ -345,4 +345,4 @@
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.5"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=3.6"></script>

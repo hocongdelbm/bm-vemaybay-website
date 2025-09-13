@@ -343,7 +343,7 @@ class Viewsendconfirm extends SugarView {
 				"passType" 		=> $row["pax_type"],
 				"dateEntered" 	=> $row["date_entered"],
 				"createdBy" 	=> $row["created_by"],
-				"bagIndex" 		=> $row["luggage_index_outbound"],
+				"bagIndex" 		=> $row["luggage_index_outbound"] ?? $row["luggage_price"],
 				"bagPurchaseText" => $row["luggage_purchase_text"],
 			]);
 			$bagOutText = !empty($bagOut['purchase']) ? $bagOut['purchase'] : $bagOut['available'];
@@ -357,7 +357,7 @@ class Viewsendconfirm extends SugarView {
 					"passType" 		=> $row["pax_type"],
 					"dateEntered" 	=> $row["date_entered"],
 					"createdBy" 	=> $row["created_by"],
-					"bagIndex" 		=> $row["luggage_index_inbound"],
+					"bagIndex" 		=> $row["luggage_index_inbound"] ?? $row["luggage_price_inbound"],
 					"bagPurchaseText" => $row["luggage_purchase_text_inbound"],
 				]);
 				$bagInText = !empty($bagIn['purchase']) ? $bagIn['purchase'] : $bagIn['available'];

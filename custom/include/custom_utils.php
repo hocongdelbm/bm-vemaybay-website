@@ -1756,6 +1756,11 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         // Từ ngày 06-01-2023 thì lấy thông tin hành lý mới lần 2
         if (strtotime($booking_date) >= strtotime('2023-01-06')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list2'];
+            if($current_user->id == '1') {
+                pr($luggage_index);
+                pr($luggage_arr);
+                die();
+            }
         }
         // Booking đặt từ ngày 11-08-2022 thì lấy thông tin hành lý mới
         else if (strtotime($booking_date) >= strtotime('2022-08-11')) {
