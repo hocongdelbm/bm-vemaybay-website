@@ -10,7 +10,7 @@ $(document).ready(function () {
     isInter = ticketType == '2' ? 1 : 0;
 
     // Open auto book dialog
-    $(".btnAutoBook").click(function () {
+    $(".btn-auto-book").click(function () {
         let entryClass = $(this).attr('data-entry-class');
         let listItineraryId = getSelectedItinerariesData();
         let listDetailId = getSelectedDetailsData();
@@ -111,6 +111,9 @@ $(document).ready(function () {
             
             /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
             var step = 1;
+            var textItiSuccess = `<b style="color:#4285f4; margin-left:8px">
+                <svg width="18px" height="18px" fill="#4285f4" style="vertical-align:sub;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm5.676,8.237-6,5.5a1,1,0,0,1-1.383-.03l-3-3a1,1,0,1,1,1.414-1.414l2.323,2.323,5.294-4.853a1,1,0,1,1,1.352,1.474Z"></path></g></svg> Ok
+            </b>`;
             // Get flight info
             var listItineraryId = $(`input[name="${PREFIX}ItineraryId[]"]`).map((i, el) => el.value).get();
             var airlineCodes = $(`input[name="${PREFIX}AirlineCode[]"]`).map((i, el) => el.value).get();
@@ -158,7 +161,7 @@ $(document).ready(function () {
                     depCode: depCodes[0],
                     desCode: desCodes[0],
                     depDate: departureDate[0],
-                    desDate: departureDate[1],
+                    retDate: departureDate[1],
                     adt: adt,
                     chd: chd,
                     inf: inf,
@@ -182,7 +185,7 @@ $(document).ready(function () {
                 var flightResponse = {};
                 if(statusAutoBook == 1) {
                     let itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}
-                                <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}`;
+                        <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}`;
 
                     showStepsInDialogAutoBook(step, itiText);
                     flightResponse = await $.ajax({
@@ -196,26 +199,81 @@ $(document).ready(function () {
                             params: searchInfo
                         })
                     });
-                    if(!flightResponse || !flightResponse.status || flightResponse.status == 0) {
-                        if(flightResponse.message == "Unmatched information") {
+                    
+                    // Success
+                    if(flightResponse && 'status' in flightResponse && flightResponse.status == 1) {
+                        itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}${textItiSuccess}
+                            <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}${textItiSuccess}`;
+                        showStepsInDialogAutoBook(step, itiText);
+                    }
+                    // Fail
+                    else {
+                        let errorCode   = flightResponse?.errorCode ?? '';
+                        let message     = flightResponse?.message ?? "Lỗi, vui lòng thử lại sau";
+
+                        if(errorCode == "UNMATCHED_INFO") {
                             showStepsInDialogAutoBook(step, itiText, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
 
+                            let checkUpdatedDirection = '';
                             Object.entries(flightResponse.data.updateData).forEach(([key, value]) => {
-                                showUpdateFlightData(searchInfo, value, entryClass);
+                                if(key == '1') {
+                                    checkUpdatedDirection += key;
+
+                                    let retSearchInfo = searchInfo;
+                                    retSearchInfo.depCode = depCodes[1];
+                                    retSearchInfo.desCode = desCodes[1];
+                                    retSearchInfo.depDate = departureDate[1];
+                                    retSearchInfo.retDate = "";
+                                    showUpdateFlightData(retSearchInfo, value, entryClass);
+                                }
+                                else {
+                                    checkUpdatedDirection += key;
+                                    showUpdateFlightData(searchInfo, value, entryClass);
+                                }
                                 
-                                let flight_info_id = key == 1 ? 'flight-info-ret' : 'flight-info-dep';
+                                let flight_info_id = key == '1' ? 'flight-info-ret' : 'flight-info-dep';
                                 if($(`#${flight_info_id}`).length) {
                                     $('#autobookForm').animate({
                                         scrollTop: $(`#${flight_info_id}`).position().top
                                     }, 500);
                                 }
                             });
+
+                            if(checkUpdatedDirection == '0') {
+                                itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}
+                                    <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}${textItiSuccess}`;
+                                showStepsInDialogAutoBook(step, itiText, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
+                            }
+                            else if(checkUpdatedDirection == '1') {
+                                itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}${textItiSuccess}
+                                    <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}`;
+                                showStepsInDialogAutoBook(step, itiText, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
+                            }
                         }
-                        else showStepsInDialogAutoBook(step, itiText, flightResponse.message ?? 'Lỗi, vui lòng thử lại sau');
+                        else if(errorCode == "NOT_FOUND_FLIGHT") {
+                            if(message.includes(flightNo[0]) && message.includes(flightNo[1])) {
+                                showStepsInDialogAutoBook(step, itiText, message);
+                            }
+                            else if(message.includes(flightNo[0])) {
+                                itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}
+                                    <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}${textItiSuccess}`;
+                                showStepsInDialogAutoBook(step, itiText, message);
+                            }
+                            else if(message.includes(flightNo[1])) {
+                                itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}${textItiSuccess}
+                                    <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}`;
+                                showStepsInDialogAutoBook(step, itiText, message);
+                            }
+                            else {
+                                showStepsInDialogAutoBook(step, itiText, message);
+                            }
+                            return;
+                        }
+                        else {
+                            showStepsInDialogAutoBook(step, itiText, message);
+                        }
                         return;
                     }
-
-                    showStepsInDialogAutoBook(step, itiText + textItiSuccess);
                 }
                 else if(statusAutoBook == 0) {
                     showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
@@ -251,7 +309,6 @@ $(document).ready(function () {
                         infDetailId: [infDetailId[i]],
                     };
 
-                    let textItiSuccess = '<b style="color:#4285f4; margin-left:8px">OK</b>';
                     if(statusAutoBook == 1) {
                         itiText[i] = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}`;
                         if(i > 0) {
@@ -271,10 +328,17 @@ $(document).ready(function () {
                                 params: searchInfo
                             })
                         });
-                        if(!flightResponse[i] || !flightResponse[i].status || flightResponse[i].status == 0) {
-                            if(flightResponse[i].message == "Unmatched information") {
-                                showStepsInDialogAutoBook(step, itiText[i], 'Thông tin chưa khớp, vui lòng kiểm tra lại');
 
+                        if(flightResponse[i] && 'status' in flightResponse[i] && flightResponse[i].status == 1) {
+                            if(i == airlineCodes.length - 1) showStepsInDialogAutoBook(step, itiText[i] + textItiSuccess);
+                            else showStepsInDialogAutoBook(step, itiText[i]);
+                        }
+                        else {
+                            let errorCode   = flightResponse[i]?.errorCode ?? '';
+                            let message     = flightResponse[i]?.message ?? "Lỗi, vui lòng thử lại sau";
+
+                            if(errorCode == "UNMATCHED_INFO") {
+                                showStepsInDialogAutoBook(step, itiText[i], 'Thông tin chưa khớp, vui lòng kiểm tra lại');
                                 showUpdateFlightData(searchInfo, flightResponse[i].data.updateData[0] ?? {}, entryClass);
                                 
                                 let flight_info_id = i == 1 ? 'flight-info-ret' : 'flight-info-dep';
@@ -284,7 +348,9 @@ $(document).ready(function () {
                                     }, 500);
                                 }
                             }
-                            else showStepsInDialogAutoBook(step, itiText[i], flightResponse[i].message ?? 'Lỗi, vui lòng thử lại sau');
+                            else {
+                                showStepsInDialogAutoBook(step, itiText[i], message);
+                            }
                             return;
                         }
 
@@ -454,7 +520,7 @@ $(document).ready(function () {
                     try {
                         const objData = JSON.parse(response);
                         if(objData.status == 1) {
-                            $("#btnAutoBook").trigger("click");
+                            $(`.btn-auto-book[data-entry-class="${entryClass}"]`).trigger("click");
                             return;
                         }
                         else {
@@ -524,7 +590,7 @@ function showDialogAutoBook(bookingData) {
             const fare = fareArray[parseInt(type)];
             if (!fare) return '';
 
-            totalAmount += fare.price * fare.qty;
+            totalAmount += fare.price * fare.qty; // ERROR: Chỗ này sẽ sai nếu chỉnh giá không hết tất cả HK (Lack of adult, child or infant)
 
             return `<div class="fare-column">
                 <input type="hidden" name="autobook${passengerTextTypes[type]}DetailId[]" value="${fare.id}" readonly />
@@ -820,12 +886,14 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
         if (fareData) {
             const listLabelFare = ["fare", "tax", "fee", "price"];
             for (let key in fareData) {
+                console.warn(key);
                 if(!listLabelFare.includes(key)) continue;
 
                 const capKey = key.charAt(0).toUpperCase() + key.slice(1);
                 const newValue = fareData[key];
                 const inputId = `input#${PREFIX}${type}${capKey}${depCode}${desCode}`;
                 const displayPrefix = `#${PREFIX}${type}${capKey}${depCode}${desCode}Display`;
+                console.warn(inputId, searchData);
                 const oldValue = $(inputId).val();
 
                 if (newValue != oldValue) {

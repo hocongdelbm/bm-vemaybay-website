@@ -1,13 +1,13 @@
 <?php
 require_once "custom/entrypoints/entryAuthClass/entryClass.php";
-require_once "modules/EC_Flight_Bookings/APIDatacom.php";
+require_once "modules/EC_Flight_Bookings/APIPhuongNam.php";
 
 /**
- * Class entryDatacomAutoBookClass
+ * Class entryPhuongNamAutoBookClass
  * 
- * Using for booking by Datacom API
+ * Using for booking by Phuong Nam API
  */
-class entryDatacomAutoBookClass extends entryClass {
+class entryPhuongNamAutoBookClass extends entryClass {
     public $mappingSystemCodeName;
     public $mappingSystemCode;
     public $interSystemCode;
@@ -35,9 +35,9 @@ class entryDatacomAutoBookClass extends entryClass {
             'VTA' => 'VU'
         ];
         // BM database
-        $this->supplierId = "ebdf163a-7b85-30bf-62be-5a4af5a1166c";
-        $this->supplierCode = "VNAHNH";
-        $this->supplierName = "Hồng Ngọc Hà 218";
+        $this->supplierId = "7eafb1bc-6ac2-3816-3ea9-6455f638436e";
+        $this->supplierCode = "PHUONGNAM";
+        $this->supplierName = "NCC Phương Nam";
     }
 
     public function getDataAutoBook($params = []) {
@@ -236,7 +236,7 @@ class entryDatacomAutoBookClass extends entryClass {
     }
 
     public function research($params = []) {
-        $airlineCode    = $params['airlineCode'] ?? '';
+        $airlineCode    = $this->mappingSystemCode[$params['airlineCode'] ?? ''] ?? '';
         $depCode        = $params['depCode'] ?? '';
         $desCode        = $params['desCode'] ?? '';
         $depDate        = $params['depDate'] ?? '';
@@ -260,7 +260,7 @@ class entryDatacomAutoBookClass extends entryClass {
         $chdPrice       = $params['chdPrice'] ?? [];
         $infPrice       = $params['infPrice'] ?? [];
 
-        $agency = new APIDatacom();
+        $agency = new APIPhuongNam();
 
         // Format search params
         $airlineCodeSearch = $isInter ? $this->interSystemCode : $this->mappingSystemCode[$params['airlineCode'] ?? ''] ?? '';
@@ -272,7 +272,7 @@ class entryDatacomAutoBookClass extends entryClass {
         ];
 
         // Search
-        $json = $agency->searchFlights($airlineCodeSearch, $depCode, $desCode, $depDateSearch, $retDateSearch, $adt, $chd, $inf, $options);
+        $json = $agency->searchFlights($airlineCodeSearch, $depCode, $desCode, $depDateSearch, $retDateSearch, $adt, $chd, $inf, $options );
         $arr = json_decode($json, true);
 
         // Recheck data
@@ -285,25 +285,40 @@ class entryDatacomAutoBookClass extends entryClass {
                 $i = 0;
                 foreach($arr['data'] as $roundName => $round) {
                     foreach($round as $f) {
-                        if(!isset($f["sessionId"]) || $f["flightNo"] != ($flightNo[$i] ?? '')) continue;
+                        if(!isset($f["transactionID"]) || $f["flightNo"] != ($flightNo[$i] ?? '')) continue;
 
-                        // Standard ListAirOption data for automatic booking in the next step
+                        // Standard data for automatic booking in the next step
                         $standardData[$i] = [
-                            "Session"           => $f["sessionId"] ?? null,
-                            "SessionType"       => "search", // Hard code
-                            "AirlineOptionId"   => $f["airlineId"] ?? null,
-                            "FareOptionId"      => $f["fareId"] ?? null,
-                            "FlightOptionId"    => $f["flightId"] ?? null,
-                            "Tourcode"          => "",
-                            "CAcode"            => "",
-                            "VIPText"           => "",
-                            "Remark"            => "",
-                            "AccountCode"       => ""
+                            "SystemCode" => $f['airlineCode'],
+                            "TransactionId" => $f['transactionID'] ?? null,
+                            "FlightNumber" => preg_replace('/\D/', '', $f['flightNo']),
+                            "FarePricings" => [
+                                [
+                                    "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
+                                    "PassengerTypeId" => 1,
+                                    "FareSumAmount" => $f["adtPrice"] * $adt
+                                ]
+                            ],
                         ];
+                        if($chd > 0) {
+                            $standardData[$i]["FarePricings"][] = [
+                                "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
+                                "PassengerTypeId" => 6,
+                                "FareSumAmount" => $f["chdPrice"] * $chd
+                            ];
+                        }
+                        if($inf > 0) {
+                            $standardData[$i]["FarePricings"][] = [
+                                "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
+                                "PassengerTypeId" => 5,
+                                "FareSumAmount" => $f["infPrice"] * $inf
+                            ];
+                        }
 
                         // Check datetime
                         $flightDate = $i == 1 ? $retDate : $depDate;
                         if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
+                            $updateData[$i]['itineraryId']      = $listItineraryId[$i] ?? '';
                             $updateData[$i]['departureDate']    = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
                             $updateData[$i]['arrivalDate']      = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
                         }
@@ -343,39 +358,50 @@ class entryDatacomAutoBookClass extends entryClass {
                             ];
                         }
 
-                        // Add itinerary id
-                        if(isset($updateData[$i]) && !empty($updateData[$i])) $updateData[$i]['itineraryId'] = $listItineraryId[$i] ?? '';
-
                         $flightData[$i] = $f;
                         break;
                     }
                     $i++;
                 }
             }
-            else { // International
+            else {  // International
                 foreach($arr['data'] as $f) {
                     $isThatFlight = true;
                     $roundList = !empty($retDate) ? ['dep', 'ret'] : ['dep'];
 
                     foreach($roundList as $i => $roundName) {
-                        if(!isset($f["sessionId"]) || $f[$roundName]["flightNo"] != ($flightNo[$i] ?? '')) {
+                        if(!isset($f[$roundName]['transactionID']) || $f[$roundName]["flightNo"] != ($flightNo[$i] ?? '')) {
                             $isThatFlight = false;
                             continue;
-                        };
+                        }
 
-                        // Standard ListAirOption data for automatic booking in the next step
+                        // Standard data for automatic booking in the next step
                         $standardData[$i] = [
-                            "Session"           => $f["sessionId"] ?? null,
-                            "SessionType"       => "search", // Hard code
-                            "AirlineOptionId"   => $f["airlineId"] ?? null,
-                            "FareOptionId"      => $f["fareId"] ?? null,
-                            "FlightOptionId"    => $f["flightId"] ?? null,
-                            "Tourcode"          => "",
-                            "CAcode"            => "",
-                            "VIPText"           => "",
-                            "Remark"            => "",
-                            "AccountCode"       => ""
+                            "SystemCode" => $f[$roundName]['airlineCode'],
+                            "TransactionId" => $f[$roundName]['transactionID'] ?? null,
+                            "FlightNumber" => preg_replace('/\D/', '', $f[$roundName]['flightNo']),
+                            "FarePricings" => [
+                                [
+                                    "FareBasis" => $f[$roundName]['fareClass'] ?? $f[$roundName]['fareBasis'],
+                                    "PassengerTypeId" => 1,
+                                    "FareSumAmount" => $f["adtTotal"]
+                                ]
+                            ],
                         ];
+                        if($chd > 0) {
+                            $standardData[$i]["FarePricings"][] = [
+                                "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
+                                "PassengerTypeId" => 6,
+                                "FareSumAmount" => $f["chdTotal"]
+                            ];
+                        }
+                        if($inf > 0) {
+                            $standardData[$i]["FarePricings"][] = [
+                                "FareBasis" => $f['fareClass'] ?? $f['fareBasis'],
+                                "PassengerTypeId" => 5,
+                                "FareSumAmount" => $f["infTotal"]
+                            ];
+                        }
 
                         $flightData[$i] = $f;
                     }
@@ -419,11 +445,6 @@ class entryDatacomAutoBookClass extends entryClass {
                             "price"     => $newPrice
                         ];
                     }
-
-                    // Add itinerary id
-                    if(isset($updateData[$i]) && !empty($updateData[$i])) $updateData[$i]['itineraryId'] = $listItineraryId[$i] ?? '';
-
-                    break;
                 }
             }
 
@@ -612,22 +633,19 @@ class entryDatacomAutoBookClass extends entryClass {
                 ];
             }
 
-            $itiId = $params['itineraryId'] ?? '';
-
-            // Update departure date (Should update into schedule flight time in itineraries table by details flight)
+            // Update flight date
             if(isset($params['departureDate']) && !empty($params['departureDate'])) {
                 $ddate = date('Y-m-d H:i:00', strtotime($params['departureDate']));
                 $adate = date('Y-m-d H:i:00', strtotime($params['arrivalDate']));
 
-                if(strtotime($ddate) > time() && strtotime($adate) > strtotime($ddate)) { // Check datetime is invalid
+                if(strtotime($ddate) > time() && strtotime($adate) > strtotime($ddate)) {
                     $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET departure_date = '$ddate'
                             ,arrival_date = '$adate'
                             ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
-                        WHERE id = '$itiId'
-                            AND booking_id = '$bookingId'
+                        WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND deleted = 0
                             AND add_type = 0";
@@ -652,114 +670,7 @@ class entryDatacomAutoBookClass extends entryClass {
                         SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
-                        WHERE id = '$itiId'
-                            AND booking_id = '$bookingId'
-                            AND direction = '$direction'
-                            AND deleted = 0
-                            AND add_type = 0";
-                $db->query($sqlUpdate);
-            }
-
-            return ["status" => 1, "message" => "Update success"];
-        }
-        else { // International
-            // Update detail prices
-            $basePrice = null;
-            $passengerTypes = ['adt', 'chd', 'inf'];
-            foreach($passengerTypes as $i => $type) {
-                $k = $type . "Fare";
-                if(isset($params[$k]) && !empty($params[$k])) {
-                    $detailId = $params[$k]["detailId"];
-                    $fare   = $params[$k]["fare"];
-                    $fee    = $params[$k]["fee"];
-                    $price  = $params[$k]["price"];
-
-                    $sqlUpdate = "UPDATE ec_booking_details
-                        SET unit_price = $fare
-                            ,admin_fee = $fee
-                            ,total_bought_price = $price * quantity
-                            ,total_price = ($price + service_fee) * quantity
-                            ,modified_user_id = '$current_user->id'
-                            ,date_modified = '$dateModified'
-                        WHERE id = '$detailId'
-                            AND booking_id = '$bookingId'
-                            AND passenger_type = '$i'
-                            AND deleted = 0";
-
-                    if($type == 'adt') $basePrice = $fare;
-                    if(!$db->query($sqlUpdate)) {
-                        if($this->isDebug()) return [
-                            "status" => 0,
-                            "message" => "Cập nhật chi tiết vé không thành công, vui lòng thử lại",
-                            "query" => trim($sqlUpdate)
-                        ];
-                        return [
-                            "status" => 0,
-                            "message" => "Cập nhật chi tiết vé không thành công, vui lòng thử lại",
-                        ];
-                    }
-                }
-            }
-
-            // Update total number in booking (Don't update total amount)
-            $total_bought_amount = $db->getOne("SELECT SUM(total_bought_price) FROM ec_booking_details WHERE booking_id = '$bookingId' AND deleted = 0") ?? 0;
-            $subtotal_amount = $db->getOne("SELECT SUM(total_price) FROM ec_booking_details WHERE booking_id = '$bookingId' AND deleted = 0") ?? 0;
-            $sqlUpdate = "UPDATE ec_flight_bookings
-                    SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
-                        ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
-                    WHERE id = '$bookingId' AND deleted = 0";
-            if(!$db->query($sqlUpdate)) {
-                if($this->isDebug()) return [
-                    "status" => 0,
-                    "message" => "Cập nhật giá tổng không thành công, vui lòng thử lại",
-                    "query" => trim($sqlUpdate)
-                ];
-                return [
-                    "status" => 0,
-                    "message" => "Cập nhật giá tổng không thành công, vui lòng thử lại",
-                ];
-            }
-
-            $itiId = $params['itineraryId'] ?? '';
-
-            // // Update departure date (Should update into schedule flight time in itineraries table by details flight)
-            // if(isset($params['departureDate']) && !empty($params['departureDate'])) {
-            //     $ddate = date('Y-m-d H:i:00', strtotime($params['departureDate']));
-
-            //     if(strtotime($ddate) > time()) {
-            //         $sqlUpdate = "UPDATE ec_booking_itineraries
-            //             SET departure_date = '$ddate'
-            //                 ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
-            //                 ,modified_user_id = '$current_user->id'
-            //                 ,date_modified = '$dateModified'
-            //             WHERE id = '$itiId'
-            //                 AND booking_id = '$bookingId'
-            //                 AND direction = '$direction'
-            //                 AND deleted = 0
-            //                 AND add_type = 0";
-
-            //         if(!$db->query($sqlUpdate)) {
-            //             if($this->isDebug()) return [
-            //                 "status" => 0,
-            //                 "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
-            //                 "query" => trim($sqlUpdate)
-            //             ];
-            //             return [
-            //                 "status" => 0,
-            //                 "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
-            //             ];
-            //         }
-            //     }
-            // }
-
-            // Update base price
-            if(!is_null($basePrice)) {
-                $sqlUpdate = "UPDATE ec_booking_itineraries
-                        SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
-                            ,modified_user_id = '$current_user->id'
-                            ,date_modified = '$dateModified'
-                        WHERE id = '$itiId'
-                            AND booking_id = '$bookingId'
+                        WHERE booking_id = '$bookingId'
                             AND direction = '$direction'
                             AND deleted = 0
                             AND add_type = 0";

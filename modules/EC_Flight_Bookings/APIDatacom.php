@@ -3,14 +3,12 @@ class APIDatacom {
     private $ENDPOINT;
     private $API_SEARCH_KEY;
     private $API_BOOKING_KEY;
-    public $SUPPLIER_ID;
 
     public function __construct() {
         global $sugar_config;
-        $this->ENDPOINT         = $sugar_config['api_datacom']['Endpoint'] ?? '';
-        $this->API_SEARCH_KEY   = $sugar_config['api_datacom']['SearchKey'] ?? '';
-        $this->API_BOOKING_KEY  = $sugar_config['api_datacom']['BookingKey'] ?? '';
-        $this->SUPPLIER_ID      = $sugar_config['api_datacom']['SupplierID'] ?? '';
+        $this->ENDPOINT = $sugar_config['api_autobook']['Endpoint'] ?? '';
+        $this->API_SEARCH_KEY = $sugar_config['api_autobook']['SearchKey'] ?? '';
+        $this->API_BOOKING_KEY = $sugar_config['api_autobook']['BookingKey'] ?? '';
     }
 
     /**
@@ -79,7 +77,7 @@ class APIDatacom {
             if ($json === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $url",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -89,7 +87,7 @@ class APIDatacom {
             if($httpcode != 200) {
                 return json_encode([
                     "status" => 0,
-                    "message" => $arr['message'] ?? "Can not connect to $url",
+                    "message" => $arr['message'] ?? "Can't connect to API",
                     "description" => "HTTP error $httpcode",
                     "data" => $arr
                 ]);

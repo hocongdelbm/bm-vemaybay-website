@@ -3,22 +3,25 @@ class APIPhuongNam {
     private $ENDPOINT;
     private $API_SEARCH_KEY;
     private $API_BOOKING_KEY;
-    public $SUPPLIER_ID;
 
     public function __construct() {
         global $sugar_config;
-        $this->ENDPOINT         = $sugar_config['phuongnam']['Endpoint'] ?? '';
-        $this->API_SEARCH_KEY   = $sugar_config['phuongnam']['SearchKey'] ?? '';
-        $this->API_BOOKING_KEY  = $sugar_config['phuongnam']['BookingKey'] ?? '';
-        $this->SUPPLIER_ID      = $sugar_config['phuongnam']['SupplierID'] ?? '';
+        $this->ENDPOINT = $sugar_config['api_autobook']['Endpoint'] ?? '';
+        $this->API_SEARCH_KEY = $sugar_config['api_autobook']['SearchKey'] ?? '';
+        $this->API_BOOKING_KEY = $sugar_config['api_autobook']['BookingKey'] ?? '';
     }
 
-    public function searchFlights($airlineCode, $depCode, $desCode, $departDate, $returnDate = '', $adt = 1, $chd = 0, $inf = 0, $cabin = 'M') {
+    public function searchFlights($airlineCode, $depCode, $desCode, $departDate, $returnDate = '', $adt = 1, $chd = 0, $inf = 0, $options = []) {
         try {
+            // Header
             $headers = [
                 "Content-Type: application/json",
                 "API-Key: $this->API_SEARCH_KEY",
             ];
+
+            // Request body
+            $cabin = $options['cabin'] ?? '';
+            $isInter = (int)($options['isInter'] ?? 0);
             $requestBody = [
                 "airlineCode"   => $airlineCode,
                 "depCode"       => $depCode,
@@ -34,9 +37,12 @@ class APIPhuongNam {
                 ],
             ];
 
+            // URL
+            $url = $isInter ? "$this->ENDPOINT/getInterFlights" : "$this->ENDPOINT/getFlights";
+
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/getFlights");
+            curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
@@ -54,7 +60,7 @@ class APIPhuongNam {
             curl_close($curl);
 
             if ($json === false || $errorno) {
-                return json_encode(["status" => 0, "message" => "Can not connect to $this->ENDPOINT", "description" => "cURL error $errorno: $error"]);
+                return json_encode(["status" => 0, "message" => "Can't connect to API", "description" => "cURL error $errorno: $error"]);
             }
 
             $arr = is_string($json) ? json_decode($json, true) : $json;
@@ -62,7 +68,7 @@ class APIPhuongNam {
             if($httpcode != 200) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "data" => $arr,
                     "description" => "HTTP error $httpcode"
                 ]);
@@ -116,7 +122,7 @@ class APIPhuongNam {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -189,7 +195,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -277,7 +283,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -373,7 +379,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -461,7 +467,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -551,7 +557,7 @@ class APIPhuongNam {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -636,7 +642,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -733,7 +739,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -833,7 +839,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -907,7 +913,7 @@ class APIPhuongNam {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -986,7 +992,7 @@ class APIPhuongNam {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -1073,7 +1079,7 @@ class APIPhuongNam {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can't connect to API",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }

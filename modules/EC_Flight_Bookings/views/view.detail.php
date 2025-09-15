@@ -1172,7 +1172,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->ss->assign('SHARE_PROFIT', $this->createShareProfitBtn());
 
 		// Auto book
-		if(in_array($this->bean->booking_status, [1, 2, 3, 6]) && $this->bean->ticket_type == 1 && !$this->bean->is_hold && !$this->bean->holding_status) {
+		if(in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
 			$this->ss->assign('BUTTON_AUTO_BOOK',
 				'<div class="btn-group btn-group-autobook">
 					<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
@@ -1180,12 +1180,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					</button>
 					<ul class="dropdown-menu dropdown-menu-lg-end">
 						<li>
-							<a type="button" id="auto-book-datacom" class="dropdown-item btnAutoBook" data-entry-class="entryDatacomAutoBookClass">
+							<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryDatacomAutoBookClass">
 								<span class="ms-1">Hồng Ngọc Hà</span>
 							</a>
 						</li>
 						<li>
-							<a type="button" id="auto-book-phuongnam" class="dropdown-item btnAutoBook" data-class="">
+							<a type="button" id="auto-book-phuongnam" class="dropdown-item btn-auto-book" data-entry-class="entryPhuongNamAutoBookClass">
 								<span class="ms-1">Phương Nam</span>
 							</a>
 						</li>
