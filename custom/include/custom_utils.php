@@ -1756,11 +1756,6 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         // Từ ngày 06-01-2023 thì lấy thông tin hành lý mới lần 2
         if (strtotime($booking_date) >= strtotime('2023-01-06')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list2'];
-            if($current_user->id == '1') {
-                pr($luggage_index);
-                pr($luggage_arr);
-                die();
-            }
         }
         // Booking đặt từ ngày 11-08-2022 thì lấy thông tin hành lý mới
         else if (strtotime($booking_date) >= strtotime('2022-08-11')) {
@@ -2181,7 +2176,11 @@ function custom_get_sip_number($key = '')
         // Lê Tín Nghĩa
         'ebc40fa1-8878-1a86-000d-5b6949a87e11' => ['user' => '107', 'password' => 'C1UtQnCWTpUmH8C5?9wE'],
         // Nguyễn Duy Đăng
-        'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+
+        // Trịnh Thị Kim Ly
+        '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
         // Đỗ Nhật
