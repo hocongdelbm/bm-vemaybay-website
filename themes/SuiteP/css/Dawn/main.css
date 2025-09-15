@@ -2592,19 +2592,6 @@ table.table-config__setup input,
   cursor: auto;
 }
 
-#iv_account_name,
-#company_name,
-#tax_code,
-table.table-request-invoice input,
-table.table-request-invoice textarea {
-  text-transform: uppercase;
-}
-
-#company_address,
-table.table-request-invoice textarea[name="company_address"] {
-  text-transform: capitalize;
-}
-
 .buttons-editview input {
   width: unset !important;
 }

@@ -2176,7 +2176,11 @@ function custom_get_sip_number($key = '')
         // Lê Tín Nghĩa
         'ebc40fa1-8878-1a86-000d-5b6949a87e11' => ['user' => '107', 'password' => 'C1UtQnCWTpUmH8C5?9wE'],
         // Nguyễn Duy Đăng
-        'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+
+        // Trịnh Thị Kim Ly
+        '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
         // Đỗ Nhật
@@ -2440,17 +2444,23 @@ function get_payment_link()
 {
     $length = 10;
     $characters = 'qwertyuiopasdfghjklzxcvbnm0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@!';
-
     $charactersLength = strlen($characters);
     $randomString = '';
-
     for ($i = 0; $i < $length; $i++) {
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
-
     $randomString = $randomString . substr(time(), 4);
-
     return $randomString;
+}
+
+function update_field_booking($id, $field, $value, $datatype = 'string') {
+	if(is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
+	global $db;
+	$value_format = $datatype == 'string' ? "'$value'" : $value;
+	$sql = "UPDATE ec_flight_bookings
+			SET $field = $value_format
+			WHERE id = '$id' AND deleted = 0";
+	$db->query($sql);
 }
 
 require_once 'custom/include/utils/address.php';

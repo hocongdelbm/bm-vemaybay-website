@@ -66,10 +66,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Update status
             if ($arr['error'] == 0) {
-                sleep(10);
+                sleep(15); // Pending to get invoice number
                 $json2 = $Inv->get($invoice_data['invRef']);
                 $arr2 = json_decode($json2, true);
-                $sohoadon  = isset($arr2['data'][0]['invNumber']) ? $arr2['data'][0]['invNumber'] : '';
+                $sohoadon = isset($arr2['data'][0]['invNumber']) ? $arr2['data'][0]['invNumber'] : '';
 
                 $hoadonban = new EC_HoaDonBan();
                 $hoadonban->retrieve($invoice_id);
@@ -78,7 +78,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $hoadonban->ngayhoadon = $arr2['data'][0]['invDate'] ?? '';
                 $hoadonban->is_signed = 1;
                 $hoadonban->invoice_data = $json2;
-                $hoadonban->save();
+
+                // Save working process & note (KPI)
+                if(is_string($hoadonban->save())) {
+                    try {
+                        global $db, $current_user;
+
+                        $arrBookingId = [];
+                        $sql = "SELECT DISTINCT ct.booking_id, ct.booking, bk.booking_status
+                            FROM ec_chitiethoadon ct
+                                LEFT JOIN ec_flight_bookings bk ON bk.id = ct.booking_id
+                            WHERE ct.parent_id = '$invoice_id'
+                                AND ct.parent_type = 'EC_HoaDonBan'
+                                AND ct.deleted = 0";
+                        $res = $db->query($sql);
+                        while ($row = $db->fetchByAssoc($res)) {
+                            $booking_id = $row['booking_id'] ?? '';
+                            $booking = $row['booking'] ?? '';
+                            $booking_status = $row['booking_status'] ?? '';
+
+                            if(!empty($booking_id) && !empty($booking)) {
+                                $work = new EC_Working_Process();
+                                $work->id = '';
+                                $work->name = $booking;
+                                $work->description = trim("Đã xuất hoá đơn đầu ra số: $sohoadon");
+                                $work->parent_type = "EC_Flight_Bookings";
+                                $work->parent_id = $booking_id;
+                                $work->invoice_issued = 1;
+                                $work->assigned_user_id = $current_user->id;
+                                $workId = $work->save();
+
+                                if(is_string($workId)) {
+                                    $note = new Note();
+                                    $note->id = '';
+                                    $note->name 			    = $booking;
+                                    $note->description 		    = trim("Đã xuất hoá đơn đầu ra số: $sohoadon");
+                                    $note->parent_type 		    = "EC_Flight_Bookings";
+                                    $note->parent_id 		    = $booking_id;
+                                    $note->booking_status 	    = $booking_status;
+                                    $note->working_process_id   = $workId;
+                                    $note->assigned_user_id     = $current_user->id;
+                                    $note->save();
+
+                                    $arrBookingId[] = $booking_id;
+                                }
+                            }  
+                        }
+
+                        if(!empty($arrBookingId)) {
+                            $listBookingId = "'" . implode("','", $arrBookingId) . "'";
+                            $db->query("UPDATE ec_flight_bookings
+                                    SET is_invoice_export = 1
+                                    WHERE id IN ($listBookingId) AND deleted = 0");
+                        }
+                    }
+                    catch(Throwable $th) {}
+                }
             }
 
             echo $json;

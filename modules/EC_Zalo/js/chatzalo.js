@@ -531,7 +531,7 @@ $(document).ready(function () {
             $('#voiceip-info-zaloid').html(zalo_id);
             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zalo_id}`);
             $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
-            $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+            $('#voiceip-info-phone').html(phone);
             $('#voiceip-info-name').html(name);
             display_avatar_zalo(avatar);
             
