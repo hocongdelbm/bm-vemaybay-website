@@ -230,12 +230,12 @@ function get_template(carrier, type, data) {
         if(type == 'send_sms_journey') {
             // Cam on ban dat ve tren [20 kí tự]. Booking [74 kí tự] ngay [10 kí tự] luc [5 kí tự]. HK [150 kí tự]. Vui long kiem tra ky cang thong tin tren
     
-            let html_source    = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="20" size="30" />`;
-            let html_booking   = `<input type="text" class="box-input text-center" name="params_content_sms_booking" value="${data.booking}" maxlength="14" size="24" />`;
-            let html_journey   = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="60" size="70" />`;
-            let html_passenger = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" maxlength="150" size="160" />`;
-            let html_date      = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" size="20" />`;
-            let html_time      = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" size="10" />`;
+            let html_source    = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="20" size="15" />`;
+            let html_booking   = `<input type="text" class="box-input text-center" name="params_content_sms_booking" value="${data.booking}" maxlength="14" size="12" />`;
+            let html_journey   = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="60" size="32" />`;
+            let html_passenger = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" maxlength="150" size="62" />`;
+            let html_date      = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" size="8" />`;
+            let html_time      = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" size="4" />`;
     
             return `Cam on ban dat ve tren ${html_source}. Booking ${html_booking} ${html_journey} ngay ${html_date} luc ${html_time}. HK ${html_passenger}. Vui long kiem tra ky cang thong tin tren`;
         }

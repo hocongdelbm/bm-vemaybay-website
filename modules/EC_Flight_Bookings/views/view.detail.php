@@ -72,8 +72,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_phuongnam/booking.js?v=1.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.9"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.1"></script>
-		';
+			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.1"></script>';
 
 		$js .= '<script>
 			var booking_status = "' . $this->bean->booking_status . '";
