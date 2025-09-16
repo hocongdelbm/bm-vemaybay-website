@@ -33,7 +33,7 @@ class SMS {
     }
 
     /** 
-     * Gửi tin nhắn qua số điện thoại
+     * Send message to phone mobile with template
      * 
      * @param string $phone
      * @param string $text
@@ -50,7 +50,14 @@ class SMS {
         }
 
         $unicode = $this->is_unicode($text);
-        $body = '{"from":"'.$this->SENDER.'","to":"'.$phone.'","text":"'.$text.'","unicode":'.$unicode.',"contentid":"'.$contentid.'"}';
+        $reqBody = [
+            "from" => $this->SENDER,
+            "to" => $phone,
+            "text" => $text,
+            "unicode" => $unicode,
+            "contentid" => $contentid
+        ];
+        // $body = '{"from":"'.$this->SENDER.'","to":"'.$phone.'","text":"'.$text.'","unicode":'.$unicode.',"contentid":"'.$contentid.'"}';
 
         try {
             $curl = curl_init();
@@ -70,7 +77,7 @@ class SMS {
                 CURLOPT_MAXREDIRS       => 10,
                 CURLOPT_TIMEOUT         => 0,
                 CURLOPT_CUSTOMREQUEST   => 'POST',
-                CURLOPT_POSTFIELDS      => $body,
+                CURLOPT_POSTFIELDS      => json_encode($reqBody, JSON_UNESCAPED_UNICODE),
                 CURLOPT_HTTPHEADER      => [
                     "Content-Type: application/json",
                     "Accept: application/json",
@@ -87,19 +94,17 @@ class SMS {
                 ]);
             }
         
-            $httpReturnCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        
-            // Process result here
-            if($httpReturnCode == 200) {
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            if($httpCode == 200) {
                 $json = trim($json);
                 $json = trim(str_replace("\\", "",  $json), '"');  // Fix json string
                 return $json;
             }
-
             return json_encode([
                 "status"        => 0,
-                "errorcode"     => $httpReturnCode,
+                "errorcode"     => $httpCode,
                 "description"   => "Fail",
+                "reqBody"       => $reqBody,
             ]);
         }
         catch(Exception $e) {
