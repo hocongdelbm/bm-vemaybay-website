@@ -232,8 +232,8 @@ function get_template(carrier, type, data) {
     
             let html_source    = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="20" size="15" />`;
             let html_booking   = `<input type="text" class="box-input text-center" name="params_content_sms_booking" value="${data.booking}" maxlength="14" size="12" />`;
-            let html_journey   = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="60" size="32" />`;
-            let html_passenger = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" maxlength="150" size="62" />`;
+            let html_journey   = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="60" size="30" />`;
+            let html_passenger = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" maxlength="150" size="60" />`;
             let html_date      = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" size="8" />`;
             let html_time      = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" size="4" />`;
     

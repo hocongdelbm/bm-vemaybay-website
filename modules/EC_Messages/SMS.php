@@ -9,7 +9,7 @@ class SMS {
     Private $ENDPOINT_DYNAMIC_SMS_CAMPAIGN;
     private $TOKEN_DYNAMIC_SMS_CAMPAIGN;
 
-    function __construct($sender = "GiaoNhanh") {
+    function __construct($sender = "GIAONHANH") {
         $this->SENDER = $sender;
 
         // $this->ENDPOINT_SMS = "https://api-01.worldsms.vn/webapi/sendSMS";
