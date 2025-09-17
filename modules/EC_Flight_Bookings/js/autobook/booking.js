@@ -239,7 +239,10 @@ $(document).ready(function () {
                                 }
                             });
 
-                            if(checkUpdatedDirection == '0') {
+                            if(isInter) {
+                                showStepsInDialogAutoBook(step, itiText, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
+                            }
+                            else if(checkUpdatedDirection == '0') {
                                 itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}
                                     <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}${textItiSuccess}`;
                                 showStepsInDialogAutoBook(step, itiText, 'Thông tin chưa khớp, vui lòng kiểm tra lại');
@@ -579,7 +582,17 @@ function showDialogAutoBook(bookingData) {
     const retFare = bookingData.fareDetails.ret ?? [];
     const passengerTypes = {'0': 'Người lớn', '1': 'Trẻ em', '2': 'Em bé'};
     const passengerTextTypes = {'0': 'Adt', '1': 'Chd', '2': 'Inf'};
-    function renderFlightWithFare(flight, fareArray, dir) {
+
+    /**
+     * Render flight and fare HTML
+     * 
+     * @param {Object} flight
+     * @param {Array} fareArray 
+     * @param {String} dir 
+     * @param {Object} flight2 Using for combine inter (Roundtrip)
+     * @returns {String} HTML
+     */
+    function renderFlightWithFare(flight, fareArray, dir, flight2) {
         var totalAmount = 0;
         var title = dir == 'ret' ? '✈️ Chuyến về' : '✈️ Chuyến đi';
         var label = dir == 'ret' ? 'chuyến về' : 'chuyến đi';
@@ -637,7 +650,42 @@ function showDialogAutoBook(bookingData) {
         }).join('');
 
         // Only display the fare section if there is at least one fare column
-        // if(!fareColumns) return '';
+        if(!fareColumns) return '';
+
+        // Handle flight2 object
+        let iti2 = '';
+        if(flight2 && Object.keys(flight2).length > 0) {
+            label = '';
+            iti2 = `
+                <input type="hidden" name="autobookItineraryId[]" value="${flight2.id}" readonly />
+                <input type="hidden" name="autobookAirlineCode[]" value="${flight2.airlineCode}" readonly />
+                <input type="hidden" name="autobookDepCode[]" value="${flight2.depCode}" readonly />
+                <input type="hidden" name="autobookDesCode[]" value="${flight2.desCode}" readonly />
+                <input type="hidden" name="autobookDepartureDate[]" value="${flight2.departureDate}" readonly />
+                <input type="hidden" name="autobookTicketClass[]" value="${flight2.ticketClass}" readonly />
+                <input type="hidden" name="autobookFlightNo[]" value="${flight2.flightNo}" readonly />
+                <input type="hidden" name="autobookWithin24h[]" value="0" readonly />
+
+                <div class="section-title">
+                    ✈️ Chuyến về
+                    <img class="ms-3" src="${getLinkImageAirline(flight2.airlineCode)}" alt="${flight2.airlineCode}" style="max-width:90px" />
+                </div>
+                <div class="info-row d-flex justify-content-between">
+                    <div>Hành trình: <b>${flight2.depCode} → ${flight2.desCode}</b></div>
+                    <div>Mã chuyến: <b>${flight2.flightNo}</b></div>
+                </div>
+                <div class="info-row d-flex justify-content-between mb-3">
+                    <div class="d-flex gap-1">
+                        <div>Ngày giờ bay:</div>
+                        <div id="autobookDepartureDate${flight2.depCode}${flight2.desCode}Display">
+                            <span class="old-value"></span>
+                            <b class="cur-value">${flight2.departureDate.replace(' ', ' lúc ')}</b>
+                        </div>
+                    </div>
+                    <div>Hạng vé: <b>${flight2.ticketClass}</b></div>
+                </div>
+            `;
+        }
 
         if(!BookingWithin24h) BookingWithin24h = flight.within24h && flight.airlineCode == 'VJ';
         return `<div id="flight-info-${dir}" class="flight-info">
@@ -669,6 +717,7 @@ function showDialogAutoBook(bookingData) {
                 </div>
                 <div>Hạng vé: <b>${flight.ticketClass}</b></div>
             </div>
+            ${iti2}
             <div class="info-row mt-1"><b>💰 Chi tiết giá vé</b></div>
             <div class="fare-row">${fareColumns}</div>
             <div class="d-flex justify-content-end gap-2 mt-2">
@@ -683,17 +732,13 @@ function showDialogAutoBook(bookingData) {
             </center>
         </div>`;
     }
-    // if(isInter && dep && ret) {
-    //     content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
-    // }
-    // else {
-    //     if (dep) content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
-    //     if (ret) content.innerHTML += renderFlightWithFare(ret, retFare, 'ret');
-    // }
-
-    if (dep) content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
-    if (ret) content.innerHTML += renderFlightWithFare(ret, retFare, 'ret');
-
+    if(isInter && dep && ret) {
+        content.innerHTML += renderFlightWithFare(dep, depFare, 'dep', ret);
+    }
+    else {
+        if (dep) content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
+        if (ret) content.innerHTML += renderFlightWithFare(ret, retFare, 'ret');
+    }
 
 
     // Passengers

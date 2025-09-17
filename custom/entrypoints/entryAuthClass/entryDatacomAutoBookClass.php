@@ -263,7 +263,17 @@ class entryDatacomAutoBookClass extends entryClass {
         $agency = new APIDatacom();
 
         // Format search params
-        $airlineCodeSearch = $isInter ? $this->interSystemCode : $this->mappingSystemCode[$params['airlineCode'] ?? ''] ?? '';
+        $airlineCodeSearch = '';
+        if(!$isInter) {
+            if(isset($this->mappingSystemCode[$airlineCode])) $airlineCodeSearch = $this->mappingSystemCode[$airlineCode] ;
+            elseif(isset($this->mappingSystemCodeName[$airlineCode])) $airlineCodeSearch = $airlineCode;
+        }
+        else {
+            if(isset($this->mappingSystemCode[$airlineCode])) $airlineCodeSearch = $this->mappingSystemCode[$airlineCode] ;
+            elseif(isset($this->mappingSystemCodeName[$airlineCode])) $airlineCodeSearch = $airlineCode;
+            else $airlineCodeSearch = $this->interSystemCode;
+        }
+
         $depDateSearch = $retDateSearch = '';
         if(!empty($depDate)) $depDateSearch = date('Y-m-d', strtotime($depDate));
         if(!empty($retDate)) $retDateSearch = date('Y-m-d', strtotime($retDate));
@@ -370,42 +380,105 @@ class entryDatacomAutoBookClass extends entryClass {
             }
             else { // International
                 foreach($arr['data'] as $f) {
-                    $isThatFlight = true;
-                    $roundList = !empty($retDate) ? ['dep', 'ret'] : ['dep'];
+                    if(!isset($f["sessionId"])) continue;
 
-                    foreach($roundList as $i => $roundName) {
-                        if(!isset($f["sessionId"]) || $f[$roundName]["flightNo"] != ($flightNo[$i] ?? '')) {
-                            $isThatFlight = false;
-                            continue;
-                        };
+                    // Check flight
+                    $isThatFlight = false;
+                    if(!empty($retDate) && isset($f['ret']) && !empty($f['ret'])) { // Roundtrip
+                        if($f['dep']['flightNo'] == ($flightNo[0] ?? '') && $f['ret']['flightNo'] == ($flightNo[1] ?? '')) {
+                            $isThatFlight = true;
 
-                        // Standard ListAirOption data for automatic booking in the next step
-                        $standardData[$i] = [
-                            "Session"           => $f["sessionId"] ?? null,
-                            "SessionType"       => "search", // Hard code
-                            "AirlineOptionId"   => $f["airlineId"] ?? null,
-                            "FareOptionId"      => $f["fareId"] ?? null,
-                            "FlightOptionId"    => $f["flightId"] ?? null,
-                            "Tourcode"          => "",
-                            "CAcode"            => "",
-                            "VIPText"           => "",
-                            "Remark"            => "",
-                            "AccountCode"       => ""
-                        ];
+                            if(isset($f["airlineId"])) { // Combine
+                                $standardData = [[
+                                    "Session"           => $f["sessionId"],
+                                    "SessionType"       => "search", // Hard code
+                                    "AirlineOptionId"   => $f["airlineId"] ?? null,
+                                    "FareOptionId"      => $f["fareId"] ?? null,
+                                    "FlightOptionId"    => $f["flightId"] ?? null,
+                                    "Tourcode"          => "",
+                                    "CAcode"            => "",
+                                    "VIPText"           => "",
+                                    "Remark"            => "",
+                                    "AccountCode"       => ""
+                                ]];
+                            }
+                            else { // Domestic airline like VJ, VN,...
+                                $standardData = [
+                                    [
+                                        "Session"           => $f["sessionId"],
+                                        "SessionType"       => "search", // Hard code
+                                        "AirlineOptionId"   => $f["dep"]["airlineId"] ?? null,
+                                        "FareOptionId"      => $f["dep"]["fareId"] ?? null,
+                                        "FlightOptionId"    => $f["dep"]["flightId"] ?? null,
+                                        "Tourcode"          => "",
+                                        "CAcode"            => "",
+                                        "VIPText"           => "",
+                                        "Remark"            => "",
+                                        "AccountCode"       => ""
+                                    ],
+                                    [
+                                        "Session"           => $f["sessionId"],
+                                        "SessionType"       => "search", // Hard code
+                                        "AirlineOptionId"   => $f["ret"]["airlineId"] ?? null,
+                                        "FareOptionId"      => $f["ret"]["fareId"] ?? null,
+                                        "FlightOptionId"    => $f["ret"]["flightId"] ?? null,
+                                        "Tourcode"          => "",
+                                        "CAcode"            => "",
+                                        "VIPText"           => "",
+                                        "Remark"            => "",
+                                        "AccountCode"       => ""
+                                    ],
+                                ];
+                            }
+                        }
                     }
+                    else if(isset($f['dep']) && !empty($f['dep'])) { // Oneway
+                        if($f['dep']['flightNo'] == ($flightNo[0] ?? '')) {
+                            $isThatFlight = true;
 
+                            if(isset($f["airlineId"])) { // Combine
+                                $standardData = [[
+                                    "Session"           => $f["sessionId"],
+                                    "SessionType"       => "search", // Hard code
+                                    "AirlineOptionId"   => $f["airlineId"] ?? null,
+                                    "FareOptionId"      => $f["fareId"] ?? null,
+                                    "FlightOptionId"    => $f["flightId"] ?? null,
+                                    "Tourcode"          => "",
+                                    "CAcode"            => "",
+                                    "VIPText"           => "",
+                                    "Remark"            => "",
+                                    "AccountCode"       => ""
+                                ]];
+                            }
+                            else { // Domestic airline like VJ, VN,...
+                                $standardData = [[
+                                    "Session"           => $f["sessionId"],
+                                    "SessionType"       => "search", // Hard code
+                                    "AirlineOptionId"   => $f["dep"]["airlineId"] ?? null,
+                                    "FareOptionId"      => $f["dep"]["fareId"] ?? null,
+                                    "FlightOptionId"    => $f["dep"]["flightId"] ?? null,
+                                    "Tourcode"          => "",
+                                    "CAcode"            => "",
+                                    "VIPText"           => "",
+                                    "Remark"            => "",
+                                    "AccountCode"       => ""
+                                ]];
+                            }
+                        }
+                    }
                     if(!$isThatFlight) continue;
+
                     $flightData = $f;
                     
                     // Check prices
                     $totalAmout = 0;
-                    if(isset($f["adtPrice"]) && isset($adtPrice[$i]) && $f["adtPrice"] != $adtPrice[$i]) {
+                    if(isset($f["adtPrice"]) && isset($adtPrice[0]) && $f["adtPrice"] != $adtPrice[0]) {
                         $newFare    = $f["adtFare"] ?? null;
                         $newTaxFee  = $f["adtTaxFee"] ?? null;
                         $newPrice   = $f["adtPrice"] ?? null;
     
-                        $updateData[$i]['adtFare'] = [
-                            "detailId"  => $adtDetailId[$i] ?? '',
+                        $updateData[0]['adtFare'] = [
+                            "detailId"  => $adtDetailId[0] ?? '',
                             "fare"      => $newFare,
                             "fee"       => $newTaxFee,
                             "price"     => $newPrice
@@ -413,14 +486,14 @@ class entryDatacomAutoBookClass extends entryClass {
 
                         $totalAmout += $newPrice * $adt;
                     }
-                    else $totalAmout += ($adtPrice[$i] ?? 0) * $adt;
-                    if($chd > 0 && isset($f["chdPrice"]) && isset($chdPrice[$i]) && $f["chdPrice"] != $chdPrice[$i]) {
+                    else $totalAmout += ($adtPrice[0] ?? 0) * $adt;
+                    if($chd > 0 && isset($f["chdPrice"]) && isset($chdPrice[0]) && $f["chdPrice"] != $chdPrice[0]) {
                         $newFare    = $f["chdFare"] ?? null;
                         $newTaxFee  = $f["chdTaxFee"] ?? null;
                         $newPrice   = $f["chdPrice"] ?? null;
     
-                        $updateData[$i]['chdFare'] = [
-                            "detailId"  => $chdDetailId[$i] ?? '',
+                        $updateData[0]['chdFare'] = [
+                            "detailId"  => $chdDetailId[0] ?? '',
                             "fare"      => $newFare,
                             "fee"       => $newTaxFee,
                             "price"     => $newPrice
@@ -428,14 +501,14 @@ class entryDatacomAutoBookClass extends entryClass {
 
                         $totalAmout += $newPrice * $chd;
                     }
-                    else $totalAmout += ($chdPrice[$i] ?? 0) * $chd;
-                    if($inf > 0 && isset($f["infPrice"]) && isset($infPrice[$i]) && $f["infPrice"] != $infPrice[$i]) {
+                    else $totalAmout += ($chdPrice[0] ?? 0) * $chd;
+                    if($inf > 0 && isset($f["infPrice"]) && isset($infPrice[0]) && $f["infPrice"] != $infPrice[0]) {
                         $newFare    = $f["infFare"] ?? null;
                         $newTaxFee  = $f["infTaxFee"] ?? null;
                         $newPrice   = $f["infPrice"] ?? null;
     
-                        $updateData[$i]['infFare'] = [
-                            "detailId"  => $infDetailId[$i] ?? '',
+                        $updateData[0]['infFare'] = [
+                            "detailId"  => $infDetailId[0] ?? '',
                             "fare"      => $newFare,
                             "fee"       => $newTaxFee,
                             "price"     => $newPrice
@@ -443,19 +516,19 @@ class entryDatacomAutoBookClass extends entryClass {
 
                         $totalAmout += $newPrice * $inf;
                     }
-                    else $totalAmout += ($infPrice[$i] ?? 0) * $inf;
+                    else $totalAmout += ($infPrice[0] ?? 0) * $inf;
 
                     // Add more info to update data itinerary id
-                    if(isset($updateData[$i]) && !empty($updateData[$i])) {
-                        $updateData[$i]['itineraryId'] = $listItineraryId[$i] ?? ''; // Itinerary Id
-                        $updateData[$i]['totalAmount'] = $totalAmout; // Total amount
+                    if(isset($updateData[0]) && !empty($updateData[0])) {
+                        $updateData[0]['itineraryId'] = $listItineraryId[0] ?? ''; // Itinerary Id
+                        $updateData[0]['totalAmount'] = $totalAmout; // Total amount
                     }
                     break;
                 }
             }
 
             if(!empty($retDate)) { // Roundtrip
-                if(count($standardData) > 1) {
+                if(count($standardData) > 1 || ($isInter && count($standardData) == 1)) {
                     if(empty($updateData)) {
                         return [
                             "status" => 1,
@@ -523,7 +596,9 @@ class entryDatacomAutoBookClass extends entryClass {
             return [
                 "status"    => 0,
                 "errorCode" => "NOT_FOUND_FLIGHT",
-                "message"   => trim("Không tìm thấy chuyến bay " . implode(", ", $flightNo)),
+                "message"   => $isInter && !empty($retDate)
+                    ? trim("Không tìm thấy cặp chuyến " . implode(", ", $flightNo))
+                    : trim("Không tìm thấy chuyến bay " . implode(", ", $flightNo)),
                 "data"      => null,
                 "flights"   => $arr['data'] ?? []
             ];
@@ -690,6 +765,12 @@ class entryDatacomAutoBookClass extends entryClass {
             return ["status" => 1, "message" => "Update success"];
         }
         else { // International
+            /**
+             * Procedures & Rules
+             * - The price of international flights are combined, thus only update price to outbound in database (With roundtrip).
+             * - The itinerary of international flights are handled normally such as domestic flights.
+             */
+
             // Update detail prices
             $basePrice = null;
             $passengerTypes = ['adt', 'chd', 'inf'];
