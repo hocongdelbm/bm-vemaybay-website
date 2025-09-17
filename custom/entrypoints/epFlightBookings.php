@@ -338,7 +338,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 		$html .= '<div class="line_pass d-flex flex-column gap-2 p-2 border border-radius mt-3">
 						<h2 class="change-title">Thông tin hành khách đã chọn:</h2>
 						<table id="passenger_tbl" class="table-change-passengers" cellpadding="0" cellspacing="0"><tbody>';
-	} 
+	}
 	$i = 0;
 
 	while ($row = $db->fetchByAssoc($res)) {
@@ -723,7 +723,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 		$update_remind = "UPDATE ec_booking_itineraries SET is_remind = 1 WHERE id = '" . trim($journey_id) . "'";
 		$result = $db->query($update_remind);
 
-		if($result){
+		if ($result) {
 			$sql_booking = "SELECT id, name, booking_status FROM ec_flight_bookings WHERE id = '" . trim($booking_id) . "' AND deleted = 0";
 			$res = $db->query($sql_booking);
 			$row = $db->fetchByAssoc($res);
@@ -1303,14 +1303,14 @@ function populateEditedLineItineraries($booking_id)
 			$print_ticket_btn = '<input type="hidden" name="add_type" value="3">
 				<input type="button" name="btnPrintEticket" value="In vé" title="In vé"
 					class="btn btn-primary-2 fw-semibold flex-fill"
-					ln="'. $j .'"
-					data-times-change="'. $print_iti .'"
+					ln="' . $j . '"
+					data-times-change="' . $print_iti . '"
 				/>
 			';
 			$send_ticket_btn = '<input type="button" name="btnSendEticket" value="Gửi vé" title="Gửi vé"
 				class="btn btn-primary-2 fw-semibold flex-fill"
-				ln="'. $j .'"
-				data-times-change="'. $print_iti .'"
+				ln="' . $j . '"
+				data-times-change="' . $print_iti . '"
 			/>';
 
 			if ($row['is_remind'] == 0) {
@@ -1350,8 +1350,8 @@ function populateEditedLineItineraries($booking_id)
 				<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
 				<input type="hidden" name="ticket_type" value="' . $booking->ticket_type . '" />
 				<div class="d-flex align-items-center gap-2 justify-content-center">
-					'. $print_ticket_btn .'
-					'. $send_ticket_btn .'
+					' . $print_ticket_btn . '
+					' . $send_ticket_btn . '
 					<input type="button" name="btnSendSMS" value="SMS" title="Send SMS"
 						class="btn btn-primary-2 fw-semibold flex-fill"
 						direction="' . $row['direction'] . '" 
@@ -1362,7 +1362,7 @@ function populateEditedLineItineraries($booking_id)
 						applied_pass="' . $applied_pass . '"
 						style="max-width:30%"
 					/>
-					'. $remind_btn .'
+					' . $remind_btn . '
 				</div>
 			</form>
 		</td>';
@@ -1541,7 +1541,7 @@ function populateEditedLinePassenger($booking_id)
 			$pass_changed_name_arr[] = '<font color="blue">' . $row['old_name'] . '</font> <span style="font-size: 16px;">&rarr;</span> ' . $row['name'];
 		}
 
-		$html .= '<tr class="psg-line" data-id="'. $row['id'] .'" data-times-change="'. $row['go_with'] .'">
+		$html .= '<tr class="psg-line" data-id="' . $row['id'] . '" data-times-change="' . $row['go_with'] . '">
 			<td data-label="Chỉnh sửa" class="text-center align-middle"">
 				<svg xmlns="http://www.w3.org/2000/svg" class="edit_pass_row cursor-pointer" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
 			</td>
@@ -1576,7 +1576,7 @@ function populateEditedLinePassenger($booking_id)
 		</td>';
 
 
-		
+
 		/* Thông tin hành lý lượt đi*/
 		$luggage_price = '';
 		// luggage_price_arr là list option hành lý
@@ -1595,7 +1595,7 @@ function populateEditedLinePassenger($booking_id)
 
 		if ($bag_weight_out > 0) {
 			$eluggage_outbound = '';
-			if(strlen($row['eluggage_outbound']) > 0) {
+			if (strlen($row['eluggage_outbound']) > 0) {
 				$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
 										(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($row['eluggage_outbound']) . '</strong>)
 										<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '"  />
@@ -1606,7 +1606,7 @@ function populateEditedLinePassenger($booking_id)
 
 			$luggage_price .= '<div class="luggage__outbound">
 									<span class="color-primary fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')
-									'.$eluggage_outbound.'
+									' . $eluggage_outbound . '
 								</div>';
 		}
 
@@ -1629,7 +1629,7 @@ function populateEditedLinePassenger($booking_id)
 		if ($bag_weight_in > 0) {
 			$luggage_price .= '';
 			$eluggage_inbound = '';
-			if(strlen($row['eluggage_inbound']) > 0) {
+			if (strlen($row['eluggage_inbound']) > 0) {
 				$eluggage_inbound .= '<span data-label="Số vé HL về" class="text-center" class="eluggage_inbound">
 										(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($row['eluggage_inbound']) . '</strong>)
 										<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '"  />
@@ -1638,7 +1638,7 @@ function populateEditedLinePassenger($booking_id)
 
 			$luggage_price .= '<div class="luggage__inbound mt-2">
 									<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in . ' (Giá mua: ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . ')
-									'.$eluggage_inbound.'
+									' . $eluggage_inbound . '
 								</div>';
 		}
 		/* END Thông tin hành lý lượt về*/
@@ -1813,8 +1813,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPriorBooking') {
 				, IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0) AS total_ticket
 				, IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id)), 0) AS bk_sales 
 			FROM ec_flight_bookings bk
-			INNER JOIN ec_booking_itineraries i 
-			ON i.deleted = 0 AND i.booking_id = bk.id
+			INNER JOIN ec_booking_itineraries i ON i.deleted = 0 AND i.booking_id = bk.id
 			WHERE bk.deleted = 0
 			AND (
 				TIMESTAMPDIFF(
@@ -1828,14 +1827,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPriorBooking') {
 					, i.arrival_date
 				) <= 1440
 			) 
-			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= 
-				"' . date('Y-m-d', strtotime($_POST['fdate'])) . '"
-			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= 
-				"' . date('Y-m-d', strtotime($_POST['tdate'])) . ' 23:59:59"
+			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >=  "' . date('Y-m-d', strtotime($_POST['fdate'])) . '"
+			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <=  "' . date('Y-m-d', strtotime($_POST['tdate'])) . ' 23:59:59"
 			AND bk.created_by = "' . $_POST['user'] . '"
 			GROUP BY bk.id
 			ORDER BY bk.date_entered
 		';
+
 	$res = $db->query($sql);
 	$i = $total = $canceled = $completed = $exported = $confirmed = $called = $paidwait = 0;
 	$created = $ticket_completed = $total_sale = 0;
@@ -2565,8 +2563,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 				, GROUP_CONCAT(IF(i.direction = 0, IF(i.departure_date IS NULL, NULL, DATE_FORMAT(i.departure_date, "%d-%m-%Y %H:%i:%s")), NULL) SEPARATOR "|") AS departure_date
 				, GROUP_CONCAT(IF(i.direction = 1, IF(i.departure_date IS NULL, NULL, DATE_FORMAT(i.departure_date, "%d-%m-%Y %H:%i:%s")), NULL) SEPARATOR "|") AS arrival_date
 				, IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0) AS total_ticket
-				, IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id)), 0) AS bk_sales 
-				, (IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id)), 0) / IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0)) AS average_fee 
+				, IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT (IFNULL(luggage_purchase, 0)) + (IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id ORDER BY bk.date_entered DESC LIMIT 1)), 0) AS bk_sales 
+				, (IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT (IFNULL(luggage_purchase, 0)) + (IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id ORDER BY bk.date_entered DESC LIMIT 1)), 0) / IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0)) AS average_fee 
 				, (SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.deleted = 0 AND i.booking_id = bk.id) AS min_dep_time
 				, (SELECT GROUP_CONCAT(DISTINCT service_fee) FROM ec_booking_details WHERE deleted = 0 AND booking_id = bk.id) AS service_fee
 				, u.user_name
@@ -2583,8 +2581,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 			GROUP BY bk_id
 			ORDER BY FIELD(booking_status, 8, 7, 3, 2, 6, 1, 4), average_fee DESC
 		';
-
-	// pr($sql);
 
 	$res = $db->query($sql);
 	$i = $total = $canceled = $completed = $exported = $confirmed = $called = $paidwait = 0;
@@ -2709,6 +2705,85 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 
 	echo $html;
 }
+
+// Xem chi tiết cuộc gọi đến - nhỡ theo site
+if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
+	$html = '
+			<table class="detail_bk_tbl table-details__booking table-get_detail_call mb-3" cellspacing="0" cellpadding="0">
+				<thead>
+					<th width="5%">#</th>
+					<th width="10%">Mã cuộc gọi</th>
+					<th width="10%">Trạng thái</th>
+					<th width="10%">Gọi từ</th>
+					<th width="10%">Gọi đến</th>
+					<th width="10%" class="hide-mobile">Thời gian</th>
+					<th width="10%" class="hide-mobile">Thời lượng</th>
+					<th class="hide-mobile">Booking</th>
+					<th class="hide-mobile">Ghi chú</th>
+				</thead>
+		';
+
+	$from_date = $_POST['fdate'];
+	$to_date = $_POST['tdate'];
+
+	$sql = 'SELECT
+				c.id,
+				c.name,
+				c.status,
+				c.call_from,
+				c.call_to,
+				c.direction,
+				c.date_start,
+				c.call_duration,
+				c.call_sources,
+				c.booking_id,
+				c.description
+			FROM calls c
+			LEFT JOIN users u 
+			ON c.call_sources = u.last_name
+			WHERE
+			c.deleted = 0
+			AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" AND "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+			AND c.direction = "' . $_POST['direction'] . '"
+			AND u.id = "' . $_POST['user'] . '";
+			';
+				
+	$res = $db->query($sql);
+
+	$i = 0;
+	while ($row = $db->fetchByAssoc($res)) {
+		$booking = new EC_Flight_Bookings();
+		$booking->retrieve($row['booking_id']);
+		$booking_name = $booking->name;
+
+		$html .= '
+				<tr>
+					<td class="text-center fw-semibold">' . ($i + 1) . '</td>
+					<td class="text-center">
+						<a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a>
+					</td>
+					<td class="text-center hide-mobile">' . $row['status'] . '</td>
+					<td class="text-center">' . $row['call_from'] . '</td>
+					<td class="text-center">' . $row['call_ro'] . '</td>
+					<td class="text-center">' . $row['date_start'] . '</td>
+					<td class="text-center">' . $row['call_duration'] . '</td>
+					<td class="text-center hide-mobile">
+						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">'.$booking_name.'</a>
+					</td>
+					<td class="text-center text-warp hide-mobile">
+						' . $row['description'] . '
+					</td>
+				</tr>
+			';
+		$i++;
+	}
+
+	$html .= '</table>';
+	
+	echo $html;
+	exit;
+}
+
 
 function genNoteBKStt($num, $num_per, $stt_name, $init_note = '')
 {
@@ -3687,7 +3762,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 
 	$total_revenue 		= 0;
 	$total_profit 		= 0;
-	
+
 	if ($contact_id) {
 		$html = '<div class="list-booking-customer">
 					<table class="tbl-check-contact-info table-details__booking">
@@ -3708,7 +3783,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'showHistoryBookingContact') {
 		$sql = "SELECT id, name, contact_name, phone, email, journey, booking_status, total_amount, total_qty, date_entered
 				FROM ec_flight_bookings
 				WHERE contact_id = '$contact_id' AND deleted = 0
-				".$where."
+				" . $where . "
 				ORDER BY date_entered DESC";
 
 		$res = $db->query($sql);
@@ -3816,11 +3891,11 @@ if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
 	$contact_id 	= $_POST['contact_id'] ?? '';
 	$booking_id 	= $_POST['booking_id'] ?? '';
 
-	if(strlen($contact_id) == 36 && strlen($booking_id) == 36) {
+	if (strlen($contact_id) == 36 && strlen($booking_id) == 36) {
 		$Booking = new EC_Flight_Bookings();
 		$total_points = $db->getOne("SELECT points FROM contacts WHERE id = '$contact_id' AND deleted = 0");
 
-		if($apply_points < $Booking->point_step || $apply_points > $total_points || $apply_points % $Booking->point_step != 0) {
+		if ($apply_points < $Booking->point_step || $apply_points > $total_points || $apply_points % $Booking->point_step != 0) {
 			echo json_encode([
 				'error' => 1,
 				'message' => 'Số điểm áp dụng không hợp lệ',
@@ -3833,13 +3908,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
 			exit();
 		}
 
-		$discount = $apply_points*1000;
+		$discount = $apply_points * 1000;
 		$sql_update_contact = "UPDATE contacts SET points = points - $apply_points WHERE id = '$contact_id' AND deleted = 0;";
 		$sql_update_booking = "UPDATE ec_flight_bookings SET discount_amount = discount_amount + $discount, total_amount = total_amount - $discount WHERE id = '$booking_id' AND deleted = 0;";
 		$res_contact = $db->query($sql_update_contact);
 		$res_booking = $db->query($sql_update_booking);
 
-		if($res_contact === false) {
+		if ($res_contact === false) {
 			echo json_encode([
 				'error' => 1,
 				'message' => 'Lỗi! Vui lòng thử lại sau',
@@ -3847,7 +3922,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
 			]);
 			exit();
 		}
-		if($res_booking === false) {
+		if ($res_booking === false) {
 			// Rollback
 			$sql_update_contact = "UPDATE contacts SET points = points + $apply_points WHERE id = '$contact_id' AND deleted = 0;";
 			$res_contact = $db->query($sql_update_contact);
@@ -3874,25 +3949,25 @@ if (isset($_POST['for']) && $_POST['for'] == 'apply_points') {
 		$point_log->save();
 
 		echo json_encode(['error' => 0, 'message' => 'Success']);
-		exit(); 
+		exit();
 	}
 
 	echo json_encode(['error' => 1, 'message' => 'Invalid params']);
-	exit(); 
+	exit();
 }
 if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 	$parent_id 	= $_POST['parent_id'] ?? '';
 	$contact_id = $_POST['contact_id'] ?? '';
 	$reason 	= $_POST['reason'] ?? '';
 
-	if(strlen($contact_id) == 36 && strlen($parent_id) == 36) {
+	if (strlen($contact_id) == 36 && strlen($parent_id) == 36) {
 		$point_log = new EC_Contact_Points_Log();
 		$point_log->retrieve($parent_id);
-		if($point_log->id == $parent_id && $point_log->down > 0) {
+		if ($point_log->id == $parent_id && $point_log->down > 0) {
 			$refund_points = (int)$point_log->down; // Used point
-			$refund_amount = $refund_points*1000;
+			$refund_amount = $refund_points * 1000;
 
-			if($point_log->parent_type == 'EC_Flight_Bookings') {
+			if ($point_log->parent_type == 'EC_Flight_Bookings') {
 				$sql_refund_discount = "UPDATE ec_flight_bookings
 					SET discount_amount = discount_amount - $refund_amount, total_amount = total_amount + $refund_amount
 					WHERE id = '$point_log->parent_id'
@@ -3902,7 +3977,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 
 				$sql_refund_point = "UPDATE contacts SET points = points + $refund_points WHERE id = '$contact_id' AND deleted = 0";
 
-				if($db->query($sql_refund_discount) && $db->query($sql_refund_point)) {
+				if ($db->query($sql_refund_discount) && $db->query($sql_refund_point)) {
 					$total_points = $db->getOne("SELECT points FROM contacts WHERE id = '$contact_id' AND deleted = 0");
 					$booking_name = $db->getOne("SELECT name FROM ec_flight_bookings WHERE id = '$point_log->parent_id' AND deleted = 0");
 
@@ -3920,20 +3995,20 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 					$point_log_refund->save();
 
 					echo json_encode(['error' => 0, 'message' => 'Success']);
-					exit(); 
+					exit();
 				}
 
 				echo json_encode(['error' => 1, 'message' => 'Booking cannot be refunded points']);
-				exit(); 
+				exit();
 			}
 
 			echo json_encode(['error' => 1, 'message' => 'There is no refund policy']);
-			exit(); 
+			exit();
 		}
 	}
 
 	echo json_encode(['error' => 1, 'message' => 'Failed']);
-	exit(); 
+	exit();
 }
 
 // Update output invoice checked
@@ -3941,8 +4016,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'check_output_invoice') {
 	try {
 		$booking_id = $_POST['booking_id'] ?? '';
 		$is_checked = isset($_POST['is_checked']) ? (int)$_POST['is_checked'] : null;
-	
-		if(!empty($booking_id) && !is_null($is_checked)) {
+
+		if (!empty($booking_id) && !is_null($is_checked)) {
 			$sql = "UPDATE ec_flight_bookings 
 					SET is_output_invoice_checked = $is_checked
 					WHERE id = '$booking_id' AND deleted = 0";
@@ -3951,14 +4026,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'check_output_invoice') {
 				'error' => 0,
 				'message' => $is_checked == 1 ? 'Checked success' : 'Unchecked success'
 			]);
-			exit(); 
+			exit();
 		}
 
 		echo json_encode(['error' => 1, 'message' => 'Invalid params']);
-		exit(); 
-	}
-	catch (Exception $e) {
+		exit();
+	} catch (Exception $e) {
 		echo json_encode(['error' => 1, 'message' => $e->getMessage()]);
-		exit(); 
+		exit();
 	}
 }

@@ -1878,6 +1878,16 @@ function isManagerUser($user_id)
     return 0;
 }
 
+// Là nhân viên có role Telesale
+function isTelesaleUser($user_id)
+{
+    global $db;
+
+    $sql = 'SELECT COUNT(id) FROM acl_roles_users WHERE user_id = "' . $user_id . '" AND role_id = "34beb2a2-5ee7-f001-2496-68ca264d1d3f" AND deleted = 0';
+    $is_telesale = $db->getOne($sql);
+    return ($is_telesale) ? 1 : 0;
+}
+
 
 // Bỏ các khoảng trắng
 function replaceAllSpacesToSingleSpace($string)
@@ -2170,7 +2180,11 @@ function custom_get_sip_number($key = '')
         // Trần Minh Tuấn
         'da25400e-a030-389c-4228-5c233d8cd04e' => ['user' => '104', 'password' => 'L6U%a9^%Ggzkb9u4ryIx'],
         // Trần Như Điền
-        '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+        // '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+
+        // Mai Thị Anh Đào
+        'e692a4e4-b402-4ffa-ce78-68c904aa4086' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+
         // Trương Mỹ Nhân
         '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
         // Lê Tín Nghĩa

@@ -60,6 +60,8 @@
 					getBookerBK($(this).attr("user"), $(this).attr("sname"));
 				} else if ($(this).attr("type") == 'show_inter_bk'){
 					getBookingInter($(this).attr("user"), $(this).attr("sname"))
+				} else if ($(this).attr("type") == 'show_detail_call'){
+					getDetailCallBookingQtyReport($(this).attr("user"), $(this).attr("sname"), $(this).attr("direction"));
 				}
 			}
 		});
@@ -259,6 +261,31 @@
 			success: function(response) {
 				$(".container-waiting").hide();
 				$("#warning_note").html('<div class="d-flex justify-content-center align-items-center gap-2"><h3 class="sub-title mb-0">Danh sách booking Quốc tế đặt site ' + user_name + '</h3> <input type="button" class="hide_detail_btn btn btn-dark" id="hide_detail_btn" value="Ẩn"></div>');
+				$(".detail_bk--wrap").remove();
+				$("#warning_note").after(response);
+			}
+		});
+	}
+
+	function getDetailCallBookingQtyReport(user_id, user_name, direction){
+		$.ajax({
+			url: "index.php?entryPoint=entryPointFlightBookings",
+			type: "POST",
+			data: {
+				fdate: $('#from_date').val(),
+				tdate: $('#to_date').val(),
+				direction: direction,
+				user: user_id,
+				for: "getDetailCallBookingQtyReport",
+			},
+			beforeSend: function() {
+				$(".container-waiting").show();
+				$(".detail_bk--wrap").remove();
+				// $("#warning_note").html("");
+			},
+			success: function(response) {
+				$(".container-waiting").hide();
+				$("#warning_note").html('<div class="d-flex justify-content-center align-items-center gap-2"><h3 class="sub-title mb-0">Danh sách chi tiết cuộc gọi ' + direction + ' site ' + user_name + '</h3> <input type="button" class="hide_detail_btn btn btn-dark" id="hide_detail_btn" value="Ẩn"></div>');
 				$(".detail_bk--wrap").remove();
 				$("#warning_note").after(response);
 			}
