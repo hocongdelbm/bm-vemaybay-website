@@ -281,7 +281,7 @@
 			beforeSend: function() {
 				$(".container-waiting").show();
 				$(".detail_bk--wrap").remove();
-				// $("#warning_note").html("");
+				$("#warning_note").html("");
 			},
 			success: function(response) {
 				$(".container-waiting").hide();

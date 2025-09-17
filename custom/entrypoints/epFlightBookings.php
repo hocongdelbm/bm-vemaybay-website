@@ -2762,15 +2762,15 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 					<td class="text-center">
 						<a href="index.php?module=Calls&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a>
 					</td>
-					<td class="text-center hide-mobile">' . $row['status'] . '</td>
+					<td class="text-center hide-mobile">' . $app_list_strings['call_status_dom'][$row['status']] . '</td>
 					<td class="text-center">' . $row['call_from'] . '</td>
-					<td class="text-center">' . $row['call_ro'] . '</td>
+					<td class="text-center">' . $row['call_to'] . '</td>
 					<td class="text-center">' . $row['date_start'] . '</td>
-					<td class="text-center">' . $row['call_duration'] . '</td>
+					<td class="text-center">' . global_secondsToTimeFormat($row['call_duration']) . '</td>
 					<td class="text-center hide-mobile">
 						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">'.$booking_name.'</a>
 					</td>
-					<td class="text-center text-warp hide-mobile">
+					<td class="text-start text-warp hide-mobile">
 						' . $row['description'] . '
 					</td>
 				</tr>
@@ -2780,7 +2780,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 
 	$html .= '</table>';
 	
-	echo $html;
+	echo '<div class="box-section detail_bk--wrap">' . $html . '</div>';
 	exit;
 }
 
