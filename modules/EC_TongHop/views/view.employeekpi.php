@@ -169,7 +169,7 @@ class Viewemployeekpi extends SugarView {
 							-- - IFNULL(w.minus, 0)
 						  ) AS total_kpi
 					FROM ec_working_process w
-					INNER JOIN users u ON w.assigned_user_id = u.id
+					INNER JOIN users u ON w.assigned_user_id = u.id AND u.deleted = 0
 					AND u.is_admin = 0 AND u.title <> 'QuanLy' 
 					AND u.start_working_date IS NOT NULL
 					WHERE w.deleted = 0

@@ -10,7 +10,13 @@ class Viewinputinvoice extends SugarView {
     var $page_row_num = 30;
 
     function display() {
-        global $app_list_strings;
+        global $app_list_strings, $current_user;
+
+        // Phân quyền - Không cho telesale truy cập mục này
+        if (isTelesaleUser($current_user->id)) {
+            header("Location: index.php?module=".$this->bean->module_dir."&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
+            exit();
+        }
 
         // Xử lý import file excel trong tab import
         if (isset($_POST['importfile'])) {
