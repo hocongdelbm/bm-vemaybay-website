@@ -284,6 +284,7 @@ class entryDatacomAutoBookClass extends entryClass {
             if(!$isInter) { // Domestic
                 $i = 0;
                 foreach($arr['data'] as $roundName => $round) {
+                    $totalAmout = 0;
                     foreach($round as $f) {
                         if(!isset($f["sessionId"]) || $f["flightNo"] != ($flightNo[$i] ?? '')) continue;
 
@@ -310,42 +311,57 @@ class entryDatacomAutoBookClass extends entryClass {
 
                         // Check prices
                         if(isset($f["adtFare"]) && isset($adtFare[$i]) && $f["adtFare"] != $adtFare[$i]) {
-                            $newFare = $f["adtFare"] ?? 0;
-                            $newTax  = isset($f["adtTax"]) && $f["adtTax"] > 0 ? $f["adtTax"] : $newFare * $this->vatPercentage;
+                            $newFare    = $f["adtFare"] ?? 0;
+                            $newTax     = isset($f["adtTax"]) && $f["adtTax"] > 0 ? $f["adtTax"] : $newFare * $this->vatPercentage;
+                            $newPrice   = $adtPrice[$i] - $adtFare[$i] - $adtTax[$i] + $newFare + $newTax; // Current fee + new fare + new tax
+
                             $updateData[$i]['adtFare'] = [
                                 "detailId"  => $adtDetailId[$i] ?? '',
                                 "fare"      => $newFare,
                                 "tax"       => $newTax,
                                 // "fee"    => $f["adtFee"],
-                                "price"     => $f["adtPrice"]
+                                "price"     => $newPrice
                             ];
+                            $totalAmout += $newPrice * $adt;
                         }
+                        else $totalAmout += ($adtPrice[$i] ?? 0) * $adt;
                         if($chd > 0 && isset($f["chdFare"]) && isset($chdFare[$i]) && $f["chdFare"] != $chdFare[$i]) {
-                            $newFare = $f["chdFare"] ?? 0;
-                            $newTax = isset($f["chdTax"]) && $f["chdTax"] > 0 ? $f["chdTax"] : $newFare * $this->vatPercentage;
+                            $newFare    = $f["chdFare"] ?? 0;
+                            $newTax     = isset($f["chdTax"]) && $f["chdTax"] > 0 ? $f["chdTax"] : $newFare * $this->vatPercentage;
+                            $newPrice   = $chdPrice[$i] - $chdFare[$i] - $chdTax[$i] + $newFare + $newTax;
+
                             $updateData[$i]['chdFare'] = [
                                 "detailId"  => $chdDetailId[$i] ?? '',
                                 "fare"      => $newFare,
                                 "tax"       => $newTax,
                                 // "fee"    => $f["chdFee"],
-                                "price"     => $f["chdPrice"]
+                                "price"     => $newPrice
                             ];
+                            $totalAmout += $newPrice * $chd;
                         }
+                        else $totalAmout += ($chdPrice[$i] ?? 0) * $chd;
                         if($inf > 0 && isset($f["infFare"]) && isset($infFare[$i]) && $f["infFare"] != $infFare[$i]) {
-                            $newFare = $f["infFare"] ?? 0;
-                            $newTax = isset($f["infTax"]) && $f["infTax"] > 0 ? $f["infTax"] : $newFare * $this->vatPercentage;
+                            $newFare    = $f["infFare"] ?? 0;
+                            $newTax     = isset($f["infTax"]) && $f["infTax"] > 0 ? $f["infTax"] : $newFare * $this->vatPercentage;
+                            $newPrice   = $infPrice[$i] - $infFare[$i] - $infTax[$i] + $newFare + $newTax;
+
                             $updateData[$i]['infFare'] = [
                                 "detailId"  => $infDetailId[$i] ?? '',
                                 "fare"      => $newFare,
                                 "tax"       => $newTax,
                                 // "fee"    => $f["infFee"],
-                                "price"     => $f["infPrice"]
+                                "price"     => $newPrice
                             ];
+                            $totalAmout += $newPrice * $inf;
                         }
+                        else $totalAmout += ($infPrice[$i] ?? 0) * $inf;
 
                         // Add itinerary id
-                        if(isset($updateData[$i]) && !empty($updateData[$i])) $updateData[$i]['itineraryId'] = $listItineraryId[$i] ?? '';
-
+                        if(isset($updateData[$i]) && !empty($updateData[$i])) {
+                            $updateData[$i]['itineraryId'] = $listItineraryId[$i] ?? ''; // Itinerary Id
+                            $updateData[$i]['totalAmount'] = $totalAmout; // Total amount
+                        }
+                        // Add this flight info
                         $flightData[$i] = $f;
                         break;
                     }
@@ -376,13 +392,13 @@ class entryDatacomAutoBookClass extends entryClass {
                             "Remark"            => "",
                             "AccountCode"       => ""
                         ];
-
-                        $flightData[$i] = $f;
                     }
 
                     if(!$isThatFlight) continue;
+                    $flightData = $f;
                     
                     // Check prices
+                    $totalAmout = 0;
                     if(isset($f["adtPrice"]) && isset($adtPrice[$i]) && $f["adtPrice"] != $adtPrice[$i]) {
                         $newFare    = $f["adtFare"] ?? null;
                         $newTaxFee  = $f["adtTaxFee"] ?? null;
@@ -394,7 +410,10 @@ class entryDatacomAutoBookClass extends entryClass {
                             "fee"       => $newTaxFee,
                             "price"     => $newPrice
                         ];
+
+                        $totalAmout += $newPrice * $adt;
                     }
+                    else $totalAmout += ($adtPrice[$i] ?? 0) * $adt;
                     if($chd > 0 && isset($f["chdPrice"]) && isset($chdPrice[$i]) && $f["chdPrice"] != $chdPrice[$i]) {
                         $newFare    = $f["chdFare"] ?? null;
                         $newTaxFee  = $f["chdTaxFee"] ?? null;
@@ -406,7 +425,10 @@ class entryDatacomAutoBookClass extends entryClass {
                             "fee"       => $newTaxFee,
                             "price"     => $newPrice
                         ];
+
+                        $totalAmout += $newPrice * $chd;
                     }
+                    else $totalAmout += ($chdPrice[$i] ?? 0) * $chd;
                     if($inf > 0 && isset($f["infPrice"]) && isset($infPrice[$i]) && $f["infPrice"] != $infPrice[$i]) {
                         $newFare    = $f["infFare"] ?? null;
                         $newTaxFee  = $f["infTaxFee"] ?? null;
@@ -418,11 +440,16 @@ class entryDatacomAutoBookClass extends entryClass {
                             "fee"       => $newTaxFee,
                             "price"     => $newPrice
                         ];
+
+                        $totalAmout += $newPrice * $inf;
                     }
+                    else $totalAmout += ($infPrice[$i] ?? 0) * $inf;
 
-                    // Add itinerary id
-                    if(isset($updateData[$i]) && !empty($updateData[$i])) $updateData[$i]['itineraryId'] = $listItineraryId[$i] ?? '';
-
+                    // Add more info to update data itinerary id
+                    if(isset($updateData[$i]) && !empty($updateData[$i])) {
+                        $updateData[$i]['itineraryId'] = $listItineraryId[$i] ?? ''; // Itinerary Id
+                        $updateData[$i]['totalAmount'] = $totalAmout; // Total amount
+                    }
                     break;
                 }
             }
@@ -437,7 +464,7 @@ class entryDatacomAutoBookClass extends entryClass {
                                 "standardData" => $standardData,
                                 "updateData" => $updateData
                             ],
-                            "flights"=> $arr["data"] ?? []
+                            "flights"=> $flightData ?? []
                         ];
                     }
                     else {
@@ -476,7 +503,7 @@ class entryDatacomAutoBookClass extends entryClass {
                             "standardData" => $standardData,
                             "updateData" => $updateData
                         ],
-                        'flights'=> $arr['data'] ?? []
+                        'flights'=> $flightData ?? []
                     ];
                 }
                 else {

@@ -590,7 +590,7 @@ function showDialogAutoBook(bookingData) {
             const fare = fareArray[parseInt(type)];
             if (!fare) return '';
 
-            totalAmount += fare.price * fare.qty; // ERROR: Chỗ này sẽ sai nếu chỉnh giá không hết tất cả HK (Lack of adult, child or infant)
+            totalAmount += fare.price * fare.qty;
 
             return `<div class="fare-column">
                 <input type="hidden" name="autobook${passengerTextTypes[type]}DetailId[]" value="${fare.id}" readonly />
@@ -637,7 +637,7 @@ function showDialogAutoBook(bookingData) {
         }).join('');
 
         // Only display the fare section if there is at least one fare column
-        if(!fareColumns) return '';
+        // if(!fareColumns) return '';
 
         if(!BookingWithin24h) BookingWithin24h = flight.within24h && flight.airlineCode == 'VJ';
         return `<div id="flight-info-${dir}" class="flight-info">
@@ -671,9 +671,10 @@ function showDialogAutoBook(bookingData) {
             </div>
             <div class="info-row mt-1"><b>💰 Chi tiết giá vé</b></div>
             <div class="fare-row">${fareColumns}</div>
-            <div class="d-flex justify-content-end align-items-center mt-2">
+            <div class="d-flex justify-content-end gap-2 mt-2">
                 <label style="font-size:15px">Tổng mua ${label}: </label>
-                <b title="Đã gồm số lượng HK bên dưới" style="color:red !important; font-size:15px">
+                <b title="Đã gồm số lượng HK bên dưới" style="color:red !important; font-size:15px; text-align:right">
+                    <p id="autobookTotalAmount${flight.depCode}${flight.desCode}Display" class="old-value"></p>
                     <input type="text" value="${formatNumber(totalAmount)} VND" id="autobookTotalAmount${flight.depCode}${flight.desCode}" class="npvalue" readonly />
                 </b>
             </div>
@@ -682,8 +683,17 @@ function showDialogAutoBook(bookingData) {
             </center>
         </div>`;
     }
+    // if(isInter && dep && ret) {
+    //     content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
+    // }
+    // else {
+    //     if (dep) content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
+    //     if (ret) content.innerHTML += renderFlightWithFare(ret, retFare, 'ret');
+    // }
+
     if (dep) content.innerHTML += renderFlightWithFare(dep, depFare, 'dep');
     if (ret) content.innerHTML += renderFlightWithFare(ret, retFare, 'ret');
+
 
 
     // Passengers
@@ -873,7 +883,6 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
     }
 
     // Update fares
-    let updateTotalAmount = 0;
     const passengerTypes = [
         { type: 'Adt', count: adtCount },
         { type: 'Chd', count: chdCount },
@@ -886,28 +895,25 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
         if (fareData) {
             const listLabelFare = ["fare", "tax", "fee", "price"];
             for (let key in fareData) {
-                console.warn(key);
                 if(!listLabelFare.includes(key)) continue;
 
                 const capKey = key.charAt(0).toUpperCase() + key.slice(1);
                 const newValue = fareData[key];
                 const inputId = `input#${PREFIX}${type}${capKey}${depCode}${desCode}`;
                 const displayPrefix = `#${PREFIX}${type}${capKey}${depCode}${desCode}Display`;
-                console.warn(inputId, searchData);
                 const oldValue = $(inputId).val();
 
                 if (newValue != oldValue) {
                     $(`${displayPrefix} .cur-value`).text(formatNumber(newValue));
                     $(`${displayPrefix} .old-value`).text(formatNumber(oldValue));
                 }
-
-                if (key === 'price') {
-                    updateTotalAmount += newValue * count;
-                }
             }
         }
     });
-    $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val(formatNumber(updateTotalAmount) + ' VND');
+    let updateOldTotalAmount = $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val();
+    let updateNewTotalAmount = updateData?.totalAmount ?? 0;
+    $(`#${PREFIX}TotalAmount${depCode}${desCode}Display`).text(formatNumber(updateOldTotalAmount));
+    $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val(formatNumber(updateNewTotalAmount) + ' VND');
 
     // Button update
     let direction = $(`#btnUpdate${depCode}${desCode}`).attr('direction'); 

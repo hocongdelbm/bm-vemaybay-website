@@ -19,12 +19,13 @@
 .auto-book-dialog .npvalue {
 	border: none;
 	color: unset;
+	cursor: pointer;
 	width: fit-content;
 	width: 140px;
 	min-height: unset;
 	text-align: right;
 	font-weight: unset;
-	padding-left: 5px;
+	padding: 0;
 }
 
 .auto-book-dialog .form-wrapper {
@@ -155,8 +156,10 @@
 .auto-book-dialog .fare-row .fare-column .info-row .value {flex: 1; text-align: right;}
 .auto-book-dialog .info-row .old-value {
 	display: block;
-	color: #949494;
 	text-align: right;
+}
+.old-value {
+	color: #949494;
 	text-decoration: line-through;
 	font-weight: normal !important;
 }
