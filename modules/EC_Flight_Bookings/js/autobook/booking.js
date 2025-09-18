@@ -154,8 +154,8 @@ $(document).ready(function () {
             var chdPrice    = $(`input[name="${PREFIX}ChdPrice[]"]`).map((i, el) => el.value).get();
             var infPrice    = $(`input[name="${PREFIX}InfPrice[]"]`).map((i, el) => el.value).get();
 
-            // Roundtrip flight has the same airline
-            if(airlineCodes.length > 1 && airlineCodes[0] === airlineCodes[1]) {
+            // Roundtrip flight has the same airline or combine internation flight 
+            if(airlineCodes.length > 1 && (airlineCodes[0] === airlineCodes[1] || isInter) ) {
                 var searchInfo = {
                     airlineCode: airlineCodes[0],
                     depCode: depCodes[0],
@@ -366,58 +366,78 @@ $(document).ready(function () {
                 }
             }
 
-            return;
 
-            /******  STEP 2: VERIFY  ******/
+            /******  STEP 2: VERIFY & PREPARE DATA TO BOOKING  ******/
             step = 2;
-            var verifyResponse = {};
-            var isWithin24h = within24h.includes('1') ? 1 : 0;
-            if(statusAutoBook == 1) {
-                const timeoutShowStep2 = setTimeout(() => {
-                    showStepsInDialogAutoBook(step);
-                }, 300);
+            var requestBody = {};
+            if(entryClass == 'entryPhuongNamAutoBookClass') {
+                var verifyResponse = {};
+                var isWithin24h = within24h.includes('1') ? 1 : 0;
+                if(statusAutoBook == 1) {
+                    const timeoutShowStep2 = setTimeout(() => {
+                        showStepsInDialogAutoBook(step);
+                    }, 300);
 
-                var flights = {};
-                if(response1.data && response1.data.standardData && Object.keys(response1.data.standardData).length > 0) {
-                    flights[0] = response1.data.standardData;
-                }
-                if(response2.data && response2.data.standardData && Object.keys(response2.data.standardData).length > 0) {
-                    flights[1] = response2.data.standardData;
-                }
+                    var flights = {};
+                    if(response1.data && response1.data.standardData && Object.keys(response1.data.standardData).length > 0) {
+                        flights[0] = response1.data.standardData;
+                    }
+                    if(response2.data && response2.data.standardData && Object.keys(response2.data.standardData).length > 0) {
+                        flights[1] = response2.data.standardData;
+                    }
 
-                if (Object.keys(flights).length > 0) {
-                    verifyResponse = await $.ajax({
-                        url: ENTRYPOINT,
-                        method: 'POST',
-                        contentType: "application/json",
-                        dataType: "json",  
-                        data: JSON.stringify({
-                            'action': 'verify',
-                            'bookingId': bookingId,
-                            'flights': flights,
-                            'listPassengerId': listPassengerId,
-                            'isWithin24h': isWithin24h
-                        })
-                    });
+                    if (Object.keys(flights).length > 0) {
+                        verifyResponse = await $.ajax({
+                            url: ENTRYPOINT,
+                            method: 'POST',
+                            contentType: "application/json",
+                            dataType: "json",  
+                            data: JSON.stringify({
+                                'action': 'verify',
+                                'bookingId': bookingId,
+                                'flights': flights,
+                                'listPassengerId': listPassengerId,
+                                'isWithin24h': isWithin24h
+                            })
+                        });
 
-                    if(!verifyResponse.hasOwnProperty('status') || verifyResponse.status == 0 || !verifyResponse.hasOwnProperty('requestBody') || verifyResponse.requestBody.length == 0) {
+                        if(!verifyResponse.hasOwnProperty('status') || verifyResponse.status == 0 || !verifyResponse.hasOwnProperty('requestBody') || verifyResponse.requestBody.length == 0) {
+                            clearTimeout(timeoutShowStep2);
+                            showStepsInDialogAutoBook(step, '', verifyResponse.hasOwnProperty('message') ? verifyResponse.message : 'Lỗi, vui lòng thử lại sau');
+                            return;
+                        }
+                    }
+                    else {
                         clearTimeout(timeoutShowStep2);
-                        showStepsInDialogAutoBook(step, '', verifyResponse.hasOwnProperty('message') ? verifyResponse.message : 'Lỗi, vui lòng thử lại sau');
+                        showStepsInDialogAutoBook(step, '', 'Thiếu thông tin xác thực');
+                        console.error(flights);
                         return;
                     }
                 }
-                else {
+                else if(statusAutoBook == 0) {
                     clearTimeout(timeoutShowStep2);
-                    showStepsInDialogAutoBook(step, '', 'Thiếu thông tin xác thực');
-                    console.error(flights);
+                    showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
                     return;
                 }
             }
-            else if(statusAutoBook == 0) {
-                clearTimeout(timeoutShowStep2);
-                showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
-                return;
+            else {
+                if(statusAutoBook == 1) {
+                    const timeoutShowStep2 = setTimeout(() => {
+                        showStepsInDialogAutoBook(step);
+                    }, 300);
+
+                    // requestBody.ListAirOption = 
+
+                    // autobookContactTitle
+                }
+                else if(statusAutoBook == 0) {
+                    clearTimeout(timeoutShowStep2);
+                    showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
+                    return;
+                }
             }
+
+            return;
 
             /******  STEP 3: BOOKING  ******/
             step = 3;
@@ -435,7 +455,12 @@ $(document).ready(function () {
                     contentType: "application/json",
                     dataType: "json",  
                     data: JSON.stringify({
-                        'action': 'booking',
+                        class: entryClass,
+                        method: 'research',
+                        params: {
+
+                        },
+
                         'requestBody': verifyResponse.requestBody,
                         'bookingId': bookingId,
                         'listPassengerId': listPassengerId,
@@ -513,7 +538,7 @@ $(document).ready(function () {
                 data: JSON.stringify({
                     class: entryClass,
                     method: 'updateDataBooking',
-                    params: JSON.parse(atob(data))
+                    params: decodeAutoBook(data)
                 }),
                 beforeSend: function () {
                     hideDialogAutoBook();
@@ -770,6 +795,11 @@ function showDialogAutoBook(bookingData) {
         <div class="info-row">Số điện thoại: <b>${contactInfo.phone || ''}</b></div>
         <div class="info-row">Email: <b>${contactInfo.email || ''}</b></div>
         <div class="info-row">Địa chỉ: <b>${contactInfo.address || ''}</b></div>
+        <input type="hidden" name="autobookContactTitle" value="${contactInfo.title || ''}" readonly />
+        <input type="hidden" name="autobookContactName" value="${contactInfo.name || ''}" readonly />
+        <input type="hidden" name="autobookContactPhone" value="${contactInfo.phone || ''}" readonly />
+        <input type="hidden" name="autobookContactEmail" value="${contactInfo.email || ''}" readonly />
+        <input type="hidden" name="autobookContactAddress" value="${contactInfo.address || ''}" readonly />
     </div>`;
     content.innerHTML += contactHTML;
 
@@ -927,7 +957,8 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
         $(`#${PREFIX}DepartureDate${depCode}${desCode}Display .old-value`).text(oldDate);
     }
 
-    // Update fares
+    // Update fare
+    let isUpdateFare = false;
     const passengerTypes = [
         { type: 'Adt', count: adtCount },
         { type: 'Chd', count: chdCount },
@@ -951,21 +982,27 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
                 if (newValue != oldValue) {
                     $(`${displayPrefix} .cur-value`).text(formatNumber(newValue));
                     $(`${displayPrefix} .old-value`).text(formatNumber(oldValue));
+                    isUpdateFare = true;
                 }
             }
         }
     });
-    let updateOldTotalAmount = $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val();
-    let updateNewTotalAmount = updateData?.totalAmount ?? 0;
-    $(`#${PREFIX}TotalAmount${depCode}${desCode}Display`).text(formatNumber(updateOldTotalAmount));
-    $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val(formatNumber(updateNewTotalAmount) + ' VND');
+    if(isUpdateFare) {
+        let updateOldTotalAmount = $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val();
+        let updateNewTotalAmount = updateData?.totalAmount ?? 0;
+        $(`#${PREFIX}TotalAmount${depCode}${desCode}Display`).text(formatNumber(updateOldTotalAmount));
+        $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val(formatNumber(updateNewTotalAmount) + ' VND');
+    }
+    else {
+        console.warn("Vô đây", updateData?.totalAmount);
+    }
 
     // Button update
     let direction = $(`#btnUpdate${depCode}${desCode}`).attr('direction'); 
     updateData.bookingId = bookingId;
     updateData.isInter   = isInter;
     updateData.direction = parseInt(direction);
-    $(`#btnUpdate${depCode}${desCode}`).attr('data', btoa(JSON.stringify(updateData)));
+    $(`#btnUpdate${depCode}${desCode}`).attr('data', encodeAutoBook(updateData));
     $(`#btnUpdate${depCode}${desCode}`).attr('data-entry-class', entryClass);
     $(`#btnUpdate${depCode}${desCode}`).show();
 }
@@ -1029,8 +1066,15 @@ function unformatNumber(formattedStr) {
 
 function getLinkImageAirline(airlineCode) {
     return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
-    // let domesticAirline = ["VJ", "VN", "BL", "QH", "VU"];
-    // if(domesticAirline.includes(airlineCode)) {
-    //     return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
-    // }
+}
+
+function encodeAutoBook(value) {
+    if(!value) return value;
+    if(typeof value === "object") return btoa(encodeURIComponent(JSON.stringify(value)));
+    if(typeof value === "string") return btoa(encodeURIComponent(value));
+}
+
+function decodeAutoBook(value) {
+    if(!value) return value;
+    if(typeof value === "string") return JSON.parse(decodeURIComponent(atob(value)));
 }

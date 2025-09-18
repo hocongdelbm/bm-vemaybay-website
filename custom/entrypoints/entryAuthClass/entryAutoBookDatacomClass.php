@@ -3,11 +3,11 @@ require_once "custom/entrypoints/entryAuthClass/entryClass.php";
 require_once "modules/EC_Flight_Bookings/APIDatacom.php";
 
 /**
- * Class entryDatacomAutoBookClass
+ * Class entryAutoBookDatacomClass
  * 
  * Using for booking by Datacom API
  */
-class entryDatacomAutoBookClass extends entryClass {
+class entryAutoBookDatacomClass extends entryClass {
     public $mappingSystemCodeName;
     public $mappingSystemCode;
     public $interSystemCode;
@@ -235,12 +235,18 @@ class entryDatacomAutoBookClass extends entryClass {
 
     }
 
+    /**
+     * Research data before booking
+     * 
+     * @param array $params
+     * @return array
+     */
     public function research($params = []) {
         $airlineCode    = $params['airlineCode'] ?? '';
         $depCode        = $params['depCode'] ?? '';
         $desCode        = $params['desCode'] ?? '';
-        $depDate        = $params['depDate'] ?? '';
-        $retDate        = $params['retDate'] ?? '';
+        $depDate        = $params['depDate'] ?? ''; // d-m-Y H:i
+        $retDate        = $params['retDate'] ?? ''; // d-m-Y H:i
         $adt            = (int)($params['adt'] ?? 0);
         $chd            = (int)($params['chd'] ?? 0);
         $inf            = (int)($params['inf'] ?? 0);
@@ -312,11 +318,21 @@ class entryDatacomAutoBookClass extends entryClass {
                             "AccountCode"       => ""
                         ];
 
-                        // Check datetime
+                        // // Check datetime
+                        // $flightDate = $i == 1 ? $retDate : $depDate;
+                        // if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
+                        //     $updateData[$i]['departureDate']    = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
+                        //     $updateData[$i]['arrivalDate']      = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
+                        // }
+
+                        // Check schedule
                         $flightDate = $i == 1 ? $retDate : $depDate;
                         if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
-                            $updateData[$i]['departureDate']    = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
-                            $updateData[$i]['arrivalDate']      = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
+                            // Using for displaying UI
+                            $updateData[$i]['departureDate'] = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
+                            // Using for updating in DB
+                            $updateData[$i]['segments'] = $this->getUpdatedFieldInSegments($f['details']);
+                            $updateData[$i]['transits'] = $f['transits'];
                         }
 
                         // Check prices
@@ -466,9 +482,30 @@ class entryDatacomAutoBookClass extends entryClass {
                             }
                         }
                     }
-                    if(!$isThatFlight) continue;
+                    if(!$isThatFlight) {
+
+                        continue;
+                    }
 
                     $flightData = $f;
+
+                    // Check departure schedule
+                    if(date('Y-m-d H:i', strtotime($depDate)) != $f['dep']['depDate'] . ' ' . $f['dep']['depTime']) {
+                        // Using for displaying UI
+                        $updateData[0]['departureDate'] = date('d-m-Y H:i', strtotime($f['dep']['depDate'] . ' ' . $f['dep']['depTime']));
+                        // Using for updating in DB
+                        $updateData[0]['itinerary']['dep']['segments'] = $this->getUpdatedFieldInSegments($f['dep']['details']);
+                        $updateData[0]['itinerary']['dep']['transits'] = $f['dep']['transits'];
+                    }
+                    // Check return schedule
+                    if(!empty($retDate) && date('Y-m-d H:i', strtotime($retDate)) != $f['ret']['depDate'] . ' ' . $f['ret']['depTime']) {
+                        // Using for displaying UI
+                        $updateData[1]['departureDate'] = date('d-m-Y H:i', strtotime($f['ret']['depDate'] . ' ' . $f['ret']['depTime']));
+                        // Using for updating in DB
+                        $updateData[0]['itineraryId']['ret'] = $listItineraryId[1] ?? ''; // Itinerary Id
+                        $updateData[0]['itinerary']['ret']['segments'] = $this->getUpdatedFieldInSegments($f['ret']['details']);
+                        $updateData[0]['itinerary']['ret']['transits'] = $f['ret']['transits'];
+                    }
                     
                     // Check prices
                     $totalAmout = 0;
@@ -520,7 +557,7 @@ class entryDatacomAutoBookClass extends entryClass {
 
                     // Add more info to update data itinerary id
                     if(isset($updateData[0]) && !empty($updateData[0])) {
-                        $updateData[0]['itineraryId'] = $listItineraryId[0] ?? ''; // Itinerary Id
+                        $updateData[0]['itineraryId']['dep'] = $listItineraryId[0] ?? ''; // Itinerary Id
                         $updateData[0]['totalAmount'] = $totalAmout; // Total amount
                     }
                     break;
@@ -614,6 +651,12 @@ class entryDatacomAutoBookClass extends entryClass {
         }
     }
 
+    /**
+     * Update new data to booking in one round
+     * 
+     * @param array $params [bookingId, direction, isInter,...]
+     * @return array
+     */
     public function updateDataBooking($params = []) {
         $bookingId  = $params['bookingId'] ?? '';
         $direction  = $params['direction'] ?? null;
@@ -635,6 +678,27 @@ class entryDatacomAutoBookClass extends entryClass {
         $sqlUpdate = '';
 
         if(!$isInter) { // Domestic
+            /**
+             * Procedures & Rules
+             * - Parameters note ($params structure):
+             *  {
+             *      "bookingId": "string",
+             *      "direction": number,
+             *      "isInter": number,
+             *      "adtFare": {
+             *          "detailId": "string",
+             *          "fare": number,
+             *          "fee": number,
+             *          "price": number
+             *      },
+             *      "chdFare": ...,
+             *      "infFare": ...,
+             *      "itineraryId": "string",
+             *      "segments": [...],
+             *      "transits": [...]
+             *  }
+             */
+
             // Update detail prices
             $basePrice = null;
             $passengerTypes = ['adt', 'chd', 'inf'];
@@ -701,6 +765,8 @@ class entryDatacomAutoBookClass extends entryClass {
             $sqlUpdate = "UPDATE ec_flight_bookings
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
+                        ,modified_user_id = '$current_user->id'
+                        ,date_modified = '$dateModified'
                     WHERE id = '$bookingId' AND deleted = 0";
             if(!$db->query($sqlUpdate)) {
                 if($this->isDebug()) return [
@@ -717,34 +783,46 @@ class entryDatacomAutoBookClass extends entryClass {
             $itiId = $params['itineraryId'] ?? '';
 
             // Update departure date (Should update into schedule flight time in itineraries table by details flight)
-            if(isset($params['departureDate']) && !empty($params['departureDate'])) {
-                $ddate = date('Y-m-d H:i:00', strtotime($params['departureDate']));
-                $adate = date('Y-m-d H:i:00', strtotime($params['arrivalDate']));
+            if(isset($params['segments']) && !empty($params['segments'])) {
+                $sql = "SELECT id
+                    FROM ec_booking_itineraries
+                    WHERE booking_id = '$bookingId'
+                        AND direction = '$direction'
+                        AND deleted = 0
+                        AND add_type = 0
+                    ORDER BY transit_order, departure_date";
 
-                if(strtotime($ddate) > time() && strtotime($adate) > strtotime($ddate)) { // Check datetime is invalid
+                $i = 0;
+                $res = $db->query($sql);
+                while ($row = $db->fetchByAssoc($res)) {
+                    $rowId = $row['id'] ?? '';
+
+                    $segDep         = $params['segments'][$i]['dep'] ?? '';
+                    $segDes         = $params['segments'][$i]['des'] ?? '';
+                    $segDepDateTime = ($params['segments'][$i]['depDate'] ?? '') . ' ' . ($params['segments'][$i]['depTime'] ?? '') . ':00'; // Y-m-d H:i:s
+                    $segArvDateTime = ($params['segments'][$i]['arvDate'] ?? '') . ' ' . ($params['segments'][$i]['arvTime'] ?? '') . ':00'; // Y-m-d H:i:s
+                    $segFlightNo    = trim($params['segments'][$i]['flightNo'] ?? '');
+                    
+                    // Get transit info
+                    $transit = '';
+                    if(isset($params['transits'][$i]) && !empty($params['transits'][$i])) {
+                        $transit = 'Trung chuyển tại: ' . $params['transits'][$i]['station'] ?? '';
+                        $transit .= ' - Thời gian dừng: ' . $params['transits'][$i]['nDuration'] ?? '';
+                    }
+                    $transit = trim($transit);
+                
                     $sqlUpdate = "UPDATE ec_booking_itineraries
-                        SET departure_date = '$ddate'
-                            ,arrival_date = '$adate'
-                            ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
+                        SET departure = '$segDep'
+                            ,arrival = '$segDes'
+                            ,departure_date = '$segDepDateTime'
+                            ,arrival_date = '$segArvDateTime'
+                            ,description = IF(LENGTH('$transit') > 0, '$transit', description)
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
-                        WHERE id = '$itiId'
-                            AND booking_id = '$bookingId'
-                            AND direction = '$direction'
-                            AND deleted = 0
-                            AND add_type = 0";
+                        WHERE id = '$rowId' AND TRIM(flight_number) = '$segFlightNo'";
+                    $db->query($sqlUpdate);
 
-                    if(!$db->query($sqlUpdate)) {
-                        if($this->isDebug()) return [
-                            "status" => 0,
-                            "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
-                            "query" => trim($sqlUpdate)
-                        ];
-                        return [
-                            "status" => 0,
-                            "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
-                        ];
-                    }
+                    $i++;
                 }
             }
             
@@ -769,6 +847,31 @@ class entryDatacomAutoBookClass extends entryClass {
              * Procedures & Rules
              * - The price of international flights are combined, thus only update price to outbound in database (With roundtrip).
              * - The itinerary of international flights are handled normally such as domestic flights.
+             * - Parameters note ($params structure):
+             *  {
+             *      "bookingId": "string",
+             *      "direction": number,
+             *      "isInter": number,
+             *      "adtFare": {
+             *          "detailId": "string",
+             *          "fare": number,
+             *          "fee": number,
+             *          "price": number
+             *      },
+             *      "chdFare": ...,
+             *      "infFare": ...,
+             *      "itineraryId": {
+             *          "dep": "string",
+             *          "ret": "string"
+             *      },
+             *      "itinerary": {
+             *          "dep": {
+             *              "segments": [...],
+             *              "transits": [...]
+             *          },
+             *          "ret": ...
+             *      }
+             *  }
              */
 
             // Update detail prices
@@ -815,6 +918,8 @@ class entryDatacomAutoBookClass extends entryClass {
             $sqlUpdate = "UPDATE ec_flight_bookings
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
+                        ,modified_user_id = '$current_user->id'
+                        ,date_modified = '$dateModified'
                     WHERE id = '$bookingId' AND deleted = 0";
             if(!$db->query($sqlUpdate)) {
                 if($this->isDebug()) return [
@@ -828,47 +933,69 @@ class entryDatacomAutoBookClass extends entryClass {
                 ];
             }
 
-            $itiId = $params['itineraryId'] ?? '';
+            // Update departure and return schedule
+            foreach(['dep', 'ret'] as $roundName) {
+                if(isset($params['itinerary']) && isset($params['itinerary'][$roundName]) && !empty($params['itinerary'][$roundName])) {
+                    $segments = $params['itinerary'][$roundName]['segments'] ?? [];
+                    $transits = $params['itinerary'][$roundName]['transits'] ?? [];
+                    $directionVal = $roundName == 'ret' ? '1' : '0';
+    
+                    $sql = "SELECT id
+                        FROM ec_booking_itineraries
+                        WHERE booking_id = '$bookingId'
+                            AND direction = '$directionVal'
+                            AND deleted = 0
+                            AND add_type = 0
+                        ORDER BY transit_order, departure_date";
+    
+                    $i = 0;
+                    $res = $db->query($sql);
+                    while ($row = $db->fetchByAssoc($res)) {
+                        $rowId = $row['id'] ?? '';
 
-            // // Update departure date (Should update into schedule flight time in itineraries table by details flight)
-            // if(isset($params['departureDate']) && !empty($params['departureDate'])) {
-            //     $ddate = date('Y-m-d H:i:00', strtotime($params['departureDate']));
-
-            //     if(strtotime($ddate) > time()) {
-            //         $sqlUpdate = "UPDATE ec_booking_itineraries
-            //             SET departure_date = '$ddate'
-            //                 ". (!is_null($basePrice) ? " ,base_price = $basePrice " : '') ."
-            //                 ,modified_user_id = '$current_user->id'
-            //                 ,date_modified = '$dateModified'
-            //             WHERE id = '$itiId'
-            //                 AND booking_id = '$bookingId'
-            //                 AND direction = '$direction'
-            //                 AND deleted = 0
-            //                 AND add_type = 0";
-
-            //         if(!$db->query($sqlUpdate)) {
-            //             if($this->isDebug()) return [
-            //                 "status" => 0,
-            //                 "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
-            //                 "query" => trim($sqlUpdate)
-            //             ];
-            //             return [
-            //                 "status" => 0,
-            //                 "message" => "Cập nhật ngày giờ bay không thành công, vui lòng thử lại",
-            //             ];
-            //         }
-            //     }
-            // }
+                        $segDep         = $segments[$i]['dep'] ?? '';
+                        $segDes         = $segments[$i]['des'] ?? '';
+                        $segCarrierCode = $segments[$i]['carrierCode'] ?? '';
+                        $segDepDateTime = ($segments[$i]['depDate'] ?? '') . ' ' . ($segments[$i]['depTime'] ?? '') . ':00'; // Y-m-d H:i:s
+                        $segArvDateTime = ($segments[$i]['arvDate'] ?? '') . ' ' . ($segments[$i]['arvTime'] ?? '') . ':00'; // Y-m-d H:i:s
+                        $segFlightNo    = trim($segments[$i]['flightNo'] ?? '');
+                        
+                        // Get transit info
+                        $transit = '';
+                        if(isset($transits[$i]) && !empty($transits[$i])) {
+                            $transit = 'Trung chuyển tại: ' . $transits[$i]['station'] ?? '';
+                            $transit .= ' - Thời gian dừng: ' . $transits[$i]['nDuration'] ?? '';
+                        }
+                        $transit = trim($transit);
+                    
+                        $sqlUpdate = "UPDATE ec_booking_itineraries
+                            SET departure = '$segDep'
+                                ,arrival = '$segDes '
+                                ,departure_date = '$segDepDateTime'
+                                ,arrival_date = '$segArvDateTime'
+                                ,airline_code = '$segCarrierCode'
+                                ,description = IF(LENGTH('$transit') > 0, '$transit', description)
+                                ,modified_user_id = '$current_user->id'
+                                ,date_modified = '$dateModified'
+                            WHERE id = '$rowId' AND TRIM(flight_number) = '$segFlightNo'";
+                        $db->query($sqlUpdate);
+    
+                        $i++;
+                    }
+                }
+            }
 
             // Update base price
             if(!is_null($basePrice)) {
+                $itiDepId = $params['itineraryId']['dep'] ?? '';
+                $itiRetId = $params['itineraryId']['ret'] ?? '';
+
                 $sqlUpdate = "UPDATE ec_booking_itineraries
-                        SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
+                        SET base_price = IF($basePrice <> base_price && base_price > 0, $basePrice, base_price)
                             ,modified_user_id = '$current_user->id'
                             ,date_modified = '$dateModified'
-                        WHERE id = '$itiId'
+                        WHERE (id = '$itiDepId' OR id = '$itiRetId')
                             AND booking_id = '$bookingId'
-                            AND direction = '$direction'
                             AND deleted = 0
                             AND add_type = 0";
                 $db->query($sqlUpdate);
@@ -879,12 +1006,12 @@ class entryDatacomAutoBookClass extends entryClass {
 
         return ["status" => 0, "message" => "Nothing to update", "params" => $params];
     }
-
-    public function verify() {
-
+    
+    public function getRequestBodyToBooking($params = []) {
+        $listAirOption = $params['listAirOption'] ?? [];
     }
 
-    public function booking() {
+    public function booking($params = []) {
         
     }
 
@@ -894,5 +1021,32 @@ class entryDatacomAutoBookClass extends entryClass {
 
     public function addBaggage() {
 
+    }
+
+    /**
+     * Get updated field in segments
+     * 
+     * @param array $segments Details in flight
+     * @return array
+     */
+    protected function getUpdatedFieldInSegments($segments) {
+        if(is_array($segments) && !empty($segments)) {
+            $fields = [
+                'dep', 'depDate', 'depTime',
+                'des', 'arvDate', 'arvTime',
+                'carrierCode',
+                'flightNo',
+                'ticketClass',
+            ];
+
+            $result = [];
+            foreach($segments as $i => $seg) {
+                foreach($fields as $field) {
+                    $result[$i][$field] = $seg[$field] ?? '';
+                }
+            }
+            return $result;
+        }
+        return [];
     }
 }

@@ -105,4 +105,200 @@ class APIDatacom {
             if(isset($curl) && is_resource($curl)) curl_close($curl);
         }
     }
+
+    public function booking() {
+        // {
+        //     "RequestInfo": {
+        //         "PrivateKey": "string",
+        //         "ApiAccount": "string",
+        //         "ApiPassword": "string",
+        //         "UserToken": "string",
+        //         "Currency": "string",
+        //         "Language": "string",
+        //         "IpAddress": "string"
+        //     },
+        //     "Forced": true,
+        //     "AgentId": "string",
+        //     "System": "string",
+        //     "Channel": "string",
+        //     "RequestKey": "string",
+        //     "GuestContact": {
+        //         "Title": "string",
+        //         "Name": "string",
+        //         "Area": "string",
+        //         "Phone": "string",
+        //         "Email": "string",
+        //         "Address": "string",
+        //         "Remark": "string",
+        //         "Language": "string",
+        //         "ReceiveEmail": true
+        //     },
+        //     "AgentContact": {
+        //         "Title": "string",
+        //         "Name": "string",
+        //         "Area": "string",
+        //         "Phone": "string",
+        //         "Email": "string",
+        //         "Address": "string",
+        //         "Remark": "string",
+        //         "Language": "string",
+        //         "ReceiveEmail": true
+        //     },
+        //     "ListPassenger": [
+        //         {
+        //         "Index": 0,
+        //         "ParentId": 0,
+        //         "NameId": "string",
+        //         "Type": "string",
+        //         "Title": "string",
+        //         "Gender": 0,
+        //         "GivenName": "string",
+        //         "Surname": "string",
+        //         "DateOfBirth": "string",
+        //         "PassengerId": "string",
+        //         "Passport": {
+        //             "Index": "string",
+        //             "DocumentType": "string",
+        //             "DocumentCode": "string",
+        //             "DocumentExpiry": "string",
+        //             "Nationality": "string",
+        //             "IssueCountry": "string"
+        //         },
+        //         "ListBaggage": [
+        //             {
+        //             "System": "string",
+        //             "Airline": "string",
+        //             "Value": "string",
+        //             "Type": "string",
+        //             "PaxType": "string",
+        //             "Name": "string",
+        //             "Description": "string",
+        //             "Price": 0,
+        //             "Currency": "string",
+        //             "Leg": 0,
+        //             "StartPoint": "string",
+        //             "EndPoint": "string",
+        //             "FlightNumber": "string",
+        //             "StatusCode": "string",
+        //             "Confirmed": true,
+        //             "Session": "string"
+        //             }
+        //         ],
+        //         "ListPreSeat": [
+        //             {
+        //             "System": "string",
+        //             "Airline": "string",
+        //             "Value": "string",
+        //             "Type": "string",
+        //             "PaxType": "string",
+        //             "Name": "string",
+        //             "Description": "string",
+        //             "Price": 0,
+        //             "Currency": "string",
+        //             "Leg": 0,
+        //             "StartPoint": "string",
+        //             "EndPoint": "string",
+        //             "FlightNumber": "string",
+        //             "StatusCode": "string",
+        //             "Confirmed": true,
+        //             "Session": "string"
+        //             }
+        //         ],
+        //         "ListService": [
+        //             {
+        //             "System": "string",
+        //             "Airline": "string",
+        //             "Value": "string",
+        //             "Type": "string",
+        //             "PaxType": "string",
+        //             "Name": "string",
+        //             "Description": "string",
+        //             "Price": 0,
+        //             "Currency": "string",
+        //             "Leg": 0,
+        //             "StartPoint": "string",
+        //             "EndPoint": "string",
+        //             "FlightNumber": "string",
+        //             "StatusCode": "string",
+        //             "Confirmed": true,
+        //             "Session": "string"
+        //             }
+        //         ],
+        //         "ListFareInfo": [
+        //             {
+        //             "Code": "string",
+        //             "Amount": 0,
+        //             "Currency": "string"
+        //             }
+        //         ],
+        //         "ListMembership": [
+        //             {
+        //             "Index": "string",
+        //             "Airline": "string",
+        //             "MembershipID": "string",
+        //             "MembershipType": "string"
+        //             }
+        //         ]
+        //         }
+        //     ],
+        //     "ListAirOption": [
+        //         {
+        //         "Session": "string",
+        //         "SessionType": "string",
+        //         "AirlineOptionId": 0,
+        //         "FareOptionId": 0,
+        //         "FlightOptionId": 0,
+        //         "Tourcode": "string",
+        //         "CAcode": "string",
+        //         "VIPText": "string",
+        //         "Remark": "string",
+        //         "AccountCode": "string",
+        //         "BookerCode": "string"
+        //         }
+        //     ],
+        //     "Option": {
+        //         "IssueTicket": true,
+        //         "SeparateBooking": true,
+        //         "SendEmail": true,
+        //         "AgentId": "string",
+        //         "MemberId": "string",
+        //         "RefId": "string"
+        //     },
+        //     "Payment": {
+        //         "PaymentMethod": "string",
+        //         "PaymentGateway": "string"
+        //     },
+        //     "Invoice": {
+        //         "CompanyName": "string",
+        //         "CompanyCity": "string",
+        //         "CompanyCountry": "string",
+        //         "CompanyAddress": "string",
+        //         "CompanyPostCode": "string",
+        //         "CompanyTaxCode": "string",
+        //         "ReceiverName": "string",
+        //         "ReceiverPhone": "string",
+        //         "ReceiverEmail": "string",
+        //         "ReceiverAddress": "string",
+        //         "Remark": "string"
+        //     },
+        //     "ServiceFee": {
+        //         "FeeAdt": 0,
+        //         "FeeChd": 0,
+        //         "FeeInf": 0,
+        //         "Currency": "string"
+        //     },
+        //     "ListESim": [
+        //         {
+        //         "ProductId": "string",
+        //         "Name": "string",
+        //         "Price": 0,
+        //         "Quantity": 0,
+        //         "StartUsingDate": "2025-09-18T10:02:58.488Z",
+        //         "Currency": "string",
+        //         "Country": "string",
+        //         "Journey": "string"
+        //         }
+        //     ]
+        // }
+    }
 }
