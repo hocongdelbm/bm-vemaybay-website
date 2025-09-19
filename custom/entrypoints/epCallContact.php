@@ -247,8 +247,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
         $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
 
-        $is_success     = isset($_POST['is_success']) ? $_POST['is_success'] : "";
-        $call_status    = ((string)$is_success === 'true') ? 'done' : 'new';
+        // $is_success     = isset($_POST['is_success']) ? $_POST['is_success'] : "";
+        $call_status = (!empty($note) && !empty($type_call)) ? 'done' : 'new';
 
         // Validate
         if (empty($call_id) || empty($note)) {
