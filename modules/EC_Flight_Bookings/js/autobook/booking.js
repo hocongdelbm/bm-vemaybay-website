@@ -1,5 +1,12 @@
 const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
 const PREFIX = "autobook";
+const MAPPING_SYSTEM_CODE = {
+    'VJA':'VJ',
+    'VNA':'VN',
+    'VNP':'VN',
+    'BBA':'QH',
+    'VTA':'VU'
+};
 var bookingId = '';
 var isInter = 0;
 var statusAutoBook = 1;
@@ -111,12 +118,13 @@ $(document).ready(function () {
             
             /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
             var step = 1;
+            var flightData = [];  // Data for next step
             var textItiSuccess = `<b style="color:#4285f4; margin-left:8px">
                 <svg width="18px" height="18px" fill="#4285f4" style="vertical-align:sub;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm5.676,8.237-6,5.5a1,1,0,0,1-1.383-.03l-3-3a1,1,0,1,1,1.414-1.414l2.323,2.323,5.294-4.853a1,1,0,1,1,1.352,1.474Z"></path></g></svg> Ok
             </b>`;
             // Get flight info
             var listItineraryId = $(`input[name="${PREFIX}ItineraryId[]"]`).map((i, el) => el.value).get();
-            var airlineCodes = $(`input[name="${PREFIX}AirlineCode[]"]`).map((i, el) => el.value).get();
+            var airlineCodes = $(`input[name="${PREFIX}AirlineCode[]"]`).map((i, el) => MAPPING_SYSTEM_CODE[el.value] ?? el.value).get();
             var depCodes = $(`input[name="${PREFIX}DepCode[]"]`).map((i, el) => el.value).get();
             var desCodes = $(`input[name="${PREFIX}DesCode[]"]`).map((i, el) => el.value).get();
             var departureDate = $(`input[name="${PREFIX}DepartureDate[]"]`).map((i, el) => el.value).get();
@@ -133,10 +141,10 @@ $(document).ready(function () {
             passIdInputs.forEach((input, index) => {
                 let passId = input.value;
                 if(passId && passId.length > 0) {
-                    let passType = passTypeInputs[index].value;
-                    if(passType == '0') adt++;
-                    else if(passType == '1') chd++;
-                    else if(passType == '2') inf++;
+                    let passType = passTypeInputs[index].value.toLowerCase();
+                    if(passType == 'adt') adt++;
+                    else if(passType == 'chd') chd++;
+                    else if(passType == 'int') inf++;
                     listPassengerId.push(passId);
                 }
             });
@@ -155,7 +163,7 @@ $(document).ready(function () {
             var infPrice    = $(`input[name="${PREFIX}InfPrice[]"]`).map((i, el) => el.value).get();
 
             // Roundtrip flight has the same airline or combine internation flight 
-            if(airlineCodes.length > 1 && (airlineCodes[0] === airlineCodes[1] || isInter) ) {
+            if(airlineCodes.length > 1 && (airlineCodes[0] === airlineCodes[1] || isInter)) {
                 var searchInfo = {
                     airlineCode: airlineCodes[0],
                     depCode: depCodes[0],
@@ -205,6 +213,7 @@ $(document).ready(function () {
                         itiText = `Hành trình ${searchInfo['depCode']} đi ${searchInfo['desCode']}${textItiSuccess}
                             <br />Hành trình ${searchInfo['desCode']} đi ${searchInfo['depCode']}${textItiSuccess}`;
                         showStepsInDialogAutoBook(step, itiText);
+                        flightData = flightResponse.data.standardData;
                     }
                     // Fail
                     else {
@@ -335,6 +344,7 @@ $(document).ready(function () {
                         if(flightResponse[i] && 'status' in flightResponse[i] && flightResponse[i].status == 1) {
                             if(i == airlineCodes.length - 1) showStepsInDialogAutoBook(step, itiText[i] + textItiSuccess);
                             else showStepsInDialogAutoBook(step, itiText[i]);
+                            flightData.push(flightResponse[i].data.standardData[0]);
                         }
                         else {
                             let errorCode   = flightResponse[i]?.errorCode ?? '';
@@ -369,7 +379,7 @@ $(document).ready(function () {
 
             /******  STEP 2: VERIFY & PREPARE DATA TO BOOKING  ******/
             step = 2;
-            var requestBody = {};
+            var requestBody = {}; // Data for next step
             if(entryClass == 'entryPhuongNamAutoBookClass') {
                 var verifyResponse = {};
                 var isWithin24h = within24h.includes('1') ? 1 : 0;
@@ -426,18 +436,59 @@ $(document).ready(function () {
                         showStepsInDialogAutoBook(step);
                     }, 300);
 
-                    // requestBody.ListAirOption = 
+                    // Flight
+                    requestBody.ListAirOption = flightData;
 
-                    // autobookContactTitle
+                    // Contact
+                    let contactPhone = $(`input[name="${PREFIX}ContactPhone"]`).val().trim();
+                    if (contactPhone.startsWith('0')) contactPhone = contactPhone.substring(1);
+                    requestBody.GuestContact = {
+                        "Title": $(`input[name="${PREFIX}ContactTitle"]`).val().replace(/\./g, '').trim().toUpperCase(), // MR
+                        "Name": $(`input[name="${PREFIX}ContactName"]`).val().trim(),
+                        "Area": "+84",
+                        "Phone": contactPhone,
+                        "Email": $(`input[name="${PREFIX}ContactEmail"]`).val().trim(),
+                        "Address": $(`input[name="${PREFIX}ContactAddress"]`).val().trim(),
+                        "Remark": "",
+                        "ReceiveEmail": true
+                    }
+
+                    // Passengers
+                    requestBody.ListPassenger = [];
+                    let passTitleInputs         = document.querySelectorAll(`input[name="${PREFIX}PassengerTitle[]"]`);
+                    let passFullnameInputs      = document.querySelectorAll(`input[name="${PREFIX}PassengerFullname[]"]`);
+                    let passDateOfBirthInputs   = document.querySelectorAll(`input[name="${PREFIX}PassengerDateOfBirth[]"]`);
+                    let passParentIdInputs      = document.querySelectorAll(`select[name="${PREFIX}PassengerParentId[]"]`);
+                    passIdInputs.forEach((input, index) => {
+                        let gender  = passTitleInputs[index].value == 'Ms' ? 0 : 1;
+                        let type    = passTypeInputs[index].value.toUpperCase();
+                        let parentId = parseInt(passParentIdInputs[index].value);
+                        if(type == 'INF') parentId++;
+
+                        requestBody.ListPassenger.push({
+                            "Index"     : index + 1,
+                            "ParentId"  : parentId,
+                            "Type"      : type,
+                            "Gender"    : gender,
+                            "Surname"   : getLastName(passFullnameInputs[index].value),
+                            "GivenName" : getMiddleAndFirstName(passFullnameInputs[index].value),
+                            "DateOfBirth": passDateOfBirthInputs[index].value
+                        });
+                    });
+
+                    // Option
+                    requestBody.Option = {
+                        "IssueTicket": false,
+                        "SeparateBooking": false,
+                    }
                 }
                 else if(statusAutoBook == 0) {
-                    clearTimeout(timeoutShowStep2);
+                    if(timeoutShowStep2) clearTimeout(timeoutShowStep2);
                     showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
                     return;
                 }
             }
 
-            return;
 
             /******  STEP 3: BOOKING  ******/
             step = 3;
@@ -456,14 +507,12 @@ $(document).ready(function () {
                     dataType: "json",  
                     data: JSON.stringify({
                         class: entryClass,
-                        method: 'research',
+                        method: 'booking',
                         params: {
-
+                            "bookingId": bookingId,
+                            "listPassengerId": listPassengerId,
+                            "requestBody": requestBody
                         },
-
-                        'requestBody': verifyResponse.requestBody,
-                        'bookingId': bookingId,
-                        'listPassengerId': listPassengerId,
                     })
                 });
 
@@ -634,8 +683,8 @@ function showDialogAutoBook(bookingData) {
                 <input type="hidden" name="autobook${passengerTextTypes[type]}DetailId[]" value="${fare.id}" readonly />
                 <input type="hidden" name="autobook${passengerTextTypes[type]}[]" value="${fare.qty}" readonly />
                 <input type="hidden" name="autobook${passengerTextTypes[type]}Fare[]" value="${fare.fare}" readonly />
-                <input type="hidden" name="autobook${passengerTextTypes[type]}Tax[]" value="${fare.fare}" readonly />
-                <input type="hidden" name="autobook${passengerTextTypes[type]}Fee[]" value="${fare.fare}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}Tax[]" value="${fare.tax}" readonly />
+                <input type="hidden" name="autobook${passengerTextTypes[type]}Fee[]" value="${fare.fee}" readonly />
                 <input type="hidden" name="autobook${passengerTextTypes[type]}Price[]" value="${fare.price}" readonly />
                 <input type="hidden" id="autobook${passengerTextTypes[type]}Fare${flight.depCode}${flight.desCode}" value="${fare.fare}" readonly />
                 <input type="hidden" id="autobook${passengerTextTypes[type]}Tax${flight.depCode}${flight.desCode}" value="${fare.tax}" readonly />
@@ -767,20 +816,64 @@ function showDialogAutoBook(bookingData) {
 
 
     // Passengers
-    const passengersHTML = Object.values(bookingData.passengers).map(p => `
-        <div class="passenger-info">
-            <input type="hidden" name="autobookPassengerId[]" value="${p.id}" readonly />
-            <input type="hidden" name="autobookPassengerType[]" value="${p.type}" readonly />
+    var optionParentId = '';
+    var passengersHTML = '';
+    Object.entries(bookingData.passengers).forEach(([key, value], index) => {
+        if(value.type === '0') {
+            optionParentId += `<option value="${index}" data-id="${key}">${index + 1}. ${value.name}</option>`;
+        }
+
+        let parentIdHTML = '<select name="autobookPassengerParentId[]" style="display:none"><option value="-1" selected></option></select>';
+        if(value.type === '2') {
+            parentIdHTML = `<div class="info-row d-flex align-items-center gap-2">
+                <label for="selectparent${index}" class="form-label fw-normal m-0">Đi kèm người lớn:</label>
+                <select name="autobookPassengerParentId[]" id="selectparent${index}" class="form-select form-select-sm w-50">
+                    ${optionParentId}
+                </select>
+            </div>`;
+        }
+
+        passengersHTML += `<div class="passenger-info">
+            <input type="hidden" name="autobookPassengerId[]" value="${value.id}" readonly />
+            <input type="hidden" name="autobookPassengerType[]" value="${passengerTextTypes[value.type]}" readonly />
+            <input type="hidden" name="autobookPassengerTitle[]" value="${value.salutation}" readonly />
+            <input type="hidden" name="autobookPassengerFullname[]" value="${value.name}" readonly />
+            <input type="hidden" name="autobookPassengerDateOfBirth[]" value="${value.dateOfBirth}" readonly />
+
             <div class="info-row d-flex justify-content-between">
-                <div><b><span style="font-weight:700;color:${p.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${p.salutation}.</span> ${p.name}</b></div>
-                <div><b>${passengerTypes[p.type]}</b></div>
+                <div><b><span style="font-weight:700;color:${value.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${value.salutation}.</span> ${value.name}</b></div>
+                <div><b>${passengerTypes[value.type]}</b></div>
             </div>
             <div class="info-row d-flex justify-content-between">
-                <div>CCCD/Passport: <b>${p.passportNumber || p.cic}</b></div>
-                <div>Ngày sinh: <b>${p.birthday}</b></div>
+                <div>CCCD/Passport: <b>${value.passportNumber || value.cic}</b></div>
+                <div>Ngày sinh: <b>${value.dateOfBirth}</b></div>
             </div>
-        </div>
-    `).join('');
+            ${parentIdHTML}
+        </div>`;
+    });
+    // const passengersHTML = Object.values(bookingData.passengers).map(p => `
+    //     <div class="passenger-info">
+    //         <input type="hidden" name="autobookPassengerId[]" value="${p.id}" readonly />
+    //         <input type="hidden" name="autobookPassengerType[]" value="${passengerTextTypes[p.type]}" readonly />
+    //         <input type="hidden" name="autobookPassengerTitle[]" value="${p.salutation}" readonly />
+    //         <input type="hidden" name="autobookPassengerFullname[]" value="${p.name}" readonly />
+    //         <input type="hidden" name="autobookPassengerDateOfBirth[]" value="${p.dateOfBirth}" readonly />
+
+    //         <div class="info-row d-flex justify-content-between">
+    //             <div><b><span style="font-weight:700;color:${p.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${p.salutation}.</span> ${p.name}</b></div>
+    //             <div><b>${passengerTypes[p.type]}</b></div>
+    //         </div>
+    //         <div class="info-row d-flex justify-content-between">
+    //             <div>CCCD/Passport: <b>${p.passportNumber || p.cic}</b></div>
+    //             <div>Ngày sinh: <b>${p.dateOfBirth}</b></div>
+    //         </div>
+    //         <div class="info-row d-flex justify-content-between">
+    //             <select name="autobookPassengerParentId[]">
+                    
+    //             </select>
+    //         </div>
+    //     </div>
+    // `).join('');
     content.innerHTML += `<div class="section">
         <div class="section-title">Thông tin hành khách</div>
         ${passengersHTML}
@@ -790,16 +883,16 @@ function showDialogAutoBook(bookingData) {
     // Contact
     const contactInfo = bookingData.contact;
     const contactHTML = `<div class="contact-info">
-        <div class="section-title">Thông tin liên hệ</div>
-        <div class="info-row">Tên liên hệ: <b>${contactInfo.title || ''} ${contactInfo.name || ''}</b></div>
-        <div class="info-row">Số điện thoại: <b>${contactInfo.phone || ''}</b></div>
-        <div class="info-row">Email: <b>${contactInfo.email || ''}</b></div>
-        <div class="info-row">Địa chỉ: <b>${contactInfo.address || ''}</b></div>
         <input type="hidden" name="autobookContactTitle" value="${contactInfo.title || ''}" readonly />
         <input type="hidden" name="autobookContactName" value="${contactInfo.name || ''}" readonly />
         <input type="hidden" name="autobookContactPhone" value="${contactInfo.phone || ''}" readonly />
         <input type="hidden" name="autobookContactEmail" value="${contactInfo.email || ''}" readonly />
         <input type="hidden" name="autobookContactAddress" value="${contactInfo.address || ''}" readonly />
+        <div class="section-title">Thông tin liên hệ</div>
+        <div class="info-row">Tên liên hệ: <b>${contactInfo.title || ''} ${contactInfo.name || ''}</b></div>
+        <div class="info-row">Số điện thoại: <b>${contactInfo.phone || ''}</b></div>
+        <div class="info-row">Email: <b>${contactInfo.email || ''}</b></div>
+        <div class="info-row">Địa chỉ: <b>${contactInfo.address || ''}</b></div>
     </div>`;
     content.innerHTML += contactHTML;
 
@@ -1066,6 +1159,18 @@ function unformatNumber(formattedStr) {
 
 function getLinkImageAirline(airlineCode) {
     return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
+}
+
+function getMiddleAndFirstName(fullname) {
+    if (!fullname) return "";
+    let parts = fullname.trim().split(" ");
+    parts.shift(); // remove the first part (last name)
+    return parts.join(" ");
+}
+
+function getLastName(fullname) {
+    if (!fullname) return "";
+    return fullname.trim().split(" ")[0];
 }
 
 function encodeAutoBook(value) {

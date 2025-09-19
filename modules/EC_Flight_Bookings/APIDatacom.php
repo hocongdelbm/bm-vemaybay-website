@@ -3,12 +3,14 @@ class APIDatacom {
     private $ENDPOINT;
     private $API_SEARCH_KEY;
     private $API_BOOKING_KEY;
+    private $API_NAME;
 
     public function __construct() {
         global $sugar_config;
         $this->ENDPOINT = $sugar_config['api_autobook']['Endpoint'] ?? '';
         $this->API_SEARCH_KEY = $sugar_config['api_autobook']['SearchKey'] ?? '';
         $this->API_BOOKING_KEY = $sugar_config['api_autobook']['BookingKey'] ?? '';
+        $this->API_NAME = 'datacom';
     }
 
     /**
@@ -46,7 +48,7 @@ class APIDatacom {
                 "chd"           => $chd,
                 "inf"           => $inf,
                 "options"       => [
-                    'api' => 'DATACOM',
+                    'api' => strtoupper($this->API_NAME),
                     'cabin' => $cabin,
                 ],
             ];
@@ -96,6 +98,7 @@ class APIDatacom {
             $arr = json_decode($json, true);
             $arr['status'] = (int)!$arr['error']; // Convert key error to status
             unset($arr['error']);
+            $arr['requestBody'] = $requestBody;
             return json_encode($arr);
         }
         catch(Exception $e) {
@@ -106,199 +109,113 @@ class APIDatacom {
         }
     }
 
-    public function booking() {
-        // {
-        //     "RequestInfo": {
-        //         "PrivateKey": "string",
-        //         "ApiAccount": "string",
-        //         "ApiPassword": "string",
-        //         "UserToken": "string",
-        //         "Currency": "string",
-        //         "Language": "string",
-        //         "IpAddress": "string"
-        //     },
-        //     "Forced": true,
-        //     "AgentId": "string",
-        //     "System": "string",
-        //     "Channel": "string",
-        //     "RequestKey": "string",
-        //     "GuestContact": {
-        //         "Title": "string",
-        //         "Name": "string",
-        //         "Area": "string",
-        //         "Phone": "string",
-        //         "Email": "string",
-        //         "Address": "string",
-        //         "Remark": "string",
-        //         "Language": "string",
-        //         "ReceiveEmail": true
-        //     },
-        //     "AgentContact": {
-        //         "Title": "string",
-        //         "Name": "string",
-        //         "Area": "string",
-        //         "Phone": "string",
-        //         "Email": "string",
-        //         "Address": "string",
-        //         "Remark": "string",
-        //         "Language": "string",
-        //         "ReceiveEmail": true
-        //     },
-        //     "ListPassenger": [
-        //         {
-        //         "Index": 0,
-        //         "ParentId": 0,
-        //         "NameId": "string",
-        //         "Type": "string",
-        //         "Title": "string",
-        //         "Gender": 0,
-        //         "GivenName": "string",
-        //         "Surname": "string",
-        //         "DateOfBirth": "string",
-        //         "PassengerId": "string",
-        //         "Passport": {
-        //             "Index": "string",
-        //             "DocumentType": "string",
-        //             "DocumentCode": "string",
-        //             "DocumentExpiry": "string",
-        //             "Nationality": "string",
-        //             "IssueCountry": "string"
-        //         },
-        //         "ListBaggage": [
-        //             {
-        //             "System": "string",
-        //             "Airline": "string",
-        //             "Value": "string",
-        //             "Type": "string",
-        //             "PaxType": "string",
-        //             "Name": "string",
-        //             "Description": "string",
-        //             "Price": 0,
-        //             "Currency": "string",
-        //             "Leg": 0,
-        //             "StartPoint": "string",
-        //             "EndPoint": "string",
-        //             "FlightNumber": "string",
-        //             "StatusCode": "string",
-        //             "Confirmed": true,
-        //             "Session": "string"
-        //             }
-        //         ],
-        //         "ListPreSeat": [
-        //             {
-        //             "System": "string",
-        //             "Airline": "string",
-        //             "Value": "string",
-        //             "Type": "string",
-        //             "PaxType": "string",
-        //             "Name": "string",
-        //             "Description": "string",
-        //             "Price": 0,
-        //             "Currency": "string",
-        //             "Leg": 0,
-        //             "StartPoint": "string",
-        //             "EndPoint": "string",
-        //             "FlightNumber": "string",
-        //             "StatusCode": "string",
-        //             "Confirmed": true,
-        //             "Session": "string"
-        //             }
-        //         ],
-        //         "ListService": [
-        //             {
-        //             "System": "string",
-        //             "Airline": "string",
-        //             "Value": "string",
-        //             "Type": "string",
-        //             "PaxType": "string",
-        //             "Name": "string",
-        //             "Description": "string",
-        //             "Price": 0,
-        //             "Currency": "string",
-        //             "Leg": 0,
-        //             "StartPoint": "string",
-        //             "EndPoint": "string",
-        //             "FlightNumber": "string",
-        //             "StatusCode": "string",
-        //             "Confirmed": true,
-        //             "Session": "string"
-        //             }
-        //         ],
-        //         "ListFareInfo": [
-        //             {
-        //             "Code": "string",
-        //             "Amount": 0,
-        //             "Currency": "string"
-        //             }
-        //         ],
-        //         "ListMembership": [
-        //             {
-        //             "Index": "string",
-        //             "Airline": "string",
-        //             "MembershipID": "string",
-        //             "MembershipType": "string"
-        //             }
-        //         ]
-        //         }
-        //     ],
-        //     "ListAirOption": [
-        //         {
-        //         "Session": "string",
-        //         "SessionType": "string",
-        //         "AirlineOptionId": 0,
-        //         "FareOptionId": 0,
-        //         "FlightOptionId": 0,
-        //         "Tourcode": "string",
-        //         "CAcode": "string",
-        //         "VIPText": "string",
-        //         "Remark": "string",
-        //         "AccountCode": "string",
-        //         "BookerCode": "string"
-        //         }
-        //     ],
-        //     "Option": {
-        //         "IssueTicket": true,
-        //         "SeparateBooking": true,
-        //         "SendEmail": true,
-        //         "AgentId": "string",
-        //         "MemberId": "string",
-        //         "RefId": "string"
-        //     },
-        //     "Payment": {
-        //         "PaymentMethod": "string",
-        //         "PaymentGateway": "string"
-        //     },
-        //     "Invoice": {
-        //         "CompanyName": "string",
-        //         "CompanyCity": "string",
-        //         "CompanyCountry": "string",
-        //         "CompanyAddress": "string",
-        //         "CompanyPostCode": "string",
-        //         "CompanyTaxCode": "string",
-        //         "ReceiverName": "string",
-        //         "ReceiverPhone": "string",
-        //         "ReceiverEmail": "string",
-        //         "ReceiverAddress": "string",
-        //         "Remark": "string"
-        //     },
-        //     "ServiceFee": {
-        //         "FeeAdt": 0,
-        //         "FeeChd": 0,
-        //         "FeeInf": 0,
-        //         "Currency": "string"
-        //     },
-        //     "ListESim": [
-        //         {
-        //         "ProductId": "string",
-        //         "Name": "string",
-        //         "Price": 0,
-        //         "Quantity": 0,
-        //         "StartUsingDate": "2025-09-18T10:02:58.488Z",
-        //         "Currency": "string",
-        //         "Country": "string",
-        //         "Journey": "string"
-        //         }
-        //     ]
-        // }
+    /**
+     * Book a flight
+     * 
+     * @param array $requestBody
+     * @return string Original response from agency
+     */
+    public function book($requestBody) {
+        try {
+            // Header
+            $header = [
+                "Content-Type: application/json",
+                "API-Key: {$this->API_BOOKING_KEY}",
+            ];
+
+            // URL
+            $url = "$this->ENDPOINT/booking/$this->API_NAME/book";
+
+            // Execute
+            $curl = curl_init();
+            if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 16);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 200);
+            $response = curl_exec($curl);
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if ($response === false || $errorno) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Can't connect to API",
+                    "data" => null,
+                    "description" => "cURL error $errorno: $error"
+                ]);
+            }
+
+            $responseArr = is_string($response) ? json_decode($response, true) : $response;
+
+            // Check and format response
+            if($httpcode != 200 && $httpcode != 201) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Booking failed",
+                    "data" => $responseArr,
+                    "description" => "HTTP error $httpcode"
+                ]);
+            }
+
+            $statusCode = $responseArr["StatusCode"] ?? "";
+            $success    = $responseArr["Success"] ?? false;
+            $message    = $responseArr["Message"] ?? "Booking failed";
+            if($success === true && in_array($statusCode, ['000', '0000'])) {
+                return json_encode([
+                    "status"    => 1,
+                    "message"   => "Booking success",
+                    "data"      => $responseArr
+                ]);
+            }
+            else {
+                return json_encode([
+                    "status"     => 0,
+                    "message"   => $message,
+                    "data"      => $responseArr
+                ]);
+            }
+        }
+        catch(Exception $e) {
+            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
+        }
+        finally {
+            if(isset($curl) && is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /**
+     * Convert date format from agency to standard format
+     * 
+     * @param string $date dmY
+     * @param string $format d-m-Y
+     * @return string
+     */
+    public function convertDate($date, $format = 'd-m-Y') {
+        $dateObj = DateTime::createFromFormat('dmY', $date);
+        if ($dateObj) return $dateObj->format($format);
+        return '';
+    }
+
+    /**
+     * Convert datetime format from agency to standard format
+     * 
+     * @param string $datetime dmY Hi
+     * @param string $format d-m-Y H:i
+     * @return string
+     */
+    public function convertDatetime($datetime, $format = 'd-m-Y H:i') {
+        $datetimeObj = DateTime::createFromFormat('dmY Hi', $datetime);
+        if ($datetimeObj) return $datetimeObj->format($format);
+        return '';
     }
 }

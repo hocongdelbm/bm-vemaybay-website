@@ -486,7 +486,7 @@ class EC_Flight_Bookings extends Basic
 						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
 					} else {
 						if (isAllowedUser()) {
-							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
 						}
 					}
 					break;
@@ -621,7 +621,7 @@ class EC_Flight_Bookings extends Basic
 						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
 					} else {
 						if (isAllowedUser()) {
-							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
 						}
 					}
 					break;

@@ -15,12 +15,22 @@ class entryAutoBookDatacomClass extends entryClass {
     public $supplierId;
     public $supplierCode;
     public $supplierName;
+    public $currentUser;
+    public $notificationChannel;
+    public $telegramConfig;
+    public $mattermostConfig;
 
     public function __construct() {
         parent::__construct();
-        global $sugar_config;
+        global $sugar_config, $current_user;
+
+        $this->currentUser = $current_user;
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';
+        $this->notificationChannel = $sugar_config['notification_channel'] ?? 'Telegram';
+        if($this->notificationChannel == 'Mattermost') $this->mattermostConfig = $sugar_config['mattermost'] ?? [];
+        else $this->telegramConfig = $sugar_config['telegram'] ?? [];
+
         $this->mappingSystemCodeName = [
             'VJ' => 'Vietjet Air',
             'VN' => 'Vietnam Airlines',
@@ -149,7 +159,7 @@ class entryAutoBookDatacomClass extends entryClass {
                         'type' => $row['type'], // 0:Adt ; 1:Chd ; 2:Inf
                         'salutation' => $row['salutation'] == 0 ? 'Mr' : 'Ms', // 0:Mr ; 1:Ms
                         'name'=> $row['name'],
-                        'birthday' => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
+                        'dateOfBirth' => !is_null($row['birthday']) && !empty($row['birthday']) ? date('d-m-Y', strtotime($row['birthday'])) : '',
                         'cic' => $row['cic'] ?? '',
                         'passportNumber' => $row['passport_number'] ?? ''
                     ];
@@ -178,11 +188,11 @@ class entryAutoBookDatacomClass extends entryClass {
                     $direction_name = $row['direction'] == '1' ? 'ret' : 'dep';
                     $dataFareDetails[$direction_name][$row['passenger_type']] = [
                         'id' => $row['id'],
-                        'fare'  => $row['fare'],
-                        'tax'   => $row['tax'],
-                        'fee'   => $row['fee'],
+                        'fare'  => (int)$row['fare'],
+                        'tax'   => (int)$row['tax'],
+                        'fee'   => (int)$row['fee'],
                         'price' => $row['fare'] + $row['tax'] + $row['fee'],
-                        'qty'   => $row['quantity'],
+                        'qty'   => (int)$row['quantity'],
                         'fareFormat'  => format_number($row['fare']),
                         'taxFormat'   => format_number($row['tax']),
                         'feeFormat'   => format_number($row['fee']),
@@ -269,14 +279,9 @@ class entryAutoBookDatacomClass extends entryClass {
         $agency = new APIDatacom();
 
         // Format search params
-        $airlineCodeSearch = '';
-        if(!$isInter) {
-            if(isset($this->mappingSystemCode[$airlineCode])) $airlineCodeSearch = $this->mappingSystemCode[$airlineCode] ;
-            elseif(isset($this->mappingSystemCodeName[$airlineCode])) $airlineCodeSearch = $airlineCode;
-        }
-        else {
-            if(isset($this->mappingSystemCode[$airlineCode])) $airlineCodeSearch = $this->mappingSystemCode[$airlineCode] ;
-            elseif(isset($this->mappingSystemCodeName[$airlineCode])) $airlineCodeSearch = $airlineCode;
+        $airlineCodeSearch = $airlineCode;
+        if($isInter) {
+            if(isset($this->mappingSystemCodeName[$airlineCode])) $airlineCodeSearch = $airlineCode;
             else $airlineCodeSearch = $this->interSystemCode;
         }
 
@@ -298,8 +303,8 @@ class entryAutoBookDatacomClass extends entryClass {
             $flightData = [];
 
             if(!$isInter) { // Domestic
-                $i = 0;
                 foreach($arr['data'] as $roundName => $round) {
+                    $i = $roundName == 'ret' ? 1 : 0;
                     $totalAmout = 0;
                     foreach($round as $f) {
                         if(!isset($f["sessionId"]) || $f["flightNo"] != ($flightNo[$i] ?? '')) continue;
@@ -346,7 +351,9 @@ class entryAutoBookDatacomClass extends entryClass {
                                 "fare"      => $newFare,
                                 "tax"       => $newTax,
                                 // "fee"    => $f["adtFee"],
-                                "price"     => $newPrice
+                                "price"     => $newPrice,
+
+                                "test" => "{$adtPrice[$i]} - {$adtFare[$i]} - {$adtTax[$i]}"
                             ];
                             $totalAmout += $newPrice * $adt;
                         }
@@ -389,9 +396,9 @@ class entryAutoBookDatacomClass extends entryClass {
                         }
                         // Add this flight info
                         $flightData[$i] = $f;
+
                         break;
                     }
-                    $i++;
                 }
             }
             else { // International
@@ -482,10 +489,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             }
                         }
                     }
-                    if(!$isThatFlight) {
-
-                        continue;
-                    }
+                    if(!$isThatFlight) continue;
 
                     $flightData = $f;
 
@@ -1006,13 +1010,103 @@ class entryAutoBookDatacomClass extends entryClass {
 
         return ["status" => 0, "message" => "Nothing to update", "params" => $params];
     }
-    
-    public function getRequestBodyToBooking($params = []) {
-        $listAirOption = $params['listAirOption'] ?? [];
-    }
 
     public function booking($params = []) {
-        
+        $bookingId          = $params['bookingId'] ?? '';
+        $listPassengerId    = $params['listPassengerId'] ?? null;
+        $requestBody        = $params['requestBody'] ?? [];
+
+        if(!$requestBody || !is_array($requestBody) || empty($requestBody) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
+            return [
+                "status" => 0,
+                "message" => "Dữ liệu không hợp lệ",
+                "params" => [
+                    "requestBody" => $requestBody,
+                    "listPassengerId" => $listPassengerId,
+                    "bookingId" => $bookingId,
+                ]
+            ];
+        }
+
+        $agency = new APIDatacom();
+        $response = $agency->book($requestBody);
+        $responseArr = json_decode($response, true);
+
+        // Save to BM
+        if($responseArr['status'] == 1) {
+            global $db;
+
+            // Booking type: oneway (Một chiều), roundtrip (Khứ hồi cùng hãng) , twoway (Khứ hồi 2 hãng khác nhau)
+            $bookingType = null;
+            $countItinerary = count($requestBody['ListAirOption'] ?? []);
+            if($countItinerary == 1) $bookingType = 'oneway';
+            elseif($countItinerary == 2) {
+                if($requestBody['ListAirOption'][0]['Session'] == $requestBody['ListAirOption'][1]['Session']) $bookingType = 'roundtrip';
+                else $bookingType = 'twoway';
+            }
+
+            $inListPassengerId = "'".implode("','", $listPassengerId)."'";
+
+            $booking = new EC_Flight_Bookings();
+            $booking->retrieve($bookingId);
+
+            $listBooking = $responseArr['data']['ListBooking'] ?? [];
+            foreach($listBooking as $key => $bk) {
+                // Get PNR
+                $pnr = $bk['GdsCode'] ?? '';
+                if(empty($pnr)) $pnr = $bk['BookingCode'] ?? '';
+
+                $systemCode = $bk['System'] ?? ''; // System code
+                $airlineCode = $bk['Airline'] ?? ''; // Airline code
+                $expirationTime = $agency->convertDatetime($bk['ExpirationTime'] ?? ''); // 19092025 1737
+                $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
+
+                if($bookingType == 'roundtrip') {
+
+                }
+                else {
+                    // Update PNR
+                    $sql = "UPDATE ec_booking_passengers
+                            SET pnr_outbound = '$pnr'
+                                ,pnr_inbound = '$pnr'
+                                -- ,luggage_index_outbound = ''
+                                -- ,luggage_index_inbound = ''
+                                ,modified_user_id = '{$this->currentUser->id}'
+                                ,date_modified = '$dateModified'
+                            WHERE id IN ($inListPassengerId) 
+                                AND booking_id = '$bookingId'
+                                AND deleted = 0";
+                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+
+                    // Update supplier (PENDING - ERROR)
+                    $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
+                    $sql = "UPDATE ec_booking_details
+                            SET supplier_id = '{$this->supplierId}'
+                                ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                ,modified_user_id = '{$this->currentUser->id}'
+                                ,date_modified = '$dateModified'
+                            WHERE booking_id = '$bookingId'
+                                AND deleted = 0
+                                AND passenger_type IN (
+                                    SELECT DISTINCT p.type
+                                    FROM ec_booking_passengers p
+                                    WHERE p.id IN ($inListPassengerId)
+                                        AND p.booking_id = '$bookingId' 
+                                        AND p.deleted = 0
+                                )
+                                AND date_entered IN (
+                                    SELECT DISTINCT max(date_entered)
+                                    FROM ec_booking_details 
+                                    WHERE booking_id = '$bookingId' AND deleted = 0
+                                    GROUP BY direction, passenger_type
+                                )";
+                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                }
+            }
+        }
+
+        return $responseArr;
     }
 
     public function payBooking() {
@@ -1048,5 +1142,27 @@ class entryAutoBookDatacomClass extends entryClass {
             return $result;
         }
         return [];
+    }
+
+    /**
+     * Send SQL error notification
+     * 
+     * @param string $sqlQuery
+     * @return void
+     */
+    private function sendSQLErrorNotification($sqlQuery) {
+        if($this->notificationChannel == 'Mattermost') {
+            $m = "**RUN QUERY FAIL IN AUTOBOOK FEATURE DATACOM**";
+            $m .= "`$sqlQuery`";
+            Mattermost::sendMessage($this->mattermostConfig['channel_id_logs'] ?? '', $m);
+        }
+        else {
+            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE DATACOM</b>";
+            $m .= "\n<pre>$sqlQuery</pre>";
+            $botToken   = $this->telegramConfig['bot_token'] ?? '';
+            $chatId     = $this->telegramConfig['chat_id'] ?? '';
+            $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
+            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+        }
     }
 }

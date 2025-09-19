@@ -562,8 +562,7 @@ class APIPhuongNam {
                 ]);
             }
             
-            $responseArr = is_string($response) ? json_decode($response, true) : $response;
-
+            $responseArr = json_decode($response, true);
             if($httpcode != 200) {
                 return json_encode([
                     "status" => 0,
@@ -573,7 +572,7 @@ class APIPhuongNam {
                 ]);
             }
 
-            if($responseArr['ID'] != 1) {
+            if(!isset($responseArr['ID']) || $responseArr['ID'] != 1) {
                 return json_encode([
                     "status" => 0,
                     "message" => $responseArr["Message"] ?? ("Payment failed with ID " . $responseArr['ID']),
