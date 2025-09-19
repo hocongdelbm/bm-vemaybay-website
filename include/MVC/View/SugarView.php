@@ -1229,10 +1229,6 @@ EOHTML;
                                         <textarea name="voiceip-notes" id="voiceip-notes" placeholder="Ghi chú"></textarea>
                                     </div>
                                     <div class="flex-between voiceip-more my-2 rounded text-nowrap">
-                                        <div class="voiceip-more__item is-success">
-                                            <label for="is_success" class="me-2">Hoàn tất?</label>
-                                            <input type="checkbox" class="bg-white" id="is_success"">
-                                        </div>
                                         <div class="voiceip-more__item flex-start template-notes text-nowrap">
                                             <label for="template-notes">Phân loại</label>
                                             <select name="template-notes" class="box-select flex-fill w-100" id="template-notes"></select>

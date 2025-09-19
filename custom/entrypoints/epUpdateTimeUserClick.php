@@ -1,13 +1,11 @@
 <?php
-global $current_user, $db;
-
 // Loại trừ user Booker - 493ad5e5-ffea-a84f-96d7-6577fed623d6
 $array_admin = [
-     '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-     '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-     '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', //nhat
-     '9eb0f65f-a9f6-65bb-1985-637ca8511491', //trinh
-     '1', //DDuc
+     '168889bb-54c2-59c7-8b3f-649102530d3c', // hungnh
+     '622ecf27-f729-7187-7e27-6520e0dab882', // quangnd
+     '4f4d7a13-4171-9b7d-251c-64dd8f9885e4', // nhat
+     '9eb0f65f-a9f6-65bb-1985-637ca8511491', // trinh
+     '1', // DucPham
 ];
 
 if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
@@ -21,6 +19,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeStatusAgent') {
 
 if (isset($_POST['for']) && $_POST['for'] == 'saveLastClickUser') {
      return false;
+     global $current_user;
      $time     = $_POST['time'] ?? null;
      $status   = $_POST['agent_status'] ?? 'Available';
      $busy     = ($status == 'Available') ? 0 : 1;

@@ -1878,6 +1878,16 @@ function isManagerUser($user_id)
     return 0;
 }
 
+// Là nhân viên có role Telesale
+function isTelesaleUser($user_id)
+{
+    global $db;
+
+    $sql = 'SELECT COUNT(id) FROM acl_roles_users WHERE user_id = "' . $user_id . '" AND role_id = "34beb2a2-5ee7-f001-2496-68ca264d1d3f" AND deleted = 0';
+    $is_telesale = $db->getOne($sql);
+    return ($is_telesale) ? 1 : 0;
+}
+
 
 // Bỏ các khoảng trắng
 function replaceAllSpacesToSingleSpace($string)
@@ -2170,7 +2180,11 @@ function custom_get_sip_number($key = '')
         // Trần Minh Tuấn
         'da25400e-a030-389c-4228-5c233d8cd04e' => ['user' => '104', 'password' => 'L6U%a9^%Ggzkb9u4ryIx'],
         // Trần Như Điền
-        '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+        // '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+
+        // Mai Thị Anh Đào
+        'e692a4e4-b402-4ffa-ce78-68c904aa4086' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+
         // Trương Mỹ Nhân
         '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
         // Lê Tín Nghĩa
@@ -2179,7 +2193,10 @@ function custom_get_sip_number($key = '')
         // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
 
         // Trịnh Thị Kim Ly
-        '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        // '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+
+        // Nguyễn Thị Kim Loan
+        'f299609a-28c0-c30e-d661-68ccb9aec236' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
@@ -2236,10 +2253,11 @@ function getNameGroupCalls($sip = "")
     $name = array();
 
     $arr_group = array(
-        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '105', '106', '107', '108', '109', '201'),
+        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201'),
         '<span class="badge bg-warning text-dark">Kế toán</span>' => array('120', '121', '122', '123', '124', '125'),
         '<span class="badge bg-danger">Laptop</span>' => array('201', '202', '203'),
         '<span class="badge bg-dark">IT</span>' => array('010', '012', '130'),
+        '<span class="badge bg-info">Telesale</span>' => array('108', '105'),
     );
 
     foreach ($arr_group as $name_group => $arr_sip) {

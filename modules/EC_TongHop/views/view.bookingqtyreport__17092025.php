@@ -11,12 +11,6 @@ class Viewbookingqtyreport extends SugarView
 		$user_id 	= $current_user->id;
 		$user_title = $current_user->title;
 
-		// Bảo trì
-		if($current_user->user_name != 'hungnh'){
-			echo '<p class="alert alert-warning fw-semibold">Báo cáo doanh số booking đang bảo trì. Vui lòng quay lại sau!</p>';
-			exit();
-		}
-
 		if (
 			is_admin($current_user) ||
 			$user_title == 'QuanLy'
@@ -182,8 +176,8 @@ class Viewbookingqtyreport extends SugarView
 				FROM ec_flight_bookings bk
 					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
 				WHERE u.title = "Bot" 
-				AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
-				AND bk.deleted = 0 
+					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+					AND bk.deleted = 0 
 				GROUP BY bk.id
 				HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440)
 				
@@ -228,16 +222,15 @@ class Viewbookingqtyreport extends SugarView
 					0 AS missed,
 					0 AS inbound_bk,
 
-					-- "" AS min_dep_time,
-					-- "" AS bk_date_entered
-					(SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0) AS min_dep_time,
-         			DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
+					"" AS min_dep_time,
+					"" AS bk_date_entered
 				FROM ec_booking_passengers bk_psg
-				INNER JOIN ec_flight_bookings bk ON bk.id = bk_psg.booking_id AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59" AND bk.booking_status IN (3, 7, 8)
-				INNER JOIN users u ON bk.created_by = u.id 
+					INNER JOIN ec_flight_bookings bk ON bk.id = bk_psg.booking_id
+					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
+					AND bk.booking_status IN (3, 7, 8)
+					INNER JOIN users u ON bk.created_by = u.id 
 				WHERE (bk_psg.add_type IS NULL OR bk_psg.add_type = "") AND bk_psg.deleted = 0
 				GROUP BY user_id
-				HAVING (TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440)
 
 				UNION
 				SELECT 
@@ -267,7 +260,7 @@ class Viewbookingqtyreport extends SugarView
 					SUM(IFNULL((SELECT IF(SUM(quantity), 1, 0) FROM ec_booking_details WHERE booking_id = bk.id AND bk.ticket_type = 2 AND deleted = 0), 0)) AS bk_inter_ticket,
 					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.ticket_type = 2, 1, 0)) AS com_inter_ticket_qty,
 					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.ticket_type = 2, bk.total_qty, 0)) AS com_inter_ticket,
-					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.ticket_type = 2, bk.total_amount - bk.total_bought_amount - (SELECT (IFNULL(luggage_purchase, 0)) + (IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id ORDER BY bk.date_entered DESC LIMIT 1), 0)) AS bk_inter_ticket_sales,
+					SUM(IF(bk.booking_status IN (3, 7, 8) AND bk.ticket_type = 2, bk.total_amount - bk.total_bought_amount, 0)) AS bk_inter_ticket_sales,
 					bk.ticket_type AS ticket_type,
 
 					0 AS inbound,
@@ -375,6 +368,7 @@ class Viewbookingqtyreport extends SugarView
 				AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($from_date)) . '" AND  "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
 				AND c.deleted = 0
 				GROUP BY last_name
+
 			) AS tmp
 			GROUP BY user_id
 			ORDER BY total_sales DESC';
@@ -432,6 +426,8 @@ class Viewbookingqtyreport extends SugarView
 				$total 				+= $row['total'];
 				$total_my_bk 		+= $row['my_bk'];
 
+				$last_name = str_replace(".", " ", $row['last_name']);
+
 				$total_ticket = '<a href="#" onclick="' . (empty($row['user_name']) ? 'document.getElementById(\'contact_name_advanced_OPER\').setAttribute(\'name\', \'contact_name_advanced_OPER\'); document.getElementById(\'contact_name_advanced\').setAttribute(\'name\', \'contact_name_advanced\');document.getElementById(\'created_by_name_advanced\').removeAttribute(\'name\'); ' : 'document.getElementById(\'contact_name_advanced_OPER\').removeAttribute(\'name\'); document.getElementById(\'contact_name_advanced\').removeAttribute(\'name\'); document.getElementById(\'created_by_name_advanced\').setAttribute(\'name\', \'created_by_name_advanced\'); document.getElementById(\'created_by_name_advanced\').value = \'' . $row['user_name'] . '\';') . 'document.getElementById(\'booking_status_advanced1\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced2\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced3\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_search\').submit(); return false;">' . ($row['total_ticket']) . '</a>';
 			} else {
 				$total_ticket = $row['total_ticket'];
@@ -475,7 +471,8 @@ class Viewbookingqtyreport extends SugarView
 
 			$html .= '
 				<tr>
-					<td class="text-start fw-semibold">' . str_replace(".", " ", $row['last_name']) . '</td>
+					<!-- <td class="text-center fw-semibold">' . ($i + 1) . '</td> -->
+					<td class="text-start fw-semibold">' . $last_name . '</td>
 
 					<td colspan="2" class="text-start">
 						<div class="d-flex align-items-center justify-content-between gap-1">
@@ -498,12 +495,8 @@ class Viewbookingqtyreport extends SugarView
 						<span class="show_detail_bk show_detail" type="show_booker_bk" sname="' . $row['last_name'] . '" user="' . $row['user_id'] . '">' . $my_bk . '&nbsp;/&nbsp;' . $com_my_bk . '</span>
 					</td>
 
-					<td class="text-end c_inbound">
-						<span class="show_detail_bk show_detail" sname="' . $row['last_name'] . '" type="show_detail_call" direction="inbound" user="' . $row['user_id'] . '">' . $row['c_inbound'] . ' / ' . $row['c_inbound_bk'] . '</span>
-					</td>
-					<td class="text-end c_missed">
-						<span class="show_detail_bk show_detail" sname="' . $row['last_name'] . '" type="show_detail_call" direction="missed" user="' . $row['user_id'] . '">' . $row['c_missed'] . '</span>
-					</td>
+					<td class="text-end c_inbound">' . $row['c_inbound'] . ' / ' . $row['c_inbound_bk'] . '</td>
+					<td class="text-end c_missed">' . $row['c_missed'] . '</td>
 					
 					<td class="text-end"><span class="show_detail_bk show_detail" sname="' . $row['last_name'] . '" type="show_prior_bk" user="' . $row['user_id'] . '">' . $prior_bk . '&nbsp;/&nbsp;' . $com_prior_bk . '</span></td>
 					<td colspan="2">

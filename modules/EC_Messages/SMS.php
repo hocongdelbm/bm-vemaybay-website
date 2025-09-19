@@ -3,19 +3,20 @@ class SMS {
     public $SENDER;
     private $ENDPOINT_SMS;
     private $TOKEN_SMS;
-    // Use for ad
+    // Use for ads
     private $ENDPOINT_STATIC_SMS_CAMPAIGN;
     private $TOKEN_STATIC_SMS_CAMPAIGN;
     Private $ENDPOINT_DYNAMIC_SMS_CAMPAIGN;
     private $TOKEN_DYNAMIC_SMS_CAMPAIGN;
 
-    function __construct($sender = "Travelpass") {
+    function __construct($sender = "Giao Nhanh") {
         $this->SENDER = $sender;
 
+        // Update at 17/09/2025
         // $this->ENDPOINT_SMS = "https://api-01.worldsms.vn/webapi/sendSMS";
-        // $this->ENDPOINT_SMS = "https://api-05.worldsms.vn/webapi/sendSMS";
         $this->ENDPOINT_SMS = "https://api-02.worldsms.vn/webapi/sendSMS";
-        $this->TOKEN_SMS = "c25leHRfdHJhdmVsOk1xYkY1UmpY";
+        // $this->ENDPOINT_SMS = "https://api-05.worldsms.vn/webapi/sendSMS";
+        $this->TOKEN_SMS = "c25leHRfZ2lhb25oYW5oOmQyOGVqT2JJ";
 
         // Update at 26/02/2025
         $this->ENDPOINT_STATIC_SMS_CAMPAIGN = "https://adv-api.worldsms.vn/api/v1/sms/campaign/create-static";
@@ -24,16 +25,8 @@ class SMS {
         $this->TOKEN_DYNAMIC_SMS_CAMPAIGN = "c25leHRfdHJhdmVscWM6RjR6QVhlTTE=";
     }
 
-    public function header() {
-        return [
-            'Content-Type: application/json',
-            'Accept: application/json',
-            'Authorization: Bearer c25leHRfdHJhdmVsOk1xYkY1UmpY'
-        ];
-    }
-
     /** 
-     * Gửi tin nhắn qua số điện thoại
+     * Send SMS message to phone mobile with template
      * 
      * @param string $phone
      * @param string $text
@@ -50,7 +43,14 @@ class SMS {
         }
 
         $unicode = $this->is_unicode($text);
-        $body = '{"from":"'.$this->SENDER.'","to":"'.$phone.'","text":"'.$text.'","unicode":'.$unicode.',"contentid":"'.$contentid.'"}';
+        $reqBody = [
+            "from" => $this->SENDER,
+            "to" => $phone,
+            "text" => $text,
+            "unicode" => $unicode,
+            "contentid" => $contentid
+        ];
+        // $body = '{"from":"'.$this->SENDER.'","to":"'.$phone.'","text":"'.$text.'","unicode":'.$unicode.',"contentid":"'.$contentid.'"}';
 
         try {
             $curl = curl_init();
@@ -65,41 +65,40 @@ class SMS {
         
             curl_setopt_array($curl, [
                 CURLOPT_URL             => $this->ENDPOINT_SMS,
-                CURLOPT_RETURNTRANSFER  => true,
-                CURLOPT_FOLLOWLOCATION  => true,
-                CURLOPT_MAXREDIRS       => 10,
-                CURLOPT_TIMEOUT         => 0,
-                CURLOPT_CUSTOMREQUEST   => 'POST',
-                CURLOPT_POSTFIELDS      => $body,
                 CURLOPT_HTTPHEADER      => [
                     "Content-Type: application/json",
                     "Accept: application/json",
-                    "Authorization: Basic $this->TOKEN_SMS"
+                    "Authorization: Basic {$this->TOKEN_SMS}"
                 ],
+                CURLOPT_RETURNTRANSFER  => true,
+                CURLOPT_FOLLOWLOCATION  => true,
+                CURLOPT_MAXREDIRS       => 10,
+                CURLOPT_CUSTOMREQUEST   => 'POST',
+                CURLOPT_POSTFIELDS      => json_encode($reqBody, JSON_UNESCAPED_UNICODE),
+                CURLOPT_TIMEOUT         => 32,
             ]);
-            $json = curl_exec($curl);
+            $res = curl_exec($curl);
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
         
-            if ($json === false) {
+            if ($res === false || $errorno) {
                 return json_encode([
                     "status" => 0,
                     "errorcode" => null,
-                    "description" => curl_errno($curl) . ": " . curl_error($curl),
+                    "description" => "cURL error $errorno: $error"
                 ]);
             }
         
-            $httpReturnCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        
-            // Process result here
-            if($httpReturnCode == 200) {
-                $json = trim($json);
-                $json = trim(str_replace("\\", "",  $json), '"');  // Fix json string
-                return $json;
+            if($httpcode == 200) {
+                $res = trim($res);
+                $res = trim(str_replace("\\", "",  $res), '"');  // Fix json string
+                return $res;
             }
-
             return json_encode([
                 "status"        => 0,
-                "errorcode"     => $httpReturnCode,
-                "description"   => "Fail",
+                "errorcode"     => $httpcode,
+                "description"   => "Fail"
             ]);
         }
         catch(Exception $e) {
@@ -383,5 +382,4 @@ class SMS {
         foreach ($utf8 as $ascii => $uni) $str = preg_replace("/($uni)/i", $ascii, $str);
         return $str;
     }
-    
 }
