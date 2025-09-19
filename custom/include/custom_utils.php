@@ -2193,7 +2193,10 @@ function custom_get_sip_number($key = '')
         // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
 
         // Trịnh Thị Kim Ly
-        '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        // '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+
+        // Nguyễn Thị Kim Loan
+        'f299609a-28c0-c30e-d661-68ccb9aec236' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
         
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
@@ -2250,10 +2253,11 @@ function getNameGroupCalls($sip = "")
     $name = array();
 
     $arr_group = array(
-        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '105', '106', '107', '108', '109', '201'),
+        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201'),
         '<span class="badge bg-warning text-dark">Kế toán</span>' => array('120', '121', '122', '123', '124', '125'),
         '<span class="badge bg-danger">Laptop</span>' => array('201', '202', '203'),
         '<span class="badge bg-dark">IT</span>' => array('010', '012', '130'),
+        '<span class="badge bg-info">Telesale</span>' => array('108', '105'),
     );
 
     foreach ($arr_group as $name_group => $arr_sip) {
