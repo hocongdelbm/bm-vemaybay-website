@@ -248,8 +248,12 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
 
         // $is_success     = isset($_POST['is_success']) ? $_POST['is_success'] : "";
+        // $call_status    = ((string)$is_success === 'true') ? 'done' : 'new';
         $call_status = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
 
+
+        print_r($call_status);
+        
         // Validate
         if (empty($call_id) || empty($note)) {
             echo 400;
