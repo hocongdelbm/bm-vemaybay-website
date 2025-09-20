@@ -161,6 +161,7 @@ $(document).ready(function () {
             var adtPrice    = $(`input[name="${PREFIX}AdtPrice[]"]`).map((i, el) => el.value).get();
             var chdPrice    = $(`input[name="${PREFIX}ChdPrice[]"]`).map((i, el) => el.value).get();
             var infPrice    = $(`input[name="${PREFIX}InfPrice[]"]`).map((i, el) => el.value).get();
+            var listDetailId = [...adtDetailId, ...chdDetailId, ...infDetailId];
 
             // Roundtrip flight has the same airline or combine internation flight 
             if(airlineCodes.length > 1 && (airlineCodes[0] === airlineCodes[1] || isInter)) {
@@ -511,6 +512,8 @@ $(document).ready(function () {
                         params: {
                             "bookingId": bookingId,
                             "listPassengerId": listPassengerId,
+                            "listItineraryId": listItineraryId,
+                            "listDetailId": listDetailId,
                             "requestBody": requestBody
                         },
                     })
@@ -529,10 +532,18 @@ $(document).ready(function () {
                 // Display BookingCodes (PNR) to client
                 caption = 'Đặt chỗ thành công';
                 if(isWithin24h && searchInfo[0]['airlineCode'] == 'VJ') caption = 'Xuất vé thành công';
-                const bookingCodes = bookingResponse.data.map(item => item.BookingCode);
-                bookingCodes.forEach(code => {
-                    caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
-                });
+                if(entryClass == 'entryAutoBookPhuongNamClass') {
+                    const bookingCodes = bookingResponse.data.map(item => item.BookingCode);
+                    bookingCodes.forEach(code => {
+                        caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
+                    });
+                }
+                else {
+                    const bookingCodes = bookingResponse.data.ListBooking.map(item => `${item.Airline}: ${(item.GdsCode ?? item.BookingCode)}`);
+                    bookingCodes.forEach(code => {
+                        caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
+                    });
+                }
                 showStepsInDialogAutoBook(step, caption, '', 1);
             }
             else if(statusAutoBook == 0) {

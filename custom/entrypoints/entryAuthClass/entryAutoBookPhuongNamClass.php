@@ -3,11 +3,11 @@ require_once "custom/entrypoints/entryAuthClass/entryClass.php";
 require_once "modules/EC_Flight_Bookings/APIPhuongNam.php";
 
 /**
- * Class entryPhuongNamAutoBookClass
+ * Class entryAutoBookPhuongNamClass
  * 
  * Using for booking by Phuong Nam API
  */
-class entryPhuongNamAutoBookClass extends entryClass {
+class entryAutoBookPhuongNamClass extends entryClass {
     public $mappingSystemCodeName;
     public $mappingSystemCode;
     public $interSystemCode;
@@ -15,12 +15,22 @@ class entryPhuongNamAutoBookClass extends entryClass {
     public $supplierId;
     public $supplierCode;
     public $supplierName;
+    public $currentUser;
+    public $notificationChannel;
+    public $telegramConfig;
+    public $mattermostConfig;
 
     public function __construct() {
         parent::__construct();
-        global $sugar_config;
+        global $sugar_config, $current_user;
+
+        $this->currentUser = $current_user;
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';
+        $this->notificationChannel = $sugar_config['notification_channel'] ?? 'Telegram';
+        if($this->notificationChannel == 'Mattermost') $this->mattermostConfig = $sugar_config['mattermost'] ?? [];
+        else $this->telegramConfig = $sugar_config['telegram'] ?? [];
+
         $this->mappingSystemCodeName = [
             'VJ' => 'Vietjet Air',
             'VN' => 'Vietnam Airlines',

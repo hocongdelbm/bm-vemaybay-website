@@ -50,6 +50,12 @@ class entryAutoBookDatacomClass extends entryClass {
         $this->supplierName = "Hồng Ngọc Hà 218";
     }
 
+    /**
+     * Get data from database to auto book
+     * 
+     * @param array $params
+     * @return array
+     */
     public function getDataAutoBook($params = []) {
         $bookingId          = $params['bookingId'] ?? '';
         $listItineraryId    = $params['listItineraryId'] ?? []; // ec_booking_itineraries
@@ -1011,18 +1017,32 @@ class entryAutoBookDatacomClass extends entryClass {
         return ["status" => 0, "message" => "Nothing to update", "params" => $params];
     }
 
+    /**
+     * Book a flight
+     * 
+     * @param array $params
+     * @return array
+     */
     public function booking($params = []) {
         $bookingId          = $params['bookingId'] ?? '';
-        $listPassengerId    = $params['listPassengerId'] ?? null;
+        $listPassengerId    = $params['listPassengerId'] ?? [];
+        $listItineraryId    = $params['listItineraryId'] ?? [];
+        $listDetailId       = $params['listDetailId'] ?? [];
         $requestBody        = $params['requestBody'] ?? [];
 
-        if(!$requestBody || !is_array($requestBody) || empty($requestBody) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
+        if(!$requestBody || !is_array($requestBody) || empty($requestBody) || empty($bookingId)
+            || !is_array($listPassengerId) || empty($listPassengerId)
+            || !is_array($listItineraryId) || empty($listItineraryId)
+            || !is_array($listDetailId) || empty($listDetailId)
+        ) {
             return [
                 "status" => 0,
                 "message" => "Dữ liệu không hợp lệ",
                 "params" => [
                     "requestBody" => $requestBody,
                     "listPassengerId" => $listPassengerId,
+                    "listItineraryId" => $listItineraryId,
+                    "listDetailId" => $listDetailId,
                     "bookingId" => $bookingId,
                 ]
             ];
@@ -1045,7 +1065,9 @@ class entryAutoBookDatacomClass extends entryClass {
                 else $bookingType = 'twoway';
             }
 
-            $inListPassengerId = "'".implode("','", $listPassengerId)."'";
+            $inListPassengerId  = "'".implode("','", $listPassengerId)."'";
+            $inListItineraryId  = "'".implode("','", $listItineraryId)."'";
+            $inListDetailId     = "'".implode("','", $listDetailId)."'";
 
             $booking = new EC_Flight_Bookings();
             $booking->retrieve($bookingId);
@@ -1061,16 +1083,49 @@ class entryAutoBookDatacomClass extends entryClass {
                 $expirationTime = $agency->convertDatetime($bk['ExpirationTime'] ?? ''); // 19092025 1737
                 $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
-                if($bookingType == 'roundtrip') {
+                // Send notification
+                try {
+                    $airlineName = $this->mappingSystemCodeName[$airlineCode] ?? $airlineCode;
+                    $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                    $linkBooking = "https://{$this->domain}/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
 
+                    if($this->notificationChannel == 'Mattermost') {
+                        $link = Mattermost::markdownLink($linkBooking, $pnr);
+
+                        $m = "Giữ chỗ $airlineName ($systemCode): $link bởi **$fullname**";
+                        if(isset($bk['AutoIssue']) && $bk['AutoIssue'] === true) {
+                            $m = "Xuất vé cận $airlineName ($systemCode): $link bởi **$fullname**";
+                        }
+                        if(isset($responseArr['data']['OrderId']) && !empty($responseArr['data']['OrderId'])) {
+                            $m .= "\n- Order ID: ". ($responseArr['data']['OrderId']);
+                        }
+                        $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                        Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
+                    }
+                    else {
+                        $link = "<a href=\"".$linkBooking."\">$pnr</a>";
+
+                        $m = "Giữ chỗ $airlineName ($systemCode): $link bởi <b>$fullname</b>";
+                        if(isset($bk['AutoIssue']) && $bk['AutoIssue'] === true) {
+                            $m = "<b>💰 Xuất vé cận $airlineName ($systemCode): $link bởi $fullname</b>";
+                        } 
+                        if(isset($responseArr['data']['OrderId']) && !empty($responseArr['data']['OrderId'])) {
+                            $m .= "\n<i>Order ID: ". ($responseArr['data']['OrderId']) ."</i>";
+                        }
+                        $m .= "\nNCC: <b>{$this->supplierName}</b>";
+
+                        $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                        $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                        Telegram::sendMessage($m, $botToken, $chatId);
+                    }
                 }
-                else {
+                catch(Throwable $th) {}
+
+                if($bookingType == 'roundtrip') {
                     // Update PNR
                     $sql = "UPDATE ec_booking_passengers
                             SET pnr_outbound = '$pnr'
                                 ,pnr_inbound = '$pnr'
-                                -- ,luggage_index_outbound = ''
-                                -- ,luggage_index_inbound = ''
                                 ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
                             WHERE id IN ($inListPassengerId) 
@@ -1078,32 +1133,136 @@ class entryAutoBookDatacomClass extends entryClass {
                                 AND deleted = 0";
                     if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
 
-                    // Update supplier (PENDING - ERROR)
-                    $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
+                    // Update supplier
+                    $ticketing_fee = ($systemCode == 'VJ' || $airlineCode == 'VJ') ? 5000 : 0;
                     $sql = "UPDATE ec_booking_details
                             SET supplier_id = '{$this->supplierId}'
                                 ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
-                            WHERE booking_id = '$bookingId'
-                                AND deleted = 0
-                                AND passenger_type IN (
-                                    SELECT DISTINCT p.type
-                                    FROM ec_booking_passengers p
-                                    WHERE p.id IN ($inListPassengerId)
-                                        AND p.booking_id = '$bookingId' 
-                                        AND p.deleted = 0
-                                )
-                                AND date_entered IN (
-                                    SELECT DISTINCT max(date_entered)
-                                    FROM ec_booking_details 
-                                    WHERE booking_id = '$bookingId' AND deleted = 0
-                                    GROUP BY direction, passenger_type
-                                )";
+                            WHERE id IN ($inListDetailId) 
+                                AND booking_id = '$bookingId'
+                                AND deleted = 0";
                     if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+
+                    // Update expiration time
+                    $expirationTimestamp = strtotime($expirationTime);
+                    if($expirationTimestamp && $expirationTimestamp > time()) {
+                        $expirationTime = date("Y-m-d H:i:00", $expirationTimestamp);
+                        $sql = "UPDATE ec_booking_itineraries
+                            SET time_limit = '{$expirationTime}'
+                                ,modified_user_id = '{$this->currentUser->id}'
+                                ,date_modified = '$dateModified'
+                            WHERE id IN ($inListItineraryId) 
+                                AND booking_id = '$bookingId'
+                                AND deleted = 0";
+                        if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                    }
+
+                    // Update available checked baggage info (Use for website have new baggage)
+                    if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
+                        foreach($bk["ListFlightFare"] as $ff) {
+                            $roundText = $ff["Leg"] == 1 ? 'inbound' : 'outbound';
+
+                            foreach($ff["FareInfo"]["ListFarePax"] as $farePax) {
+                                $paxType = strtolower($farePax["PaxType"] ?? '');   
+                                $paxTypeValue = $paxType == 'adt' ? '0' : ($paxType == 'chd' ? '1' : '2');
+
+                                // $handBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["HandBaggage"] ?? '');
+                                $freeBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["FreeBaggage"] ?? '');
+                                $freeBaggageValue = $freeBaggage["value"] ?? '';
+
+                                $sql = "UPDATE ec_booking_passengers p
+                                    SET p.luggage_index_{$roundText} = '{$freeBaggageValue}'
+                                    WHERE p.booking_id = '{$bookingId}'
+                                        AND p.id IN ({$inListPassengerId})
+                                        AND p.type = '{$paxTypeValue}'
+                                        AND p.deleted = 0";
+                                if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                            }
+                        }
+                    }
+                }
+                else {
+                    // Chỗ này lấy còn sai
+                    $roundText = 'outbound';
+                    $direction = '0';
+                    if($key == 1) {
+                        $roundText = 'inbound';
+                        $direction = '1';
+                    }
+
+                    // Update PNR
+                    $sql = "UPDATE ec_booking_passengers
+                            SET pnr_{$roundText} = '$pnr'
+                                ,modified_user_id = '{$this->currentUser->id}'
+                                ,date_modified = '$dateModified'
+                            WHERE id IN ($inListPassengerId) 
+                                AND booking_id = '$bookingId'
+                                AND deleted = 0";
+                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+
+                    // Update supplier
+                    $ticketing_fee = ($systemCode == 'VJ' || $airlineCode == 'VJ') ? 5000 : 0;
+                    $sql = "UPDATE ec_booking_details
+                            SET supplier_id = '{$this->supplierId}'
+                                ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                ,modified_user_id = '{$this->currentUser->id}'
+                                ,date_modified = '$dateModified'
+                            WHERE id IN ($inListDetailId) 
+                                AND booking_id = '$bookingId'
+                                AND deleted = 0";
+                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+
+                    // Update expiration time
+                    $expirationTimestamp = strtotime($expirationTime);
+                    if($expirationTimestamp && $expirationTimestamp > time()) {
+                        $expirationTime = date("Y-m-d H:i:00", $expirationTimestamp);
+                        $sql = "UPDATE ec_booking_itineraries
+                            SET time_limit = '{$expirationTime}'
+                                ,modified_user_id = '{$this->currentUser->id}'
+                                ,date_modified = '$dateModified'
+                            WHERE id IN ($inListItineraryId) 
+                                AND booking_id = '$bookingId'
+                                AND deleted = 0";
+                        if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                    }
+
+                    // Update available checked baggage info (Use for website have new baggage)
+                    if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
+                        foreach($bk["ListFlightFare"] as $ff) {
+                            foreach($ff["FareInfo"]["ListFarePax"] as $farePax) {
+                                $paxType = strtolower($farePax["PaxType"] ?? '');   
+                                $paxTypeValue = $paxType == 'adt' ? '0' : ($paxType == 'chd' ? '1' : '2');
+
+                                // $handBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["HandBaggage"] ?? '');
+                                $freeBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["FreeBaggage"] ?? '');
+                                $freeBaggageValue = $freeBaggage["value"] ?? '';
+
+                                $sql = "UPDATE ec_booking_passengers
+                                    SET luggage_index_{$roundText} = '{$freeBaggageValue}'
+                                        ,modified_user_id = '{$this->currentUser->id}'
+                                        ,date_modified = '$dateModified'
+                                    WHERE booking_id = '{$bookingId}'
+                                        AND id IN ({$inListPassengerId})
+                                        AND type = '{$paxTypeValue}'
+                                        AND deleted = 0";
+                                if(!$db->query($sql)) {
+                                    $this->sendSQLErrorNotification($sql . json_encode($farePax));
+                                }
+                            }
+                        }
+                    }
                 }
             }
+        }
+        else {
+            $botToken   = $this->telegramConfig['bot_token'] ?? '';
+            $chatId     = $this->telegramConfig['chat_id'] ?? '';
+            $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
+            Telegram::sendMessageData($response, $botToken, $chatId, $threadId);
         }
 
         return $responseArr;
@@ -1142,6 +1301,43 @@ class entryAutoBookDatacomClass extends entryClass {
             return $result;
         }
         return [];
+    }
+
+    /**
+     * Extract baggage from response
+     * 
+     * @param string $str
+     * @return array [value, description]
+     */
+    private function extractBaggageValue($str) {
+        /**
+         * $str includes values as:
+         * null
+         * 1 piece x 10kg
+         * 1 piece
+         * 20kg
+         * 20 KG
+         */
+        if(is_null($str) || empty($str)) return ["value" => "", "description" => ""];
+
+        $str = strtolower(trim($str));
+
+        preg_match('/(\d+)\s*piece/i', $str, $pieceMatches);
+        $piece = $pieceMatches[1] ?? "";
+
+        preg_match('/(\d+)\s*kg/i', $str, $weightMatches);
+        $weight = $weightMatches[1] ?? "";
+
+        if(!empty($piece) && !empty($weight)) {
+            return ["value" => "{$piece}x{$weight}", "description" => "$piece kiện x {$weight}kg"];
+        }
+        elseif(!empty($piece)) {
+            return ["value" => "{$piece}", "description" => "$piece kiện"];
+        }
+        elseif(!empty($weight)) {
+            return ["value" => "{$weight}", "description" => "{$weight}kg"];
+        }
+        return ["value" => $str, "description" => $str];
     }
 
     /**
