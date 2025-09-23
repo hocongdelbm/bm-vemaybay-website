@@ -5,6 +5,12 @@
         <h3>XUẤT VÉ</h3>
         <div class="box-frm__wrap">
             <form method="post" action="index.php" name="frmIssueTicket" id="frmIssueTicket">
+                <select name="airlineCode" class="form-select" style="width:210px;">
+                    <option value="VJ">VJ (Vietjet Air)</option>
+                    <option value="VN">VN (Vietnam Airlines)</option>
+                    <option value="QH">QH (Bamboo Airways)</option>
+                    <option value="VU">VU (Vietravel Airlines)</option>
+                </select>
                 <div class="wrap-input">
                     <input type="text" name="pnr" class="form-control" placeholder="Nhập PNR" maxlength="6" />
                     <button type="button" class="btn" id="btnSearch">

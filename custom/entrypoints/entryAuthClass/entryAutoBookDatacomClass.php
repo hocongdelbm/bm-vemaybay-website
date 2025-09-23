@@ -71,7 +71,7 @@ class entryAutoBookDatacomClass extends entryClass {
             $sql_1 = "SELECT iti.id
                     ,iti.departure
                     ,iti.arrival
-                    ,iti.departure_date AS departure_date
+                    ,iti.departure_date
                     ,iti.base_price
                     ,iti.ticket_class
                     ,iti.direction
@@ -191,6 +191,20 @@ class entryAutoBookDatacomClass extends entryClass {
                     elseif($row['passenger_type'] === '1' && $chdCount < 1) continue;
                     elseif($row['passenger_type'] === '2' && $infCount < 1) continue;
 
+                    $qty = 0;
+                    switch ($row['passenger_type']) {
+                        case '2':
+                            $qty = $infCount;
+                            break;
+                        case '1':
+                            $qty = $chdCount;
+                            break;
+                        case '0':
+                        default:
+                            $qty = $adtCount;
+                            break;
+                    }
+
                     $direction_name = $row['direction'] == '1' ? 'ret' : 'dep';
                     $dataFareDetails[$direction_name][$row['passenger_type']] = [
                         'id' => $row['id'],
@@ -198,7 +212,7 @@ class entryAutoBookDatacomClass extends entryClass {
                         'tax'   => (int)$row['tax'],
                         'fee'   => (int)$row['fee'],
                         'price' => $row['fare'] + $row['tax'] + $row['fee'],
-                        'qty'   => (int)$row['quantity'],
+                        'qty'   => $qty,
                         'fareFormat'  => format_number($row['fare']),
                         'taxFormat'   => format_number($row['tax']),
                         'feeFormat'   => format_number($row['fee']),
@@ -329,13 +343,6 @@ class entryAutoBookDatacomClass extends entryClass {
                             "AccountCode"       => ""
                         ];
 
-                        // // Check datetime
-                        // $flightDate = $i == 1 ? $retDate : $depDate;
-                        // if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
-                        //     $updateData[$i]['departureDate']    = date('d-m-Y H:i', strtotime($f['depDate'] . ' ' . $f['depTime']));
-                        //     $updateData[$i]['arrivalDate']      = date('d-m-Y H:i', strtotime($f['arvDate'] . ' ' . $f['arvTime']));
-                        // }
-
                         // Check schedule
                         $flightDate = $i == 1 ? $retDate : $depDate;
                         if(date('Y-m-d H:i', strtotime($flightDate)) != ($f['depDate'] . ' ' .$f['depTime'])) {
@@ -358,8 +365,6 @@ class entryAutoBookDatacomClass extends entryClass {
                                 "tax"       => $newTax,
                                 // "fee"    => $f["adtFee"],
                                 "price"     => $newPrice,
-
-                                "test" => "{$adtPrice[$i]} - {$adtFare[$i]} - {$adtTax[$i]}"
                             ];
                             $totalAmout += $newPrice * $adt;
                         }
@@ -683,7 +688,7 @@ class entryAutoBookDatacomClass extends entryClass {
             ];
         }
 
-        global $db, $current_user;
+        global $db;
         $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
         $sqlUpdate = '';
 
@@ -733,7 +738,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     //         -- ,total_price = ($price + service_fee) * quantity
                     //         ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                     //         ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
-                    //         ,modified_user_id = '$current_user->id'
+                    //         ,modified_user_id = '{$this->currentUser->id}'
                     //         ,date_modified = '$dateModified'
                     //     WHERE id = '$detailId'
                     //         AND booking_id = '$bookingId'
@@ -746,7 +751,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             ,tax_and_fee = $tax
                             ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                             ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
-                            ,modified_user_id = '$current_user->id'
+                            ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = '$dateModified'
                         WHERE id = '$detailId'
                             AND booking_id = '$bookingId'
@@ -775,7 +780,7 @@ class entryAutoBookDatacomClass extends entryClass {
             $sqlUpdate = "UPDATE ec_flight_bookings
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
-                        ,modified_user_id = '$current_user->id'
+                        ,modified_user_id = '{$this->currentUser->id}'
                         ,date_modified = '$dateModified'
                     WHERE id = '$bookingId' AND deleted = 0";
             if(!$db->query($sqlUpdate)) {
@@ -792,7 +797,7 @@ class entryAutoBookDatacomClass extends entryClass {
 
             $itiId = $params['itineraryId'] ?? '';
 
-            // Update departure date (Should update into schedule flight time in itineraries table by details flight)
+            // Update flight schedule
             if(isset($params['segments']) && !empty($params['segments'])) {
                 $sql = "SELECT id
                     FROM ec_booking_itineraries
@@ -827,7 +832,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             ,departure_date = '$segDepDateTime'
                             ,arrival_date = '$segArvDateTime'
                             ,description = IF(LENGTH('$transit') > 0, '$transit', description)
-                            ,modified_user_id = '$current_user->id'
+                            ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = '$dateModified'
                         WHERE id = '$rowId' AND TRIM(flight_number) = '$segFlightNo'";
                     $db->query($sqlUpdate);
@@ -840,7 +845,7 @@ class entryAutoBookDatacomClass extends entryClass {
             if(!is_null($basePrice)) {
                 $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
-                            ,modified_user_id = '$current_user->id'
+                            ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = '$dateModified'
                         WHERE id = '$itiId'
                             AND booking_id = '$bookingId'
@@ -900,7 +905,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             ,admin_fee = $fee
                             ,total_bought_price = $price * quantity
                             ,total_price = ($price + service_fee) * quantity
-                            ,modified_user_id = '$current_user->id'
+                            ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = '$dateModified'
                         WHERE id = '$detailId'
                             AND booking_id = '$bookingId'
@@ -928,7 +933,7 @@ class entryAutoBookDatacomClass extends entryClass {
             $sqlUpdate = "UPDATE ec_flight_bookings
                     SET total_bought_amount = IF($total_bought_amount > 0, $total_bought_amount, total_bought_amount)
                         ,subtotal_amount = IF($subtotal_amount > 0, $subtotal_amount, subtotal_amount)
-                        ,modified_user_id = '$current_user->id'
+                        ,modified_user_id = '{$this->currentUser->id}'
                         ,date_modified = '$dateModified'
                     WHERE id = '$bookingId' AND deleted = 0";
             if(!$db->query($sqlUpdate)) {
@@ -985,7 +990,7 @@ class entryAutoBookDatacomClass extends entryClass {
                                 ,arrival_date = '$segArvDateTime'
                                 ,airline_code = '$segCarrierCode'
                                 ,description = IF(LENGTH('$transit') > 0, '$transit', description)
-                                ,modified_user_id = '$current_user->id'
+                                ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
                             WHERE id = '$rowId' AND TRIM(flight_number) = '$segFlightNo'";
                         $db->query($sqlUpdate);
@@ -1002,7 +1007,7 @@ class entryAutoBookDatacomClass extends entryClass {
 
                 $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET base_price = IF($basePrice <> base_price && base_price > 0, $basePrice, base_price)
-                            ,modified_user_id = '$current_user->id'
+                            ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = '$dateModified'
                         WHERE (id = '$itiDepId' OR id = '$itiRetId')
                             AND booking_id = '$bookingId'
@@ -1123,7 +1128,7 @@ class entryAutoBookDatacomClass extends entryClass {
 
                 if($bookingType == 'roundtrip') {
                     // Update PNR
-                    $sql = "UPDATE ec_booking_passengers
+                    $sqlUpdate = "UPDATE ec_booking_passengers
                             SET pnr_outbound = '$pnr'
                                 ,pnr_inbound = '$pnr'
                                 ,modified_user_id = '{$this->currentUser->id}'
@@ -1131,11 +1136,11 @@ class entryAutoBookDatacomClass extends entryClass {
                             WHERE id IN ($inListPassengerId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
-                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                     // Update supplier
                     $ticketing_fee = ($systemCode == 'VJ' || $airlineCode == 'VJ') ? 5000 : 0;
-                    $sql = "UPDATE ec_booking_details
+                    $sqlUpdate = "UPDATE ec_booking_details
                             SET supplier_id = '{$this->supplierId}'
                                 ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
@@ -1144,20 +1149,20 @@ class entryAutoBookDatacomClass extends entryClass {
                             WHERE id IN ($inListDetailId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
-                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                     // Update expiration time
                     $expirationTimestamp = strtotime($expirationTime);
                     if($expirationTimestamp && $expirationTimestamp > time()) {
                         $expirationTime = date("Y-m-d H:i:00", $expirationTimestamp);
-                        $sql = "UPDATE ec_booking_itineraries
+                        $sqlUpdate = "UPDATE ec_booking_itineraries
                             SET time_limit = '{$expirationTime}'
                                 ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
                             WHERE id IN ($inListItineraryId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
-                        if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                        if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
 
                     // Update available checked baggage info (Use for website have new baggage)
@@ -1173,39 +1178,47 @@ class entryAutoBookDatacomClass extends entryClass {
                                 $freeBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["FreeBaggage"] ?? '');
                                 $freeBaggageValue = $freeBaggage["value"] ?? '';
 
-                                $sql = "UPDATE ec_booking_passengers p
+                                $sqlUpdate = "UPDATE ec_booking_passengers p
                                     SET p.luggage_index_{$roundText} = '{$freeBaggageValue}'
                                     WHERE p.booking_id = '{$bookingId}'
                                         AND p.id IN ({$inListPassengerId})
                                         AND p.type = '{$paxTypeValue}'
                                         AND p.deleted = 0";
-                                if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                                if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                             }
                         }
                     }
                 }
                 else {
-                    // Chỗ này lấy còn sai
-                    $roundText = 'outbound';
                     $direction = '0';
-                    if($key == 1) {
-                        $roundText = 'inbound';
-                        $direction = '1';
+                    $roundText = 'outbound';
+                    if($bookingType == 'twoway') {
+                        if($key == 1) {
+                            $direction = '1';
+                            $roundText = 'inbound';
+                        }
+                    }
+                    else {
+                        $sql = "SELECT direction
+                            FROM ec_booking_itineraries
+                            WHERE id = '{$listItineraryId[0]}' AND booking_id = '$bookingId' AND deleted = 0";
+                        $direction = $db->getOne($sql);
+                        $roundText = $direction == '1' ? 'inbound' : 'outbound'; 
                     }
 
                     // Update PNR
-                    $sql = "UPDATE ec_booking_passengers
+                    $sqlUpdate = "UPDATE ec_booking_passengers
                             SET pnr_{$roundText} = '$pnr'
                                 ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
                             WHERE id IN ($inListPassengerId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
-                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                     // Update supplier
                     $ticketing_fee = ($systemCode == 'VJ' || $airlineCode == 'VJ') ? 5000 : 0;
-                    $sql = "UPDATE ec_booking_details
+                    $sqlUpdate = "UPDATE ec_booking_details
                             SET supplier_id = '{$this->supplierId}'
                                 ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
@@ -1214,20 +1227,20 @@ class entryAutoBookDatacomClass extends entryClass {
                             WHERE id IN ($inListDetailId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
-                    if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                     // Update expiration time
                     $expirationTimestamp = strtotime($expirationTime);
                     if($expirationTimestamp && $expirationTimestamp > time()) {
                         $expirationTime = date("Y-m-d H:i:00", $expirationTimestamp);
-                        $sql = "UPDATE ec_booking_itineraries
+                        $sqlUpdate = "UPDATE ec_booking_itineraries
                             SET time_limit = '{$expirationTime}'
                                 ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
                             WHERE id IN ($inListItineraryId) 
                                 AND booking_id = '$bookingId'
                                 AND deleted = 0";
-                        if(!$db->query($sql)) $this->sendSQLErrorNotification($sql);
+                        if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
 
                     // Update available checked baggage info (Use for website have new baggage)
@@ -1241,7 +1254,7 @@ class entryAutoBookDatacomClass extends entryClass {
                                 $freeBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["FreeBaggage"] ?? '');
                                 $freeBaggageValue = $freeBaggage["value"] ?? '';
 
-                                $sql = "UPDATE ec_booking_passengers
+                                $sqlUpdate = "UPDATE ec_booking_passengers
                                     SET luggage_index_{$roundText} = '{$freeBaggageValue}'
                                         ,modified_user_id = '{$this->currentUser->id}'
                                         ,date_modified = '$dateModified'
@@ -1249,9 +1262,7 @@ class entryAutoBookDatacomClass extends entryClass {
                                         AND id IN ({$inListPassengerId})
                                         AND type = '{$paxTypeValue}'
                                         AND deleted = 0";
-                                if(!$db->query($sql)) {
-                                    $this->sendSQLErrorNotification($sql . json_encode($farePax));
-                                }
+                                if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                             }
                         }
                     }

@@ -389,26 +389,64 @@ $(document).ready(function () {
                         showStepsInDialogAutoBook(step);
                     }, 300);
 
-                    var flights = {};
-                    if(response1.data && response1.data.standardData && Object.keys(response1.data.standardData).length > 0) {
-                        flights[0] = response1.data.standardData;
-                    }
-                    if(response2.data && response2.data.standardData && Object.keys(response2.data.standardData).length > 0) {
-                        flights[1] = response2.data.standardData;
-                    }
+                    if (Object.keys(flightData).length > 0) {
+                        // Contact
+                        let contactPhone = $(`input[name="${PREFIX}ContactPhone"]`).val().trim();
+                        let contactInfo = {
+                            "Title": $(`input[name="${PREFIX}ContactTitle"]`).val().replace(/\./g, '').trim(), // Mr
+                            "Name": $(`input[name="${PREFIX}ContactName"]`).val().trim(),
+                            "Phone": contactPhone,
+                            "Email": $(`input[name="${PREFIX}ContactEmail"]`).val().trim(),
+                            "Address": $(`input[name="${PREFIX}ContactAddress"]`).val().trim(),
+                        }
 
-                    if (Object.keys(flights).length > 0) {
+                        // Passengers
+                        let listPassenger = [];
+                        let passTitleInputs         = document.querySelectorAll(`input[name="${PREFIX}PassengerTitle[]"]`);
+                        let passFullnameInputs      = document.querySelectorAll(`input[name="${PREFIX}PassengerFullname[]"]`);
+                        let passDateOfBirthInputs   = document.querySelectorAll(`input[name="${PREFIX}PassengerDateOfBirth[]"]`);
+                        let passPassportInputs      = document.querySelectorAll(`input[name="${PREFIX}PassengerPassport[]"]`);
+                        passIdInputs.forEach((input, index) => {
+                            let title   = passTitleInputs[index].value;
+                            let gender  = title == 'Ms' ? 'F' : 'M';
+                            let type    = passTypeInputs[index].value;
+                            if(type != 'adt') title = null;
+
+                            let passengerTypeId = 1;
+                            if(type == 'inf') passengerTypeId = 5;
+                            else if(type == 'chd') passengerTypeId = 6;
+
+                            listPassenger.push({
+                                "PersonOrgId" : (index + 1).toString(),
+                                "PassengerTypeId" : passengerTypeId,
+                                "FirstName"  : getMiddleAndFirstName(passFullnameInputs[index].value),
+                                "LastName"   : getLastName(passFullnameInputs[index].value),
+                                "BirthDay"   : passDateOfBirthInputs[index].value,
+                                "Gender"     : gender,
+                                "Title"      : passTitleInputs[index].value,
+                                "Phone"      : type != 'inf' ? contactInfo.Phone : null,
+                                "Email"      : type != 'inf' ? contactInfo.Email : null,
+                                "RowNumber"  : index + 1,
+                                "Passport"   : type != 'inf' ? passPassportInputs[index].value : null,
+                                "SortOrder"  : index + 1,
+                            });
+                        });
+
                         verifyResponse = await $.ajax({
                             url: ENTRYPOINT,
                             method: 'POST',
                             contentType: "application/json",
                             dataType: "json",  
                             data: JSON.stringify({
-                                'action': 'verify',
-                                'bookingId': bookingId,
-                                'flights': flights,
-                                'listPassengerId': listPassengerId,
-                                'isWithin24h': isWithin24h
+                                class: entryClass,
+                                method: 'verify',
+                                params: {
+                                    'bookingId': bookingId,
+                                    'isWithin24h': isWithin24h,
+                                    'flights': flightData,
+                                    'contact': contactInfo,
+                                    'listPassenger': listPassenger,
+                                }
                             })
                         });
 
@@ -417,9 +455,12 @@ $(document).ready(function () {
                             showStepsInDialogAutoBook(step, '', verifyResponse.hasOwnProperty('message') ? verifyResponse.message : 'Lỗi, vui lòng thử lại sau');
                             return;
                         }
+                        else {
+                            requestBody = verifyResponse.requestBody;
+                        }
                     }
                     else {
-                        clearTimeout(timeoutShowStep2);
+                        if(timeoutShowStep2) clearTimeout(timeoutShowStep2);
                         showStepsInDialogAutoBook(step, '', 'Thiếu thông tin xác thực');
                         console.error(flights);
                         return;
@@ -650,7 +691,8 @@ function showDialogAutoBook(bookingData) {
 
     // Header
     const header = document.createElement('div');
-    header.className = 'header';
+    header.className = 'header autobookFormHeader';
+    header.id = 'autobookFormHeader';
     header.innerHTML = `<h4 class="title">Auto book ${bookingData.supplierName}</h4>`;
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
@@ -850,6 +892,7 @@ function showDialogAutoBook(bookingData) {
             <input type="hidden" name="autobookPassengerTitle[]" value="${value.salutation}" readonly />
             <input type="hidden" name="autobookPassengerFullname[]" value="${value.name}" readonly />
             <input type="hidden" name="autobookPassengerDateOfBirth[]" value="${value.dateOfBirth}" readonly />
+            <input type="hidden" name="autobookPassengerPassport[]" value="${value.passportNumber || value.cic}" readonly />
 
             <div class="info-row d-flex justify-content-between">
                 <div><b><span style="font-weight:700;color:${value.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${value.salutation}.</span> ${value.name}</b></div>
@@ -959,7 +1002,10 @@ function showDialogAutoBook(bookingData) {
     dialog.appendChild(formWrapper);
     document.body.appendChild(dialog);
     dialog.showModal();
-    $('#autoBookDialog').draggable(); // Using only by Jquery
+
+    $('#autoBookDialog').draggable({
+        handle: "#autobookFormHeader"
+    }); // Using only by Jquery
 }
 
 function hideDialogAutoBook() {
@@ -1096,9 +1142,6 @@ function showUpdateFlightData(searchData, updateData, entryClass) {
         let updateNewTotalAmount = updateData?.totalAmount ?? 0;
         $(`#${PREFIX}TotalAmount${depCode}${desCode}Display`).text(formatNumber(updateOldTotalAmount));
         $(`input#${PREFIX}TotalAmount${depCode}${desCode}`).val(formatNumber(updateNewTotalAmount) + ' VND');
-    }
-    else {
-        console.warn("Vô đây", updateData?.totalAmount);
     }
 
     // Button update

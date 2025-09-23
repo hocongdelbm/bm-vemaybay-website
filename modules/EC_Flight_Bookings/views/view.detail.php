@@ -114,7 +114,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.4">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_phuongnam.css?v=1.1">
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
 		echo $css;
 	}
@@ -1172,23 +1172,32 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// Auto book
 		if(in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
+			$agencyOptions = '
+				<li>
+					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
+						<span class="ms-1">Hồng Ngọc Hà</span>
+					</a>
+				</li>
+				<li>
+					<a type="button" id="auto-book-phuongnam" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookPhuongNamsClass">
+						<span class="ms-1">Phương Nam</span>
+					</a>
+				</li>
+			';
+			if($this->bean->ticket_type == '2') {
+				$agencyOptions = '<li>
+					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
+						<span class="ms-1">Hồng Ngọc Hà</span>
+					</a>
+				</li>';
+			}
+
 			$this->ss->assign('BUTTON_AUTO_BOOK',
 				'<div class="btn-group btn-group-autobook">
 					<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
 						Auto book
 					</button>
-					<ul class="dropdown-menu dropdown-menu-lg-end">
-						<li>
-							<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
-								<span class="ms-1">Hồng Ngọc Hà</span>
-							</a>
-						</li>
-						<li>
-							<a type="button" id="auto-book-phuongnam" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookPhuongNamsClass">
-								<span class="ms-1">Phương Nam</span>
-							</a>
-						</li>
-					</ul>
+					<ul class="dropdown-menu dropdown-menu-lg-end">'.$agencyOptions.'</ul>
 				</div>'
 			);
 		}
