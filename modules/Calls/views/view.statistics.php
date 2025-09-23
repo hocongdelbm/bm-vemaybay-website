@@ -322,38 +322,42 @@ class Viewstatistics extends SugarView
                //      'name' => 'Trần Như Điền',
                //      'agent' => '105',
                // ),
-               '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => array(
-                    'name' => 'Trương Mỹ Nhân',
-                    'agent' => '106',
-               ),
-               'ebc40fa1-8878-1a86-000d-5b6949a87e11' => array(
-                    'name' => 'Lê Tín Nghĩa',
-                    'agent' => '107',
-               ),
+               // '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => array(
+               //      'name' => 'Trương Mỹ Nhân',
+               //      'agent' => '106',
+               // ),
+               // 'ebc40fa1-8878-1a86-000d-5b6949a87e11' => array(
+               //      'name' => 'Lê Tín Nghĩa',
+               //      'agent' => '107',
+               // ),
                // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => array(
                //      'name' => 'Nguyễn Duy Đăng',
                //      'agent' => '108',
                // ),
-               '37cd4853-721c-9808-af64-5600c8835d03' => array(
-                    'name' => 'Đỗ Thị Kim Ngân',
-                    'agent' => '120',
+               'f299609a-28c0-c30e-d661-68ccb9aec236' => array(
+                    'name' => 'Nguyễn Thị Kiều Loan',
+                    'agent' => '108',
                ),
-               'b4ff32c8-8a1e-0648-b20d-63437ab44554' => array(
-                    'name' => 'Nguyễn Trang Đài',
-                    'agent' => '121',
-               ),
+               // '37cd4853-721c-9808-af64-5600c8835d03' => array(
+               //      'name' => 'Đỗ Thị Kim Ngân',
+               //      'agent' => '120',
+               // ),
+               // 'b4ff32c8-8a1e-0648-b20d-63437ab44554' => array(
+               //      'name' => 'Nguyễn Trang Đài',
+               //      'agent' => '121',
+               // ),
                'd61ac0c1-91b3-0dc8-049a-518b21d2deb9' => array(
                     'name' => 'Chung Thanh Nhân',
                     'agent' => '122',
                ),
-               '9f381038-99c2-7515-938f-558939fee19a' => array(
-                    'name' => 'Thiều Tuấn Anh',
-                    'agent' => '201',
-               ),
-               'd14007fa-aaed-cac7-9a00-62cfccf58d5a' => array(
-                    'name' => 'Nghiêm Xuân Đức',
-                    'agent' => '202',
-               ),
+               // '9f381038-99c2-7515-938f-558939fee19a' => array(
+               //      'name' => 'Thiều Tuấn Anh',
+               //      'agent' => '201',
+               // ),
+               // 'd14007fa-aaed-cac7-9a00-62cfccf58d5a' => array(
+               //      'name' => 'Nghiêm Xuân Đức',
+               //      'agent' => '202',
+               // ),
                '61b537e5-6bc5-77e5-1102-5ff3dc1e40ee' => array(
                     'name' => 'Phạm Chiến Thắng',
                     'agent' => '203',
@@ -374,10 +378,10 @@ class Viewstatistics extends SugarView
                     'name' => 'Nguyễn Lộc Danh',
                     'agent' => '109',
                ),
-               '2037c237-a846-7dc4-0b76-68c7699f5a03' => array(
-                    'name' => 'Trịnh Thị Kim Ly',
-                    'agent' => '108',
-               ),
+               // '2037c237-a846-7dc4-0b76-68c7699f5a03' => array(
+               //      'name' => 'Trịnh Thị Kim Ly',
+               //      'agent' => '108',
+               // ),
                'e692a4e4-b402-4ffa-ce78-68c904aa4086' => array(
                     'name' => 'Mai Thị Anh Đào',
                     'agent' => '105',

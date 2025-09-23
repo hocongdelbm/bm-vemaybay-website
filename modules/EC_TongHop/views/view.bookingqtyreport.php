@@ -12,10 +12,10 @@ class Viewbookingqtyreport extends SugarView
 		$user_title = $current_user->title;
 
 		// Bảo trì
-		if($current_user->user_name != 'hungnh'){
-			echo '<p class="alert alert-warning fw-semibold">Báo cáo doanh số booking đang bảo trì. Vui lòng quay lại sau!</p>';
-			exit();
-		}
+		// if($current_user->user_name != 'hungnh'){
+		// 	echo '<p class="alert alert-warning fw-semibold">Báo cáo doanh số booking đang bảo trì. Vui lòng quay lại sau!</p>';
+		// 	exit();
+		// }
 
 		if (
 			is_admin($current_user) ||
