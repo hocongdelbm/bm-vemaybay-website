@@ -257,12 +257,37 @@ class entryAutoBookDatacomClass extends entryClass {
         ];
     }
 
-    public function getBooking() {
+    /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getBooking($params = []) {
+        $pnr = trim($params['pnr'] ?? '');
+        $systemCode = $params['systemCode'] ?? '';
+        $airlineCode = $params['airlineCode'] ?? '';
 
+        if(strlen($pnr) == 6) {
+            $agency = new APIDatacom();
+            $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
+            $arrBooking = json_decode($jsonBooking, true);
+            if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
+                $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
+                $arrBooking['data']['EntryClass'] = __CLASS__;
+                $arrBooking['data']['Supplier'] = $this->supplierName;
+            }
+            return $arrBooking;
+        }
+
+        return [
+            "status" => 0,
+            "message" => "PNR $pnr không hợp lệ",
+        ];
     }
 
     public function getBaggageInfo() {
-
+        
     }
 
     /**
@@ -1279,8 +1304,44 @@ class entryAutoBookDatacomClass extends entryClass {
         return $responseArr;
     }
 
-    public function payBooking() {
+    /**
+     * Pay for booking
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function payBooking($params = []) {
+        $bookingCode = $params['bookingCode'] ?? '';
+        $systemCode  = $params['systemCode'] ?? '';
 
+        $agency = new APIDatacom();
+        $response = $agency->payBooking($bookingCode, $systemCode);
+        $responseArr = json_decode($response, true);
+
+        // Send notification
+        try {
+            if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+                $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
+                $paidAmount = $responseArr["data"]["PaidAmount"] ?? 0;
+
+                if($this->notificationChannel == 'Mattermost') {
+                    $m = "**Xuất vé $systemName: $bookingCode bởi $fullname**";
+                    if($paidAmount > 0) $m .= "\n- Tổng thanh toán: **".format_number($paidAmount)." VND**";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                }
+                else {
+                    $m = "<b>💰 Xuất vé $systemName: $bookingCode bởi $fullname</b>";
+                    if($paidAmount > 0) $m .= "\nTổng thanh toán: <b>{".format_number($paidAmount)." VND</b>";
+                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                    Telegram::sendMessage($m, $botToken, $chatId);
+                } 
+            }
+        }
+        catch(Throwable $th) {}
+
+        return $responseArr;
     }
 
     public function addBaggage() {

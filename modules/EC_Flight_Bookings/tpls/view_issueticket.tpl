@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/issueticket.css?v=1.0">
+<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.0">
 
 <div class="container">
     <header class="booking-header">
@@ -18,6 +18,8 @@
     <div id="bookingContent" class="booking-content hidden">
         <input type="hidden" name="systemCode" value="" />
         <input type="hidden" name="bookingCode" value="" />
+        <input type="hidden" name="supplier" value="" />
+        <input type="hidden" name="entryClass" value="entryAutoBookDatacomClass" />
 
         <!-- Booking Information Section -->
         <section class="booking-info-section">
@@ -123,9 +125,9 @@
                         <tr>
                             <th>Loại HK</th>
                             <th>Giá vé</th>
+                            <th>VAT</th>
                             <th>Phí sân bay</th>
                             <th>Phí khác</th>
-                            <th>VAT</th>
                             <th>Tổng</th>
                         </tr>
                     </thead>
@@ -170,4 +172,4 @@
     </section>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/api_phuongnam/issueticket.js?v=1.1"></script>
+<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0"></script>

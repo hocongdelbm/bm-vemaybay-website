@@ -3,12 +3,14 @@ class APIPhuongNam {
     private $ENDPOINT;
     private $API_SEARCH_KEY;
     private $API_BOOKING_KEY;
+    private $API_NAME;
 
     public function __construct() {
         global $sugar_config;
         $this->ENDPOINT = $sugar_config['api_autobook']['Endpoint'] ?? '';
         $this->API_SEARCH_KEY = $sugar_config['api_autobook']['SearchKey'] ?? '';
         $this->API_BOOKING_KEY = $sugar_config['api_autobook']['BookingKey'] ?? '';
+        $this->API_NAME = 'phuongnam';
     }
 
     public function searchFlights($airlineCode, $depCode, $desCode, $departDate, $returnDate = '', $adt = 1, $chd = 0, $inf = 0, $options = []) {
@@ -236,20 +238,17 @@ class APIPhuongNam {
     /**
      * Get booking detail
      * 
-     * @param string $systemCode VJ, VN, QH, VU,...
      * @param string $bookingCode PNR
+     * @param string $systemCode VJ, VN, 1A,...
      * @return string JSON {status, message, data}
      */
-    public function getBooking($systemCode, $bookingCode) {
+    public function getBooking($bookingCode, $systemCode = '') {
         try {
-            if(!$systemCode || !$bookingCode || empty($systemCode) || empty($bookingCode)) {
+            if(!is_string($bookingCode) || strlen($bookingCode) != 6) {
                 return json_encode([
-                    'status' => 0,
-                    'message' => 'Invalid params',
-                    'params' => [
-                        'systemCode' => $systemCode,
-                        'bookingCode' => $bookingCode
-                    ]
+                    "status" => 0,
+                    "message" => trim("Invalid booking code $bookingCode"),
+                    "data" => null
                 ]);
             }
 
@@ -258,16 +257,14 @@ class APIPhuongNam {
                 "API-Key: $this->API_BOOKING_KEY"
             ];
 
+            $url = "$this->ENDPOINT/getBooking?pnr=$bookingCode";
+            if(!empty($systemCode)) $url .= "&systemCode=$systemCode";
+
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/getBooking?pnr=$bookingCode&systemCode=$systemCode");
+            curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-            // curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-            // curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode([
-            //     'systemCode' => $systemCode,
-            //     'bookingCode' => $bookingCode
-            // ]));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
@@ -1094,6 +1091,127 @@ class APIPhuongNam {
     }
 
     /**
+     * Standardize booking data for issueing ticket
+     * 
+     * @param array $data Data from API getBooking
+     * @return array
+     */
+    public function standardizeBookingData($data) {
+        $bookingData = [];
+
+        $bookingData["TransactionId"]   = $data["TransactionId"] ?? "";
+        $bookingData["SystemCode"]      = $data["SystemCode"] ?? "";
+        $bookingData["AirlineCode"]     = $data["CarrierCode"] ?? "";
+        $bookingData["AirlineName"]     = $data["CarrierName"] ?? "";
+        $bookingData["BookingCode"]     = $data["BookingCode"] ?? "";
+        $bookingData["BookingId"]       = $data["BookingId"] ?? "";
+        $bookingData["BookingStatusId"] = $data["BookingStatusId"];
+        $bookingData["BookingStatusName"] = $data["BookingStatusName"];
+        $bookingData["BookingDate"]     = $data["BookingDate"];
+        $bookingData["BookingExpired"]  = $data["BookingExpired"];
+        $bookingData["TicketNumber"]    = $data["TicketNumber"];
+        $bookingData["TotalAmount"]     = $data["TotalPrice"] ?? 0;
+        $bookingData["PaidAmount"]      = $data["PaidAmount"] ?? 0;
+        $bookingData["UnPaidAmount"]    = $data["UnPaidAmount"] ?? 0;
+        $bookingData["Contact"] = [
+            "Title"     => $data["ContactTitle"] ?? "",
+            "Name"      => $data["ContactName"] ?? "",
+            "Email"     => $data["ContactEmail"] ?? "",
+            "Phone"     => $data["ContactPhone"] ?? "",
+            "Address"   => $data["ContactAddress"] ?? "",
+        ];
+        $bookingData["IsPaid"]      = $data["IsPaid"] ?? false;
+        $bookingData["IsVoid"]      = $data["IsPaid"] ?? false;
+        $bookingData["IsRefund"]    = $data["IsRefund"] ?? false;
+        $bookingData["IsEdit"]      = $data["IsEdit"] ?? false;
+
+        // List passenger
+        $bookingData["ListPassenger"] = [];
+        $passengers = $data["Customers"] ?? [];
+        $baggages = $data["Baggages"] ?? [];
+        foreach($passengers as $p) {
+            // Get purchase baggage
+            $listBaggage = [];
+            foreach($baggages as $bag) {
+                if($p["PersonOrgId"] == $bag["PersonOrgId"]) {
+                    $listBaggage[] = [
+                        "FlightId"      => $bag["FlightId"],
+                        "SegmentId"     => $bag["SegmentId"],
+                        "Name"          => $bag["ServiceName"],
+                        "Type"          => $bag["ServiceType"],
+                        "Code"          => $bag["BaggageCode"],
+                        "Description"   => $bag["BaggageDescription"] ?? "",
+                        "TotalAmount"   => $bag["TotalAmount"],
+                    ];
+                }
+            }
+
+            $bookingData["ListPassenger"][] = [
+                "Id"            => $p["PersonOrgId"],
+                "Type"          => $this->getPassengerTypeText($p["PassengerTypeId"]), // adt, chd, inf
+                "Title"         => $p["Title"] ?? "",
+                "Gender"        => $p["Gender"], // M, F
+                "LastName"      => $p["LastName"],
+                "FirstName"     => $p["FirstName"],
+                "MiddleName"    => $p["MiddleName"] ?? "",
+                "DateOfBirth"   => $p["BirthDay"],
+                "Age"           => $p["Age"],
+                "Email"         => $p["Email"] ?? "",
+                "Phone"         => $p["Phone"] ?? "",
+                "Passport"      => $p["DocumentNo"] ?? "",
+                "ParentId"      => $p["ParentGuestId"] ?? null,
+                "IdConfirmed"   => $p["personOrgIdConfirmed"] ?? "", // Using for QH
+                "ListBaggage"   => $listBaggage,
+                "ListPreSeat"   => [],
+                "ListService"   => [],
+            ];
+        }
+
+        // List flight
+        $bookingData["ListFlight"] = [];
+        foreach(($data["Flights"] ?? []) as $ff) {
+            $bookingData["ListFlight"][] = [
+                "FlightId"              => $ff["FlightId"],
+                "SegmentId"             => $ff["SegmentId"],
+                "Origin"                => $ff["Origin"],
+                "OriginName"            => $ff["OriginName"],
+                "OriginCityName"        => $ff["OriginCityName"],
+                "Destination"           => $ff["Destination"],
+                "DestinationName"       => $ff["DestinationName"],
+                "DestinationCityName"   => $ff["DestinationCityName"],
+                "AirlineCode"           => $ff["CarrierCode"],
+                "CarrierCode"           => $ff["OperatingCode"],
+                "FlightNumber"          => $ff["FlightNumber"],
+                "FlightDuration"        => $ff["FlightDuration"],
+                "DepartureDate"         => $ff["DepartureDate"],
+                "DepartureTime"         => $ff["DepartureTime"],
+                "ArrivalDate"           => $ff["ArrivalDate"] ?? "",
+                "Arrivaltime"           => $ff["Arrivaltime"],
+                "CabinName"             => $ff["CabinName"],
+                "FareClass"             => $ff["FareClass"],
+                "AirCratf"              => $ff["AirCraftType"],
+                "Terminal"              => "",
+            ];
+        }
+
+        // List fare
+        $bookingData["ListFare"] = [];
+        foreach(($data["SumCharge"]["FareCharges"] ?? []) as $fare) {
+            $farePassType = $this->getPassengerTypeText($fare["PassengerTypeId"]); // adt, chd, inf
+            $bookingData["ListFare"][$farePassType] = [
+                "Type"          => $farePassType,
+                "BaseFare"      => $fare["FareBaseAmount"],
+                "VAT"           => $fare["VATAmount"],
+                "AirportFee"    => $fare["AirportFeesAmount"],
+                "OtherFee"      => $fare["TaxAmount"],
+                "Price"         => $fare["TotalAmount"]
+            ];
+        }
+
+        return $bookingData;
+    }
+
+    /**
      * Detecting cabin (class) for searching flights
      * 
      * @param string $airlineCode VJ, VN, QH, VU
@@ -1151,6 +1269,24 @@ class APIPhuongNam {
         $arr = [1, 6, 5]; // (1: Người lớn, 6: Trẻ em, 5: Em bé)
         $type = (int)$type;
         return $arr[$type] ?? $type;
+    }
+
+    /**
+     * Mapping passenger type text
+     * 
+     * @param int $typeNum 1:Người lớn; 6:Trẻ em; 5:Em bé
+     * @return string adt, chd, inf
+     */
+    public function getPassengerTypeText($typeNum) {
+        switch ($typeNum) {
+            case 5:
+                return 'inf';
+            case 6:
+                return 'chd';
+            case 1:
+            default:
+                return 'adt';
+        }
     }
 
     public function getAge($birthdate) {

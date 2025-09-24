@@ -795,13 +795,13 @@ section h2 {
   font-weight: 600;
 }
 
-.badge.adult,
-.badge.child {
+.badge.adt,
+.badge.chd {
   background-color: #ededed;
   color: #000000;
 }
 
-.badge.infant {
+.badge.inf {
   background-color: #ffe7e9;
   color: #ff3345;
 }

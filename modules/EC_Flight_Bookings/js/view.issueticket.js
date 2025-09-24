@@ -1,4 +1,4 @@
-const ENDPOINT_AUTO_BOOK = "index.php?entryPoint=entryPointAutoBook";
+const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
 
 $(document).ready(function () {
     $(document).on('keypress', function (e) {
@@ -10,38 +10,43 @@ $(document).ready(function () {
     $('#btnSearch').click(function () {
         let pnr = $('input[name="pnr"]').val();
 
-        if (!airlineCode || !pnr || pnr.length < 6 || airlineCode.length < 2) return false;
-
+        if (!pnr || pnr.length < 6) return false;
         $.ajax({
-            url: ENDPOINT_AUTO_BOOK,
+            url: ENTRYPOINT,
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({
-                action: "get_booking",
-                systemCode: airlineCode,
-                bookingCode: pnr
+                class: "entryAutoBookDatacomClass",
+                method: "getBooking",
+                params: {
+                    pnr: pnr
+                }
             }),
             beforeSend: function () {
                 $('.container-waiting').show();
             },
             success: function (response) {
                 try {
-                    $('input[name="systemCode"]').val(airlineCode);
-                    $('input[name="bookingCode"]').val(pnr);
-
-                    $('.container-waiting').hide();
-                    const objData = JSON.parse(response);
-                    if (objData.status == 1) {
-                        renderBooking(objData.data);
+                    const objRes = JSON.parse(response);
+                    if (objRes.status == 1) {
+                        $('input[name="bookingCode"]').val(objRes.data.BookingCode);
+                        $('input[name="systemCode"]').val(objRes.data.SystemCode);
+                        $('input[name="entryClass"]').val(objRes.data.EntryClass);
+                        $('input[name="supplier"]').val(objRes.data.Supplier);
+                
+                        renderBooking(objRes.data);
                         showBookingContent();
                     }
                     else {
-                        showModalNotify("error", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
+                        showModalNotify("error", objRes.message ?? "Lỗi trong quá trình lấy dữ liệu");
                         clearBooking();
-                        console.error(objData);
+                        console.error(objRes);
                     }
+
+                    $('.container-waiting').hide();
                 }
                 catch (e) {
+                    $('.container-waiting').hide();
                     showModalNotify("error", "Lỗi trong quá trình lấy dữ liệu", e.message);
                     clearBooking();
                     console.error(e);
@@ -75,7 +80,7 @@ $(document).ready(function () {
 
         if (systemCode.length > 0 && bookingCode.length > 0 && direction.length > 0 && personOrgId > 0) {
             $.ajax({
-                url: ENDPOINT_AUTO_BOOK,
+                url: ENTRYPOINT,
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify({
@@ -119,8 +124,13 @@ $(document).ready(function () {
     $('#payNowButton').on('click', function () {
         const bookingCode = $('input[name="bookingCode"]').val();
         const systemCode = $('input[name="systemCode"]').val();
+        const entryClass = $('input[name="entryClass"]').val();
         const unpaidAmount = $('#paymentUnpaidAmount').text();
 
+        if (!entryClass || entryClass.length < 1) {
+            showModalNotify("warning", "Không tìm thấy nhà cung cấp");
+            return;
+        }
         if (!bookingCode || !systemCode || bookingCode.length < 6 || systemCode.length < 2) {
             showModalNotify("warning", "Vui lòng kiểm tra lại PNR và Mã hãng");
             return;
@@ -131,14 +141,17 @@ $(document).ready(function () {
             $('#payNowButton').prop('disabled', true).text('Đang xử lý...'); // Disable button during processing
 
             $.ajax({
-                url: ENDPOINT_AUTO_BOOK,
+                url: ENTRYPOINT,
                 type: "POST",
                 contentType: "application/json",
                 dataType: 'json',
                 data: JSON.stringify({
-                    action: "pay_booking",
-                    systemCode: systemCode,
-                    bookingCode: bookingCode
+                    class: "entryAutoBookDatacomClass",
+                    method: "payBooking",
+                    params: {
+                        bookingCode: bookingCode,
+                        systemCode: systemCode,
+                    }
                 }),
                 beforeSend: function () {
                     $('.container-waiting').show();
@@ -201,10 +214,10 @@ function renderBooking(data) {
     renderPassengers(data);
 
     // Render flights
-    renderFlights(data.Flights);
+    renderFlights(data.ListFlight);
 
     // Render fare breakdown
-    renderFareBreakdown(data.SumCharge.FareCharges);
+    renderFareBreakdown(data.ListFare);
 }
 
 function renderBookingInfo(data) {
@@ -240,10 +253,10 @@ function renderBookingInfo(data) {
     } else {
         $('#bookingExpiry').text(formatDateTime(data.BookingExpired));
     }
-    $('#contactName').text(data.ContactName);
-    $('#contactEmail').text(data.ContactEmail);
-    $('#contactPhone').text(data.ContactPhone);
-    $('#contactAddress').text(data.ContactAddress);
+    $('#contactName').text(data.Contact.Name);
+    $('#contactEmail').text(data.Contact.Email);
+    $('#contactPhone').text(data.Contact.Phone);
+    $('#contactAddress').text(data.Contact.Address);
 
     // Update status icons
     updateStatusIcons(data);
@@ -357,6 +370,7 @@ function updatePaymentSection(data) {
 
     // Only show payment section for BookingStatusId 100 and not expired
     if (data.BookingStatusId === 100 && !isBookingExpired(data.BookingExpired)) {
+    // if (data.BookingStatusId === 100 && !isBookingExpired(data.BookingExpired)) {
         // Update payment information
         $('#paymentTotalAmount').text(formatCurrency(data.TotalAmount));
         $('#paymentUnpaidAmount').text(formatCurrency(data.UnPaidAmount));
@@ -484,40 +498,35 @@ function renderPassengers(data) {
 
     var icon_baggage = `<svg fill="#3d3d3d" height="16px" width="16px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 248.35 248.35" xml:space="preserve"><title>Hành lý</title><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <path d="M186.057,66.136h-15.314V19.839C170.743,8.901,161.844,0,150.904,0H97.448c-10.938,0-19.84,8.901-19.84,19.839v46.296 H62.295c-9.567,0-17.324,7.757-17.324,17.324V214.26c0,9.571,7.759,17.326,17.324,17.326h2.323v12.576 c0,2.315,1.876,4.188,4.186,4.188h19.811c2.315,0,4.188-1.876,4.188-4.188v-12.576h62.741v12.576c0,2.315,1.878,4.188,4.188,4.188 h19.809c2.317,0,4.188-1.876,4.188-4.188v-12.576h2.326c9.567,0,17.324-7.757,17.324-17.326V83.46 C203.381,73.891,195.624,66.136,186.057,66.136z M157.514,66.135H90.832V19.839c0-3.646,2.967-6.613,6.613-6.613h53.456 c3.646,0,6.613,2.967,6.613,6.613V66.135z"></path> </g> </g> </g></svg>`;
 
-    const baggages = data.Baggages;
-    const customers = data.Customers;
-    customers.forEach(function (customer) {
-        const passengerLabel = getPassengerLabel(customer.PassengerTypeId);
-        const badgeClass = getPassengerType(customer.PassengerTypeId);
-
+    const listPassenger = data.ListPassenger;
+    listPassenger.forEach(function (passenger) {
         // Purchased services
         let purchasedServicesHTML = '';
         let purchasedBaggageDep = false
         let purchasedBaggageRet = false;
-        if(baggages) {
-            baggages.forEach(function (baggage) {
-                if(customer.PersonOrgId == baggage.PersonOrgId) {
-                    if(baggage.FlightId == 1) purchasedBaggageDep = true;
-                    else purchasedBaggageRet = true;
-                    purchasedServicesHTML += `<p class="purchased-item">
-                        ${icon_baggage} ${baggage.FlightId == 1 ? 'Lượt đi' : 'Lượt về'} ${baggage.ServiceName} <b style="color:blue;">${formatCurrency(baggage.TotalAmount)}</b>
-                    </p>`;
-                }
+        let listBaggage = passenger.ListBaggage
+        if(listBaggage) {
+            listBaggage.forEach(function (baggage) {
+                if(baggage.FlightId == 0) purchasedBaggageDep = true;
+                else purchasedBaggageRet = true;
+                purchasedServicesHTML += `<p class="purchased-item">
+                    ${icon_baggage} ${baggage.FlightId == 1 ? 'Lượt đi' : 'Lượt về'} ${baggage.Name ?? baggage.Description} <b style="color:blue;">${formatCurrency(baggage.TotalAmount)}</b>
+                </p>`;
             });
         }
  
         // Service actions
         let showAddBag = true;
         let optBaggageServiceHTML = '';
-        if (customer.PassengerTypeId != 5 && (data.BookingStatusId != 100 || !isBookingExpired(data.BookingExpired))) {
-            for (let i = 0; i < Object.keys(data.Flights).length; i++) {
+        if (passenger.Type != 'inf' && (data.BookingStatusId != 100 || !isBookingExpired(data.BookingExpired))) {
+            for (let i = 0; i < Object.keys(data.ListFlight).length; i++) {
                 if((i == 0 && purchasedBaggageDep) || (i == 1 && purchasedBaggageRet)) continue
                 let text = i == 0 ? 'Thêm hành lý đi' : 'Thêm hành lý về';
                 optBaggageServiceHTML += `<a class="dropdown-item add-baggage"
                     direction="${i}"
-                    personOrgId="${customer.PersonOrgId}"
-                    personOrgIdConfirmed="${customer.personOrgIdConfirmed ?? ''}"
-                    passengerName="${customer.LastName} ${customer.FirstName}"
+                    personOrgId="${passenger.Id}"
+                    personOrgIdConfirmed="${passenger.IdConfirmed}"
+                    passengerName="${passenger.LastName} ${passenger.FirstName}"
                 >
                     ${text}
                 </a>`;
@@ -525,17 +534,19 @@ function renderPassengers(data) {
         }
         else showAddBag = false;
 
+        const passengerLabelName = getPassengerLabelName(passenger.Type);
+        const badgeClass = passenger.Type;
         tbody.append(`<tr>
             <td>
-                <strong>${customer.PersonOrgId}. ${customer.LastName} ${customer.FirstName}</strong>
+                <strong>${passenger.Id}. ${passenger.LastName} ${passenger.FirstName}</strong>
                 ${purchasedServicesHTML}
             </td>
-            <td><span class="badge ${badgeClass}">${passengerLabel}</span></td>
-            <td>${customer.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
-            <td>${formatDate(customer.BirthDay)}${(customer.Age !== undefined && customer.Age > 0) ? `<i class="ms-1">(${customer.Age} tuổi)</i>` : ''}</td>
+            <td><span class="badge ${badgeClass}">${passengerLabelName}</span></td>
+            <td>${passenger.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
+            <td>${passenger.DateOfBirth}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
             <td>
-                ${customer.Email ? `<div>${customer.Email}</div>` : ''}
-                ${customer.Phone ? `<div>${customer.Phone}</div>` : ''}
+                ${passenger.Email ? `<div>${passenger.Email}</div>` : ''}
+                ${passenger.Phone ? `<div>${passenger.Phone}</div>` : ''}
             </td>
             <td>
                 <div class="btn-group ${!showAddBag ? 'd-none' : ''}">
@@ -555,11 +566,11 @@ function renderFlights(flights) {
 
     flights.forEach(function (flight, index) {
         const isReturn = index > 0;
-        const carrierClass = flight.CarrierCode.toLowerCase();
+        const carrierClass = flight.AirlineCode.toLowerCase();
         const flightCard = `
             <div class="flight-card ${isReturn ? 'return' : ''} ${carrierClass}">
                 <div class="flight-header">
-                    <div class="flight-number ${carrierClass}">${flight.CarrierCode}${flight.FlightNumber}</div>
+                    <div class="flight-number ${carrierClass}">${flight.AirlineCode}${flight.FlightNumber}</div>
                     <div class="flight-date">${formatDate(flight.DepartureDate)}</div>
                 </div>
                 
@@ -595,7 +606,7 @@ function renderFlights(flights) {
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Aircraft</div>
-                        <div class="detail-value">${flight.AirCratfType || ''}</div>
+                        <div class="detail-value">${flight.AirCratf || ''}</div>
                     </div>
 					<!--
                     <div class="detail-item">
@@ -614,18 +625,17 @@ function renderFareBreakdown(fareCharges) {
     const tbody = $('#fareTable tbody');
     tbody.empty();
 
-    fareCharges.forEach(function (fare) {
-        const passengerType = getPassengerLabel(fare.PassengerTypeId);
-        const row = `
-            <tr>
-                <td><strong>${passengerType}</strong></td>
-                <td>${formatCurrency(fare.FareBaseAmount)}</td>
-                <td>${formatCurrency(fare.AirportFeesAmount)}</td>
-                <td>${formatCurrency(fare.TaxAmount)}</td>
-                <td>${formatCurrency(fare.VATAmount)}</td>
-                <td><strong>${formatCurrency(fare.TotalAmount)}</strong></td>
-            </tr>
-        `;
+    // fareCharges.forEach(function (fare) {
+    Object.entries(fareCharges).forEach(([key, fare]) => {
+        const passengerType = getPassengerLabelName(fare.Type);
+        const row = `<tr>
+            <td><strong>${passengerType}</strong></td>
+            <td>${formatCurrency(fare.BaseFare)}</td>
+            <td>${formatCurrency(fare.VAT)}</td>
+            <td>${formatCurrency(fare.AirportFee)}</td>
+            <td>${formatCurrency(fare.OtherFee)}</td>
+            <td><strong>${formatCurrency(fare.Price)}</strong></td>
+        </tr>`;
         tbody.append(row);
     });
 }
@@ -732,22 +742,19 @@ function formatTime(dateString) {
     return `${hours}:${minutes}`;
 }
 
-function getPassengerType(typeId) {
+/**
+ * Get passenger label name
+ * 
+ * @param {string} type adt, chd, inf
+ * @returns {string}
+ */
+function getPassengerLabelName(type) {
     const types = {
-        1: 'adult',
-        5: 'infant',
-        6: 'child'
+        "adt" : "Người lớn",
+        "chd" : "Trẻ em",
+        "inf" : "Em bé"
     };
-    return types[typeId] || '';
-}
-
-function getPassengerLabel(typeId) {
-    const types = {
-        1: 'Người lớn',
-        5: 'Em bé',
-        6: 'Trẻ em'
-    };
-    return types[typeId] || 'Unknown';
+    return types[type] || "Unknown";
 }
 
 function getLinkImageAirline(airlineCode) {
@@ -849,7 +856,7 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
                 let bookingCode = $('input[name="bookingCode"]').val();
 
                 $.ajax({
-                    url: ENDPOINT_AUTO_BOOK,
+                    url: ENTRYPOINT,
                     type: "POST",
                     contentType: "application/json",
                     data: JSON.stringify({
