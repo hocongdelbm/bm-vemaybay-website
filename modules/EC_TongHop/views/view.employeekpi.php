@@ -171,7 +171,7 @@ class Viewemployeekpi extends SugarView {
 					FROM ec_working_process w
 					INNER JOIN users u ON w.assigned_user_id = u.id AND u.deleted = 0
 					AND u.is_admin = 0 AND u.title <> 'QuanLy' 
-					AND u.start_working_date IS NOT NULL
+					-- AND u.start_working_date IS NOT NULL
 					WHERE w.deleted = 0
 					" . $sql_search2 . "
 					GROUP BY w.assigned_user_id

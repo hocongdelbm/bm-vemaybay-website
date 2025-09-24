@@ -260,13 +260,14 @@ class APIPhuongNam {
 
             $curl = curl_init();
             if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/getBooking");
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/getBooking?pnr=$bookingCode&systemCode=$systemCode");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode([
-                'systemCode' => $systemCode,
-                'bookingCode' => $bookingCode
-            ]));
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+            // curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+            // curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode([
+            //     'systemCode' => $systemCode,
+            //     'bookingCode' => $bookingCode
+            // ]));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
@@ -292,34 +293,14 @@ class APIPhuongNam {
 
             if($httpcode != 200) {
                 return json_encode([
-                    "status" => 0,
-                    "message" => "Getting booking failed",
-                    "data" => $responseArr,
+                    "status"    => 0,
+                    "message"   => $responseArr["message"] ?? "Getting booking failed",
+                    "data"      => $responseArr,
                     "description" => "HTTP error $httpcode"
                 ]);
             }
 
-            if($responseArr['ID'] != 1) {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => $responseArr["Message"] ?? "Getting booking failed",
-                    "data"      => $responseArr['Data'] ?? [],
-                ]);
-            }
-
-            if(!isset($responseArr['Data']) || !$responseArr['Data'] || empty($responseArr['Data'])) {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => "No data for $bookingCode in $systemCode",
-                    "data"      => [],
-                ]);
-            }
-
-            return json_encode([
-                "status"     => 1,
-                "message"   => "Success",
-                "data"      => $responseArr['Data'] ?? [],
-            ]);
+            return $response;
         }
         catch(Exception $e) {
             return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
