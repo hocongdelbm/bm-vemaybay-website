@@ -1168,8 +1168,10 @@ class APIPhuongNam {
         }
 
         // List flight
+        $countListFlight = 0;
         $bookingData["ListFlight"] = [];
         foreach(($data["Flights"] ?? []) as $ff) {
+            $countListFlight++;
             $bookingData["ListFlight"][] = [
                 "FlightId"              => $ff["FlightId"],
                 "SegmentId"             => $ff["SegmentId"],
@@ -1199,6 +1201,7 @@ class APIPhuongNam {
         foreach(($data["SumCharge"]["FareCharges"] ?? []) as $fare) {
             $farePassType = $this->getPassengerTypeText($fare["PassengerTypeId"]); // adt, chd, inf
             $bookingData["ListFare"][$farePassType] = [
+                "DirectionText" => $countListFlight > 1 ? "Khứ hồi" : "",
                 "Type"          => $farePassType,
                 "BaseFare"      => $fare["FareBaseAmount"],
                 "VAT"           => $fare["VATAmount"],

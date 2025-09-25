@@ -370,7 +370,6 @@ function updatePaymentSection(data) {
 
     // Only show payment section for BookingStatusId 100 and not expired
     if (data.BookingStatusId === 100 && !isBookingExpired(data.BookingExpired)) {
-    // if (data.BookingStatusId === 100 && !isBookingExpired(data.BookingExpired)) {
         // Update payment information
         $('#paymentTotalAmount').text(formatCurrency(data.TotalAmount));
         $('#paymentUnpaidAmount').text(formatCurrency(data.UnPaidAmount));
@@ -418,6 +417,7 @@ function isBookingExpired(bookingExpiredString) {
 
     // Check if date is valid
     if (isNaN(bookingExpired.getTime())) {
+        console.warn("hehe");
         // Invalid date, treat as unlimited (never expired)
         return false;
     }
@@ -627,14 +627,14 @@ function renderFareBreakdown(fareCharges) {
 
     // fareCharges.forEach(function (fare) {
     Object.entries(fareCharges).forEach(([key, fare]) => {
-        const passengerType = getPassengerLabelName(fare.Type);
         const row = `<tr>
-            <td><strong>${passengerType}</strong></td>
+            <td>${fare.DirectionText}</td>
+            <td><strong>${getPassengerLabelName(fare.Type)}</strong></td>
             <td>${formatCurrency(fare.BaseFare)}</td>
             <td>${formatCurrency(fare.VAT)}</td>
             <td>${formatCurrency(fare.AirportFee)}</td>
             <td>${formatCurrency(fare.OtherFee)}</td>
-            <td><strong>${formatCurrency(fare.Price)}</strong></td>
+            <td title="Chưa gồm số lượng"><strong>${formatCurrency(fare.Price)}</strong></td>
         </tr>`;
         tbody.append(row);
     });
@@ -760,24 +760,6 @@ function getPassengerLabelName(type) {
 function getLinkImageAirline(airlineCode) {
     return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
 }
-
-// // Alternative AJAX call for testing with mock data
-// function loadMockData() {
-//     // You can use this function to test with the provided JFON data
-//     const mockResponse = {
-//         "message": "Success",
-//         "data": {
-//             // Insert your JSON data here for testing
-//         },
-//         "status": 1
-//     };
-
-//     setTimeout(() => {
-//         // hideLoading();
-//         renderBooking(mockResponse.data);
-//         showBookingContent();
-//     }, 1000);
-// }
 
 function createBaggageServiceDialog(serviceData, systemCode, direction, passengerName, personOrgId, personOrgIdConfirmed = '') {
     return new Promise((resolve) => {

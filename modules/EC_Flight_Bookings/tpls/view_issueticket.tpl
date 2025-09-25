@@ -123,7 +123,8 @@
                 <table id="fareTable" class="data-table">
                     <thead>
                         <tr>
-                            <th>Loại HK</th>
+                            <th></th>
+                            <th width="10%">Loại HK</th>
                             <th>Giá vé</th>
                             <th>VAT</th>
                             <th>Phí sân bay</th>
@@ -134,7 +135,7 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <p class="mt-2 ms-2"><i>Đây là thông tin giá vé trên mỗi loại hành khách (Nhân số lượng để ra số tổng)</i></p>
+            <p class="mt-2 ms-2"><i>Đây là thông tin giá vé trên 1 loại hành khách (Nhân thêm số lượng để ra số tổng)</i></p>
         </section>
     </div>
 

@@ -163,7 +163,8 @@ class APIDatacom {
                     "status" => 0,
                     "message" => "Booking failed",
                     "data" => $responseArr,
-                    "description" => "HTTP error $httpcode"
+                    "description" => "HTTP error $httpcode",
+                    "requestBody" => $requestBody
                 ]);
             }
 
@@ -433,7 +434,8 @@ class APIDatacom {
                 }
 
                 if(!isset($bookingData["ListFare"][$farePassType])) {
-                    $bookingData["ListFare"][$farePassType] = [
+                    $bookingData["ListFare"][(string)$ff["Leg"] . $farePassType] = [
+                        "DirectionText" => count($data["ListFlightFare"]) > 1 ? ($ff["Leg"] == 1 ? "Lượt về" : "Lượt đi") : "",
                         "Type"          => $farePassType,
                         "BaseFare"      => $fareBase,
                         "VAT"           => $vat,
@@ -442,13 +444,13 @@ class APIDatacom {
                         "Price"         => $price
                     ];
                 }
-                else {
-                    $bookingData["ListFare"][$farePassType]["BaseFare"] += $fareBase;
-                    $bookingData["ListFare"][$farePassType]["VAT"] += $vat;
-                    $bookingData["ListFare"][$farePassType]["AirportFee"] += $airportFee;
-                    $bookingData["ListFare"][$farePassType]["OtherFee"] += $otherFee;
-                    $bookingData["ListFare"][$farePassType]["Price"] += $price;
-                }
+                // else {
+                //     $bookingData["ListFare"][$farePassType]["BaseFare"] += $fareBase;
+                //     $bookingData["ListFare"][$farePassType]["VAT"] += $vat;
+                //     $bookingData["ListFare"][$farePassType]["AirportFee"] += $airportFee;
+                //     $bookingData["ListFare"][$farePassType]["OtherFee"] += $otherFee;
+                //     $bookingData["ListFare"][$farePassType]["Price"] += $price;
+                // }
             }
 
             foreach(($ff["ListFlight"] ?? []) as $flight) {
