@@ -58,7 +58,7 @@ class APIDatacom {
 
             // Execute
             $curl = curl_init();
-            if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL failed to initialize in BM"]);
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
@@ -79,7 +79,7 @@ class APIDatacom {
             if ($json === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can't connect to API",
+                    "message" => "Can't connect to API Fare System",
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
@@ -89,7 +89,7 @@ class APIDatacom {
             if($httpcode != 200) {
                 return json_encode([
                     "status" => 0,
-                    "message" => $arr['message'] ?? "Can't connect to API",
+                    "message" => $arr['message'] ?? "Can't connect to API Fare System",
                     "description" => "HTTP error $httpcode",
                     "data" => $arr
                 ]);
@@ -128,7 +128,12 @@ class APIDatacom {
 
             // Execute
             $curl = curl_init();
-            if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            if ($curl === false) return json_encode([
+                "status" => 0,
+                "message" => "System error",
+                "data" => null,
+                "description" => "cURL failed to initialize in BM"
+            ]);
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
@@ -138,8 +143,8 @@ class APIDatacom {
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
             curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 16);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 200);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 210);
             $response = curl_exec($curl);
             $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $errorno = curl_errno($curl);
@@ -149,45 +154,20 @@ class APIDatacom {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can't connect to API",
+                    "message" => "Can't connect to API Fare System",
                     "data" => null,
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
 
-            $responseArr = is_string($response) ? json_decode($response, true) : $response;
-
-            // Check and format response
-            if($httpcode != 200 && $httpcode != 201) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => "Booking failed",
-                    "data" => $responseArr,
-                    "description" => "HTTP error $httpcode",
-                    "requestBody" => $requestBody
-                ]);
-            }
-
-            $statusCode = $responseArr["StatusCode"] ?? "";
-            $success    = $responseArr["Success"] ?? false;
-            $message    = $responseArr["Message"] ?? "Booking failed";
-            if($success === true && in_array($statusCode, ['000', '0000'])) {
-                return json_encode([
-                    "status"    => 1,
-                    "message"   => "Booking success",
-                    "data"      => $responseArr
-                ]);
-            }
-            else {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => $message,
-                    "data"      => $responseArr
-                ]);
-            }
+            return $response;
         }
         catch(Exception $e) {
-            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
+            return json_encode([
+                "status" => 0,
+                "message" => "{$e->getCode()}: {$e->getMessage()}",
+                "data" => null
+            ]);
         }
         finally {
             if(isset($curl) && is_resource($curl)) curl_close($curl);
@@ -203,6 +183,14 @@ class APIDatacom {
      */
     public function payBooking($bookingCode, $systemCode) {
         try {
+            if(!$bookingCode || !$systemCode || empty($bookingCode) || empty($systemCode)) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "data" => null
+                ]);
+            }
+
             $headers = [
                 "Content-Type: application/json",
                 "API-Key: $this->API_BOOKING_KEY"
@@ -216,7 +204,12 @@ class APIDatacom {
             ];
 
             $curl = curl_init();
-            if ($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL Failed to initialize"]);
+            if ($curl === false) return json_encode([
+                "status" => 0,
+                "message" => "System error",
+                "data" => null,
+                "description" => "cURL failed to initialize in BM",
+            ]);
             curl_setopt($curl, CURLOPT_URL,  "$this->ENDPOINT/booking/$this->API_NAME/payBooking");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
@@ -237,38 +230,13 @@ class APIDatacom {
             if ($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can't connect to API",
+                    "message" => "Can't connect to API Fare System",
+                    "data" => null,
                     "description" => "cURL error $errorno: $error"
                 ]);
             }
             
-            $responseArr = json_decode($response, true);
-            if($httpcode != 200) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => "Payment failed",
-                    "data" => $responseArr,
-                    "description" => "HTTP error $httpcode"
-                ]);
-            }
-            
-            $statusCode = $responseArr["StatusCode"] ?? "";
-            $success    = $responseArr["Success"] ?? false;
-            $message    = $responseArr["Message"] ?? "Payment failed";
-            if($success === true && in_array($statusCode, ['000', '0000'])) {
-                return json_encode([
-                    "status"    => 1,
-                    "message"   => "Payment success",
-                    "data"      => $responseArr
-                ]);
-            }
-            else {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => $message,
-                    "data"      => $responseArr
-                ]);
-            }
+            return $response;
         }
         catch(Exception $e) {
             return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
@@ -310,7 +278,7 @@ class APIDatacom {
                 "status" => 0,
                 "message" => "System error",
                 "data" => null,
-                "description" => "cURL Failed to initialize"
+                "description" => "cURL failed to initialize in BM"
             ]);
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
@@ -331,7 +299,7 @@ class APIDatacom {
             if($response === false || $errorno) {
                 return json_encode([
                     "status" => 0,
-                    "message" => "Can't connect to API",
+                    "message" => "Can't connect to API Fare System",
                     "data" => null,
                     "description" => "cURL error $errorno: $error"
                 ]);
@@ -350,6 +318,81 @@ class APIDatacom {
         }
         catch(Exception $e) {
             return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
+        }
+        finally {
+            if(isset($curl) && is_resource($curl)) curl_close($curl);
+        }
+    }
+
+    /**
+     * Get baggage info by booking code
+     * 
+     * @param string $bookingCode PNR
+     * @param string $bookingId
+     * @return string JSON {status, message, data}
+     */
+    public function getBaggageInfo($bookingCode, $bookingId) {
+        try {
+            if(!$bookingCode || !$bookingId || empty($bookingCode) || empty($bookingId)) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Invalid params",
+                    "data" => null
+                ]);
+            }
+
+            $headers = [
+                "Content-Type: application/json",
+                "API-Key: $this->API_BOOKING_KEY"
+            ];
+            $requestBody = [
+                "BookingInfo" => [
+                    "BookingCode" => $bookingCode,
+                    "BookingId" => $bookingId
+                ]
+            ];
+
+            $curl = curl_init();
+            if($curl === false) return json_encode([
+                "status" => 0,
+                "message" => "System error",
+                "data" => null,
+                "description" => "cURL failed to initialize in BM"
+            ]);
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/$this->API_NAME/payBooking");
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 70);
+            $response = curl_exec($curl); // JSON
+            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorno = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if($response === false || $errorno) {
+                return json_encode([
+                    "status" => 0,
+                    "message" => "Can't connect to API Fare System",
+                    "data" => null,
+                    "description" => "cURL error $errorno: $error"
+                ]);
+            }
+
+            return $response;
+        }
+        catch(Exception $e) {
+            return json_encode([
+                "status" => 0,
+                "message" => "{$e->getCode()}: {$e->getMessage()}",
+                "data" => null
+            ]);
         }
         finally {
             if(isset($curl) && is_resource($curl)) curl_close($curl);
@@ -480,6 +523,33 @@ class APIDatacom {
         if(empty($bookingData["ListFare"])) $bookingData["ListFare"] = $ff["FareInfo"];
 
         return $bookingData;
+    }
+
+    /**
+     * Standardize list baggage data for additional purchases
+     * 
+     * @param array $data Data from API getBaggageInfo
+     * @param int $direction 0:Departure ; 1:Return
+     * @return array
+     */
+    public function standardizeListBaggageData($data, $direction = 0) {
+        $listBaggageData = [];
+        foreach (($data["ListBaggage"] ?? []) as $bag) {
+            if($bag["Leg"] == $direction) {
+                $listBaggageData[] = [
+                    // Common properties (Using for displaying)
+                    "Name"          => $bag["Name"],
+                    "Description"   => $bag["Description"],
+                    "Amount"        => $bag["Price"],
+                    "VAT"           => 0,
+                    "TotalAmount"   => $bag["Price"],
+                    "Origin"        => $bag["StartPoint"],
+                    "Destination"   => $bag["EndPoint"],
+                    "Value"         => $bag // Use for purchasing
+                ];
+            }
+        }
+        return $listBaggageData;
     }
 
     /**

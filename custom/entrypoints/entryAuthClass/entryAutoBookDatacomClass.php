@@ -15,21 +15,13 @@ class entryAutoBookDatacomClass extends entryClass {
     public $supplierId;
     public $supplierCode;
     public $supplierName;
-    public $currentUser;
-    public $notificationChannel;
-    public $telegramConfig;
-    public $mattermostConfig;
 
     public function __construct() {
         parent::__construct();
         global $sugar_config, $current_user;
 
-        $this->currentUser = $current_user;
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';
-        $this->notificationChannel = $sugar_config['notification_channel'] ?? 'Telegram';
-        if($this->notificationChannel == 'Mattermost') $this->mattermostConfig = $sugar_config['mattermost'] ?? [];
-        else $this->telegramConfig = $sugar_config['telegram'] ?? [];
 
         $this->mappingSystemCodeName = [
             'VJ' => 'Vietjet Air',
@@ -286,8 +278,42 @@ class entryAutoBookDatacomClass extends entryClass {
         ];
     }
 
-    public function getBaggageInfo() {
+    /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array [status, message, data]
+     */
+    public function getBaggageInfo($params = []) {
+        $bookingCode = $params['bookingCode'] ?? ''; // PNR
+        $bookingId  = $params['bookingId'] ?? '';
+        $systemCode = $params['systemCode'] ?? '';
+        $direction  = (int)($params['direction'] ?? 0);
         
+        if(!empty($bookingCode) && !empty($bookingId)) {
+            $agency = new APIDatacom();
+            $json = $agency->getBaggageInfo($bookingCode, $bookingId);
+            $arr = json_decode($json, true);
+
+            if(isset($arr["status"]) && $arr["status"] == 1) {
+                $data = [];
+                $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $direction);
+                $data["Origin"]      = $data["ListBaggage"][0]["Origin"];
+                $data["Destination"] = $data["ListBaggage"][0]["Destination"];
+                return [
+                    "status" => 1,
+                    "message" => $arr["message"] ?? "Success",
+                    "data" => $data
+                ];
+            };
+
+            return $arr;
+        }
+
+        return [
+            "status" => 0,
+            "message" => "Booking thiếu thông tin để mua hành lý",
+        ];
     }
 
     /**
@@ -1129,7 +1155,7 @@ class entryAutoBookDatacomClass extends entryClass {
                         if(isset($responseArr['data']['OrderId']) && !empty($responseArr['data']['OrderId'])) {
                             $m .= "\n- Order ID: ". ($responseArr['data']['OrderId']);
                         }
-                        $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                        $m .= "\nNCC: **{$this->supplierName}**";
                         Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
                     }
                     else {
@@ -1164,11 +1190,11 @@ class entryAutoBookDatacomClass extends entryClass {
                     if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                     // Update supplier
-                    $ticketing_fee = ($systemCode == 'VJ' || $airlineCode == 'VJ') ? 5000 : 0;
+                    $ticketing_fee = 0;
                     $sqlUpdate = "UPDATE ec_booking_details
                             SET supplier_id = '{$this->supplierId}'
-                                ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
-                                ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                -- ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
+                                -- ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
                             WHERE id IN ($inListDetailId) 
@@ -1249,8 +1275,9 @@ class entryAutoBookDatacomClass extends entryClass {
                                 ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                 ,modified_user_id = '{$this->currentUser->id}'
                                 ,date_modified = '$dateModified'
-                            WHERE id IN ($inListDetailId) 
+                            WHERE id IN ($inListDetailId)
                                 AND booking_id = '$bookingId'
+                                AND direction = '$direction'
                                 AND deleted = 0";
                     if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
@@ -1333,7 +1360,7 @@ class entryAutoBookDatacomClass extends entryClass {
                 }
                 else {
                     $m = "<b>💰 Xuất vé $systemName: $bookingCode bởi $fullname</b>";
-                    if($paidAmount > 0) $m .= "\nTổng thanh toán: <b>{".format_number($paidAmount)." VND</b>";
+                    if($paidAmount > 0) $m .= "\nTổng thanh toán: <b>".format_number($paidAmount)." VND</b>";
                     $m .= "\nNCC: <b>{$this->supplierName}</b>";
                     $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
                     $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
@@ -1412,27 +1439,5 @@ class entryAutoBookDatacomClass extends entryClass {
             return ["value" => "{$weight}", "description" => "{$weight}kg"];
         }
         return ["value" => $str, "description" => $str];
-    }
-
-    /**
-     * Send SQL error notification
-     * 
-     * @param string $sqlQuery
-     * @return void
-     */
-    private function sendSQLErrorNotification($sqlQuery) {
-        if($this->notificationChannel == 'Mattermost') {
-            $m = "**RUN QUERY FAIL IN AUTOBOOK FEATURE DATACOM**";
-            $m .= "`$sqlQuery`";
-            Mattermost::sendMessage($this->mattermostConfig['channel_id_logs'] ?? '', $m);
-        }
-        else {
-            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE DATACOM</b>";
-            $m .= "\n<pre>$sqlQuery</pre>";
-            $botToken   = $this->telegramConfig['bot_token'] ?? '';
-            $chatId     = $this->telegramConfig['chat_id'] ?? '';
-            $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-        }
     }
 }

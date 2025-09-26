@@ -1179,7 +1179,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					</a>
 				</li>
 				<li>
-					<a type="button" id="auto-book-phuongnam" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookPhuongNamsClass">
+					<a type="button" id="auto-book-phuongnam" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookPhuongNamClass">
 						<span class="ms-1">Phương Nam</span>
 					</a>
 				</li>

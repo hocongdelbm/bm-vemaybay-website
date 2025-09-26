@@ -18,6 +18,7 @@
     <div id="bookingContent" class="booking-content hidden">
         <input type="hidden" name="systemCode" value="" />
         <input type="hidden" name="bookingCode" value="" />
+        <input type="hidden" name="bookingId" value="" />
         <input type="hidden" name="supplier" value="" />
         <input type="hidden" name="entryClass" value="entryAutoBookDatacomClass" />
 
@@ -39,8 +40,12 @@
                     </div>
                     </h3>
                     <div class="info-row">
-                        <span class="label">Booking Code (PNR):</span>
-                        <span class="value" id="bookingCode"></span>
+                        <span class="label">Booking code (PNR):</span>
+                        <span class="value" id="bookingCode" class="booking-code"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Nhà cung cấp:</span>
+                        <span class="value" id="suppplier"></span>
                     </div>
                     <div class="info-row">
                         <span class="label">Tình trạng:</span>

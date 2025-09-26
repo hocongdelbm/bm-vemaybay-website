@@ -30,6 +30,7 @@ $(document).ready(function () {
                     const objRes = JSON.parse(response);
                     if (objRes.status == 1) {
                         $('input[name="bookingCode"]').val(objRes.data.BookingCode);
+                        $('input[name="bookingId"]').val(objRes.data.BookingId);
                         $('input[name="systemCode"]').val(objRes.data.SystemCode);
                         $('input[name="entryClass"]').val(objRes.data.EntryClass);
                         $('input[name="supplier"]').val(objRes.data.Supplier);
@@ -69,14 +70,19 @@ $(document).ready(function () {
         const tooltip = $(this).attr('data-tooltip');
     });
 
+    // Add baggage
     $(document).on('click', '.add-baggage', function (e) {
         e.preventDefault();
-        const direction = $(this).attr('direction');
-        const personOrgId = parseInt($(this).attr('personOrgId') ?? 0);
-        const personOrgIdConfirmed = $(this).attr('personOrgIdConfirmed');
-        const passengerName = $(this).attr('passengerName');
-        const bookingCode = $('input[name="bookingCode"]').val();
-        const systemCode = $('input[name="systemCode"]').val();
+        const entryClass    = $('input[name="entryClass"]').val();
+        const bookingCode   = $('input[name="bookingCode"]').val();
+        const bookingId     = $('input[name="bookingId"]').val();
+        const systemCode    = $('input[name="systemCode"]').val();
+        const direction     = $(this).attr('direction');
+        const passengerData = decodeAutoBook($(this).attr('passengerData') ?? "");
+
+        // const personOrgId           = parseInt($(this).attr('personOrgId') ?? 0);
+        // const personOrgIdConfirmed  = $(this).attr('personOrgIdConfirmed') ?? "";
+        // const passengerName         = $(this).attr('passengerName') ?? "";
 
         if (systemCode.length > 0 && bookingCode.length > 0 && direction.length > 0 && personOrgId > 0) {
             $.ajax({
@@ -84,10 +90,14 @@ $(document).ready(function () {
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify({
-                    'action': 'get_baggage_info',
-                    'direction': direction,
-                    'systemCode': systemCode,
-                    'bookingCode': bookingCode
+                    class: entryClass,
+                    method: "getBaggageInfo",
+                    params: {
+                        systemCode: systemCode,
+                        bookingCode: bookingCode,
+                        bookingId: bookingId,
+                        direction: direction
+                    }
                 }),
                 beforeSend: function () {
                     $('.container-waiting').show();
@@ -97,7 +107,7 @@ $(document).ready(function () {
                         $('.container-waiting').hide();
                         const objData = JSON.parse(response);
                         if (objData.status == 1) {
-                            createBaggageServiceDialog(objData.data, systemCode, direction, passengerName, personOrgId, personOrgIdConfirmed);
+                            createBaggageServiceDialog(objData.data, passengerData, systemCode, direction);
                         }
                         else {
                             showModalNotify("warning", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
@@ -222,6 +232,7 @@ function renderBooking(data) {
 
 function renderBookingInfo(data) {
     $('#bookingCode').text(data.BookingCode);
+    $('#suppplier').text(data.Supplier);
     // Status
     const statusInfo = getBookingStatusInfo(data.BookingStatusId);
     $('#bookingStatus').text(statusInfo.text)
@@ -520,10 +531,12 @@ function renderPassengers(data) {
         let optBaggageServiceHTML = '';
         if (passenger.Type != 'inf' && (data.BookingStatusId != 100 || !isBookingExpired(data.BookingExpired))) {
             for (let i = 0; i < Object.keys(data.ListFlight).length; i++) {
-                if((i == 0 && purchasedBaggageDep) || (i == 1 && purchasedBaggageRet)) continue
+                if((i == 0 && purchasedBaggageDep) || (i == 1 && purchasedBaggageRet)) continue;
                 let text = i == 0 ? 'Thêm hành lý đi' : 'Thêm hành lý về';
                 optBaggageServiceHTML += `<a class="dropdown-item add-baggage"
                     direction="${i}"
+                    passengerData="${encodeAutoBook(passenger)}"
+
                     personOrgId="${passenger.Id}"
                     personOrgIdConfirmed="${passenger.IdConfirmed}"
                     passengerName="${passenger.LastName} ${passenger.FirstName}"
@@ -646,6 +659,9 @@ function clearBooking() {
     // Clear all form fields
     $('input[name="systemCode"]').val('');
     $('input[name="bookingCode"]').val('');
+    $('input[name="bookingId"]').val('');
+    $('input[name="supplier"]').val('');
+
     $('#bookingCode').text('');
     $('#bookingStatus').text('');
     $('#totalAmount').text('');
@@ -761,7 +777,7 @@ function getLinkImageAirline(airlineCode) {
     return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
 }
 
-function createBaggageServiceDialog(serviceData, systemCode, direction, passengerName, personOrgId, personOrgIdConfirmed = '') {
+function createBaggageServiceDialog(baggageData, passengerData, systemCode, direction) {
     return new Promise((resolve) => {
         const wrapper = document.createElement('div');
         wrapper.innerHTML = `<div class="baggage-dialog-overlay">
@@ -769,11 +785,10 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
                 <div class="baggage-header">
                     <h2>
                         <span style="margin-right:12px">${direction == '0' ? 'Lượt đi' : 'Lượt về'}</span>
-                        ${serviceData.Origin} ➝ ${serviceData.Destination}
+                        ${baggageData.Origin} ➝ ${baggageData.Destination}
                         <img src="${getLinkImageAirline(systemCode)}" alt="${systemCode}" style="max-width:90px;margin-left:12px" />
                     </h2>
-                    <p>Ngày bay: <b>${formatDateTime(serviceData.FlightDate)}</b></p>
-                    <p>Hành khách: <b>${passengerName}</b></p>
+                    <p>Hành khách: <b>${passengerData.LastName} ${passengerData.FirstName}</b></p>
                 </div>
                 <div id="baggageServiceList" class="service-list"></div>
                 <center class="note"><i class="text-danger">Vui lòng kiểm tra kỹ càng thông tin hành trình, hành khách</i></center>
@@ -787,38 +802,37 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
         document.body.appendChild(wrapper);
 
         // const overlay = wrapper.querySelector('.baggage-dialog-overlay');
-        const serviceListEl = wrapper.querySelector('#baggageServiceList');
+        const baggageListEl = wrapper.querySelector('#baggageServiceList');
         const confirmBtn = wrapper.querySelector('.baggage-confirm');
         const cancelBtn = wrapper.querySelector('.baggage-cancel');
 
         // Render available services
-        const list = serviceData.ListService;
-        if(!list || list.length == 0) {
-            serviceListEl.innerHTML = '<center><i>Không có hành lý để thêm</i></center>';
+        if(!('ListBaggage' in baggageData) && !baggageData.ListBaggage || baggageData.ListBaggage.length == 0) {
+            baggageListEl.innerHTML = '<center><i>Không có hành lý để thêm</i></center>';
             $('.baggage-dialog center.note').remove();
         }
         else {
-            serviceListEl.innerHTML = '';
-            list.forEach(service => {
+            baggageListEl.innerHTML = '';
+            baggageData.ListBaggage.forEach((bag, index) => {
                 const div = document.createElement('div');
                 div.className = 'baggage-service-item';
                 div.innerHTML = `
                     <input type="radio" name="baggageOption"
-                        id="${service.ServiceKey}"
-                        value="${service.ServiceKey}"
-                        data-description="${service.ServiceDescription || service.ServiceName}"
-                        data-amount="${service.ServiceTotalAmount}"
-                        data-vat-amount="${service.ServiceVATAmount}"
-                        data-person-org-id="${personOrgId}"
-                        data-person-org-id-confirmed="${personOrgIdConfirmed}"
+                        id="baggageOption${index}"
+                        value="${encodeAutoBook(service.value)}"
+                        data-description="${bag.Description || bag.Name}"
+                        data-amount="${bag.TotalAmount}"
+                        data-vat-amount="${bag.VAT}"
+                        data-person-org-id="${passengerData.Id}"
+                        data-person-org-id-confirmed="${passengerData.IdConfirmed}"
                     />
-                    <label for="${service.ServiceKey}">
-                        ${service.ServiceDescription || service.ServiceName}
+                    <label for="baggageOption${index}">
+                        ${bag.Description || bag.Name}
                         <br>
-                        <span>${formatCurrency(service.ServiceAmount, false)} + ${formatCurrency(service.ServiceVATAmount, false)} (VAT) = <strong>${formatCurrency(service.ServiceTotalAmount)}</strong></span>
+                        <span>${formatCurrency(bag.Amount, false)} + ${formatCurrency(bag.VAT, false)} (VAT) = <strong>${formatCurrency(bag.TotalAmount)}</strong></span>
                     </label
                 `;
-                serviceListEl.appendChild(div);
+                baggageListEl.appendChild(div);
             });
         }
 
@@ -893,4 +907,15 @@ function createBaggageServiceDialog(serviceData, systemCode, direction, passenge
             resolve(null);
         });
     });
+}
+
+function encodeAutoBook(value) {
+    if(!value) return value;
+    if(typeof value === "object") return btoa(encodeURIComponent(JSON.stringify(value)));
+    if(typeof value === "string") return btoa(encodeURIComponent(value));
+}
+
+function decodeAutoBook(value) {
+    if(!value || value.length == 0) return value;
+    if(typeof value === "string") return JSON.parse(decodeURIComponent(atob(value)));
 }

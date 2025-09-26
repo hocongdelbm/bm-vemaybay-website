@@ -15,21 +15,13 @@ class entryAutoBookPhuongNamClass extends entryClass {
     public $supplierId;
     public $supplierCode;
     public $supplierName;
-    public $currentUser;
-    public $notificationChannel;
-    public $telegramConfig;
-    public $mattermostConfig;
 
     public function __construct() {
         parent::__construct();
         global $sugar_config, $current_user;
 
-        $this->currentUser = $current_user;
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';
-        $this->notificationChannel = $sugar_config['notification_channel'] ?? 'Telegram';
-        if($this->notificationChannel == 'Mattermost') $this->mattermostConfig = $sugar_config['mattermost'] ?? [];
-        else $this->telegramConfig = $sugar_config['telegram'] ?? [];
 
         $this->mappingSystemCodeName = [
             'VJ' => 'Vietjet Air',
@@ -251,12 +243,44 @@ class entryAutoBookPhuongNamClass extends entryClass {
         ];
     }
 
-    public function getBooking() {
+    public function getBooking() {}
 
-    }
+    /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array [status, message, data]
+     */
+    public function getBaggageInfo($params = []) {
+        $bookingCode = $params['bookingCode'] ?? ''; // PNR
+        $bookingId  = $params['bookingId'] ?? '';
+        $systemCode = $params['systemCode'] ?? '';
+        $direction  = (int)($params['direction'] ?? 0);
 
-    public function getBaggageInfo() {
+        if(!empty($systemCode) && strlen($bookingCode) == 6) {
+            $agency = new APIPhuongNam();
+            $json = $agency->getBaggageInfo($bookingCode, $systemCode);
+            $arr = json_decode($json, true);
 
+            if(isset($arr["status"]) && $arr["status"] == 1) {
+                $data = [];
+                $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $direction);
+                $data["Origin"]      = $arr["data"]["Origin"];
+                $data["Destination"] = $arr["data"]["Destination"];
+                return [
+                    "status" => 1,
+                    "message" => $arr["message"] ?? "Success",
+                    "data" => $data
+                ];
+            }
+
+            return $arr;
+        }
+
+        return [
+            "status" => 0,
+            "message" => "Booking thiếu thông tin để mua hành lý",
+        ];
     }
 
     /**
@@ -539,7 +563,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             ];
         }
 
-        global $db, $current_user;
+        global $db;
         $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
         $sqlUpdate = '';
 
@@ -589,7 +613,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     //         -- ,total_price = ($price + service_fee) * quantity
                     //         ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                     //         ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
-                    //         ,modified_user_id = '$current_user->id'
+                    //         ,modified_user_id = '{$this->currentUser->id}'
                     //         ,date_modified = '$dateModified'
                     //     WHERE id = '$detailId'
                     //         AND booking_id = '$bookingId'
@@ -602,7 +626,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                             ,tax_and_fee = $tax
                             ,total_bought_price = ($fare + $tax + airport_fee + admin_fee) * quantity
                             ,total_price = ($fare + $tax + airport_fee + admin_fee + service_fee) * quantity
-                            ,modified_user_id = '$current_user->id'
+                            ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = '$dateModified'
                         WHERE id = '$detailId'
                             AND booking_id = '$bookingId'
@@ -696,7 +720,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             if(!is_null($basePrice)) {
                 $sqlUpdate = "UPDATE ec_booking_itineraries
                         SET base_price = IF($basePrice <> base_price, $basePrice, base_price)
-                            ,modified_user_id = '$current_user->id'
+                            ,modified_user_id = '{$this->currentUser->id}'
                             ,date_modified = '$dateModified'
                         WHERE id = '$itiId'
                             AND booking_id = '$bookingId'
@@ -890,25 +914,30 @@ class entryAutoBookPhuongNamClass extends entryClass {
         exit();
     }
 
-    public function booking() {
-        $bookingId = $requestData['bookingId'] ?? '';
-        $listPassengerId = $requestData['listPassengerId'] ?? [];
-        $requestBody = $requestData['requestBody'] ?? [];
+    public function booking($params = []) {
+        $bookingId          = $params['bookingId'] ?? '';
+        $listPassengerId    = $params['listPassengerId'] ?? [];
+        $listItineraryId    = $params['listItineraryId'] ?? [];
+        $listDetailId       = $params['listDetailId'] ?? [];
+        $requestBody        = $params['requestBody'] ?? [];
         
-        if(!$requestBody || !is_array($requestBody) || empty($requestBody) || empty($bookingId) || !is_array($listPassengerId) || empty($listPassengerId)) {
-            echo json_encode([
+        if(!$requestBody || !is_array($requestBody) || empty($requestBody) || empty($bookingId)
+            || !is_array($listPassengerId) || empty($listPassengerId)
+            || !is_array($listItineraryId) || empty($listItineraryId)
+            || !is_array($listDetailId) || empty($listDetailId)
+        ) {
+            return [
                 "status" => 0,
                 "message" => "Dữ liệu không hợp lệ",
                 "params" => [
                     "requestBody" => $requestBody,
                     "listPassengerId" => $listPassengerId,
+                    "listItineraryId" => $listItineraryId,
+                    "listDetailId" => $listDetailId,
                     "bookingId" => $bookingId,
                 ]
-            ]);
-            exit();
+            ];
         }
-
-        global $sugar_config;
 
         // Booking type: oneway (Một chiều), roundtrip (Khứ hồi cùng hãng) , twoway (Khứ hồi 2 hãng khác nhau)
         $bookingType = null;
@@ -919,282 +948,141 @@ class entryAutoBookPhuongNamClass extends entryClass {
             else $bookingType = 'roundtrip';
         }
 
-        $phuongnamapi = new APIPhuongNam();
-        $response = $phuongnamapi->booking($requestBody);
+        $agency  = new APIPhuongNam();
+        $response = $agency->book($requestBody);
         $responseArr = json_decode($response, true);
 
         // Save to BM
         if($responseArr['status'] == 1) {
-            // $m = "<b>[INFO] CHECK BOOKING DATA REQUEST BODY</b>";
-            // $m .= "\n<pre>".json_encode($requestBody)."</pre>";
-            // $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-            // $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-            // $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-            // Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+            global $db;
             $booking = new EC_Flight_Bookings();
             $booking->retrieve($bookingId);
 
-            $inListPassengerId = "'".implode("','", $listPassengerId)."'";
+            $inListPassengerId  = "'".implode("','", $listPassengerId)."'";
+            $inListItineraryId  = "'".implode("','", $listItineraryId)."'";
+            $inListDetailId     = "'".implode("','", $listDetailId)."'";
+
             foreach($responseArr['data'] as $i => $f) {
                 if(isset($f["ID"]) && $f["ID"] == 1) {
-                    // $f["TransactionId"];
                     $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
                     $systemCode = trim($bookingCode[0] ?? ''); // Airline code
-                    $systemName = $mappingSystemCodeName[$systemCode] ?? 'Quốc tế'; // Airline name
+                    $systemName = $this->mappingSystemCodeName[$systemCode] ?? "Quốc tế $systemCode";
+
                     $pnr = trim($bookingCode[1] ?? '');
                     $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
                     // Send notification
                     try {
-                        $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-                        $linkBooking = ($sugar_config['host_name'] ?? '') ."/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
+                        $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                        $linkBooking = "https://{$this->domain}/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
 
-                        // $m = "Giữ chỗ $systemName: ".Mattermost::markdownLink($linkBooking, $pnr)." bởi **$fullname**";
-                        // if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "Xuất vé cận $systemName: **$pnr** bởi **$fullname**";
-                        // $m .= "\n- Transaction ID: " . ($f["TransactionId"] ?? '');
-                        // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                        if($this->notificationChannel == 'Mattermost') {
+                            $link = Mattermost::markdownLink($linkBooking, $pnr);
+                            
+                            $m = "Giữ chỗ $systemName: $link bởi **$fullname**";
+                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "**Xuất vé cận $systemName: $pnr bởi $fullname**";
+                            if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n- Transaction ID: " . $f["TransactionId"];
+                            $m .= "\nNCC: **{$this->supplierName}**";
 
-                        $link = "<a href=\"".$linkBooking."\">$pnr</a>";
-                        $m = "Giữ chỗ $systemName: $link bởi <b>$fullname</b>";
-                        if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] === true) $m = "<b>💰 Xuất vé cận $systemName: $link bởi $fullname</b>";
-                        if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
-                        $botToken   = $sugar_config['telegram']['phuongnamapi']['bot_token'] ?? '';
-                        $chatId     = $sugar_config['telegram']['phuongnamapi']['chat_id'] ?? '';
-                        Telegram::sendMessage($m, $botToken, $chatId);
+                            Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
+                        }
+                        else {
+                            $link = "<a href=\"".$linkBooking."\">$pnr</a>";
+
+                            $m = "Giữ chỗ $systemName: $link bởi <b>$fullname</b>";
+                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] === true) $m = "<b>💰 Xuất vé cận $systemName: $link bởi $fullname</b>";
+                            if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
+                            $m .= "\nNCC: <b>{$this->supplierName}</b>";
+
+                            $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                            $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                            Telegram::sendMessage($m, $botToken, $chatId);
+                        }
                     }
                     catch(Throwable $th) {}
 
                     if($bookingType == 'roundtrip') {
                         // Update PNR
-                        $sql = "UPDATE ec_booking_passengers
+                        $sqlUpdate = "UPDATE ec_booking_passengers
                                 SET pnr_outbound = '$pnr'
                                     ,pnr_inbound = '$pnr'
-                                    -- ,luggage_index_outbound = '$bagIndexDep'
-                                    -- ,luggage_index_inbound = '$bagIndexRet'
-                                    ,modified_user_id = '$current_user->id'
+                                    ,modified_user_id = '{$this->currentUser->id}'
                                     ,date_modified = '$dateModified'
                                 WHERE id IN ($inListPassengerId) 
                                     AND booking_id = '$bookingId'
                                     AND deleted = 0";
-                        if(!$db->query($sql)) {
-                            // $m = "**RUN QUERY FAIL**";
-                            // $m .= "`$sql`";
-                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
-
-                            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
-                            $m .= "\n<pre>$sql</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                        }
+                        if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                         // Update supplier
                         $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
-                        $sql = "UPDATE ec_booking_details
-                                SET supplier_id = '{$phuongnamapi->SUPPLIER_ID}'
+                        $sqlUpdate = "UPDATE ec_booking_details
+                                SET supplier_id = '{$this->supplierId}'
                                     ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                     ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
-                                    ,modified_user_id = '{$current_user->id}'
+                                    ,modified_user_id = '{$this->currentUser->id}'
                                     ,date_modified = '$dateModified'
-                                WHERE booking_id = '$bookingId'
-                                    AND deleted = 0
-                                    AND passenger_type IN (
-                                        SELECT DISTINCT p.type
-                                        FROM ec_booking_passengers p
-                                        WHERE p.id IN ($inListPassengerId)
-                                            AND p.booking_id = '$bookingId' 
-                                            AND p.deleted = 0
-                                    )
-                                    AND date_entered IN (
-                                        SELECT DISTINCT max(date_entered)
-                                        FROM ec_booking_details 
-                                        WHERE booking_id = '$bookingId' AND deleted = 0
-                                        GROUP BY direction, passenger_type
-                                    )";
-                        if(!$db->query($sql)) {
-                            // $m = "**RUN QUERY FAIL**";
-                            // $m .= "`$sql`";
-                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
-
-                            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
-                            $m .= "\n<pre>$sql</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                        }
-
-                        // Update available checked baggage info
-                        if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
-                            $fareBasicDep = $requestBody['Flights'][0]['FarePricings'][0]['FareBasis'] ?? '';
-                            $fareBasicRet = $requestBody['Flights'][1]['FarePricings'][0]['FareBasis']  ?? '';
-                            $letterFareBasicDep = $systemCode != 'VJ' ? substr($fareBasicDep, 0, 1) : '';
-                            $letterFareBasicRet = $systemCode != 'VJ' ? substr($fareBasicRet, 0, 1) : '';
-                            $fareClassDep = FareClass::getFareClass($systemCode, $fareBasicDep);
-                            $fareClassRet = FareClass::getFareClass($systemCode, $fareBasicRet);
-                            $bagIndexDep  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClassDep, 'ADT');
-                            $bagIndexRet  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClassRet, 'ADT');
-
-                            $sql = "UPDATE ec_booking_passengers p
-                                SET p.luggage_index_outbound = IF(p.luggage_index_outbound IS NOT NULL AND p.luggage_index_outbound <> '', p.luggage_index_outbound, '$bagIndexDep')
-                                    ,p.luggage_index_inbound = IF(p.luggage_index_inbound IS NOT NULL AND p.luggage_index_inbound <> '', p.luggage_index_inbound, '$bagIndexRet')
-                                WHERE p.booking_id = '$bookingId'
-                                    AND p.id IN ($inListPassengerId)
-                                    AND p.type != '2'
-                                    AND p.deleted = 0";
-
-                            if(!$db->query($sql)) {
-                                // $m = "**RUN QUERY FAIL**";
-                                // $m .= "`$sql`";
-                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
-
-                                $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
-                                $m .= "\n<pre>$sql</pre>";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                            }
-                            else {
-                                $m = "<b>[INFO] QUERY UPDATE BAGGAGE</b>";
-                                $m .= "\n$fareBasicDep $fareClassDep";
-                                $m .= "\n$fareBasicRet $fareClassRet";
-                                $m .= "\n<pre>$sql</pre>";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                            }
-                        }
+                                WHERE id IN ($inListDetailId) 
+                                    AND booking_id = '$bookingId'
+                                    AND deleted = 0";
+                        if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
                     else {
                         $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
                         if($systemCode == ($arrMapAirlineCode[$airlineCodeOutbound] ?? '')) {
                             $colNamePNR = 'pnr_outbound';
-                            $colNameLugIndex = 'luggage_index_outbound';
+                            // $colNameLugIndex = 'luggage_index_outbound';
                             $direction = '0';
                         }
                         else {
                             $colNamePNR = 'pnr_inbound';
-                            $colNameLugIndex = 'luggage_index_inbound';
+                            // $colNameLugIndex = 'luggage_index_inbound';
                             $direction = '1';
                         }
 
-                        $fareBasic = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
-                        $fareClass = FareClass::getFareClass($systemCode, $fareBasic);
-                        $bagIndex  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClass, 'ADT');
+                        // $fareBasic = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
+                        // $fareClass = FareClass::getFareClass($systemCode, $fareBasic);
+                        // $bagIndex  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClass, 'ADT');
 
                         // Update PNR
-                        $sql = "UPDATE ec_booking_passengers
+                        $sqlUpdate = "UPDATE ec_booking_passengers
                                 SET $colNamePNR = '$pnr'
-                                    -- ,$colNameLugIndex = '$bagIndex'
-                                    ,modified_user_id = '$current_user->id'
+                                    ,modified_user_id = '{$this->currentUser->id}'
                                     ,date_modified = '$dateModified'
                                 WHERE booking_id = '$bookingId'
                                     AND id IN ($inListPassengerId)
                                     AND deleted = 0";
-                        if(!$db->query($sql)) {
-                            // $m = "**RUN QUERY FAIL**";
-                            // $m .= "`$sql`";
-                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
-                            
-                            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
-                            $m .= "\n<pre>$sql</pre>";
-                            $botToken = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                        }
+                        if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                         // Update supplier
                         $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
-                        $sql = "UPDATE ec_booking_details
-                                SET supplier_id = '{$phuongnamapi->SUPPLIER_ID}'
+                        $sqlUpdate = "UPDATE ec_booking_details
+                                SET supplier_id = '{$this->supplierId}'
                                     ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
                                     ,total_bought_price = total_bought_price + IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
-                                    ,modified_user_id = '{$current_user->id}'
+                                    ,modified_user_id = '{$this->currentUser->id}'
                                     ,date_modified = '$dateModified'
-                                WHERE booking_id = '$bookingId'
+                                WHERE id IN ($inListDetailId) 
+                                    AND booking_id = '$bookingId'
                                     AND direction = '$direction'
-                                    AND deleted = 0
-                                    AND passenger_type IN (
-                                        SELECT DISTINCT p.type
-                                        FROM ec_booking_passengers p
-                                        WHERE p.id IN ($inListPassengerId)
-                                            AND p.booking_id = '$bookingId' 
-                                            AND p.deleted = 0
-                                    )
-                                    AND date_entered IN (
-                                        SELECT DISTINCT max(date_entered)
-                                        FROM ec_booking_details 
-                                        WHERE booking_id = '$bookingId' AND direction = '$direction' AND deleted = 0
-                                        GROUP BY passenger_type
-                                    )";
-                        if(!$db->query($sql)) {
-                            // $m = "**RUN QUERY FAIL**";
-                            // $m .= "`$sql`";
-                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
-
-                            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
-                            $m .= "\n<pre>$sql</pre>";
-                            $botToken = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                        }
-
-                        // Update available checked baggage info
-                        if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
-                            $fareBasic          = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
-                            $letterFareBasic    = $systemCode != 'VJ' ? substr($fareBasic, 0, 1) : '';
-                            $fareClass          = FareClass::getFareClass($systemCode, $fareBasic);
-                            $bagIndex           = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClass, 'ADT');
-
-                            $sql = "UPDATE ec_booking_passengers p
-                                SET p.$colNameLugIndex = IF(p.$colNameLugIndex IS NOT NULL AND p.$colNameLugIndex <> '', p.$colNameLugIndex, '$bagIndex')
-                                WHERE p.booking_id = '$bookingId'
-                                    AND p.id IN ($inListPassengerId)
-                                    AND p.type != '2'
-                                    AND p.deleted = 0";
-                            if(!$db->query($sql)) {
-                                // $m = "**RUN QUERY FAIL**";
-                                // $m .= "`$sql`";
-                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $m);
-
-                                $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE</b>";
-                                $m .= "\n<pre>$sql</pre>";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                            }
-                            else {
-                                $m = "<b>[INFO] QUERY UPDATE BAGGAGE</b>";
-                                $m .= "\n$fareBasic $fareClass";
-                                $m .= "\n<pre>$sql</pre>";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                                Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-                            }
-                        }
+                                    AND deleted = 0";
+                        if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
                 }
             }
         }
+        else {
+            $botToken   = $this->telegramConfig['bot_token'] ?? '';
+            $chatId     = $this->telegramConfig['chat_id'] ?? '';
+            $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
+            Telegram::sendMessageData($response, $botToken, $chatId, $threadId);
+        }
         
-        echo json_encode($responseArr);
-        exit();
+        return $responseArr;
     }
 
-    public function payBooking() {
+    public function payBooking() {}
 
-    }
-
-    public function addBaggage() {
-
-    }
+    public function addBaggage() {}
 
     /**
      * Get updated field in segments

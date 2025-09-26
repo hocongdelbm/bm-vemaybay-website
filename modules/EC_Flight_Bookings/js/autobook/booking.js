@@ -381,7 +381,7 @@ $(document).ready(function () {
             /******  STEP 2: VERIFY & PREPARE DATA TO BOOKING  ******/
             step = 2;
             var requestBody = {}; // Data for next step
-            if(entryClass == 'entryPhuongNamAutoBookClass') {
+            if(entryClass == 'entryAutoBookPhuongNamClass') {
                 var verifyResponse = {};
                 var isWithin24h = within24h.includes('1') ? 1 : 0;
                 if(statusAutoBook == 1) {
