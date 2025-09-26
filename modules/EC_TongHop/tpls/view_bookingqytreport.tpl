@@ -406,6 +406,7 @@
 				<th colspan="4" style="width: 12%;">Doanh số</th>
 				<th rowspan="2" colspan="2" style="width: 5%;">Tổng BK</th>
 				<th rowspan="2" style="width: 5%;">Booker đặt</th>
+				<th rowspan="2" style="width: 5%;">BK TK</th>
 
 				<th colspan="2" style="width: 8%; background-color: #068FFF; color: #fff">Cuộc gọi</th>
 
