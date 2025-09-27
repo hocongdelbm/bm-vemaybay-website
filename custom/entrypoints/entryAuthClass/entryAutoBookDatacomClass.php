@@ -1,6 +1,6 @@
 <?php
 require_once "custom/entrypoints/entryAuthClass/entryClass.php";
-require_once "modules/EC_Flight_Bookings/APIDatacom.php";
+require_once "custom/include/helpers/api/APIDatacom.php";
 
 /**
  * Class entryAutoBookDatacomClass
@@ -265,9 +265,19 @@ class entryAutoBookDatacomClass extends entryClass {
             $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
             $arrBooking = json_decode($jsonBooking, true);
             if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
-                $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
-                $arrBooking['data']['EntryClass'] = __CLASS__;
-                $arrBooking['data']['Supplier'] = $this->supplierName;
+                $supplier = strtolower($arrBooking['supplier'] ?? '');
+                if($supplier == 'phuongnam') {
+                    require_once "custom/include/helpers/api/APIPhuongNam.php";
+                    $phuongNamAgency = new APIPhuongNam();
+                    $arrBooking['data'] = $phuongNamAgency->standardizeBookingData($arrBooking['data']);
+                    $arrBooking['data']['EntryClass'] = "entryAutoBookPhuongNamClass";
+                    $arrBooking['data']['Supplier'] = "NCC Phương Nam";
+                }
+                else {
+                    $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
+                    $arrBooking['data']['EntryClass'] = __CLASS__;
+                    $arrBooking['data']['Supplier'] = $this->supplierName;
+                }
             }
             return $arrBooking;
         }

@@ -255,73 +255,23 @@ class APIDatacom {
      * @return string JSON {status, message, data}
      */
     public function getBooking($bookingCode, $systemCode = '', $airlineCode = '') {
-        try {
-            if(!is_string($bookingCode) || strlen($bookingCode) != 6) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => trim("Invalid booking code $bookingCode"),
-                    "data" => null
-                ]);
-            }
-
-            $headers = [
-                "Content-Type: application/json",
-                "API-Key: $this->API_BOOKING_KEY"
-            ];
-
-            $url = "$this->ENDPOINT/getBooking?pnr=$bookingCode";
-            if(!empty($systemCode)) $url .= "&systemCode=$systemCode";
-            if(!empty($airlineCode)) $url .= "&airlineCode=$airlineCode";
-
-            $curl = curl_init();
-            if ($curl === false) return json_encode([
+        if(!is_string($bookingCode) || strlen($bookingCode) != 6) {
+            return json_encode([
                 "status" => 0,
-                "message" => "System error",
-                "data" => null,
-                "description" => "cURL failed to initialize in BM"
+                "message" => trim("Invalid booking code $bookingCode"),
+                "data" => null
             ]);
-            curl_setopt($curl, CURLOPT_URL, $url);
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 180);
-            $response = curl_exec($curl); // JSON
-            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            $errorno = curl_errno($curl);
-            $error = curl_error($curl);
-            curl_close($curl);
+        }
 
-            if($response === false || $errorno) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => "Can't connect to API Fare System",
-                    "data" => null,
-                    "description" => "cURL error $errorno: $error"
-                ]);
-            }
+        $path = "getBooking?pnr=$bookingCode";
+        if(!empty($systemCode)) $path .= "&systemCode=$systemCode";
+        if(!empty($airlineCode)) $path .= "&airlineCode=$airlineCode";
+        $header = [
+            "Content-Type: application/json",
+            "API-Key: $this->API_BOOKING_KEY"
+        ];
 
-            $responseArr = json_decode($response, true);
-            if($httpcode != 200) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => $responseArr["message"] ?? "Getting booking failed",
-                    "data" => $responseArr,
-                    "description" => "HTTP error $httpcode"
-                ]);
-            }
-            return $response;
-        }
-        catch(Exception $e) {
-            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
-        }
-        finally {
-            if(isset($curl) && is_resource($curl)) curl_close($curl);
-        }
+        return $this->sendRequest('GET', $path, null, $header);
     }
 
     /**
@@ -399,6 +349,88 @@ class APIDatacom {
         }
     }
 
+
+
+
+    /**
+     * Send HTTP request
+     * 
+     * @param string $method GET, POST, PUT,...
+     * @param string $path
+     * @param array|string $requestBody
+     * @param array $header
+     * @param array $curlOptions
+     * 
+     * @return string JSON
+     */
+    private function sendRequest($method, $path, $requestBody = null, $header = [], $curlOptions = []) {
+        try {
+            $curl = curl_init();
+            if ($curl === false) {
+                return json_encode([
+                    "status" => 0,
+                    "httpCode" => 500,
+                    "message" => "System error",
+                    "data" => null,
+                    "description" => "cURL failed to initialize in BM"
+                ]);
+            }
+            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/$path");
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+            if(!is_null($requestBody)) curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 100);
+            foreach ($curlOptions as $key => $value) {
+                curl_setopt($curl, $key, $value);
+            }
+            $response = curl_exec($curl); // JSON
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $errorNo = curl_errno($curl);
+            $error = curl_error($curl);
+            curl_close($curl);
+
+            if ($response === false || $errorNo) {
+                return json_encode([
+                    "status" => 0,
+                    "httpCode" => 500,
+                    "message" => "Can't connect to Fare System",
+                    "data" => null,
+                    "description" => "cURL error $errorNo: $error"
+                ]);
+            }
+
+            $responseArr = json_decode($response, true);
+            if ($httpCode < 200 || $httpCode >= 300) {
+                return json_encode([
+                    "status" => 0,
+                    "httpCode" => $httpCode,
+                    "message" => $responseArr["message"] ?? "Failed to send request to Fare System",
+                    "data" => null,
+                    "description" => $responseArr
+                ]);
+            }
+
+            return $response;
+        }
+        catch (Throwable $th) {
+            $message = "Error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
+            return json_encode([
+                "status" => 0,
+                "httpCode" => 500,
+                "message" => "An exception error has occurred",
+                "data" => null,
+                "description" => $message
+            ]);
+        }
+        finally {
+            if (isset($curl) && is_resource($curl)) curl_close($curl);
+        }
+    }
+
     /**
      * Standardize booking data for issueing ticket
      * 
@@ -415,7 +447,8 @@ class APIDatacom {
         $bookingData["BookingCode"] = $data["GdsCode"] ?? "";
         if(empty($bookingData["BookingCode"])) $bookingData["BookingCode"] = $data["BookingCode"] ?? "";
         $bookingData["BookingId"]       = $data["BookingId"] ?? "";
-        $bookingData["BookingStatusId"] = 100; // PHUONGNAM
+        $bookingData["BookingStatusId"] = null;
+        $bookingData["BookingStatus"]   = $this->mappingBookingStatus($data["BookingStatus"]);
         $bookingData["BookingDate"]     = $this->convertDatetime($data["TimePurchase"]);
         $bookingData["BookingExpired"]  = $this->convertDatetime($data["ExpirationTime"]);
         $bookingData["TotalAmount"]     = $data["TotalPrice"] ?? 0;
@@ -432,6 +465,15 @@ class APIDatacom {
         $bookingData["IsVoid"] = false;
         $bookingData["IsRefund"] = false;
         $bookingData["IsEdit"] = false;
+
+        // Update manually booking status
+        if($bookingData["TotalAmount"] == $bookingData["PaidAmount"]) {
+            $bookingData["IsPaid"] = true;
+            $bookingData["BookingStatus"] = "completed";
+        }
+        elseif(!$bookingData["BookingExpired"] || empty($bookingData["BookingExpired"]) || strtotime($bookingData["BookingExpired"]) < time()) {
+            $bookingData["BookingStatus"] = "cancelled";
+        }
 
         // List passenger
         $bookingData["ListPassenger"] = [];
@@ -464,6 +506,7 @@ class APIDatacom {
         foreach(($data["ListFlightFare"] ?? []) as $ff) {
             $fareInfo = $ff["FareInfo"] ?? [];
             $cabin = ucwords(strtolower($fareInfo["CabinName"] ?? ""));
+
             foreach($fareInfo['ListFarePax'] as $fare) {
                 $farePassType = strtolower($fare["PaxType"] ?? ''); // adt, chd, inf
                 $fareBase = $fare["BaseFare"] ?? 0;
@@ -477,8 +520,13 @@ class APIDatacom {
                 }
 
                 if(!isset($bookingData["ListFare"][$farePassType])) {
+                    $directionText = count($data["ListFlightFare"]) > 1 ? ($ff["Leg"] == 1 ? "Lượt về" : "Lượt đi") : "";
+                    if(!in_array($bookingData["SystemCode"], ['VN', 'VJ', 'QH', 'VU'])) {
+                        $directionText = trim(count($ff["ListFlight"] ?? []) . " chặng");
+                    }
+
                     $bookingData["ListFare"][(string)$ff["Leg"] . $farePassType] = [
-                        "DirectionText" => count($data["ListFlightFare"]) > 1 ? ($ff["Leg"] == 1 ? "Lượt về" : "Lượt đi") : "",
+                        "DirectionText" => $directionText,
                         "Type"          => $farePassType,
                         "BaseFare"      => $fareBase,
                         "VAT"           => $vat,
@@ -508,7 +556,7 @@ class APIDatacom {
                     "AirlineCode"           => $flight["Airline"],
                     "CarrierCode"           => $flight["Operator"],
                     "FlightNumber"          => $flight["FlightNumber"],
-                    "FlightDuration"        => $flight["Duration"] * 60,
+                    "FlightDuration"        => Flight::getNiceDuration($flight["Duration"] * 60),
                     "DepartureDate"         => date("d-m-Y", strtotime($flight["StartDate"])),
                     "DepartureTime"         => date("H:i", strtotime($flight["StartDate"])),
                     "ArrivalDate"           => date("d-m-Y", strtotime($flight["EndDate"])),
@@ -550,6 +598,23 @@ class APIDatacom {
             }
         }
         return $listBaggageData;
+    }
+
+    /**
+     * Mapping booking status
+     * 
+     * @param string $statusCode BookingStatus
+     * @return string
+     */
+    public function mappingBookingStatus($statusCode) {
+        switch (strtoupper($statusCode)) {
+            case 'OK':
+                return 'holding';
+            case 'TICKETED':
+                return 'completed';
+            default:
+                return 'unknown';
+        }
     }
 
     /**

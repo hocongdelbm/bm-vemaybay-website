@@ -1,6 +1,6 @@
 <?php
 require_once "custom/entrypoints/entryAuthClass/entryClass.php";
-require_once "modules/EC_Flight_Bookings/APIPhuongNam.php";
+require_once "custom/include/helpers/api/APIPhuongNam.php";
 
 /**
  * Class entryAutoBookPhuongNamClass
@@ -18,7 +18,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
 
     public function __construct() {
         parent::__construct();
-        global $sugar_config, $current_user;
+        global $sugar_config;
 
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';
@@ -243,7 +243,44 @@ class entryAutoBookPhuongNamClass extends entryClass {
         ];
     }
 
-    public function getBooking() {}
+    /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getBooking($params = []) {
+        $pnr = trim($params['pnr'] ?? '');
+        $systemCode = $params['systemCode'] ?? '';
+        $airlineCode = $params['airlineCode'] ?? '';
+
+        if(strlen($pnr) == 6) {
+            $agency = new APIDatacom();
+            $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
+            $arrBooking = json_decode($jsonBooking, true);
+            if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
+                $supplier = strtolower($arrBooking['supplier'] ?? '');
+                if($supplier == 'datacom') {
+                    require_once "custom/include/helpers/api/APIDatacom.php";
+                    $datacomAgency = new APIDatacom();
+                    $arrBooking['data'] = $datacomAgency->standardizeBookingData($arrBooking['data']);
+                    $arrBooking['data']['EntryClass'] = "entryAutoBookDatacomClass";
+                    $arrBooking['data']['Supplier'] = "Hồng Ngọc Hà 218";
+                }
+                else {
+                    $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
+                    $arrBooking['data']['EntryClass'] = __CLASS__;
+                    $arrBooking['data']['Supplier'] = $this->supplierName;
+                }
+            }
+            return $arrBooking;
+        }
+
+        return [
+            "status" => 0,
+            "message" => "PNR $pnr không hợp lệ",
+        ];
+    }
 
     /**
      * Get booking data
@@ -809,7 +846,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 $pass['FirstName'] = $phuongnamapi->getOnlyFirstName($pass['FirstName'] ?? '');
             }
 
-            $customerInfo[$num] = $pass;
+            $customerInfos[$num] = $pass;
             $customerInfos[$num]["BirthDay"] = $birthday;
             $customerInfos[$num]["Age"] = $phuongnamapi->getAge($birthday);
             $customerInfos[$num]["PersonOrgIdConfirmed"] = null;
@@ -858,8 +895,8 @@ class entryAutoBookPhuongNamClass extends entryClass {
 
             // VN combines round trips with the same session verification and fare pricing
             if(count(array_unique($airlineCodes)) === 1 && $airlineCodes[0] === 'VN' && count($flights) == 2) {
-                $sessionVerify = $responseArr['data'][0]['SessionVerify'] ?? '';
-                $verifyData = $responseArr['data'][0]['VerifyData'] ?? [];
+                $sessionVerify = $responseData[0]['SessionVerify'] ?? '';
+                $verifyData = $responseData[0]['VerifyData'] ?? [];
 
                 if(!empty($sessionVerify) && is_array($verifyData) && !empty($verifyData)) {
                     foreach($requestBody['Flights'] as $i => $f) {
@@ -868,12 +905,12 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 }
                 else {
                     $isVerifyFailed = false;
-                    $verifyFailedMessage = $responseArr['data'][0]['Message'] ?? '';
+                    $verifyFailedMessage = $responseData[0]['Message'] ?? '';
                 }
             }
             else {
                 foreach($requestBody['Flights'] as $i => $f) {
-                    foreach($responseData as $res) {
+                    foreach(($responseData ?? []) as $res) {
                         if(!isset($res['SessionVerify']) || !$res['SessionVerify'] || empty($res['SessionVerify'])) {
                             $isVerifyFailed = false;
                             $verifyFailedMessage = $res['Message'] ?? '';
@@ -962,7 +999,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             $inListItineraryId  = "'".implode("','", $listItineraryId)."'";
             $inListDetailId     = "'".implode("','", $listDetailId)."'";
 
-            foreach($responseArr['data'] as $i => $f) {
+            foreach(($responseArr["data"]["Data"] ?? []) as $i => $f) {
                 if(isset($f["ID"]) && $f["ID"] == 1) {
                     $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
                     $systemCode = trim($bookingCode[0] ?? ''); // Airline code

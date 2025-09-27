@@ -129,12 +129,12 @@
                     <thead>
                         <tr>
                             <th></th>
-                            <th width="10%">Loại HK</th>
-                            <th>Giá vé</th>
-                            <th>VAT</th>
-                            <th>Phí sân bay</th>
-                            <th>Phí khác</th>
-                            <th>Tổng</th>
+                            <th>Loại HK</th>
+                            <th width="15%">Giá vé</th>
+                            <th width="15%">VAT</th>
+                            <th width="15%">Phí sân bay</th>
+                            <th width="15%">Phí khác</th>
+                            <th width="20%">Tổng</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

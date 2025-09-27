@@ -234,10 +234,10 @@ function renderBookingInfo(data) {
     $('#bookingCode').text(data.BookingCode);
     $('#suppplier').text(data.Supplier);
     // Status
-    const statusInfo = getBookingStatusInfo(data.BookingStatusId);
+    const statusInfo = getBookingStatusInfo(data.BookingStatus);
     $('#bookingStatus').text(statusInfo.text)
-        .removeClass('paid unpaid holding cancelled completed error update-required change-paid change-payment special manual-update trip-cancelled ticket-error unknown')
-        .addClass(statusInfo.class)
+        .removeClass()
+        .addClass(`value status ${data.BookingStatus}`)
         .attr('title', statusInfo.description);
     // Total amount
     $('#totalAmount').text(formatCurrency(data.TotalAmount));
@@ -333,7 +333,7 @@ function updateExpiryBadge(data) {
     const expiryBadge = $('#expiryBadge');
 
     // Only show badge for BookingStatusId 100 (Giữ chỗ)
-    if (data.BookingStatusId !== 100) {
+    if (data.BookingStatusId == 'holding') {
         expiryBadge.hide();
         return;
     }
@@ -380,7 +380,7 @@ function updatePaymentSection(data) {
     const paymentSection = $('#paymentSection');
 
     // Only show payment section for BookingStatusId 100 and not expired
-    if (data.BookingStatusId === 100 && !isBookingExpired(data.BookingExpired)) {
+    if (data.BookingStatus == 'holding' && !isBookingExpired(data.BookingExpired)) {
         // Update payment information
         $('#paymentTotalAmount').text(formatCurrency(data.TotalAmount));
         $('#paymentUnpaidAmount').text(formatCurrency(data.UnPaidAmount));
@@ -437,67 +437,62 @@ function isBookingExpired(bookingExpiredString) {
     return now > bookingExpired;
 }
 
-function getBookingStatusInfo(bookingStatusId) {
+/**
+ * Get booking status info
+ * 
+ * @param {string} bookingStatus 
+ * @returns {object}
+ */
+function getBookingStatusInfo(bookingStatus) {
     const statusMap = {
-        100: {
+        "holding": {
             text: "Giữ chỗ",
-            class: "holding",
             description: "Booking đang được giữ chỗ"
         },
-        200: {
+        "cancelled": {
             text: "Hủy",
-            class: "cancelled",
             description: "Booking đã bị hủy"
         },
-        300: {
+        "completed": {
             text: "Đã xuất vé & Thanh toán",
-            class: "completed",
             description: "Đã xuất vé và thanh toán thành công"
         },
-        400: {
+        "error": {
             text: "Booking Lỗi",
-            class: "error",
             description: "Booking gặp lỗi trong quá trình xử lý"
         },
-        310: {
+        "update-required": {
             text: "Cập nhật thông tin Booking sau khi xuất vé",
-            class: "update-required",
             description: "Cần cập nhật thông tin booking sau khi xuất vé và cần thanh toán"
         },
-        320: {
+        "change-paid": {
             text: "Thanh toán cho chi phí thay đổi booking",
-            class: "change-paid",
             description: "Đã thanh toán đủ cho chi phí thay đổi booking"
         },
-        350: {
+        "change-payment": {
             text: "Thanh toán cho chi phí thay đổi booking",
-            class: "change-payment",
             description: "Cần thanh toán cho chi phí thay đổi booking"
         },
-        330: {
+        "special": {
             text: "Trạng thái đặc biệt",
-            class: "special",
             description: "Trạng thái đặc biệt"
         },
-        329: {
+        "manual-update": {
             text: "Trạng thái thanh toán được update bằng tay",
-            class: "manual-update",
             description: "Trạng thái thanh toán được cập nhật thủ công"
         },
-        210: {
+        "trip-cancelled": {
             text: "Hủy hành trình",
-            class: "trip-cancelled",
             description: "Hành trình đã bị hủy"
         },
-        304: {
+        "ticket-error": {
             text: "Xuất vé lỗi",
-            class: "ticket-error",
             description: "Gặp lỗi trong quá trình xuất vé"
         }
     };
 
-    return statusMap[bookingStatusId] || {
-        text: `Trạng thái ${bookingStatusId}`,
+    return statusMap[bookingStatus] || {
+        text: `Trạng thái ${bookingStatus}`,
         class: "unknown",
         description: "Trạng thái không xác định"
     };
@@ -529,7 +524,13 @@ function renderPassengers(data) {
         // Service actions
         let showAddBag = true;
         let optBaggageServiceHTML = '';
-        if (passenger.Type != 'inf' && (data.BookingStatusId != 100 || !isBookingExpired(data.BookingExpired))) {
+        if (passenger.Type != 'inf' 
+            && (
+                (data.BookingStatus == 'holding' && !isBookingExpired(data.BookingExpired))
+                ||
+                (!['error', 'cancelled', 'trip-cancelled', 'ticket-error', 'unknown'].includes(data.BookingStatus))
+            )
+        ) {
             for (let i = 0; i < Object.keys(data.ListFlight).length; i++) {
                 if((i == 0 && purchasedBaggageDep) || (i == 1 && purchasedBaggageRet)) continue;
                 let text = i == 0 ? 'Thêm hành lý đi' : 'Thêm hành lý về';
@@ -642,7 +643,7 @@ function renderFareBreakdown(fareCharges) {
     Object.entries(fareCharges).forEach(([key, fare]) => {
         const row = `<tr>
             <td>${fare.DirectionText}</td>
-            <td><strong>${getPassengerLabelName(fare.Type)}</strong></td>
+            <td>${getPassengerLabelName(fare.Type)}</td>
             <td>${formatCurrency(fare.BaseFare)}</td>
             <td>${formatCurrency(fare.VAT)}</td>
             <td>${formatCurrency(fare.AirportFee)}</td>
