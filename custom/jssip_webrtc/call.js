@@ -72,7 +72,6 @@ var callOptions = {
             {
                 'urls': [ 
                     'stun:turn.quantri.online:3478',
-                    // 'stun:turn.quantri.online:5349',
                 ],
                 'username': 'quangnd',
                 'credential': 'Super@Secret@123'
