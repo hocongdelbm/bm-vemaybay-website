@@ -144,7 +144,7 @@ $(document).ready(function () {
                     let passType = passTypeInputs[index].value.toLowerCase();
                     if(passType == 'adt') adt++;
                     else if(passType == 'chd') chd++;
-                    else if(passType == 'int') inf++;
+                    else if(passType == 'inf') inf++;
                     listPassengerId.push(passId);
                 }
             });
@@ -406,19 +406,32 @@ $(document).ready(function () {
                         let passFullnameInputs      = document.querySelectorAll(`input[name="${PREFIX}PassengerFullname[]"]`);
                         let passDateOfBirthInputs   = document.querySelectorAll(`input[name="${PREFIX}PassengerDateOfBirth[]"]`);
                         let passPassportInputs      = document.querySelectorAll(`input[name="${PREFIX}PassengerPassport[]"]`);
+                        let passParentIdInputs      = document.querySelectorAll(`select[name="${PREFIX}PassengerParentId[]"]`);
                         passIdInputs.forEach((input, index) => {
                             let title   = passTitleInputs[index].value;
                             let gender  = title == 'Ms' ? 'F' : 'M';
-                            let type    = passTypeInputs[index].value;
-                            if(type != 'adt') title = null;
+                            let type    = passTypeInputs[index].value.toLowerCase();
+                            let passengerTypeId = null;
+                            let parentId = parseInt(passParentIdInputs[index].value);
 
-                            let passengerTypeId = 1;
-                            if(type == 'inf') passengerTypeId = 5;
-                            else if(type == 'chd') passengerTypeId = 6;
+                            if(type != 'adt') title = null;
+                            if(type == 'adt') {
+                                passengerTypeId = 1;
+                                parentId = null;
+                            }
+                            else if(type == 'chd') {
+                                passengerTypeId = 6;
+                                parentId = null;
+                            }
+                            else if(type == 'inf') {
+                                passengerTypeId = 5;
+                                parentId++;
+                            }
 
                             listPassenger.push({
-                                "PersonOrgId" : (index + 1).toString(),
-                                "PassengerTypeId" : passengerTypeId,
+                                "PersonOrgId"       : (index + 1).toString(),
+                                "PassengerTypeId"   : passengerTypeId,
+                                "ParentGuestId"     : parentId,
                                 "FirstName"  : getMiddleAndFirstName(passFullnameInputs[index].value),
                                 "LastName"   : getLastName(passFullnameInputs[index].value),
                                 "BirthDay"   : passDateOfBirthInputs[index].value,
@@ -429,6 +442,7 @@ $(document).ready(function () {
                                 "RowNumber"  : index + 1,
                                 "Passport"   : type != 'inf' ? passPassportInputs[index].value : null,
                                 "SortOrder"  : index + 1,
+                                
                             });
                         });
 

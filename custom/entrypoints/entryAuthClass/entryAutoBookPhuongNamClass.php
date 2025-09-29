@@ -27,7 +27,8 @@ class entryAutoBookPhuongNamClass extends entryClass {
             'VJ' => 'Vietjet Air',
             'VN' => 'Vietnam Airlines',
             'QH' => 'Bamboo Airways',
-            'VU' => 'Vietravel Airlines'
+            'VU' => 'Vietravel Airlines',
+            '9G' => 'Sun PhuQuoc Airways',
         ];
         $this->mappingSystemCode = [
             'VJA' => 'VJ',
@@ -42,6 +43,12 @@ class entryAutoBookPhuongNamClass extends entryClass {
         $this->supplierName = "NCC Phương Nam";
     }
 
+    /**
+     * Get data from database to auto book
+     * 
+     * @param array $params
+     * @return array
+     */
     public function getDataAutoBook($params = []) {
         $bookingId          = $params['bookingId'] ?? '';
         $listItineraryId    = $params['listItineraryId'] ?? []; // ec_booking_itineraries
@@ -302,8 +309,8 @@ class entryAutoBookPhuongNamClass extends entryClass {
             if(isset($arr["status"]) && $arr["status"] == 1) {
                 $data = [];
                 $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $direction);
-                $data["Origin"]      = $arr["data"]["Origin"];
-                $data["Destination"] = $arr["data"]["Destination"];
+                $data["Origin"]      = $arr["data"][$direction]["Origin"];
+                $data["Destination"] = $arr["data"][$direction]["Destination"];
                 return [
                     "status" => 1,
                     "message" => $arr["message"] ?? "Success",
@@ -779,6 +786,12 @@ class entryAutoBookPhuongNamClass extends entryClass {
         return ["status" => 0, "message" => "Nothing to update", "params" => $params];
     }
 
+    /**
+     * Verify flight info
+     * 
+     * @param array $params
+     * @return array
+     */
     public function verify($params = []) {
         $bookingId = $params['bookingId'] ?? '';
         $flights = $params['flights'] ?? [];
@@ -859,7 +872,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
             $customerInfos[$num]["PassportIssuer"] = null;
             $customerInfos[$num]["PassportExpired"] = null;
             $customerInfos[$num]["Nationality"] = null;
-            $customerInfos[$num]["ParentGuestId"] = null;
             $customerInfos[$num]["ParentGuestIdConfirmed"] = null; // QH uses
             $customerInfos[$num]["ParentGuestCode"] = null; // VJ uses
             $customerInfos[$num]["LoyaltyNumber"] = null;
@@ -951,6 +963,12 @@ class entryAutoBookPhuongNamClass extends entryClass {
         exit();
     }
 
+    /**
+     * Create booking
+     * 
+     * @param array $params
+     * @return array
+     */
     public function booking($params = []) {
         $bookingId          = $params['bookingId'] ?? '';
         $listPassengerId    = $params['listPassengerId'] ?? [];
@@ -1002,7 +1020,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             foreach(($responseArr["data"]["Data"] ?? []) as $i => $f) {
                 if(isset($f["ID"]) && $f["ID"] == 1) {
                     $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
-                    $systemCode = trim($bookingCode[0] ?? ''); // Airline code
+                    $systemCode = trim($bookingCode[0] ?? ''); // System code
                     $systemName = $this->mappingSystemCodeName[$systemCode] ?? "Quốc tế $systemCode";
 
                     $pnr = trim($bookingCode[1] ?? '');

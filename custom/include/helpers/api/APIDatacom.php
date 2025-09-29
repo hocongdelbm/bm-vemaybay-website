@@ -449,8 +449,8 @@ class APIDatacom {
         $bookingData["BookingId"]       = $data["BookingId"] ?? "";
         $bookingData["BookingStatusId"] = null;
         $bookingData["BookingStatus"]   = $this->mappingBookingStatus($data["BookingStatus"]);
-        $bookingData["BookingDate"]     = $this->convertDatetime($data["TimePurchase"]);
-        $bookingData["BookingExpired"]  = $this->convertDatetime($data["ExpirationTime"]);
+        $bookingData["BookingDate"]     = $this->convertDatetime($data["TimePurchase"], 'Y-m-d H:i'); // dmY Hi
+        $bookingData["BookingExpired"]  = $this->convertDatetime($data["ExpirationTime"], 'Y-m-d H:i'); // dmY Hi
         $bookingData["TotalAmount"]     = $data["TotalPrice"] ?? 0;
         $bookingData["PaidAmount"]      = $data["PaidAmount"] ?? 0;
         $bookingData["UnPaidAmount"]    = $bookingData["TotalAmount"] - $bookingData["PaidAmount"];

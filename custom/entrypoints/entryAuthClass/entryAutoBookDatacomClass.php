@@ -27,7 +27,13 @@ class entryAutoBookDatacomClass extends entryClass {
             'VJ' => 'Vietjet Air',
             'VN' => 'Vietnam Airlines',
             'QH' => 'Bamboo Airways',
-            'VU' => 'Vietravel Airlines'
+            'VU' => 'Vietravel Airlines',
+            '9G' => 'Sun PhuQuoc Airways',
+            '1A' => 'Amadeus',
+            '1G' => 'Galileo',
+            'TR' => 'Scoot',
+            'AK' => 'AirAsia',
+            'FO' => 'Flyone',
         ];
         $this->mappingSystemCode = [
             'VJA' => 'VJ',
@@ -1151,16 +1157,16 @@ class entryAutoBookDatacomClass extends entryClass {
 
                 // Send notification
                 try {
-                    $airlineName = $this->mappingSystemCodeName[$airlineCode] ?? $airlineCode;
+                    $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
                     $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
                     $linkBooking = "https://{$this->domain}/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
 
                     if($this->notificationChannel == 'Mattermost') {
                         $link = Mattermost::markdownLink($linkBooking, $pnr);
 
-                        $m = "Giữ chỗ $airlineName ($systemCode): $link bởi **$fullname**";
+                        $m = "Giữ chỗ $systemName ($airlineCode): $link bởi **$fullname**";
                         if(isset($bk['AutoIssue']) && $bk['AutoIssue'] === true) {
-                            $m = "Xuất vé cận $airlineName ($systemCode): $link bởi **$fullname**";
+                            $m = "Xuất vé cận $systemName ($airlineCode): $link bởi **$fullname**";
                         }
                         if(isset($responseArr['data']['OrderId']) && !empty($responseArr['data']['OrderId'])) {
                             $m .= "\n- Order ID: ". ($responseArr['data']['OrderId']);
@@ -1171,9 +1177,9 @@ class entryAutoBookDatacomClass extends entryClass {
                     else {
                         $link = "<a href=\"".$linkBooking."\">$pnr</a>";
 
-                        $m = "Giữ chỗ $airlineName ($systemCode): $link bởi <b>$fullname</b>";
+                        $m = "Giữ chỗ $systemName ($airlineCode): $link bởi <b>$fullname</b>";
                         if(isset($bk['AutoIssue']) && $bk['AutoIssue'] === true) {
-                            $m = "<b>💰 Xuất vé cận $airlineName ($systemCode): $link bởi $fullname</b>";
+                            $m = "<b>💰 Xuất vé cận $systemName ($airlineCode): $link bởi $fullname</b>";
                         } 
                         if(isset($responseArr['data']['OrderId']) && !empty($responseArr['data']['OrderId'])) {
                             $m .= "\n<i>Order ID: ". ($responseArr['data']['OrderId']) ."</i>";

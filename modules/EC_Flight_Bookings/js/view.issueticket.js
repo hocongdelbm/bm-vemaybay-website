@@ -65,10 +65,10 @@ $(document).ready(function () {
         });
     });
 
-    // Add click handlers for status icons (optional functionality)
-    $('.status-icon').on('click', function () {
-        const tooltip = $(this).attr('data-tooltip');
-    });
+    // // Add click handlers for status icons (optional functionality)
+    // $('.status-icon').on('click', function () {
+    //     const tooltip = $(this).attr('data-tooltip');
+    // });
 
     // Add baggage
     $(document).on('click', '.add-baggage', function (e) {
@@ -77,18 +77,15 @@ $(document).ready(function () {
         const bookingCode   = $('input[name="bookingCode"]').val();
         const bookingId     = $('input[name="bookingId"]').val();
         const systemCode    = $('input[name="systemCode"]').val();
-        const direction     = $(this).attr('direction');
-        const passengerData = decodeAutoBook($(this).attr('passengerData') ?? "");
+        const direction     = $(this).attr('data-direction');
+        const passengerData = decodeAutoBook($(this).attr('data-passenger') ?? "");
 
-        // const personOrgId           = parseInt($(this).attr('personOrgId') ?? 0);
-        // const personOrgIdConfirmed  = $(this).attr('personOrgIdConfirmed') ?? "";
-        // const passengerName         = $(this).attr('passengerName') ?? "";
-
-        if (systemCode.length > 0 && bookingCode.length > 0 && direction.length > 0 && personOrgId > 0) {
+        if (systemCode.length > 0 && bookingCode.length > 0 && direction.length > 0 && passengerData) {
             $.ajax({
                 url: ENTRYPOINT,
                 type: "POST",
                 contentType: "application/json",
+                dataType: "json",
                 data: JSON.stringify({
                     class: entryClass,
                     method: "getBaggageInfo",
@@ -105,13 +102,12 @@ $(document).ready(function () {
                 success: function (response) {
                     try {
                         $('.container-waiting').hide();
-                        const objData = JSON.parse(response);
-                        if (objData.status == 1) {
-                            createBaggageServiceDialog(objData.data, passengerData, systemCode, direction);
+                        if (response.status == 1) {
+                            createBaggageServiceDialog(response.data, passengerData, systemCode, direction);
                         }
                         else {
-                            showModalNotify("warning", objData.message ?? "Lỗi trong quá trình lấy dữ liệu");
-                            console.error(objData);
+                            showModalNotify("warning", response.message ?? "Lỗi trong quá trình lấy dữ liệu");
+                            console.error(response);
                         }
                     }
                     catch (e) {
@@ -233,14 +229,17 @@ function renderBooking(data) {
 function renderBookingInfo(data) {
     $('#bookingCode').text(data.BookingCode);
     $('#suppplier').text(data.Supplier);
+
     // Status
-    const statusInfo = getBookingStatusInfo(data.BookingStatus);
-    $('#bookingStatus').text(statusInfo.text)
+    const statusDetails = isBookingExpired(data.BookingStatus, data.BookingExpired) ? getBookingStatusDetails('timeout') : getBookingStatusDetails(data.BookingStatus);
+    $('#bookingStatus').text(statusDetails.text)
         .removeClass()
-        .addClass(`value status ${data.BookingStatus}`)
-        .attr('title', statusInfo.description);
+        .addClass(`value status ${statusDetails.class}`)
+        .attr('title', statusDetails.description);
+
     // Total amount
     $('#totalAmount').text(formatCurrency(data.TotalAmount));
+
     // Paid Amount
     const paidAmountElement = $('#paidAmount');
     paidAmountElement.text(formatCurrency(data.PaidAmount));
@@ -249,6 +248,7 @@ function renderBookingInfo(data) {
     } else {
         paidAmountElement.removeClass('zero');
     }
+
     // Unpaid Amount
     const unpaidAmountElement = $('#unpaidAmount');
     unpaidAmountElement.text(formatCurrency(data.UnPaidAmount));
@@ -258,6 +258,7 @@ function renderBookingInfo(data) {
         unpaidAmountElement.removeClass('zero');
     }
     $('#bookingDate').text(formatDateTime(data.BookingDate));
+
     // Handle null BookingExpired
     if (!data.BookingExpired || data.BookingExpired === null) {
         $('#bookingExpiry').text('');
@@ -332,25 +333,18 @@ function updateStatusIcons(data) {
 function updateExpiryBadge(data) {
     const expiryBadge = $('#expiryBadge');
 
-    // Only show badge for BookingStatusId 100 (Giữ chỗ)
-    if (data.BookingStatusId == 'holding') {
+    if (data.BookingStatus != 'holding') {
         expiryBadge.hide();
         return;
     }
 
-    // Check if BookingExpired is null or empty
     if (!data.BookingExpired || data.BookingExpired === null) {
-        // No expiry time - unlimited booking, hide badge
         expiryBadge.hide();
         return;
     }
 
-    // Parse booking expiry date
     const bookingExpired = new Date(data.BookingExpired);
-
-    // Check if date is valid
     if (isNaN(bookingExpired.getTime())) {
-        // Invalid date, treat as unlimited
         expiryBadge.hide();
         return;
     }
@@ -364,7 +358,8 @@ function updateExpiryBadge(data) {
         // Booking has expired
         expiryBadge.removeClass('warning').addClass('expired');
         expiryBadge.text('Đã hết hạn giữ chỗ');
-        expiryBadge.show();
+        // expiryBadge.show();
+        expiryBadge.hide();
     } else if (minutesLeft <= 15) {
         // Booking expires within 15 minutes
         expiryBadge.removeClass('expired').addClass('warning');
@@ -379,8 +374,7 @@ function updateExpiryBadge(data) {
 function updatePaymentSection(data) {
     const paymentSection = $('#paymentSection');
 
-    // Only show payment section for BookingStatusId 100 and not expired
-    if (data.BookingStatus == 'holding' && !isBookingExpired(data.BookingExpired)) {
+    if (!isBookingExpired(data.BookingStatus, data.BookingExpired)) {
         // Update payment information
         $('#paymentTotalAmount').text(formatCurrency(data.TotalAmount));
         $('#paymentUnpaidAmount').text(formatCurrency(data.UnPaidAmount));
@@ -417,24 +411,22 @@ function resetPaymentButton() {
     `);
 }
 
-// Helper function to check if booking is expired
-function isBookingExpired(bookingExpiredString) {
-    // If BookingExpired is null or empty, treat as unlimited (never expired)
-    if (!bookingExpiredString || bookingExpiredString === null) {
-        return false;
+/**
+ * Check if booking is expired
+ * 
+ * @param {string} bookingStatus
+ * @param {string} bookingExpiredString yyyy-mm-dd hh:mm
+ * @returns {bool}
+ */
+function isBookingExpired(bookingStatus, bookingExpiredString) {
+    if(bookingStatus == 'holding') {
+        if (!bookingExpiredString || bookingExpiredString === null) return false;
+        const bookingExpired = new Date(bookingExpiredString);
+        if (isNaN(bookingExpired.getTime())) return false;
+        const now = new Date();
+        return now > bookingExpired;
     }
-
-    const bookingExpired = new Date(bookingExpiredString);
-
-    // Check if date is valid
-    if (isNaN(bookingExpired.getTime())) {
-        console.warn("hehe");
-        // Invalid date, treat as unlimited (never expired)
-        return false;
-    }
-
-    const now = new Date();
-    return now > bookingExpired;
+    return false;
 }
 
 /**
@@ -443,57 +435,73 @@ function isBookingExpired(bookingExpiredString) {
  * @param {string} bookingStatus 
  * @returns {object}
  */
-function getBookingStatusInfo(bookingStatus) {
+function getBookingStatusDetails(bookingStatus) {
     const statusMap = {
         "holding": {
+            class: "holding",
             text: "Giữ chỗ",
             description: "Booking đang được giữ chỗ"
         },
+        "timeout": {
+            class: "timeout",
+            text: "Hết hạn giữ chỗ",
+            description: "Booking đã hết hạn giữ chỗ"
+        },
         "cancelled": {
+            class: "cancelled",
             text: "Hủy",
             description: "Booking đã bị hủy"
         },
         "completed": {
+            class: "completed",
             text: "Đã xuất vé & Thanh toán",
             description: "Đã xuất vé và thanh toán thành công"
         },
         "error": {
+            class: "error",
             text: "Booking Lỗi",
             description: "Booking gặp lỗi trong quá trình xử lý"
         },
         "update-required": {
+            class: "update-required",
             text: "Cập nhật thông tin Booking sau khi xuất vé",
             description: "Cần cập nhật thông tin booking sau khi xuất vé và cần thanh toán"
         },
         "change-paid": {
+            class: "change-paid",
             text: "Thanh toán cho chi phí thay đổi booking",
             description: "Đã thanh toán đủ cho chi phí thay đổi booking"
         },
         "change-payment": {
+            class: "change-payment",
             text: "Thanh toán cho chi phí thay đổi booking",
             description: "Cần thanh toán cho chi phí thay đổi booking"
         },
         "special": {
+            class: "special",
             text: "Trạng thái đặc biệt",
             description: "Trạng thái đặc biệt"
         },
         "manual-update": {
+            class: "manual-update",
             text: "Trạng thái thanh toán được update bằng tay",
             description: "Trạng thái thanh toán được cập nhật thủ công"
         },
         "trip-cancelled": {
+            class: "trip-cancelled",
             text: "Hủy hành trình",
             description: "Hành trình đã bị hủy"
         },
         "ticket-error": {
+            class: "ticket-error",
             text: "Xuất vé lỗi",
             description: "Gặp lỗi trong quá trình xuất vé"
         }
     };
 
-    return statusMap[bookingStatus] || {
-        text: `Trạng thái ${bookingStatus}`,
+    return bookingStatus in statusMap ? statusMap[bookingStatus] : {
         class: "unknown",
+        text: `Không xác định`,
         description: "Trạng thái không xác định"
     };
 }
@@ -525,18 +533,15 @@ function renderPassengers(data) {
         let showAddBag = true;
         let optBaggageServiceHTML = '';
         if (passenger.Type != 'inf' 
-            && (
-                (data.BookingStatus == 'holding' && !isBookingExpired(data.BookingExpired))
-                ||
-                (!['error', 'cancelled', 'trip-cancelled', 'ticket-error', 'unknown'].includes(data.BookingStatus))
-            )
+            && !isBookingExpired(data.BookingStatus, data.BookingExpired)
+            && !['error', 'cancelled', 'trip-cancelled', 'ticket-error', 'unknown'].includes(data.BookingStatus)
         ) {
             for (let i = 0; i < Object.keys(data.ListFlight).length; i++) {
                 if((i == 0 && purchasedBaggageDep) || (i == 1 && purchasedBaggageRet)) continue;
                 let text = i == 0 ? 'Thêm hành lý đi' : 'Thêm hành lý về';
                 optBaggageServiceHTML += `<a class="dropdown-item add-baggage"
-                    direction="${i}"
-                    passengerData="${encodeAutoBook(passenger)}"
+                    data-direction="${i}"
+                    data-passenger="${encodeAutoBook(passenger)}"
 
                     personOrgId="${passenger.Id}"
                     personOrgIdConfirmed="${passenger.IdConfirmed}"
@@ -548,14 +553,12 @@ function renderPassengers(data) {
         }
         else showAddBag = false;
 
-        const passengerLabelName = getPassengerLabelName(passenger.Type);
-        const badgeClass = passenger.Type;
         tbody.append(`<tr>
             <td>
                 <strong>${passenger.Id}. ${passenger.LastName} ${passenger.FirstName}</strong>
                 ${purchasedServicesHTML}
             </td>
-            <td><span class="badge ${badgeClass}">${passengerLabelName}</span></td>
+            <td><span class="badge ${passenger.Type}">${getPassengerLabelName(passenger.Type)}</span></td>
             <td>${passenger.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
             <td>${passenger.DateOfBirth}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
             <td>
@@ -725,7 +728,7 @@ function formatDate(dateString) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
 
-    return `${day}/${month}/${year}`;
+    return `${day}-${month}-${year}`;
 }
 
 function formatDateTime(dateString) {
@@ -742,7 +745,7 @@ function formatDateTime(dateString) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
 }
 
 function formatTime(dateString) {
@@ -806,36 +809,6 @@ function createBaggageServiceDialog(baggageData, passengerData, systemCode, dire
         const baggageListEl = wrapper.querySelector('#baggageServiceList');
         const confirmBtn = wrapper.querySelector('.baggage-confirm');
         const cancelBtn = wrapper.querySelector('.baggage-cancel');
-
-        // Render available services
-        if(!('ListBaggage' in baggageData) && !baggageData.ListBaggage || baggageData.ListBaggage.length == 0) {
-            baggageListEl.innerHTML = '<center><i>Không có hành lý để thêm</i></center>';
-            $('.baggage-dialog center.note').remove();
-        }
-        else {
-            baggageListEl.innerHTML = '';
-            baggageData.ListBaggage.forEach((bag, index) => {
-                const div = document.createElement('div');
-                div.className = 'baggage-service-item';
-                div.innerHTML = `
-                    <input type="radio" name="baggageOption"
-                        id="baggageOption${index}"
-                        value="${encodeAutoBook(service.value)}"
-                        data-description="${bag.Description || bag.Name}"
-                        data-amount="${bag.TotalAmount}"
-                        data-vat-amount="${bag.VAT}"
-                        data-person-org-id="${passengerData.Id}"
-                        data-person-org-id-confirmed="${passengerData.IdConfirmed}"
-                    />
-                    <label for="baggageOption${index}">
-                        ${bag.Description || bag.Name}
-                        <br>
-                        <span>${formatCurrency(bag.Amount, false)} + ${formatCurrency(bag.VAT, false)} (VAT) = <strong>${formatCurrency(bag.TotalAmount)}</strong></span>
-                    </label
-                `;
-                baggageListEl.appendChild(div);
-            });
-        }
 
         confirmBtn.addEventListener('click', () => {
             const selectedRadio = wrapper.querySelector('input[name="baggageOption"]:checked');
@@ -907,6 +880,44 @@ function createBaggageServiceDialog(baggageData, passengerData, systemCode, dire
             document.body.removeChild(wrapper);
             resolve(null);
         });
+
+        // Render available services
+        if(!('ListBaggage' in baggageData) && !baggageData.ListBaggage || baggageData.ListBaggage.length == 0) {
+            baggageListEl.innerHTML = '<center><i>Không có hành lý để thêm</i></center>';
+            $('.baggage-dialog center.note').remove();
+        }
+        else {
+            baggageListEl.innerHTML = '';
+            baggageData.ListBaggage.forEach((bag, index) => {
+                let totalPurchageAmountHTML = ``;
+                if('VAT' in bag && bag.VAT > 0) {
+                    totalPurchageAmountHTML = `<span>${formatCurrency(bag.Amount, false)} + ${formatCurrency(bag.VAT, false)} (VAT) = <strong>${formatCurrency(bag.TotalAmount)}</strong></span>`;
+                }
+                else {
+                    totalPurchageAmountHTML = `<strong>${formatCurrency(bag.TotalAmount)}</strong>`;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'baggage-service-item';
+                div.innerHTML = `
+                    <input type="radio" name="baggageOption"
+                        id="baggageOption${index}"
+                        value="${encodeAutoBook(bag.value)}"
+                        data-description="${bag.Description || bag.Name}"
+                        data-amount="${bag.TotalAmount}"
+                        data-vat-amount="${bag.VAT}"
+                        data-person-org-id="${passengerData.Id}"
+                        data-person-org-id-confirmed="${passengerData.IdConfirmed}"
+                    />
+                    <label for="baggageOption${index}">
+                        ${bag.Description || bag.Name}
+                        <br>
+                        ${totalPurchageAmountHTML}
+                    </label
+                `;
+                baggageListEl.appendChild(div);
+            });
+        }
     });
 }
 

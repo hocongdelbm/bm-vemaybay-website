@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.0">
+<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.1">
 
 <div class="container">
     <header class="booking-header">

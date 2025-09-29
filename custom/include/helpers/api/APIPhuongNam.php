@@ -146,7 +146,7 @@ class APIPhuongNam {
             'bookingCode' => $bookingCode
         ]);
 
-        $this->sendRequest('POST', $path, $requestBody, $header);
+        return $this->sendRequest('POST', $path, $requestBody, $header);
     }
     
     public function syncBooking($systemCode, $bookingCode) {
@@ -308,184 +308,33 @@ class APIPhuongNam {
         }
     }
 
+    /**
+     * Get baggage info
+     * 
+     * @param string $bookingCode PNR
+     * @param string $systemCode VJ, VN, QH, VU,...
+     * @return string JSON {status, message, data}
+     */
     public function getBaggageInfo($bookingCode, $systemCode) {
-        try {
-            if(!$systemCode || !$bookingCode || empty($systemCode) || empty($bookingCode)) {
-                return json_encode([
-                    'status' => 0,
-                    'message' => 'Invalid params',
-                    'params' => [
-                        'systemCode' => $systemCode,
-                        'bookingCode' => $bookingCode
-                    ]
-                ]);
-            }
-
-            $headers = [
-                "Content-Type: application/json",
-                "API-Key: $this->API_BOOKING_KEY"
-            ];
-            $requestBody = [
-                "SystemCode" => $systemCode,
-                "BookingCode" => $bookingCode
-            ];
-
-            $curl = curl_init();
-            if($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL failed to initialize in BM"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/getBaggageInfo");
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 24);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 90);
-            $response = curl_exec($curl); // JSON
-            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            $errorno = curl_errno($curl);
-            $error = curl_error($curl);
-            curl_close($curl);
-
-            if($response === false || $errorno) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => "Can't connect to API Fare System",
-                    "description" => "cURL error $errorno: $error"
-                ]);
-            }
-
-            $responseArr = is_string($response) ? json_decode($response, true) : $response;
-
-            if($httpcode != 200) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => "Getting baggage info failed",
-                    "data" => $responseArr,
-                    "description" => "HTTP error $httpcode"
-                ]);
-            }
-
-            if($responseArr['ID'] != 1) {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => $responseArr["Message"] ?? "Getting baggage info failed",
-                    "data"      => $responseArr['Data'] ?? [],
-                ]);
-            }
-
-            if(!isset($responseArr['Data']) || !$responseArr['Data'] || empty($responseArr['Data'])) {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => "No baggage info for $bookingCode in $systemCode",
-                    "data"      => [],
-                ]);
-            }
-
+        if(!$systemCode || !$bookingCode || empty($systemCode) || empty($bookingCode)) {
             return json_encode([
-                "status"     => 1,
-                "message"   => "Success",
-                "data"      => $responseArr['Data'] ?? [],
+                "status" => 0,
+                "message" => "Invalid params",
+                "data" => null,
             ]);
         }
-        catch(Exception $e) {
-            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
-        }
-        finally {
-            if(isset($curl) && is_resource($curl)) curl_close($curl);
-        }
-    }
 
-    public function getSeatMapsInfo($systemCode, $bookingCode) {
-        try {
-            if(!$systemCode || !$bookingCode || empty($systemCode) || empty($bookingCode)) {
-                return json_encode([
-                    'status' => 0,
-                    'message' => 'Invalid params',
-                    'params' => [
-                        'systemCode' => $systemCode,
-                        'bookingCode' => $bookingCode
-                    ]
-                ]);
-            }
+        $path = "booking/{$this->API_NAME}/getBaggageInfo";
+        $header = [
+            "Content-Type: application/json",
+            "API-Key: $this->API_BOOKING_KEY"
+        ];
+        $requestBody = json_encode([
+            "SystemCode" => $systemCode,
+            "BookingCode" => $bookingCode
+        ]);
 
-            $headers = [
-                "Content-Type: application/json",
-                "API-Key: $this->API_BOOKING_KEY"
-            ];
-            $requestBody = [
-                "SystemCode" => $systemCode,
-                "BookingCode" => $bookingCode
-            ];
-
-            $curl = curl_init();
-            if($curl === false) return json_encode(["status" => 0, "message" => "System error", "description" => "cURL failed to initialize in BM"]);
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/booking/getSeatMapsInfo");
-            curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($requestBody));
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 90);
-            $response = curl_exec($curl); // JSON
-            $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-            $errorno = curl_errno($curl);
-            $error = curl_error($curl);
-            curl_close($curl);
-
-            if($response === false || $errorno) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => "Can't connect to API Fare System",
-                    "description" => "cURL error $errorno: $error"
-                ]);
-            }
-
-            $responseArr = is_string($response) ? json_decode($response, true) : $response;
-
-            if($httpcode != 200) {
-                return json_encode([
-                    "status" => 0,
-                    "message" => "Getting seat maps failed",
-                    "data" => $responseArr,
-                    "description" => "HTTP error $httpcode"
-                ]);
-            }
-
-            if($responseArr['ID'] != 1) {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => $responseArr["Message"] ?? "Getting seat maps failed",
-                    "data"      => $responseArr['Data'] ?? [],
-                ]);
-            }
-
-            if(!isset($responseArr['Data']) || !$responseArr['Data'] || empty($responseArr['Data'])) {
-                return json_encode([
-                    "status"     => 0,
-                    "message"   => "No seat maps data for $bookingCode in $systemCode",
-                    "data"      => [],
-                ]);
-            }
-
-            return json_encode([
-                "status"     => 1,
-                "message"   => "Success",
-                "data"      => $responseArr['Data'] ?? [],
-            ]);
-        }
-        catch(Exception $e) {
-            return json_encode(["status" => 0, "message" => "{$e->getCode()}: {$e->getMessage()}", "data" => null]);
-        }
-        finally {
-            if(isset($curl) && is_resource($curl)) curl_close($curl);
-        }
+        return $this->sendRequest('POST', $path, $requestBody, $header);
     }
 
     public function addBaggage($systemCode, $bookingCode, $services) {
@@ -823,8 +672,8 @@ class APIPhuongNam {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 24);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 100);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20 + 10);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 90 + 10);
             foreach ($curlOptions as $key => $value) {
                 curl_setopt($curl, $key, $value);
             }
@@ -889,8 +738,8 @@ class APIPhuongNam {
         $bookingData["BookingId"]       = $data["BookingId"] ?? "";
         $bookingData["BookingStatusId"] = $data["BookingStatusId"];
         $bookingData["BookingStatus"]   = $this->mappingBookingStatus($data["BookingStatusId"]);
-        $bookingData["BookingDate"]     = $data["BookingDate"];
-        $bookingData["BookingExpired"]  = $data["BookingExpired"];
+        $bookingData["BookingDate"]     = date('Y-m-d H:i', strtotime($data["BookingDate"])); // 2025-09-27T10:30:40.167
+        $bookingData["BookingExpired"]  = date('Y-m-d H:i', strtotime($data["BookingExpired"])); // 2025-09-27T14:31:00
         $bookingData["TicketNumber"]    = $data["TicketNumber"];
         $bookingData["TotalAmount"]     = $data["TotalAmount"] ?? 0;
         $bookingData["PaidAmount"]      = $data["PaidAmount"] ?? 0;
@@ -936,7 +785,7 @@ class APIPhuongNam {
                 "LastName"      => $p["LastName"],
                 "FirstName"     => $p["FirstName"],
                 "MiddleName"    => $p["MiddleName"] ?? "",
-                "DateOfBirth"   => $p["BirthDay"],
+                "DateOfBirth"   => date('d-m-Y', strtotime($p["BirthDay"])), // Y-m-d
                 "Age"           => $p["Age"],
                 "Email"         => $p["Email"] ?? "",
                 "Phone"         => $p["Phone"] ?? "",
@@ -1005,11 +854,11 @@ class APIPhuongNam {
      */
     public function standardizeListBaggageData($data, $direction = 0) {
         $listBaggageData = [];
-        foreach (($data["ListService"][$direction] ?? []) as $bag) {
+        foreach (($data[$direction]["ListService"] ?? []) as $bag) {
             $listBaggageData[] = [
                 // Common properties (Using for displaying)
-                "Name"          => $bag["ServiceName"],
-                "Description"   => $bag["ServiceDescription"],
+                "Name"          => $this->translateBaggage($bag["ServiceName"] ?? ''),
+                "Description"   => $this->translateBaggage($bag["ServiceDescription"] ?? ''),
                 "Amount"        => $bag["ServiceAmount"] ?? 0,
                 "VAT"           => $bag["ServiceVATAmount"] ?? 0,
                 "TotalAmount"   => $bag["ServiceTotalAmount"] ?? 0,
@@ -1158,5 +1007,19 @@ class APIPhuongNam {
     public function getOnlyFirstName($fullName) {
         $parts = preg_split('/\s+/', trim($fullName));
         return end($parts);
+    }
+
+    /**
+     * Translate baggage text from En to Vi
+     * 
+     * @param string $string English string
+     * @return string Vietnamese string
+     */
+    public function translateBaggage($string) {
+        $string = strtolower(trim($string));
+        $string = str_replace("checked baggage", "Hành lý ký gửi", $string);
+        $string = str_replace("Oversize piece", "Kiện quá khổ", $string);
+        $string = str_replace("baggage", "Hành lý", $string);
+        return $string;
     }
 }
