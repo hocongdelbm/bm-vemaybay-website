@@ -406,14 +406,14 @@
 				<th colspan="4" style="width: 12%;">Doanh số</th>
 				<th rowspan="2" colspan="2" style="width: 5%;">Tổng BK</th>
 				<th rowspan="2" style="width: 5%;">Booker đặt</th>
-				<th rowspan="2" style="width: 5%;">BK TK</th>
+				<th rowspan="2" style="width: 5%;">Tham khảo</th>
 
 				<th colspan="2" style="width: 8%; background-color: #068FFF; color: #fff">Cuộc gọi</th>
 
 				<th colspan="3" style="width: 5%;">BK Vé cận</th>
 				<th colspan="3" style="width: 5%;">BK dưới 3 vé</th>
 				<th colspan="3" style="width: 5%;">BK 4-8 vé</th>
-				<!-- <th colspan="3" style="width: 5%;">BK trên 9 vé</th> -->
+		 		<!-- <th colspan="3" style="width: 5%;">BK trên 9 vé</th> -->
 				<th colspan="3" style="width: 8%; background-color: #8BE8E5;">BK Quốc tế</th>
 
 				<!-- <th colspan="2" style="width: 7%; background-color: #1B9C85; color: #fff">Hoàn tất</th>
