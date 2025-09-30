@@ -436,7 +436,7 @@ $(document).ready(function () {
                                 "LastName"   : getLastName(passFullnameInputs[index].value),
                                 "BirthDay"   : passDateOfBirthInputs[index].value,
                                 "Gender"     : gender,
-                                "Title"      : passTitleInputs[index].value,
+                                "Title"      : "",
                                 "Phone"      : type != 'inf' ? contactInfo.Phone : null,
                                 "Email"      : type != 'inf' ? contactInfo.Email : null,
                                 "RowNumber"  : index + 1,

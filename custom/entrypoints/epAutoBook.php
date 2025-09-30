@@ -1165,7 +1165,7 @@ try {
             $bookingCode = $requestData['bookingCode'] ?? '';
             $serviceKey = $requestData['serviceKey'] ?? '';
             $personOrgId = $requestData['personOrgId'] ?? '';
-            $personOrgIdConfirmed = $requestData['bookipersonOrgIdConfirmedngCode'] ?? '';
+            $personOrgIdConfirmed = $requestData['personOrgIdConfirmed'] ?? '';
             $passengerName = trim($requestData['passengerName'] ?? '');
             $description = trim($requestData['description'] ?? '');
             $amount = $requestData['amount'] ?? 0;

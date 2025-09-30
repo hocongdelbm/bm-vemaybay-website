@@ -251,83 +251,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
     }
 
     /**
-     * Get booking data
-     * 
-     * @param array $params
-     * @return array
-     */
-    public function getBooking($params = []) {
-        $pnr = trim($params['pnr'] ?? '');
-        $systemCode = $params['systemCode'] ?? '';
-        $airlineCode = $params['airlineCode'] ?? '';
-
-        if(strlen($pnr) == 6) {
-            $agency = new APIDatacom();
-            $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
-            $arrBooking = json_decode($jsonBooking, true);
-            if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
-                $supplier = strtolower($arrBooking['supplier'] ?? '');
-                if($supplier == 'datacom') {
-                    require_once "custom/include/helpers/api/APIDatacom.php";
-                    $datacomAgency = new APIDatacom();
-                    $arrBooking['data'] = $datacomAgency->standardizeBookingData($arrBooking['data']);
-                    $arrBooking['data']['EntryClass'] = "entryAutoBookDatacomClass";
-                    $arrBooking['data']['Supplier'] = "Hồng Ngọc Hà 218";
-                }
-                else {
-                    $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
-                    $arrBooking['data']['EntryClass'] = __CLASS__;
-                    $arrBooking['data']['Supplier'] = $this->supplierName;
-                }
-            }
-            return $arrBooking;
-        }
-
-        return [
-            "status" => 0,
-            "message" => "PNR $pnr không hợp lệ",
-        ];
-    }
-
-    /**
-     * Get booking data
-     * 
-     * @param array $params
-     * @return array [status, message, data]
-     */
-    public function getBaggageInfo($params = []) {
-        $bookingCode = $params['bookingCode'] ?? ''; // PNR
-        $bookingId  = $params['bookingId'] ?? '';
-        $systemCode = $params['systemCode'] ?? '';
-        $direction  = (int)($params['direction'] ?? 0);
-
-        if(!empty($systemCode) && strlen($bookingCode) == 6) {
-            $agency = new APIPhuongNam();
-            $json = $agency->getBaggageInfo($bookingCode, $systemCode);
-            $arr = json_decode($json, true);
-
-            if(isset($arr["status"]) && $arr["status"] == 1) {
-                $data = [];
-                $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $direction);
-                $data["Origin"]      = $arr["data"][$direction]["Origin"];
-                $data["Destination"] = $arr["data"][$direction]["Destination"];
-                return [
-                    "status" => 1,
-                    "message" => $arr["message"] ?? "Success",
-                    "data" => $data
-                ];
-            }
-
-            return $arr;
-        }
-
-        return [
-            "status" => 0,
-            "message" => "Booking thiếu thông tin để mua hành lý",
-        ];
-    }
-
-    /**
      * Research data before booking
      * 
      * @param array $params
@@ -1008,7 +931,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
         $responseArr = json_decode($response, true);
 
         // Save to BM
-        if($responseArr['status'] == 1) {
+        if(isset($responseArr['status']) && $responseArr['status'] == 1) {
             global $db;
             $booking = new EC_Flight_Bookings();
             $booking->retrieve($bookingId);
@@ -1017,7 +940,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             $inListItineraryId  = "'".implode("','", $listItineraryId)."'";
             $inListDetailId     = "'".implode("','", $listDetailId)."'";
 
-            foreach(($responseArr["data"]["Data"] ?? []) as $i => $f) {
+            foreach(($responseArr["data"] ?? []) as $i => $f) {
                 if(isset($f["ID"]) && $f["ID"] == 1) {
                     $bookingCode = explode(":", $f["BookingCode"]); // "VJ: XUBK2G"
                     $systemCode = trim($bookingCode[0] ?? ''); // System code
@@ -1135,9 +1058,208 @@ class entryAutoBookPhuongNamClass extends entryClass {
         return $responseArr;
     }
 
-    public function payBooking() {}
+    /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getBooking($params = []) {
+        $pnr = trim($params['pnr'] ?? '');
+        $systemCode = $params['systemCode'] ?? '';
+        $airlineCode = $params['airlineCode'] ?? '';
 
-    public function addBaggage() {}
+        $agency = new APIPhuongNam();
+        $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
+        $arrBooking = json_decode($jsonBooking, true);
+        if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
+            $supplier = strtolower($arrBooking['supplier'] ?? '');
+            if($supplier == 'datacom') {
+                require_once "custom/include/helpers/api/APIDatacom.php";
+                $datacomAgency = new APIDatacom();
+                $arrBooking['data'] = $datacomAgency->standardizeBookingData($arrBooking['data']);
+                $arrBooking['data']['EntryClass'] = "entryAutoBookDatacomClass";
+                $arrBooking['data']['Supplier'] = "Hồng Ngọc Hà 218";
+            }
+            else {
+                $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
+                $arrBooking['data']['EntryClass'] = __CLASS__;
+                $arrBooking['data']['Supplier'] = $this->supplierName;
+            }
+        }
+        return $arrBooking;
+    }
+
+    /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getBaggageInfo($params = []) {
+        $bookingCode    = $params['bookingCode'] ?? ''; // PNR
+        $bookingId      = $params['bookingId'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+        $direction      = (int)($params['direction'] ?? 0);
+        $passengerInfo  = $params['passengerInfo'] ?? []; // Info who purchase baggage
+
+        if(!empty($passengerInfo)) {
+            $agency = new APIPhuongNam();
+            $json = $agency->getBaggageInfo($bookingCode, $systemCode);
+            $arr = json_decode($json, true);
+
+            if(isset($arr["status"]) && $arr["status"] == 1) {
+                $data = [];
+                $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $passengerInfo, $direction);
+                $data["Origin"]      = $arr["data"][$direction]["Origin"];
+                $data["Destination"] = $arr["data"][$direction]["Destination"];
+                return [
+                    "status" => 1,
+                    "message" => $arr["message"] ?? "",
+                    "data" => $data
+                ];
+            }
+
+            return $arr;
+        }
+
+        return [
+            "status" => 0,
+            "message" => "Thiếu thông tin của hành khách mua hành lý",
+            "data" => null
+        ];
+    }
+
+    /**
+     * Pay for booking
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function payBooking($params = []) {
+        $bookingCode = $params['bookingCode'] ?? '';
+        $systemCode  = $params['systemCode'] ?? '';
+
+        $agency = new APIPhuongNam();
+        $response = $agency->payBooking($bookingCode, $systemCode);
+        $responseArr = json_decode($response, true);
+
+        // Send notification
+        try {
+            if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+                $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
+
+                if($this->notificationChannel == 'Mattermost') {
+                    $m = "**Xuất vé $systemName: $bookingCode bởi $fullname**";
+                    $m .= "\n- NCC: **{$this->supplierName}**";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                }
+                else {
+                    $m = "<b>💰 Xuất vé $systemName: $bookingCode bởi $fullname</b>";
+                    $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                    Telegram::sendMessage($m, $botToken, $chatId);
+                } 
+            }
+        }
+        catch(Throwable $th) {}
+
+        return $responseArr;
+    }
+
+    /**
+     * Add baggage
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function addBaggage($params = []) {
+        $systemCode     = $params['systemCode'] ?? '';
+        $bookingCode    = $params['bookingCode'] ?? '';
+        $baggageData    = $params['baggageData'] ?? [];
+        $passengerData  = $params['passengerData'] ?? [];
+        $direction      = (int)($params['direction'] ?? 0);
+
+        $agency  = new APIPhuongNam();
+        $response = $agency->addBaggage($bookingCode, $systemCode, $baggageData['Value'] ?? []);
+        $responseArr = json_decode($response, true);
+
+        if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+            try {
+                global $db;
+                $bagDescription = $baggageData["Description"] ?? "";
+                if(!empty($bagDescription)) $bagDescription = $baggageData["Name"] ?? "";
+
+                $bagAmount      = $baggageData["Amount"] ?? "";
+                $bagVat         = $baggageData["VAT"] ?? "";
+                $bagTotalAmount = $baggageData["TotalAmount"] ?? 0;
+                $bagDescription = $baggageData["Description"] ?? "";
+                $passengerName  = trim($passengerData['LastName'] . ' ' . $passengerData['FirstName']);
+                $dateModified   = date('Y-m-d H:i:s', time() - 7*60*60);
+                $suffix         = $direction === 1 ? "_inbound" : "";
+                $pnrField       = $direction === 1 ? "pnr_inbound" : "pnr_outbound";
+
+                $sqlUpdate = "UPDATE ec_booking_passengers
+                    SET luggage_purchase_text{$suffix}      = '$bagDescription'
+                        ,luggage_purchase{$suffix}          = $bagTotalAmount
+                        ,vat_luggage_purchase{$suffix}      = $bagVat
+                        ,luggage_purchase{$suffix}_no_vat   = $bagAmount
+                        ,supplier{$suffix}_id               = '{$this->supplierId}'
+                        ,modified_user_id                   = '{$this->currentUser->id}'
+                        ,date_modified                      = '$dateModified'
+                    WHERE $pnrField = '$bookingCode'
+                        AND name = '$passengerName'
+                        AND (luggage_purchase$suffix IS NULL OR luggage_purchase$suffix = 0)
+                        AND date_entered >= NOW() - INTERVAL 120 DAY;
+                        AND deleted = 0";
+                if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+            }
+            catch(Throwable $th) {}
+        }
+
+        return $responseArr;
+    }
+
+    /**
+     * Cancel booking
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function cancelBooking($params = []) {
+        $bookingCode    = $params['bookingCode'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+
+        $agency = new APIPhuongNam();
+        $response = $agency->cancelBooking($bookingCode, $systemCode);
+        $responseArr = json_decode($response, true);
+
+        // Send notification
+        try {
+            if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+                $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
+
+                if($this->notificationChannel == 'Mattermost') {
+                    $m = "**Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname**";
+                    $m .= "\n- NCC: **{$this->supplierName}**";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                }
+                else {
+                    $m = "<b>Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname</b>";
+                    $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                    Telegram::sendMessage($m, $botToken, $chatId);
+                }
+            }
+        }
+        catch(Throwable $th) {}
+
+        return $responseArr;
+    }
 
     /**
      * Get updated field in segments

@@ -256,83 +256,6 @@ class entryAutoBookDatacomClass extends entryClass {
     }
 
     /**
-     * Get booking data
-     * 
-     * @param array $params
-     * @return array
-     */
-    public function getBooking($params = []) {
-        $pnr = trim($params['pnr'] ?? '');
-        $systemCode = $params['systemCode'] ?? '';
-        $airlineCode = $params['airlineCode'] ?? '';
-
-        if(strlen($pnr) == 6) {
-            $agency = new APIDatacom();
-            $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
-            $arrBooking = json_decode($jsonBooking, true);
-            if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
-                $supplier = strtolower($arrBooking['supplier'] ?? '');
-                if($supplier == 'phuongnam') {
-                    require_once "custom/include/helpers/api/APIPhuongNam.php";
-                    $phuongNamAgency = new APIPhuongNam();
-                    $arrBooking['data'] = $phuongNamAgency->standardizeBookingData($arrBooking['data']);
-                    $arrBooking['data']['EntryClass'] = "entryAutoBookPhuongNamClass";
-                    $arrBooking['data']['Supplier'] = "NCC Phương Nam";
-                }
-                else {
-                    $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
-                    $arrBooking['data']['EntryClass'] = __CLASS__;
-                    $arrBooking['data']['Supplier'] = $this->supplierName;
-                }
-            }
-            return $arrBooking;
-        }
-
-        return [
-            "status" => 0,
-            "message" => "PNR $pnr không hợp lệ",
-        ];
-    }
-
-    /**
-     * Get booking data
-     * 
-     * @param array $params
-     * @return array [status, message, data]
-     */
-    public function getBaggageInfo($params = []) {
-        $bookingCode = $params['bookingCode'] ?? ''; // PNR
-        $bookingId  = $params['bookingId'] ?? '';
-        $systemCode = $params['systemCode'] ?? '';
-        $direction  = (int)($params['direction'] ?? 0);
-        
-        if(!empty($bookingCode) && !empty($bookingId)) {
-            $agency = new APIDatacom();
-            $json = $agency->getBaggageInfo($bookingCode, $bookingId);
-            $arr = json_decode($json, true);
-
-            if(isset($arr["status"]) && $arr["status"] == 1) {
-                $data = [];
-                $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $direction);
-                $data["Origin"]      = $data["ListBaggage"][0]["Origin"];
-                $data["Destination"] = $data["ListBaggage"][0]["Destination"];
-                return [
-                    "status" => 1,
-                    "message" => $arr["message"] ?? "Success",
-                    "data" => $data
-                ];
-            };
-
-            return $arr;
-        }
-
-        return [
-            "status" => 0,
-            "message" => "Booking thiếu thông tin để mua hành lý",
-        ];
-    }
-
-    /**
      * Research data before booking
      * 
      * @param array $params
@@ -1348,6 +1271,70 @@ class entryAutoBookDatacomClass extends entryClass {
     }
 
     /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getBooking($params = []) {
+        $pnr = trim($params['pnr'] ?? '');
+        $systemCode = $params['systemCode'] ?? '';
+        $airlineCode = $params['airlineCode'] ?? '';
+
+        $agency = new APIDatacom();
+        $jsonBooking = $agency->getBooking($pnr, $systemCode, $airlineCode);
+        $arrBooking = json_decode($jsonBooking, true);
+        if(isset($arrBooking["status"]) && $arrBooking["status"] == 1) {
+            $supplier = strtolower($arrBooking['supplier'] ?? '');
+            if($supplier == 'phuongnam') {
+                require_once "custom/include/helpers/api/APIPhuongNam.php";
+                $phuongNamAgency = new APIPhuongNam();
+                $arrBooking['data'] = $phuongNamAgency->standardizeBookingData($arrBooking['data']);
+                $arrBooking['data']['EntryClass'] = "entryAutoBookPhuongNamClass";
+                $arrBooking['data']['Supplier'] = "NCC Phương Nam";
+            }
+            else {
+                $arrBooking['data'] = $agency->standardizeBookingData($arrBooking['data']);
+                $arrBooking['data']['EntryClass'] = __CLASS__;
+                $arrBooking['data']['Supplier'] = $this->supplierName;
+            }
+        }
+        return $arrBooking;
+    }
+
+    /**
+     * Get booking data
+     * 
+     * @param array $params
+     * @return array [status, message, data]
+     */
+    public function getBaggageInfo($params = []) {
+        $bookingCode    = $params['bookingCode'] ?? ''; // PNR
+        $bookingId      = $params['bookingId'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+        $direction      = (int)($params['direction'] ?? 0);
+        $passengerInfo  = $params['passengerInfo'] ?? []; // Info who purchase baggage
+        
+        $agency = new APIDatacom();
+        $json = $agency->getBaggageInfo($bookingCode, $bookingId);
+        $arr = json_decode($json, true);
+
+        if(isset($arr["status"]) && $arr["status"] == 1) {
+            $data = [];
+            $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $direction);
+            $data["Origin"]      = $data["ListBaggage"][0]["Origin"];
+            $data["Destination"] = $data["ListBaggage"][0]["Destination"];
+            return [
+                "status" => 1,
+                "message" => $arr["message"] ?? "Success",
+                "data" => $data
+            ];
+        };
+
+        return $arr;
+    }
+
+    /**
      * Pay for booking
      * 
      * @param array $params
@@ -1389,8 +1376,97 @@ class entryAutoBookDatacomClass extends entryClass {
         return $responseArr;
     }
 
-    public function addBaggage() {
+    /**
+     * Add baggage to passenger
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function addBaggage($params = []) {
+        $bookingCode    = $params['bookingCode'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+        $baggageData    = $params['baggageData'] ?? [];
+        $passengerData  = $params['passengerData'] ?? [];
+        $direction      = (int)($params['direction'] ?? 0);
 
+        $agency = new APIDatacom();
+        $response = $agency->addBaggage($bookingCode, $systemCode, $baggageData['Value'] ?? [], $passengerData);
+        $responseArr = json_decode($response, true);
+
+        if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+            try {
+                global $db;
+                $bagDescription = $baggageData["Description"] ?? "";
+                if(!empty($bagDescription)) $bagDescription = $baggageData["Name"] ?? "";
+
+                $bagAmount      = $baggageData["Amount"] ?? "";
+                $bagVat         = $baggageData["VAT"] ?? "";
+                $bagTotalAmount = $baggageData["TotalAmount"] ?? 0;
+                $bagDescription = $baggageData["Description"] ?? "";
+                $passengerName  = trim($passengerData['LastName'] . ' ' . $passengerData['FirstName']);
+                $dateModified   = date('Y-m-d H:i:s', time() - 7*60*60);
+                $suffix         = $direction === 1 ? "_inbound" : "";
+                $pnrField       = $direction === 1 ? "pnr_inbound" : "pnr_outbound";
+
+                $sqlUpdate = "UPDATE ec_booking_passengers
+                    SET luggage_purchase_text{$suffix}      = '$bagDescription'
+                        ,luggage_purchase{$suffix}          = $bagTotalAmount
+                        ,vat_luggage_purchase{$suffix}      = $bagVat
+                        ,luggage_purchase{$suffix}_no_vat   = $bagAmount
+                        ,supplier{$suffix}_id               = '{$this->supplierId}'
+                        ,modified_user_id                   = '{$this->currentUser->id}'
+                        ,date_modified                      = '$dateModified'
+                    WHERE $pnrField = '$bookingCode'
+                        AND name = '$passengerName'
+                        AND (luggage_purchase$suffix IS NULL OR luggage_purchase$suffix = 0)
+                        AND date_entered >= NOW() - INTERVAL 120 DAY;
+                        AND deleted = 0";
+                if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+            }
+            catch(Throwable $th) {}
+        }
+
+        return $responseArr;
+    }
+
+    /**
+     * Cancel booking
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function cancelBooking($params = []) {
+        $bookingCode    = $params['bookingCode'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+        $listSegmentId  = $params['listSegmentId'] ?? [];
+
+        $agency = new APIDatacom();
+        $response = $agency->cancelBooking($bookingCode, $systemCode, $listSegmentId);
+        $responseArr = json_decode($response, true);
+
+        // Send notification
+        try {
+            if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+                $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
+
+                if($this->notificationChannel == 'Mattermost') {
+                    $m = "**Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname**";
+                    $m .= "\n- NCC: **{$this->supplierName}**";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                }
+                else {
+                    $m = "<b>Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname</b>";
+                    $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                    Telegram::sendMessage($m, $botToken, $chatId);
+                } 
+            }
+        }
+        catch(Throwable $th) {}
+
+        return $responseArr;
     }
 
     /**
