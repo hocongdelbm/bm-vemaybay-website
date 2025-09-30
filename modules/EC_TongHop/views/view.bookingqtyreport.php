@@ -111,7 +111,8 @@ class Viewbookingqtyreport extends SugarView
 
 	function genBKSale($from_date, $to_date, $type = 0)
 	{
-		$sql = '
+		try {
+			$sql = '
 		SELECT last_name, user_name, user_id,
 			SUM(bk_confirmed) AS bk_confirmed,
 			SUM(bk_printed) AS bk_printed,
@@ -122,6 +123,8 @@ class Viewbookingqtyreport extends SugarView
 			SUM(total_ticket) AS total_ticket,
 			SUM(my_bk) AS my_bk,
 			SUM(com_my_bk) AS com_my_bk,
+			SUM(khach_hang_bk) AS khach_hang_bk,
+			SUM(com_khach_hang_bk) AS com_khach_hang_bk,
 			SUM(tham_khao_bk) AS tham_khao_bk,
 			SUM(com_tham_khao_bk) AS com_tham_khao_bk,
 			SUM(bk_1_3_ticket) AS bk_1_3_ticket,
@@ -159,6 +162,18 @@ class Viewbookingqtyreport extends SugarView
 				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi")), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi"))) AS my_bk,
 				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND bk.booking_status IN (3, 7, 8)), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND booking_status IN (3, 7, 8))) AS com_my_bk,
 				
+				-- KHACH HANG BOOK
+				IF(bk.contact_name NOT IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao") 
+				AND bk.contact_name IS NOT NULL 
+				AND bk.contact_name != ""
+				AND NOT EXISTS(SELECT 1 FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")), 1, 0) AS khach_hang_bk,
+
+				IF(bk.contact_name NOT IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao") 
+				AND bk.contact_name IS NOT NULL 
+				AND bk.contact_name != "" 
+				AND bk.booking_status IN (3, 7, 8)
+				AND NOT EXISTS(SELECT 1 FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")), 1, 0) AS com_khach_hang_bk,
+				-- THAM KHAO
 				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Tham Khao")), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Tham Khao"))) AS tham_khao_bk,
 				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Tham Khao") AND bk.booking_status IN (3, 7, 8)), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Tham Khao") AND booking_status IN (3, 7, 8))) AS com_tham_khao_bk,
 				
@@ -209,6 +224,8 @@ class Viewbookingqtyreport extends SugarView
 				0 AS total_ticket,
 				0 AS my_bk,
 				0 AS com_my_bk,
+				0 AS khach_hang_bk,
+				0 AS com_khach_hang_bk,
 				0 AS tham_khao_bk,
 				0 AS com_tham_khao_bk,
 				0 AS bk_1_3_ticket,
@@ -255,8 +272,22 @@ class Viewbookingqtyreport extends SugarView
 				SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
 				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi")), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi"))) AS my_bk,
 				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND bk.booking_status IN (3, 7, 8)), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi") AND booking_status IN (3, 7, 8))) AS com_my_bk,
-				0 AS tham_khao_bk,
-				0 AS com_tham_khao_bk,
+				
+				-- KHACH HANG BOOK
+				IF(bk.contact_name NOT IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao") 
+				AND bk.contact_name IS NOT NULL 
+				AND bk.contact_name != ""
+				AND NOT EXISTS(SELECT 1 FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")), 1, 0) AS khach_hang_bk,
+
+				IF(bk.contact_name NOT IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao") 
+				AND bk.contact_name IS NOT NULL 
+				AND bk.contact_name != "" 
+				AND bk.booking_status IN (3, 7, 8)
+				AND NOT EXISTS(SELECT 1 FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Panda Po", "Bao Gia Khach", "Khach Hang Hoi", "Tham Khao")), 1, 0) AS com_khach_hang_bk,
+				-- THAM KHAO
+				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Tham Khao")), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Tham Khao"))) AS tham_khao_bk,
+				SUM(IFNULL((SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = "contact_name" AND before_value_string IN ("Tham Khao") AND bk.booking_status IN (3, 7, 8)), 0) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ("Tham Khao") AND booking_status IN (3, 7, 8))) AS com_tham_khao_bk,
+
 				0 AS bk_1_3_ticket,
 				0 AS com_1_3ticket_qty,
 				0 AS com_1_3ticket,
@@ -304,6 +335,8 @@ class Viewbookingqtyreport extends SugarView
 				SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
 				0 AS my_bk,
 				0 AS com_my_bk,
+				0 AS khach_hang_bk,
+				0 AS com_khach_hang_bk,
 				0 AS tham_khao_bk,
 				0 AS com_tham_khao_bk,
 				0 AS bk_1_3_ticket,
@@ -354,6 +387,8 @@ class Viewbookingqtyreport extends SugarView
 				0 AS total_ticket,
 				0 AS my_bk,
 				0 AS com_my_bk,
+				0 AS khach_hang_bk,
+				0 AS com_khach_hang_bk,
 				0 AS tham_khao_bk,
 				0 AS com_tham_khao_bk,
 				0 AS bk_1_3_ticket,
@@ -389,119 +424,143 @@ class Viewbookingqtyreport extends SugarView
 		GROUP BY user_id
 		ORDER BY total_sales DESC';
 
-		// if($GLOBALS['current_user']->user_name == 'admin'){
-		// 	pr($sql);
-		// }
+			// if($GLOBALS['current_user']->user_name == 'admin'){
+			// 	pr($sql);
+			// }
 
-		$res = $this->bean->db->query($sql);
+			$res = $this->bean->db->query($sql);
 
-		$html = '<tbody><form id="booking_search" name="search_form" method="POST" action="index.php?module=EC_TongHop&action=ListView" target="_blank">';
-		$i = 0;
+			// $debug_data = array();
+			// while ($row = $this->bean->db->fetchByAssoc($res)) {
+			// 	$debug_data[] = $row;
+			// }
+			// echo "<pre>";
+			// print_r($debug_data);
+			// echo "</pre>";
+			// exit;
 
-		$total_completed = $total_cancelled = $total = $total_sale = $total_sale_qty = 0;
-		$total_sale_ticket = $total_my_bk = $total_prior_bk = $total_1_3ticket_bk = 0;
-		$total_4_8ticket_bk = $total_com_mybk = 0;
-		$total_comprior = $total_com1_3ticket = $total_com4_8ticket = 0;
-		$total_inter_bk = $total_com_inter_ticket_qty = $total_com_inter_ticket = $total_inter_ticket_sales = 0;
-		$total_ticket_prior_bk = $total_sale_prior_bk = $total_ticket_1_3bk = $total_sale_1_3bk = $total_ticket_4_8bk = $total_sale_4_8bk = 0;
-		$total_ticket_inter = $total_sale_inter = 0;
+			$html = '<tbody><form id="booking_search" name="search_form" method="POST" action="index.php?module=EC_TongHop&action=ListView" target="_blank">';
+			$i = 0;
 
-		$total_inbound = $total_missed = 0;
-		$total_tham_khao_bk = 0;
-		$total_com_tham_khao_bk = 0;
-		$sales = array();
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$total_sale += $row['total_sales'];
-			$total_sale_qty += ($row['bk_confirmed'] + $row['bk_printed'] + $row['bk_completed']);
-			$total_sale_ticket += ($row['total_ticket']);
-			$total_prior_bk += $row['prior_bk'];
-			$total_1_3ticket_bk += $row['bk_1_3_ticket'];
-			$total_4_8ticket_bk += $row['bk_4_8_ticket'];
-			
-			$total_tham_khao_bk += $row['tham_khao_bk'];
-			$total_com_tham_khao_bk += $row['com_tham_khao_bk'];
+			$total_completed = $total_cancelled = $total = $total_sale = $total_sale_qty = 0;
+			$total_sale_ticket = $total_my_bk = $total_prior_bk = $total_1_3ticket_bk = 0;
+			$total_4_8ticket_bk = $total_com_mybk = 0;
+			$total_comprior = $total_com1_3ticket = $total_com4_8ticket = 0;
+			$total_inter_bk = $total_com_inter_ticket_qty = $total_com_inter_ticket = $total_inter_ticket_sales = 0;
+			$total_ticket_prior_bk = $total_sale_prior_bk = $total_ticket_1_3bk = $total_sale_1_3bk = $total_ticket_4_8bk = $total_sale_4_8bk = 0;
+			$total_ticket_inter = $total_sale_inter = 0;
+			$total_khach_hang_bk = 0;
+			$total_com_khach_hang_bk = 0;
+			$total_inbound = $total_missed = 0;
+			$total_tham_khao_bk = 0;
+			$total_com_tham_khao_bk = 0;
+			$sales = array();
+			while ($row = $this->bean->db->fetchByAssoc($res)) {
+				$total_sale += $row['total_sales'];
+				$total_sale_qty += ($row['bk_confirmed'] + $row['bk_printed'] + $row['bk_completed']);
+				$total_sale_ticket += ($row['total_ticket']);
+				$total_prior_bk += $row['prior_bk'];
+				$total_1_3ticket_bk += $row['bk_1_3_ticket'];
+				$total_4_8ticket_bk += $row['bk_4_8_ticket'];
 
-			$total_com_mybk += $row['com_my_bk'];
-			$total_comprior += $row['com_prior_bk'];
-			$total_com1_3ticket += $row['com_1_3ticket_qty'];
-			$total_com4_8ticket += $row['com_4_8ticket_qty'];
+				$total_tham_khao_bk += $row['tham_khao_bk'];
+				$total_com_tham_khao_bk += $row['com_tham_khao_bk'];
+				$total_khach_hang_bk += $row['khach_hang_bk'];
+				$total_com_khach_hang_bk += $row['com_khach_hang_bk'];
 
-			$total_inter_bk += $row['bk_inter_ticket'];
-			$total_com_inter_ticket_qty += $row['com_inter_ticket_qty'];
-			$total_com_inter_ticket += $row['com_inter_ticket'];
-			$total_inter_ticket_sales += $row['bk_inter_ticket_sales'];
+				$total_com_mybk += $row['com_my_bk'];
+				$total_comprior += $row['com_prior_bk'];
+				$total_com1_3ticket += $row['com_1_3ticket_qty'];
+				$total_com4_8ticket += $row['com_4_8ticket_qty'];
 
-			$total_ticket_prior_bk += $row['com_prior_ticket'];
-			$total_sale_prior_bk += $row['prior_bk_sales'];
+				$total_inter_bk += $row['bk_inter_ticket'];
+				$total_com_inter_ticket_qty += $row['com_inter_ticket_qty'];
+				$total_com_inter_ticket += $row['com_inter_ticket'];
+				$total_inter_ticket_sales += $row['bk_inter_ticket_sales'];
 
-			$total_ticket_1_3bk += $row['com_1_3ticket'];
-			$total_sale_1_3bk += $row['bk_1to3ticket_sales'];
-			$total_ticket_4_8bk += $row['com_4_8ticket'];
-			$total_sale_4_8bk += $row['bk_4to8ticket_sales'];
+				$total_ticket_prior_bk += $row['com_prior_ticket'];
+				$total_sale_prior_bk += $row['prior_bk_sales'];
 
-			$total_ticket_inter += $row['com_inter_ticket'];
-			$total_sale_inter += $row['bk_inter_ticket_sales'];
+				$total_ticket_1_3bk += $row['com_1_3ticket'];
+				$total_sale_1_3bk += $row['bk_1to3ticket_sales'];
+				$total_ticket_4_8bk += $row['com_4_8ticket'];
+				$total_sale_4_8bk += $row['bk_4to8ticket_sales'];
 
-			if (!empty($row['user_name'])) {
-				$total_completed += $row['bk_completed'];
-				$total_cancelled += $row['bk_cancelled'];
-				$total += $row['total'];
-				$total_my_bk += $row['my_bk'];
+				$total_ticket_inter += $row['com_inter_ticket'];
+				$total_sale_inter += $row['bk_inter_ticket_sales'];
 
-				$total_ticket = '<a href="#" onclick="' . (empty($row['user_name']) ? 'document.getElementById(\'contact_name_advanced_OPER\').setAttribute(\'name\', \'contact_name_advanced_OPER\'); document.getElementById(\'contact_name_advanced\').setAttribute(\'name\', \'contact_name_advanced\');document.getElementById(\'created_by_name_advanced\').removeAttribute(\'name\'); ' : 'document.getElementById(\'contact_name_advanced_OPER\').removeAttribute(\'name\'); document.getElementById(\'contact_name_advanced\').removeAttribute(\'name\'); document.getElementById(\'created_by_name_advanced\').setAttribute(\'name\', \'created_by_name_advanced\'); document.getElementById(\'created_by_name_advanced\').value = \'' . $row['user_name'] . '\';') . 'document.getElementById(\'booking_status_advanced1\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced2\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced3\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_search\').submit(); return false;">' . ($row['total_ticket']) . '</a>';
-			} else {
-				$total_ticket = $row['total_ticket'];
-			}
+				if (!empty($row['user_name'])) {
+					$total_completed += $row['bk_completed'];
+					$total_cancelled += $row['bk_cancelled'];
+					$total += $row['total'];
+					$total_my_bk += $row['my_bk'];
 
-			$sales[$row['user_id']] = $row['total_sales'];
+					$total_ticket = '<a href="#" onclick="' . (empty($row['user_name']) ? 'document.getElementById(\'contact_name_advanced_OPER\').setAttribute(\'name\', \'contact_name_advanced_OPER\'); document.getElementById(\'contact_name_advanced\').setAttribute(\'name\', \'contact_name_advanced\');document.getElementById(\'created_by_name_advanced\').removeAttribute(\'name\'); ' : 'document.getElementById(\'contact_name_advanced_OPER\').removeAttribute(\'name\'); document.getElementById(\'contact_name_advanced\').removeAttribute(\'name\'); document.getElementById(\'created_by_name_advanced\').setAttribute(\'name\', \'created_by_name_advanced\'); document.getElementById(\'created_by_name_advanced\').value = \'' . $row['user_name'] . '\';') . 'document.getElementById(\'booking_status_advanced1\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced2\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_status_advanced3\').setAttribute(\'name\', \'booking_status_advanced[]\'); document.getElementById(\'booking_search\').submit(); return false;">' . ($row['total_ticket']) . '</a>';
+				} else {
+					$total_ticket = $row['total_ticket'];
+				}
 
-			if ($row['tham_khao_bk'] == 0) {
-				$tham_khao_bk = 0;
-			} else {
-				$tham_khao_bk = format_number($row['tham_khao_bk']);
-			}
+				$sales[$row['user_id']] = $row['total_sales'];
 
-			if ($row['com_tham_khao_bk'] == 0) {
-				$com_tham_khao_bk = 0;
-			} else {
-				$com_tham_khao_bk = format_number($row['com_tham_khao_bk']);
-			}
+				if ($row['tham_khao_bk'] == 0) {
+					$tham_khao_bk = 0;
+				} else {
+					$tham_khao_bk = format_number($row['tham_khao_bk']);
+				}
 
-			// Booking booker
-			if ($row['my_bk'] == 0) {
-				$my_bk = 0;
-			} else {
-				$my_bk = format_number($row['my_bk']);
-			}
+				if ($row['com_tham_khao_bk'] == 0) {
+					$com_tham_khao_bk = 0;
+				} else {
+					$com_tham_khao_bk = format_number($row['com_tham_khao_bk']);
+				}
 
-			if ($row['com_my_bk'] == 0) {
-				$com_my_bk = 0;
-			} else {
-				$com_my_bk = format_number($row['com_my_bk']);
-			}
+				if ($row['khach_hang_bk'] == 0) {
+					$khach_hang_bk = 0;
+				} else {
+					$khach_hang_bk = format_number($row['khach_hang_bk']);
+				}
 
-			// Vé cận
-			if ($row['prior_bk'] == 0) {
-				$prior_bk = 0;
-			} else {
-				$prior_bk = format_number($row['prior_bk']);
-			}
+				if ($row['com_khach_hang_bk'] == 0) {
+					$com_khach_hang_bk = 0;
+				} else {
+					$com_khach_hang_bk = format_number($row['com_khach_hang_bk']);
+				}
 
-			if ($row['com_prior_bk'] == 0) {
-				$com_prior_bk = 0;
-			} else {
-				$com_prior_bk = format_number($row['com_prior_bk']);
-			}
+				// Booking booker
+				if ($row['my_bk'] == 0) {
+					$my_bk = 0;
+				} else {
+					$my_bk = format_number($row['my_bk']);
+				}
 
-			$prior_bk_sales = format_number($row['prior_bk_sales']);
+				if ($row['com_my_bk'] == 0) {
+					$com_my_bk = 0;
+				} else {
+					$com_my_bk = format_number($row['com_my_bk']);
+				}
 
-			$denominator_total = ($row['total'] == 0 || empty($row['total'])) ? 1 : $row['total'];
+				// Vé cận
+				if ($row['prior_bk'] == 0) {
+					$prior_bk = 0;
+				} else {
+					$prior_bk = format_number($row['prior_bk']);
+				}
 
-			// CALLS
-			$total_inbound += (int) $row['c_inbound'];
-			$total_missed += (int) $row['c_missed'];
+				if ($row['com_prior_bk'] == 0) {
+					$com_prior_bk = 0;
+				} else {
+					$com_prior_bk = format_number($row['com_prior_bk']);
+				}
 
-			$html .= '
+				$prior_bk_sales = format_number($row['prior_bk_sales']);
+
+				$denominator_total = ($row['total'] == 0 || empty($row['total'])) ? 1 : $row['total'];
+
+				// CALLS
+				$total_inbound += (int) $row['c_inbound'];
+				$total_missed += (int) $row['c_missed'];
+
+				$html .= '
 				<tr>
 					<td class="text-start fw-semibold">' . str_replace(".", " ", $row['last_name']) . '</td>
 
@@ -525,9 +584,12 @@ class Viewbookingqtyreport extends SugarView
 					<td class="text-end">
 						<span class="show_detail_bk show_detail" type="show_booker_bk" sname="' . $row['last_name'] . '" user="' . $row['user_id'] . '">' . $my_bk . '&nbsp;/&nbsp;' . $com_my_bk . '</span>
 					</td>
-
+					
 					<td class="text-end">
-    					' . $tham_khao_bk . '&nbsp;/&nbsp;' . $com_tham_khao_bk . '
+						<span class="show_detail_bk show_detail" type="show_khachhang_bk" sname="' . $row['last_name'] . '" user="' . $row['user_id'] . '">' . $khach_hang_bk . '&nbsp;/&nbsp;' . $com_khach_hang_bk . '</span>
+					</td>
+					<td class="text-end">
+						<span class="show_detail_bk show_detail" type="show_thamkhao_bk" sname="' . $row['last_name'] . '" user="' . $row['user_id'] . '">' . $tham_khao_bk . '&nbsp;/&nbsp;' . $com_tham_khao_bk . '</span>
 					</td>
 
 					<td class="text-end c_inbound">
@@ -569,37 +631,34 @@ class Viewbookingqtyreport extends SugarView
 						</div>
 					</td>
 
-					<td class="text-end bk_completed">' . format_number($row['bk_completed']) . '</td>
-					<td class="text-end bk_completed_percent">' . round($row['bk_completed'] / $denominator_total * 100, 1) . '%</td>
-
 					<td class="text-end bk_cancelled">' . format_number($row['bk_cancelled']) . '</td>
 					<td class="text-end bk_cancelled_percent">' . round($row['bk_cancelled'] / $denominator_total * 100, 1) . '%</td>
 				</tr>';
-			$i++;
-		}
+				$i++;
+			}
 
-		foreach ($sales as $flight => $value) {
-			$denominator = ($total_sale == 0 || empty($total_sale)) ? 1 : $total_sale;
-			$html = str_replace('$SALE_PER' . $flight, format_number($value / $denominator * 100) . '%', $html);
-		}
+			foreach ($sales as $flight => $value) {
+				$denominator = ($total_sale == 0 || empty($total_sale)) ? 1 : $total_sale;
+				$html = str_replace('$SALE_PER' . $flight, format_number($value / $denominator * 100) . '%', $html);
+			}
 
-		$html .= '<input type="hidden" name="searchFormTab" value="advanced_search">';
-		$html .= '<input type="hidden" name="module" value="EC_Flight_Bookings">';
-		$html .= '<input type="hidden" name="action" value="ListView">';
-		$html .= '<input type="hidden" name="query" value="true">';
-		$html .= '<input type="hidden" name="date_entered_advanced" value="' . $_POST['from_date'] . '">';
-		$html .= '<input type="hidden" name="date_entered_advanced_upperbound" value="' . $_POST['to_date'] . '">';
-		$html .= '<input type="hidden" name="created_by_name_advanced" id="created_by_name_advanced" />';
-		$html .= '<input type="hidden" name="contact_name_advanced_OPER" id="contact_name_advanced_OPER" value="IN"/>';
-		$html .= '<input type="hidden" name="contact_name_advanced" id="contact_name_advanced" value="tim chuyen bay, call now, callnow"/>';
-		$html .= '<input type="hidden" name="booking_status_advanced[]" id="booking_status_advanced1" value="8"/>';
-		$html .= '<input type="hidden" name="booking_status_advanced[]" id="booking_status_advanced2" value="7"/>';
-		$html .= '<input type="hidden" name="booking_status_advanced[]" id="booking_status_advanced3" value="3"/>';
+			$html .= '<input type="hidden" name="searchFormTab" value="advanced_search">';
+			$html .= '<input type="hidden" name="module" value="EC_Flight_Bookings">';
+			$html .= '<input type="hidden" name="action" value="ListView">';
+			$html .= '<input type="hidden" name="query" value="true">';
+			$html .= '<input type="hidden" name="date_entered_advanced" value="' . $_POST['from_date'] . '">';
+			$html .= '<input type="hidden" name="date_entered_advanced_upperbound" value="' . $_POST['to_date'] . '">';
+			$html .= '<input type="hidden" name="created_by_name_advanced" id="created_by_name_advanced" />';
+			$html .= '<input type="hidden" name="contact_name_advanced_OPER" id="contact_name_advanced_OPER" value="IN"/>';
+			$html .= '<input type="hidden" name="contact_name_advanced" id="contact_name_advanced" value="tim chuyen bay, call now, callnow"/>';
+			$html .= '<input type="hidden" name="booking_status_advanced[]" id="booking_status_advanced1" value="8"/>';
+			$html .= '<input type="hidden" name="booking_status_advanced[]" id="booking_status_advanced2" value="7"/>';
+			$html .= '<input type="hidden" name="booking_status_advanced[]" id="booking_status_advanced3" value="3"/>';
 
-		$html .= '<input type="hidden" name="from" value="bkqtyreport"/>';
-		$html .= '</form></tbody>';
+			$html .= '<input type="hidden" name="from" value="bkqtyreport"/>';
+			$html .= '</form></tbody>';
 
-		$html .= '<tfoot>
+			$html .= '<tfoot>
 			<tr class="footer-tr">
 				<td colspan="1" class="text-center fw-semibold">Tổng cộng</td>
 				<td colspan="2" class="text-end color-red fw-semibold">
@@ -612,7 +671,7 @@ class Viewbookingqtyreport extends SugarView
 				<td class="text-end total_sale_qty">' . $total_sale_qty . '</td>
 				<td colspan="2" class="text-end total__booking-today"><span class="show_detail_total show_detail" title="Chi tiết booking trong ngày">' . format_number($total) . '</span></td>
 				<td class="text-end total_my_bk-today">' . format_number($total_my_bk) . '&nbsp;/&nbsp;' . format_number($total_com_mybk) . '</td>
-
+				<td class="text-end">' . format_number($total_khach_hang_bk) . '&nbsp;/&nbsp;' . format_number($total_com_khach_hang_bk) . '</td>
 				<td class="text-end">' . format_number($total_tham_khao_bk) . '&nbsp;/&nbsp;' . format_number($total_com_tham_khao_bk) . '</td>
 
 				<td style="text-align: right; background-color: #068FFF;  color: #fff; ">' . $total_inbound . '</td>
@@ -650,13 +709,14 @@ class Viewbookingqtyreport extends SugarView
 					</div>
 				</td>
 				
-				<td style="text-align: right; background-color: #3d8bfd; color: #fff">' . format_number($total_completed) . '</td>
-				<td style="text-align: right; background-color: #3d8bfd; color: #fff">' . round($total_completed / $total * 100, 1) . '%</td>
-
 				<td style="text-align: right; background-color: #E94560; color: #fff">' . format_number($total_cancelled) . '</td>
-				<td style="text-align: right; background-color: #E94560; color: #fff">' . round($total_cancelled / $total * 100, 1) . '%</td>
+				<td style="text-align: right; background-color: #E94560; color: #fff">' . round($total_cancelled / ($total > 0 ? $total : 1) * 100, 1) . '%</td>
 			</tr>
 		</tfoot>';
-		return $html;
+			return $html;
+		} catch (Exception $e) {
+			error_log("Exception in genBKSale: " . $e->getMessage());
+			return '<div class="alert alert-danger">Lỗi: ' . htmlspecialchars($e->getMessage()) . '</div>';
+		}
 	}
 }
