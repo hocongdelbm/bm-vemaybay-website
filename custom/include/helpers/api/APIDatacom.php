@@ -264,7 +264,7 @@ class APIDatacom {
      */
     public function cancelBooking($bookingCode, $systemCode, $listSegmentId = []) {
         if(!is_string($bookingCode) || strlen($bookingCode) != 6 
-            || !is_string($systemCode) || strlen($systemCode) != 2
+            || !is_string($systemCode) || empty($systemCode)
         ) {
             return json_encode([
                 "status" => 0,
@@ -401,9 +401,6 @@ class APIDatacom {
             "Address"   => $data["GuestContact"]["Address"] ?? "",
         ];
         $bookingData["IsPaid"] = false;
-        $bookingData["IsVoid"] = false;
-        $bookingData["IsRefund"] = false;
-        $bookingData["IsEdit"] = false;
 
         // Update manually booking status
         if($bookingData["TotalAmount"] == $bookingData["PaidAmount"]) {

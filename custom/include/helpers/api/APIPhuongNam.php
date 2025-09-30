@@ -249,11 +249,6 @@ class APIPhuongNam {
         return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 150 + 10]);
     }
 
-
-
-
-
-
     /**
      * Send HTTP request
      * 
@@ -364,7 +359,7 @@ class APIPhuongNam {
             "Address"   => $data["ContactAddress"] ?? "",
         ];
         $bookingData["IsPaid"]      = $data["IsPaid"] ?? false;
-        $bookingData["IsVoid"]      = $data["IsPaid"] ?? false;
+        $bookingData["IsVoid"]      = $data["IsVoid"] ?? false;
         $bookingData["IsRefund"]    = $data["IsRefund"] ?? false;
         $bookingData["IsEdit"]      = $data["IsEdit"] ?? false;
 

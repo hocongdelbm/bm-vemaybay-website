@@ -187,7 +187,8 @@ $(document).ready(function () {
         if (confirm(`Xác nhận hủy đặt chỗ ${bookingCode}`)) {
             $.ajax({
                 url: ENTRYPOINT,
-                method: 'POST',
+                type: "POST",
+                contentType: "application/json",
                 dataType: 'json',
                 data: JSON.stringify({
                     class: entryClass,
@@ -292,51 +293,63 @@ function renderBookingInfo(data) {
 function updateStatusIcons(data) {
     // Payment Status Badge
     const paidBadge = $('#paidBadge');
-    if (data.IsPaid) {
-        paidBadge.removeClass('unpaid').addClass('paid');
-        paidBadge.text('PAID');
-        paidBadge.attr('data-tooltip', 'Tất cả các khoản thanh toán đã được xử lý thành công');
-    } else {
-        paidBadge.removeClass('paid').addClass('unpaid');
-        paidBadge.text('UNPAID');
-        paidBadge.attr('data-tooltip', 'Đang chờ xử lý – Chưa thanh toán đầy đủ');
+    if ('IsPaid' in data) {
+        if (data.IsPaid) {
+            paidBadge.removeClass('unpaid').addClass('paid');
+            paidBadge.text('PAID');
+            paidBadge.attr('data-tooltip', 'Tất cả các khoản thanh toán đã được xử lý thành công');
+        } else {
+            paidBadge.removeClass('paid').addClass('unpaid');
+            paidBadge.text('UNPAID');
+            paidBadge.attr('data-tooltip', 'Đang chờ xử lý – Chưa thanh toán đầy đủ');
+        }
     }
+    else paidBadge.hide();
 
     // Void Status Badge
     const voidBadge = $('#voidBadge');
-    if (data.IsVoid) {
-        voidBadge.removeClass('void-not-allowed').addClass('void-allowed');
-        voidBadge.text('HOÀN');
-        voidBadge.attr('data-tooltip', 'Booking có thể hoàn/hủy');
-    } else {
-        voidBadge.removeClass('void-allowed').addClass('void-not-allowed');
-        voidBadge.text('HOÀN');
-        voidBadge.attr('data-tooltip', 'Booking không thể hoàn/hủy');
+    if ('IsVoid' in data) {
+        if (data.IsVoid) {
+            voidBadge.removeClass('void-not-allowed').addClass('void-allowed');
+            voidBadge.text('HOÀN');
+            voidBadge.attr('data-tooltip', 'Booking có thể hoàn/hủy');
+        } else {
+            voidBadge.removeClass('void-allowed').addClass('void-not-allowed');
+            voidBadge.text('HOÀN');
+            voidBadge.attr('data-tooltip', 'Booking không thể hoàn/hủy');
+        }
     }
+    else voidBadge.hide();
 
     // Refund Status Badge
     const refundBadge = $('#refundBadge');
-    if (data.IsRefund) {
-        refundBadge.removeClass('refund-not-allowed').addClass('refund-allowed');
-        refundBadge.text('HOÀN TIỀN');
-        refundBadge.attr('data-tooltip', 'Booking được hoàn tiền');
-    } else {
-        refundBadge.removeClass('refund-allowed').addClass('refund-not-allowed');
-        refundBadge.text('HOÀN TIỀN');
-        refundBadge.attr('data-tooltip', 'Booking không được hoàn tiền');
+    if('IsRefund' in data) {
+        if (data.IsRefund) {
+            refundBadge.removeClass('refund-not-allowed').addClass('refund-allowed');
+            refundBadge.text('HOÀN TIỀN');
+            refundBadge.attr('data-tooltip', 'Booking được hoàn tiền');
+        } else {
+            refundBadge.removeClass('refund-allowed').addClass('refund-not-allowed');
+            refundBadge.text('HOÀN TIỀN');
+            refundBadge.attr('data-tooltip', 'Booking không được hoàn tiền');
+        }
     }
+    else refundBadge.hide();
 
     // Edit Status Badge
     const editBadge = $('#editBadge');
-    if (data.IsEdit) {
-        editBadge.removeClass('edit-not-allowed').addClass('edit-allowed');
-        editBadge.text('SỬA');
-        editBadge.attr('data-tooltip', 'Booking có thể được điều chỉnh hoặc cập nhật');
-    } else {
-        editBadge.removeClass('edit-allowed').addClass('edit-not-allowed');
-        editBadge.text('SỬA');
-        editBadge.attr('data-tooltip', 'Booking không thể chỉnh sửa');
+    if('IsEdit' in data) {
+        if (data.IsEdit) {
+            editBadge.removeClass('edit-not-allowed').addClass('edit-allowed');
+            editBadge.text('SỬA');
+            editBadge.attr('data-tooltip', 'Booking có thể được điều chỉnh hoặc cập nhật');
+        } else {
+            editBadge.removeClass('edit-allowed').addClass('edit-not-allowed');
+            editBadge.text('SỬA');
+            editBadge.attr('data-tooltip', 'Booking không thể chỉnh sửa');
+        }
     }
+    else editBadge.hide();
 }
 
 function updateExpiryBadge(data) {
