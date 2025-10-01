@@ -98,5 +98,37 @@
     </table>
 </div>
 </div>
-
+{literal}
+<script type="text/javascript">
+    // Sort table rows to put "Chưa nạp HĐ vào" at the top
+    document.addEventListener('DOMContentLoaded', function() {
+        var tbody = document.querySelector('#output_inv tbody');
+        if (!tbody) return;
+        
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        rows.sort(function(a, b) {
+            var aText = a.cells[6] ? a.cells[6].textContent.trim() : '';
+            var bText = b.cells[6] ? b.cells[6].textContent.trim() : '';
+            
+            var aHasChuaNap = aText.includes('Chưa nạp HĐ vào');
+            var bHasChuaNap = bText.includes('Chưa nạp HĐ vào');
+            
+            if (aHasChuaNap && !bHasChuaNap) return -1;
+            if (!aHasChuaNap && bHasChuaNap) return 1;
+            return 0;
+        });
+        
+        rows.forEach(function(row) {
+            tbody.appendChild(row);
+        });
+        
+        rows.forEach(function(row, index) {
+            if (row.cells[0]) {
+                row.cells[0].textContent = index + 1;
+            }
+        });
+    });
+</script>
+{/literal}
 <script src="modules/EC_HoaDonBan/js/view.requestinvoice.js?v=1.0" type="text/javascript"></script>
