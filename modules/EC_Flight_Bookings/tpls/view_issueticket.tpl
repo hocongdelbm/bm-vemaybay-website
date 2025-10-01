@@ -16,8 +16,9 @@
     </header>
 
     <div id="bookingContent" class="booking-content hidden">
-        <input type="hidden" name="systemCode" value="" />
         <input type="hidden" name="bookingCode" value="" />
+        <input type="hidden" name="systemCode" value="" />
+        <input type="hidden" name="airlineCode" value="" />
         <input type="hidden" name="bookingId" value="" />
         <input type="hidden" name="supplier" value="" />
         <input type="hidden" name="entryClass" value="entryAutoBookDatacomClass" />

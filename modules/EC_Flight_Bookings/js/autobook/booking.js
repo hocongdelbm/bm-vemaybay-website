@@ -528,7 +528,7 @@ $(document).ready(function () {
                             "Gender"    : gender,
                             "Surname"   : getLastName(passFullnameInputs[index].value),
                             "GivenName" : getMiddleAndFirstName(passFullnameInputs[index].value),
-                            "DateOfBirth": passDateOfBirthInputs[index].value
+                            "DateOfBirth": passDateOfBirthInputs[index].value.replace(/-/g, '')
                         });
                     });
 

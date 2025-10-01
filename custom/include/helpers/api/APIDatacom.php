@@ -157,10 +157,11 @@ class APIDatacom {
      * Get baggage info by booking code
      * 
      * @param string $bookingCode PNR
+     * @param string $systemCode
      * @param string $bookingId
      * @return string JSON {status, message, data}
      */
-    public function getBaggageInfo($bookingCode, $bookingId) {
+    public function getBaggageInfo($bookingCode, $systemCode, $bookingId) {
         if(!$bookingCode || strlen($bookingCode) != 6
             || !$bookingId || empty($bookingId)
         ) {
@@ -178,7 +179,8 @@ class APIDatacom {
         ];
         $requestBody = json_encode([
             "bookingCode" => $bookingCode,
-            "bookingId" => $bookingId
+            "bookingId" => $bookingId,
+            "systemCode" => $systemCode,
         ]);
 
         return $this->sendRequest('POST', $path, $requestBody, $header);
@@ -189,14 +191,16 @@ class APIDatacom {
      * 
      * @param string $bookingCode PNR
      * @param string $systemCode
+     * @param string $airlineCode
      * @param array $baggageData
      * @param array $passengerData
      * 
      * @return string JSON
      */
-    public function addBaggage($bookingCode, $systemCode, $baggageData, $passengerData) {
+    public function addBaggage($bookingCode, $systemCode, $airlineCode, $baggageData, $passengerData) {
         if(!is_string($bookingCode) || strlen($bookingCode) != 6 
             || !is_string($systemCode) || empty($systemCode)
+            || !is_string($airlineCode) || empty($airlineCode)
             || !is_array($baggageData) || empty($baggageData)
             || !is_array($passengerData) || empty($passengerData)
         ) {
@@ -215,7 +219,9 @@ class APIDatacom {
         $requestBody = json_encode([
             "bookingCode"   => $bookingCode,
             "systemCode"    => $systemCode,
-            "baggageData"   => $baggageData
+            "airlineCode"   => $airlineCode,
+            "baggageData"   => $baggageData,
+            "passengerData" => $passengerData
         ]);
 
         return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 120 + 10]);
@@ -347,7 +353,7 @@ class APIDatacom {
                 return json_encode([
                     "status" => 0,
                     "httpCode" => $httpCode,
-                    "message" => $responseArr["message"] ?? "Failed to send request to Fare System",
+                    "message" => $responseArr["message"] ?? "Error $httpCode: Failed to handle request",
                     "data" => null,
                     "description" => $responseArr
                 ]);
@@ -407,7 +413,7 @@ class APIDatacom {
             $bookingData["IsPaid"] = true;
             $bookingData["BookingStatus"] = "completed";
         }
-        elseif(!$bookingData["BookingExpired"] || empty($bookingData["BookingExpired"]) || strtotime($bookingData["BookingExpired"]) < time()) {
+        elseif(isset($bookingData["BookingExpired"]) && !empty($bookingData["BookingExpired"]) && strtotime($bookingData["BookingExpired"]) < time()) {
             $bookingData["BookingStatus"] = "cancelled";
         }
 
@@ -423,7 +429,7 @@ class APIDatacom {
                 "LastName"      => $p["Surname"],
                 "FirstName"     => $p["GivenName"],
                 "MiddleName"    => "",
-                "DateOfBirth"   => $p["DateOfBirth"], // d-m-Y
+                "DateOfBirth"   => $p["DateOfBirth"], // dmY
                 "Age"           => $this->getAge($p["DateOfBirth"]),
                 "Email"         => "",
                 "Phone"         => "",
@@ -433,6 +439,7 @@ class APIDatacom {
                 "ListBaggage"   => $p["ListBaggage"],
                 "ListPreSeat"   => $p["ListPreSeat"],
                 "ListService"   => $p["ListService"],
+                "Value"         => $p
             ];
         }
 
@@ -456,9 +463,12 @@ class APIDatacom {
                 }
 
                 if(!isset($bookingData["ListFare"][$farePassType])) {
-                    $directionText = count($data["ListFlightFare"]) > 1 ? ($ff["Leg"] == 1 ? "Lượt về" : "Lượt đi") : "";
-                    if(!in_array($bookingData["SystemCode"], ['VN', 'VJ', 'QH', 'VU'])) {
+                    $directionText = "";
+                    if(count($data["ListFlightFare"]) == 1) {
                         $directionText = trim(count($ff["ListFlight"] ?? []) . " chặng");
+                    }
+                    else {
+                        $directionText = $ff["Leg"] == 1 ? "Lượt về" : "Lượt đi";
                     }
 
                     $bookingData["ListFare"][(string)$ff["Leg"] . $farePassType] = [
@@ -480,7 +490,7 @@ class APIDatacom {
                 // }
             }
 
-            foreach(($ff["ListFlight"] ?? []) as $flight) {
+            foreach(($ff["ListFlight"] ?? []) as $i => $flight) {
                 $bookingData["ListFlight"][] = [
                     "FlightId"              => $flight["FlightId"],
                     "Origin"                => $flight["StartPoint"],
@@ -498,7 +508,7 @@ class APIDatacom {
                     "ArrivalDate"           => date("d-m-Y", strtotime($flight["EndDate"])),
                     "Arrivaltime"           => date("H:i", strtotime($flight["EndDate"])),
                     "CabinName"             => $cabin,
-                    "FareClass"             => $flight["ListSegment"][0]["FareClass"] ?? "",
+                    "FareClass"             => trim(explode(",", $fareInfo["FareClass"])[$i] ?? $flight["ListSegment"][0]["FareClass"] ?? ""),
                     "AirCratf"              => $flight["ListSegment"][0]["Equipment"] ?? "",
                     "Terminal"              => $flight["ListSegment"][0]["StartTerminal"] ?? "",
                 ];
@@ -513,17 +523,18 @@ class APIDatacom {
      * Standardize list baggage data for additional purchases
      * 
      * @param array $data Data from API getBaggageInfo
-     * @param int $direction 0:Departure ; 1:Return
+     * @param string $origin Origin code
+     * @param string $destination Destination code
      * @return array
      */
-    public function standardizeListBaggageData($data, $direction = 0) {
+    public function standardizeListBaggageData($data, $origin, $destination) {
         $listBaggageData = [];
         foreach (($data["ListBaggage"] ?? []) as $bag) {
-            if($bag["Leg"] == $direction) {
+            if($bag["StartPoint"] == $origin && $bag["EndPoint"] == $destination) {
                 $listBaggageData[] = [
                     // Common properties (Using for displaying)
-                    "Name"          => $bag["Name"],
-                    "Description"   => $bag["Description"],
+                    "Name"          => trim($bag["Name"]),
+                    "Description"   => trim($bag["Description"]),
                     "Amount"        => $bag["Price"],
                     "VAT"           => 0,
                     "TotalAmount"   => $bag["Price"],
@@ -571,7 +582,7 @@ class APIDatacom {
      * @return int
      */
     public function getAge($birthdate) {
-        $birthDate = new DateTime($birthdate); // Create a DateTime object for the birthdate
+        $birthDate = new DateTime($this->convertDate($birthdate)); // Create a DateTime object for the birthdate
         $currentDate = new DateTime(); // Current date and time
         $age = $currentDate->diff($birthDate); // Difference between current date and birthdate
         return $age->y; // Return the age in years

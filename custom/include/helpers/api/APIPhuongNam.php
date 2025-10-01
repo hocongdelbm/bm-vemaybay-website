@@ -305,7 +305,7 @@ class APIPhuongNam {
                 return json_encode([
                     "status" => 0,
                     "httpCode" => $httpCode,
-                    "message" => $responseArr["message"] ?? "Failed to send request to Fare System",
+                    "message" => $responseArr["message"] ?? "Error $httpCode: Failed to handle request",
                     "data" => null,
                     "description" => $responseArr
                 ]);
@@ -392,7 +392,7 @@ class APIPhuongNam {
                 "LastName"      => $p["LastName"],
                 "FirstName"     => $p["FirstName"],
                 "MiddleName"    => $p["MiddleName"] ?? "",
-                "DateOfBirth"   => date('d-m-Y', strtotime($p["BirthDay"])), // Y-m-d
+                "DateOfBirth"   => $p["BirthDay"], // Y-m-d
                 "Age"           => $p["Age"],
                 "Email"         => $p["Email"] ?? "",
                 "Phone"         => $p["Phone"] ?? "",
@@ -402,6 +402,7 @@ class APIPhuongNam {
                 "ListBaggage"   => $listBaggage,
                 "ListPreSeat"   => [],
                 "ListService"   => [],
+                "Value"         => null
             ];
         }
 

@@ -30,8 +30,9 @@ $(document).ready(function () {
                     const objRes = JSON.parse(response);
                     if (objRes.status == 1) {
                         $('input[name="bookingCode"]').val(objRes.data.BookingCode);
-                        $('input[name="bookingId"]').val(objRes.data.BookingId);
                         $('input[name="systemCode"]').val(objRes.data.SystemCode);
+                        $('input[name="airlineCode"]').val(objRes.data.AirlineCode);
+                        $('input[name="bookingId"]').val(objRes.data.BookingId);
                         $('input[name="entryClass"]').val(objRes.data.EntryClass);
                         $('input[name="supplier"]').val(objRes.data.Supplier);
                 
@@ -73,9 +74,11 @@ $(document).ready(function () {
         const bookingId     = $('input[name="bookingId"]').val();
         const systemCode    = $('input[name="systemCode"]').val();
         const direction     = $(this).attr('data-direction');
+        const origin        = $(this).attr('data-origin');
+        const destination   = $(this).attr('data-destination');
         const passengerData = decodeAutoBook($(this).attr('data-passenger') ?? "");
 
-        if (systemCode.length > 0 && bookingCode.length > 0 && direction.length > 0 && passengerData) {
+        if (systemCode.length > 0 && bookingCode.length > 0 && origin.length > 0 && destination.length > 0 && passengerData) {
             $.ajax({
                 url: ENTRYPOINT,
                 type: "POST",
@@ -89,6 +92,8 @@ $(document).ready(function () {
                         bookingCode: bookingCode,
                         bookingId: bookingId,
                         direction: direction,
+                        origin: origin,
+                        destination: destination,
                         passengerInfo: passengerData
                     }
                 }),
@@ -563,7 +568,8 @@ function renderPassengers(data) {
                 let text = i == 0 ? 'Thêm hành lý đi' : 'Thêm hành lý về';
                 optBaggageServiceHTML += `<a class="dropdown-item add-baggage"
                     data-direction="${i}"
-                    data-booking-status="${data.BookingStatus}"
+                    data-origin="${data.ListFlight[i].Origin}"
+                    data-destination="${data.ListFlight[i].Destination}"
                     data-passenger="${encodeAutoBook(passenger)}"
                 >
                     ${text}
@@ -579,7 +585,7 @@ function renderPassengers(data) {
             </td>
             <td><span class="badge ${passenger.Type}">${getPassengerLabelName(passenger.Type)}</span></td>
             <td>${passenger.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
-            <td>${passenger.DateOfBirth}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
+            <td>${formatDate(passenger.DateOfBirth)}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
             <td>
                 ${passenger.Email ? `<div>${passenger.Email}</div>` : ''}
                 ${passenger.Phone ? `<div>${passenger.Phone}</div>` : ''}
@@ -664,7 +670,7 @@ function renderFareBreakdown(fareCharges) {
     // fareCharges.forEach(function (fare) {
     Object.entries(fareCharges).forEach(([key, fare]) => {
         const row = `<tr>
-            <td>${fare.DirectionText}</td>
+            <td><b>${fare.DirectionText}</b></td>
             <td>${getPassengerLabelName(fare.Type)}</td>
             <td>${formatCurrency(fare.BaseFare)}</td>
             <td>${formatCurrency(fare.VAT)}</td>
@@ -738,6 +744,14 @@ function formatCurrency(amount, showUnit = true) {
 function formatDate(dateString) {
     if (!dateString) return '';
 
+    // Resolve date in Datacom
+    if (dateString.length == 8 && !dateString.includes('/') && !dateString.includes('-')) {
+        let tempDay = dateString.slice(0, 2);
+        let tempMonth = dateString.slice(2, 4);
+        let tempYear = dateString.slice(4);
+        return `${tempDay}-${tempMonth}-${tempYear}`;
+    }
+
     const date = new Date(dateString);
 
     // Check if date is valid
@@ -748,6 +762,20 @@ function formatDate(dateString) {
     const year = date.getFullYear();
 
     return `${day}-${month}-${year}`;
+}
+
+function formatTime(dateString) {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) return dateString;
+
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${hours}:${minutes}`;
 }
 
 function formatDateTime(dateString) {
@@ -765,20 +793,6 @@ function formatDateTime(dateString) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
     return `${day}-${month}-${year} ${hours}:${minutes}`;
-}
-
-function formatTime(dateString) {
-    if (!dateString) return '';
-
-    const date = new Date(dateString);
-
-    // Check if date is valid
-    if (isNaN(date.getTime())) return dateString;
-
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-
-    return `${hours}:${minutes}`;
 }
 
 /**
@@ -848,30 +862,31 @@ function createBaggageServiceDialog(baggageData, passengerData, systemCode, dire
         else {
             baggageListEl.innerHTML = '';
             baggageData.ListBaggage.forEach((bag, index) => {
-                if(bag.Value.PersonOrgId == passengerData.Id) {
-                    let totalPurchageAmountHTML = ``;
-                    if('VAT' in bag && bag.VAT > 0) {
-                        totalPurchageAmountHTML = `<span>${formatCurrency(bag.Amount, false)} + ${formatCurrency(bag.VAT, false)} (VAT) = <strong>${formatCurrency(bag.TotalAmount)}</strong></span>`;
-                    }
-                    else {
-                        totalPurchageAmountHTML = `<strong>${formatCurrency(bag.TotalAmount)}</strong>`;
-                    }
+                console.warn(bag);
+                if('PersonOrgId' in bag.Value && bag.Value.PersonOrgId != passengerData.Id) return;
 
-                    const div = document.createElement('div');
-                    div.className = 'baggage-service-item';
-                    div.innerHTML = `
-                        <input type="radio" name="baggageOption"
-                            id="baggageOption${index}"
-                            value="${encodeAutoBook(bag)}"
-                        />
-                        <label for="baggageOption${index}">
-                            ${bag.Description || bag.Name}
-                            <br>
-                            ${totalPurchageAmountHTML}
-                        </label
-                    `;
-                    baggageListEl.appendChild(div);
+                let totalPurchageAmountHTML = ``;
+                if('VAT' in bag && bag.VAT > 0) {
+                    totalPurchageAmountHTML = `<span>${formatCurrency(bag.Amount, false)} + ${formatCurrency(bag.VAT, false)} (VAT) = <strong>${formatCurrency(bag.TotalAmount)}</strong></span>`;
                 }
+                else {
+                    totalPurchageAmountHTML = `<strong>${formatCurrency(bag.TotalAmount)}</strong>`;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'baggage-service-item';
+                div.innerHTML = `
+                    <input type="radio" name="baggageOption"
+                        id="baggageOption${index}"
+                        value="${encodeAutoBook(bag)}"
+                    />
+                    <label for="baggageOption${index}">
+                        ${bag.Description || bag.Name}
+                        <br>
+                        ${totalPurchageAmountHTML}
+                    </label
+                `;
+                baggageListEl.appendChild(div);
             });
         }
 
@@ -880,8 +895,9 @@ function createBaggageServiceDialog(baggageData, passengerData, systemCode, dire
             const selectedRadio = wrapper.querySelector('input[name="baggageOption"]:checked');
             if (!selectedRadio) return;
 
-            const systemCode    = $('input[name="systemCode"]').val();
             const bookingCode   = $('input[name="bookingCode"]').val();
+            const systemCode    = $('input[name="systemCode"]').val();
+            const airlineCode   = $('input[name="airlineCode"]').val();
             const entryClass    = $('input[name="entryClass"]').val();
             const baggageData   = decodeAutoBook(selectedRadio.value);
 
@@ -895,8 +911,9 @@ function createBaggageServiceDialog(baggageData, passengerData, systemCode, dire
                         class: entryClass,
                         method: "addBaggage",
                         params: {
-                            systemCode: systemCode,
                             bookingCode: bookingCode,
+                            systemCode: systemCode,
+                            airlineCode: airlineCode,
                             baggageData: baggageData,
                             passengerData: passengerData,
                             direction: direction

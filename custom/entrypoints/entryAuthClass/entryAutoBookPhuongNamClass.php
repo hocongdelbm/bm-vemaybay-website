@@ -88,7 +88,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                             'depCode' 	    => $row['departure'],
                             'desCode'	    => $row['arrival'],
                             'departureDate' => $departureDate,
-                            'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
+                            'airlineCode'   => $this->mappingSystemCode[$row['airline_code']] ?? $row['airline_code'],
                             'flightNo'	    => $row['flight_number'],
                             'ticketClass'   => $row['ticket_class'],
                             'within24h'     => $within24h
@@ -112,7 +112,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                             'depCode' 	    => $row['departure'],
                             'desCode'	    => $row['arrival'],
                             'departureDate' => $departureDate,
-                            'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
+                            'airlineCode'   => $this->mappingSystemCode[$row['airline_code']] ?? $row['airline_code'],
                             'flightNo'	    => $row['flight_number'],
                             'ticketClass'	=> $row['ticket_class'],
                             'within24h'     => $within24h
@@ -1006,7 +1006,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     }
                     else {
                         $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
-                        if($systemCode == ($arrMapAirlineCode[$airlineCodeOutbound] ?? '')) {
+                        if($systemCode == ($this->mappingSystemCode[$airlineCodeOutbound] ?? '')) {
                             $colNamePNR = 'pnr_outbound';
                             // $colNameLugIndex = 'luggage_index_outbound';
                             $direction = '0';
@@ -1091,7 +1091,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
     }
 
     /**
-     * Get booking data
+     * Get baggage info in booking
      * 
      * @param array $params
      * @return array
@@ -1176,8 +1176,9 @@ class entryAutoBookPhuongNamClass extends entryClass {
      * @return array
      */
     public function addBaggage($params = []) {
-        $systemCode     = $params['systemCode'] ?? '';
         $bookingCode    = $params['bookingCode'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+        $airlineCode    = $params['airlineCode'] ?? '';
         $baggageData    = $params['baggageData'] ?? [];
         $passengerData  = $params['passengerData'] ?? [];
         $direction      = (int)($params['direction'] ?? 0);

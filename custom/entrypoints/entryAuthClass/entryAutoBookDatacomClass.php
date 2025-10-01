@@ -93,7 +93,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             'depCode' 	    => $row['departure'],
                             'desCode'	    => $row['arrival'],
                             'departureDate' => $departureDate,
-                            'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
+                            'airlineCode'   => $this->mappingSystemCode[$row['airline_code']] ?? $row['airline_code'],
                             'flightNo'	    => $row['flight_number'],
                             'ticketClass'   => $row['ticket_class'],
                             'within24h'     => $within24h
@@ -117,7 +117,7 @@ class entryAutoBookDatacomClass extends entryClass {
                             'depCode' 	    => $row['departure'],
                             'desCode'	    => $row['arrival'],
                             'departureDate' => $departureDate,
-                            'airlineCode'   => $arrMapAirlineCode[$row['airline_code']] ?? $row['airline_code'],
+                            'airlineCode'   => $this->mappingSystemCode[$row['airline_code']] ?? $row['airline_code'],
                             'flightNo'	    => $row['flight_number'],
                             'ticketClass'	=> $row['ticket_class'],
                             'within24h'     => $within24h
@@ -1313,15 +1313,17 @@ class entryAutoBookDatacomClass extends entryClass {
         $bookingId      = $params['bookingId'] ?? '';
         $systemCode     = $params['systemCode'] ?? '';
         $direction      = (int)($params['direction'] ?? 0);
+        $origin         = $params['origin'] ?? "";
+        $destination    = $params['destination'] ?? "";
         $passengerInfo  = $params['passengerInfo'] ?? []; // Info who purchase baggage
         
         $agency = new APIDatacom();
-        $json = $agency->getBaggageInfo($bookingCode, $bookingId);
+        $json = $agency->getBaggageInfo($bookingCode, $systemCode, $bookingId);
         $arr = json_decode($json, true);
 
         if(isset($arr["status"]) && $arr["status"] == 1) {
             $data = [];
-            $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $direction);
+            $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $origin, $destination);
             $data["Origin"]      = $data["ListBaggage"][0]["Origin"];
             $data["Destination"] = $data["ListBaggage"][0]["Destination"];
             return [
@@ -1385,12 +1387,13 @@ class entryAutoBookDatacomClass extends entryClass {
     public function addBaggage($params = []) {
         $bookingCode    = $params['bookingCode'] ?? '';
         $systemCode     = $params['systemCode'] ?? '';
+        $airlineCode    = $params['airlineCode'] ?? '';
         $baggageData    = $params['baggageData'] ?? [];
         $passengerData  = $params['passengerData'] ?? [];
         $direction      = (int)($params['direction'] ?? 0);
 
         $agency = new APIDatacom();
-        $response = $agency->addBaggage($bookingCode, $systemCode, $baggageData['Value'] ?? [], $passengerData);
+        $response = $agency->addBaggage($bookingCode, $systemCode, $airlineCode, $baggageData['Value'] ?? [], $passengerData['Value'] ?? []);
         $responseArr = json_decode($response, true);
 
         if(isset($responseArr['status']) && $responseArr['status'] == 1) {
