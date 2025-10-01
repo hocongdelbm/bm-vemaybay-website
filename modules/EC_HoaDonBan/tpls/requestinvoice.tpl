@@ -82,21 +82,36 @@
                     <span class="sublabel">Booking:</span>
                     <input type="text" class="box-input" name="booking" id="booking" value="{$BOOKING}">
                 </div>
-                
+
                 <div class="submit-button-wrap d-flex gap-2">
                     <input type="submit" class="btn btn-primary" value="Tìm kiếm">
                     <input type="submit" class="btn btn-danger" name="clear_btn" value="Xoá">
                 </div>
 
+            </div>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 10px 0;">
+            <div class="d-flex gap-2 mb-3">
+
                 <div class="d-flex align-items-center gap-2">
-                    <select class="sort box-select" name="sort" id="filter_sort">
-                        <option value="mac dinh" {if $sort eq "mặc định"}selected{/if}>Mặc định</option>
-                        <option value="chua nap" {if $sort eq "chưa nạp"}selected{/if}>Chưa nạp</option>
-                        <option value="da nap" {if $sort eq "đã nạp"}selected{/if}>Đã nạp</option>
+                    <label>HĐ ra</label>
+                    <select class="sort box-select" name="sort_hd_ra" id="filter_hd_ra">
+                        <option value="mac dinh">Mặc định</option>
+                        <option value="chua nap">Chưa nạp</option>
+                        <option value="da nap">Đã nạp</option>
                     </select>
                 </div>
-               
+
+                <div class="d-flex align-items-center gap-2">
+                    <label>HĐ vào</label>
+                    <select class="sort box-select" name="sort_hd_vao" id="filter_hd_vao">
+                        <option value="mac dinh">Mặc định</option>
+                        <option value="chua nap">Chưa nạp</option>
+                        <option value="da nap">Đã nạp</option>
+                    </select>
+                </div>
+
             </div>
+
         </form>
         <table id="output_inv" class="table-details__booking table-request__invoice" cellspacing="0" cellpadding="0">
             <thead>
@@ -118,36 +133,52 @@
     </div>
 </div>
 {literal}
-     <script type="text/javascript">
+    <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            var filterSelect = document.getElementById('filter_sort');
+            var filterHdRa = document.getElementById('filter_hd_ra');
+            var filterHdVao = document.getElementById('filter_hd_vao');
             var tbody = document.querySelector('#output_inv tbody');
-            
-            if (!tbody || !filterSelect) return;
-            
+
+            if (!tbody || !filterHdRa || !filterHdVao) return;
+
             var allRows = Array.from(tbody.querySelectorAll('tr'));
-            
-            // Function to filter rows
-            function filterAndSortRows() {
-                var filterValue = filterSelect.value;
-                
+
+            // Function to filter rows based on both dropdowns
+            function filterRows() {
+                var hdRaValue = filterHdRa.value;
+                var hdVaoValue = filterHdVao.value;
+
                 allRows.forEach(function(row) {
+                    // HĐ ra column (index 5)
+                    var hdRaText = row.cells[5] ? row.cells[5].textContent.trim() : '';
+                    var hdRaHasValue = hdRaText !== '' ;
+
+                    // HĐ vào column (index 6)
                     var hdVaoText = row.cells[6] ? row.cells[6].textContent.trim() : '';
-                    var hasChuaNap = hdVaoText.includes('Chưa nạp HĐ vào');
-                    var isDaNap = !hasChuaNap && hdVaoText !== '';
-                    
-                    // Show/hide based on filter
-                    if (filterValue === 'mac dinh') {
-                        row.style.display = '';
-                    } else if (filterValue === 'chua nap' && hasChuaNap) {
-                        row.style.display = '';
-                    } else if (filterValue === 'da nap' && isDaNap) {
+                    var hdVaoHasChuaNap = hdVaoText.includes('Chưa nạp HĐ vào');
+                    var hdVaoHasValue = !hdVaoHasChuaNap && hdVaoText !== '' && hdVaoText !== '-';
+
+                    var passHdRa = true;
+                    if (hdRaValue === 'chua nap') {
+                        passHdRa = !hdRaHasValue;
+                    } else if (hdRaValue === 'da nap') {
+                        passHdRa = hdRaHasValue;
+                    }
+
+                    var passHdVao = true;
+                    if (hdVaoValue === 'chua nap') {
+                        passHdVao = hdVaoHasChuaNap;
+                    } else if (hdVaoValue === 'da nap') {
+                        passHdVao = hdVaoHasValue;
+                    }
+
+                    if (passHdRa && passHdVao) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
                     }
                 });
-                
+
                 var visibleIndex = 1;
                 allRows.forEach(function(row) {
                     if (row.style.display !== 'none' && row.cells[0]) {
@@ -155,10 +186,11 @@
                     }
                 });
             }
-            
-            filterAndSortRows();
-            
-            filterSelect.addEventListener('change', filterAndSortRows);
+
+            filterRows();
+
+            filterHdRa.addEventListener('change', filterRows);
+            filterHdVao.addEventListener('change', filterRows);
         });
     </script>
 {/literal}
