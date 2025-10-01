@@ -89,11 +89,10 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    {* <span class="sublabel">Lọc:</span> *}
-                    <select class="source box-select" name="source" id="filter_source">
-                        <option value="mặc định" {if $source eq "mặc định"}selected{/if}>Mặc định</option>
-                        <option value="chưa nạp" {if $source eq "chưa nạp"}selected{/if}>Chưa nạp</option>
-                        <option value="đã nạp" {if $source eq "đã nạp"}selected{/if}>Đã nạp</option>
+                    <select class="sort box-select" name="sort" id="filter_sort">
+                        <option value="mac dinh" {if $sort eq "mặc định"}selected{/if}>Mặc định</option>
+                        <option value="chua nap" {if $sort eq "chưa nạp"}selected{/if}>Chưa nạp</option>
+                        <option value="da nap" {if $sort eq "đã nạp"}selected{/if}>Đã nạp</option>
                     </select>
                 </div>
                
@@ -121,7 +120,7 @@
 {literal}
      <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            var filterSelect = document.getElementById('filter_source');
+            var filterSelect = document.getElementById('filter_sort');
             var tbody = document.querySelector('#output_inv tbody');
             
             if (!tbody || !filterSelect) return;
@@ -138,11 +137,11 @@
                     var isDaNap = !hasChuaNap && hdVaoText !== '';
                     
                     // Show/hide based on filter
-                    if (filterValue === 'mặc định') {
+                    if (filterValue === 'mac dinh') {
                         row.style.display = '';
-                    } else if (filterValue === 'chưa nạp' && hasChuaNap) {
+                    } else if (filterValue === 'chua nap' && hasChuaNap) {
                         row.style.display = '';
-                    } else if (filterValue === 'đã nạp' && isDaNap) {
+                    } else if (filterValue === 'da nap' && isDaNap) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
