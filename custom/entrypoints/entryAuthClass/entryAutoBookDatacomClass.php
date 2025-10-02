@@ -1315,6 +1315,7 @@ class entryAutoBookDatacomClass extends entryClass {
         $direction      = (int)($params['direction'] ?? 0);
         $origin         = $params['origin'] ?? "";
         $destination    = $params['destination'] ?? "";
+        $flightNumber   = $params['flightNumber'] ?? "";
         $passengerInfo  = $params['passengerInfo'] ?? []; // Info who purchase baggage
         
         $agency = new APIDatacom();
@@ -1323,7 +1324,7 @@ class entryAutoBookDatacomClass extends entryClass {
 
         if(isset($arr["status"]) && $arr["status"] == 1) {
             $data = [];
-            $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $origin, $destination);
+            $data["ListBaggage"] = $agency->standardizeListBaggageData($arr["data"], $origin, $destination, $flightNumber);
             $data["Origin"]      = $data["ListBaggage"][0]["Origin"];
             $data["Destination"] = $data["ListBaggage"][0]["Destination"];
             return [
@@ -1422,7 +1423,7 @@ class entryAutoBookDatacomClass extends entryClass {
                     WHERE $pnrField = '$bookingCode'
                         AND name = '$passengerName'
                         AND (luggage_purchase$suffix IS NULL OR luggage_purchase$suffix = 0)
-                        AND date_entered >= NOW() - INTERVAL 120 DAY;
+                        AND date_entered >= NOW() - INTERVAL 120 DAY
                         AND deleted = 0";
                 if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
             }

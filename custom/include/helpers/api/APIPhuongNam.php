@@ -210,8 +210,8 @@ class APIPhuongNam {
         ];
         $requestBody = json_encode([
             "bookingCode" => $bookingCode,
-            "systemCode" => $systemCode,
-            "baggageData" => $baggageData["Value"] ?? []
+            "systemCode"  => $systemCode,
+            "baggageData" => $baggageData
         ]);
 
         return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 120 + 10]);
@@ -222,18 +222,20 @@ class APIPhuongNam {
      * 
      * @param string $bookingCode PNR
      * @param string $systemCode
+     * @param string $airlineCode
      * 
      * @return string JSON
      */
-    public function cancelBooking($bookingCode, $systemCode) {
+    public function cancelBooking($bookingCode, $systemCode, $airlineCode) {
         if(!is_string($bookingCode) || strlen($bookingCode) != 6 
             || !is_string($systemCode) || strlen($systemCode) != 2
+            || !is_string($airlineCode) || strlen($airlineCode) != 2
         ) {
             return json_encode([
                 "status" => 0,
-                "message" => "Invalid params",
+                "message" => "Dữ liệu không hợp lệ",
                 "data" => null
-            ]);
+            ], JSON_UNESCAPED_UNICODE);
         }
         
         $path = "booking/{$this->API_NAME}/cancelBooking";
@@ -243,7 +245,8 @@ class APIPhuongNam {
         ];
         $requestBody = json_encode([
             "bookingCode" => $bookingCode,
-            "systemCode"  => $systemCode
+            "systemCode"  => $systemCode,
+            "airlineCode" => $airlineCode
         ]);
 
         return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 150 + 10]);
@@ -375,10 +378,10 @@ class APIPhuongNam {
                     $listBaggage[] = [
                         "FlightId"      => $bag["FlightId"],
                         "SegmentId"     => $bag["SegmentId"],
-                        "Name"          => $bag["ServiceName"],
+                        "Name"          => $this->translateBaggage($bag["ServiceName"]),
                         "Type"          => $bag["ServiceType"],
                         "Code"          => $bag["BaggageCode"],
-                        "Description"   => $bag["BaggageDescription"] ?? "",
+                        "Description"   => $this->translateBaggage($bag["BaggageDescription"] ?? ""),
                         "TotalAmount"   => $bag["TotalAmount"],
                     ];
                 }
@@ -440,7 +443,7 @@ class APIPhuongNam {
         foreach(($data["SumCharge"]["FareCharges"] ?? []) as $fare) {
             $farePassType = $this->getPassengerTypeText($fare["PassengerTypeId"]); // adt, chd, inf
             $bookingData["ListFare"][$farePassType] = [
-                "DirectionText" => $countListFlight > 1 ? "Khứ hồi" : "",
+                "DirectionText" => $countListFlight > 1 ? "$countListFlight chặng" : "",
                 "Type"          => $farePassType,
                 "BaseFare"      => $fare["FareBaseAmount"],
                 "VAT"           => $fare["VATAmount"],
@@ -464,7 +467,7 @@ class APIPhuongNam {
     public function standardizeListBaggageData($data, $passengerInfo, $direction = 0) {
         $listBaggageData = [];
         foreach (($data[$direction]["ListService"] ?? []) as $bag) {
-            if($bag["PersonOrgId"] != $passengerInfo['Id']) continue;
+            if($bag["SystemCode"] == 'QH' && $bag["PersonOrgId"] != $passengerInfo['Id']) continue;
 
             $listBaggageData[] = [
                 // Common properties (Using for displaying)
@@ -477,8 +480,8 @@ class APIPhuongNam {
                 "Destination"   => $bag["Destination"],
                 "Value"         => [
                     "ServiceKey" => $bag["ServiceKey"],
-                    "PersonOrgId" => (string)($bag["PersonOrgId"] ?? ""),
-                    "PersonOrgIdConfirmed" => (string)($bag["PersonOrgIdConfirmed"] ?? ""),
+                    "PersonOrgId" => $bag["SystemCode"] == 'QH' ? (string)($bag["PersonOrgId"] ?? "") : "",
+                    "PersonOrgIdConfirmed" => $bag["SystemCode"] == 'QH' ? (string)($bag["PersonOrgIdConfirmed"] ?? "") : "",
                 ]
             ];
         }
@@ -642,8 +645,10 @@ class APIPhuongNam {
     public function translateBaggage($string) {
         $string = strtolower(trim($string));
         $string = str_replace("checked baggage", "Hành lý ký gửi", $string);
-        $string = str_replace("Oversize piece", "Kiện quá khổ", $string);
         $string = str_replace("baggage", "Hành lý", $string);
+        $string = str_replace("bag", "Hành lý", $string);
+        $string = str_replace("oversize piece", "Kiện quá khổ", $string);
+        $string = str_replace("oversize", "Kiện quá khổ", $string);
         return $string;
     }
 }

@@ -417,33 +417,8 @@ class APIDatacom {
             $bookingData["BookingStatus"] = "cancelled";
         }
 
-        // List passenger
-        $bookingData["ListPassenger"] = [];
-        $passengers = $data["ListPassenger"] ?? [];
-        foreach ($passengers as $p) {
-            $bookingData["ListPassenger"][] = [
-                "Id"            => $p["Index"],
-                "Type"          => strtolower($p["Type"]), // adt, chd, inf
-                "Title"         => $p["Title"] ?? "",
-                "Gender"        => $this->getGenderTypeText($p["Gender"]), // M, F
-                "LastName"      => $p["Surname"],
-                "FirstName"     => $p["GivenName"],
-                "MiddleName"    => "",
-                "DateOfBirth"   => $p["DateOfBirth"], // dmY
-                "Age"           => $this->getAge($p["DateOfBirth"]),
-                "Email"         => "",
-                "Phone"         => "",
-                "Passport"      => $p["Passport"],
-                "ParentId"      => $p["ParentId"],
-                "IdConfirmed"   => null,
-                "ListBaggage"   => $p["ListBaggage"],
-                "ListPreSeat"   => $p["ListPreSeat"],
-                "ListService"   => $p["ListService"],
-                "Value"         => $p
-            ];
-        }
-
         // List flight and fare
+        $flightNumberList = [];
         $bookingData["ListFlight"] = [];
         $bookingData["ListFare"] = [];
         foreach(($data["ListFlightFare"] ?? []) as $ff) {
@@ -481,16 +456,10 @@ class APIDatacom {
                         "Price"         => $price
                     ];
                 }
-                // else {
-                //     $bookingData["ListFare"][$farePassType]["BaseFare"] += $fareBase;
-                //     $bookingData["ListFare"][$farePassType]["VAT"] += $vat;
-                //     $bookingData["ListFare"][$farePassType]["AirportFee"] += $airportFee;
-                //     $bookingData["ListFare"][$farePassType]["OtherFee"] += $otherFee;
-                //     $bookingData["ListFare"][$farePassType]["Price"] += $price;
-                // }
             }
 
             foreach(($ff["ListFlight"] ?? []) as $i => $flight) {
+                $flightNumberList[$flight["StartPoint"].$flight["EndPoint"]] = $flight["FlightNumber"];
                 $bookingData["ListFlight"][] = [
                     "FlightId"              => $flight["FlightId"],
                     "Origin"                => $flight["StartPoint"],
@@ -516,6 +485,53 @@ class APIDatacom {
         }
         if(empty($bookingData["ListFare"])) $bookingData["ListFare"] = $ff["FareInfo"];
 
+        // List passenger
+        $bookingData["ListPassenger"] = [];
+        $passengers = $data["ListPassenger"] ?? [];
+        foreach ($passengers as $p) {
+            // Format list baggage
+            $listBaggage = [];
+            $listValueBaggage = []; 
+            foreach($p["ListBaggage"] as $bag) {
+                // Value to display
+                $listBaggage[] = [
+                    "FlightId"      => $bag["Leg"] + 1,
+                    "SegmentId"     => null,
+                    "Name"          => $this->translateBaggage($bag["Name"]),
+                    "Type"          => $bag["Type"],
+                    "Code"          => "",
+                    "Description"   => $this->translateBaggage($bag["Description"] ?? ""),
+                    "TotalAmount"   => $bag["Price"],
+                ];
+
+                // Value to use in API
+                $bag["FlightNumber"] = $flightNumberList[$bag["StartPoint"].$bag["EndPoint"]] ?? '';
+                $listValueBaggage[] = $bag;
+            }
+            $p["ListBaggage"] = $listValueBaggage;
+
+            $bookingData["ListPassenger"][] = [
+                "Id"            => $p["Index"],
+                "Type"          => strtolower($p["Type"]), // adt, chd, inf
+                "Title"         => $p["Title"] ?? "",
+                "Gender"        => $this->getGenderTypeText($p["Gender"]), // M, F
+                "LastName"      => $p["Surname"],
+                "FirstName"     => $p["GivenName"],
+                "MiddleName"    => "",
+                "DateOfBirth"   => $p["DateOfBirth"], // dmY
+                "Age"           => $this->getAge($p["DateOfBirth"]),
+                "Email"         => "",
+                "Phone"         => "",
+                "Passport"      => $p["Passport"],
+                "ParentId"      => $p["ParentId"],
+                "IdConfirmed"   => null,
+                "ListBaggage"   => $listBaggage,
+                "ListPreSeat"   => $p["ListPreSeat"],
+                "ListService"   => $p["ListService"],
+                "Value"         => $p // This is an attribute is used in API
+            ];
+        }
+
         return $bookingData;
     }
 
@@ -525,12 +541,14 @@ class APIDatacom {
      * @param array $data Data from API getBaggageInfo
      * @param string $origin Origin code
      * @param string $destination Destination code
+     * @param string $flightNumber
      * @return array
      */
-    public function standardizeListBaggageData($data, $origin, $destination) {
+    public function standardizeListBaggageData($data, $origin, $destination, $flightNumber) {
         $listBaggageData = [];
         foreach (($data["ListBaggage"] ?? []) as $bag) {
             if($bag["StartPoint"] == $origin && $bag["EndPoint"] == $destination) {
+                $bag["FlightNumber"] = $flightNumber;
                 $listBaggageData[] = [
                     // Common properties (Using for displaying)
                     "Name"          => trim($bag["Name"]),
@@ -612,5 +630,18 @@ class APIDatacom {
         $datetimeObj = DateTime::createFromFormat('dmY Hi', $datetime);
         if ($datetimeObj) return $datetimeObj->format($format);
         return '';
+    }
+
+    /**
+     * Translate baggage text from En to Vi
+     * 
+     * @param string $string English string
+     * @return string Vietnamese string
+     */
+    public function translateBaggage($string) {
+        $string = strtoupper(trim($string));
+        $string = str_replace("PREPAID BAG", "Hành lý trả trước", $string);
+        $string = str_replace("UPTO", "tối đa ", $string);
+        return $string;
     }
 }

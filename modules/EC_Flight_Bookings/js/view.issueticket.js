@@ -76,9 +76,10 @@ $(document).ready(function () {
         const direction     = $(this).attr('data-direction');
         const origin        = $(this).attr('data-origin');
         const destination   = $(this).attr('data-destination');
+        const flightNumber  = $(this).attr('data-flight-number');
         const passengerData = decodeAutoBook($(this).attr('data-passenger') ?? "");
 
-        if (systemCode.length > 0 && bookingCode.length > 0 && origin.length > 0 && destination.length > 0 && passengerData) {
+        if (systemCode.length > 0 && bookingCode.length > 0 && origin.length > 0 && destination.length > 0 && flightNumber.length > 0 && passengerData) {
             $.ajax({
                 url: ENTRYPOINT,
                 type: "POST",
@@ -94,6 +95,7 @@ $(document).ready(function () {
                         direction: direction,
                         origin: origin,
                         destination: destination,
+                        flightNumber: flightNumber,
                         passengerInfo: passengerData
                     }
                 }),
@@ -188,6 +190,7 @@ $(document).ready(function () {
         const entryClass    = $('input[name="entryClass"]').val();
         const bookingCode   = $('input[name="bookingCode"]').val();
         const systemCode    = $('input[name="systemCode"]').val();
+        const airlineCode   = $('input[name="airlineCode"]').val();
 
         if (confirm(`Xác nhận hủy đặt chỗ ${bookingCode}`)) {
             $.ajax({
@@ -200,7 +203,8 @@ $(document).ready(function () {
                     method: "cancelBooking",
                     params: {
                         bookingCode: bookingCode,
-                        systemCode: systemCode
+                        systemCode: systemCode,
+                        airlineCode: airlineCode
                     }
                 }),
                 beforeSend: function () {
@@ -303,11 +307,13 @@ function updateStatusIcons(data) {
             paidBadge.removeClass('unpaid').addClass('paid');
             paidBadge.text('PAID');
             paidBadge.attr('data-tooltip', 'Tất cả các khoản thanh toán đã được xử lý thành công');
+            paidBadge.show();
         } else {
             paidBadge.removeClass('paid').addClass('unpaid');
             paidBadge.text('UNPAID');
             paidBadge.attr('data-tooltip', 'Đang chờ xử lý – Chưa thanh toán đầy đủ');
         }
+        paidBadge.show();
     }
     else paidBadge.hide();
 
@@ -323,6 +329,7 @@ function updateStatusIcons(data) {
             voidBadge.text('HOÀN');
             voidBadge.attr('data-tooltip', 'Booking không thể hoàn/hủy');
         }
+        voidBadge.show();
     }
     else voidBadge.hide();
 
@@ -338,6 +345,7 @@ function updateStatusIcons(data) {
             refundBadge.text('HOÀN TIỀN');
             refundBadge.attr('data-tooltip', 'Booking không được hoàn tiền');
         }
+        refundBadge.show();
     }
     else refundBadge.hide();
 
@@ -353,6 +361,7 @@ function updateStatusIcons(data) {
             editBadge.text('SỬA');
             editBadge.attr('data-tooltip', 'Booking không thể chỉnh sửa');
         }
+        editBadge.show();
     }
     else editBadge.hide();
 }
@@ -401,7 +410,11 @@ function updateExpiryBadge(data) {
 function updatePaymentSection(data) {
     const paymentSection = $('#paymentSection');
 
-    if (!isBookingExpired(data.BookingStatus, data.BookingExpired)) {
+    if (!["holding", "change-payment"].includes(data.BookingStatus)) {
+        // Hide payment section
+        paymentSection.hide();
+    }
+    else if (!isBookingExpired(data.BookingStatus, data.BookingExpired)) {
         // Update payment information
         $('#paymentTotalAmount').text(formatCurrency(data.TotalAmount));
         $('#paymentUnpaidAmount').text(formatCurrency(data.UnPaidAmount));
@@ -422,9 +435,6 @@ function updatePaymentSection(data) {
 
         // Show payment section
         paymentSection.show();
-    } else {
-        // Hide payment section
-        paymentSection.hide();
     }
 }
 
@@ -481,7 +491,7 @@ function getBookingStatusDetails(bookingStatus) {
         },
         "completed": {
             class: "completed",
-            text: "Đã xuất vé & Thanh toán",
+            text: "Đã xuất vé",
             description: "Đã xuất vé và thanh toán thành công"
         },
         "error": {
@@ -548,10 +558,10 @@ function renderPassengers(data) {
         let listBaggage = passenger.ListBaggage
         if(listBaggage) {
             listBaggage.forEach(function (baggage) {
-                if(baggage.FlightId == 0) purchasedBaggageDep = true;
-                else purchasedBaggageRet = true;
+                if(baggage.FlightId > 1) purchasedBaggageRet = true;
+                else purchasedBaggageDep = true;
                 purchasedServicesHTML += `<p class="purchased-item">
-                    ${icon_baggage} ${baggage.FlightId == 1 ? 'Lượt đi' : 'Lượt về'} ${baggage.Name ?? baggage.Description} <b style="color:blue;">${formatCurrency(baggage.TotalAmount)}</b>
+                    ${icon_baggage} ${baggage.FlightId == 2 ? 'Lượt về' : 'Lượt đi'}: <b style="color:blue;">${baggage.Name ?? baggage.Description} ${formatCurrency(baggage.TotalAmount)}</b>
                 </p>`;
             });
         }
@@ -570,6 +580,7 @@ function renderPassengers(data) {
                     data-direction="${i}"
                     data-origin="${data.ListFlight[i].Origin}"
                     data-destination="${data.ListFlight[i].Destination}"
+                    data-flight-number="${data.ListFlight[i].FlightNumber}"
                     data-passenger="${encodeAutoBook(passenger)}"
                 >
                     ${text}
@@ -664,22 +675,24 @@ function renderFlights(flights) {
 }
 
 function renderFareBreakdown(fareCharges) {
-    const tbody = $('#fareTable tbody');
-    tbody.empty();
+    if(fareCharges) {
+        const tbody = $('#fareTable tbody');
+        tbody.empty();
 
-    // fareCharges.forEach(function (fare) {
-    Object.entries(fareCharges).forEach(([key, fare]) => {
-        const row = `<tr>
-            <td><b>${fare.DirectionText}</b></td>
-            <td>${getPassengerLabelName(fare.Type)}</td>
-            <td>${formatCurrency(fare.BaseFare)}</td>
-            <td>${formatCurrency(fare.VAT)}</td>
-            <td>${formatCurrency(fare.AirportFee)}</td>
-            <td>${formatCurrency(fare.OtherFee)}</td>
-            <td title="Chưa gồm số lượng"><strong>${formatCurrency(fare.Price)}</strong></td>
-        </tr>`;
-        tbody.append(row);
-    });
+        // fareCharges.forEach(function (fare) {
+        Object.entries(fareCharges).forEach(([key, fare]) => {
+            const row = `<tr>
+                <td><b>${fare.DirectionText}</b></td>
+                <td>${getPassengerLabelName(fare.Type)}</td>
+                <td>${formatCurrency(fare.BaseFare)}</td>
+                <td>${formatCurrency(fare.VAT)}</td>
+                <td>${formatCurrency(fare.AirportFee)}</td>
+                <td>${formatCurrency(fare.OtherFee)}</td>
+                <td title="Chưa gồm số lượng"><strong>${formatCurrency(fare.Price)}</strong></td>
+            </tr>`;
+            tbody.append(row);
+        });
+    }
 }
 
 function clearBooking() {
@@ -862,9 +875,6 @@ function createBaggageServiceDialog(baggageData, passengerData, systemCode, dire
         else {
             baggageListEl.innerHTML = '';
             baggageData.ListBaggage.forEach((bag, index) => {
-                console.warn(bag);
-                if('PersonOrgId' in bag.Value && bag.Value.PersonOrgId != passengerData.Id) return;
-
                 let totalPurchageAmountHTML = ``;
                 if('VAT' in bag && bag.VAT > 0) {
                     totalPurchageAmountHTML = `<span>${formatCurrency(bag.Amount, false)} + ${formatCurrency(bag.VAT, false)} (VAT) = <strong>${formatCurrency(bag.TotalAmount)}</strong></span>`;

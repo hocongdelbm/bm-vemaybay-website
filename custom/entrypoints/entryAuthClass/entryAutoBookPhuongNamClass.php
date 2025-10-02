@@ -1183,8 +1183,16 @@ class entryAutoBookPhuongNamClass extends entryClass {
         $passengerData  = $params['passengerData'] ?? [];
         $direction      = (int)($params['direction'] ?? 0);
 
+        $baggageDataValue = $baggageData['Value'] ?? [];
+        if(!isset($baggageDataValue["PersonOrgId"]) || empty($baggageDataValue["PersonOrgId"])) {
+            $baggageDataValue["PersonOrgId"] = (string)($passengerData['Id'] ?? "");
+        }
+        if(!isset($baggageDataValue["PersonOrgIdConfirmed"]) || empty($baggageDataValue["PersonOrgIdConfirmed"])) {
+            $baggageDataValue["PersonOrgIdConfirmed"] = (string)($passengerData['IdConfirmed'] ?? "");
+        }
+
         $agency  = new APIPhuongNam();
-        $response = $agency->addBaggage($bookingCode, $systemCode, $baggageData['Value'] ?? []);
+        $response = $agency->addBaggage($bookingCode, $systemCode, $baggageDataValue);
         $responseArr = json_decode($response, true);
 
         if(isset($responseArr['status']) && $responseArr['status'] == 1) {
@@ -1213,7 +1221,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     WHERE $pnrField = '$bookingCode'
                         AND name = '$passengerName'
                         AND (luggage_purchase$suffix IS NULL OR luggage_purchase$suffix = 0)
-                        AND date_entered >= NOW() - INTERVAL 120 DAY;
+                        AND date_entered >= NOW() - INTERVAL 120 DAY
                         AND deleted = 0";
                 if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
             }
@@ -1232,9 +1240,10 @@ class entryAutoBookPhuongNamClass extends entryClass {
     public function cancelBooking($params = []) {
         $bookingCode    = $params['bookingCode'] ?? '';
         $systemCode     = $params['systemCode'] ?? '';
+        $airlineCode    = $params['airlineCode'] ?? '';
 
         $agency = new APIPhuongNam();
-        $response = $agency->cancelBooking($bookingCode, $systemCode);
+        $response = $agency->cancelBooking($bookingCode, $systemCode, $airlineCode);
         $responseArr = json_decode($response, true);
 
         // Send notification
