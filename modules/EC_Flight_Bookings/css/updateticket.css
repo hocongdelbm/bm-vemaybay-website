@@ -1,0 +1,242 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background: #f4f5f6;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+.header {
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background:rgb(7 65 229 / 82%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.route-info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 1.1em;
+    margin-top: 15px;
+}
+
+.tabs {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.tab {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    text-decoration: none;
+    color: #495057;
+    font-weight: 600;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+}
+
+.tab:hover {
+    background: #e9ecef;
+}
+
+.tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: white;
+}
+
+.tab-content {
+    display: none;
+    padding: 30px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.section-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #2d3748;
+}
+
+.flight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.flight-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.3s;
+    background: white;
+}
+
+.flight-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    /* transform: translateY(-2px); */
+}
+
+.flight-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.airline-logo img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.flight-times {
+    min-width: 150px;
+}
+
+.time {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+.airline-name {
+    color: #718096;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.flight-route {
+    min-width: 120px;
+}
+
+.route-code {
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.duration {
+    color: #718096;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.flight_code {
+    min-width: 100px;
+}
+
+.flight-number {
+    font-weight: 600;
+    color: #667eea;
+}
+
+.flight-details {
+    color: #718096;
+    font-size: 0.9em;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.flight-details:hover {
+    color: #667eea;
+}
+
+.flight-price {
+    text-align: right;
+    margin-right: 20px;
+}
+
+.price-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.price {
+    font-size: 1.3em;
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.small-arrow {
+    color: #718096;
+    text-decoration: none;
+    font-size: 0.8em;
+}
+
+.dropdown-menu {
+    min-width: 350px;
+    max-height: 250px; /* tuỳ chỉnh (vd 5 item ~ 40px * 5) */
+    overflow-y: auto;
+}
+/* ẩn mũi tên mặc định của bootstrap */
+.price-dropdown .small-arrow::after {
+  display: none !important;
+}
+
+.select-btn {
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    background: rgb(7 65 229 / 82%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.select-btn:hover {
+    transform: scale(1.005);
+    box-shadow: 0 2px 6px rgba(72, 92, 146, 0.82);
+}
+
+.loading {
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2em;
+    color: #667eea;
+}
+
+@media (max-width: 768px) {
+    .flight-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .flight-left {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
