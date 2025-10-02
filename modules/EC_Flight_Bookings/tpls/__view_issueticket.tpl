@@ -1,10 +1,16 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.1">
+<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/issueticket.css?v=1.0">
 
 <div class="container">
     <header class="booking-header">
         <h3>XUẤT VÉ</h3>
         <div class="box-frm__wrap">
             <form method="post" action="index.php" name="frmIssueTicket" id="frmIssueTicket">
+                <select name="airlineCode" class="form-select" style="width:210px;">
+                    <option value="VJ">VJ (Vietjet Air)</option>
+                    <option value="VN">VN (Vietnam Airlines)</option>
+                    <option value="QH">QH (Bamboo Airways)</option>
+                    <option value="VU">VU (Vietravel Airlines)</option>
+                </select>
                 <div class="wrap-input">
                     <input type="text" name="pnr" class="form-control" placeholder="Nhập PNR" maxlength="6" />
                     <button type="button" class="btn" id="btnSearch">
@@ -16,12 +22,8 @@
     </header>
 
     <div id="bookingContent" class="booking-content hidden">
-        <input type="hidden" name="bookingCode" value="" />
         <input type="hidden" name="systemCode" value="" />
-        <input type="hidden" name="airlineCode" value="" />
-        <input type="hidden" name="bookingId" value="" />
-        <input type="hidden" name="supplier" value="" />
-        <input type="hidden" name="entryClass" value="entryAutoBookDatacomClass" />
+        <input type="hidden" name="bookingCode" value="" />
 
         <!-- Booking Information Section -->
         <section class="booking-info-section">
@@ -41,12 +43,8 @@
                     </div>
                     </h3>
                     <div class="info-row">
-                        <span class="label">Booking code (PNR):</span>
-                        <span class="value" id="bookingCode" class="booking-code"></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Nhà cung cấp:</span>
-                        <span class="value" id="suppplier"></span>
+                        <span class="label">Booking Code (PNR):</span>
+                        <span class="value" id="bookingCode"></span>
                     </div>
                     <div class="info-row">
                         <span class="label">Tình trạng:</span>
@@ -129,19 +127,18 @@
                 <table id="fareTable" class="data-table">
                     <thead>
                         <tr>
-                            <th></th>
                             <th>Loại HK</th>
-                            <th width="15%">Giá vé</th>
-                            <th width="15%">VAT</th>
-                            <th width="15%">Phí sân bay</th>
-                            <th width="15%">Phí khác</th>
-                            <th width="20%">Tổng</th>
+                            <th>Giá vé</th>
+                            <th>Phí sân bay</th>
+                            <th>Phí khác</th>
+                            <th>VAT</th>
+                            <th>Tổng</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
-            <p class="mt-2 ms-2"><i>Đây là thông tin giá vé trên 1 loại hành khách (Nhân thêm số lượng để ra số tổng)</i></p>
+            <p class="mt-2 ms-2"><i>Đây là thông tin giá vé trên mỗi loại hành khách (Nhân số lượng để ra số tổng)</i></p>
         </section>
     </div>
 
@@ -179,4 +176,4 @@
     </section>
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0"></script>
+<script src="modules/EC_Flight_Bookings/js/api_phuongnam/issueticket.js?v=1.1"></script>
