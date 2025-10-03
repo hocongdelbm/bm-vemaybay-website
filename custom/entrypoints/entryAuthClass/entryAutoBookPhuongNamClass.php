@@ -716,11 +716,11 @@ class entryAutoBookPhuongNamClass extends entryClass {
      * @return array
      */
     public function verify($params = []) {
-        $bookingId = $params['bookingId'] ?? '';
-        $flights = $params['flights'] ?? [];
-        $contact = $params['contact'] ?? [];
-        $listPassenger = $params['listPassenger'] ?? [];
-        $isWithin24h = isset($params['isWithin24h']) ? (int)$params['isWithin24h'] : 0;
+        $bookingId      = $params['bookingId'] ?? '';
+        $isWithin24h    = (int)($params['isWithin24h'] ?? 0);
+        $flights        = $params['flights'] ?? [];
+        $contact        = $params['contact'] ?? [];
+        $listPassenger  = $params['listPassenger'] ?? [];
 
         if(!$flights || !is_array($flights) || empty($flights) 
             || empty($bookingId) 
@@ -753,7 +753,8 @@ class entryAutoBookPhuongNamClass extends entryClass {
             exit();
         }
         // The other domestic airlines allow close-in ticket holds
-        if($isWithin24h === 1 && $airlineCodes[0] != 'VJ') $isWithin24h === 0;
+        $isIssueTicket = $isWithin24h;
+        if($isWithin24h === 1 && $airlineCodes[0] != 'VJ') $isIssueTicket === 0;
 
         // Contact info
         $contactRequiredFields = [
@@ -805,7 +806,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             "UserCode" => null,
             "UserFullName" => null,
             "TransactionId" => null,
-            "IsIssueTicket" => (bool)$isWithin24h, // Issue immediately
+            "IsIssueTicket" => (bool)$isIssueTicket, // Issue immediately
             "Itinerary" => count($flights), // 1:Một chiều 2:Khứ hồi, 3:Đa chặng
             "ContactTitle" => $contact['Title'],
             "ContactName" => $contact['Name'],
@@ -1198,13 +1199,12 @@ class entryAutoBookPhuongNamClass extends entryClass {
         if(isset($responseArr['status']) && $responseArr['status'] == 1) {
             try {
                 global $db;
+
                 $bagDescription = $baggageData["Description"] ?? "";
                 if(!empty($bagDescription)) $bagDescription = $baggageData["Name"] ?? "";
-
-                $bagAmount      = $baggageData["Amount"] ?? "";
-                $bagVat         = $baggageData["VAT"] ?? "";
+                $bagAmount      = $baggageData["Amount"] ?? 0;
+                $bagVat         = $baggageData["VAT"] ?? 0;
                 $bagTotalAmount = $baggageData["TotalAmount"] ?? 0;
-                $bagDescription = $baggageData["Description"] ?? "";
                 $passengerName  = trim($passengerData['LastName'] . ' ' . $passengerData['FirstName']);
                 $dateModified   = date('Y-m-d H:i:s', time() - 7*60*60);
                 $suffix         = $direction === 1 ? "_inbound" : "";

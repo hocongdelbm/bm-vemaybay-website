@@ -146,7 +146,7 @@
     </div>
 
     <!-- New Payment Button Section -->
-    <section class="payment-section" id="paymentSection" style="display: none;">
+    <section class="payment-section" id="paymentSection" style="display:none;">
         <div class="payment-container">
             <div class="payment-info">
                 <h3>Thanh toán Booking</h3>
@@ -173,6 +173,17 @@
                 </button>
                 <button id="cancelBookingButton" class="btn-cancel">
                     Hủy Booking
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="void-section" id="voidSection" style="display:none;">
+        <div class="void-container">
+            <div class="void-actions">
+                <button id="voidTicketButton" class="btn-void-ticket">
+                    <span class="btn-icon">❌</span>
+                    <span class="btn-text">Hủy vé</span>
                 </button>
             </div>
         </div>

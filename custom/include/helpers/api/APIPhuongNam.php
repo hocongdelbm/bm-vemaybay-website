@@ -453,6 +453,28 @@ class APIPhuongNam {
             ];
         }
 
+        // List ticket
+        $bookingData["ListTicket"] = [];
+        foreach (($data["Tickets"] ?? []) as $tk) {
+            $bookingData["ListTicket"][] = [
+                "TicketNumber"  => $tk["TicketNumber"] ?? "",
+                "TicketStatus"  => $tk["TicketStatus"] ?? "",
+                "ServiceType"   => $tk["ServiceType"] ?? "",
+                "ServiceCode"   => $tk["ServiceCode"] ?? "",
+                "PassengerName" => $tk["FullName"] ?? "",
+                "FareClass"     => $tk["FareClass"] ?? "",
+                "FareBasis"     => $tk["FareBasis"] ?? "",
+                "Fare"          => $tk["Fare"] ?? 0,
+                "Vat"           => $tk["Vat"] ?? 0,
+                "Tax"           => $tk["Tax"] ?? 0,
+                "Fee"           => $tk["Fee"] ?? 0,
+                "Total"         => $tk["Total"] ?? 0,
+                "StartPoint"    => $tk["StartPoint"],
+                "EndPoint"      => $tk["StartPoint"],
+                "IssueDate"     => $tk["IssueDate"] // "2025-10-03T00:00:00"
+            ];
+        }
+        
         return $bookingData;
     }
 

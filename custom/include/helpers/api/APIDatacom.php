@@ -287,14 +287,45 @@ class APIDatacom {
         $requestBody = json_encode([
             "bookingCode"   => $bookingCode,
             "systemCode"    => $systemCode,
-            "cancelAll"     => !empty($listSegmentId) ? false : true,
             "listSegmentId" => $listSegmentId
         ]);
 
         return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 150 + 10]);
     }
 
+    /**
+     * Cancel booking
+     * 
+     * @param string $bookingCode PNR
+     * @param string $systemCode
+     * @param array $listTicket
+     * 
+     * @return string JSON
+     */
+    public function voidTicket($bookingCode, $systemCode, $listTicket = []) {
+        if(!is_string($bookingCode) || strlen($bookingCode) != 6 
+            || !is_string($systemCode) || empty($systemCode)
+        ) {
+            return json_encode([
+                "status" => 0,
+                "message" => "Dữ liệu không hợp lệ",
+                "data" => null
+            ], JSON_UNESCAPED_UNICODE);
+        }
+        
+        $path = "booking/{$this->API_NAME}/voidTicket";
+        $header = [
+            "Content-Type: application/json",
+            "API-Key: $this->API_BOOKING_KEY"
+        ];
+        $requestBody = json_encode([
+            "bookingCode"   => $bookingCode,
+            "systemCode"    => $systemCode,
+            "listSegmentId" => $listTicket
+        ]);
 
+        return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 150 + 10]);
+    }
 
 
     /**
@@ -385,7 +416,7 @@ class APIDatacom {
     public function standardizeBookingData($data) {
         $bookingData = [];
 
-        // BookingStatus: OK, TICKETED
+        // BookingStatus: OK, TICKETED, CANCELED
 
         $bookingData["SystemCode"]  = $data["System"] ?? "";
         $bookingData["AirlineCode"] = $data["Airline"] ?? "";
@@ -398,24 +429,26 @@ class APIDatacom {
         $bookingData["BookingExpired"]  = $this->convertDatetime($data["ExpirationTime"], 'Y-m-d H:i'); // dmY Hi
         $bookingData["TotalAmount"]     = $data["TotalPrice"] ?? 0;
         $bookingData["PaidAmount"]      = $data["PaidAmount"] ?? 0;
-        $bookingData["UnPaidAmount"]    = $bookingData["TotalAmount"] - $bookingData["PaidAmount"];
+        $bookingData["UnPaidAmount"]    = $bookingData["TotalAmount"] > 0 ? $bookingData["TotalAmount"] - $bookingData["PaidAmount"] : 0;
+
+        $guestContactArea = $data["GuestContact"]["Area"] ?? "";
+        $guestContactPhone = $data["GuestContact"]["Phone"] ?? "";
         $bookingData["Contact"] = [
             "Title"     => $data["GuestContact"]["Title"] ?? "",
             "Name"      => $data["GuestContact"]["Name"] ?? "",
             "Email"     => $data["GuestContact"]["Email"] ?? "",
-            "Phone"     => ($data["GuestContact"]["Area"] ?? "") . ($data["GuestContact"]["Phone"] ?? ""),
+            "Phone"     => strpos($guestContactPhone, $guestContactArea) !== false ? $guestContactPhone : ($guestContactArea . $guestContactPhone),
             "Address"   => $data["GuestContact"]["Address"] ?? "",
         ];
-        $bookingData["IsPaid"] = false;
 
-        // Update manually booking status
-        if($bookingData["TotalAmount"] == $bookingData["PaidAmount"]) {
-            $bookingData["IsPaid"] = true;
-            $bookingData["BookingStatus"] = "completed";
+        // Recheck booking status timeout
+        if($bookingData["BookingStatus"] == 'holding' && isset($bookingData["BookingExpired"]) && !empty($bookingData["BookingExpired"]) && strtotime($bookingData["BookingExpired"]) < time()) {
+            $bookingData["BookingStatus"] = "timeout";
         }
-        elseif(isset($bookingData["BookingExpired"]) && !empty($bookingData["BookingExpired"]) && strtotime($bookingData["BookingExpired"]) < time()) {
-            $bookingData["BookingStatus"] = "cancelled";
-        }
+
+        // Update action for booking
+        $bookingData["IsPaid"]   = $bookingData["BookingStatus"] == "completed" ? true : false;
+        $bookingData["IsVoid"]   = in_array($bookingData["SystemCode"], ["VN", "1A", "1G"]) ? true : false;
 
         // List flight and fare
         $flightNumberList = [];
@@ -487,8 +520,7 @@ class APIDatacom {
 
         // List passenger
         $bookingData["ListPassenger"] = [];
-        $passengers = $data["ListPassenger"] ?? [];
-        foreach ($passengers as $p) {
+        foreach (($data["ListPassenger"] ?? []) as $p) {
             // Format list baggage
             $listBaggage = [];
             $listValueBaggage = []; 
@@ -529,6 +561,28 @@ class APIDatacom {
                 "ListPreSeat"   => $p["ListPreSeat"],
                 "ListService"   => $p["ListService"],
                 "Value"         => $p // This is an attribute is used in API
+            ];
+        }
+
+        // List ticket
+        $bookingData["ListTicket"] = [];
+        foreach (($data["ListTicket"] ?? []) as $tk) {
+            $bookingData["ListTicket"][] = [
+                "TicketNumber"  => $tk["TicketNumber"] ?? "",
+                "TicketStatus"  => $tk["TicketStatus"] ?? "",
+                "ServiceType"   => $tk["ServiceType"] ?? "",
+                "ServiceCode"   => $tk["ServiceCode"] ?? "",
+                "PassengerName" => $tk["FullName"] ?? "",
+                "FareClass"     => $tk["FareClass"] ?? "",
+                "FareBasis"     => $tk["FareBasis"] ?? "",
+                "Fare"          => $tk["Fare"] ?? 0,
+                "Vat"           => $tk["Vat"] ?? 0,
+                "Tax"           => $tk["Tax"] ?? 0,
+                "Fee"           => $tk["Fee"] ?? 0,
+                "Total"         => $tk["Total"] ?? 0,
+                "StartPoint"    => $tk["StartPoint"],
+                "EndPoint"      => $tk["StartPoint"],
+                "IssueDate"     => $tk["IssueDate"] // "2025-10-03T00:00:00"
             ];
         }
 
@@ -577,6 +631,8 @@ class APIDatacom {
                 return 'holding';
             case 'TICKETED':
                 return 'completed';
+            case 'CANCELED':
+                return 'cancelled';
             default:
                 return 'unknown';
         }
