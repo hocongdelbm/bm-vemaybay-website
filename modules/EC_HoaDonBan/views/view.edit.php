@@ -2,15 +2,12 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 
-class EC_HoaDonBanViewEdit extends ViewEdit
-{
-	function __construct()
-	{
+class EC_HoaDonBanViewEdit extends ViewEdit {
+	function __construct() {
 		parent::__construct();
 	}
 
-	function display()
-	{
+	function display() {
 		$this->css();
 		$this->populateLineItems();
 		parent::display();
@@ -26,26 +23,24 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 		global $locale;
 
 		$mst_value = $this->bean->masothue ?? ($_REQUEST['masothue'] ?? '');
-		$custom_mst = '
-			<div class="wrap-masothue">
-				<input type="text" name="masothue" id="masothue" size="30" maxlength="25" value="'.$mst_value.'">
-				<span class="mst-active">
-					<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#28a745" stroke-width="1.5">
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM7.53044 11.9697C7.23755 11.6768 6.76268 11.6768 6.46978 11.9697C6.17689 12.2626 6.17689 12.7374 6.46978 13.0303L9.46978 16.0303C9.76268 16.3232 10.2376 16.3232 10.5304 16.0303L17.5304 9.03033C17.8233 8.73744 17.8233 8.26256 17.5304 7.96967C17.2375 7.67678 16.7627 7.67678 16.4698 7.96967L10.0001 14.4393L7.53044 11.9697Z" fill="#28a745"></path>
-					</svg>
-				</span>
-				<span class="mst-alert">
-					<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#dc3545" stroke-width="1.5">
-						<path fill-rule="evenodd" clip-rule="evenodd" d="M1.25 12C1.25 6.06294 6.06294 1.25 12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12ZM12 6.25C12.4142 6.25 12.75 6.58579 12.75 7V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 13V7C11.25 6.58579 11.5858 6.25 12 6.25ZM12.5675 17.5008C12.8446 17.1929 12.8196 16.7187 12.5117 16.4416C12.2038 16.1645 11.7296 16.1894 11.4525 16.4973L11.4425 16.5084C11.1654 16.8163 11.1904 17.2905 11.4983 17.5676C11.8062 17.8447 12.2804 17.8197 12.5575 17.5119L12.5675 17.5008Z" fill="#dc3545"></path>
-					</svg>
-				</span>
-				<span id="icon-search-masothue" class="icon-search">
-					<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#333">
-						<path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path>
-					</svg>
-				</span>
-	  		</div>
-		';
+		$custom_mst = '<div class="wrap-masothue">
+			<input type="text" name="masothue" id="masothue" size="30" maxlength="25" value="'.$mst_value.'">
+			<span class="mst-active">
+				<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#28a745" stroke-width="1.5">
+					<path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM7.53044 11.9697C7.23755 11.6768 6.76268 11.6768 6.46978 11.9697C6.17689 12.2626 6.17689 12.7374 6.46978 13.0303L9.46978 16.0303C9.76268 16.3232 10.2376 16.3232 10.5304 16.0303L17.5304 9.03033C17.8233 8.73744 17.8233 8.26256 17.5304 7.96967C17.2375 7.67678 16.7627 7.67678 16.4698 7.96967L10.0001 14.4393L7.53044 11.9697Z" fill="#28a745"></path>
+				</svg>
+			</span>
+			<span class="mst-alert">
+				<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#dc3545" stroke-width="1.5">
+					<path fill-rule="evenodd" clip-rule="evenodd" d="M1.25 12C1.25 6.06294 6.06294 1.25 12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12ZM12 6.25C12.4142 6.25 12.75 6.58579 12.75 7V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 13V7C11.25 6.58579 11.5858 6.25 12 6.25ZM12.5675 17.5008C12.8446 17.1929 12.8196 16.7187 12.5117 16.4416C12.2038 16.1645 11.7296 16.1894 11.4525 16.4973L11.4425 16.5084C11.1654 16.8163 11.1904 17.2905 11.4983 17.5676C11.8062 17.8447 12.2804 17.8197 12.5575 17.5119L12.5675 17.5008Z" fill="#dc3545"></path>
+				</svg>
+			</span>
+			<span id="icon-search-masothue" class="icon-search">
+				<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="#333">
+					<path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path>
+				</svg>
+			</span>
+	  	</div>';
 		$this->ss->assign('CUSTOM_MST', $custom_mst);
 
 		$html = '<table class="table-edit-hoadonban table-details__booking" cellpadding="0" cellspacing="0" border="0" >';
@@ -225,45 +220,44 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 		}
 
 		$sep = my_get_number_separators();
-		$html .= '
-			<tr id="last-row" class="footer-tr">
-				<td colspan="3">
-					<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
-					<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
-					<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
-					<input type="hidden" id="row_count" name="row_count" value="' . $row_count . '" />
-					<div class="d-flex align-items-center gap-2">
-						<input type="button" class="btn btn-primary" id="btnAddRow" name="btnAddRow" value="Thêm dòng" title="Thêm dòng" />
-						Số dòng = <label id="lbl_row_count" class="text-label">' . $row_count . '</label>
-					</div>
-				</td>
-				<td>
-					<input readonly="readonly" type="text" class="text-center" name="tongsl" id="tongsl" value="' . format_number($this->bean->tongsl) . '" />
-				</td>
+		$html .= '<tr id="last-row" class="footer-tr">
+			<td colspan="3">
+				<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
+				<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
+				<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
+				<input type="hidden" id="row_count" name="row_count" value="' . $row_count . '" />
+				<div class="d-flex align-items-center gap-2">
+					<input type="button" class="btn btn-primary" id="btnAddRow" name="btnAddRow" value="Thêm dòng" title="Thêm dòng" />
+					Số dòng = <label id="lbl_row_count" class="text-label">' . $row_count . '</label>
+				</div>
+			</td>
+			<td>
+				<input readonly="readonly" type="text" class="text-center" name="tongsl" id="tongsl" value="' . format_number($this->bean->tongsl) . '" />
+			</td>
 
-				<td class="text-end">
-					<input readonly="readonly" type="text" class="text-end" name="tonggiamua" id="tonggiamua" value="' . format_number($total_giamua) . '" />
-				</td>
-				<td>
-					<input readonly="readonly" type="text" class="text-end" name="tongthuho" id="tongthuho" value="' . format_number($total_authorized) . '" />
-				</td>
-				<td></td>
-				<td></td>
-				<td>
-					<input readonly="readonly" type="text" class="text-end" name="tongdichvu" id="tongdichvu" value="' . format_number($total_service) . '" />
-				</td>
-				<td></td>
-				<td>
-					<input readonly="readonly" type="text" class="text-end" name="tonggiaban" id="tonggiaban" value="' . format_number($total_price) . '" />
-				</td>
-				<td>
-					<input readonly="readonly" type="text" class="text-end" name="tongvat" id="tongvat" value="' . format_number($total_vat) . '" />
-				</td>
-				<td>
-					<input readonly="readonly" type="text" class="text-end" name="tongthanhtoan" id="tongthanhtoan" value="' . format_number($this->bean->tongthanhtoan) . '" />
-				</td>
-				<td></td>
-			</tr>';
+			<td class="text-end">
+				<input readonly="readonly" type="text" class="text-end" name="tonggiamua" id="tonggiamua" value="' . format_number($total_giamua) . '" />
+			</td>
+			<td>
+				<input readonly="readonly" type="text" class="text-end" name="tongthuho" id="tongthuho" value="' . format_number($total_authorized) . '" />
+			</td>
+			<td></td>
+			<td></td>
+			<td>
+				<input readonly="readonly" type="text" class="text-end" name="tongdichvu" id="tongdichvu" value="' . format_number($total_service) . '" />
+			</td>
+			<td></td>
+			<td>
+				<input readonly="readonly" type="text" class="text-end" name="tonggiaban" id="tonggiaban" value="' . format_number($total_price) . '" />
+			</td>
+			<td>
+				<input readonly="readonly" type="text" class="text-end" name="tongvat" id="tongvat" value="' . format_number($total_vat) . '" />
+			</td>
+			<td>
+				<input readonly="readonly" type="text" class="text-end" name="tongthanhtoan" id="tongthanhtoan" value="' . format_number($this->bean->tongthanhtoan) . '" />
+			</td>
+			<td></td>
+		</tr>';
 
 		$html .= '</table>';
 		$html .= '

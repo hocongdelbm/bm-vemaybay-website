@@ -1,7 +1,5 @@
 <?php
-
-class EC_HoaDonBan extends Basic
-{
+class EC_HoaDonBan extends Basic {
 	public $new_schema 	= true;
 	public $module_dir 	= 'EC_HoaDonBan';
 	public $object_name = 'EC_HoaDonBan';
@@ -57,9 +55,9 @@ class EC_HoaDonBan extends Basic
 	public $tongthanhtoan;
 	public $invoice_data;
 	public $sohoadon;
+	public $kyhieuhd;
 
-	public function bean_implements($interface)
-	{
+	public function bean_implements($interface) {
 		switch ($interface) {
 			case 'ACL':
 				return true;
@@ -68,20 +66,12 @@ class EC_HoaDonBan extends Basic
 		return false;
 	}
 
-	function save($check_notify = FALSE)
-	{
-
+	public function save($check_notify = FALSE) {
 		if (empty($this->name)) {
 			$this->name = 'HD-' . date('ymd') . '-' . $this->countVoucher();
 		}
 
-		// if (
-		// 	isset($_POST['sohoadon']) && !empty($_POST['sohoadon']) && isset($_POST['kyhieuhd']) && !empty($_POST['kyhieuhd'])
-		// 	&& myCheck2ValueExist('EC_HoaDonBan', 'sohoadon', $_POST['sohoadon'], 'kyhieuhd', $_POST['kyhieuhd'], $this->id)
-		// ) {
-		// 	header("Location: index.php?module=EC_HoaDonBan&action=Error&error_string=" . urlencode("Số hóa đơn <" . $_POST['sohoadon'] . "> ký hiệu <" . $_POST['kyhieuhd'] . "> đã bị trùng trong danh sách nhập. Vui lòng kiểm tra lại."));
-		// 	exit();
-		// }
+		if(!$this->kyhieuhd || empty($this->kyhieuhd)) $this->kyhieuhd = $this->genInvSerial();
 
 		parent::save($check_notify);
 
@@ -97,14 +87,14 @@ class EC_HoaDonBan extends Basic
 		}
 	}
 
-	function countVoucher() {
+	public function countVoucher() {
 		$sql = 'SELECT COUNT(id)
 			FROM ec_hoadonban 
 			WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
 		return str_pad(($this->db->getOne($sql) + 1), 3, 0, STR_PAD_LEFT);
 	}
 
-	function saveListItems() {
+	public function saveListItems() {
 		$row_count = count($_POST['ct_detail_id']);
 		for ($i = 0; $i < $row_count; $i++) {
 			$cthd = new EC_ChiTietHoaDon();
@@ -155,13 +145,21 @@ class EC_HoaDonBan extends Basic
 
 			if (!empty($cthd->ticket_number_id)) {
 				// kiếm tra lại số tồn của số vé nếu hết thì đánh dấu
-				$sql_upd = '
-					UPDATE ec_input_invoices
-					SET out_of_stock = IF((qty - (SELECT SUM(soluong) FROM ec_chitiethoadon WHERE deleted = 0 AND ticket_number_id = "' . $_POST['ct_ticket_number_id'][$i] . '")) > 0, 0, 1) WHERE id = "' . $_POST['ct_ticket_number_id'][$i] . '"
-					';
+				$sql_upd = 'UPDATE ec_input_invoices
+					SET out_of_stock = IF((qty - (SELECT SUM(soluong)
+					FROM ec_chitiethoadon
+					WHERE deleted = 0 AND ticket_number_id = "' . $_POST['ct_ticket_number_id'][$i] . '")) > 0, 0, 1) WHERE id = "' . $_POST['ct_ticket_number_id'][$i] . '"';
 
 				$this->db->query($sql_upd);
 			}
 		}
+	}
+
+	public function genInvSerial() {
+		$y = date('y');
+		if(isset($this->loaikh)) {
+			return $this->loaikh == '0' ? "C{$y}THV" : "C{$y}MHV";
+		}
+		return "C{$y}MHV";
 	}
 }

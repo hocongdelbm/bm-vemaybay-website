@@ -30,7 +30,7 @@ $viewdefs[$module_name]['EditView'] = array(
                 'file' => 'themes/SuiteP/js/reset.js',
             ),
             array(
-                'file' => 'modules/EC_HoaDonBan/js/EC_HoaDonBan.js',
+                'file' => 'modules/EC_HoaDonBan/js/view.edit.js',
             ),
         ),
     ),

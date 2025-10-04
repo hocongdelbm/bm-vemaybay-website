@@ -61,6 +61,7 @@ $(document).ready(function () {
 		let invID = $('input[name="invID"]').val();
 		let invoice_data = {}; 
 		invoice_data.invRef 		= $('input[name="invRef"]').val();
+		invoice_data.invSerial 		= $('input[name="invSerial"]').val();
 		invoice_data.invDate 		= $('input[name="invDate"]').val();
 		invoice_data.invRefDate 	= $('input[name="invRefDate"]').val();
 		invoice_data.invSubTotal 	= $('input[name="invSubTotal"]').val();
@@ -90,23 +91,23 @@ $(document).ready(function () {
 
 		// Validate
 		if(invID.length == 0) {
-			alert("Không tìm thấy ID hóa đơn");
+			showModalNotify("warning", "Không tìm thấy ID hóa đơn");
 			return 0;
 		}
 		if(invoice_data.invRef.length == 0) {
-			alert("Không tìm thấy số chứng từ");
+			showModalNotify("warning", "Không tìm thấy số chứng từ");
 			return 0;
 		}
 		if(invoice_data.invTotalAmount < 1 || invoice_data.invSubTotal < 1) {
-			alert("Số tiền không hợp lệ");
+			showModalNotify("warning", "Số tiền không hợp lệ");
 			return 0;
 		}
 		if(buyer_data.buyerName.length == 0 && buyer_data.buyerCompany.length == 0) {
-			alert("Vui lòng bổ sung Tên khách hàng hoặc Tên công ty");
+			showModalNotify("warning", "Vui lòng bổ sung Tên khách hàng hoặc Tên công ty");
 			return 0;
 		}
 		if(item_data.itemName.length < 1) {
-			alert("Không tìm thấy Sản phẩm/Dịch vụ");
+			showModalNotify("warning", "Không tìm thấy Sản phẩm/Dịch vụ");
 			return 0;
 		}
 
@@ -115,11 +116,11 @@ $(document).ready(function () {
 		$.ajax({
 			url: "index.php?entryPoint=entryPointWinInvoice",
 			data: {
-				type			: 1,
-				invoice_id		: invID,
-				invoice_data 	: JSON.stringify(invoice_data),
-				buyer_data		: JSON.stringify(buyer_data),
-				item_data 		: JSON.stringify(item_data)
+				type : 1,
+				invoice_id : invID,
+				invoice_data : JSON.stringify(invoice_data),
+				buyer_data : JSON.stringify(buyer_data),
+				item_data : JSON.stringify(item_data)
 			},
 			type: "POST",
 			cache: false,
@@ -150,28 +151,31 @@ $(document).ready(function () {
 	$('#btn-confirm-remove-invoice').click(function(){
 		let invID = $("input[name='record']").val();
 		let invRef = $(this).attr('data');
+		let invcSign = $(this).attr('data-invc-sign');
 
 		// Validate
 		if(invID.length == 0) {
-			alert("Không tìm thấy ID hóa đơn");
+			showModalNotify("warning", "Không tìm thấy ID hóa đơn");
 			return 0;
 		}
 		if(invRef.length == 0) {
-			alert("Không tìm thấy số chứng từ");
+			showModalNotify("warning", "Không tìm thấy số chứng từ");
 			return 0;
 		}
 
-		closeDialog('dialog-remove-invoice');
-		$('.container-waiting').show();
 		$.ajax({
 			url: "index.php?entryPoint=entryPointWinInvoice",
 			data: {
-				type : 0,
-				invoice_id : invID,
-				invRef : invRef
+				type: 0,
+				invoice_id: invID,
+				invRef: invRef
 			},
 			type: "POST",
 			cache: false,
+			beforeSend: function() {
+				closeDialog('dialog-remove-invoice');
+				$('.container-waiting').show();
+			},
 			success: function (response) {
 				$('.container-waiting').hide();
 				let res = JSON.parse(response);
@@ -202,16 +206,14 @@ $(document).ready(function () {
 
 		// Validate
 		if(invID.length == 0) {
-			alert("Không tìm thấy ID hóa đơn");
-			return 0;
+			showModalNotify("warning", "Không tìm thấy ID hóa đơn");
+			return;
 		}
 		if(invRef.length == 0) {
-			alert("Không tìm thấy số chứng từ");
-			return 0;
+			showModalNotify("warning", "Không tìm thấy số chứng từ");
+			return;
 		}
 
-		closeDialog('dialog-sign-invoice');
-		$('.container-waiting').show();
 		$.ajax({
 			url: "index.php?entryPoint=entryPointWinInvoice",
 			data: {
@@ -221,6 +223,10 @@ $(document).ready(function () {
 			},
 			type: "POST",
 			cache: false,
+			beforeSend: function() {
+				closeDialog('dialog-sign-invoice');
+				$('.container-waiting').show();
+			},
 			success: function (response) {
 				$('.container-waiting').hide();
 				let res = JSON.parse(response);

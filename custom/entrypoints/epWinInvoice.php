@@ -1,6 +1,6 @@
 <?php
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    require_once('modules/EC_HoaDonBan/WinInvoice.php');
+    require_once('custom/include/helpers/api/WinInvoice.php');
     $type = isset($_POST['type']) ? $_POST['type'] : "";
 
     // Tạo hóa đơn
@@ -29,13 +29,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ];
             }
 
-            $Inv = new WinInvoice();
-            $json = $Inv->set($invoice_data, $buyer_data, $items);
+            $winInv = new WinInvoice();
+            $json = $winInv->set($invoice_data, $buyer_data, $items);
             $arr = json_decode($json, true);
 
             // Update status
-            if ($arr['error'] == 0) {
-                $json2 = $Inv->get($invoice_data['invRef']);
+            if (isset($arr['error']) && $arr['error'] == 0) {
+                $json2 = $winInv->get($invoice_data['invRef']);
                 $hoadonban = new EC_HoaDonBan();
                 $hoadonban->retrieve($invoice_id);
                 $hoadonban->tinhtrang = "1";
@@ -49,33 +49,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode([
             'error' => 1,
-            'message' => 'ERROR: Thiếu dữ liệu hóa đơn',
-            'description' => '',
+            'message' => 'Thiếu dữ liệu hóa đơn',
+            'data' => '',
         ]);
         exit();
     }
     // Ký số hóa đơn
     elseif ($type == 2) {
         $invoice_id = isset($_POST['invoice_id']) ? $_POST['invoice_id'] : '';
-        $invRef     = isset($_POST['invRef']) ? $_POST['invRef'] : '';
+        $invRef = isset($_POST['invRef']) ? $_POST['invRef'] : '';
 
         if (!empty($invoice_id) && !empty($invRef)) {
-            $Inv = new WinInvoice();
-            $json = $Inv->sign($invRef);
+            $winInv = new WinInvoice();
+            $json = $winInv->sign($invRef);
             $arr = json_decode($json, true);
 
             // Update status
-            if ($arr['error'] == 0) {
+            if (isset($arr['error']) && $arr['error'] == 0) {
                 sleep(15); // Pending to get invoice number
-                $json2 = $Inv->get($invoice_data['invRef']);
-                $arr2 = json_decode($json2, true);
-                $sohoadon = isset($arr2['data'][0]['invNumber']) ? $arr2['data'][0]['invNumber'] : '';
+                $json2 = $winInv->get($invoice_data['invRef']);
+                $arr2  = json_decode($json2, true);
+                $sohoadon = $arr2['data'][0]['invNumber'] ?? '';
 
                 $hoadonban = new EC_HoaDonBan();
                 $hoadonban->retrieve($invoice_id);
                 $hoadonban->tinhtrang = "2";
                 $hoadonban->sohoadon = $sohoadon;
                 $hoadonban->ngayhoadon = $arr2['data'][0]['invDate'] ?? '';
+                $hoadonban->kyhieuhd = $arr2['data'][0]['invSerial'] ?? '';
                 $hoadonban->is_signed = 1;
                 $hoadonban->invoice_data = $json2;
 
@@ -142,23 +143,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode([
             'error' => 1,
-            'message' => 'ERROR: Thiếu dữ liệu hóa đơn',
-            'description' => '',
+            'message' => 'Thiếu dữ liệu hóa đơn',
+            'data' => null,
         ]);
         exit();
     }
     // Hủy hóa đơn chưa ký 
     else if ($type == 0) {
         $invoice_id = isset($_POST['invoice_id']) ? $_POST['invoice_id'] : '';
-        $invRef     = isset($_POST['invRef']) ? $_POST['invRef'] : '';
+        $invRef = isset($_POST['invRef']) ? $_POST['invRef'] : '';
+        $invcSign = isset($_POST['invcSign']) ? $_POST['invcSign'] : '';
 
         if (!empty($invoice_id) && !empty($invRef)) {
-            $Invoice = new WinInvoice();
-            $json    = $Invoice->delete(['invRef' => $invRef], 0); // Chưa ký
-            $arr     = json_decode($json, true);
+            $winInv = new WinInvoice();
+            $json = $winInv->delete([
+                'invRef' => $invRef,
+                'invcSign' => $invcSign
+            ], 0); // Chưa ký
+            $arr = json_decode($json, true);
 
             // Update status
-            if ($arr['error'] == 0) {
+            if (isset($arr['error']) && $arr['error'] == 0) {
                 $hoadonban = new EC_HoaDonBan();
                 $hoadonban->retrieve($invoice_id);
                 $hoadonban->tinhtrang = "0";
@@ -171,11 +176,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         echo json_encode([
             'error' => 1,
-            'message' => 'ERROR: Thiếu dữ liệu hóa đơn',
-            'description' => '',
+            'message' => 'Thiếu dữ liệu hóa đơn',
+            'data' => null,
         ]);
         exit();
     }
-
     exit();
 }

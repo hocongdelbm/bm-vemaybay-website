@@ -27,7 +27,7 @@ $(document).ready(function() {
 		$(this).select();	
 	});
 	
-	// xử lý sự kiện nhất nút thêm dòng
+	// Xử lý sự kiện nhất nút thêm dòng
 	$('#btnAddRow').click(function(){
 		var ln 	= parseInt($('#row_count').val());
 		$('#last-row').before(insertRow(ln, $("#loaihoadon").val()));
@@ -523,13 +523,11 @@ function markRowDeleted(ln){
 }
 
 function insertRow(ln, invoice_type) {
-	// lấy thông tin booking của dòng trước
+	// Lấy thông tin booking của dòng trước
 	var booking_bef 	= ($("#ct_booking" + (ln - 1)).val() || '');
 	var booking_id_bef 	= ($("#ct_booking_id" + (ln - 1)).val() || '');
-	var html 			= '';
 
-	html += '<tr id="ct_line_'+ ln +'">';
-
+	var html = `<tr id="ct_line_${ln}">`;
 	if (invoice_type == 0) {
 		html += `<td>
 			<select name="ct_code[]" id="ct_code${ln}">
