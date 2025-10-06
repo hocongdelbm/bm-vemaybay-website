@@ -504,7 +504,7 @@ $dictionary['EC_Booking_Passengers'] = array(
         /**
          * Index hành lý từng lượt (Thông tin trường này được lưu từ website)
          * Cũ: Index dùng cho hãng VJ
-         * Mới: Dùng để lưu số kg sẵn có của các hãng. VD: 14_1 (1 kiện 14kg), 14_2 (2 kiện 14kg, tổng 28kg)
+         * Mới: Dùng để lưu hành lý ký gửi có sẵn của các hãng. VD: 1x14 (1 kiện 14kg), 2x14 (2 kiện 14kg, tổng 28kg)
          * Updated at 25/07/2025 by DucPham
          */
         'luggage_index_outbound' => array(

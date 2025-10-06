@@ -11,14 +11,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	private $_inbound_ticket_class 	= '';
 	private $_is_had_rv 			= 0;
 	private $editing_rights = false;
-	private $viewing_rights = false;
 
 	function display() {
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
-		$this->viewing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'view', true);
 
 		// Create and update contact
 		// createContactsForBooking($this->bean->phone);
@@ -70,7 +68,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// External file
 		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.7"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_phuongnam/booking.js?v=1.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/booking.js?v=1.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.9"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
 
@@ -115,7 +113,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.4">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_phuongnam.css?v=1.1">
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
 		echo $css;
 	}
@@ -532,22 +530,22 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		// </button>';
 
 		$recall_status = '<div class="btn btn-primary-2 btn-calling--wrap flex-fill position-relative">
-							<a href="#" class="recall-link collapsed">Recall (' . $recall_count . ')</a>
-							<div class="collapse box-list--calling">
-								<ul class="d-flex align-items-center gap-2 flex-column"> 
-									<li class="box-recall box-recall-phone"> 
-										<button type="button" id="btnRecall" class="btn btn-primary-2 btn-voiceip-calling" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
-											Tổng đài
-										</button>
-									</li>
-									<li class="box-recall box-recall-zalo"> 
-										<button type="button" id="btnRecallZalo" class="btn btn-primary-2 btn-voiceip-calling-zalo" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
-											Zalo
-										</button>
-									</li>
-								</ul>
-							</div>
-					</div>';
+			<a href="#" class="recall-link collapsed">Recall (' . $recall_count . ')</a>
+			<div class="collapse box-list--calling">
+				<ul class="d-flex align-items-center gap-2 flex-column"> 
+					<li class="box-recall box-recall-phone"> 
+						<button type="button" id="btnRecall" class="btn btn-primary-2 btn-voiceip-calling" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
+							Tổng đài
+						</button>
+					</li>
+					<li class="box-recall box-recall-zalo"> 
+						<button type="button" id="btnRecallZalo" class="btn btn-primary-2 btn-voiceip-calling-zalo" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '">
+							Zalo
+						</button>
+					</li>
+				</ul>
+			</div>
+		</div>';
 
 		// Check debt
 		$check_debt = '';
@@ -971,7 +969,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 
 		// Send mail confirm button
-		if ($this->viewing_rights && !in_array($this->bean->booking_status, [4, 7, 8]) && $use_mail_confirm) {
+		if (!in_array($this->bean->booking_status, [4, 7, 8]) && $use_mail_confirm) {
 			$send_mail = '</form>
 			<form action="index.php" method="post" name="frmSendMail" id="frmSendMail" class="frmSendMail">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -1172,10 +1170,37 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->ss->assign('SHARE_PROFIT', $this->createShareProfitBtn());
 
 		// Auto book
-		if(in_array($this->bean->booking_status, [1, 2, 3, 6]) && $this->bean->ticket_type == 1 && !$this->bean->is_hold && !$this->bean->holding_status)
-			$this->ss->assign('BUTTON_AUTO_BOOK', '<button type="button" id="btnAutoBook" class="btn btn-danger fw-semibold">Auto book</button>');
-		else
-			$this->ss->assign('BUTTON_AUTO_BOOK', '');
+		if(in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
+			$agencyOptions = '
+				<li>
+					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
+						<span class="ms-1">Hồng Ngọc Hà</span>
+					</a>
+				</li>
+				<li>
+					<a type="button" id="auto-book-phuongnam" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookPhuongNamClass">
+						<span class="ms-1">Phương Nam</span>
+					</a>
+				</li>
+			';
+			if($this->bean->ticket_type == '2') {
+				$agencyOptions = '<li>
+					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
+						<span class="ms-1">Hồng Ngọc Hà</span>
+					</a>
+				</li>';
+			}
+
+			$this->ss->assign('BUTTON_AUTO_BOOK',
+				'<div class="btn-group btn-group-autobook">
+					<button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+						Auto book
+					</button>
+					<ul class="dropdown-menu dropdown-menu-lg-end">'.$agencyOptions.'</ul>
+				</div>'
+			);
+		}
+		else $this->ss->assign('BUTTON_AUTO_BOOK', '');
 
 		// // Reservation with API Vietjet
 		// $allowed_holding_status = [1,2,3,6];
@@ -1433,13 +1458,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			if ($this->bean->ticket_type == '2') $img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
 			$html .= '<tr class="' . $even_or_odd . '">';
 
-			// Checkbox auto book journey
+			// Checkbox auto book
 			$booking_cutoff_time = (strtotime($row['departure_date']) - time()) - 10800;
 			if ($row['direction'] == '0' && $check_dep === false && $booking_cutoff_time > 0) {
-				$html .= '<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-journey" class="check-journey" itinerary-id="'. $row['id'] .'" /></td>';
+				$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="'. $row['id'] .'" title="Autobook" /></td>';
 				$check_dep = true;
 			} else if ($row['direction'] == '1' && $check_ret === false && $booking_cutoff_time > 0) {
-				$html .= '<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-journey" class="check-journey" itinerary-id="'. $row['id'] .'" /></td>';
+				$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="'. $row['id'] .'" title="Autobook" /></td>';
 				$check_ret = true;
 			} else $html .= '<td data-label="" class="text-center"></td>';
 
@@ -1595,7 +1620,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		return $row_pass['applied_pass'];
 	}
 
-	// CHI TIẾT VÉ
+	/**
+	 * Render table ticket details
+	 */
 	function populateLineDetails()
 	{
 		global $app_list_strings, $locale, $current_user;
@@ -1603,16 +1630,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$html = '';
 		$html .= '<table id="line_details_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">
 					<thead>
-						<tr> 
+						<tr>
+							<th scope="col" width="3%"></th> 
 							<th scope="col" width="3%">STT</th> 
 							<th scope="col" width="7%">Chiều</th> 
 							<th scope="col" width="7%">Loại HK</th>
 							<th scope="col" width="4%">SL</th>
 							<th scope="col" width="8%">Giá cơ bản</th>
-							<th scope="col" width="8%">VAT</th>
+							<th scope="col" width="6%">VAT</th>
 							<th scope="col" width="8%">Phí sân bay</th>
 							<th scope="col" width="8%">Phí admin</th>
-							<th scope="col" width="8%">Phí dịch vụ</th>
+							<th scope="col" width="7%" title="Phí dịch vụ">Phí DV</th>
 							<th scope="col" width="8%">Thành tiền</th>
 							<th scope="col" width="8%">Giá mua</th>
 							<th scope="col" width="8%">Chiết khấu</th>
@@ -1644,9 +1672,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				WHERE d.booking_id = '{$this->bean->id}' AND d.deleted = 0 
 				ORDER BY d.direction, d.passenger_type, d.date_entered ";
 
-		$res = $this->bean->db->query($sql);
 		$i = 0;
 		$total_qty = $total_supplier_discount = 0;
+		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$admin_fee_inf = '';
 			// if ($row['admin_fee_no_vat'] > 0) {
@@ -1669,20 +1697,19 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 								</div>';
 			}
 
-			if ($i % 2 > 0) $even_or_odd = 'even';
-			else $even_or_odd = 'odd';
-
+			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
 			$html .= '<tr class="' . $even_or_odd . '">
-						<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
-						<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][(int)$row['direction']] . '</td>
-						<td data-label="Loại HK" class="text-center">' . $app_list_strings['passenger_type_list'][(int)$row['passenger_type']] . '</td>
-						<td data-label="SL" class="text-center">' . format_number($row['quantity']) . '</td>
-						<td data-label="Giá cơ bản" class="text-end">' . format_number($row['unit_price']) . '</td>
-						<td data-label="VAT" class="text-end">' . format_number($row['tax_and_fee']) . '</td>
-						<td data-label="Phí sân bay" class="text-end">' . format_number($row['airport_fee']) . '</td>
-						<td data-label="Phí admin" class="text-end"><div class="admin_fee">' . format_number($row['admin_fee']) . '</div>' . $admin_fee_inf . '</td>
-						<td data-label="Phí dịch vụ" class="text-end">' . format_number($row['service_fee']) . '</td>
-						<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>';
+				<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-detail" class="check-journey" data-id="'. $row['id'] .'" title="Autobook" /></td>
+				<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
+				<td data-label="Chiều" class="text-center">' . $app_list_strings['bk_direction_list'][(int)$row['direction']] . '</td>
+				<td data-label="Loại HK" class="text-center">' . $app_list_strings['passenger_type_list'][(int)$row['passenger_type']] . '</td>
+				<td data-label="SL" class="text-center">' . format_number($row['quantity']) . '</td>
+				<td data-label="Giá cơ bản" class="text-end">' . format_number($row['unit_price']) . '</td>
+				<td data-label="VAT" class="text-end">' . format_number($row['tax_and_fee']) . '</td>
+				<td data-label="Phí sân bay" class="text-end">' . format_number($row['airport_fee']) . '</td>
+				<td data-label="Phí admin" class="text-end"><div class="admin_fee">' . format_number($row['admin_fee']) . '</div>' . $admin_fee_inf . '</td>
+				<td data-label="Phí dịch vụ" class="text-end">' . format_number($row['service_fee']) . '</td>
+				<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>';
 
 			// $html .= '<td class="text-end">
 			// 	<input type="hidden" name="bkd_total_bought_price[]" id="bkd_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
@@ -1700,9 +1727,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			// 	<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
 			// </td>';
 			$html .= '<td data-label="NCC" class="text-start">
-						<input type="hidden" name="check_supplier_id[]" id="check_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
-						<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
-					</td>';
+				<input type="hidden" name="check_supplier_id[]" id="check_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
+				<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
+			</td>';
 
 			$html .= '</tr>';
 
@@ -1713,7 +1740,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		$sep = my_get_number_separators();
 		$html .= '<tr class="footer-tr">
-					<td class="hide-mobile show-landscape" colspan="3">Tổng:
+					<td class="hide-mobile show-landscape" colspan="4">Tổng:
 						<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
 						<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
 						<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
@@ -1735,7 +1762,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->ss->assign('LINE_DETAILS', $html);
 	}
 
-	// Display all passengers
+	/**
+	 * Render table passengers
+	 */
 	function populateLinePassengers($add_type)
 	{
 		global $app_list_strings, $timedate;
@@ -1834,7 +1863,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 			// Line 1
 			$html .= '<tr class="psg-line ' . $even_or_odd . '" data-id="' . $row['id'] . '">
-				<td data-label="Giữ chỗ" class="text-center"><input type="checkbox" name="check-passenger" class="check-passenger" passenger-id="'. $row['id'] .'" passenger-type="'. $row['type'] .'" /></td>
+				<td data-label="Autobook" class="text-center">
+					<input type="checkbox" name="check-passenger" class="check-passenger" data-id="'. $row['id'] .'" data-type="'. $row['type'] .'" title="Autobook" />
+				</td>
 				<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 				<td data-label="Loại HK" class="passenger_type text-center" data="' . $row['type'] . '" class="text-center">' . $app_list_strings['passenger_type_list'][(int)$row['type']] . '</td>
 				<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int)$row['salutation']] . '</td>

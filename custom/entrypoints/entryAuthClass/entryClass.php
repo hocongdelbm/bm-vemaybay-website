@@ -1,0 +1,54 @@
+<?php 
+abstract class entryClass {
+    protected $requestIp;
+    protected $debugIPList;
+    protected $domain;
+    protected $currentUser;
+    public $notificationChannel;
+    public $telegramConfig;
+    public $mattermostConfig;
+
+    public function __construct() {
+        global $sugar_config, $current_user;
+        
+        $this->currentUser = $current_user;
+        $this->notificationChannel = $sugar_config['notification_channel'] ?? 'Telegram';
+        if($this->notificationChannel == 'Mattermost') $this->mattermostConfig = $sugar_config['mattermost'] ?? [];
+        else $this->telegramConfig = $sugar_config['telegram'] ?? [];
+
+        if(function_exists('get_ip_address_from_client')) $this->requestIp = get_ip_address_from_client();
+        else $this->requestIp = '';
+        $this->debugIPList = [
+            '127.0.0.1',
+            '14.161.31.237',
+        ];
+        $this->domain = $_SERVER['HTTP_HOST'] ?? '';
+    }
+
+    protected function isDebug() {
+        if(in_array($this->requestIp, $this->debugIPList) || stripos($this->domain, 'localhost')) return true;
+        return false;
+    }
+
+    /**
+     * Send SQL error notification
+     * 
+     * @param string $sqlQuery
+     * @return void
+     */
+    public function sendSQLErrorNotification($sqlQuery) {
+        if($this->notificationChannel == 'Mattermost') {
+            $m = "**RUN QUERY FAIL IN AUTOBOOK FEATURE DATACOM**";
+            $m .= "`$sqlQuery`";
+            Mattermost::sendMessage($this->mattermostConfig['channel_id_logs'] ?? '', $m);
+        }
+        else {
+            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTOBOOK FEATURE DATACOM</b>";
+            $m .= "\n<pre>$sqlQuery</pre>";
+            $botToken   = $this->telegramConfig['bot_token'] ?? '';
+            $chatId     = $this->telegramConfig['chat_id'] ?? '';
+            $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
+            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+        }
+    }
+}

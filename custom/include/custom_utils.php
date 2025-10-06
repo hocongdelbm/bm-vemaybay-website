@@ -2420,8 +2420,7 @@ function get_server_name($created_by = '')
 // Function to get the client ip address
 function get_ip_address_from_client()
 {
-    $white_list_ip = array('127.0.0.1', '::1');
-
+    $white_list_ip = ['127.0.0.1', '::1'];
     $ipaddress = '';
     if (getenv('HTTP_CLIENT_IP'))
         $ipaddress = getenv('HTTP_CLIENT_IP');
@@ -2437,11 +2436,9 @@ function get_ip_address_from_client()
         $ipaddress = getenv('REMOTE_ADDR');
     else
         $ipaddress = 'UNKNOWN';
-
     if (in_array($_SERVER['REMOTE_ADDR'], $white_list_ip)) {
-        $ipaddress  = '127.0.0.1';
+        $ipaddress = '127.0.0.1';
     }
-
     return $ipaddress;
 }
 
