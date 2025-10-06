@@ -30,7 +30,7 @@ class PhuongNamAPI {
                 "inf"           => $inf,
                 "options"       => [
                     'cabin' => $cabin,
-                    'api' => 'PN'
+                    'api' => 'PHUONGNAM'
                 ],
             ];
 
