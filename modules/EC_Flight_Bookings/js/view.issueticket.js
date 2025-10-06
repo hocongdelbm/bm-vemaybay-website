@@ -187,6 +187,8 @@ $(document).ready(function () {
 
     // Cancel booking button click handler
     $('#cancelBookingButton').on('click', function () {
+        showModalNotify("warning", "Tính năng đang được cập nhật");
+        return;
         const entryClass    = $('input[name="entryClass"]').val();
         const bookingCode   = $('input[name="bookingCode"]').val();
         const systemCode    = $('input[name="systemCode"]').val();
@@ -230,6 +232,7 @@ $(document).ready(function () {
 
     // Void ticket button click handler
     $('#voidTicketButton').on('click', function () {
+        return;
         const entryClass    = $('input[name="entryClass"]').val();
         const bookingCode   = $('input[name="bookingCode"]').val();
         const systemCode    = $('input[name="systemCode"]').val();
