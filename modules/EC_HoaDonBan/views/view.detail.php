@@ -31,8 +31,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	}
 
 	public function css() {
-		$css = '';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_HoaDonBan/css/view.detail.css">';
+		$css = '<link type="text/css" rel="stylesheet" href="modules/EC_HoaDonBan/css/view.detail.css?v=1.0.0">';
 		echo $css;
 	}
 	

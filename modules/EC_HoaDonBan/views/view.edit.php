@@ -14,8 +14,7 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 	}
 
 	public function css() {
-		$css = '';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_HoaDonBan/css/view.edit.css">';
+		$css = '<link type="text/css" rel="stylesheet" href="modules/EC_HoaDonBan/css/view.edit.css?v=1.0.0">';
 		echo $css;
 	}
 
