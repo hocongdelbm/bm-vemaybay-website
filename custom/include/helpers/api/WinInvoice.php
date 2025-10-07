@@ -195,7 +195,7 @@ class WinInvoice {
                     "error" => 1,
                     "httpCode" => 400,
                     "message" => "Sản phảm/Dịch vụ không hợp lệ",
-                    "data" => null
+                    "data" => $dataInv
                 ]);
             }
 
@@ -475,6 +475,8 @@ class WinInvoice {
             $errorNo = curl_errno($curl);
             $error = curl_error($curl);
             curl_close($curl);
+
+            
 
             if ($response === false || $errorNo) {
                 LoggerHelper::error("$method $url cURL error $errorNo: $error");
