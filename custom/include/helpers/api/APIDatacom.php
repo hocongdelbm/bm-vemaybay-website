@@ -343,6 +343,7 @@ class APIDatacom {
         try {
             $curl = curl_init();
             if ($curl === false) {
+                LoggerHelper::error("$method $path cURL failed to initialize");
                 return json_encode([
                     "status" => 0,
                     "httpCode" => 500,
@@ -370,6 +371,7 @@ class APIDatacom {
             curl_close($curl);
 
             if ($response === false || $errorNo) {
+                LoggerHelper::error("$method $path cURL error $errorNo: $error");
                 return json_encode([
                     "status" => 0,
                     "httpCode" => 500,
@@ -380,6 +382,12 @@ class APIDatacom {
             }
 
             $responseArr = json_decode($response, true);
+
+            LoggerHelper::info("$method $path $httpCode", [
+                'request' => is_array($requestBody) ? $requestBody : (json_decode($requestBody, true) ?? $requestBody),
+                'reponse' => $responseArr ?? $response
+            ]);
+
             if ($httpCode < 200 || $httpCode >= 300) {
                 return json_encode([
                     "status" => 0,
@@ -394,6 +402,7 @@ class APIDatacom {
         }
         catch (Throwable $th) {
             $message = "Error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
+            LoggerHelper::error("$method $path $message");
             return json_encode([
                 "status" => 0,
                 "httpCode" => 500,

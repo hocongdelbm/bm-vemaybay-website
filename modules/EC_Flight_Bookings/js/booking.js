@@ -97,8 +97,7 @@ $(document).ready(function () {
                     }
                 }
                 catch (e) {
-                    showModalNotify("error", "Lỗi trong quá trình xử lý", e.message);
-                    console.error(e);
+                    handleException(e);
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -114,7 +113,7 @@ $(document).ready(function () {
     $(document).on("click", "#confirmAutoBook", async function() {
         try {
             statusAutoBook = 1;
-            var entryClass = $('input[name="entryClass"]').val();
+            const entryClass = $('input[name="entryClass"]').val();
             
             /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
             var step = 1;
@@ -622,9 +621,8 @@ $(document).ready(function () {
             }
         }
         catch (e) {
-            console.error(e);
             hideDialogAutoBook();
-            showModalNotify(0, 'Lỗi trong quá trình giữ chỗ, vui lòng thử lại sau', e.message);
+            handleException(e);
         }
     });
 
@@ -657,8 +655,8 @@ $(document).ready(function () {
 
     // Update data (flight datetime, fares) to BM
     $(document).on("click", ".btn-update-auto-book", function() {
-        let data = $(this).attr('data');
-        let entryClass = $(this).attr('data-entry-class');
+        const data = $(this).attr('data');
+        const entryClass = $(this).attr('data-entry-class');
 
         if(data && data.length > 0) {
             $.ajax({
@@ -691,8 +689,7 @@ $(document).ready(function () {
                     catch (e) {
                         $('.container-waiting').hide();
                         hideDialogAutoBook();
-                        showModalNotify("error", "Cập nhật không thành công, vui lòng F5 và thử lại", e.message);
-                        console.error(e);
+                        handleException(e, "Cập nhật không thành công, vui lòng F5 và thử lại");
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -1239,6 +1236,22 @@ function getMiddleAndFirstName(fullname) {
     return parts.join(" ");
 }
 
+function handleException(e, msg = '') {
+    console.error(e);
+    if (msg && msg != '') msg = 'Lỗi trong quá trình xử lý, vui lòng thử lại sau';
+    if (e.stack) {
+        // Optional: Extract line and column using regex (browser-compatible)
+        const match = e.stack.match(/at\s.+\((.+):(\d+):(\d+)\)/) || e.stack.match(/at\s(.+):(\d+):(\d+)/);
+        if (match) {
+            const file = match[1] ?? '';
+            const line = match[2] ?? '';
+            const column = match[3] ?? '';
+            showModalNotify('error', msg, `${e.message} on line ${line}`);
+            return;
+        }
+    }
+    showModalNotify('error', msg, e.message);
+}
 
 function encodeAutoBook(value) {
     if(!value) return value;
