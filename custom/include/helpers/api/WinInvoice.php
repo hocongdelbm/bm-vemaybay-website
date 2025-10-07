@@ -1,5 +1,5 @@
 <?php
-class WinInvoice extends InvoiceLogs {
+class WinInvoice {
     private $ENDPOINT = 'https://quanly.wininvoice.vn/api/';
     private $USER;
     private $PASSWORD;
@@ -7,13 +7,10 @@ class WinInvoice extends InvoiceLogs {
     private $TIMEOUT = 30;
 
     public function __construct($have_code = 1) {
-        parent::__construct();
-
         global $sugar_config;
         $this->USER = $sugar_config['win_invoice']['user'] ?? '';
         $this->PASSWORD = $sugar_config['win_invoice']['password'] ?? '';
         $this->INVOICE_NUMBER = '1';
-        $this->FILENAME = date('Y_m_d') . '.log';
     }
 
     public function header() {
@@ -79,7 +76,7 @@ class WinInvoice extends InvoiceLogs {
         $post_data['buyerFax']       = isset($buyer['buyerFax']) ? $buyer['buyerFax'] : '';
 
         /******  3. THÔNG TIN SẢN PHẨM/DỊCH VỤ  ******/
-        $post_data['items'] = array();
+        $post_data['items'] = [];
         $check_item = true;
         foreach ($items as $k => $i) {
             if (!isset($i['itemName']) || empty($i['itemName']) || $i['itemPrice'] == 0 || $i['itemAmountNoVat'] == 0) {
@@ -439,6 +436,7 @@ class WinInvoice extends InvoiceLogs {
         try {
             $curl = curl_init();
             if ($curl === false) {
+                LoggerHelper::error("$method $url cURL failed to initialize");
                 return [
                     "error" => 1,
                     "httpCode" => 500,
@@ -467,7 +465,7 @@ class WinInvoice extends InvoiceLogs {
             curl_close($curl);
 
             if ($response === false || $errorNo) {
-                $this->log("cURL error ($errorNo) $error", "error", $url);
+                LoggerHelper::error("$method $url cURL error $errorNo: $error");
                 return [
                     "error" => 1,
                     "httpCode" => 500,
@@ -478,14 +476,10 @@ class WinInvoice extends InvoiceLogs {
             }
 
             $responseArr = json_decode($response, true);
-            $this->log(
-                json_encode([
-                    "request" => is_array($requestBody) ? $requestBody : json_decode($requestBody, true),
-                    "response" => $responseArr
-                ]),
-                "info",
-                "$method $httpCode $url"
-            );
+            LoggerHelper::info("$method $url $httpCode", [
+                'request' => is_array($requestBody) ? $requestBody : (json_decode($requestBody, true) ?? $requestBody),
+                'reponse' => $responseArr ?? $response
+            ]);
 
             // Success
             if(200 <= $httpCode && $httpCode < 300 && isset($responseArr['isSuccess']) && $responseArr['isSuccess'] === true) {
@@ -507,7 +501,7 @@ class WinInvoice extends InvoiceLogs {
         }
         catch (Throwable $th) {
             $message = "Exception error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
-            $this->log($message, "error", $url);
+            LoggerHelper::error("$method $url $message");
             return [
                 "error" => 1,
                 "httpCode" => 500,
@@ -518,34 +512,5 @@ class WinInvoice extends InvoiceLogs {
         finally {
             if (isset($curl) && is_resource($curl)) curl_close($curl);
         }
-    }
-}
-
-class InvoiceLogs {
-    private $PATH;
-    protected $FILENAME;
-
-    function __construct() {
-        $year = date('Y');
-        $month = str_pad(date('m'), 2, "0", STR_PAD_LEFT);
-        $this->PATH = "modules/EC_HoaDonBan/logs/$year/$month/";
-        $this->FILENAME = date('Y_m_d') . '.log';
-    }
-
-    public function log($content, $type = 'info', $more = '') {
-        $row = date('Y-m-d H:i:s') . ' [' . strtoupper($type) . '] [' . $more . '] ' . trim($content) . "\n";
-        return $this->write_file($row);
-    }
-
-    protected function write_file($text) {
-        if(empty($text)) return false;
-        if(!is_dir($this->PATH)) mkdir($this->PATH, 0755, true);
-
-        $file_name = $this->PATH . $this->FILENAME;
-        $myfile = fopen($file_name, "a") or die("Error something !!!");
-
-        fwrite($myfile, $text);
-        fclose($myfile);
-        return true;
     }
 }

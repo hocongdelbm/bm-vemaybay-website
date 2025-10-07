@@ -267,7 +267,7 @@ class APIPhuongNam {
         try {
             $curl = curl_init();
             if ($curl === false) {
-                LoggerHelper::error("$method $path cURL failed to initialize");
+                LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} cURL failed to initialize");
                 return json_encode([
                     "status" => 0,
                     "httpCode" => 500,
@@ -276,7 +276,7 @@ class APIPhuongNam {
                     "description" => "cURL failed to initialize in BM"
                 ]);
             }
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/$path");
+            curl_setopt($curl, CURLOPT_URL, "{$this->ENDPOINT}/{$path}");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
             if(!is_null($requestBody)) curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
@@ -295,7 +295,7 @@ class APIPhuongNam {
             curl_close($curl);
 
             if ($response === false || $errorNo) {
-                LoggerHelper::error("$method $path cURL error $errorNo: $error");
+                LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} cURL error $errorNo: $error");
                 return json_encode([
                     "status" => 0,
                     "httpCode" => 500,
@@ -307,7 +307,7 @@ class APIPhuongNam {
 
             $responseArr = json_decode($response, true);
 
-            LoggerHelper::info("$method $path $httpCode", [
+            LoggerHelper::info("{$method} {$this->ENDPOINT}/{$path} $httpCode", [
                 'request' => is_array($requestBody) ? $requestBody : (json_decode($requestBody, true) ?? $requestBody),
                 'reponse' => $responseArr ?? $response
             ]);
@@ -325,8 +325,8 @@ class APIPhuongNam {
             return $response;
         }
         catch (Throwable $th) {
-            $message = "Exception {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
-            LoggerHelper::error("$method $path $message");
+            $message = "Exception error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
+            LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} $message");
             return json_encode([
                 "status" => 0,
                 "httpCode" => 500,
