@@ -1,15 +1,24 @@
 <?php
 class WinInvoice {
-    private $ENDPOINT = 'https://quanly.wininvoice.vn/api/';
+    private $ENDPOINT;
     private $USER;
     private $PASSWORD;
+
+    private $TVAN_ENDPOINT;
+    private $TVAN_USER;
+    private $TVAN_PASSWORD;
+
     private $INVOICE_NUMBER; // Mẫu số hóa đơn
     private $TIMEOUT = 30;
 
-    public function __construct($have_code = 1) {
+    public function __construct() {
         global $sugar_config;
-        $this->USER = $sugar_config['win_invoice']['user'] ?? '';
+        $this->ENDPOINT = $sugar_config['win_invoice']['endpoint'] ?? '';
+        $this->USER     = $sugar_config['win_invoice']['user'] ?? '';
         $this->PASSWORD = $sugar_config['win_invoice']['password'] ?? '';
+        $this->TVAN_ENDPOINT = $sugar_config['win_invoice']['tvan_endpoint'] ?? '';
+        $this->TVAN_USER     = $sugar_config['win_invoice']['tvan_user'] ?? '';
+        $this->TVAN_PASSWORD = $sugar_config['win_invoice']['tvan_password'] ?? '';
         $this->INVOICE_NUMBER = '1';
     }
 
@@ -326,23 +335,20 @@ class WinInvoice {
             ]);
         }
 
-        $user_name = 'mhv-api';
-        $password = 'mhv-67efa2e8-9ee7-49b5-9174-16670cb7f399';
         $curl = curl_init();
-        curl_setopt_array($curl, array(
-            // CURLOPT_URL => 'http://tracuunnt.wintvan.vn/api/Tracuu/tracuumst?mst=' . $tax_code,
-            CURLOPT_URL => "https://taxinfo.wintvan.vn/api/Tracuu/tracuumst?mst=$tax_code",
-            CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
-            CURLOPT_USERPWD => "$user_name:$password",
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_FOLLOWLOCATION => 1,
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 40,
-            CURLOPT_CUSTOMREQUEST => 'GET',
-        ));
+        curl_setopt_array($curl, [
+            CURLOPT_URL             => "{$this->TVAN_ENDPOINT}/Tracuu/tracuumst?mst=$tax_code",
+            CURLOPT_CUSTOMREQUEST   => "GET",
+            CURLOPT_HTTPAUTH        => CURLAUTH_BASIC,
+            CURLOPT_USERPWD         => "{$this->TVAN_USER}:{$this->TVAN_PASSWORD}",
+            CURLOPT_RETURNTRANSFER  => 1,
+            CURLOPT_FOLLOWLOCATION  => 1,
+            CURLOPT_SSL_VERIFYHOST  => 0,
+            CURLOPT_SSL_VERIFYPEER  => 0,
+            CURLOPT_ENCODING        => '',
+            CURLOPT_MAXREDIRS       => 10,
+            CURLOPT_TIMEOUT         => 45,
+        ]);
         $json = curl_exec($curl);
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
@@ -443,7 +449,7 @@ class WinInvoice {
      * @return array [status, httpCode, message, data, description]
      */
     protected function sendRequest($method, $path, $requestBody = null, $header = [], $curlOptions = []) {
-        $url = $this->ENDPOINT . $path;
+        $url = "{$this->ENDPOINT}/{$path}";
 
         try {
             $curl = curl_init();
@@ -483,7 +489,7 @@ class WinInvoice {
                 return [
                     "error" => 1,
                     "httpCode" => 500,
-                    "message" => "Can not connect to $this->ENDPOINT",
+                    "message" => "Can not connect to {$this->ENDPOINT}",
                     "data" => null,
                     "description" => "cURL error $errorNo: $error"
                 ];
