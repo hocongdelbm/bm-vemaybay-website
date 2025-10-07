@@ -137,7 +137,7 @@ class WinInvoice {
 
         $arrInv = json_decode($this->get($invRef), true);
         if(isset($arrInv['error']) && $arrInv['error'] == 0) {
-            $dataInv = $arrInv['data'] ?? [];
+            $dataInv = $arrInv['data'][0] ?? [];
 
             $requestBody = [];
             /******  1. THÔNG TIN HÓA ĐƠN  ******/
@@ -183,7 +183,7 @@ class WinInvoice {
                     "error" => 1,
                     "httpCode" => 400,
                     "message" => "Sản phảm/Dịch vụ không hợp lệ",
-                    "data" => null
+                    "data" => $dataInv
                 ]);
             }
 
@@ -463,6 +463,8 @@ class WinInvoice {
             $errorNo = curl_errno($curl);
             $error = curl_error($curl);
             curl_close($curl);
+
+            
 
             if ($response === false || $errorNo) {
                 LoggerHelper::error("$method $url cURL error $errorNo: $error");
