@@ -37,20 +37,22 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	}
 	
 	public function populateLineItems() {
-
 		if($this->bean->company_unit == 'MHV') {
 			$custom_sohoadon = '<span>'.(int)$this->bean->sohoadon.'</span>';
 		} else {
 			$custom_sohoadon = '<span>'.$this->bean->sohoadon.'</span>';
 		}
-		
-		if($this->bean->is_signed == 1) 
+		if($this->bean->kyhieuhd && !empty($this->bean->kyhieuhd)) {
+			$custom_sohoadon .= "<b>({$this->bean->kyhieuhd})</b>";
+		}
+		if($this->bean->is_signed == 1) {
 			$custom_sohoadon .= '<span class="text-success fw-semibold" style="float:right;">
 				<svg width="18px" height="18px" stroke-width="1.75" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" style="padding-bottom:2px;">
 					<path d="M7 12.5L10 15.5L17 8.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path>
 				</svg>
 				Đã ký số
 			</span>';
+		}
 		$this->ss->assign('CUSTOM_SOHOADON', $custom_sohoadon);
 
 		$html = '<div>
@@ -341,6 +343,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 								<div class="card-body">
 									<p>Loại khách hàng <i>(Customer type)</i>: <b>'.($this->bean->loaikh == '1' ? 'Cá nhân' : 'Công ty/Tổ chức').'</b></p>
 									<p>Họ tên người mua hàng <i>(Buyer)</i>: <b>'.$this->bean->lienhe.'</b></p>
+									<p>Căn cước công dân <i>(ID)</i>: <b>'.($this->bean->citizen_id ?? $this->bean->passport_number ?? '').'</b></p>
 									<p>Tên đơn vị <i>(Company\'s name)</i>: <b>'.$this->bean->tencongty.'</b></p>
 									<p>Mã số thuế <i>(Tax code)</i>: <b>'.$this->bean->masothue.'</b></p>
 									<p>Địa chỉ <i>(Address)</i>: <b>'.$this->bean->diachi.'</b></p>
@@ -406,6 +409,8 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 								<input type="hidden" name="buyerEmail" value="'.$this->bean->email.'" />
 								<input type="hidden" name="buyerTax" value="'.$this->bean->masothue.'" />
 								<input type="hidden" name="buyerAddress" value="'.$this->bean->diachi.'" />
+								<input type="hidden" name="buyerCitizenIDNumber" value="'.($this->bean->citizen_id ?? '').'" />
+								<input type="hidden" name="buyerPassportNumber" value="'.($this->bean->passport_number ?? '').'" />
 								'.$input.'
 								<input type="hidden" name="invSubTotal" value="'.$array_item_invoice['invSubTotal'].'" />
 								<input type="hidden" name="invVatAmount" value="'.$array_item_invoice['invVatAmount'].'" />

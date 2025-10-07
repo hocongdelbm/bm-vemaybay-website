@@ -42,9 +42,9 @@ class WinInvoice {
         /******  1. THÔNG TIN HÓA ĐƠN  ******/
         $post_data['invName']    = $this->INVOICE_NUMBER;
         $post_data['invSerial']  = $invoice['invSerial'] ?? '';
-        $post_data['invDate']    = isset($invoice['invDate']) ? $this->format_date($invoice['invDate']) : date('Y-m-d'); // YYYY-mm-dd
+        $post_data['invDate']    = isset($invoice['invDate']) ? $this->format_date($invoice['invDate']) : date('Y-m-d'); // yyyy-mm-dd
         $post_data['invRef']     = $invoice['invRef'] ?? ''; // Mã hóa đơn
-        $post_data['invRefDate'] = isset($invoice['invRefDate']) ? $this->format_date($invoice['invRefDate']) : date('Y-m-d'); // YYYY-mm-dd
+        $post_data['invRefDate'] = isset($invoice['invRefDate']) ? $this->format_date($invoice['invRefDate']) : date('Y-m-d'); // yyyy-mm-dd
         // Thông tin tiền (Required)
         $post_data['invSubTotal']    = isset($invoice['invSubTotal']) ? $invoice['invSubTotal'] : 0; // TỔNG TIỀN HÀNG (CHƯA VAT) (CHƯA CHIẾT KHẤU)
         $post_data['invVatRate']     = isset($invoice['invVatRate']) ? $invoice['invVatRate'] : 0; // THUẾ SUẤT TRÊN HÓA ĐƠN
@@ -59,21 +59,24 @@ class WinInvoice {
         $post_data['note'] = isset($invoice['note']) ? $invoice['note'] : '';
         // Thông tin khác (Optional)
         $post_data['invAutoSign'] = '0'; // KÝ TỰ ĐỘNG
-         $post_data['invCustomer']= (string)($invoice['invCustomer'] ?? '1'); // KH CÁ NHÂN HAY TỔ CHỨC
+        $post_data['invCustomer'] = (string)($invoice['invCustomer'] ?? '1'); // KH cá nhân hay tổ chức (1:Cá nhân ; 0:Tổ chức)
         
 
         /******  2. THÔNG TIN KHÁCH HÀNG  ******/
         $post_data['buyerName']      = isset($buyer['buyerName']) ? html_entity_decode($buyer['buyerName']) : '';
         $post_data['buyerCompany']   = isset($buyer['buyerCompany']) ? html_entity_decode($buyer['buyerCompany']) : '';
-        $post_data['buyerEmail']     = isset($buyer['buyerEmail']) ? $buyer['buyerEmail'] : 'ngandtk@giaonhanh.net';
+        $post_data['buyerEmail']     = $buyer['buyerEmail'] ?? 'quynhtrang@giaonhanh.net';
         // Optional
-        $post_data['buyerCode']      = isset($buyer['buyerCode']) ? $buyer['buyerCode'] : '';
-        $post_data['buyerTax']       = isset($buyer['buyerTax']) ? $buyer['buyerTax'] : '';
+        $post_data['buyerCode']      = $buyer['buyerCode'] ?? '';
+        $post_data['buyerTax']       = $buyer['buyerTax'] ?? '';
         $post_data['buyerAddress']   = isset($buyer['buyerAddress']) ? html_entity_decode($buyer['buyerAddress']) : '';
-        $post_data['buyerAcc']       = isset($buyer['buyerAcc']) ? $buyer['buyerAcc'] : '';
+        $post_data['buyerAcc']       = $buyer['buyerAcc'] ?? '';
         $post_data['buyerBank']      = isset($buyer['buyerBank']) ? html_entity_decode($buyer['buyerBank']) : '';
-        $post_data['buyerPhone']     = isset($buyer['buyerPhone']) ? $buyer['buyerPhone'] : '';
-        $post_data['buyerFax']       = isset($buyer['buyerFax']) ? $buyer['buyerFax'] : '';
+        $post_data['buyerPhone']     = $buyer['buyerPhone'] ?? '';
+        $post_data['buyerFax']       = $buyer['buyerFax'] ?? '';
+        $post_data['buyerCitizenIDNumber']  = $buyer['buyerCitizenIDNumber'] ?? ''; // CCCD
+        $post_data['buyerPassportNumber']   = $buyer['buyerPassportNumber'] ?? ''; // Passport
+        // $post_data['govUnitCode']           = $buyer['govUnitCode'] ?? ''; // Mã đơn vị có quan hệ với ngân sách
 
         /******  3. THÔNG TIN SẢN PHẨM/DỊCH VỤ  ******/
         $post_data['items'] = [];
@@ -130,14 +133,23 @@ class WinInvoice {
             return json_encode([
                 "error" => 1,
                 "httpCode" => 400,
-                "message" => "Thiếu dữ liệu để xử lý yêu cầu",
+                "message" => "Không tìm thấy số phiếu bán",
                 "data" => null,
             ]);
         }
 
         $arrInv = json_decode($this->get($invRef), true);
         if(isset($arrInv['error']) && $arrInv['error'] == 0) {
-            $dataInv = $arrInv['data'] ?? [];
+            $dataInv = $arrInv['data'][0] ?? [];
+
+            if(empty($dataInv)) {
+                return json_encode([
+                    "error" => 1,
+                    "httpCode" => 400,
+                    "message" => "Không lấy được dữ liệu hóa đơn",
+                    "data" => null
+                ]);
+            }
 
             $requestBody = [];
             /******  1. THÔNG TIN HÓA ĐƠN  ******/

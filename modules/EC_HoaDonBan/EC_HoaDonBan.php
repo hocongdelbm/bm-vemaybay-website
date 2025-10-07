@@ -1,4 +1,7 @@
 <?php
+
+use PhpParser\Node\Expr\Empty_;
+
 class EC_HoaDonBan extends Basic {
 	public $new_schema 	= true;
 	public $module_dir 	= 'EC_HoaDonBan';
@@ -56,6 +59,9 @@ class EC_HoaDonBan extends Basic {
 	public $invoice_data;
 	public $sohoadon;
 	public $kyhieuhd;
+	public $citizen_id;
+	public $passport_number;
+	public $loaikh;
 
 	public function bean_implements($interface) {
 		switch ($interface) {
@@ -67,11 +73,12 @@ class EC_HoaDonBan extends Basic {
 	}
 
 	public function save($check_notify = FALSE) {
-		if (empty($this->name)) {
-			$this->name = 'HD-' . date('ymd') . '-' . $this->countVoucher();
-		}
-
+		if(empty($this->name)) $this->name = 'HD-' . date('ymd') . '-' . $this->countVoucher();
 		if(!$this->kyhieuhd || empty($this->kyhieuhd)) $this->kyhieuhd = $this->genInvSerial();
+		if(isset($_POST['identity_number']) && !empty($_POST['identity_number'])) {
+			if(strlen($_POST['identity_number']) == 12) $this->citizen_id = $_POST['identity_number'];
+			elseif(strlen($_POST['identity_number']) == 8) $this->passport_number = $_POST['identity_number'];
+		}
 
 		parent::save($check_notify);
 

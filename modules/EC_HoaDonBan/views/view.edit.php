@@ -3,11 +3,11 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 
 class EC_HoaDonBanViewEdit extends ViewEdit {
-	function __construct() {
+	public function __construct() {
 		parent::__construct();
 	}
 
-	function display() {
+	public function display() {
 		$this->css();
 		$this->populateLineItems();
 		parent::display();
@@ -19,9 +19,15 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 		echo $css;
 	}
 
-	function populateLineItems() {
+	protected function populateLineItems() {
 		global $locale;
 
+		// CCCD/Passport
+		$id_number = $this->bean->citizen_id ?? '';
+		if(empty($id_number)) $id_number = $this->bean->passport_number ?? '';
+		$this->ss->assign('CUSTOM_ID_NUMBER', '<input type="text" name="identity_number" value="'.$id_number.'" id="identity_number_input" maxlength="12" />');
+
+		// MST
 		$mst_value = $this->bean->masothue ?? ($_REQUEST['masothue'] ?? '');
 		$custom_mst = '<div class="wrap-masothue">
 			<input type="text" name="masothue" id="masothue" size="30" maxlength="25" value="'.$mst_value.'">

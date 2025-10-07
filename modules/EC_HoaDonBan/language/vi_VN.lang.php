@@ -68,4 +68,7 @@ $mod_strings = array(
   'LBL_TINHTRANG' => 'Tình trạng',
   'LBL_COMPANY_UNIT' => 'Đơn vị',
   'LBL_LOAIKH' => 'Loại KH',
+  'LBL_CITIZEN_ID' => 'CCCD',
+  'LBL_PASSPORT_NUMBER' => 'Hộ chiếu',
+  'LBL_IDENTITY_NUMBER' => 'CCCD/Hộ chiếu',
 );

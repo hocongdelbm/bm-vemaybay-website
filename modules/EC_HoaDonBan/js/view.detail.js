@@ -78,6 +78,8 @@ $(document).ready(function () {
 		buyer_data.buyerAddress = $('input[name="buyerAddress"]').val();
 		buyer_data.buyerBank 	= $('input[name="buyerBank"]').val();
 		buyer_data.buyerAcc 	= $('input[name="buyerAcc"]').val();
+		buyer_data.buyerCitizenIDNumber = $('input[name="buyerCitizenIDNumber"]').val();
+		buyer_data.buyerPassportNumber 	= $('input[name="buyerPassportNumber"]').val();
 
 		let item_data = {};
 		item_data.itemCode 			= $("input[name='itemCode[]']").map(function(){return $(this).val();}).get();
@@ -127,17 +129,19 @@ $(document).ready(function () {
 			success: function (response) {
 				$('.container-waiting').hide();
 				let res = JSON.parse(response);
-
 				if(res.error == 0) {
-					showModalNotify(1, res['message']);
+					showModalNotify(1, res.message ?? "Thao tác thành công");
 					countdownAndReload(3);
 				}
-				else showModalNotify(0, res['message'], format_html_data_error(JSON.stringify(res['description'])));
+				else {
+					let description = 'description' in res ? format_html_data_error(res.description) : '';
+					showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
 
-                let text_modal_error = 'ERROR ('+errorThrown+'): Vui lòng liên hệ bộ phận IT.';
+                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
                 showModalNotify(0, text_modal_error)
 
                 console.error(XMLHttpRequest);
@@ -181,15 +185,18 @@ $(document).ready(function () {
 				let res = JSON.parse(response);
 
 				if(res.error == 0) {
-					showModalNotify(1, res['message']);
+					showModalNotify(1, res.message ?? "Thao tác thành công");
 					countdownAndReload(3);
 				}
-				else showModalNotify(0, res['message'], format_html_data_error(JSON.stringify(res['description'])));
+				else {
+					let description = 'description' in res ? format_html_data_error(res.description) : ''; 
+					showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
 
-                let text_modal_error = 'ERROR ('+errorThrown+'): Vui lòng liên hệ bộ phận IT.';
+                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
                 showModalNotify(0, text_modal_error)
 
                 console.error(XMLHttpRequest);
@@ -232,15 +239,18 @@ $(document).ready(function () {
 				let res = JSON.parse(response);
 
 				if(res.error == 0) {
-					showModalNotify(1, res['message']);
+					showModalNotify(1, res.message ?? 'Thao tác thành công');
 					countdownAndReload(3);
 				}
-				else showModalNotify(0, res['message'], format_html_data_error(JSON.stringify(res['description'])));
+				else {
+					let description = 'description' in res ? format_html_data_error(res.description) : ''; 
+					showModalNotify(0, res.message ?? 'Đã xảy ra lỗi', description);
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
 
-                let text_modal_error = 'ERROR ('+errorThrown+'): Vui lòng liên hệ bộ phận IT.';
+                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
                 showModalNotify(0, text_modal_error)
 
                 console.error(XMLHttpRequest);
@@ -264,11 +274,10 @@ $(document).ready(function () {
 	});
 })
 
-function format_html_data_error(json) {
-	let obj = JSON.parse(json);
-
-	let html = '';
-	$.each(obj, function(key, val) {             
+function format_html_data_error(objError) {
+	if(!objError) return '';
+	if(typeof objError === 'string') return objError;
+	$.each(objError, function(key, val) {             
 		html += `<p style="font-size:13px; color:#000"><b>${key} : </b>${val}</p>`;         
 	});
 	return html; 
