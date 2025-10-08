@@ -2411,6 +2411,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$invoice_arr 		= json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);
 			$iv_account_name 	= $invoice_arr['iv_account_name'] ?? '';
 			$iv_email 			= $invoice_arr['iv_email'] ?? '';
+			$iv_identity_number = $invoice_arr['iv_identity_number'] ?? '';
 			$iv_payment_method 	= $invoice_arr['iv_payment_method'] ?? '';
 			$iv_bank_account 	= $invoice_arr['iv_bank_account'] ?? '';
 			$iv_name_banks 		= $invoice_arr['iv_name_banks'] ?? '';
@@ -2418,6 +2419,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		$this->ss->assign('CUS_IV_ACCOUNT_NAME', $iv_account_name);
 		$this->ss->assign('CUS_IV_EMAIL', $iv_email);
+		$this->ss->assign('CUS_IV_IDENTITY_NUMBER', $iv_identity_number);
 		$this->ss->assign('CUS_IV_PAYMENT_METHOD', $iv_payment_method);
 		// $this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
 		// $this->ss->assign('CUS_IV_NAME_BANK', $iv_name_banks);

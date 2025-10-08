@@ -1028,13 +1028,14 @@ class EC_Flight_Bookings extends Basic
 	{
 		if (isset($post_fields['action']) && $post_fields['action'] == 'Save') {
 			if (isset($post_fields['iv_account_name'])) {
-				$invoice_inf = array(
+				$invoice_inf = [
 					'iv_account_name' => $post_fields['iv_account_name'],
 					'iv_email' => $post_fields['iv_email'],
+					'iv_identity_number' => $post_fields['iv_identity_number'],
 					'iv_payment_method' => $post_fields['iv_payment_method'],
 					'iv_bank_account' => $post_fields['iv_bank_account'],
 					'iv_name_banks' => $post_fields['iv_name_banks']
-				);
+				];
 
 				$sql = '
 					UPDATE ec_flight_bookings 

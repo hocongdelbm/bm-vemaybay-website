@@ -59,7 +59,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 		// CCCD/Passport
 		$id_number = $this->bean->citizen_id ?? '';
-		if($this->bean->passport_number && !empty($this->bean->passport_number)) $id_number .= " - {$this->bean->passport_number}";
+		if($this->bean->passport_number && !empty($this->bean->passport_number)) {
+			if(!empty($id_number)) $id_number .= " - {$this->bean->passport_number}";
+			else $id_number .= $this->bean->passport_number;
+		}
 		$this->ss->assign('CUSTOM_ID_NUMBER', '<span class="sugar_field" id="identity_number">'.$id_number.'</span>');
 
 		$html = '<div>
@@ -337,6 +340,8 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				}
 
 				$arr_ngayhoadon = explode('-', $this->bean->ngayhoadon);
+				$identity_number = $this->bean->citizen_id ?? '';
+				if(empty($identity_number)) $identity_number = $this->bean->passport_number ?? '';
 				$create_invoice_button = '
 					<button type="button" name="btnCreateInvoice" id="btnCreateInvoice" class="btn btn-warning" onclick="showDialog(\'dialog-create-invoice\')">'.$text_button.'</button>
 					<dialog id="dialog-create-invoice" class="dialog-create-invoice">
@@ -350,7 +355,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 								<div class="card-body">
 									<p>Loại khách hàng <i>(Customer type)</i>: <b>'.($this->bean->loaikh == '1' ? 'Cá nhân' : 'Công ty/Tổ chức').'</b></p>
 									<p>Họ tên người mua hàng <i>(Buyer)</i>: <b>'.$this->bean->lienhe.'</b></p>
-									<p>Căn cước công dân <i>(ID)</i>: <b>'.($this->bean->citizen_id ?? $this->bean->passport_number ?? '').'</b></p>
+									<p>Căn cước công dân <i>(ID)</i>: <b>'.$identity_number.'</b></p>
 									<p>Tên đơn vị <i>(Company\'s name)</i>: <b>'.$this->bean->tencongty.'</b></p>
 									<p>Mã số thuế <i>(Tax code)</i>: <b>'.$this->bean->masothue.'</b></p>
 									<p>Địa chỉ <i>(Address)</i>: <b>'.$this->bean->diachi.'</b></p>

@@ -75,9 +75,11 @@ class EC_HoaDonBan extends Basic {
 	public function save($check_notify = FALSE) {
 		if(empty($this->name)) $this->name = 'HD-' . date('ymd') . '-' . $this->countVoucher();
 		if(!$this->kyhieuhd || empty($this->kyhieuhd)) $this->kyhieuhd = $this->genInvSerial();
-		if(isset($_POST['identity_number']) && !empty($_POST['identity_number'])) {
-			if(strlen($_POST['identity_number']) == 12) $this->citizen_id = $_POST['identity_number'];
-			elseif(strlen($_POST['identity_number']) == 8) $this->passport_number = $_POST['identity_number'];
+
+		$identity_number = trim($_POST['identity_number'] ?? '');
+		if(!empty($identity_number)) {
+			if(strlen($identity_number) == 12) $this->citizen_id = $identity_number;
+			elseif(strlen($identity_number) > 6) $this->passport_number = $identity_number;
 		}
 
 		parent::save($check_notify);

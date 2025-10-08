@@ -350,6 +350,15 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 array(),
                 array(
+                    'name' => 'iv_identity_number',
+                    'label' => 'LBL_IV_IDENTITY_NUMBER',
+                    'customCode' => '{$CUS_IV_IDENTITY_NUMBER}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
                     'name' => 'company_address',
                     'studio' => 'visible',
                     'label' => 'LBL_COMPANY_ADDRESS',
