@@ -58,18 +58,8 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_MASOTHUE',
                 ),
                 array(
-                    'name' => 'loaihoadon',
-                    'label' => 'LBL_LOAIHOADON',
-                ),
-            ),
-            array(
-                array(
-                    'name' => 'diachi',
-                    'label' => 'LBL_DIACHI',
-                ),
-                array(
-                    'name' => 'description',
-                    'label' => 'LBL_DESCRIPTION',
+                    'name' => 'kyhieuhd',
+                    'label' => 'LBL_KYHIEUHD',
                 ),
             ),
             array(
@@ -78,18 +68,19 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_EMAIL',
                 ),
                 array(
-                    'name' => 'tinhtrang',
-                    'label' => 'LBL_TINHTRANG',
-                )
+                    'name' => 'loaihoadon',
+                    'label' => 'LBL_LOAIHOADON',
+                ),
             ),
             array(
                 array(
-                    'name' => 'hinhthuctt',
-                    'label' => 'LBL_HINHTHUCTT',
+                    'name' => 'identity_number',
+                    'label' => 'LBL_IDENTITY_NUMBER',
+                    'customCode' => '{$CUSTOM_ID_NUMBER}'
                 ),
                 array(
-                    'name' => 'assigned_user_name',
-                    'label' => 'LBL_ASSIGNED_TO_ID',
+                    'name' => 'tinhtrang',
+                    'label' => 'LBL_TINHTRANG',
                 ),
             ),
             array(
@@ -104,6 +95,16 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
             array(
                 array(
+                    'name' => 'hinhthuctt',
+                    'label' => 'LBL_HINHTHUCTT',
+                ),
+                array(
+                    'name' => 'assigned_user_name',
+                    'label' => 'LBL_ASSIGNED_TO_ID',
+                ),
+            ),
+            array(
+                array(
                     'name' => 'nganhang',
                     'label' => 'LBL_NGANHANG',
                 ),
@@ -111,6 +112,16 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'name' => 'sotaikhoan',
                     'label' => 'LBL_SOTAIKHOAN',
                 )
+            ),
+            array(
+                array(
+                    'name' => 'diachi',
+                    'label' => 'LBL_DIACHI',
+                ),
+                array(
+                    'name' => 'description',
+                    'label' => 'LBL_DESCRIPTION',
+                ),
             ),
             array(
                 array(

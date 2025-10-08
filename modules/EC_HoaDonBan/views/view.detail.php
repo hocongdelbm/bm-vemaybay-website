@@ -47,9 +47,6 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		} else {
 			$custom_sohoadon = '<span>'.$this->bean->sohoadon.'</span>';
 		}
-		if($this->bean->kyhieuhd && !empty($this->bean->kyhieuhd)) {
-			$custom_sohoadon .= "<b>({$this->bean->kyhieuhd})</b>";
-		}
 		if($this->bean->is_signed == 1) {
 			$custom_sohoadon .= '<span class="text-success fw-semibold" style="float:right;">
 				<svg width="18px" height="18px" stroke-width="1.75" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" style="padding-bottom:2px;">
@@ -59,6 +56,11 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			</span>';
 		}
 		$this->ss->assign('CUSTOM_SOHOADON', $custom_sohoadon);
+
+		// CCCD/Passport
+		$id_number = $this->bean->citizen_id ?? '';
+		if($this->bean->passport_number && !empty($this->bean->passport_number)) $id_number .= " - {$this->bean->passport_number}";
+		$this->ss->assign('CUSTOM_ID_NUMBER', '<span class="sugar_field" id="identity_number">'.$id_number.'</span>');
 
 		$html = '<div>
 			<table class="table-details__booking" cellpadding="0" cellspacing="0" border="0">';
