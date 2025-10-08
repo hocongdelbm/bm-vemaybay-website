@@ -24,7 +24,6 @@ $viewdefs[$module_name]['DetailView'] = array(
         ),
         'includes' => array(
             array('file' => 'themes/SuiteP/js/reset.js'),
-            array('file' => 'modules/EC_HoaDonBan/js/view.detail.js'),
         ),
     ),
 

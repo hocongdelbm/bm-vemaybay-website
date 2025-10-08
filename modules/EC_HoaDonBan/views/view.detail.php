@@ -28,11 +28,17 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			}
         }
 		parent::display();
+		$this->js();
 	}
 
 	public function css() {
 		$css = '<link type="text/css" rel="stylesheet" href="modules/EC_HoaDonBan/css/view.detail.css?v=1.0.0">';
 		echo $css;
+	}
+
+	public function js() {
+		$js = '<script src="modules/EC_HoaDonBan/js/view.detail.js?v=1.0.0"></script>';
+		echo $js;
 	}
 	
 	public function populateLineItems() {
