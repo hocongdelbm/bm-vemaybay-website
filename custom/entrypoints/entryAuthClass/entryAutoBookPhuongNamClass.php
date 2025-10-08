@@ -993,7 +993,9 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                         // Update supplier
-                        $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
+                        $ticketing_fee = 0;
+                        if($systemCode == 'VJ') $ticketing_fee = 3000;
+                        else if($systemCode == 'VU') $ticketing_fee = 5000;
                         $sqlUpdate = "UPDATE ec_booking_details
                                 SET supplier_id = '{$this->supplierId}'
                                     ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
