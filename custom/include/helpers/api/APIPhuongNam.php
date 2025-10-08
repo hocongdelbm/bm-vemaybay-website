@@ -358,7 +358,7 @@ class APIPhuongNam {
         $bookingData["BookingStatusId"] = $data["BookingStatusId"];
         $bookingData["BookingStatus"]   = $this->mappingBookingStatus($data["BookingStatusId"]);
         $bookingData["BookingDate"]     = date('Y-m-d H:i', strtotime($data["BookingDate"])); // 2025-09-27T10:30:40.167
-        $bookingData["BookingExpired"]  = date('Y-m-d H:i', strtotime($data["BookingExpired"])); // 2025-09-27T14:31:00
+        $bookingData["BookingExpired"]  = strtotime($data["BookingExpired"]) !== false ? date('Y-m-d H:i', strtotime($data["BookingExpired"])) : ''; // 2025-09-27T14:31:00
         $bookingData["TicketNumber"]    = $data["TicketNumber"];
         $bookingData["TotalAmount"]     = $data["TotalAmount"] ?? 0;
         $bookingData["PaidAmount"]      = $data["PaidAmount"] ?? 0;
@@ -465,22 +465,23 @@ class APIPhuongNam {
         // List ticket
         $bookingData["ListTicket"] = [];
         foreach (($data["Tickets"] ?? []) as $tk) {
+            $flightText = '';
+            foreach ($bookingData["ListFlight"] as $ftemp) {
+                if($ftemp["FlightId"] == $tk["FlightId"]) {
+                    $flightText = $ftemp["Origin"] . "-" . $ftemp["Destination"];
+                    break;
+                }
+            }
+
             $bookingData["ListTicket"][] = [
                 "TicketNumber"  => $tk["TicketNumber"] ?? "",
                 "TicketStatus"  => $tk["TicketStatus"] ?? "",
-                "ServiceType"   => $tk["ServiceType"] ?? "",
-                "ServiceCode"   => $tk["ServiceCode"] ?? "",
-                "PassengerName" => $tk["FullName"] ?? "",
-                "FareClass"     => $tk["FareClass"] ?? "",
-                "FareBasis"     => $tk["FareBasis"] ?? "",
-                "Fare"          => $tk["Fare"] ?? 0,
-                "Vat"           => $tk["Vat"] ?? 0,
-                "Tax"           => $tk["Tax"] ?? 0,
-                "Fee"           => $tk["Fee"] ?? 0,
-                "Total"         => $tk["Total"] ?? 0,
-                "StartPoint"    => $tk["StartPoint"],
-                "EndPoint"      => $tk["StartPoint"],
-                "IssueDate"     => $tk["IssueDate"] // "2025-10-03T00:00:00"
+                "ServiceType"   => $tk["TicketType"] ?? "", // FLIGHT, BAGGAGE, ANCILLARY, SEAT
+                "Description"   => $tk["FareString"] ?? "",
+                "TotalAmount"   => $tk["TotalAmount"] ?? 0,
+                "PassengerId"   => $tk["PersonOrgId"] ?? null,
+                "Flight"        => $flightText,
+                "IssueDate"     => $tk["IssueDate"] // 2025-10-07T00:00:00
             ];
         }
         

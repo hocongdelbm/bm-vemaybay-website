@@ -552,7 +552,7 @@ class APIDatacom {
             $p["ListBaggage"] = $listValueBaggage;
 
             $bookingData["ListPassenger"][] = [
-                "Id"            => $p["Index"],
+                "Id"            => (int)$p["NameId"],
                 "Type"          => strtolower($p["Type"]), // adt, chd, inf
                 "Title"         => $p["Title"] ?? "",
                 "Gender"        => $this->getGenderTypeText($p["Gender"]), // M, F
@@ -580,18 +580,11 @@ class APIDatacom {
                 "TicketNumber"  => $tk["TicketNumber"] ?? "",
                 "TicketStatus"  => $tk["TicketStatus"] ?? "",
                 "ServiceType"   => $tk["ServiceType"] ?? "",
-                "ServiceCode"   => $tk["ServiceCode"] ?? "",
-                "PassengerName" => $tk["FullName"] ?? "",
-                "FareClass"     => $tk["FareClass"] ?? "",
-                "FareBasis"     => $tk["FareBasis"] ?? "",
-                "Fare"          => $tk["Fare"] ?? 0,
-                "Vat"           => $tk["Vat"] ?? 0,
-                "Tax"           => $tk["Tax"] ?? 0,
-                "Fee"           => $tk["Fee"] ?? 0,
-                "Total"         => $tk["Total"] ?? 0,
-                "StartPoint"    => $tk["StartPoint"],
-                "EndPoint"      => $tk["StartPoint"],
-                "IssueDate"     => $tk["IssueDate"] // "2025-10-03T00:00:00"
+                "Description"   => trim(($tk["FullName"] ?? "") . " " . ($tk["Remark"] ?? "")),
+                "TotalAmount"   => $tk["Total"] ?? 0,
+                "PassengerId"   => $tk["NameId"] ?? null,
+                "Flight"        => $tk["ServiceType"] != "FLIGHT" ? $tk["StartPoint"] . "-" . $tk["EndPoint"] : "",
+                "IssueDate"     => $tk["IssueDate"] // 2025-10-08T00:00:00
             ];
         }
 
