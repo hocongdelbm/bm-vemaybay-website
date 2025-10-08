@@ -512,7 +512,7 @@ class WinInvoice {
             }
             
             return [
-                "status" => 0,
+                "error" => 1,
                 "httpCode" => $httpCode,
                 "message" => $responseArr["Message"] ?? trim("Failed to handle $path"),
                 "data" => null,

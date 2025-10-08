@@ -96,8 +96,8 @@ class Viewsignedinvoice extends SugarView
                FROM ec_hoadonban
                WHERE tinhtrang IN (1, 2)
                     AND DATE_FORMAT(DATE_ADD(ngayhoadon, INTERVAL 7 HOUR), "%Y-%m-%d")
-                         BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" 
-                         AND "' . date('Y-m-d', strtotime($to_date)) . '"
+                        BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" 
+                        AND "' . date('Y-m-d', strtotime($to_date)) . '"
                     AND deleted = 0
                ORDER BY date_entered DESC';
 
@@ -112,36 +112,33 @@ class Viewsignedinvoice extends SugarView
             }
 
             $html .= '<tr>
-                    <td align="center">
-                         <input type="checkbox" name="sochungtu_id[]" value="' . $row['name'] . '" />
-                    </td>
-                    <td class="text-center ngayhoadon">' . date('d-m-Y', strtotime($row['ngayhoadon'])) . '</td>
-                    <td class="text-center sochungtu"><a target="_blank" href="https://timchuyenbay.com/tra-cuu?invRef=' . $row['name'] . '">' . $row['name'] . '</a></td>
-                    <td class="text-center tinhtrang">' . $GLOBALS['app_list_strings']['invoice_status_list'][$row['tinhtrang']] . '</td>
-                    <td class="text-center sohoadon">' . $row['sohoadon'] . '</td>
-                    <td class="text-start name_customer">' . $contact . '</td>
-                    <td class="text-start diachi">' . $row['diachi'] . '</td>
-                    <td class="text-start mst">' . $row['masothue'] . '</td>
-                    <td class="text-center thanhtien">' . format_number($row['tongthanhtoan']) . '</td>
-                    <td class="text-center company_unit">' . $row['company_unit'] . '</td>
-               </tr>';
+                <td align="center">
+                        <input type="checkbox" name="sochungtu_id[]" value="' . $row['name'] . '" />
+                </td>
+                <td class="text-center ngayhoadon">' . date('d-m-Y', strtotime($row['ngayhoadon'])) . '</td>
+                <td class="text-center sochungtu"><a target="_blank" href="https://timchuyenbay.com/tra-cuu?invRef=' . $row['name'] . '">' . $row['name'] . '</a></td>
+                <td class="text-center tinhtrang">' . $GLOBALS['app_list_strings']['invoice_status_list'][$row['tinhtrang']] . '</td>
+                <td class="text-center sohoadon">' . $row['sohoadon'] . '</td>
+                <td class="text-start name_customer">' . $contact . '</td>
+                <td class="text-start diachi">' . $row['diachi'] . '</td>
+                <td class="text-start mst">' . $row['masothue'] . '</td>
+                <td class="text-center thanhtien">' . format_number($row['tongthanhtoan']) . '</td>
+                <td class="text-center company_unit">' . $row['company_unit'] . '</td>
+            </tr>';
 
             $total_thanhtoan += $row['tongthanhtoan'];
             $i++;
         }
-        $html .= '
-               <tr class="footer-tr">
-                    <td colspan="8"></td>
-                    <td class="invSubTotal">' . format_number($total_thanhtoan) . '</td>
-                    <td></td>
-               </tr>';
-
+        $html .= '<tr class="footer-tr">
+            <td colspan="8"></td>
+            <td class="invSubTotal">' . format_number($total_thanhtoan) . '</td>
+            <td></td>
+        </tr>';
 
         return $html;
     }
 
-    function exportExcelInvoice()
-    {
+    function exportExcelInvoice() {
         global $current_user;
         $winInv = new WinInvoice();
 
@@ -157,7 +154,10 @@ class Viewsignedinvoice extends SugarView
             $sochungtu_id = $_POST['sochungtu_id'][$i];
             $invRes = json_decode($winInv->get($sochungtu_id), true);
 
-            if (!isset($invRes['error']) || $invRes['error'] === 1) continue;
+            if (!isset($invRes['error']) || $invRes['error'] === 1) {
+                echo "<p>$sochungtu_id không có dữ liệu</p>";
+                continue;
+            }
             $invData = $invRes['data'][0] ?? [];
 
             // Ngày hạch toán
@@ -263,8 +263,7 @@ class Viewsignedinvoice extends SugarView
     }
 
 
-    public function formatCurrencyInvoice($amount)
-    {
+    public function formatCurrencyInvoice($amount) {
         $formattedNumber = number_format(floatval($amount), 0, '', '');
         return $formattedNumber;
     }
