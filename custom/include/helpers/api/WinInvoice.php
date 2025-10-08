@@ -458,7 +458,7 @@ class WinInvoice {
                 return [
                     "error" => 1,
                     "httpCode" => 500,
-                    "message" => "System error",
+                    "message" => "Lỗi hệ thống, xem chi tiết để biết thêm thông tin",
                     "data" => null,
                     "description" => "cURL failed to initialize in BM"
                 ];
@@ -482,14 +482,12 @@ class WinInvoice {
             $error = curl_error($curl);
             curl_close($curl);
 
-            
-
             if ($response === false || $errorNo) {
                 LoggerHelper::error("$method $url cURL error $errorNo: $error");
                 return [
                     "error" => 1,
                     "httpCode" => 500,
-                    "message" => "Can not connect to {$this->ENDPOINT}",
+                    "message" => "Không thể kết nối đến {$this->ENDPOINT}",
                     "data" => null,
                     "description" => "cURL error $errorNo: $error"
                 ];
@@ -506,7 +504,7 @@ class WinInvoice {
                 return [
                     "error"     => 0,
                     "httpCode"  => $httpCode,
-                    "message"   => "Success",
+                    "message"   => "Thao tác thành công",
                     "data"      => $responseArr['data'] ?? []
                 ]; 
             }
@@ -514,7 +512,7 @@ class WinInvoice {
             return [
                 "error" => 1,
                 "httpCode" => $httpCode,
-                "message" => $responseArr["Message"] ?? trim("Failed to handle $path"),
+                "message" => $responseArr["errorMessage"] ?? trim("Thao tác chưa thành công $path"),
                 "data" => null,
                 "description" => $responseArr
             ]; 
@@ -525,8 +523,9 @@ class WinInvoice {
             return [
                 "error" => 1,
                 "httpCode" => 500,
-                "message" => $message,
-                "data" => null
+                "message" => "Thao tác lỗi, xem chi tiết để biết thêm thông tin",
+                "data" => null,
+                "description" => $message
             ];
         }
         finally {
