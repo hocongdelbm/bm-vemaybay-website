@@ -1,7 +1,5 @@
 <?php
 
-use PhpParser\Node\Expr\Empty_;
-
 class EC_HoaDonBan extends Basic {
 	public $new_schema 	= true;
 	public $module_dir 	= 'EC_HoaDonBan';

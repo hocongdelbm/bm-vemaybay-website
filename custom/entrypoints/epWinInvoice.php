@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Update status
             if (isset($arr['error']) && $arr['error'] == 0) {
                 sleep(15); // Pending to get invoice number
-                $json2 = $winInv->get($invoice_data['invRef']);
+                $json2 = $winInv->get($invRef);
                 $arr2  = json_decode($json2, true);
                 $sohoadon = $arr2['data'][0]['invNumber'] ?? '';
 
