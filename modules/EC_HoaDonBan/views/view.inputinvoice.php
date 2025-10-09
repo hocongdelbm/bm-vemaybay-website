@@ -80,10 +80,10 @@ class Viewinputinvoice extends SugarView {
 
         $smarty->assign('SUPPLIER_OPTION', get_select_options_with_id($app_list_strings['supplier_invoice_list'], $_REQUEST['supplier'] ?? ''));
         $smarty->assign('COMPANY_UNIT_OPTION', get_select_options_with_id($app_list_strings['company_unit_invoice_list'], $_REQUEST['company_unit'] ?? ''));
-        $smarty->assign('MISSING_BK', get_select_options_with_id(array(0 => 'Tất cả', 1 => 'Có'), $_REQUEST['missing_bk'] ?? ''));
-        $smarty->assign('MISSING_QTY', get_select_options_with_id(array(0 => 'Tất cả', 1 => 'Có'), $_REQUEST['missing_qty'] ?? ''));
-        $smarty->assign('STOCK_STT', get_select_options_with_id(array(0 => 'Tất cả', 1 => 'Còn', 2 => 'Hết'), $_REQUEST['stock_stt'] ?? ''));
-        $smarty->assign('OVER_QTY', get_select_options_with_id(array(0 => 'Tất cả', 1 => 'Có'), $_REQUEST['over_qty'] ?? ''));
+        $smarty->assign('MISSING_BK', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['missing_bk'] ?? 0)));
+        $smarty->assign('MISSING_QTY', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['missing_qty'] ?? 0)));
+        $smarty->assign('STOCK_STT', get_select_options_with_id([0 => 'Tất cả', 1 => 'Còn', 2 => 'Hết'], (int)($_REQUEST['stock_stt'] ?? 0)));
+        $smarty->assign('OVER_QTY', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['over_qty'] ?? 0)));
         $smarty->display('modules/EC_HoaDonBan/tpls/inputinvoice.tpl');
     }
 
@@ -280,10 +280,6 @@ class Viewinputinvoice extends SugarView {
                 COUNT(id) AS row_num
             FROM ec_input_invoices 
             WHERE deleted = 0 ' . $sql_search;
-
-        // if($current_user->user_name == 'hungnh'){
-        // 	pr($sql);
-        // };
 
         $res = $this->bean->db->query($sql);
         $row = $this->bean->db->fetchByAssoc($res);
@@ -508,10 +504,14 @@ class Viewinputinvoice extends SugarView {
         return $html;
     }
 
-    function populateSearchCondition($request_fields)
-    {
+    function populateSearchCondition($request_fields) {
         $sql_search = '';
         if (!isset($request_fields['denied'])) {
+            $missing_qty = (int)($request_fields['missing_qty'] ?? 0);
+            $missing_bk = (int)($request_fields['missing_bk'] ?? 0);
+            $over_qty = (int)($request_fields['over_qty'] ?? 0);
+            $stock_stt = (int)($request_fields['stock_stt'] ?? 0);
+           
             if (!isset($request_fields['preview'])) {
                 // Từ ngày
                 if (isset($request_fields['from_date']) && !empty($request_fields['from_date'])) {
@@ -538,29 +538,29 @@ class Viewinputinvoice extends SugarView {
                 }
 
                 // Số vé thiếu sl
-                if (isset($request_fields['missing_qty']) && $request_fields['missing_qty'] == 1) {
+                if ($missing_qty == 1) {
                     $sql_search .= ' AND (qty IS NULL OR qty = "" OR qty = 0)';
-                } else if ($request_fields['missing_bk'] == 2) {
+                } else if ($missing_bk == 2) {
                     $sql_search .= ' AND qty > 0';
                 }
 
                 // Số vé bị xuất dư sl
-                if (isset($request_fields['over_qty']) && $request_fields['over_qty'] == 1) {
+                if ($over_qty == 1) {
                     $sql_search .= ' AND (qty - (
                         SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
                         WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
                     )) < 0';
                 }
 
-                // Tình trạng tồn
-                if (isset($request_fields['stock_stt']) && $request_fields['stock_stt'] == 1) {
-                    // Còn tồn
+                // Tình trạng còn tồn
+                if ($stock_stt == 1) {
                     $sql_search .= ' AND (qty - (
                         SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
                         WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
                     )) > 0';
-                } else if (isset($request_fields['stock_stt']) && $request_fields['stock_stt'] == 2) {
-                    // Hết tồn
+                }
+                // Tình trạng hết tồn
+                else if ($stock_stt == 2) {
                     $sql_search .= ' AND (qty - (
                         SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
                         WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
@@ -612,12 +612,13 @@ class Viewinputinvoice extends SugarView {
             } else $sql_search .= ' AND status = "1"';
 
             // Số vé không có booking
-            if (isset($request_fields['missing_bk']) && $request_fields['missing_bk'] == 1) {
+            if ($missing_bk == 1) {
                 $sql_search .= ' AND (booking_id IS NULL OR booking_id = "")';
-            } else if ($request_fields['missing_bk'] == 2) {
+            } else if ($missing_bk == 2) {
                 $sql_search .= ' AND (booking_id IS NOT NULL OR booking_id <> "")';
             }
-        } else {
+        }
+        else {
             $sql_search .= ' AND status = "1"';
         }
 

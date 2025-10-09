@@ -2,7 +2,6 @@
 
 <div class="box-section">
     <div id="import_invoice">
-
         <ul class="nav nav-tabs admin_tabs-list input-invoice-tabs" id="input-invoice-tabs" role="tablist">
             <li class="admin_tabs-item" role="presentation">
                 <a class="active" id="search-tab" data-bs-toggle="tab" data-bs-target="#search-tab-pane" type="button" role="tab" aria-controls="search-tab-pane" aria-selected="true">Tìm kiếm</a>
