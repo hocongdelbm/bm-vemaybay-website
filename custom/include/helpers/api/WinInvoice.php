@@ -149,9 +149,9 @@ class WinInvoice {
 
         $arrInv = json_decode($this->get($invRef), true);
         if(isset($arrInv['error']) && $arrInv['error'] == 0) {
-            $dataInv = $arrInv['data'][0] ?? [];
+            $requestBody = $arrInv['data'][0] ?? [];
 
-            if(empty($dataInv)) {
+            if(empty($requestBody)) {
                 return json_encode([
                     "error" => 1,
                     "httpCode" => 400,
@@ -160,55 +160,18 @@ class WinInvoice {
                 ]);
             }
 
-            $requestBody = [];
-            /******  1. THÔNG TIN HÓA ĐƠN  ******/
-            $requestBody['invName']    = $dataInv['invName'];
-            $requestBody['invSerial']  = $dataInv['invSerial'];
-            $requestBody['invDate']    = $dataInv['invDate'];
-            $requestBody['invRef']     = $dataInv['invRef'];
-            $requestBody['invRefDate'] = $dataInv['invRefDate'];
-            $requestBody['invSubTotal']    = $dataInv['invSubTotal'];
-            $requestBody['invVatRate']     = $dataInv['invVatRate'];
-            $requestBody['invVatAmount']   = $dataInv['invVatAmount'];
-            $requestBody['invTotalAmount'] = $dataInv['invTotalAmount'];
-            // Tiền tệ (Optional)
-            $requestBody['invPayment']      = $dataInv['invPayment'];
-            $requestBody['invCurrency']     = $dataInv['invCurrency'];
-            $requestBody['invExchangeRate'] = $dataInv['invExchangeRate'];
-            // Chiết khấu (Optional)
-            $requestBody['invDscnAmnt'] = $dataInv['invDscnAmnt'];
-            $requestBody['note'] = $dataInv['note'];
-            // Thông tin khác (Optional)
             $requestBody['invAutoSign'] = '1'; // KÝ TỰ ĐỘNG
-            $requestBody['invCustomer'] = $dataInv['invCustomer'];
 
-            /******  2. THÔNG TIN KHÁCH HÀNG  ******/
-            $requestBody['buyerName']      = html_entity_decode($dataInv['buyerName']);
-            $requestBody['buyerCompany']   = html_entity_decode($dataInv['buyerCompany']);
-            $requestBody['buyerEmail']     = $dataInv['buyerEmail'];
-            // Optional
-            $requestBody['buyerCode']      = $dataInv['buyerCode'];
-            $requestBody['buyerTax']       = $dataInv['buyerTax'];
-            $requestBody['buyerAddress']   = html_entity_decode($dataInv['buyerAddress']);
-            $requestBody['buyerAcc']       = $dataInv['buyerAcc'];
-            $requestBody['buyerBank']      = html_entity_decode($dataInv['buyerBank']);
-            $requestBody['buyerPhone']     = $dataInv['buyerPhone'];
-            $requestBody['buyerFax']       = $dataInv['buyerFax'];
-
-            /******  3. THÔNG TIN SẢN PHẨM/DỊCH VỤ  ******/
-            $requestBody['items'] = $dataInv['items'];
-
-            /******  4. KIỂM TRA DỮ LIỆU  ******/
             if (empty($requestBody['items'])) {
                 return json_encode([
                     "error" => 1,
                     "httpCode" => 400,
                     "message" => "Sản phảm/Dịch vụ không hợp lệ",
-                    "data" => $dataInv
+                    "data" => null,
+                    "description" => $requestBody,
                 ]);
             }
-
-            /******  5. CALL API  ******/
+            
             $path = "invoice/add_type_2";
             $res = $this->sendRequest('POST', $path, json_encode($requestBody, JSON_UNESCAPED_UNICODE), $this->header()); // Array
             return json_encode($res);
