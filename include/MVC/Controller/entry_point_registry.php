@@ -80,8 +80,6 @@ $entry_point_registry = array(
     'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),
     'entryPointZaloAuthCallback'    => array('file' => 'custom/entrypoints/epZaloAuthCallback.php', 'auth' => false),
 	'entryPointZaloWebhook'         => array('file' => 'custom/entrypoints/epZaloWebhook.php', 'auth' => false),
-	'entryPointAddressHandling'     => array('file' => 'custom/entrypoints/epAddressHandling.php', 'auth' => true),
-	'entryPointUpdateFareSystem'    => array('file' => 'custom/entrypoints/epUpdateFareSystem.php', 'auth' => true),
     // Voucher
     'entryPointVoucher' => array('file' => 'custom/entrypoints/epVoucher.php', 'auth' => true),
 
