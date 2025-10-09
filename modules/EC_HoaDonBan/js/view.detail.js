@@ -61,6 +61,7 @@ $(document).ready(function () {
 		let invID = $('input[name="invID"]').val();
 		let invoice_data = {}; 
 		invoice_data.invRef 		= $('input[name="invRef"]').val();
+		invoice_data.invSerial 		= $('input[name="invSerial"]').val();
 		invoice_data.invDate 		= $('input[name="invDate"]').val();
 		invoice_data.invRefDate 	= $('input[name="invRefDate"]').val();
 		invoice_data.invSubTotal 	= $('input[name="invSubTotal"]').val();
@@ -77,6 +78,8 @@ $(document).ready(function () {
 		buyer_data.buyerAddress = $('input[name="buyerAddress"]').val();
 		buyer_data.buyerBank 	= $('input[name="buyerBank"]').val();
 		buyer_data.buyerAcc 	= $('input[name="buyerAcc"]').val();
+		buyer_data.buyerCitizenIDNumber = $('input[name="buyerCitizenIDNumber"]').val();
+		buyer_data.buyerPassportNumber 	= $('input[name="buyerPassportNumber"]').val();
 
 		let item_data = {};
 		item_data.itemCode 			= $("input[name='itemCode[]']").map(function(){return $(this).val();}).get();
@@ -90,23 +93,23 @@ $(document).ready(function () {
 
 		// Validate
 		if(invID.length == 0) {
-			alert("Không tìm thấy ID hóa đơn");
+			showModalNotify("warning", "Không tìm thấy ID hóa đơn");
 			return 0;
 		}
 		if(invoice_data.invRef.length == 0) {
-			alert("Không tìm thấy số chứng từ");
+			showModalNotify("warning", "Không tìm thấy số chứng từ");
 			return 0;
 		}
 		if(invoice_data.invTotalAmount < 1 || invoice_data.invSubTotal < 1) {
-			alert("Số tiền không hợp lệ");
+			showModalNotify("warning", "Số tiền không hợp lệ");
 			return 0;
 		}
 		if(buyer_data.buyerName.length == 0 && buyer_data.buyerCompany.length == 0) {
-			alert("Vui lòng bổ sung Tên khách hàng hoặc Tên công ty");
+			showModalNotify("warning", "Vui lòng bổ sung Tên khách hàng hoặc Tên công ty");
 			return 0;
 		}
 		if(item_data.itemName.length < 1) {
-			alert("Không tìm thấy Sản phẩm/Dịch vụ");
+			showModalNotify("warning", "Không tìm thấy Sản phẩm/Dịch vụ");
 			return 0;
 		}
 
@@ -115,28 +118,30 @@ $(document).ready(function () {
 		$.ajax({
 			url: "index.php?entryPoint=entryPointWinInvoice",
 			data: {
-				type			: 1,
-				invoice_id		: invID,
-				invoice_data 	: JSON.stringify(invoice_data),
-				buyer_data		: JSON.stringify(buyer_data),
-				item_data 		: JSON.stringify(item_data)
+				type : 1,
+				invoice_id : invID,
+				invoice_data : JSON.stringify(invoice_data),
+				buyer_data : JSON.stringify(buyer_data),
+				item_data : JSON.stringify(item_data)
 			},
 			type: "POST",
 			cache: false,
 			success: function (response) {
 				$('.container-waiting').hide();
 				let res = JSON.parse(response);
-
 				if(res.error == 0) {
-					showModalNotify(1, res['message']);
+					showModalNotify(1, res.message ?? "Thao tác thành công");
 					countdownAndReload(3);
 				}
-				else showModalNotify(0, res['message'], format_html_data_error(JSON.stringify(res['description'])));
+				else {
+					let description = 'description' in res ? format_html_data_error(res.description) : '';
+					showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
 
-                let text_modal_error = 'ERROR ('+errorThrown+'): Vui lòng liên hệ bộ phận IT.';
+                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
                 showModalNotify(0, text_modal_error)
 
                 console.error(XMLHttpRequest);
@@ -150,42 +155,48 @@ $(document).ready(function () {
 	$('#btn-confirm-remove-invoice').click(function(){
 		let invID = $("input[name='record']").val();
 		let invRef = $(this).attr('data');
+		let invcSign = $(this).attr('data-invc-sign');
 
 		// Validate
 		if(invID.length == 0) {
-			alert("Không tìm thấy ID hóa đơn");
+			showModalNotify("warning", "Không tìm thấy ID hóa đơn");
 			return 0;
 		}
 		if(invRef.length == 0) {
-			alert("Không tìm thấy số chứng từ");
+			showModalNotify("warning", "Không tìm thấy số chứng từ");
 			return 0;
 		}
 
-		closeDialog('dialog-remove-invoice');
-		$('.container-waiting').show();
 		$.ajax({
 			url: "index.php?entryPoint=entryPointWinInvoice",
 			data: {
-				type : 0,
-				invoice_id : invID,
-				invRef : invRef
+				type: 0,
+				invoice_id: invID,
+				invRef: invRef
 			},
 			type: "POST",
 			cache: false,
+			beforeSend: function() {
+				closeDialog('dialog-remove-invoice');
+				$('.container-waiting').show();
+			},
 			success: function (response) {
 				$('.container-waiting').hide();
 				let res = JSON.parse(response);
 
 				if(res.error == 0) {
-					showModalNotify(1, res['message']);
+					showModalNotify(1, res.message ?? "Thao tác thành công");
 					countdownAndReload(3);
 				}
-				else showModalNotify(0, res['message'], format_html_data_error(JSON.stringify(res['description'])));
+				else {
+					let description = 'description' in res ? format_html_data_error(res.description) : ''; 
+					showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
 
-                let text_modal_error = 'ERROR ('+errorThrown+'): Vui lòng liên hệ bộ phận IT.';
+                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
                 showModalNotify(0, text_modal_error)
 
                 console.error(XMLHttpRequest);
@@ -202,16 +213,14 @@ $(document).ready(function () {
 
 		// Validate
 		if(invID.length == 0) {
-			alert("Không tìm thấy ID hóa đơn");
-			return 0;
+			showModalNotify("warning", "Không tìm thấy ID hóa đơn");
+			return;
 		}
 		if(invRef.length == 0) {
-			alert("Không tìm thấy số chứng từ");
-			return 0;
+			showModalNotify("warning", "Không tìm thấy số chứng từ");
+			return;
 		}
 
-		closeDialog('dialog-sign-invoice');
-		$('.container-waiting').show();
 		$.ajax({
 			url: "index.php?entryPoint=entryPointWinInvoice",
 			data: {
@@ -221,20 +230,27 @@ $(document).ready(function () {
 			},
 			type: "POST",
 			cache: false,
+			beforeSend: function() {
+				closeDialog('dialog-sign-invoice');
+				$('.container-waiting').show();
+			},
 			success: function (response) {
 				$('.container-waiting').hide();
 				let res = JSON.parse(response);
 
 				if(res.error == 0) {
-					showModalNotify(1, res['message']);
+					showModalNotify(1, res.message ?? 'Thao tác thành công');
 					countdownAndReload(3);
 				}
-				else showModalNotify(0, res['message'], format_html_data_error(JSON.stringify(res['description'])));
+				else {
+					let description = 'description' in res ? format_html_data_error(res.description) : ''; 
+					showModalNotify(0, res.message ?? 'Đã xảy ra lỗi', description);
+				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
 
-                let text_modal_error = 'ERROR ('+errorThrown+'): Vui lòng liên hệ bộ phận IT.';
+                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
                 showModalNotify(0, text_modal_error)
 
                 console.error(XMLHttpRequest);
@@ -258,11 +274,10 @@ $(document).ready(function () {
 	});
 })
 
-function format_html_data_error(json) {
-	let obj = JSON.parse(json);
-
-	let html = '';
-	$.each(obj, function(key, val) {             
+function format_html_data_error(objError) {
+	if(!objError) return '';
+	if(typeof objError === 'string') return objError;
+	$.each(objError, function(key, val) {             
 		html += `<p style="font-size:13px; color:#000"><b>${key} : </b>${val}</p>`;         
 	});
 	return html; 

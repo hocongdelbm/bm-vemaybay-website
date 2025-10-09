@@ -133,6 +133,9 @@ class Viewrequestinvoice extends SugarView {
             $inv_email = $inv_arr['iv_email'] ?? '';
             $inv_email_html = !empty($inv_email) ? $this->renderItem('Email', $inv_email) : '';
             if(strpos($inv_email, '@') === false) $inv_email = '';
+            // CCCD/Passport
+            $inv_identity_number = $inv_arr['iv_identity_number'] ?? '';
+            $inv_identity_number_html = !empty($inv_identity_number) ? $this->renderItem('CCCD/Passport', $inv_identity_number) : '';
             // Địa chỉ
             // $inv_address = mb_convert_case(mb_strtolower($row['company_address'], 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
             // $inv_address = str_replace("Cccd", "CCCD", $inv_address);
@@ -263,6 +266,7 @@ class Viewrequestinvoice extends SugarView {
                         <input type="hidden" name="masothue" value="'. $inv_tax_code .'">
                         <input type="hidden" name="diachi" value="'. $inv_address .'">
                         <input type="hidden" name="email" value="'. $inv_email .'">
+                        <input type="hidden" name="identity_number" value="'. $inv_identity_number .'">
                         <input type="hidden" name="hinhthuctt" value="'. $payment_method .'">
                         <input type="hidden" name="sotaikhoan" value="' . $inv_bank_account .'">
                         <input type="hidden" name="booking" value="'. $row['booking_name'] .'">
@@ -276,6 +280,7 @@ class Viewrequestinvoice extends SugarView {
                     '. $inv_account_name_html .'
                     '. $inv_company_name_html .'
                     '. $inv_email_html .'
+                    '. $inv_identity_number_html .'
                     '. $inv_address_html .'
                 </td>
                 <td>'. $out_invoice_html .'</td>

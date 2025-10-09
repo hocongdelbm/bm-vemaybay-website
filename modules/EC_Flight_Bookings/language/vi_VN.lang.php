@@ -258,6 +258,7 @@ $mod_strings = array(
 
   'LBL_IV_ACCOUNT_NAME' => 'Họ tên KH',
   'LBL_IV_EMAIL' => 'Email',
+  'LBL_IV_IDENTITY_NUMBER' => 'CCCD/Hộ chiếu',
   'LBL_IV_BANK_ACCOUNT' => 'Số tài khoản',
   'LBL_IV_PAYMENT_METHOD' => 'Phương thức TT',
   'LBL_IV_NAME_BANKS' => 'Tên ngân hàng',

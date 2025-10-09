@@ -1,7 +1,7 @@
 <?php
 if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
-require_once('modules/EC_HoaDonBan/WinInvoice.php');
+require_once('custom/include/helpers/api/WinInvoice.php');
 
 class EC_HoaDonBanViewDetail extends ViewDetail {
 	function display() {
@@ -10,16 +10,17 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
 		if($this->bean->tinhtrang == '2' && empty($this->bean->sohoadon)) {
-			$Inv  = new WinInvoice();
-			$json = $Inv->get($this->bean->name);
+			$winInv = new WinInvoice();
+			$json = $winInv->get($this->bean->name);
 
 			if(!is_null($json) && !empty($json)) {
 				$arr = json_decode($json, true);
 				$hoadonban = new EC_HoaDonBan();
 				$hoadonban->retrieve($this->bean->id);
 				if(isset($arr['data'][0]['invNumber']) && $arr['data'][0]['invNumber'] != "0000000") {
-					$hoadonban->sohoadon  = $arr['data'][0]['invNumber'];
+					$hoadonban->sohoadon   = $arr['data'][0]['invNumber'];
 					$hoadonban->ngayhoadon = $arr['data'][0]['invDate'];
+					$hoadonban->kyhieuhd   = $arr['data'][0]['invSerial'];
 				}
 				$hoadonban->is_signed = isset($arr['data'][0]['invIsSigned']) ? $arr['data'][0]['invIsSigned'] : 0;
 				$hoadonban->invoice_data = $json;
@@ -27,30 +28,42 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			}
         }
 		parent::display();
+		$this->js();
 	}
 
 	public function css() {
-		$css = '';
-		$css .= '<link type="text/css" rel="stylesheet" href="./modules/EC_HoaDonBan/css/view.detail.css">';
+		$css = '<link type="text/css" rel="stylesheet" href="modules/EC_HoaDonBan/css/view.detail.css?v=1.0.0">';
 		echo $css;
+	}
+
+	public function js() {
+		$js = '<script src="modules/EC_HoaDonBan/js/view.detail.js?v=1.0.0"></script>';
+		echo $js;
 	}
 	
 	public function populateLineItems() {
-
 		if($this->bean->company_unit == 'MHV') {
 			$custom_sohoadon = '<span>'.(int)$this->bean->sohoadon.'</span>';
 		} else {
 			$custom_sohoadon = '<span>'.$this->bean->sohoadon.'</span>';
 		}
-		
-		if($this->bean->is_signed == 1) 
+		if($this->bean->is_signed == 1) {
 			$custom_sohoadon .= '<span class="text-success fw-semibold" style="float:right;">
 				<svg width="18px" height="18px" stroke-width="1.75" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" style="padding-bottom:2px;">
 					<path d="M7 12.5L10 15.5L17 8.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path>
 				</svg>
 				Đã ký số
 			</span>';
+		}
 		$this->ss->assign('CUSTOM_SOHOADON', $custom_sohoadon);
+
+		// CCCD/Passport
+		$id_number = $this->bean->citizen_id ?? '';
+		if($this->bean->passport_number && !empty($this->bean->passport_number)) {
+			if(!empty($id_number)) $id_number .= " - {$this->bean->passport_number}";
+			else $id_number .= $this->bean->passport_number;
+		}
+		$this->ss->assign('CUSTOM_ID_NUMBER', '<span class="sugar_field" id="identity_number">'.$id_number.'</span>');
 
 		$html = '<div>
 			<table class="table-details__booking" cellpadding="0" cellspacing="0" border="0">';
@@ -279,7 +292,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	}
 
 	public function populateCustomButtons($array_item_invoice) {
-		global $current_user;
+		// global $current_user;
 		/**
 		 * 0 : Mới tạo
 		 * 1 : Đã ghi (Ghi trên hệ thống Invoice nhưng chưa ký số)
@@ -287,7 +300,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		 * -1 : Hủy (Có thể đã ký hoặc chưa ký)
 		 */
 
-		//  MINH HỒNG VÕ
+		// MINH HỒNG VÕ
 		if($this->bean->company_unit == 'MHV') {
 			// Ghi/Cập nhật hóa đơn
 			if($this->bean->tinhtrang == '0' || $this->bean->tinhtrang == '1') {
@@ -327,6 +340,8 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				}
 
 				$arr_ngayhoadon = explode('-', $this->bean->ngayhoadon);
+				$identity_number = $this->bean->citizen_id ?? '';
+				if(empty($identity_number)) $identity_number = $this->bean->passport_number ?? '';
 				$create_invoice_button = '
 					<button type="button" name="btnCreateInvoice" id="btnCreateInvoice" class="btn btn-warning" onclick="showDialog(\'dialog-create-invoice\')">'.$text_button.'</button>
 					<dialog id="dialog-create-invoice" class="dialog-create-invoice">
@@ -340,6 +355,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 								<div class="card-body">
 									<p>Loại khách hàng <i>(Customer type)</i>: <b>'.($this->bean->loaikh == '1' ? 'Cá nhân' : 'Công ty/Tổ chức').'</b></p>
 									<p>Họ tên người mua hàng <i>(Buyer)</i>: <b>'.$this->bean->lienhe.'</b></p>
+									<p>Căn cước công dân <i>(ID)</i>: <b>'.$identity_number.'</b></p>
 									<p>Tên đơn vị <i>(Company\'s name)</i>: <b>'.$this->bean->tencongty.'</b></p>
 									<p>Mã số thuế <i>(Tax code)</i>: <b>'.$this->bean->masothue.'</b></p>
 									<p>Địa chỉ <i>(Address)</i>: <b>'.$this->bean->diachi.'</b></p>
@@ -394,6 +410,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 								<input type="button" class="btn btn-secondary" name="btn-cancel-create-invoice" value="Hủy" title="Hủy" onclick="closeDialog(\'dialog-create-invoice\')" />
 								<input type="hidden" name="invID" value="'.$this->bean->id.'" />
 								<input type="hidden" name="invRef" value="'.$this->bean->name.'" />
+								<input type="hidden" name="invSerial" value="'.$this->bean->kyhieuhd.'" />
 								<input type="hidden" name="invDate" value="'.$this->bean->ngayhoadon.'" />
 								<input type="hidden" name="invRefDate" value="'.$this->bean->ngayhoadon.'" />
 								<input type="hidden" name="invPayment" value="'.$this->bean->hinhthuctt.'" />
@@ -404,6 +421,8 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 								<input type="hidden" name="buyerEmail" value="'.$this->bean->email.'" />
 								<input type="hidden" name="buyerTax" value="'.$this->bean->masothue.'" />
 								<input type="hidden" name="buyerAddress" value="'.$this->bean->diachi.'" />
+								<input type="hidden" name="buyerCitizenIDNumber" value="'.($this->bean->citizen_id ?? '').'" />
+								<input type="hidden" name="buyerPassportNumber" value="'.($this->bean->passport_number ?? '').'" />
 								'.$input.'
 								<input type="hidden" name="invSubTotal" value="'.$array_item_invoice['invSubTotal'].'" />
 								<input type="hidden" name="invVatAmount" value="'.$array_item_invoice['invVatAmount'].'" />
@@ -417,7 +436,6 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 			// Bỏ ghi (Xóa hóa đơn nháp)
 			if($this->bean->tinhtrang == '1') {
-				$Inv = new WinInvoice();
 				$remove_invoice_button = '
 					<button type="button" name="btnRemoveInvoice" id="btnRemoveInvoice" class="btn btn-warning" onclick="showDialog(\'dialog-remove-invoice\')">Bỏ ghi sổ</button>
 					<dialog id="dialog-remove-invoice" class="dialog-remove-invoice pt-3 pb-3 ps-4 pe-4">
@@ -435,10 +453,14 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 			// Ký số hóa đơn
 			if($this->bean->tinhtrang == '1') {
-				$Inv = new WinInvoice();
-				// $view_invoice_button = '<a class="btn btn-secondary" href="'.$Inv->get_link(['invRef' => $this->bean->name]).'" target="_blank">Xem hóa đơn</a>';
-				$view_invoice_button = '<a class="btn btn-secondary" href="https://timchuyenbay.com/tra-cuu?invRef='.$this->bean->name.'" target="_blank">Xem hóa đơn</a>';
+				$winInv = new WinInvoice();
+				$resLink = $winInv->get_link([
+					'invRef' => $this->bean->name,
+					'invSerial' => (!$this->bean->kyhieuhd || empty($this->bean->kyhieuhd)) ? $this->bean->genInvSerial() : $this->bean->kyhieuhd
+				]);
+				$arrLink = json_decode($resLink, true);
 
+				$view_invoice_button = '<a class="btn btn-secondary" href="https://timchuyenbay.com/tra-cuu?invRef='.$this->bean->name.'" target="_blank">Xem hóa đơn</a>';
 				$sign_invoice_button = '
 					<button type="button" name="btnSignInvoice" id="btnSignInvoice" class="btn btn-success" onclick="showDialog(\'dialog-sign-invoice\')">Ký hóa đơn</button>
 					<dialog id="dialog-sign-invoice" class="dialog-sign-invoice pt-3 pb-3 ps-4 pe-4">
@@ -446,7 +468,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 							<h5>Tiến hành ký số hóa đơn <b>'.$this->bean->name.'</b></h4> 
 							<p style="font-size:14px; color:red;">
 								Vui lòng kiểm tra kỹ lại thông tin 
-								<a href="'.$Inv->get_link(['invRef' => $this->bean->name]).'" style="text-decoration:underline; " target="_blank">xem tại đây</a>
+								<a href="'. ($arrLink['data']['link'] ?? '#') .'" style="text-decoration:underline; " target="_blank">xem tại đây</a>
 								trước khi thực hiện
 							</p>
 							<div class="d-flex gap-2 justify-content-end mt-3">
@@ -461,14 +483,12 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 			// Xem hóa đơn
 			if($this->bean->tinhtrang == '1' || $this->bean->tinhtrang == '2') {
-				$Inv = new WinInvoice();
-				// $view_invoice_button = '<a class="btn btn-secondary" href="'.$Inv->get_link(['invRef' => $this->bean->name]).'" target="_blank">Xem hóa đơn</a>';
 				$view_invoice_button = '<a class="btn btn-secondary" href="https://timchuyenbay.com/tra-cuu?invRef='.$this->bean->name.'" target="_blank">Xem hóa đơn</a>';
 				$this->ss->assign('VIEW', $view_invoice_button);
 			}
 		}
 
-		// CHUYỂN TRẠNG THÁI ĐÃ KÝ
+		// Chuyển trạng thái Đã ký
 		$sign_tp = '';
 		if($this->bean->tinhtrang == '0' || $this->bean->tinhtrang == '1') {
 			$sign_tp .= '</form>
@@ -517,7 +537,6 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			</form>';
 			$this->ss->assign('HUYHOADON', $cancel_invoice_button);
 		}
-
 	}
 	
 	public function getItemName($code) {
@@ -529,7 +548,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			'PMG' => 'Phí mua ghế',
 			'PK' => 'Phí khác'
 		];
-		return $arr[$code];
+		return $arr[$code] ?? '';
 	}
 
 	/** 

@@ -33,10 +33,19 @@ $listViewDefs[$module_name] = array(
         'width' => '10%',
         'default' => true,
     ),
+    'LOAIKH' => array(
+        'label' => 'LBL_LOAIKH',
+        'width' => '12%',
+        'default' => true,
+        // 'type' => 'int',
+    ),
     'TENCONGTY' => array(
         'label' => 'LBL_TENCONGTY_KH',
         'width' => '12%',
         'default' => true,
+        'related_fields' => array(
+			'lienhe',
+		),
     ),
     'TINHTRANG' => array(
         'label' => 'LBL_TINHTRANG',
@@ -50,12 +59,12 @@ $listViewDefs[$module_name] = array(
         'width' => '10%',
         'default' => true,
     ),
-    'CREATED_BY_NAME' => array(
-        'type' => 'varchar',
-        'label' => 'LBL_CREATED',
-        'width' => '10%',
-        'default' => true,
-    ),
+    // 'CREATED_BY_NAME' => array(
+    //     'type' => 'varchar',
+    //     'label' => 'LBL_CREATED',
+    //     'width' => '10%',
+    //     'default' => true,
+    // ),
     'DATE_ENTERED' => array(
         'type' => 'datetime',
         'label' => 'LBL_DATE_ENTERED',

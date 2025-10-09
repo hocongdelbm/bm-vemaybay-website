@@ -14,14 +14,14 @@ try {
         $api_key = $headers['Api-Key'] ?? '';
         $ip = get_ip_address_from_client();
 
-        if(!in_array($ip, $sugar_config['ip_whitelist'] ?? [])) {
-            http_response_code(403);
-            echo json_encode([
-                "status" => 0,
-                "message" => "Access denied"
-            ]);
-            exit();
-        }
+        // if(!in_array($ip, $sugar_config['ip_whitelist'] ?? [])) {
+        //     http_response_code(403);
+        //     echo json_encode([
+        //         "status" => 0,
+        //         "message" => "Access denied"
+        //     ]);
+        //     exit();
+        // }
 
         // Get data
         $params = $_GET;

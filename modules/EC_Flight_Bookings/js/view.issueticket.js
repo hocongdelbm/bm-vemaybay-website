@@ -187,6 +187,8 @@ $(document).ready(function () {
 
     // Cancel booking button click handler
     $('#cancelBookingButton').on('click', function () {
+        showModalNotify("warning", "Tính năng đang được cập nhật");
+        return;
         const entryClass    = $('input[name="entryClass"]').val();
         const bookingCode   = $('input[name="bookingCode"]').val();
         const systemCode    = $('input[name="systemCode"]').val();
@@ -211,20 +213,62 @@ $(document).ready(function () {
                     $('.container-waiting').show();
                 },
                 success: function (response) {
+                    $('.container-waiting').hide();
                     if (response.status) {
-                        $('#btnSearch').trigger('click');
+                        clearBooking();
                         showModalNotify("success", `Đặt chỗ ${bookingCode} đã được hủy`);
                     }
                     else {
-                        $('.container-waiting').hide();
                         showModalNotify("error", response.message ?? "Hủy đặt chỗ không thành công");
-                        resetPaymentButton();
                     }
                 },
                 error: function (xhr, status, error) {
                     $('.container-waiting').hide();
                     showModalNotify("error", "Hủy đặt chỗ không thành công. Vui lòng thử lại");
-                    resetPaymentButton();
+                }
+            });
+        }
+    });
+
+    // Void ticket button click handler
+    $('#voidTicketButton').on('click', function () {
+        return;
+        const entryClass    = $('input[name="entryClass"]').val();
+        const bookingCode   = $('input[name="bookingCode"]').val();
+        const systemCode    = $('input[name="systemCode"]').val();
+        const airlineCode   = $('input[name="airlineCode"]').val();
+
+        if (confirm(`Xác nhận hủy vé ${bookingCode}`)) {
+            $.ajax({
+                url: ENTRYPOINT,
+                type: "POST",
+                contentType: "application/json",
+                dataType: 'json',
+                data: JSON.stringify({
+                    class: entryClass,
+                    method: "voidTicket",
+                    params: {
+                        bookingCode: bookingCode,
+                        systemCode: systemCode,
+                        airlineCode: airlineCode
+                    }
+                }),
+                beforeSend: function () {
+                    $('.container-waiting').show();
+                },
+                success: function (response) {
+                    $('.container-waiting').hide();
+                    if (response.status) {
+                        clearBooking();
+                        showModalNotify("success", `Vé ${bookingCode} đã bị hủy`);
+                    }
+                    else {
+                        showModalNotify("error", response.message ?? "Hủy vé không thành công");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $('.container-waiting').hide();
+                    showModalNotify("error", "Hủy vé không thành công. Vui lòng thử lại");
                 }
             });
         }
@@ -295,8 +339,8 @@ function renderBookingInfo(data) {
     // Update expiry badge
     updateExpiryBadge(data);
 
-    // Update payment section
-    updatePaymentSection(data);
+    // Update actions section
+    updateActionsSection(data);
 }
 
 function updateStatusIcons(data) {
@@ -407,12 +451,19 @@ function updateExpiryBadge(data) {
     }
 }
 
-function updatePaymentSection(data) {
+function updateActionsSection(data) {
+    const entryClass     = $('input[name="entryClass"]').val();
     const paymentSection = $('#paymentSection');
+    const voidSection    = $('#voidSection');
+    const refundSection  = $('#refundSection');
 
-    if (!["holding", "change-payment"].includes(data.BookingStatus)) {
-        // Hide payment section
+    if(data.BookingStatus == 'completed') {
         paymentSection.hide();
+        if(entryClass == 'entryAutoBookDatacomClass') voidSection.show();
+    }
+    else if (!["holding", "change-payment"].includes(data.BookingStatus)) {
+        paymentSection.hide();
+        voidSection.hide();
     }
     else if (!isBookingExpired(data.BookingStatus, data.BookingExpired)) {
         // Update payment information
@@ -435,6 +486,7 @@ function updatePaymentSection(data) {
 
         // Show payment section
         paymentSection.show();
+        voidSection.hide();
     }
 }
 
@@ -623,7 +675,9 @@ function renderFlights(flights) {
         const flightCard = `
             <div class="flight-card ${isReturn ? 'return' : ''} ${carrierClass}">
                 <div class="flight-header">
-                    <div class="flight-number ${carrierClass}">${flight.AirlineCode}${flight.FlightNumber}</div>
+                    <div class="flight-number ${carrierClass}">
+                        ${flight.FlightNumber.includes(flight.AirlineCode) ? flight.FlightNumber : flight.AirlineCode + flight.FlightNumber}
+                    </div>
                     <div class="flight-date">${formatDate(flight.DepartureDate)}</div>
                 </div>
                 
@@ -631,7 +685,7 @@ function renderFlights(flights) {
                     <div class="airport">
                         <div class="airport-code">${flight.Origin}</div>
                         <div class="airport-name">${flight.OriginCityName}</div>
-                        <div class="airport-name">Sân bay ${flight.OriginName}</div>
+                        <div class="airport-name">${flight.OriginName != '' ? `Sân bay ${flight.OriginName}` : ''}</div>
                         <div class="time">${formatTime(flight.DepartureTime)}</div>
                     </div>
                     
@@ -729,6 +783,8 @@ function clearBooking() {
     $('#paymentUnpaidAmount').text('');
     $('#payButtonAmount').text('');
     $('#paymentSection').hide();
+    $('#voidSection').hide();
+    resetPaymentButton();
 }
 
 // Utility functions
@@ -911,7 +967,7 @@ function createBaggageServiceDialog(baggageData, passengerData, systemCode, dire
             const entryClass    = $('input[name="entryClass"]').val();
             const baggageData   = decodeAutoBook(selectedRadio.value);
 
-            if(confirm(`Tiến hành thêm ${baggageData.Description}\nHành khách ${passengerName}\nTổng phí: ${formatCurrency(baggageData.TotalAmount)}`)) {
+            if(confirm(`Tiến hành thêm ${baggageData.Description || baggageData.Name}\nHành khách ${passengerName}\nTổng phí: ${formatCurrency(baggageData.TotalAmount)}`)) {
                 $.ajax({
                     url: ENTRYPOINT,
                     type: "POST",

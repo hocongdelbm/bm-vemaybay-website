@@ -1073,17 +1073,19 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 		$iv_payment_method = array('' => '', 'Tiền mặt' => 'Tiền mặt', 'Chuyển khoản' => 'Chuyển khoản', 'Tiền mặt hoặc Chuyển khoản' => 'Tiền mặt hoặc Chuyển khoản');
 
 		if (!is_null($invoice_arr) && !empty($invoice_arr)) {
-			$this->ss->assign('CUS_IV_ACCOUNT_NAME', '<input type="text" id="iv_account_name" name="iv_account_name" size="30" value="' . $invoice_arr['iv_account_name'] . '">');
-			$this->ss->assign('CUS_IV_EMAIL', '<input type="text" id="iv_email" name="iv_email" size="30" value="' . $invoice_arr['iv_email'] . '">');
+			$this->ss->assign('CUS_IV_ACCOUNT_NAME', '<input type="text" id="iv_account_name" name="iv_account_name" size="30" value="' . $invoice_arr['iv_account_name'] . '" />');
+			$this->ss->assign('CUS_IV_EMAIL', '<input type="text" id="iv_email" name="iv_email" size="30" value="' . $invoice_arr['iv_email'] . '" />');
+			$this->ss->assign('CUS_IV_IDENTITY_NUMBER', '<input type="text" id="iv_identity_number" name="iv_identity_number" size="12" value="' . ($invoice_arr['iv_identity_number'] ?? '') . '" />');
 			$this->ss->assign('CUS_IV_PAYMENT_METHOD', '<select name="iv_payment_method" class="w-100">' . get_select_options_with_id($iv_payment_method, mb_convert_encoding($invoice_arr['iv_payment_method'], 'UTF-8', 'HTML-ENTITIES')) . '</select>');
-			$this->ss->assign('CUS_IV_BANK_ACCOUNT', '<input type="text" name="iv_bank_account" size="30" value="' . $invoice_arr['iv_bank_account'] . '">');
-			$this->ss->assign('CUS_IV_NAME_BANK', '<input type="text" name="iv_name_banks" size="30" value="' . $invoice_arr['iv_name_banks'] . '">');
+			$this->ss->assign('CUS_IV_BANK_ACCOUNT', '<input type="text" name="iv_bank_account" size="30" value="' . $invoice_arr['iv_bank_account'] . '" />');
+			$this->ss->assign('CUS_IV_NAME_BANK', '<input type="text" name="iv_name_banks" size="30" value="' . $invoice_arr['iv_name_banks'] . '" />');
 		} else {
-			$this->ss->assign('CUS_IV_ACCOUNT_NAME', '<input type="text" id="iv_account_name" name="iv_account_name" size="30" value="">');
-			$this->ss->assign('CUS_IV_EMAIL', '<input type="text" id="iv_email" name="iv_email" size="30" value="">');
+			$this->ss->assign('CUS_IV_ACCOUNT_NAME', '<input type="text" id="iv_account_name" name="iv_account_name" size="30" value="" />');
+			$this->ss->assign('CUS_IV_EMAIL', '<input type="text" id="iv_email" name="iv_email" size="30" value="" />');
+			$this->ss->assign('CUS_IV_IDENTITY_NUMBER', '<input type="text" id="iv_identity_number" name="iv_identity_number" size="12" value="" />');
 			$this->ss->assign('CUS_IV_PAYMENT_METHOD', '<select name="iv_payment_method" class="w-100">' . get_select_options_with_id($iv_payment_method, '') . '</select>');
-			$this->ss->assign('CUS_IV_BANK_ACCOUNT', '<input type="text" name="iv_bank_account" size="30" value="">');
-			$this->ss->assign('CUS_IV_NAME_BANK', '<input type="text" name="iv_name_banks" size="30" value="">');
+			$this->ss->assign('CUS_IV_BANK_ACCOUNT', '<input type="text" name="iv_bank_account" size="30" value="" />');
+			$this->ss->assign('CUS_IV_NAME_BANK', '<input type="text" name="iv_name_banks" size="30" value="" />');
 		}
 	}
 }

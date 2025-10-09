@@ -273,7 +273,7 @@ class CallsViewDetail extends ViewDetail
 
 			// RECALL BUTTON
 			$btn_logcall = '';
-			if ($current_user->user_name == 'hungnh') {
+			if (is_admin($current_user)) {
 				$btn_logcall .= '<button type="button" class="btn btn-sm btn-secondary btn-log-call" data-bs-toggle="modal" data-bs-target="#logcallModal">Log</button>
 								<div class="modal fade" data-bs-backdrop="static" id="logcallModal" tabindex="-1" aria-hidden="true">
 									<div class="modal-dialog modal-lg modal-simple modal-log-call modal-dialog-centered">

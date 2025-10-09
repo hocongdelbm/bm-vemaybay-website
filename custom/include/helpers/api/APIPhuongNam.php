@@ -267,6 +267,7 @@ class APIPhuongNam {
         try {
             $curl = curl_init();
             if ($curl === false) {
+                LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} cURL failed to initialize");
                 return json_encode([
                     "status" => 0,
                     "httpCode" => 500,
@@ -275,7 +276,7 @@ class APIPhuongNam {
                     "description" => "cURL failed to initialize in BM"
                 ]);
             }
-            curl_setopt($curl, CURLOPT_URL, "$this->ENDPOINT/$path");
+            curl_setopt($curl, CURLOPT_URL, "{$this->ENDPOINT}/{$path}");
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
             if(!is_null($requestBody)) curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
@@ -294,6 +295,7 @@ class APIPhuongNam {
             curl_close($curl);
 
             if ($response === false || $errorNo) {
+                LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} cURL error $errorNo: $error");
                 return json_encode([
                     "status" => 0,
                     "httpCode" => 500,
@@ -304,6 +306,12 @@ class APIPhuongNam {
             }
 
             $responseArr = json_decode($response, true);
+
+            LoggerHelper::info("{$method} {$this->ENDPOINT}/{$path} $httpCode", [
+                'request' => is_array($requestBody) ? $requestBody : (json_decode($requestBody, true) ?? $requestBody),
+                'reponse' => $responseArr ?? $response
+            ]);
+
             if ($httpCode < 200 || $httpCode >= 300) {
                 return json_encode([
                     "status" => 0,
@@ -317,7 +325,8 @@ class APIPhuongNam {
             return $response;
         }
         catch (Throwable $th) {
-            $message = "Error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
+            $message = "Exception error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
+            LoggerHelper::error("{$method} {$this->ENDPOINT}/{$path} $message");
             return json_encode([
                 "status" => 0,
                 "httpCode" => 500,
@@ -349,7 +358,7 @@ class APIPhuongNam {
         $bookingData["BookingStatusId"] = $data["BookingStatusId"];
         $bookingData["BookingStatus"]   = $this->mappingBookingStatus($data["BookingStatusId"]);
         $bookingData["BookingDate"]     = date('Y-m-d H:i', strtotime($data["BookingDate"])); // 2025-09-27T10:30:40.167
-        $bookingData["BookingExpired"]  = date('Y-m-d H:i', strtotime($data["BookingExpired"])); // 2025-09-27T14:31:00
+        $bookingData["BookingExpired"]  = strtotime($data["BookingExpired"]) !== false ? date('Y-m-d H:i', strtotime($data["BookingExpired"])) : ''; // 2025-09-27T14:31:00
         $bookingData["TicketNumber"]    = $data["TicketNumber"];
         $bookingData["TotalAmount"]     = $data["TotalAmount"] ?? 0;
         $bookingData["PaidAmount"]      = $data["PaidAmount"] ?? 0;
@@ -453,6 +462,29 @@ class APIPhuongNam {
             ];
         }
 
+        // List ticket
+        $bookingData["ListTicket"] = [];
+        foreach (($data["Tickets"] ?? []) as $tk) {
+            $flightText = '';
+            foreach ($bookingData["ListFlight"] as $ftemp) {
+                if($ftemp["FlightId"] == $tk["FlightId"]) {
+                    $flightText = $ftemp["Origin"] . "-" . $ftemp["Destination"];
+                    break;
+                }
+            }
+
+            $bookingData["ListTicket"][] = [
+                "TicketNumber"  => $tk["TicketNumber"] ?? "",
+                "TicketStatus"  => $tk["TicketStatus"] ?? "",
+                "ServiceType"   => $tk["TicketType"] ?? "", // FLIGHT, BAGGAGE, ANCILLARY, SEAT
+                "Description"   => $tk["FareString"] ?? "",
+                "TotalAmount"   => $tk["TotalAmount"] ?? 0,
+                "PassengerId"   => $tk["PersonOrgId"] ?? null,
+                "Flight"        => $flightText,
+                "IssueDate"     => $tk["IssueDate"] // 2025-10-07T00:00:00
+            ];
+        }
+        
         return $bookingData;
     }
 

@@ -97,8 +97,7 @@ $(document).ready(function () {
                     }
                 }
                 catch (e) {
-                    showModalNotify("error", "Lỗi trong quá trình xử lý", e.message);
-                    console.error(e);
+                    handleException(e);
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -114,7 +113,7 @@ $(document).ready(function () {
     $(document).on("click", "#confirmAutoBook", async function() {
         try {
             statusAutoBook = 1;
-            var entryClass = $('input[name="entryClass"]').val();
+            const entryClass = $('input[name="entryClass"]').val();
             
             /******  STEP 1: RESEARCHING FLIGHTS INFO  ******/
             var step = 1;
@@ -380,10 +379,9 @@ $(document).ready(function () {
 
             /******  STEP 2: VERIFY & PREPARE DATA TO BOOKING  ******/
             step = 2;
+            var isWithin24h = within24h.includes('1') ? 1 : 0;
             var requestBody = {}; // Data for next step
             if(entryClass == 'entryAutoBookPhuongNamClass') {
-                var verifyResponse = {};
-                var isWithin24h = within24h.includes('1') ? 1 : 0;
                 if(statusAutoBook == 1) {
                     const timeoutShowStep2 = setTimeout(() => {
                         showStepsInDialogAutoBook(step);
@@ -446,7 +444,7 @@ $(document).ready(function () {
                             });
                         });
 
-                        verifyResponse = await $.ajax({
+                        let verifyResponse = await $.ajax({
                             url: ENTRYPOINT,
                             method: 'POST',
                             contentType: "application/json",
@@ -492,6 +490,11 @@ $(document).ready(function () {
                         showStepsInDialogAutoBook(step);
                     }, 300);
 
+                    if(!isInter && isWithin24h === 1 && airlineCodes.length > 1 && airlineCodes[0] != airlineCodes[1]) {
+                        showStepsInDialogAutoBook(step, caption, "Vé cận phải giữ chung 1 hãng");
+                        return;
+                    }
+                    
                     // Flight
                     requestBody.ListAirOption = flightData;
 
@@ -508,6 +511,11 @@ $(document).ready(function () {
                         "Remark": "",
                         "ReceiveEmail": true
                     }
+                    if(airlineCodes.includes('VJ') && requestBody.GuestContact.Address.length > 50) {
+                        showStepsInDialogAutoBook(step, caption, "Vietjet địa chỉ liên hệ tối đa 50 ký tự");
+                        return;
+                    }
+
 
                     // Passengers
                     requestBody.ListPassenger = [];
@@ -516,10 +524,16 @@ $(document).ready(function () {
                     let passDateOfBirthInputs   = document.querySelectorAll(`input[name="${PREFIX}PassengerDateOfBirth[]"]`);
                     let passParentIdInputs      = document.querySelectorAll(`select[name="${PREFIX}PassengerParentId[]"]`);
                     passIdInputs.forEach((input, index) => {
-                        let gender  = passTitleInputs[index].value == 'Ms' ? 0 : 1;
-                        let type    = passTypeInputs[index].value.toUpperCase();
-                        let parentId = parseInt(passParentIdInputs[index].value);
-                        if(type == 'INF') parentId++;
+                        let gender      = passTitleInputs[index].value == 'Ms' ? 0 : 1;
+                        let type        = passTypeInputs[index].value.toUpperCase();
+                        let firstName   = getMiddleAndFirstName(passFullnameInputs[index].value);
+                        let parentId    = parseInt(passParentIdInputs[index].value);
+                        if(type == 'INF') {
+                            parentId++;
+                            if(airlineCodes.includes('QH')) {
+                                firstName = getFirstName(passFullnameInputs[index].value);
+                            }
+                        }
 
                         requestBody.ListPassenger.push({
                             "Index"     : index + 1,
@@ -527,7 +541,7 @@ $(document).ready(function () {
                             "Type"      : type,
                             "Gender"    : gender,
                             "Surname"   : getLastName(passFullnameInputs[index].value),
-                            "GivenName" : getMiddleAndFirstName(passFullnameInputs[index].value),
+                            "GivenName" : firstName,
                             "DateOfBirth": passDateOfBirthInputs[index].value.replace(/-/g, '')
                         });
                     });
@@ -607,9 +621,8 @@ $(document).ready(function () {
             }
         }
         catch (e) {
-            console.error(e);
             hideDialogAutoBook();
-            showModalNotify(0, 'Lỗi trong quá trình giữ chỗ, vui lòng thử lại sau', e.message);
+            handleException(e);
         }
     });
 
@@ -642,8 +655,8 @@ $(document).ready(function () {
 
     // Update data (flight datetime, fares) to BM
     $(document).on("click", ".btn-update-auto-book", function() {
-        let data = $(this).attr('data');
-        let entryClass = $(this).attr('data-entry-class');
+        const data = $(this).attr('data');
+        const entryClass = $(this).attr('data-entry-class');
 
         if(data && data.length > 0) {
             $.ajax({
@@ -676,8 +689,7 @@ $(document).ready(function () {
                     catch (e) {
                         $('.container-waiting').hide();
                         hideDialogAutoBook();
-                        showModalNotify("error", "Cập nhật không thành công, vui lòng F5 và thử lại", e.message);
-                        console.error(e);
+                        handleException(e, "Cập nhật không thành công, vui lòng F5 và thử lại");
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -919,29 +931,6 @@ function showDialogAutoBook(bookingData) {
             ${parentIdHTML}
         </div>`;
     });
-    // const passengersHTML = Object.values(bookingData.passengers).map(p => `
-    //     <div class="passenger-info">
-    //         <input type="hidden" name="autobookPassengerId[]" value="${p.id}" readonly />
-    //         <input type="hidden" name="autobookPassengerType[]" value="${passengerTextTypes[p.type]}" readonly />
-    //         <input type="hidden" name="autobookPassengerTitle[]" value="${p.salutation}" readonly />
-    //         <input type="hidden" name="autobookPassengerFullname[]" value="${p.name}" readonly />
-    //         <input type="hidden" name="autobookPassengerDateOfBirth[]" value="${p.dateOfBirth}" readonly />
-
-    //         <div class="info-row d-flex justify-content-between">
-    //             <div><b><span style="font-weight:700;color:${p.salutation == 'Ms' ? '#f7689e' : '#2d87d5'}">${p.salutation}.</span> ${p.name}</b></div>
-    //             <div><b>${passengerTypes[p.type]}</b></div>
-    //         </div>
-    //         <div class="info-row d-flex justify-content-between">
-    //             <div>CCCD/Passport: <b>${p.passportNumber || p.cic}</b></div>
-    //             <div>Ngày sinh: <b>${p.dateOfBirth}</b></div>
-    //         </div>
-    //         <div class="info-row d-flex justify-content-between">
-    //             <select name="autobookPassengerParentId[]">
-                    
-    //             </select>
-    //         </div>
-    //     </div>
-    // `).join('');
     content.innerHTML += `<div class="section">
         <div class="section-title">Thông tin hành khách</div>
         ${passengersHTML}
@@ -1229,6 +1218,17 @@ function getLinkImageAirline(airlineCode) {
     return img_src = `custom/themes/default/images/airline-icon-120x40/${airlineCode}.gif`;
 }
 
+function getLastName(fullname) {
+    if (!fullname) return "";
+    return fullname.trim().split(" ")[0];
+}
+
+function getFirstName(fullname) {
+    if (!fullname) return "";
+    let parts = fullname.trim().split(" ");
+    return parts[parts.length - 1];
+}
+
 function getMiddleAndFirstName(fullname) {
     if (!fullname) return "";
     let parts = fullname.trim().split(" ");
@@ -1236,9 +1236,21 @@ function getMiddleAndFirstName(fullname) {
     return parts.join(" ");
 }
 
-function getLastName(fullname) {
-    if (!fullname) return "";
-    return fullname.trim().split(" ")[0];
+function handleException(e, msg = '') {
+    console.error(e);
+    if (msg && msg != '') msg = 'Lỗi trong quá trình xử lý, vui lòng thử lại sau';
+    if (e.stack) {
+        // Optional: Extract line and column using regex (browser-compatible)
+        const match = e.stack.match(/at\s.+\((.+):(\d+):(\d+)\)/) || e.stack.match(/at\s(.+):(\d+):(\d+)/);
+        if (match) {
+            const file = match[1] ?? '';
+            const line = match[2] ?? '';
+            const column = match[3] ?? '';
+            showModalNotify('error', msg, `${e.message} on line ${line}`);
+            return;
+        }
+    }
+    showModalNotify('error', msg, e.message);
 }
 
 function encodeAutoBook(value) {

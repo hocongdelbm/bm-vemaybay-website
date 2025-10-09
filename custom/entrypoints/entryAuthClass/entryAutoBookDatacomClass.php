@@ -1082,14 +1082,15 @@ class entryAutoBookDatacomClass extends entryClass {
                 try {
                     $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
                     $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                    $airlineCodeHTML = $systemCode != $airlineCode ? "($airlineCode)" : "";
                     $linkBooking = "https://{$this->domain}/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
 
                     if($this->notificationChannel == 'Mattermost') {
                         $link = Mattermost::markdownLink($linkBooking, $pnr);
 
-                        $m = "Giữ chỗ $systemName ($airlineCode): $link bởi **$fullname**";
+                        $m = "Giữ chỗ $systemName $airlineCodeHTML: $link bởi **$fullname**";
                         if(isset($bk['AutoIssue']) && $bk['AutoIssue'] === true) {
-                            $m = "Xuất vé cận $systemName ($airlineCode): $link bởi **$fullname**";
+                            $m = "Xuất vé cận $systemName $airlineCodeHTML: $link bởi **$fullname**";
                         }
                         if(isset($responseArr['data']['OrderId']) && !empty($responseArr['data']['OrderId'])) {
                             $m .= "\n- Order ID: ". ($responseArr['data']['OrderId']);
@@ -1100,9 +1101,9 @@ class entryAutoBookDatacomClass extends entryClass {
                     else {
                         $link = "<a href=\"".$linkBooking."\">$pnr</a>";
 
-                        $m = "Giữ chỗ $systemName ($airlineCode): $link bởi <b>$fullname</b>";
+                        $m = "Giữ chỗ $systemName $airlineCodeHTML: $link bởi <b>$fullname</b>";
                         if(isset($bk['AutoIssue']) && $bk['AutoIssue'] === true) {
-                            $m = "<b>💰 Xuất vé cận $systemName ($airlineCode): $link bởi $fullname</b>";
+                            $m = "<b>💰 Xuất vé cận $systemName $airlineCodeHTML: $link bởi $fullname</b>";
                         } 
                         if(isset($responseArr['data']['OrderId']) && !empty($responseArr['data']['OrderId'])) {
                             $m .= "\n<i>Order ID: ". ($responseArr['data']['OrderId']) ."</i>";
@@ -1400,13 +1401,12 @@ class entryAutoBookDatacomClass extends entryClass {
         if(isset($responseArr['status']) && $responseArr['status'] == 1) {
             try {
                 global $db;
+
                 $bagDescription = $baggageData["Description"] ?? "";
                 if(!empty($bagDescription)) $bagDescription = $baggageData["Name"] ?? "";
-
                 $bagAmount      = $baggageData["Amount"] ?? "";
                 $bagVat         = $baggageData["VAT"] ?? "";
                 $bagTotalAmount = $baggageData["TotalAmount"] ?? 0;
-                $bagDescription = $baggageData["Description"] ?? "";
                 $passengerName  = trim($passengerData['LastName'] . ' ' . $passengerData['FirstName']);
                 $dateModified   = date('Y-m-d H:i:s', time() - 7*60*60);
                 $suffix         = $direction === 1 ? "_inbound" : "";
@@ -1461,6 +1461,46 @@ class entryAutoBookDatacomClass extends entryClass {
                 }
                 else {
                     $m = "<b>Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname</b>";
+                    $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                    Telegram::sendMessage($m, $botToken, $chatId);
+                } 
+            }
+        }
+        catch(Throwable $th) {}
+
+        return $responseArr;
+    }
+
+    /**
+     * Cancel booking
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function voidTicket($params = []) {
+        $bookingCode    = $params['bookingCode'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+        $listTicket     = $params['listTicket'] ?? [];
+
+        $agency = new APIDatacom();
+        $response = $agency->voidTicket($bookingCode, $systemCode, $listTicket);
+        $responseArr = json_decode($response, true);
+
+        // Send notification
+        try {
+            if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+                $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
+
+                if($this->notificationChannel == 'Mattermost') {
+                    $m = "**Hủy vé $bookingCode ($systemName) bởi $fullname**";
+                    $m .= "\n- NCC: **{$this->supplierName}**";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                }
+                else {
+                    $m = "<b>Hủy vé $bookingCode ($systemName) bởi $fullname</b>";
                     $m .= "\nNCC: <b>{$this->supplierName}</b>";
                     $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
                     $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';

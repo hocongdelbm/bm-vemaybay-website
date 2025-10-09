@@ -582,6 +582,38 @@ $dictionary['EC_HoaDonBan'] = array(
             'audited' => 1,
             'reportable' => 0,
         ),
+
+        // Citizen Identity (CCCD)
+        'citizen_id' => array(
+            'name' => 'citizen_id',
+            'vname' => 'LBL_CITIZEN_ID',
+            'type' => 'char',
+            'len' => 12,
+            'default' => '',
+            'required' => false,
+            'massupdate' => 0,
+            'importable' => 1,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        // Passport
+        'passport_number' => array(
+            'name' => 'passport_number',
+            'vname' => 'LBL_PASSPORT_NUMBER',
+            'type' => 'char',
+            'len' => 8,
+            'default' => '',
+            'required' => false,
+            'massupdate' => 0,
+            'importable' => 1,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_hdb_name', 'type' => 'index', 'fields' => array('name')),
@@ -589,6 +621,8 @@ $dictionary['EC_HoaDonBan'] = array(
         array('name' => 'idx_hdb_dt', 'type' => 'index', 'fields' => array('doituong_id')),
         array('name' => 'idx_hdb_lh', 'type' => 'index', 'fields' => array('lienhe')),
         array('name' => 'idx_hdb_shd', 'type' => 'index', 'fields' => array('sohoadon')),
+        array('name' => 'idx_cid', 'type' => 'index', 'fields' => array('citizen_id')),
+        array('name' => 'idx_passport', 'type' => 'index', 'fields' => array('passport_number')),
     ),
     'relationships' => array (),
     'optimistic_locking' => true,
