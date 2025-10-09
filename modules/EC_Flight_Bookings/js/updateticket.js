@@ -1,9 +1,27 @@
-src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-
 // Hàm format giá tiền
 function formatPrice(fare) {
     return new Intl.NumberFormat('vi-VN').format(fare);
 }
+// fomat giá tiền modal
+const fareInput = document.getElementById('modal_fare');
+
+fareInput.addEventListener('input', function (e) {
+    // Lấy giá trị nhập vào, loại bỏ mọi ký tự không phải số
+    let value = e.target.value.replace(/\D/g, '');
+
+    // Nếu rỗng thì thôi
+    if (!value) {
+    e.target.value = '';
+    return;
+    }
+
+    // Format số có dấu chấm mỗi 3 chữ số
+    value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    // Gán lại vào input
+    e.target.value = value;
+});
+// let fareValue = fareInput.value.replace(/\./g, ''); // loại bỏ dấu chấm
 
 // Hàm format ngày
 function formatDate(dateString) {
@@ -13,9 +31,16 @@ function formatDate(dateString) {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
 }
+function formatDateToYMD(dateStr) {
+    if (!dateStr) return "";
+    const [day, month, year] = dateStr.split("-");
+    return `${year}-${month}-${day}`;
+}
+
+
 
 // Hàm lấy thông tin hãng bay
-function getAirlineLogo(airlineCode) {
+function getAirlineInfo(airlineCode) {
     const logos = {
         'VN': {
             color: '#1e40af',
@@ -53,11 +78,14 @@ function getAirlineLogo(airlineCode) {
 
 // Hàm render một chuyến bay
 function renderFlightItem(flight, index) {
-    const airlineInfo = getAirlineLogo(flight.airlineCode);
-    
-    let html = `
-        <div class="flight-item" data-flight="${flight.flightNo}">
+    // const airlineInfo = getAirlineInfo(flight.airlineCode);
+    const airlineInfo = getAirlineInfo(flight.details[0].carrierCode);
 
+
+    let html = `
+        <div class="flight-item" data-flight="${flight.flightNo}"
+                                data-airline="${flight.airlineCode}"
+                                data-date="${flight.depDate}">
             <div class="flight-left">
                 <div class="airline-logo">
                     <img src="${airlineInfo.logo}" alt="${airlineInfo.name}">
@@ -67,7 +95,7 @@ function renderFlightItem(flight, index) {
                     <div class="time-info">
                         <span class="time">${flight.depTime} - ${flight.arvTime}</span>
                     </div>
-                    <div class="airline-name">${flight.airline}</div>
+                    <div class="airline-name">${flight.details[0].carrier}</div>
                 </div>
                 
                 <div class="flight-route">
@@ -98,7 +126,7 @@ function renderFlightItem(flight, index) {
             </div>
         </div>
     `;
-    
+
     return html;
 }
 
@@ -116,83 +144,134 @@ function renderFareOptions(flight) {
 
         return `
             <li>
-                <a class="dropdown-item d-flex justify-content-between align-items-center" 
-                href="#"
-                onclick="updateSelectedFare('${flight.flightNo}', '${ticketClass}', ${fare})">
+                <div class="dropdown-item d-flex justify-content-between align-items-center">
                     <div>
                         <div><strong>${ticketClass}</strong> - <span class="text-muted">${fareBasis}</span></div>
                         <small class="text-success">còn lại ${availableSeats} chỗ</small>
                     </div>
                     <span class="text-danger fw-bold">${formatPrice(fare)} VND</span>
-                </a>
+                </div>
             </li>
         `;
-
     }).join('');
 }
+//  href="#" onclick="updateSelectedFare('${flight.flightNo}', '${ticketClass}', ${fare})"
 
-function updateSelectedFare(flightNo, ticketClass, fare) {
-    const flightItem = document.querySelector(`.flight-item[data-flight="${flightNo}"]`);
-    if (!flightItem) return;
+// Hàm cập nhật giá đã chọn
+// function updateSelectedFare(flightNo, ticketClass, fare) {
+//     const flightItem = document.querySelector(`.flight-item[data-flight="${flightNo}"]`);
+//     if (!flightItem) return;
 
-    // cập nhật ticketClass
-    const ticketClassDiv = flightItem.querySelector(".selected-ticketClass");
-    if (ticketClassDiv) ticketClassDiv.textContent = ticketClass;
+//     // cập nhật ticketClass
+//     const ticketClassDiv = flightItem.querySelector(".selected-ticketClass");
+//     if (ticketClassDiv) ticketClassDiv.textContent = ticketClass;
 
-    // cập nhật giá
-    const priceDiv = flightItem.querySelector(".selected-price");
-    if (priceDiv) priceDiv.textContent = new Intl.NumberFormat('vi-VN').format(fare);
-}
-// Hàm load và hiển thị dữ liệu
-async function loadFlightData() {
-    try {
-        const response = await fetch('response.json');
-        const data = await response.json();
+//     // cập nhật giá
+//     const priceDiv = flightItem.querySelector(".selected-price");
+//     if (priceDiv) priceDiv.textContent = formatPrice(fare);
+// }
 
-        if (!data || data.error !== 0) {
-            throw new Error('Lỗi khi đọc dữ liệu chuyến bay');
-        }
+// Hàm hiển thị dữ liệu chuyến bay
+function displayFlightData(data) {
+    if (!data || data.error !== 0) {
+        throw new Error('Lỗi khi đọc dữ liệu chuyến bay');
+    }
 
-        const depFlights = data.data.dep;
-        const retFlights = data.data.ret;
+    // const depFlights = data.data.dep || [];
+    // const retFlights = data.data.ret || [];
+    const depData = data.data.dep;
+    const retData = data.data.ret;
+    // Nếu API trả về 1 object đơn lẻ
+    const depFlights = Array.isArray(depData) ? depData : (depData ? [depData] : []);
+    const retFlights = Array.isArray(retData) ? retData : (retData ? [retData] : []);
 
-        // Cập nhật thông tin header
-        if (depFlights.length > 0) {
-            document.getElementById('routeInfo').textContent = 
-                `${depFlights[0].depCityName} ✈ ${depFlights[0].desCityName}`;
-            document.getElementById('dateInfo').textContent = 
-                formatDate(depFlights[0].depDate);
-            
-            // Cập nhật tiêu đề chuyến đi
-            document.getElementById('depTitle').textContent = 
-                `Chuyến bay đi - ${formatDate(depFlights[0].depDate)}`;
-        }
-
-        if (retFlights.length > 0) {
-            // Cập nhật tiêu đề chuyến về
-            document.getElementById('retTitle').textContent = 
-                `Chuyến bay về - ${formatDate(retFlights[0].depDate)}`;
-        }
-
+    // Cập nhật thông tin header
+    if (depFlights.length > 0) {
+        document.getElementById('depTitle').textContent =
+            `Chuyến bay đi - ${formatDate(depFlights[0].depDate)}`;
+        
         // Render danh sách chuyến bay đi
         const depFlightList = document.getElementById('depFlightList');
-        depFlightList.innerHTML = depFlights.map((flight, index) => 
+        depFlightList.innerHTML = depFlights.map((flight, index) =>
             renderFlightItem(flight, index)
         ).join('');
+    } else {
+        document.getElementById('depFlightList').innerHTML =
+            '<div class="loading" style="color: #dc2626;">Không tìm thấy chuyến bay đi nào.</div>';
+    }
 
+    if (retFlights.length > 0) {
+        document.getElementById('retTitle').textContent =
+            `Chuyến bay về - ${formatDate(retFlights[0].depDate)}`;
+        
         // Render danh sách chuyến bay về
         const retFlightList = document.getElementById('retFlightList');
-        retFlightList.innerHTML = retFlights.map((flight, index) => 
+        retFlightList.innerHTML = retFlights.map((flight, index) =>
             renderFlightItem(flight, index)
         ).join('');
-
-    } catch (error) {
-        console.error('Lỗi:', error);
-        document.getElementById('depFlightList').innerHTML = 
-            '<div class="loading" style="color: #dc2626;">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
-        document.getElementById('retFlightList').innerHTML = 
-            '<div class="loading" style="color: #dc2626;">Không thể tải dữ liệu. Vui lòng thử lại sau.</div>';
+    } else {
+        document.getElementById('retFlightList').innerHTML =
+            '<div class="loading" style="color: #dc2626;">Không tìm thấy chuyến bay về nào.</div>';
     }
+}
+
+// Hàm tìm kiếm chuyến bay
+function searchFlight(event, isLive) {
+    event.preventDefault();
+    
+    const airlineCode = document.getElementById('airlineCode').value;
+    const depCode = document.getElementById('depCode').value.trim().toUpperCase();
+    const desCode = document.getElementById('desCode').value.trim().toUpperCase();
+    const departDateDisplay = document.getElementById('departDate').value; // "08-10-2025"
+    const departDate = formatDateToYMD(departDateDisplay); // "2025-10-08"
+    const returnDateDisplay = document.getElementById('returnDate').value;
+    const returnDate = formatDateToYMD(returnDateDisplay);
+    const is= isLive;
+    
+    if (!airlineCode || !depCode || !desCode || !departDate) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+        return;
+    }
+    
+    document.getElementById('depFlightList').innerHTML = '<div class="loading">Đang tìm kiếm chuyến bay...</div>';
+    document.getElementById('retFlightList').innerHTML = '<div class="loading">Đang tìm kiếm chuyến bay...</div>';
+    
+    $.ajax({
+        url: "index.php?entryPoint=entryPointGeneral",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+            class: "entryFareSystemClass",
+            method: "searchFlightBM",
+            params: {
+                airlineCode: airlineCode,
+                depCode: depCode,
+                desCode: desCode,
+                departDate: departDate,
+                returnDate: returnDate,
+                isLive: is
+            }
+        }),
+        beforeSend: function () {
+            $(".container-waiting").show();
+        },
+        success: function(response) {
+            $('.container-waiting').hide();
+            try {
+                const data = typeof response === 'string' ? JSON.parse(response) : response;
+                displayFlightData(data);
+            } catch (e) {
+                console.error('Lỗi xử lý dữ liệu:', e);
+                document.getElementById('depFlightList').innerHTML =
+                    '<div class="loading" style="color: #dc2626;">Lỗi trong quá trình xử lý dữ liệu.</div>';
+                document.getElementById('retFlightList').innerHTML =
+                    '<div class="loading" style="color: #dc2626;">Lỗi trong quá trình xử lý dữ liệu.</div>';
+            }
+        },
+        error: function(xhr, textStatus) {
+            
+        }
+    });
 }
 
 // Hàm chuyển tab
@@ -202,25 +281,263 @@ function showTab(event, tabName) {
     for (let i = 0; i < tabContents.length; i++) {
         tabContents[i].classList.remove('active');
     }
-    
+
     // Xóa class active khỏi tất cả tabs
     const tabs = document.getElementsByClassName('tab');
     for (let i = 0; i < tabs.length; i++) {
         tabs[i].classList.remove('active');
     }
-    
+
     // Hiển thị tab được chọn
     document.getElementById(tabName).classList.add('active');
-    event.target.classList.add('active');
-    
+    event.currentTarget.classList.add('active');
+
     event.preventDefault();
 }
 
-// Hàm xử lý chọn chuyến bay
-function selectFlight(flightNo) {
-    alert('Đã chọn chuyến bay: ' + flightNo);
-    // Thêm logic xử lý chọn chuyến bay ở đây
+// Biến lưu thông tin chuyến bay hiện tại
+let currentFlightData = {};
+
+// Hàm mở modal
+function openEditModal(flightNo, airlineCode, depCode, desCode, depDate, fare) {
+    // Lưu thông tin chuyến bay
+    currentFlightData = {
+        flightNo: flightNo,
+        airlineCode: airlineCode,
+        depCode: depCode,
+        desCode: desCode,
+        depDate: depDate,
+        originalFare: fare
+    };
+    
+    // Lấy thông tin hãng bay
+    const airlineInfo = getAirlineInfo(airlineCode);
+    
+    // Cập nhật nội dung modal
+    document.getElementById('modal_airlineCode').value = airlineCode;
+    document.getElementById('modal_airlineCode_display').textContent = airlineInfo.name;
+    document.getElementById('modal_airlineCode_display').style.backgroundColor = airlineInfo.color;
+    document.getElementById('modal_airlineCode_display').style.color = 'white';
+    
+    document.getElementById('modal_flightNo').textContent = flightNo;
+    document.getElementById('modal_depCode').textContent = depCode;
+    document.getElementById('modal_desCode').textContent = desCode;
+    document.getElementById('modal_depCode_full').textContent = depCode;
+    document.getElementById('modal_desCode_full').textContent = desCode;
+    document.getElementById('modal_depDate').textContent = formatDate(depDate);
+    document.getElementById('modal_fare').value = formatPrice(fare);
+    document.getElementById('modal_originalFare').textContent = formatPrice(fare);
+    
+    // Hiển thị modal
+    const modal = new bootstrap.Modal(document.getElementById('editFlightModal'));
+    modal.show();
 }
 
-// Load dữ liệu khi trang được tải
-document.addEventListener('DOMContentLoaded', loadFlightData);
+// Hàm cập nhật giá vé với xử lý dữ liệu đầy đủ
+function updateFlightFare() {
+    const formatted = document.getElementById('modal_fare').value; // ví dụ: "1.234.000"
+    const newFare = formatted.replace(/\./g, ''); // loại bỏ dấu chấm -> "1234000"
+    // const newFare = document.getElementById('modal_fare').value;
+
+    // Validate giá vé
+    if (!newFare || newFare <= 0) {
+        alert('❌ Vui lòng nhập giá vé hợp lệ!');
+        return;
+    }
+
+    // Validate dữ liệu chuyến bay
+    if (!currentFlightData || !currentFlightData.flightNo) {
+        alert('❌ Không tìm thấy thông tin chuyến bay!');
+        return;
+    }
+
+    const btnUpdate = document.querySelector('.btn-update');
+    const originalText = btnUpdate.innerHTML;
+    btnUpdate.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang cập nhật...';
+    btnUpdate.disabled = true;
+
+    // Gọi AJAX đến entryPointGeneral
+    $.ajax({
+        url: 'index.php?entryPoint=entryPointGeneral',
+        type: 'POST',
+        contentType: "application/json",
+        data: JSON.stringify({
+            class: "entryFareSystemClass",
+            method: "updateTicket",
+            params: {
+                airlineCode: currentFlightData.airlineCode,
+                depCode: currentFlightData.depCode,
+                desCode: currentFlightData.desCode,
+                depDate: currentFlightData.depDate,
+                flightNo: currentFlightData.flightNo,
+                fare: parseInt(newFare)
+            }
+        }),
+        success: function(response) {
+            try {
+                // Parse response nếu là string
+                const data = typeof response === 'string' ? JSON.parse(response) : response;
+
+                // Log để debug
+                console.log('Update response:', data);
+                
+                // Kiểm tra kết quả
+                if (data.status === 1) {
+                    // Cập nhật giá trên giao diện
+                    updateSelectedFare(currentFlightData.flightNo, '', parseInt(newFare));
+                    
+                    // Đóng modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editFlightModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                    // Thông báo thành công
+                    alert('✅ ' + (data.message || 'Cập nhật giá vé thành công!') + 
+                          '\n\nChuyến bay: ' + currentFlightData.flightNo + 
+                          '\nGiá mới: ' + formatPrice(newFare) + ' VND');
+                    
+                    // Cập nhật lại originalFare trong currentFlightData
+                    currentFlightData.originalFare = parseInt(newFare);
+                    
+                } else {
+                    // Hiển thị lỗi từ API
+                    alert('❌ Cập nhật thất bại!\n' + (data.message || 'Có lỗi xảy ra'));
+                }
+                
+            } catch (e) {
+                console.error('Error parsing response:', e);
+                alert('❌ Lỗi xử lý dữ liệu phản hồi!\n' + e.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', {xhr, status, error});
+            
+            let errorMessage = '⚠️ Lỗi kết nối API!\n\n';
+            
+            if (xhr.status === 0) {
+                errorMessage += 'Không thể kết nối đến server';
+            } else if (xhr.status === 404) {
+                errorMessage += 'Không tìm thấy endpoint (404)';
+            } else if (xhr.status === 500) {
+                errorMessage += 'Lỗi server (500)';
+            } else {
+                errorMessage += 'Mã lỗi: ' + xhr.status + '\n' + error;
+            }
+            
+            // Thử parse error response
+            try {
+                const errorData = JSON.parse(xhr.responseText);
+                if (errorData.message) {
+                    errorMessage += '\n\nChi tiết: ' + errorData.message;
+                }
+            } catch (e) {
+                // Không parse được thì bỏ qua
+            }
+            
+            alert(errorMessage);
+        },
+        complete: function() {
+            // Reset trạng thái button
+            btnUpdate.innerHTML = originalText;
+            btnUpdate.disabled = false;
+        }
+    });
+}
+function displaySingleFlightUpdate(response) {
+    if (!response || response.status !== 1) {
+        throw new Error('Lỗi khi cập nhật chuyến bay');
+    }
+    
+    const flightData = response.data;
+    
+    // Tìm và cập nhật chuyến bay trong danh sách hiện tại
+    const flightCard = document.querySelector(`[data-flight-no="${flightData.flightNo}"]`);
+    
+    if (flightCard) {
+        // Cập nhật giá hiển thị
+        const priceElement = flightCard.querySelector('.price');
+        if (priceElement) {
+            priceElement.textContent = formatPrice(flightData.fare) + ' VND';
+        }
+        
+        // Highlight chuyến bay vừa cập nhật
+        flightCard.style.border = '2px solid #10b981';
+        flightCard.style.backgroundColor = '#f0fdf4';
+        
+        setTimeout(() => {
+            flightCard.style.border = '';
+            flightCard.style.backgroundColor = '';
+        }, 3000);
+    }
+    
+    // Thông báo thành công
+    alert('✅ ' + (response.message || 'Cập nhật giá vé thành công!') + 
+          '\n\nChuyến bay: ' + flightData.flightNo + 
+          '\nGiá mới: ' + formatPrice(flightData.fare) + ' VND' +
+          (response.description?.fare ? '\n' + response.description.fare : ''));
+}
+
+
+// Hàm cập nhật giá đã chọn (từ code gốc của bạn)
+function updateSelectedFare(flightNo, ticketClass, fare) {
+    const flightItem = document.querySelector(`.flight-item[data-flight="${flightNo}"]`);
+    if (!flightItem) return;
+
+    if (ticketClass) {
+        const ticketClassDiv = flightItem.querySelector(".selected-ticketClass");
+        if (ticketClassDiv) ticketClassDiv.textContent = ticketClass;
+    }
+
+    const priceDiv = flightItem.querySelector(".selected-price");
+    if (priceDiv) priceDiv.textContent = formatPrice(fare);
+}
+
+// Hàm được gọi từ nút "Sửa" trong danh sách chuyến bay
+function selectFlight(flightNo) {
+    // Tìm thông tin chuyến bay từ DOM hoặc từ data đã lưu
+    const flightItem = document.querySelector(`.flight-item[data-flight="${flightNo}"]`);
+    if (!flightItem) {
+        alert('Không tìm thấy thông tin chuyến bay!');
+        return;
+    }
+    
+    // Lấy thông tin từ DOM (bạn cần điều chỉnh để lấy đúng data)
+    // Ví dụ mẫu - thay thế bằng cách lấy data thực tế của bạn
+    const routeCode = flightItem.querySelector('.route-code').textContent;
+    const [depCode, desCode] = routeCode.split('-');
+    const priceText = flightItem.querySelector('.selected-price').textContent.replace(/\D/g, '');
+    const fare = parseInt(priceText);
+
+    const airlineCode = flightItem.getAttribute('data-airline');
+    const depDate = flightItem.getAttribute('data-date');
+    
+    // Giả sử bạn có cách lấy airlineCode và depDate
+    // Có thể lưu trong data-attribute hoặc từ biến global
+    // const airlineCode = flightItem.airlineCode; // Thay bằng giá trị thực
+    // const depDate = flightItem.depDate; // Thay bằng giá trị thực
+    
+    openEditModal(flightNo, airlineCode, depCode, desCode, depDate, fare);
+}
+// Khởi tạo khi trang được tải
+document.addEventListener('DOMContentLoaded', function() {
+    // Gắn sự kiện submit cho form
+    const searchForm = document.getElementById('searchForm');
+    const fareButton = document.getElementById('btnFare');
+    fareButton.addEventListener('click', function(event) {
+        event.preventDefault();
+        searchFlight(event, 0);
+    });
+    searchForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        searchFlight(event, 1);
+    });
+    // if (searchForm) {
+    //     searchForm.addEventListener('submit', searchFlight);
+    // }
+    
+    // Set ngày mặc định cho date inputs
+    // const today = new Date().toISOString().split('T')[0];
+    // document.getElementById('departDate').value = today;
+});
+

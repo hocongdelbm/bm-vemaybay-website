@@ -30,6 +30,7 @@ abstract class entryClass {
         return false;
     }
 
+
     /**
      * Send SQL error notification
      * 
