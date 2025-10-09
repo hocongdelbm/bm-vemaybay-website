@@ -1,6 +1,6 @@
 <div class="container">
     <div class="header">
-        <form id="searchForm" class="row g-3 justify-content-center text-dark bg-light p-3 rounded">
+        <form id="searchForm" class="row g-3 justify-content-center text-dark p-3 rounded">
             <!-- Hãng hàng không -->
             <div class="col-md-2">
                 <label class="form-label">Hãng</label>

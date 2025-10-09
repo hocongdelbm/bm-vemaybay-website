@@ -62,9 +62,7 @@ body {
     border-bottom: 3px solid transparent;
 }
 
-.tab:hover {
-    background: #e9ecef;
-}
+.tab:hover
 
 .tab.active {
     color: #667eea;
@@ -129,14 +127,14 @@ body {
 }
 
 .time {
-    font-size: 1.2em;
+    font-size: 1.4em;
     font-weight: bold;
     color: #2d3748;
 }
 
 .airline-name {
     color: #718096;
-    font-size: 0.9em;
+    font-size: 1.2em;
     margin-top: 5px;
 }
 
@@ -145,13 +143,14 @@ body {
 }
 
 .route-code {
+    font-size: 1.3em;
     font-weight: 600;
     color: #4a5568;
 }
 
 .duration {
     color: #718096;
-    font-size: 0.9em;
+    font-size: 1.1em;
     margin-top: 5px;
 }
 
@@ -160,13 +159,14 @@ body {
 }
 
 .flight-number {
+    font-size: 1.3em;
     font-weight: 600;
     color: #667eea;
 }
 
 .flight-details {
     color: #718096;
-    font-size: 0.9em;
+    font-size: 1.1em;
     cursor: pointer;
     text-decoration: underline;
 }
@@ -184,10 +184,11 @@ body {
     display: flex;
     align-items: center;
     gap: 5px;
+    font-size: 1.4em;
 }
 
 .price {
-    font-size: 1.3em;
+    font-size: 1.5em;
     color: #dc2626;
     font-weight: bold;
 }
