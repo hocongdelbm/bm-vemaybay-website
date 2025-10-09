@@ -5,10 +5,8 @@
             <div class="col-md-2">
                 <label class="form-label">Hãng</label>
                 <select id="airlineCode" class="form-select" required>
-                    {* <option value="">--Chọn hãng--</option> *}
-                    <option value="VN">VN</option>
                     <option value="VJ" selected>VJ</option>
-                    {* <option value="BL">BL</option> *}
+                    <option value="VN">VN</option>
                     <option value="QH">QH</option>
                     <option value="VU">VU</option>
                 </select>

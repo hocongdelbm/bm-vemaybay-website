@@ -17,10 +17,7 @@ class entryFareSystemClass extends entryClass {
         $this->key = $sugar_config['api_autobook']['SearchKey'];
     }
     
-    function searchFlightBM($params = []) {   
-        // Log request để debug
-        $GLOBALS['log']->fatal("searchFlight called with params: " . json_encode($params, JSON_UNESCAPED_UNICODE));        
-        
+    public function searchFlightBM($params = []) {   
         // Lấy parameters từ request
         $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
         $depCode = isset($params['depCode']) ? strtoupper(trim($params['depCode'])) : '';
@@ -58,7 +55,9 @@ class entryFareSystemClass extends entryClass {
         $url = $this->enpoint.'/getFlights';
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => json_encode($postData),
             CURLOPT_HTTPHEADER => array(
@@ -75,7 +74,6 @@ class entryFareSystemClass extends entryClass {
         
         // Kiểm tra lỗi CURL
         if ($error) {
-            $GLOBALS['log']->error("CURL Error: " . $error);
             return json_encode([
                 'error' => 1,
                 'message' => 'CURL Error: ' . $error,
@@ -85,8 +83,6 @@ class entryFareSystemClass extends entryClass {
         
         // Kiểm tra HTTP status code
         if ($httpCode !== 200) {
-            $GLOBALS['log']->fatal("API returned status code: " . $httpCode);
-            $GLOBALS['log']->fatal("Response: " . $response);
             return json_encode([
                 'error' => 1,
                 'message' => 'API returned status code: ' . $httpCode,
@@ -97,7 +93,6 @@ class entryFareSystemClass extends entryClass {
         // Parse response để kiểm tra
         $responseData = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $GLOBALS['log']->fatal("JSON decode error: " . json_last_error_msg());
             return json_encode([
                 'error' => 1,
                 'message' => 'Invalid JSON response from API',
@@ -105,18 +100,11 @@ class entryFareSystemClass extends entryClass {
             ], JSON_UNESCAPED_UNICODE);
         }
         
-        // Log successful response
-        $GLOBALS['log']->fatal("API Response received successfully");
-        
         // Trả về response từ API
         return $response;
     }
 
-    
     public function updateTicket($params = []) {    
-        // Log request để debug
-        $GLOBALS['log']->fatal("updateTicket called with params: " . json_encode($params, JSON_UNESCAPED_UNICODE));
-        
         // Lấy parameters từ request
         $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
         $depCode = isset($params['depCode']) ? strtoupper(trim($params['depCode'])) : '';
@@ -195,9 +183,6 @@ class entryFareSystemClass extends entryClass {
             ]
         ];
         
-        // Log data gửi đi
-        $GLOBALS['log']->fatal("Sending data to API: " . json_encode($patchData, JSON_UNESCAPED_UNICODE));
-        
         // Khởi tạo CURL
         $curl = curl_init();
         
@@ -215,8 +200,8 @@ class entryFareSystemClass extends entryClass {
             ],
             CURLOPT_TIMEOUT => 30, // Timeout 30 giây
             CURLOPT_CONNECTTIMEOUT => 10, // Connection timeout 10 giây
-            CURLOPT_SSL_VERIFYPEER => false, // Tắt verify SSL (nếu cần)
-            CURLOPT_SSL_VERIFYHOST => false
+            CURLOPT_SSL_VERIFYPEER => 0, // Tắt verify SSL (nếu cần)
+            CURLOPT_SSL_VERIFYHOST => 0
         ]);
         
         $response = curl_exec($curl);
@@ -228,7 +213,6 @@ class entryFareSystemClass extends entryClass {
         
         // Kiểm tra lỗi CURL
         if ($error) {
-            $GLOBALS['log']->error("CURL Error: " . $error);
             return json_encode([
                 'error' => 1,
                 'message' => 'Lỗi kết nối API: ' . $error,
@@ -238,9 +222,6 @@ class entryFareSystemClass extends entryClass {
         
         // Kiểm tra HTTP status code
         if ($httpCode !== 200 && $httpCode !== 201) {
-            $GLOBALS['log']->fatal("API returned status code: " . $httpCode);
-            $GLOBALS['log']->fatal("Response: " . $response);
-            
             // Thông báo lỗi theo status code
             $errorMessage = 'API trả về mã lỗi: ' . $httpCode;
             switch ($httpCode) {
@@ -274,7 +255,6 @@ class entryFareSystemClass extends entryClass {
             ], JSON_UNESCAPED_UNICODE);
         }
         return $response;
-        
     }
 }
 ?>
