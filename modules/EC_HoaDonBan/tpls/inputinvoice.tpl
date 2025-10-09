@@ -161,16 +161,15 @@
                                     <td width="13%"><span class="label">Nhà cung cấp</span></td>
                                     <td width="20%">
                                         <select class="box-select" name="supplier" id="supplier">
+                                            <option value="HNH" data-ticket-code="D" data-pass-qty="" data-itinerary="C" data-ticket-price="S">Hồng Ngọc Hà</option>
                                             <option value="PNA" data-ticket-code="B" data-pass-qty="E" data-itinerary="D" data-ticket-price="G">Phương Nam</option>
-                                            <!-- <option value="PNA" data-ticket-code="C" data-pass-qty="F" data-itinerary="D" data-ticket-price="H">Phương Nam (Cũ)</option> -->
-                                            <option value="VNA" data-ticket-code="A" data-pass-qty="C" data-itinerary="A" data-ticket-price="D">Vietnam Airlines</option>
-                                            <option value="BBA" data-ticket-code="B" data-pass-qty="C" data-itinerary="" data-ticket-price="D,E,F">Bamboo</option>
-                                            <option value="VTA" data-ticket-code="B" data-pass-qty="" data-itinerary="C,D" data-ticket-price="G">Vietravel</option>
-                                            <option value="VJA" data-ticket-code="B" data-pass-qty="H" data-itinerary="G" data-ticket-price="L">Vietjet</option>
-                                            <option value="HNH" data-ticket-code="B" data-pass-qty="F,G" data-itinerary="C" data-ticket-price="H,I">Hồng Ngọc Hà</option>
-                                            <option value="TH" data-ticket-code="B" data-pass-qty="D" data-itinerary="B" data-ticket-price="E">Thành Hoàng</option>
+                                            <!-- <option value="VNA" data-ticket-code="A" data-pass-qty="C" data-itinerary="A" data-ticket-price="D">Vietnam Airlines</option> -->
+                                            <!-- <option value="VJA" data-ticket-code="B" data-pass-qty="H" data-itinerary="G" data-ticket-price="L">Vietjet </option> -->
+                                            <!-- <option value="BBA" data-ticket-code="B" data-pass-qty="C" data-itinerary="" data-ticket-price="D,E,F">Bamboo</option> -->
+                                            <!-- <option value="VTA" data-ticket-code="B" data-pass-qty="" data-itinerary="C,D" data-ticket-price="G">Vietravel</option> -->
+                                            <!-- <option value="TH" data-ticket-code="B" data-pass-qty="D" data-itinerary="B" data-ticket-price="E">Thành Hoàng</option> -->
                                         </select>
-                                        <input type="hidden" name="supplier_name" id="supplier_name" value="Phương Nam">
+                                        <input type="hidden" name="supplier_name" id="supplier_name" value="Hồng Ngọc Hà">
                                     </td>
                                     <td><span class="label">File</span></td>
                                     <td><input type="file" name="from_file"></td>

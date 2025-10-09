@@ -647,16 +647,9 @@ class Viewinputinvoice extends SugarView {
             // Lưu trữ file tải lên vào đường dẫn cache/upload/inputinvoices/
             $fileName = $this->sys_uploads('cache/upload/inputinvoices/', 'from_file', $file_type);
             $data_arr = ['ticket_code', 'pass_qty', 'itinerary', 'ticket_price'];
-
-            // Nếu là VJA thì thêm cột thu hộ, cột vat
-            if ($post_fields['supplier'] == 'VJA') {
-                $data_arr[] = 'authorized_collection';
-                $post_fields['authorized_collection'] = 'N';
-                $data_arr[] = 'vat';
-                $post_fields['vat'] = 'M';
-            }
+            
             // Nếu là PNA thì thêm cột thu hộ, cột vat, cột phí khác
-            elseif($post_fields['supplier'] == 'PNA') {
+            if($post_fields['supplier'] == 'PNA') {
                 $data_arr[] = 'authorized_collection';
                 $post_fields['authorized_collection'] = 'J';
                 $data_arr[] = 'vat';
@@ -664,14 +657,27 @@ class Viewinputinvoice extends SugarView {
                 $data_arr[] = 'other_charge';
                 $post_fields['other_charge'] = 'K';
             }
+            elseif($post_fields['supplier'] == 'HNH') {
+                // Thu hộ
+                $data_arr[] = 'authorized_collection';
+                $post_fields['authorized_collection'] = 'L';
+                // VAT
+                $data_arr[] = 'vat';
+                $post_fields['vat'] = 'H';
+            }
+            // Nếu là VJA thì thêm cột thu hộ, cột vat
+            elseif ($post_fields['supplier'] == 'VJA') {
+                $data_arr[] = 'authorized_collection';
+                $post_fields['authorized_collection'] = 'N';
+                $data_arr[] = 'vat';
+                $post_fields['vat'] = 'M';
+            }
 
             $invoice_number     = trim($post_fields['invoice_number']);
-            // $invoice_date       = str_replace(array('.', '/'), '-', $post_fields['invoice_date']);
             $invoice_date       = $post_fields['invoice_date'];
             $invoice_serial     = trim($post_fields['invoice_serial']);
             $supplier           = $post_fields['supplier'];
             $company_unit       = $post_fields['company_unit'];
-            // $accounting_date    = str_replace(array('.', '/'), '-', $post_fields['accounting_date']);
             $accounting_date    = $post_fields['accounting_date'];
 
             if (!empty($fileName)) {
@@ -683,7 +689,6 @@ class Viewinputinvoice extends SugarView {
 
                     $k = 0;
                     for ($i = 1; $i <= $sheet->getHighestRow(); $i++) {
-
                         // Nếu cột A là stt thì mới import, không thì bỏ qua
                         // Các trường hợp đặc biệt:
                         // 1. Nếu là BBA thì cột A là stt, cột B phải là số vé, không phải số, để phân biệt với dòng đánh số cột
@@ -955,140 +960,12 @@ class Viewinputinvoice extends SugarView {
     }
 
     // Lọc lại dữ liệu
-    function filterData($data, $supplier)
-    {
+    function filterData($data, $supplier) {
         global $current_user;
 
         for ($i = 0; $i < count($data); $i++) {
             if (!empty($data[$i]['ticket_code'])) {
-                if ($supplier == 'VJA') {
-                    // Phân tích hành trình, để lấy nơi đi nơi đến
-                    $iti = explode('-', $data[$i]['itinerary']);
-                    $data[$i]['departure'][] = $this->changeAirportCode($iti[0]);
-                    $data[$i]['arrival'][] = $this->changeAirportCode($iti[1]);
-                    $data[$i]['is_intern'] = $this->checkIsInternationalTicket($this->changeAirportCode($iti[0]), $this->changeAirportCode($iti[1]));
-                    $data[$i]['ticket_price'] = (int)$data[$i]['ticket_price'];
-                    $data[$i]['vat'] = (int)$data[$i]['vat'];
-                    $data[$i]['authorized_collection'] = (int)$data[$i]['authorized_collection'];
-                    if (empty($data[$i]['pass_qty'])) $data[$i]['pass_qty'] = 1;
-                } else if ($supplier == 'BBA') {
-                    // Lọc cột code vé, số vé
-                    $data[$i]['ticket_code'] = preg_replace('/\s+/', ' ', $data[$i]['ticket_code']);
-                    $ticket_code_arr = explode(' ', $data[$i]['ticket_code']);
-                    // Code vé
-                    $data[$i]['ticket_c'] = $ticket_code_arr[0];
-                    // Số vé
-                    $data[$i]['ticket_code'] = $ticket_code_arr[2];
-                } else if ($supplier == 'VNA') {
-                    // Lọc cột số vé, hành trình 
-                    $data[$i]['ticket_code'] = preg_replace('/\s+/', ' ', trim($data[$i]['ticket_code']));
-                    $ticket_code_arr = explode(' ', $data[$i]['ticket_code']);
-                    if (count($ticket_code_arr) > 1) { // nhập từ file convert
-                        $data[$i]['ticket_code'] = $ticket_code_arr[0];
-                        $data[$i]['itinerary'] = $ticket_code_arr[1];
-                    }
-
-                    // Lấy thông tin hành trình
-                    $itinerary_arr = explode('VN', $data[$i]['itinerary']);
-                    if (count($itinerary_arr) > 2) {
-                        $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1] . '-' .  $itinerary_arr[0];
-                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
-                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[1]);
-                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[0]);
-                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
-                    } else {
-                        $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1];
-                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
-                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
-                    }
-                } else if ($supplier == 'VTA') {
-                    // Phân tích hành trình, để lấy nơi đi nơi đến
-                    $iti = explode('-', $data[$i]['itinerary']);
-                    $data[$i]['departure'][] = $this->changeAirportCode($iti[0]);
-                    $data[$i]['arrival'][] = $this->changeAirportCode($iti[1]);
-                } else if ($supplier == 'HNH') {
-                    // Kiểm tra hành trình quốc tế hay nội địa
-                    // Hành trình nội địa sẽ phân cách bằng chữ VN
-                    if (strpos($data[$i]['itinerary'], 'VN') !== false) {
-                        // Hành trình lượt đi với lượt về khác nhau
-                        if (strpos($data[$i]['itinerary'], '//') !== false) {
-                            $data[$i]['itinerary'] = str_replace('//', 'VN', $data[$i]['itinerary']);
-                        }
-                        // Kiểm tra có khứ hồi hay không
-                        $itinerary_arr = explode('VN', $data[$i]['itinerary']);
-
-                        // Hành trình lượt đi lượt về khác nhau
-                        if (count($itinerary_arr) > 3) {
-                            $data[$i]['itinerary'] = implode('-', $itinerary_arr);
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[2]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[3]);
-                        }
-                        // Khứ hồi
-                        else if (count($itinerary_arr) > 2) {
-                            $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1] . '-' .  $itinerary_arr[0];
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[1]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[0]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
-                        }
-                        // 1 chiều
-                        else {
-                            $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1];
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
-                        }
-                    }
-                    // Hành trình quốc tế
-                    else {
-                        $data[$i]['is_intern'] = 1;
-                    }
-                } else if ($supplier == 'TH') {
-                    // Lọc số vé
-                    $data[$i]['ticket_code'] = preg_replace('/\s+/', ' ', $data[$i]['ticket_code']);
-                    $ticket_code_arr = explode(' ', $data[$i]['ticket_code']);
-                    if (count($ticket_code_arr) > 1) {
-                        $data[$i]['ticket_code'] = $ticket_code_arr[0];
-                    } else {
-                        $data[$i]['ticket_code'] = trim($data[$i]['ticket_code']);
-                    }
-
-                    // Lọc hành trình,
-                    $data[$i]['itinerary'] = preg_replace('/\s+/', ' ', $data[$i]['itinerary']);
-                    // Kiểm tra có khứ hồi hay không
-                    $itinerary_arr = explode(' ', $data[$i]['itinerary']);
-                    if (count($itinerary_arr) > 1) {
-                        // Có khứ hồi
-                        if (count($itinerary_arr) > 4) {
-                            $data[$i]['itinerary'] = $itinerary_arr[2] . '-' . $itinerary_arr[3] . '-' .  $itinerary_arr[2];
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[2]);
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[3]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[2]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[3]);
-                        }
-                        // 1 chiều
-                        else {
-                            $data[$i]['itinerary'] = $itinerary_arr[2] . '-' . $itinerary_arr[3];
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[2]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[3]);
-                        }
-                    } else {
-                        $itinerary_arr = explode('-', $data[$i]['itinerary']);
-                        // Có khứ hồi
-                        if (count($itinerary_arr) > 4) {
-                            $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1] . '-' .  $itinerary_arr[0];
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[1]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[0]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
-                        } else if (count($itinerary_arr) > 1) { // 1 chiều
-                            $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1];
-                            $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
-                            $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
-                        }
-                    }
-                } else if ($supplier == 'PNA') {
+                if ($supplier == 'PNA') {
                     // Lọc số vé
                     if(!ctype_digit($data[$i]['ticket_code'])) {
                         $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
@@ -1117,6 +994,131 @@ class Viewinputinvoice extends SugarView {
                     $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection']);
                     $other_charge = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
                 }
+                else if ($supplier == 'HNH') {
+                    // Hành trình lượt đi với lượt về khác nhau
+                    if (strpos($data[$i]['itinerary'], '//') !== false) {
+                        $data[$i]['itinerary'] = str_replace('//', 'VN', $data[$i]['itinerary']);
+                    }
+                    // Kiểm tra có khứ hồi hay không
+                    $itinerary_arr = explode('VN', $data[$i]['itinerary']);
+
+                    // Hành trình lượt đi lượt về khác nhau
+                    if (count($itinerary_arr) > 3) {
+                        $data[$i]['itinerary'] = implode('-', $itinerary_arr);
+                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
+                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[2]);
+                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
+                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[3]);
+                    }
+                    // Khứ hồi
+                    else if (count($itinerary_arr) > 2) {
+                        $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1] . '-' .  $itinerary_arr[0];
+                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
+                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[1]);
+                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[0]);
+                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
+                    }
+                    // 1 chiều
+                    else {
+                        $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1];
+                        $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
+                        $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
+                    }
+                }
+                else if ($supplier == 'VJA') {
+                    // Phân tích hành trình, để lấy nơi đi nơi đến
+                    $iti = explode('-', $data[$i]['itinerary']);
+                    $data[$i]['departure'][] = $this->changeAirportCode($iti[0]);
+                    $data[$i]['arrival'][] = $this->changeAirportCode($iti[1]);
+                    $data[$i]['is_intern'] = $this->checkIsInternationalTicket($this->changeAirportCode($iti[0]), $this->changeAirportCode($iti[1]));
+                    $data[$i]['ticket_price'] = (int)$data[$i]['ticket_price'];
+                    $data[$i]['vat'] = (int)$data[$i]['vat'];
+                    $data[$i]['authorized_collection'] = (int)$data[$i]['authorized_collection'];
+                    if (empty($data[$i]['pass_qty'])) $data[$i]['pass_qty'] = 1;
+                }
+                // else if ($supplier == 'BBA') {
+                //     // Lọc cột code vé, số vé
+                //     $data[$i]['ticket_code'] = preg_replace('/\s+/', ' ', $data[$i]['ticket_code']);
+                //     $ticket_code_arr = explode(' ', $data[$i]['ticket_code']);
+                //     // Code vé
+                //     $data[$i]['ticket_c'] = $ticket_code_arr[0];
+                //     // Số vé
+                //     $data[$i]['ticket_code'] = $ticket_code_arr[2];
+                // }
+                // else if ($supplier == 'VNA') {
+                //     // Lọc cột số vé, hành trình 
+                //     $data[$i]['ticket_code'] = preg_replace('/\s+/', ' ', trim($data[$i]['ticket_code']));
+                //     $ticket_code_arr = explode(' ', $data[$i]['ticket_code']);
+                //     if (count($ticket_code_arr) > 1) { // nhập từ file convert
+                //         $data[$i]['ticket_code'] = $ticket_code_arr[0];
+                //         $data[$i]['itinerary'] = $ticket_code_arr[1];
+                //     }
+
+                //     // Lấy thông tin hành trình
+                //     $itinerary_arr = explode('VN', $data[$i]['itinerary']);
+                //     if (count($itinerary_arr) > 2) {
+                //         $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1] . '-' .  $itinerary_arr[0];
+                //         $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
+                //         $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[1]);
+                //         $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[0]);
+                //         $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
+                //     } else {
+                //         $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1];
+                //         $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
+                //         $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
+                //     }
+                // }
+                // else if ($supplier == 'VTA') {
+                //     // Phân tích hành trình, để lấy nơi đi nơi đến
+                //     $iti = explode('-', $data[$i]['itinerary']);
+                //     $data[$i]['departure'][] = $this->changeAirportCode($iti[0]);
+                //     $data[$i]['arrival'][] = $this->changeAirportCode($iti[1]);
+                // }
+                // else if ($supplier == 'TH') {
+                //     // Lọc số vé
+                //     $data[$i]['ticket_code'] = preg_replace('/\s+/', ' ', $data[$i]['ticket_code']);
+                //     $ticket_code_arr = explode(' ', $data[$i]['ticket_code']);
+                //     if (count($ticket_code_arr) > 1) {
+                //         $data[$i]['ticket_code'] = $ticket_code_arr[0];
+                //     } else {
+                //         $data[$i]['ticket_code'] = trim($data[$i]['ticket_code']);
+                //     }
+
+                //     // Lọc hành trình,
+                //     $data[$i]['itinerary'] = preg_replace('/\s+/', ' ', $data[$i]['itinerary']);
+                //     // Kiểm tra có khứ hồi hay không
+                //     $itinerary_arr = explode(' ', $data[$i]['itinerary']);
+                //     if (count($itinerary_arr) > 1) {
+                //         // Có khứ hồi
+                //         if (count($itinerary_arr) > 4) {
+                //             $data[$i]['itinerary'] = $itinerary_arr[2] . '-' . $itinerary_arr[3] . '-' .  $itinerary_arr[2];
+                //             $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[2]);
+                //             $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[3]);
+                //             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[2]);
+                //             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[3]);
+                //         }
+                //         // 1 chiều
+                //         else {
+                //             $data[$i]['itinerary'] = $itinerary_arr[2] . '-' . $itinerary_arr[3];
+                //             $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[2]);
+                //             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[3]);
+                //         }
+                //     } else {
+                //         $itinerary_arr = explode('-', $data[$i]['itinerary']);
+                //         // Có khứ hồi
+                //         if (count($itinerary_arr) > 4) {
+                //             $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1] . '-' .  $itinerary_arr[0];
+                //             $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
+                //             $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[1]);
+                //             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[0]);
+                //             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
+                //         } else if (count($itinerary_arr) > 1) { // 1 chiều
+                //             $data[$i]['itinerary'] = $itinerary_arr[0] . '-' . $itinerary_arr[1];
+                //             $data[$i]['departure'][] = $this->changeAirportCode($itinerary_arr[0]);
+                //             $data[$i]['arrival'][] = $this->changeAirportCode($itinerary_arr[1]);
+                //         }
+                //     }
+                // }
 
                 // Lọc cột đơn giá, 
                 // Đầu tiên, bỏ các dấu phân cách
@@ -1133,16 +1135,14 @@ class Viewinputinvoice extends SugarView {
         return $data;
     }
 
-    function changeAirportCode($airport_code)
-    {
+    function changeAirportCode($airport_code) {
         if ($airport_code == 'CXR') {
             $airport_code = 'NHA';
         }
         return $airport_code;
     }
 
-    function checkIsInternationalTicket($departure, $arrival)
-    {
+    function checkIsInternationalTicket($departure, $arrival) {
         global $app_list_strings;
         if (!in_array($departure, array_keys($app_list_strings['domestic_airport_list'])) || !in_array($arrival, array_keys($app_list_strings['domestic_airport_list']))) {
             return true;
