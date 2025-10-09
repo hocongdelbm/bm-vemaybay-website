@@ -544,9 +544,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInf') {
 	$booking->retrieve($_POST['booking']);
 
 	$inv_inf = json_decode(str_replace("&quot;", "\"", $booking->shipping_address), 1);
-
-	$iv_payment_method = array('' => '', 'Tiền mặt' => 'Tiền mặt', 'Chuyển khoản' => 'Chuyển khoản', 'Tiền mặt hoặc Chuyển khoản' => 'Tiền mặt hoặc Chuyển khoản');
-	$iv_name_banks = array(
+	$iv_payment_method = [
+		'' => '',
+		'Tiền mặt' => 'Tiền mặt',
+		'Chuyển khoản' => 'Chuyển khoản',
+		'Tiền mặt hoặc Chuyển khoản' => 'Tiền mặt hoặc Chuyển khoản'
+	];
+	$iv_name_banks = [
 		'' => 'Chọn ngân hàng',
 		'VPBank' => '(VPBank) NH TMCP Việt Nam Thịnh Vượng',
 		'BIDV' => '(BIDV) NH TMCP Đầu tư và Phát triển Việt Nam',
@@ -577,7 +581,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInf') {
 		'NamABank' => '(Nam A Bank) NH TMCP Nam Á',
 		'IVB' => '(IVB) NH TNHH Indovina',
 		'Kienlongbank' => '(Kienlongbank) NH TMCP Kiên Long',
-	);
+	];
 
 	// $html = '<h2 style="display: inline-block; padding: 5px 0; border-bottom: 1px solid #cbdae6;">Thông tin yêu cầu xuất hoá đơn:</h2>';
 	$html = '<table class="table-config table-request-invoice" cellpadding="0" cellspacing="0"><tbody>';
@@ -607,6 +611,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInf') {
 			<td class="label">Email:</td>
 			<td>
 				<input type="text" class="box-input" name="iv_email" value="' . $inv_inf['iv_email'] . '">
+			</td>
+		</tr>';
+	$html .= '
+		<tr>
+			<td class="label">CCCD/Hộ chiếu:</td>
+			<td>
+				<input type="text" class="box-input" name="iv_identity_number" value="'. $inv_inf['iv_identity_number'] .'" maxlength="12" />
 			</td>
 		</tr>';
 	$html .= '
