@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.2">
+<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.3">
 
 <div class="box-section">
     <div id="import_invoice">
@@ -168,6 +168,7 @@
                                                 data-col-vat="H"
                                                 data-col-authorized-collection="L"
                                                 data-col-other-charge="P"
+                                                data-col-total="S"
                                                 data-col-itinerary="C"
                                             >
                                                 Hồng Ngọc Hà
@@ -179,6 +180,7 @@
                                                 data-col-vat="I"
                                                 data-col-authorized-collection="J"
                                                 data-col-other-charge="K"
+                                                data-col-total="Q"
                                                 data-col-itinerary="D"
                                             >
                                                 Phương Nam
@@ -190,11 +192,11 @@
                                     <td><input type="file" name="from_file"></td>
                                     <td class="column-name">
                                         <label class="label" for="col_ticket_code">Cột số vé</label>
-                                        <input type="text" name="col_ticket_code" id="col_ticket_code" class="box-input" size="2" maxlength="1" />
+                                        <input type="text" name="col_ticket_code" id="col_ticket_code" class="box-input" size="1" maxlength="1" />
                                     </td>
                                     <td class="column-name">
                                         <label class="label" for="col_pass_qty">Cột số lượng</label>
-                                        <input type="text" name="col_pass_qty" id="col_pass_qty" class="box-input" size="2" maxlength="1" />
+                                        <input type="text" name="col_pass_qty" id="col_pass_qty" class="box-input" size="1" maxlength="1" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -204,11 +206,11 @@
                                     <td><input type="text" class="box-input" name="invoice_serial"></td>
                                     <td class="column-name">
                                         <label class="label" for="col_ticket_price">Cột giá vé</label>
-                                        <input type="text" name="col_ticket_price" id="col_ticket_price" class="box-input" size="2" maxlength="1" />
+                                        <input type="text" name="col_ticket_price" id="col_ticket_price" class="box-input" size="1" maxlength="1" />
                                     </td>
                                     <td class="column-name">
                                         <label class="label" for="col_vat">Cột VAT</label>
-                                        <input type="text" name="col_vat" id="col_vat" class="box-input" size="2" maxlength="1" />
+                                        <input type="text" name="col_vat" id="col_vat" class="box-input" size="1" maxlength="1" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -218,11 +220,11 @@
                                     <td><input type="text" class="box-input" name="invoice_date" id="invoice_date" value="{$INVOICE_DATE}"></td>
                                     <td class="column-name">
                                         <label class="label" for="col_authorized_collection">Cột thu hộ</label>
-                                        <input type="text" name="col_authorized_collection" id="col_authorized_collection" class="box-input" size="2" maxlength="1" />
+                                        <input type="text" name="col_authorized_collection" id="col_authorized_collection" class="box-input" size="1" maxlength="1" />
                                     </td>
                                     <td class="column-name">
                                         <label class="label" for="col_other_charge">Cột phí khác</label>
-                                        <input type="text" name="col_other_charge" id="col_other_charge" class="box-input" size="2" maxlength="1" />
+                                        <input type="text" name="col_other_charge" id="col_other_charge" class="box-input" size="1" maxlength="1" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -237,9 +239,12 @@
                                     <td colspan="2"></td>
                                     <td class="column-name">
                                         <label class="label" for="col_itinerary">Cột hành trình</label>
-                                        <input type="text" name="col_itinerary" id="col_itinerary" class="box-input" size="2" maxlength="1" />
+                                        <input type="text" name="col_itinerary" id="col_itinerary" class="box-input" size="1" maxlength="1" />
                                     </td>
-                                    <td></td>
+                                    <td>
+                                        <label class="label" for="col_total">Cột tổng cộng</label>
+                                        <input type="text" name="col_total" id="col_total" class="box-input" size="1" maxlength="1" />
+                                    </td>
                                 </tr>
                                 {if !$PREVIEW}
                                     <tr>
@@ -476,4 +481,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.3"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.4"></script>

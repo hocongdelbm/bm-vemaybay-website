@@ -17,6 +17,7 @@ $(document).ready(function () {
         $('#col_vat').val(optionSelected.attr('data-col-vat'));
         $('#col_authorized_collection').val(optionSelected.attr('data-col-authorized-collection'));
         $('#col_other_charge').val(optionSelected.attr('data-col-other-charge'));
+        $('#col_total').val(optionSelected.attr('data-col-total'));
         $('#col_itinerary').val(optionSelected.attr('data-col-itinerary'));
 
         $('#supplier_name').val(optionSelected.text().trim());

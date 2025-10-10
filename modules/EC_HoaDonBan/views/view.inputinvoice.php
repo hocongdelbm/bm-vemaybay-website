@@ -797,22 +797,29 @@ class Viewinputinvoice extends SugarView {
                 else {
                     $input_iv->authorized_fee = $data[$i]['authorized_collection'];
 
-                    // Tính giá vốn (VAT) bỏ nhân SL
-                    $input_iv->cost = ($data[$i]['ticket_price'] ?? 0)
-                        + ($data[$i]['vat'] ?? 0)
-                        + ($data[$i]['admin_fee'] ?? 0)
-                        + ($data[$i]['luggage_outbound'] ?? 0)
-                        + ($data[$i]['luggage_inbound'] ?? 0);
+                    if($input_iv->supplier == 'HNH') {
+                        $input_iv->vat  = $data[$i]['vat'];
+                        $input_iv->cost = ($data[$i]['total'] - $data[$i]['authorized_collection']) / 1.08;
+                        $input_iv->cost_no_vat = $input_iv->cost - $input_iv->cost * 0.08;
+                    }
+                    else if($input_iv->supplier == 'PNA') {
+                        // Tính giá vốn (VAT) bỏ nhân SL
+                        $input_iv->cost = ($data[$i]['ticket_price'] ?? 0)
+                            + ($data[$i]['vat'] ?? 0)
+                            + ($data[$i]['admin_fee'] ?? 0)
+                            + ($data[$i]['luggage_outbound'] ?? 0)
+                            + ($data[$i]['luggage_inbound'] ?? 0);
 
-                    // Tính giá vốn chưa vat
-                    $input_iv->cost_no_vat = $input_iv->cost
-                        - ($data[$i]['vat'] ?? 0)
-                        - ($data[$i]['vat_admin'] ?? 0)
-                        - ($data[$i]['vat_luggage_outbound'] ?? 0)
-                        - ($data[$i]['vat_luggage_inbound'] ?? 0);
-                    
-                    // Tính vat
-                    $input_iv->vat = $input_iv->cost - $input_iv->cost_no_vat;
+                        // Tính giá vốn chưa vat
+                        $input_iv->cost_no_vat = $input_iv->cost
+                            - ($data[$i]['vat'] ?? 0)
+                            - ($data[$i]['vat_admin'] ?? 0)
+                            - ($data[$i]['vat_luggage_outbound'] ?? 0)
+                            - ($data[$i]['vat_luggage_inbound'] ?? 0);
+
+                        // Tính vat
+                        $input_iv->vat = $input_iv->cost - $input_iv->cost_no_vat;
+                    }
                 }
             
                 // Cột code vé nếu có thì lưu
@@ -905,6 +912,11 @@ class Viewinputinvoice extends SugarView {
     public function filterData($data, $supplier) {
         for ($i = 0; $i < count($data); $i++) {
             if (!empty($data[$i]['ticket_code'])) {
+                $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
+                $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat'] ?? 0);
+                $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection'] ?? 0);
+                $other_charge = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
+
                 if ($supplier == 'PNA') {
                     // Định dạng số vé
                     if(!ctype_digit($data[$i]['ticket_code'])) {
@@ -929,6 +941,9 @@ class Viewinputinvoice extends SugarView {
                         $j++;
                     }
                     $data[$i]['itinerary'] = $itiFormat;
+
+                    $data[$i]['ticket_price'] += $other_charge;
+                    $data[$i]['vat'] += $other_charge * 0.08;
                 }
                 else if ($supplier == 'HNH') {
                     // Định dạng số vé
@@ -956,17 +971,6 @@ class Viewinputinvoice extends SugarView {
                     }
                     $data[$i]['itinerary'] = $itiFormat;
                 }
-
-                $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat'] ?? 0);
-                $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection'] ?? 0);
-                $other_charge = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
-
-                // Lọc cột đơn giá, 
-                // Đầu tiên, bỏ các dấu phân cách
-                // Sau đó, giá < 1000 -> giá * 1000 
-                $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
-                $data[$i]['ticket_price'] += $other_charge;
-                $data[$i]['vat'] += $other_charge * 0.08;
                 
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
