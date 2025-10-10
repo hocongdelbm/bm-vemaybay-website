@@ -1008,7 +1008,7 @@ class Viewinputinvoice extends SugarView {
             $row = $this->bean->db->fetchByAssoc($res);
             $data_arr['booking_id'] = $row['booking_id'];
         }
-        elseif($supplier == 'PNA') {
+        elseif($supplier == 'PNA' || $supplier == 'HNH') {
             $ticketCode = trim($data_arr['ticket_code'] ?? '');
 
             $sql = "SELECT p.booking_id
