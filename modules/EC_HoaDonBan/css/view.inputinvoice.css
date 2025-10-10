@@ -1,3 +1,8 @@
+table.table-import tr td label.label {
+    width: 50%;
+    display: inline-block;
+}
+
 #preview_frm>.top_area {
     text-align: center;
     position: sticky;
@@ -5,12 +10,10 @@
     background-color: #fff;
     padding: 5px;
 }
-
 #preview_frm .warning_text {
     color: var(--red-vj-color);
     margin-bottom: 5px;
 }
-
 #preview_frm .other_fee {
     background-color: #DDA0DD;
 }

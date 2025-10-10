@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.1">
+<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.2">
 
 <div class="box-section">
     <div id="import_invoice">
@@ -161,36 +161,69 @@
                                     <td width="13%"><span class="label">Nhà cung cấp</span></td>
                                     <td width="20%">
                                         <select class="box-select" name="supplier" id="supplier">
-                                            <option value="HNH" data-ticket-code="D" data-pass-qty="" data-itinerary="C" data-ticket-price="S">Hồng Ngọc Hà</option>
-                                            <option value="PNA" data-ticket-code="B" data-pass-qty="E" data-itinerary="D" data-ticket-price="G">Phương Nam</option>
-                                            <!-- <option value="VNA" data-ticket-code="A" data-pass-qty="C" data-itinerary="A" data-ticket-price="D">Vietnam Airlines</option> -->
-                                            <!-- <option value="VJA" data-ticket-code="B" data-pass-qty="H" data-itinerary="G" data-ticket-price="L">Vietjet </option> -->
-                                            <!-- <option value="BBA" data-ticket-code="B" data-pass-qty="C" data-itinerary="" data-ticket-price="D,E,F">Bamboo</option> -->
-                                            <!-- <option value="VTA" data-ticket-code="B" data-pass-qty="" data-itinerary="C,D" data-ticket-price="G">Vietravel</option> -->
-                                            <!-- <option value="TH" data-ticket-code="B" data-pass-qty="D" data-itinerary="B" data-ticket-price="E">Thành Hoàng</option> -->
+                                            <option value="HNH"
+                                                data-col-ticket-code="D"
+                                                data-col-pass-qty=""
+                                                data-col-ticket-price="F"
+                                                data-col-vat="H"
+                                                data-col-authorized-collection="L"
+                                                data-col-other-charge="P"
+                                                data-col-itinerary="C"
+                                            >
+                                                Hồng Ngọc Hà
+                                            </option>
+                                            <option value="PNA"
+                                                data-col-ticket-code="B"
+                                                data-col-pass-qty="E"
+                                                data-col-ticket-price="G"
+                                                data-col-vat="I"
+                                                data-col-authorized-collection="J"
+                                                data-col-other-charge="K"
+                                                data-col-itinerary="D"
+                                            >
+                                                Phương Nam
+                                            </option>
                                         </select>
                                         <input type="hidden" name="supplier_name" id="supplier_name" value="Hồng Ngọc Hà">
                                     </td>
                                     <td><span class="label">File</span></td>
                                     <td><input type="file" name="from_file"></td>
-                                    <td><span class="label">Cột số vé</span></td>
-                                    <td><input class="box-input" type="text" name="ticket_code" id="ticket_code" value="B"></td>
+                                    <td class="column-name">
+                                        <label class="label" for="col_ticket_code">Cột số vé</label>
+                                        <input type="text" name="col_ticket_code" id="col_ticket_code" class="box-input" size="2" maxlength="1" />
+                                    </td>
+                                    <td class="column-name">
+                                        <label class="label" for="col_pass_qty">Cột số lượng</label>
+                                        <input type="text" name="col_pass_qty" id="col_pass_qty" class="box-input" size="2" maxlength="1" />
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><span class="label">Số hoá đơn</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="invoice_number"></td>
                                     <td><span class="label">Ký hiệu hoá đơn</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="invoice_serial"></td>
-                                    <td><span class="label">Cột số lượng</span></td>
-                                    <td><input type="text" class="box-input" name="pass_qty" id="pass_qty" value="E"></td>   
+                                    <td class="column-name">
+                                        <label class="label" for="col_ticket_price">Cột giá vé</label>
+                                        <input type="text" name="col_ticket_price" id="col_ticket_price" class="box-input" size="2" maxlength="1" />
+                                    </td>
+                                    <td class="column-name">
+                                        <label class="label" for="col_vat">Cột VAT</label>
+                                        <input type="text" name="col_vat" id="col_vat" class="box-input" size="2" maxlength="1" />
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><span class="label">Ngày hạch toán</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="accounting_date" id="accounting_date"></td>
                                     <td><span class="label">Ngày hoá đơn</span><span class="required">*</span></td>
                                     <td><input type="text" class="box-input" name="invoice_date" id="invoice_date" value="{$INVOICE_DATE}"></td>
-                                    <td><span class="label">Cột giá vé</span></td>
-                                    <td><input type="text" class="box-input" name="ticket_price" id="ticket_price" value="G"></td>
+                                    <td class="column-name">
+                                        <label class="label" for="col_authorized_collection">Cột thu hộ</label>
+                                        <input type="text" name="col_authorized_collection" id="col_authorized_collection" class="box-input" size="2" maxlength="1" />
+                                    </td>
+                                    <td class="column-name">
+                                        <label class="label" for="col_other_charge">Cột phí khác</label>
+                                        <input type="text" name="col_other_charge" id="col_other_charge" class="box-input" size="2" maxlength="1" />
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td width="13%"><span class="label">Đơn vị</span></td>
@@ -201,10 +234,12 @@
                                         </select>
                                         <input type="hidden" name="company_unit_name" id="company_unit_name" value="">
                                     </td>
+                                    <td colspan="2"></td>
+                                    <td class="column-name">
+                                        <label class="label" for="col_itinerary">Cột hành trình</label>
+                                        <input type="text" name="col_itinerary" id="col_itinerary" class="box-input" size="2" maxlength="1" />
+                                    </td>
                                     <td></td>
-                                    <td></td>
-                                    <td><span class="label">Cột hành trình</span></td>
-                                    <td><input type="text" class="box-input" name="itinerary" id="itinerary" value="D"></td>
                                 </tr>
                                 {if !$PREVIEW}
                                     <tr>
@@ -441,4 +476,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.1"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.3"></script>
