@@ -648,7 +648,7 @@ function renderPassengers(data) {
             </td>
             <td><span class="badge ${passenger.Type}">${getPassengerLabelName(passenger.Type)}</span></td>
             <td>${passenger.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
-            <td>${formatDate(passenger.DateOfBirth)}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
+            <td>${passenger.DateOfBirth || ''}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
             <td>
                 ${passenger.Email ? `<div>${passenger.Email}</div>` : ''}
                 ${passenger.Phone ? `<div>${passenger.Phone}</div>` : ''}
@@ -678,7 +678,7 @@ function renderFlights(flights) {
                     <div class="flight-number ${carrierClass}">
                         ${flight.FlightNumber.includes(flight.AirlineCode) ? flight.FlightNumber : flight.AirlineCode + flight.FlightNumber}
                     </div>
-                    <div class="flight-date">${formatDate(flight.DepartureDate)}</div>
+                    <div class="flight-date">${flight.DepartureDate}</div>
                 </div>
                 
                 <div class="flight-route">
