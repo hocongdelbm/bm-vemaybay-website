@@ -31,17 +31,22 @@ class EC_HoaDonBanViewList extends ViewList {
     }
 
 	public function display() {
+		$this->getStyles();
 		parent::display();
-		$this->js();
+		$this->getScripts();
 	}
 
-	public function js() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.list.js?v=1.0.0'></script>";
+	private function getStyles() {
+		echo "<link rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.list.css?v=1.0.1'></script>";
+	}
+
+	private function getScripts() {
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.list.js?v=1.0.1'></script>";
 	}
 
 	private function getNewActionMenuItem() {
 		return '
-			<a class="menuItem button-mass-signing" type="button" href="#">Ký số hàng loạt</a>
+			<a type="button" href="#" class="menuItem button-mass-signing">Ký số hàng loạt</a>
 		';
     }
 }

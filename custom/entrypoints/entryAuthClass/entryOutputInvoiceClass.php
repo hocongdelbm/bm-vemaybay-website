@@ -17,7 +17,7 @@ class entryOutputInvoiceClass extends entryClass {
         $invRef     = global_test_input($params['invRef'] ?? ''); // HD-250603-020
         $recordId   = global_test_input($params['recordId'] ?? ''); // Record ID in database
 
-        if(empty($invRef) || empty($recordId )) {
+        if(empty($invRef) || empty($recordId)) {
             return [
                 "status" => 0,
                 "message" => "Hóa đơn thiếu thông tin",
@@ -26,7 +26,7 @@ class entryOutputInvoiceClass extends entryClass {
         }
 
         $winInv = new WinInvoice();
-        $responseSign = json_decode($winInv->sign($invRef), true);
+        $responseSign = $winInv->sign($invRef); // JSON
 
         // Update status
         if ($winInv->checkResponse($responseSign)) {
@@ -36,9 +36,8 @@ class entryOutputInvoiceClass extends entryClass {
                 sleep(12); // Pending to get invoice number
 
                 $json = $winInv->get($invRef);
-                $arr  = json_decode($json, true);
-
-                if ($winInv->checkResponse($arr)) {
+                if ($winInv->checkResponse($json)) {
+                    $arr = json_decode($json, true);
                     $invoiceData = $arr['data'][0] ?? [];
                     $invNumber = $invoiceData['invNumber'] ?? ''; // Số hóa đơn (0000001)
                     $invSerial = $invoiceData['invSerial'] ?? ''; // Ký hiệu hóa đơn (C25THV)
@@ -104,6 +103,14 @@ class entryOutputInvoiceClass extends entryClass {
                                 $listBookingId = "'" . implode("','", $arrBookingId) . "'";
                                 $db->query("UPDATE ec_flight_bookings SET is_invoice_export = 1 WHERE id IN ($listBookingId) AND deleted = 0");
                             }
+                            else {
+                                $botToken   = $this->telegramConfig['bot_token'] ?? '';
+                                $chatId     = $this->telegramConfig['chat_id'] ?? '';
+                                $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
+                                $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
+                                $message .= "\n<pre>$sql</pre>";
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                            }
                         }
                         catch(Throwable $th) {
                             $botToken   = $this->telegramConfig['bot_token'] ?? '';
@@ -131,7 +138,7 @@ class entryOutputInvoiceClass extends entryClass {
                 "status" => 0,
                 "message" => "Thao tác chưa thành công",
                 "data" => null,
-                "description" => $responseSign
+                "description" => json_decode($responseSign, true)
             ];
         }
     }
