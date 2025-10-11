@@ -62,8 +62,6 @@ body {
     border-bottom: 3px solid transparent;
 }
 
-.tab:hover
-
 .tab.active {
     color: #667eea;
     border-bottom-color: #667eea;
@@ -79,12 +77,26 @@ body {
     display: block;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
 .section-title {
     font-size: 1.5em;
     font-weight: bold;
-    margin-bottom: 20px;
     color: #2d3748;
+    /* margin-bottom: 20px; */
 }
+
+.countdown {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #dc2626; /* đỏ */
+}
+
 
 .flight-list {
     display: flex;
@@ -287,76 +299,77 @@ body {
     height: 18px;
 }
 
-/* Modal */
-.modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+/* Modal mới */
+.modal-md-lg {
+    max-width: 700px; /* nhỏ hơn modal-lg (800px) */
 }
 
-.modal-header .btn-close {
-    filter: brightness(0) invert(1);
+.flight-modal.flight-modal {
+  background: linear-gradient(135deg, #007bff, #00a8ff);
+  color: #fff;
+  border-bottom: none;
+  padding: 15px 25px;
+  border-radius: 8px 8px 0 0;
 }
 
-.info-label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.5rem;
-}
-
-.info-value {
-    padding: 0.75rem;
-    background-color: #f8f9fa;
-    border-radius: 0.375rem;
-    border: 1px solid #dee2e6;
-    color: #212529;
-}
-
-.editable-field {
-    border: 2px solid #667eea;
-    background-color: #fff;
-}
-
-.editable-field:focus {
-    border-color: #764ba2;
-    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+.airline-display {
+  font-size: 1.15rem;
 }
 
 .airline-badge {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
+  background-color: #007bff;
+  font-weight: 600;
 }
 
-.modal-footer {
-    border-top: 2px solid #e9ecef;
+.flight-info-dep-des {
+    justify-content: center;
+}
+.dep-info {
+    width: 34%;
+}
+.flightNo-dep-des {
+    width: auto;
+}
+.des-info {
+    width: 34%;
 }
 
-.btn-update {
-    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-    background: rgb(7 65 229 / 82%);
-    border: none;
-    padding: 0.75rem 2rem;
-    font-weight: 600;
+.route-section {
+  font-size: 2rem;
+  color: #000000;
+} /* color: #2d3748; */
+
+.route-section .airport-name {
+  font-size: 1.15rem;
 }
 
-.btn-update:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+.route-section .airport-code {
+  font-size: 1.15rem;
+  font-weight: bold;
 }
 
-.route-display {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2d3748;
-    text-align: center;
-    margin: 1rem 0;
+.route-section .time-info {
+  font-size: 1.1rem;
 }
 
 .route-arrow {
-    color: #667eea;
-    margin: 0 1rem;
+  font-size: 4rem;
+  color: #007bff;
+  font-weight: bold;
 }
+
+.flight-number-display {
+  margin-top: 10px;
+}
+
+.editable-field {
+  font-weight: 600;
+  text-align: right;
+}
+.info-label {
+    font-size: 14px;
+}
+
 
 
 @media (max-width: 768px) {

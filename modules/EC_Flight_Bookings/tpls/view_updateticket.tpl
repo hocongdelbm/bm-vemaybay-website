@@ -6,8 +6,8 @@
                 <label class="form-label">Hãng</label>
                 <select id="airlineCode" class="form-select" required>
                     {* <option value="">--Chọn hãng--</option> *}
-                    <option value="VN">VN</option>
                     <option value="VJ" selected>VJ</option>
+                    <option value="VN">VN</option>
                     {* <option value="BL">BL</option> *}
                     <option value="QH">QH</option>
                     <option value="VU">VU</option>
@@ -59,7 +59,7 @@
                     {/literal}
                 </div>
             </div>
-            
+
             <div class="col-md-2">
                 <label class="form-label">Ngày về</label>
                 <div class="between_range_section between_range_end--wrap dateTime d-flex position-relative flex-fill">
@@ -96,12 +96,12 @@
 
             <!-- Nút tìm kiếm -->
             <div class="col-md-2 d-flex align-items-end">
-                <button type="button" class="btn btn-primary w-100" id= "btnFare">Xem giá</button>
+                <button type="button" class="btn btn-primary w-100" id="btnFare">Xem giá</button>
             </div>
 
             <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100"
-                        onclick="return confirm('Thao tác sẽ cập nhật lại giá mới nhất của tất cả chuyến bay trong hành trình, luôn cả giá vừa chỉnh sửa.')">
+                    onclick="return confirm('Thao tác sẽ cập nhật lại giá mới nhất của tất cả chuyến bay trong hành trình, luôn cả giá vừa chỉnh sửa.')">
                     Giá mới nhất
                 </button>
 
@@ -116,14 +116,20 @@
     </div>
 
     <div id="departure" class="tab-content active">
-        <div class="section-title" id="depTitle">Chuyến bay đi</div>
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <div class="section-title" id="depTitle">Chuyến bay đi</div>
+            <div id="depCountdown" class="countdown text-danger"></div>
+        </div>
         <div class="flight-list" id="depFlightList">
             <div class="loading">Nhập thông tin và nhấn tìm kiếm để xem chuyến bay</div>
         </div>
     </div>
 
     <div id="return" class="tab-content">
-        <div class="section-title" id="retTitle">Chuyến bay về</div>
+        <div class="section-header d-flex justify-content-between align-items-center">
+            <div class="section-title" id="retTitle">Chuyến bay về</div>
+            <div id="retCountdown" class="countdown text-danger"></div>
+        </div>
         <div class="flight-list" id="retFlightList">
             <div class="loading">Nhập thông tin và nhấn tìm kiếm để xem chuyến bay</div>
         </div>
@@ -132,80 +138,73 @@
 
 <!-- Modal Chỉnh Sửa Giá Vé -->
 <div class="modal fade" id="editFlightModal" tabindex="-1" aria-labelledby="editFlightModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-md-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header flight-modal">
                 <h5 class="modal-title" id="editFlightModalLabel">
-                    <i class="bi bi-pencil-square"></i> Chỉnh Sửa Thông Tin Vé
+                    <i class="bi bi-pencil-square"></i> Chỉnh sửa thông tin chuyến bay
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
-            <div class="modal-body">
-                <div class="container-fluid">
-                    <!-- Tuyến bay -->
-                    <div class="route-display mb-4">
-                        <span id="modal_depCode">SGN</span>
-                        <span class="route-arrow">✈</span>
-                        <span id="modal_desCode">HAN</span>
+
+            <div class="modal-body bg-light">
+                <div class="container-fluid text-center">
+
+                    <!-- Hãng hàng không -->
+                    <div class="airline-display mb-4">
+                        <span id="modal_airlineCode_display"
+                            class="airline-badge px-4 py-2 rounded-pill text-white fw-bold">
+                            VietJet Air
+                        </span>
+                        <input type="hidden" id="modal_airlineCode">
                     </div>
-                    
-                    <div class="row g-3">
-                        <!-- Hãng hàng không -->
-                        <div class="col-md-6">
-                            <label class="info-label">Hãng hàng không</label>
-                            <div class="info-value">
-                                <span class="airline-badge" id="modal_airlineCode_display"></span>
+
+                    <!-- Tuyến bay (tên và giờ đi/đến) -->
+                    <div class="route-section mb-4">
+                        <div class="row align-items-center flight-info-dep-des">
+                            <!-- Nơi đi -->
+                            <div class="col-md-5 col-sm-12 text-end dep-info" >
+                                <div class="airport-name fw-bold" id="modal_depName">Hồ Chí Minh</div>
+                                <div class="airport-code text-dark" id="modal_depCode">(SGN)</div>
+                                <div class="time-info text-secondary" id="modal_depTime">18:45 - 12/10/2025</div>
                             </div>
-                            <input type="hidden" id="modal_airlineCode">
-                        </div>
-                        
-                        <!-- Số hiệu chuyến bay -->
-                        <div class="col-md-6">
-                            <label class="info-label">Số hiệu chuyến bay</label>
-                            <div class="info-value" id="modal_flightNo"></div>
-                        </div>
-                        
-                        <!-- Ngày khởi hành -->
-                        <div class="col-md-6">
-                            <label class="info-label">Ngày khởi hành</label>
-                            <div class="info-value" id="modal_depDate"></div>
-                        </div>
-                        
-                        <!-- Nơi đi -->
-                        <div class="col-md-6">
-                            <label class="info-label">Nơi đi</label>
-                            <div class="info-value" id="modal_depCode_full"></div>
-                        </div>
-                        
-                        <!-- Nơi đến -->
-                        <div class="col-md-6">
-                            <label class="info-label">Nơi đến</label>
-                            <div class="info-value" id="modal_desCode_full"></div>
-                        </div>
-                        
-                        <!-- Giá vé (Có thể chỉnh sửa) -->
-                        <div class="col-md-6">
-                            <label class="info-label">
-                                Giá vé <span class="text-danger">*</span>
-                                <small class="text-muted"></small>
-                            </label>
-                            <div class="input-group">
-                                <input type="text" 
-                                       class="form-control editable-field" 
-                                       id="modal_fare" 
-                                       placeholder="Nhập giá vé"
-                                       min="0"
-                                       step="1000"
-                                       required>
-                                <span class="input-group-text">VND</span>
+
+                            <!-- Mũi tên ở giữa -->
+                            <!-- Mũi tên ở giữa + số hiệu -->
+                            <div class="col-md-2 col-sm-12 route-arrow text-primary text-center flightNo-dep-des">
+                                <div class="fs-3">✈</div>
+                                <div class="flight-number text-primary fw-bold fs-5" id="modal_flightNo">VJ168</div>
                             </div>
-                            <small class="text-muted">Giá gốc: <span id="modal_originalFare" class="fw-bold">0</span> VND</small>
+
+
+                            <!-- Nơi đến -->
+                            <div class="col-md-5 col-sm-12 text-start des-info">
+                                <div class="airport-name fw-bold" id="modal_desName">Hà Nội</div>
+                                <div class="airport-code text-dark" id="modal_desCode">(HAN)</div>
+                                <div class="time-info text-secondary" id="modal_arvTime">20:55 - 12/10/2025</div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Giá vé -->
+                    <div class="row justify-content-start">
+                        <div class="col-md-6" style="
+                                                    text-align: left;">
+                            <label class="info-label">Giá cơ bản <span class="text-danger">*</span></label>
+                            <div class="input-group shadow-sm rounded-3">
+                                <input type="text" class="form-control editable-field" id="modal_fare"
+                                    placeholder="Nhập giá vé" min="0" step="1000" required>
+                                <span class="input-group-text fw-bold bg-primary text-white">VND</span>
+                            </div>
+                            <small class="text-dark">
+                                Giá cơ bản gốc: <span id="modal_originalFare" class="fw-bold text-dark">0</span> VND
+                            </small>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-            
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-primary btn-update" onclick="updateFlightFare()">
