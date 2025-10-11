@@ -1,11 +1,8 @@
-/* ----------------------------------------------------------------- */
-/* --------------------------  RESET CSS  -------------------------- */
-/* ----------------------------------------------------------------- */
+/* -------------  RESET CSS  ------------- */
 a {
   text-decoration: none;
   color: var(--text-primary-color);
 }
-
 a:focus {
   outline: none;
   text-decoration: none;
@@ -241,9 +238,7 @@ select::-webkit-scrollbar {
   border-radius: 20px;
 }
 
-/* ---------------------------------------------------------------- */
 /* ---------------------------  NAVBAR  --------------------------- */
-/* ---------------------------------------------------------------- */
 .navbar {
   font-family: "ubuntu-light", sans-serif;
   background: var(--white-color);
@@ -3904,32 +3899,22 @@ table.themeSettings tbody tr.yui-dt-odd {
   }
 }
 
-/* ----------------------------------------------------------- */
 /* -------------------------  MODAL  ------------------------- */
-/* ----------------------------------------------------------- */
 #modal-confirm .modal-dialog {
   top: 50%;
   transform: translate(0%, -50%);
 }
-
-.modal .modal-content {
-  border: none;
-}
-
-.modal .modal-header {
-  background: var(--primary-color);
-}
-
-.modal .modal-header h2.modal-title {
+.modal .modal-content {border: none;}
+.modal .modal-header {background: var(--primary-color);}
+.modal .modal-header .modal-title {
   color: var(--white-color);
-  font-size: 1rem !important;
   text-transform: uppercase;
 }
-
+.modal .modal-header h2.modal-title {
+  font-size: 1rem !important;
+}
 .modal .modal-header h4 {
   font-size: 18px;
-  color: var(--white-color);
-  text-transform: uppercase;
   letter-spacing: 2px;
 }
 

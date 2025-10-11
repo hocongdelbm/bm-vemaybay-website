@@ -5,7 +5,7 @@ require_once('custom/include/helpers/api/WinInvoice.php');
 
 class EC_HoaDonBanViewDetail extends ViewDetail {
 	function display() {
-		$this->css();
+		$this->getStyles();
 		$this->populateLineItems();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
@@ -28,17 +28,15 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			}
         }
 		parent::display();
-		$this->js();
+		$this->getScripts();
 	}
 
-	public function css() {
-		$css = '<link type="text/css" rel="stylesheet" href="modules/EC_HoaDonBan/css/view.detail.css?v=1.0.0">';
-		echo $css;
+	private function getStyles() {
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0'>";
 	}
 
-	public function js() {
-		$js = '<script src="modules/EC_HoaDonBan/js/view.detail.js?v=1.0.0"></script>';
-		echo $js;
+	private function getScripts() {
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.2'></script>";
 	}
 	
 	public function populateLineItems() {
@@ -442,7 +440,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 						<form method="dialog" name="form-remove-invoice">
 							<h5 style="font-size:1.2rem">Tiến hành bỏ ghi sổ hóa đơn <b>'.$this->bean->name.'</b></h4> 
 							<div class="d-flex gap-2 justify-content-end mt-3">
-								<input type="button" class="btn btn-primary" name="btn-confirm-remove-invoice" id="btn-confirm-remove-invoice" value="Xác nhận" data="'.$this->bean->name.'" title="Xác nhận" />
+								<input type="button" class="btn btn-primary" name="btn-confirm-remove-invoice" id="btn-confirm-remove-invoice" value="Xác nhận" title="Xác nhận"
+									data-inv-ref="'.$this->bean->name.'" 
+									data-inv-serial="'.$this->bean->kyhieuhd.'" 
+									/>
 								<input type="button" class="btn btn-secondary" name="btn-cancel-remove-invoice" value="Hủy" title="Hủy" onclick="closeDialog(\'dialog-remove-invoice\')" />
 							</div>
 						</form>

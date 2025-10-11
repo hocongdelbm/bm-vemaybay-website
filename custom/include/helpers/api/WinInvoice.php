@@ -134,15 +134,15 @@ class WinInvoice {
     /**
      * Ký số hóa đơn
      * 
-     * @param string $invRef Số phiếu bán
-     * @return bool
+     * @param string $invRef Số chứng từ, số phiếu bán: HD-251009-001
+     * @return string JSON
      */
     public function sign($invRef) {
         if (is_null($invRef) || empty($invRef)) {
             return json_encode([
                 "error" => 1,
                 "httpCode" => 400,
-                "message" => "Không tìm thấy số phiếu bán",
+                "message" => "Không tìm thấy số chứng từ",
                 "data" => null,
             ]);
         }
@@ -323,7 +323,7 @@ class WinInvoice {
      * 
      * @param array $params Thông tin hóa đơn
      * @param int $is_signed Đã ký số 
-     * @return int
+     * @return string JSON
      */
     public function delete($params, $is_signed = 0) {
         if (is_null($params) || empty($params)) {
@@ -494,5 +494,18 @@ class WinInvoice {
         finally {
             if (isset($curl) && is_resource($curl)) curl_close($curl);
         }
+    }
+
+    /**
+     * Check response from request
+     * 
+     * @param string $raw JSON string
+     * @return int
+     */
+    public function checkResponse($raw) {
+        if(!$raw || !is_string($raw) || empty($raw)) return 0; 
+        $arr = json_decode($raw, true);
+        if($arr && isset($arr['error']) && $arr['error'] == 0) return 1;
+        return 0;
     }
 }

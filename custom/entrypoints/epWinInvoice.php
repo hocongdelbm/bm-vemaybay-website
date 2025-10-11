@@ -5,6 +5,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Tạo hóa đơn
     if ($type == 1) {
+        echo json_encode([
+            'error' => 1,
+            'message' => 'Tính năng này đã được thay đổi',
+            'data' => null,
+        ]);
+        exit();
+
         $invoice_id   = isset($_POST['invoice_id']) ? $_POST['invoice_id'] : '';
         $invoice_data = isset($_POST['invoice_data']) ? str_replace('&quot;', '"', $_POST['invoice_data']) : '';
         $buyer_data   = isset($_POST['buyer_data']) ? str_replace('&quot;', '"', $_POST['buyer_data']) : '';
@@ -56,6 +63,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     // Ký số hóa đơn
     elseif ($type == 2) {
+        echo json_encode([
+            'error' => 1,
+            'message' => 'Tính năng này đã được thay đổi. Vui lòng thao tác trên danh sách hóa đơn',
+            'data' => null,
+        ]);
+        exit();
+
         $invoice_id = isset($_POST['invoice_id']) ? $_POST['invoice_id'] : '';
         $invRef = isset($_POST['invRef']) ? $_POST['invRef'] : '';
 
@@ -150,6 +164,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     // Hủy hóa đơn chưa ký 
     else if ($type == 0) {
+        echo json_encode([
+            'error' => 1,
+            'message' => 'Tính năng này đã được thay đổi. Vui lòng thao tác trên danh sách hóa đơn',
+            'data' => null,
+        ]);
+        exit();
+        
         $invoice_id = isset($_POST['invoice_id']) ? $_POST['invoice_id'] : '';
         $invRef = isset($_POST['invRef']) ? $_POST['invRef'] : '';
         $invcSign = isset($_POST['invcSign']) ? $_POST['invcSign'] : '';

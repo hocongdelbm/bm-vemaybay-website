@@ -6,8 +6,7 @@ $dictionary['EC_Input_Invoices'] = array(
     'inline_edit' => true,
     'duplicate_merge' => true,
     'fields' => array(
-        'qty' =>
-        array(
+        'qty' => array(
             'required' => false,
             'name' => 'qty',
             'vname' => 'LBL_QTY',
@@ -23,8 +22,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => '11',
             'disable_num_format' => '',
         ),
-        'invoice_number' =>
-        array(
+
+        'invoice_number' => array(
             'required' => false,
             'name' => 'invoice_number',
             'vname' => 'LBL_INVOICE_NUMBER',
@@ -39,8 +38,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
-        'invoice_date' =>
-        array(
+
+        'invoice_date' => array(
             'required' => false,
             'name' => 'invoice_date',
             'vname' => 'LBL_INVOICE_DATE',
@@ -54,8 +53,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'audited' => 1,
             'reportable' => 0,
         ),
-        'invoice_serial' =>
-        array(
+
+        'invoice_serial' => array(
             'required' => false,
             'name' => 'invoice_serial',
             'vname' => 'LBL_INVOICE_SERIAL',
@@ -70,9 +69,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
+
         // NCC
-        'supplier' =>
-        array(
+        'supplier' => array(
             'required' => false,
             'name' => 'supplier',
             'vname' => 'LBL_SUPPLIER',
@@ -105,9 +104,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => '25',
         ),
         
-        // hành trình
-        'itinerary' =>
-        array(
+        // Hành trình
+        'itinerary' => array(
             'required' => false,
             'name' => 'itinerary',
             'vname' => 'LBL_ITINERARY',
@@ -122,9 +120,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => '255',
         ),
-        // giá vốn
-        'cost' =>
-        array(
+
+        // Giá vốn
+        'cost' => array(
             'required' => false,
             'name' => 'cost',
             'vname' => 'LBL_COST',
@@ -139,9 +137,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
-        // giá chưa VAT
-        'cost_no_vat' =>
-        array(
+
+        // Giá chưa VAT
+        'cost_no_vat' => array(
             'required' => false,
             'name' => 'cost_no_vat',
             'vname' => 'LBL_COST_NO_VAT',
@@ -156,6 +154,7 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
+
         // // % vat
         // 'vat_per' =>
         // array(
@@ -173,9 +172,9 @@ $dictionary['EC_Input_Invoices'] = array(
         //     'reportable' => 0,
         //     'len' => 2,
         // ),
-        // tiền vat
-        'vat' =>
-        array(
+
+        // Tiền VAT
+        'vat' => array(
             'required' => false,
             'name' => 'vat',
             'vname' => 'LBL_VAT',
@@ -190,9 +189,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
-        // booking chứa số vé
-        'booking_id' =>
-        array(
+
+        'booking_id' => array(
             'required' => false,
             'name' => 'booking_id',
             'vname' => '',
@@ -207,9 +205,7 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 36,
         ),
-        // booking id
-        'booking' =>
-        array(
+        'booking' => array(
             'required' => false,
             'source' => 'non-db',
             'name' => 'booking',
@@ -231,9 +227,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
+
         // 0: chưa nạp, 1: đã nạp
-        'status' =>
-        array(
+        'status' => array(
             'required' => false,
             'name' => 'status',
             'vname' => 'LBL_STATUS',
@@ -248,9 +244,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 2,
         ),
-        // đánh dấu số vé là tính phí, để người dùng dò lại
-        'is_other_fee' =>
-        array(
+
+        // Đánh dấu số vé là tính phí, để người dùng dò lại
+        'is_other_fee' => array(
             'required' => false,
             'name' => 'is_other_fee',
             'vname' => 'LBL_IS_OTHER_FEE',
@@ -265,9 +261,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 1,
         ),
-        // stt số vé khi nạp hoá đơn
-        'order_by_no' =>
-        array(
+
+        // STT số vé khi nạp hoá đơn
+        'order_by_no' => array(
             'required' => false,
             'name' => 'order_by_no',
             'vname' => 'LBL_ORDER_BY_NO',
@@ -283,9 +279,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => '11',
             'disable_num_format' => '',
         ),
-        // thu hộ
-        'authorized_fee' =>
-        array(
+
+        // Thu hộ
+        'authorized_fee' => array(
             'required' => false,
             'name' => 'authorized_fee',
             'vname' => 'LBL_AUTHORIZED_FEE',
@@ -300,8 +296,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
-        'from_value' =>
-        array(
+
+        'from_value' => array(
             'required' => false,
             'source' => 'non-db',
             'name' => 'from_value',
@@ -319,8 +315,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        'to_value' =>
-        array(
+
+        'to_value' => array(
             'required' => false,
             'source' => 'non-db',
             'name' => 'to_value',
@@ -338,8 +334,8 @@ $dictionary['EC_Input_Invoices'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        'left_qty' =>
-        array(
+
+        'left_qty' => array(
             'required' => false,
             'source' => 'non-db',
             'name' => 'left_qty',
@@ -357,9 +353,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        // tổng tiền
-        'total' =>
-        array(
+
+        // Tổng tiền
+        'total' => array(
             'required' => false,
             'name' => 'total',
             'vname' => 'LBL_TOTAL',
@@ -374,9 +370,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
-        // đánh dấu số vé đã xuất hết
-        'out_of_stock' =>
-        array(
+
+        // Đánh dấu số vé đã xuất hết
+        'out_of_stock' => array(
             'required' => false,
             'name' => 'out_of_stock',
             'vname' => 'LBL_OUT_OF_STOCK',
@@ -391,9 +387,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => 1,
         ),
-        // code vé dùng cho xuất hoá đơn BBA
-        'ticket_code' =>
-        array(
+
+        // Code vé dùng cho xuất hoá đơn BBA
+        'ticket_code' => array(
             'required' => false,
             'name' => 'ticket_code',
             'vname' => 'LBL_TICKET_CODE',
@@ -408,9 +404,9 @@ $dictionary['EC_Input_Invoices'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
-        // ngày hạch toán
-        'accounting_date' =>
-        array(
+
+        // Ngày hạch toán
+        'accounting_date' => array(
             'required' => false,
             'name' => 'accounting_date',
             'vname' => 'LBL_ACCOUNTING_DATE',

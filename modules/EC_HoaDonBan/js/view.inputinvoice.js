@@ -1,17 +1,26 @@
 $(document).ready(function () {
-    // những input chỉ cho nhập số và format currency
     $(".allow_number_only").number(true, 0, dec_sep, num_grp_sep);
 
     // Default current date
     if($('input[name="accounting_date"]').val().length < 10) $('input[name="accounting_date"]').val(getCurrentDate());
     if($('input[name="invoice_date"]').val().length < 10) $('input[name="invoice_date"]').val(getCurrentDate());
 
-    $("#supplier").change(function () {
-        $("#ticket_code").val($(this).children("option:selected").attr("data-ticket-code"));
-        $("#pass_qty").val($(this).children("option:selected").attr("data-pass-qty"));
-        $("#itinerary").val($(this).children("option:selected").attr("data-itinerary"));
-        $("#ticket_price").val($(this).children("option:selected").attr("data-ticket-price"));
-        $("#supplier_name").val($(this).children("option:selected").text());
+    $('#import-tab').click(function() {
+        $('#supplier').trigger('change');
+    });
+    $('#supplier').change(function () {
+        let optionSelected = $(this).children('option:selected');
+
+        $('#col_ticket_code').val(optionSelected.attr('data-col-ticket-code'));
+        $('#col_pass_qty').val(optionSelected.attr('data-col-pass-qty'));
+        $('#col_ticket_price').val(optionSelected.attr('data-col-ticket-price'));
+        $('#col_vat').val(optionSelected.attr('data-col-vat'));
+        $('#col_authorized_collection').val(optionSelected.attr('data-col-authorized-collection'));
+        $('#col_other_charge').val(optionSelected.attr('data-col-other-charge'));
+        $('#col_total').val(optionSelected.attr('data-col-total'));
+        $('#col_itinerary').val(optionSelected.attr('data-col-itinerary'));
+
+        $('#supplier_name').val(optionSelected.text().trim());
     });
 
     $("#import_invoice_frm").submit(function () {
@@ -26,7 +35,7 @@ $(document).ready(function () {
         $("#noti_line").text("Hệ thống đang xử lý dữ liệu. Vui lòng chờ trong giây lát...");
     });
 
-    // xoá hoá đơn bắt buộc phải nhập số hoá đơn, ký hiệu hoá đơn
+    // Xoá hoá đơn bắt buộc phải nhập số hoá đơn, ký hiệu hoá đơn
     $("#remove_frm").submit(function () {
         addToValidate('remove_frm', 'rm_invoice_number', 'varchar', true, 'Không được để trống');
         addToValidate('remove_frm', 'rm_invoice_serial', 'varchar', true, 'Không được để trống');
@@ -400,14 +409,13 @@ $(document).ready(function () {
 });
 
 function calculateTicketPrice(is_cal_vat = 0) {
+    let qty = unformatNumber($("#im_qty").val());
+    let cost = unformatNumber($("#im_cost").val());
+    let authorized = unformatNumber($("#im_authorized").val());
 
-    var qty = unformatNumber($("#im_qty").val());
-    var cost = unformatNumber($("#im_cost").val());
-    var authorized = unformatNumber($("#im_authorized").val());
-
-    if (is_cal_vat) {
-        var vat = Math.round(cost * 0.08);
-    } else var vat = unformatNumber($("#im_vat").val());
+    let vat = 0;
+    if (is_cal_vat) vat = Math.round(cost * 0.08);
+    else vat = unformatNumber($("#im_vat").val());
 
     $("#im_vat").val(formatNumber(vat));
     $("#im_cost_vat").val(formatNumber(cost + vat));
