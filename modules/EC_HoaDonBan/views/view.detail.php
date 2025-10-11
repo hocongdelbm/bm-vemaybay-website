@@ -440,7 +440,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 						<form method="dialog" name="form-remove-invoice">
 							<h5 style="font-size:1.2rem">Tiến hành bỏ ghi sổ hóa đơn <b>'.$this->bean->name.'</b></h4> 
 							<div class="d-flex gap-2 justify-content-end mt-3">
-								<input type="button" class="btn btn-primary" name="btn-confirm-remove-invoice" id="btn-confirm-remove-invoice" value="Xác nhận" data="'.$this->bean->name.'" title="Xác nhận" />
+								<input type="button" class="btn btn-primary" name="btn-confirm-remove-invoice" id="btn-confirm-remove-invoice" value="Xác nhận" title="Xác nhận"
+									data-inv-ref="'.$this->bean->name.'" 
+									data-inv-serial="'.$this->bean->kyhieuhd.'" 
+									/>
 								<input type="button" class="btn btn-secondary" name="btn-cancel-remove-invoice" value="Hủy" title="Hủy" onclick="closeDialog(\'dialog-remove-invoice\')" />
 							</div>
 						</form>

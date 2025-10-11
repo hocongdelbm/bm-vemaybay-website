@@ -7,58 +7,6 @@ $(document).ready(function () {
 		$("#edit_button").remove();
 	} 
 
-    // Click button Remind
-	$(document).on('click', 'input[name="btnCancelInvoice"]', function () {
-		$("#dlgCancelInvoice").dialog({
-			title: "Lý do hủy hóa đơn đầu ra",
-			width: 400,
-			modal: true,
-			resizable: false,
-		});
-	});
-
-	// Hủy hóa đơn
-	$(document).on('click', '#btn-confirm-cancel__invoice', function () {
-		let description = $("#txtCancelInvoice").val();
-		let is_signed = $("input[name='is_signed']").val();
-		let hd_record = $("input[name='record']").val();
-		let hd_record_name = $("input[name='record_name']").val();
-		let company_unit = $("input[name='company_unit']").val();
-
-        if (description.length == 0 || hd_record_name.length == 0 ||  hd_record.length == 0) return;
-		else if (description.length < 12) {
-			let text_warning = 'Lí do hủy hóa đơn quá ngắn!';
-			showToastWarning(text_warning);
-			return;
-		}
-
-        $.ajax({
-			url: "index.php?entryPoint=entryPointEC_HoaDonBan",
-			data: {
-				hd_record: hd_record,
-				hd_record_name: hd_record_name,
-				is_signed: is_signed,
-				company_unit: company_unit,
-				description: description,
-				for: "reasonCancelInvoice",
-			},
-			type: "POST",
-			cache: false,
-			success: function (response) {
-				$('#dlgCancelInvoice').dialog('close');
-				if(response == 1){
-					let text_warning = 'Hủy hóa đơn thành công.';
-					showModalNotify(1, text_warning);
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				} else {
-					let text_warning = 'Hủy hóa đơn thất bại. Vui lòng liên hệ IT để được hỗ trợ.';
-					showModalNotify(0, text_warning);
-					$('.modal-overlay, .btn-modal-close').addClass('reload');
-				}
-			}
-		});
-	});
-
 	// Ghi/Cập nhật hóa đơn
 	$('#btn-confirm-create-invoice').click(function(){
 		let invID = $('input[name="invID"]').val();
@@ -116,49 +64,90 @@ $(document).ready(function () {
 			return 0;
 		}
 
-		closeDialog('dialog-create-invoice');
-		$('.container-waiting').show();
 		$.ajax({
-			url: "index.php?entryPoint=entryPointWinInvoice",
-			data: {
-				type : 1,
-				invoice_id : invID,
-				invoice_data : JSON.stringify(invoice_data),
-				buyer_data : JSON.stringify(buyer_data),
-				item_data : JSON.stringify(item_data)
-			},
+			url: ENTRYPOINT,
 			type: "POST",
+            contentType: "application/json",
+			data: JSON.stringify({
+                class: ENTRYCLASS,
+                method: "set",
+                params: {
+					recordId: invID,
+					invoiceData: invoice_data,
+					buyerData: buyer_data,
+					itemData: item_data
+                }
+            }),
 			cache: false,
+			beforeSend: function() {
+				closeDialog('dialog-create-invoice');
+				$('.container-waiting').show();
+			},
 			success: function (response) {
 				$('.container-waiting').hide();
+				
 				let res = JSON.parse(response);
-				if(res.error == 0) {
-					showModalNotify(1, res.message ?? "Thao tác thành công");
+				if('status' in res && res.status == 1) {
+					showModalNotify(1, res.message ?? 'Thao tác thành công');
 					countdownAndReload(3);
 				}
 				else {
-					let description = 'description' in res ? format_html_data_error(res.description) : '';
-					showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
+					let description = 'description' in res ? format_html_data_error(res.description) : ''; 
+					showModalNotify(0, res.message ?? 'Đã xảy ra lỗi', description);
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
-
-                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
-                showModalNotify(0, text_modal_error)
-
+                showModalNotify(0, `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`)
                 console.error(XMLHttpRequest);
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
 			}
 		});
+
+		// closeDialog('dialog-create-invoice');
+		// $('.container-waiting').show();
+		// $.ajax({
+		// 	url: "index.php?entryPoint=entryPointWinInvoice",
+		// 	data: {
+		// 		type : 1,
+		// 		invoice_id : invID,
+		// 		invoice_data : JSON.stringify(invoice_data),
+		// 		buyer_data : JSON.stringify(buyer_data),
+		// 		item_data : JSON.stringify(item_data)
+		// 	},
+		// 	type: "POST",
+		// 	cache: false,
+		// 	success: function (response) {
+		// 		$('.container-waiting').hide();
+		// 		let res = JSON.parse(response);
+		// 		if(res.error == 0) {
+		// 			showModalNotify(1, res.message ?? "Thao tác thành công");
+		// 			countdownAndReload(3);
+		// 		}
+		// 		else {
+		// 			let description = 'description' in res ? format_html_data_error(res.description) : '';
+		// 			showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
+		// 		}
+		// 	},
+		// 	error: function(XMLHttpRequest, textStatus, errorThrown) {
+		// 		$('.container-waiting').hide();
+
+        //         let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
+        //         showModalNotify(0, text_modal_error)
+
+        //         console.error(XMLHttpRequest);
+		// 		console.error("Status: " + textStatus);
+		// 		console.error("Error: " + errorThrown);
+		// 	}
+		// });
 	});
 
 	// Bỏ ghi hóa đơn
 	$('#btn-confirm-remove-invoice').click(function(){
 		let invID = $("input[name='record']").val();
-		let invRef = $(this).attr('data');
-		let invcSign = $(this).attr('data-invc-sign');
+		let invRef = $(this).attr('data-inv-ref');
+		let invSerial = $(this).attr('data-inv-serial');
 
 		// Validate
 		if(invID.length == 0) {
@@ -169,43 +158,101 @@ $(document).ready(function () {
 			showModalNotify("warning", "Không tìm thấy số chứng từ");
 			return 0;
 		}
+		if(invSerial.length == 0) {
+			showModalNotify("warning", "Không tìm thấy ký hiệu hóa đơn");
+			return 0;
+		}
 
 		$.ajax({
-			url: "index.php?entryPoint=entryPointWinInvoice",
-			data: {
-				type: 0,
-				invoice_id: invID,
-				invRef: invRef
-			},
+			url: ENTRYPOINT,
 			type: "POST",
+            contentType: "application/json",
+			data: JSON.stringify({
+                class: ENTRYCLASS,
+                method: "delete",
+                params: {
+					recordId: invID,
+					invRef: invRef,
+					invSerial: invSerial
+                }
+            }),
 			cache: false,
 			beforeSend: function() {
-				closeDialog('dialog-remove-invoice');
+				closeDialog('dialog-create-invoice');
 				$('.container-waiting').show();
 			},
 			success: function (response) {
 				$('.container-waiting').hide();
+				
 				let res = JSON.parse(response);
-
-				if(res.error == 0) {
-					showModalNotify(1, res.message ?? "Thao tác thành công");
+				if('status' in res && res.status == 1) {
+					showModalNotify(1, res.message ?? 'Thao tác thành công');
 					countdownAndReload(3);
 				}
 				else {
 					let description = 'description' in res ? format_html_data_error(res.description) : ''; 
-					showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
+					showModalNotify(0, res.message ?? 'Đã xảy ra lỗi', description);
 				}
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
-
-                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
-                showModalNotify(0, text_modal_error)
-
+                showModalNotify(0, `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`)
                 console.error(XMLHttpRequest);
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
 			}
+		});
+	});
+
+	// Hủy hóa đơn (Only BM)
+	$(document).on('click', '#btn-confirm-cancel__invoice', function () {
+		let description = $("#txtCancelInvoice").val();
+		let is_signed = $("input[name='is_signed']").val();
+		let hd_record = $("input[name='record']").val();
+		let hd_record_name = $("input[name='record_name']").val();
+		let company_unit = $("input[name='company_unit']").val();
+
+        if (description.length == 0 || hd_record_name.length == 0 ||  hd_record.length == 0) return;
+		else if (description.length < 12) {
+			let text_warning = 'Lí do hủy hóa đơn quá ngắn!';
+			showToastWarning(text_warning);
+			return;
+		}
+
+        $.ajax({
+			url: "index.php?entryPoint=entryPointEC_HoaDonBan",
+			data: {
+				hd_record: hd_record,
+				hd_record_name: hd_record_name,
+				is_signed: is_signed,
+				company_unit: company_unit,
+				description: description,
+				for: "reasonCancelInvoice",
+			},
+			type: "POST",
+			cache: false,
+			success: function (response) {
+				$('#dlgCancelInvoice').dialog('close');
+				if(response == 1){
+					let text_warning = 'Hủy hóa đơn thành công.';
+					showModalNotify(1, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				} else {
+					let text_warning = 'Hủy hóa đơn thất bại. Vui lòng liên hệ IT để được hỗ trợ.';
+					showModalNotify(0, text_warning);
+					$('.modal-overlay, .btn-modal-close').addClass('reload');
+				}
+			}
+		});
+	});
+
+	// Click button Remind
+	$(document).on('click', 'input[name="btnCancelInvoice"]', function () {
+		$("#dlgCancelInvoice").dialog({
+			title: "Lý do hủy hóa đơn đầu ra",
+			width: 400,
+			modal: true,
+			resizable: false,
 		});
 	});
 

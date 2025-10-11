@@ -323,7 +323,7 @@ class WinInvoice {
      * 
      * @param array $params Thông tin hóa đơn
      * @param int $is_signed Đã ký số 
-     * @return int
+     * @return string JSON
      */
     public function delete($params, $is_signed = 0) {
         if (is_null($params) || empty($params)) {

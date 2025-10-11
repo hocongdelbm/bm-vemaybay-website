@@ -8,7 +8,70 @@ require_once "custom/include/helpers/api/WinInvoice.php";
  */
 class entryOutputInvoiceClass extends entryClass {
     /**
-     * Execute digital signing
+     * Create invoice
+     * 
+     * @param array $params [recordId, invoiceData, buyerData, itemData]
+     * @return array
+     */
+    public function set($params = []) {
+        $recordId    = global_test_input($params['recordId'] ?? '');
+        $invoiceData = $params['invoiceData'] ?? [];
+        $buyerData   = $params['buyerData'] ?? [];
+        $itemData    = $params['itemData'] ?? [];
+
+        if (!empty($recordId) && !empty($invoiceData) && !empty($buyerData) && !empty($itemData)) {
+            $items = [];
+            for ($i = 0; $i < count($itemData['itemName']); $i++) {
+                $items[$i] = [
+                    'itemCode'          => trim($itemData['itemCode'][$i]),
+                    'itemName'          => trim($itemData['itemName'][$i]),
+                    'itemUnit'          => $itemData['itemUnit'][$i],
+                    'itemQuantity'      => $itemData['itemQuantity'][$i],
+                    'itemPrice'         => $itemData['itemPrice'][$i],
+                    'itemVatRate'       => $itemData['itemVatRate'][$i],
+                    'itemVatAmnt'       => $itemData['itemVatAmnt'][$i],
+                    'itemAmountNoVat'   => $itemData['itemAmountNoVat'][$i]
+                ];
+            }
+
+            $winInv = new WinInvoice();
+            $responseSet = $winInv->set($invoiceData, $buyerData, $items); // JSON
+
+            // Update status
+            if ($winInv->checkResponse($responseSet)) {
+                global $db;
+                $sqlUpdate = "UPDATE ec_hoadonban
+                    SET tinhtrang = '1'
+                        ,invoice_data = '$responseSet'
+                        ,modified_user_id = '{$this->currentUser->id}'
+                        ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                    WHERE id = '$recordId' AND deleted = 0";
+                if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+
+                return [
+                    "status" => 1,
+                    "message" => "Ghi sổ thành công",
+                    "data" => null,
+                ];
+            }
+
+            return [
+                "status" => 0,
+                "message" => "Thao tác chưa thành công",
+                "data" => null,
+                "description" => json_decode($responseSet, true)
+            ];
+        }
+
+        return [
+            "status" => 0,
+            "message" => "Hóa đơn thiếu thông tin",
+            "data" => null
+        ];
+    }
+
+    /**
+     * Sign invoice
      * 
      * @param array $params [invRef, recordId]
      * @return array
@@ -45,7 +108,7 @@ class entryOutputInvoiceClass extends entryClass {
 
                     if(empty($invNumber)) continue;
 
-                    global $db, $current_user;
+                    global $db;
                     $sqlUpdate = "UPDATE ec_hoadonban
                         SET tinhtrang = '2'
                             ,is_signed = 1
@@ -53,6 +116,8 @@ class entryOutputInvoiceClass extends entryClass {
                             ,kyhieuhd = '$invSerial'
                             ,ngayhoadon = '$invDate'
                             ,invoice_data = '$json'
+                            ,modified_user_id = '{$this->currentUser->id}'
+                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
                         WHERE id = '$recordId' AND name = '$invRef' AND deleted = 0";
 
                     if($db->query($sqlUpdate)) {
@@ -80,7 +145,7 @@ class entryOutputInvoiceClass extends entryClass {
                                     $work->parent_type      = "EC_Flight_Bookings";
                                     $work->parent_id        = $booking_id;
                                     $work->invoice_issued   = 1;
-                                    $work->assigned_user_id = $current_user->id;
+                                    $work->assigned_user_id = $this->currentUser->id;
                                     $workId = $work->save();
 
                                     if(is_string($workId)) {
@@ -92,7 +157,7 @@ class entryOutputInvoiceClass extends entryClass {
                                         $note->parent_id 		    = $booking_id;
                                         $note->booking_status 	    = $booking_status;
                                         $note->working_process_id   = $workId;
-                                        $note->assigned_user_id     = $current_user->id;
+                                        $note->assigned_user_id     = $this->currentUser->id;
                                         $note->save();
                                         $arrBookingId[] = $booking_id;
                                     }
@@ -101,7 +166,11 @@ class entryOutputInvoiceClass extends entryClass {
 
                             if(!empty($arrBookingId)) {
                                 $listBookingId = "'" . implode("','", $arrBookingId) . "'";
-                                $db->query("UPDATE ec_flight_bookings SET is_invoice_export = 1 WHERE id IN ($listBookingId) AND deleted = 0");
+                                $db->query("UPDATE ec_flight_bookings
+                                    SET is_invoice_export = 1
+                                        ,modified_user_id = '{$this->currentUser->id}'
+                                        ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                                    WHERE id IN ($listBookingId)AND deleted = 0");
                             }
                             else {
                                 $botToken   = $this->telegramConfig['bot_token'] ?? '';
@@ -141,5 +210,70 @@ class entryOutputInvoiceClass extends entryClass {
                 "description" => json_decode($responseSign, true)
             ];
         }
+    }
+
+    /**
+     * Delete invoice which is not signed yet
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function delete($params = []) {
+        $recordId   = global_test_input($_POST['recordId'] ?? '');
+        $invRef     = global_test_input($_POST['invRef'] ?? '');
+        $invSerial  = global_test_input($_POST['invSerial'] ?? ''); // Ký hiệu hóa đơn
+
+        if (!empty($recordId) && !empty($invRef) && !empty($invSerial)) {
+            $winInv = new WinInvoice();
+            $responseDelete = $winInv->delete([
+                'invRef' => $invRef,
+                'invcSign' => $invSerial
+            ], 0); // Chưa ký
+            
+            if ($winInv->checkResponse($responseDelete)) {
+                global $db;
+
+                // Update status
+                try {
+                    $sqlUpdate = "UPDATE ec_hoadonban
+                        SET tinhtrang = '0'
+                            ,invoice_data = ''
+                            ,modified_user_id = '{$this->currentUser->id}'
+                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                        WHERE id = '$recordId' AND deleted = 0";
+                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+
+                    $sqlUpdate = "UPDATE ec_chitiethoadon
+                        SET deleted = 1
+                            ,description = 'Đã hủy {$invRef}'
+                            ,modified_user_id = '{$this->currentUser->id}'
+                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                        WHERE parent_id = '$recordId'
+                            AND parent_type = 'EC_HoaDonBan'
+                            AND deleted = 0";
+                    if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+                }
+                catch(Throwable $th) {}
+
+                return [
+                    "status" => 1,
+                    "message" => "Hủy hóa đơn thành công",
+                    "data" => null,
+                ];
+            }
+
+            return [
+                "status" => 0,
+                "message" => "Thao tác chưa thành công",
+                "data" => null,
+                "description" => json_decode($responseDelete, true)
+            ];
+        }
+
+        return [
+            "status" => 0,
+            "message" => "Hóa đơn thiếu thông tin để thao tác",
+            "data" => null
+        ];
     }
 }
