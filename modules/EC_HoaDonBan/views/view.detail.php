@@ -9,12 +9,13 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		$this->populateLineItems();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
-		if($this->bean->tinhtrang == '2' && empty($this->bean->sohoadon)) {
+		if($this->bean->tinhtrang == '2' && $this->bean->company_unit == 'MHV' && (!$this->bean->sohoadon || empty($this->bean->sohoadon))) {
 			$winInv = new WinInvoice();
 			$json = $winInv->get($this->bean->name);
 
-			if(!is_null($json) && !empty($json)) {
+			if($winInv->checkResponse($json)) {
 				$arr = json_decode($json, true);
+				
 				$hoadonban = new EC_HoaDonBan();
 				$hoadonban->retrieve($this->bean->id);
 				if(isset($arr['data'][0]['invNumber']) && $arr['data'][0]['invNumber'] != "0000000") {

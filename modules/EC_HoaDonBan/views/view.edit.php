@@ -8,20 +8,18 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 	}
 
 	public function display() {
-		$this->css();
+		$this->getStyles();
 		$this->populateLineItems();
 		parent::display();
-		$this->js();
+		$this->getScripts();
 	}
 
-	public function css() {
-		$css = '<link type="text/css" rel="stylesheet" href="modules/EC_HoaDonBan/css/view.edit.css?v=1.0.0">';
-		echo $css;
+	private function getStyles() {
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.edit.css?v=1.0.1'>";
 	}
 
-	public function js() {
-		$js = '<script src="modules/EC_HoaDonBan/js/view.edit.js?v=1.0.0"></script>';
-		echo $js;
+	private function getScripts() {
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.edit.js?v=1.0.1'></script>";
 	}
 
 	protected function populateLineItems() {
