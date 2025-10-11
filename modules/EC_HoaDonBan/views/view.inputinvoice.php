@@ -915,7 +915,8 @@ class Viewinputinvoice extends SugarView {
                 $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
                 $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat'] ?? 0);
                 $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection'] ?? 0);
-                $other_charge = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
+                $data[$i]['total'] = $this->changeAmountFormat($data[$i]['total'] ?? 0);
+                $data[$i]['other_charge'] = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
 
                 if ($supplier == 'PNA') {
                     // Định dạng số vé
@@ -942,8 +943,8 @@ class Viewinputinvoice extends SugarView {
                     }
                     $data[$i]['itinerary'] = $itiFormat;
 
-                    $data[$i]['ticket_price'] += $other_charge;
-                    $data[$i]['vat'] += $other_charge * 0.08;
+                    $data[$i]['ticket_price'] += $data[$i]['other_charge'];
+                    $data[$i]['vat'] += $data[$i]['other_charge'] * 0.08;
                 }
                 else if ($supplier == 'HNH') {
                     // Định dạng số vé
