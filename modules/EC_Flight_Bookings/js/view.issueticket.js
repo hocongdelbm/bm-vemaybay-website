@@ -230,6 +230,42 @@ $(document).ready(function () {
         }
     });
 
+
+    $('.status-badge').on('click', function () {
+        // Build modal HTML
+        const modalId = 'badgeModal';
+        const existingModal = document.getElementById(modalId);
+        if (existingModal) existingModal.remove(); // remove old modal if exists
+
+        const modalHTML = `<div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}Label" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="${modalId}Label">Test</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-primary" id="buttonConfirmMassSigning" data-for-signing="${encodeDataAttrs(dataForSigning)}">Xác nhận</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        // Append modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Show modal
+        const modalEl = document.getElementById(modalId);
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    });
+
     // Void ticket button click handler
     $('#voidTicketButton').on('click', function () {
         return;

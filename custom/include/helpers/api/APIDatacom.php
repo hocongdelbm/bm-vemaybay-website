@@ -456,8 +456,9 @@ class APIDatacom {
         }
 
         // Update action for booking
-        $bookingData["IsPaid"]   = $bookingData["BookingStatus"] == "completed" ? true : false;
-        $bookingData["IsVoid"]   = in_array($bookingData["SystemCode"], ["VN", "1A", "1G"]) ? true : false;
+        $bookingData["IsPaid"] = $bookingData["BookingStatus"] == "completed" ? true : false;
+        $bookingData["IsVoid"] = in_array($bookingData["SystemCode"], ["VN", "1A", "1G"]) ? true : false;
+        $bookingData["IsRefund"] = true;
 
         // List flight and fare
         $flightNumberList = [];
