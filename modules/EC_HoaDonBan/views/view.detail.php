@@ -5,7 +5,7 @@ require_once('custom/include/helpers/api/WinInvoice.php');
 
 class EC_HoaDonBanViewDetail extends ViewDetail {
 	function display() {
-		$this->css();
+		$this->getStyles();
 		$this->populateLineItems();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
@@ -28,15 +28,15 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			}
         }
 		parent::display();
-		$this->js();
+		$this->getScripts();
 	}
 
-	public function css() {
+	private function getStyles() {
 		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0'>";
 	}
 
-	public function js() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.0'></script>";
+	private function getScripts() {
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.1'></script>";
 	}
 	
 	public function populateLineItems() {

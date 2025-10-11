@@ -56,6 +56,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     // Ký số hóa đơn
     elseif ($type == 2) {
+        echo json_encode([
+            'error' => 1,
+            'message' => 'Tính năng này đã được nâng cấp. Vui lòng thao tác trên danh sách hóa đơn',
+            'data' => null,
+        ]);
+        exit();
+
         $invoice_id = isset($_POST['invoice_id']) ? $_POST['invoice_id'] : '';
         $invRef = isset($_POST['invRef']) ? $_POST['invRef'] : '';
 

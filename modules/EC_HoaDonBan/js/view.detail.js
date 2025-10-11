@@ -1,3 +1,6 @@
+const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
+const ENTRYCLASS = "entryOutputInvoiceClass";
+
 $(document).ready(function () {
 	// HD hủy, đã ký chỉ được view
 	if($("#tinhtrang").val() == '-1' || $("#tinhtrang").val() == '2'){
@@ -222,13 +225,17 @@ $(document).ready(function () {
 		}
 
 		$.ajax({
-			url: "index.php?entryPoint=entryPointWinInvoice",
-			data: {
-				type : 2,
-				invoice_id : invID,
-				invRef : invRef
-			},
+			url: ENTRYPOINT,
 			type: "POST",
+            contentType: "application/json",
+			data: JSON.stringify({
+                class: ENTRYCLASS,
+                method: "sign",
+                params: {
+                    recordId: invID,
+                    invRef: invRef
+                }
+            }),
 			cache: false,
 			beforeSend: function() {
 				closeDialog('dialog-sign-invoice');
@@ -236,9 +243,9 @@ $(document).ready(function () {
 			},
 			success: function (response) {
 				$('.container-waiting').hide();
+				
 				let res = JSON.parse(response);
-
-				if(res.error == 0) {
+				if('status' in res && res.status == 1) {
 					showModalNotify(1, res.message ?? 'Thao tác thành công');
 					countdownAndReload(3);
 				}
@@ -249,15 +256,50 @@ $(document).ready(function () {
 			},
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
 				$('.container-waiting').hide();
-
-                let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
-                showModalNotify(0, text_modal_error)
-
+                showModalNotify(0, `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`)
                 console.error(XMLHttpRequest);
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
 			}
 		});
+
+		// $.ajax({
+		// 	url: "index.php?entryPoint=entryPointWinInvoice",
+		// 	data: {
+		// 		type : 2,
+		// 		invoice_id : invID,
+		// 		invRef : invRef
+		// 	},
+		// 	type: "POST",
+		// 	cache: false,
+		// 	beforeSend: function() {
+		// 		closeDialog('dialog-sign-invoice');
+		// 		$('.container-waiting').show();
+		// 	},
+		// 	success: function (response) {
+		// 		$('.container-waiting').hide();
+		// 		let res = JSON.parse(response);
+
+		// 		if(res.error == 0) {
+		// 			showModalNotify(1, res.message ?? 'Thao tác thành công');
+		// 			countdownAndReload(3);
+		// 		}
+		// 		else {
+		// 			let description = 'description' in res ? format_html_data_error(res.description) : ''; 
+		// 			showModalNotify(0, res.message ?? 'Đã xảy ra lỗi', description);
+		// 		}
+		// 	},
+		// 	error: function(XMLHttpRequest, textStatus, errorThrown) {
+		// 		$('.container-waiting').hide();
+
+        //         let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
+        //         showModalNotify(0, text_modal_error)
+
+        //         console.error(XMLHttpRequest);
+		// 		console.error("Status: " + textStatus);
+		// 		console.error("Error: " + errorThrown);
+		// 	}
+		// });
 	});
 
 	// Chuyển trạng thái sang đã kí
