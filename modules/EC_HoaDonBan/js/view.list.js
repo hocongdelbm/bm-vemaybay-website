@@ -1,3 +1,5 @@
+const ENDPOINT = "index.php?entryPoint=entryPointGeneral";
+
 $(document).ready(function () {
     $('.button-mass-signing').click(function() {
         const checkboxes = document.querySelectorAll('input.listview-checkbox:checked');
@@ -34,7 +36,7 @@ $(document).ready(function () {
                 <td>${data.loaikh || ''}</td>
                 <td>${data.tencongty || ''}</td>
                 <td>${data.tongthanhtoan || ''}</td>
-                <td>${data.tinhtrang || ''}</td>
+                <td id="status-${data.name}">${data.tinhtrang || ''}</td>
             </tr>`;
 
             dataForSigning[recordId] = data.name;
@@ -67,7 +69,7 @@ $(document).ready(function () {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                     <button type="button" class="btn btn-primary" id="buttonConfirmMassSigning" data-for-signing="${encodeDataAttrs(dataForSigning)}">Xác nhận</button>
                 </div>
                 </div>
@@ -87,47 +89,55 @@ $(document).ready(function () {
             if(confirm("Thao tác sẽ tiến hành ký số toàn bộ danh sách hóa đơn trên")) {
                 const button = event.currentTarget;
                 const dataForSigning = decodeDataAttrs(button.dataset.forSigning);
+                button.disabled = true;
 
-                console.log(dataForSigning);
-                alert('Tính năng đang hoàn thiện');
+                const sendRequests = async (dataMap) => {
+                    const entries = Object.entries(dataMap); // [[id, code], ...]
 
-                // const sendRequests = async (dataMap) => {
-                //     const entries = Object.entries(dataMap); // [[id, code], ...]
+                    const requests = entries.map(([id, code]) => {
+                        $(`#status-${code}`).html(`<span class="txt-signing-pending">Đang xử lý <div class="loader-signing"></div></span>`);
+                        return fetch(ENDPOINT, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                class: "entryOutputInvoiceClass",
+                                method: "sign",
+                                params: {
+                                    recordId: id,
+                                    invRef: code
+                                }
+                            })
+                        })
+                        .then(response => {
+                            if (!response.ok) $(`#status-${code}`).html(`<span class="txt-signing-failed">Thao tác lỗi ${response.status}</span>`);
+                            return response.json();
+                        })
+                        .then(data => {
+                            if('status' in data) {
+                                if(data.status == 1) $(`#status-${code}`).html(`<span class="txt-signing-success">${data.message}</span>`);
+                                else $(`#status-${code}`).html(`<span class="txt-signing-failed">${data.message}</span>`);
+                            }
+                            else $(`#status-${code}`).html(`<span class="txt-signing-failed">Thao tác lỗi</span>`);
+                        })
+                        .catch(error => {
+                            $(`#status-${code}`).html(`<span class="txt-signing-failed">${error.message}</span>`);
+                            console.error(`Error for ${code}:`, error);
+                        });
+                    });
 
-                //     const requests = entries.map(([id, code]) => {
-                //         return fetch('/your-api-endpoint', {
-                //         method: 'POST',
-                //         headers: {
-                //             'Content-Type': 'application/json',
-                //             // Add other headers like CSRF if needed
-                //         },
-                //         body: JSON.stringify({ id, code }) // Send both values
-                //         })
-                //         .then(response => {
-                //         if (!response.ok) throw new Error(`Request failed for ID ${id}`);
-                //         return response.json();
-                //         })
-                //         .then(data => {
-                //         console.log(`✅ Success for ID ${id}:`, data);
-                //         return { id, status: 'success', data };
-                //         })
-                //         .catch(error => {
-                //         console.error(`❌ Error for ID ${id}:`, error);
-                //         return { id, status: 'error', error };
-                //         });
-                //     });
-
-                //     // Wait for all requests to finish (even if some fail)
-                //     const results = await Promise.allSettled(requests);
-
-                //     console.log("🔁 All requests finished:", results);
-                // };
-                // sendRequests(dataMap);
+                    // Wait for all requests to finish (even if some fail)
+                    const results = await Promise.allSettled(requests);
+                    console.log("All requests finished:", results);
+                };
+                sendRequests(dataForSigning);
             }
-            // modal.hide();
         });
     }); 
 });
+
+
 
 function encodeDataAttrs(value) {
     if(!value) return value;

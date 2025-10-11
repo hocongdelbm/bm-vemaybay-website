@@ -13,7 +13,7 @@ class Viewinputinvoice extends SugarView {
         global $current_user;
         // Phân quyền - Không cho telesale truy cập mục này
         if (isTelesaleUser($current_user->id)) {
-            header("Location: index.php?module=".$this->bean->module_dir."&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
+            header("Location: index.php?module={$this->bean->module_dir}&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
             exit();
         }
 
@@ -91,20 +91,18 @@ class Viewinputinvoice extends SugarView {
         $this->bean->db->query("UPDATE ec_input_invoices SET deleted = 1 WHERE deleted = 0 AND status = 0");
     }
 
-    function updateInvoiceData($post_fields)
-    {
+    function updateInvoiceData($post_fields) {
         // Lưu lại thông tin giá vốn mới
         if (isset($post_fields['confirmed'])) {
             $bk_arr = array();
             for ($i = 0; $i < count($_POST['invoice_id']); $i++) {
-                $sql = '
-                    UPDATE ec_input_invoices 
+                $sql = 'UPDATE ec_input_invoices 
                     SET cost = "' . unformat_number($_POST['invoice_cost_vat'][$i]) . '"
-                      , vat = "' . unformat_number($_POST['invoice_vat'][$i]) . '"
-                      , cost_no_vat = "' . unformat_number($_POST['invoice_cost'][$i]) . '"
-                      , authorized_fee = "' . unformat_number($_POST['authorized_fee'][$i]) . '"
-                      , total = cost + authorized_fee
-                    WHERE deleted = 0 AND id = "' . $_POST['invoice_id'][$i] . '"';
+                      ,vat = "' . unformat_number($_POST['invoice_vat'][$i]) . '"
+                      ,cost_no_vat = "' . unformat_number($_POST['invoice_cost'][$i]) . '"
+                      ,authorized_fee = "' . unformat_number($_POST['authorized_fee'][$i]) . '"
+                      ,total = cost + authorized_fee
+                    WHERE id = "' . $_POST['invoice_id'][$i] . '" AND deleted = 0';
                 $this->bean->db->query($sql);
 
                 // Cập nhật đã xuất hoá đơn đầu vào
@@ -117,14 +115,12 @@ class Viewinputinvoice extends SugarView {
 
             // Cập nhật kpi và note
             foreach ($bk_arr as $bk_id => $bk_inf) {
-                $this->markExportInputInvoice(
-                    array(
-                        'booking_id' => $bk_id,
-                        'booking' => $bk_inf['booking_name'],
-                        'invoice_number' => $bk_inf['invoice_number'],
-                        'ticket_code' => implode(', ', $bk_inf['ticket_code']),
-                    )
-                );
+                $this->markExportInputInvoice([
+                    'booking_id' => $bk_id,
+                    'booking' => $bk_inf['booking_name'],
+                    'invoice_number' => $bk_inf['invoice_number'],
+                    'ticket_code' => implode(', ', $bk_inf['ticket_code']),
+                ]);
             }
         }
 
@@ -133,8 +129,7 @@ class Viewinputinvoice extends SugarView {
         if (isset($post_fields['confirmed'])) $upt_sql = 'status = 1';
         else if (isset($post_fields['denied'])) $upt_sql = 'deleted = 1';
         if (!empty($upt_sql)) {
-            $sql = '
-                UPDATE ec_input_invoices SET ' . $upt_sql . '
+            $sql = 'UPDATE ec_input_invoices SET ' . $upt_sql . '
                 WHERE deleted = 0 AND supplier = "' . $post_fields['supplier'] . '"
                     AND invoice_number = "' . $post_fields['invoice_number'] . '"
                     AND invoice_serial = "' . $post_fields['invoice_serial'] . '"
@@ -709,7 +704,7 @@ class Viewinputinvoice extends SugarView {
         }
     }
 
-    function getDataFromFile($col_letter, $ln, $sheet) {
+    public function getDataFromFile($col_letter, $ln, $sheet) {
         $data = '';
         if (!empty($col_letter)) {
             /**
@@ -735,6 +730,83 @@ class Viewinputinvoice extends SugarView {
         }
 
         $data = str_replace("'", '', $data);
+        return $data;
+    }
+
+    /**
+     * Filter data from file import
+     * 
+     * @param array $data
+     * @param string $supplier
+     */
+    public function filterData($data, $supplier) {
+        for ($i = 0; $i < count($data); $i++) {
+            if (!empty($data[$i]['ticket_code'])) {
+                $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
+                $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat'] ?? 0);
+                $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection'] ?? 0);
+                $data[$i]['other_charge'] = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
+                $data[$i]['total'] = $this->changeAmountFormat($data[$i]['total'] ?? 0);
+                
+                if ($supplier == 'PNA') {
+                    // Định dạng số vé
+                    if(!ctype_digit($data[$i]['ticket_code'])) {
+                        $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
+                        $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
+                    }
+                    
+                    // Định dạng hành trình
+                    $j = 0;
+                    $iti = $data[$i]['itinerary'];
+                    $itiFormat = '';
+                    while(strlen($iti) > 0) {
+                        // Location
+                        if($j % 2 == 0) {
+                            $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
+                            $iti = substr($iti, 3);
+                        }
+                        // Airline code
+                        else {
+                            $iti = substr($iti, 2);
+                        }
+                        $j++;
+                    }
+                    $data[$i]['itinerary'] = $itiFormat;
+
+                    $data[$i]['ticket_price'] += $data[$i]['other_charge'];
+                    $data[$i]['vat'] += $data[$i]['other_charge'] * 0.08;
+                }
+                else if ($supplier == 'HNH') {
+                    // Định dạng số vé
+                    if(!ctype_digit($data[$i]['ticket_code'])) {
+                        if(stripos($data[$i]['ticket_code'], 'VJA') === 0) {
+                            $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], 3);
+                        }
+                    }
+
+                    // Định dạng hành trình
+                    $j = 0;
+                    $iti = $data[$i]['itinerary'];
+                    $itiFormat = '';
+                    while(strlen($iti) > 0) {
+                        // Location
+                        if($j % 2 == 0) {
+                            $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
+                            $iti = substr($iti, 3);
+                        }
+                        // Airline code
+                        else {
+                            $iti = substr($iti, 2);
+                        }
+                        $j++;
+                    }
+                    $data[$i]['itinerary'] = $itiFormat;
+                }
+                
+                // Tìm thông tin giá vé và booking dựa theo số vé trong booking
+                $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
+            }
+        }
         return $data;
     }
 
@@ -798,9 +870,9 @@ class Viewinputinvoice extends SugarView {
                     $input_iv->authorized_fee = $data[$i]['authorized_collection'];
 
                     if($input_iv->supplier == 'HNH') {
-                        $input_iv->vat  = $data[$i]['vat'];
                         $input_iv->cost = ($data[$i]['total'] - $data[$i]['authorized_collection']) / 1.08;
-                        $input_iv->cost_no_vat = $input_iv->cost - $input_iv->cost * 0.08;
+                        $input_iv->vat  = $input_iv->cost * 0.08;
+                        $input_iv->cost_no_vat = $input_iv->cost - $input_iv->vat;
                     }
                     else if($input_iv->supplier == 'PNA') {
                         // Tính giá vốn (VAT) bỏ nhân SL
@@ -901,89 +973,6 @@ class Viewinputinvoice extends SugarView {
             $note->description = 'Đã lấy hóa đơn đầu vào số: ' . $import_data['invoice_number'] . '; số vé: ' . $import_data['ticket_code'];
             $note->save();
         }
-    }
-
-    /**
-     * Filter data from file import
-     * 
-     * @param array $data
-     * @param string $supplier
-     */
-    public function filterData($data, $supplier) {
-        for ($i = 0; $i < count($data); $i++) {
-            if (!empty($data[$i]['ticket_code'])) {
-                $data[$i]['ticket_price'] = $this->changeAmountFormat($data[$i]['ticket_price']);
-                $data[$i]['vat'] = $this->changeAmountFormat($data[$i]['vat'] ?? 0);
-                $data[$i]['authorized_collection'] = $this->changeAmountFormat($data[$i]['authorized_collection'] ?? 0);
-                $other_charge = $this->changeAmountFormat($data[$i]['other_charge'] ?? 0);
-
-                if ($supplier == 'PNA') {
-                    // Định dạng số vé
-                    if(!ctype_digit($data[$i]['ticket_code'])) {
-                        $data[$i]['ticket_code'] = str_replace("*1", "", trim($data[$i]['ticket_code']));
-                        $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], -6);
-                    }
-                    
-                    // Định dạng hành trình
-                    $j = 0;
-                    $iti = $data[$i]['itinerary'];
-                    $itiFormat = '';
-                    while(strlen($iti) > 0) {
-                        // Location
-                        if($j % 2 == 0) {
-                            $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
-                            $iti = substr($iti, 3);
-                        }
-                        // Airline code
-                        else {
-                            $iti = substr($iti, 2);
-                        }
-                        $j++;
-                    }
-                    $data[$i]['itinerary'] = $itiFormat;
-
-                    $data[$i]['ticket_price'] += $other_charge;
-                    $data[$i]['vat'] += $other_charge * 0.08;
-                }
-                else if ($supplier == 'HNH') {
-                    // Định dạng số vé
-                    if(!ctype_digit($data[$i]['ticket_code'])) {
-                        if(stripos($data[$i]['ticket_code'], 'VJA') === 0) {
-                            $data[$i]['ticket_code'] = substr($data[$i]['ticket_code'], 3);
-                        }
-                    }
-
-                    // Định dạng hành trình
-                    $j = 0;
-                    $iti = $data[$i]['itinerary'];
-                    $itiFormat = '';
-                    while(strlen($iti) > 0) {
-                        // Location
-                        if($j % 2 == 0) {
-                            $itiFormat .= empty($itiFormat) ? substr($iti, 0, 3) : "-" . substr($iti, 0, 3);
-                            $iti = substr($iti, 3);
-                        }
-                        // Airline code
-                        else {
-                            $iti = substr($iti, 2);
-                        }
-                        $j++;
-                    }
-                    $data[$i]['itinerary'] = $itiFormat;
-                }
-                
-                // Tìm thông tin giá vé và booking dựa theo số vé trong booking
-                $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
-            }
-        }
-        return $data;
-    }
-
-    function changeAirportCode($airport_code) {
-        if ($airport_code == 'CXR') {
-            $airport_code = 'NHA';
-        }
-        return $airport_code;
     }
 
     function checkIsInternationalTicket($departure, $arrival) {
@@ -1308,8 +1297,7 @@ class Viewinputinvoice extends SugarView {
         return $data_arr;
     }
 
-    function changeAmountFormat($amount)
-    {
+    function changeAmountFormat($amount) {
         // Lọc cột giá tiền, 
         // Đầu tiên, bỏ các dấu phân cách
         // Sau đó, giá < 1000 -> giá * 1000 
@@ -1322,15 +1310,17 @@ class Viewinputinvoice extends SugarView {
         return (int)$amount;
     }
 
-    /*
-	| Target: upload file text len he thong
-	| Input: ten thu muc, ten file, loai file
-	| Output: chuoi neu upload thanh cong
-	*/
-    function sys_uploads($folder, $file, $type = 'xls')
-    {
-        $size           = 50000000;
-        $upload_file    = "";
+    /**
+     * Upload file to system
+     * 
+     * @param string $folder Folder to upload
+     * @param string $file File input name (file name)
+     * @param string $type File type (default: xls)
+     * @return string Uploaded file name
+     */
+    protected function sys_uploads($folder, $file, $type = 'xls') {
+        $size = 50000000;
+        $upload_file = "";
 
         if ($_SERVER["REQUEST_METHOD"] != "POST") {
             return $upload_file;
@@ -1339,26 +1329,24 @@ class Viewinputinvoice extends SugarView {
         if (!isset($_FILES[$file]["error"]) || $_FILES[$file]["error"] != 0) {
             return $upload_file;
         }
+
         if ($_FILES[$file]["size"] > $size) {
             return $upload_file;
         }
 
-        $temp       = preg_split('/[\/\\\\]+/', $_FILES[$file]["name"]);
-        $filename   = $temp[count($temp) - 1];
+        $temp = preg_split('/[\/\\\\]+/', $_FILES[$file]["name"]);
+        $filename = $temp[count($temp) - 1];
 
-        if (!preg_match('/\.(' . $type . ')$/i', $filename)) {
-            return $upload_file;
-        }
+        if (!preg_match('/\.(' . $type . ')$/i', $filename)) return $upload_file;
 
-        $filename       = str_replace("%20", "", $filename);
-        $filename       = str_replace(" ", "", $filename);
-        $upload_file    = date('YmdHi') . '_HDDauVao_' . $filename;
+        $filename = str_replace("%20", "", $filename);
+        $filename = str_replace(" ", "", $filename);
+        $upload_file = date('YmdHi') . '_HDDauVao_' . $filename;
 
         if (move_uploaded_file($_FILES[$file]["tmp_name"], $folder . $upload_file)) {
             return $upload_file;
         } else {
-            return $upload_file;
-            // 202307180331_HDDauVao_479684.xls
+            return $upload_file; // 202307180331_HDDauVao_479684.xls
         }
     }
 }
