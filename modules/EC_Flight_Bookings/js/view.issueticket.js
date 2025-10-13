@@ -860,7 +860,9 @@ function renderTickets(tickets) {
                 <td><b>${ticket.TicketNumber}</b></td>
                 <td>${ticket.ServiceName}</td>
                 <td>${ticket.Description}</td>
-                <td class="text-center">${ticket.PassengerId}</td>
+                <td class="text-center" title="${ticket.PassengerId}" style="max-width:100px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    ${ticket.PassengerId}
+                </td>
                 <td class="text-center">${ticket.Flight}</td>
                 <td class="text-end">${formatCurrency(ticket.TotalAmount)}</td>
                 <td class="text-end">${formatDateTime(ticket.IssueDate)}</td>

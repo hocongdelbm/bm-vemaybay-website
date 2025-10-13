@@ -195,4 +195,4 @@
     </section> 
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.5"></script>
+<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.6"></script>
