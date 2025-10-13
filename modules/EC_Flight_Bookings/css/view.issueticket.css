@@ -256,7 +256,6 @@ section h2 {
   color: #a7a7a7;
   border: 1px solid #d6d8db;
   text-decoration: line-through;
-  cursor: pointer;
 }
 .status-badge.refund-allowed {
   background-color: #cce7ff;
@@ -269,7 +268,6 @@ section h2 {
   color: #a7a7a7;
   border: 1px solid #d6d8db;
   text-decoration: line-through;
-  cursor: pointer;
 }
 .status-badge.edit-allowed {
   background-color: #cce7ff;
