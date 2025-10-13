@@ -65,19 +65,19 @@ var callOptions = {
     'mediaConstraints': { 'audio': true, 'video': false },
     'sessionTimersExpires': 180, // Don't set a value lower than 90
     'eventHandlers': eventHandlers, // For debug
-    'pcConfig': {
-        'iceServers': [
+    // 'pcConfig': {
+        // 'iceServers': [
             // { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
             // { 'urls': 'stun:stun.cloudflare.com:3478' }, // Máy chủ STUN của Cloudflare
-            {
-                'urls': [ 
-                    'stun:turn.quantri.online:3478',
-                ],
-                'username': 'quangnd',
-                'credential': 'Super@Secret@123'
-            }
-        ]
-    }
+            // {
+            //     'urls': [ 
+            //         'stun:turn.quantri.online:3478',
+            //     ],
+            //     'username': 'quangnd',
+            //     'credential': 'Super@Secret@123'
+            // }
+    //     ]
+    // }
 };
 
 /***********   Setup audio and ringtone   *************/
