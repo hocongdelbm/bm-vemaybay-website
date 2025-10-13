@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.1">
+<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.0.2" />
 
 <div class="container">
     <header class="booking-header">
@@ -34,11 +34,11 @@
                     <h3>
                         Chi tiết
                         <div class="status-badges">
-                        <span class="status-badge" id="paidBadge" data-tooltip="Payment Status Description"></span>
-                        <span class="status-badge" id="voidBadge" data-tooltip="Void Status Description"></span>
-                        <span class="status-badge" id="refundBadge" data-tooltip="Refund Status Description"></span>
-                        <span class="status-badge" id="editBadge" data-tooltip="Edit Status Description"></span>
-                    </div>
+                            <span id="paidBadge" class="status-badge"></span>
+                            <span id="voidBadge" class="status-badge" data-action="void"></span>
+                            <span id="refundBadge" class="status-badge" data-action="refund"></span>
+                            <span id="editBadge" class="status-badge" data-action="edit"></span>
+                        </div>
                     </h3>
                     <div class="info-row">
                         <span class="label">Booking code (PNR):</span>
@@ -176,18 +176,7 @@
                 </button>
             </div>
         </div>
-    </section>
-
-    <section class="void-section" id="voidSection" style="display:none;">
-        <div class="void-container">
-            <div class="void-actions">
-                <button id="voidTicketButton" class="btn-void-ticket">
-                    <span class="btn-icon">❌</span>
-                    <span class="btn-text">Hủy vé</span>
-                </button>
-            </div>
-        </div>
-    </section>
+    </section> 
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.1"></script>
+<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.2"></script>

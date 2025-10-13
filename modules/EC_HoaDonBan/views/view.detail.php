@@ -515,7 +515,8 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				<input type="button" name="btnCancelInvoice" id="btnCancelInvoice" class="btn btn-danger" value="Hủy hóa đơn" title="Hủy hóa đơn" />
 			</form>
 			<form class="frmCancelInvoice" action="index.php" method="post" name="frmCancelInvoice" id="frmCancelInvoice">
-				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+				<input type="hidden" name="record_name" value="'. $this->bean->name .'" />
+				<input type="hidden" name="record_serial" value="'.$this->bean->kyhieuhd.'" />
 				<input type="hidden" name="is_signed" value="'.$this->bean->is_signed.'" />
 				<input type="hidden" name="company_unit" value="'.$this->bean->company_unit.'" />
 

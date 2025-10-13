@@ -45,33 +45,33 @@ $(document).ready(function () {
         const modalHTML = `<div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}Label" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="${modalId}Label">Ký hóa đơn hàng loạt</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <h6>Danh sách hóa đơn đã ghi sổ</h6>
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Số chứng từ</th>
-                                    <th>Ngày hóa đơn</th>
-                                    <th>Loại KH</th>
-                                    <th>Tên CTY / KH</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Tình trạng</th>
-                                </tr>
-                            </thead>
-                            <tbody>${tableRows}</tbody>
-                        </table>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="${modalId}Label">Ký hóa đơn hàng loạt</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" id="buttonConfirmMassSigning" data-for-signing="${encodeDataAttrs(dataForSigning)}">Xác nhận</button>
-                </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <h6>Danh sách hóa đơn đã ghi sổ</h6>
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Số chứng từ</th>
+                                        <th>Ngày hóa đơn</th>
+                                        <th>Loại KH</th>
+                                        <th>Tên CTY / KH</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Tình trạng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${tableRows}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="button" class="btn btn-primary" id="buttonConfirmMassSigning" data-for-signing="${encodeDataAttrs(dataForSigning)}">Xác nhận</button>
+                    </div>
                 </div>
             </div>
         </div>`;

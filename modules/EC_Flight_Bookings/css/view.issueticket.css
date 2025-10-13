@@ -219,16 +219,15 @@ section h2 {
   align-items: center;
   flex-wrap: wrap;
 }
-
 .status-badge {
   position: relative;
   display: inline-block;
   padding: 4px 8px;
+  cursor: default;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  cursor: pointer;
   transition: all 0.3s ease;
   letter-spacing: 0.5px;
   min-width: 45px;
@@ -241,45 +240,42 @@ section h2 {
   color: #155724;
   border: 1px solid #c3e6cb;
 }
-
 .status-badge.unpaid {
   background-color: #fff3cd;
   color: #856404;
   border: 1px solid #ffeaa7;
 }
-
 .status-badge.void-allowed {
   background-color: #cce7ff;
   color: #004085;
   border: 1px solid #b3d7ff;
+  cursor: pointer;
 }
-
 .status-badge.void-not-allowed {
   background-color: #e3e3e3;
   color: #a7a7a7;
   border: 1px solid #d6d8db;
   text-decoration: line-through;
+  cursor: pointer;
 }
-
 .status-badge.refund-allowed {
   background-color: #cce7ff;
   color: #004085;
   border: 1px solid #b3d7ff;
+  cursor: pointer;
 }
-
 .status-badge.refund-not-allowed {
   background-color: #e3e3e3;
   color: #a7a7a7;
   border: 1px solid #d6d8db;
   text-decoration: line-through;
+  cursor: pointer;
 }
-
 .status-badge.edit-allowed {
   background-color: #cce7ff;
   color: #004085;
   border: 1px solid #b3d7ff;
 }
-
 .status-badge.edit-not-allowed {
   background-color: #e3e3e3;
   color: #a7a7a7;
@@ -966,7 +962,7 @@ section h2 {
 }
 
 /* Compact Payment Section */
-.payment-section, .void-section {
+.payment-section {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   margin-bottom: 0;
   padding: 16px 20px;
@@ -979,11 +975,6 @@ section h2 {
   margin: 0 auto;
   z-index: 100;
 }
-.void-section {
-  background: transparent;
-  box-shadow: none;
-  bottom: 1px;
-}
 
 .payment-container {
   display: grid;
@@ -992,12 +983,6 @@ section h2 {
   align-items: center;
   max-width: 1000px;
   margin: 0 auto;
-}
-.void-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  max-width: 1000px;
 }
 
 .payment-info h3 {
@@ -1107,45 +1092,6 @@ section h2 {
   left: 100%;
 }
 
-.btn-void-ticket {
-  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-shadow: 0 3px 12px rgba(220, 53, 69, 0.4);
-  position: relative;
-  overflow: hidden;
-}
-.btn-void-ticket:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.6);
-}
-.btn-void-ticket:active {
-  transform: translateY(0);
-}
-.btn-void-ticket::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-.btn-void-ticket:hover::before {
-  left: 100%;
-}
-
 .btn-icon {
   font-size: 1.1rem;
 }
@@ -1184,19 +1130,8 @@ section h2 {
     margin-bottom: 15px;
     bottom: 10px;
   }
-  .void-section {
-    padding: 15px;
-    position: static;
-    margin-bottom: 15px;
-    bottom: 10px;
-  }
 
   .payment-container {
-    grid-template-columns: 1fr;
-    gap: 15px;
-    text-align: center;
-  }
-  .void-container {
     grid-template-columns: 1fr;
     gap: 15px;
     text-align: center;
@@ -1232,12 +1167,12 @@ section h2 {
 }
 
 @media (max-width: 480px) {
-  .payment-section, .void-section {
+  .payment-section {
     padding: 12px;
     border-radius: 8px;
   }
 
-  .payment-container, .void-container {
+  .payment-container {
     gap: 12px;
   }
 
@@ -1431,4 +1366,13 @@ section h2 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.modal-handling-ticket input[type="checkbox"]::before {
+  content: none !important;
+}
+.modal-handling-ticket ul.list-group-tickets li .ticket-details {
+  background: #f5f5f5;
+  padding: 5px 10px;
+  margin: 6px 0 0 6px;
 }

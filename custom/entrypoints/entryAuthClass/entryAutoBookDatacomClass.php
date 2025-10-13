@@ -1474,7 +1474,7 @@ class entryAutoBookDatacomClass extends entryClass {
     }
 
     /**
-     * Cancel booking
+     * Void ticket
      * 
      * @param array $params
      * @return array
@@ -1493,14 +1493,56 @@ class entryAutoBookDatacomClass extends entryClass {
             if(isset($responseArr['status']) && $responseArr['status'] == 1) {
                 $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
                 $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
+                $qty = count($listTicket);
 
                 if($this->notificationChannel == 'Mattermost') {
-                    $m = "**Hủy vé $bookingCode ($systemName) bởi $fullname**";
+                    $m = "**Hủy $qty vé $bookingCode ($systemName) bởi $fullname**";
                     $m .= "\n- NCC: **{$this->supplierName}**";
                     Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
                 }
                 else {
-                    $m = "<b>Hủy vé $bookingCode ($systemName) bởi $fullname</b>";
+                    $m = "<b>Hủy $qty vé $bookingCode ($systemName) bởi $fullname</b>";
+                    $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
+                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
+                    Telegram::sendMessage($m, $botToken, $chatId);
+                } 
+            }
+        }
+        catch(Throwable $th) {}
+
+        return $responseArr;
+    }
+
+    /**
+     * Refund ticket
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function refundTicket($params = []) {
+        $bookingCode    = $params['bookingCode'] ?? '';
+        $systemCode     = $params['systemCode'] ?? '';
+        $listTicket     = $params['listTicket'] ?? [];
+
+        $agency = new APIDatacom();
+        $response = $agency->refundTicket($bookingCode, $systemCode, $listTicket);
+        $responseArr = json_decode($response, true);
+
+        // Send notification
+        try {
+            if(isset($responseArr['status']) && $responseArr['status'] == 1) {
+                $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
+                $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
+                $qty = count($listTicket);
+
+                if($this->notificationChannel == 'Mattermost') {
+                    $m = "**Hoàn $qty vé $bookingCode ($systemName) bởi $fullname**";
+                    $m .= "\n- NCC: **{$this->supplierName}**";
+                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                }
+                else {
+                    $m = "<b>Hoàn $qty vé $bookingCode ($systemName) bởi $fullname</b>";
                     $m .= "\nNCC: <b>{$this->supplierName}</b>";
                     $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
                     $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';

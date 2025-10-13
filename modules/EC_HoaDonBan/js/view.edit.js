@@ -190,13 +190,13 @@ $(document).ready(function() {
 					return;
 				}
 
-				$('input#lienhe').val(ui.item.buyer.lienhe);
-				$('input#tencongty').val(ui.item.buyer.tencongty);
-				$('input#masothue').val(ui.item.buyer.masothue);
-				$('input#email').val(ui.item.buyer.email);
-				$('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
-				$('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
-				$('input#lienhe.diachi').val(ui.item.buyer.diachi);
+				// $('input#lienhe').val(ui.item.buyer.lienhe);
+				// $('input#tencongty').val(ui.item.buyer.tencongty);
+				// $('input#masothue').val(ui.item.buyer.masothue);
+				// $('input#email').val(ui.item.buyer.email);
+				// $('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
+				// $('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
+				// $('input#lienhe.diachi').val(ui.item.buyer.diachi);
 
 				let ln = $(this).attr('ln');
 				$(`#ct_ticket_number_id${ln}`).val(ui.item.id); // ID Input invoice (hidden)
@@ -263,13 +263,13 @@ $(document).ready(function() {
 					return;
 				}
 
-				$('input#lienhe').val(ui.item.buyer.lienhe);
-				$('input#tencongty').val(ui.item.buyer.tencongty);
-				$('input#masothue').val(ui.item.buyer.masothue);
-				$('input#email').val(ui.item.buyer.email);
-				$('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
-				$('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
-				$('input#lienhe.diachi').val(ui.item.buyer.diachi);
+				// $('input#lienhe').val(ui.item.buyer.lienhe);
+				// $('input#tencongty').val(ui.item.buyer.tencongty);
+				// $('input#masothue').val(ui.item.buyer.masothue);
+				// $('input#email').val(ui.item.buyer.email);
+				// $('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
+				// $('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
+				// $('input#lienhe.diachi').val(ui.item.buyer.diachi);
 
 				let ln = $(this).attr('ln');
 				$(`#ct_ticket_number_id${ln}`).val(ui.item.id); // ID Input invoice (hidden)
