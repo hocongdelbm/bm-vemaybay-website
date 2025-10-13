@@ -187,8 +187,6 @@ $(document).ready(function () {
 
     // Cancel booking button click handler
     $('#cancelBookingButton').on('click', function () {
-        showModalNotify("warning", "Tính năng đang được cập nhật");
-        return;
         const entryClass    = $('input[name="entryClass"]').val();
         const bookingCode   = $('input[name="bookingCode"]').val();
         const systemCode    = $('input[name="systemCode"]').val();
@@ -230,29 +228,57 @@ $(document).ready(function () {
         }
     });
 
-
+    // Void or Refund ticket click handler
     $('.status-badge').on('click', function () {
+        const elementId = $(this).attr('id');
+        const dataTooltip = $(this).attr('data-tooltip') ?? '';
+        const dataTickets = decodeAutoBook($(this).attr('data-tickets') ?? '');
+        const dataAction = $(this).attr('data-action') ?? '';
+
+        if (!dataTickets || dataTickets.length < 1) return;
+
         // Build modal HTML
-        const modalId = 'badgeModal';
+        const modalId = `${elementId}Modal`;
         const existingModal = document.getElementById(modalId);
         if (existingModal) existingModal.remove(); // remove old modal if exists
 
-        const modalHTML = `<div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}Label" aria-hidden="true">
+        let mapTicketType = {'FLIGHT': 'Vé máy bay', 'BAGGAGE': 'Vé hành lý', 'SEAT': 'Vé chỗ ngồi'};
+        let listTicketHTML = '';
+        dataTickets.forEach((ticket, index) => {
+            listTicketHTML += `<li class="list-group-item">
+                <input type="checkbox" name="checkbox-${dataAction}-ticket" value="${ticket.TicketNumber}" class="form-check-input m-0 me-1" aria-label="${ticket.TicketNumber}" >
+                <b class="ticket-toggle" style="cursor:pointer">#${ticket.TicketNumber}</b>
+                <span class="ms-2">${ticket.Description} (${mapTicketType[ticket.ServiceType] || ticket.ServiceType})</span>
+                <div class="ticket-details" style="display:none;">
+                    <div class="d-flex gap-2">Hành trình:<span>${ticket.Flight}</span></div>
+                    <div class="d-flex gap-2">Ngày xuất vé:<span>${formatDateTime(ticket.IssueDate)}</span></div>
+                    <div class="d-flex gap-2">Tổng tiền:<span class="text-primary">${formatCurrency(ticket.TotalAmount)}</span></div>
+                </div>
+            </li>`;
+        });
+
+        let modalAction = '';
+        if(dataAction == 'void' || dataAction == 'refund') {
+            modalAction = `<div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="${dataAction}Confirm">Xác nhận</button>
+            </div>`;
+        }
+
+        const modalHTML = `<div class="modal fade modal-handling-ticket" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}Label" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="${modalId}Label">Test</h5>
+                        <h5 class="modal-title" id="${modalId}Label">${dataTooltip}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="table-responsive">
-                            
-                        </div>
+                        <h6>Danh sách vé</h6>
+                        <ul class="list-group-tickets">
+                            ${listTicketHTML}
+                        </ul>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                        <button type="button" class="btn btn-primary" id="buttonConfirmMassSigning" data-for-signing="${encodeDataAttrs(dataForSigning)}">Xác nhận</button>
-                    </div>
+                    ${modalAction}
                 </div>
             </div>
         </div>`;
@@ -264,50 +290,75 @@ $(document).ready(function () {
         const modalEl = document.getElementById(modalId);
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
+
+        // Handle Confirm click
+        modalEl.querySelector(`#${dataAction}Confirm`).addEventListener('click', (event) => {
+            const entryClass    = $('input[name="entryClass"]').val();
+            const bookingCode   = $('input[name="bookingCode"]').val();
+            const systemCode    = $('input[name="systemCode"]').val();
+            const listTicket = Array.from(modalEl.querySelectorAll(`input[name="checkbox-${dataAction}-ticket"]`)).map(cb => cb.value);
+            const listTicketChecked = Array.from(modalEl.querySelectorAll(`input[name="checkbox-${dataAction}-ticket"]:checked`)).map(cb => cb.value);
+
+            if(entryClass == 'entryAutoBookPhuongNamClass') {
+                modal.hide();
+                showModalNotify("warning", "Tính năng của NCC đang được cập nhật");
+                return;
+            }
+
+            if (dataAction.length < 1 || systemCode.length < 1 || bookingCode.length < 1) return;
+            if (listTicketChecked.length < 1) {
+                alert("Vui lòng chọn ít nhất một vé để tiếp tục");
+                return;
+            }
+
+            let confirmMessage = `${dataTooltip} với danh sách số vé đã chọn`;
+            if(listTicket.length == listTicketChecked.length) confirmMessage = `${dataTooltip} với tất cả số vé`;  
+
+            if(confirm(confirmMessage)) {
+                const button = event.currentTarget;
+                button.disabled = true;
+                
+                $.ajax({
+                    url: ENTRYPOINT,
+                    type: "POST",
+                    contentType: "application/json",
+                    dataType: 'json',
+                    data: JSON.stringify({
+                        class: 'entryAutoBookDatacomClass',
+                        method: `${dataAction}Ticket`,
+                        params: {
+                            bookingCode: bookingCode,
+                            systemCode: systemCode,
+                            listTicket : listTicketChecked
+                        }
+                    }),
+                    beforeSend: function () {
+                        $('.container-waiting').show();
+                    },
+                    success: function (response) {
+                        $('.container-waiting').hide();
+                        modal.hide();
+
+                        if (response.status) {
+                            $('#btnSearch').trigger('click');
+                            showModalNotify("success", `${dataTooltip} thành công`);
+                        }
+                        else {
+                            showModalNotify("error", response.message ?? `${dataTooltip} không thành công`);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $('.container-waiting').hide();
+                        modal.hide();
+                        showModalNotify("error", `${dataTooltip} không thành công. Vui lòng thử lại`);
+                    }
+                });
+            }
+        });
     });
-
-    // Void ticket button click handler
-    $('#voidTicketButton').on('click', function () {
-        return;
-        const entryClass    = $('input[name="entryClass"]').val();
-        const bookingCode   = $('input[name="bookingCode"]').val();
-        const systemCode    = $('input[name="systemCode"]').val();
-        const airlineCode   = $('input[name="airlineCode"]').val();
-
-        if (confirm(`Xác nhận hủy vé ${bookingCode}`)) {
-            $.ajax({
-                url: ENTRYPOINT,
-                type: "POST",
-                contentType: "application/json",
-                dataType: 'json',
-                data: JSON.stringify({
-                    class: entryClass,
-                    method: "voidTicket",
-                    params: {
-                        bookingCode: bookingCode,
-                        systemCode: systemCode,
-                        airlineCode: airlineCode
-                    }
-                }),
-                beforeSend: function () {
-                    $('.container-waiting').show();
-                },
-                success: function (response) {
-                    $('.container-waiting').hide();
-                    if (response.status) {
-                        clearBooking();
-                        showModalNotify("success", `Vé ${bookingCode} đã bị hủy`);
-                    }
-                    else {
-                        showModalNotify("error", response.message ?? "Hủy vé không thành công");
-                    }
-                },
-                error: function (xhr, status, error) {
-                    $('.container-waiting').hide();
-                    showModalNotify("error", "Hủy vé không thành công. Vui lòng thử lại");
-                }
-            });
-        }
+    $(document).on('click', '.ticket-toggle', function () {
+        const details = $(this).closest('.list-group-item').find('.ticket-details');
+        details.toggle();
     });
 });
 
@@ -380,15 +431,18 @@ function renderBookingInfo(data) {
 }
 
 function updateStatusIcons(data) {
-    // Payment Status Badge
+    var listTickets = data.ListTicket || [];
+    var ListTicketsEncoded = encodeAutoBook(listTickets);
+
+    // Payment
     const paidBadge = $('#paidBadge');
     if ('IsPaid' in data) {
         if (data.IsPaid) {
             paidBadge.removeClass('unpaid').addClass('paid');
             paidBadge.text('PAID');
             paidBadge.attr('data-tooltip', 'Tất cả các khoản thanh toán đã được xử lý thành công');
-            paidBadge.show();
-        } else {
+        }
+        else {
             paidBadge.removeClass('paid').addClass('unpaid');
             paidBadge.text('UNPAID');
             paidBadge.attr('data-tooltip', 'Đang chờ xử lý – Chưa thanh toán đầy đủ');
@@ -397,45 +451,53 @@ function updateStatusIcons(data) {
     }
     else paidBadge.hide();
 
-    // Void Status Badge
+    // Void
     const voidBadge = $('#voidBadge');
     if ('IsVoid' in data) {
         if (data.IsVoid) {
             voidBadge.removeClass('void-not-allowed').addClass('void-allowed');
-            voidBadge.text('HOÀN');
-            voidBadge.attr('data-tooltip', 'Booking có thể hoàn/hủy');
+            voidBadge.text('HỦY');
+            voidBadge.attr('data-tooltip', 'Void vé');
+            voidBadge.attr('data-tickets', ListTicketsEncoded);
+            voidBadge.attr('data-action', 'void');
         } else {
             voidBadge.removeClass('void-allowed').addClass('void-not-allowed');
-            voidBadge.text('HOÀN');
-            voidBadge.attr('data-tooltip', 'Booking không thể hoàn/hủy');
+            voidBadge.text('HỦY');
+            voidBadge.attr('data-tooltip', 'Booking không thể void');
+            voidBadge.attr('data-tickets', ListTicketsEncoded);
+            voidBadge.attr('data-action', '');
         }
         voidBadge.show();
     }
     else voidBadge.hide();
 
-    // Refund Status Badge
+    // Refund
     const refundBadge = $('#refundBadge');
     if('IsRefund' in data) {
         if (data.IsRefund) {
             refundBadge.removeClass('refund-not-allowed').addClass('refund-allowed');
-            refundBadge.text('HOÀN TIỀN');
-            refundBadge.attr('data-tooltip', 'Booking được hoàn tiền');
+            refundBadge.text('HOÀN');
+            refundBadge.attr('data-tooltip', 'Hoàn/hủy vé');
+            refundBadge.attr('data-tickets', ListTicketsEncoded);
+            refundBadge.attr('data-action', 'refund');
         } else {
             refundBadge.removeClass('refund-allowed').addClass('refund-not-allowed');
-            refundBadge.text('HOÀN TIỀN');
-            refundBadge.attr('data-tooltip', 'Booking không được hoàn tiền');
+            refundBadge.text('HOÀN');
+            refundBadge.attr('data-tooltip', 'Booking không được hoàn/hủy');
+            refundBadge.attr('data-tickets', ListTicketsEncoded);
+            refundBadge.attr('data-action', '');
         }
         refundBadge.show();
     }
     else refundBadge.hide();
 
-    // Edit Status Badge
+    // Edit
     const editBadge = $('#editBadge');
     if('IsEdit' in data) {
         if (data.IsEdit) {
             editBadge.removeClass('edit-not-allowed').addClass('edit-allowed');
             editBadge.text('SỬA');
-            editBadge.attr('data-tooltip', 'Booking có thể được điều chỉnh hoặc cập nhật');
+            editBadge.attr('data-tooltip', 'Điều chỉnh vé');
         } else {
             editBadge.removeClass('edit-allowed').addClass('edit-not-allowed');
             editBadge.text('SỬA');
@@ -684,7 +746,7 @@ function renderPassengers(data) {
             </td>
             <td><span class="badge ${passenger.Type}">${getPassengerLabelName(passenger.Type)}</span></td>
             <td>${passenger.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
-            <td>${passenger.DateOfBirth || ''}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
+            <td>${formatDate(passenger.DateOfBirth || '')}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
             <td>
                 ${passenger.Email ? `<div>${passenger.Email}</div>` : ''}
                 ${passenger.Phone ? `<div>${passenger.Phone}</div>` : ''}
@@ -714,7 +776,7 @@ function renderFlights(flights) {
                     <div class="flight-number ${carrierClass}">
                         ${flight.FlightNumber.includes(flight.AirlineCode) ? flight.FlightNumber : flight.AirlineCode + flight.FlightNumber}
                     </div>
-                    <div class="flight-date">${flight.DepartureDate}</div>
+                    <div class="flight-date">${formatDate(flight.DepartureDate)}</div>
                 </div>
                 
                 <div class="flight-route">
@@ -849,14 +911,6 @@ function formatCurrency(amount, showUnit = true) {
 function formatDate(dateString) {
     if (!dateString) return '';
 
-    // Resolve date in Datacom
-    if (dateString.length == 8 && !dateString.includes('/') && !dateString.includes('-')) {
-        let tempDay = dateString.slice(0, 2);
-        let tempMonth = dateString.slice(2, 4);
-        let tempYear = dateString.slice(4);
-        return `${tempDay}-${tempMonth}-${tempYear}`;
-    }
-
     const date = new Date(dateString);
 
     // Check if date is valid
@@ -866,7 +920,7 @@ function formatDate(dateString) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
 
-    return `${day}-${month}-${year}`;
+    return `${day}/${month}/${year}`;
 }
 
 function formatTime(dateString) {
@@ -897,7 +951,7 @@ function formatDateTime(dateString) {
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
 
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
 /**
