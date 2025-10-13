@@ -37,7 +37,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	}
 
 	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.2'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.3'></script>";
 	}
 	
 	public function populateLineItems() {

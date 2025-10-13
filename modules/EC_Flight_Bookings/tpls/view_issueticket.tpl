@@ -1,4 +1,4 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.0.2" />
+<link type="text/css" rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.issueticket.css?v=1.0.3" />
 
 <div class="container">
     <header class="booking-header">
@@ -179,4 +179,4 @@
     </section> 
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.2"></script>
+<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.3"></script>
