@@ -23,7 +23,6 @@
         <input type="hidden" name="supplier" value="" />
         <input type="hidden" name="entryClass" value="entryAutoBookDatacomClass" />
 
-        <!-- Booking Information Section -->
         <section class="booking-info-section">
             <h2>
                 Thông tin booking
@@ -96,13 +95,11 @@
             </div>
         </section>
 
-        <!-- Flight Itinerary Section -->
         <section class="flights-section">
             <h2>Thông tin hành trình</h2>
             <div id="flightsList" class="flights-list"></div>
         </section>
 
-        <!-- Passengers Section -->
         <section class="passengers-section">
             <h2>Thông tin hành khách</h2>
             <div class="table-container">
@@ -110,11 +107,11 @@
                     <thead>
                         <tr>
                             <th>Họ tên</th>
-                            <th>Loại</th>
-                            <th>Giới tính</th>
-                            <th>Ngày sinh</th>
+                            <th width="10%">Loại</th>
+                            <th width="8%" class="text-center">Giới tính</th>
+                            <th width="15%" class="text-center">Ngày sinh</th>
                             <th>Liên hệ</th>
-                            <th></th>
+                            <th width="6%"></th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -122,7 +119,6 @@
             </div>
         </section>
 
-        <!-- Fare Breakdown Section -->
         <section class="fare-section">
             <h2>Thông tin giá vé</h2>
             <div class="table-container">
@@ -142,6 +138,26 @@
                 </table>
             </div>
             <p class="mt-2 ms-2"><i>Đây là thông tin giá vé trên 1 loại hành khách (Nhân thêm số lượng để ra số tổng)</i></p>
+        </section>
+
+        <section class="tickets-section">
+            <h2>Thông tin số vé</h2>
+            <div class="table-container">
+                <table id="ticketTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Số vé</th>
+                            <th>Loại</th>
+                            <th>Mô tả</th>
+                            <th class="text-center" title="Mã hành khách">Mã HK</th>
+                            <th class="text-center">Hành trình</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-end">Ngày xuất vé</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </section>
     </div>
 
@@ -179,4 +195,4 @@
     </section> 
 </div>
 
-<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.3"></script>
+<script src="modules/EC_Flight_Bookings/js/view.issueticket.js?v=1.0.5"></script>

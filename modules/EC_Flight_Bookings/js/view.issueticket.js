@@ -242,13 +242,12 @@ $(document).ready(function () {
         const existingModal = document.getElementById(modalId);
         if (existingModal) existingModal.remove(); // remove old modal if exists
 
-        let mapTicketType = {'FLIGHT': 'Vé máy bay', 'BAGGAGE': 'Vé hành lý', 'SEAT': 'Vé chỗ ngồi'};
         let listTicketHTML = '';
         dataTickets.forEach((ticket, index) => {
             listTicketHTML += `<li class="list-group-item">
                 <input type="checkbox" name="checkbox-${dataAction}-ticket" value="${ticket.TicketNumber}" class="form-check-input m-0 me-1" aria-label="${ticket.TicketNumber}" >
                 <b class="ticket-toggle" style="cursor:pointer">#${ticket.TicketNumber}</b>
-                <span class="ms-2">${ticket.Description} (${mapTicketType[ticket.ServiceType] || ticket.ServiceType})</span>
+                <span class="ms-2">${ticket.Description} (${ticket.ServiceName})</span>
                 <div class="ticket-details" style="display:none;">
                     <div class="d-flex gap-2">Hành trình:<span>${ticket.Flight}</span></div>
                     <div class="d-flex gap-2">Ngày xuất vé:<span>${formatDateTime(ticket.IssueDate)}</span></div>
@@ -374,6 +373,9 @@ function renderBooking(data) {
 
     // Render fare breakdown
     renderFareBreakdown(data.ListFare);
+
+    // Render tickets
+    renderTickets(data.ListTicket);
 }
 
 function renderBookingInfo(data) {
@@ -464,7 +466,7 @@ function updateStatusIcons(data) {
             voidBadge.removeClass('void-allowed').addClass('void-not-allowed');
             voidBadge.text('HỦY');
             voidBadge.attr('data-tooltip', 'Booking không thể void');
-            voidBadge.attr('data-tickets', ListTicketsEncoded);
+            voidBadge.attr('data-tickets', '');
             voidBadge.attr('data-action', '');
         }
         voidBadge.show();
@@ -477,14 +479,14 @@ function updateStatusIcons(data) {
         if (data.IsRefund) {
             refundBadge.removeClass('refund-not-allowed').addClass('refund-allowed');
             refundBadge.text('HOÀN');
-            refundBadge.attr('data-tooltip', 'Hoàn/hủy vé');
+            refundBadge.attr('data-tooltip', 'Hoàn vé');
             refundBadge.attr('data-tickets', ListTicketsEncoded);
             refundBadge.attr('data-action', 'refund');
         } else {
             refundBadge.removeClass('refund-allowed').addClass('refund-not-allowed');
             refundBadge.text('HOÀN');
-            refundBadge.attr('data-tooltip', 'Booking không được hoàn/hủy');
-            refundBadge.attr('data-tickets', ListTicketsEncoded);
+            refundBadge.attr('data-tooltip', 'Booking không thể hoàn');
+            refundBadge.attr('data-tickets', '');
             refundBadge.attr('data-action', '');
         }
         refundBadge.show();
@@ -497,7 +499,7 @@ function updateStatusIcons(data) {
         if (data.IsEdit) {
             editBadge.removeClass('edit-not-allowed').addClass('edit-allowed');
             editBadge.text('SỬA');
-            editBadge.attr('data-tooltip', 'Điều chỉnh vé');
+            editBadge.attr('data-tooltip', 'Điều chỉnh thông tin vé');
         } else {
             editBadge.removeClass('edit-allowed').addClass('edit-not-allowed');
             editBadge.text('SỬA');
@@ -745,7 +747,7 @@ function renderPassengers(data) {
                 ${purchasedServicesHTML}
             </td>
             <td><span class="badge ${passenger.Type}">${getPassengerLabelName(passenger.Type)}</span></td>
-            <td>${passenger.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
+            <td class="text-center">${passenger.Gender === 'M' ? 'Nam' : 'Nữ'}</td>
             <td>${formatDate(passenger.DateOfBirth || '')}${(passenger.Age !== undefined && passenger.Age > 0) ? `<i class="ms-1">(${passenger.Age} tuổi)</i>` : ''}</td>
             <td>
                 ${passenger.Email ? `<div>${passenger.Email}</div>` : ''}
@@ -847,6 +849,27 @@ function renderFareBreakdown(fareCharges) {
     }
 }
 
+function renderTickets(tickets) {
+    if(tickets) {
+        const tbody = $('#ticketTable tbody');
+        tbody.empty();
+
+        // fareCharges.forEach(function (fare) {
+        Object.entries(tickets).forEach(([key, ticket]) => {
+            const row = `<tr>
+                <td><b>${ticket.TicketNumber}</b></td>
+                <td>${ticket.ServiceName}</td>
+                <td>${ticket.Description}</td>
+                <td class="text-center">${ticket.PassengerId}</td>
+                <td class="text-center">${ticket.Flight}</td>
+                <td class="text-end">${formatCurrency(ticket.TotalAmount)}</td>
+                <td class="text-end">${formatDateTime(ticket.IssueDate)}</td>
+            </tr>`;
+            tbody.append(row);
+        });
+    }
+}
+
 function clearBooking() {
     hideBookingContent();
 
@@ -869,9 +892,10 @@ function clearBooking() {
     $('#contactAddress').text('');
 
     // Clear tables
+    $('#flightsList').empty();
     $('#passengersTable tbody').empty();
     $('#fareTable tbody').empty();
-    $('#flightsList').empty();
+    $('#ticketTable tbody').empty();
 
     // Reset status badges
     $('.status-badge').removeClass().addClass('status-badge').text('').attr('data-tooltip', '');

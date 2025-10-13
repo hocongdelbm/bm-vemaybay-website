@@ -463,6 +463,7 @@ class APIPhuongNam {
         }
 
         // List ticket
+        $mapServiceType = ['FLIGHT' => 'Vé máy bay', 'BAGGAGE' => 'Vé hành lý', 'SEAT' => 'Vé chỗ ngồi'];
         $bookingData["ListTicket"] = [];
         foreach (($data["Tickets"] ?? []) as $tk) {
             $flightText = '';
@@ -477,6 +478,7 @@ class APIPhuongNam {
                 "TicketNumber"  => $tk["TicketNumber"] ?? "",
                 "TicketStatus"  => $tk["TicketStatus"] ?? "",
                 "ServiceType"   => $tk["TicketType"] ?? "", // FLIGHT, BAGGAGE, ANCILLARY, SEAT
+                "ServiceName"   => $mapServiceType[strtoupper($tk["TicketType"])] ?? $tk["TicketType"],
                 "Description"   => $tk["FareString"] ?? "",
                 "TotalAmount"   => $tk["TotalAmount"] ?? 0,
                 "PassengerId"   => $tk["PersonOrgId"] ?? null,

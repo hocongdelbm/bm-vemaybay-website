@@ -615,12 +615,14 @@ class APIDatacom {
         }
 
         // List ticket
+        $mapServiceType = ['FLIGHT' => 'Vé máy bay', 'BAGGAGE' => 'Vé hành lý', 'SEAT' => 'Vé chỗ ngồi'];
         $bookingData["ListTicket"] = [];
         foreach (($data["ListTicket"] ?? []) as $tk) {
             $bookingData["ListTicket"][] = [
                 "TicketNumber"  => $tk["TicketNumber"] ?? "",
                 "TicketStatus"  => $tk["TicketStatus"] ?? "",
                 "ServiceType"   => $tk["ServiceType"] ?? "",
+                "ServiceName"   => $mapServiceType[strtoupper($tk["ServiceType"])] ?? $tk["ServiceType"],
                 "Description"   => trim(($tk["FullName"] ?? "") . " " . ($tk["Remark"] ?? "")),
                 "TotalAmount"   => $tk["Total"] ?? 0,
                 "PassengerId"   => $tk["NameId"] ?? null,
