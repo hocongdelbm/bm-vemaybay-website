@@ -1933,6 +1933,7 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = array(
   23 => 'Tiền phòng Bình Thới',
   24 => 'Tiền phòng NVC',
   25 => 'Tiền chung cư',
+  26 => 'Thu phí chỗ ngồi',
 );
 
 $GLOBALS['app_list_strings']['work_history_status_list'] = array(

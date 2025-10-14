@@ -59,7 +59,7 @@ $(document).ready(function() {
 		const index = $('select[name="ct_code[]"]').index(this);
 		const value = $(this).val();
 
-		if(value == 'PHL' || value == 'PD') {
+		if(value == 'PHL' || value == 'PD' || value == 'PMG') {
 			$(`input[name="ct_receipt_voucher[]"]`).eq(index).attr('type', 'text');
 		}
 		else {
