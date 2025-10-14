@@ -29,7 +29,7 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 		$id_number = $this->bean->citizen_id ?? '';
 		if(empty($id_number)) $id_number = $this->bean->passport_number ?? '';
 		if(empty($id_number)) $id_number = $_REQUEST['identity_number'] ?? '';
-		$this->ss->assign('CUSTOM_ID_NUMBER', '<input type="text" name="identity_number" value="'.$id_number.'" id="identity_number" maxlength="12" />');
+		$this->ss->assign('CUSTOM_ID_NUMBER', '<input type="text" name="identity_number" value="'.$id_number.'" id="identity_number" maxlength="20" />');
 
 		// MST
 		$mst_value = $this->bean->masothue ?? ($_REQUEST['masothue'] ?? '');
