@@ -489,7 +489,7 @@ $(document).ready(function () {
 
             // Map call to phone or zalo_id
             let phone = '', zalo_id = '';
-            if (number.length < 15) {
+            if (number.length < 13) {
                 phone = number;
                 $('#voiceip-info-phone').html(phone);
             }

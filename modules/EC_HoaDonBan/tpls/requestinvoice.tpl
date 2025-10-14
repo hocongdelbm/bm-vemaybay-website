@@ -7,7 +7,7 @@
             <input type="hidden" name="module" value="EC_HoaDonBan">
             <input type="hidden" name="action" value="requestinvoice">
 
-            <div class="from-to-date--wrap d-inline-flex gap-2 mb-3 align-items-center">
+            <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
                 <div class="d-flex gap-2 align-items-center fdate_trigger--wrap">
                     <span class="sublabel">Từ ngày: </span>
                     <div class="dateTime d-flex gap-2 position-relative">
@@ -87,11 +87,9 @@
                     <input type="submit" class="btn btn-primary" value="Tìm kiếm">
                     <input type="submit" class="btn btn-danger" name="clear_btn" value="Xoá">
                 </div>
-
             </div>
-            <hr style="border: none; border-top: 1px solid #ddd; margin: 10px 0;">
+            <hr style="border:none; border-top:1px solid #ddd; margin:10px 0;" />
             <div class="d-flex gap-2 mb-3">
-
                 <div class="d-flex align-items-center gap-2">
                     <label>HĐ ra</label>
                     <select class="sort box-select" name="sort_hd_ra" id="filter_hd_ra">
@@ -111,7 +109,6 @@
                 </div>
 
             </div>
-
         </form>
         <table id="output_inv" class="table-details__booking table-request__invoice" cellspacing="0" cellpadding="0">
             <thead>
@@ -123,7 +120,6 @@
                     <th>Thông tin hoá đơn</th>
                     <th width="12%">HĐ ra</th>
                     <th width="15%">HĐ vào</th>
-                    <th width="6%">Đã check</th>
                 </tr>
             </thead>
             <tbody>
