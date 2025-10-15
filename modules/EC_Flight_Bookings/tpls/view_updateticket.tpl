@@ -3,7 +3,7 @@
         <form id="searchForm" class="row g-3 justify-content-center text-dark p-3 rounded">
             <!-- Hãng hàng không -->
             <div class="col-md-2">
-                <label class="form-label">Hãng</label>
+                <label class="form-label">Hãng<span class="text-danger">*</span></label>
                 <select id="airlineCode" class="form-select" required>
                     <option value="VJ" selected>VJ</option>
                     <option value="VN">VN</option>
@@ -14,18 +14,18 @@
 
             <!-- Sân bay đi -->
             <div class="col-md-1">
-                <label class="form-label">Nơi đi</label>
+                <label class="form-label">Nơi đi<span class="text-danger">*</span></label>
                 <input type="text" id="depCode" class="form-control" placeholder="SGN" required>
             </div>
 
             <!-- Sân bay đến -->
             <div class="col-md-1">
-                <label class="form-label">Nơi đến</label>
+                <label class="form-label">Nơi đến<span class="text-danger">*</span></label>
                 <input type="text" id="desCode" class="form-control" placeholder="HAN" required>
             </div>
             {*  *}
             <div class="col-md-2">
-                <label class="form-label">Ngày đi</label>
+                <label class="form-label">Ngày đi<span class="text-danger">*</span></label>
                 <div class="between_range_section between_range_end--wrap dateTime d-flex position-relative flex-fill">
                     <input autocomplete="off" type="text" name="start_range_date_ticket_issue_advanced" id="departDate"
                         value="" title="" tabindex="" size="11" class="dateRangeInput date_input w-100" maxlength="10">
@@ -197,6 +197,9 @@
                             <small class="text-dark">
                                 Giá cơ bản gốc: <span id="modal_originalFare" class="fw-bold text-dark">0</span> VND
                             </small>
+                            <small id="fareError" class="text-danger" style="display:none;">
+                                Vui lòng nhập giá trị hợp lệ
+                            </small>
                         </div>
                     </div>
 
@@ -204,7 +207,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-secondary btn-cancel-modal" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-primary btn-update" onclick="updateFlightFare()">
                     Cập nhật giá
                 </button>
