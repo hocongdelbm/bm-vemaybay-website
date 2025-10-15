@@ -72,7 +72,7 @@ class EC_HoaDonBan extends Basic {
 
 	public function save($check_notify = FALSE) {
 		if(empty($this->name)) $this->name = 'HD-' . date('ymd') . '-' . $this->countVoucher();
-		if(!$this->kyhieuhd || empty($this->kyhieuhd)) $this->kyhieuhd = $this->genInvSerial();
+		if(is_null($this->kyhieuhd) || empty($this->kyhieuhd)) $this->kyhieuhd = $this->genInvSerial();
 
 		$identity_number = trim($_POST['identity_number'] ?? '');
 		if(!empty($identity_number)) {
@@ -169,7 +169,7 @@ class EC_HoaDonBan extends Basic {
 	public function genInvSerial() {
 		$y = date('y');
 		if(isset($this->loaikh)) {
-			return $this->loaikh == '0' ? "C{$y}THV" : "C{$y}MHV";
+			return (string)($this->loaikh) === '0' ? "C{$y}THV" : "C{$y}MHV";
 		}
 		return "C{$y}MHV";
 	}

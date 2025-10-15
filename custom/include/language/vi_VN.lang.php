@@ -1908,7 +1908,7 @@ $GLOBALS['app_list_strings']['reserve_fund_type_list'] = array(
   2 => 'Giảm trừ khác',
 );
 
-$GLOBALS['app_list_strings']['loai_thu_list'] = array(
+$GLOBALS['app_list_strings']['loai_thu_list'] = [
   1 => 'Thu tiền vé',
   2 => 'Thu công nợ',
   5 => 'Thu phí hành lý',
@@ -1933,7 +1933,17 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = array(
   23 => 'Tiền phòng Bình Thới',
   24 => 'Tiền phòng NVC',
   25 => 'Tiền chung cư',
-);
+  26 => 'Thu phí ghế',
+];
+
+// Input invoice
+$GLOBALS['app_list_strings']['ticket_type_list'] = [
+  'flight'    => 'Vé máy bay',
+  'baggage'   => 'Vé hành lý',
+  'seat'      => 'Vé ghế',
+  'insurance' => 'Vé bảo hiểm',
+  'other'     => 'Vé khác',
+];
 
 $GLOBALS['app_list_strings']['work_history_status_list'] = array(
   'Active' => 'Đang làm việc',

@@ -35,9 +35,7 @@ secure_sessions/*
 !secure_sessions/logs
 
 # JSON config
-custom/json_files/*.json
-custom/json_files/event_02_09_2025/*.json
-custom/json_files/event_02_09_2025/users/*.json
+custom/json_files/**/*.json
 
 # Ignore vendor
 vendor

@@ -91,10 +91,10 @@ class Viewinputinvoice extends SugarView {
         $this->bean->db->query("UPDATE ec_input_invoices SET deleted = 1 WHERE deleted = 0 AND status = 0");
     }
 
-    function updateInvoiceData($post_fields) {
+    private function updateInvoiceData($post_fields) {
         // Lưu lại thông tin giá vốn mới
         if (isset($post_fields['confirmed'])) {
-            $bk_arr = array();
+            $bk_arr = [];
             for ($i = 0; $i < count($_POST['invoice_id']); $i++) {
                 $sql = 'UPDATE ec_input_invoices 
                     SET cost = "' . unformat_number($_POST['invoice_cost_vat'][$i]) . '"
@@ -102,6 +102,7 @@ class Viewinputinvoice extends SugarView {
                       ,cost_no_vat = "' . unformat_number($_POST['invoice_cost'][$i]) . '"
                       ,authorized_fee = "' . unformat_number($_POST['authorized_fee'][$i]) . '"
                       ,total = cost + authorized_fee
+                      ,ticket_type = "'. ($_POST['ticket_type'][$i] ?? '') .'"
                     WHERE id = "' . $_POST['invoice_id'][$i] . '" AND deleted = 0';
                 $this->bean->db->query($sql);
 
@@ -195,65 +196,61 @@ class Viewinputinvoice extends SugarView {
         if (isset($request_fields['other_err']) && !empty($request_fields['other_err'])) {
             $err_note .= "<br>Những số vé lỗi không nạp được: " . $request_fields['other_err'];
         }
-        $html = '
-            <form id="preview_frm" method="post" action="index.php">
-                <div class="top_area">
-                    <div class="text-center warning_text">Vui lòng kiểm tra lại thông tin hoá đơn bên dưới trước khi nạp vào hệ thống.<br>Dòng màu mận là dòng phí dịch vụ.' . $err_note . '</div>
-                    <input type="hidden" name="module" value="EC_HoaDonBan">
-                    <input type="hidden" name="action" value="inputinvoice">
-                    <input type="hidden" name="invoice_number" value="' . $_REQUEST['invoice_number'] . '">
-                    <input type="hidden" name="invoice_serial" value="' . $_REQUEST['invoice_serial'] . '">
-                    <input type="hidden" name="supplier" value="' . $_REQUEST['supplier'] . '">
-                    <input type="hidden" name="supplier_name" value="' . $_REQUEST['supplier_name'] . '">
-                    <input type="hidden" name="from_date" value="' . $_REQUEST['invoice_date'] . '">
-                    <input type="hidden" name="to_date" value="' . $_REQUEST['invoice_date'] . '">
-                    <input type="submit" class="btn btn-primary" name="confirmed" value="Nạp">
-                    <input type="submit" class="btn btn-danger" name="denied" value="Bỏ">
-                </div>
-                <br>
-                <table id="data_tbl" cellspacing="0" cellpadding="0" class="table-details__booking table-input__invoices table-config">
-                    <thead>
-                        <th width="2%">STT</th>
-                        <th width="7%">Ngày<br>hạch toán</th>
-                        <th width="7%">Ngày HĐ</th>
-                        <th width="7%">Số HĐ</th>
-                        <th width="6%">KHHĐ</th>
-                        <th width="8%">Số vé</th>
-                        <th width="3%">SL</th>
-                        <th width="7%">Hành trình</th>
-                        <th width="7%">Giá vốn</th>
-                        <th width="7%">VAT</th>
-                        <th width="7%">Giá vốn (VAT)</th>
-                        <th width="6%">Thu hộ</th>
-                        <th width="7%">Tổng</th>  
-                        <th width="7%">Booking</th>   
-                        <th width="3%">NCC</th>
-                        <th>Đơn vị</th>
-                    </thead>
-                    <tbody>
-                        ' . $html_invoice . '
-                    </tbody>
-                    <tfoot>
-                        <tr class="footer-tr">
-                            <td colspan="19" class="no-border text-start">
-                                <input type="button" class="btn btn-primary" id="inv_add_row" value="Thêm dòng" inv_date="' . $_REQUEST['invoice_date'] . '" inv_number="' . $_REQUEST['invoice_number'] . '" inv_seri="' . $_REQUEST['invoice_serial'] . '" inv_supplier="' . $_REQUEST['supplier'] . '">
-                                <input type="hidden" id="sep_supplier_opt" value="' . get_select_options_with_id($app_list_strings['supplier_invoice_list'], $_REQUEST['supplier']) . '">
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </form>';
+        $html = '<form id="preview_frm" method="post" action="index.php">
+            <div class="top_area">
+                <div class="text-center warning_text">Vui lòng kiểm tra lại thông tin hoá đơn bên dưới trước khi nạp vào hệ thống.<br>Dòng màu mận là dòng phí dịch vụ.' . $err_note . '</div>
+                <input type="hidden" name="module" value="EC_HoaDonBan">
+                <input type="hidden" name="action" value="inputinvoice">
+                <input type="hidden" name="invoice_number" value="' . $_REQUEST['invoice_number'] . '">
+                <input type="hidden" name="invoice_serial" value="' . $_REQUEST['invoice_serial'] . '">
+                <input type="hidden" name="supplier" value="' . $_REQUEST['supplier'] . '">
+                <input type="hidden" name="supplier_name" value="' . $_REQUEST['supplier_name'] . '">
+                <input type="hidden" name="from_date" value="' . $_REQUEST['invoice_date'] . '">
+                <input type="hidden" name="to_date" value="' . $_REQUEST['invoice_date'] . '">
+                <input type="submit" class="btn btn-primary" name="confirmed" value="Nạp">
+                <input type="submit" class="btn btn-danger" name="denied" value="Bỏ">
+            </div>
+            <br>
+            <table id="data_tbl" cellspacing="0" cellpadding="0" class="table-details__booking table-input__invoices table-config">
+                <thead>
+                    <th width="2%">STT</th>
+                    <th width="7%">Ngày<br>hạch toán</th>
+                    <th width="7%">Ngày HĐ</th>
+                    <th width="7%">Số HĐ</th>
+                    <th width="5%">KHHĐ</th>
+                    <th width="8%">Số vé</th>
+                    <th width="3%">SL</th>
+                    <th width="7%">Hành trình</th>
+                    <th width="7%">Giá vốn</th>
+                    <th width="7%">VAT</th>
+                    <th width="7%">Giá vốn (VAT)</th>
+                    <th width="6%">Thu hộ</th>
+                    <th width="7%">Tổng</th>
+                    <th>Loại</th>
+                    <th width="6%">Booking</th>   
+                    <th width="3%">NCC</th>
+                    <th>Đơn vị</th>
+                </thead>
+                <tbody>
+                    '. $html_invoice .'
+                </tbody>
+                <tfoot>
+                    <tr class="footer-tr">
+                        <td colspan="19" class="no-border text-start">
+                            <input type="button" class="btn btn-primary" id="inv_add_row" value="Thêm dòng" inv_date="' . $_REQUEST['invoice_date'] . '" inv_number="' . $_REQUEST['invoice_number'] . '" inv_seri="' . $_REQUEST['invoice_serial'] . '" inv_supplier="' . $_REQUEST['supplier'] . '">
+                            <input type="hidden" id="sep_supplier_opt" value="' . get_select_options_with_id($app_list_strings['supplier_invoice_list'], $_REQUEST['supplier']) . '">
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>';
         return $html;
     }
 
-    function calculateTotalLine($request_fields)
-    {
-        global $current_user;
-
+    function calculateTotalLine($request_fields) {
         $sql_search = $this->populateSearchCondition($request_fields);
 
-        $sql = '
-            SELECT 
+        $sql = 'SELECT 
                 SUM(qty) AS total_qty,
                 SUM(
                     IFNULL(
@@ -309,6 +306,7 @@ class Viewinputinvoice extends SugarView {
                 ,invoice_number
                 ,invoice_serial
                 ,itinerary
+                ,ticket_type
                 ,booking_id
                 ,(
                     SELECT name
@@ -323,8 +321,7 @@ class Viewinputinvoice extends SugarView {
             FROM ec_input_invoices
             WHERE deleted = 0 $sql_search
             ORDER BY invoice_date DESC, supplier, invoice_serial, invoice_number, order_by_no
-            $sql_limit
-        ";
+            $sql_limit";
 
         $res        = $this->bean->db->query($sql);
         $html       = '';
@@ -346,20 +343,27 @@ class Viewinputinvoice extends SugarView {
                     <input type="hidden" name="invoice_id[]" value="'. $row['id'] .'" />
                 ';
                 $author_input = '<input type="text" name="authorized_fee[]" value="'. (int)$row['authorized_fee'] .'" class="allow_number_only text-end authorized_fee" />';
+                
+                $ticket_type_input = '<select name="ticket_type[]" class="ticket_type">
+                    <option value=""></option>
+                    '. get_select_options_with_id($app_list_strings['ticket_type_list'], $row['ticket_type']) .'
+                </select>';
+                
                 $available = '';
                 $error_minus = '';
                 $tt_colspan = 7;
             }
             else {
-                $cost_input = format_number($row['cost_no_vat']);
-                $vat_input = format_number($row['vat']);
+                $cost_input     = format_number($row['cost_no_vat']);
+                $vat_input      = format_number($row['vat']);
                 $cost_input_vat = format_number($row['cost']);
-                $author_input = format_number($row['authorized_fee']);
+                $author_input   = format_number($row['authorized_fee']);
+                $ticket_type_input = $app_list_strings['ticket_type_list'][$row['ticket_type']] ?? '';
 
                 if (($row['qty'] - $row['export']) > 0) {
                     $available = 'available';
                 } else $available = 'outofstock';
-                // nếu tồn âm, đánh dấu nguyên hàng
+                // Nếu tồn âm, đánh dấu nguyên hàng
                 if (($row['qty'] - $row['export']) < 0) {
                     $error_minus = 'err_minus';
                 } else $error_minus = '';
@@ -372,7 +376,7 @@ class Viewinputinvoice extends SugarView {
                 $accounting_date = "";
             }
 
-            // Update elements which do not have array('name', 'value') structure to use that structure
+            // Duplicate
             $icon_dup_form_data = base64_encode(json_encode([
                 'supplier'=> [
                     'label'     => 'Nhà cung cấp',
@@ -429,20 +433,18 @@ class Viewinputinvoice extends SugarView {
                         <path d="M408,112H184a72,72,0,0,0-72,72V408a72,72,0,0,0,72,72H408a72,72,0,0,0,72-72V184A72,72,0,0,0,408,112ZM375.55,312H312v63.55c0,8.61-6.62,16-15.23,16.43A16,16,0,0,1,280,376V312H216.45c-8.61,0-16-6.62-16.43-15.23A16,16,0,0,1,216,280h64V216.45c0-8.61,6.62-16,15.23-16.43A16,16,0,0,1,312,216v64h64a16,16,0,0,1,16,16.77C391.58,305.38,384.16,312,375.55,312Z"></path><path d="M395.88,80A72.12,72.12,0,0,0,328,32H104a72,72,0,0,0-72,72V328a72.12,72.12,0,0,0,48,67.88V160a80,80,0,0,1,80-80Z"></path>
                     </g>
                 </svg>
-            </i>'; 
+            </i>';
+
             $html .= '<tr class="' . $row_class . ' ' . $error_minus . '">';
             $html .= '<td class="text-center sep_order">
                 '. (++$i) .'
                 '. $icon_duplicate .'
             </td>';
-
-
             $html .= '<td class="text-center accounting_date">' . $accounting_date . '</td>';
             $html .= '<td class="text-center invoice_date">' . date('d-m-Y', strtotime($row['invoice_date'])) . '</td>';
             $html .= '<td class="text-center invoice_number">' . $row['invoice_number'] . '</td>';
             $html .= '<td class="text-center invoice_serial">' . $row['invoice_serial'] . '</td>';
             $html .= '<td class="text-center ' . $available . '">' . $row['name'] . '</td>';
-            // $html .= '<td class="text-center ' . $available . '">' . $row['ticket_code'] . '</td>';
             $html .= '<td class="text-center">' . format_number($row['qty']) . '</td>';
 
             // Cột sl xuất và sl còn lại chỉ hiện khi không ở trong màn hình preview
@@ -457,6 +459,7 @@ class Viewinputinvoice extends SugarView {
             $html .= '<td class="text-end cost_input_vat">' . $cost_input_vat . '</td>';
             $html .= '<td class="text-end author_input">' . $author_input . '</td>';
             $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['cost'] + $row['authorized_fee']) . '</td>';
+            $html .= '<td class="text-center ticket_type">'. $ticket_type_input .'</td>';
             $html .= '<td class="text-center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $row['booking'] . '</a></td>';
             $html .= '<td class="text-center supplier_infor">' . $app_list_strings['supplier_invoice_list'][$row['supplier']] . '</td>';
             $html .= '<td class="text-center company_unit_infor">' . $app_list_strings['company_unit_invoice_list'][$row['company_unit']] . '</td>';
@@ -470,13 +473,14 @@ class Viewinputinvoice extends SugarView {
             $total_qty          += (int)$row['qty'];
             $total_export       += (int)$row['export'];
             $total_left         += (int)($row['qty'] - $row['export']);
-            $total_cost         += (int) $row['cost_no_vat'];
+            $total_cost         += (int)$row['cost_no_vat'];
             $total_vat          += (int)$row['vat'];
             $total_cost_vat     += (int)$row['cost'];
             $total_authorized   += (int)$row['authorized_fee'];
             $total              += (int)($row['cost'] + $row['authorized_fee']);
         }
 
+        // Total row
         if (isset($request_fields['preview'])) {
             $html .= '<tr id="last_row" class="footer-tr">';
             $html .= '<td class="text-end" colspan="6"><b>Tổng</b></td>';
@@ -487,7 +491,7 @@ class Viewinputinvoice extends SugarView {
             $html .= '<td id="total_cost_vat" class="text-end allow_number_only">' . format_number($total_cost_vat) . '</td>';
             $html .= '<td id="total_authorized_fee" class="text-end allow_number_only">' . format_number($total_authorized) . '</td>';
             $html .= '<td id="total" class="text-end allow_number_only">' . format_number($total) . '</td>';
-            $html .= '<td colspan="3">
+            $html .= '<td colspan="4">
                 <input type="hidden" id="inv_row_count" value="'. ($i + 1) .'">
             </td>';
             $html .= '</tr>';
@@ -864,7 +868,7 @@ class Viewinputinvoice extends SugarView {
                 }
                 // Vé nội địa
                 else {
-                    $input_iv->authorized_fee = $data[$i]['authorized_collection'];
+                    $input_iv->authorized_fee = $data[$i]['authorized_collection'] ?? 0;
 
                     if($input_iv->supplier == 'HNH') {
                         $input_iv->cost_no_vat  = ($data[$i]['total'] - $data[$i]['authorized_collection']) / 1.08;
@@ -899,6 +903,9 @@ class Viewinputinvoice extends SugarView {
                 if (isset($data[$i]['ticket_c']) && !empty($data[$i]['ticket_c'])) {
                     $input_iv->ticket_code = $data[$i]['ticket_c'];
                 }
+
+                // Thêm loại vé
+                $input_iv->ticket_type = $input_iv->authorized_fee == 0 ? '' : 'flight';
 
                 $input_iv->save2();
             }

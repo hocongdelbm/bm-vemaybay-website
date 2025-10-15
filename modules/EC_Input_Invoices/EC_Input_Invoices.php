@@ -48,6 +48,7 @@ class EC_Input_Invoices extends Basic
     public $authorized_fee;
     public $ticket_code;
     public $total;
+    public $ticket_type;
 
     public function bean_implements($interface)
     {

@@ -439,7 +439,7 @@
                         <th width="7%">Ngày<br>hạch toán</th>
                         <th width="7%">Ngày HĐ</th>
                         <th width="7%">Số HĐ</th>
-                        <th width="6%">KHHĐ</th>
+                        <th width="5%">KHHĐ</th>
                         <th width="8%">Số vé</th>
                         <!-- <th width="7%">PNR</th> -->
                         <th width="3%">SL</th>
@@ -450,7 +450,8 @@
                         <th width="7%">VAT</th>
                         <th width="7%">Giá vốn (VAT)</th>
                         <th width="6%">Thu hộ</th>
-                        <th width="7%">Tổng</th>  
+                        <th width="7%">Tổng</th>
+                        <th>Loại</th>
                         <th width="6%">Booking</th>   
                         <th width="3%">NCC</th>
                         <th>Đơn vị</th>
@@ -466,6 +467,7 @@
                         <th class="right">{$TOTAL_COST_VAT}</th>
                         <th class="right">{$TOTAL_AUTHORIZED}</th>
                         <th class="right">{$TOTAL}</th>
+                        <th></th>
                         <th></th>
                         <th></th>
                         <th></th>
