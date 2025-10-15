@@ -101,37 +101,40 @@ $(document).ready(function () {
                 const sendRequests = async (dataMap) => {
                     const entries = Object.entries(dataMap); // [[id, code], ...]
 
-                    const requests = entries.map(([code, id]) => {
-                        $(`#status-${code}`).html(`<span class="txt-signing-pending">Đang xử lý <div class="loader-signing"></div></span>`);
-                        return fetch(ENDPOINT, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                class: "entryOutputInvoiceClass",
-                                method: "sign",
-                                params: {
-                                    recordId: id,
-                                    invRef: code
-                                }
+                    const requests = entries.map(([code, id], index) => {
+                        setTimeout(() => {
+                            $(`#status-${code}`).html(`<span class="txt-signing-pending">Đang xử lý <div class="loader-signing"></div></span>`);
+
+                            return fetch(ENDPOINT, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    class: "entryOutputInvoiceClass",
+                                    method: "sign",
+                                    params: {
+                                        recordId: id,
+                                        invRef: code
+                                    }
+                                })
                             })
-                        })
-                        .then(response => {
-                            if (!response.ok) $(`#status-${code}`).html(`<span class="txt-signing-failed">Thao tác lỗi ${response.status}</span>`);
-                            return response.json();
-                        })
-                        .then(data => {
-                            if('status' in data) {
-                                if(data.status == 1) $(`#status-${code}`).html(`<span class="txt-signing-success">${data.message}</span>`);
-                                else $(`#status-${code}`).html(`<span class="txt-signing-failed">${data.message}</span>`);
-                            }
-                            else $(`#status-${code}`).html(`<span class="txt-signing-failed">Thao tác lỗi</span>`);
-                        })
-                        .catch(error => {
-                            $(`#status-${code}`).html(`<span class="txt-signing-failed">${error.message}</span>`);
-                            console.error(`Error for ${code}:`, error);
-                        });
+                            .then(response => {
+                                if (!response.ok) $(`#status-${code}`).html(`<span class="txt-signing-failed">Thao tác lỗi ${response.status}</span>`);
+                                return response.json();
+                            })
+                            .then(data => {
+                                if('status' in data) {
+                                    if(data.status == 1) $(`#status-${code}`).html(`<span class="txt-signing-success">${data.message}</span>`);
+                                    else $(`#status-${code}`).html(`<span class="txt-signing-failed">${data.message}</span>`);
+                                }
+                                else $(`#status-${code}`).html(`<span class="txt-signing-failed">Thao tác lỗi</span>`);
+                            })
+                            .catch(error => {
+                                $(`#status-${code}`).html(`<span class="txt-signing-failed">${error.message}</span>`);
+                                console.error(`Error for ${code}:`, error);
+                            });
+                        }, index * 200);
                     });
 
                     // Wait for all requests to finish (even if some fail)

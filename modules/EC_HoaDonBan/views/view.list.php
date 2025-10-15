@@ -41,7 +41,7 @@ class EC_HoaDonBanViewList extends ViewList {
 	}
 
 	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.list.js?v=1.0.2'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.list.js?v=1.0.3'></script>";
 	}
 
 	private function getNewActionMenuItem() {
