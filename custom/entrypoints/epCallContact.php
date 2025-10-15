@@ -1,11 +1,9 @@
 <?php
-global $current_user, $db, $app_list_strings;
-
 if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
 
-    if ((string)$type === "get_contact") {
-        global $db, $current_user, $app_list_strings;
+    if ((string)$type === "get_contact") { // Dùng khi gọi đến và gọi ra
+        global $db;
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $zalo_id = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
 
@@ -31,50 +29,52 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if (!empty($where)) {
-            $sql = '
-                SELECT 
+            $sql = "SELECT 
                     con.id,
                     con.last_name AS name,
-                    IFNULL(con.phone_mobile, "") AS phone,
-                    IFNULL(con.zalo_id, "") AS zalo_id,
-                    IFNULL(e.email_address, "") AS email
+                    con.phone_mobile AS phone,
+                    con.zalo_id,
+                    con.zalo_avatar,
+                    e.email_address AS email
                 FROM contacts con
                     LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id 
-                        AND eb.bean_module = "Contacts" AND eb.deleted = 0
+                        AND eb.bean_module = 'Contacts' AND eb.deleted = 0
                     LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-                WHERE (' . implode(' AND ', $where) . ') 
-                    AND con.deleted = 0 LIMIT 1
-            ';
+                WHERE (". implode(' AND ', $where) .") 
+                    AND con.deleted = 0
+                ORDER BY date_entered
+                LIMIT 1";
     
             $res = $db->query($sql);
             while ($row = $db->fetchByAssoc($res)) {
                 $data['contact_id'] = $row['id'];
-                $data['name']       = !is_null($row['name']) ? $row['name'] : '';
-                $data['phone']      = !is_null($row['phone']) ? $row['phone'] : $phone;
-                $data['zalo_id']    = !is_null($row['zalo_id']) ? $row['zalo_id'] : $zalo_id;
-                $data['email']      = !is_null($row['email']) ? $row['email'] : '';
+                $data['name']       = $row['name'] ?? '';
+                $data['phone']      = $row['phone'] ?? $phone;
+                $data['zalo_id']    = $row['zalo_id'] ?? $zalo_id;
+                $data['email']      = $row['email'] ?? '';
+                $data['avatar']     = $row['zalo_avatar'] ?? '';
             }
+
+            if(empty($data['zalo_id'])) $data['zalo_id'] = $zalo_id;
+            if(empty($data['phone'])) $data['phone'] = $phone;
         }
 
 
-
         /**********  2. Get zalo info **********/
-        if (!empty($data['zalo_id'])) {
-            require_once('modules/EC_Zalo/Zalo.php');
+        if (!empty($data['zalo_id']) && empty($data['phone'])) { // Cuộc gọi thông qua Zalo
+            require_once("modules/EC_Zalo/Zalo.php");
             $zalo = new Zalo();
+            $ecZalo = new EC_Zalo();
 
-            // Get user info
-            $json_user_info = $zalo->get_user($data['zalo_id']);
-            $user_info      = json_decode($json_user_info, true);
+            $user_info = $ecZalo->get_zalo_user_info($data['zalo_id']);
 
-            if ($user_info && $user_info['error'] == 0) {
-                $zalo_phone = (isset($user_info['data']['shared_info']) && isset($user_info['data']['shared_info']['phone'])) ? $user_info['data']['shared_info']['phone'] : '';
-                // Get phone from user_alias
-                if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['data']['user_alias']);
+            if (!empty($user_info)) {
+                $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias first
+                if (empty($zalo_phone)) $zalo_phone = $zalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
 
-                if (empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
-                if (empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
-                $data['avatar'] = isset($user_info['data']['avatars']['240']) ? $user_info['data']['avatars']['240'] : $user_info['data']['avatar'];
+                $data['phone'] = $zalo_phone;
+                $data['avatar'] = $user_info['avatars']['240'] ?? $user_info['avatar'] ?? '';
+                if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
             }
         }
 
@@ -92,21 +92,24 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         // Return
         echo json_encode($data);
         exit();
-    } elseif ((string)$type === "get_contact_zalo") { // Dùng cho gọi ra đường Zalo
+    }
+    elseif ((string)$type === "get_contact_zalo") { // Dùng cho gọi ra đường Zalo
         /** Tương tác của người dùng với OA là một trong các hành động:
          * Quan tâm OA
          * Gửi tin nhắn đến OA
          * Gọi đến OA hoặc chấp nhận cuộc gọi từ OA
          * Nhấn menu Tương tác nhanh, menu Dịch vụ hoặc các CTA của OA Chatbot
          */
-
-        global $db, $app_list_strings;
+        global $db;
         $number = isset($_POST['number']) ? global_test_input(str_replace(" ", "", $_POST['number'])) : "";
+
+        $where = "";
+        if (strlen($number) > 14) $where = "con.zalo_id = '{$number}'";
+        else $where = "con.phone_mobile = '{$number}'";
 
 
         /**********  1. Get info from DB  **********/
-        $zalo_id = '';
-        $data = array(
+        $data = [
             'contact_id'    => '',
             'name'          => '',
             'phone'         => '',
@@ -114,105 +117,87 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             'email'         => '',
             'avatar'        => '',
             'info_booking'  => ''
-        );
+        ];
 
-        // Lấy thông tin từ số điện thoại
-        if (strlen($number) < 15) {
-            $sql_1 = '
-                SELECT con.id,
-                    con.last_name AS name,
-                    IFNULL(con.phone_mobile, "") AS phone_mobile,
-                    IFNULL(con.zalo_id, "") AS zalo_id,
-                    IFNULL(e.email_address, "") AS email
-                FROM contacts con
-                    LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id AND eb.bean_module = "Contacts" AND eb.deleted = 0
-                    LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-                WHERE con.phone_mobile = "' . $number . '" AND con.deleted = 0
-                ORDER BY date_entered
-                LIMIT 1
-            ';
+        // Lấy thông tin liên hệ
+        $sql = "SELECT con.id
+                ,con.last_name AS name
+                ,con.phone_mobile AS phone
+                ,e.email_address AS email
+                ,con.zalo_id
+                ,con.zalo_avatar
+                ,con.zalo_name
+                ,con.zalo_last_interaction
+            FROM contacts con
+                LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id 
+                    AND eb.bean_module = 'Contacts' AND eb.deleted = 0
+                LEFT JOIN email_addresses e ON e.id = eb.email_address_id
+            WHERE $where
+                AND con.zalo_id IS NOT NULL
+                AND con.zalo_id != ''
+                AND con.deleted = 0
+            ORDER BY con.date_entered
+            LIMIT 1";
 
-            $res_1 = $db->query($sql_1);
-            while ($row = $db->fetchByAssoc($res_1)) {
-                if (is_null($row['zalo_id']) || empty($row['zalo_id'])) continue;
-
-                $data['contact_id'] = $row['id'];
-                $data['name']       = !is_null($row['name']) ? $row['name'] : '';
-                $data['phone']      = $number;
-                $data['zalo_id']    = !is_null($row['zalo_id']) ? $row['zalo_id'] : '';
-                $data['email']      = !is_null($row['email']) ? $row['email'] : '';
-            }
-
-            $zalo_id = $data['zalo_id'];
-        }
-
-        // Lấy thông tin từ Zalo id
-        else {
-            $sql_1 = '
-                SELECT con.id,
-                    con.last_name AS name,
-                    IFNULL(con.phone_mobile, "") AS phone_mobile,
-                    IFNULL(con.zalo_id, "") AS zalo_id,
-                    IFNULL(e.email_address, "") AS email
-                FROM contacts con
-                    LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id AND eb.bean_module = "Contacts" AND eb.deleted = 0
-                    LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-                WHERE con.zalo_id = "' . $number . '" AND con.deleted = 0
-                ORDER BY date_entered
-                LIMIT 1
-            ';
-
-            $res_1 = $db->query($sql_1);
-            while ($row = $db->fetchByAssoc($res_1)) {
-                $data['contact_id'] = $row['id'];
-                $data['name']       = !is_null($row['name']) ? $row['name'] : '';
-                $data['phone']      = !is_null($row['phone_mobile']) ? $row['phone_mobile'] : '';
-                $data['zalo_id']    = $number;
-                $data['email']      = !is_null($row['email']) ? $row['email'] : '';
-            }
-
-            $zalo_id = $number;
+        $res = $db->query($sql);
+        while ($row = $db->fetchByAssoc($res)) {
+            $data['contact_id'] = $row['id'];
+            $data['name']       = $row['name'] ?? $row['zalo_name'];
+            $data['phone']      = $row['phone'] ?? '';
+            $data['email']      = $row['email'] ?? '';
+            $data['zalo_id']    = $row['zalo_id'] ?? '';
+            $data['avatar']     = $row['zalo_avatar'] ?? '';
+            $data['last_interaction'] = $row['zalo_last_interaction'] ?? ''; // Y-m-d H:i:s
         }
 
 
         /**********  2. Get and check zalo info **********/
-        if (!empty($zalo_id)) {
-            require_once('modules/EC_Zalo/Zalo.php');
-            $zalo = new Zalo();
+        if (!empty($data['zalo_id'])) {
+            // Check interaction within 30 days with data from DB
+            $db_last_interaction = !empty($data['last_interaction']) ? date('d/m/Y', strtotime($data['last_interaction'])) : '';
+            $period = (int)((strtotime(date('d/m/Y')) - strtotime($db_last_interaction)) / 86400);
 
-            // Get user info
-            $json_user_info = $zalo->get_user($zalo_id);
-            $user_info = json_decode($json_user_info, true);
-            if ($user_info['error'] != 0) {
-                echo json_encode([
-                    'error' => 1,
-                    'message' => isset($user_info['message']) ? $user_info['message'] : 'Thông tin Zalo không hợp lệ'
-                ], JSON_UNESCAPED_UNICODE);
-                exit();
+            if ($period >= 30) {
+                require_once('modules/EC_Zalo/Zalo.php');
+                $zalo = new Zalo();
+                $ecZalo = new EC_Zalo();
+
+                // Get user info
+                $user_info = $ecZalo->get_zalo_user_info($zalo_id);
+                if (empty($user_info)) {
+                    echo json_encode([
+                        'error' => 1,
+                        'message' => 'Không tìm thấy Zalo'
+                    ], JSON_UNESCAPED_UNICODE);
+                    exit();
+                }
+
+                $zalo_phone = $data['phone'] ?? '';
+                if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
+                if (empty($zalo_phone)) $zalo_phone = $zalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
+
+                if (empty($data['phone'])) $data['phone'] = $zalo_phone;
+                if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
+                $data['avatar'] = $user_info['avatars']['240'] ?? '';
+                $data['last_interaction'] = $user_info['user_last_interaction_date'] ?? ''; // dd/mm/yyyy
+
+                // Check interaction within 30 days with data from API
+                $period = (int)((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400);
+                if ($period >= 30) {
+                    echo json_encode([
+                        'error' => 1,
+                        'message' => 'Zalo đã hết tương tác trong 30 ngày',
+                        'data' => $data,
+                        'mes' => $messages
+                    ], JSON_UNESCAPED_UNICODE);
+                    exit();
+                }
             }
-            $zalo_phone = (isset($user_info['data']['shared_info']) && isset($user_info['data']['shared_info']['phone'])) ? $user_info['data']['shared_info']['phone'] : '';
-            // Get phone from user_alias
-            if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['data']['user_alias']);
-
-            if (empty($data['phone'])) $data['phone'] = $zalo->unformat_zalo_phone($zalo_phone);
-            if (empty($data['name'])) $data['name'] = $user_info['data']['display_name'];
-            $data['avatar'] = $user_info['data']['avatars']['240'];
-            $data['last_interaction'] = isset($user_info['data']['user_last_interaction_date']) ? $user_info['data']['user_last_interaction_date'] : ''; // dd/mm/yyyy
-
-            // Check interaction within 30 days
-            if (empty($data['last_interaction']) || ((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400 > 30)) {
-                echo json_encode([
-                    'error' => 1,
-                    'message' => 'Không thể gọi đến Zalo này',
-                    'data' => $data,
-                    'mes' => $messages
-                ], JSON_UNESCAPED_UNICODE);
-                exit();
-            }
-        } else {
+        }
+        else {
             echo json_encode([
                 'error' => 1,
-                'message' => 'Không có thông tin Zalo'
+                'message' => 'Không tìm thấy Zalo'
             ], JSON_UNESCAPED_UNICODE);
             exit();
         }
@@ -230,30 +215,28 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             'data' => $data
         ], JSON_UNESCAPED_UNICODE);
         exit();
-    } elseif ((string)$type === "update_call") {
-        require_once('modules/EC_Zalo/Zalo.php');
-        $objZalo = new Zalo();
-
-        $call_id    = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
-        $contact_id = isset($_POST['contact_id']) ? global_test_input($_POST['contact_id']) : "";
-        $phone      = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
-        $zalo_id    = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
-        $name       = isset($_POST['name']) ? global_test_input($_POST['name']) : "";
-        $email      = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
-        $note       = isset($_POST['note']) ? addslashes($_POST['note']) : "";
-        $call_reason = isset($_POST['call_reason']) ? global_test_input($_POST['call_reason']) : "";
-
+    }
+    elseif ((string)$type === "update_call") {
+        $call_id        = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
+        $contact_id     = isset($_POST['contact_id']) ? global_test_input($_POST['contact_id']) : "";
+        $phone          = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
+        $zalo_id        = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
+        $name           = isset($_POST['name']) ? global_test_input($_POST['name']) : "";
+        $email          = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
+        $note           = isset($_POST['note']) ? addslashes($_POST['note']) : "";
+        $call_reason    = isset($_POST['call_reason']) ? global_test_input($_POST['call_reason']) : "";
         $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
         $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
-
-        $call_status = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
+        $call_status    = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
 
         // Validate
         if (empty($call_id) || empty($note)) {
             echo 400;
             exit();
         }
+
+        global $db, $sugar_config, $current_user;
 
         /**********  1. Handle Call & Contact  **********/
         if (empty($contact_id)) {
@@ -271,8 +254,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
             if (!empty($where_clauses)) {
                 $sql = 'SELECT id, phone_mobile, zalo_id FROM contacts 
-                        WHERE (' . implode(' OR ', $where_clauses) . ') 
-                        AND deleted = 0';
+                        WHERE (' . implode(' OR ', $where_clauses) . ') AND deleted = 0';
                 $result = $db->query($sql);
         
                 $found_ids = [];
@@ -282,25 +264,29 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         
                 $contact_id = $found_ids[0]; 
                 if (count($found_ids) > 1) {
-                    // $content = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
-                    // $content .= "\nSố điện thoại: **$phone**";
-                    // $content .= "\nZaloID: **$zalo_id**";
-                    // $content .= "\nCall_ID: **$call_id**";
-                    // $metadata = [
-                    //     "priority" => [
-                    //         "priority" => "important",
-                    //     ]
-                    // ];
-                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content, [], $metadata);
-
-                    $content = "<b>Có nhiều hơn 1 liên hệ trùng thông tin</b>";
-                    $content .= "\nSĐT: <b>$phone</b>";
-                    $content .= "\nZalo ID: <b>$zalo_id</b>";
-                    $content .= "\nCall ID: <b>$call_id</b>";
-                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                    $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                    Telegram::sendMessage($content, $botToken, $chatId, $threadId);
+                    if($this->notificationChannel == 'Mattermost') {
+                        $cont = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
+                        $cont .= "\nSố điện thoại: **$phone**";
+                        $cont .= "\nZaloID: **$zalo_id**";
+                        $cont .= "\n*From epCallContact update_call()*";
+                        $metadata = [
+                            "priority" => [
+                                "priority" => "important",
+                            ]
+                        ];
+                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $cont, [], $metadata);
+                    }
+                    else {
+                        $cont = "<b>[WARNING]</b> Có nhiều hơn 1 liên hệ trùng thông tin";
+                        $cont .= "\nSĐT: <b>$phone</b>";
+                        $cont .= "\nZalo ID: <b>$zalo_id</b>";
+                        $cont .= "\n<i>From epCallContact update_call()</i>";
+                        $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT) . "</pre>";
+                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                        $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                        Telegram::sendMessage($cont, $botToken, $chatId, $threadId);
+                    }
                 }
             }
         }
@@ -314,8 +300,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $con->phone_mobile = trim($phone);
                 $save = true;
             }
-            if (empty($con->zalo_id) && !empty($zalo_id)) {
-                $con->zalo_id = $zalo_id;
+            if (empty($con->zalo_id) && !empty($zalo_id) && !isExitsPhoneNumber('contacts', $zalo_id)) {
+                $con->zalo_id = trim($zalo_id);
                 $save = true;
             }
             if (!empty($name)) {
@@ -327,40 +313,38 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $save = true;
             }
 
-            if ($save === true){
-                $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: " . $call_id;
-                
+            if ($save === true) {
+                $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: $call_id";
                 $con->save();
             } 
-        } else {
-            if(!empty($call_id) & !isExitsPhoneNumber('contacts', $phone)){
-                $con->phone_mobile = trim($phone);
-                $con->zalo_id = $zalo_id;
-                $con->last_name = $name;
-                $con->email1 = $email;
-                $con->description = "Liên hệ tạo từ cuộc gọi có call_ID: " . $call_id;
-                $con->assigned_user_id = $current_user->id;
+        }
+        else {
+            if(!empty($call_id) && !isExitsPhoneNumber('contacts', $phone)) {
+                $con->phone_mobile      = trim($phone);
+                $con->zalo_id           = $zalo_id;
+                $con->last_name         = $name;
+                $con->email1            = $email;
+                $con->description       = "Liên hệ tạo từ cuộc gọi có call_ID: $call_id";
+                $con->assigned_user_id  = $current_user->id;
                 $con->save();
             }
         }
 
         // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
-        $sql_exist_callid = 'SELECT IF(COUNT(id) > 0, 1, 0)
-                    FROM calls 
-                    WHERE call_id = "' . $call_id . '" AND deleted = 0';
+        $sql_exist_callid = "SELECT IF(COUNT(id) > 0, 1, 0) FROM calls WHERE call_id = '$call_id' AND deleted = 0";
         $is_exist_callid = $db->getOne($sql_exist_callid);
 
         if ($is_exist_callid) {
             $sql_update_call = 'UPDATE calls
-                                SET parent_type = "Contacts", parent_id = "' . $con->id . '", description = "' . $note . '", booking_id = "' . $booking_id . '",
-                                    created_by = "' . $current_user->id . '",
-                                    modified_user_id = "' . $current_user->id . '",
-                                    assigned_user_id = "' . $current_user->id . '",
-                                    call_reason = "' . $call_reason . '",
-                                    journey_id = "' . $journey_id . '",
-                                    type_call_sources = "' . $type_call . '",
-                                    status = "' . $call_status . '"
-                                WHERE call_id = "' . $call_id . '" AND deleted = 0';
+                SET parent_type = "Contacts", parent_id = "' . $con->id . '", description = "' . $note . '", booking_id = "' . $booking_id . '",
+                    created_by = "' . $current_user->id . '",
+                    modified_user_id = "' . $current_user->id . '",
+                    assigned_user_id = "' . $current_user->id . '",
+                    call_reason = "' . $call_reason . '",
+                    journey_id = "' . $journey_id . '",
+                    type_call_sources = "' . $type_call . '",
+                    status = "' . $call_status . '"
+                WHERE call_id = "' . $call_id . '" AND deleted = 0';
             $result_update_call = $db->query($sql_update_call);
 
             if ($result_update_call) {
@@ -379,6 +363,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo 404;
             exit;
         }
+
         /**********  2. Handle Booking  **********/
         $sql_call = 'SELECT id, name, status, call_talk, description, direction FROM calls WHERE call_id = "' . $call_id . '" AND deleted = 0 LIMIT 1';
         $result = $db->query($sql_call);
@@ -464,14 +449,12 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             if (!$result_remind) {
                                 $GLOBALS['log']->fatal('updated remind thất bại: ' . $update_remind);
                             }
-                        } 
-                        // else {
-                        //     $GLOBALS['log']->fatal('updated remind thất bại: ' . json_encode($_POST));
-                        // }
+                        }
                     }
                 }
             }
-        } else {
+        }
+        else {
             while ($call = $db->fetchByAssoc($result)) {
                 if (!empty($note) &&  strtolower((string)$call['status']) === 'done' &&  (
                     ((string)$call['direction'] === 'inbound' && (int)$call['call_talk'] > 0) || ((string)$call['direction'] === 'outbound' && (int)$call['call_talk'] >= 20))
@@ -528,21 +511,26 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         /**********  3. Handle Zalo  **********/
         if (!empty($zalo_id) && empty($phone)) {
-            $json = $objZalo->get_user($zalo_id);
-            $arr = json_decode($json, true);
+            require_once('modules/EC_Zalo/Zalo.php');
+            $objZalo = new Zalo();
+            $ecZalo = new EC_Zalo();
+            $user_info = $ecZalo->get_zalo_user_info($zalo_id);
 
-            if (isset($arr['error']) && (int)$arr['error'] === 0) {
-                if (
-                    !isset($arr['data']['shared_info']) ||
-                    !isset($arr['data']['shared_info']['phone']) ||
-                    empty($arr['data']['shared_info']['phone'])
-                ) {
-                    // Get phone from user_alias
-                    if (empty($objZalo->get_phone_by_alias($arr['data']['user_alias']))) {
-                        $data['element'] = $objZalo->get_template('request_user_info');
-                        $objZalo->send_consultation('request_user_info', $zalo_id, $data);
-                        // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
-                        Telegram::sendMessage("Gửi yêu cầu thông tin đến Zalo <b>$zalo_id</b>", $sugar_config['telegram']['zalo']['bot_token'] ?? '', $sugar_config['telegram']['zalo']['chat_id'] ?? '');
+            if (!empty($user_info)) {
+                $zalo_phone = $objZalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
+                if (empty($zalo_phone)) $zalo_phone = $objZalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
+
+                if (empty($zalo_phone)) {
+                    $data['element'] = $objZalo->get_template('request_user_info');
+                    $result = json_decode($objZalo->send_consultation('request_user_info', $zalo_id, $data), true);
+
+                    if(isset($result['error']) && $result['error'] == 0) {
+                        if($this->notificationChannel == 'Mattermost') {
+                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
+                        }
+                        else {
+                            Telegram::sendMessage("Gửi yêu cầu thông tin đến Zalo <b>$zalo_id</b>", $sugar_config['telegram']['zalo']['bot_token'] ?? '', $sugar_config['telegram']['zalo']['chat_id'] ?? '');
+                        }
                     }
                 }
             }
@@ -550,7 +538,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         echo 200;
         exit();
-    } elseif ((string)$type === "check_missed_call") {
+    }
+    elseif ((string)$type === "check_missed_call") {
         $call_id = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
 
         if (empty($call_id)) {
@@ -559,16 +548,14 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         global $db;
-        $sql = 'SELECT call_id
-                    FROM calls
-                    WHERE call_id = "' . $call_id . '" AND direction = "missed" AND deleted = 0
-                ';
+        $sql = "SELECT call_id FROM calls WHERE call_id = '$call_id' AND direction = 'missed' AND deleted = 0";
         $id = $db->getOne($sql);
 
         if ($id && !empty($id)) echo 1;
         else echo 0;
         exit();
-    } elseif ((string)$type === "map_call_booking") {
+    }
+    elseif ((string)$type === "map_call_booking") {
         $call_name      = isset($_POST['call_name']) ? global_test_input($_POST['call_name']) : "";
         $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
         $booking_name   = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
@@ -638,11 +625,13 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         echo 0;
         exit();
-    } else if ((string)$type === 'save_log_call') {
+    }
+    else if ((string)$type === 'save_log_call') {
         $log_call = isset($_POST['log']) ? $_POST['log'] : '';
         save_log_call($log_call);
         exit;
-    } else if ((string)$type === 'get_history_activity_contacts'){
+    }
+    else if ((string)$type === 'get_history_activity_contacts'){
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
         $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
@@ -804,7 +793,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo 'Không có hoạt động!';
         }
         exit;
-    } else if ((string)$type === 'get_history_activity_cskh'){
+    }
+    else if ((string)$type === 'get_history_activity_cskh'){
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $start_date = date('Y-m-d H:i:s', strtotime('-1 year +7 hours'));
         $end_date   = date('Y-m-d H:i:s', strtotime('+7 hours'));
@@ -813,28 +803,28 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo 0;
             exit();
         }
+
+        global $db, $app_list_strings;
     
-        $sql = "
-                SELECT 
-                    c.id,
-                    c.name,
-                    c.description,
-                    c.assigned_user_id,
-                    c.date_start,
-                    c.date_end,
-                    c.status,
-                    c.direction,
-                    c.call_from,
-                    c.call_to,
-                    c.record_file,
-                    -- c.hangup_cause,
-                    c.log
-                FROM calls c
-                WHERE (c.call_from = '$phone' OR c.call_to = '$phone')
-                AND c.date_entered BETWEEN '$start_date' AND '$end_date'
-                AND c.deleted = 0
-                ORDER BY c.date_entered DESC;
-        ";
+        $sql = "SELECT 
+                c.id,
+                c.name,
+                c.description,
+                c.assigned_user_id,
+                c.date_start,
+                c.date_end,
+                c.status,
+                c.direction,
+                c.call_from,
+                c.call_to,
+                c.record_file,
+                -- c.hangup_cause,
+                c.log
+            FROM calls c
+            WHERE (c.call_from = '$phone' OR c.call_to = '$phone')
+            AND c.date_entered BETWEEN '$start_date' AND '$end_date'
+            AND c.deleted = 0
+            ORDER BY c.date_entered DESC";
 
         $res        = $db->query($sql);
         $count_calls    = $db->getRowCount($res);
@@ -936,14 +926,16 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo 'Chưa có cuộc gọi CSKH nào!';
         }
         exit();
-    } else if ((string)$type === 'autocall') {
+    }
+    else if ((string)$type === 'autocall') {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         if(!empty($phone)){
             $phone_list = explode(",", $phone);
             echo send_callee_autocall($phone_list);
         }
         exit();
-    } else if ((string)$type === 'get_infor_phone') {
+    }
+    else if ((string)$type === 'get_infor_phone') {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         if(!empty($phone)){
             echo json_encode(getInfoCallSource($phone));

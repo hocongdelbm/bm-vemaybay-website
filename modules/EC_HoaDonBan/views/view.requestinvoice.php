@@ -5,11 +5,11 @@ require_once("include/Sugar_Smarty.php");
 class Viewrequestinvoice extends SugarView {
     public function display() {
         $smarty = new Sugar_Smarty();
-        $this->populateOIVoucherList($smarty, $_POST);
+        $this->populateContent($smarty, $_POST);
         $smarty->display('modules/EC_HoaDonBan/tpls/requestinvoice.tpl');
     }
 
-    public function populateOIVoucherList($smarty, $post_fields) {
+    public function populateContent($smarty, $post_fields) {
         global $app_list_strings;
         $whereCondition = $this->populateCondition($smarty, $post_fields);
 
@@ -21,7 +21,7 @@ class Viewrequestinvoice extends SugarView {
                 ,bk.tax_code
                 ,bk.company_address
                 ,bk.shipping_address
-                ,bk.is_output_invoice_checked
+                -- ,bk.is_output_invoice_checked
                 ,(
                     SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
                     FROM ec_chitiethoadon ct
@@ -54,64 +54,8 @@ class Viewrequestinvoice extends SugarView {
                     )
                 )
                 AND rv.deleted = 0
-            GROUP BY rv.booking_id
+            GROUP BY rv.booking_id, rv.ngaychungtu
             ORDER BY rv.ngaychungtu DESC";
-
-        // $sql = "SELECT bk.id AS booking_id
-        //         ,bk.name AS booking_name
-        //         ,bk.company_name
-        //         ,bk.tax_code
-        //         ,bk.company_address
-        //         ,bk.shipping_address
-        //         ,bk.is_output_invoice_checked
-        //         ,DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS date_entered
-        //         ,(
-        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', rv.id, rv.name) SEPARATOR '|') 
-        //             FROM ec_receipt_voucher rv
-        //             WHERE rv.booking_id = bk.id
-        //                 AND rv.deleted = 0
-        //                 AND rv.loai_thu IN('1', '4', '5')
-        //                 AND (
-        //                     (
-        //                         rv.receipt_type = 'credit_transfer'
-        //                         AND rv.tknganhang_id IN(
-        //                             'c0b01f56-0778-de4a-da11-65f937520972',
-        //                             'ce10c2fc-2f04-0b3f-c1f1-654eee84f8f1',
-        //                             '1eeaf2c3-9126-0406-36aa-64cc93693bc6',
-        //                             '98adc9fa-6e96-4fe6-45bb-6524d2c20920'
-        //                         )
-        //                     )
-        //                     OR rv.receipt_type = 'cash'
-        //                 )
-        //         ) AS receipt_vouchers_data
-        //         ,(
-        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
-        //             FROM ec_chitiethoadon ct
-        //                 INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
-        //             WHERE ct.booking_id = bk.id AND hd.deleted = 0 AND ct.deleted = 0
-        //         ) AS out_inv_data
-        //         ,(
-        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', inv.invoice_number, inv.supplier, inv.name) SEPARATOR '|')
-        //             FROM ec_input_invoices inv
-        //             WHERE inv.booking_id = bk.id AND inv.deleted = 0
-        //         ) AS in_inv_data
-        //     FROM ec_flight_bookings bk
-        //     WHERE bk.booking_status = 8 AND bk.deleted = 0 $where
-        //     ORDER BY bk.date_entered DESC";
-
-        // $sql    = '
-        //     SELECT id, name, DATE_ADD(date_entered, INTERVAL 7 HOUR) AS date_entered,
-        //         company_name, tax_code, company_address, shipping_address
-        //         , (
-        //             SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(",", hd.id, hd.name) SEPARATOR "|") 
-        //             FROM ec_chitiethoadon ct INNER JOIN ec_hoadonban hd 
-        //                 ON hd.id = ct.parent_id AND hd.deleted = 0
-        //             WHERE ct.deleted = 0 AND ct.booking_id = ec_flight_bookings.id
-        //         ) AS output_inv
-        //     FROM ec_flight_bookings 
-        //     WHERE deleted = 0 AND booking_status = 8
-        //     ' . $where . '
-        //     ORDER BY date_entered DESC';
 
         $i = 0;
         $res = $this->bean->db->query($sql);
@@ -215,43 +159,13 @@ class Viewrequestinvoice extends SugarView {
                 </div>';
             }
 
-            // // Hoá đơn đầu vào
-            // $in_invoice_data = $this->extractConcat($row['in_inv_data']);
-            // $in_invoice_arr = [];
-            // foreach($in_invoice_data as $arr) {
-            //     if(!isset($arr[3]) || empty($arr[3])) continue;
-            //     $in_invoice_arr[str_replace("-", " - ", $arr[3])][] = [
-            //         "invoice_number" => $arr[0] ?? "",
-            //         "ticket_number" => $arr[2] ?? "",
-            //         "supplier" => ($app_list_strings['supplier_invoice_list'][$arr[1]] ?? ''),
-            //     ];
-            // }
-            // $in_invoice_html = '';
-            // foreach($in_invoice_arr as $iti => $list) {
-            //     $in_invoice_html .= '<div style="display:block; background:#eaf5ff; border-radius:5px; box-shadow:rgba(0, 0, 0, 0.16) 0px 1px 4px; padding:3px 6px; margin-bottom:6px;">
-            //         <p style="font-weight:600; text-align:center;">'. $iti .'</p>';
-            //     foreach($list as $arr) {
-            //         $in_invoice_html .=  '<form action="index.php" method="post" target="_blank" class="d-block">
-            //             <input type="hidden" name="module" value="EC_HoaDonBan" />
-            //             <input type="hidden" name="action" value="inputinvoice" />
-            //             <input type="hidden" name="invoice_number" value="'. $arr["invoice_number"] .'" />
-            //             <input type="hidden" name="ticket_code" value="'. $arr["ticket_number"] .'" />
-            //             <button type="submit" class="open-input-invoice">
-            //                 <span>'. $arr["invoice_number"] .'</span>
-            //                 <span>'. $arr["supplier"] .'</span>
-            //             </button>
-            //         </form>';
-            //     }
-            //     $in_invoice_html .= '</div>';
-            // }
-
             if(empty($inv_tax_code) && empty($inv_account_name) && empty($inv_company_name) && empty($receipt_data)) continue;
 
-            if(isset($row['is_output_invoice_checked']) && $row['is_output_invoice_checked'] == 1) {
-                $out_invoice_checked_html = '<input type="checkbox" name="output_invoice_checked" class="form-check-input checkbox_output_invoice_checked" booking_id="'. $row['booking_id'] .'" selected="selected" checked="checked" />';
-            } else {
-                $out_invoice_checked_html = '<input type="checkbox" name="output_invoice_checked" class="form-check-input checkbox_output_invoice_checked" booking_id="'. $row['booking_id'] .'" />';
-            }
+            // if(isset($row['is_output_invoice_checked']) && $row['is_output_invoice_checked'] == 1) {
+            //     $out_invoice_checked_html = '<input type="checkbox" name="output_invoice_checked" class="form-check-input checkbox_output_invoice_checked" booking_id="'. $row['booking_id'] .'" selected="selected" checked="checked" />';
+            // } else {
+            //     $out_invoice_checked_html = '<input type="checkbox" name="output_invoice_checked" class="form-check-input checkbox_output_invoice_checked" booking_id="'. $row['booking_id'] .'" />';
+            // }
 
             $html .= '<tr>
                 <td class="text-center">'. (++$i) .'</td>
@@ -285,69 +199,7 @@ class Viewrequestinvoice extends SugarView {
                 </td>
                 <td>'. $out_invoice_html .'</td>
                 <td>'. $in_invoice_html .'</td>
-                <td class="text-center">'. $out_invoice_checked_html .'</td>
             </tr>';
-
-
-            // // Xuất hoá đơn công ty thì phải có tên công ty và mst công ty 
-            // // Xuất hoá đơn cho cá nhân thì phải có tên khách hàng và mst hoặc địa chỉ
-            // if((!empty($row['company_name']) && !empty($row['tax_code'])) || (!empty($inv_arr['iv_account_name']) && (!empty($row['tax_code']) || !empty($row['company_address'])))) {
-            //     switch(mb_convert_encoding($inv_arr['iv_payment_method'], 'UTF-8', 'HTML-ENTITIES')) {
-            //         case 'Tiền mặt':
-            //             $payment_method = 'TM';
-            //             break;
-            //         case 'Chuyển khoản':
-            //             $payment_method = 'CK';
-            //             break;
-            //         case 'Tiền mặt hoặc Chuyển khoản':
-            //             $payment_method = 'TM/CK';
-            //             break;
-            //         default:
-            //             break;
-            //     }
-
-            //     // Hoá đơn đầu ra
-            //     $output_inv_html = '';
-            //     $output_inv = explode('|', $row['output_inv']);
-            //     for($k = 0; $k < count($output_inv); $k++) {
-            //         if(!empty($output_inv[$k])) {
-            //             $output_inv_inf = explode(',', $output_inv[$k]);
-            //             if(!empty($output_inv_html)) $sep = ', ';
-            //             else $sep = '';
-            //             $output_inv_html .= $sep . '<a href="index.php?module=EC_HoaDonBan&action=DetailView&record=' . $output_inv_inf[0] . '" target="_blank">' . $output_inv_inf[1] . '</a>';
-            //         }
-            //     }
-            //     $html .= '
-            //         <tr>
-            //             <td class="text-center">' . ($i + 1) . '</td>
-            //             <td class="text-center">' . date('d-m-Y', strtotime($row['date_entered'])) . '</td>
-            //             <td class="text-center">
-            //                 <a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a>
-            //                 <form action="index.php" method="post" target="_blank" class="mt-2">
-            //                     <input type="hidden" name="module" value="EC_HoaDonBan">
-            //                     <input type="hidden" name="action" value="EditView">
-            //                     <input type="hidden" name="lienhe" value="' . $inv_arr['iv_account_name'] . '">
-            //                     <input type="hidden" name="tencongty" value="' . mb_strtoupper($row['company_name'], 'UTF-8') . '">
-            //                     <input type="hidden" name="masothue" value="' . $row['tax_code'] . '">
-            //                     <input type="hidden" name="diachi" value="' . mb_convert_case(mb_strtolower($row['company_address'], 'UTF-8'), MB_CASE_TITLE, 'UTF-8') . '">
-            //                     <input type="hidden" name="email" value="' . $inv_arr['iv_email'] . '">
-            //                     <input type="hidden" name="hinhthuctt" value="' . $payment_method . '">
-            //                     <input type="hidden" name="sotaikhoan" value="' . $inv_arr['iv_bank_account'] . '">
-            //                     <input type="hidden" name="booking" value="' . $row['name'] . '">
-            //                     <input type="hidden" name="booking_id" value="' . $row['id'] . '">
-
-            //                     <input type="submit" name="create_invoice" value="Tạo hoá đơn" class="btn btn-primary">
-            //                 </form>
-            //             </td>
-            //             <td>' . $inv_arr['iv_account_name'] . '</td>
-            //             <td>' . mb_strtoupper($row['company_name'], 'UTF-8') . '</td>
-            //             <td>' . $row['tax_code'] . '</td>
-            //             <td class="break-word">' . mb_convert_case(mb_strtolower($row['company_address'], 'UTF-8'), MB_CASE_TITLE, 'UTF-8') . '</td>
-            //             <td class="break-word">' . $inv_arr['iv_email'] . '</td>
-            //             <td>' . $output_inv_html . '</td>
-            //         </tr>';
-            //     $i++;
-            // }
         }
         $smarty->assign('OUTPUT_INV_TBL', $html);
     }

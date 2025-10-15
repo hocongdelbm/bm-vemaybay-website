@@ -136,21 +136,29 @@ class EC_Zalo extends Basic {
                 }
 
                 $Contact = new Contact();
-                if((!$row_info || empty($row_info)) && (!isset($row_info['contact_id']) || !$row_info['contact_id'] || empty($row_info['contact_id'])) && empty($contact_id)) {
-                    $Contact->last_name     = $user_data_name;
-                    $Contact->zalo_id       = $user_data['user_id'];
-                    $Contact->zalo_name     = $user_data_name;
-                    $Contact->zalo_avatar   = $user_data['avatar'] ?? '';
-                    $Contact->phone_mobile  = $user_data_phone;
-                    $Contact->zalo_is_follower = (int)($user_data['user_is_follower'] ?? 0);
-                    $Contact->zalo_last_interaction = $user_data_last_interaction;
-                    $Contact->assigned_user_id = $current_user->id;
+                if((!$row_info || empty($row_info))
+                    && (!isset($row_info['contact_id']) || empty($row_info['contact_id']))
+                    && empty($contact_id)
+                ) {
+                    $Contact->last_name                 = $user_data_name;
+                    $Contact->zalo_id                   = $user_data['user_id'];
+                    $Contact->zalo_name                 = $user_data_name;
+                    $Contact->zalo_avatar               = $user_data['avatar'] ?? '';
+                    $Contact->phone_mobile              = $user_data_phone;
+                    $Contact->zalo_is_follower          = (int)($user_data['user_is_follower'] ?? 0);
+                    $Contact->zalo_last_interaction     = $user_data_last_interaction;
+                    $Contact->assigned_user_id          = $current_user->id;
                     if(isset($user_data['shared_info']) && !empty($user_data['shared_info'])) {
                         $Contact->primary_address_street    = $user_data['shared_info']['address'] ?? '';
                         $Contact->primary_address_city      = $user_data['shared_info']['city'] ?? '';
                         $Contact->primary_address_state     = $user_data['shared_info']['district'] ?? '';
                         $Contact->birthdate                 = $user_data['shared_info']['user_dob'] ?? '';
-                        if(!empty($Contact->birthdate)) $Contact->birthdate = date('d-m-Y', strtotime($Contact->birthdate));
+                        if(!empty($Contact->birthdate)) {
+                            $Contact->birthdate = date('d-m-Y', strtotime($Contact->birthdate));
+                        }
+                        if(!$Contact->phone_mobile || empty($Contact->phone_mobile)) {
+                            $Contact->phone_mobile = $user_data['shared_info']['phone'] ?? '';
+                        }
                     }
                     if(isset($user_data['tags_and_notes_info']) && !empty($user_data['tags_and_notes_info'])) {
                         if(isset($user_data['tags_and_notes_info']['tag_names']) && !empty($user_data['tags_and_notes_info']['tag_names'])) {

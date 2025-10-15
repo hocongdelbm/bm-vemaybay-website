@@ -8,20 +8,18 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 	}
 
 	public function display() {
-		$this->css();
+		$this->getStyles();
 		$this->populateLineItems();
 		parent::display();
-		$this->js();
+		$this->getScripts();
 	}
 
-	public function css() {
-		$css = '<link type="text/css" rel="stylesheet" href="modules/EC_HoaDonBan/css/view.edit.css?v=1.0.0">';
-		echo $css;
+	private function getStyles() {
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.edit.css?v=1.0.1'>";
 	}
 
-	public function js() {
-		$js = '<script src="modules/EC_HoaDonBan/js/view.edit.js?v=1.0.0"></script>';
-		echo $js;
+	private function getScripts() {
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.edit.js?v=1.0.2'></script>";
 	}
 
 	protected function populateLineItems() {
@@ -30,7 +28,8 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 		// CCCD/Passport
 		$id_number = $this->bean->citizen_id ?? '';
 		if(empty($id_number)) $id_number = $this->bean->passport_number ?? '';
-		$this->ss->assign('CUSTOM_ID_NUMBER', '<input type="text" name="identity_number" value="'.$id_number.'" id="identity_number" maxlength="12" />');
+		if(empty($id_number)) $id_number = $_REQUEST['identity_number'] ?? '';
+		$this->ss->assign('CUSTOM_ID_NUMBER', '<input type="text" name="identity_number" value="'.$id_number.'" id="identity_number" maxlength="20" />');
 
 		// MST
 		$mst_value = $this->bean->masothue ?? ($_REQUEST['masothue'] ?? '');

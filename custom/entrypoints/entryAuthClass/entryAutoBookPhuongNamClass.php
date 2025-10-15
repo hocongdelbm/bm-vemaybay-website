@@ -1164,7 +1164,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
                     $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
                     Telegram::sendMessage($m, $botToken, $chatId);
-                } 
+                }
             }
         }
         catch(Throwable $th) {}

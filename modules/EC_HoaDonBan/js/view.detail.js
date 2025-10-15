@@ -204,15 +204,16 @@ $(document).ready(function () {
 		});
 	});
 
-	// Hủy hóa đơn (Only BM)
+	// Hủy hóa đơn
 	$(document).on('click', '#btn-confirm-cancel__invoice', function () {
-		let description = $("#txtCancelInvoice").val();
-		let is_signed = $("input[name='is_signed']").val();
-		let hd_record = $("input[name='record']").val();
-		let hd_record_name = $("input[name='record_name']").val();
-		let company_unit = $("input[name='company_unit']").val();
+		let description 	= $("#txtCancelInvoice").val();
+		let hd_record 		= $("input[name='record']").val();
+		let hd_record_name 	= $("input[name='record_name']").val();
+		let hd_record_serial = $("input[name='record_serial']").val();
+		let company_unit 	= $("input[name='company_unit']").val();
+		let is_signed 		= $("input[name='is_signed']").val();
 
-        if (description.length == 0 || hd_record_name.length == 0 ||  hd_record.length == 0) return;
+        if (description.length == 0 || hd_record_name.length == 0 ||  hd_record.length == 0 || hd_record_serial.length == 0) return;
 		else if (description.length < 12) {
 			let text_warning = 'Lí do hủy hóa đơn quá ngắn!';
 			showToastWarning(text_warning);
@@ -224,6 +225,7 @@ $(document).ready(function () {
 			data: {
 				hd_record: hd_record,
 				hd_record_name: hd_record_name,
+				hd_record_serial: hd_record_serial,
 				is_signed: is_signed,
 				company_unit: company_unit,
 				description: description,

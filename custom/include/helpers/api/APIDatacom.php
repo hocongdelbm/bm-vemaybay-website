@@ -290,11 +290,11 @@ class APIDatacom {
             "listSegmentId" => $listSegmentId
         ]);
 
-        return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 150 + 10]);
+        return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 120 + 10]);
     }
 
     /**
-     * Cancel booking
+     * Void ticket
      * 
      * @param string $bookingCode PNR
      * @param string $systemCode
@@ -321,10 +321,44 @@ class APIDatacom {
         $requestBody = json_encode([
             "bookingCode"   => $bookingCode,
             "systemCode"    => $systemCode,
-            "listSegmentId" => $listTicket
+            "listTicket"    => $listTicket
         ]);
 
-        return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 150 + 10]);
+        return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 180 + 10]);
+    }
+
+    /**
+     * Refund ticket
+     * 
+     * @param string $bookingCode PNR
+     * @param string $systemCode
+     * @param array $listTicket
+     * 
+     * @return string JSON
+     */
+    public function refundTicket($bookingCode, $systemCode, $listTicket = []) {
+        if(!is_string($bookingCode) || strlen($bookingCode) != 6 
+            || !is_string($systemCode) || empty($systemCode)
+        ) {
+            return json_encode([
+                "status" => 0,
+                "message" => "Dữ liệu không hợp lệ",
+                "data" => null
+            ], JSON_UNESCAPED_UNICODE);
+        }
+        
+        $path = "booking/{$this->API_NAME}/refundTicket";
+        $header = [
+            "Content-Type: application/json",
+            "API-Key: $this->API_BOOKING_KEY"
+        ];
+        $requestBody = json_encode([
+            "bookingCode"   => $bookingCode,
+            "systemCode"    => $systemCode,
+            "listTicket"    => $listTicket
+        ]);
+
+        return $this->sendRequest('POST', $path, $requestBody, $header, [CURLOPT_TIMEOUT => 180 + 10]);
     }
 
 
@@ -456,8 +490,15 @@ class APIDatacom {
         }
 
         // Update action for booking
-        $bookingData["IsPaid"]   = $bookingData["BookingStatus"] == "completed" ? true : false;
-        $bookingData["IsVoid"]   = in_array($bookingData["SystemCode"], ["VN", "1A", "1G"]) ? true : false;
+        $bookingData["IsPaid"] = $bookingData["IsVoid"] = $bookingData["IsRefund"] = false;
+        if($bookingData["BookingStatus"] == "completed") {
+            $bookingData["IsPaid"] = true;
+            $bookingData["IsVoid"] = in_array($bookingData["SystemCode"], ["VN", "1A", "1G"]) ? true : false;
+            if($bookingData["IsVoid"] && !empty($data["TimePurchase"]) && !is_null($data["TimePurchase"]) && $this->convertDatetime($data["TimePurchase"], 'Y-m-d') != date('Y-m-d')) {
+                $bookingData["IsVoid"] = false;
+            }
+            $bookingData["IsRefund"] = true;
+        }
 
         // List flight and fare
         $flightNumberList = [];
@@ -514,9 +555,9 @@ class APIDatacom {
                     "CarrierCode"           => $flight["Operator"],
                     "FlightNumber"          => $flight["FlightNumber"],
                     "FlightDuration"        => Flight::getNiceDuration($flight["Duration"] * 60),
-                    "DepartureDate"         => date("d-m-Y", strtotime($flight["StartDate"])),
+                    "DepartureDate"         => date("Y-m-d", strtotime($flight["StartDate"])),
                     "DepartureTime"         => date("H:i", strtotime($flight["StartDate"])),
-                    "ArrivalDate"           => date("d-m-Y", strtotime($flight["EndDate"])),
+                    "ArrivalDate"           => date("Y-m-d", strtotime($flight["EndDate"])),
                     "Arrivaltime"           => date("H:i", strtotime($flight["EndDate"])),
                     "CabinName"             => $cabin,
                     "FareClass"             => trim(explode(",", $fareInfo["FareClass"])[$i] ?? $flight["ListSegment"][0]["FareClass"] ?? ""),
@@ -559,7 +600,7 @@ class APIDatacom {
                 "LastName"      => $p["Surname"],
                 "FirstName"     => $p["GivenName"],
                 "MiddleName"    => "",
-                "DateOfBirth"   => $p["DateOfBirth"], // dmY
+                "DateOfBirth"   => $this->convertDate($p["DateOfBirth"], 'Y-m-d'), // dmY
                 "Age"           => $this->getAge($p["DateOfBirth"]),
                 "Email"         => "",
                 "Phone"         => "",
@@ -574,12 +615,14 @@ class APIDatacom {
         }
 
         // List ticket
+        $mapServiceType = ['FLIGHT' => 'Vé máy bay', 'BAGGAGE' => 'Vé hành lý', 'SEAT' => 'Vé chỗ ngồi'];
         $bookingData["ListTicket"] = [];
         foreach (($data["ListTicket"] ?? []) as $tk) {
             $bookingData["ListTicket"][] = [
                 "TicketNumber"  => $tk["TicketNumber"] ?? "",
                 "TicketStatus"  => $tk["TicketStatus"] ?? "",
                 "ServiceType"   => $tk["ServiceType"] ?? "",
+                "ServiceName"   => $mapServiceType[strtoupper($tk["ServiceType"])] ?? $tk["ServiceType"],
                 "Description"   => trim(($tk["FullName"] ?? "") . " " . ($tk["Remark"] ?? "")),
                 "TotalAmount"   => $tk["Total"] ?? 0,
                 "PassengerId"   => $tk["NameId"] ?? null,

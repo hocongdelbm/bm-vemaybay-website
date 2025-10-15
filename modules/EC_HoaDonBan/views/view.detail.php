@@ -9,12 +9,13 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		$this->populateLineItems();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
-		if($this->bean->tinhtrang == '2' && empty($this->bean->sohoadon)) {
+		if($this->bean->tinhtrang == '2' && $this->bean->company_unit == 'MHV' && (!$this->bean->sohoadon || empty($this->bean->sohoadon))) {
 			$winInv = new WinInvoice();
 			$json = $winInv->get($this->bean->name);
 
-			if(!is_null($json) && !empty($json)) {
+			if($winInv->checkResponse($json)) {
 				$arr = json_decode($json, true);
+				
 				$hoadonban = new EC_HoaDonBan();
 				$hoadonban->retrieve($this->bean->id);
 				if(isset($arr['data'][0]['invNumber']) && $arr['data'][0]['invNumber'] != "0000000") {
@@ -36,7 +37,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	}
 
 	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.2'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.3'></script>";
 	}
 	
 	public function populateLineItems() {
@@ -514,7 +515,8 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				<input type="button" name="btnCancelInvoice" id="btnCancelInvoice" class="btn btn-danger" value="Hủy hóa đơn" title="Hủy hóa đơn" />
 			</form>
 			<form class="frmCancelInvoice" action="index.php" method="post" name="frmCancelInvoice" id="frmCancelInvoice">
-				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+				<input type="hidden" name="record_name" value="'. $this->bean->name .'" />
+				<input type="hidden" name="record_serial" value="'.$this->bean->kyhieuhd.'" />
 				<input type="hidden" name="is_signed" value="'.$this->bean->is_signed.'" />
 				<input type="hidden" name="company_unit" value="'.$this->bean->company_unit.'" />
 

@@ -190,13 +190,13 @@ $(document).ready(function() {
 					return;
 				}
 
-				$('input#lienhe').val(ui.item.buyer.lienhe);
-				$('input#tencongty').val(ui.item.buyer.tencongty);
-				$('input#masothue').val(ui.item.buyer.masothue);
-				$('input#email').val(ui.item.buyer.email);
-				$('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
-				$('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
-				$('input#lienhe.diachi').val(ui.item.buyer.diachi);
+				// $('input#lienhe').val(ui.item.buyer.lienhe);
+				// $('input#tencongty').val(ui.item.buyer.tencongty);
+				// $('input#masothue').val(ui.item.buyer.masothue);
+				// $('input#email').val(ui.item.buyer.email);
+				// $('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
+				// $('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
+				// $('input#lienhe.diachi').val(ui.item.buyer.diachi);
 
 				let ln = $(this).attr('ln');
 				$(`#ct_ticket_number_id${ln}`).val(ui.item.id); // ID Input invoice (hidden)
@@ -263,13 +263,13 @@ $(document).ready(function() {
 					return;
 				}
 
-				$('input#lienhe').val(ui.item.buyer.lienhe);
-				$('input#tencongty').val(ui.item.buyer.tencongty);
-				$('input#masothue').val(ui.item.buyer.masothue);
-				$('input#email').val(ui.item.buyer.email);
-				$('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
-				$('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
-				$('input#lienhe.diachi').val(ui.item.buyer.diachi);
+				// $('input#lienhe').val(ui.item.buyer.lienhe);
+				// $('input#tencongty').val(ui.item.buyer.tencongty);
+				// $('input#masothue').val(ui.item.buyer.masothue);
+				// $('input#email').val(ui.item.buyer.email);
+				// $('input#lienhe.sotaikhoan').val(ui.item.buyer.sotaikhoan);
+				// $('input#lienhe.hinhthuctt').val(ui.item.buyer.hinhthuctt);
+				// $('input#lienhe.diachi').val(ui.item.buyer.diachi);
 
 				let ln = $(this).attr('ln');
 				$(`#ct_ticket_number_id${ln}`).val(ui.item.id); // ID Input invoice (hidden)
@@ -591,9 +591,9 @@ function insertRow(ln, invoice_type) {
 			<select name="ct_percent_vat[]" id="ct_percent_vat${ln}" onchange="calculateLineTotal(${ln})">
 				<option value="0">0%</option>
 				<option value="0.08">8%</option>
-				<option value="0.1">10%</option>
+				<!-- <option value="0.1">10%</option> -->
 				<option value="-1">KCT</option>
-				<option value="-2">KKKNT</option>
+				<!-- <option value="-2">KKKNT</option> -->
 			</select>
 		</td>`;
 

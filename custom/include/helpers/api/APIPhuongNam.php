@@ -370,11 +370,11 @@ class APIPhuongNam {
             "Phone"     => $data["ContactPhone"] ?? "",
             "Address"   => $data["ContactAddress"] ?? "",
         ];
-        $bookingData["IsPaid"]      = $data["IsPaid"] ?? false;
-        $bookingData["IsVoid"]      = $data["IsVoid"] ?? false;
-        $bookingData["IsRefund"]    = $data["IsRefund"] ?? false;
-        $bookingData["IsEdit"]      = $data["IsEdit"] ?? false;
-
+        $bookingData["IsPaid"] = $data["IsPaid"] ?? false;
+        $bookingData["IsEdit"] = $data["IsEdit"] ?? false;
+        $bookingData["IsVoid"] = $data["IsVoid"] ?? false;
+        $bookingData["IsRefund"] = $data["IsRefund"] ?? false;
+        
         // List passenger
         $bookingData["ListPassenger"] = [];
         $passengers = $data["Customers"] ?? [];
@@ -436,9 +436,9 @@ class APIPhuongNam {
                 "CarrierCode"           => $ff["OperatingCode"],
                 "FlightNumber"          => $ff["FlightNumber"],
                 "FlightDuration"        => $ff["FlightDuration"],
-                "DepartureDate"         => $ff["DepartureDate"],
+                "DepartureDate"         => $this->formatDate($ff["DepartureDate"]),
                 "DepartureTime"         => $ff["DepartureTime"],
-                "ArrivalDate"           => $ff["ArrivalDate"] ?? "",
+                "ArrivalDate"           => $this->formatDate($ff["ArrivalDate"] ?? ""),
                 "Arrivaltime"           => $ff["Arrivaltime"],
                 "CabinName"             => $ff["CabinName"],
                 "FareClass"             => $ff["FareClass"],
@@ -463,6 +463,7 @@ class APIPhuongNam {
         }
 
         // List ticket
+        $mapServiceType = ['FLIGHT' => 'Vé máy bay', 'BAGGAGE' => 'Vé hành lý', 'SEAT' => 'Vé chỗ ngồi'];
         $bookingData["ListTicket"] = [];
         foreach (($data["Tickets"] ?? []) as $tk) {
             $flightText = '';
@@ -477,6 +478,7 @@ class APIPhuongNam {
                 "TicketNumber"  => $tk["TicketNumber"] ?? "",
                 "TicketStatus"  => $tk["TicketStatus"] ?? "",
                 "ServiceType"   => $tk["TicketType"] ?? "", // FLIGHT, BAGGAGE, ANCILLARY, SEAT
+                "ServiceName"   => $mapServiceType[strtoupper($tk["TicketType"])] ?? $tk["TicketType"],
                 "Description"   => $tk["FareString"] ?? "",
                 "TotalAmount"   => $tk["TotalAmount"] ?? 0,
                 "PassengerId"   => $tk["PersonOrgId"] ?? null,
@@ -682,5 +684,19 @@ class APIPhuongNam {
         $string = str_replace("oversize piece", "Kiện quá khổ", $string);
         $string = str_replace("oversize", "Kiện quá khổ", $string);
         return $string;
+    }
+
+    private function formatDate($date) {
+        $date = str_replace('/', '-', $date);
+        $timestamp = strtotime($date);
+        if ($timestamp === false) return '';
+        return date('Y-m-d', $timestamp);
+    }
+
+    private function formatDatetime($date) {
+        $date = str_replace('/', '-', $date);
+        $timestamp = strtotime($date);
+        if ($timestamp === false) return '';
+        return date('Y-m-d H:i:s', $timestamp);
     }
 }

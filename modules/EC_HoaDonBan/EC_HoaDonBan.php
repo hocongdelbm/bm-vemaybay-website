@@ -79,6 +79,10 @@ class EC_HoaDonBan extends Basic {
 			if(strlen($identity_number) == 12) $this->citizen_id = $identity_number;
 			elseif(strlen($identity_number) > 6) $this->passport_number = $identity_number;
 		}
+		else {
+			$this->citizen_id = '';
+			$this->passport_number = '';
+		}
 
 		parent::save($check_notify);
 
