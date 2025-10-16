@@ -281,7 +281,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         $cont .= "\nSĐT: <b>$phone</b>";
                         $cont .= "\nZalo ID: <b>$zalo_id</b>";
                         $cont .= "\n<i>From epCallContact update_call()</i>";
-                        $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT) . "</pre>";
+                        $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
                         $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
                         $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                         $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';

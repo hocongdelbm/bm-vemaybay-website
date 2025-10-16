@@ -2161,13 +2161,12 @@ function global_test_input($data)
 }
 
 
-function custom_get_sip_number($key = '')
-{
+function custom_get_sip_number($key = '') {
     $arr = [
         /************************  IT  ************************/
+        '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
         'dedf3602-b1ec-97da-abbe-6656e656f5eb' => ['user' => '001', 'password' => '0Cm1Wc$bQd%ZTK5tnGGZ'], // Admin
         '168889bb-54c2-59c7-8b3f-649102530d3c' => ['user' => '010', 'password' => 'JgXTH7xYX?A4qLzK%vAD'], // Admin
-        '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
         '622ecf27-f729-7187-7e27-6520e0dab882' => ['user' => '222', 'password' => '246357@89'], // Admin
 
         /************************  BOOKER  ************************/

@@ -88,126 +88,135 @@ class entryOutputInvoiceClass extends entryClass {
             ];
         }
 
-        $winInv = new WinInvoice();
-        $responseSign = $winInv->sign($invRef); // JSON
+        try {
+            $winInv = new WinInvoice();
+            $responseSign = $winInv->sign($invRef); // JSON
 
-        // Update status
-        if ($winInv->checkResponse($responseSign)) {
-            $invNumber = '';
-            for ($i = 0; $i < 3; $i++) {
-                if(!empty($invNumber)) break;
-                sleep(12); // Pending to get invoice number
+            // Update status
+            if ($winInv->checkResponse($responseSign)) {
+                $invNumber = '';
+                for ($i = 0; $i < 3; $i++) {
+                    if(!empty($invNumber)) break;
+                    sleep(12); // Pending to get invoice number
 
-                $json = $winInv->get($invRef);
-                if ($winInv->checkResponse($json)) {
-                    $arr = json_decode($json, true);
-                    $invoiceData = $arr['data'][0] ?? [];
-                    $invNumber = $invoiceData['invNumber'] ?? ''; // Số hóa đơn (0000001)
-                    $invSerial = $invoiceData['invSerial'] ?? ''; // Ký hiệu hóa đơn (C25THV)
-                    $invDate   = $invoiceData['invDate'] ?? ''; // Ngày hóa đơn (Y-m-d)
+                    $json = $winInv->get($invRef);
+                    if ($winInv->checkResponse($json)) {
+                        $arr = json_decode($json, true);
+                        $invoiceData = $arr['data'][0] ?? [];
+                        $invNumber = $invoiceData['invNumber'] ?? ''; // Số hóa đơn (0000001)
+                        $invSerial = $invoiceData['invSerial'] ?? ''; // Ký hiệu hóa đơn (C25THV)
+                        $invDate   = $invoiceData['invDate'] ?? ''; // Ngày hóa đơn (Y-m-d)
 
-                    if(empty($invNumber)) continue;
+                        if(empty($invNumber)) continue;
 
-                    global $db;
-                    $sqlUpdate = "UPDATE ec_hoadonban
-                        SET tinhtrang = '2'
-                            ,is_signed = 1
-                            ,sohoadon = '$invNumber'
-                            ,kyhieuhd = '$invSerial'
-                            ,ngayhoadon = '$invDate'
-                            ,invoice_data = '$json'
-                            ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
-                        WHERE id = '$recordId' AND name = '$invRef' AND deleted = 0";
+                        global $db;
+                        $sqlUpdate = "UPDATE ec_hoadonban
+                            SET tinhtrang = '2'
+                                ,is_signed = 1
+                                ,sohoadon = '$invNumber'
+                                ,kyhieuhd = '$invSerial'
+                                ,ngayhoadon = '$invDate'
+                                ,invoice_data = '$json'
+                                ,modified_user_id = '{$this->currentUser->id}'
+                                ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                            WHERE id = '$recordId' AND name = '$invRef' AND deleted = 0";
 
-                    if($db->query($sqlUpdate)) {
-                        // Save working process & note (KPI)
-                        try {
-                            $arrBookingId = [];
-                            $sql = "SELECT DISTINCT ct.booking_id, ct.booking, bk.booking_status
-                                FROM ec_chitiethoadon ct
-                                    LEFT JOIN ec_flight_bookings bk ON bk.id = ct.booking_id
-                                WHERE ct.parent_id = '$recordId'
-                                    AND ct.parent_type = 'EC_HoaDonBan'
-                                    AND ct.deleted = 0";
-                            $res = $db->query($sql);
+                        if($db->query($sqlUpdate)) {
+                            // Save working process & note (KPI)
+                            try {
+                                $arrBookingId = [];
+                                $sql = "SELECT DISTINCT ct.booking_id, ct.booking, bk.booking_status
+                                    FROM ec_chitiethoadon ct
+                                        LEFT JOIN ec_flight_bookings bk ON bk.id = ct.booking_id
+                                    WHERE ct.parent_id = '$recordId'
+                                        AND ct.parent_type = 'EC_HoaDonBan'
+                                        AND ct.deleted = 0";
+                                $res = $db->query($sql);
 
-                            while ($row = $db->fetchByAssoc($res)) {
-                                $booking_id = $row['booking_id'] ?? '';
-                                $booking = $row['booking'] ?? '';
-                                $booking_status = $row['booking_status'] ?? '';
+                                while ($row = $db->fetchByAssoc($res)) {
+                                    $booking_id = $row['booking_id'] ?? '';
+                                    $booking = $row['booking'] ?? '';
+                                    $booking_status = $row['booking_status'] ?? '';
 
-                                if(!empty($booking_id) && !empty($booking)) {
-                                    $work = new EC_Working_Process();
-                                    $work->id               = '';
-                                    $work->name             = $booking;
-                                    $work->description      = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
-                                    $work->parent_type      = "EC_Flight_Bookings";
-                                    $work->parent_id        = $booking_id;
-                                    $work->invoice_issued   = 1;
-                                    $work->assigned_user_id = $this->currentUser->id;
-                                    $workId = $work->save();
+                                    if(!empty($booking_id) && !empty($booking)) {
+                                        $work = new EC_Working_Process();
+                                        $work->id               = '';
+                                        $work->name             = $booking;
+                                        $work->description      = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
+                                        $work->parent_type      = "EC_Flight_Bookings";
+                                        $work->parent_id        = $booking_id;
+                                        $work->invoice_issued   = 1;
+                                        $work->assigned_user_id = $this->currentUser->id;
+                                        $workId = $work->save();
 
-                                    if(is_string($workId)) {
-                                        $note = new Note();
-                                        $note->id                   = '';
-                                        $note->name 			    = $booking;
-                                        $note->description 		    = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
-                                        $note->parent_type 		    = "EC_Flight_Bookings";
-                                        $note->parent_id 		    = $booking_id;
-                                        $note->booking_status 	    = $booking_status;
-                                        $note->working_process_id   = $workId;
-                                        $note->assigned_user_id     = $this->currentUser->id;
-                                        $note->save();
-                                        $arrBookingId[] = $booking_id;
-                                    }
-                                }  
+                                        if(is_string($workId)) {
+                                            $note = new Note();
+                                            $note->id                   = '';
+                                            $note->name 			    = $booking;
+                                            $note->description 		    = trim("Đã xuất hoá đơn đầu ra số: $invNumber");
+                                            $note->parent_type 		    = "EC_Flight_Bookings";
+                                            $note->parent_id 		    = $booking_id;
+                                            $note->booking_status 	    = $booking_status;
+                                            $note->working_process_id   = $workId;
+                                            $note->assigned_user_id     = $this->currentUser->id;
+                                            $note->save();
+                                            $arrBookingId[] = $booking_id;
+                                        }
+                                    }  
+                                }
+
+                                if(!empty($arrBookingId)) {
+                                    $listBookingId = "'" . implode("','", $arrBookingId) . "'";
+                                    $db->query("UPDATE ec_flight_bookings
+                                        SET is_invoice_export = 1
+                                            ,modified_user_id = '{$this->currentUser->id}'
+                                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                                        WHERE id IN ($listBookingId) AND deleted = 0");
+                                }
+                                else {
+                                    $botToken   = $this->telegramConfig['bot_token'] ?? '';
+                                    $chatId     = $this->telegramConfig['chat_id'] ?? '';
+                                    $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
+                                    $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
+                                    $message .= "\n<pre>$sql</pre>";
+                                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                }
                             }
-
-                            if(!empty($arrBookingId)) {
-                                $listBookingId = "'" . implode("','", $arrBookingId) . "'";
-                                $db->query("UPDATE ec_flight_bookings
-                                    SET is_invoice_export = 1
-                                        ,modified_user_id = '{$this->currentUser->id}'
-                                        ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
-                                    WHERE id IN ($listBookingId)AND deleted = 0");
-                            }
-                            else {
+                            catch(Throwable $th) {
                                 $botToken   = $this->telegramConfig['bot_token'] ?? '';
                                 $chatId     = $this->telegramConfig['chat_id'] ?? '';
                                 $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
                                 $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
-                                $message .= "\n<pre>$sql</pre>";
+                                $message .= "\nException error {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
                                 Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                             }
                         }
-                        catch(Throwable $th) {
-                            $botToken   = $this->telegramConfig['bot_token'] ?? '';
-                            $chatId     = $this->telegramConfig['chat_id'] ?? '';
-                            $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-                            $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
-                            $message .= "\nException error {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                        else {
+                            $this->sendSQLErrorNotification($sqlUpdate);
                         }
                     }
-                    else {
-                        $this->sendSQLErrorNotification($sqlUpdate);
-                    }
                 }
-            }
 
-            return [
-                "status" => 1,
-                "message" => "Đã ký số: $invNumber",
-                "data" => null,
-            ];
+                return [
+                    "status" => 1,
+                    "message" => "Đã ký số: $invNumber",
+                    "data" => null,
+                ];
+            }
+            else {
+                return [
+                    "status" => 0,
+                    "message" => "Thao tác chưa thành công",
+                    "data" => null,
+                    "description" => json_decode($responseSign, true)
+                ];
+            }
         }
-        else {
+        catch(Throwable $th) {
             return [
                 "status" => 0,
-                "message" => "Thao tác chưa thành công",
+                "message" => "{$th->getMessage()} on line {$th->getLine()}",
                 "data" => null,
-                "description" => json_decode($responseSign, true)
             ];
         }
     }
