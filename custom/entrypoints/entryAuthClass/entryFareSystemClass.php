@@ -127,5 +127,50 @@ class entryFareSystemClass extends entryClass {
         
         return $response;
     }
+
+    public function updateTicketAll($params = []) {    
+        // Lấy parameters từ request
+        $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
+        $depCode = isset($params['depCode']) ? strtoupper(trim($params['depCode'])) : '';
+        $desCode = isset($params['desCode']) ? strtoupper(trim($params['desCode'])) : '';
+        $departDate = isset($params['depDate']) ? $params['depDate'] : '';
+        $fareChange = isset($params['fareChange']) ? intval($params['fareChange']) : 0;
+        
+        // echo $params;
+        // return $params;
+        // exit;
+        // Chuẩn bị data để gửi đến API
+        $putData = [
+            "airlineCode" => $airlineCode,
+            "depCode" => $depCode,
+            "desCode" => $desCode,
+            "depDate" => $departDate,
+            "updateData" => [
+                "fareChange" => $fareChange
+            ]
+        ];
+
+        $curl = curl_init();
+        
+        // URL endpoint cho update
+        $updateAllUrl = $this->enpoint. '/massUpdateFlight';
+        
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $updateAllUrl,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POSTFIELDS => json_encode($putData),
+            CURLOPT_HTTPHEADER => [
+                'API-Key: ' . $this->key,
+                'Content-Type: application/json'
+            ],
+        ]);
+        
+        $response = curl_exec($curl);
+                
+        curl_close($curl);
+
+        return $response;
+    }
 }
 ?>
