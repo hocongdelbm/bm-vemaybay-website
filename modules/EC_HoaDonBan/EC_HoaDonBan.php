@@ -29,12 +29,12 @@ class EC_HoaDonBan extends Basic {
 	public $doituong_id;
 	public $doituong;
 	public $lienhe;
+	public $tencongty;
 	public $diachi;
 	public $masothue;
 	public $ngaychungtu;
 	public $ngayhachtoan;
 	public $loaihoadon;
-	public $hinhthuchoadon;
 	public $ngayhoadon;
 	public $loaitien;
 	public $booking_id;
@@ -60,6 +60,10 @@ class EC_HoaDonBan extends Basic {
 	public $citizen_id;
 	public $passport_number;
 	public $loaikh;
+	public $hinhthuctt;
+	public $nganhang;
+	public $sotaikhoan;
+	public $email;
 
 	public function bean_implements($interface) {
 		switch ($interface) {
@@ -71,8 +75,10 @@ class EC_HoaDonBan extends Basic {
 	}
 
 	public function save($check_notify = FALSE) {
-		if(empty($this->name)) $this->name = 'HD-' . date('ymd') . '-' . $this->countVoucher();
-		if(is_null($this->kyhieuhd) || empty($this->kyhieuhd)) $this->kyhieuhd = $this->genInvSerial();
+		if(empty($this->name)) $this->name = $this->renderName($this->countVoucher());
+
+		if(!isset($_POST['kyhieuhd']) || empty($_POST['kyhieuhd'])) $this->kyhieuhd = $this->genInvSerial();
+		else $this->kyhieuhd = trim($_POST['kyhieuhd']);
 
 		$identity_number = trim($_POST['identity_number'] ?? '');
 		if(!empty($identity_number)) {
@@ -98,6 +104,25 @@ class EC_HoaDonBan extends Basic {
 		}
 	}
 
+	public function save2($check_notify = FALSE) {
+        return parent::save($check_notify);
+    }
+
+	/**
+	 * Render name for output invoice
+	 * 
+	 * @param string $countStr
+	 * @return string
+	 */
+	private function renderName($countStr) {
+		return "HD-" . date('ymd') . "-{$countStr}";
+	}
+
+	/**
+	 * Count the number of output invoice in current date
+	 * 
+	 * @return string The next quantity
+	 */
 	public function countVoucher() {
 		$sql = 'SELECT COUNT(id)
 			FROM ec_hoadonban 
@@ -166,11 +191,145 @@ class EC_HoaDonBan extends Basic {
 		}
 	}
 
-	public function genInvSerial() {
+	/**
+	 * Generate invoice serial by customer type
+	 * 
+	 * @param string $customerType (1:Personal ; 0:Company)
+	 * @return string
+	 */
+	public function genInvSerial($customerType = '') {
+		if(empty($customerType)) $customerType = (string)($this->loaikh);
+
 		$y = date('y');
-		if(isset($this->loaikh)) {
-			return (string)($this->loaikh) === '0' ? "C{$y}THV" : "C{$y}MHV";
+		if($customerType === '0') return "C{$y}THV";
+		elseif($customerType === '1') return "C{$y}MHV";
+		return '';
+	}
+
+	/**
+	 * Automatic create output invoice
+	 * 
+	 * @param string $bookingId
+	 * @param array $listAvailableTicket
+	 * 
+	 * @return
+	 */
+	public function createAuto($bookingId, $listAvailableTicket) {
+		// Get info in booking
+		$sqlBooking = "SELECT name
+				,IFNULL(tax_code, '') AS iv_tax_code
+				,IFNULL(company_name, '') AS iv_company_name
+				,IFNULL(company_address, '') AS iv_address
+				,shipping_address
+			WHERE id = '$bookingId' AND deleted = 0
+			LIMIT 1";
+		$resBooking = $this->db->query($sqlBooking);
+		$bookingInfo = $this->db->fetchByAssoc($resBooking);
+
+		$invArr = json_decode(str_replace('&quot;', '"', $bookingInfo['shipping_address']), 1);
+		$bookingInfo['iv_account_name'] 	= trim($invArr['iv_account_name'] ?? '');
+		$bookingInfo['iv_email'] 			= trim($invArr['iv_email'] ?? '');
+		$bookingInfo['iv_identity_number'] 	= trim($invArr['iv_identity_number'] ?? '');
+		$bookingInfo['iv_payment_method'] 	= trim($invArr['iv_payment_method'] ?? '');
+		$bookingInfo['iv_bank_account'] 	= trim($invArr['iv_bank_account'] ?? '');
+		$bookingInfo['iv_name_banks'] 		= trim($invArr['iv_name_banks'] ?? '');
+		unset($bookingInfo['shipping_address']);
+
+		$loaikh = null;
+		if(empty($bookingInfo['iv_company_name']) && !empty($bookingInfo['iv_account_name'])) $loaikh = '1';
+		elseif(!empty($bookingInfo['iv_company_name']) && empty($bookingInfo['iv_account_name'])) $loaikh = '0';
+
+		$citizen_id = $passport_number = '';
+		if(strlen($bookingInfo['iv_identity_number']) == 12) $citizen_id = $bookingInfo['iv_identity_number'];
+		elseif(!empty($bookingInfo['iv_identity_number'])) $passport_number = $bookingInfo['iv_identity_number'];
+
+		$outInv = new EC_HoaDonBan();
+		$outInv->id 			= '';
+		$outInv->name 			= $this->renderName($this->countVoucher());
+		$outInv->ngayhoadon 	= date('d-m-Y');
+		$outInv->company_unit 	= 'MHV';
+		$outInv->loaihoadon 	= '0';
+		$outInv->loaikh 		= $loaikh;
+		$outInv->kyhieuhd 		= $this->genInvSerial($loaikh);
+		$outInv->lienhe 		= $bookingInfo['iv_account_name'];
+		$outInv->tencongty 		= $bookingInfo['iv_company_name'];
+		$outInv->masothue		= $bookingInfo['iv_tax_code'];
+		$outInv->email			= $bookingInfo['iv_email'];
+		$outInv->citizen_id 	= $citizen_id;
+		$outInv->passport_number = $passport_number;
+		$outInv->diachi 		= $bookingInfo['iv_address'];
+		$outInv->hinhthuctt 	= $bookingInfo['iv_payment_method'];
+		$outInv->nganhang 		= $bookingInfo['iv_name_banks'];
+		$outInv->sotaikhoan 	= $bookingInfo['iv_bank_account'];
+		$outInv->description 	= "Hóa đơn tạo tự động bởi hệ thống";
+		$outInv->save2();
+
+		$isIssueBaggage = false;
+		foreach ($listAvailableTicket as $id => $tk) {
+			if($tk['ticket_type'] != 'flight') {
+				$isIssueBaggage = true;
+				break;
+			}
 		}
-		return "C{$y}MHV";
+
+		$i = 0;
+		foreach ($listAvailableTicket as $id => $tk) {
+			$serviceFee = 0;
+			if($isIssueBaggage) {
+
+			}
+			else {
+
+			}
+
+			$outInvDetail = new EC_ChiTietHoaDon();
+			$outInvDetail->id 			= '';
+			$outInvDetail->mahang 		= $this->getCodeDetail($tk['ticket_type'], $tk['itinerary']);
+			$outInvDetail->soluong 		= $tk['qty'];
+			$outInvDetail->phithuho 	= $tk['authorized_fee'] / $tk['qty'];
+			$outInvDetail->phisanbay 	= 0;
+			$outInvDetail->phikhac 		= 0;
+
+
+			$outInvDetail->phidv 		= 0;
+			$outInvDetail->giamua 		= $tk['total'] * $tk['qty'];
+
+			$outInvDetail->dongia 		= unformat_number($_POST['ct_price'][$i]);
+			$outInvDetail->thuesuat 	= $outInvDetail->mahang == 'VMB_QT' ? 0 : 0.08;
+			$outInvDetail->tienthue 	= unformat_number($_POST['ct_vat'][$i]);
+
+			
+			$outInvDetail->thanhtien 	= unformat_number($_POST['ct_total'][$i]);
+			$outInvDetail->parent_id 	= $this->id;
+			$outInvDetail->parent_type 	= 'EC_HoaDonBan';
+			$outInvDetail->order_by_no 	= $i;
+			$outInvDetail->save();
+			$i++;
+		}
+	}
+
+
+	private function getCodeDetail($ticket_type, $itinerary = '') {
+		$ticket_type = strtolower($ticket_type);
+		switch ($ticket_type) {
+			case 'flight':
+				$isInter = false;
+				$arr = explode("-", $itinerary);
+				foreach($arr as $code) {
+					if(!isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code])) {
+						$isInter = true;
+						break;
+					}
+				}
+				return $isInter ? 'VMB_QT' : 'VMB_QN';
+			case 'baggage':
+				return 'PHL';
+			case 'exchange':
+				return 'PD';
+			case 'seat':
+				return 'PMG';
+			default:
+				return 'PK';
+		}
 	}
 }

@@ -1942,6 +1942,7 @@ $GLOBALS['app_list_strings']['ticket_type_list'] = [
   'baggage'   => 'Vé hành lý',
   'seat'      => 'Vé ghế',
   'insurance' => 'Vé bảo hiểm',
+  'exchange'  => 'Vé đổi',
   'other'     => 'Vé khác',
 ];
 

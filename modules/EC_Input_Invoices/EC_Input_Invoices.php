@@ -50,8 +50,7 @@ class EC_Input_Invoices extends Basic
     public $total;
     public $ticket_type;
 
-    public function bean_implements($interface)
-    {
+    public function bean_implements($interface) {
         switch ($interface) {
             case 'ACL':
                 return true;
@@ -60,13 +59,11 @@ class EC_Input_Invoices extends Basic
         return false;
     }
 
-    function save($check_notify = FALSE)
-    {
+    public function save($check_notify = FALSE) {
         global $db, $current_user;
         if (isset($_POST['im_ticket_code'])) {
 
-            $sql = '
-                SELECT id
+            $sql = 'SELECT id
                 FROM ec_input_invoices 
                 WHERE name = "' . $_POST['im_ticket_code'] . '"
                     AND supplier = "' . $_POST['im_supplier'] . '" AND status = 1
@@ -80,16 +77,14 @@ class EC_Input_Invoices extends Basic
             // if ($this->db->getRowCount($res) == 0) {
             if ($this->db->countRows($res) == 0) {
                 if (empty($_POST['record'])) {
-                    // lấy số thứ tự
-                    $sql = '
-						SELECT COUNT(id) 
+                    // Lấy số thứ tự
+                    $sql = 'SELECT COUNT(id) 
 						FROM ec_input_invoices 
 						WHERE invoice_number = "' . $_POST['im_invoice_number'] . '"
                             AND invoice_serial = "' . $_POST['im_invoice_serial'] . '"
                             AND supplier = "' . $_POST['im_supplier'] . '"
                             AND status = 1
-                            AND deleted = 0
-					';
+                            AND deleted = 0';
                     $order_by_no = $this->db->getOne($sql);
                     $this->order_by_no = $order_by_no;
                 }
@@ -134,19 +129,15 @@ class EC_Input_Invoices extends Basic
                 parent::save($check_notify);
             }
 
-             // Cập nhật note - kpi
-             if(!empty($_POST['im_booking_id'])) {
+            // Cập nhật note - kpi
+            if(!empty($_POST['im_booking_id'])) {
                 $booking_id = $_POST['im_booking_id'];
 
                 // Cập nhật đã lấy hoá đơn đầu vào
-                $db->query('
-                    UPDATE ec_flight_bookings 
-                    SET is_invoice_input_export = 1 
-                    WHERE id = "' . $booking_id . '"');
+                $db->query("UPDATE ec_flight_bookings SET is_invoice_input_export = 1 WHERE id = '{$booking_id}'");
                 $date_created = date_sub(date_create(date('Y-m-d H:i:s')), date_interval_create_from_date_string("7 hours"));
-                $db->query('
-                    INSERT INTO ec_flight_bookings_audit(id, parent_id, date_created, created_by, field_name, data_type, before_value_string, after_value_string) VALUES (uuid(), "'.$booking_id.'", "'.date('Y-m-d H:i:s', strtotime(date_format($date_created, "Y-m-d"))). '", "'.$current_user->id.'", "is_invoice_input_export", "boolean", 0, 1)
-                ');
+                $db->query('INSERT INTO ec_flight_bookings_audit(id, parent_id, date_created, created_by, field_name, data_type, before_value_string, after_value_string)
+                    VALUES (uuid(), "'.$booking_id.'", "'.date('Y-m-d H:i:s', strtotime(date_format($date_created, "Y-m-d"))). '", "'.$current_user->id.'", "is_invoice_input_export", "boolean", 0, 1)');
     
                 // Cập nhật kpi
                 // myRemoveWorkingProcess('EC_Flight_Bookings', $_POST['im_booking_id'], 'invoice_input_issued');
@@ -159,12 +150,51 @@ class EC_Input_Invoices extends Basic
                 $note->description = 'Đã lấy hóa đơn đầu vào số: ' . $_POST['im_invoice_number'] . '; số vé: ' . $_POST['im_ticket_code'];
                 $note->save();
             }
-
         }
     }
 
-    function save2($check_notify = FALSE)
-    {
+    public function save2($check_notify = FALSE) {
         return parent::save($check_notify);
+    }
+
+    /**
+     * Get list available ticket of booking
+     * 
+     * @param string $bookingId
+     * @param string $ticketType flight, baggage, seat, insurance, other
+     */
+    public function getListAvailableTicket($bookingId) {
+        $sql = "SELECT i.id
+                ,i.name AS ticket_number
+                ,i.ticket_code
+                ,i.ticket_type
+                ,i.supplier
+                ,i.itinerary
+                ,IFNULL(i.cost_no_vat, 0) AS cost_no_vat
+                ,IFNULL(i.vat, 0) AS vat
+                ,i.authorized_fee
+                ,i.total
+                ,i.qty
+                ,(
+                    SELECT IFNULL(SUM(soluong), 0)
+                    FROM ec_chitiethoadon
+                    WHERE ticket_number_id = i.id AND deleted = 0
+                ) AS used_qty
+            FROM ec_input_invoices i
+            WHERE i.booking_id = '{$bookingId}'
+                AND i.status = '1'
+                AND i.company_unit = 'MHV'
+                AND i.deleted = 0";
+                
+        $listTicket = [];
+
+        $res = $this->db->query($sql);
+        while ($row = $this->db->fetchByAssoc($res)) {
+            if($row['used_qty'] == 0 && isset($row['ticketNumber']) && !empty($row['ticketNumber'])) {
+                $listTicket[$row['id']] = $row;
+            }
+        }
+
+        return $listTicket;
     }
 }
