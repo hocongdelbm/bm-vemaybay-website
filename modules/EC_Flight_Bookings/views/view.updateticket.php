@@ -12,6 +12,7 @@ class Viewupdateticket extends SugarView {
 	function displayStyle() {
 		$style = '';
 		$style .= '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/updateticket.css?v=1.0.1">';
+		$style .= '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css">';
         echo $style;
     }
     function displayScript() {
