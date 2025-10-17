@@ -97,6 +97,7 @@ class EC_Input_Invoices extends Basic
                 $this->accounting_date      = $_POST['im_accounting_date'];
                 $this->supplier             = $_POST['im_supplier'];
                 $this->company_unit         = $_POST['im_company_unit'];
+                $this->ticket_type          = $_POST['im_ticket_type'] ?? '';
                 $this->status               = 1;
                 $this->itinerary            = $_POST['im_iti'];
                 $this->booking_id           = $_POST['im_booking_id'];
@@ -118,6 +119,7 @@ class EC_Input_Invoices extends Basic
                 $this->accounting_date      = $_POST['im_accounting_date'];
                 $this->supplier             = $_POST['im_supplier'];
                 $this->company_unit         = $_POST['im_company_unit'];
+                $this->ticket_type          = $_POST['im_ticket_type'] ?? '';
                 $this->status               = 1;
                 $this->itinerary            = $_POST['im_iti'];
                 $this->booking_id           = $_POST['im_booking_id'];

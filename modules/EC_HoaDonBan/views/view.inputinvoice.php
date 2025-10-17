@@ -79,6 +79,7 @@ class Viewinputinvoice extends SugarView {
 
         $smarty->assign('SUPPLIER_OPTION', get_select_options_with_id($app_list_strings['supplier_invoice_list'], $_REQUEST['supplier'] ?? ''));
         $smarty->assign('COMPANY_UNIT_OPTION', get_select_options_with_id($app_list_strings['company_unit_invoice_list'], $_REQUEST['company_unit'] ?? ''));
+        $smarty->assign('TICKET_TYPE_OPTION', get_select_options_with_id($app_list_strings['ticket_type_list'], 'flight'));
         $smarty->assign('MISSING_BK', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['missing_bk'] ?? 0)));
         $smarty->assign('MISSING_QTY', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['missing_qty'] ?? 0)));
         $smarty->assign('STOCK_STT', get_select_options_with_id([0 => 'Tất cả', 1 => 'Còn', 2 => 'Hết'], (int)($_REQUEST['stock_stt'] ?? 0)));
@@ -168,7 +169,8 @@ class Viewinputinvoice extends SugarView {
 
                 $diff = array_diff($listBookingTicketNumber, $listAvailableTicketNumber);
                 if (empty($diff)) {
-                    $this->bean->createAuto($bk_id, $listBookingTickets, $listAvailableTickets);
+                    if($this->bean->createAuto($bk_id, $listBookingTickets, $listAvailableTickets)) sleep(2);
+                    else sleep(1);
                 }
             }
         }
@@ -376,7 +378,6 @@ class Viewinputinvoice extends SugarView {
                 $author_input = '<input type="text" name="authorized_fee[]" value="'. (int)$row['authorized_fee'] .'" class="allow_number_only text-end authorized_fee" />';
                 
                 $ticket_type_input = '<select name="ticket_type[]" class="ticket_type">
-                    <option value=""></option>
                     '. get_select_options_with_id($app_list_strings['ticket_type_list'], $row['ticket_type']) .'
                 </select>';
                 

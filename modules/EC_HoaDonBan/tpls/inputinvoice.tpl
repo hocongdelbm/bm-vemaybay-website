@@ -368,8 +368,12 @@
                                             {$COMPANY_UNIT_OPTION}
                                         </select>
                                     </td>
-                                    <td></td>
-                                    <td></td>
+                                    <td><span class="label">Loại vé</span></td>
+                                    <td>
+                                        <select class="box-select" id="im_ticket_type" name="im_ticket_type">
+                                            {$TICKET_TYPE_OPTION}
+                                        </select>
+                                    </td>
                                     <td></td>
                                     <td></td>
                                 </tr>

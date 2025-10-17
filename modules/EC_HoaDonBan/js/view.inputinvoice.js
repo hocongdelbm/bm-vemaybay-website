@@ -423,7 +423,7 @@ function calculateTicketPrice(is_cal_vat = 0) {
 }
 
 function check_import_form() {
-    // tất cả các trường đều phải nhập
+    // Tất cả các trường đều phải nhập
     addToValidate('implement_invoice_frm', 'im_invoice_date', 'date', true, 'Ngày phải nhập theo cú pháp: 28-02-2022');
     addToValidate('implement_invoice_frm', 'im_accounting_date', 'date', true, 'Ngày phải nhập theo cú pháp: 28-02-2022');
     addToValidate('implement_invoice_frm', 'im_invoice_number', 'varchar', true, 'Không được để trống');
