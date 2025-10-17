@@ -34,6 +34,7 @@ class EC_HoaDonBan extends Basic {
 	public $masothue;
 	public $ngaychungtu;
 	public $ngayhachtoan;
+	public $mauhoadon;
 	public $loaihoadon;
 	public $ngayhoadon;
 	public $loaitien;
