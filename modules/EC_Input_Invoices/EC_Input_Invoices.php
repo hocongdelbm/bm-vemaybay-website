@@ -161,9 +161,11 @@ class EC_Input_Invoices extends Basic
      * Get list available ticket of booking
      * 
      * @param string $bookingId
-     * @param string $ticketType flight, baggage, seat, insurance, other
+     * @return array
      */
-    public function getListAvailableTicket($bookingId) {
+    public function getListAvailableTickets($bookingId) {
+        if(!is_string($bookingId) || empty($bookingId)) return [];
+
         $sql = "SELECT i.id
                 ,i.name AS ticket_number
                 ,i.ticket_code
@@ -190,7 +192,7 @@ class EC_Input_Invoices extends Basic
 
         $res = $this->db->query($sql);
         while ($row = $this->db->fetchByAssoc($res)) {
-            if($row['used_qty'] == 0 && isset($row['ticketNumber']) && !empty($row['ticketNumber'])) {
+            if($row['used_qty'] == 0 && isset($row['ticket_number']) && !empty($row['ticket_number'])) {
                 $listTicket[$row['id']] = $row;
             }
         }

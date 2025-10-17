@@ -286,8 +286,6 @@ class EC_Flight_Bookings extends Basic
 		$booking_name .= strrev($qty_booking);
 
 		return strtoupper($booking_name);
-
-		// Old
 		// return strtoupper(substr(sha1(microtime()), rand(0, 31), 8));
 	}
 
@@ -1210,29 +1208,82 @@ class EC_Flight_Bookings extends Basic
 	 * 
 	 * @return array
      */
-    public function getListTicketNumber($bookingId, $times = 0) {
-		$timesContidions = '';
-		if($times < 1) $timesContidions = "AND p.add_type != 1 AND p.add_type != 2";
+    public function getListTickets($bookingId, $times = 0) {
+		if(!is_string($bookingId) || empty($bookingId)) return [];
 
-        $sql = "SELECT p.eticket_outbound AS ticketNumberOut
+		$timesContidions = '';
+		if($times < 1) $timesContidions = "AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)";
+
+        $sql = "SELECT p.id
+				,p.name
+				,p.eticket_outbound AS ticketNumberOut
                 ,p.eticket_inbound AS ticketNumberIn
 				,p.eluggage_outbound AS bagTicketNumberOut
 				,p.eluggage_inbound AS bagTicketNumberIn
+				,IFNULL(p.luggage_purchase, 0) AS bagPriceOut
+				,IFNULL(p.luggage_purchase_inbound, 0) AS bagPriceIn
             FROM ec_booking_passengers p
             WHERE p.booking_id = '{$bookingId}'
 				AND p.deleted = 0
-                $timesContidions";
+                {$timesContidions}";
 
-        $listTicketNumber = [];
+        $listTickets = [];
 
         $res = $this->db->query($sql);
         while ($row = $this->db->fetchByAssoc($res)) {
-            if(isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) array_push($listTicketNumber, $row['ticketNumberOut']);
-            if(isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) array_push($listTicketNumber, $row['ticketNumberIn']);
-            if(isset($row['bagTicketNumberOut']) && !empty($row['bagTicketNumberOut'])) array_push($listTicketNumber, $row['bagTicketNumberOut']);
-            if(isset($row['bagTicketNumberIn']) && !empty($row['bagTicketNumberIn'])) array_push($listTicketNumber, $row['bagTicketNumberIn']);
+			// Flight ticket number
+			if(isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) {
+				$listTickets[$row['ticketNumberOut']][] = [
+					'type' 			=> 'flight',
+					'direction' 	=> 0,
+					'passName' 		=> $row['name'],
+					'purchasePrice' => null,
+				];
+			}
+			if(isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) {
+				$listTickets[$row['ticketNumberIn']][] = [
+					'type' 			=> 'flight',
+					'direction' 	=> 1,
+					'passName' 		=> $row['name'],
+					'purchasePrice' => null,
+				];
+			}
+
+			// Baggage ticket number
+			if(isset($row['bagTicketNumberOut']) && !empty($row['bagTicketNumberOut'])) {
+				$listTickets[$row['bagTicketNumberOut']][] = [
+					'type' 			=> 'baggage',
+					'direction' 	=> 0,
+					'passName' 		=> $row['name'],
+					'purchasePrice' => $row['bagPriceOut'],
+				];
+			}
+			if(isset($row['bagTicketNumberIn']) && !empty($row['bagTicketNumberIn'])) {
+				$listTickets[$row['bagTicketNumberIn']][] = [
+					'type' 			=> 'baggage',
+					'direction' 	=> 1,
+					'passName' 		=> $row['name'],
+					'purchasePrice' => $row['bagPriceIn'],
+				];
+			}
         }
 
-        return array_unique($listTicketNumber);
+        return $listTickets;
     }
+
+	/**
+	 * Get total price of purchase baggages in booking by times
+	 * 
+	 * @param string $bookingId
+	 */
+	public function getTotalBaggagePrice($bookingId, $times = 0) {
+		$timesContidions = '';
+		if($times < 1) $timesContidions = "AND p.add_type != 1 AND p.add_type != 2";
+
+		$sql = "SELECT SUM(IFNULL(p.luggage_purchase, 0)) + SUM(IFNULL(p.luggage_purchase_inbound, 0)) AS total_baggage_price
+			FROM ec_booking_passengers p
+			WHERE p.booking_id = '{$bookingId}'
+				AND p.deleted = 0
+				{$timesContidions}";
+	}
 }

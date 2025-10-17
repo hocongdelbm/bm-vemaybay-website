@@ -151,20 +151,24 @@ class Viewinputinvoice extends SugarView {
             $this->bean->db->query($sql);
         }
 
-        // Check if the number of input invoices and the number of ticket num in booking is map, system will create output invoice
+        // Auto create output invoice
         if (isset($post_fields['confirmed'])) {
-            $objInInv = new EC_Input_Invoices();
-            $objBooking = new EC_Flight_Bookings();
+            $beanInInv = new EC_Input_Invoices();
+            $beanBooking = new EC_Flight_Bookings();
             foreach ($bk_arr as $bk_id => $bk_inf) {
-                // List default ticket in booking (Not changed)
-                $listBookingTicketNumber = $objBooking->getListTicketNumber($bk_id);
                 // List available ticket of booking
-                $listAvailableTicket = $objInInv->getListAvailableTicket($bk_id);
-                $listAvailableTicketNumber = array_column(array_values($listAvailableTicket), 'ticket_number');
+                $listAvailableTickets = $beanInInv->getListAvailableTickets($bk_id);
+                $listAvailableTicketNumber = array_column(array_values($listAvailableTickets), 'ticket_number');
+
+                if(empty($listAvailableTicketNumber)) continue;
+
+                // List default ticket in booking (When not changed info booking)
+                $listBookingTickets = $beanBooking->getListTickets($bk_id);
+                $listBookingTicketNumber = array_keys($listBookingTickets);
 
                 $diff = array_diff($listBookingTicketNumber, $listAvailableTicketNumber);
                 if (empty($diff)) {
-                    // Create auto here
+                    $this->bean->createAuto($bk_id, $listBookingTickets, $listAvailableTickets);
                 }
             }
         }
@@ -178,8 +182,7 @@ class Viewinputinvoice extends SugarView {
         if (!empty($post_fields['rm_ticket_code'])) {
             $sql_ext = ' AND name = "' . $post_fields['rm_ticket_code'] . '"';
         }
-        $sql1 = '
-            SELECT * FROM ec_input_invoices 
+        $sql1 = 'SELECT * FROM ec_input_invoices 
             WHERE deleted = 0 AND invoice_number = "' . $post_fields['rm_invoice_number'] . '" 
                 AND invoice_serial = "' . $post_fields['rm_invoice_serial'] . '"
                 AND status = 1' . $sql_ext;
@@ -194,17 +197,14 @@ class Viewinputinvoice extends SugarView {
             }
             $rm_id[] = $row1['id'];
         }
-        $sql2 = '
-            UPDATE notes SET deleted = 1 
+        $sql2 = 'UPDATE notes SET deleted = 1 
             WHERE description IN ("' . implode('","', $rm_note) . '") 
                 AND parent_id IN ("' . implode('","', $rm_bk) . '")
                 AND parent_type = "EC_Flight_Bookings"';
         $this->bean->db->query($sql2);
 
         // Xoá số hoá đơn đầu vào
-        $sql3 = '
-            UPDATE ec_input_invoices SET deleted = 1 
-            WHERE id IN ("' . implode('","', $rm_id) . '")';
+        $sql3 = 'UPDATE ec_input_invoices SET deleted = 1 WHERE id IN ("' . implode('","', $rm_id) . '")';
         $this->bean->db->query($sql3);
     }
 

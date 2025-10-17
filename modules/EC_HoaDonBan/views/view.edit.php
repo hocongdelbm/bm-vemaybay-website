@@ -8,6 +8,26 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 	}
 
 	public function display() {
+		// $beanInInv = new EC_Input_Invoices();
+        // $beanBooking = new EC_Flight_Bookings();
+
+		// $bkid = "c603061a-3d88-3c38-12d2-683d019e0b82";
+
+		// $listAvailableTickets = $beanInInv->getListAvailableTickets($bkid);
+		// $listAvailableTicketNumber = array_column(array_values($listAvailableTickets), 'ticket_number');
+		// pr($listAvailableTicketNumber);
+		
+		// $listBookingTickets = $beanBooking->getListTickets($bkid);
+        // $listBookingTicketNumber = array_keys($listBookingTickets);
+		// pr($listBookingTicketNumber);
+
+		// $diff = array_diff($listBookingTicketNumber, $listAvailableTicketNumber);
+		// if (empty($diff)) {
+		// 	echo "Create auto";
+		// }
+		// else echo "Chưa đủ";
+		// die();
+
 		$this->getStyles();
 		$this->populateLineItems();
 		parent::display();

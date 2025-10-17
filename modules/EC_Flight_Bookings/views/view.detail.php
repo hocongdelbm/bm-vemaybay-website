@@ -107,15 +107,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		echo $js;
 	}
 
-	function displayCSS()
-	{
-		$css = '
+	private function displayCSS() {
+		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.4">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
-		echo $css;
 	}
 
 	// Line Note Message - Made by: DucPham at 28/09/2022
@@ -1524,13 +1522,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			// }
 			if ($row['admin_fee_no_vat'] > 0) {
 				$admin_fee_inf = '<div class="admin_fee_no_vat--wrap d-flex align-items-center justify-content-between">
-									<span class="text-start">TVAT:</span>
-									<span class="text-end">' . format_number($row['admin_fee_no_vat']) . '</span>
-								</div>
-								<div class="vat_admin--wrap d-flex align-items-center justify-content-between">
-									<span class="text-start">VAT:</span>
-									<span class="text-end">' . format_number($row['vat_admin']) . '</span>
-								</div>';
+								<span class="text-start">TVAT:</span>
+								<span class="text-end">' . format_number($row['admin_fee_no_vat']) . '</span>
+							</div>
+							<div class="vat_admin--wrap d-flex align-items-center justify-content-between">
+								<span class="text-start">VAT:</span>
+								<span class="text-end">' . format_number($row['vat_admin']) . '</span>
+							</div>';
 			}
 
 			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';

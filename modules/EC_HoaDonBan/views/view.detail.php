@@ -200,8 +200,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 				// Map input API
 				$array_item['items'][] = [
-					'itemCode'			=> 'PS',
-					'itemName' 			=> 'Phí sân bay',
+					// 'itemCode'			=> 'PS',
+					// 'itemName' 			=> 'Phí sân bay',
+					'itemCode'			=> 'PK',
+					'itemName' 			=> 'Phí khác',
 					'itemUnit' 			=> 'Vé',
 					'itemQuantity' 		=> 1,
 					'itemPrice' 		=> $phisanbay,
