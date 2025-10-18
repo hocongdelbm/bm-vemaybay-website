@@ -11,13 +11,13 @@ class Viewupdateflight extends SugarView {
 
 	function displayStyle() {
 		$style = '';
-		$style .= '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/updateflight.css?v=1.0.1">';
+		$style .= '<link type="text/css" rel="stylesheet" href="modules/'.$this->bean->module_dir.'/css/updateflight.css?v=1.0.2">';
 		$style .= '<link type="text/css" rel="stylesheet" href="themes/SuiteP/libs/css/select2.min.css">';
         echo $style;
     }
     function displayScript() {
 		$script = '';
-		$script .= '<script src="modules/'.$this->bean->module_dir.'/js/updateflight.js?v=1.0.1"></script>';
+		$script .= '<script src="modules/'.$this->bean->module_dir.'/js/updateflight.js?v=1.0.2"></script>';
         echo $script;
     }
 }

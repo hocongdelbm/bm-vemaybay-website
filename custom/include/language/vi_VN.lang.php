@@ -200,7 +200,6 @@ $GLOBALS['app_list_strings']['contact_type_list'] = array(
   'OTHER' => 'Khác',
 );
 
-
 $GLOBALS['app_list_strings']['gender_list'] = array(
   0 => 'Nam',
   1 => 'Nữ',
@@ -403,12 +402,6 @@ $GLOBALS['app_list_strings']['mauhoadon_list'] = array(
   '02GTTT3/001' => '02GTTT3/001',
 );
 
-// $GLOBALS['app_list_strings']['invoice_status_list'] = array(
-//   '-1' => '<span style="color:#dc3545">Hủy</span>',
-//   '0'  => 'Mới tạo',
-//   '1'  => '<span style="color:#0000ff">Ghi sổ</span>',
-//   '2'  => '<span style="color:#198754">Đã ký</span>',
-// );
 $GLOBALS['app_list_strings']['invoice_status_list'] = array(
   '-1' => 'Hủy',
   '0'  => 'Mới tạo',
@@ -1942,6 +1935,7 @@ $GLOBALS['app_list_strings']['ticket_type_list'] = [
   'baggage'   => 'Vé hành lý',
   'seat'      => 'Vé ghế',
   'insurance' => 'Vé bảo hiểm',
+  'exchange'  => 'Vé đổi',
   'other'     => 'Vé khác',
 ];
 

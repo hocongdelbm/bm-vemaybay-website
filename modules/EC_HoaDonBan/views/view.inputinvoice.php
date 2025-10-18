@@ -28,21 +28,20 @@ class Viewinputinvoice extends SugarView {
         else if (isset($_POST['remove'])) {
             $this->deleteInvoiceData($_POST);
         }
-
         // Nếu xác nhận thì cập nhật status = 1
-        if (isset($_POST['confirmed']) || isset($_POST['denied'])) {
+        else if (isset($_POST['confirmed']) || isset($_POST['denied'])) {
             $this->updateInvoiceData($_POST);
         }
 
         // Nếu là màn hình preview thì thêm form xác nhận
         if (isset($_REQUEST['preview'])) {
-            $smarty->assign('CONFIRM_FRM', $this->populateConfirmForm($this->showData($_REQUEST), $_REQUEST));
+            $smarty->assign('CONFIRM_FRM', $this->populateConfirmForm($this->getData($_REQUEST), $_REQUEST));
             $smarty->assign('PREVIEW', 1);
         } else {
             $this->removeNotImportedInvoice();
 
             $return_res = $this->calculateTotalLine($_REQUEST);
-            $smarty->assign('DATA', $this->showData($_REQUEST));
+            $smarty->assign('DATA', $this->getData($_REQUEST));
 
             $smarty->assign('TOTAL_QTY', format_number($return_res['total_qty']));
             $smarty->assign('TOTAL_EXPORT', format_number($return_res['total_export']));
@@ -91,56 +90,91 @@ class Viewinputinvoice extends SugarView {
         $this->bean->db->query("UPDATE ec_input_invoices SET deleted = 1 WHERE deleted = 0 AND status = 0");
     }
 
+    /**
+     * Confirm import input-invoice data
+     * 
+     * @param array $post_fields POST
+     * @return void
+     */
     private function updateInvoiceData($post_fields) {
-        // Lưu lại thông tin giá vốn mới
+        // Xác nhận (Lưu lại thông tin giá vốn mới)
         if (isset($post_fields['confirmed'])) {
             $bk_arr = [];
             for ($i = 0; $i < count($_POST['invoice_id']); $i++) {
-                $sql = 'UPDATE ec_input_invoices 
-                    SET cost = "' . unformat_number($_POST['invoice_cost_vat'][$i]) . '"
-                      ,vat = "' . unformat_number($_POST['invoice_vat'][$i]) . '"
-                      ,cost_no_vat = "' . unformat_number($_POST['invoice_cost'][$i]) . '"
-                      ,authorized_fee = "' . unformat_number($_POST['authorized_fee'][$i]) . '"
-                      ,total = cost + authorized_fee
-                      ,ticket_type = "'. ($_POST['ticket_type'][$i] ?? '') .'"
-                    WHERE id = "' . $_POST['invoice_id'][$i] . '" AND deleted = 0';
-                $this->bean->db->query($sql);
-
-                // Cập nhật đã xuất hoá đơn đầu vào
-                $input_inv = new EC_Input_Invoices;
-                $input_inv->retrieve($_POST['invoice_id'][$i]);
-                $bk_arr[$input_inv->booking_id]['ticket_code'][] = $input_inv->name;
-                $bk_arr[$input_inv->booking_id]['invoice_number'] = $input_inv->invoice_number;
-                $bk_arr[$input_inv->booking_id]['booking_name'] = $input_inv->booking;
+                $input_inv_id   = $_POST['invoice_id'][$i] ?? '';
+                $cost           = unformat_number($_POST['invoice_cost_vat'][$i]);
+                $vat            = unformat_number($_POST['invoice_vat'][$i]);
+                $cost_no_vat    = unformat_number($_POST['invoice_cost'][$i]);
+                $authorized_fee = unformat_number($_POST['authorized_fee'][$i]);
+                $total          = $cost + $authorized_fee;
+                $ticket_type    = $_POST['ticket_type'][$i] ?? 'flight';
+                
+                $sql = "UPDATE ec_input_invoices 
+                    SET cost = {$cost}
+                        ,vat = {$vat}
+                        ,cost_no_vat = {$cost_no_vat}
+                        ,authorized_fee = {$authorized_fee}
+                        ,total = {$total}
+                        ,ticket_type = '{$ticket_type}'
+                        ,status = '1'
+                    WHERE id = '{$input_inv_id}' AND deleted = 0";
+                
+                if($this->bean->db->query($sql)) {
+                    // Cập nhật đã xuất hoá đơn đầu vào cho các booking
+                    $input_inv = new EC_Input_Invoices;
+                    $input_inv->retrieve($_POST['invoice_id'][$i]);
+                    $bk_arr[$input_inv->booking_id]['ticket_code'][]    = $input_inv->name;
+                    $bk_arr[$input_inv->booking_id]['invoice_number']   = $input_inv->invoice_number;
+                    $bk_arr[$input_inv->booking_id]['booking_name']     = $input_inv->booking;
+                }
             }
 
             // Cập nhật kpi và note
             foreach ($bk_arr as $bk_id => $bk_inf) {
                 $this->markExportInputInvoice([
                     'booking_id' => $bk_id,
-                    'booking' => $bk_inf['booking_name'],
+                    'booking'   => $bk_inf['booking_name'],
                     'invoice_number' => $bk_inf['invoice_number'],
                     'ticket_code' => implode(', ', $bk_inf['ticket_code']),
                 ]);
             }
         }
-
-        // Cập nhật tình trạng cho hoá đơn
-        $upt_sql = '';
-        if (isset($post_fields['confirmed'])) $upt_sql = 'status = 1';
-        else if (isset($post_fields['denied'])) $upt_sql = 'deleted = 1';
-        if (!empty($upt_sql)) {
-            $sql = 'UPDATE ec_input_invoices SET ' . $upt_sql . '
-                WHERE deleted = 0 AND supplier = "' . $post_fields['supplier'] . '"
-                    AND invoice_number = "' . $post_fields['invoice_number'] . '"
-                    AND invoice_serial = "' . $post_fields['invoice_serial'] . '"
-                    AND status = 0';
+        // Hủy nhập hóa đơn
+        else if (isset($post_fields['denied'])) {
+            $sql = "UPDATE ec_input_invoices
+                SET deleted = 1
+                WHERE status = '0'
+                    AND deleted = 0
+                    AND supplier = '{$post_fields['supplier']}'
+                    AND invoice_number = '{$post_fields['invoice_number']}'
+                    AND invoice_serial = '{$post_fields['invoice_serial']}'";
             $this->bean->db->query($sql);
+        }
+
+        // Auto create output invoice
+        if (isset($post_fields['confirmed'])) {
+            $beanInInv = new EC_Input_Invoices();
+            $beanBooking = new EC_Flight_Bookings();
+            foreach ($bk_arr as $bk_id => $bk_inf) {
+                // List available ticket of booking
+                $listAvailableTickets = $beanInInv->getListAvailableTickets($bk_id);
+                $listAvailableTicketNumber = array_column(array_values($listAvailableTickets), 'ticket_number');
+
+                if(empty($listAvailableTicketNumber)) continue;
+
+                // List default ticket in booking (When not changed info booking)
+                $listBookingTickets = $beanBooking->getListTickets($bk_id);
+                $listBookingTicketNumber = array_keys($listBookingTickets);
+
+                $diff = array_diff($listBookingTicketNumber, $listAvailableTicketNumber);
+                if (empty($diff)) {
+                    $this->bean->createAuto($bk_id, $listBookingTickets, $listAvailableTickets);
+                }
+            }
         }
     }
 
-    function deleteInvoiceData($post_fields)
-    {
+    function deleteInvoiceData($post_fields) {
         // Xoá note đã lấy hoá đơn đầu vào của những booking trong hoá đơn
         $post_fields['rm_invoice_number'] = trim($post_fields['rm_invoice_number']);
         $post_fields['rm_invoice_serial'] = trim($post_fields['rm_invoice_serial']);
@@ -148,8 +182,7 @@ class Viewinputinvoice extends SugarView {
         if (!empty($post_fields['rm_ticket_code'])) {
             $sql_ext = ' AND name = "' . $post_fields['rm_ticket_code'] . '"';
         }
-        $sql1 = '
-            SELECT * FROM ec_input_invoices 
+        $sql1 = 'SELECT * FROM ec_input_invoices 
             WHERE deleted = 0 AND invoice_number = "' . $post_fields['rm_invoice_number'] . '" 
                 AND invoice_serial = "' . $post_fields['rm_invoice_serial'] . '"
                 AND status = 1' . $sql_ext;
@@ -164,22 +197,19 @@ class Viewinputinvoice extends SugarView {
             }
             $rm_id[] = $row1['id'];
         }
-        $sql2 = '
-            UPDATE notes SET deleted = 1 
+        $sql2 = 'UPDATE notes SET deleted = 1 
             WHERE description IN ("' . implode('","', $rm_note) . '") 
                 AND parent_id IN ("' . implode('","', $rm_bk) . '")
                 AND parent_type = "EC_Flight_Bookings"';
         $this->bean->db->query($sql2);
 
         // Xoá số hoá đơn đầu vào
-        $sql3 = '
-            UPDATE ec_input_invoices SET deleted = 1 
-            WHERE id IN ("' . implode('","', $rm_id) . '")';
+        $sql3 = 'UPDATE ec_input_invoices SET deleted = 1 WHERE id IN ("' . implode('","', $rm_id) . '")';
         $this->bean->db->query($sql3);
     }
 
-    function populateConfirmForm($html_invoice, $request_fields)
-    {
+    // Màn hình preview
+    function populateConfirmForm($html_invoice, $request_fields) {
         global $app_list_strings, $current_user;
 
         // Hiện lỗi nếu có
@@ -285,7 +315,8 @@ class Viewinputinvoice extends SugarView {
         ];
     }
 
-    function showData($request_fields) {
+    // Lấy dữ liệu hóa đơn đầu vào dưới dạng HTML
+    function getData($request_fields) {
         global $app_list_strings;
 
         $sql_search = $this->populateSearchCondition($request_fields);
@@ -855,7 +886,7 @@ class Viewinputinvoice extends SugarView {
                 $input_iv->accounting_date      = $data[$i]['accounting_date'];
                 $input_iv->itinerary            = $data[$i]['itinerary'];
                 $input_iv->is_other_fee         = $data[$i]['is_other_fee'] ?? 0;
-                $input_iv->status               = 0;
+                $input_iv->status               = 0; // Chưa xác nhận
                 $input_iv->booking_id           = $data[$i]['booking_id'];
                 $input_iv->order_by_no          = $i;
                 $input_iv->assigned_user_id     = $current_user->id;
@@ -949,8 +980,7 @@ class Viewinputinvoice extends SugarView {
     }
 
     // Cập nhật đã xuất hoá đơn đầu vào
-    function markExportInputInvoice($import_data)
-    {
+    function markExportInputInvoice($import_data) {
         global $db, $current_user;
         $booking_id = $import_data['booking_id'];
         if (!empty($booking_id)) {
