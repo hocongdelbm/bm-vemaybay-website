@@ -10,6 +10,7 @@ class AlertsViewDetail extends ViewDetail
         $this->populateCustomFields();
 
         parent::display();
+        $this->disPlayScript();
     }
 
     function populateCustomFields()
@@ -30,11 +31,28 @@ class AlertsViewDetail extends ViewDetail
 
         // LBL_ALERT_PHOTO
         $alert_photo = '';
-        if($this->bean->alert_photo){
+        if ($this->bean->alert_photo) {
             $alert_photo .= '<div class="flex-start alert_photo">
-                                <img src="index.php?entryPoint=download&id=' . $this->bean->parent_alert_id . '_alert_photo&type=Alerts" style="max-width: 100%; object-fit: contain;" width="500" height="auto">
+                                <img id="alertImage"
+                                    src="index.php?entryPoint=download&id=' . $this->bean->parent_alert_id . '_alert_photo&type=Alerts"
+                                    style="max-width: 100%; object-fit: contain; cursor: zoom-in;"
+                                    width="500" height="auto">
                             </div>';
         }
         $this->ss->assign('CUS_ALERT_PHOTO', $alert_photo);
+        //     if($this->bean->alert_photo){
+        //         $alert_photo .= '<div class="flex-start alert_photo">
+        //                             <img src="index.php?entryPoint=download&id=' . $this->bean->parent_alert_id . '_alert_photo&type=Alerts" style="max-width: 100%; object-fit: contain;" width="500" height="auto">
+        //                         </div>';
+        //     }
+    }
+
+    function disPlayScript() {
+        $script = '';
+        $script .= '
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
+        <script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.0.0">';
+        echo $script;
     }
 }
