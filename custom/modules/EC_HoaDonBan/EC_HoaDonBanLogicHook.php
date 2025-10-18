@@ -1,15 +1,26 @@
 <?php
 class EC_HoaDonBanLogicHook {
 	public function custom_column_list_view(SugarBean $bean, $event, $arguments) {
-		global $current_user;
 		switch($bean->company_unit) {
 			case 'MHV':
 			    $bean->sohoadon = (int)$bean->sohoadon;
 			    break;
 			default:
 			    $bean->sohoadon;
-		 }
+		}
 
+		// Get represent booking
+		$sqlBookingInfo = "SELECT booking_id, booking, COUNT(*) as count
+			FROM ec_chitiethoadon
+			WHERE parent_id = '{$bean->id}'
+				AND parent_type = 'EC_HoaDonBan'
+				AND deleted = 0
+			GROUP BY booking_id
+			ORDER BY count DESC
+			LIMIT 1";
+		$resBookingInfo = $GLOBALS['db']->query($sqlBookingInfo);
+		$rowBookingInfo = $GLOBALS['db']->fetchByAssoc($resBookingInfo);
+		$bean->represent_booking = "<a href='index.php?module=EC_Flight_Bookings&action=DetailView&record={$rowBookingInfo['booking_id']}' target='_blank'>{$rowBookingInfo['booking']}</a>";
 	}
 
 	public function checkBeforeDelete($focus, $event, $arguments) {

@@ -22,11 +22,9 @@ $listViewDefs[$module_name] = array(
         'default' => true,
         // 'type' => 'int',
     ),
-    'COMPANY_UNIT' => array(
-        'label' => 'LBL_COMPANY_UNIT',
-        'width' => '12%',
-        'default' => true,
-        // 'type' => 'int',
+    'REPRESENT_BOOKING' => array(
+        'label'     => 'LBL_REPRESENT_BOOKING',
+        'default'   => true,
     ),
     'DESCRIPTION' => array(
         'label' => 'LBL_DESCRIPTION',
@@ -37,7 +35,6 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_LOAIKH',
         'width' => '12%',
         'default' => true,
-        // 'type' => 'int',
     ),
     'TENCONGTY' => array(
         'label' => 'LBL_TENCONGTY_KH',

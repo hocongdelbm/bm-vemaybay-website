@@ -649,12 +649,13 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = array(
 
 // Input invoice
 $GLOBALS['app_list_strings']['ticket_type_list'] = [
-  'flight'    => 'Flight',
-  'baggage'   => 'Baggage',
-  'seat'      => 'Seat',
-  'exchange'  => 'Exchange',
-  'insurance' => 'Insurance',
-  'other'     => 'Other',
+  'flight'        => 'Flight',
+  'baggage'       => 'Baggage',
+  'seat'          => 'Seat',
+  'insurance'     => 'Insurance',
+  'exchange_fee'  => 'Exchange fee',
+  'ticketing_fee' => 'Ticketing fee',
+  'other'         => 'Other',
 ];
 
 $GLOBALS['app_list_strings']['work_history_status_list'] = array(

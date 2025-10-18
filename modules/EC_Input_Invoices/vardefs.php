@@ -3,7 +3,7 @@
 $dictionary['EC_Input_Invoices'] = array(
     'table' => 'ec_input_invoices',
     'audited' => true,
-    'inline_edit' => true,
+    'inline_edit' => false,
     'duplicate_merge' => true,
     'fields' => array(
         'qty' => array(
@@ -39,21 +39,6 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => '25',
         ),
 
-        'invoice_date' => array(
-            'required' => false,
-            'name' => 'invoice_date',
-            'vname' => 'LBL_INVOICE_DATE',
-            'type' => 'date',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-        ),
-
         'invoice_serial' => array(
             'required' => false,
             'name' => 'invoice_serial',
@@ -68,6 +53,35 @@ $dictionary['EC_Input_Invoices'] = array(
             'audited' => 1,
             'reportable' => 0,
             'len' => '25',
+        ),
+
+        'invoice_date' => array(
+            'required' => false,
+            'name' => 'invoice_date',
+            'vname' => 'LBL_INVOICE_DATE',
+            'type' => 'date',
+            'massupdate' => 0,
+            'comments' => 'Ngày hóa đơn vào',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
+            'audited' => 1,
+            'reportable' => 0,
+        ),
+
+        'accounting_date' => array(
+            'required' => false,
+            'name' => 'accounting_date',
+            'vname' => 'LBL_ACCOUNTING_DATE',
+            'type' => 'date',
+            'massupdate' => 0,
+            'comments' => 'Ngày hạch toán',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
+            'audited' => 1,
+            'reportable' => 0,
         ),
 
         // NCC
@@ -121,7 +135,7 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => '255',
         ),
 
-        // Giá vốn
+        // Giá vốn có VAT
         'cost' => array(
             'required' => false,
             'name' => 'cost',
@@ -138,7 +152,7 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => 26,
         ),
 
-        // Giá chưa VAT
+        // Giá vốn chưa VAT
         'cost_no_vat' => array(
             'required' => false,
             'name' => 'cost_no_vat',
@@ -155,25 +169,7 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => 26,
         ),
 
-        // // % vat
-        // 'vat_per' =>
-        // array(
-        //     'required' => false,
-        //     'name' => 'vat_per',
-        //     'vname' => 'LBL_VAT_PER',
-        //     'type' => 'int',
-        //     'massupdate' => 0,
-        //     'comments' => '',
-        //     'help' => '',
-        //     'importable' => 'true',
-        //     'duplicate_merge' => 'disabled',
-        //     'duplicate_merge_dom_value' => '',
-        //     'audited' => 1,
-        //     'reportable' => 0,
-        //     'len' => 2,
-        // ),
-
-        // Tiền VAT
+        // Tiền VAT giá vốn
         'vat' => array(
             'required' => false,
             'name' => 'vat',
@@ -191,19 +187,17 @@ $dictionary['EC_Input_Invoices'] = array(
         ),
 
         'booking_id' => array(
-            'required' => false,
             'name' => 'booking_id',
-            'vname' => '',
+            'vname' => 'LBL_BOOKING_ID',
             'type' => 'id',
+            'len' => 36,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'importable' => 1,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
             'audited' => 0,
             'reportable' => 0,
-            'len' => 36,
         ),
         'booking' => array(
             'required' => false,
@@ -262,15 +256,13 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => 1,
         ),
 
-        // STT số vé khi nạp hoá đơn
         'order_by_no' => array(
             'required' => false,
             'name' => 'order_by_no',
             'vname' => 'LBL_ORDER_BY_NO',
             'type' => 'int',
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
+            'comments' => 'STT số vé khi nạp hoá đơn',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
@@ -280,21 +272,19 @@ $dictionary['EC_Input_Invoices'] = array(
             'disable_num_format' => '',
         ),
 
-        // Thu hộ
         'authorized_fee' => array(
-            'required' => false,
             'name' => 'authorized_fee',
             'vname' => 'LBL_AUTHORIZED_FEE',
             'type' => 'currency',
+            'len' => 26,
+            'comments' => 'Phí thu hộ (Phí sân bay, admin)',
+            'required' => 0,
+            'reportable' => 0,
+            'audited' => 1,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'importable' => 1,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 26,
         ),
 
         'from_value' => array(
@@ -349,7 +339,7 @@ $dictionary['EC_Input_Invoices'] = array(
             'duplicate_merge_dom_value' => '',
             'audited' => 1,
             'reportable' => 0,
-            'len' => '255',
+            'len' => '16',
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
@@ -388,15 +378,13 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => 1,
         ),
 
-        // Code vé dùng cho xuất hoá đơn BBA
         'ticket_code' => array(
             'required' => false,
             'name' => 'ticket_code',
             'vname' => 'LBL_TICKET_CODE',
             'type' => 'varchar',
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
+            'comments' => 'Code vé dùng cho xuất hoá đơn BBA',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
@@ -405,46 +393,14 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => '25',
         ),
 
-        // Ngày hạch toán
-        'accounting_date' => array(
-            'required' => false,
-            'name' => 'accounting_date',
-            'vname' => 'LBL_ACCOUNTING_DATE',
-            'type' => 'date',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-        ),
-
-        // Ngày hạch toán
-        'accounting_date' => array(
-            'required' => false,
-            'name' => 'accounting_date',
-            'vname' => 'LBL_ACCOUNTING_DATE',
-            'type' => 'date',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-        ),
-
         'ticket_type' => array(
             'required' => false,
             'name' => 'ticket_type',
             'vname' => 'LBL_TICKET_TYPE',
             'type' => 'enum',
             'options' => 'ticket_type_list',
-            'len' => 12,
-            'comments' => 'Loại vé (Vé máy bay, vé hành lý, vé chỗ ngồi,...)',
+            'len' => 16,
+            'comments' => 'Loại vé (Vé máy bay, vé hành lý, vé chỗ ngồi, phí xuất vé....)',
             'massupdate' => 1,
             'importable' => 1,
             'audited' => 1,
@@ -452,6 +408,11 @@ $dictionary['EC_Input_Invoices'] = array(
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
         ),
+    ),
+    'indices' => array(
+        array('name' => 'idx_ticket_number', 'type' => 'index', 'fields' => array('name')),
+        array('name' => 'idx_booking', 'type' => 'index', 'fields' => array('booking_id')),
+        array('name' => 'idx_invoice_number', 'type' => 'index', 'fields' => array('invoice_number')),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

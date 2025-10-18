@@ -910,24 +910,19 @@ function isWorkingProcessExisting($parent_type, $parent_id, $field = '')
 }
 
 // Remove working process exist
-function myRemoveWorkingProcess($parent_type, $parent_id, $field = '')
-{
+function myRemoveWorkingProcess($parent_type, $parent_id, $field = '') {
     global $db;
     $sql = "UPDATE ec_working_process
 			SET deleted = 1
-			WHERE parent_id = '" . $parent_id . "'
-				AND parent_type = '" . $parent_type . "'
-				AND deleted = 0";
-    if ($field != '') {
-        $sql .= " AND " . $field . " IS NOT NULL ";
+			WHERE parent_id = '{$parent_id}' AND parent_type = '{$parent_type}' AND deleted = 0";
+    if (!empty($field)) {
+        $sql .= " AND {$field} IS NOT NULL ";
     }
-    $db->query($sql);
+    return $db->query($sql);
 }
 
 // Create working process
-function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field)
-{
-    global $sugar_config, $current_user;
+function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field) {
     if (!empty($field)) {
         $work = new EC_Working_Process();
         $work->id = '';
@@ -937,41 +932,9 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
         $work->description = trim($description);
         $work->assigned_user_id = $assigned_user_id;
         $work->$field = 1;
-        $work->save();
-        
-        if(empty($work->id)) {
-            // // SEND TELE WARNING SAVE KPI FAILED
-            // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-            // "- User: <b>" . $current_user->user_name . "</b>\n" .
-            // "<pre>[WARNING]: myCreateWorkingProcess FAILED ".$description.".</pre>";
-            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            // sendTelegramWarningSystem(
-            //     json_encode(array(
-            //         'text' => $content,
-            //         'parse_mode' => 'HTML',
-            //         'reply_markup' => array(
-            //             'inline_keyboard' => array(
-            //                 array(
-            //                     array(
-            //                         'text' => 'Redirect url',
-            //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module='.$parent_name.'&action=DetailView&record=' . $parent_id,
-            //                     ),
-            //                 ),
-            //             ),
-            //         ),
-            //     ), JSON_UNESCAPED_UNICODE),
-            // );
-
-            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=$parent_name&action=DetailView&record=$parent_id", "Redirect url");
-            $message = Mattermost::$line_separation;
-            $message .= Mattermost::markdownHeading("[WARNING]: Function myCreateWorkingProcess() failed");
-            $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-            $message .= "\n- User: **$current_user->user_name**";
-            $message .= "\n- Description: **$description**";
-            $message .= "\n$link";
-            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-        }
+        return $work->save();
     }
+    return false;
 }
 
 // Get total record of module by day

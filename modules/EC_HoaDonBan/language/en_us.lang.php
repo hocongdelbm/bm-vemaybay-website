@@ -70,5 +70,6 @@ $mod_strings = array(
   'LBL_LOAIKH' => 'Customer type',
   'LBL_CITIZEN_ID' => 'Citizen ID',
   'LBL_PASSPORT_NUMBER' => 'Passport',
-  'LBL_IDENTITY' => 'CCCD/Hộ chiếu',
+  'LBL_IDENTITY' => 'CCCD/Passport',
+  'LBL_REPRESENT_BOOKING' => 'Booking',
 );

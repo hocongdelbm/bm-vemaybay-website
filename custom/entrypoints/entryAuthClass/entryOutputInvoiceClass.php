@@ -4,7 +4,7 @@ require_once "custom/entrypoints/entryAuthClass/entryClass.php";
 require_once "custom/include/helpers/api/WinInvoice.php";
 
 /**
- * Class entryAutoBookDatacomClass
+ * Class entryOutputInvoiceClass
  */
 class entryOutputInvoiceClass extends entryClass {
     /**

@@ -3,6 +3,9 @@ table.table-import tr td label.label {
     display: inline-block;
 }
 
+.table-edit-invoice tr td {vertical-align: baseline;}
+.table-edit-invoice tr td:last-child input.box-input {width: 100%;}
+
 #preview_frm>.top_area {
     text-align: center;
     position: sticky;

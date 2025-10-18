@@ -3978,7 +3978,7 @@ button.remove_employees,
 }
 
 table.table-invoice input {
-  width: unset !important;
+  width: unset;
 }
 
 #search_form select {

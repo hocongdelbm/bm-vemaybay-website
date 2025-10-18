@@ -56,6 +56,7 @@ class EC_HoaDonBan extends Basic {
 	public $nganhang;
 	public $sotaikhoan;
 	public $email;
+	public $represent_booking;
 
 	public function bean_implements($interface) {
 		switch ($interface) {
@@ -200,173 +201,186 @@ class EC_HoaDonBan extends Basic {
 	 * Automatic create output invoice
 	 * 
 	 * @param string $bookingId
-	 * @param array $listBookingTickets
-	 * @param array $listAvailableTickets
-	 * 
 	 * @return bool
 	 */
-	public function createAuto($bookingId, $listBookingTickets, $listAvailableTickets) {
-		if(empty($bookingId) || empty($listBookingTickets) || empty($listAvailableTickets)) return false;
+	public function createAuto($bookingId) {
+		if(!is_string($bookingId) || empty($bookingId)) return false;
 
-		try {
-			// Get info in booking
-			$sqlBooking = "SELECT name
-					,IFNULL(tax_code, '') AS iv_tax_code
-					,IFNULL(company_name, '') AS iv_company_name
-					,IFNULL(company_address, '') AS iv_address
-					,shipping_address
-					,total_bought_amount
-					,luggage_fee
-					,total_amount
-				FROM ec_flight_bookings
-				WHERE id = '{$bookingId}' AND deleted = 0
-				LIMIT 1";
-			$resBooking = $this->db->query($sqlBooking);
-			$bookingInfo = $this->db->fetchByAssoc($resBooking);
+		// Get list available tickets
+		$beanInInv = new EC_Input_Invoices();
+		$listAvailableTickets = $beanInInv->getListAvailableTickets($bookingId);
+		$listAvailableTicketNumber = array_column(array_values($listAvailableTickets), 'ticket_number');
 
-			$invArr = json_decode(str_replace('&quot;', '"', $bookingInfo['shipping_address']), 1);
-			$bookingInfo['iv_account_name'] 	= trim($invArr['iv_account_name'] ?? '');
-			$bookingInfo['iv_email'] 			= trim($invArr['iv_email'] ?? '');
-			$bookingInfo['iv_identity_number'] 	= trim($invArr['iv_identity_number'] ?? '');
-			$bookingInfo['iv_payment_method'] 	= trim($invArr['iv_payment_method'] ?? '');
-			$bookingInfo['iv_bank_account'] 	= trim($invArr['iv_bank_account'] ?? '');
-			$bookingInfo['iv_name_banks'] 		= trim($invArr['iv_name_banks'] ?? '');
-			unset($bookingInfo['shipping_address']);
+		if(empty($listAvailableTicketNumber)) return false;
 
-			$loaikh = null;
-			if(empty($bookingInfo['iv_company_name']) && !empty($bookingInfo['iv_account_name'])) $loaikh = '1';
-			elseif(!empty($bookingInfo['iv_company_name']) && empty($bookingInfo['iv_account_name'])) $loaikh = '0';
+		// Get list booking tickets
+		$beanBooking = new EC_Flight_Bookings();
+		$listBookingTickets = $beanBooking->getListTickets($bookingId);
+        $listBookingTicketNumber = array_keys($listBookingTickets);
 
-			$citizen_id = $passport_number = '';
-			if(strlen($bookingInfo['iv_identity_number']) == 12) $citizen_id = $bookingInfo['iv_identity_number'];
-			elseif(!empty($bookingInfo['iv_identity_number'])) $passport_number = $bookingInfo['iv_identity_number'];
+		$diff = array_diff($listBookingTicketNumber, $listAvailableTicketNumber);
+		if (empty($diff)) {
+			try {
+				// Get info in booking
+				$sqlBooking = "SELECT name
+						,IFNULL(tax_code, '') AS iv_tax_code
+						,IFNULL(company_name, '') AS iv_company_name
+						,IFNULL(company_address, '') AS iv_address
+						,shipping_address
+						,total_bought_amount
+						,luggage_fee
+						,total_amount
+					FROM ec_flight_bookings
+					WHERE id = '{$bookingId}' AND deleted = 0
+					LIMIT 1";
+				$resBooking = $this->db->query($sqlBooking);
+				$bookingInfo = $this->db->fetchByAssoc($resBooking);
 
-			$outInv = new EC_HoaDonBan();
-			$outInv->id 			= '';
-			$outInv->name 			= $this->renderName($this->countVoucher());
-			$outInv->ngayhoadon 	= date('d-m-Y');
-			$outInv->mauhoadon		= null;
-			$outInv->company_unit 	= 'MHV';
-			$outInv->loaihoadon 	= '0'; // HĐ GTGT
-			$outInv->loaitien 		= 'VND';
-			$outInv->loaikh 		= $loaikh;
-			$outInv->kyhieuhd 		= $this->genInvSerial($loaikh);
-			$outInv->lienhe 		= $bookingInfo['iv_account_name'];
-			$outInv->tencongty 		= $bookingInfo['iv_company_name'];
-			$outInv->masothue		= $bookingInfo['iv_tax_code'];
-			$outInv->email			= $bookingInfo['iv_email'];
-			$outInv->citizen_id 	= $citizen_id;
-			$outInv->passport_number = $passport_number;
-			$outInv->diachi 		= $bookingInfo['iv_address'];
-			$outInv->hinhthuctt 	= $bookingInfo['iv_payment_method'];
-			$outInv->nganhang 		= $bookingInfo['iv_name_banks'];
-			$outInv->sotaikhoan 	= $bookingInfo['iv_bank_account'];
-			$outInv->tinhtrang		= 0;
-			$outInv->is_signed		= 0;
-			$outInv->description 	= "Hóa đơn tạo tự động bởi hệ thống";
-			$parentId = $outInv->save2();
+				$invArr = json_decode(str_replace('&quot;', '"', $bookingInfo['shipping_address']), 1);
+				$bookingInfo['iv_account_name'] 	= trim($invArr['iv_account_name'] ?? '');
+				$bookingInfo['iv_email'] 			= trim($invArr['iv_email'] ?? '');
+				$bookingInfo['iv_identity_number'] 	= trim($invArr['iv_identity_number'] ?? '');
+				$bookingInfo['iv_payment_method'] 	= trim($invArr['iv_payment_method'] ?? '');
+				$bookingInfo['iv_bank_account'] 	= trim($invArr['iv_bank_account'] ?? '');
+				$bookingInfo['iv_name_banks'] 		= trim($invArr['iv_name_banks'] ?? '');
+				unset($bookingInfo['shipping_address']);
 
-			// Check here
-			if(!$parentId || !is_string($parentId)) return false;
+				$loaikh = null;
+				if(empty($bookingInfo['iv_company_name']) && !empty($bookingInfo['iv_account_name'])) $loaikh = '1';
+				elseif(!empty($bookingInfo['iv_company_name']) && empty($bookingInfo['iv_account_name'])) $loaikh = '0';
 
-			$totalBaggagePrice = 0; // Baggage purchase price
-			foreach($listBookingTickets as $tknum => $bookingtk) {
-				if($bookingtk['type'] == 'baggage') {
-					$totalBaggagePrice += $bookingtk['purchasePrice'] ?? 0;
+				$citizen_id = $passport_number = '';
+				if(strlen($bookingInfo['iv_identity_number']) == 12) $citizen_id = $bookingInfo['iv_identity_number'];
+				elseif(!empty($bookingInfo['iv_identity_number'])) $passport_number = $bookingInfo['iv_identity_number'];
+
+				$outInv = new EC_HoaDonBan();
+				$outInv->id 			= '';
+				$outInv->name 			= $this->renderName($this->countVoucher());
+				$outInv->ngayhoadon 	= date('d-m-Y');
+				$outInv->mauhoadon		= null;
+				$outInv->company_unit 	= 'MHV';
+				$outInv->loaihoadon 	= '0'; // HĐ GTGT
+				$outInv->loaitien 		= 'VND';
+				$outInv->loaikh 		= $loaikh;
+				$outInv->kyhieuhd 		= $this->genInvSerial($loaikh);
+				$outInv->lienhe 		= $bookingInfo['iv_account_name'];
+				$outInv->tencongty 		= $bookingInfo['iv_company_name'];
+				$outInv->masothue		= $bookingInfo['iv_tax_code'];
+				$outInv->email			= $bookingInfo['iv_email'];
+				$outInv->citizen_id 	= $citizen_id;
+				$outInv->passport_number = $passport_number;
+				$outInv->diachi 		= $bookingInfo['iv_address'];
+				$outInv->hinhthuctt 	= $bookingInfo['iv_payment_method'];
+				$outInv->nganhang 		= $bookingInfo['iv_name_banks'];
+				$outInv->sotaikhoan 	= $bookingInfo['iv_bank_account'];
+				$outInv->tinhtrang		= 0;
+				$outInv->is_signed		= 0;
+				$outInv->description 	= "Hóa đơn tạo tự động";
+				$parentId = $outInv->save2();
+
+				// Check here
+				if(!$parentId || !is_string($parentId)) return false;
+
+				$totalBaggagePrice = 0; // Baggage purchase price
+				foreach($listBookingTickets as $tknum => $bookingtk) {
+					if($bookingtk['type'] == 'baggage') {
+						$totalBaggagePrice += $bookingtk['purchasePrice'] ?? 0;
+					}
 				}
-			}
 
-			$isIssueBaggage = false;
-			$totalQtyFlightTicket = $totalQtyBaggageTicket = 0;
-			foreach($listAvailableTickets as $tk) {
-				if($tk['ticket_type'] == 'baggage') {
-					$isIssueBaggage = true;
-					$totalQtyBaggageTicket += $tk['qty'] ?? 1;
+				$isIssueBaggage = false;
+				$totalQtyFlightTicket = $totalQtyBaggageTicket = 0;
+				foreach($listAvailableTickets as $tk) {
+					if($tk['ticket_type'] == 'baggage') {
+						$isIssueBaggage = true;
+						$totalQtyBaggageTicket += $tk['qty'] ?? 1;
+					}
+					elseif($tk['ticket_type'] == 'flight') {
+						$totalQtyFlightTicket += $tk['qty'] ?? 1;
+					}
 				}
-				elseif($tk['ticket_type'] == 'flight') {
-					$totalQtyFlightTicket += $tk['qty'] ?? 1;
+
+				$totalFlightServiceFee = $totalBaggageServiceFee = 0;
+				// Tickets and baggage are issued separately
+				if($isIssueBaggage) {
+					$totalFlightServiceFee = $bookingInfo['total_amount'] - $bookingInfo['total_bought_amount'] - $bookingInfo['luggage_fee'];
+					$totalBaggageServiceFee = $bookingInfo['luggage_fee'] - $totalBaggagePrice;
 				}
-			}
-
-			$totalFlightServiceFee = $totalBaggageServiceFee = 0;
-			// Tickets and baggage are issued separately
-			if($isIssueBaggage) {
-				$totalFlightServiceFee = $bookingInfo['total_amount'] - $bookingInfo['total_bought_amount'] - $bookingInfo['luggage_fee'];
-				$totalBaggageServiceFee = $bookingInfo['luggage_fee'] - $totalBaggagePrice;
-			}
-			// Tickets and baggages are issued together
-			else {
-				$totalFlightServiceFee = $bookingInfo['total_amount'] - $bookingInfo['total_bought_amount'] - $totalBaggagePrice;
-			}
-
-			$avgFlightServiceFee = $totalFlightServiceFee / $totalQtyFlightTicket;
-			$avgBaggageServiceFee = $totalBaggageServiceFee / $totalQtyBaggageTicket;
-
-			$i = 0;
-			$tongsl = $tongthanhtoan = 0;
-			foreach ($listAvailableTickets as $tkid => $tk) {
-				$code = $this->getCodeDetail($tk['ticket_type'], $tk['itinerary']); // Item code
-
-				$serviceFee = 0;
-				if($tk['ticket_type'] == 'flight') {
-					$serviceFee = $avgFlightServiceFee * $tk['qty'];
+				// Tickets and baggages are issued together
+				else {
+					$totalFlightServiceFee = $bookingInfo['total_amount'] - $bookingInfo['total_bought_amount'] - $totalBaggagePrice;
 				}
-				elseif($tk['ticket_type'] == 'baggage') {
-					$serviceFee = $avgBaggageServiceFee * $tk['qty'];
+
+				$avgFlightServiceFee = $totalFlightServiceFee / $totalQtyFlightTicket;
+				$avgBaggageServiceFee = $totalBaggageServiceFee / $totalQtyBaggageTicket;
+
+				$i = 0;
+				$tongsl = $tongthanhtoan = 0;
+				foreach ($listAvailableTickets as $tkid => $tk) {
+					$code = $this->getCodeDetail($tk['ticket_type'], $tk['itinerary']); // Item code
+
+					$serviceFee = 0;
+					if($tk['ticket_type'] == 'flight') {
+						$serviceFee = $avgFlightServiceFee * $tk['qty'];
+					}
+					elseif($tk['ticket_type'] == 'baggage') {
+						$serviceFee = $avgBaggageServiceFee * $tk['qty'];
+					}
+					
+					$taxRate = $code == 'VMB_QT' ? 0 : 0.08;
+					$divide = 1;
+					if($taxRate == 0.08) $divide = 1.08;
+					else if($taxRate == 0.1) $divide = 1.1;
+
+					$outInvDetail = new EC_ChiTietHoaDon();
+					$outInvDetail->id 			= '';
+					$outInvDetail->name 		= trim(stripslashes($tk['ticket_number']));
+					$outInvDetail->booking_id 	= $bookingId;
+					$outInvDetail->booking 		= $bookingInfo['name'] ?? '';
+					$outInvDetail->mahang 		= $code;
+					$outInvDetail->soluong 		= $tk['qty'];
+					$outInvDetail->phithuho 	= $tk['authorized_fee'] / $tk['qty'];
+					$outInvDetail->phisanbay 	= 0;
+					$outInvDetail->phikhac 		= 0;
+					$outInvDetail->phidv 		= $serviceFee;
+					$outInvDetail->giamua 		= $tk['total'] * $tk['qty'];
+					$outInvDetail->thuesuat 	= $taxRate;
+					$outInvDetail->dongia 		= ($outInvDetail->giamua + $serviceFee - $outInvDetail->phithuho) / $divide;
+					$outInvDetail->tienthue 	= $outInvDetail->dongia * $taxRate * $tk['qty'];
+					$outInvDetail->thanhtien 	= ($outInvDetail->dongia + $outInvDetail->tienthue + $outInvDetail->phithuho) * $outInvDetail->soluong;
+					$outInvDetail->parent_id 	= $parentId;
+					$outInvDetail->parent_type 	= 'EC_HoaDonBan';
+					$outInvDetail->order_by_no 	= $i;
+					$outInvDetail->ticket_number_id = $tkid;
+					if($outInvDetail->mahang == 'PK') $outInvDetail->name = 'PK';
+					$outInvDetail->save();
+					
+					$tongsl += $tk['qty'];
+					$tongthanhtoan += $outInvDetail->thanhtien;
+					$i++;
 				}
-				
-				$taxRate = $code == 'VMB_QT' ? 0 : 0.08;
-				$divide = 1;
-				if($taxRate == 0.08) $divide = 1.08;
-				else if($taxRate == 0.1) $divide = 1.1;
 
-				$outInvDetail = new EC_ChiTietHoaDon();
-				$outInvDetail->id 			= '';
-				$outInvDetail->name 		= trim(stripslashes($tk['ticket_number']));
-				$outInvDetail->booking_id 	= $bookingId;
-				$outInvDetail->booking 		= $bookingInfo['name'] ?? '';
-				$outInvDetail->mahang 		= $code;
-				$outInvDetail->soluong 		= $tk['qty'];
-				$outInvDetail->phithuho 	= $tk['authorized_fee'] / $tk['qty'];
-				$outInvDetail->phisanbay 	= 0;
-				$outInvDetail->phikhac 		= 0;
-				$outInvDetail->phidv 		= $serviceFee;
-				$outInvDetail->giamua 		= $tk['total'] * $tk['qty'];
-				$outInvDetail->thuesuat 	= $taxRate;
-				$outInvDetail->dongia 		= ($outInvDetail->giamua + $serviceFee - $outInvDetail->phithuho) / $divide;
-				$outInvDetail->tienthue 	= $outInvDetail->dongia * $taxRate * $tk['qty'];
-				$outInvDetail->thanhtien 	= ($outInvDetail->dongia + $outInvDetail->tienthue + $outInvDetail->phithuho) * $outInvDetail->soluong;
-				$outInvDetail->parent_id 	= $parentId;
-				$outInvDetail->parent_type 	= 'EC_HoaDonBan';
-				$outInvDetail->order_by_no 	= $i;
-				$outInvDetail->ticket_number_id = $tkid;
-				if($outInvDetail->mahang == 'PK') $outInvDetail->name = 'PK';
-				$outInvDetail->save();
-				
-				$tongsl += $tk['qty'];
-				$tongthanhtoan += $outInvDetail->thanhtien;
-				$i++;
+				if($i * $tongsl * $tongthanhtoan != 0) {
+					$sqlUpdate = "UPDATE ec_hoadonban
+						SET tongsl = {$tongsl}, tongthanhtoan = {$tongthanhtoan}
+						WHERE id = '{$parentId}'";
+					
+					if($this->db->query($sqlUpdate)) return true;
+				}
+				return false;
 			}
-
-			if($i * $tongsl * $tongthanhtoan != 0) {
-				$sqlUpdate = "UPDATE ec_hoadonban
-					SET tongsl = {$tongsl}, tongthanhtoan = {$tongthanhtoan}
-					WHERE id = '{$parentId}'";
-				
-				if($this->db->query($sqlUpdate)) return true;
+			catch(Exception $e) {
+				global $sugar_config;
+				$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+				$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+				$threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+				$m = "<b>[ERROR] Exception when create auto output invoice</b>";
+				$m .= "\n{$e->getMessage()} on line {$e->getLine()} with booking id $bookingId";
+				Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+				return false;
 			}
-			return false;
 		}
-		catch(Exception $e) {
-			global $sugar_config;
-			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-			$m = "<b>[ERROR] Exception when create auto output invoice</b>";
-			$m .= "\n{$e->getMessage()} on line {$e->getLine()} with booking id $bookingId";
-            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-			return false;
-		}
+		return false;
 	}
 
 	/**

@@ -1931,12 +1931,13 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = [
 
 // Input invoice
 $GLOBALS['app_list_strings']['ticket_type_list'] = [
-  'flight'    => 'Vé máy bay',
-  'baggage'   => 'Vé hành lý',
-  'seat'      => 'Vé ghế',
-  'insurance' => 'Vé bảo hiểm',
-  'exchange'  => 'Vé đổi',
-  'other'     => 'Vé khác',
+  'flight'        => 'Vé máy bay',
+  'baggage'       => 'Vé hành lý',
+  'seat'          => 'Vé ghế',
+  'insurance'     => 'Vé bảo hiểm',
+  'exchange_fee'  => 'Phí đổi',
+  'ticketing_fee' => 'Phí xuất vé',
+  'other'         => 'Khác',
 ];
 
 $GLOBALS['app_list_strings']['work_history_status_list'] = array(
@@ -2016,21 +2017,21 @@ $GLOBALS['app_list_strings']['iv_payment_method_list'] = array(
 
 $GLOBALS['app_list_strings']['supplier_invoice_list'] = array(
   '' => '',
-  'EMPTY' => 'Trống',
-  'VJA' => 'VietjetAir',
-  'BBA' => 'Bamboo',
-  'VNA' => 'VietnamAirlines',
-  'HNH' => 'Hồng Ngọc Hà',
-  'TH' => 'Thành Hoàng',
   'PNA' => 'Phương Nam',
-  'VTA' => 'Vietravel',
+  'HNH' => 'Hồng Ngọc Hà',
+  // 'VJA' => 'VietjetAir',
+  // 'VNA' => 'VietnamAirlines',
+  // 'VTA' => 'Vietravel',
+  // 'BBA' => 'Bamboo',
+  // 'TH' => 'Thành Hoàng',
+  // 'EMPTY' => 'Trống',
 );
 
 $GLOBALS['app_list_strings']['company_unit_invoice_list'] = array(
-  '' => '',
-  'EMPTY' => 'Trống',
-  'TRAVELPASS' => 'Travelpass',
   'MHV' => 'Minh Hồng Võ',
+  'TRAVELPASS' => 'Travelpass',
+  '' => '',
+  // 'EMPTY' => 'Trống',
 );
 
 $GLOBALS['app_list_strings']['loaihoadon_list'] = array(

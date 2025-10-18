@@ -78,7 +78,7 @@ class Viewinputinvoice extends SugarView {
         }
 
         $smarty->assign('SUPPLIER_OPTION', get_select_options_with_id($app_list_strings['supplier_invoice_list'], $_REQUEST['supplier'] ?? ''));
-        $smarty->assign('COMPANY_UNIT_OPTION', get_select_options_with_id($app_list_strings['company_unit_invoice_list'], $_REQUEST['company_unit'] ?? ''));
+        $smarty->assign('COMPANY_UNIT_OPTION', get_select_options_with_id($app_list_strings['company_unit_invoice_list'], $_REQUEST['company_unit'] ?? 'MHV'));
         $smarty->assign('TICKET_TYPE_OPTION', get_select_options_with_id($app_list_strings['ticket_type_list'], 'flight'));
         $smarty->assign('MISSING_BK', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['missing_bk'] ?? 0)));
         $smarty->assign('MISSING_QTY', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['missing_qty'] ?? 0)));
@@ -154,24 +154,9 @@ class Viewinputinvoice extends SugarView {
 
         // Auto create output invoice
         if (isset($post_fields['confirmed'])) {
-            $beanInInv = new EC_Input_Invoices();
-            $beanBooking = new EC_Flight_Bookings();
             foreach ($bk_arr as $bk_id => $bk_inf) {
-                // List available ticket of booking
-                $listAvailableTickets = $beanInInv->getListAvailableTickets($bk_id);
-                $listAvailableTicketNumber = array_column(array_values($listAvailableTickets), 'ticket_number');
-
-                if(empty($listAvailableTicketNumber)) continue;
-
-                // List default ticket in booking (When not changed info booking)
-                $listBookingTickets = $beanBooking->getListTickets($bk_id);
-                $listBookingTicketNumber = array_keys($listBookingTickets);
-
-                $diff = array_diff($listBookingTicketNumber, $listAvailableTicketNumber);
-                if (empty($diff)) {
-                    if($this->bean->createAuto($bk_id, $listBookingTickets, $listAvailableTickets)) sleep(2);
-                    else sleep(1);
-                }
+                if($this->bean->createAuto($bk_id)) sleep(2);
+                else sleep(1);
             }
         }
     }
@@ -383,7 +368,6 @@ class Viewinputinvoice extends SugarView {
                 
                 $available = '';
                 $error_minus = '';
-                $tt_colspan = 7;
             }
             else {
                 $cost_input     = format_number($row['cost_no_vat']);

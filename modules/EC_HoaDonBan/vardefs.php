@@ -614,6 +614,13 @@ $dictionary['EC_HoaDonBan'] = array(
             'audited' => 1,
             'reportable' => 0,
         ),
+
+        'represent_booking' => array(
+            'name'  => 'represent_booking',
+            'vname' => 'LBL_REPRESENT_BOOKING',
+            'type'  => 'varchar',
+            'source'=> 'non-db',
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_hdb_name', 'type' => 'index', 'fields' => array('name')),

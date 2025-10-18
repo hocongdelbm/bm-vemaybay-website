@@ -15,7 +15,7 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getInputInvoice') {
             ,i.booking_id
             ,IFNULL(i.cost_no_vat, 0) AS cost_no_vat
             ,IFNULL(i.vat, 0) AS vat
-            ,i.authorized_fee
+            ,IFNULL(i.authorized_fee, 0) AS authorized_fee
             ,(IFNULL(i.cost, 0) + IFNULL(i.authorized_fee, 0)) AS total
             ,(
                 SELECT IFNULL(SUM(soluong), 0)
@@ -49,10 +49,9 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getInputInvoice') {
             'ticket_code'       => $row['ticket_code'],
             'supplier'          => $app_list_strings['supplier_invoice_list'][$row['supplier']],
             'iti'               => (empty($row['itinerary'])?'&nbsp;':$row['itinerary']),
-            'total'             => format_number($row['total'] * $row['qty']), // Tổng giá bán
+            // 'total'             => format_number($row['total'] * $row['qty']), // Tổng giá bán
+            'total'             => format_number($row['total']), // Tổng giá bán
             'authorized_fee'    => format_number($row['authorized_fee'] / $row['qty']), // Phí thu hộ (sân bay + admin)
-            // 'cost'              => $row['cost'], // Giá bán
-            // 'vat'               => $row['vat']/$row['qty'], // VAT trên giá bán
             'qty'               => $row['qty'],
             'max_qty'           => ($row['qty'] - $row['used_qty']),
             'desc'              => $description,

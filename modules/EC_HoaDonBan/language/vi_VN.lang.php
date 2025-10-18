@@ -71,4 +71,5 @@ $mod_strings = array(
   'LBL_CITIZEN_ID' => 'CCCD',
   'LBL_PASSPORT_NUMBER' => 'Hộ chiếu',
   'LBL_IDENTITY_NUMBER' => 'CCCD/Hộ chiếu',
+  'LBL_REPRESENT_BOOKING' => 'Booking',
 );

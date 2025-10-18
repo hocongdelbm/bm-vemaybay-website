@@ -312,7 +312,7 @@
                                         </select>
                                     </td>
                                     <td width="13%"><span class="label">Số lượng</span></td>
-                                    <td width="20%"><input type="text" class="box-input" id="im_qty" name="im_qty" oninput="calculateTicketPrice();"></td>
+                                    <td width="20%"><input type="text" class="box-input decimal-only" id="im_qty" name="im_qty" oninput="calculateTicketPrice();"></td>
                                    
                                 </tr>
                                 <tr>
@@ -321,7 +321,7 @@
                                     <td><span class="label">Hành trình</span></td>
                                     <td><input type="text" class="box-input" id="im_iti" name="im_iti"></td>
                                     <td><span class="label">Giá vốn</span></td>
-                                    <td><input type="text" class="box-input" id="im_cost" name="im_cost" oninput="calculateTicketPrice(1);"></td>
+                                    <td><input type="text" class="box-input decimal-only" id="im_cost" name="im_cost" oninput="calculateTicketPrice(1);"></td>
                                 </tr>
                                 <tr>
                                     <td><span class="label">KHHĐ</span></td>
@@ -330,7 +330,7 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-1">
                                             <input type="text" class="box-input" id="im_ticket_code" name="im_ticket_code">
-                                            <input type="hidden" id="im_ticket_code_id" name="record">
+                                            <input type="hidden" id="im_ticket_id" name="record">
                                             <input type="button" name="btn_ticket_code" id="btn_ticket_code" title="Chọn [Alt+T]" accesskey="T" class="btn btn-primary" value="Chọn">
                                             <input type="button" name="btn_clr_ticket_code" id="btn_clr_ticket_code" title="Xóa [Alt+C]" accesskey="C" class="btn btn-danger" value="Xóa">
                                         </div>
@@ -359,7 +359,7 @@
                                     <td><span class="label">Tổng</span></td>
                                     <td><input class="box-input" type="text" class="allow_number_only" id="im_total" name="im_total" oninput="calculateTicketPrice();"></td>
                                     <td><span class="label">Thu hộ</span></td>
-                                    <td><input type="text" class="box-input" id="im_authorized" name="im_authorized" oninput="calculateTicketPrice();"></td>
+                                    <td><input type="text" class="box-input decimal-only" id="im_authorized" name="im_authorized" oninput="calculateTicketPrice();"></td>
                                 </tr>
                                 <tr>
                                     <td width="13%"><span class="label">Đơn vị</span></td>
@@ -374,8 +374,21 @@
                                             {$TICKET_TYPE_OPTION}
                                         </select>
                                     </td>
-                                    <td></td>
-                                    <td></td>
+                                    <td>
+                                        <span class="label" title="Tách riêng phí xuất vé với số vé">Phí xuất vé</span>
+                                    </td>
+                                    <td>
+                                        <div class="input-group mb-1">
+                                            <input type="text" name="im_ticketing_fee" id="im_ticketing_fee" class="box-input form-control decimal-only" placeholder="Giá vốn" style="width:40%;" />    
+                                            <select id="ticketing_fee_vat_percent" class="box-select form-control">
+                                                <option value="0.08" selected>8%</option>
+                                                <option value="0.1">10%</option>
+                                                <option value="0">0</option>
+                                            </select>
+                                        </div>
+                                        <input type="text" name="im_ticketing_fee_vat" id="im_ticketing_fee_vat"  class="box-input mb-1" placeholder="VAT" readonly />
+                                        <input type="text" name="im_ticketing_fee_no_vat" id="im_ticketing_fee_no_vat"  class="box-input" placeholder="Giá vốn chưa VAT" readonly />
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td colspan="6" class="text-center pb-0">
