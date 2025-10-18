@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.3">
+<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.4">
 
 <div class="box-section">
     <div id="import_invoice">
@@ -500,4 +500,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.4"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.5"></script>
