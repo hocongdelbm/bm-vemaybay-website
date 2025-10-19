@@ -23,6 +23,9 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_LISTVIEW_SOHOADON',
         'width' => '12%',
         'default' => true,
+        'related_fields' => array(
+            'company_unit',
+		),
     ),
     'REPRESENT_BOOKING' => array(
         'label'     => 'LBL_REPRESENT_BOOKING',

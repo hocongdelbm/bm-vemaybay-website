@@ -30,7 +30,7 @@ class EC_HoaDonBanLogicHook {
 			if($bean->passport_number && !empty($bean->passport_number)) {
 				$itemIdentityNumber = "<div class='d-flex justify-content-start mb-1'>
 					<b style='width:20%;'>Passport:</b>
-					<span style='flex:1;'>{$bean->passport_number}</span>
+					<span style='flex:1; letter-spacing:1.5px;'>{$bean->passport_number}</span>
 				</div>";
 			}
 			else {
