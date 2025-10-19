@@ -36,7 +36,7 @@ class EC_HoaDonBanLogicHook {
 			else {
 				$itemIdentityNumber = "<div class='d-flex justify-content-start mb-1'>
 					<b style='width:20%;'>CCCD:</b>
-					<span style='flex:1;'>{$bean->citizen_id}</span>
+					<span style='flex:1; letter-spacing:1.5px;'>{$bean->citizen_id}</span>
 				</div>";
 			}
 		}
