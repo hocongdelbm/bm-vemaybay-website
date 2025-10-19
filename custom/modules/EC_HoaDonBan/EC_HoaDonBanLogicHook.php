@@ -1,6 +1,7 @@
 <?php
 class EC_HoaDonBanLogicHook {
 	public function custom_column_list_view(SugarBean $bean, $event, $arguments) {
+		// Invoice number
 		switch($bean->company_unit) {
 			case 'MHV':
 			    $bean->sohoadon = (int)$bean->sohoadon;
@@ -21,6 +22,43 @@ class EC_HoaDonBanLogicHook {
 		$resBookingInfo = $GLOBALS['db']->query($sqlBookingInfo);
 		$rowBookingInfo = $GLOBALS['db']->fetchByAssoc($resBookingInfo);
 		$bean->represent_booking = "<a href='index.php?module=EC_Flight_Bookings&action=DetailView&record={$rowBookingInfo['booking_id']}' target='_blank'>{$rowBookingInfo['booking']}</a>";
+	
+		// Info customer/company
+		$infoName = $bean->loaikh == '0' ? $bean->tencongty : $bean->lienhe;
+		$itemIdentityNumber = '';
+		if($bean->loaikh == '1') {
+			if($bean->passport_number && !empty($bean->passport_number)) {
+				$itemIdentityNumber = "<div class='d-flex justify-content-start mb-1'>
+					<b style='width:20%;'>Passport:</b>
+					<span style='flex:1;'>{$bean->passport_number}</span>
+				</div>";
+			}
+			else {
+				$itemIdentityNumber = "<div class='d-flex justify-content-start mb-1'>
+					<b style='width:20%;'>CCCD:</b>
+					<span style='flex:1;'>{$bean->citizen_id}</span>
+				</div>";
+			}
+		}
+		$bean->masothue = "<div style='width:350px;'>
+			<div class='d-flex justify-content-start mb-1'>
+				<b style='width:20%;'>KH/Cty:</b>
+				<b style='flex:1;'>{$infoName}</b>
+			</div>
+			<div class='d-flex justify-content-start mb-1'>
+				<b style='width:20%;'>MST:</b>
+				<span style='flex:1;'>{$bean->masothue}</span>
+			</div>
+			{$itemIdentityNumber}
+			<div class='d-flex justify-content-start mb-1'>
+				<b style='width:20%;'>Email:</b>
+				<span style='flex:1;'>{$bean->email}</span>
+			</div>
+			<div class='d-flex justify-content-start mb-1'>
+				<b style='width:20%;'>Địa chỉ:</b>
+				<span style='flex:1;'>{$bean->diachi}</span>
+			</div>
+		</div>";
 	}
 
 	public function checkBeforeDelete($focus, $event, $arguments) {

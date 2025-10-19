@@ -6,54 +6,56 @@ if (!defined('sugarEntry') || !sugarEntry) {
 $module_name = 'EC_HoaDonBan';
 $listViewDefs[$module_name] = array(
     'NAME' => array(
-        'width' => '10%',
-        'label' => 'LBL_NAME',
+        'width' => '12%',
+        'label' => 'LBL_LISTVIEW_NAME',
         'default' => true,
         'link' => true,
+        'related_fields' => array(
+			'description',
+		),
     ),
     'NGAYHOADON' => array(
-        'label' => 'LBL_NGAYHOADON',
-        'width' => '10%',
+        'label' => 'LBL_LISTVIEW_NGAYHOADON',
+        'width' => '12%',
         'default' => true,
     ),
     'SOHOADON' => array(
-        'label' => 'LBL_SOHOADON',
+        'label' => 'LBL_LISTVIEW_SOHOADON',
         'width' => '12%',
         'default' => true,
-        // 'type' => 'int',
     ),
     'REPRESENT_BOOKING' => array(
         'label'     => 'LBL_REPRESENT_BOOKING',
         'default'   => true,
     ),
-    'DESCRIPTION' => array(
-        'label' => 'LBL_DESCRIPTION',
-        'width' => '10%',
-        'default' => true,
-    ),
     'LOAIKH' => array(
         'label' => 'LBL_LOAIKH',
-        'width' => '12%',
         'default' => true,
     ),
-    'TENCONGTY' => array(
-        'label' => 'LBL_TENCONGTY_KH',
-        'width' => '12%',
+    // 'TENCONGTY' => array(
+    //     'label' => 'LBL_TENCONGTY_KH',
+    //     'default' => true,
+    //     'related_fields' => array(
+	// 		'lienhe',
+	// 	),
+    // ),
+    'MASOTHUE' => array(
+        'label' => 'LBL_LISTVIEW_GENERAL_INFO',
         'default' => true,
         'related_fields' => array(
-			'lienhe',
+            'tencongty', 'lienhe', 'diachi', 'email', 'citizen_id', 'passport_number'
 		),
     ),
+
+    
     'TINHTRANG' => array(
         'label' => 'LBL_TINHTRANG',
-        'width' => '10%',
         'default' => true,
     ),
     'TONGTHANHTOAN' => array(
         'type' => 'currency',
         'label' => 'LBL_TONGTHANHTOAN',
         'currency_format' => true,
-        'width' => '10%',
         'default' => true,
     ),
     // 'CREATED_BY_NAME' => array(
@@ -65,7 +67,6 @@ $listViewDefs[$module_name] = array(
     'DATE_ENTERED' => array(
         'type' => 'datetime',
         'label' => 'LBL_DATE_ENTERED',
-        'width' => '10%',
         'default' => true,
     ),
 );

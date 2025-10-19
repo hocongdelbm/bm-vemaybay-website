@@ -72,4 +72,9 @@ $mod_strings = array(
   'LBL_PASSPORT_NUMBER' => 'Hộ chiếu',
   'LBL_IDENTITY_NUMBER' => 'CCCD/Hộ chiếu',
   'LBL_REPRESENT_BOOKING' => 'Booking',
+
+  'LBL_LISTVIEW_GENERAL_INFO' => 'Thông tin',
+  'LBL_LISTVIEW_NAME' => 'Chứng từ',
+  'LBL_LISTVIEW_SOHOADON' => 'Số HĐ',
+  'LBL_LISTVIEW_NGAYHOADON' => 'Ngày HĐ',
 );
