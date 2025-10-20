@@ -879,6 +879,7 @@ class Viewinputinvoice extends SugarView {
                 // Nếu là vé quốc tế, VAT = 0
                 if (isset($data[$i]['is_intern'])) {
                     $input_iv->cost_no_vat      = $input_iv->cost;
+                    $input_iv->vat_per          = 0;
                     $input_iv->vat              = 0;
                     $input_iv->authorized_fee   = 0;
                 }
@@ -888,30 +889,15 @@ class Viewinputinvoice extends SugarView {
 
                     if($input_iv->supplier == 'HNH') {
                         $input_iv->cost_no_vat  = ($data[$i]['total'] - $data[$i]['authorized_collection']) / 1.08;
-                        $input_iv->vat          = $input_iv->cost_no_vat * 0.08;
+                        $input_iv->vat_per      =  0.08;
+                        $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
                     }
                     else if($input_iv->supplier == 'PNA') {
                         $input_iv->cost_no_vat  = $data[$i]['ticket_price'] + $data[$i]['other_charge'];
-                        $input_iv->vat          = $input_iv->cost_no_vat * 0.08;
+                        $input_iv->vat_per      =  0.08;
+                        $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
-
-                        // // Tính giá vốn (VAT) bỏ nhân SL
-                        // $input_iv->cost = ($data[$i]['ticket_price'] ?? 0)
-                        //     + ($data[$i]['vat'] ?? 0)
-                        //     + ($data[$i]['admin_fee'] ?? 0)
-                        //     + ($data[$i]['luggage_outbound'] ?? 0)
-                        //     + ($data[$i]['luggage_inbound'] ?? 0);
-
-                        // // Tính giá vốn chưa vat
-                        // $input_iv->cost_no_vat = $input_iv->cost
-                        //     - ($data[$i]['vat'] ?? 0)
-                        //     - ($data[$i]['vat_admin'] ?? 0)
-                        //     - ($data[$i]['vat_luggage_outbound'] ?? 0)
-                        //     - ($data[$i]['vat_luggage_inbound'] ?? 0);
-
-                        // // Tính vat
-                        // $input_iv->vat = $input_iv->cost - $input_iv->cost_no_vat;
                     }
                 }
             

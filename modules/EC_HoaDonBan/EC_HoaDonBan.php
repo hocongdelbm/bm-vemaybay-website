@@ -321,13 +321,16 @@ class EC_HoaDonBan extends Basic {
 
 					$serviceFee = 0;
 					if($tk['ticket_type'] == 'flight') {
-						$serviceFee = $avgFlightServiceFee * $tk['qty'];
+						$serviceFee = $code == 'VMB_QT' ? 0 : $avgFlightServiceFee * $tk['qty'];
+					}
+					if($tk['ticket_type'] == 'ticketing_fee') {
+						$serviceFee = $totalFlightServiceFee;
 					}
 					elseif($tk['ticket_type'] == 'baggage') {
 						$serviceFee = $avgBaggageServiceFee * $tk['qty'];
 					}
-					
-					$taxRate = $code == 'VMB_QT' ? 0 : 0.08;
+
+					$taxRate = $tk['vat_per'];
 					$divide = 1;
 					if($taxRate == 0.08) $divide = 1.08;
 					else if($taxRate == 0.1) $divide = 1.1;
@@ -406,7 +409,7 @@ class EC_HoaDonBan extends Basic {
 				return $isInter ? 'VMB_QT' : 'VMB_QN';
 			case 'baggage':
 				return 'PHL';
-			case 'exchange':
+			case 'exchange_fee':
 				return 'PD';
 			case 'seat':
 				return 'PMG';

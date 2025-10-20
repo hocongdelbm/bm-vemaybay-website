@@ -414,9 +414,9 @@ $(document).ready(function () {
         $(this).val(format_value);
     });
 
-    $(document).on('input', '#im_ticketing_fee, #ticketing_fee_vat_percent', function () {
+    $(document).on('input', '#im_ticketing_fee, #im_ticketing_fee_vat_percent', function () {
         let fee     = unformatNumber($('#im_ticketing_fee').val());
-        let percent = $('#ticketing_fee_vat_percent').val();
+        let percent = $('#im_ticketing_fee_vat_percent').val();
         let vat     = fee * percent;
         $('#im_ticketing_fee').val(formatNumber(fee));
         $('#im_ticketing_fee_vat').val(formatNumber(vat));
@@ -430,7 +430,8 @@ function calculateTicketPrice(is_cal_vat = 0) {
     let authorized = unformatNumber($("#im_authorized").val());
 
     let vat = 0;
-    if (is_cal_vat) vat = Math.round(cost * 0.08);
+    let vat_per = parseFloat($("#im_vat_percent").val());
+    if (is_cal_vat) vat = Math.round(cost * vat_per);
     else vat = unformatNumber($("#im_vat").val());
 
     $("#im_cost").val(formatNumber(cost));
@@ -514,6 +515,7 @@ function set_inv_return(popupReplyData) {
             $("#im_qty").val(result.inv_qty);
             $("#im_accounting_date").val(result.inv_accounting_date);
             $("#im_ticket_type").val(result.inv_ticket_type)
+            $("#im_vat_percent").val(result.inv_vat_percent);
             $("#im_vat").val(formatNumber(result.inv_vat));
             $("#im_cost").val(formatNumber(result.inv_cost));
             $("#im_cost_vat").val(formatNumber(result.inv_cost_vat));

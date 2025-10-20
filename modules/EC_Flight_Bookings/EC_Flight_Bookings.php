@@ -1250,16 +1250,22 @@ class EC_Flight_Bookings extends Basic
 			}
 
 			// Baggage ticket number
-			if(isset($row['bagTicketNumberOut']) && !empty($row['bagTicketNumberOut'])) {
-				$listTickets[$row['bagTicketNumberOut']][] = [
+			if(isset($row['bagPriceOut']) && $row['bagPriceOut'] > 0) {
+				$bagTicketNumberOut = $row['bagTicketNumberOut'] ?? '';
+				if(empty($bagTicketNumberOut)) $bagTicketNumberOut = 'BAGTICKETOUT';
+
+				$listTickets[$bagTicketNumberOut][] = [
 					'type' 			=> 'baggage',
 					'direction' 	=> 0,
 					'passName' 		=> $row['name'],
 					'purchasePrice' => $row['bagPriceOut'],
 				];
 			}
-			if(isset($row['bagTicketNumberIn']) && !empty($row['bagTicketNumberIn'])) {
-				$listTickets[$row['bagTicketNumberIn']][] = [
+			if(isset($row['bagPriceIn']) && $row['bagPriceIn'] > 0) {
+				$bagTicketNumberIn = $row['bagTicketNumberIn'] ?? '';
+				if(empty($bagTicketNumberIn)) $bagTicketNumberIn = 'BAGTICKETIN';
+
+				$listTickets[$bagTicketNumberIn][] = [
 					'type' 			=> 'baggage',
 					'direction' 	=> 1,
 					'passName' 		=> $row['name'],

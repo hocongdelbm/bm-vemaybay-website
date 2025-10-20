@@ -29,6 +29,7 @@ class entryInputInvoiceClass extends entryClass {
                 ,i.supplier AS inv_supplier
                 ,i.qty AS inv_qty
                 ,i.cost_no_vat AS inv_cost
+                ,IFNULL(i.vat_per, 0) AS inv_vat_percent
                 ,i.vat AS inv_vat
                 ,i.cost AS inv_cost_vat
                 ,i.authorized_fee AS inv_authorized

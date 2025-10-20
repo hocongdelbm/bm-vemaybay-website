@@ -6,7 +6,7 @@ class Viewrequestinvoice extends SugarView {
     public function display() {
         $smarty = new Sugar_Smarty();
         $this->populateContent($smarty, $_POST);
-        $this->populateContent2($smarty, $_POST);
+        // $this->populateContent2($smarty, $_POST);
         $smarty->display('modules/EC_HoaDonBan/tpls/requestinvoice.tpl');
     }
 

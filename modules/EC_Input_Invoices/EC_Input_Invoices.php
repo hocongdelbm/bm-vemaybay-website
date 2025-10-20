@@ -43,6 +43,7 @@ class EC_Input_Invoices extends Basic {
     public $order_by_no;
     public $cost;
     public $cost_no_vat;
+    public $vat_per;
     public $vat;
     public $authorized_fee;
     public $ticket_code;
@@ -102,6 +103,7 @@ class EC_Input_Invoices extends Basic {
                 $this->booking_id           = $_POST['im_booking_id'];
                 $this->status               = 1;
                 $this->cost_no_vat          = unformat_number($_POST['im_cost']);
+                $this->vat_per              = $_POST['im_vat_percent'] ?? 0.08;
                 $this->vat                  = unformat_number($_POST['im_vat']);
                 $this->cost                 = unformat_number($_POST['im_cost_vat']);
                 $this->authorized_fee       = unformat_number($_POST['im_authorized'] ?? 0);
@@ -127,6 +129,7 @@ class EC_Input_Invoices extends Basic {
                     $beanInInv->status          = 1;
                     $beanInInv->cost            = unformat_number($ticketing_fee);
                     $beanInInv->cost_no_vat     = unformat_number($_POST['im_ticketing_fee_no_vat'] ?? 0);
+                    $beanInInv->vat_per         = $_POST['im_ticketing_fee_vat_percent'] ?? 0.08;
                     $beanInInv->vat             = unformat_number($_POST['im_ticketing_fee_vat'] ?? 0);
                     $beanInInv->authorized_fee  = 0;
                     $beanInInv->total           = $beanInInv->cost * $beanInInv->qty;
@@ -149,6 +152,7 @@ class EC_Input_Invoices extends Basic {
                 $this->itinerary            = $_POST['im_iti'];
                 $this->booking_id           = $_POST['im_booking_id'];
                 $this->status               = 1;
+                $this->vat_per              = $_POST['im_vat_percent'] ?? 0.08;
                 $this->cost_no_vat          = unformat_number($_POST['im_cost']);
                 $this->vat                  = unformat_number($_POST['im_vat']);
                 $this->cost                 = unformat_number($_POST['im_cost_vat']);
@@ -186,9 +190,9 @@ class EC_Input_Invoices extends Basic {
                 $note->description  = 'Đã lấy hóa đơn đầu vào số: ' . $_POST['im_invoice_number'] . '; số vé: ' . $_POST['im_ticket_code'];
                 $note->save();
 
-                // // Auto create output invoice
-                // $beanOutInv = new EC_HoaDonBan();
-                // $beanOutInv->createAuto($booking_id);
+                // Auto create output invoice
+                $beanOutInv = new EC_HoaDonBan();
+                $beanOutInv->createAuto($booking_id);
             }
 
             return $input_invoice_id;
@@ -215,6 +219,7 @@ class EC_Input_Invoices extends Basic {
                 ,i.supplier
                 ,i.itinerary
                 ,IFNULL(i.cost_no_vat, 0) AS cost_no_vat
+                ,IFNULL(i.vat_per, 0) AS vat_per
                 ,IFNULL(i.vat, 0) AS vat
                 ,i.authorized_fee
                 ,i.total

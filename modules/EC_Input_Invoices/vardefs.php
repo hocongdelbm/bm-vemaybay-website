@@ -169,6 +169,23 @@ $dictionary['EC_Input_Invoices'] = array(
             'len' => 26,
         ),
 
+        // Phần trăm VAT
+        'vat_per' => array(
+            'name' => 'vat_per',
+            'vname' => 'LBL_VAT_PER',
+            'required' => false,
+            'type' => 'float',
+            'len' => '6',
+            'precision' => '2',
+            'default' => 0.08,
+            'massupdate' => 0,
+            'importable' => 1,
+            'audited' => 1,
+            'reportable' => 0,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+        ),
+
         // Tiền VAT giá vốn
         'vat' => array(
             'required' => false,

@@ -336,7 +336,16 @@
                                         </div>
                                     </td>
                                     <td><span class="label">VAT</span></td>
-                                    <td><input type="text" class="box-input" id="im_vat" name="im_vat" oninput="calculateTicketPrice();"></td>
+                                    <td>
+                                        <div class="input-group mb-1">
+                                            <input type="text" name="im_vat" id="im_vat" class="box-input form-control" style="width:40%;" oninput="calculateTicketPrice();" />
+                                            <select name="im_vat_percent" id="im_vat_percent" class="box-select form-control" onchange="calculateTicketPrice(1);">
+                                                <option value="0.08" selected>8%</option>
+                                                <option value="0.1">10%</option>
+                                                <option value="0">0</option>
+                                            </select>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><span class="label">Nhà cung cấp</span></td>
@@ -378,15 +387,15 @@
                                         <span class="label" title="Tách riêng phí xuất vé với số vé">Phí xuất vé</span>
                                     </td>
                                     <td>
+                                        <input type="text" name="im_ticketing_fee" id="im_ticketing_fee" class="box-input decimal-only mb-1" placeholder="Giá vốn" />    
                                         <div class="input-group mb-1">
-                                            <input type="text" name="im_ticketing_fee" id="im_ticketing_fee" class="box-input form-control decimal-only" placeholder="Giá vốn" style="width:40%;" />    
-                                            <select id="ticketing_fee_vat_percent" class="box-select form-control">
+                                            <input type="text" name="im_ticketing_fee_vat" id="im_ticketing_fee_vat" class="box-input form-control" placeholder="VAT" style="width:40%;" readonly />
+                                            <select name="im_ticketing_fee_vat_percent" id="im_ticketing_fee_vat_percent" class="box-select form-control">
                                                 <option value="0.08" selected>8%</option>
                                                 <option value="0.1">10%</option>
                                                 <option value="0">0</option>
                                             </select>
                                         </div>
-                                        <input type="text" name="im_ticketing_fee_vat" id="im_ticketing_fee_vat"  class="box-input mb-1" placeholder="VAT" readonly />
                                         <input type="text" name="im_ticketing_fee_no_vat" id="im_ticketing_fee_no_vat"  class="box-input" placeholder="Giá vốn chưa VAT" readonly />
                                     </td>
                                 </tr>
@@ -500,4 +509,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.5"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.6"></script>

@@ -33,11 +33,11 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	}
 
 	private function getStyles() {
-		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0'>";
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0' />";
 	}
 
 	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.4'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.5'></script>";
 	}
 	
 	public function populateLineItems() {
