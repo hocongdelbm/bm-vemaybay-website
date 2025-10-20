@@ -23,7 +23,7 @@ class Viewrequestinvoice extends SugarView {
                 ,bk.company_address
                 ,bk.shipping_address
                 ,(
-                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name, ) SEPARATOR '|') 
+                    SELECT GROUP_CONCAT(DISTINCT CONCAT_WS(',', hd.id, hd.name) SEPARATOR '|') 
                     FROM ec_chitiethoadon ct
                         INNER JOIN ec_hoadonban hd ON hd.id = ct.parent_id
                     WHERE ct.booking_id = rv.booking_id
@@ -56,6 +56,9 @@ class Viewrequestinvoice extends SugarView {
                 AND rv.deleted = 0
             GROUP BY rv.booking_id, rv.ngaychungtu
             ORDER BY rv.ngaychungtu DESC";
+            
+        global $current_user;
+        if($current_user->id == '1') pr($sql);
 
         $i = 0;
         $res = $this->bean->db->query($sql);
