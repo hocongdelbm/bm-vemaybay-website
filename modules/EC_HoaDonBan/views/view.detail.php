@@ -37,7 +37,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	}
 
 	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.3'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.4'></script>";
 	}
 	
 	public function populateLineItems() {
@@ -200,8 +200,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 				// Map input API
 				$array_item['items'][] = [
-					'itemCode'			=> 'PS',
-					'itemName' 			=> 'Phí sân bay',
+					// 'itemCode'			=> 'PS',
+					// 'itemName' 			=> 'Phí sân bay',
+					'itemCode'			=> 'PK',
+					'itemName' 			=> 'Phí khác',
 					'itemUnit' 			=> 'Vé',
 					'itemQuantity' 		=> 1,
 					'itemPrice' 		=> $phisanbay,

@@ -754,7 +754,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
         }
         // The other domestic airlines allow close-in ticket holds
         $isIssueTicket = $isWithin24h;
-        if($isWithin24h === 1 && $airlineCodes[0] != 'VJ') $isIssueTicket === 0;
+        if($isWithin24h === 1 && !in_array($airlineCodes[0], ['VJ', 'VU'])) $isIssueTicket === 0;
 
         // Contact info
         $contactRequiredFields = [

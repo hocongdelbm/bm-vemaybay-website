@@ -395,7 +395,6 @@ $viewdefs[$module_name]['DetailView'] = array(
             //         'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
             //     ),
             // ),
-
         ),
     )
 );

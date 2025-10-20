@@ -67,8 +67,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.7"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/booking.js?v=1.0"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.8"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/booking.js?v=1.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.9"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
 
@@ -107,15 +107,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		echo $js;
 	}
 
-	function displayCSS()
-	{
-		$css = '
+	private function displayCSS() {
+		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.4">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
-		echo $css;
 	}
 
 	// Line Note Message - Made by: DucPham at 28/09/2022
@@ -1201,170 +1199,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			);
 		}
 		else $this->ss->assign('BUTTON_AUTO_BOOK', '');
-
-		// // Reservation with API Vietjet
-		// $allowed_holding_status = [1,2,3,6];
-		// if (in_array($this->bean->booking_status, $allowed_holding_status)
-		// 	&& ($this->bean->ticket_type == 1 || is_admin($current_user))
-		// 	&& ($this->bean->airline == 'VJA' || $this->bean->airline_inbound == 'VJA' || $this->bean->airline == 'VZ' || $this->bean->airline_inbound == 'VZ')
-		// 	&& (!$this->bean->is_hold && !$this->bean->holding_status)
-		// ) {
-		// 	/*----- Thông tin hành trình -----*/
-		// 	$journeys = array();
-		// 	$sql_1 = "
-		// 		SELECT 
-		// 			iti.id,
-		// 			iti.departure,
-		// 			iti.arrival,
-		// 			-- DATE_ADD(iti.departure_date, INTERVAL 7 HOUR) AS departure_date,
-		// 			-- DATE_ADD(iti.arrival_date, INTERVAL 7 HOUR) AS arrival_date,
-		// 			iti.departure_date AS departure_date,
-		// 			iti.arrival_date AS arrival_date,
-		// 			iti.base_price,
-		// 			iti.ticket_class,
-		// 			iti.direction,
-		// 			iti.airline_code,
-		// 			iti.flight_number
-		// 		FROM ec_booking_itineraries iti
-		// 		WHERE iti.deleted = 0
-		// 			AND iti.add_type = 0
-		// 			AND iti.booking_id = '" . $this->bean->id . "'
-		// 		ORDER BY iti.direction, iti.date_entered, iti.departure_date";
-		// 	$stt_dep = $stt_ret = 0;
-		// 	$res_1 = $this->bean->db->query($sql_1);
-		// 	$array_vj = [
-		// 		'VJ',
-		// 		'VJA',
-		// 		'VZ',
-		// 	];
-
-		// 	while ($row = $this->bean->db->fetchByAssoc($res_1)) {
-		// 		if (!in_array($row['airline_code'], $array_vj)) continue;
-
-		// 		// Lượt đi
-		// 		if ($row['direction'] == '0') {
-		// 			$departure_date = explode(' ', $row['departure_date']);
-		// 			if ($stt_dep == 0) {
-		// 				$journeys[$row['id']] = array(
-		// 					'type' 		=> 'dep',
-		// 					'dep_code' 	=> $row['departure'],
-		// 					'arv_code'	=> $row['arrival'],
-		// 					'ticket_class'	=> $row['ticket_class'],
-		// 					'date'  	=> $departure_date[0],
-		// 					'time'  	=> substr($departure_date[1], 0, -3),
-		// 					'flightno'	=> $row['flight_number'],
-		// 					'price'		=> (int) $row['base_price'],
-		// 					'price_format' => format_number($row['base_price'])
-		// 				);
-		// 			} else $journeys['dep']['arv_code'] = $row['arrival'];
-
-		// 			$stt_dep++;
-		// 		}
-
-		// 		// Lượt về
-		// 		if ($row['direction'] == '1') {
-		// 			$return_date = explode(' ', $row['departure_date']);
-		// 			if ($stt_ret == 0) {
-		// 				$journeys[$row['id']] = array(
-		// 					'type' 		=> 'ret',
-		// 					'dep_code' 	=> $row['departure'],
-		// 					'arv_code'	=> $row['arrival'],
-		// 					'ticket_class'	=> $row['ticket_class'],
-		// 					'date'  		=> $return_date[0],
-		// 					'time'  		=> substr($return_date[1], 0, -3),
-		// 					'flightno'	=> $row['flight_number'],
-		// 					'price'		=> (int) $row['base_price'],
-		// 					'price_format' => format_number($row['base_price'])
-		// 				);
-		// 			} else $journeys['ret']['arv_code'] = $row['arrival'];
-
-		// 			$stt_ret++;
-		// 		}
-		// 	}
-
-
-		// 	/*----- Thông tin Email booker giữ chỗ -----*/
-		// 	$email = $this->bean->email_reservation;
-
-		// 	/*----- Thông tin liên hệ -----*/
-		// 	$contact_phone = preg_replace('/^0/', '+84', $this->bean->phone);
-		// 	$contact_phone_format = preg_replace('/^0/', '(+84) ', $this->bean->phone);
-
-		// 	$form_reservation = '</form>
-		// 		<form name="reservation_form_vja" id="reservation_form_vja">
-		// 			<input type="hidden" name="journeys_info_vja" value="' . str_replace('"', "'", json_encode($journeys)) . '" id="journeys_info_vja">
-		// 			<input type="hidden" name="reservation_booking_id" value="' . $this->bean->id . '" id="reservation_booking_id">
-		// 			<input type="hidden" name="reservation_phone" value="' . $contact_phone . '">
-		// 			<input type="hidden" name="reservation_email" value="' . $email . '">
-		// 			<input type="hidden" name="reservation_username" value="' . $current_user->user_name . '">
-		// 			<input type="button" class="btn btn-danger fw-semibold" id="btn_holding_vja" name="btn_holding_vja" value="Giữ chỗ Vietjet" title="Giữ chỗ Vietjet" />
-		// 		</form>';
-
-		// 	$dialog = '<dialog id="confirm_reservation_dialog_vja">
-		// 					<h2 class="title">Thông tin giữ chỗ <img id="vietjet_logo" src="custom/themes/default/images/airline-icon-120x40/VJ.gif" /></h2>
-		// 					<form method="dialog">
-		// 						<div class="wrap-journey">
-		// 							<h3 class="subtitle">Thông tin hành trình</h3>
-
-		// 							<div class="wrap-for-flex">
-		// 								<div class="journey" id="reservation_journey_dep_vja">
-		// 									<div class="left">
-		// 										<p><b>Hành trình: </b><span class="journey_info"></span></p>
-		// 										<p><b>Ngày giờ bay: </b><span class="datetime"></span></p>
-		// 										<p><b>Số hiệu: </b><span class="flightno"></span></p>
-		// 									</div>
-		// 									<div class="right">
-		// 										<p><b>Giá cơ bản: </b><span class="baseprice"></span></p>
-		// 										<p><b>Class: </b><span class="ticket_class"></span></p>
-		// 									</div>
-		// 								</div>
-
-		// 								<div class="journey" id="reservation_journey_ret_vja">
-		// 									<div class="left">
-		// 										<p><b>Hành trình: </b><span class="journey_info"></span></p>
-		// 										<p><b>Ngày giờ bay: </b><span class="datetime"></span></p>
-		// 										<p><b>Số hiệu: </b><span class="flightno"></span></p>
-		// 									</div>
-		// 									<div class="right">
-		// 										<p><b>Giá cơ bản: </b><span class="baseprice"></span></p>
-		// 										<p><b>Class: </b><span class="ticket_class"></span></p>
-		// 									</div>
-		// 								</div>
-		// 							</div>
-
-		// 						</div>
-		// 						<hr />
-
-		// 						<div class="wrap-passenger">
-		// 							<h3 class="subtitle">Thông tin hành khách</h3>
-		// 						</div>
-		// 						<hr style="clear:both" />
-
-		// 						<div class="wrap-contact">
-		// 							<h3 class="subtitle">Thông tin liên hệ</h3>
-		// 							<p><b>Số điện thoại: </b>' . $contact_phone_format . '</p>
-		// 							<p><b>Email đặt chỗ: </b>' . $email . '</p>
-		// 						</div>
-
-		// 						<div class="notes">
-		// 							<p class="warning"></p>
-		// 							<p class="credit_available"></p>
-		// 							<p class="remind">Vui lòng kiểm tra kỹ thông tin trên trước khi xác nhận giữ chỗ</p>
-		// 						</div>
-								
-		// 						<div class="wrap-button">
-		// 							<label for="supplier_booking" class="form-label">Chọn NCC: </label>
-		// 							<select name="supplier_booking" id="supplier_booking" class="form-select form-select-sm">
-		// 								<option value="3e414dde-85b6-315b-e0ba-6556c458368f" selected>Minh Hồng Võ</option>
-		// 							</select>
-		// 							<button id="cancel_reservation_vja" class="btn btn-secondary" value="cancel">Hủy</button>
-		// 							<button id="confirm_reservation_vja" class="btn btn-confirm" value="default">Xác nhận</button>
-		// 						</div>
-		// 					</form>
-		// 				</dialog>';
-
-		// 	$this->ss->assign('RESERVATION_VJA', $form_reservation . $dialog);
-		// } else $this->ss->assign('RESERVATION_VJA', '');
 	}
 
 	// Display all itineraries
@@ -1688,13 +1522,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			// }
 			if ($row['admin_fee_no_vat'] > 0) {
 				$admin_fee_inf = '<div class="admin_fee_no_vat--wrap d-flex align-items-center justify-content-between">
-									<span class="text-start">TVAT:</span>
-									<span class="text-end">' . format_number($row['admin_fee_no_vat']) . '</span>
-								</div>
-								<div class="vat_admin--wrap d-flex align-items-center justify-content-between">
-									<span class="text-start">VAT:</span>
-									<span class="text-end">' . format_number($row['vat_admin']) . '</span>
-								</div>';
+								<span class="text-start">TVAT:</span>
+								<span class="text-end">' . format_number($row['admin_fee_no_vat']) . '</span>
+							</div>
+							<div class="vat_admin--wrap d-flex align-items-center justify-content-between">
+								<span class="text-start">VAT:</span>
+								<span class="text-end">' . format_number($row['vat_admin']) . '</span>
+							</div>';
 			}
 
 			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';

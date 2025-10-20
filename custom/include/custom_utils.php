@@ -910,24 +910,19 @@ function isWorkingProcessExisting($parent_type, $parent_id, $field = '')
 }
 
 // Remove working process exist
-function myRemoveWorkingProcess($parent_type, $parent_id, $field = '')
-{
+function myRemoveWorkingProcess($parent_type, $parent_id, $field = '') {
     global $db;
     $sql = "UPDATE ec_working_process
 			SET deleted = 1
-			WHERE parent_id = '" . $parent_id . "'
-				AND parent_type = '" . $parent_type . "'
-				AND deleted = 0";
-    if ($field != '') {
-        $sql .= " AND " . $field . " IS NOT NULL ";
+			WHERE parent_id = '{$parent_id}' AND parent_type = '{$parent_type}' AND deleted = 0";
+    if (!empty($field)) {
+        $sql .= " AND {$field} IS NOT NULL ";
     }
-    $db->query($sql);
+    return $db->query($sql);
 }
 
 // Create working process
-function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field)
-{
-    global $sugar_config, $current_user;
+function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field) {
     if (!empty($field)) {
         $work = new EC_Working_Process();
         $work->id = '';
@@ -937,41 +932,9 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
         $work->description = trim($description);
         $work->assigned_user_id = $assigned_user_id;
         $work->$field = 1;
-        $work->save();
-        
-        if(empty($work->id)) {
-            // // SEND TELE WARNING SAVE KPI FAILED
-            // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-            // "- User: <b>" . $current_user->user_name . "</b>\n" .
-            // "<pre>[WARNING]: myCreateWorkingProcess FAILED ".$description.".</pre>";
-            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            // sendTelegramWarningSystem(
-            //     json_encode(array(
-            //         'text' => $content,
-            //         'parse_mode' => 'HTML',
-            //         'reply_markup' => array(
-            //             'inline_keyboard' => array(
-            //                 array(
-            //                     array(
-            //                         'text' => 'Redirect url',
-            //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module='.$parent_name.'&action=DetailView&record=' . $parent_id,
-            //                     ),
-            //                 ),
-            //             ),
-            //         ),
-            //     ), JSON_UNESCAPED_UNICODE),
-            // );
-
-            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=$parent_name&action=DetailView&record=$parent_id", "Redirect url");
-            $message = Mattermost::$line_separation;
-            $message .= Mattermost::markdownHeading("[WARNING]: Function myCreateWorkingProcess() failed");
-            $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-            $message .= "\n- User: **$current_user->user_name**";
-            $message .= "\n- Description: **$description**";
-            $message .= "\n$link";
-            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-        }
+        return $work->save();
     }
+    return false;
 }
 
 // Get total record of module by day
@@ -2161,13 +2124,12 @@ function global_test_input($data)
 }
 
 
-function custom_get_sip_number($key = '')
-{
+function custom_get_sip_number($key = '') {
     $arr = [
         /************************  IT  ************************/
+        '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
         'dedf3602-b1ec-97da-abbe-6656e656f5eb' => ['user' => '001', 'password' => '0Cm1Wc$bQd%ZTK5tnGGZ'], // Admin
         '168889bb-54c2-59c7-8b3f-649102530d3c' => ['user' => '010', 'password' => 'JgXTH7xYX?A4qLzK%vAD'], // Admin
-        '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
         '622ecf27-f729-7187-7e27-6520e0dab882' => ['user' => '222', 'password' => '246357@89'], // Admin
 
         /************************  BOOKER  ************************/

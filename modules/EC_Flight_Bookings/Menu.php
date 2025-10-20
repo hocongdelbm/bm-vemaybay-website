@@ -1,18 +1,12 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
-}
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-global $mod_strings, $app_strings, $sugar_config, $current_user;
-$deparment_info = myGetDepartmentInfo($current_user->department_id);
-
-$title_info = $current_user->title;
+global $mod_strings, $current_user;
+// $deparment_info = myGetDepartmentInfo($current_user->department_id);
  
-if(ACLController::checkAccess('EC_Flight_Bookings', 'edit', true))$module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=EditView&return_module=EC_Flight_Bookings&return_action=DetailView", $mod_strings['LNK_NEW_RECORD'],"CreateEC_Flight_Bookings", 'EC_Flight_Bookings');
-
-if(ACLController::checkAccess('EC_Flight_Bookings', 'list', true))$module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=index&return_module=EC_Flight_Bookings&return_action=DetailView", $mod_strings['LNK_LIST'],"EC_Flight_Bookings", 'EC_Flight_Bookings');
-
-if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true))$module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=airportstatistics&return_module=EC_Flight_Bookings&return_action=airportstatistics", "Phân tích hành trình","airplane_16", 'EC_Flight_Bookings');
+if(ACLController::checkAccess('EC_Flight_Bookings', 'list', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=index&return_module=EC_Flight_Bookings&return_action=DetailView", $mod_strings['LNK_LIST'],"EC_Flight_Bookings", 'EC_Flight_Bookings');
+if(ACLController::checkAccess('EC_Flight_Bookings', 'edit', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=EditView&return_module=EC_Flight_Bookings&return_action=DetailView", $mod_strings['LNK_NEW_RECORD'],"CreateEC_Flight_Bookings", 'EC_Flight_Bookings');
+if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true))$module_menu[] = array("index.php?module=EC_Flight_Bookings&action=airportstatistics&return_module=EC_Flight_Bookings&return_action=airportstatistics", "Phân tích hành trình","airplane_16", 'EC_Flight_Bookings');
 
 // Doanh số booker
 if(isManagerUser($current_user->id)) {

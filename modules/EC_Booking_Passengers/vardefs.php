@@ -349,19 +349,19 @@ $dictionary['EC_Booking_Passengers'] = array(
             'disable_num_format' => '',
         ),
 
-        // Phân biệt dòng chi tiết được booker đổi tên hay thêm hành lý
+        // Phân biệt dòng chi tiết được booker đổi tên (=2) hay thêm hành lý (=1)
         'add_type' => array(
             'required' => false,
             'name' => 'add_type',
             'vname' => 'LBL_ADD_TYPE',
             'type' => 'int',
+            'len' => '2',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            'len' => '2',
             'disable_num_format' => '',
         ),
 

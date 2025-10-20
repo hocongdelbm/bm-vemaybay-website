@@ -68,13 +68,6 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'width' => '10%',
             ),
-            'company_unit' => array(
-                'name' => 'company_unit',
-                'type' => 'enum',
-                'label' => 'LBL_COMPANY_UNIT',
-                'default' => true,
-                'width' => '10%',
-            ),
             'loaikh' => array(
                 'name' => 'loaikh',
                 'type' => 'enum',
@@ -86,6 +79,13 @@ $searchdefs[$module_name] = array(
                 'name' => 'tinhtrang',
                 'type' => 'enum',
                 'label' => 'LBL_TINHTRANG',
+                'default' => true,
+                'width' => '10%',
+            ),
+            'company_unit' => array(
+                'name' => 'company_unit',
+                'type' => 'enum',
+                'label' => 'LBL_COMPANY_UNIT',
                 'default' => true,
                 'width' => '10%',
             ),

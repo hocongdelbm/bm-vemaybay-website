@@ -547,8 +547,9 @@ $(document).ready(function () {
                     });
 
                     // Option
+                    const issueTicket = (isWithin24h && ['VJ', 'VU', 'QH'].includes(airlineCodes[0])) ? true : false;
                     requestBody.Option = {
-                        "IssueTicket": false,
+                        "IssueTicket": issueTicket,
                         "SeparateBooking": false,
                     }
                 }
@@ -565,55 +566,69 @@ $(document).ready(function () {
             var bookingResponse = {};
             if(statusAutoBook == 1) {
                 let caption = 'Đặt chỗ';
-                if(isWithin24h && searchInfo[0]['airlineCode'] == 'VJ') caption = 'Xuất vé cận';
+                let isIssueTicket = false;
+                if(isWithin24h) {
+                    if(entryClass == 'entryAutoBookPhuongNamClass' && ['VJ', 'VU'].includes(airlineCodes[0])) {
+                        caption = 'Xuất vé cận';
+                        isIssueTicket = true;
+                    }
+                    else if(entryClass == 'entryAutoBookDatacomClass' && ['VJ', 'VU', 'QH'].includes(airlineCodes[0])) {
+                        caption = 'Xuất vé cận';
+                        isIssueTicket = true;
+                    }
+                }
 
                 showStepsInDialogAutoBook(step, caption + "...");
                 $('#btnAutoBookAction').prop('disabled', true); // Disable button action
                 
-                bookingResponse = await $.ajax({
-                    url: ENTRYPOINT,
-                    method: 'POST',
-                    contentType: "application/json",
-                    dataType: "json",  
-                    data: JSON.stringify({
-                        class: entryClass,
-                        method: 'booking',
-                        params: {
-                            "bookingId": bookingId,
-                            "listPassengerId": listPassengerId,
-                            "listItineraryId": listItineraryId,
-                            "listDetailId": listDetailId,
-                            "requestBody": requestBody
-                        },
-                    })
-                });
-
-                // Enable button action
-                $('#btnAutoBookAction').html('Đóng');
-                $('#btnAutoBookAction').attr("action", "close");
-                $('#btnAutoBookAction').prop('disabled', false);
-
-                if(!bookingResponse || !bookingResponse.status || bookingResponse.status == 0) {
-                    showStepsInDialogAutoBook(step, caption, bookingResponse.message ?? 'Lỗi, vui lòng thử lại sau');
-                    return;
-                }
-
-                // Display BookingCodes (PNR) to client
-                caption = 'Đặt chỗ thành công';
-                if(isWithin24h && searchInfo[0]['airlineCode'] == 'VJ') caption = 'Xuất vé thành công';
-                if(entryClass == 'entryAutoBookPhuongNamClass') {
-                    const bookingCodes = bookingResponse.data.map(item => item.BookingCode);
-                    bookingCodes.forEach(code => {
-                        caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
+                try {
+                    bookingResponse = await $.ajax({
+                        url: ENTRYPOINT,
+                        method: 'POST',
+                        contentType: "application/json",
+                        dataType: "json",  
+                        data: JSON.stringify({
+                            class: entryClass,
+                            method: 'booking',
+                            params: {
+                                "bookingId": bookingId,
+                                "listPassengerId": listPassengerId,
+                                "listItineraryId": listItineraryId,
+                                "listDetailId": listDetailId,
+                                "requestBody": requestBody
+                            },
+                        })
                     });
+
+                    // Enable button action
+                    $('#btnAutoBookAction').html('Đóng');
+                    $('#btnAutoBookAction').attr("action", "close");
+                    $('#btnAutoBookAction').prop('disabled', false);
+
+                    if(!bookingResponse || !bookingResponse.status || bookingResponse.status == 0) {
+                        showStepsInDialogAutoBook(step, caption, bookingResponse.message ?? 'Lỗi, vui lòng kiểm tra code vé và thử lại');
+                        return;
+                    }
+
+                    // Display BookingCodes (PNR) to client
+                    caption = isIssueTicket ? 'Xuất vé thành công' : 'Đặt chỗ thành công';
+                    if(entryClass == 'entryAutoBookPhuongNamClass') {
+                        const bookingCodes = bookingResponse.data.map(item => item.BookingCode);
+                        bookingCodes.forEach(code => {
+                            caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
+                        });
+                    }
+                    else {
+                        const bookingCodes = bookingResponse.data.ListBooking.map(item => `${item.Airline}: ${(item.GdsCode ?? item.BookingCode)}`);
+                        bookingCodes.forEach(code => {
+                            caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
+                        });
+                    }
+                    showStepsInDialogAutoBook(step, caption, '', 1);
                 }
-                else {
-                    const bookingCodes = bookingResponse.data.ListBooking.map(item => `${item.Airline}: ${(item.GdsCode ?? item.BookingCode)}`);
-                    bookingCodes.forEach(code => {
-                        caption += caption.length == 0 ? `<b>${code}</b>` : `<br/><b>${code}</b>`;
-                    });
+                catch (e) {
+                    showStepsInDialogAutoBook(step, caption, bookingResponse ? JSON.stringify(bookingResponse) : e.stack);
                 }
-                showStepsInDialogAutoBook(step, caption, '', 1);
             }
             else if(statusAutoBook == 0) {
                 showStepsInDialogAutoBook(step, '', 'Đã hủy quá trình đặt chỗ');
