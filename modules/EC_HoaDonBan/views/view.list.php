@@ -28,8 +28,6 @@ class EC_HoaDonBanViewList extends ViewList {
 
 		// Remove inline edit
 		$this->lv->quickViewLinks = false;
-
-		$this->lv->data['pageData']['pageLimit'] = 50; // Change this number as needed
     }
 
 	public function display() {
