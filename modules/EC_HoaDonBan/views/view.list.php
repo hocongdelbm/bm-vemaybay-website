@@ -39,11 +39,11 @@ class EC_HoaDonBanViewList extends ViewList {
 	}
 
 	private function getStyles() {
-		echo "<link rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.list.css?v=1.0.1'></script>";
+		echo "<link rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.list.css?v=1.0.2' />";
 	}
 
 	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.list.js?v=1.0.3'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.list.js?v=1.0.4'></script>";
 	}
 
 	private function getNewActionMenuItem() {
