@@ -56,9 +56,6 @@ class Viewrequestinvoice extends SugarView {
                 AND rv.deleted = 0
             GROUP BY rv.booking_id, rv.ngaychungtu
             ORDER BY rv.ngaychungtu DESC";
-            
-        global $current_user;
-        if($current_user->id == '1') pr($sql);
 
         $i = 0;
         $res = $this->bean->db->query($sql);
