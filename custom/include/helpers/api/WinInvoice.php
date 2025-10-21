@@ -160,6 +160,17 @@ class WinInvoice {
                 ]);
             }
 
+            if(($requestBody['invSerial'] == 'C25MHV' && (int)$requestBody['invCustomer'] != 1)
+                || ($requestBody['invSerial'] == 'C25THV' && (int)$requestBody['invCustomer'] != 0)
+            ) {
+                return json_encode([
+                    "error" => 1,
+                    "httpCode" => 400,
+                    "message" => "Ký hiệu HĐ và loại KH không khớp",
+                    "data" => null
+                ]);
+            }
+
             $requestBody['invAutoSign'] = '1'; // KÝ TỰ ĐỘNG
 
             if (empty($requestBody['items'])) {

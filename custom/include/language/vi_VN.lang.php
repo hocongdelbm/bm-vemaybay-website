@@ -347,6 +347,7 @@ $GLOBALS['app_list_strings']['airlines_color_list'] = array(
   'VNP' => '#202d66',
   'VN' => '#166987 ',
   'VNA' => '#166987 ',
+  '9G' => '#9C0512',
 );
 
 $GLOBALS['app_list_strings']['passenger_salutation_list'] = array(
@@ -371,6 +372,7 @@ $GLOBALS['app_list_strings']['aircode_list'] = array(
   'VNP' => 'Pacific Airlines (VNP)',
   'BBA' => 'Bamboo Airways (BBA)',
   'VTA' => 'Vietravel Airlines (VTA)',
+  '9G' => 'Sun PhuQuoc Airways (9G)',
 );
 
 $GLOBALS['app_list_strings']['tinhtranghoanve_list'] = array(
@@ -533,7 +535,6 @@ $GLOBALS['app_list_strings']['location_list'] = array(
   '8d909428-07b1-db26-4588-56f4ed25ded7' => 'VP 79 Nguyễn Xí',
   'b18879aa-21e2-b1d2-5345-56f4ed756d8d' => 'VP BĐ',
   '1d279238-8d81-4b85-2ba9-5a4f0da2dc23' => 'VP 48 NCV',
-
 );
 
 $GLOBALS['app_list_strings']['booking_status_list'] = array(
@@ -758,6 +759,7 @@ $GLOBALS['app_list_strings']['ma_hang'] = array(
   'VJA' => 'Vietjet Air',
   'JET' => 'Jetstar Pacific',
   'VNA' => 'Vietnam Airlines',
+  '9G' => 'Sun PhuQuoc Airways',
   'AMK' => 'Air Mekong',
   'BBA' => 'Bamboo Airways',
   '1T' => '1Time Airline',
@@ -1918,8 +1920,8 @@ $GLOBALS['app_list_strings']['loai_thu_list'] = [
   15 => 'Panda Po',
   16 => 'Perspirex',
   17 => 'Vay ngân hàng',
-  18 => 'Thu tiền cafe Trống Đồng',
-  19 => 'Thu tiền bánh trung thu',
+  // 18 => 'Thu tiền cafe Trống Đồng',
+  // 19 => 'Thu tiền bánh trung thu',
   20 => 'Bất động sản',
   21 => 'Thực phẩm',
   22 => 'Quỹ dự phòng',

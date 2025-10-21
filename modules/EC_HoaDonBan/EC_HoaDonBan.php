@@ -188,8 +188,8 @@ class EC_HoaDonBan extends Basic {
 	 * @param string $customerType (1:Personal ; 0:Company)
 	 * @return string
 	 */
-	public function genInvSerial($customerType = '') {
-		if(empty($customerType)) $customerType = (string)($this->loaikh);
+	public function genInvSerial($customerType = null) {
+		if(is_null($customerType)) $customerType = (string)($this->loaikh);
 
 		$y = date('y');
 		if($customerType === '0') return "C{$y}THV";

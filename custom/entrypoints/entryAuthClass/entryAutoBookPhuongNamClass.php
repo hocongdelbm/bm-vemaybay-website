@@ -950,6 +950,10 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     $pnr = trim($bookingCode[1] ?? '');
                     $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
 
+                    $ticketing_fee = 0;
+                    if($systemCode == 'VJ') $ticketing_fee = 3000;
+                    else if($systemCode == 'VU') $ticketing_fee = 5000;
+
                     // Send notification
                     try {
                         $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
@@ -993,9 +997,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                         // Update supplier
-                        $ticketing_fee = 0;
-                        if($systemCode == 'VJ') $ticketing_fee = 3000;
-                        else if($systemCode == 'VU') $ticketing_fee = 5000;
                         $sqlUpdate = "UPDATE ec_booking_details
                                 SET supplier_id = '{$this->supplierId}'
                                     ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)
@@ -1035,7 +1036,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
                         // Update supplier
-                        $ticketing_fee = $systemCode == 'VJ' ? 5000 : 0;
                         $sqlUpdate = "UPDATE ec_booking_details
                                 SET supplier_id = '{$this->supplierId}'
                                     ,fee_bought = IF(passenger_type <> '2', $ticketing_fee * quantity, 0)

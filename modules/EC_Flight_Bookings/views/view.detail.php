@@ -39,17 +39,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		// $html = $this->populateLineItineraries($deparment_info);
 		// $this->ss->assign('LINE_ITINERARY_EXTRA', $this->populateEditedInfo(3));
 
-		// Thông tin hành khách ban đầu
-		$html = $this->populateLinePassengers(0);
-		$this->ss->assign('LINE_PASSENGERS', $html);
-
-		// Thông tin hành khách sau khi thêm hành lý
-		// $html = $this->populateLinePassengers(1);
-		// $this->ss->assign('LINE_PASSENGERS_LUGGAGE_EXTRA', $html);
-
-		// Thông tin hành khách sau khi đổi tên
-		// $html = $this->populateLinePassengers(2);
-		// $this->ss->assign('LINE_PASSENGERS_NAME_EXTRA', $html);
+		// Thông tin hành khách ban đầu (Chưa đổi)
+		$this->ss->assign('LINE_PASSENGERS', $this->populateLinePassengers());
 
 		$this->createModal(); // Modal for confirm action
 
@@ -62,8 +53,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->displayJS();
 	}
 
-	function displayJS()
-	{
+	private function displayJS() {
 		global $app_list_strings, $current_user;
 
 		// External file
@@ -1597,49 +1587,31 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	/**
-	 * Render table passengers
+	 * Render table default passengers
+	 * 
+	 * @return string HTML
 	 */
-	function populateLinePassengers($add_type)
-	{
+	function populateLinePassengers() {
 		global $app_list_strings, $timedate;
 		$date_format = $timedate->get_date_format();
+		$booking_date = !empty($this->bean->id) ? $this->bean->date_entered : '';
 
-		if ($add_type == 0) {
-			$condition = ' AND p.add_type IS NULL';
-		} else if ($add_type == 1) {
-			$condition = ' AND p.add_type = 1';
-		} else if ($add_type == 2) {
-			$condition = ' AND p.add_type = 2';
-		}
-
-		$html = '';
-		$html .= '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
+		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
 		$html .= '<thead>
-					<tr>
-						<th scope="col" width="3%"></th>
-						<th scope="col" width="3%">STT</th>
-						<th scope="col" width="8%">Loại HK</th>
-						<th scope="col" width="8%">Danh xưng</th>';
-		if ($add_type != 2) {
-			$html .= '<th scope="col" width="12%">Họ tên</th>';
-		} else {
-			$html .= '<th scope="col" width="12%">Tên HK mới</th>';
-		}
-
-		$html .= '<th scope="col" width="8%">Ngày sinh</th>
-					<th scope="col" width="8%">CCCD / Passport</th>
-					<th scope="col" width="8%">Số vé đi</th>
-					<th scope="col" width="8%">Số vé về</th>';
-
-		if ($add_type != 2) {
-			$html .= '<th scope="col" width="8%">PNR đi</th>
-						<th scope="col" width="8%">PNR về</th>';
-		} else {
-			$html .= '<th scope="col" width="12%">Tên HK cũ</th>';
-		}
-
-		$html .= '</tr>
-				</thead>';
+			<tr>
+				<th scope="col" width="2%"></th>
+				<th scope="col" width="3%">STT</th>
+				<th scope="col" width="7%">Loại</th>
+				<th scope="col" width="7%">Giới tính</th>
+				<th scope="col" width="16%">Họ tên</th>
+				<th scope="col" width="8%">Ngày sinh</th>
+				<th scope="col" width="12%">CCCD/Passport</th>
+				<th scope="col" width="10%">Số vé đi</th>
+				<th scope="col" width="10%">Số vé về</th>
+				<th scope="col" width="7%">PNR đi</th>
+				<th scope="col" width="7%">PNR về</th>
+			</tr>
+		</thead>';
 
 		$sql = "SELECT p.id,
 				p.name,
@@ -1675,22 +1647,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				p.cic,
 				p.passport_number
 			FROM ec_booking_passengers p
-			WHERE p.booking_id = '{$this->bean->id}' AND p.deleted = 0 
-				$condition
+			WHERE p.booking_id = '{$this->bean->id}'
+				AND p.deleted = 0 
+				AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
 			ORDER BY p.type, p.date_entered";
 
 		$res = $this->bean->db->query($sql);
 		$i = 0;
-		if (!empty($this->bean->id)) {
-			$booking_date = $this->bean->date_entered;
-		} else {
-			$booking_date = '';
-		}
-
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			if ($i % 2 > 0) $even_or_odd = 'even';
-			else $even_or_odd = 'odd';
-
+			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
+			
 			$hide_cic = ($this->bean->ticket_type == 2 || $row['type'] == 2 || empty($row['cic'])) ? ' style="display:none" ' : '';
 			$hide_passport = (empty($row['passport_number'])) ? ' style="display:none" ' : '';
 			if(!empty($row['passport_number']) && empty($row['cic']) && $this->bean->ticket_type == 1 && $row['type'] != 2) $hide_cic = ' style="display:none" ';
@@ -1709,9 +1675,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<td data-label="Ngày sinh" class="passenger_birthdate text-center">
 					<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>
 				</td>
-				<td data-label="Giấy tờ" class="passenger_id text-start">
-					<p class="cic text-nowrap" data="' . $row['cic'] . '" ' . $hide_cic . '><b>CCCD: </b><span>' . $row['cic'] . '</span></p>
-					<p class="passport text-nowrap" data="' . $row['passport_number'] . '" ' . $hide_passport . '><b>Passport: </b><span>' . $row['passport_number'] . '</span></p>
+				<td data-label="Giấy tờ" class="passenger_id text-center">
+					<p class="cic text-nowrap" data="' . $row['cic'] . '" ' . $hide_cic . ' title="CCCD">
+						<span style="letter-spacing:0.65px">' . $row['cic'] . '</span>
+					</p>
+					<p class="passport text-nowrap" data="' . $row['passport_number'] . '" ' . $hide_passport . ' title="Passport">
+						<span style="letter-spacing:0.65px">' . $row['passport_number'] . '</span>
+					</p>
 				</td>
 				<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
 					' . strtoupper($row['eticket_outbound']) . '
@@ -1720,29 +1690,19 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<td data-label="Số vé về" class="text-center" class="eticket_inbound" content="' . strtoupper($row['eticket_inbound']) . '" row_no="' . $row['id'] . '">
 					' . strtoupper($row['eticket_inbound']) . '
 					<input type="hidden" name="eticket_inbound[]" id="eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '"  />
-				</td>';
-
-			if ($add_type != 2) {
-				$html .= '
-					<td data-label="PNR đi" class="text-center">
-						' . strtoupper($row['pnr_outbound']) . '
-						<input type="hidden" name="pnr_outbound[]" id="pnr_outbound' . $i . '" value="' . strtoupper($row['pnr_outbound']) . '"  />
-					</td>
-					<td data-label="PNR về" class="text-center">
-						' . strtoupper($row['pnr_inbound']) . '
-						<input type="hidden" name="pnr_inbound[]" id="pnr_inbound' . $i . '" value="' . strtoupper($row['pnr_inbound']) . '"  />
-					</td>';
-			} else {
-				// Nếu đã đổi tên thì cột này hiện tên cũ
-				$html .= '<td class="text-start align-middle">
-					' . ($add_type != 2 ? $row['name'] : $this->getOldPassName($this->bean->id, $row['parent_detail_id'], $row['date_entered'])) . '
-				</td>';
-			}
-
-			$html .= '</tr>';
+				</td>
+				<td data-label="PNR đi" class="text-center">
+					' . strtoupper($row['pnr_outbound']) . '
+					<input type="hidden" name="pnr_outbound[]" id="pnr_outbound' . $i . '" value="' . strtoupper($row['pnr_outbound']) . '"  />
+				</td>
+				<td data-label="PNR về" class="text-center">
+					' . strtoupper($row['pnr_inbound']) . '
+					<input type="hidden" name="pnr_inbound[]" id="pnr_inbound' . $i . '" value="' . strtoupper($row['pnr_inbound']) . '"  />
+				</td>
+			</tr>';
 			
 			// Line 2
-			if (empty($row['add_type']) || !empty($row['luggage_price']) && $add_type == '0' || $add_type == 1 && $row['add_type'] == '1') {
+			if (!empty($row['luggage_price'])) {
 				if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
 					$rowBagHTML = '';
 					foreach(['outbound', 'inbound'] as $roundName) {
@@ -1849,22 +1809,22 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 							$eluggage_inbound = '';
 							if(strlen($row['eluggage_inbound']) > 0) {
 								$eluggage_inbound .= '<span data-label="Số vé HL về" class="text-center" class="eluggage_inbound">
-														(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($row['eluggage_inbound']) . '</strong>)
-														<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '"  />
-													</span>';
+									(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($row['eluggage_inbound']) . '</strong>)
+									<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '"  />
+								</span>';
 							}
 
 							$luggage_price .= '<div class="luggage__inbound mt-2">
-													<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . $in_lug_purchase_inf . ')
-													'.$eluggage_inbound.'
-												</div>';
+								<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . $in_lug_purchase_inf . ')
+								'.$eluggage_inbound.'
+							</div>';
 						}
 					}
 
 					$html .= '<tr class="psg-line luggage" ' . (trim($luggage_price) == '' ? 'style="display:none;"' : '') . '>
-								<td data-label="Hành lý ký gửi" class="text-center bg-yellow align-middle">&nbsp;</td>
-								<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
-							</tr>';
+						<td data-label="Hành lý ký gửi" class="text-center bg-yellow align-middle">&nbsp;</td>
+						<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
+					</tr>';
 				}
 			}
 
@@ -1874,7 +1834,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$html .= '<input type="hidden" id="total_pass_qty" value="' . $i . '">';
 
 		/* CHANGE PASSENGER INFO */
-		$html .= $this->populateEditedInfo(2);
+		// $html .= $this->populateEditedInfo(2);
 		$html .= '</table></div>';
 
 		return $html;
@@ -2001,8 +1961,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		return false;
 	}
 
-	function populateEditedInfo($type)
-	{
+	function populateEditedInfo($type) {
 		$html = '';
 		switch ($type) {
 			case 2:

@@ -657,15 +657,12 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	// Lưu thay đổi Ngày bay / Hành trình / Thông tin hành khách / Hành lý / Số vé / Code vé
-	function saveChangeFlightTime()
-	{
-		global $current_user, $app_list_strings;
+	function saveChangeFlightTime() {
+		global $current_user;
 		
 		// ======== THAY ĐỔI THÔNG TIN HÀNH KHÁCH =========
 		// lấy stt của các lần thay đổi thông tin hành khách trước
-		$sql_pass_order = '
-			SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers 
-			WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
+		$sql_pass_order = 'SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
 
 		$pass_order = $this->db->getOne($sql_pass_order);
 
@@ -795,16 +792,13 @@ class EC_Flight_Bookings extends Basic
 		}
 
 		// ========== THAY ĐỔI HÀNH TRÌNH =============
+		// Lấy STT của các lần thay đổi hành trình trước
+		$sql_iti_order = 'SELECT MAX(IFNULL(sabre_logs, 0)) FROM ec_booking_itineraries WHERE deleted = 0 AND booking_id = "' . $_POST['booking_id'] . '"';
+		$iti_order = $this->db->getOne($sql_iti_order); // 0, 1, 2
 
-		// lấy stt của các lần thay đổi hành trình trước
-		$sql_iti_order = 'SELECT MAX(IFNULL(sabre_logs, 0)) FROM ec_booking_itineraries 
-						WHERE deleted = 0 AND booking_id = "' . $_POST['booking_id'] . '"';
-
-		$iti_order = $this->db->getOne($sql_iti_order); //0, 1, 2
-
-		// nếu là lưu mới thông tin hành trình
+		// Nếu là lưu mới thông tin hành trình
 		if (!isset($_POST['iti_id']) || empty($_POST['iti_id']) || is_null($_POST['iti_id'])) {
-			// lưu lượt đi của hành trình
+			// Lưu lượt đi của hành trình
 			if (
 				!empty($_POST['flight_number0'])
 				&& !empty($_POST['ticket_class0'])
@@ -837,8 +831,7 @@ class EC_Flight_Bookings extends Basic
 					}
 				}
 			} else {
-
-				// nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
+				// Nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
 				// tìm lại lần thay đổi hành trình mới nhất nếu có
 				// đổi hành khách áp dụng
 				foreach ($pass_replace as $old_pass_id => $new_pass_id) {
@@ -876,7 +869,7 @@ class EC_Flight_Bookings extends Basic
 				}
 			}
 
-			// lưu lượt về của hành trình
+			// Lưu lượt về của hành trình
 			if (
 				!empty($_POST['flight_number1'])
 				&& !empty($_POST['ticket_class1'])
@@ -908,7 +901,7 @@ class EC_Flight_Bookings extends Basic
 					}
 				}
 			} else {
-				// nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
+				// Nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
 				// tìm lại lần thay đổi hành trình mới nhất nếu có
 				// đổi hành khách áp dụng
 				foreach ($pass_replace as $old_pass_id => $new_pass_id) {
@@ -945,7 +938,8 @@ class EC_Flight_Bookings extends Basic
 					}
 				}
 			}
-		} else { // nếu là sửa lại thông tin hành trình
+		}
+		else { // nếu là sửa lại thông tin hành trình
 			$applied_pass_arr 		= explode(',', $_POST['applied_pass']);
 			$applied_pass_name_arr 	= explode(',', $_POST['applied_pass_name']);
 			$iti_id_arr 			= explode(',', $_POST['iti_id']);
@@ -1204,18 +1198,17 @@ class EC_Flight_Bookings extends Basic
      * Get list ticket number in booking by times
      * 
      * @param string $bookingId
-     * @param int $times
-	 * 
 	 * @return array
      */
-    public function getListTickets($bookingId, $times = 0) {
+    public function getListTickets($bookingId) {
 		if(!is_string($bookingId) || empty($bookingId)) return [];
 
-		$timesContidions = '';
-		if($times < 1) $timesContidions = "AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)";
+		$listTickets = [];
 
-        $sql = "SELECT p.id
+        $sqltk = "SELECT p.id
 				,p.name
+				,IFNULL(p.add_type, 0) AS addType
+				,IFNULL(p.go_with, 0) AS goWith
 				,p.eticket_outbound AS ticketNumberOut
                 ,p.eticket_inbound AS ticketNumberIn
 				,p.eluggage_outbound AS bagTicketNumberOut
@@ -1225,34 +1218,37 @@ class EC_Flight_Bookings extends Basic
             FROM ec_booking_passengers p
             WHERE p.booking_id = '{$bookingId}'
 				AND p.deleted = 0
-                {$timesContidions}";
+				AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
+			ORDER BY p.date_entered";
 
-        $listTickets = [];
+        $restk = $this->db->query($sqltk);
+        while ($row = $this->db->fetchByAssoc($restk)) {
+			$ticketType = (int)($row['addType'] ?? 0);
 
-        $res = $this->db->query($sql);
-        while ($row = $this->db->fetchByAssoc($res)) {
 			// Flight ticket number
-			if(isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) {
-				$listTickets[$row['ticketNumberOut']][] = [
-					'type' 			=> 'flight',
-					'direction' 	=> 0,
-					'passName' 		=> $row['name'],
-					'purchasePrice' => null,
-				];
-			}
-			if(isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) {
-				$listTickets[$row['ticketNumberIn']][] = [
-					'type' 			=> 'flight',
-					'direction' 	=> 1,
-					'passName' 		=> $row['name'],
-					'purchasePrice' => null,
-				];
+			if($ticketType != 1) {
+				if(isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) {
+					$listTickets[$row['ticketNumberOut']][] = [
+						'type' 			=> 'flight',
+						'direction' 	=> 0,
+						'passName' 		=> $row['name'],
+						'purchasePrice' => null,
+					];
+				}
+				if(isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) {
+					$listTickets[$row['ticketNumberIn']][] = [
+						'type' 			=> 'flight',
+						'direction' 	=> 1,
+						'passName' 		=> $row['name'],
+						'purchasePrice' => null,
+					];
+				}
 			}
 
 			// Baggage ticket number
 			if(isset($row['bagPriceOut']) && $row['bagPriceOut'] > 0) {
 				$bagTicketNumberOut = $row['bagTicketNumberOut'] ?? '';
-				if(empty($bagTicketNumberOut)) $bagTicketNumberOut = 'BAGTICKETOUT';
+				if(empty($bagTicketNumberOut)) $bagTicketNumberOut = $row['ticketNumberOut'] ?? 'BAGTICKETOUT';
 
 				$listTickets[$bagTicketNumberOut][] = [
 					'type' 			=> 'baggage',
@@ -1263,7 +1259,7 @@ class EC_Flight_Bookings extends Basic
 			}
 			if(isset($row['bagPriceIn']) && $row['bagPriceIn'] > 0) {
 				$bagTicketNumberIn = $row['bagTicketNumberIn'] ?? '';
-				if(empty($bagTicketNumberIn)) $bagTicketNumberIn = 'BAGTICKETIN';
+				if(empty($bagTicketNumberIn)) $bagTicketNumberIn = $row['ticketNumberIn'] ?? 'BAGTICKETIN';
 
 				$listTickets[$bagTicketNumberIn][] = [
 					'type' 			=> 'baggage',
