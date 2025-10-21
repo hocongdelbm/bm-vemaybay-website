@@ -94,21 +94,18 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'studio' => 'visible',
         ),
-        'rv_number' =>
-        array(
+        'rv_number' => array(
             'required' => false,
             'name' => 'rv_number',
             'vname' => 'LBL_RV_NUMBER',
             'type' => 'varchar',
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => '100',
+            'len' => 8,
         ),
         'amount' =>
         array(
