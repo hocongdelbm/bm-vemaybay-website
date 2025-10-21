@@ -2019,12 +2019,12 @@ $GLOBALS['app_list_strings']['supplier_invoice_list'] = array(
   '' => '',
   'PNA' => 'Phương Nam',
   'HNH' => 'Hồng Ngọc Hà',
-  // 'VJA' => 'VietjetAir',
-  // 'VNA' => 'VietnamAirlines',
-  // 'VTA' => 'Vietravel',
-  // 'BBA' => 'Bamboo',
-  // 'TH' => 'Thành Hoàng',
-  // 'EMPTY' => 'Trống',
+  'VJA' => 'VietjetAir',
+  'VNA' => 'VietnamAirlines',
+  'VTA' => 'Vietravel',
+  'BBA' => 'Bamboo',
+  'TH' => 'Thành Hoàng',
+  'EMPTY' => 'Trống',
 );
 
 $GLOBALS['app_list_strings']['company_unit_invoice_list'] = array(
