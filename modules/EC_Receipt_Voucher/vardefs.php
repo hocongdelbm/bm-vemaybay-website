@@ -165,21 +165,18 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        'guest_name' =>
-        array(
-            'required' => false,
+        'guest_name' => array(
             'name' => 'guest_name',
             'vname' => 'LBL_GUEST_NAME',
             'type' => 'varchar',
+            'len' => 80,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => '255',
         ),
         'guest_phone' =>
         array(
@@ -212,7 +209,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 100,
+            'len' => 4,
             'options' => 'loaitien_list',
             'studio' => 'visible',
             'dependency' => false,
@@ -564,12 +561,11 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        'location' =>
-        array(
+        'location' => array(
             'required' => false,
             'name' => 'location',
             'vname' => 'LBL_LOCATION',
-            'type' => 'enum',
+            'type' => 'varchar',
             'massupdate' => 0,
             'default' => '',
             'comments' => '',
@@ -579,8 +575,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 100,
-            'options' => 'location_list',
+            'len' => 8,
             'studio' => 'visible',
             'dependency' => false,
         ),
