@@ -245,9 +245,9 @@ class EC_HoaDonBan extends Basic {
 				$bookingInfo['iv_name_banks'] 		= trim($invArr['iv_name_banks'] ?? '');
 				unset($bookingInfo['shipping_address']);
 
-				$loaikh = null;
-				if(empty($bookingInfo['iv_company_name']) && !empty($bookingInfo['iv_account_name'])) $loaikh = '1';
-				elseif(!empty($bookingInfo['iv_company_name']) && empty($bookingInfo['iv_account_name'])) $loaikh = '0';
+				$loaikh = '1';
+				if(isset($bookingInfo['iv_company_name']) && !empty($bookingInfo['iv_company_name'])
+					&& isset($bookingInfo['iv_tax_code']) && !empty($bookingInfo['iv_tax_code'])) $loaikh = '0';
 
 				$citizen_id = $passport_number = '';
 				if(strlen($bookingInfo['iv_identity_number']) == 12) $citizen_id = $bookingInfo['iv_identity_number'];
@@ -346,7 +346,7 @@ class EC_HoaDonBan extends Basic {
 					$outInvDetail->phisanbay 	= 0;
 					$outInvDetail->phikhac 		= 0;
 					$outInvDetail->phidv 		= $serviceFee;
-					$outInvDetail->giamua 		= $tk['total'] * $tk['qty'];
+					$outInvDetail->giamua 		= $tk['total'];
 					$outInvDetail->thuesuat 	= $taxRate;
 					$outInvDetail->dongia 		= ($outInvDetail->giamua + $serviceFee - $outInvDetail->phithuho) / $divide;
 					$outInvDetail->tienthue 	= $outInvDetail->dongia * $taxRate * $tk['qty'];
