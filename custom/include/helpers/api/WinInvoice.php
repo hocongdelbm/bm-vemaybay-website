@@ -160,8 +160,9 @@ class WinInvoice {
                 ]);
             }
 
-            if(($requestBody['invSerial'] == 'C25MHV' && (int)$requestBody['invCustomer'] != 1)
-                || ($requestBody['invSerial'] == 'C25THV' && (int)$requestBody['invCustomer'] != 0)
+            $y = date('y');
+            if(($requestBody['invSerial'] == "C{$y}MHV" && (int)$requestBody['invCustomer'] != 1)
+                || ($requestBody['invSerial'] == "C{$y}THV" && (int)$requestBody['invCustomer'] != 0)
             ) {
                 return json_encode([
                     "error" => 1,
