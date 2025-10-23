@@ -3,13 +3,10 @@ class WinInvoice {
     private $ENDPOINT;
     private $USER;
     private $PASSWORD;
-
     private $TVAN_ENDPOINT;
     private $TVAN_USER;
     private $TVAN_PASSWORD;
-
     private $INVOICE_NUMBER; // Mẫu số hóa đơn
-    private $TIMEOUT = 30;
 
     public function __construct() {
         global $sugar_config;
@@ -445,9 +442,9 @@ class WinInvoice {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_FAILONERROR, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 12);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 16);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 32);
             foreach ($curlOptions as $key => $value) {
                 curl_setopt($curl, $key, $value);
             }
