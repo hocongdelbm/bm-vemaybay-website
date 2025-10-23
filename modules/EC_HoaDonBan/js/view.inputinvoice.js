@@ -4,7 +4,8 @@ $(document).ready(function () {
     $(".allow_number_only").number(true, 0, dec_sep, num_grp_sep);
     $('.decimal-only').on('input', function () {
         let value = $(this).val();
-        value = value.replace(/[^0-9.,]/g, '');
+        // Remove invalid characters except digits, dot, comma, minus
+        value = value.replace(/[^0-9.,-]/g, '');
         $(this).val(value);
     });
 
@@ -426,8 +427,14 @@ $(document).ready(function () {
 
 function calculateTicketPrice(is_cal_vat = 0) {
     let qty = unformatNumber($("#im_qty").val());
-    let cost = unformatNumber($("#im_cost").val());
     let authorized = unformatNumber($("#im_authorized").val());
+
+    let cost = $("#im_cost").val();
+    if (cost.includes('-')) {
+        cost = cost.replace(/-/g, '');
+        cost = '-' + cost;
+    }
+    cost = unformatNumber(cost);
 
     let vat = 0;
     let vat_per = parseFloat($("#im_vat_percent").val());
