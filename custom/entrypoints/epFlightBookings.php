@@ -1554,10 +1554,27 @@ function populateEditedLinePassenger($booking_id){
 		// Đánh stt các dòng thay đổi thông tin hành khách
 		if ($pass_order != $row['go_with']) {
 			$pass_order = $row['go_with'];
-			$pass_changed_name_arr = array();
+			$pass_changed_name_arr = [];
 			$html1 = '';
 			$html = '';
-			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': ';
+			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': </b>';
+
+			// Thêm form tạo phiếu thu cho lần thay đổi
+			$form = "<form name='formCreateReceiptVoucher' action='index.php' method='post' target='_blank' style='float:right;'>
+				<input type='hidden' name='module' value='EC_Receipt_Voucher' />
+				<input type='hidden' name='action' value='EditView' />
+				<input type='hidden' name='booking_name' value='{$booking->name}' />
+				<input type='hidden' name='booking_id' value='{$booking_id}' />
+				<input type='hidden' name='go_with' value='{$row['go_with']}' />
+				<input type='hidden' name='loai_thu' value='4' />
+				<input type='submit' name='btnCreateReceiptVoucher' id='btnCreateReceiptVoucher'
+					value='Tạo phiếu thu' title='Tạo phiếu thu'
+					class='btn btn-primary'
+					style='cursor:pointer; font-size:13px!important;'
+				/>
+			</form>";
+			$html1 .= $form;
+
 			$i = 0;
 		}
 
@@ -1678,9 +1695,9 @@ function populateEditedLinePassenger($booking_id){
 		// lấy thông tin thay đổi trước gắn vào html2
 		if ($k == $rowCount && !empty($html1)) {
 			if (!empty($pass_changed_name_arr)) {
-				$html1 .= 'Có ' . count($pass_changed_name_arr) . ' hành khách đổi tên, chi tiết: ' . implode(", ", $pass_changed_name_arr);
+				$html1 .= '<span>Có ' . count($pass_changed_name_arr) . ' hành khách đổi tên, chi tiết: ' . implode(", ", $pass_changed_name_arr) . '</span>';
 			}
-			$html2 .= $html1 . '</b></td></tr>' . $html;
+			$html2 .= $html1 . '</td></tr>' . $html;
 		}
 	} // while
 
