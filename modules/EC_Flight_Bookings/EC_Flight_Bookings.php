@@ -276,8 +276,7 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	// Generate booking random string
-	function generate_booking_name()
-	{
+	function generate_booking_name() {
 		// New 10/07/2023
 		$booking_name = '';
 		$booking_name .= date('y') . date('m') . date('d');
@@ -287,8 +286,6 @@ class EC_Flight_Bookings extends Basic
 		$booking_name .= strrev($qty_booking);
 
 		return strtoupper($booking_name);
-
-		// Old
 		// return strtoupper(substr(sha1(microtime()), rand(0, 31), 8));
 	}
 
@@ -660,15 +657,12 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	// Lưu thay đổi Ngày bay / Hành trình / Thông tin hành khách / Hành lý / Số vé / Code vé
-	function saveChangeFlightTime()
-	{
-		global $current_user, $app_list_strings;
+	function saveChangeFlightTime() {
+		global $current_user;
 		
 		// ======== THAY ĐỔI THÔNG TIN HÀNH KHÁCH =========
 		// lấy stt của các lần thay đổi thông tin hành khách trước
-		$sql_pass_order = '
-			SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers 
-			WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
+		$sql_pass_order = 'SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
 
 		$pass_order = $this->db->getOne($sql_pass_order);
 
@@ -798,16 +792,13 @@ class EC_Flight_Bookings extends Basic
 		}
 
 		// ========== THAY ĐỔI HÀNH TRÌNH =============
+		// Lấy STT của các lần thay đổi hành trình trước
+		$sql_iti_order = 'SELECT MAX(IFNULL(sabre_logs, 0)) FROM ec_booking_itineraries WHERE deleted = 0 AND booking_id = "' . $_POST['booking_id'] . '"';
+		$iti_order = $this->db->getOne($sql_iti_order); // 0, 1, 2
 
-		// lấy stt của các lần thay đổi hành trình trước
-		$sql_iti_order = 'SELECT MAX(IFNULL(sabre_logs, 0)) FROM ec_booking_itineraries 
-						WHERE deleted = 0 AND booking_id = "' . $_POST['booking_id'] . '"';
-
-		$iti_order = $this->db->getOne($sql_iti_order); //0, 1, 2
-
-		// nếu là lưu mới thông tin hành trình
+		// Nếu là lưu mới thông tin hành trình
 		if (!isset($_POST['iti_id']) || empty($_POST['iti_id']) || is_null($_POST['iti_id'])) {
-			// lưu lượt đi của hành trình
+			// Lưu lượt đi của hành trình
 			if (
 				!empty($_POST['flight_number0'])
 				&& !empty($_POST['ticket_class0'])
@@ -840,8 +831,7 @@ class EC_Flight_Bookings extends Basic
 					}
 				}
 			} else {
-
-				// nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
+				// Nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
 				// tìm lại lần thay đổi hành trình mới nhất nếu có
 				// đổi hành khách áp dụng
 				foreach ($pass_replace as $old_pass_id => $new_pass_id) {
@@ -879,7 +869,7 @@ class EC_Flight_Bookings extends Basic
 				}
 			}
 
-			// lưu lượt về của hành trình
+			// Lưu lượt về của hành trình
 			if (
 				!empty($_POST['flight_number1'])
 				&& !empty($_POST['ticket_class1'])
@@ -911,7 +901,7 @@ class EC_Flight_Bookings extends Basic
 					}
 				}
 			} else {
-				// nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
+				// Nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
 				// tìm lại lần thay đổi hành trình mới nhất nếu có
 				// đổi hành khách áp dụng
 				foreach ($pass_replace as $old_pass_id => $new_pass_id) {
@@ -948,7 +938,8 @@ class EC_Flight_Bookings extends Basic
 					}
 				}
 			}
-		} else { // nếu là sửa lại thông tin hành trình
+		}
+		else { // nếu là sửa lại thông tin hành trình
 			$applied_pass_arr 		= explode(',', $_POST['applied_pass']);
 			$applied_pass_name_arr 	= explode(',', $_POST['applied_pass_name']);
 			$iti_id_arr 			= explode(',', $_POST['iti_id']);
@@ -1048,10 +1039,8 @@ class EC_Flight_Bookings extends Basic
 
 	// Tính số lượng vé của 1 booking
 	// Tổng sl vé trong booking - sl vé hoàn nếu có
-	function calculateBookingTicketQty($booking_id)
-	{
-		$sql = '
-			SELECT  
+	function calculateBookingTicketQty($booking_id) {
+		$sql = "SELECT  
 				total_qty
 				- IFNULL((
 					SELECT COUNT(ct.id) 
@@ -1059,39 +1048,13 @@ class EC_Flight_Bookings extends Basic
 					INNER JOIN ec_hoanve hv 
 					ON ct.hoanve_id = hv.id 
 					AND hv.deleted = 0
-					AND hv.booking_id = "' . $booking_id . '"
+					AND hv.booking_id = '$booking_id'
 					WHERE ct.deleted = 0
 				), 0)
 			FROM ec_flight_bookings
-			WHERE id = "' . $booking_id . '"
-		';
+			WHERE id = '$booking_id'";
 		return $this->db->getOne($sql);
 	}
-
-	// // Khi thêm hành lý thì tạo phiếu thu phí hành lý
-	// function createReceiptVoucher($total_amount, $supplier1, $sell_price1, $bought_price1, $supplier2 = '', $sell_price2 = '', $bought_price2 = '') {
-	// 	$rv = new EC_Receipt_Voucher;
-	// 	$rv->amount = $total_amount;
-	// 	$rv->receipt_type = $_POST['receipt_type'];
-	// 	$rv->com_location_id = $_POST['com_location_id'];
-	// 	$rv->tknganhang_id = $_POST['tknganhang_id'];
-	// 	$rv->loai_thu = '5';
-	// 	$rv->supplier_id = $supplier1;
-	// 	$rv->sell_amount = $sell_price1;
-	// 	$rv->bought_amount = $bought_price1;
-	// 	$rv->supplier2_id = $supplier2;
-	// 	$rv->sell_amount2 = $sell_price2;
-	// 	$rv->bought_amount2 = $bought_price2;
-	// 	$rv->guest_name = $_POST['contact_name'];
-	// 	$rv->guest_phone = $_POST['contact_phone'];
-	// 	$rv->booking_id = $this->id;
-	// 	$rv->description = 'Phiếu thu tự động thu phí thêm hành lý booking ' . $this->name;
-	// 	$rv->assigned_user_id = $GLOBALS['current_user']->id;
-	// 	$rv->ngayhachtoan = date('Y-m-d H:i:s', strtotime("now") - 7 * 3600);
-	// 	$rv->exchange_rate = 0;
-	// 	$rv->amount_converted = $total_amount;
-	// 	$rv->save();
-	// }
 
 	public function saveInforCustomer($journey_from_to) {
 		global $db;
@@ -1229,5 +1192,120 @@ class EC_Flight_Bookings extends Basic
 		catch(Throwable $th) {
 			return ['available' => '', 'purchase' => ''];
 		}
+	}
+
+	/**
+     * Get list ticket number in booking by times
+     * 
+     * @param string $bookingId
+	 * @return array
+     */
+    public function getListTickets($bookingId) {
+		if(!is_string($bookingId) || empty($bookingId)) return [];
+
+		$listTickets = [];
+
+		$sqloutinv = "SELECT COUNT(DISTINCT parent_id) AS output_invoice_qty
+			FROM ec_chitiethoadon ct
+			WHERE ct.booking_id = '{$bookingId}' AND ct.deleted = 0";
+		$outputInvQty = $this->db->getOne($sqloutinv) ?? 0;
+
+		$goWithArray = [];
+		$resPaymentReceipt = $this->db->query("SELECT DISTINCT IFNULL(go_with, 0)
+				FROM ec_receipt_voucher
+				WHERE booking_id = '{$bookingId}'
+					AND rv_status != '0'
+					AND deleted = 0");
+		while($rowPaymentReceipt = $this->db->fetchByAssoc($resPaymentReceipt)) $goWithArray[] = (int)$rowPaymentReceipt['go_with'];
+		
+        $sqltk = "SELECT p.id
+				,p.name
+				,IFNULL(p.add_type, 0) AS addType
+				,IFNULL(p.go_with, 0) AS goWith
+				,p.eticket_outbound AS ticketNumberOut
+                ,p.eticket_inbound AS ticketNumberIn
+				,p.eluggage_outbound AS bagTicketNumberOut
+				,p.eluggage_inbound AS bagTicketNumberIn
+				,IFNULL(p.luggage_purchase, 0) AS bagPriceOut
+				,IFNULL(p.luggage_purchase_inbound, 0) AS bagPriceIn
+            FROM ec_booking_passengers p
+            WHERE p.booking_id = '{$bookingId}'
+				AND p.deleted = 0
+				-- AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
+			ORDER BY p.date_entered";
+
+        $restk = $this->db->query($sqltk);
+        while ($row = $this->db->fetchByAssoc($restk)) {
+			$goWith = (int)($row['goWith'] ?? 0); // Changed times of passenger in booking
+			$ticketType = (int)($row['addType'] ?? 0);
+
+			// Only get list ticket code for next processing
+			if($goWith < $outputInvQty) continue;
+
+			// Only get list ticket code in changed times which have receipt voucher
+			if($goWith > 0 && array_search($goWith, $goWithArray) === false) continue;
+
+			// Flight ticket number
+			if($ticketType != 1) {
+				if(isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) {
+					$listTickets[$goWith][$row['ticketNumberOut']][] = [
+						'type' 			=> 'flight',
+						'direction' 	=> 0,
+						'passName' 		=> $row['name'],
+						'purchasePrice' => null,
+					];
+				}
+				if(isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) {
+					$listTickets[$goWith][$row['ticketNumberIn']][] = [
+						'type' 			=> 'flight',
+						'direction' 	=> 1,
+						'passName' 		=> $row['name'],
+						'purchasePrice' => null,
+					];
+				}
+			}
+
+			// Baggage ticket number
+			if(isset($row['bagPriceOut']) && $row['bagPriceOut'] > 0) {
+				$bagTicketNumberOut = $row['bagTicketNumberOut'] ?? '';
+				if(empty($bagTicketNumberOut)) $bagTicketNumberOut = $row['ticketNumberOut'] ?? 'BAGTICKETOUT';
+
+				$listTickets[$goWith][$bagTicketNumberOut][] = [
+					'type' 			=> 'baggage',
+					'direction' 	=> 0,
+					'passName' 		=> $row['name'],
+					'purchasePrice' => $row['bagPriceOut'],
+				];
+			}
+			if(isset($row['bagPriceIn']) && $row['bagPriceIn'] > 0) {
+				$bagTicketNumberIn = $row['bagTicketNumberIn'] ?? '';
+				if(empty($bagTicketNumberIn)) $bagTicketNumberIn = $row['ticketNumberIn'] ?? 'BAGTICKETIN';
+
+				$listTickets[$goWith][$bagTicketNumberIn][] = [
+					'type' 			=> 'baggage',
+					'direction' 	=> 1,
+					'passName' 		=> $row['name'],
+					'purchasePrice' => $row['bagPriceIn'],
+				];
+			}
+        }
+
+        return $listTickets;
+    }
+
+	/**
+	 * Get total price of purchase baggages in booking by times
+	 * 
+	 * @param string $bookingId
+	 */
+	public function getTotalBaggagePrice($bookingId, $times = 0) {
+		$timesContidions = '';
+		if($times < 1) $timesContidions = "AND p.add_type != 1 AND p.add_type != 2";
+
+		$sql = "SELECT SUM(IFNULL(p.luggage_purchase, 0)) + SUM(IFNULL(p.luggage_purchase_inbound, 0)) AS total_baggage_price
+			FROM ec_booking_passengers p
+			WHERE p.booking_id = '{$bookingId}'
+				AND p.deleted = 0
+				{$timesContidions}";
 	}
 }

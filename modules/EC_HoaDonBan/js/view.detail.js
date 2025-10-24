@@ -104,43 +104,6 @@ $(document).ready(function () {
 				console.error("Error: " + errorThrown);
 			}
 		});
-
-		// closeDialog('dialog-create-invoice');
-		// $('.container-waiting').show();
-		// $.ajax({
-		// 	url: "index.php?entryPoint=entryPointWinInvoice",
-		// 	data: {
-		// 		type : 1,
-		// 		invoice_id : invID,
-		// 		invoice_data : JSON.stringify(invoice_data),
-		// 		buyer_data : JSON.stringify(buyer_data),
-		// 		item_data : JSON.stringify(item_data)
-		// 	},
-		// 	type: "POST",
-		// 	cache: false,
-		// 	success: function (response) {
-		// 		$('.container-waiting').hide();
-		// 		let res = JSON.parse(response);
-		// 		if(res.error == 0) {
-		// 			showModalNotify(1, res.message ?? "Thao tác thành công");
-		// 			countdownAndReload(3);
-		// 		}
-		// 		else {
-		// 			let description = 'description' in res ? format_html_data_error(res.description) : '';
-		// 			showModalNotify(0, res.message ?? "Đã xảy ra lỗi", description);
-		// 		}
-		// 	},
-		// 	error: function(XMLHttpRequest, textStatus, errorThrown) {
-		// 		$('.container-waiting').hide();
-
-        //         let text_modal_error = `ERROR (${errorThrown}): Vui lòng liên hệ bộ phận IT`;
-        //         showModalNotify(0, text_modal_error)
-
-        //         console.error(XMLHttpRequest);
-		// 		console.error("Status: " + textStatus);
-		// 		console.error("Error: " + errorThrown);
-		// 	}
-		// });
 	});
 
 	// Bỏ ghi hóa đơn

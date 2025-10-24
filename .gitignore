@@ -34,7 +34,7 @@ modules/EC_Zalo/nohup.out
 secure_sessions/*
 !secure_sessions/logs
 
-# JSON data
+# JSON config
 custom/json_files/**/*.json
 
 # Ignore vendor

@@ -18,6 +18,11 @@ $listViewDefs[$module_name] = array(
 		'default' => true,
 		'link' => true
 	),
+	'TICKET_TYPE' => array(
+		'width' => '10',
+		'label' => 'LBL_TICKET_TYPE',
+		'default' => true,
+	),
 	'QTY' => array(
 		'width' => '15',
 		'label' => 'LBL_INIT_QTY',
@@ -33,5 +38,4 @@ $listViewDefs[$module_name] = array(
 		'label' => 'LBL_TOTAL',
 		'default' => true,
 	)
-
 );

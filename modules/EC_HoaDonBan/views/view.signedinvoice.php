@@ -1,16 +1,14 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+require_once("vendor/autoload.php");
 require_once("include/Sugar_Smarty.php");
-require_once('custom/include/helpers/api/WinInvoice.php');
-require 'vendor/autoload.php';
+require_once("custom/include/helpers/api/WinInvoice.php");
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
+// use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class Viewsignedinvoice extends SugarView
-{
-    function display()
-    {
+class Viewsignedinvoice extends SugarView {
+    public function display() {
         if (ACLController::checkAccess('EC_HoaDonBan', 'list', true)) {
             $smarty = new Sugar_Smarty();
 
@@ -90,8 +88,7 @@ class Viewsignedinvoice extends SugarView
         return $html;
     }
 
-    function getRecordInvoice($from_date, $to_date)
-    {
+    function getRecordInvoice($from_date, $to_date) {
         $sql = 'SELECT id, name, ngayhoadon, sohoadon, tinhtrang, diachi, masothue, tongthanhtoan, company_unit, tencongty, lienhe
                FROM ec_hoadonban
                WHERE tinhtrang IN (1, 2)
@@ -139,14 +136,14 @@ class Viewsignedinvoice extends SugarView
     }
 
     function exportExcelInvoice() {
-        global $current_user;
+        // global $current_user;
         $winInv = new WinInvoice();
 
-        // $objReader     = new Spreadsheet();
-        // $objReader     = IOFactory::load('custom/templates_export/HD_BANHANG_TEMPLATE.xls');
-        $hd_count      = count($_POST['sochungtu_id']);
+        // $objReader = new Spreadsheet();
+        // $objReader = IOFactory::load('custom/templates_export/HD_BANHANG_TEMPLATE.xls');
 
         $filesToDownload = [];
+        $hd_count = count($_POST['sochungtu_id']);
         for ($i = 0; $i < $hd_count; $i++) {
             $objReader = IOFactory::load('custom/templates_export/HD_BANHANG_TEMPLATE.xls');
             $sheet = $objReader->getActiveSheet();
@@ -207,10 +204,13 @@ class Viewsignedinvoice extends SugarView
                 $sheet->setCellValue("AC" . ($index + 2), $this->formatCurrencyInvoice($item['itemPrice']));
                 $sheet->setCellValue("AD" . ($index + 2), $this->formatCurrencyInvoice($item['itemPrice']));
                 $sheet->setCellValue("AE" . ($index + 2), $this->formatCurrencyInvoice($item['itemAmountNoVat']));
+                $vatRate = $this->formatCurrencyInvoice($item['itemVatRate']);
+                $sheet->setCellValue("AM" . ($index + 2), $vatRate === "-1" || $vatRate === -1 ? "KCT" : $vatRate); // % thuế GTGT
+                $sheet->setCellValue("AO" . ($index + 2), $this->formatCurrencyInvoice($item['itemVatAmnt'])); // Tiền thuế GTGT
                 $sheet->setCellValue("AP" . ($index + 2), '33311');
             }
 
-            $outputFilePath = 'custom/templates_export/' . $sochungtu_id . '.xlsx';
+            $outputFilePath = "custom/templates_export/{$sochungtu_id}.xlsx";
             $writer = IOFactory::createWriter($objReader, 'Xlsx');
             $writer->save($outputFilePath);
             $filesToDownload[] = $outputFilePath;
@@ -262,8 +262,7 @@ class Viewsignedinvoice extends SugarView
         }
     }
 
-
-    public function formatCurrencyInvoice($amount) {
+    private function formatCurrencyInvoice($amount) {
         $formattedNumber = number_format(floatval($amount), 0, '', '');
         return $formattedNumber;
     }

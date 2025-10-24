@@ -59,7 +59,7 @@ $(document).ready(function() {
 		const index = $('select[name="ct_code[]"]').index(this);
 		const value = $(this).val();
 
-		if(value == 'PHL' || value == 'PD') {
+		if(value == 'PHL' || value == 'PD' || value == 'PMG') {
 			$(`input[name="ct_receipt_voucher[]"]`).eq(index).attr('type', 'text');
 		}
 		else {
@@ -703,20 +703,20 @@ function calculateChangeVAT(ln) {
 }
 
 function calculateTotal(){
-	let arr 			= document.getElementsByName('ct_deleted[]');
-	let soluong 		= document.getElementsByName('ct_qty[]');
-	let giamua  		= document.getElementsByName('ct_purchase_price[]');
+	let arr 		= document.getElementsByName('ct_deleted[]');
+	let soluong 	= document.getElementsByName('ct_qty[]');
+	let giamua  	= document.getElementsByName('ct_purchase_price[]');
 	let thuho 		= document.getElementsByName('ct_authorized[]');
 	let dichvu 		= document.getElementsByName('ct_service[]');
 	let dongia 		= document.getElementsByName('ct_price[]');
-	let thue 			= document.getElementsByName('ct_vat[]');
-	let thanhtien 		= document.getElementsByName('ct_total[]');
+	let thue 		= document.getElementsByName('ct_vat[]');
+	let thanhtien 	= document.getElementsByName('ct_total[]');
 	let tongsl = tonggiamua = tongthuho = tongdichvu = tongdongia = tongthue = tongtien = 0;
 		
 	for(var i = 0; i < arr.length; i++){
 		if(arr[i].value == '0') {
 			tongsl 		+= unformatNumber(soluong[i].value);
-			tonggiamua  	+= unformatNumber(giamua[i].value) * unformatNumber(soluong[i].value);
+			tonggiamua  += unformatNumber(giamua[i].value) * unformatNumber(soluong[i].value);
 			tongthuho 	+= unformatNumber(thuho[i].value) * unformatNumber(soluong[i].value);
 			tongdichvu 	+= unformatNumber(dichvu[i].value) * unformatNumber(soluong[i].value);
 			tongdongia 	+= unformatNumber(dongia[i].value) * unformatNumber(soluong[i].value);

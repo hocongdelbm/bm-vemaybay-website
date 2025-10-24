@@ -132,13 +132,13 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
             array(
                 array(
-                    'name' => 'assigned_user_name',
-                    'label' => 'LBL_ASSIGNED_TO_NAME',
-                ),
-                array(
                     'name' => 'guest_address',
                     'studio' => 'visible',
                     'label' => 'LBL_GUEST_ADDRESS',
+                ),
+                array(
+                    'name' => 'go_with',
+                    'label' => 'LBL_GO_WITH',
                 ),
             ),
             array(
@@ -149,9 +149,16 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
                 array(
                     'name' => 'date_modified',
-                    'comment' => 'Date record last modified',
+                    'customCode' => '{$fields.date_modified.value} {$APP.LBL_BY} {$fields.modified_by_name.value}',
                     'label' => 'LBL_DATE_MODIFIED',
                 ),
+            ),
+            array(
+                array(
+                    'name' => 'assigned_user_name',
+                    'label' => 'LBL_ASSIGNED_TO_NAME',
+                ),
+                array(),
             ),
         ),
     ),

@@ -524,14 +524,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'changeFlightTime') {
 	echo $iti_detail;
 }
 
-// hiện thông tin ngày h bay / hành trình sau khi thay đổi (nếu có)
+// Hiện thông tin hành trình sau khi thay đổi (nếu có)
 if (isset($_POST['for']) && $_POST['for'] == 'showEditedFlightTime' && isset($_POST['id'])) {
-
 	$edited_iti_detail = populateEditedLineItineraries($_POST['id']);
 	echo $edited_iti_detail;
 }
 
-// hiện thông tin hành khách sau khi thay đổi (nếu có)
+// Hiện thông tin hành khách sau khi thay đổi (nếu có)
 if (isset($_POST['for']) && $_POST['for'] == 'showChangedPassenger' && isset($_POST['id'])) {
 	$edited_pass_detail = populateEditedLinePassenger($_POST['id']);
 	echo $edited_pass_detail;
@@ -1461,8 +1460,7 @@ function populatePassLuggage($airline, $ticket_class, $pass_type, $luggage_index
 	return $luggage_arr;
 }
 
-function populateEditedLinePassenger($booking_id)
-{
+function populateEditedLinePassenger($booking_id){
 	global $app_list_strings, $db, $current_user;
 
 	$booking = new EC_Flight_Bookings;
@@ -1470,8 +1468,7 @@ function populateEditedLinePassenger($booking_id)
 
 	$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
 
-	$sql = "
-		SELECT 
+	$sql = "SELECT 
 			p.id
 			,p.name
 			,p.salutation
@@ -1533,9 +1530,9 @@ function populateEditedLinePassenger($booking_id)
 				WHERE id = p.parent_detail_id
 			) AS old_name
 		FROM ec_booking_passengers p
-		WHERE p.deleted = 0 
-		AND p.booking_id = '" . $booking_id . "'
-		AND p.add_type = 2
+		WHERE p.booking_id = '{$booking_id}'
+			AND p.add_type = 2
+			AND p.deleted = 0 
 		ORDER BY p.go_with, p.type ";
 
 	$res = $db->query($sql);
@@ -1554,13 +1551,30 @@ function populateEditedLinePassenger($booking_id)
 			$html2 .= $html1 . '</b></td></tr>' . $html;
 		}
 
-		// đánh stt các dòng thay đổi thông tin hành khách
+		// Đánh stt các dòng thay đổi thông tin hành khách
 		if ($pass_order != $row['go_with']) {
 			$pass_order = $row['go_with'];
+			$pass_changed_name_arr = [];
 			$html1 = '';
-			$pass_changed_name_arr = array();
 			$html = '';
-			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': ';
+			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': </b>';
+
+			// Thêm form tạo phiếu thu cho lần thay đổi
+			$form = "<form name='formCreateReceiptVoucher' action='index.php' method='post' target='_blank' style='float:right;'>
+				<input type='hidden' name='module' value='EC_Receipt_Voucher' />
+				<input type='hidden' name='action' value='EditView' />
+				<input type='hidden' name='booking_name' value='{$booking->name}' />
+				<input type='hidden' name='booking_id' value='{$booking_id}' />
+				<input type='hidden' name='go_with' value='{$row['go_with']}' />
+				<input type='hidden' name='loai_thu' value='4' />
+				<input type='submit' name='btnCreateReceiptVoucher' id='btnCreateReceiptVoucher'
+					value='Tạo phiếu thu' title='Tạo phiếu thu'
+					class='btn btn-primary'
+					style='cursor:pointer; font-size:13px!important;'
+				/>
+			</form>";
+			$html1 .= $form;
+
 			$i = 0;
 		}
 
@@ -1625,22 +1639,21 @@ function populateEditedLinePassenger($booking_id)
 			$eluggage_outbound = '';
 			if (strlen($row['eluggage_outbound']) > 0) {
 				$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
-										(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($row['eluggage_outbound']) . '</strong>)
-										<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '"  />
-									</span>';
+					(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($row['eluggage_outbound']) . '</strong>)
+					<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '"  />
+				</span>';
 			}
 
 			$luggage_price .= '';
 
 			$luggage_price .= '<div class="luggage__outbound">
-									<span class="color-primary fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')
-									' . $eluggage_outbound . '
-								</div>';
+				<span class="color-primary fw-semibold fst-italic">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua: ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . ')
+				' . $eluggage_outbound . '
+			</div>';
 		}
 
 
-		/* Thông tin hành lý lượt về*/
-		// ------------------------------------
+		/* Thông tin hành lý lượt về */
 		$luggage_price_ib_arr = generateLuggage($booking->date_entered, $booking->airline_inbound, $row['ticket_class_ib'], $row['type'], (int) $row['luggage_index_inbound']);
 		if (!empty($row['luggage_index_inbound'])) {
 			$row['luggage_price_inbound'] = (int) $row['luggage_index_inbound'];
@@ -1682,9 +1695,9 @@ function populateEditedLinePassenger($booking_id)
 		// lấy thông tin thay đổi trước gắn vào html2
 		if ($k == $rowCount && !empty($html1)) {
 			if (!empty($pass_changed_name_arr)) {
-				$html1 .= 'Có ' . count($pass_changed_name_arr) . ' hành khách đổi tên, chi tiết: ' . implode(", ", $pass_changed_name_arr);
+				$html1 .= '<span>Có ' . count($pass_changed_name_arr) . ' hành khách đổi tên, chi tiết: ' . implode(", ", $pass_changed_name_arr) . '</span>';
 			}
-			$html2 .= $html1 . '</b></td></tr>' . $html;
+			$html2 .= $html1 . '</td></tr>' . $html;
 		}
 	} // while
 

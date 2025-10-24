@@ -79,8 +79,8 @@ class EC_Flight_BookingsController extends SugarController
             case "clientphonetcb":
                 $this->action = "clientphonetcb";
                 break;
-            case "updateticket":
-                $this->action = "updateticket";
+            case "updateflight":
+                $this->action = "updateflight";
                 break;
             default:
                 $this->action = "ListView";
@@ -119,7 +119,7 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "airportstatistics";
         if ($this->return_action == "issueticket")
             $this->action = "issueticket";
-        if ($this->return_action == "updateticket")
-            $this->action = "updateticket";
+        if ($this->return_action == "updateflight")
+            $this->action = "updateflight";
     }
 }

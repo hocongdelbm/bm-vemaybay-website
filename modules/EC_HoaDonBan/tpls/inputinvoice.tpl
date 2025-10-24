@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.3">
+<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.4">
 
 <div class="box-section">
     <div id="import_invoice">
@@ -312,7 +312,7 @@
                                         </select>
                                     </td>
                                     <td width="13%"><span class="label">Số lượng</span></td>
-                                    <td width="20%"><input type="text" class="box-input" id="im_qty" name="im_qty" oninput="calculateTicketPrice();"></td>
+                                    <td width="20%"><input type="text" class="box-input decimal-only" id="im_qty" name="im_qty" oninput="calculateTicketPrice();"></td>
                                    
                                 </tr>
                                 <tr>
@@ -321,7 +321,7 @@
                                     <td><span class="label">Hành trình</span></td>
                                     <td><input type="text" class="box-input" id="im_iti" name="im_iti"></td>
                                     <td><span class="label">Giá vốn</span></td>
-                                    <td><input type="text" class="box-input" id="im_cost" name="im_cost" oninput="calculateTicketPrice(1);"></td>
+                                    <td><input type="text" class="box-input decimal-only" id="im_cost" name="im_cost" oninput="calculateTicketPrice(1);"></td>
                                 </tr>
                                 <tr>
                                     <td><span class="label">KHHĐ</span></td>
@@ -330,13 +330,22 @@
                                     <td>
                                         <div class="d-flex align-items-center gap-1">
                                             <input type="text" class="box-input" id="im_ticket_code" name="im_ticket_code">
-                                            <input type="hidden" id="im_ticket_code_id" name="record">
+                                            <input type="hidden" id="im_ticket_id" name="record">
                                             <input type="button" name="btn_ticket_code" id="btn_ticket_code" title="Chọn [Alt+T]" accesskey="T" class="btn btn-primary" value="Chọn">
                                             <input type="button" name="btn_clr_ticket_code" id="btn_clr_ticket_code" title="Xóa [Alt+C]" accesskey="C" class="btn btn-danger" value="Xóa">
                                         </div>
                                     </td>
                                     <td><span class="label">VAT</span></td>
-                                    <td><input type="text" class="box-input" id="im_vat" name="im_vat" oninput="calculateTicketPrice();"></td>
+                                    <td>
+                                        <div class="input-group mb-1">
+                                            <input type="text" name="im_vat" id="im_vat" class="box-input form-control" style="width:40%;" oninput="calculateTicketPrice();" />
+                                            <select name="im_vat_percent" id="im_vat_percent" class="box-select form-control" onchange="calculateTicketPrice(1);">
+                                                <option value="0.08" selected>8%</option>
+                                                <option value="0.1">10%</option>
+                                                <option value="0">0</option>
+                                            </select>
+                                        </div>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><span class="label">Nhà cung cấp</span></td>
@@ -359,7 +368,7 @@
                                     <td><span class="label">Tổng</span></td>
                                     <td><input class="box-input" type="text" class="allow_number_only" id="im_total" name="im_total" oninput="calculateTicketPrice();"></td>
                                     <td><span class="label">Thu hộ</span></td>
-                                    <td><input type="text" class="box-input" id="im_authorized" name="im_authorized" oninput="calculateTicketPrice();"></td>
+                                    <td><input type="text" class="box-input decimal-only" id="im_authorized" name="im_authorized" oninput="calculateTicketPrice();"></td>
                                 </tr>
                                 <tr>
                                     <td width="13%"><span class="label">Đơn vị</span></td>
@@ -368,10 +377,27 @@
                                             {$COMPANY_UNIT_OPTION}
                                         </select>
                                     </td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
+                                    <td><span class="label">Loại vé</span></td>
+                                    <td>
+                                        <select class="box-select" id="im_ticket_type" name="im_ticket_type">
+                                            {$TICKET_TYPE_OPTION}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <span class="label" title="Tách riêng phí xuất vé với số vé">Phí xuất vé</span>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="im_ticketing_fee" id="im_ticketing_fee" class="box-input decimal-only mb-1" placeholder="Giá vốn" />    
+                                        <div class="input-group mb-1">
+                                            <input type="text" name="im_ticketing_fee_vat" id="im_ticketing_fee_vat" class="box-input form-control" placeholder="VAT" style="width:40%;" readonly />
+                                            <select name="im_ticketing_fee_vat_percent" id="im_ticketing_fee_vat_percent" class="box-select form-control">
+                                                <option value="0.08" selected>8%</option>
+                                                <option value="0.1">10%</option>
+                                                <option value="0">0</option>
+                                            </select>
+                                        </div>
+                                        <input type="text" name="im_ticketing_fee_no_vat" id="im_ticketing_fee_no_vat"  class="box-input" placeholder="Giá vốn chưa VAT" readonly />
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td colspan="6" class="text-center pb-0">
@@ -439,7 +465,7 @@
                         <th width="7%">Ngày<br>hạch toán</th>
                         <th width="7%">Ngày HĐ</th>
                         <th width="7%">Số HĐ</th>
-                        <th width="6%">KHHĐ</th>
+                        <th width="5%">KHHĐ</th>
                         <th width="8%">Số vé</th>
                         <!-- <th width="7%">PNR</th> -->
                         <th width="3%">SL</th>
@@ -450,7 +476,8 @@
                         <th width="7%">VAT</th>
                         <th width="7%">Giá vốn (VAT)</th>
                         <th width="6%">Thu hộ</th>
-                        <th width="7%">Tổng</th>  
+                        <th width="7%">Tổng</th>
+                        <th>Loại</th>
                         <th width="6%">Booking</th>   
                         <th width="3%">NCC</th>
                         <th>Đơn vị</th>
@@ -469,6 +496,7 @@
                         <th></th>
                         <th></th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -481,4 +509,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.4"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.9"></script>

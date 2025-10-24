@@ -25,9 +25,31 @@ body {
 .header {
     /* background:rgb(7 65 229 / 82%); */
     /* color: white; */
-    padding: 15px;
+    padding: 15px 0px;
     /* text-align: center; */
 }
+
+.searchForm {
+    padding: 1rem 0rem !important;
+}
+
+.searchForm {
+    font-size: 0.90rem;
+}
+
+.searchForm .select2-container .select2-selection--single .select2-selection__rendered {
+    font-size: 0.90rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+    display: none;
+}
+
+.searchForm .select2-selection__clear {
+    display: none !important;
+}
+
 
 .header h1 {
     font-size: 2.5em;
@@ -60,6 +82,7 @@ body {
     font-weight: 600;
     transition: all 0.3s;
     border-bottom: 3px solid transparent;
+    background: white;
 }
 
 .tab.active {
@@ -89,6 +112,17 @@ body {
     font-weight: bold;
     color: #2d3748;
     /* margin-bottom: 20px; */
+}
+
+.btnFare-update-all {
+    padding-left: 35px;
+    padding-right: 10px;
+}
+.btnFare-update-all #btnFare_dep_all {
+    padding: 4px 35px;
+}
+.btnFare-update-all #btnFare_ret_all {
+    padding: 4px 35px;
 }
 
 .countdown {
@@ -180,7 +214,6 @@ body {
     color: #718096;
     font-size: 1.1em;
     cursor: pointer;
-    text-decoration: underline;
 }
 
 .flight-details:hover {
@@ -300,11 +333,14 @@ body {
 }
 
 /* Modal mới */
+.modal-backdrop.show {
+  z-index: 1030 !important;
+}
 .modal-md-lg {
     max-width: 700px; /* nhỏ hơn modal-lg (800px) */
 }
 
-.flight-modal.flight-modal {
+.flight-modal {
   background: linear-gradient(135deg, #007bff, #00a8ff);
   color: #fff;
   border-bottom: none;
@@ -335,7 +371,7 @@ body {
 }
 
 .route-section {
-  font-size: 2rem;
+  font-size: 1.15rem;
   color: #000000;
 } /* color: #2d3748; */
 
@@ -349,7 +385,9 @@ body {
 }
 
 .route-section .time-info {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+  color: #000000 !important;
+  font-weight: 400;
 }
 
 .route-arrow {
@@ -366,8 +404,63 @@ body {
   font-weight: 600;
   text-align: right;
 }
+
+.content-price {
+    width: 55%;
+}
 .info-label {
     font-size: 14px;
+}
+
+.btn-cancel-modal {
+    font-size: 1.10rem !important;
+}
+.btn-update {
+    font-size: 1.10rem !important;
+}
+.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Style cho thông báo thay đổi giá */
+#fareChangeMessage {
+    padding: 0px 0px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    animation: slideIn 0.3s ease-out;
+}
+
+#fareChangeMessage .text-success {
+    border-left-color: #28a745;
+}
+
+#fareChangeMessage .text-increase {    
+    border-left-color: #2865a7;
+    color: #2500ff;
+}
+/* border-left-color: #ffc107;
+    border-left-color: #28a745; */
+#fareChangeText {
+    white-space: nowrap;
+    overflow: visible;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Icon style */
+#fareChangeText i {
+    font-size: 1.1rem;
+    margin-right: 5px;
 }
 
 
@@ -381,5 +474,16 @@ body {
     .flight-left {
         flex-wrap: wrap;
         justify-content: center;
+    }
+}
+@media (max-width: 480px) {
+    .dep-info {
+        width: 26%;
+    }
+    .flightNo-dep-des {
+        width: auto;
+    }
+    .des-info {
+        width: 26%;
     }
 }

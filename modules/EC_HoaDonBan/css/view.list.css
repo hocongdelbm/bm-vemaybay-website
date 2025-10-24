@@ -1,3 +1,8 @@
+.list-view-rounded-corners table.table-responsive>tbody>tr>td {
+  vertical-align: baseline;
+  padding: 7px 5px;
+}
+
 .loader-signing {
   width: fit-content;
   display: inline;

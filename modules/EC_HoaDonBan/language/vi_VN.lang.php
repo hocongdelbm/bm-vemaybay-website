@@ -17,7 +17,7 @@ $mod_strings = array(
   'LBL_NAME' => 'Số chứng từ',
   'LBL_CREATED_USER' => 'Người tạo',
   'LBL_MODIFIED_USER' => 'Người chỉnh',
-  'LBL_LIST_FORM_TITLE' => 'D/s Hóa đơn đầu ra',
+  'LBL_LIST_FORM_TITLE' => 'D/s HĐ đầu ra',
   'LBL_MODULE_NAME' => 'Hóa đơn',
   'LBL_MODULE_TITLE' => 'Hóa đơn',
   'LBL_HOMEPAGE_TITLE' => '  Hóa đơn',
@@ -71,4 +71,11 @@ $mod_strings = array(
   'LBL_CITIZEN_ID' => 'CCCD',
   'LBL_PASSPORT_NUMBER' => 'Hộ chiếu',
   'LBL_IDENTITY_NUMBER' => 'CCCD/Hộ chiếu',
+  'LBL_REPRESENT_BOOKING' => 'Booking',
+
+  'LBL_LISTVIEW_GENERAL_INFO' => 'Thông tin',
+  'LBL_LISTVIEW_NAME' => 'Chứng từ',
+  'LBL_LISTVIEW_SOHOADON' => 'Số HĐ',
+  'LBL_LISTVIEW_NGAYHOADON' => 'Ngày HĐ',
+  'LBL_LISTVIEW_KYHIEUHD' => 'Ký hiệu',
 );

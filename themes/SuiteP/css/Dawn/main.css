@@ -3615,7 +3615,7 @@ table.table-responsive.table-geocoded thead tr th {
   padding: 12px 8px;
 }
 
-formHeader h3Row table.table-responsive thead tr th a {
+.formHeader.h3Row table.table-responsive thead tr th a {
   font-size: 13px;
   color: var(--white-color);
   line-height: 20px;
@@ -3623,21 +3623,9 @@ formHeader h3Row table.table-responsive thead tr th a {
   text-transform: capitalize;
 }
 
-table.table-responsive>tbody>tr {
-  border: 1px solid var(--border-color);
-}
-
-table.table-responsive>tbody>tr:hover td {
-  background: #efefef;
-}
-
-table.table-responsive>tbody>tr:hover td input[type="checkbox"]:before {
-  border-color: #cccccc;
-}
-
-table.table-responsive>tbody>tr:hover input:checked[type="checkbox"]:before {
-  border-color: var(--primary-color);
-}
+table.table-responsive>tbody>tr {border: 1px solid var(--border-color);}
+table.table-responsive>tbody>tr:hover td input[type="checkbox"]:before {border-color: #cccccc;}
+table.table-responsive>tbody>tr:hover input:checked[type="checkbox"]:before {border-color: var(--primary-color);}
 
 table.table-responsive>tbody>tr>td {
   padding: 5px;
@@ -3978,7 +3966,7 @@ button.remove_employees,
 }
 
 table.table-invoice input {
-  width: unset !important;
+  width: unset;
 }
 
 #search_form select {
@@ -5459,7 +5447,7 @@ table#booking_qty tbody tr.footer-tr td {
 }
 
 .bg-yellow {
-  background-color: #fff2cc !important;
+  background-color: #fff5d9 !important;
 }
 
 .loading {

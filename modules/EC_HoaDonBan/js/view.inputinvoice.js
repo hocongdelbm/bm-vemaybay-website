@@ -1,5 +1,13 @@
+const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
+
 $(document).ready(function () {
     $(".allow_number_only").number(true, 0, dec_sep, num_grp_sep);
+    $('.decimal-only').on('input', function () {
+        let value = $(this).val();
+        // Remove invalid characters except digits, dot, comma, minus
+        value = value.replace(/[^0-9.,-]/g, '');
+        $(this).val(value);
+    });
 
     // Default current date
     if($('input[name="accounting_date"]').val().length < 10) $('input[name="accounting_date"]').val(getCurrentDate());
@@ -112,7 +120,7 @@ $(document).ready(function () {
                 "call_back_function": "set_inv_return",
                 "form_name": "implement_invoice_frm",
                 "field_to_name_array": {
-                    "id": "im_ticket_code_id",
+                    "id": "im_ticket_id",
                     "name": "im_ticket_code"
                 }
             }, "single", true);
@@ -406,24 +414,41 @@ $(document).ready(function () {
         let format_value = formatNumber(unformatNumber($(this).val()));
         $(this).val(format_value);
     });
+
+    $(document).on('input', '#im_ticketing_fee, #im_ticketing_fee_vat_percent', function () {
+        let fee     = unformatNumber($('#im_ticketing_fee').val());
+        let percent = $('#im_ticketing_fee_vat_percent').val();
+        let vat     = fee * percent;
+        $('#im_ticketing_fee').val(formatNumber(fee));
+        $('#im_ticketing_fee_vat').val(formatNumber(vat));
+        $('#im_ticketing_fee_no_vat').val(formatNumber(fee - vat));
+    });
 });
 
 function calculateTicketPrice(is_cal_vat = 0) {
     let qty = unformatNumber($("#im_qty").val());
-    let cost = unformatNumber($("#im_cost").val());
     let authorized = unformatNumber($("#im_authorized").val());
 
+    let cost = $("#im_cost").val();
+    if (cost.includes('-')) {
+        cost = cost.replace(/-/g, '');
+        cost = '-' + cost;
+    }
+    cost = unformatNumber(cost);
+
     let vat = 0;
-    if (is_cal_vat) vat = Math.round(cost * 0.08);
+    let vat_per = parseFloat($("#im_vat_percent").val());
+    if (is_cal_vat) vat = Math.round(cost * vat_per);
     else vat = unformatNumber($("#im_vat").val());
 
+    $("#im_cost").val(formatNumber(cost));
     $("#im_vat").val(formatNumber(vat));
     $("#im_cost_vat").val(formatNumber(cost + vat));
     $("#im_total").val(formatNumber(cost + vat + authorized));
 }
 
 function check_import_form() {
-    // tất cả các trường đều phải nhập
+    // Tất cả các trường đều phải nhập
     addToValidate('implement_invoice_frm', 'im_invoice_date', 'date', true, 'Ngày phải nhập theo cú pháp: 28-02-2022');
     addToValidate('implement_invoice_frm', 'im_accounting_date', 'date', true, 'Ngày phải nhập theo cú pháp: 28-02-2022');
     addToValidate('implement_invoice_frm', 'im_invoice_number', 'varchar', true, 'Không được để trống');
@@ -438,7 +463,6 @@ function check_import_form() {
         return false;
     } else {
         // kiểm tra hành trình
-        var ticket_type = $("#im_ticket_type").val();
         var flight_type = $("#im_flight_type").val();
         var iti = $("#im_iti").val();
         if (typeof iti != 'undefined' && iti != '') {
@@ -468,34 +492,45 @@ function set_inv_return(popupReplyData) {
     }
 
     $.ajax({
-        url: "index.php?entryPoint=entryPointEC_HoaDonBan",
+        url: ENTRYPOINT,
         type: "POST",
-        data: {
-            ticket_code: $("#im_ticket_code_id").val(),
-            for: "getTicketCodeInf",
-        },
-        success: function (response) {
-            var result = JSON.parse(response);
-            $("#im_invoice_date").val(result.invoice_date);
-            $("#im_invoice_number").val(result.invoice_number);
-            $("#im_invoice_serial").val(result.invoice_serial);
-            $("#im_iti").val(result.invoice_iti);
-            $("#im_booking").val(result.invoice_booking);
-            $("#im_booking_id").val(result.invoice_booking_id);
-            $("#im_supplier").val(result.invoice_supplier);
-            $("#im_qty").val(result.invoice_qty);
-            $("#im_cost").val(result.invoice_cost);
-            $("#im_vat").val(result.invoice_vat);
-            $("#im_cost_vat").val(result.invoice_cost_vat);
-            $("#im_authorized").val(result.invoice_authorized);
-            $("#im_total").val(result.invoice_total);
-            $("#im_accounting_date").val(result.invoice_accounting_date);
-            // xác định là 1 chiều hay 2 chiều
-            if (result.invoice_iti.split("-").length == 2) {
-                $("#im_flight_type").val(0);
-            } else {
-                $("#im_flight_type").val(1);
+        contentType: "application/json",
+        dataType: 'json',
+        cache: false,
+        data: JSON.stringify({
+            class: "entryInputInvoiceClass",
+            method: "getTicketNumberInfoById",
+            params: {
+                ticketId: $("#im_ticket_id").val().trim(),
             }
+        }),
+        success: function (response) {
+            if(response.status != 1) {
+                showToastWarning('Không tìm thấy dữ liệu số vé');
+                return;
+            }
+
+            let result = response.data ?? {};
+            
+            $("#im_invoice_date").val(result.inv_date);
+            $("#im_invoice_number").val(result.inv_number);
+            $("#im_invoice_serial").val(result.inv_serial);
+            $("#im_iti").val(result.inv_iti);
+            $("#im_booking").val(result.inv_booking);
+            $("#im_booking_id").val(result.inv_booking_id);
+            $("#im_supplier").val(result.inv_supplier);
+            $("#im_qty").val(result.inv_qty);
+            $("#im_accounting_date").val(result.inv_accounting_date);
+            $("#im_ticket_type").val(result.inv_ticket_type)
+            $("#im_vat_percent").val(result.inv_vat_percent);
+            $("#im_vat").val(formatNumber(result.inv_vat));
+            $("#im_cost").val(formatNumber(result.inv_cost));
+            $("#im_cost_vat").val(formatNumber(result.inv_cost_vat));
+            $("#im_authorized").val(formatNumber(result.inv_authorized));
+            $("#im_total").val(formatNumber(result.inv_total));
+            // Xác định là 1 chiều hay 2 chiều
+            if (result.inv_iti.split("-").length == 2) $("#im_flight_type").val(0);
+            else $("#im_flight_type").val(1);
         }
     });
 }

@@ -3,13 +3,10 @@ class WinInvoice {
     private $ENDPOINT;
     private $USER;
     private $PASSWORD;
-
     private $TVAN_ENDPOINT;
     private $TVAN_USER;
     private $TVAN_PASSWORD;
-
     private $INVOICE_NUMBER; // Mẫu số hóa đơn
-    private $TIMEOUT = 30;
 
     public function __construct() {
         global $sugar_config;
@@ -156,6 +153,18 @@ class WinInvoice {
                     "error" => 1,
                     "httpCode" => 400,
                     "message" => "Không lấy được dữ liệu hóa đơn",
+                    "data" => null
+                ]);
+            }
+
+            $y = date('y');
+            if(($requestBody['invSerial'] == "C{$y}MHV" && (int)$requestBody['invCustomer'] != 1)
+                || ($requestBody['invSerial'] == "C{$y}THV" && (int)$requestBody['invCustomer'] != 0)
+            ) {
+                return json_encode([
+                    "error" => 1,
+                    "httpCode" => 400,
+                    "message" => "Ký hiệu HĐ và loại KH không khớp",
                     "data" => null
                 ]);
             }
@@ -433,9 +442,9 @@ class WinInvoice {
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_FAILONERROR, 1);
-            curl_setopt($curl, CURLOPT_MAXREDIRS, 12);
+            curl_setopt($curl, CURLOPT_MAXREDIRS, 16);
             curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, $this->TIMEOUT);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 32);
             foreach ($curlOptions as $key => $value) {
                 curl_setopt($curl, $key, $value);
             }
