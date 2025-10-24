@@ -397,6 +397,7 @@ class EC_HoaDonBan extends Basic {
 							WHERE id = '{$parentId}'";
 						$this->db->query($sqlUpdate);
 					}
+					sleep(1);
 				}
 				catch(Exception $e) {
 					global $sugar_config;
