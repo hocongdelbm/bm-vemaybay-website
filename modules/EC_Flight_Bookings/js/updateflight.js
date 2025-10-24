@@ -22,7 +22,36 @@ fareInput.addEventListener('input', function (e) {
 });
 // let fareValue = fareInput.value.replace(/\./g, ''); // loại bỏ dấu chấm
 
+// const fareInputAll = document.getElementById('modal_fare_all');
+// fareInputAll.addEventListener('input', function (e) {
+//     // Cho phép dấu '-' ở đầu, sau đó là các chữ số
+//     let value = e.target.value.replace(/(?!^-)[^\d]/g, '');
+
+//     // Nếu chỉ nhập '-' thì cho phép
+//     if (value === '-') {
+//         e.target.value = '-';
+//         return;
+//     }
+
+//     // Nếu rỗng thì thôi
+//     if (!value) {
+//         e.target.value = '';
+//         return;
+//     }
+
+//     // Format dấu chấm phân cách nếu có số
+//     let isNegative = value.startsWith('-');
+//     let numeric = value.replace('-', '');
+//     numeric = numeric.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+//     e.target.value = isNegative ? '-' + numeric : numeric;
+// });
+
+// 
+// Thêm vào phần xử lý input modal_fare_all
 const fareInputAll = document.getElementById('modal_fare_all');
+const fareChangeMessage = document.getElementById('fareChangeMessage');
+const fareChangeText = document.getElementById('fareChangeText');
+
 fareInputAll.addEventListener('input', function (e) {
     // Cho phép dấu '-' ở đầu, sau đó là các chữ số
     let value = e.target.value.replace(/(?!^-)[^\d]/g, '');
@@ -30,12 +59,14 @@ fareInputAll.addEventListener('input', function (e) {
     // Nếu chỉ nhập '-' thì cho phép
     if (value === '-') {
         e.target.value = '-';
+        fareChangeMessage.style.display = 'none';
         return;
     }
 
     // Nếu rỗng thì thôi
     if (!value) {
         e.target.value = '';
+        fareChangeMessage.style.display = 'none';
         return;
     }
 
@@ -44,7 +75,39 @@ fareInputAll.addEventListener('input', function (e) {
     let numeric = value.replace('-', '');
     numeric = numeric.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     e.target.value = isNegative ? '-' + numeric : numeric;
+
+    // Hiển thị thông báo
+    const numericValue = parseInt(value.replace('-', ''));
+    
+    if (!isNaN(numericValue) && numericValue > 0) {
+        fareChangeMessage.style.display = 'block';
+        
+        if (isNegative) {
+            // Giảm giá
+            fareChangeText.innerHTML = `
+                <i class="bi bi-arrow-down-circle text-increase"></i> 
+                Giảm giá <span class="text-increase">${formatPrice(numericValue)} VND</span> cho toàn bộ chuyến bay
+            `;
+            fareChangeText.className = 'fw-bold ';
+        } else {
+            // Tăng giá
+            fareChangeText.innerHTML = `
+                <i class="bi bi-arrow-up-circle text-increase"></i> 
+                Tăng giá thêm <span class="text-increase">${formatPrice(numericValue)} VND</span> cho toàn bộ chuyến bay
+            `;
+            fareChangeText.className = 'fw-bold ';
+        }
+    } else {
+        fareChangeMessage.style.display = 'none';
+    }
 });
+
+// Reset thông báo khi đóng modal
+document.getElementById('editFlightModal_all').addEventListener('hidden.bs.modal', function () {
+    fareChangeMessage.style.display = 'none';
+    fareInputAll.value = '';
+});
+// 
 
 
 // Hàm format ngày
@@ -254,14 +317,6 @@ function displayFlightData(data) {
             depFlights[0].depDate
         );
 
-        // thêm chỗ để gọi hiện button btnFare_dep_all và khi bấm vào sẽ gọi tới openEditModalAll(
-        //     depFlights[0].airlineCode,
-        //     depFlights[0].carrierCode,
-        //     depFlights[0].depCode,
-        //     depFlights[0].desCode,
-        //     depFlights[0].flightData.depName,
-        //     depFlights[0].flightData.desName,
-        // );
 
         // Nếu có thời gian cache hết hạn
         if (data.dep_cache_expires_at) {
@@ -294,41 +349,6 @@ function displayFlightData(data) {
             retFlights[0].depDate
         );
 
-        // document.addEventListener('DOMContentLoaded', function () {
-        //     const btnFareRetAll = document.getElementById('btnFare_ret_all');
-        //     if (btnFareRetAll) {
-        //         btnFareRetAll.onclick = () => openEditModalAll(
-        //             depFlights[0].airlineCode,
-        //             depFlights[0].details[0].carrierCode,
-        //             depFlights[0].dep,
-        //             depFlights[0].des,
-        //             depFlights[0].depName,
-        //             depFlights[0].desName,
-        //             depFlights[0].depDate
-        //         );
-        //         btnFareRetAll.style.display = 'block';
-        //     }
-        // });
-
-        // const btnFareRetAll = document.getElementById('btnFare_ret_all');
-        // btnFareRetAll.style.display = 'block';
-        // btnFareRetAll.onclick = () => openEditModalAll(
-        //     retFlights[0].airlineCode,
-        //     retFlights[0].carrierCode,
-        //     retFlights[0].depCode,
-        //     retFlights[0].desCode,
-        //     retFlights[0].depDate
-        // );
-
-
-        // thêm chỗ để gọi hiện button btnFare_ret_all và khi bấm vào sẽ gọi tới openEditModalAll(
-        //     depFlights[0].airlineCode,
-        //     depFlights[0].carrierCode,
-        //     depFlights[0].depCode,
-        //     depFlights[0].desCode,
-        //     depFlights[0].flightData.depName,
-        //     depFlights[0].flightData.desName,
-        // );
 
         if ((data.ret_cache_expires_at)) {
             startCountdown(data.ret_cache_expires_at, 'retCountdown');
@@ -587,8 +607,8 @@ function openEditModalAll(airlineCode, carrierCode, depCode, desCode, depName, d
     airlineEl.style.color = 'white';
 
     // Tuyến
-    document.getElementById('modal_depName_all').textContent = `(${depName})`;
-    document.getElementById('modal_desName_all').textContent = `(${desName})`;
+    document.getElementById('modal_depName_all').textContent = `${depName}`;
+    document.getElementById('modal_desName_all').textContent = `${desName}`;
     document.getElementById('modal_depCode_all').textContent = `(${depCode})`;
     document.getElementById('modal_desCode_all').textContent = `(${desCode})`;
     document.getElementById('modal_depTime_all').textContent = `${formatDate(depDate)}`;
@@ -629,7 +649,7 @@ function updateFlightFareAll() {
         contentType: "application/json",
         data: JSON.stringify({
             class: "entryFareSystemClass",
-            method: "updateTicketAll",
+            method: "updateFlightAll",
             params: {
                 airlineCode: currentFlightData.airlineCode,
                 depCode: currentFlightData.depCode,
@@ -779,7 +799,7 @@ function updateFlightFare() {
         contentType: "application/json",
         data: JSON.stringify({
             class: "entryFareSystemClass",
-            method: "updateTicket",
+            method: "updateFlight",
             params: {
                 airlineCode: currentFlightData.airlineCode,
                 depCode: currentFlightData.depCode,
@@ -1092,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // document.getElementById('departDate').value = today;
     // Khởi tạo Select2 ở đây
     $('.airport-select').select2({
-        placeholder: "Tìm hoặc chọn sân bay...",
+        placeholder: "Chọn sân bay ",
         allowClear: true,
         width: '100%'
     });

@@ -280,7 +280,7 @@
         <div class="modal-content">
             <div class="modal-header flight-modal">
                 <h5 class="modal-title" id="editFlightModalLabel">
-                    <i class="bi bi-pencil-square"></i> Cập nhật giá vé đồng loạt
+                    <i class="bi bi-pencil-square"></i> Cập nhật giá vé hàng loạt 
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -325,7 +325,7 @@
 
                     <!-- Giá vé -->
                     <div class="row justify-content-start">
-                        <div class="col-md-6" style="
+                        <div class="col-md-6 content-price" style="
                                                     text-align: left;">
                             <label class="info-label">Giá thay đổi <span class="text-danger">*</span></label>
                             <div class="input-group shadow-sm rounded-3">
@@ -333,7 +333,10 @@
                                     placeholder="Nhập giá muốn điều chỉnh" min="0" step="1000" required>
                                 <span class="input-group-text fw-bold bg-primary text-white">VND</span>
                             </div>
-                            
+                            <!-- Thông báo động -->
+                            <div id="fareChangeMessage" class="mt-2" style="display:none;">
+                                <span id="fareChangeText" class="fw-bold"></span>
+                            </div>                       
                             <small id="fareError_all" class="text-danger" style="display:none;">
                                 Vui lòng nhập giá trị hợp lệ
                             </small>

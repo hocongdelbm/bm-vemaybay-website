@@ -76,7 +76,7 @@ class entryFareSystemClass extends entryClass {
         return $response;
     }
 
-    public function updateTicket($params = []) {    
+    public function updateFlight($params = []) {    
         // Lấy parameters từ request
         $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
         $depCode = isset($params['depCode']) ? strtoupper(trim($params['depCode'])) : '';
@@ -128,7 +128,7 @@ class entryFareSystemClass extends entryClass {
         return $response;
     }
 
-    public function updateTicketAll($params = []) {    
+    public function updateFlightAll($params = []) {    
         // Lấy parameters từ request
         $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
         $depCode = isset($params['depCode']) ? strtoupper(trim($params['depCode'])) : '';
