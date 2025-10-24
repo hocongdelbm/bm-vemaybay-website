@@ -69,8 +69,9 @@ $mod_strings = array(
     'LBL_VAT_BOUGHT_AMOUNT2' => 'VAT giá mua 2',
     'LBL_VAT_BOUGHT_AMOUNT3' => 'VAT giá mua 3',
 
-    'LBL_RV_STATUS' => 'Tình trạng',
+    'LBL_BOOKING' => 'Booking',
     'LBL_BOOKING_NAME' => 'Booking',
+    'LBL_RV_STATUS' => 'Tình trạng',
     'LBL_NGAYCHUNGTU' => 'Ngày chứng từ',
     'LBL_NAME' => 'Số chứng từ',
     'LBL_TKNGANHANG' => 'TK Ngân hàng',

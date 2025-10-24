@@ -1205,6 +1205,19 @@ class EC_Flight_Bookings extends Basic
 
 		$listTickets = [];
 
+		$sqloutinv = "SELECT COUNT(DISTINCT parent_id) AS output_invoice_qty
+			FROM ec_chitiethoadon ct
+			WHERE ct.booking_id = '{$bookingId}' AND ct.deleted = 0";
+		$outputInvQty = $this->db->getOne($sqloutinv) ?? 0;
+
+		$goWithArray = [];
+		$resPaymentReceipt = $this->db->query("SELECT DISTINCT IFNULL(go_with, 0)
+				FROM ec_receipt_voucher
+				WHERE booking_id = '{$bookingId}'
+					AND rv_status != '0'
+					AND deleted = 0");
+		while($rowPaymentReceipt = $this->db->fetchByAssoc($resPaymentReceipt)) $goWithArray[] = (int)$rowPaymentReceipt['go_with'];
+		
         $sqltk = "SELECT p.id
 				,p.name
 				,IFNULL(p.add_type, 0) AS addType
@@ -1218,17 +1231,24 @@ class EC_Flight_Bookings extends Basic
             FROM ec_booking_passengers p
             WHERE p.booking_id = '{$bookingId}'
 				AND p.deleted = 0
-				AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
+				-- AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
 			ORDER BY p.date_entered";
 
         $restk = $this->db->query($sqltk);
         while ($row = $this->db->fetchByAssoc($restk)) {
+			$goWith = (int)($row['goWith'] ?? 0); // Changed times of passenger in booking
 			$ticketType = (int)($row['addType'] ?? 0);
+
+			// Only get list ticket code for next processing
+			if($goWith < $outputInvQty) continue;
+
+			// Only get list ticket code in changed times which have receipt voucher
+			if($goWith > 0 && array_search($goWith, $goWithArray) === false) continue;
 
 			// Flight ticket number
 			if($ticketType != 1) {
 				if(isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) {
-					$listTickets[$row['ticketNumberOut']][] = [
+					$listTickets[$goWith][$row['ticketNumberOut']][] = [
 						'type' 			=> 'flight',
 						'direction' 	=> 0,
 						'passName' 		=> $row['name'],
@@ -1236,7 +1256,7 @@ class EC_Flight_Bookings extends Basic
 					];
 				}
 				if(isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) {
-					$listTickets[$row['ticketNumberIn']][] = [
+					$listTickets[$goWith][$row['ticketNumberIn']][] = [
 						'type' 			=> 'flight',
 						'direction' 	=> 1,
 						'passName' 		=> $row['name'],
@@ -1250,7 +1270,7 @@ class EC_Flight_Bookings extends Basic
 				$bagTicketNumberOut = $row['bagTicketNumberOut'] ?? '';
 				if(empty($bagTicketNumberOut)) $bagTicketNumberOut = $row['ticketNumberOut'] ?? 'BAGTICKETOUT';
 
-				$listTickets[$bagTicketNumberOut][] = [
+				$listTickets[$goWith][$bagTicketNumberOut][] = [
 					'type' 			=> 'baggage',
 					'direction' 	=> 0,
 					'passName' 		=> $row['name'],
@@ -1261,7 +1281,7 @@ class EC_Flight_Bookings extends Basic
 				$bagTicketNumberIn = $row['bagTicketNumberIn'] ?? '';
 				if(empty($bagTicketNumberIn)) $bagTicketNumberIn = $row['ticketNumberIn'] ?? 'BAGTICKETIN';
 
-				$listTickets[$bagTicketNumberIn][] = [
+				$listTickets[$goWith][$bagTicketNumberIn][] = [
 					'type' 			=> 'baggage',
 					'direction' 	=> 1,
 					'passName' 		=> $row['name'],

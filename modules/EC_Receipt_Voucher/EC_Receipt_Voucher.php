@@ -29,7 +29,6 @@ class EC_Receipt_Voucher extends Basic
 
 	public $receipt_type;
 	public $rv_notes;
-	public $rv_number;
 	public $amount;
 	public $account_id_c;
 	public $customer;

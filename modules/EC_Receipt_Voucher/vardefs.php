@@ -94,35 +94,21 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'studio' => 'visible',
         ),
-        'rv_number' => array(
-            'required' => false,
-            'name' => 'rv_number',
-            'vname' => 'LBL_RV_NUMBER',
-            'type' => 'varchar',
-            'massupdate' => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 8,
-        ),
-        'amount' =>
-        array(
-            'required' => true,
+
+        'amount' => array(
             'name' => 'amount',
             'vname' => 'LBL_AMOUNT',
             'type' => 'currency',
+            'len' => 26,
+            'required' => 1,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
+            'importable' => 1,
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
         ),
+
         'account_id_c' =>
         array(
             'required' => false,
@@ -191,8 +177,8 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
-        'amount_type' =>
-        array(
+
+        'amount_type' => array(
             'required' => false,
             'name' => 'amount_type',
             'vname' => 'LBL_AMOUNT_TYPE',
@@ -211,6 +197,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'studio' => 'visible',
             'dependency' => false,
         ),
+
         'guest_address' =>
         array(
             'required' => false,
@@ -246,38 +233,25 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'dependency' => false,
         ),
 
-        'booking_id' =>
-        array(
-            'required' => false,
+        'booking_id' => array(
             'name' => 'booking_id',
-            'vname' => '',
+            'vname' => 'LBL_BOOKING',
             'type' => 'id',
+            'len' => 36,
+            'required' => 0,
+            'audited' => 1,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'importable' => 1,
+            'reportable' => 0,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 36,
         ),
-        'booking_name' =>
-        array(
-            'required' => false,
-            'source' => 'non-db',
+        'booking_name' => array(
             'name' => 'booking_name',
-            'vname' => 'LBL_BOOKING_NAME',
+            'vname' => 'LBL_BOOKING',
             'type' => 'relate',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '255',
+            'source' => 'non-db',
+            'len' => 32,
             'id_name' => 'booking_id',
             'ext2' => 'EC_Flight_Bookings',
             'module' => 'EC_Flight_Bookings',
@@ -558,6 +532,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
+
         'location' => array(
             'required' => false,
             'name' => 'location',
@@ -565,8 +540,6 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'type' => 'varchar',
             'massupdate' => 0,
             'default' => '',
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
@@ -576,6 +549,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'studio' => 'visible',
             'dependency' => false,
         ),
+        
         'com_location_id' =>
         array(
             'required' => false,
