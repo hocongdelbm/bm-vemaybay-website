@@ -863,19 +863,7 @@ $(document).ready(function () {
             navbar: false, // Ẩn thanh thumbnail
         });
         viewer.show();
-
-        // console.warn("Click");
-        // $('#dialogImage').attr('src', $(this).attr('src'));
-        // $('#imageDialog').fadeIn(200);
     });
-    // $('#closeDialog').on('click', function () {
-    //     $('#imageDialog').fadeOut(200);
-    // });
-    // $('#imageDialog').on('click', function (e) {
-    //     if (e.target.id === 'imageDialog') {
-    //         $('#imageDialog').fadeOut(200);
-    //     }
-    // });
 });
 
 /**
