@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css">
 <link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.6">
 
 <div class="wrap-content wrap-content-chat">
@@ -345,4 +346,5 @@
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
 <script src="modules/EC_Zalo/js/chatzalo.js?v=3.6"></script>
