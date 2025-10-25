@@ -219,22 +219,33 @@ class Viewticketreport extends SugarView
     function itineraryQuery($sql_search, $sql_role)
     {
         global $db;
-        $sql = "SELECT (SELECT CONCAT(departure,'-',arrival) FROM ec_booking_itineraries WHERE booking_id = bk.id AND direction = bkd.direction LIMIT 0,1) AS itinerary_code
-					  ,(SELECT CONCAT(cti1.name,' - ',cti2.name) 
-					  	FROM ec_booking_itineraries iti 
-						LEFT JOIN ec_flight_cities cti1 ON iti.departure = cti1.code AND cti1.deleted = 0
-						LEFT JOIN ec_flight_cities cti2 ON iti.arrival = cti2.code AND cti2.deleted = 0
-						WHERE iti.booking_id = bk.id AND iti.direction = bkd.direction LIMIT 0,1) AS itinerary_name
-					  ,SUM(bkd.quantity) AS total_quantity
-					  ,SUM(bkd.total_price) AS subtotal_amount
-				FROM ec_booking_details bkd
-				LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id
-				WHERE 
-                    ( bk.booking_status = '7' OR bk.booking_status = '8' )
-                    AND bk.deleted = 0 AND bkd.deleted = 0
-                    " . $sql_search . $sql_role . "
-				GROUP BY itinerary_code
-				ORDER BY total_quantity DESC ";
+        $sql = "
+            SELECT 
+                (
+                    SELECT CONCAT(departure,'-',arrival) 
+                    FROM ec_booking_itineraries 
+                    WHERE booking_id = bk.id AND direction = bkd.direction 
+                    LIMIT 0, 1
+                ) AS itinerary_code
+                ,(
+                    SELECT CONCAT(cti1.name, ' - ', cti2.name) 
+                    FROM ec_booking_itineraries iti 
+                    LEFT JOIN ec_flight_cities cti1 ON iti.departure = cti1.code AND cti1.deleted = 0
+                    LEFT JOIN ec_flight_cities cti2 ON iti.arrival = cti2.code AND cti2.deleted = 0
+                    WHERE iti.booking_id = bk.id AND iti.direction = bkd.direction 
+                    LIMIT 0, 1
+                ) AS itinerary_name
+                , SUM(bkd.quantity) AS total_quantity
+                , SUM(bkd.total_price) AS subtotal_amount
+            FROM ec_booking_details bkd
+            LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id
+            WHERE 
+                ( bk.booking_status = '7' OR bk.booking_status = '8' )
+                AND bk.deleted = 0 AND bkd.deleted = 0
+                " . $sql_search . $sql_role . "
+            GROUP BY itinerary_code
+            ORDER BY total_quantity DESC 
+        ";
         $res = $db->query($sql);
         $res2 = $db->query($sql); // dùng cho tính toán phần trăm
 
@@ -262,7 +273,13 @@ class Viewticketreport extends SugarView
             $pixel = (int)($percent * 120 / 100);
             $div_percent = '<div style="width:' . $pixel . 'px; height:10px; background:#09F">&nbsp;</div>';
 
-            $html .= '<td class="text-end"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="90%">' . $div_percent . '</td><td align="right">' . round($percent, 1) . '%</td></tr></table></td>';
+            $html .= '
+                <td class="text-end">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td width="90%">' . $div_percent . '</td><td align="right">' . round($percent, 1) . '%</td></tr>
+                    </table>
+                </td>
+            ';
             $html .= '<td class="text-center">&nbsp;</td>';
 
             $html .= '</tr>';
@@ -272,14 +289,16 @@ class Viewticketreport extends SugarView
             $i++;
         }
 
-        $html .= '<tr>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">' . format_number($total_quantity) . '</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF; font-weight:bold">' . format_number($subtotal_amount) . '</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-        </tr>';
+        $html .= '
+            <tr>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">' . format_number($total_quantity) . '</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF; font-weight:bold">' . format_number($subtotal_amount) . '</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+            </tr>
+        ';
 
         return $html;
     }
@@ -567,6 +586,12 @@ class Viewticketreport extends SugarView
                 ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y') AS bk_date_entered
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS bk_date_ticket_issue
                 ,(SELECT IF(u.title NOT LIKE '%bot%', 1, 0) FROM users u WHERE u.id=bk.created_by) AS not_from_web
+                ,(
+                    SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR)
+                    FROM ec_working_process
+                    WHERE deleted = 0 AND paid = 1
+                    AND parent_id = bk.id
+                ) AS paid_time
             FROM ec_booking_details bkd 
             LEFT JOIN ec_flight_bookings bk ON bkd.booking_id=bk.id AND bk.deleted=0 
             WHERE 
@@ -618,6 +643,7 @@ class Viewticketreport extends SugarView
                     ,'' AS bk_date_entered
                     ,'' AS bk_date_ticket_issue
                     ,0 AS not_from_web
+                    ,'' AS paid_time
                 FROM ec_receipt_voucher p
                 WHERE 
                     p.loai_thu IN (" . $this->_loai_thu_str . ") 
@@ -630,7 +656,8 @@ class Viewticketreport extends SugarView
                 
                 -- hoan ve
                 UNION
-                SELECT hv_t.parent_id, hv_t.parent_name, hv_t.parent_type
+                SELECT 
+                    hv_t.parent_id, hv_t.parent_name, hv_t.parent_type
                     , hv_t.airline_outbound, hv_t.airline_inbound
                     , SUM(hv_t.total_quantity) AS total_quantity
                     , 0 AS total_points_amount
@@ -646,6 +673,7 @@ class Viewticketreport extends SugarView
                     , '' AS bk_date_entered
                     , '' AS bk_date_ticket_issue
                     , 0 AS not_from_web
+                    , '' AS paid_time
                 FROM 
                 (
                     SELECT 
@@ -738,19 +766,14 @@ class Viewticketreport extends SugarView
                 ORDER BY total_quantity DESC 
             ";
         }
-
-        // if ($GLOBALS['current_user']->user_name == 'hungnh') {
-        //     pr($sql);
-        // }
-
         $res    = $db->query($sql);
         $i      = 0;
 
-        $total_quantity     = 0;
-        $subtotal_amount    = 0;
-        $total_bought_price = 0;
-        $total_profit       = 0;
-        $total_receipt      = 0;
+        $total_quantity      = 0;
+        $subtotal_amount     = 0;
+        $total_bought_price  = 0;
+        $total_profit        = 0;
+        $total_receipt       = 0;
         $total_points_amount = 0;
 
         $html = $xls = '';
@@ -767,6 +790,12 @@ class Viewticketreport extends SugarView
             } elseif ($row['total_bought_price'] == $row['subtotal_amount']){
                 $bg_class = 'equal';
             } else $bg_class = 'normal';
+
+            // thời điểm khách thanh toán
+            $paid_time_timestp = strtotime($row['paid_time']);
+            if($paid_time_timestp !== false) {
+                $paid_time = date('d-m-Y', $paid_time_timestp) . '<br>' . date('H:i:s', $paid_time_timestp);
+            } else $paid_time = '';
 
             $html .= '<tr class="' . $bg_class . '" >';
 
@@ -804,6 +833,7 @@ class Viewticketreport extends SugarView
             // $html .= '<td class="text-center"><a href="index.php?module=EC_Flight_Bookings&action=ticketreport&from_date=' . $post_fdate . '&to_date=' . $post_tdate . '&uid=' . $row['user_id'] . '" target="_bank" title="Xem chi tiết nhân viên ' . $user_list[$row['user_id']] . '">' . $user_list[$row['user_id']] . '</a></td>';
             $user_id_detail = isset($row['user_id']) ? $row['user_id'] : 0;
             $html .= '<td class="text-start row-employees"><a href="index.php?module=Employees&return_module=Employees&action=DetailView&record=' . $user_id_detail . '" target="_bank" title="Xem chi tiết nhân viên ' . $user_list[$row['user_id']] . '">' . $user_list[$row['user_id']] . '</a></td>';
+            $html .= '<td class="text-center hide-mobile">' . $paid_time . '</td>';
 
             // $html .= '<td class="text-center">' . $this->getRecheckInfo($row['parent_id']) . '<div class="rc-message"></div></td>';
             $html .= '<td class="text-center bk_date_entered hide-mobile">' . $row['bk_date_entered'] . '</td>';
@@ -879,6 +909,7 @@ class Viewticketreport extends SugarView
             <td class="text-center fw-semibold color-red total_profit">' . format_number($total_profit) . ' / ' . format_number($total_points_amount) . '</td>
             <td class="text-center fw-semibold color-red total_receipt hide-mobile">' . format_number($total_receipt) . '</td>
             <td class="employees">&nbsp;</td>
+            <td class="date_issue hide-mobile">&nbsp;</td>
             <td class="date_created hide-mobile">&nbsp;</td>
             <td class="date_issue hide-mobile">&nbsp;</td>
         </tr>';
