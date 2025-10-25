@@ -583,7 +583,7 @@ class Viewticketreport extends SugarView
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
                 ,(SELECT amount FROM ec_payment_voucher WHERE booking_id=bkd.booking_id AND pv_status='3' AND ec_payment_types_id_c='3f9f8060-1866-2b2e-8322-52e36b8f58d5' AND deleted=0 LIMIT 1) AS discount_amt
                 ,bk.phone AS contact_mobile
-                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y') AS bk_date_entered
+                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS bk_date_ticket_issue
                 ,(SELECT IF(u.title NOT LIKE '%bot%', 1, 0) FROM users u WHERE u.id=bk.created_by) AS not_from_web
                 ,(
@@ -794,7 +794,7 @@ class Viewticketreport extends SugarView
             // thời điểm khách thanh toán
             $paid_time_timestp = strtotime($row['paid_time']);
             if($paid_time_timestp !== false) {
-                $paid_time = date('d-m-Y', $paid_time_timestp) . '<br>' . date('H:i:s', $paid_time_timestp);
+                $paid_time = date('d-m-Y', $paid_time_timestp) . '<br>' . date('H:i', $paid_time_timestp);
             } else $paid_time = '';
 
             $html .= '<tr class="' . $bg_class . '" >';
@@ -836,7 +836,7 @@ class Viewticketreport extends SugarView
             $html .= '<td class="text-center hide-mobile">' . $paid_time . '</td>';
 
             // $html .= '<td class="text-center">' . $this->getRecheckInfo($row['parent_id']) . '<div class="rc-message"></div></td>';
-            $html .= '<td class="text-center bk_date_entered hide-mobile">' . $row['bk_date_entered'] . '</td>';
+            $html .= '<td class="text-center bk_date_entered hide-mobile">' . str_replace(' ', '<br>', $row['bk_date_entered']) . '</td>';
             $html .= '<td class="text-center bk_date_ticket_issue hide-mobile">' . $row['bk_date_ticket_issue'] . '</td>';
 
             $html .= '</tr>';
