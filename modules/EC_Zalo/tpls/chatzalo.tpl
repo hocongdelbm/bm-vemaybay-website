@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css">
 <link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.6">
 
 <div class="wrap-content wrap-content-chat">
@@ -323,11 +324,6 @@
     </div>
 </div>
 
-<div class="image-dialog" id="imageDialog">
-    <span class="close" id="closeDialog">&times;</span>
-    <img class="dialog-content" id="dialogImage" />
-</div>
-
 {$ICON_TEMPLATE}
 <input type="hidden" name="oa_id" value="{$OA_ID}" readonly />
 <input type="hidden" name="oa_name" value="{$OA_NAME}" readonly />
@@ -345,4 +341,5 @@
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.6"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=3.7"></script>

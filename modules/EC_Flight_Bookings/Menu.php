@@ -58,5 +58,5 @@ if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true) && !isTelesal
 	];
 }
 
-if(ACLController::checkAccess('EC_Flight_Bookings', 'list', true))$module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=updateticket&return_module=EC_Flight_Bookings&return_action=updateticket", $mod_strings['LNK_UPDATE_TICKET'],"EC_Flight_Bookings", 'EC_Flight_Bookings');
+if(ACLController::checkAccess('EC_Flight_Bookings', 'list', true))$module_menu[]	= array("index.php?module=EC_Flight_Bookings&action=updateflight&return_module=EC_Flight_Bookings&return_action=updateflight", $mod_strings['LNK_UPDATE_FLIGHT'],"EC_Flight_Bookings", 'EC_Flight_Bookings');
 

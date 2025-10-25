@@ -666,6 +666,15 @@ $dictionary['Contact'] = array(
             'importable' => true,
             'audited'    => true,
         ),
+        'zalo_quota' => array(
+            'name'       => 'zalo_quota',
+            'vname'      => 'LBL_ZALO_QUOTE',
+            'type'       => 'varchar',
+            'len'        => 255,
+            'default'    => '',
+            'importable' => true,
+            'audited'    => true,
+        ),
 
         'contact_type' => array(
 			'required' => false,

@@ -201,11 +201,12 @@ class EC_HoaDonBan extends Basic {
 	 * Automatic create output invoice
 	 * 
 	 * @param string $bookingId
+	 * @param int $additionalSecond Use to create orderedly
 	 * @return bool
 	 * 
 	 * @author Duc Pham
 	 */
-	public function createAuto($bookingId) {
+	public function createAuto($bookingId, $additionalSecond = 0) {
 		if(!is_string($bookingId) || empty($bookingId)) return false;
 
 		// Get list available tickets
@@ -219,6 +220,7 @@ class EC_HoaDonBan extends Basic {
 		$listBookingTickets = $beanBooking->getListTickets($bookingId);
 
 		foreach ($listBookingTickets as $times => $listValue) {
+			$additionalSecond++;
 			$listBookingTicketNumber = array_keys($listValue);
 			$listAvailableTicketNumber = array_column(array_values($listAvailableTickets), 'ticket_number');
 
@@ -258,6 +260,7 @@ class EC_HoaDonBan extends Basic {
 					elseif(!empty($bookingInfo['iv_identity_number'])) $passport_number = $bookingInfo['iv_identity_number'];
 
 					$outInv = new EC_HoaDonBan();
+					$outInv->update_date_entered = true;
 					$outInv->id 			= '';
 					$outInv->name 			= $this->renderName($this->countVoucher());
 					$outInv->ngayhoadon 	= date('d-m-Y');
@@ -280,6 +283,7 @@ class EC_HoaDonBan extends Basic {
 					$outInv->tinhtrang		= 0;
 					$outInv->is_signed		= 0;
 					$outInv->description 	= "Hóa đơn tạo tự động";
+					$outInv->date_entered 	= date('Y-m-d H:i:s', time() - 7*3600 + $additionalSecond);
 					$parentId = $outInv->save2();
 
 					// Check here
@@ -328,7 +332,6 @@ class EC_HoaDonBan extends Basic {
 								AND rv.rv_status != '0' 
 								AND rv.deleted = 0") ?? 0;
 					}
-					
 
 					$i = 0;
 					$tongsl = $tongthanhtoan = 0;
@@ -392,11 +395,15 @@ class EC_HoaDonBan extends Basic {
 					$listAvailableTickets = array_diff_key($listAvailableTickets, array_flip($listDoneTickets));
 
 					if($i * $tongsl * $tongthanhtoan != 0) {
+						$dateModified = date('Y-m-d H:i:s', time() - 7*3600 + $additionalSecond);
 						$sqlUpdate = "UPDATE ec_hoadonban
-							SET tongsl = {$tongsl}, tongthanhtoan = {$tongthanhtoan}
+							SET tongsl = {$tongsl}
+								,tongthanhtoan = {$tongthanhtoan}
+								,date_modified = '{$dateModified}'
 							WHERE id = '{$parentId}'";
 						$this->db->query($sqlUpdate);
 					}
+					sleep(1);
 				}
 				catch(Exception $e) {
 					global $sugar_config;

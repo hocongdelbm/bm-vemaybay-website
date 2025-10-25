@@ -854,17 +854,15 @@ $(document).ready(function () {
 
     // Enlarge image
     $(document).on("click", ".message-image", function() {
-        console.warn("Click");
-        $('#dialogImage').attr('src', $(this).attr('src'));
-        $('#imageDialog').fadeIn(200);
-    });
-    $('#closeDialog').on('click', function () {
-        $('#imageDialog').fadeOut(200);
-    });
-    $('#imageDialog').on('click', function (e) {
-        if (e.target.id === 'imageDialog') {
-            $('#imageDialog').fadeOut(200);
-        }
+        const viewer = new Viewer(this, {
+            toolbar: true, // Hiển thị thanh công cụ zoom
+            movable: true, // Cho phép kéo ảnh
+            zoomable: true, // Cho phép zoom
+            scalable: true, // Cho phép scale
+            // fullscreen: true, // Cho phép fullscreen
+            navbar: false, // Ẩn thanh thumbnail
+        });
+        viewer.show();
     });
 });
 

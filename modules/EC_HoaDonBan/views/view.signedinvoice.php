@@ -157,8 +157,8 @@ class Viewsignedinvoice extends SugarView {
             }
             $invData = $invRes['data'][0] ?? [];
 
-            // Ngày hạch toán
-            $date_accounting = date('d-m-Y', strtotime($invData['invRefDate']));
+            // // Ngày hạch toán
+            // $date_accounting = date('d-m-Y', strtotime($invData['invRefDate']));
             // Ngày hóa đơn
             $date_invoice = date('d-m-Y', strtotime($invData['invDate']));
             // Số hóa đơn
@@ -180,7 +180,7 @@ class Viewsignedinvoice extends SugarView {
                 $sheet->setCellValue("E" . ($index + 2), '');
                 $sheet->setCellValue("F" . ($index + 2), '');
                 $sheet->setCellValue("G" . ($index + 2), '');
-                $sheet->setCellValue("H" . ($index + 2), $date_accounting);
+                $sheet->setCellValue("H" . ($index + 2), $date_invoice);
                 $sheet->setCellValue("I" . ($index + 2), $date_invoice);
                 $sheet->setCellValue("J" . ($index + 2), $sochungtu_id);
                 $sheet->setCellValue("K" . ($index + 2), '');
