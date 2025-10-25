@@ -154,9 +154,10 @@ class Viewinputinvoice extends SugarView {
 
         // Auto create output invoice
         if (isset($post_fields['confirmed'])) {
+            $at = 0;
             foreach ($bk_arr as $bk_id => $bk_inf) {
-                if($this->bean->createAuto($bk_id)) sleep(2);
-                else sleep(1);
+                $this->bean->createAuto($bk_id, $at);
+                $at++;
             }
         }
     }
