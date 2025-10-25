@@ -217,178 +217,281 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
     elseif ((string)$type === "update_call") {
-        $call_id        = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
-        $contact_id     = isset($_POST['contact_id']) ? global_test_input($_POST['contact_id']) : "";
-        $phone          = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
-        $zalo_id        = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
-        $name           = isset($_POST['name']) ? global_test_input($_POST['name']) : "";
-        $email          = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
-        $note           = isset($_POST['note']) ? addslashes($_POST['note']) : "";
-        $call_reason    = isset($_POST['call_reason']) ? global_test_input($_POST['call_reason']) : "";
-        $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
-        $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
-        $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
-        $call_status    = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
+        try {
+            $call_id        = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";
+            $contact_id     = isset($_POST['contact_id']) ? global_test_input($_POST['contact_id']) : "";
+            $phone          = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
+            $zalo_id        = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
+            $name           = isset($_POST['name']) ? global_test_input($_POST['name']) : "";
+            $email          = isset($_POST['email']) ? global_test_input($_POST['email']) : "";
+            $note           = isset($_POST['note']) ? addslashes($_POST['note']) : "";
+            $call_reason    = isset($_POST['call_reason']) ? global_test_input($_POST['call_reason']) : "";
+            $booking_id     = isset($_POST['booking_id']) ? global_test_input($_POST['booking_id']) : "";
+            $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
+            $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
+            $call_status    = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
 
-        // Validate
-        if (empty($call_id) || empty($note)) {
-            echo 400;
-            exit();
-        }
-
-        global $db, $sugar_config, $current_user;
-
-        /**********  1. Handle Call & Contact  **********/
-        if (empty($contact_id)) {
-            $where = '';
-
-            $where_clauses = [];
-            if (!empty($phone)) {
-                $phone_escaped = $db->quote($phone);
-                $where_clauses[] = 'phone_mobile = ' . $phone_escaped;
-            }
-            if (!empty($zalo_id)) {
-                $zalo_escaped = $db->quote($zalo_id);
-                $where_clauses[] = 'zalo_id = ' . $zalo_escaped;
+            // Validate
+            if (empty($call_id) || empty($note)) {
+                echo json_encode([
+                    "status" => 0,
+                    "errorCode" => 400,
+                    "message" => empty($note) ? "Vui lòng note đầy đủ" : "Cuộc gọi thiếu thông tin"
+                ], JSON_UNESCAPED_UNICODE);
+                exit();
             }
 
-            if (!empty($where_clauses)) {
-                $sql = 'SELECT id, phone_mobile, zalo_id FROM contacts 
-                        WHERE (' . implode(' OR ', $where_clauses) . ') AND deleted = 0';
-                $result = $db->query($sql);
-        
-                $found_ids = [];
-                while ($row = $db->fetchByAssoc($result)) {
-                    $found_ids[] = $row['id'];
+            global $db, $sugar_config, $current_user;
+
+            /**********  1. Handle Call & Contact  **********/
+            if (empty($contact_id)) {
+                $where = '';
+
+                $where_clauses = [];
+                if (!empty($phone)) {
+                    $phone_escaped = $db->quote($phone);
+                    $where_clauses[] = 'phone_mobile = ' . $phone_escaped;
                 }
-        
-                $contact_id = $found_ids[0]; 
-                if (count($found_ids) > 1) {
-                    if($this->notificationChannel == 'Mattermost') {
-                        $cont = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
-                        $cont .= "\nSố điện thoại: **$phone**";
-                        $cont .= "\nZaloID: **$zalo_id**";
-                        $cont .= "\n*From epCallContact update_call()*";
-                        $metadata = [
-                            "priority" => [
-                                "priority" => "important",
-                            ]
-                        ];
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $cont, [], $metadata);
+                if (!empty($zalo_id)) {
+                    $zalo_escaped = $db->quote($zalo_id);
+                    $where_clauses[] = 'zalo_id = ' . $zalo_escaped;
+                }
+
+                if (!empty($where_clauses)) {
+                    $sql = 'SELECT id, phone_mobile, zalo_id FROM contacts 
+                            WHERE (' . implode(' OR ', $where_clauses) . ') AND deleted = 0';
+                    $result = $db->query($sql);
+            
+                    $found_ids = [];
+                    while ($row = $db->fetchByAssoc($result)) {
+                        $found_ids[] = $row['id'];
                     }
-                    else {
-                        $cont = "<b>[WARNING]</b> Có nhiều hơn 1 liên hệ trùng thông tin";
-                        $cont .= "\nSĐT: <b>$phone</b>";
-                        $cont .= "\nZalo ID: <b>$zalo_id</b>";
-                        $cont .= "\n<i>From epCallContact update_call()</i>";
-                        $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
-                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                        Telegram::sendMessage($cont, $botToken, $chatId, $threadId);
+            
+                    $contact_id = $found_ids[0]; 
+                    if (count($found_ids) > 1) {
+                        if($this->notificationChannel == 'Mattermost') {
+                            $cont = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
+                            $cont .= "\nSố điện thoại: **$phone**";
+                            $cont .= "\nZaloID: **$zalo_id**";
+                            $cont .= "\n*From epCallContact update_call()*";
+                            $metadata = [
+                                "priority" => [
+                                    "priority" => "important",
+                                ]
+                            ];
+                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $cont, [], $metadata);
+                        }
+                        else {
+                            $cont = "<b>[WARNING]</b> Có nhiều hơn 1 liên hệ trùng thông tin";
+                            $cont .= "\nSĐT: <b>$phone</b>";
+                            $cont .= "\nZalo ID: <b>$zalo_id</b>";
+                            $cont .= "\n<i>From epCallContact update_call()</i>";
+                            $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
+                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                            $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                            Telegram::sendMessage($cont, $botToken, $chatId, $threadId);
+                        }
                     }
                 }
             }
-        }
 
-        $con = new Contact();
-        if ($contact_id && !empty($contact_id)) {
-            $save = false;
-            $con->retrieve($contact_id);
+            $con = new Contact();
+            if ($contact_id && !empty($contact_id)) {
+                $save = false;
+                $con->retrieve($contact_id);
 
-            if (empty($con->phone_mobile) && !empty($phone) && !isExitsPhoneNumber('contacts', $phone)) {
-                $con->phone_mobile = trim($phone);
-                $save = true;
+                if (empty($con->phone_mobile) && !empty($phone) && !isExitsPhoneNumber('contacts', $phone)) {
+                    $con->phone_mobile = trim($phone);
+                    $save = true;
+                }
+                if (empty($con->zalo_id) && !empty($zalo_id) && !isExitsPhoneNumber('contacts', $zalo_id)) {
+                    $con->zalo_id = trim($zalo_id);
+                    $save = true;
+                }
+                if (!empty($name)) {
+                    $con->last_name = $name;
+                    $save = true;
+                }
+                if (!empty($email)) {
+                    $con->email1 = $email;
+                    $save = true;
+                }
+
+                if ($save === true) {
+                    $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: $call_id";
+                    $con->save();
+                } 
             }
-            if (empty($con->zalo_id) && !empty($zalo_id) && !isExitsPhoneNumber('contacts', $zalo_id)) {
-                $con->zalo_id = trim($zalo_id);
-                $save = true;
-            }
-            if (!empty($name)) {
-                $con->last_name = $name;
-                $save = true;
-            }
-            if (!empty($email)) {
-                $con->email1 = $email;
-                $save = true;
+            else {
+                if(!empty($call_id) && !isExitsPhoneNumber('contacts', $phone)) {
+                    $con->phone_mobile      = trim($phone);
+                    $con->zalo_id           = $zalo_id;
+                    $con->last_name         = $name;
+                    $con->email1            = $email;
+                    $con->description       = "Liên hệ tạo từ cuộc gọi có call_ID: $call_id";
+                    $con->assigned_user_id  = $current_user->id;
+                    $con->save();
+                }
             }
 
-            if ($save === true) {
-                $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: $call_id";
-                $con->save();
-            } 
-        }
-        else {
-            if(!empty($call_id) && !isExitsPhoneNumber('contacts', $phone)) {
-                $con->phone_mobile      = trim($phone);
-                $con->zalo_id           = $zalo_id;
-                $con->last_name         = $name;
-                $con->email1            = $email;
-                $con->description       = "Liên hệ tạo từ cuộc gọi có call_ID: $call_id";
-                $con->assigned_user_id  = $current_user->id;
-                $con->save();
+            // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
+            $currentDate = date('Y-m-d H:i:s', strtotime('+7 hour'));
+            $is_exist_callid = $db->getOne("SELECT IF(COUNT(id) > 0, 1, 0) FROM calls WHERE call_id = '{$call_id}' AND deleted = 0") ?? 0;
+            if ($is_exist_callid) {
+                $sql_update_call = "UPDATE calls
+                    SET parent_type = 'Contacts'
+                        ,parent_id = '{$con->id}'
+                        ,description = '{$note}'
+                        ,booking_id = '{$booking_id}'
+                        ,created_by = '{$current_user->id}'
+                        ,modified_user_id = '{$current_user->id}'
+                        ,assigned_user_id = '{$current_user->id}'
+                        ,call_reason = '{$call_reason}'
+                        ,journey_id = '{$journey_id}'
+                        ,type_call_sources = '{$type_call}'
+                        ,status = '{$call_status}'
+                    WHERE call_id = '{$call_id}' AND deleted = 0";
+                $result_update_call = $db->query($sql_update_call);
+
+                if ($result_update_call) {
+                    $log_save_calls = "[{$current_user->user_name}][{$currentDate}][success]$sql_update_call";
+                    save_log_call($log_save_calls);
+                }
+                else {
+                    $log_save_calls = "[{$current_user->user_name}][{$currentDate}][Failed_db]$sql_update_call";
+                    save_log_call($log_save_calls);
+
+                    echo json_encode([
+                        "status"    => 0,
+                        "errorCode" => 500,
+                        "message"   => "Cập nhật cuộc gọi không thành công"
+                    ], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
             }
-        }
-
-        // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
-        $sql_exist_callid = "SELECT IF(COUNT(id) > 0, 1, 0) FROM calls WHERE call_id = '$call_id' AND deleted = 0";
-        $is_exist_callid = $db->getOne($sql_exist_callid);
-
-        if ($is_exist_callid) {
-            $sql_update_call = 'UPDATE calls
-                SET parent_type = "Contacts", parent_id = "' . $con->id . '", description = "' . $note . '", booking_id = "' . $booking_id . '",
-                    created_by = "' . $current_user->id . '",
-                    modified_user_id = "' . $current_user->id . '",
-                    assigned_user_id = "' . $current_user->id . '",
-                    call_reason = "' . $call_reason . '",
-                    journey_id = "' . $journey_id . '",
-                    type_call_sources = "' . $type_call . '",
-                    status = "' . $call_status . '"
-                WHERE call_id = "' . $call_id . '" AND deleted = 0';
-            $result_update_call = $db->query($sql_update_call);
-
-            if ($result_update_call) {
-                $log_save_calls = '[' . $current_user->user_name . '][' . date('Y-m-d H:i:s', strtotime('+7 hour')) . '][success]' . $sql_update_call;
+            else {
+                $log_save_calls = "[{$current_user->user_name}][{$currentDate}][Failed_Callid]$sql_exist_callid";
                 save_log_call($log_save_calls);
-            } else {
-                $log_save_calls = '[' . $current_user->user_name . '][' . date('Y-m-d H:i:s', strtotime('+7 hour')) . '][Failed_db]' . $sql_update_call;
-                save_log_call($log_save_calls);
-                echo 401;
+
+                echo json_encode([
+                    "status"    => 0,
+                    "errorCode" => 409,
+                    "message"   => "Cuộc gọi bị xung đột ID"
+                ], JSON_UNESCAPED_UNICODE);
                 exit;
             }
-        } else {
-            $log_save_calls = '[' . $current_user->user_name . '][' . date('Y-m-d H:i:s', strtotime('+7 hour')) . '][Failed_Callid]' . $sql_exist_callid;
-            save_log_call($log_save_calls);
 
-            echo 404;
-            exit;
-        }
+            /**********  2. Handle Booking  **********/
+            $sql_call = "SELECT id, name, status, call_talk, description, direction FROM calls WHERE call_id = '{$call_id}' AND deleted = 0 LIMIT 1";
+            $result = $db->query($sql_call);
 
-        /**********  2. Handle Booking  **********/
-        $sql_call = 'SELECT id, name, status, call_talk, description, direction FROM calls WHERE call_id = "' . $call_id . '" AND deleted = 0 LIMIT 1';
-        $result = $db->query($sql_call);
+            if (!empty($booking_id)) {
+                $booking_name = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
+                if (!empty($type_call) && !empty($call_id)) {
+                    while ($call = $db->fetchByAssoc($result)) {
+                        if ($call) {
+                            $work                       = new EC_Working_Process();
+                            $work->name                 = $booking_name;
+                            $work->parent_type          = 'EC_Flight_Bookings';
+                            $work->parent_id            = $booking_id;
+                            $work->description          = $note . ' (' . $type_call . ' '.$call_status.' '.$call['call_talk'].')';
+                            // Gọi đi
+                            $work->$type_call           = ((string)$call_status === 'done' && !empty($note) && (int)$call['call_talk'] >= 20) ? 1 : 0;
+                            $work->assigned_user_id     = $current_user->id;
+                            $work->save();
 
-        if (!empty($booking_id)) {
-            $booking_name = isset($_POST['booking_name']) ? global_test_input($_POST['booking_name']) : "";
-            if (!empty($type_call) && !empty($call_id)) {
+                            if(empty($work->id)) {
+                                // SEND TELE WARNING SAVE KPI FAILED
+                                $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
+                                "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
+                                "- User: <b>" . $current_user->user_name . "</b>\n" .
+                                "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                                $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                $messageData = json_encode([
+                                    'text' => $content,
+                                    'parse_mode' => 'HTML',
+                                    'reply_markup' => [
+                                        'inline_keyboard' => [
+                                            [
+                                                [
+                                                    'text' => 'Redirect url',
+                                                    'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ], JSON_UNESCAPED_UNICODE);
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                                Telegram::sendMessageData($messageData, $botToken, $chatId, $threadId);
+
+                                // $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
+                                // $message = Mattermost::$line_separation;
+                                // $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed");
+                                // $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
+                                // $message .= "\n- Call: **" . $call['name'] . " - " . $booking_name . "**";
+                                // $message .= "\n- User: **$current_user->user_name**";
+                                // $message .= "\n- Description: **" . $call['description'] . "**";
+                                // $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
+                                // $message .= "\n$link";
+                                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message, );
+                            }
+
+                            $bean_note                      = new Note();
+                            $bean_note->name                = $booking_name;
+                            $bean_note->parent_type         = 'EC_Flight_Bookings';
+                            $bean_note->parent_id           = $booking_id;
+                            $bean_note->description         = $note . ' (' . $type_call . ')';;
+                            $bean_note->booking_status      = ((string)$type_call === 'called' ? '6' : '');
+                            $bean_note->working_process_id  = $work->id;
+                            $bean_note->assigned_user_id    = $current_user->id;
+                            $bean_note->save();
+
+                            // Update status and assigned
+                            if ((string)$type_call === 'called') {
+                                $sql_update = 'UPDATE ec_flight_bookings
+                                        SET booking_status = "6", assigned_user_id = "' . $current_user->id . '"
+                                        WHERE id = "' . $booking_id . '" AND deleted = 0';
+                                $db->query($sql_update);
+                            }
+
+                            // Update is_remind trong bảng ec_booking_itineraries = true nếu đã ghi nhận KPI
+                            if (!empty($journey_id) && $call['call_talk'] > 0) {
+                                $update_remind = "UPDATE ec_booking_itineraries 
+                                    SET is_remind = 1
+                                    WHERE id = '" . trim($journey_id) . "'
+                                    AND deleted = 0";
+                                $result_remind = $db->query($update_remind);
+                                if (!$result_remind) {
+                                    $GLOBALS['log']->fatal('updated remind thất bại: ' . $update_remind);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {
                 while ($call = $db->fetchByAssoc($result)) {
-                    if ($call) {
-                        $work                       = new EC_Working_Process();
-                        $work->name                 = $booking_name;
-                        $work->parent_type          = 'EC_Flight_Bookings';
-                        $work->parent_id            = $booking_id;
-                        $work->description          = $note . ' (' . $type_call . ' '.$call_status.' '.$call['call_talk'].')';
-                        // Gọi đi
-                        $work->$type_call           = ((string)$call_status === 'done' && !empty($note) && (int)$call['call_talk'] >= 20) ? 1 : 0;
-                        $work->assigned_user_id     = $current_user->id;
+                    if (!empty($note) &&  strtolower((string)$call['status']) === 'done' &&  (
+                        ((string)$call['direction'] === 'inbound' && (int)$call['call_talk'] > 0) || ((string)$call['direction'] === 'outbound' && (int)$call['call_talk'] >= 20))
+                    ) {
+                        $work = new EC_Working_Process();
+                        $work->name = $call['name'];
+                        $work->parent_type = 'Calls';
+                        $work->parent_id = $call['id'];
+                        $work->description = $note . ' ('.$type_call.') Cập nhật cuộc gọi';
+                        $work->$type_call = 1; 
+                        $work->assigned_user_id = $current_user->id;
                         $work->save();
 
                         if(empty($work->id)) {
                             // SEND TELE WARNING SAVE KPI FAILED
                             $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                            "- Call: <b>" . $call['name'] . " - " . $booking_name . "</b>\n" .
+                            "- Call: <b>" . $call['name'] . "</b>\n" .
                             "- User: <b>" . $current_user->user_name . "</b>\n" .
-                            "<pre>[WARNING]: SAVE KPI HAS BOOKING FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
+                            "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
                             $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                             $messageData = json_encode([
                                 'text' => $content,
@@ -411,133 +514,57 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
                             // $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
                             // $message = Mattermost::$line_separation;
-                            // $message .= Mattermost::markdownHeading("[WARNING] Save KPI have booking failed");
+                            // $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed");
                             // $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-                            // $message .= "\n- Call: **" . $call['name'] . " - " . $booking_name . "**";
-                            // $message .= "\n- User: **$current_user->user_name**";
+                            // $message .= "\n- Call: **" . $call['name'] . "**";
+                            // $message .= "\n- User: **" . $current_user->user_name . "**";
                             // $message .= "\n- Description: **" . $call['description'] . "**";
                             // $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
                             // $message .= "\n$link";
-                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message, );
+                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                         }
-
-                        $bean_note                      = new Note();
-                        $bean_note->name                = $booking_name;
-                        $bean_note->parent_type         = 'EC_Flight_Bookings';
-                        $bean_note->parent_id           = $booking_id;
-                        $bean_note->description         = $note . ' (' . $type_call . ')';;
-                        $bean_note->booking_status      = ((string)$type_call === 'called' ? '6' : '');
-                        $bean_note->working_process_id  = $work->id;
-                        $bean_note->assigned_user_id    = $current_user->id;
-                        $bean_note->save();
-
-                        // Update status and assigned
-                        if ((string)$type_call === 'called') {
-                            $sql_update = 'UPDATE ec_flight_bookings
-                                    SET booking_status = "6", assigned_user_id = "' . $current_user->id . '"
-                                    WHERE id = "' . $booking_id . '" AND deleted = 0';
-                            $db->query($sql_update);
-                        }
-
-                        // Update is_remind trong bảng ec_booking_itineraries = true nếu đã ghi nhận KPI
-                        if (!empty($journey_id) && $call['call_talk'] > 0) {
-                            $update_remind = "UPDATE ec_booking_itineraries 
-                                SET is_remind = 1
-                                WHERE id = '" . trim($journey_id) . "'
-                                AND deleted = 0";
-                            $result_remind = $db->query($update_remind);
-                            if (!$result_remind) {
-                                $GLOBALS['log']->fatal('updated remind thất bại: ' . $update_remind);
-                            }
-                        }
-                    }
+                    } 
                 }
             }
+
+            /**********  3. Handle Zalo  **********/
+            // if (!empty($zalo_id) && empty($phone)) {
+            //     require_once('modules/EC_Zalo/Zalo.php');
+            //     $objZalo = new Zalo();
+            //     $ecZalo = new EC_Zalo();
+            //     $user_info = $ecZalo->get_zalo_user_info($zalo_id);
+
+            //     if (!empty($user_info)) {
+            //         $zalo_phone = $objZalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
+            //         if (empty($zalo_phone)) $zalo_phone = $objZalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
+
+            //         if (empty($zalo_phone)) {
+            //             $data['element'] = $objZalo->get_template('request_user_info');
+            //             $result = json_decode($objZalo->send_consultation('request_user_info', $zalo_id, $data), true);
+
+            //             if(isset($result['error']) && $result['error'] == 0) {
+            //                 if($this->notificationChannel == 'Mattermost') {
+            //                     Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
+            //                 }
+            //                 else {
+            //                     Telegram::sendMessage("Gửi yêu cầu thông tin đến Zalo <b>$zalo_id</b>", $sugar_config['telegram']['zalo']['bot_token'] ?? '', $sugar_config['telegram']['zalo']['chat_id'] ?? '');
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+
+            echo json_encode(["status" => 1, "message" => "Success"]);
+            exit;
         }
-        else {
-            while ($call = $db->fetchByAssoc($result)) {
-                if (!empty($note) &&  strtolower((string)$call['status']) === 'done' &&  (
-                    ((string)$call['direction'] === 'inbound' && (int)$call['call_talk'] > 0) || ((string)$call['direction'] === 'outbound' && (int)$call['call_talk'] >= 20))
-                ) {
-                    $work = new EC_Working_Process();
-                    $work->name = $call['name'];
-                    $work->parent_type = 'Calls';
-                    $work->parent_id = $call['id'];
-                    $work->description = $note . ' ('.$type_call.') Cập nhật cuộc gọi';
-                    $work->$type_call = 1; 
-                    $work->assigned_user_id = $current_user->id;
-                    $work->save();
-
-                    if(empty($work->id)) {
-                        // SEND TELE WARNING SAVE KPI FAILED
-                        $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-                        "- Call: <b>" . $call['name'] . "</b>\n" .
-                        "- User: <b>" . $current_user->user_name . "</b>\n" .
-                        "<pre>[WARNING]: SAVE KPI FAILED ".$call['description'].". Hội thoại: " . $call['call_talk'] . ".</pre>";
-                        $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                        $messageData = json_encode([
-                            'text' => $content,
-                            'parse_mode' => 'HTML',
-                            'reply_markup' => [
-                                'inline_keyboard' => [
-                                    [
-                                        [
-                                            'text' => 'Redirect url',
-                                            'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module=Calls&action=DetailView&record=' . $call['id'],
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ], JSON_UNESCAPED_UNICODE);
-                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                        Telegram::sendMessageData($messageData, $botToken, $chatId, $threadId);
-
-                        // $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=Calls&action=DetailView&record=" . $call['id'], "Redirect url");
-                        // $message = Mattermost::$line_separation;
-                        // $message .= Mattermost::markdownHeading("[WARNING] Save KPI failed");
-                        // $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-                        // $message .= "\n- Call: **" . $call['name'] . "**";
-                        // $message .= "\n- User: **" . $current_user->user_name . "**";
-                        // $message .= "\n- Description: **" . $call['description'] . "**";
-                        // $message .= "\n- Hội thoại: **" . $call['call_talk'] . "**";
-                        // $message .= "\n$link";
-                        // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-                    }
-                } 
-            }
+        catch(Throwable $th) {
+            echo json_encode([
+                "status"    => 0,
+                "errorCode" => 500,
+                "message"   => "Lỗi: {$th->getMessage()} on line {$th->getLine()}"
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
         }
-
-        /**********  3. Handle Zalo  **********/
-        if (!empty($zalo_id) && empty($phone)) {
-            require_once('modules/EC_Zalo/Zalo.php');
-            $objZalo = new Zalo();
-            $ecZalo = new EC_Zalo();
-            $user_info = $ecZalo->get_zalo_user_info($zalo_id);
-
-            if (!empty($user_info)) {
-                $zalo_phone = $objZalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
-                if (empty($zalo_phone)) $zalo_phone = $objZalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
-
-                if (empty($zalo_phone)) {
-                    $data['element'] = $objZalo->get_template('request_user_info');
-                    $result = json_decode($objZalo->send_consultation('request_user_info', $zalo_id, $data), true);
-
-                    if(isset($result['error']) && $result['error'] == 0) {
-                        if($this->notificationChannel == 'Mattermost') {
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
-                        }
-                        else {
-                            Telegram::sendMessage("Gửi yêu cầu thông tin đến Zalo <b>$zalo_id</b>", $sugar_config['telegram']['zalo']['bot_token'] ?? '', $sugar_config['telegram']['zalo']['chat_id'] ?? '');
-                        }
-                    }
-                }
-            }
-        }
-
-        echo 200;
-        exit();
     }
     elseif ((string)$type === "check_missed_call") {
         $call_id = isset($_POST['call_id']) ? global_test_input($_POST['call_id']) : "";

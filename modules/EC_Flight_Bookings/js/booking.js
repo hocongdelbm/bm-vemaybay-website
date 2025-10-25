@@ -547,7 +547,7 @@ $(document).ready(function () {
                     });
 
                     // Option
-                    const issueTicket = (isWithin24h && ['VJ', 'VU', 'QH'].includes(airlineCodes[0])) ? true : false;
+                    const issueTicket = (isWithin24h && ['VJ'].includes(airlineCodes[0])) ? true : false;
                     requestBody.Option = {
                         "IssueTicket": issueTicket,
                         "SeparateBooking": false,
@@ -568,11 +568,11 @@ $(document).ready(function () {
                 let caption = 'Đặt chỗ';
                 let isIssueTicket = false;
                 if(isWithin24h) {
-                    if(entryClass == 'entryAutoBookPhuongNamClass' && ['VJ', 'VU'].includes(airlineCodes[0])) {
+                    if(entryClass == 'entryAutoBookPhuongNamClass' && ['VJ'].includes(airlineCodes[0])) {
                         caption = 'Xuất vé cận';
                         isIssueTicket = true;
                     }
-                    else if(entryClass == 'entryAutoBookDatacomClass' && ['VJ', 'VU', 'QH'].includes(airlineCodes[0])) {
+                    else if(entryClass == 'entryAutoBookDatacomClass' && ['VJ'].includes(airlineCodes[0])) {
                         caption = 'Xuất vé cận';
                         isIssueTicket = true;
                     }
@@ -972,6 +972,7 @@ function showDialogAutoBook(bookingData) {
     // Note
     let noteHTML = `<div class="note p-2 mt-3" style="background:#e0ecfc">
         ${BookingWithin24h ? '<p style="color:red">- Đây là <b>vé cận</b>, sẽ tiến hành thanh toán ngay.</p>' : '<p>- <b>Vé cận Vietjet</b> sẽ tiến hành thanh toán ngay.</p>'}
+        <p>- Các hãng còn lại vé cận nếu gặp lỗi trong quá trình giữ chỗ khả năng đại lý không cho giữ mà phải xuất ngay.</p>
         <p>- Kiểm tra kỹ càng thông tin trước khi xác nhận.</p>
     </div>`;
     content.innerHTML += noteHTML;

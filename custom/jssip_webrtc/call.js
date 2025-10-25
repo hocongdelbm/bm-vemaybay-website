@@ -809,6 +809,7 @@ $(document).ready(function () {
 
         $.ajax({
             url: "index.php?entryPoint=entryPointCallContact",
+            type: "POST",
             data: {
                 type: "update_call",
                 call_id: call_id,
@@ -820,13 +821,12 @@ $(document).ready(function () {
                 note: note,
                 call_reason: call_reason,
                 is_success: is_success,
-
                 booking_id: booking_id,
                 booking_name: booking_name,
                 type_call_booking: type_call_booking,
                 journey_id: journey_id
             },
-            type: "POST",
+            dataType: 'json', 
             cache: false,
             beforeSend: function () {
                 $('.container-waiting').show();
@@ -834,7 +834,7 @@ $(document).ready(function () {
             success: function (response) {
                 $('.container-waiting').hide();
 
-                if (parseInt(response) == 200) {
+                if ('status' in response && response.status == 1) {
                     $(".voiceip-update").css("pointer-events", "");
                     $('#popup-voiceip').removeClass('show');
                     $('#popup__voiceip--wrap').removeClass('show');
@@ -842,8 +842,13 @@ $(document).ready(function () {
                     showModalNotify('success', 'Cập nhật thông tin thành công.');
                     if (booking_id.length > 0) $('.btn-modal-close').addClass('reload');
                 }
+                else if('status' in response && response.status == 0) {
+                    showModalNotify('error', response.message || 'Lỗi cập nhật. Vui lòng đợi 1 lát rồi thử lại!');
+                    $(".voiceip-update").css("pointer-events", "");
+                    return false;
+                }
                 else {
-                    showModalNotify('error', 'Lỗi cập nhật. Vui lòng đợi 1 lát rồi thử lại!');
+                    showModalNotify('error', 'Lỗi phát sinh chưa được xử lý');
                     $(".voiceip-update").css("pointer-events", "");
                     return false;
                 }
