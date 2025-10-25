@@ -852,6 +852,15 @@ $(document).ready(function () {
                     $(".voiceip-update").css("pointer-events", "");
                     return false;
                 }
+            },
+            error: function (xhr, status, error) {
+                $('.container-waiting').hide();
+                $(".voiceip-update").css("pointer-events", "");
+
+                console.error("AJAX Error:", status, error);
+                console.error("Response text:", xhr.responseText);
+
+                showModalNotify('error', 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau!');
             }
         });
     });
@@ -1071,6 +1080,7 @@ $(document).ready(function () {
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    $('.container-waiting').hide();
                     console.error(XMLHttpRequest);
                     console.error("Status: " + textStatus);
                     console.error("Error: " + errorThrown);
