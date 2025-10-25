@@ -406,16 +406,17 @@
                     <th align="center" width="2%" class="hide-mobile"><input type="checkbox" id="check-all" value="0"></th>
                 {/if}
                 <th align="center" width="3%" class="hide-mobile">STT</th>
-                <th align="center" width="10%">Booking</th>
+                <th align="center" width="8%">Booking</th>
                 <th align="center" width="3%">Vé</th>
-                <th align="center" width="18%" class="hide-mobile">Ghi chú</th>
+                <th align="center" width="15%" class="hide-mobile">Ghi chú</th>
                 <th align="center" width="8%" class="hide-mobile">Doanh thu</th>
                 <th align="center" width="8%" class="hide-mobile">Giá mua</th>
                 <th align="center" width="8%">Doanh số / Sử dụng điểm</th>
                 <!-- <th align="center" width="7%" class="hide-mobile">Nơi đặt</th> -->
                 <th align="center" width="8%" class="hide-mobile">Phiếu thu</th>
                 <th align="center" width="12%">Nhân viên</th>
-                <th align="center" width="10%" class="hide-mobile">Ngày tạo</th>
+                <th align="center" width="8%" class="hide-mobile">TĐ Khách TT</th>
+                <th align="center" width="8%" class="hide-mobile">Ngày tạo</th>
                 <th align="center" class="hide-mobile">Ngày xuất vé</th>
             </tr>
         </thead>
