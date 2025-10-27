@@ -204,6 +204,24 @@ class EC_Input_Invoices extends Basic {
     }
 
     /**
+     * Update inventory status
+     * 
+     * @param string $ticketId Record id of ec_input_invoices
+     * @return bool
+     */
+    public function updateInventoryStatus($ticketId) {
+        try {
+            $sqlUpdate = "UPDATE ec_input_invoices
+                SET out_of_stock = IF(qty - (SELECT SUM(soluong) FROM ec_chitiethoadon WHERE ticket_number_id = '{$ticketId}' AND deleted = 0) > 0, 0, 1)
+                WHERE id = '{$ticketId}' AND deleted = 0";
+            return $this->db->query($sqlUpdate);
+        }
+        catch(Exception $e) {
+            return false;
+        }
+    }
+
+    /**
      * Get list available ticket of booking
      * 
      * @param string $bookingId

@@ -124,60 +124,59 @@ class EC_HoaDonBan extends Basic {
 	}
 
 	public function saveListItems() {
-		$row_count = count($_POST['ct_detail_id']);
-		for ($i = 0; $i < $row_count; $i++) {
-			$cthd = new EC_ChiTietHoaDon();
-			$cthd->id 			= $_POST['ct_detail_id'][$i];
-			$cthd->mahang 		= $_POST['ct_code'][$i];
-			$cthd->soluong 		= unformat_number($_POST['ct_qty'][$i]);
-			$cthd->giamua 		= unformat_number($_POST['ct_purchase_price'][$i]);
-			$cthd->dongia 		= unformat_number($_POST['ct_price'][$i]);
-			$cthd->thuesuat 	= unformat_number($_POST['ct_percent_vat'][$i]);
-			$cthd->tienthue 	= unformat_number($_POST['ct_vat'][$i]);
-			$cthd->phithuho 	= unformat_number($_POST['ct_authorized'][$i]);
-			$cthd->phisanbay 	= unformat_number($_POST['ct_airport_fee'][$i]); 
-			$cthd->phikhac 		= unformat_number($_POST['ct_other_fee'][$i]); 
-			$cthd->phidv 		= unformat_number($_POST['ct_service'][$i]);
-			$cthd->thanhtien 	= unformat_number($_POST['ct_total'][$i]);
-			$cthd->parent_id 	= $this->id;
-			$cthd->parent_type 	= 'EC_HoaDonBan';
-			$cthd->deleted 		= (int)$_POST['ct_deleted'][$i];
-			$cthd->order_by_no 	= $i;
+		$row_count = count($_POST['ct_detail_id'] ?? []);
 
-			if ($this->loaihoadon == '0') { // HĐ GTGT
-				$cthd->name = trim(stripslashes($_POST['ct_ticket_number'][$i]));
+		if($row_count > 0) {
+			$beanInInv = new EC_Input_Invoices();
+			for ($i = 0; $i < $row_count; $i++) {
+				$cthd = new EC_ChiTietHoaDon();
+				$cthd->id 			= $_POST['ct_detail_id'][$i];
+				$cthd->mahang 		= $_POST['ct_code'][$i];
+				$cthd->soluong 		= unformat_number($_POST['ct_qty'][$i]);
+				$cthd->giamua 		= unformat_number($_POST['ct_purchase_price'][$i]);
+				$cthd->dongia 		= unformat_number($_POST['ct_price'][$i]);
+				$cthd->thuesuat 	= unformat_number($_POST['ct_percent_vat'][$i]);
+				$cthd->tienthue 	= unformat_number($_POST['ct_vat'][$i]);
+				$cthd->phithuho 	= unformat_number($_POST['ct_authorized'][$i]);
+				$cthd->phisanbay 	= unformat_number($_POST['ct_airport_fee'][$i]); 
+				$cthd->phikhac 		= unformat_number($_POST['ct_other_fee'][$i]); 
+				$cthd->phidv 		= unformat_number($_POST['ct_service'][$i]);
+				$cthd->thanhtien 	= unformat_number($_POST['ct_total'][$i]);
+				$cthd->parent_id 	= $this->id;
+				$cthd->parent_type 	= 'EC_HoaDonBan';
+				$cthd->deleted 		= (int)($_POST['ct_deleted'][$i] ?? 0);
+				$cthd->order_by_no 	= $i;
 
-				if($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
-					// Lưu thông tin phiếu thu
-					$receipt_voucher_name = trim($_POST['ct_receipt_voucher'][$i] ?? '');
-					$receipt_voucher_id = '';
-					if(!empty($receipt_voucher_name)) {
-						$receipt_voucher_id = $this->db->getOne("SELECT id FROM ec_receipt_voucher WHERE name='$receipt_voucher_name' AND deleted=0 ORDER BY date_entered DESC LIMIT 1");
+				if ($this->loaihoadon == '0') { // HĐ GTGT
+					$cthd->name = trim(stripslashes($_POST['ct_ticket_number'][$i]));
+
+					if($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
+						// Lưu thông tin phiếu thu
+						$receipt_voucher_name = trim($_POST['ct_receipt_voucher'][$i] ?? '');
+						$receipt_voucher_id = '';
+						if(!empty($receipt_voucher_name)) {
+							$receipt_voucher_id = $this->db->getOne("SELECT id FROM ec_receipt_voucher WHERE name='$receipt_voucher_name' AND deleted=0 ORDER BY date_entered DESC LIMIT 1");
+						}
+						$cthd->receipt_voucher_id = $receipt_voucher_id;
 					}
-					$cthd->receipt_voucher_id = $receipt_voucher_id;
+					else if($cthd->mahang == 'PK') {
+						$cthd->name = 'PK';
+					}
+
+					$cthd->ticket_number_id = $_POST['ct_ticket_number_id'][$i] ?? '';
+					$cthd->booking_id = $_POST['ct_booking_id'][$i] ?? '';
+					$cthd->booking = $_POST['ct_booking'][$i] ?? '';
 				}
-				else if($cthd->mahang == 'PK') {
-					$cthd->name = 'PK';
+				else if ($this->loaihoadon == '1') { // HĐ DV
+					$cthd->name = trim(stripslashes($_POST['ct_name'][$i]));
 				}
 
-				$cthd->ticket_number_id = $_POST['ct_ticket_number_id'][$i] ?? '';
-				$cthd->booking_id = $_POST['ct_booking_id'][$i] ?? '';
-				$cthd->booking = $_POST['ct_booking'][$i] ?? '';
-			}
-			else if ($this->loaihoadon == '1') { // HĐ DV
-				$cthd->name = trim(stripslashes($_POST['ct_name'][$i]));
-			}
-
-			if ($cthd->deleted == 1) $cthd->mark_deleted($cthd->id);
-			else if (!empty($cthd->name)) $cthd->save();
-			
-
-			if (!empty($cthd->ticket_number_id)) {
-				// kiếm tra lại số tồn của số vé nếu hết thì đánh dấu
-				$sql_upd = 'UPDATE ec_input_invoices
-					SET out_of_stock = IF((qty - (SELECT SUM(soluong) FROM ec_chitiethoadon WHERE deleted = 0 AND ticket_number_id = "' . $_POST['ct_ticket_number_id'][$i] . '")) > 0, 0, 1)
-					WHERE id = "' . $_POST['ct_ticket_number_id'][$i] . '"';
-				$this->db->query($sql_upd);
+				if ($cthd->deleted == 1) $cthd->mark_deleted($cthd->id);
+				else if (!empty($cthd->name)) $cthd->save();
+				
+				if (!empty($cthd->ticket_number_id)) {
+					$beanInInv->updateInventoryStatus($cthd->ticket_number_id);
+				}
 			}
 		}
 	}
@@ -388,6 +387,8 @@ class EC_HoaDonBan extends Basic {
 							array_push($listDoneTickets, $tkid);
 							$tongsl += $tk['qty'];
 							$tongthanhtoan += $outInvDetail->thanhtien;
+
+							$beanInInv->updateInventoryStatus($tkid);
 						}
 						
 						$i++;

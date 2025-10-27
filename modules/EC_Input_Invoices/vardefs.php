@@ -380,19 +380,18 @@ $dictionary['EC_Input_Invoices'] = array(
 
         // Đánh dấu số vé đã xuất hết
         'out_of_stock' => array(
-            'required' => false,
             'name' => 'out_of_stock',
             'vname' => 'LBL_OUT_OF_STOCK',
             'type' => 'bool',
+            'len' => 1,
+            'default' => 0,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 1,
+            'importable' => 1,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
         ),
 
         'ticket_code' => array(
