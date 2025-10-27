@@ -1533,7 +1533,7 @@ function populateEditedLinePassenger($booking_id){
 		WHERE p.booking_id = '{$booking_id}'
 			AND p.add_type = 2
 			AND p.deleted = 0 
-		ORDER BY p.go_with, p.type ";
+		ORDER BY p.go_with, p.type";
 
 	$res = $db->query($sql);
 	$rowCount = $db->countRows($res);
@@ -1560,13 +1560,25 @@ function populateEditedLinePassenger($booking_id){
 			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': </b>';
 
 			// Thêm form tạo phiếu thu cho lần thay đổi
+			if($row['luggage_purchase'] > 0 || $row['luggage_purchase_inbound'] > 0) {
+				$loaithu = 5;
+				$noidungthu = "Thu tiền hành lý booking {$booking->name}";
+			}
+			else {
+				$loaithu = 4;
+				$noidungthu = "Thu tiền đổi thông tin chuyến bay booking {$booking->name}";
+			}
 			$form = "<form name='formCreateReceiptVoucher' action='index.php' method='post' target='_blank' style='float:right;'>
 				<input type='hidden' name='module' value='EC_Receipt_Voucher' />
 				<input type='hidden' name='action' value='EditView' />
 				<input type='hidden' name='booking_name' value='{$booking->name}' />
 				<input type='hidden' name='booking_id' value='{$booking_id}' />
+				<input type='hidden' name='guest_phone' value='{$booking->phone}' />
+				<input type='hidden' name='guest_name' value='{$booking->contact_name}' />
 				<input type='hidden' name='go_with' value='{$row['go_with']}' />
-				<input type='hidden' name='loai_thu' value='4' />
+				<input type='hidden' name='loai_thu' value='{$loaithu}' />
+				<input type='hidden' name='description' value='{$noidungthu}' />
+				<input type='hidden' name='receipt_type' value='credit_transfer' />
 				<input type='submit' name='btnCreateReceiptVoucher' id='btnCreateReceiptVoucher'
 					value='Tạo phiếu thu' title='Tạo phiếu thu'
 					class='btn btn-primary'
@@ -1784,7 +1796,6 @@ if ($_POST['for'] == 'getShareProfit') {
 
 	echo json_encode(array('profit' => format_number($bk_profit), 'html' => $html, 'line_cnt' => $i));
 }
-
 
 // BLOCK - UNBLOCK - WHITELIST IP ON WEBSITE
 if (isset($_POST['for']) && $_POST['for'] == 'block_ip') {
@@ -4351,28 +4362,28 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 	exit();
 }
 
-// Update output invoice checked
-if (isset($_POST['for']) && $_POST['for'] == 'check_output_invoice') {
-	try {
-		$booking_id = $_POST['booking_id'] ?? '';
-		$is_checked = isset($_POST['is_checked']) ? (int) $_POST['is_checked'] : null;
+// // Update output invoice checked
+// if (isset($_POST['for']) && $_POST['for'] == 'check_output_invoice') {
+// 	try {
+// 		$booking_id = $_POST['booking_id'] ?? '';
+// 		$is_checked = isset($_POST['is_checked']) ? (int) $_POST['is_checked'] : null;
 
-		if (!empty($booking_id) && !is_null($is_checked)) {
-			$sql = "UPDATE ec_flight_bookings 
-					SET is_output_invoice_checked = $is_checked
-					WHERE id = '$booking_id' AND deleted = 0";
-			$db->query($sql);
-			echo json_encode([
-				'error' => 0,
-				'message' => $is_checked == 1 ? 'Checked success' : 'Unchecked success'
-			]);
-			exit();
-		}
+// 		if (!empty($booking_id) && !is_null($is_checked)) {
+// 			$sql = "UPDATE ec_flight_bookings 
+// 					SET is_output_invoice_checked = $is_checked
+// 					WHERE id = '$booking_id' AND deleted = 0";
+// 			$db->query($sql);
+// 			echo json_encode([
+// 				'error' => 0,
+// 				'message' => $is_checked == 1 ? 'Checked success' : 'Unchecked success'
+// 			]);
+// 			exit();
+// 		}
 
-		echo json_encode(['error' => 1, 'message' => 'Invalid params']);
-		exit();
-	} catch (Exception $e) {
-		echo json_encode(['error' => 1, 'message' => $e->getMessage()]);
-		exit();
-	}
-}
+// 		echo json_encode(['error' => 1, 'message' => 'Invalid params']);
+// 		exit();
+// 	} catch (Exception $e) {
+// 		echo json_encode(['error' => 1, 'message' => $e->getMessage()]);
+// 		exit();
+// 	}
+// }

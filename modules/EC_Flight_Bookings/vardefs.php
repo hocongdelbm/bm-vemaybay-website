@@ -90,8 +90,8 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
-
         ),
+        
         'email' => array(
             'name'       => 'email',
             'vname'      => 'LBL_EMAIL',

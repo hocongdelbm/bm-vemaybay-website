@@ -43,8 +43,8 @@ $(document).ready(function() {
 		} else {
 			$("#span_customer").show();
 		}
-
 	});
+	$('#loai_thu').trigger('change');
 	
 	// auto complete
 	$("#customer").on("keydown.autocomplete", function() {
