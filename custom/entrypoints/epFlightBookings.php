@@ -1560,7 +1560,7 @@ function populateEditedLinePassenger($booking_id){
 			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': </b>';
 
 			// Thêm form tạo phiếu thu cho lần thay đổi
-			if($row['luggage_purchase'] > 0 || $row['luggage_purchase_inbound'] > 0) {
+			if($row['luggage_purchase'] > 0 || $row['luggage_purchase_inbound'] > 0 || $row['luggage_price'] > 0 || $row['luggage_price_inbound'] > 0) {
 				$loaithu = 5;
 				$noidungthu = "Thu tiền hành lý booking {$booking->name}";
 			}
