@@ -1023,7 +1023,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
 
                         // $fareBasic = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
                         // $fareClass = FareClass::getFareClass($systemCode, $fareBasic);
-                        // $bagIndex  = Baggage::getAvailableCheckedBaggageInfo($systemCode, $fareClass, 'ADT');
 
                         // Update PNR
                         $sqlUpdate = "UPDATE ec_booking_passengers
@@ -1156,7 +1155,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 if($this->notificationChannel == 'Mattermost') {
                     $m = "**Xuất vé $systemName: $bookingCode bởi $fullname**";
                     $m .= "\n- NCC: **{$this->supplierName}**";
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                    Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
                 }
                 else {
                     $m = "<b>💰 Xuất vé $systemName: $bookingCode bởi $fullname</b>";
@@ -1257,7 +1256,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 if($this->notificationChannel == 'Mattermost') {
                     $m = "**Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname**";
                     $m .= "\n- NCC: **{$this->supplierName}**";
-                    Mattermost::sendMessage($sugar_config['mattermost']['channel_id_api_phuong_nam'] ?? '', $m);
+                    Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
                 }
                 else {
                     $m = "<b>Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname</b>";

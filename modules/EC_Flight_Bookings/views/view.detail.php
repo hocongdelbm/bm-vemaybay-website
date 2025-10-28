@@ -62,7 +62,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// External file
 		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.8"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/booking.js?v=1.3"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.3"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.9"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
 
@@ -340,19 +340,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$airline = 'Chiều đi: <b style="margin-right:20px">' . $this->bean->airline . '</b> Chiều về: <b>' . $this->bean->airline_inbound . '</b>';
 		$this->ss->assign('CUSTOM_AIRLINE', $airline);
 
-
-		/************  CONTACT OLD  ************/
-		// $contact_title 		= $app_list_strings['passenger_salutation_list'][(int)$this->bean->contact_title];
-		// $contact_name 		= '<span class="contact_name" data="' . $this->bean->contact_name . '">' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span>';
-		// $check_contact_info = '<button class="btn btn-primary-2 d-flex gap-2 align-items-center" id="btnCheckContactInfo" ct_name="' . $this->bean->contact_name . '" ct_mobile="' . $this->bean->phone . '" ct_email="' . $this->bean->email . '" ct_id_booking="' . $this->bean->id . '">
-		// <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
-		// <span class="check_infor_customer">Check</span>
-		// </button>
-		// <div id="CheckContactInfoDialog" title="Kiểm tra thông tin" style="display:none;"></div>';
-		// $this->ss->assign('CONTACT_NAME', $contact_name . $check_contact_info);
-
-
-		/************  CONTACT NEW  ************/
+		/************  CONTACT  ************/
 		$contact_title = $app_list_strings['passenger_salutation_list'][(int) $this->bean->contact_title];
 		$link_contact = $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id : "#";
 		// $type_contact 	= classifyContact($this->bean->contact_id);
@@ -360,42 +348,38 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$contact_name_new = '<a target="_blank" href="' . $link_contact . '" class="contact_name" data="' . $this->bean->contact_name . '"><span>' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span></a>';
 		$contact_assign = '<div class="card-contact gap-2 card-contact__' . $type_contact['type'] . '">
-								<div class="flex-fill contact-header">
-									' . $contact_name_new . '
-								</div>
-								<div data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="flex-fill card-contact-footer contact-footer flex-end" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '">
-									<span class="temp d-none">' . ($type_contact['totalBookings'] ?? 0) . '</span>
-									<div class="temp-scale">
-										<span>' . $type_contact['label'] . '</span>
-									</div>
-								</div>
-							</div>';
+			<div class="flex-fill contact-header">
+				' . $contact_name_new . '
+			</div>
+			<div data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="flex-fill card-contact-footer contact-footer flex-end" contact_id="' . $this->bean->contact_id . '" booking_id="' . $this->bean->id . '">
+				<span class="temp d-none">' . ($type_contact['totalBookings'] ?? 0) . '</span>
+				<div class="temp-scale">
+					<span>' . $type_contact['label'] . '</span>
+				</div>
+			</div>
+		</div>';
 
 		$modal_history_bookings = '<div class="modal fade modal-history-bookings" id="modalHistoryContactBookings" tabindex="-1" aria-labelledby="modalHistoryContactBookingsLabel" aria-hidden="true">
-								<div class="modal-dialog modal-dialog-centered">
-									<div class="modal-content">
-										<div class="modal-header">
-											<h1 class="modal-title fs-5 text-white" id="modalHistoryContactBookingsLabel">Lịch sử booking của liên hệ</h1>
-											<button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
-										</div>
-										<div class="modal-body">
-											<div class="td_spinner"></div>
-											<div id="dialog-history-bookings"></div>
-										</div>
-									</div>
-								</div>
-							</div>';
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h1 class="modal-title fs-5 text-white" id="modalHistoryContactBookingsLabel">Lịch sử booking của liên hệ</h1>
+						<button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div class="td_spinner"></div>
+						<div id="dialog-history-bookings"></div>
+					</div>
+				</div>
+			</div>
+		</div>';
 
 		$this->ss->assign('CONTACT_NAME', $contact_assign . $modal_history_bookings);
 
 		// PHONE
-		$journeys_info = $this->getJourneysByBooking($this->bean->id); // array
-		$pass_and_lug = $this->getPassengerAndLuggage($this->bean->id);
-		$zaloinfo = $this->getZaloInfo($this->bean->phone);
-		$zaloid = $zaloinfo['data']['id'] ?? '';
-		$html_zalo_info = $current_user->id == '1' ? $this->htmlZaloInfo($zaloinfo['data']) : '';
-		$zns_history = $this->getHistoryZNS($this->bean->phone, $this->bean->id);
-
+		$journeys_info 	= $this->getJourneysByBooking($this->bean->id);
+		$pass_and_bag 	= $this->getPassengerAndBaggage($this->bean->id);
+		$zns_history 	= $this->getHistoryZNS($this->bean->phone, $this->bean->id);
 		$contact_phone = '<div class="wrap-phone d-flex align-items-center justify-content-between">
 			<a href="tel:' . $this->bean->phone . '">' . $this->bean->phone . '</a>
 			<div class="d-flex align-items-center gap-2">
@@ -413,62 +397,65 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<button id="send-zalo" class="p-0" style="border:none; background:none;">
 					<svg height="26" viewBox="0 0 460.1 436.6" width="32" xmlns="http://www.w3.org/2000/svg"><style>.st0{fill:#fdfefe}.st1{fill:#0180c7}.st2{fill:#0172b1}.st3{fill:none;stroke:#0180c7;stroke-width:2.5;stroke-miterlimit:10}</style><title/><path class="st0" d="M82.6 380.9c-1.8-.8-3.1-1.7-1-3.5 1.3-1 2.7-1.9 4.1-2.8 13.1-8.5 25.4-17.8 33.5-31.5 6.8-11.4 5.7-18.1-2.8-26.5C69 269.2 48.2 212.5 58.6 145.5 64.5 107.7 81.8 75 107 46.6c15.2-17.2 33.3-31.1 53.1-42.7 1.2-.7 2.9-.9 3.1-2.7-.4-1-1.1-.7-1.7-.7-33.7 0-67.4-.7-101 .2C28.3 1.7.5 26.6.6 62.3c.2 104.3 0 208.6 0 313 0 32.4 24.7 59.5 57 60.7 27.3 1.1 54.6.2 82 .1 2 .1 4 .2 6 .2H290c36 0 72 .2 108 0 33.4 0 60.5-27 60.5-60.3v-.6-58.5c0-1.4.5-2.9-.4-4.4-1.8.1-2.5 1.6-3.5 2.6-19.4 19.5-42.3 35.2-67.4 46.3-61.5 27.1-124.1 29-187.6 7.2-5.5-2-11.5-2.2-17.2-.8-8.4 2.1-16.7 4.6-25 7.1-24.4 7.6-49.3 11-74.8 6zm72.5-168.5c1.7-2.2 2.6-3.5 3.6-4.8 13.1-16.6 26.2-33.2 39.3-49.9 3.8-4.8 7.6-9.7 10-15.5 2.8-6.6-.2-12.8-7-15.2-3-.9-6.2-1.3-9.4-1.1-17.8-.1-35.7-.1-53.5 0-2.5 0-5 .3-7.4.9-5.6 1.4-9 7.1-7.6 12.8 1 3.8 4 6.8 7.8 7.7 2.4.6 4.9.9 7.4.8 10.8.1 21.7 0 32.5.1 1.2 0 2.7-.8 3.6 1-.9 1.2-1.8 2.4-2.7 3.5-15.5 19.6-30.9 39.3-46.4 58.9-3.8 4.9-5.8 10.3-3 16.3s8.5 7.1 14.3 7.5c4.6.3 9.3.1 14 .1 16.2 0 32.3.1 48.5-.1 8.6-.1 13.2-5.3 12.3-13.3-.7-6.3-5-9.6-13-9.7-14.1-.1-28.2 0-43.3 0zm116-52.6c-12.5-10.9-26.3-11.6-39.8-3.6-16.4 9.6-22.4 25.3-20.4 43.5 1.9 17 9.3 30.9 27.1 36.6 11.1 3.6 21.4 2.3 30.5-5.1 2.4-1.9 3.1-1.5 4.8.6 3.3 4.2 9 5.8 14 3.9 5-1.5 8.3-6.1 8.3-11.3.1-20 .2-40 0-60-.1-8-7.6-13.1-15.4-11.5-4.3.9-6.7 3.8-9.1 6.9zm69.3 37.1c-.4 25 20.3 43.9 46.3 41.3 23.9-2.4 39.4-20.3 38.6-45.6-.8-25-19.4-42.1-44.9-41.3-23.9.7-40.8 19.9-40 45.6zm-8.8-19.9c0-15.7.1-31.3 0-47 0-8-5.1-13-12.7-12.9-7.4.1-12.3 5.1-12.4 12.8-.1 4.7 0 9.3 0 14v79.5c0 6.2 3.8 11.6 8.8 12.9 6.9 1.9 14-2.2 15.8-9.1.3-1.2.5-2.4.4-3.7.2-15.5.1-31 .1-46.5z"/><path class="st1" d="M139.5 436.2c-27.3 0-54.7.9-82-.1-32.3-1.3-57-28.4-57-60.7 0-104.3.2-208.6 0-313C.5 26.7 28.4 1.8 60.5.9c33.6-.9 67.3-.2 101-.2.6 0 1.4-.3 1.7.7-.2 1.8-2 2-3.1 2.7-19.8 11.6-37.9 25.5-53.1 42.7-25.1 28.4-42.5 61-48.4 98.9-10.4 66.9 10.5 123.7 57.8 171.1 8.4 8.5 9.5 15.1 2.8 26.5-8.1 13.7-20.4 23-33.5 31.5-1.4.8-2.8 1.8-4.2 2.7-2.1 1.8-.8 2.7 1 3.5.4.9.9 1.7 1.5 2.5 11.5 10.2 22.4 21.1 33.7 31.5 5.3 4.9 10.6 10 15.7 15.1 2.1 1.9 5.6 2.5 6.1 6.1z"/><path class="st2" d="M139.5 436.2c-.5-3.5-4-4.1-6.1-6.2-5.1-5.2-10.4-10.2-15.7-15.1-11.3-10.4-22.2-21.3-33.7-31.5-.6-.8-1.1-1.6-1.5-2.5 25.5 5 50.4 1.6 74.9-5.9 8.3-2.5 16.6-5 25-7.1 5.7-1.5 11.7-1.2 17.2.8 63.4 21.8 126 19.8 187.6-7.2 25.1-11.1 48-26.7 67.4-46.2 1-1 1.7-2.5 3.5-2.6.9 1.4.4 2.9.4 4.4v58.5c.2 33.4-26.6 60.6-60 60.9h-.5c-36 .2-72 0-108 0H145.5c-2-.2-4-.3-6-.3z"/><path class="st1" d="M155.1 212.4c15.1 0 29.3-.1 43.4 0 7.9.1 12.2 3.4 13 9.7.9 7.9-3.7 13.2-12.3 13.3-16.2.2-32.3.1-48.5.1-4.7 0-9.3.2-14-.1-5.8-.3-11.5-1.5-14.3-7.5s-.8-11.4 3-16.3c15.4-19.6 30.9-39.3 46.4-58.9.9-1.2 1.8-2.4 2.7-3.5-1-1.7-2.4-.9-3.6-1-10.8-.1-21.7 0-32.5-.1-2.5 0-5-.3-7.4-.8-5.7-1.3-9.2-7-7.9-12.6.9-3.8 3.9-6.9 7.7-7.8 2.4-.6 4.9-.9 7.4-.9 17.8-.1 35.7-.1 53.5 0 3.2-.1 6.3.3 9.4 1.1 6.8 2.3 9.7 8.6 7 15.2-2.4 5.7-6.2 10.6-10 15.5-13.1 16.7-26.2 33.3-39.3 49.8-1.1 1.3-2.1 2.6-3.7 4.8z"/><path class="st1" d="M271.1 159.8c2.4-3.1 4.9-6 9-6.8 7.9-1.6 15.3 3.5 15.4 11.5.3 20 .2 40 0 60 0 5.2-3.4 9.8-8.3 11.3-5 1.9-10.7.4-14-3.9-1.7-2.1-2.4-2.5-4.8-.6-9.1 7.4-19.4 8.7-30.5 5.1-17.8-5.8-25.1-19.7-27.1-36.6-2.1-18.3 4-33.9 20.4-43.5 13.6-8.1 27.4-7.4 39.9 3.5zm-35.4 36.5c.2 4.4 1.6 8.6 4.2 12.1 5.4 7.2 15.7 8.7 23 3.3 1.2-.9 2.3-2 3.3-3.3 5.6-7.6 5.6-20.1 0-27.7-2.8-3.9-7.2-6.2-11.9-6.3-11-.7-18.7 7.8-18.6 21.9zM340.4 196.9c-.8-25.7 16.1-44.9 40.1-45.6 25.5-.8 44.1 16.3 44.9 41.3.8 25.3-14.7 43.2-38.6 45.6-26.1 2.6-46.8-16.3-46.4-41.3zm25.1-2.4c-.2 5 1.3 9.9 4.3 14 5.5 7.2 15.8 8.6 23 3 1.1-.8 2-1.8 2.9-2.8 5.8-7.6 5.8-20.4.1-28-2.8-3.8-7.2-6.2-11.9-6.3-10.8-.6-18.4 7.6-18.4 20.1zM331.6 177c0 15.5.1 31 0 46.5.1 7.1-5.5 13-12.6 13.2-1.2 0-2.5-.1-3.7-.4-5-1.3-8.8-6.6-8.8-12.9v-79.5c0-4.7-.1-9.3 0-14 .1-7.7 5-12.7 12.4-12.7 7.6-.1 12.7 4.9 12.7 12.9.1 15.6 0 31.3 0 46.9z"/><path class="st0" d="M235.7 196.3c-.1-14.1 7.6-22.6 18.5-22 4.7.2 9.1 2.5 11.9 6.4 5.6 7.5 5.6 20.1 0 27.7-5.4 7.2-15.7 8.7-23 3.3-1.2-.9-2.3-2-3.3-3.3-2.5-3.5-3.9-7.7-4.1-12.1zM365.5 194.5c0-12.4 7.6-20.7 18.4-20.1 4.7.1 9.1 2.5 11.9 6.3 5.7 7.6 5.7 20.5-.1 28-5.6 7.1-16 8.3-23.1 2.7-1.1-.8-2-1.8-2.8-2.9-3-4.1-4.4-9-4.3-14z"/><path class="st3" d="M66 1h328.1c35.9 0 65 29.1 65 65v303c0 35.9-29.1 65-65 65H66c-35.9 0-65-29.1-65-65V66C1 30.1 30.1 1 66 1z"/></svg>
 				</button>
-				<dialog id="dialog-send-zalo" class="dialog-confirm">
-					<h2 class="title" style="color:#006edc; cursor:move;">Gửi tin nhắn Zalo OA Tìm Chuyến Bay Travelpass</h2>
-					' . $html_zalo_info . '
+				<dialog id="dialog-send-zalo" class="dialog-confirm-send-zalo">
+					<h2 class="title mb-1">Gửi tin nhắn ZNS Zalo OA</h2>
+					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay<h6>
 					<form method="dialog">
+						<input type="hidden" name="zalo_flight_type" id="zalo_flight_type" value="' . $this->bean->flight_type . '" />
+						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="'. base64_encode(rawurlencode(json_encode($journeys_info, JSON_UNESCAPED_UNICODE))) .'" />
+						<input type="hidden" name="zalo_passenger" id="zalo_passenger" value="' . $pass_and_bag['passenger'] . '" />
+						<input type="hidden" name="zalo_baggage" id="zalo_baggage" value="' . $pass_and_bag['baggage'] . '" />
+						<input type="hidden" name="zalo_booking_id" id="zalo_booking_id" value="' . $this->bean->id . '" />
+						<input type="hidden" name="zalo_booking_name" id="zalo_booking_name" value="' . $this->bean->name . '" />
+						<input type="hidden" name="zalo_contact" id="zalo_contact" value="' . $this->bean->contact_name . '" />
 						<div class="wrap-type">
 							<h3 class="subtitle">Chọn mẫu tin nhắn</h3>
 							<div class="wrap-radio d-flex align-items-center justify-content-between">
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
-									<label for="type_journey" class="form-check-label">Tin nhắn hành trình <span class="me-2 text-danger">(' . $zns_history['journey'] . ')</span></label>
+									<label for="type_journey" class="form-check-label">Tin nhắn hành trình
+										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['journey'] .' tin">('. $zns_history['journey'] .')</span>
+									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_payment" name="zalo_type" value="payment">
-									<label for="type_payment" class="form-check-label">Tin nhắn thanh toán <span class="me-2 text-danger">(' . $zns_history['payment'] . ')</span></label>
+									<label for="type_payment" class="form-check-label">Tin nhắn thanh toán
+										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['payment'] .' tin">('. $zns_history['payment'] .')</span>
+									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_code" name="zalo_type" value="code">
-									<label for="type_code" class="form-check-label">Tin nhắn code vé <span class="me-2 text-danger">(' . $zns_history['code'] . ')</span></label>
+									<label for="type_code" class="form-check-label">Tin nhắn code vé
+										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['code'] .' tin">('. $zns_history['code'] .')</span>
+									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_after-call-sale" name="zalo_type" value="after-call-sale">
-									<label for="type_after-call-sale" class="form-check-label">Tin CSKH - Call sale <span class="me-2 text-danger">(' . $zns_history['callsale'] . ')</span></label>
+									<label for="type_after-call-sale" class="form-check-label">Tin CSKH - Call sale
+										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['callsale'] .' tin">('. $zns_history['callsale'] .')</span>
+									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_remind-flight" name="zalo_type" value="remind-flight">
-									<label for="type_remind-flight" class="form-check-label">Nhắc nhở giờ bay <span class="me-2 text-danger">(' . $zns_history['remind'] . ')</span></label>
+									<label for="type_remind-flight" class="form-check-label">Nhắc nhở giờ bay
+										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['remind'] .' tin">('. $zns_history['remind'] .')</span>
+									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_delay" name="zalo_type" value="delay">
-									<label for="type_delay" class="form-check-label">Thông báo delay <span class="me-2 text-danger">(' . $zns_history['delay'] . ')</span></label>
-								</div>';
-
-		if ($zaloinfo['send_promotion'] == 1) {
-			$contact_phone .= '<div>
-				<input type="radio" class="form-check-input" id="type_promotion" name="zalo_type" value="promotion">
-				<label for="type_promotion" class="form-check-label color-red">Tin nhắn khuyến mãi</label>
-			</div>';
-		}
-
-		$contact_phone .= '<input type="hidden" name="flight_type_zalo" id="flight_type_zalo" value="' . $this->bean->flight_type . '" />
-								<input type="hidden" name="journeys_zalo" id="journeys_zalo" value="' . str_replace('"', "'", json_encode($journeys_info)) . '" />
-								<input type="hidden" name="passenger_zalo" id="passenger_zalo" value="' . $pass_and_lug['passenger'] . '" />
-								<input type="hidden" name="luggage_zalo" id="luggage_zalo" value="' . $pass_and_lug['luggage'] . '" />
-								<input type="hidden" name="parent_id_zalo" id="parent_id_zalo" value="' . $this->bean->id . '" />
-								<input type="hidden" name="zalo_id" id="zalo_id" value="' . $zaloid . '" />
-							</div>
+									<label for="type_delay" class="form-check-label">Thông báo delay
+										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['delay'] .' tin">('. $zns_history['delay'] .')</span>
+									</label>
+								</div>
+							</div>	
 						</div>
-
 						<div class="wrap-message mt-3">
 							<h3 class="subtitle" style="text-align:center">Nội dung</h3>
-							<div id="zalo-message" style="padding: 5px 10px;"></div>
+							<div id="zalo-message" class="zalo-message"></div>
 						</div>
-						
 						<div class="row mt-2 pt-3" style="border-top: 1px solid #e0e0e0;">
 							<div class="col-6 wrap-phone">
-								Gửi tới: <input type="text" name="phone_zalo" id="phone_zalo" value="' . $this->bean->phone . '" style="width:120px; margin-left:10px; height:10px;"/>
+								Gửi tới: <input type="text" name="phone_zalo" id="phone_zalo" value="'. $this->bean->phone .'" style="width:120px; margin-left:10px; height:10px;"/>
 							</div>
 							<div class="col-6 wrap-button">
 								<button type="button" id="confirm-send-zalo" class="btn btn-confirm me-2">Gửi</button>
@@ -2311,9 +2298,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $html;
 	}
 
-	// Tạo modal confirm action
-	function createModal()
-	{
+	/**
+	 * Tạo modal confirm action
+	 * 
+	 * @return void
+	 */
+	private function createModal() {
 		echo '<div class="modal fade" id="modal-confirm">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -2330,11 +2320,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return;
 	}
 
-	function getJourneysByBooking($booking_id)
-	{
-		$journeys = array();
-		if (is_null($booking_id) || empty($booking_id))
-			return $journeys;
+	/**
+	 * Get journeys by booking id (Using for ZNS)
+	 * 
+	 * @param string $bookingId
+	 * @return array
+	 */
+	public function getJourneysByBooking($bookingId) {
+		$journeys = [];
+		if (is_null($bookingId) || empty($bookingId)) return $journeys;
 
 		$sql = "SELECT 
 				iti.id,
@@ -2350,7 +2344,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				iti.flight_number,
 				iti.ticket_class
 			FROM ec_booking_itineraries iti
-			WHERE iti.booking_id = '$booking_id'
+			WHERE iti.booking_id = '$bookingId'
 				AND iti.add_type = 0
 				AND iti.deleted = 0
 			ORDER BY iti.direction, iti.date_entered, iti.departure_date";
@@ -2371,7 +2365,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						'flightno' => $row['flight_number'],
 						// 'price'		=> (int) $row['base_price'],
 						// 'price_format' => format_number($row['base_price']),
-
 						'dep_name' => myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' => myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
 						'airline' => myGetAirlineInfo2($this->bean->airline, 'CODE')['data'][0]['name'] ?? '',
@@ -2399,7 +2392,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						'flightno' => $row['flight_number'],
 						// 'price'		=> (int) $row['base_price'],
 						// 'price_format' => format_number($row['base_price']),
-
 						'dep_name' => myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' => myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
 						'airline' => myGetAirlineInfo2($this->bean->airline_inbound, 'CODE')['data'][0]['name'] ?? '',
@@ -2418,105 +2410,88 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $journeys;
 	}
 
-	function getPassengerAndLuggage($booking_id)
-	{
-		if (is_null($booking_id) || empty($booking_id))
-			return '';
+	/**
+	 * Get the number of passenger and baggage info to send ZNS
+	 * 
+	 * @param string $booking_id
+	 * @return array [passenger, baggage]
+	 */
+	public function getPassengerAndBaggage($booking_id) {
+		if (is_null($booking_id) || empty($booking_id)) return ['passenger' => '', 'baggage' => ''];
 
 		$adt = $chd = $inf = 0;
-		$luggage = $luggage_inbound = 0;
-		$sql = "SELECT type, luggage_price, luggage_price_inbound
+		$totalPackDep = $totalWeightDep = 0;
+		$totalPackRet = $totalWeightRet = 0;
+		$sql = "SELECT type
+					,IFNULL(luggage_index_outbound, '') AS luggage_index_outbound
+					,IFNULL(luggage_index_inbound, '') AS luggage_index_inbound
+					,IFNULL(luggage_purchase_text, '') AS luggage_purchase_text
+					,IFNULL(luggage_purchase_text_inbound, '') AS luggage_purchase_text_inbound
 				FROM ec_booking_passengers
-				WHERE booking_id = '$booking_id' AND deleted = 0";
+				WHERE booking_id = '{$booking_id}'
+					AND deleted = 0";
 
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			if ($row['type'] == '0')
-				$adt++;
-			elseif ($row['type'] == '1')
-				$chd++;
-			elseif ($row['type'] == '2')
-				$inf++;
+			if ($row['type'] == '0') $adt++;
+			elseif ($row['type'] == '1') $chd++;
+			elseif ($row['type'] == '2') $inf++;
 
-			if ($row['luggage_price'] > 10)
-				$luggage++;
-			if ($row['luggage_price_inbound'] > 10)
-				$luggage_inbound++;
+			// Hành lý có sẵn
+			if (!empty($row['luggage_index_outbound'])) {
+				$bagText = Baggage::renderAvailableBaggage($row['luggage_index_outbound']);
+				preg_match_all('/\d+/', $bagText, $matches);
+				$pack   = (int)($matches[0][0] ?? 0); // 1
+				$weight = (int)($matches[0][1] ?? 0); // 20
+
+				$totalPackDep += $pack;
+				$totalWeightDep += $weight;
+			}
+			if (!empty($row['luggage_index_inbound'])) {
+				$bagText = Baggage::renderAvailableBaggage($row['luggage_index_inbound']);
+				preg_match_all('/\d+/', $bagText, $matches);
+				$pack   = (int)($matches[0][0] ?? 0); // 1
+				$weight = (int)($matches[0][1] ?? 0); // 20
+				
+				$totalPackRet += $pack;
+				$totalWeightRet += $weight;
+			}
+
+			// Hành lý mua thêm
+			if (!empty($row['luggage_purchase_text'])) {
+				preg_match_all('/\d+/', $row['luggage_purchase_text'], $matches);
+				$pack   = (int)($matches[0][0] ?? 0); // 1
+				$weight = (int)($matches[0][1] ?? 0); // 20
+
+				$totalPackDep += $pack;
+				$totalWeightDep += $weight;
+			}
+			if (!empty($row['luggage_purchase_text_inbound'])) {
+				preg_match_all('/\d+/', $row['luggage_purchase_text_inbound'], $matches);
+				$pack   = (int)($matches[0][0] ?? 0); // 1
+				$weight = (int)($matches[0][1] ?? 0); // 20
+
+				$totalPackRet += $pack;
+				$totalWeightRet += $weight;
+			}
 		}
 
-		$pass = $adt . ' người lớn';
-		if ($chd > 0)
-			$pass .= ', ' . $chd . ' trẻ em';
-		if ($inf > 0)
-			$pass .= ', ' . $inf . ' em bé';
+		$pass = "$adt người lớn";
+		if ($chd > 0) $pass .= ", $chd trẻ em";
+		if ($inf > 0) $pass .= ", $inf em bé";
 
-		$lug = '';
-		if ($luggage > 0)
-			$lug .= $luggage . ' kiện đi';
-		if ($luggage_inbound > 0) {
-			if (empty($lug))
-				$lug .= $luggage_inbound . ' kiện về';
-			else
-				$lug .= ', ' . $luggage_inbound . ' kiện về';
-		}
-		if (empty($lug))
-			$lug = "Không";
+		$bag = '';
+		if ($totalPackDep * $totalWeightDep != 0) $bag .= "{$totalPackDep} kiện đi (tổng {$totalWeightDep}kg)";
+		elseif($totalPackDep > 0) $bag .= "{$totalPackDep} kiện đi";
+		elseif($totalWeightDep > 0) $bag .= "{$totalWeightDep}kg lượt đi";
 
-		return ['passenger' => $pass, 'luggage' => $lug];
-	}
+		if(!empty($bag)) $bag .= ', ';
+		if ($totalPackRet * $totalWeightRet != 0) $bag .= "{$totalPackRet} kiện về (tổng {$totalWeightRet}kg)";
+		elseif($totalPackRet > 0) $bag .= "{$totalPackRet} kiện về";
+		elseif($totalWeightRet > 0) $bag .= "{$totalWeightRet}kg lượt về";
 
-
-	// Get zalo information
-	function getZaloInfo($phone)
-	{
-		return ['message' => 'Tạm ẩn thông tin Zalo', 'send_promotion' => 0, 'data' => null];
-
-		if (is_null($phone) || empty($phone))
-			return ['message' => 'Số điện thoại không hợp lệ', 'send_promotion' => 0, 'data' => null];
-
-		$zalo_id = $this->getZaloID($phone);
-		if (!$zalo_id || empty($zalo_id))
-			return ['message' => 'Chưa có thông tin Zalo', 'send_promotion' => 0, 'data' => null];
-
-		// Information
-		$beanZalo = new EC_Zalo();
-		$info = $beanZalo->get_zalo_user_info($zalo_id);
-
-		// $Zalo = new Zalo();
-		// $info = json_decode($Zalo->get_user($zalo_id), true);
-		// if ($info['error'] == 1 || empty($info['data'])) return ['message' => 'Zalo ID không hợp lệ', 'send_promotion' => 0, 'data' => null];
-
-		$data = [
-			'id' => $zalo_id,
-			'phone' => $phone,
-			'name' => $info['display_name'],
-			'is_follow' => $info['user_is_follower'],
-			'avatar' => $info['avatar'],
-			'last_interaction' => $info['user_last_interaction_date']
-		];
-
-		// // Quota
-		// $quota = json_decode($Zalo->get_quota_user($zalo_id), true);
-		// if ($quota['error'] == 1 || empty($quota['data'])) return ['message' => $quota['message'], 'send_promotion' => 0, 'data' => $data];
-		// $data['last_interaction'] = date("d/m/Y H:i:s", $quota['data']['last_interaction'] / 1000 + 3600 * 7);
-		// $data['cs_reply'] = $quota['data']['cs_reply']['remain'] . '/' . $quota['data']['cs_reply']['total'];
-		// $data['promotion']['daily'] = $quota['data']['promotion']['daily_remain'] . '/' . $quota['data']['promotion']['daily_total'];
-		// $data['promotion']['monthly'] = $quota['data']['promotion']['monthly_remain'] . '/' . $quota['data']['promotion']['monthly_total'];
-
-		// // Thời gian gửi tin: Từ 6h00 -> 21h59
-		// $now = date("Y-m-d H:i:s");
-		// $time_current = date("H:i:s", strtotime('+7 hours', strtotime($now)));
-		// if (strtotime($time_current) < strtotime("06:00:00") || strtotime($time_current) > strtotime("21:59:59")) {
-		// 	return ['message' => 'Ngoài khung giờ gửi tin (6h đến 22h)', 'send_promotion' => 0, 'data' => $data];
-		// }
-
-		// // Khách hàng nhận 5 tin Truyền thông/tháng
-		// // SL tin Truyền thông 01 người dùng có thể nhận từ 01 OA trong 01 ngày là 01 tin
-		// if ($quota['data']['promotion']['daily_remain'] == 0 || $quota['data']['promotion']['monthly_remain'] == 0) {
-		// 	return ['message' => 'Vượt quá hạn mức gửi tin', 'send_promotion' => 0, 'data' => $data];
-		// }
-
-		return ['message' => '', 'send_promotion' => 0, 'data' => $data];
+		if (empty($bag)) $bag = "Không";
+		return ['passenger' => $pass, 'baggage' => trim($bag)];
 	}
 
 	// Get zalo id
@@ -2550,19 +2525,14 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $html;
 	}
 
-	function getHistoryZNS($phone, $booking_id)
-	{
-		$sql = "SELECT l.content, COUNT(l.id) AS count
-			FROM ec_messages l
-			WHERE l.parent_id = '$booking_id'
-				AND l.parent_type = 'EC_Flight_Bookings'
-				AND l.type = 'zalo_zns'
-				AND l.send_to = '$phone'
-				AND l.status = 'done'
-				AND l.deleted = 0
-			GROUP BY l.content
-		";
-
+	/**
+	 * Get history sending ZNS
+	 * 
+	 * @param string $phoneNumber
+	 * @param string $bookingId
+	 * @return array
+	 */
+	public function getHistoryZNS($phoneNumber, $bookingId) {
 		$result = [
 			'journey' => 0,
 			'payment' => 0,
@@ -2571,20 +2541,32 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			'remind' => 0,
 			'delay' => 0,
 		];
+
+		if(empty($phoneNumber) || empty($bookingId)) return $result;
+
+		$sql = "SELECT zm.sub_type, COUNT(*) AS count
+			FROM ec_zalo_messages zm
+			WHERE zm.parent_id = '$bookingId'
+				AND zm.parent_type = 'EC_Flight_Bookings'
+				AND zm.type = 'zns'
+				AND zm.to_id = '$phoneNumber'
+				AND zm.deleted = 0
+			GROUP BY zm.sub_type";
+
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			if (strpos($row['content'], 'Thông tin hành trình') !== false)
+			if (stripos($row['sub_type'], 'journey') !== false)
 				$result['journey'] += $row['count'];
-			elseif (strpos($row['content'], 'Thông tin code vé') !== false)
+			elseif (stripos($row['sub_type'], 'code') !== false)
 				$result['code'] += $row['count'];
-			elseif (strpos($row['content'], 'Thông tin thanh toán') !== false)
+			elseif (stripos($row['sub_type'], 'payment') !== false)
 				$result['payment'] += $row['count'];
-			elseif (strpos($row['content'], 'Chăm sóc khách hàng') !== false)
+			elseif (stripos($row['sub_type'], 'after-call-sale') !== false)
 				$result['callsale'] += $row['count'];
-			elseif (strpos($row['content'], 'Nhắc nhở giờ bay') !== false)
+			elseif (stripos($row['sub_type'], 'remind') !== false)
 				$result['remind'] += $row['count'];
-			elseif (strpos($row['content'], 'Thông báo delay') !== false)
-				$result['delay'] += $row['count'];
+			elseif (stripos($row['sub_type'], 'delay') !== false)
+				$result['delay'] += $row['delay'];
 		}
 
 		return $result;

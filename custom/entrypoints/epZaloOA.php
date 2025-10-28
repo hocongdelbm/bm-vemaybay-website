@@ -488,155 +488,155 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo $json_message;
         exit();
     }
-    elseif($action == 'send_zns') { // Version 2
-        $phone          = isset($_POST['phone']) ? $_POST['phone'] : "";
-        $type_zns       = isset($_POST['type_zns']) ? $_POST['type_zns'] : "";
-        $parent_id      = isset($_POST['parent_id']) ? $_POST['parent_id'] : "";
-        $template_data  = isset($_POST['template_data']) ? str_replace('&quot;', '"', $_POST['template_data']) : ""; // json
+    // elseif($action == 'send_zns') { // Version 2
+    //     $phone          = isset($_POST['phone']) ? $_POST['phone'] : "";
+    //     $type_zns       = isset($_POST['type_zns']) ? $_POST['type_zns'] : "";
+    //     $parent_id      = isset($_POST['parent_id']) ? $_POST['parent_id'] : "";
+    //     $template_data  = isset($_POST['template_data']) ? str_replace('&quot;', '"', $_POST['template_data']) : ""; // json
 
-        if(empty($phone) || empty($type_zns) || empty($template_data) || empty($parent_id)) {
-            echo json_encode([
-                "error" => 1,
-                "message" => "Dữ liệu cung cấp không hợp lệ",
-                "data" => [
-                    "phone" => $phone,
-                    "type_zns" => $type_zns,
-                    "parent_id" => $parent_id,
-                    "template_data" => json_decode($template_data, true)
-                ]
-            ]);
-            exit();
-        }
+    //     if(empty($phone) || empty($type_zns) || empty($template_data) || empty($parent_id)) {
+    //         echo json_encode([
+    //             "error" => 1,
+    //             "message" => "Dữ liệu cung cấp không hợp lệ",
+    //             "data" => [
+    //                 "phone" => $phone,
+    //                 "type_zns" => $type_zns,
+    //                 "parent_id" => $parent_id,
+    //                 "template_data" => json_decode($template_data, true)
+    //             ]
+    //         ]);
+    //         exit();
+    //     }
 
-        $Zalo = new Zalo();
-        $Omni = new OMNI();
-        $template_id = $template_name = '';
-        // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
-        //     $template_id = $Zalo->get_template_id_zns($type_zns);
-        //     $template_name = $Zalo->get_template_name_zns($template_id);
-        //     $json = $Zalo->send_zns($phone, $template_id, $template_data);
-        // }
-        // else {
-            $template_id = $Omni->getTemplateCode($type_zns);
-            $template_name = $Omni->getTemplateName($template_id);
-            $json = $Omni->sendMessage($phone, $template_id, json_decode($template_data, true));
-        // }
+    //     $Zalo = new Zalo();
+    //     $Omni = new OMNI();
+    //     $template_id = $template_name = '';
+    //     // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+    //     //     $template_id = $Zalo->get_template_id_zns($type_zns);
+    //     //     $template_name = $Zalo->get_template_name_zns($template_id);
+    //     //     $json = $Zalo->send_zns($phone, $template_id, $template_data);
+    //     // }
+    //     // else {
+    //         $template_id = $Omni->getTemplateCode($type_zns);
+    //         $template_name = $Omni->getTemplateName($template_id);
+    //         $json = $Omni->sendMessage($phone, $template_id, json_decode($template_data, true));
+    //     // }
 
-        $arr  = json_decode($json, true);
-        $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
-        $template_data = json_decode($template_data, true);
-        $template_data['template_id'] = $template_id;
+    //     $arr  = json_decode($json, true);
+    //     $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
+    //     $template_data = json_decode($template_data, true);
+    //     $template_data['template_id'] = $template_id;
 
-        // if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
-        if(isset($arr['status']) && $arr['status'] == 1) {
-            $m = new EC_Messages();
-            $m->send_from       = $Zalo->get_oa_id();
-            $m->send_to         = $phone;
-            $m->content         = $template_name;
-            $m->type            = 'zalo_zns';
-            $m->category        = $category;
-            $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
-            $m->parent_type     = 'EC_Flight_Bookings';
-            $m->parent_id       = $parent_id;
-            $m->data            = json_encode($template_data);
-            $m->response        = $json;
-            $m->status          = 'done';
-            $m->cost            = 220;
-            $m->assigned_user_id = $current_user->id;
-            $m->save();
+    //     // if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
+    //     if(isset($arr['status']) && $arr['status'] == 1) {
+    //         $m = new EC_Messages();
+    //         $m->send_from       = $Zalo->get_oa_id();
+    //         $m->send_to         = $phone;
+    //         $m->content         = $template_name;
+    //         $m->type            = 'zalo_zns';
+    //         $m->category        = $category;
+    //         $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
+    //         $m->parent_type     = 'EC_Flight_Bookings';
+    //         $m->parent_id       = $parent_id;
+    //         $m->data            = json_encode($template_data);
+    //         $m->response        = $json;
+    //         $m->status          = 'done';
+    //         $m->cost            = 220;
+    //         $m->assigned_user_id = $current_user->id;
+    //         $m->save();
 
-            try {
-                // Save zalo message
-                $msg_id = $arr['data']['msg_id'] ?? ($arr['idOmniMess'] ?? '');
-                $timestamp = $arr['data']['sent_time'] ?? time();
+    //         try {
+    //             // Save zalo message
+    //             $msg_id = $arr['data']['msg_id'] ?? ($arr['idOmniMess'] ?? '');
+    //             $timestamp = $arr['data']['sent_time'] ?? time();
 
-                $zalomes = new EC_Zalo_Messages();
-                $zalomes->id            = '';
-                $zalomes->message_id    = $msg_id;
-                $zalomes->src           = 0;
-                $zalomes->from_id       = $Zalo->get_oa_id();
-                $zalomes->to_id         = $phone;
-                $zalomes->timestamp     = $timestamp;
-                $zalomes->type          = 'zns';
-                $zalomes->sub_type      = $type_zns;
-                $zalomes->description   = $template_name;
-                $zalomes->template_id   = $template_id;
-                $zalomes->data          = json_encode($template_data);
-                $zalomes->response      = trim($json);
-                $zalomes->assigned_user_id = $current_user->id;
-                $zalomes->save();
+    //             $zalomes = new EC_Zalo_Messages();
+    //             $zalomes->id            = '';
+    //             $zalomes->message_id    = $msg_id;
+    //             $zalomes->src           = 0;
+    //             $zalomes->from_id       = $Zalo->get_oa_id();
+    //             $zalomes->to_id         = $phone;
+    //             $zalomes->timestamp     = $timestamp;
+    //             $zalomes->type          = 'zns';
+    //             $zalomes->sub_type      = $type_zns;
+    //             $zalomes->description   = $template_name;
+    //             $zalomes->template_id   = $template_id;
+    //             $zalomes->data          = json_encode($template_data);
+    //             $zalomes->response      = trim($json);
+    //             $zalomes->assigned_user_id = $current_user->id;
+    //             $zalomes->save();
 
-                // Save notes
-                $n = new Note();
-                $n->name            = "Gửi Zalo ZNS";
-                $n->description     = "Gửi Zalo $template_name đến $phone";
-                $n->parent_type     = "EC_Flight_Bookings";
-                $n->parent_id       = $parent_id;
-                $n->assigned_user_id = $current_user->id;
-                $n->save();
-            }
-            catch(Exception $e) {
-                global $sugar_config;
+    //             // Save notes
+    //             $n = new Note();
+    //             $n->name            = "Gửi Zalo ZNS";
+    //             $n->description     = "Gửi Zalo $template_name đến $phone";
+    //             $n->parent_type     = "EC_Flight_Bookings";
+    //             $n->parent_id       = $parent_id;
+    //             $n->assigned_user_id = $current_user->id;
+    //             $n->save();
+    //         }
+    //         catch(Exception $e) {
+    //             global $sugar_config;
 
-                // $message = Mattermost::$line_separation;
-                // $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
-                // $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json";
-                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+    //             // $message = Mattermost::$line_separation;
+    //             // $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
+    //             // $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$json";
+    //             // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
 
-                $message = "<b>[ERROR] ZNS message saved failed</b>";
-                $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$json</pre>";
-                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-            }
+    //             $message = "<b>[ERROR] ZNS message saved failed</b>";
+    //             $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$json</pre>";
+    //             $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+    //             $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+    //             $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+    //             Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+    //         }
             
-            // $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi $template_name đến Zalo **$phone**");
+    //         // $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+    //         // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**$fullname**: Gửi $template_name đến Zalo **$phone**");
 
-            $fullname = trim($current_user->last_name.' '.$current_user->first_name);
-            $botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
-            $chatId = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
-            Telegram::sendMessage("<b>$fullname</b>: Gửi $template_name đến Zalo <b>$phone</b>", $botToken, $chatId);
+    //         $fullname = trim($current_user->last_name.' '.$current_user->first_name);
+    //         $botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+    //         $chatId = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+    //         Telegram::sendMessage("<b>$fullname</b>: Gửi $template_name đến Zalo <b>$phone</b>", $botToken, $chatId);
             
-            echo json_encode([
-                "error"   => 0,
-                "message" => "Gửi tin nhắn thành công",
-                "data"    => $arr
-            ]);
-        }
-        else {
-            // $error_code = isset($arr['error']) ? $arr['error'] : '';
-            // if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
-            $error_code = isset($arr['code']) ? $arr['code'] : '';
+    //         echo json_encode([
+    //             "error"   => 0,
+    //             "message" => "Gửi tin nhắn thành công",
+    //             "data"    => $arr
+    //         ]);
+    //     }
+    //     else {
+    //         // $error_code = isset($arr['error']) ? $arr['error'] : '';
+    //         // if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
+    //         $error_code = isset($arr['code']) ? $arr['code'] : '';
 
-            // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
-            //     $message = $Zalo->get_error_description_zns($error_code);
-            // }
-            // else {
-                $message = $Omni->getErrorDescription($error_code);
-            // }
+    //         // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
+    //         //     $message = $Zalo->get_error_description_zns($error_code);
+    //         // }
+    //         // else {
+    //             $message = $Omni->getErrorDescription($error_code);
+    //         // }
 
-            $m = new EC_Messages();
-            $m->send_from       = $Zalo->get_oa_id();
-            $m->send_to         = $phone;
-            $m->content         = $template_name;
-            $m->type            = 'zalo_zns';
-            $m->category        = $category;
-            $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
-            $m->parent_type     = 'EC_Flight_Bookings';
-            $m->parent_id       = $parent_id;
-            $m->data            = json_encode($template_data);
-            $m->response        = $json;
-            $m->status          = 'fail';
-            $m->description     = $message;
-            $m->assigned_user_id = $current_user->id;
-            $m->save();
+    //         $m = new EC_Messages();
+    //         $m->send_from       = $Zalo->get_oa_id();
+    //         $m->send_to         = $phone;
+    //         $m->content         = $template_name;
+    //         $m->type            = 'zalo_zns';
+    //         $m->category        = $category;
+    //         $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
+    //         $m->parent_type     = 'EC_Flight_Bookings';
+    //         $m->parent_id       = $parent_id;
+    //         $m->data            = json_encode($template_data);
+    //         $m->response        = $json;
+    //         $m->status          = 'fail';
+    //         $m->description     = $message;
+    //         $m->assigned_user_id = $current_user->id;
+    //         $m->save();
 
-            echo json_encode(["error" => 1, "message" => $message, "data" => $arr]);
-        }
-        exit();
-    }
+    //         echo json_encode(["error" => 1, "message" => $message, "data" => $arr]);
+    //     }
+    //     exit();
+    // }
     elseif($action == 'update_user_alias') { // Version 2
         $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
         $alias   = isset($_POST['alias']) ? $_POST['alias'] : "";

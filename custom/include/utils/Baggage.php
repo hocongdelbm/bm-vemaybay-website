@@ -47,19 +47,4 @@ class Baggage {
         }
         return $str;
     }
-
-    /**
-     * Get available checked baggage info
-     * 
-     * @param string $airlineCode
-     * @param string $fareClass
-     * @param string $passengerType ADT, CHD, INF
-     * @return string
-     */
-    public static function getAvailableCheckedBaggageInfo($airlineCode, $fareClass, $passengerType) {
-        $json = file_get_contents('custom/json_files/checkedBaggage.json');
-        $data = json_decode($json, true);
-        $result = $data[$airlineCode][$fareClass]['pass_type']['='][strtoupper($passengerType)] ?? [];
-        return $result['value'] ?? '';
-    }
 }

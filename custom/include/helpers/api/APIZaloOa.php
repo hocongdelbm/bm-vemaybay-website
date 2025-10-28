@@ -1,4 +1,6 @@
 <?php
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+
 class APIZaloOA {
     private $token_path;
     private $template_path;
@@ -13,7 +15,7 @@ class APIZaloOA {
         global $sugar_config;
         $this->token_path       = "custom/json_files/zalo_oa/token.json";
         $this->template_path    = "custom/json_files/zalo_oa/templates.json";
-        $this->domain           = $_SERVER['SERVER_NAME'];
+        $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
         $this->oa_id            = $sugar_config['zalo_config']['oa_id'] ?? '';
         $this->app_id           = $sugar_config['zalo_config']['app_id'] ?? '';
         $this->app_secret       = $sugar_config['zalo_config']['app_secret'] ?? '';
@@ -640,6 +642,7 @@ class APIZaloOA {
     /***************  ZNS  ***************/
     /** 
      * Send ZNS message
+     * Replaced by sendMessage() in class APIOMNI
      * 
      * @param string $phone
      * @param string $template_id
@@ -647,6 +650,14 @@ class APIZaloOA {
      * @return string json
      */
     public function send_zns($phone, $template_id, $template_data) {
+        return json_encode([
+            "error" => 1,
+            "httpCode" => 501,
+            "message" => "Unsupported feature",
+            "data" => null,
+            "description" => "Replaced by sendMessage() in class APIOMNI"
+        ]);
+        
         $url = "https://business.openapi.zalo.me/message/template";
         $header = [
             "Content-Type: application/json",
@@ -675,6 +686,7 @@ class APIZaloOA {
      * @return string
      */
     public function get_template_id_zns($type) {
+        return "";
         switch ($type) {
             case 'journey-one-way':
                 return "347078"; // Hành trình một chiều
@@ -718,6 +730,7 @@ class APIZaloOA {
      * @return string
      */
     public function get_template_name_zns($template_id = null) {
+        return "";
         switch ($template_id) {
             case '347078':
             case '347088':

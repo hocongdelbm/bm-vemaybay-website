@@ -39,3 +39,6 @@ custom/json_files/**/*.json
 
 # Ignore vendor
 vendor
+
+# Ignore local system
+.vscode

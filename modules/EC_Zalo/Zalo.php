@@ -10,8 +10,8 @@ class Zalo {
     private $domain;
 
     public function __construct() {
-        $this->token_path = "modules/EC_Zalo/json/token.json";
-        $this->template_path = "modules/EC_Zalo/json/templates.json";
+        $this->token_path = "custom/json_files/zalo_oa/token.json";
+        $this->template_path = "custom/json_files/zalo_oa/templates.json";
         $this->domain = $_SERVER['SERVER_NAME'];
     }
 
@@ -1013,6 +1013,14 @@ class Zalo {
      * @return string json
      */
     public function send_zns($phone, $template_id, $template_data) {
+        return json_encode([
+            "error" => 1,
+            "httpCode" => 501,
+            "message" => "Unsupported feature",
+            "data" => null,
+            "description" => "Replaced by sendMessage() in class APIOMNI"
+        ]);
+        
         $body_request = json_encode([
             'phone'         => $this->format_phone_number($phone, 'zalo'),
             'template_id'   => $template_id,
