@@ -37,6 +37,7 @@ class EC_Zalo_Messages extends Basic {
     public $longitude;
     public $quote_message_id;
     public $template_id;
+    public $cost;
     public $data;
     public $response;
 

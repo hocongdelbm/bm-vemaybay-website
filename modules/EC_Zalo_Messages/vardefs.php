@@ -176,13 +176,22 @@ $dictionary['EC_Zalo_Messages'] = array(
             'importable' => false,
             'audited'    => true,
         ),
+
+        'cost' => array(
+            'name' => 'cost',
+            'vname' => 'LBL_COST',
+            'type' => 'int',
+            'default' => 0,
+            'required' => true,
+            'importable' => true,
+            'audited' => true,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_zalo_messages_from_id', 'type' => 'index', 'fields' => array('from_id')),
         array('name' => 'idx_zalo_messages_to_id', 'type' => 'index', 'fields' => array('to_id')),
         array('name' => 'idx_zalo_messages_message_id', 'type' => 'index', 'fields' => array('message_id')),
         array('name' => 'idx_zalo_messages_quote_message_id', 'type' => 'index', 'fields' => array('quote_message_id')),
-        array('name' => 'idx_zalo_messages_template_id', 'type' => 'index', 'fields' => array('template_id')),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

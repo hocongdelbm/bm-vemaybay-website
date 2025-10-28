@@ -586,7 +586,7 @@ $(document).ready(function () {
                         url: ENTRYPOINT,
                         method: 'POST',
                         contentType: "application/json",
-                        dataType: "json",  
+                        dataType: "json",
                         data: JSON.stringify({
                             class: entryClass,
                             method: 'booking',

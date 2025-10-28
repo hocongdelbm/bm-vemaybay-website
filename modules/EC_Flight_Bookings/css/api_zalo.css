@@ -1,55 +1,64 @@
 /*========== POPUP ==========*/
-.dialog-confirm {
+.dialog-confirm-send-zalo {
     line-height: 22px;
     border: none;
     border-radius: 10px;
     box-shadow: rgb(14 30 37 / 12%) 0px 2px 4px 0px, rgb(14 30 37 / 32%) 0px 2px 16px 0px;
 }
-
-.dialog-confirm form {
+.dialog-confirm-send-zalo form {
     min-width: 600px;
 }
-
-.dialog-confirm .subtitle {
+.dialog-confirm-send-zalo .subtitle {
     font-size: 15px;
     font-weight: bold;
     text-transform: uppercase;
     color: #303030;
 }
-
-.dialog-confirm p b {
+.dialog-confirm-send-zalo p b {
     color: #303030
 }
-
-.dialog-confirm .wrap-type p,
-.dialog-confirm .title {
+.dialog-confirm-send-zalo .wrap-type p,
+.dialog-confirm-send-zalo .title {
     font-size: 19px;
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
-    padding: 4px 4px 8px 4px;
 }
-
-.dialog-confirm .wrap-radio {
+.dialog-confirm-send-zalo .title {
+    color:#006edc;
+    cursor:move;
+}
+.dialog-confirm-send-zalo .title-zalo-oa-name {
+    background: linear-gradient(to right, #E8672C, #F7B832);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+}
+.dialog-confirm-send-zalo .wrap-type p {padding: 4px 4px 8px 4px;}
+.dialog-confirm-send-zalo .wrap-radio {
     gap: 15px;
     flex-wrap: wrap;
     max-width: 650px;
 }
-.dialog-confirm .wrap-radio > div {
+.dialog-confirm-send-zalo .wrap-radio > div {
     width: 200px;
 }
-
-
-.dialog-confirm .wrap-phone {
+.dialog-confirm-send-zalo .wrap-phone {
     display: flex;
     justify-content: flex-start;
     align-items: center;
     font-weight: 400;
 }
-
-.dialog-confirm .wrap-button {
+.dialog-confirm-send-zalo .wrap-button {
     display: inline-flex;
     justify-content: flex-end;
+}
+
+.dialog-confirm-send-zalo .wrap-message .zalo-message {
+    max-width: 650px;
+    font-size: 13px;
+    line-height: 1.75;
+    padding: 5px 10px;
 }
 
 .notify-check {
