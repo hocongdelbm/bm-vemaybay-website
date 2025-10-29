@@ -5,14 +5,13 @@ try {
     date_default_timezone_set('Asia/Ho_Chi_Minh');
     $entryAuth = true;
     require_once 'custom/entrypoints/entryFactory.php';
-
     $request_method = $_SERVER['REQUEST_METHOD'] ?? '';
     if (in_array($request_method, ['POST', 'GET'])) {
-        global $sugar_config;
+        // global $sugar_config;
         $headers = getallheaders();
         $contentType = $headers['Content-Type'] ?? '';
         $api_key = $headers['Api-Key'] ?? '';
-        $ip = get_ip_address_from_client();
+        // $ip = get_ip_address_from_client();
 
         // if(!in_array($ip, $sugar_config['ip_whitelist'] ?? [])) {
         //     http_response_code(403);
