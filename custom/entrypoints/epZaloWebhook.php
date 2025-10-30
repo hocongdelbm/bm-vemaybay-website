@@ -1,6 +1,5 @@
 <?php
 date_default_timezone_set('Asia/Ho_Chi_Minh');
-// require_once "modules/EC_Zalo/Zalo.php";
 require_once "custom/include/helpers/api/APIZaloOA.php";
 require 'vendor/autoload.php';
 use WebSocket\Client;
@@ -20,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
    
     if($mac === $h_mac) {
         global $db;
+        $zaloOA = new APIZaloOA();
         $event = isset($data['event_name']) ? $data['event_name'] : '';
 
         try {
@@ -146,12 +146,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             $record_id = $this->db->getOne($sqlCheck) ?? '';
 
                             if(!$record_id || empty($record_id)) {
-                                $zaloOA = new APIZaloOA();
                                 $json_user = $zaloOA->get_user($sender_id);
                                 $user_info = json_decode($json_user, true);
                                 if(isset($user_info['error']) && $user_info['error'] == 0) {
                                     $beanZaloContact = new EC_Zalo_Contacts();
-                                    $beanZaloContact->custom_save($user_info['data'], $recipient_id, 'Liên hệ tạo khi gọi API Zalo OA từ Webhook');
+                                    $beanZaloContact->custom_save($user_info['data'], $recipient_id, 'Liên hệ tạo bởi webhook gửi/nhận tin nhắn');
                                 }
                             }
                             else {
@@ -194,17 +193,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $client->close();
                 }
                 catch(Exception $e) {
-                    // $message = Mattermost::$line_separation;
-                    // $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                    // $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-
-                    $message = "<b>[WARNING] Webhook Zalo</b>";
-                    $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
-                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                    if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
+                        $message = Mattermost::$line_separation;
+                        $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
+                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
+                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                    }
+                    else {
+                        $message = "<b>[WARNING]</b> Webhook Zalo";
+                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
+                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                    }
                 }
                 finally {
                     header("HTTP/1.1 200 OK");
@@ -222,7 +224,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $input_phone = $query_params['contact_phone'] ?? '';
 
                     if(strlen($input_phone) > 9) {
-                        $zaloOA = new APIZaloOA();
 
                         // Get contact by zalo id
                         $count_contact = 0;
@@ -236,8 +237,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 AND deleted = 0";
                         $rowZaloContactInfo = $db->fetchByAssoc($db->query($sqlZaloContactInfo));
                         $zalo_contact_id = $row['id'] ?? '';
-                        $contact_id_by_phone = $row['contact_id'] ?? '';
-                        
+                        $contact_id_by_zalo = $row['contact_id'] ?? '';
+    
                         // Get info in contacts table
                         $contact_id_by_phone = $db->getOne("SELECT id 
                             FROM contacts
@@ -245,81 +246,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             ORDER BY date_entered
                             LIMIT 1") ?? '';
 
-                        // if(empty($zalo_contact_id)) {
-                        //     // Cập nhật $zalo_user_id cho contact có $input_phone
-                        //     $sql = "UPDATE contacts
-                        //         SET zalo_id = '$zalo_user_id', zalo_last_interaction = '$zalo_last_interaction'
-                        //         WHERE phone_mobile = '$input_phone' AND deleted = 0";
-                        //     $db->query($sql);
-
-                        //     // Mattermost::sendMessage(
-                        //     //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                        //     //     "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
-                        //     // );
-
-                        //     $message    = "Hệ thống đã map SĐT $input_phone với Zalo ID $zalo_user_id";
-                        //     $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        //     $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        //     $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                        //     Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                        // }
-                        // elseif(empty($contact_id_by_phone)) {
-                        //     // Cập nhật $zalo_user_id cho contact có $input_phone
-                        //     $sql = "UPDATE contacts
-                        //         SET zalo_id = '$zalo_user_id', zalo_last_interaction = '$zalo_last_interaction'
-                        //         WHERE phone_mobile = '$input_phone' AND deleted = 0";
-                        //     $db->query($sql);
-
-                        //     // Mattermost::sendMessage(
-                        //     //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                        //     //     "**Zalo id $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (contact id)**",
-                        //     //     [],
-                        //     //     ["priority" => [ "priority" => "important"]]
-                        //     // );
-
-                        //     $message = "<b>Cảnh báo từ Zalo Webhook</b>";
-                        //     $message .= "\nZalo ID $zalo_user_id có nhiều hơn 1 liên hệ trong BM: $contact_id (Contact ID)";
-                        //     $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        //     $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        //     $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                        //     Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                        // }
-                        // elseif(!empty($contact_phone) && $contact_phone != $input_phone) {
-                        //     // Get zalo phone
-                        //     $zalo_phone = '';
-                        //     $user_info = json_decode($ZaloObj->get_user($zalo_user_id), true);
-                        //     if(isset($user_info['error']) && $user_info['error'] == 0) {
-                        //         $zalo_phone = $user_info['data']['shared_info']['phone'] ?? '';
-                        //         $zalo_phone = empty($zalo_phone) ? $ZaloObj->get_phone_by_alias($user_info['data']['user_alias'] ?? '') : '';
-                        //     }
-
-                        //     if(!empty($zalo_phone)) {
-                        //         if($zalo_phone == $contact_phone) return true;
-                        //         elseif($zalo_phone == $input_phone) {
-                        //             // Xóa $zalo_user_id trong contact trước đó
-                        //             $sql_1 = "UPDATE contacts SET zalo_id = '', zalo_last_interaction = '' WHERE id = '$contact_id'";
-                        //             $db->query($sql_1);
-
-                        //             // Cập nhật $zalo_user_id trong contact mới
-                        //             $sql_2 = "UPDATE contacts
-                        //                 SET zalo_id = '$zalo_user_id', zalo_last_interaction = '$zalo_last_interaction'
-                        //                 WHERE phone_mobile = '$input_phone' AND deleted = 0";
-                        //             $db->query($sql_2);
-
-                        //             // Mattermost::sendMessage(
-                        //             //     $sugar_config['mattermost']['channel_id_zalo_oa'] ?? '',
-                        //             //     "Hệ thống đã map số điện thoại $input_phone với zalo id $zalo_user_id"
-                        //             // );
-
-                        //             $message    = "Hệ thống đã map SĐT $input_phone với Zalo ID $zalo_user_id";
-                        //             $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        //             $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        //             $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                        //             Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                        //         }
-                        //     }
-                        // }
-                        
+                        // Not exist zalo contact
+                        if(empty($zalo_contact_id)) {
+                            $user_info = json_decode($zaloOA->get_user($zalo_user_id), true);
+                            if(isset($user_info['error']) && $user_info['error'] == 0) {
+                                $zaloContact = new EC_Zalo_Contacts();
+                                $zaloContact->custom_save($user_info['data'], $zaloOA->get_oa_id(), 'Liên hệ tạo qua widget tương tác');
+                            }
+                        }
+                        elseif(empty($contact_id_by_zalo) && !empty($contact_id_by_phone)) {
+                            if($db->query("UPDATE ec_zalo_contacts SET contact_id = '{$contact_id_by_phone}' WHERE id = '{$zalo_contact_id}' AND deleted = 0")) {
+                                $message    = "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id";
+                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                            }
+                        }
                     }
                 }
 
@@ -333,49 +276,39 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $follower = $event == 'follow' ? 1 : 0;
 
                     if(!empty($zalo_user_id)) {
-                        $ZaloObj = new Zalo();
+                        // // Send code to engage in event 02/09/2025
+                        // $eventActive = time() > strtotime('2025-08-21 23:59:59') && time() < strtotime('2025-08-29 00:00:00');
+                        // if($eventActive && $follower == 1) {
+                        //     try {
+                        //         require_once("custom/entrypoints/entryNonAuthClass/entryEvent020925Class.php");
+                        //         $event020925 = new entryEvent020925Class();
+                        //         $arrUserInfoEvent = $event020925->getUserInfo(['code' => $zalo_user_id]);
+                        //         // If user hasn't joined the event, the system will send a link to join
+                        //         if(isset($arrUserInfoEvent['status']) && $arrUserInfoEvent['status'] == 0) {
+                        //             $res = json_decode($ZaloObj->send_consultation(
+                        //                 "text",
+                        //                 $zalo_user_id,
+                        //                 ["text" => "/-flag Tìm Chuyến Bay gửi bạn trang tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/thu-thach-su-viet?code=$zalo_user_id"]
+                        //             ), true);
 
-                        // Send code to engage in event 02/09/2025
-                        $eventActive = time() > strtotime('2025-08-21 23:59:59') && time() < strtotime('2025-08-29 00:00:00');
-                        // $eventActive = false;
-                        // if(in_array($zalo_user_id, ['7658987821159451152', '146299248217337693'])) $eventActive = true;
-                        if($eventActive && $follower == 1) {
-                            try {
-                                require_once("custom/entrypoints/entryNonAuthClass/entryEvent020925Class.php");
-                                $event020925 = new entryEvent020925Class();
-                                $arrUserInfoEvent = $event020925->getUserInfo(['code' => $zalo_user_id]);
-                                // If user hasn't joined the event, the system will send a link to join
-                                if(isset($arrUserInfoEvent['status']) && $arrUserInfoEvent['status'] == 0) {
-                                    $res = json_decode($ZaloObj->send_consultation(
-                                        "text",
-                                        $zalo_user_id,
-                                        ["text" => "/-flag Tìm Chuyến Bay gửi bạn trang tham gia sự kiện mừng lễ Quốc Khánh 02/09\nhttps://timchuyenbay.vn/thu-thach-su-viet?code=$zalo_user_id"]
-                                    ), true);
+                        //             if(isset($res['error']) && $res['error'] == 0) {
+                        //                 $event020925->addUser(['code' => $zalo_user_id]);
+                        //             }
+                        //         }
+                        //     }
+                        //     catch(Throwable $th) {
+                        //         $message = "<b>[WARNING] Send link to join event 02/09 failed</b>";
+                        //         $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\nZalo ID: $zalo_user_id";
+                        //         $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                        //         $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                        //         $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                        //         Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                        //     }
+                        // }
 
-                                    if(isset($res['error']) && $res['error'] == 0) {
-                                        $event020925->addUser(['code' => $zalo_user_id]);
-                                    }
-                                }
-                            }
-                            catch(Throwable $th) {
-                                $message = "<b>[WARNING] Send link to join event 02/09 failed</b>";
-                                $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\nZalo ID: $zalo_user_id";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                            }
-                        }
-
-                        // Get contact by zalo id and update info
-                        $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_user_id' AND deleted = 0 ORDER BY date_entered LIMIT 1");
-                        if(is_string($contact_id) && strlen($contact_id) == 36) {
-                            $sql = "UPDATE contacts
-                                SET zalo_is_follower = $follower,
-                                    zalo_last_interaction = '$zalo_last_interaction'
-                                WHERE id = '$contact_id' AND deleted = 0";
-                            $db->query($sql);
-                        }
+                        $db->query("UPDATE ec_zalo_contacts
+                            SET is_follower = $follower, last_interaction = '$zalo_last_interaction'
+                            WHERE zalo_id = '$zalo_user_id' AND oa_id = '{$zaloOA->get_oa_id()}' AND deleted = 0");
                     }
 
                     header("HTTP/1.1 200 OK");
