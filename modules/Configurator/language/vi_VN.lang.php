@@ -188,6 +188,7 @@ $mod_strings = array(
     'LBL_LOGGER_MAX_LOG_SIZE' => 'Kích thước nhật ký tối đa',
     'LBL_STACK_TRACE' => 'Enable stack trace',
     'LBL_LOGGER_CALLCENTER' => 'Bật log theo dõi cuộc gọi',
+    'LBL_STUN_SERVER' => 'Áp dụng Stun Server cho cuộc gọi',
     'LBL_LOGGER_DEFAULT_DATE_FORMAT' => 'Định dạng ngày mặc định',
     'LBL_LOGGER_LOG_LEVEL' => 'Mức đăng nhập',
     'LBL_LEAD_CONV_OPTION' => 'Tuỳ chọn chuyển đổi đầu mối',

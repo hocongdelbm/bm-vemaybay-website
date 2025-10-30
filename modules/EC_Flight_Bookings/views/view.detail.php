@@ -47,10 +47,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->createModal(); // Modal for confirm action
 
-		// if($current_user->user_name == 'hungnh') {
-		// 	pr(calculateBKAmt($this->bean->id));
-		// 	pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
-		// }
+		if($current_user->user_name == 'hungnh') {
+			pr(calculateBKAmt($this->bean->id));
+			pr(calculateBKTotalAmt($this->bean->id));
+		}
 
 		parent::display();
 		$this->displayJS();
@@ -315,15 +315,40 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_IS_EXPORTED', $is_exported);
 
 		// Đã giữ chỗ
-		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . ' />';
-		$is_agent = '
-			<label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp
-			<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '/>&nbsp;
+		$is_wrap_hold = '<div class="d-flex align-items-center flex-wrap gap-2"><input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . ' />';
+		$is_wrap_hold .= '
+			<label for="is_agent" class="ms-3">Là đại lý:</label>
+			<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '/>
 			<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
 				' . $this->bean->agent_name . '
 			</a>
 		';
-		$this->ss->assign('CUSTOM_IS_HOLD', $is_hold . $is_agent);
+
+		if (!$this->bean->is_telesale) {
+			$is_wrap_hold .= '</form>
+						<form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
+							<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+							<input type="hidden" name="action" value="Save" />
+							<input type="hidden" name="record" value="' . $this->bean->id . '" />
+							<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+							<input type="hidden" name="is_telesale_value" value="1" />
+
+							<label for="btnCheckIsTelesale" class="ms-2">Là BK Telesale:</label>
+							<input type="checkbox" class="form-check-input" name="btnCheckIsTelesale" id="btnCheckIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
+						</form>';
+		} else {
+			$call = BeanFactory::getBean('Calls', $this->bean->telesale_call_id);
+			$call_id = $call->id;
+			$call_name = $call->name;
+			$is_wrap_hold .= '<label for="is_telesale" class="ms-2">Là BK Telesale:</label>
+							<input type="checkbox" disabled name="is_telesale" id="is_telesale" ' . ($this->bean->is_telesale ? 'checked="checked"' : '') . '/>
+							<a href="index.php?module=Calls&action=DetailView&record=' . $call_id . '" target="_blank">' . $call_name . '</a>
+			';
+		}
+
+		$is_wrap_hold .= '</div>';
+
+		$this->ss->assign('CUSTOM_IS_HOLD', $is_wrap_hold);
 
 		// Date ticket issue (ngày xuất vé) - giao vé
 		$ticket_issue = '<span class="is_ticket_exported d-flex align-items-center">

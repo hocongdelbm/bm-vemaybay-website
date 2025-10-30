@@ -91,7 +91,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
             'audited' => 1,
         ),
-        
+
         'email' => array(
             'name'       => 'email',
             'vname'      => 'LBL_EMAIL',
@@ -191,7 +191,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
             'audited' => 1,
         ),
-        
+
         // Add by DucPham from table ec_flight_bookings_cstm - 24/04/2023
         'is_ticket_inbound_exported' => array(
             'name'       => 'is_ticket_inbound_exported',
@@ -893,6 +893,27 @@ $dictionary['EC_Flight_Bookings'] = array(
         //     'importable' => true,
         //     'reportable' => false,
         // ),
+        'telesale_call_id' => array(
+            'required'   => false,
+            'name'       => 'telesale_call_id',
+            'vname'      => '',
+            'type'       => 'id',
+            'comments'   => 'ID của cuộc gọi từ telesale gần nhất',
+            'len'        => 36,
+            'default'    => '',
+            'importable' => true,
+            'reportable' => false,
+        ),
+        'is_telesale' => array(
+            'name'       => 'is_telesale',
+            'vname'      => 'LBL_IS_TELESALE',
+            'comments'   => 'Đánh dấu booking này là kết quả của cuộc gọi telesale',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+            'audited' => 1,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_bk_name', 'type' => 'index', 'fields' => array('name')),
@@ -905,11 +926,11 @@ $dictionary['EC_Flight_Bookings'] = array(
         array('name' => 'idx_bk_date_ticket_issue', 'type' => 'index', 'fields' => array('date_ticket_issue')),
         array('name' => 'idx_bk_dateen', 'type' => 'index', 'fields' => array('date_entered')),
     ),
-    'relationships' => array (),
+    'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,
 );
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('EC_Flight_Bookings', 'EC_Flight_Bookings', array('basic','assignable','security_groups'));
+VardefManager::createVardef('EC_Flight_Bookings', 'EC_Flight_Bookings', array('basic', 'assignable', 'security_groups'));

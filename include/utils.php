@@ -344,6 +344,7 @@ function get_sugar_config_defaults(): array
         'developerMode' => false,
         'stackTrace' => false,
         'logger_call_center' => false,
+        'apply_stun_server' => false,
         'display_email_template_variable_chooser' => false,
         'display_inbound_email_buttons' => false,
         'dump_slow_queries' => false,
