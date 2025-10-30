@@ -343,7 +343,7 @@ function journeyOfBooking($booking_id)
 }
 
 /**
- * Tính doanh số của 1 booking. Chỉ tính doanh số thực, không tính hoàn vé
+ * Tính doanh số của 1 booking.
  * Các trạng thái đã chuyển khoản: 8, 7, 3
  * Nếu booking có sử dụng điểm tích lũy thì không tính vào doanh số
  * @param string $booking_id của booking

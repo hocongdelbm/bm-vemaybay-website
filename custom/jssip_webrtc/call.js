@@ -4,11 +4,8 @@ const SIP_PASSWORD = document.getElementById('sip_password').value;
 const AGENT_STATUS = document.getElementById('agent_status').value || 'Available';
 const CURRENT_USER = document.getElementById('sip_instance_id').value;
 
-// const SIP_INSTANCE   = 'uuid:' + document.getElementById('sip_instance_id').value;
 const SIP_DOMAIN = 'td.timchuyenbay.net';
 const WS_SERVERS = `wss://${SIP_DOMAIN}:7444`;
-// const SIP_DOMAIN = 'td.vemaybay.website';
-// const WS_SERVERS = `wss://${SIP_DOMAIN}:7443`;
 const SIP_URI = `sip:${SIP_USER}@${SIP_DOMAIN}`;
 const SIP_CONTACT = `sip:${SIP_USER}@${SIP_DOMAIN};transport=ws`;
 const RINGTONE_FILE = 'ringtone.mp3';
@@ -38,7 +35,6 @@ var configuration = {
 let call_flow = '';
 var eventHandlers = {
     'progress': function (e) {
-        // console.warn('call is in progress');
         call_flow += 'Call is in progress. ';
     },
     'failed': function (e) {
@@ -61,23 +57,29 @@ var eventHandlers = {
     }
 };
 
+
+let pcConfig = '';
+if(apply_stun_server){
+    pcConfig = {
+        'iceServers': [
+            // { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
+            // { 'urls': 'stun:stun.cloudflare.com:3478' }, // Máy chủ STUN của Cloudflare
+            {
+                'urls': [ 
+                    'stun:turn.quantri.online:3478',
+                ],
+                'username': 'quangnd',
+                'credential': 'Super@Secret@123'
+            }
+        ]
+    };
+}
+
 var callOptions = {
     'mediaConstraints': { 'audio': true, 'video': false },
     'sessionTimersExpires': 180, // Don't set a value lower than 90
     'eventHandlers': eventHandlers, // For debug
-    // 'pcConfig': {
-        // 'iceServers': [
-            // { 'urls': 'stun:stun.l.google.com:19302' }, // Máy chủ STUN của Google
-            // { 'urls': 'stun:stun.cloudflare.com:3478' }, // Máy chủ STUN của Cloudflare
-            // {
-            //     'urls': [ 
-            //         'stun:turn.quantri.online:3478',
-            //     ],
-            //     'username': 'quangnd',
-            //     'credential': 'Super@Secret@123'
-            // }
-    //     ]
-    // }
+    'pcConfig': pcConfig
 };
 
 /***********   Setup audio and ringtone   *************/

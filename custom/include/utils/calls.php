@@ -686,3 +686,22 @@ function global_secondsToTimeFormat($seconds)
 
     return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
 }
+
+
+/**
+ * Format seconds to -> "d ngày HH:MM:SS"
+ */
+function seconds_to_ngay_hms($sec)
+{
+    if (!is_numeric($sec)) return '0 ngày 00:00:00';
+
+    $sign = ($sec < 0) ? '-' : '';
+    $s = (int) round(abs($sec));
+
+    $days = intdiv($s, 86400);   $s -= $days * 86400;
+    $hrs  = intdiv($s, 3600);    $s -= $hrs * 3600;
+    $min  = intdiv($s, 60);      $s -= $min * 60;
+    $sec  = $s;
+
+    return $sign . $days . ' ngày ' . sprintf('%02d:%02d:%02d', $hrs, $min, $sec);
+}

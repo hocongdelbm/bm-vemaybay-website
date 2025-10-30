@@ -13,3 +13,5 @@ $action_view_map['iplist'] = 'iplist';
 $action_view_map['analytics'] = 'analytics';
 
 $action_view_map['summaryview'] = 'summaryview';
+
+$action_view_map['bkreport_telesale']    = 'bkreport_telesale'; //Báo cáo doanh số booking từ telesale

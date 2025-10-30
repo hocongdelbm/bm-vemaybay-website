@@ -18,6 +18,7 @@ $is_panda = (in_array($GLOBALS['current_user']->user_name, $arr_user_whitelist))
 
 if (is_admin($current_user)) {
     if(ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[]=Array("index.php?module=EC_TongHop&action=businessreport&return_module=EC_TongHop&return_action=businessreport&date_select=this_week", "Báo cáo tuần", "businessreport", 'EC_TongHop');
+    if(ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[]=Array("index.php?module=EC_TongHop&action=bkreport_telesale&return_module=EC_TongHop&return_action=bkreport_telesale", "Doanh số BK Telesale", "goldcup_16x16", 'EC_TongHop');
 }
 
 // if (ACLController::checkAccess('EC_TongHop', 'edit', true)) {
