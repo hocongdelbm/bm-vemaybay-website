@@ -24,6 +24,22 @@ class EC_Zalo extends Basic {
     public $assigned_user_name;
     public $assigned_user_link;
     public $SecurityGroups;
+
+    public $oa_alias;
+    public $oa_type;
+    public $cate_name;
+    public $is_verified;
+    public $num_follower;
+    public $avatar;
+    public $cover;
+    public $package_name;
+    public $package_valid_through_date;
+    public $package_auto_renew_date;
+    public $linked_zca;
+    public $api_oauth_info;
+    public $quota_info;
+    public $secret_key;
+
     public $limit_chat_box = 15;
     public $limit_message = 10;
     public $image_file = [

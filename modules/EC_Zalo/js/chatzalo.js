@@ -332,11 +332,17 @@ $(document).ready(function () {
     $('#btn_request_user_info').click(function () {
         let zalo_id = $(`#content_chat`).attr(`zalo_id`);
         let formData = new FormData();
-        formData.append('action', 'send_message');
-        formData.append('oa_id', OA_ID);
-        formData.append('zalo_id', zalo_id);
-        formData.append('type', 'request_user_info');
-
+        // formData.append('action', 'send_message');
+        // formData.append('oa_id', OA_ID);
+        // formData.append('zalo_id', zalo_id);
+        // formData.append('type', 'request_user_info');
+        formData.append('class', 'entryZaloOAClass');
+        formData.append('method', 'sendMessage');
+        formData.append('params', {
+            'oa_id': OA_ID,
+            'zalo_id': zalo_id,
+            'type': 'request_user_info',
+        });
         send_message(formData);
     });
 
@@ -1901,32 +1907,46 @@ function generate_form_data() {
     let input_image = $('input[name=image_upload]');
     let input_file = $('input[name=file_upload]');
 
-    let formData = new FormData();
-    formData.append('action', 'send_message');
-    formData.append('oa_id', OA_ID);
-    formData.append('zalo_id', zalo_id);
-    formData.append('text', text);
+    // let formData = new FormData();
+    // formData.append('action', 'send_message');
+    // formData.append('oa_id', OA_ID);
+    // formData.append('zalo_id', zalo_id);
+    // formData.append('text', text);
+
+    let params = {};
+    params.oa_id = OA_ID;
+    params.zalo_id = zalo_id;
+    params.text = text;
 
     /*****  2. Type message  *****/
     let type = 'text'; // Default
     // Tin nhắn trả lời (Quote)
     if($('input[name="quote_message_id"]').length) {
-        formData.append('quote_message_id', $('input[name="quote_message_id"]').val());
+        // formData.append('quote_message_id', $('input[name="quote_message_id"]').val());
+        params.quote_message_id = $('input[name="quote_message_id"]').val();
     }
     else if(input_image[0].files.length > 0) {
         type = 'image';
         let image = input_image[0].files[0];
         let url   = $('#preview_image_upload').attr('src')
-        formData.append('image', image);
-        formData.append('url', url);
+        // formData.append('image', image);
+        // formData.append('url', url);
+        params.image = image;
+        params.url = url;
     }
     else if(input_file[0].files.length > 0) {
         type = 'file';
         let file = input_file[0].files[0];
-        formData.append('file', file);
+        // formData.append('file', file);
+        params.file = file;
     }
-    formData.append('type', type);
+    // formData.append('type', type);
+    params.type = type;
 
+    let formData = new FormData();
+    formData.append('class', 'entryZaloOAClass');
+    formData.append('method', 'sendMessage');
+    formData.append('params', params);
     return formData;
 }
 

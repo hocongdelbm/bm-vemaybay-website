@@ -8,7 +8,7 @@ require_once "custom/include/helpers/api/APIOMNI.php";
  */
 class entryZaloOAClass extends entryClass {
     /**
-     * Send message
+     * Send consultation message
      * 
      * @param array $params
      * @return array
@@ -27,6 +27,7 @@ class entryZaloOAClass extends entryClass {
         }
 
         $zalOA = new APIZaloOA();
+        $oa_id = $zalOA->get_oa_id();
 
         // Prepare body request (data)
         if ($type == 'image') {
@@ -148,7 +149,77 @@ class entryZaloOAClass extends entryClass {
             $cost = 0;
             $quotaData = $arr_message['data']['quota'] ?? [];
             if(!empty($quotaData)) {
-                
+                try {
+                    global $db;
+
+                    switch ($quotaData['quota_type']) {
+                        case 'reply': // Tin gửi ra là tin trong khung 8 tin 48h
+                            // Get current quota user from db
+                            $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0") ?? '';
+                            if(!empty($quotaInfo)) $quotaInfo = json_decode($quotaInfo, true);
+                            else $quotaInfo = [];
+
+                            $quotaInfo['cs_reply'] = [
+                                'remain' => $quotaData['remain'],
+                                'total' => $quotaData['total']
+                            ];
+
+                            // Update new quota user to db
+                            $quotaInfo = json_encode($quotaInfo);
+                            $db->query("UPDATE ec_zalo_contacts SET quota_info = '{$quotaInfo}' WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0");
+                            break;
+
+                        case 'sub_quota': // Tin gửi ra là tin nằm trong hạn mức miễn phí theo gói
+                            // Get current quota oa from db
+                            $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo WHERE id = '{$oa_id}' AND deleted = 0") ?? '';
+                            $isUpdated = false;
+
+                            if(!empty($quotaInfo)) {
+                                $quotaInfo = json_decode($quotaInfo, true);
+                                foreach($quotaInfo as $qKey => $qValue) {
+                                    if($qValue['quota_type'] == 'sub_quota') {
+                                        $quotaInfo[$qKey]['remain'] = $quotaData['remain'];
+                                        $quotaInfo[$qKey]['total'] = $quotaData['total'];
+                                        $quotaInfo[$qKey]['valid_through'] = date('d-m-Y', strtotime(str_replace("/","-", $quotaData['expired_date'])));
+                                        $isUpdated = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            else $quotaInfo = [];
+
+                            if(!$isUpdated) {
+                                $quotaInfo[] = [
+                                    "asset_id"      => "",
+                                    "product_type"  => "cs",
+                                    "quota_type"    => "sub_quota",
+                                    "valid_through" => date('d-m-Y', strtotime(str_replace("/","-", $quotaData['expired_date']))),
+                                    "total"         => $quotaData['total'],
+                                    "remain"        => $quotaData['remain']
+                                ];
+                            }
+
+                            // Update new quota oa to db
+                            $quotaInfo = json_encode($quotaInfo);
+                            $db->query("UPDATE ec_zalo SET quota_info = '{$quotaInfo}' WHERE id = '{$oa_id}' AND deleted = 0");
+                            break;
+
+                        case 'purchase_quota': // Tin gửi ra là tin nằm trong hạn mức gói tính năng lẻ
+                            // // Cập nhật thông tin vào OA
+                            // "owner_type": "OA",
+                            // "owner_id": "4462152339089565647"
+                            break;
+
+                        case 'reward_quota': // Tin gửi ra là tin nằm trong hạn mức Redeem code
+                            // // Cập nhật thông tin vào OA
+                            // "owner_type": "OA",
+                            // "owner_id": "4462152339089565647"
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch(Throwable $th) {}
             }
             else $cost = 55;
 
@@ -222,6 +293,7 @@ class entryZaloOAClass extends entryClass {
                     $zalomes->template_id   = $template_id;
                     $zalomes->data          = json_encode($templateData);
                     $zalomes->response      = trim($json);
+                    $zalomes->booking_id    = $parentId;
                     $zalomes->assigned_user_id = $this->currentUser->id;
                     $zalomes->save();
 

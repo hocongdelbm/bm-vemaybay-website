@@ -40,6 +40,7 @@ class EC_Zalo_Messages extends Basic {
     public $cost;
     public $data;
     public $response;
+    public $booking_id;
 
     public function bean_implements($interface) {
         switch($interface) {

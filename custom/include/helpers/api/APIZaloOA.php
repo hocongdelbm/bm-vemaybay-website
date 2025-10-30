@@ -2,7 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class APIZaloOA {
-    private $token_path;
     private $template_path;
     private $domain;
     protected $oa_id;
@@ -11,12 +10,12 @@ class APIZaloOA {
     protected $code_verifier;
     protected $code_challenge;
 
-    public function __construct() {
+    public function __construct($oa_id = '') {
         global $sugar_config;
-        $this->token_path       = "custom/json_files/zalo_oa/token.json";
         $this->template_path    = "custom/json_files/zalo_oa/templates.json";
         $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
-        $this->oa_id            = $sugar_config['zalo_config']['oa_id'] ?? '';
+        $this->oa_id            = !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['default_oa_id'] ?? '';
+        // App info
         $this->app_id           = $sugar_config['zalo_config']['app_id'] ?? '';
         $this->app_secret       = $sugar_config['zalo_config']['app_secret'] ?? '';
         $this->code_verifier    = $sugar_config['zalo_config']['code_verifier'] ?? '';
@@ -126,21 +125,21 @@ class APIZaloOA {
      * @return string
      */
     public function get_token($type = "access") {
-        if(file_exists($this->token_path)) {
-            $arr = json_decode(file_get_contents($this->token_path), true);
+        global $db;
 
-            $refresh_token = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
-            $access_token = isset($arr['access_token']) ? $arr['access_token'] : '';
-            $expires_at = isset($arr['expires_at']) ? $arr['expires_at'] : 0;
+        $api_oauth_info = $db->getOne("SELECT api_oauth_info FROM ec_zalo WHERE id = '{$this->oa_id}' AND deleted = 0");
+        $arr = json_decode($api_oauth_info, true);
 
-            if($type == 'refresh') return $refresh_token;
-            elseif($type == 'access' && $expires_at > time()) return $access_token;
-            else {
-                $json = $this->get_new_token($refresh_token);
-                $arr2 = json_decode($json, true);
-                return isset($arr2['access_token']) ? $arr2['access_token'] : '';
-            }
-            return '';
+        $refresh_token = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
+        $access_token = isset($arr['access_token']) ? $arr['access_token'] : '';
+        $expires_at = isset($arr['expires_at']) ? $arr['expires_at'] : 0;
+
+        if($type == 'refresh') return $refresh_token;
+        elseif($type == 'access' && $expires_at > time()) return $access_token;
+        else {
+            $json = $this->get_new_token($refresh_token);
+            $arr2 = json_decode($json, true);
+            return isset($arr2['access_token']) ? $arr2['access_token'] : '';
         }
         return '';
     }
@@ -152,27 +151,26 @@ class APIZaloOA {
      * @return bool
      */
     protected function save_token($json, $raw = false) {
+        global $db;
+
         if($raw) {
-            $file = fopen($this->token_path, "w") or die("Error something !!!");
-            fwrite($file, json_encode($json));
-            fclose($file);
-            return true;
+            $query = "UPDATE ec_zalo SET api_oauth_info = '{$json}' WHERE id = '{$this->oa_id}' AND deleted = 0";
+            return $db->query($query);
         }
 
         if(!$json || empty($json)) return false;
 
         $arr = json_decode($json, true);
-        $result = [];
-        $result['access_token'] = isset($arr['access_token']) ? $arr['access_token'] : '';
-        $result['refresh_token'] = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
-        $result['expires_in'] = isset($arr['expires_in']) ? $arr['expires_in'] : 90000; // Default 25h
-        $result['expires_at'] = time() + $result['expires_in'];
-        $result['expires_at_format'] = date('d-m-Y H:i:s', time() + $result['expires_in']);
+        $api_oauth_info = [];
+        $api_oauth_info['access_token'] = isset($arr['access_token']) ? $arr['access_token'] : '';
+        $api_oauth_info['refresh_token'] = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
+        $api_oauth_info['expires_in'] = isset($arr['expires_in']) ? $arr['expires_in'] : 90000; // Default 25h
+        $api_oauth_info['expires_at'] = time() + $api_oauth_info['expires_in'];
+        $api_oauth_info['expires_at_format'] = date('d-m-Y H:i:s', time() + $api_oauth_info['expires_in']);
+        $api_oauth_info = json_encode($api_oauth_info);
 
-        $file = fopen($this->token_path, "w") or die("Error something !!!");
-        fwrite($file, json_encode($result));
-        fclose($file);
-        return true;
+        $query = "UPDATE ec_zalo SET api_oauth_info = '{$api_oauth_info}' WHERE id = '{$this->oa_id}' AND deleted = 0";
+        return $db->query($query);
     }
 
 

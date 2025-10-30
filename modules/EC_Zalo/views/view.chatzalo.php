@@ -1,24 +1,24 @@
 <?php
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once("include/Sugar_Smarty.php");
-require_once("modules/EC_Zalo/Zalo.php");
+require_once("custom/include/helpers/api/APIZaloOA.php");
 
 class Viewchatzalo extends SugarView {
-    private $Zalo;
+    private $zaloOA;
     private $entrypoint;
     private $websocket_url;
     public $default_avatar;
 
     public function __construct() {
         parent::__construct();
-        $this->Zalo = new Zalo();
-        $this->entrypoint = 'index.php?entryPoint=entrypointZaloOA';
+        $this->zaloOA = new APIZaloOA();
+        $this->entrypoint = 'index.php?entryPoint=entryPointGeneral';
         $this->websocket_url = $_SERVER['SERVER_NAME'] != 'localhost' ? 'wss://'.$_SERVER['SERVER_NAME'].'/chatz/' : 'ws://localhost:8080';
         $this->default_avatar = 'modules/EC_Zalo/images/private/avatar_default.jpg';
     }
     
     public function display() {
-        if(empty($this->Zalo->get_oa_id())) {
+        if(empty($this->zaloOA->get_oa_id())) {
             echo "<h3>Không có thông tin Zalo OA</h3>";
             exit();
         }
@@ -32,7 +32,7 @@ class Viewchatzalo extends SugarView {
         global $current_user;
         $fullname = explode(' ', $current_user->name);
 
-        $json_info_oa = $this->Zalo->get_info_oa();
+        $json_info_oa = $this->zaloOA->get_info_oa();
         $arr_info_oa = json_decode($json_info_oa, true);
 
         if(!isset($arr_info_oa['error']) || $arr_info_oa['error'] == -216) {
@@ -40,7 +40,7 @@ class Viewchatzalo extends SugarView {
             exit();
         }
 
-        $smarty->assign('OA_ID', $this->Zalo->get_oa_id());
+        $smarty->assign('OA_ID', $this->zaloOA->get_oa_id());
         $smarty->assign('OA_AVATAR', isset($arr_info_oa['data']['avatar']) ? $arr_info_oa['data']['avatar'] : '');
         $smarty->assign('OA_NAME', isset($arr_info_oa['data']['name']) ? $arr_info_oa['data']['name'] : '');
         $smarty->assign('DEFAULT_AVATAR', $this->default_avatar);
@@ -76,15 +76,15 @@ class Viewchatzalo extends SugarView {
         $smarty->assign('OPTION_CITIES', $this->get_list_cities());
 
         // Get list file extension
-        $smarty->assign('IMAGE_EXTENSION', implode(',', $this->Zalo->get_file_extension('image')));
-        $smarty->assign('FILE_EXTENSION', implode(',', $this->Zalo->get_file_extension('file')));
+        $smarty->assign('IMAGE_EXTENSION', implode(',', $this->zaloOA->get_file_extension('image')));
+        $smarty->assign('FILE_EXTENSION', implode(',', $this->zaloOA->get_file_extension('file')));
     }
 
     public function populate_content_auth() {
         return '
             <center class="wrap-auth">
                 <h6>OA cần xác thực và ủy quyền</h6>
-                <a href="'.$this->Zalo->get_link_integrate().'" class="btn btn-primary">Xác thực</a>
+                <a href="'.$this->zaloOA->get_link_integrate().'" class="btn btn-primary">Xác thực</a>
             </center>
         ';
     }
@@ -96,7 +96,7 @@ class Viewchatzalo extends SugarView {
      * @return array
      */
     public function get_list_tag($return_type = []) {
-        $json = $this->Zalo->get_list_tag();
+        $json = $this->zaloOA->get_list_tag();
         $arr = json_decode($json, true);
 
         if($arr['error'] !== 0) return [];
@@ -226,7 +226,7 @@ class Viewchatzalo extends SugarView {
         $list_zalo_id = ['interaction' => [], 'no_interaction' => []];
 
         while(count($list_zalo_id['interaction']) < 12) {
-            $json = $this->Zalo->get_recent_messages($offset);
+            $json = $this->zaloOA->get_recent_messages($offset);
             $arr = json_decode($json, true);
 
             if(isset($arr['error']) && $arr['error'] == 0 && !empty($arr['data'])) {
@@ -238,14 +238,14 @@ class Viewchatzalo extends SugarView {
                     if(in_array($zalo_id, $list_zalo_id['no_interaction']) || in_array($zalo_id, $list_zalo_id['interaction'])) continue;
 
                     // Lấy thông tin người dùng
-                    $user_info = json_decode($this->Zalo->get_user($zalo_id), true);
+                    $user_info = json_decode($this->zaloOA->get_user($zalo_id), true);
                     if(isset($user_info['error']) && $user_info['error'] != 0) {
                         $list_zalo_id['no_interaction'][] = $zalo_id;
                         continue;
                     }
                     else $list_zalo_id['interaction'][] = $zalo_id;
 
-                    $user_info['data']['chat_link'] = $this->Zalo->get_chat_link($zalo_id);
+                    $user_info['data']['chat_link'] = $this->zaloOA->get_chat_link($zalo_id);
                     $html .= $this->create_li_chat($row, $user_info['data']);
                 }
             }
