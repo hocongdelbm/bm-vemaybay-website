@@ -103,15 +103,15 @@ class Viewsendeticket extends SugarView {
 				if ($iti_info['direction'] == 1) $fdirection = 0;
 				else $fdirection = 1;
 
-				$another_iti 		= $pe->getAnotherIti($_REQUEST['booking_id'], $fdirection, $pass_inf['pass_id'], $pass_inf['edit_no']);
-				$airline 			= myGetAirlineInfo2(trim($another_iti['airline_code']), 'CODE');
+				$another_iti 	= $pe->getAnotherIti($_REQUEST['booking_id'], $fdirection, $pass_inf['pass_id'], $pass_inf['edit_no']);
+				$airline 		= myGetAirlineInfo2(trim($another_iti['airline_code']), 'CODE');
 				$departure 		= myGetAirportInfo2(trim($another_iti['departure']));
-				$arrival 			= myGetAirportInfo2(trim($another_iti['arrival']));
-				$departure_date 	= date('d/m/Y', strtotime($another_iti['departure_date'])) . ' <br /> ' . date('H:i', strtotime($another_iti['departure_date'])) . ' - ' .date('H:i', strtotime($another_iti['arrival_date']));
-				$airline 			= $airline['data'][0]['name'];
+				$arrival 		= myGetAirportInfo2(trim($another_iti['arrival']));
+				$departure_date = date('d/m/Y', strtotime($another_iti['departure_date'])) . ' <br /> ' . date('H:i', strtotime($another_iti['departure_date'])) . ' - ' .date('H:i', strtotime($another_iti['arrival_date']));
+				$airline 		= $airline['data'][0]['name'];
 				$flight_number 	= $another_iti['flight_number'];
 				$departure_inf 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
-				$arrival_inf 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
+				$arrival_inf 	= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
 				$html1 = '
 					<tr class="no-change-iti">
 						<td align="center" style="padding:3px; border:1px solid #ccc;">' . $departure_date . '</td>
@@ -140,11 +140,10 @@ class Viewsendeticket extends SugarView {
 		$booking_infos['com_email'] 			= $department_info['com_email'];
 		$booking_infos['minute_before'] 		= $_REQUEST['ticket_type'] == '2' ? '120' : '120'; // vé quốc tế là 180p
 
-		require_once('modules/EC_Flight_Bookings/views/sendeticket_'.$lang.'.tpl.php');
+		require_once("modules/EC_Flight_Bookings/views/sendeticket_{$lang}.tpl.php");
 		
 		$body = generateSendmailHtml($booking_infos);
 			 
 		return mySendMail($current_user->id, $contact_email, $contact_name, $subject, $body);  
 	}
-
 }
