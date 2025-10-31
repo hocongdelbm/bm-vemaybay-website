@@ -324,7 +324,7 @@ $(document).ready(function () {
 	// Add passengers
 	$('#btnPassengerAddRow').click(function () {
 		let ln = $('input[name="psg_id[]"]').length;
-		let is_new = $(this).attr('date-is-new');
+		let is_new = $(this).attr('data-is-new');
 
 		if(is_new === '1') $('#psg_last_row').before(insertPassengerLine2(ln));
 		else $('#psg_last_row').before(insertPassengerLine(ln));

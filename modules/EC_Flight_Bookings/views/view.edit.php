@@ -34,7 +34,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			// if($current_user->id != '1') $this->populateLineDetails();
 			// if($current_user->id != '1') $this->populateLineItineraries();
 
-			if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) $this->populateLinePassengers2();
+			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) $this->populateLinePassengers2();
 			else $this->populateLinePassengers();
 
 			parent::display();
@@ -53,7 +53,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			// if($current_user->id != '1') $this->populateLineDetails();
 			// if($current_user->id != '1') $this->populateLineItineraries();
 
-			if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) $this->populateLinePassengers2();
+			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) $this->populateLinePassengers2();
 			else $this->populateLinePassengers();
 
 			parent::display();
@@ -621,6 +621,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					p.passport_number
 				FROM ec_booking_passengers p
 				WHERE p.booking_id = '".$this->bean->id. "'
+					AND p.booking_id IS NOT NULL
 					AND add_type IS NULL
 					AND p.deleted = 0
 				ORDER BY p.type, p.date_entered";
@@ -845,7 +846,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 	/**
 	 * Render passengers info as HTML
-	 * Use for new site like tcb
 	 */
 	public function populateLinePassengers2() {
 		global $app_list_strings, $timedate, $current_user;
@@ -881,6 +881,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					p.passport_number
 				FROM ec_booking_passengers p
 				WHERE p.booking_id = '".$this->bean->id. "'
+					AND p.booking_id IS NOT NULL
 					AND add_type IS NULL
 					AND p.deleted = 0
 				ORDER BY p.type, p.date_entered";
@@ -1057,7 +1058,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 		$html .= '<tr id="psg_last_row" class="footer-tr">
 			<td colspan="13" class="text-start">
-				<input type="button" class="btn btn-primary" id="btnPassengerAddRow" date-is-new="1" value="Thêm dòng" title="Thêm dòng" />
+				<input type="button" class="btn btn-primary" id="btnPassengerAddRow" data-is-new="1" value="Thêm dòng" title="Thêm dòng" />
 				Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>
 				<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />
 				<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >
