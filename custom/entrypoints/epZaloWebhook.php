@@ -185,8 +185,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         'assigned_user_avatar'  => $assigned_user_avatar,
                     ];
                     if($zalomes->quote_message_id && !empty($zalomes->quote_message_id)) {
-                        $bean_zalo = new EC_Zalo();
-                        $data_chat['quote_data'] = $bean_zalo->get_quote_message_data($zalomes->quote_message_id);
+                        $zaloMessage = new EC_Zalo_Messages();
+                        $data_chat['quote_data'] = $zaloMessage->get_quote_message_data($zalomes->quote_message_id);
                     }
                     $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
                     $client->send(json_encode($data_chat));

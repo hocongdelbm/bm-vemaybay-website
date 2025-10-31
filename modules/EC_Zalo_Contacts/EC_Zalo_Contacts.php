@@ -160,7 +160,34 @@ class EC_Zalo_Contacts extends Basic
 
         // Add quota
         if(is_null($userData['quota']) || empty($userData['quota'])) {
-            
+            $json_quota = $zaloOA->get_quota_user($zalo_id);
+            $arr_quota = json_decode($json_quota, true);
+
+            if(isset($arr_quota['error']) && $arr_quota['error'] == 0 && isset($arr_quota['data'])) {
+                $quota_info = [];
+                $last_interaction = '';
+
+                $timestamp = $arr_quota['data']['last_interaction'] ?? 0;
+                if($timestamp > 0) {
+                    $last_interaction = date("Y-m-d H:i:s", $timestamp / 1000);
+                }
+                if(isset($arr_quota['data']['cs_reply']) && !empty($arr_quota['data']['cs_reply'])) {
+                    $quota_info['cs_reply'] = $arr_quota['data']['cs_reply'];
+                }
+                if(isset($arr_quota['data']['promotion']) && !empty($arr_quota['data']['promotion'])) {
+                    $quota_info['promotion'] = $arr_quota['data']['promotion'];
+                }
+
+                if(!empty($quota_info)) {
+                    $this->db->query("UPDATE ec_zalo_contacts
+                        SET quota_info = '". json_encode($quota_info) ."'
+                            ,last_interaction = '{$last_interaction}'
+                        WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0");
+                }
+
+                $userData['user_last_interaction_date'] =  $this->format_datetime($last_interaction);
+                $userData['quota'] = $quota_info;
+            }
         }
        
         return $userData;

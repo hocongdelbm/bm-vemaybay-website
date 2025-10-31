@@ -217,7 +217,10 @@ $(document).ready(function () {
                     create_chat_box(data_user.data, data_message.data);
 
                     /**********  3. Quota user  **********/
-                    handleQuotaUser(data_user.data.quota, data_user.data.user_last_interaction_date);
+                    console.error(data_user);
+                    const [day, month, year, hour, minute, second] = data_user.data.user_last_interaction_date.match(/\d+/g);
+                    const datetemp = new Date(year, month - 1, day, hour, minute, second);
+                    handleQuotaUser(data_user.data.quota, datetemp.getTime());
                   
                     // Reset
                     $(`#liuserinfo${zalo_id}`).text('');
@@ -1997,20 +2000,23 @@ function send_message(data) {
 
 /**
  * Handle HTML quota for user in chat box and related events
+ * Làm lại hàm này với 2 action
  * 
  * @param {object} quota
- * @param {string} last_interaction
+ * @param {string} last_interaction timestamp
  * @returns
  */
 function handleQuotaUser(quota, last_interaction = '') {
     let quota_html = '';
     let time_check_day = (last_interaction && last_interaction.length > 0) ? ~~((Date.now() - parseInt(last_interaction)) / 1000 / 3600 / 24) : 0;
+    console.warn(time_check_day);
     if(time_check_day > 7) {
         quota_html = `<div class="noti-mess-feedback noti_grey">
             <span>Không thể trò chuyện. Người dùng đã hết tương tác với OA trong vòng 7 ngày gần nhất</span>
         </div>`;
         disable_send_message();
     }
+    // Check here
     else if(quota !== null && quota?.quota_type && quota.quota_type == 'reply') {
         quota_html = `<div class="noti-mess-feedback noti_green">
             <span>Còn ${quota.remain}/${quota.total} tin nhắn miễn phí với người dùng trong 48h</span>
