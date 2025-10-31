@@ -50,14 +50,8 @@ class CustomController extends BaseController
              * Loại trừ các booking tham khảo, booking TEST
              */
             if (!empty($booking->phone) && !empty($booking->contact_name) && !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)) {
-                $sql_check = "SELECT id
-                            FROM calls
-                            WHERE direction = 'outbound'
-                                AND call_to = '" . trim($booking->phone) . "'
-                                AND deleted = 0
-                            ORDER BY date_entered DESC
-                            LIMIT 1";
-                $call_id = $db->getOne($sql_check);
+                $call = BeanFactory::newBean("Calls");
+                $call_id = $call->getTelesaleCalls($booking->phone, date('Y-m-d H:i:s'));
                 if (!empty($call_id)) {
                     $booking->telesale_call_id = $call_id;
                     $booking->is_telesale = 1;

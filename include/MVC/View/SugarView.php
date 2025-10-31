@@ -177,11 +177,13 @@ class SugarView
         }
 
         // We have to update jsAlerts as soon as possible
-        if (!isset($_SESSION['isMobile']) &&
+        if (
+            !isset($_SESSION['isMobile']) &&
             ($this instanceof ViewList || $this instanceof ViewDetail || $this instanceof ViewEdit)
         ) {
-            if (isset($_SESSION['alerts_output']) && isset($_SESSION['alerts_output_timestamp']) &&
-                $_SESSION['alerts_output_timestamp'] >= (date('U')-60)
+            if (
+                isset($_SESSION['alerts_output']) && isset($_SESSION['alerts_output_timestamp']) &&
+                $_SESSION['alerts_output_timestamp'] >= (date('U') - 60)
             ) {
                 echo $_SESSION['alerts_output'];
             } else {
@@ -270,17 +272,13 @@ class SugarView
      * and then the subview can just override display(). If it so desires, can also override
      * preDisplay().
      */
-    public function preDisplay()
-    {
-    }
+    public function preDisplay() {}
 
     /**
      * [OVERRIDE] - This method is meant to overridden in a subclass. This method
      * will handle the actual display logic of the view.
      */
-    public function display()
-    {
-    }
+    public function display() {}
 
     /**
      * trackView
@@ -360,11 +358,11 @@ class SugarView
         $ss->assign("BROWSER_TITLE", $this->getBrowserTitle());
 
         // AGENT STATUS - HAIHUGN
-        if(isset($current_user->agent_status) && !empty($current_user->agent_status)){
+        if (isset($current_user->agent_status) && !empty($current_user->agent_status)) {
             $ss->assign("AGENT_STATUS", $current_user->agent_status);
-        } 
-		$ss->assign('IS_ADMIN', is_admin($current_user) ? 1 : 0);
-        
+        }
+        $ss->assign('IS_ADMIN', is_admin($current_user) ? 1 : 0);
+
         // set ab testing if exists
         $testing = (isset($_REQUEST["testing"]) ? $_REQUEST['testing'] : "a");
         $ss->assign("ABTESTING", $testing);
@@ -472,7 +470,7 @@ class SugarView
         foreach ($global_control_links as $key => $value) {
             if ($key == 'users') {   //represents logout link.
                 $ss->assign("LOGOUT_LINK", $value['linkinfo'][key($value['linkinfo'])]);
-                $ss->assign("LOGOUT_LABEL", key($value['linkinfo']));//key value for first element.
+                $ss->assign("LOGOUT_LABEL", key($value['linkinfo'])); //key value for first element.
                 continue;
             }
 
@@ -535,7 +533,7 @@ class SugarView
                 $photo_profile = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="22" height="22" viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm9 11v-1a7 7 0 0 0-7-7h-4a7 7 0 0 0-7 7v1h2v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1z"></path></svg>';
             }
             $ss->assign("CURRENT_USER_PHOTO", $photo_profile);
-            
+
             // get the last viewed records
             $favorites = BeanFactory::getBean('Favorites');
             $favorite_records = $favorites->getCurrentUserSidebarFavorites();
@@ -547,7 +545,7 @@ class SugarView
 
             // Get phone number - PBX - Callcenter
             $pbx = BeanFactory::getBean('Calls');
-            
+
             // List phone choose for outbound call
             $list_phone_choose_outbound = $pbx->get_list_phone_pbx(0);
             $ss->assign("list_phone_choose_outbound", $list_phone_choose_outbound ?? []);
@@ -697,10 +695,11 @@ class SugarView
             }
 
             foreach ($groupTabs as $key => $tabGroup) {
-                if (count($topTabs) >= $max_tabs - 1 && $key !== $app_strings['LBL_TABGROUP_ALL'] && in_array(
-                    $tabGroup['modules'][$moduleTab],
-                    $tabGroup['extra']
-                )
+                if (
+                    count($topTabs) >= $max_tabs - 1 && $key !== $app_strings['LBL_TABGROUP_ALL'] && in_array(
+                        $tabGroup['modules'][$moduleTab],
+                        $tabGroup['extra']
+                    )
                 ) {
                     unset($groupTabs[$key]['modules'][$moduleTab]);
                 }
@@ -787,9 +786,7 @@ class SugarView
         }
     }
 
-    public function getModuleMenuHTML()
-    {
-    }
+    public function getModuleMenuHTML() {}
 
     /**
      * If the view is classic then this method will include the file and
@@ -914,7 +911,8 @@ EOHTML;
             echo '<script>jscal_today = 1000*' .
                 $timedate->asUserTs($timedate->getNow()) .
                 '; if(typeof app_strings == "undefined") app_strings = new Array();</script>';
-            if (!is_file(sugar_cached("include/javascript/sugar_grp1.js")) ||
+            if (
+                !is_file(sugar_cached("include/javascript/sugar_grp1.js")) ||
                 !is_file(sugar_cached("include/javascript/sugar_grp1_yui.js")) ||
                 !is_file(sugar_cached("include/javascript/sugar_grp1_jquery.js"))
             ) {
@@ -936,7 +934,7 @@ EOHTML;
             if ($this->hasDomJS()) {
                 echo "
                         <script type='text/javascript'>
-                        SUGAR.append(SUGAR, { settings:".$this->getDomJS()." } );
+                        SUGAR.append(SUGAR, { settings:" . $this->getDomJS() . " } );
                         </script>
                         ";
             }
@@ -1156,18 +1154,19 @@ EOHTML;
     }
 
     // Init jssip data (Made by DucPham 21/11/2023)
-    public function initJSSIP() {
+    public function initJSSIP()
+    {
         global $current_user;
         $arr_sip_number = custom_get_sip_number();
 
         $html = '';
         $css = $js = '';
 
-        if(isset($arr_sip_number[$current_user->id])) {
-            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="'.$arr_sip_number[$current_user->id]['user'].'" disabled />';
-            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="'.$arr_sip_number[$current_user->id]['password'].'" disabled />';
-            $html .= '<input type="hidden" name="agent_status" id="agent_status" value="'.$current_user->agent_status.'" disabled />';
-            $html .= '<input type="hidden" name="sip_instance_id" id="sip_instance_id" value="'.$current_user->id.'" disabled />';
+        if (isset($arr_sip_number[$current_user->id])) {
+            $html .= '<input type="hidden" name="sip_user" id="sip_user" value="' . $arr_sip_number[$current_user->id]['user'] . '" disabled />';
+            $html .= '<input type="hidden" name="sip_password" id="sip_password" value="' . $arr_sip_number[$current_user->id]['password'] . '" disabled />';
+            $html .= '<input type="hidden" name="agent_status" id="agent_status" value="' . $current_user->agent_status . '" disabled />';
+            $html .= '<input type="hidden" name="sip_instance_id" id="sip_instance_id" value="' . $current_user->id . '" disabled />';
             $html .= '
                 <div id="call-overlay"></div>
                 <div id="toast-incoming"></div>
@@ -1184,7 +1183,7 @@ EOHTML;
                             </div>
                             <div id="voiceip-timer" class="voiceip-timer">00:00:00</div>
                             <div class="voiceip-content__client">
-                                <div class="wrap-info-voiceip mt-2">
+                                <div class="wrap-info-voiceip">
                                     <p id="voiceip-info-name" style="font-size:18px; font-weight:500;"></p>
                                     <p id="voiceip-info-phone" style="font-size:18px;"></p>
                                     <p><span></span><a id="voiceip-info-zaloid" href="#" target="_blank" style="font-style: italic;"></a></p>
@@ -1235,7 +1234,24 @@ EOHTML;
                                             <select name="template-notes" class="box-select flex-fill w-100" id="template-notes"></select>
                                         </div> 
                                     </div>
-                                    <div class="voiceip-modal-transfer" role="alert">
+                                    <div class="flex-between voiceip-more my-2 text-nowrap">
+                                        <div class="voiceip-customer__item is_uncomfortable">
+                                            <input type="checkbox" class="bg-white" id="is_uncomfortable">
+                                            <label for="is_uncomfortable">Khách khó chịu</label>
+                                        </div>
+                                        <div class="voiceip-customer__item is_ctv">
+                                            <input type="checkbox" class="bg-white" id="is_ctv">
+                                            <label for="is_ctv">CTV</label>
+                                        </div>
+                                        <div class="voiceip-customer__item is_compare_price">
+                                            <input type="checkbox" class="bg-white" id="is_compare_price">
+                                            <label for="is_compare_price">So sánh giá</label>
+                                        </div>
+                                    </div>
+                                    <div class="text-start voiceip-more text-nowrap">
+                                        <p id="notes-uncomfortable" class="text-danger fw-semibold"></p>
+                                    </div>
+                                    <div class="voiceip-modal-transfer d-none" role="alert">
                                         <div class="transfer-container">
                                             <div class="transfer-header">
                                                 <h4 class="transfer-title">Nhập số SIP để chuyển tiếp cuộc gọi</h4>
@@ -1326,18 +1342,17 @@ EOHTML;
             ';
 
             $js_file = 'call.js';
-            $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver='.date("YmdHi").'">';
+            $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver=' . date("YmdHi") . '">';
             $js .= '<audio id="audio_jssip" loop="true"></audio>
                     <script src="custom/jssip_webrtc/jssip-3.9.4.min.js"></script>
-                    <script src="custom/jssip_webrtc/'.$js_file.'?ver='.date("YmdHi").'"></script>
+                    <script src="custom/jssip_webrtc/' . $js_file . '?ver=' . date("YmdHi") . '"></script>
             ';
-        }
-        else {
+        } else {
             $html .= '<input type="hidden" name="sip_user" id="sip_user" value="" disabled />';
             $html .= '<input type="hidden" name="sip_password" id="sip_password" value="" disabled />';
         }
 
-        echo $css.$html.$js;
+        echo $css . $html . $js;
     }
 
     /**
@@ -1345,7 +1360,8 @@ EOHTML;
      */
     protected function _displaySubPanels()
     {
-        if (isset($this->bean) &&
+        if (
+            isset($this->bean) &&
             !empty($this->bean->id) &&
             (file_exists('modules/' . $this->module . '/metadata/subpaneldefs.php') ||
                 file_exists('custom/modules/' . $this->module . '/metadata/subpaneldefs.php') ||
@@ -1447,7 +1463,7 @@ EOHTML;
             number_format(round($deltaTime, 2), 2) .
             ' ' .
             $GLOBALS['app_strings']['LBL_SERVER_RESPONSE_TIME_SECONDS'];
-        $return = $response_time_string. '<br />';
+        $return = $response_time_string . '<br />';
 
         if (!empty($GLOBALS['sugar_config']['show_page_resources'])) {
             // Print out the resources used in constructing the page.
@@ -1560,7 +1576,8 @@ EOHTML;
         if (file_exists('custom/modules/' . $module . '/Ext/Menus/menu.ext.php')) {
             require('custom/modules/' . $module . '/Ext/Menus/menu.ext.php');
         }
-        if (!file_exists(get_custom_file_if_exists('modules/' . $module . '/Menu.php')) &&
+        if (
+            !file_exists(get_custom_file_if_exists('modules/' . $module . '/Menu.php')) &&
             !file_exists('custom/modules/' . $module . '/Ext/Menus/menu.ext.php') &&
             !empty($GLOBALS['mod_strings']['LNK_NEW_RECORD'])
         ) {
@@ -1713,7 +1730,7 @@ EOHTML;
         }
 
         // Custom icon filter - listview
-        if($this->action == "ListView"){
+        if ($this->action == "ListView") {
             $theTitle .= '<svg id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block" viewBox="0 0 16 16"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path></svg>';
         }
 
@@ -1774,7 +1791,8 @@ EOHTML;
         if (isset($this->action)) {
             switch ($this->action) {
                 case 'EditView':
-                    if (!empty($this->bean->id) &&
+                    if (
+                        !empty($this->bean->id) &&
                         (empty($_REQUEST['isDuplicate']) || $_REQUEST['isDuplicate'] === 'false')
                     ) {
                         // $params[] =
@@ -2008,7 +2026,6 @@ EOHTML;
             // $favicon = $themeObject->getImageURL('sugar_icon.ico', false);
             // $favicon = $themeObject->getImageURL('favicon-96.png', false);
             $favicon = $themeObject->getImageURL('suitenp_fav.png', false);
-
         }
 
         $extension = pathinfo($favicon, PATHINFO_EXTENSION);
@@ -2097,7 +2114,8 @@ EOHTML;
     {
         //if the referrer is post, and the post array is empty, then an error has occurred, most likely
         //while uploading a file that exceeds the post_max_size.
-        if (empty($_FILES) &&
+        if (
+            empty($_FILES) &&
             empty($_POST) &&
             isset($_SERVER['REQUEST_METHOD']) &&
             strtolower($_SERVER['REQUEST_METHOD']) == 'post'

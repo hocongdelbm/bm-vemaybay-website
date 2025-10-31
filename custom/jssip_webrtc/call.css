@@ -27,6 +27,10 @@
     border-radius: 40px;
     overflow: hidden;
     position: relative;
+
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 #popup-voiceip:before {

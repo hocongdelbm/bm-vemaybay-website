@@ -160,6 +160,8 @@ class EC_Flight_BookingsLogicHook
 
 	function updateFields($focus, $event, $arguments)
 	{
+		global $current_user;
+
 		// Contact ID
 		if (!empty($focus->contact_name) && empty($focus->contact_id)) {
 			createContactsForBooking($focus->phone, $focus->contact_name);
@@ -173,19 +175,17 @@ class EC_Flight_BookingsLogicHook
 		/**
 		 * Map cuộc gọi và booking cho case booker đặt giùm khách hàng
 		 */
-		if (empty($focus->telesale_call_id) && isset($_POST['is_telesale_value']) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore)) {
-			$sql_check = "SELECT id
-                            FROM calls
-                            WHERE direction = 'outbound'
-                                AND call_to = '" . trim($focus->phone) . "'
-                                AND deleted = 0
-                            ORDER BY date_entered DESC
-                            LIMIT 1";
-			$call_id = $focus->db->getOne($sql_check);
-
+		if (empty($focus->telesale_call_id) && isset($_POST['is_telesale_value']) && !empty($focus->phone) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore)) {
+			$call = BeanFactory::newBean("Calls");
+			$call_id = $call->getTelesaleCalls($focus->phone, $focus->fetched_row['date_entered']);
 			if (!empty($call_id)) {
-				$focus->db->query("UPDATE ec_flight_bookings SET telesale_call_id = '".$focus->db->quote($call_id)."', is_telesale = 1 WHERE id = '".$focus->db->quote($focus->id)."'");
+				$focus->db->query("UPDATE ec_flight_bookings SET telesale_call_id = '" . $focus->db->quote($call_id) . "', is_telesale = 1, date_modified = '" . date('Y-m-d H:i:s') . "', modified_user_id = '" . $focus->db->quote($current_user->id) . "' WHERE id = '" . $focus->db->quote($focus->id) . "'");
 			}
+		}
+
+		// Đánh dấu booking CTV
+		if (isset($_POST['is_ctv_value'])) {
+			$focus->db->query("UPDATE ec_flight_bookings SET is_ctv = ".$_POST['is_ctv_value'].", date_modified = '" . date('Y-m-d H:i:s') . "', modified_user_id = '" . $focus->db->quote($current_user->id) . "' WHERE id = '" . $focus->db->quote($focus->id) . "'");
 		}
 	}
 

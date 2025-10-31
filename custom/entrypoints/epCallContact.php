@@ -7,6 +7,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         $zalo_id = isset($_POST['zalo_id']) ? global_test_input($_POST['zalo_id']) : "";
 
+        // ƯU TIÊN HƯỚNG GỌI ZALO
 
         /**********  1. Get info from DB  **********/
         $data = [
@@ -14,11 +15,14 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             'name'          => '',
             'phone'         => $phone,
             'zalo_id'       => $zalo_id,
+            'zalo_name'       => '',
             'email'         => '',
             'avatar'        => '',
-            'info_booking'  => ''
+            'info_booking'  => '',
+            'last_interaction'  => '',
+            'is_call_zalo'  => false, 
+            'is_uncomfortable'  => false, 
         ];
-
 
         $where = [];
         if (!empty($phone)) {
@@ -29,55 +33,68 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if (!empty($where)) {
-            $sql = "SELECT 
-                    con.id,
-                    con.last_name AS name,
-                    con.phone_mobile AS phone,
-                    con.zalo_id,
-                    con.zalo_avatar,
-                    e.email_address AS email
-                FROM contacts con
-                    LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id 
-                        AND eb.bean_module = 'Contacts' AND eb.deleted = 0
-                    LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-                WHERE (". implode(' AND ', $where) .") 
-                    AND con.deleted = 0
-                ORDER BY date_entered
-                LIMIT 1";
-    
+             // Lấy thông tin liên hệ
+            $sql = "SELECT con.id
+                ,con.last_name AS name
+                ,con.phone_mobile AS phone
+                ,e.email_address AS email
+                ,con.is_uncomfortable
+                ,con.zalo_id
+                ,con.zalo_avatar
+                ,con.zalo_name
+                ,con.zalo_last_interaction
+            FROM contacts con
+                LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id 
+                    AND eb.bean_module = 'Contacts' AND eb.deleted = 0
+                LEFT JOIN email_addresses e ON e.id = eb.email_address_id
+            WHERE (". implode(' AND ', $where) .") 
+                AND con.deleted = 0
+            ORDER BY con.date_entered
+            LIMIT 1";
+
             $res = $db->query($sql);
             while ($row = $db->fetchByAssoc($res)) {
                 $data['contact_id'] = $row['id'];
                 $data['name']       = $row['name'] ?? '';
                 $data['phone']      = $row['phone'] ?? $phone;
-                $data['zalo_id']    = $row['zalo_id'] ?? $zalo_id;
                 $data['email']      = $row['email'] ?? '';
                 $data['avatar']     = $row['zalo_avatar'] ?? '';
+                $data['zalo_id']    = $row['zalo_id'] ?? $zalo_id;
+                $data['zalo_name']     = $row['zalo_name'] ?? '';
+                $data['last_interaction']     = $row['zalo_last_interaction'] ?? '';
+                $data['is_uncomfortable']       = $row['is_uncomfortable'] ?? '';
             }
-
-            if(empty($data['zalo_id'])) $data['zalo_id'] = $zalo_id;
-            if(empty($data['phone'])) $data['phone'] = $phone;
         }
 
-
-        /**********  2. Get zalo info **********/
-        if (!empty($data['zalo_id']) && empty($data['phone'])) { // Cuộc gọi thông qua Zalo
-            require_once("modules/EC_Zalo/Zalo.php");
+        /**
+         * Kiểm tra tương tác Zalo
+         */
+        $db_last_interaction = !empty($data['last_interaction']) ? date('d/m/Y', strtotime($data['last_interaction'])) : '';
+        $period = (int)((strtotime(date('d/m/Y')) - strtotime($db_last_interaction)) / 86400);
+        if (empty($data['last_interaction']) || $period >= 30) {
+            require_once('modules/EC_Zalo/Zalo.php');
             $zalo = new Zalo();
             $ecZalo = new EC_Zalo();
 
+            // Get user info
             $user_info = $ecZalo->get_zalo_user_info($data['zalo_id']);
-
             if (!empty($user_info)) {
-                $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias first
+                $zalo_phone = $data['phone'] ?? '';
+                if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
                 if (empty($zalo_phone)) $zalo_phone = $zalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
-
-                $data['phone'] = $zalo_phone;
-                $data['avatar'] = $user_info['avatars']['240'] ?? $user_info['avatar'] ?? '';
+    
+                if (empty($data['phone'])) $data['phone'] = $zalo_phone;
                 if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
+                $data['avatar'] = $user_info['avatars']['240'] ?? $user_info['avatar'] ?? '';
+                $data['last_interaction'] = $user_info['user_last_interaction_date'] ?? ''; // dd/mm/yyyy
             }
-        }
 
+            // Check interaction within 30 days with data from API
+            $period = (int)((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400);
+            if ($period < 30) {
+                $data['is_call_zalo'] = true;
+            }
+        } 
 
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;
@@ -91,129 +108,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         // Return
         echo json_encode($data);
-        exit();
-    }
-    elseif ((string)$type === "get_contact_zalo") { // Dùng cho gọi ra đường Zalo
-        /** Tương tác của người dùng với OA là một trong các hành động:
-         * Quan tâm OA
-         * Gửi tin nhắn đến OA
-         * Gọi đến OA hoặc chấp nhận cuộc gọi từ OA
-         * Nhấn menu Tương tác nhanh, menu Dịch vụ hoặc các CTA của OA Chatbot
-         */
-        global $db;
-        $number = isset($_POST['number']) ? global_test_input(str_replace(" ", "", $_POST['number'])) : "";
-
-        $where = "";
-        if (strlen($number) > 14) $where = "con.zalo_id = '{$number}'";
-        else $where = "con.phone_mobile = '{$number}'";
-
-
-        /**********  1. Get info from DB  **********/
-        $data = [
-            'contact_id'    => '',
-            'name'          => '',
-            'phone'         => '',
-            'zalo_id'       => '',
-            'email'         => '',
-            'avatar'        => '',
-            'info_booking'  => ''
-        ];
-
-        // Lấy thông tin liên hệ
-        $sql = "SELECT con.id
-                ,con.last_name AS name
-                ,con.phone_mobile AS phone
-                ,e.email_address AS email
-                ,con.zalo_id
-                ,con.zalo_avatar
-                ,con.zalo_name
-                ,con.zalo_last_interaction
-            FROM contacts con
-                LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id 
-                    AND eb.bean_module = 'Contacts' AND eb.deleted = 0
-                LEFT JOIN email_addresses e ON e.id = eb.email_address_id
-            WHERE $where
-                AND con.zalo_id IS NOT NULL
-                AND con.zalo_id != ''
-                AND con.deleted = 0
-            ORDER BY con.date_entered
-            LIMIT 1";
-
-        $res = $db->query($sql);
-        while ($row = $db->fetchByAssoc($res)) {
-            $data['contact_id'] = $row['id'];
-            $data['name']       = $row['name'] ?? $row['zalo_name'];
-            $data['phone']      = $row['phone'] ?? '';
-            $data['email']      = $row['email'] ?? '';
-            $data['zalo_id']    = $row['zalo_id'] ?? '';
-            $data['avatar']     = $row['zalo_avatar'] ?? '';
-            $data['last_interaction'] = $row['zalo_last_interaction'] ?? ''; // Y-m-d H:i:s
-        }
-
-
-        /**********  2. Get and check zalo info **********/
-        if (!empty($data['zalo_id'])) {
-            // Check interaction within 30 days with data from DB
-            $db_last_interaction = !empty($data['last_interaction']) ? date('d/m/Y', strtotime($data['last_interaction'])) : '';
-            $period = (int)((strtotime(date('d/m/Y')) - strtotime($db_last_interaction)) / 86400);
-
-            if ($period >= 30) {
-                require_once('modules/EC_Zalo/Zalo.php');
-                $zalo = new Zalo();
-                $ecZalo = new EC_Zalo();
-
-                // Get user info
-                $user_info = $ecZalo->get_zalo_user_info($zalo_id);
-                if (empty($user_info)) {
-                    echo json_encode([
-                        'error' => 1,
-                        'message' => 'Không tìm thấy Zalo'
-                    ], JSON_UNESCAPED_UNICODE);
-                    exit();
-                }
-
-                $zalo_phone = $data['phone'] ?? '';
-                if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
-                if (empty($zalo_phone)) $zalo_phone = $zalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
-
-                if (empty($data['phone'])) $data['phone'] = $zalo_phone;
-                if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
-                $data['avatar'] = $user_info['avatars']['240'] ?? '';
-                $data['last_interaction'] = $user_info['user_last_interaction_date'] ?? ''; // dd/mm/yyyy
-
-                // Check interaction within 30 days with data from API
-                $period = (int)((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400);
-                if ($period >= 30) {
-                    echo json_encode([
-                        'error' => 1,
-                        'message' => 'Zalo đã hết tương tác trong 30 ngày',
-                        'data' => $data,
-                        'mes' => $messages
-                    ], JSON_UNESCAPED_UNICODE);
-                    exit();
-                }
-            }
-        }
-        else {
-            echo json_encode([
-                'error' => 1,
-                'message' => 'Không tìm thấy Zalo'
-            ], JSON_UNESCAPED_UNICODE);
-            exit();
-        }
-
-        /**********  3. Get booking info of contact via phone **********/
-        if (!empty($data['phone'])) {
-            $phone_lh = global_test_input(str_replace(" ", "", $data['phone']));
-            $data['info_booking'] = get_booking_info($phone_lh);
-        }
-
-        // Return
-        echo json_encode([
-            'error' => 0,
-            'message' => '',
-            'data' => $data
-        ], JSON_UNESCAPED_UNICODE);
         exit();
     }
     elseif ((string)$type === "update_call") {
@@ -230,6 +124,10 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $type_call      = isset($_POST['type_call_booking']) && !empty($_POST['type_call_booking']) ? global_test_input($_POST['type_call_booking']) : "called";
             $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
             $call_status    = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
+
+            $is_uncomfortable     = isset($_POST['is_uncomfortable']) ? $_POST['is_uncomfortable'] : "";
+            $is_ctv     = isset($_POST['is_ctv']) ? $_POST['is_ctv'] : "";
+            $is_compare_price     = isset($_POST['is_compare_price']) ? $_POST['is_compare_price'] : "";
 
             // Validate
             if (empty($call_id) || empty($note)) {
