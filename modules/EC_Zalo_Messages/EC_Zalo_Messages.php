@@ -43,9 +43,6 @@ class EC_Zalo_Messages extends Basic {
     public $data;
     public $response;
     public $booking_id;
-
-    public $limit_chat_box = 15;
-    public $limit_message = 10;
     public $image_file = [
         'excel' => 'modules/EC_Zalo/images/private/files/file_excel.jpg',
         'word' => 'modules/EC_Zalo/images/private/files/file_word.jpg',
@@ -111,9 +108,10 @@ class EC_Zalo_Messages extends Basic {
      * @param string $oa_id
      * @param int $timestamp
      * @param array $current_list_user
+     * @param int $limit_record
      * @return array
      */
-    public function get_list_recent_messages($oa_id, $last_timestamp = 0, $current_list_user = []) {
+    public function get_list_recent_messages($oa_id, $last_timestamp = 0, $current_list_user = [], $limit_record = 15) {
         $results = [];
         $list_zalo_id = ['interaction' => [], 'no_interaction' => []];
         $zaloContact = new EC_Zalo_Contacts();
@@ -163,7 +161,7 @@ class EC_Zalo_Messages extends Basic {
             }
             else $list_zalo_id['interaction'][] = $zalo_id;
 
-            if($results['data'] && count($results['data']) >= $this->limit_chat_box) break;
+            if($results['data'] && count($results['data']) >= $limit_record) break;
 
             $row['src'] = (int)$row['src'];
             if($row['message_type'] == 'call') $row['type'] = $GLOBALS['app_list_strings']['calls_direction_list'][$row['type']];
@@ -185,8 +183,9 @@ class EC_Zalo_Messages extends Basic {
      * @param string $zalo_phone
      * @param int $offset
      * @param int $is_get_user_info
+     * @param int $limit_message
      */
-    public function get_messages($oa_id, $zalo_id, $zalo_phone = '', $offset = 0, $is_get_user_info = 0) {
+    public function get_messages($oa_id, $zalo_id, $zalo_phone = '', $offset = 0, $is_get_user_info = 0, $limit_message = 10) {
         $zaloContact = new EC_Zalo_Contacts();
 
         $result = [];
@@ -225,7 +224,7 @@ class EC_Zalo_Messages extends Basic {
             WHERE (zm.from_id = '$zalo_id' OR zm.to_id = '$zalo_id' OR zm.to_id = '$zalo_phone')
                 AND zm.deleted = 0
             ORDER BY zm.timestamp DESC
-            LIMIT {$offset}, {$this->limit_message}";
+            LIMIT {$offset}, {$limit_message}";
 
         $res = $this->db->query($sql);
         while($row = $this->db->fetchByAssoc($res)) {
@@ -296,7 +295,7 @@ class EC_Zalo_Messages extends Basic {
             $count_message_data = count($message_data);
             $result['messages_info']['status']  = 1;
             $result['messages_info']['data']    = $message_data;
-            $result['messages_info']['offset']  = $count_message_data == $this->limit_message ? count($message_data) + $offset : -1;
+            $result['messages_info']['offset']  = $count_message_data == $limit_message ? count($message_data) + $offset : -1;
         }
 
         // Save previous message which not exist in database

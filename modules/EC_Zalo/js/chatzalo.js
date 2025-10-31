@@ -40,49 +40,40 @@ $(document).ready(function () {
                 $.ajax({
                     url: URL,
                     type: "POST",
-                    data: {
-                        action: "get_list_user",
-                        offset: 0,
-                        value: value
-                    },
-                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: JSON.stringify({
+                        class: "entryZaloOAClass",
+                        method: "getListUser",
+                        params: {
+                            oa_id: OA_ID,
+                            offset: 0,
+                            value: value
+                        }
+                    }),
                     beforeSend: function() {
                         loadingSkeleton('list_user', 9);
                     },
-                    success: function (response) { // json
+                    success: function (response) {
                         removeLoadingSkeleton();
 
-                        if(response.length > 0) {
-                            let obj = JSON.parse(response);
+                        if(response?.status && response.status == 1) {
+                            for (const [key, row_data] of Object.entries(response.data)) {
+                                let message_info = row_data.message_info;
+                                let user_info = row_data.user_info;
 
-                            if(obj.error == 0) {
-                                for (const [key, row_data] of Object.entries(obj.data)) {
-                                    let message_info = row_data.message_info;
-                                    let user_info = row_data.user_info;
-    
-                                    let html = create_li_chat(message_info, user_info);
-                                    $('#list_mess_main').append(html);
-                                };
-                                $('input[name="offset_list_user"]').val(50);
-                            }
+                                let html = create_li_chat(message_info, user_info);
+                                $('#list_mess_main').append(html);
+                            };
+                            $('input[name="offset_list_user"]').val(50);
                         }
                         else {
                             $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
                         }
-
-                        // if(response.length > 0) {
-                        //     $('#list_mess_main').html(response);
-                        //     $('input[name="offset_list_user"]').val(50);
-                        // }
-                        // else {
-                        //     $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
-                        // }
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         removeLoadingSkeleton();
-                        console.error(XMLHttpRequest);
-                        console.error("Status: " + textStatus);
-                        console.error("Error: " + errorThrown);
+                        console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
                     }
                 });
             }
@@ -112,41 +103,42 @@ $(document).ready(function () {
                     $.ajax({
                         url: URL,
                         type: "POST",
-                        data: {
-                            action: "get_list_user",
-                            value: type_load,
-                            offset: offset
-                        },
+                        contentType: "application/json",
+                        dataType: "json",
+                        data: JSON.stringify({
+                            class: "entryZaloOAClass",
+                            method: "getListUser",
+                            params: {
+                                oa_id: OA_ID,
+                                offset: offset,
+                                value: type_load,
+                            }
+                        }),
                         beforeSend: function() {
                             loadingSkeleton('list_user', 6);
                             $(`input[name="is_loading_list_user"]`).val(1);
                         },
-                        success: function (response) { // json
+                        success: function (response) {
                             removeLoadingSkeleton();
                             $(`input[name="is_loading_list_user"]`).val(0);
-
-                            if(response.length > 0) {
-                                let obj = JSON.parse(response);
-                                if(obj.error == 0) {
-                                    for (const [key, row_data] of Object.entries(obj.data)) {
-                                        let message_info = row_data.message_info;
-                                        let user_info = row_data.user_info;
-            
-                                        let html = create_li_chat(message_info, user_info);
-                                        $('#list_mess_main').append(html);
-                                    };
-                                    offset += 50;
-                                    $('input[name="offset_list_user"]').val(offset);
-                                }
-                                else $('input[name="offset_list_user"]').val(-1);
+                           
+                            if(response?.status && response.status == 1) {
+                                for (const [key, row_data] of Object.entries(response.data)) {
+                                    let message_info = row_data.message_info;
+                                    let user_info = row_data.user_info;
+        
+                                    let html = create_li_chat(message_info, user_info);
+                                    $('#list_mess_main').append(html);
+                                };
+                                offset += 50;
+                                $('input[name="offset_list_user"]').val(offset);
                             }
+                            else $('input[name="offset_list_user"]').val(-1);
                         },
                         error: function (XMLHttpRequest, textStatus, errorThrown) {
                             removeLoadingSkeleton();
                             $(`input[name="is_loading_list_user"]`).val(0);
-                            console.error(XMLHttpRequest);
-                            console.error("Status: " + textStatus);
-                            console.error("Error: " + errorThrown);
+                            console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
                         }
                     });   
                 }
@@ -163,6 +155,7 @@ $(document).ready(function () {
             let is_get_user_info = user_info_encoded.length > 10 ? 0 : 1;
             user_info = JSON.parse(decodeURIComponent(atob(user_info_encoded)));
             let zalo_phone = (user_info?.shared_info && user_info.shared_info?.phone) ? user_info.shared_info.phone : '';
+            const limit_message = parseInt($(`input[name="limit_message"]`).val());
 
             // Hide
             $('#chat_welcome').hide();
@@ -190,7 +183,8 @@ $(document).ready(function () {
                         oa_id: OA_ID,
                         zalo_id: zalo_id,
                         zalo_phone: zalo_phone,
-                        is_get_user_info: is_get_user_info
+                        is_get_user_info: is_get_user_info,
+                        limit_message: limit_message
                     }
                 }),
                 beforeSend: function() {
@@ -243,6 +237,7 @@ $(document).ready(function () {
             let zalo_id = $('#content_chat').attr('zalo_id');
             let zalo_phone = $('#profile_mobile').attr('data');
             let offset = parseInt($(`input[name="offset_load_more_message"]`).val());
+            const limit_message = parseInt($(`input[name="limit_message"]`).val());
 
             if(zalo_id && zalo_id.length > 10 && offset > 0 && $(`._section-mt`)[0]) {
                 $.ajax({
@@ -258,7 +253,8 @@ $(document).ready(function () {
                             zalo_id: zalo_id,
                             zalo_phone: zalo_phone,
                             offset: offset,
-                            is_get_user_info: 0
+                            is_get_user_info: 0,
+                            limit_message: limit_message
                         }
                     }),
                     beforeSend: function() {
@@ -793,45 +789,44 @@ $(document).ready(function () {
         if (e.key === 'Enter' || e.keyCode === 13) {
             let search_value = $(this).val().trim();
 
-            if(!search_value || search_value.length == 0) return false;
+            if(!search_value || search_value.length < 3) return false;
 
             $.ajax({
                 url: URL,
                 type: "POST",
-                data: {
-                    action: "search_contact",
-                    search_value: search_value
-                },
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    class: "entryZaloOAClass",
+                    method: "searchZaloContact",
+                    params: {
+                        oa_id: OA_ID,
+                        search_value: search_value
+                    }
+                }),
                 beforeSend: function() {
                     $('#list_mess_main').hide();
                     $('#list_mess_search').html('<div class="loader_list_user mt-3"></div>').show();
                 },
-                success: function (response) { // HTML
+                success: function (response) {
                     $('#loader_list_user').remove();
 
-                    if (response && response.length > 0) {
-                        let obj = JSON.parse(response);
-                        if(obj['error'] === 0) {
-                            let html = '';
-                            $.each(obj['data'], function(index, item) {
-                                html += create_li_chat(item.message_info, item.user_info);
-                            });
-                            if(html.length > 0) $('#list_mess_search').html(html);
-                            else $('#list_mess_search').html(`<li class="no-results-found">Không tìm thấy kết quả vui lòng tìm kiếm với từ khóa khác</li>`);
-                        }
-                        else {
-                            $('#list_mess_search').html(`<li class="no-results-found">${obj['message']}</li>`);
-                        }
+                    if(response?.status && response.status == 1) {
+                        let html = '';
+                        $.each(obj['data'], function(index, item) {
+                            html += create_li_chat(item.message_info, item.user_info);
+                        });
+                        if(html.length > 0) $('#list_mess_search').html(html);
+                        else $('#list_mess_search').html(`<li class="no-results-found">Không tìm thấy kết quả vui lòng tìm kiếm với từ khóa khác</li>`);
                     }
                     else {
-                        $('#list_mess_search').html(`<li class="no-results-found">Xảy ra lỗi trong quá trình tìm kiếm</li>`);
+                        $('#list_mess_search').html(`<li class="no-results-found">${obj['message']}</li>`);
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
                     $('#loader_list_user').remove();
                     showModalNotify('error', 'Vui lòng thử lại');
-                    console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
+                    console.error(XMLHttpRequest, `Status: ${textStatus}`);
                 }
             });
         }
@@ -879,6 +874,8 @@ $(document).ready(function () {
  */
 function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
     if(type == 'default') {
+        const limit_chat_box = parseInt($(`input[name="limit_chat_box"]`).val());
+        
         $.ajax({
             url: URL,
             type: "POST",
@@ -891,6 +888,7 @@ function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
                     oa_id: OA_ID,
                     timestamp: timestamp,
                     current_list_user: current_list_user,
+                    limit_record: limit_chat_box
                 }
             }),
             beforeSend: function() {

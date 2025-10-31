@@ -28,6 +28,89 @@ class entryZaloOAClass extends entryClass {
     }
 
     /**
+     * Get list user id
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getListUser($params = []) {
+        $oa_id  = $params['oa_id'] ?? "";
+        $offset = (int)($params['offset'] ?? 0);
+        $count  = (int)($params['count'] ?? 50);
+        $tag_name = $params['tag_name'] ?? '';
+        $last_interaction_period = $params['last_interaction_period'] ?? '';
+        $value = $params['value'] ?? '';
+
+        if(in_array($value, ['L7D'])) $last_interaction_period = $value;
+        elseif(!empty($value)) $tag_name = $value;
+
+        $zaloOA = new APIZaloOA($oa_id);
+        $json = $zaloOA->get_list_user($offset, $count, $last_interaction_period, null, $tag_name);
+        $arr  = json_decode($json, true);
+
+        if(isset($arr['error']) && $arr['error'] == 0) {
+            if(empty($arr['data']['users'])) {
+                return ["status" => 0, "message" => "Not found", "data" => []];
+            }
+
+            $results = [];
+            $zaloContact = new EC_Zalo_Contacts();
+            $zaloMessage = new EC_Zalo_Messages();
+            foreach($arr['data']['users'] as $u) {
+                $zalo_id = $u['user_id'];
+                $user_info = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+
+                if(!empty($user_info)) {
+                    $lastest_message  = $zaloMessage->get_lastest_message_user($oa_id, $zalo_id);
+                    $last_interaction = $user_info['user_last_interaction_date']; // d-m-Y H:i:s
+
+                    if($value == 'L7D') {
+                        $current_date = date('d-m-Y H:i:s');
+                        $count_day = (strtotime($current_date) - strtotime($last_interaction)) / 3600 / 24;
+
+                        if($count_day < 6 || $count_day > 7) continue;
+
+                        // Message
+                        if(!empty($lastest_message)) $message = $lastest_message['message'];
+                        else if($count_day == 7) $message = 'Sắp hết hạn tương tác';
+                        else $message = 'Còn 1 ngày';
+                    }
+                    else {
+                        // Message
+                        if(!empty($lastest_message)) $message = $lastest_message['message'];
+                        else $message = 'Tương tác cuối vào ' . date('d/m/Y H:i', strtotime($user_info['user_last_interaction_date']));
+                    }
+
+                    if(empty($lastest_message)) {
+                        $lastest_message['message_type'] = 'custom';
+                        $lastest_message['type'] = 'custom';
+                        $lastest_message['src'] = 1;
+                        $lastest_message['timestamp'] = strtotime($last_interaction) * 1000;
+                        $lastest_message['from_id'] = $zalo_id;
+                        $lastest_message['to_id'] = $oa_id;
+                    }
+                    $lastest_message['message'] = $message;
+
+                    $key = $lastest_message['timestamp'] . '_' . $zalo_id;
+                    $results[$key] = [
+                        'message_info' => $lastest_message,
+                        'user_info' => $user_info
+                    ];
+                }
+            }
+
+            $value == 'L7D' ? ksort($results) : krsort($results);
+            return [
+                "status" => 1,
+                "message" => "Success",
+                "data" => $results
+            ];
+        }
+
+        return ["status" => 0, "message" => "Not found", "response" => $arr];
+    }
+
+    /**
      * Get list recent messages from each user
      * 
      * @param array $params
@@ -36,10 +119,11 @@ class entryZaloOAClass extends entryClass {
     public function getListRecentMessages($params = []) {
         $oa_id = $params["oa_id"] ?? "";
         $timestamp = $params['timestamp'] ?? 0;
+        $limit_record = $params['limit_record'];
         $current_list_user = isset($params['current_list_user']) && !empty($params['current_list_user']) ? array_unique(explode(',', $params['current_list_user'])) : []; // array
 
         $zaloMessage = new EC_Zalo_Messages();
-        $results = $zaloMessage->get_list_recent_messages($oa_id, $timestamp, $current_list_user);
+        $results = $zaloMessage->get_list_recent_messages($oa_id, $timestamp, $current_list_user, $limit_record);
         $results['status'] == isset($results['data']) && !empty($results['data']) ? 1 : 0;
         return $results;
     }
@@ -56,9 +140,10 @@ class entryZaloOAClass extends entryClass {
         $zalo_phone = $params["zalo_phone"] ?? "";
         $offset = (int)($params['offset'] ?? 0);
         $is_get_user_info = (int)($params['is_get_user_info'] ?? 1);
+        $limit_message = $params['limit_message'];
 
         $zaloMessage = new EC_Zalo_Messages();
-        return $zaloMessage->get_messages($oa_id, $zalo_id , $zalo_phone, $offset, $is_get_user_info);
+        return $zaloMessage->get_messages($oa_id, $zalo_id , $zalo_phone, $offset, $is_get_user_info, $limit_message);
     }
 
     /**
@@ -218,7 +303,7 @@ class entryZaloOAClass extends entryClass {
                         case 'reply': // Tin gửi ra là tin trong khung 8 tin 48h
                             // Get current quota user from db
                             $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0") ?? '';
-                            if(!empty($quotaInfo)) $quotaInfo = json_decode($quotaInfo, true);
+                            if(!empty($quotaInfo)) $quotaInfo = json_decode(html_entity_decode($quotaInfo), true);
                             else $quotaInfo = [];
 
                             $quotaInfo['cs_reply'] = [
@@ -237,7 +322,7 @@ class entryZaloOAClass extends entryClass {
                             $isUpdated = false;
 
                             if(!empty($quotaInfo)) {
-                                $quotaInfo = json_decode($quotaInfo, true);
+                                $quotaInfo = json_decode(html_entity_decode($quotaInfo), true);
                                 foreach($quotaInfo as $qKey => $qValue) {
                                     if($qValue['quota_type'] == 'sub_quota') {
                                         $quotaInfo[$qKey]['remain'] = $quotaData['remain'];
@@ -408,5 +493,73 @@ class entryZaloOAClass extends entryClass {
                 "message" => "Exception error {$th->getMessage()} on line {$th->getLine()}"
             ];
         }
+    }
+
+    /**
+     * Search zalo contact
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function searchZaloContact($params = []) {
+        $oa_id          = global_test_input($params['oa_id'] ?? "");
+        $search_value   = global_test_input($params['search_value'] ?? "");
+
+        if(empty($search_value)) {
+            return [
+                "status" => 0,
+                "message" => "Dữ liệu tìm kiếm không hợp lệ"
+            ];
+        }
+
+        $zaloContact = new EC_Zalo_Contacts();
+        $zaloMessage = new EC_Zalo_Messages();
+        $listUserData = [];
+
+        // Search by chat link
+        if(filter_var($search_value, FILTER_VALIDATE_URL)) {
+            parse_str(parse_url($search_value, PHP_URL_QUERY), $query);
+            $zalo_id = $query['uid'] ?? '';
+            if(!empty($zalo_id)) {
+                $user_info = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+                if(is_array($user_info) && !empty($user_info)) $listUserData[] = $user_info;
+            }
+        }
+        // Search by phone
+        elseif(is_numeric($search_value)) {
+            $listUserData = $zaloContact->search_zalo_user_by_phone($search_value);
+        }
+        // Search by alias
+        else {
+            $listUserData = $zaloContact->search_zalo_user_by_alias($search_value);
+        }
+
+        $results = [];
+        if(!empty($listUserData)) {
+            foreach ($listUserData as $key => $userData) {
+                // Message info
+                $lastest_message = $zaloMessage->get_lastest_message_user($oa_id, $userData['user_id']);
+                if(empty($lastest_message)) {
+                    $lastest_message['message_type'] = 'custom';
+                    $lastest_message['type'] = 'custom';
+                    $lastest_message['message'] = 'Tương tác cuối vào ' . date('d/m/Y H:i', strtotime($userData['user_last_interaction_date']));
+                    $lastest_message['src'] = 1;
+                    $lastest_message['timestamp'] = strtotime($userData['user_last_interaction_date']) * 1000;
+                    $lastest_message['from_id'] = $userData['zalo_id'];
+                    $lastest_message['to_id'] = $oa_id;
+                }
+    
+                $results[] = [
+                    'message_info' => $lastest_message,
+                    'user_info' => $userData
+                ];
+            }
+        }
+
+        return [
+            "status" => 1,
+            "message" => "Success",
+            "data" => $results
+        ];
     }
 }

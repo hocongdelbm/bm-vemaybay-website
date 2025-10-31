@@ -39,22 +39,6 @@ class EC_Zalo extends Basic {
     public $api_oauth_info;
     public $quota_info;
     public $secret_key;
-
-    // public $limit_chat_box = 15;
-    // public $limit_message = 10;
-    // public $image_file = [
-    //     'excel' => 'modules/EC_Zalo/images/private/files/file_excel.jpg',
-    //     'word' => 'modules/EC_Zalo/images/private/files/file_word.jpg',
-    //     'powerpoint' => 'modules/EC_Zalo/images/private/files/file_powerpoint.jpg',
-    //     'pdf' => 'modules/EC_Zalo/images/private/files/file_pdf.jpg',
-    //     'txt' => 'modules/EC_Zalo/images/private/files/file_txt.jpg',
-    //     'html' => 'modules/EC_Zalo/images/private/files/file_html.jpg',
-    //     'xml' => 'modules/EC_Zalo/images/private/files/file_xml.jpg',
-    //     'zip' => 'modules/EC_Zalo/images/private/files/file_zip.jpg',
-    //     'rar' => 'modules/EC_Zalo/images/private/files/file_rar.jpg',
-    //     'image' => 'modules/EC_Zalo/images/private/files/file_image.jpg',
-    //     'default' => 'modules/EC_Zalo/images/private/files/file_default.jpg'
-    // ];
 	
     public function bean_implements($interface) {
         switch($interface)

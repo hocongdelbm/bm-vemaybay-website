@@ -136,7 +136,7 @@ class APIZaloOA {
         // Use query
         else {
             $api_oauth_info = $db->getOne("SELECT api_oauth_info FROM ec_zalo WHERE id = '{$this->oa_id}' AND deleted = 0");
-            $arr = json_decode($api_oauth_info, true);   
+            $arr = json_decode(html_entity_decode($api_oauth_info), true);   
         }
 
         $refresh_token = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';

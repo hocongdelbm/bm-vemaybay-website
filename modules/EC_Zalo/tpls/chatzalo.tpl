@@ -338,8 +338,10 @@
 <input type="hidden" name="is_loading_list_user" value="0" readonly />
 <input type="hidden" name="last_timestamp" value="0" readonly />
 <input type="hidden" name="limit_message" value="{$LIMIT_MESSAGE}" readonly />
+<input type="hidden" name="limit_chat_box" value="{$LIMIT_CHAT_BOX}" readonly />
+
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.7"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=3.8"></script>

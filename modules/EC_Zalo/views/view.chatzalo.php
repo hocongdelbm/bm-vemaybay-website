@@ -8,6 +8,9 @@ class Viewchatzalo extends SugarView {
     private $entrypoint;
     private $websocket_url;
     public $default_avatar;
+    public $limit_chat_box;
+    public $limit_message;
+    public $image_file;
 
     public function __construct() {
         parent::__construct();
@@ -15,6 +18,21 @@ class Viewchatzalo extends SugarView {
         $this->entrypoint = 'index.php?entryPoint=entryPointGeneral';
         $this->websocket_url = $_SERVER['SERVER_NAME'] != 'localhost' ? 'wss://'.$_SERVER['SERVER_NAME'].'/chatz/' : 'ws://localhost:8080';
         $this->default_avatar = 'modules/EC_Zalo/images/private/avatar_default.jpg';
+        $this->limit_chat_box = 15;
+        $this->limit_message = 10;
+        $this->image_file = [
+            'excel' => 'modules/EC_Zalo/images/private/files/file_excel.jpg',
+            'word' => 'modules/EC_Zalo/images/private/files/file_word.jpg',
+            'powerpoint' => 'modules/EC_Zalo/images/private/files/file_powerpoint.jpg',
+            'pdf' => 'modules/EC_Zalo/images/private/files/file_pdf.jpg',
+            'txt' => 'modules/EC_Zalo/images/private/files/file_txt.jpg',
+            'html' => 'modules/EC_Zalo/images/private/files/file_html.jpg',
+            'xml' => 'modules/EC_Zalo/images/private/files/file_xml.jpg',
+            'zip' => 'modules/EC_Zalo/images/private/files/file_zip.jpg',
+            'rar' => 'modules/EC_Zalo/images/private/files/file_rar.jpg',
+            'image' => 'modules/EC_Zalo/images/private/files/file_image.jpg',
+            'default' => 'modules/EC_Zalo/images/private/files/file_default.jpg'
+        ];
     }
     
     public function display() {
@@ -44,12 +62,13 @@ class Viewchatzalo extends SugarView {
         $smarty->assign('OA_AVATAR', isset($arr_info_oa['data']['avatar']) ? $arr_info_oa['data']['avatar'] : '');
         $smarty->assign('OA_NAME', isset($arr_info_oa['data']['name']) ? $arr_info_oa['data']['name'] : '');
         $smarty->assign('DEFAULT_AVATAR', $this->default_avatar);
-        $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode($this->bean->image_file)));
+        $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode($this->image_file)));
         $smarty->assign('ENTRYPOINT', $this->entrypoint);
         $smarty->assign('WEBSOCKET_URL', $this->websocket_url);
         $smarty->assign('ADMIN_ID', $current_user->id);
         $smarty->assign('ADMIN_NAME', end($fullname));
-        $smarty->assign('LIMIT_MESSAGE', $this->bean->limit_message);
+        $smarty->assign('LIMIT_MESSAGE', $this->limit_message);
+        $smarty->assign('LIMIT_CHAT_BOX', $this->limit_chat_box);
 
         // Get icons
         $list_icons = $this->get_icons(0, '{{color}}');

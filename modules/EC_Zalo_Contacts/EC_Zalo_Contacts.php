@@ -56,11 +56,10 @@ class EC_Zalo_Contacts extends Basic
      * 
      * @param string $zalo_id
      * @param string $oa_id
-     * @param bool $check_quota
      * 
      * @return array User data
      */
-    public function get_zalo_user_info($zalo_id, $oa_id = '', $check_quota = false) {
+    public function get_zalo_user_info($zalo_id, $oa_id = '') {
         if(!$zalo_id || strlen($zalo_id) < 15) return [];
 
         $zaloOA = new APIZaloOA($oa_id);
@@ -99,6 +98,7 @@ class EC_Zalo_Contacts extends Basic
             $zalo_display_name  = $dbInfo['display_name'] ?? '';
             $zalo_user_alias    = $dbInfo['user_alias'] ?? '';
             $zalo_avatar        = $dbInfo['avatar'] ?? '';
+            $quota_info         = json_decode(html_entity_decode($dbInfo['quota_info'] ?? ''), true);
 
             if((!empty($zalo_display_name) || !empty($zalo_user_alias)) && !empty($zalo_avatar)) {
                 $userData = [
@@ -108,7 +108,7 @@ class EC_Zalo_Contacts extends Basic
                     'display_name'      => $zalo_display_name,
                     'user_alias'        => $zalo_user_alias,
                     'avatar'            => $zalo_avatar,
-                    'user_last_interaction_date' => $this->formatDatetime($dbInfo['last_interaction'] ?? ''),
+                    'user_last_interaction_date' => $this->format_datetime($dbInfo['last_interaction'] ?? ''),
                     'user_is_follower' => $dbInfo['is_follower'] ?? 0,
                     'tags_and_notes_info' => [
                         'notes' => [],
@@ -120,9 +120,9 @@ class EC_Zalo_Contacts extends Basic
                         "district"  => $dbInfo['ward_commune'] ?? '',
                         "phone"     => $dbInfo['phone_number'] ?? '',
                         "name"      => $zalo_display_name,
-                        "user_dob"  => $this->formatDate($dbInfo['birth_date'] ?? '')
+                        "user_dob"  => $this->format_date($dbInfo['birth_date'] ?? '')
                     ],
-                    'quota' => $dbInfo['quota_info'] ?? [],
+                    'quota' => $quota_info,
                     'chat_link' => $zaloOA->get_chat_link($zalo_id)
                 ];
             }
@@ -137,18 +137,19 @@ class EC_Zalo_Contacts extends Basic
                 $userData = $result['user_info']['data'];
 
                 // Last interaction
-                $zalo_last_interaction = $this->formatDatetime($userData['user_last_interaction_date'] ?? '');
+                $zalo_last_interaction = $this->format_datetime($userData['user_last_interaction_date'] ?? '');
                 $userData['user_last_interaction_date'] = $zalo_last_interaction;
 
                 // Shared info
                 if(isset($userData['shared_info']) && !empty($userData['shared_info'])) {
                     // Date of birth
-                    $zalo_user_dob = $this->formatDate($userData['shared_info']['user_dob'] ?? '');
+                    $zalo_user_dob = $this->format_date($userData['shared_info']['user_dob'] ?? '');
                     $userData['shared_info']['user_dob'] = $zalo_user_dob;
                 }
 
                 // Quota
-                $userData['quota'] = $dbInfo['quota_info'] ?? [];
+                $quota_info = json_decode(html_entity_decode($dbInfo['quota_info'] ?? ''), true);
+                $userData['quota'] = $quota_info;
 
                 // Chat link
                 $userData['chat_link'] = $zaloOA->get_chat_link($zalo_id);
@@ -156,8 +157,162 @@ class EC_Zalo_Contacts extends Basic
                 $this->custom_save($userData, $oa_id);
             }
         }
+
+        // Add quota
+        if(is_null($userData['quota']) || empty($userData['quota'])) {
+            
+        }
        
         return $userData;
+    }
+
+    /**
+     * Get zalo user by phone number
+     * 
+     * @param string $search_value
+     * @param string $oa_id
+     * @return array List user data
+     */
+    public function search_zalo_user_by_phone($search_value, $oa_id = '') {
+        if(strlen($search_value) < 3) return [];
+
+        $zaloOA = new APIZaloOA($oa_id);
+        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
+        $listUserData = [];
+
+        $condition = strlen($search_value) < 10 ? "c.phone_mobile LIKE '%$search_value'" : "c.phone_mobile = $search_value";
+        $sql = "SELECT zc.zalo_id
+            ,zc.id AS user_external_id
+            ,zc.contact_id
+            ,c.phone_mobile AS phone_number
+            ,zc.name AS display_name
+            ,zc.alias AS user_alias
+            ,zc.avatar
+            ,zc.birth_date
+            ,zc.last_interaction
+            ,zc.is_follower
+            ,zc.tags
+            ,zc.province_city
+            ,zc.ward_commune
+            ,zc.address
+            ,zc.quota_info
+        FROM ec_zalo_contacts zc
+            LEFT JOIN contacts c WHERE c.id = zc.contact_id AND c.deleted = 0
+        WHERE $condition
+            AND zc.oa_id = '{$oa_id}'
+            AND zc.contact_id IS NOT NULL
+            AND zc.contact_id != ''
+            AND c.deleted = 0";
+
+        $res = $this->db->query($sql);
+        while ($dbInfo = $this->db->fetchByAssoc($res)) {
+            $zalo_id            = $dbInfo['zalo_id'] ?? '';
+            $zalo_display_name  = $dbInfo['display_name'] ?? '';
+            $zalo_user_alias    = $dbInfo['user_alias'] ?? '';
+            $quota_info         = json_decode(html_entity_decode($dbInfo['quota_info'] ?? ''), true);
+
+            if(!empty($zalo_id) && (!empty($zalo_display_name) || !empty($zalo_user_alias))) {
+                $listUserData[] = [
+                    'user_id'           => $dbInfo['zalo_id'] ?? '',
+                    'user_id_by_app'    => '',
+                    'user_external_id'  => $dbInfo['user_external_id'] ?? '',
+                    'display_name'      => $zalo_display_name,
+                    'user_alias'        => $zalo_user_alias,
+                    'avatar'            => $dbInfo['avatar'] ?? '',
+                    'user_last_interaction_date' => $this->format_datetime($dbInfo['last_interaction'] ?? ''),
+                    'user_is_follower' => $dbInfo['is_follower'] ?? 0,
+                    'tags_and_notes_info' => [
+                        'notes' => [],
+                        'tag_names' => !is_null($dbInfo['tags']) && !empty($dbInfo['tags']) ? explode(',', $dbInfo['tags']) : [],
+                    ],
+                    'shared_info' => [
+                        "address"   => $dbInfo['address'] ?? '',
+                        "city"      => $dbInfo['province_city'] ?? '',
+                        "district"  => $dbInfo['ward_commune'] ?? '',
+                        "phone"     => $dbInfo['phone_number'] ?? '',
+                        "name"      => $zalo_display_name,
+                        "user_dob"  => $this->format_date($dbInfo['birth_date'] ?? '')
+                    ],
+                    'quota' => $quota_info,
+                    'chat_link' => $zaloOA->get_chat_link($zalo_id)
+                ];
+            }
+        }
+        
+        return $listUserData;
+    }
+
+    /**
+     * Get zalo user by alias
+     * 
+     * @param string $search_value
+     * @param string $oa_id
+     * @return array List user data
+     */
+    public function search_zalo_user_by_alias($search_value, $oa_id = '') {
+        if(strlen($search_value) < 4) return [];
+
+        $zaloOA = new APIZaloOA($oa_id);
+        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
+        $listUserData = [];
+
+        $sql = "SELECT zc.zalo_id
+            ,zc.id AS user_external_id
+            ,zc.contact_id
+            ,c.phone_mobile AS phone_number
+            ,zc.name AS display_name
+            ,zc.alias AS user_alias
+            ,zc.avatar
+            ,zc.birth_date
+            ,zc.last_interaction
+            ,zc.is_follower
+            ,zc.tags
+            ,zc.province_city
+            ,zc.ward_commune
+            ,zc.address
+            ,zc.quota_info
+        FROM ec_zalo_contacts zc
+            LEFT JOIN contacts c WHERE c.id = zc.contact_id AND c.deleted = 0
+        WHERE MATCH(zc.alias) AGAINST('\"$search_value\"')
+            AND zc.oa_id = '{$oa_id}'
+            AND zc.deleted = 0";
+
+        $res = $this->db->query($sql);
+        while ($dbInfo = $this->db->fetchByAssoc($res)) {
+            $zalo_id            = $dbInfo['zalo_id'] ?? '';
+            $zalo_display_name  = $dbInfo['display_name'] ?? '';
+            $zalo_user_alias    = $dbInfo['user_alias'] ?? '';
+            $quota_info         = json_decode(html_entity_decode($dbInfo['quota_info'] ?? ''), true);
+
+            if(!empty($zalo_id) && (!empty($zalo_display_name) || !empty($zalo_user_alias))) {
+                $listUserData[] = [
+                    'user_id'           => $dbInfo['zalo_id'] ?? '',
+                    'user_id_by_app'    => '',
+                    'user_external_id'  => $dbInfo['user_external_id'] ?? '',
+                    'display_name'      => $zalo_display_name,
+                    'user_alias'        => $zalo_user_alias,
+                    'avatar'            => $dbInfo['avatar'] ?? '',
+                    'user_last_interaction_date' => $this->format_datetime($dbInfo['last_interaction'] ?? ''),
+                    'user_is_follower' => $dbInfo['is_follower'] ?? 0,
+                    'tags_and_notes_info' => [
+                        'notes' => [],
+                        'tag_names' => !is_null($dbInfo['tags']) && !empty($dbInfo['tags']) ? explode(',', $dbInfo['tags']) : [],
+                    ],
+                    'shared_info' => [
+                        "address"   => $dbInfo['address'] ?? '',
+                        "city"      => $dbInfo['province_city'] ?? '',
+                        "district"  => $dbInfo['ward_commune'] ?? '',
+                        "phone"     => $dbInfo['phone_number'] ?? '',
+                        "name"      => $zalo_display_name,
+                        "user_dob"  => $this->format_date($dbInfo['birth_date'] ?? '')
+                    ],
+                    'quota' => $quota_info,
+                    'chat_link' => $zaloOA->get_chat_link($zalo_id)
+                ];
+            }
+        }
+        
+        return $listUserData;
     }
 
     /**
@@ -189,7 +344,7 @@ class EC_Zalo_Contacts extends Basic
         $user_alias = $user_data['user_alias'] ?? '';
 
         // Last interaction
-        $last_interaction = $this->formatDatetime($user_data['user_last_interaction_date'] ?? '');
+        $last_interaction = $this->format_datetime($user_data['user_last_interaction_date'] ?? '');
 
         // Phone
         $phone = $zaloOA->get_phone_by_alias($user_alias);
@@ -202,7 +357,7 @@ class EC_Zalo_Contacts extends Basic
         }
 
         // Date of birth
-        $shared_user_dob = $this->formatDate($user_data['shared_info']['user_dob'] ?? '');
+        $shared_user_dob = $this->format_date($user_data['shared_info']['user_dob'] ?? '');
 
         // Tags
         $tag_names = $user_data['tags_and_notes_info']['tag_names'] ?? [];
@@ -239,7 +394,7 @@ class EC_Zalo_Contacts extends Basic
      * 
      * @return void
      */
-    public function syncDataFromContactsTable() {
+    public function sync_data_from_contacts_table() {
         global $current_user;
         if($current_user->id != '1') return;
 
@@ -291,7 +446,7 @@ class EC_Zalo_Contacts extends Basic
      * @param string $format
      * @return string
      */
-    protected function formatDate($dateStr, $format = 'd-m-Y') {
+    protected function format_date($dateStr, $format = 'd-m-Y') {
         if(!is_string($dateStr) || strlen($dateStr) < 10) return $dateStr;
 
         $str = str_replace("/", "-", $dateStr);
@@ -306,7 +461,7 @@ class EC_Zalo_Contacts extends Basic
      * @param string $format
      * @return string
      */
-    protected function formatDatetime($dateStr, $format = 'd-m-Y H:i:s') {
+    public function format_datetime($dateStr, $format = 'd-m-Y H:i:s') {
         if(!is_string($dateStr) || strlen($dateStr) < 10) return $dateStr;
 
         $str = str_replace("/", "-", $dateStr);
