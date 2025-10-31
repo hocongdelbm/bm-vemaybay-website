@@ -58,13 +58,12 @@ class EC_Zalo_Contacts extends Basic
      * @param string $oa_id
      * @param bool $check_quota
      * 
-     * @return array
+     * @return array User data
      */
     public function get_zalo_user_info($zalo_id, $oa_id = '', $check_quota = false) {
         if(!$zalo_id || strlen($zalo_id) < 15) return [];
 
-        global $current_user;
-        $zaloOA = new APIZaloOA();
+        $zaloOA = new APIZaloOA($oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id(); 
         $userData = [];
 
@@ -176,7 +175,7 @@ class EC_Zalo_Contacts extends Basic
         $zalo_id = $user_data['user_id'] ?? '';
         if(empty($zalo_id)) return false;
 
-        $zaloOA = new APIZaloOA();
+        $zaloOA = new APIZaloOA($oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
 
         $user_external_id = $user_data['user_external_id'] ?? '';

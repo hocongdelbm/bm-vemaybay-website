@@ -14,7 +14,7 @@ class APIZaloOA {
         global $sugar_config;
         $this->template_path    = "custom/json_files/zalo_oa/templates.json";
         $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
-        $this->oa_id            = !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['default_oa_id'] ?? '';
+        $this->oa_id            = is_string($oa_id) && !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['oa_id'] ?? '';
         // App info
         $this->app_id           = $sugar_config['zalo_config']['app_id'] ?? '';
         $this->app_secret       = $sugar_config['zalo_config']['app_secret'] ?? '';
@@ -112,7 +112,7 @@ class APIZaloOA {
         $json = $this->send_request("POST", $url, $requestBody, $header, $curlOptions);
 
         $arr = json_decode($json, true);
-        if(isset($arr['access_token']) && !empty($arr['access_token'])) $this->save_token($json);
+        if($arr && isset($arr['access_token']) && !empty($arr['access_token'])) $this->save_token($json);
         else $this->save_token($json, true);
 
         return $json;
@@ -127,8 +127,17 @@ class APIZaloOA {
     public function get_token($type = "access") {
         global $db;
 
-        $api_oauth_info = $db->getOne("SELECT api_oauth_info FROM ec_zalo WHERE id = '{$this->oa_id}' AND deleted = 0");
-        $arr = json_decode($api_oauth_info, true);
+        $arr = [];
+
+        // Use cache
+        if(isset($_SESSION) && isset($_SESSION['api_oauth_info']) && !empty($_SESSION['api_oauth_info'])) {
+            $arr = $_SESSION['api_oauth_info'];
+        }
+        // Use query
+        else {
+            $api_oauth_info = $db->getOne("SELECT api_oauth_info FROM ec_zalo WHERE id = '{$this->oa_id}' AND deleted = 0");
+            $arr = json_decode($api_oauth_info, true);   
+        }
 
         $refresh_token = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
         $access_token = isset($arr['access_token']) ? $arr['access_token'] : '';
@@ -155,10 +164,14 @@ class APIZaloOA {
 
         if($raw) {
             $query = "UPDATE ec_zalo SET api_oauth_info = '{$json}' WHERE id = '{$this->oa_id}' AND deleted = 0";
+            if(isset($_SESSION) && isset($_SESSION['api_oauth_info'])) unset($_SESSION['api_oauth_info']);
             return $db->query($query);
         }
 
-        if(!$json || empty($json)) return false;
+        if(!$json || empty($json)) {
+            if(isset($_SESSION) && isset($_SESSION['api_oauth_info'])) unset($_SESSION['api_oauth_info']);
+            return false;
+        }
 
         $arr = json_decode($json, true);
         $api_oauth_info = [];
@@ -167,9 +180,12 @@ class APIZaloOA {
         $api_oauth_info['expires_in'] = isset($arr['expires_in']) ? $arr['expires_in'] : 90000; // Default 25h
         $api_oauth_info['expires_at'] = time() + $api_oauth_info['expires_in'];
         $api_oauth_info['expires_at_format'] = date('d-m-Y H:i:s', time() + $api_oauth_info['expires_in']);
-        $api_oauth_info = json_encode($api_oauth_info);
 
-        $query = "UPDATE ec_zalo SET api_oauth_info = '{$api_oauth_info}' WHERE id = '{$this->oa_id}' AND deleted = 0";
+        // Save cache
+        if(isset($_SESSION)) $_SESSION['api_oauth_info'] = $api_oauth_info;
+
+        // Save database
+        $query = "UPDATE ec_zalo SET api_oauth_info = '".json_encode($api_oauth_info)."' WHERE id = '{$this->oa_id}' AND deleted = 0";
         return $db->query($query);
     }
 

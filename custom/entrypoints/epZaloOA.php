@@ -8,248 +8,248 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $action = isset($_POST['action']) ? $_POST['action'] : "";
 
-    if($action == 'get_recent_messages') { // Version 2
-        $timestamp = isset($_POST['timestamp']) ? $_POST['timestamp'] : 0;
-        $current_list_user = isset($_POST['current_list_user']) && !empty($_POST['current_list_user']) ? array_unique(explode(',', $_POST['current_list_user'])) : []; // array
+    // if($action == 'get_recent_messages') { // Version 2
+    //     $timestamp = isset($_POST['timestamp']) ? $_POST['timestamp'] : 0;
+    //     $current_list_user = isset($_POST['current_list_user']) && !empty($_POST['current_list_user']) ? array_unique(explode(',', $_POST['current_list_user'])) : []; // array
 
-        $bean_zalo = new EC_Zalo();
-        $results = $bean_zalo->get_list_user($timestamp, $current_list_user);
-        echo json_encode($results);
-        exit();
-    }
-    elseif($action == 'get_messages') { // Version 2
-        $Zalo = new Zalo();
-        $bean_zalo = new EC_Zalo();
+    //     $bean_zalo = new EC_Zalo();
+    //     $results = $bean_zalo->get_list_user($timestamp, $current_list_user);
+    //     echo json_encode($results);
+    //     exit();
+    // }
+    // if($action == 'get_messages') { // Version 2
+    //     $Zalo = new Zalo();
+    //     $bean_zalo = new EC_Zalo();
 
-        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
-        $offset  = isset($_POST['offset']) ? $_POST['offset'] : 0;
-        $is_get_user_info = isset($_POST['is_get_user_info']) ? (int)$_POST['is_get_user_info'] : 1;
-        $result = [];
+    //     $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+    //     $offset  = isset($_POST['offset']) ? $_POST['offset'] : 0;
+    //     $is_get_user_info = isset($_POST['is_get_user_info']) ? (int)$_POST['is_get_user_info'] : 1;
+    //     $result = [];
 
-        // User info
-        if($is_get_user_info == 1) {
-            $user_data = $bean_zalo->get_zalo_user_info($zalo_id);
-            $result['user_info']['data'] = $user_data;
-            $result['user_info']['error'] = !empty($user_data) ? 0 : 1;
-        }
-        else $user_data = json_decode(urldecode(base64_decode(trim($_POST['user_info'] ?? ''))), true);
+    //     // User info
+    //     if($is_get_user_info == 1) {
+    //         $user_data = $bean_zalo->get_zalo_user_info($zalo_id);
+    //         $result['user_info']['data'] = $user_data;
+    //         $result['user_info']['error'] = !empty($user_data) ? 0 : 1;
+    //     }
+    //     else $user_data = json_decode(urldecode(base64_decode(trim($_POST['user_info'] ?? ''))), true);
 
-        // Message info
-        $zalo_phone = $user_data['shared_info']['phone'] ?? '';
-        $message_data = [];
-        $is_using_api_for_message = false;
-        $sql = "SELECT zm.message_id
-                ,zm.description AS message 
-                ,zm.src
-                ,zm.from_id
-                ,zm.to_id
-                ,zm.timestamp
-                ,zm.type AS message_type
-                ,zm.sub_type AS type
-                ,zm.thumbnail
-                ,zm.url
-                ,zm.attached_description AS description
-                ,zm.latitude
-                ,zm.longitude
-                ,zm.quote_message_id AS quote_id
-                ,zm.template_id
-                ,zm.data AS message_data
-                ,zm.assigned_user_id
-                ,TRIM(CONCAT(IFNULL(u.last_name, ''), ' ', IFNULL(u.first_name, ''))) AS assigned_user_name 
-                ,u.photo
-            FROM ec_zalo_messages zm
-                LEFT JOIN users u ON u.id = zm.assigned_user_id
-            WHERE (zm.from_id = '$zalo_id' OR zm.to_id = '$zalo_id' OR zm.to_id = '$zalo_phone')
-                AND zm.deleted = 0
-            ORDER BY zm.timestamp DESC
-            LIMIT $offset, $bean_zalo->limit_message";
+    //     // Message info
+    //     $zalo_phone = $user_data['shared_info']['phone'] ?? '';
+    //     $message_data = [];
+    //     $is_using_api_for_message = false;
+    //     $sql = "SELECT zm.message_id
+    //             ,zm.description AS message 
+    //             ,zm.src
+    //             ,zm.from_id
+    //             ,zm.to_id
+    //             ,zm.timestamp
+    //             ,zm.type AS message_type
+    //             ,zm.sub_type AS type
+    //             ,zm.thumbnail
+    //             ,zm.url
+    //             ,zm.attached_description AS description
+    //             ,zm.latitude
+    //             ,zm.longitude
+    //             ,zm.quote_message_id AS quote_id
+    //             ,zm.template_id
+    //             ,zm.data AS message_data
+    //             ,zm.assigned_user_id
+    //             ,TRIM(CONCAT(IFNULL(u.last_name, ''), ' ', IFNULL(u.first_name, ''))) AS assigned_user_name 
+    //             ,u.photo
+    //         FROM ec_zalo_messages zm
+    //             LEFT JOIN users u ON u.id = zm.assigned_user_id
+    //         WHERE (zm.from_id = '$zalo_id' OR zm.to_id = '$zalo_id' OR zm.to_id = '$zalo_phone')
+    //             AND zm.deleted = 0
+    //         ORDER BY zm.timestamp DESC
+    //         LIMIT $offset, $bean_zalo->limit_message";
 
-        $res = $db->query($sql);
-        while($row = $db->fetchByAssoc($res)) {
-            $row['src'] = (int)$row['src'];
-            $row['message_data'] = !empty($row['message_data']) ? json_decode(html_entity_decode($row['message_data']), true) : [];
-            if($row['type'] == 'business_card') $row['description'] = html_entity_decode($row['description']);
+    //     $res = $db->query($sql);
+    //     while($row = $db->fetchByAssoc($res)) {
+    //         $row['src'] = (int)$row['src'];
+    //         $row['message_data'] = !empty($row['message_data']) ? json_decode(html_entity_decode($row['message_data']), true) : [];
+    //         if($row['type'] == 'business_card') $row['description'] = html_entity_decode($row['description']);
 
-            // Handle quote message data
-            if($row['quote_id'] && !empty($row['quote_id'])) {
-                $row['quote_data'] = $bean_zalo->get_quote_message_data($row['quote_id']);
-            }
+    //         // Handle quote message data
+    //         if($row['quote_id'] && !empty($row['quote_id'])) {
+    //             $row['quote_data'] = $bean_zalo->get_quote_message_data($row['quote_id']);
+    //         }
 
-            // Handle avatar assigned user (admin)
-            $row['assigned_user_avatar'] = '';
-            if($row['src'] == 0 && $row['photo'] && !empty($row['photo']) && !empty($row['assigned_user_id'])) {
-                $row['assigned_user_avatar'] = "index.php?entryPoint=download&id=".$row['assigned_user_id']."_photo&type=Users";
-            }
-            unset($row['photo']);
+    //         // Handle avatar assigned user (admin)
+    //         $row['assigned_user_avatar'] = '';
+    //         if($row['src'] == 0 && $row['photo'] && !empty($row['photo']) && !empty($row['assigned_user_id'])) {
+    //             $row['assigned_user_avatar'] = "index.php?entryPoint=download&id=".$row['assigned_user_id']."_photo&type=Users";
+    //         }
+    //         unset($row['photo']);
 
-            // Format by message type
-            if($row['message_type'] == 'zns') {
-                unset($row['thumbnail']);
-                unset($row['url']);
-                unset($row['description']);
-                unset($row['latitude']);
-                unset($row['longitude']);
-                unset($row['quote_id']);
-            }
-            else if($row['message_type'] == 'call') {
-                $row['type'] = $GLOBALS['app_list_strings']['calls_direction_list'][$row['type']] ?? $row['type'];
+    //         // Format by message type
+    //         if($row['message_type'] == 'zns') {
+    //             unset($row['thumbnail']);
+    //             unset($row['url']);
+    //             unset($row['description']);
+    //             unset($row['latitude']);
+    //             unset($row['longitude']);
+    //             unset($row['quote_id']);
+    //         }
+    //         else if($row['message_type'] == 'call') {
+    //             $row['type'] = $GLOBALS['app_list_strings']['calls_direction_list'][$row['type']] ?? $row['type'];
 
-                unset($row['thumbnail']);
-                unset($row['url']);
-                unset($row['description']);
-                unset($row['latitude']);
-                unset($row['longitude']);
-                unset($row['quote_id']);
-                unset($row['template_id']);
-            }
+    //             unset($row['thumbnail']);
+    //             unset($row['url']);
+    //             unset($row['description']);
+    //             unset($row['latitude']);
+    //             unset($row['longitude']);
+    //             unset($row['quote_id']);
+    //             unset($row['template_id']);
+    //         }
 
-            $message_data[] = $row;
-        }
-        if(empty($message_data)) {
-            $json_messages = $Zalo->get_messages($zalo_id, $offset + 1); // +1 for offset in get more message
-            $arr_messages = json_decode($json_messages, true);
+    //         $message_data[] = $row;
+    //     }
+    //     if(empty($message_data)) {
+    //         $json_messages = $Zalo->get_messages($zalo_id, $offset + 1); // +1 for offset in get more message
+    //         $arr_messages = json_decode($json_messages, true);
 
-            if(isset($arr_messages['error']) && $arr_messages['error'] == 0) {
-                $is_using_api_for_message = true;
-                $result['messages_info']['error'] = 0;
+    //         if(isset($arr_messages['error']) && $arr_messages['error'] == 0) {
+    //             $is_using_api_for_message = true;
+    //             $result['messages_info']['error'] = 0;
 
-                // Format data again
-                foreach($arr_messages['data'] as $m) {
-                    if($m['type'] == 'links') $m['message_data'] = $m['links'];
+    //             // Format data again
+    //             foreach($arr_messages['data'] as $m) {
+    //                 if($m['type'] == 'links') $m['message_data'] = $m['links'];
 
-                    $result['messages_info']['data'][] = $m;
-                }
-                $result['messages_info']['offset'] = count($result['messages_info']['data']) + $offset;
-            }
-            else {
-                $is_using_api_for_message = false;
-                $result['messages_info']['error'] = 1;
-                $result['messages_info']['data'] = [];
-            }
-        }
-        else {
-            $count_message_data = count($message_data);
-            $result['messages_info']['error']   = 0;
-            $result['messages_info']['data']    = $message_data;
-            $result['messages_info']['offset']  = $count_message_data == $bean_zalo->limit_message ? count($message_data) + $offset : -1;
-        }
+    //                 $result['messages_info']['data'][] = $m;
+    //             }
+    //             $result['messages_info']['offset'] = count($result['messages_info']['data']) + $offset;
+    //         }
+    //         else {
+    //             $is_using_api_for_message = false;
+    //             $result['messages_info']['error'] = 1;
+    //             $result['messages_info']['data'] = [];
+    //         }
+    //     }
+    //     else {
+    //         $count_message_data = count($message_data);
+    //         $result['messages_info']['error']   = 0;
+    //         $result['messages_info']['data']    = $message_data;
+    //         $result['messages_info']['offset']  = $count_message_data == $bean_zalo->limit_message ? count($message_data) + $offset : -1;
+    //     }
 
-        // Quota info
-        $json_quota = $Zalo->get_quota_user($zalo_id);
-        $arr_quota  = json_decode($json_quota, true);
-        if(isset($arr_quota['error']) && $arr_quota['error'] == 0) {
-            $result['quota_info'] = $arr_quota['data'];
-            $last_interaction = (int)$result['quota_info']['last_interaction'] / 1000; // Timestamp in seconds
-            $time_check = (time() - $last_interaction) / 3600 / 24;
+    //     // Quota info
+    //     $json_quota = $Zalo->get_quota_user($zalo_id);
+    //     $arr_quota  = json_decode($json_quota, true);
+    //     if(isset($arr_quota['error']) && $arr_quota['error'] == 0) {
+    //         $result['quota_info'] = $arr_quota['data'];
+    //         $last_interaction = (int)$result['quota_info']['last_interaction'] / 1000; // Timestamp in seconds
+    //         $time_check = (time() - $last_interaction) / 3600 / 24;
 
-            if($result['quota_info']['cs_reply']['remain'] == 0 && $time_check < 7) {
-                $json_quota_oa = $Zalo->get_quota_oa();
-                $arr_quota_oa  = json_decode($json_quota_oa, true);
-                if(isset($arr_quota_oa['error']) && $arr_quota_oa['error'] == 0) {
-                    $result['quota_info']['oa_cs'] = $arr_quota_oa['data'][0]['remain'];
-                }
-            }
-        }
+    //         if($result['quota_info']['cs_reply']['remain'] == 0 && $time_check < 7) {
+    //             $json_quota_oa = $Zalo->get_quota_oa();
+    //             $arr_quota_oa  = json_decode($json_quota_oa, true);
+    //             if(isset($arr_quota_oa['error']) && $arr_quota_oa['error'] == 0) {
+    //                 $result['quota_info']['oa_cs'] = $arr_quota_oa['data'][0]['remain'];
+    //             }
+    //         }
+    //     }
 
-        echo json_encode($result);
+    //     echo json_encode($result);
 
-        // Save previous message
-        try {
-            if($is_using_api_for_message) {
-                foreach($arr_messages['data'] as $m) {
-                    $message_id = $m['message_id'] ?? '';
-                    if(empty($message_id)) continue;
+    //     // Save previous message
+    //     try {
+    //         if($is_using_api_for_message) {
+    //             foreach($arr_messages['data'] as $m) {
+    //                 $message_id = $m['message_id'] ?? '';
+    //                 if(empty($message_id)) continue;
     
-                    $record_id = $db->getOne("SELECT id FROM ec_zalo_messages WHERE message_id = '$message_id'");
-                    if(!$record_id || empty($record_id)) {
-                        $mdata = [];
+    //                 $record_id = $db->getOne("SELECT id FROM ec_zalo_messages WHERE message_id = '$message_id'");
+    //                 if(!$record_id || empty($record_id)) {
+    //                     $mdata = [];
 
-                        // Handle type
-                        $subtype = '';
-                        $mtype = $m['type'] ?? '';
-                        if($mtype == 'text') {
-                            $mtype = 'consultation';
-                            $subtype = 'text';
-                        }
-                        else if($mtype == 'photo' || $mtype == 'image') {
-                            $mtype = 'consultation';
-                            $subtype = 'image';
-                        }
-                        else if($mtype == 'voice' || $mtype == 'audio') {
-                            $subtype = 'audio';
-                            $mtype = 'consultation';
-                        }
-                        else if (in_array($mtype, ['gif', 'sticker', 'video', 'file', 'location', 'link', 'links'])) {
-                            $subtype = $mtype;
-                            $mtype = 'consultation';
+    //                     // Handle type
+    //                     $subtype = '';
+    //                     $mtype = $m['type'] ?? '';
+    //                     if($mtype == 'text') {
+    //                         $mtype = 'consultation';
+    //                         $subtype = 'text';
+    //                     }
+    //                     else if($mtype == 'photo' || $mtype == 'image') {
+    //                         $mtype = 'consultation';
+    //                         $subtype = 'image';
+    //                     }
+    //                     else if($mtype == 'voice' || $mtype == 'audio') {
+    //                         $subtype = 'audio';
+    //                         $mtype = 'consultation';
+    //                     }
+    //                     else if (in_array($mtype, ['gif', 'sticker', 'video', 'file', 'location', 'link', 'links'])) {
+    //                         $subtype = $mtype;
+    //                         $mtype = 'consultation';
 
-                            if($subtype == 'links') {
-                                foreach($m['links'] as $link) {
-                                    $mdata[] = [
-                                        'title' => $link['title'],
-                                        'url' => $link['url'],
-                                        'thumbnail' => $link['thumb'],
-                                        'description' => $link['description']
-                                    ];
-                                }
-                            }
-                        }
-                        else {
-                            $mtype = 'other';
-                            $subtype = 'nosupport';
-                        }
+    //                         if($subtype == 'links') {
+    //                             foreach($m['links'] as $link) {
+    //                                 $mdata[] = [
+    //                                     'title' => $link['title'],
+    //                                     'url' => $link['url'],
+    //                                     'thumbnail' => $link['thumb'],
+    //                                     'description' => $link['description']
+    //                                 ];
+    //                             }
+    //                         }
+    //                     }
+    //                     else {
+    //                         $mtype = 'other';
+    //                         $subtype = 'nosupport';
+    //                     }
     
-                        // Location info
-                        $lat = $long = '';
-                        if(isset($m['location'])) {
-                            $location = is_string($m['location']) ? json_decode($m['location'], true) : $m['location'];
-                            $lat = $location['latitude'] ?? ''; 
-                            $long = $location['longitude '] ?? ''; 
-                        }
+    //                     // Location info
+    //                     $lat = $long = '';
+    //                     if(isset($m['location'])) {
+    //                         $location = is_string($m['location']) ? json_decode($m['location'], true) : $m['location'];
+    //                         $lat = $location['latitude'] ?? ''; 
+    //                         $long = $location['longitude '] ?? ''; 
+    //                     }
     
-                        $zalomes = new EC_Zalo_Messages();
-                        $zalomes->id = '';
-                        $zalomes->message_id = $message_id;
-                        $zalomes->src = $m['src'] ?? '';
-                        $zalomes->from_id = $m['from_id'] ?? '';
-                        $zalomes->to_id = $m['to_id'] ?? '';
-                        $zalomes->timestamp = $m['time'] ?? 0;
-                        $zalomes->type = $mtype;
-                        $zalomes->sub_type = $subtype;
-                        $zalomes->description = $m['message'] ?? '';
-                        $zalomes->thumbnail = $m['thumb'] ?? '';
-                        $zalomes->url = $m['url'] ?? '';
-                        $zalomes->attached_description = $m['description'] ?? '';
-                        $zalomes->latitude = $lat;
-                        $zalomes->longitude = $long;
-                        $zalomes->quote_message_id = $m['quote_id'] ?? '';
-                        $zalomes->data = json_encode($mdata);
-                        $zalomes->response = json_encode($m);
-                        $zalomes->date_entered  = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
-                        $zalomes->date_modified = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
-                        $zalomes->name = 'Resaved';
-                        $zalomes->save();
-                    }
-                }
-            }
-        }
-        catch(Exception $e) {}
-        finally {
-            exit();
-        }
-    }
-    elseif($action == 'get_user_info') { // Version 2
-        $bean_zalo = new EC_Zalo();
-        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+    //                     $zalomes = new EC_Zalo_Messages();
+    //                     $zalomes->id = '';
+    //                     $zalomes->message_id = $message_id;
+    //                     $zalomes->src = $m['src'] ?? '';
+    //                     $zalomes->from_id = $m['from_id'] ?? '';
+    //                     $zalomes->to_id = $m['to_id'] ?? '';
+    //                     $zalomes->timestamp = $m['time'] ?? 0;
+    //                     $zalomes->type = $mtype;
+    //                     $zalomes->sub_type = $subtype;
+    //                     $zalomes->description = $m['message'] ?? '';
+    //                     $zalomes->thumbnail = $m['thumb'] ?? '';
+    //                     $zalomes->url = $m['url'] ?? '';
+    //                     $zalomes->attached_description = $m['description'] ?? '';
+    //                     $zalomes->latitude = $lat;
+    //                     $zalomes->longitude = $long;
+    //                     $zalomes->quote_message_id = $m['quote_id'] ?? '';
+    //                     $zalomes->data = json_encode($mdata);
+    //                     $zalomes->response = json_encode($m);
+    //                     $zalomes->date_entered  = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
+    //                     $zalomes->date_modified = date('Y:m:d H:i:s', (int)($zalomes->timestamp / 1000));
+    //                     $zalomes->name = 'Resaved';
+    //                     $zalomes->save();
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     catch(Exception $e) {}
+    //     finally {
+    //         exit();
+    //     }
+    // }
+    // elseif($action == 'get_user_info') { // Version 2
+    //     $bean_zalo = new EC_Zalo();
+    //     $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
 
-        $user_data = $bean_zalo->get_zalo_user_info($zalo_id);
-        $result['data'] = $user_data;
-        $result['error'] = !empty($user_data) ? 0 : 1;
+    //     $user_data = $bean_zalo->get_zalo_user_info($zalo_id);
+    //     $result['data'] = $user_data;
+    //     $result['error'] = !empty($user_data) ? 0 : 1;
 
-        echo json_encode($result);
-        exit();
-    }
-    elseif($action == 'get_list_user') { // Version 2
+    //     echo json_encode($result);
+    //     exit();
+    // }
+    if($action == 'get_list_user') { // Version 2
         $Zalo = new Zalo();
         $offset                     = isset($_POST['offset']) ? $_POST['offset'] : 0;
         $count                      = isset($_POST['count']) ? $_POST['count'] : 50;
@@ -328,166 +328,166 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo json_encode(["error" => 1, "message" => "Not found", "response" => $arr]);
         exit();
     }
-    elseif($action == 'send_message') { // Version 2
-        $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
-        $type    = isset($_POST['type']) ? $_POST['type'] : "text";
-        $data    = ['text' => isset($_POST['text']) ? $_POST['text'] : ""];
+    // elseif($action == 'send_message') { // Version 2
+    //     $zalo_id = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
+    //     $type    = isset($_POST['type']) ? $_POST['type'] : "text";
+    //     $data    = ['text' => isset($_POST['text']) ? $_POST['text'] : ""];
 
-        if(empty($zalo_id) || empty($type)) {
-            echo json_encode([
-                "error" => 1,
-                "message" => "Dữ liệu không hợp lệ",
-                "data" => ["zalo_id" => $zalo_id, "type" => $type]
-            ]);
-            exit();
-        }
+    //     if(empty($zalo_id) || empty($type)) {
+    //         echo json_encode([
+    //             "error" => 1,
+    //             "message" => "Dữ liệu không hợp lệ",
+    //             "data" => ["zalo_id" => $zalo_id, "type" => $type]
+    //         ]);
+    //         exit();
+    //     }
 
-        $Zalo = new Zalo();
+    //     $Zalo = new Zalo();
 
-        // Prepare body request (data)
-        if ($type == 'image') {
-            // Upload
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-                $image_name = $_FILES['image']['name']; // name.ext
-                $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
+    //     // Prepare body request (data)
+    //     if ($type == 'image') {
+    //         // Upload
+    //         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    //             $image_name = $_FILES['image']['name']; // name.ext
+    //             $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
     
-                // Check extension
-                if(!in_array($ext, $Zalo->get_file_extension('image'))) {
-                    echo json_encode([
-                        "error" => 1,
-                        "message" => "Không hỗ trợ định dạng $ext",
-                        "description" => "Chỉ hỗ trợ định dạng " . implode(',', $Zalo->get_file_extension('image'))
-                    ]);
-                    exit();
-                }
+    //             // Check extension
+    //             if(!in_array($ext, $Zalo->get_file_extension('image'))) {
+    //                 echo json_encode([
+    //                     "error" => 1,
+    //                     "message" => "Không hỗ trợ định dạng $ext",
+    //                     "description" => "Chỉ hỗ trợ định dạng " . implode(',', $Zalo->get_file_extension('image'))
+    //                 ]);
+    //                 exit();
+    //             }
     
-                // Check size
-                if($ext == 'gif' && $_FILES["image"]["size"] > 5000000) {
-                    echo json_encode([
-                        "error" => 1,
-                        "message" => "Dung lượng ảnh quá lớn",
-                        "description" => "Dung lượng tối đa 5MB cho định dạng .gif"
-                    ]);
-                    exit();
-                }
-                elseif($ext != 'gif' && $_FILES["image"]["size"] > 1000000) {
-                    echo json_encode([
-                        "error" => 1,
-                        "message" => "Dung lượng ảnh quá lớn",
-                        "description" => "Dung lượng tối đa 1MB cho định dạng jpg, png"
-                    ]);
-                    exit();
-                }
+    //             // Check size
+    //             if($ext == 'gif' && $_FILES["image"]["size"] > 5000000) {
+    //                 echo json_encode([
+    //                     "error" => 1,
+    //                     "message" => "Dung lượng ảnh quá lớn",
+    //                     "description" => "Dung lượng tối đa 5MB cho định dạng .gif"
+    //                 ]);
+    //                 exit();
+    //             }
+    //             elseif($ext != 'gif' && $_FILES["image"]["size"] > 1000000) {
+    //                 echo json_encode([
+    //                     "error" => 1,
+    //                     "message" => "Dung lượng ảnh quá lớn",
+    //                     "description" => "Dung lượng tối đa 1MB cho định dạng jpg, png"
+    //                 ]);
+    //                 exit();
+    //             }
                 
-                $json_upload = $Zalo->upload($_FILES['image']['tmp_name'], $ext, $image_name);
-                $arr_upload = json_decode($json_upload, true);
+    //             $json_upload = $Zalo->upload($_FILES['image']['tmp_name'], $ext, $image_name);
+    //             $arr_upload = json_decode($json_upload, true);
                 
-                if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
-                    $attachment_id = isset($arr_upload['data']['attachment_id']) ? $arr_upload['data']['attachment_id'] : '';
-                    $data['element'] = [
-                        "media_type" => $ext == 'gif' ? 'gif' : 'image',
-                        "attachment_id" => $attachment_id
-                    ];
-                }
-                else {
-                    echo json_encode([
-                        'error' => 1,
-                        'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
-                        'data' => $arr_upload
-                    ]);
-                    exit();
-                }
-            }
-            else {
-                echo json_encode([
-                    'error' => 1,
-                    'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
-                    'data' => $_FILES
-                ]);
-                exit();
-            }
-        }
-        elseif ($type == 'file') {
-            // Upload
-            if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-                $file_name = $_FILES['file']['name']; // name.ext
-                $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+    //             if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
+    //                 $attachment_id = isset($arr_upload['data']['attachment_id']) ? $arr_upload['data']['attachment_id'] : '';
+    //                 $data['element'] = [
+    //                     "media_type" => $ext == 'gif' ? 'gif' : 'image',
+    //                     "attachment_id" => $attachment_id
+    //                 ];
+    //             }
+    //             else {
+    //                 echo json_encode([
+    //                     'error' => 1,
+    //                     'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
+    //                     'data' => $arr_upload
+    //                 ]);
+    //                 exit();
+    //             }
+    //         }
+    //         else {
+    //             echo json_encode([
+    //                 'error' => 1,
+    //                 'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
+    //                 'data' => $_FILES
+    //             ]);
+    //             exit();
+    //         }
+    //     }
+    //     elseif ($type == 'file') {
+    //         // Upload
+    //         if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+    //             $file_name = $_FILES['file']['name']; // name.ext
+    //             $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
     
-                // Check extension
-                if(!in_array($ext, $Zalo->get_file_extension('file'))) {
-                    echo json_encode([
-                        "error" => 1,
-                        "message" => "Không hỗ trợ định dạng $ext",
-                        "description" => "Các định dạng hỗ trợ: ". implode(', ', $Zalo->get_file_extension('file'))
-                    ]);
-                    exit();
-                }
+    //             // Check extension
+    //             if(!in_array($ext, $Zalo->get_file_extension('file'))) {
+    //                 echo json_encode([
+    //                     "error" => 1,
+    //                     "message" => "Không hỗ trợ định dạng $ext",
+    //                     "description" => "Các định dạng hỗ trợ: ". implode(', ', $Zalo->get_file_extension('file'))
+    //                 ]);
+    //                 exit();
+    //             }
     
-                // Check size
-                if($_FILES["file"]["size"] > 5000000) {
-                    echo json_encode([
-                        "error" => 1,
-                        "message" => "Dung lượng file quá lớn",
-                        "description" => "Tối đa 5MB"
-                    ]);
-                    exit();
-                }
+    //             // Check size
+    //             if($_FILES["file"]["size"] > 5000000) {
+    //                 echo json_encode([
+    //                     "error" => 1,
+    //                     "message" => "Dung lượng file quá lớn",
+    //                     "description" => "Tối đa 5MB"
+    //                 ]);
+    //                 exit();
+    //             }
                 
-                $json_upload = $Zalo->upload($_FILES["file"]["tmp_name"], $ext, $file_name);
-                $arr_upload = json_decode($json_upload, true);
+    //             $json_upload = $Zalo->upload($_FILES["file"]["tmp_name"], $ext, $file_name);
+    //             $arr_upload = json_decode($json_upload, true);
                 
-                if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
-                    $data['token'] = isset($arr_upload['data']['token']) ? $arr_upload['data']['token'] : '';
-                }
-                else {
-                    echo json_encode([
-                        'error' => 1,
-                        'message' => 'Gửi file thất bại, vui lòng thử lại',
-                        'data' => $arr_upload
-                    ]);
-                    exit();
-                }
-            }
-            else {
-                echo json_encode([
-                    'error' => 1,
-                    'message' => 'Gửi file thất bại, vui lòng thử lại',
-                    'data' => $_FILES
-                ]);
-                exit();
-            }
-        }
-        elseif ($type == 'request_user_info') {
-            $data['element'] = $Zalo->get_template($type);
-        }
+    //             if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
+    //                 $data['token'] = isset($arr_upload['data']['token']) ? $arr_upload['data']['token'] : '';
+    //             }
+    //             else {
+    //                 echo json_encode([
+    //                     'error' => 1,
+    //                     'message' => 'Gửi file thất bại, vui lòng thử lại',
+    //                     'data' => $arr_upload
+    //                 ]);
+    //                 exit();
+    //             }
+    //         }
+    //         else {
+    //             echo json_encode([
+    //                 'error' => 1,
+    //                 'message' => 'Gửi file thất bại, vui lòng thử lại',
+    //                 'data' => $_FILES
+    //             ]);
+    //             exit();
+    //         }
+    //     }
+    //     elseif ($type == 'request_user_info') {
+    //         $data['element'] = $Zalo->get_template($type);
+    //     }
 
-        // Tin nhắn text reply
-        if(isset($_POST['quote_message_id'])) $data['quote_message_id'] = $_POST['quote_message_id'];
+    //     // Tin nhắn text reply
+    //     if(isset($_POST['quote_message_id'])) $data['quote_message_id'] = $_POST['quote_message_id'];
 
-        // Send
-        $json_message = $Zalo->send_consultation($type, $zalo_id, $data);
-        $arr_message = json_decode($json_message, true);
+    //     // Send
+    //     $json_message = $Zalo->send_consultation($type, $zalo_id, $data);
+    //     $arr_message = json_decode($json_message, true);
 
-        if(isset($arr_message['error']) && $arr_message['error'] == 0) {
-            $zalomes = new EC_Zalo_Messages();
-            $zalomes->id = '';
-            $zalomes->message_id        = $arr_message['data']['message_id'] ?? '';
-            $zalomes->src               = 0;
-            $zalomes->from_id           = $Zalo->get_oa_id();
-            $zalomes->to_id             = $zalo_id;
-            $zalomes->timestamp         = round(microtime(true) * 1000); // Milliseconds
-            $zalomes->type              = 'consultation';
-            $zalomes->sub_type          = $type == 'image' ? ($ext == 'gif' ? 'gif' : 'image') : $type;
-            $zalomes->description       = $data['text'] ?? '';
-            $zalomes->quote_message_id  = $data['quote_message_id'] ?? '';
-            $zalomes->response          = trim($json_message);
-            $zalomes->assigned_user_id  = $current_user->id;
-            $zalomes->save();
-        }
+    //     if(isset($arr_message['error']) && $arr_message['error'] == 0) {
+    //         $zalomes = new EC_Zalo_Messages();
+    //         $zalomes->id = '';
+    //         $zalomes->message_id        = $arr_message['data']['message_id'] ?? '';
+    //         $zalomes->src               = 0;
+    //         $zalomes->from_id           = $Zalo->get_oa_id();
+    //         $zalomes->to_id             = $zalo_id;
+    //         $zalomes->timestamp         = round(microtime(true) * 1000); // Milliseconds
+    //         $zalomes->type              = 'consultation';
+    //         $zalomes->sub_type          = $type == 'image' ? ($ext == 'gif' ? 'gif' : 'image') : $type;
+    //         $zalomes->description       = $data['text'] ?? '';
+    //         $zalomes->quote_message_id  = $data['quote_message_id'] ?? '';
+    //         $zalomes->response          = trim($json_message);
+    //         $zalomes->assigned_user_id  = $current_user->id;
+    //         $zalomes->save();
+    //     }
 
-        echo $json_message;
-        exit();
-    }
+    //     echo $json_message;
+    //     exit();
+    // }
     // elseif($action == 'send_zns') { // Version 2
     //     $phone          = isset($_POST['phone']) ? $_POST['phone'] : "";
     //     $type_zns       = isset($_POST['type_zns']) ? $_POST['type_zns'] : "";
@@ -784,71 +784,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 exit();
             }
         }
-        exit();
-    }
-    elseif($action == 'save_contact') { // Not used
-        echo json_encode([
-            "error" => 1,
-            "message" => "Feature not available"
-        ]);
-        exit();
-
-        $zalo_id    = isset($_POST['zalo_id']) ? $_POST['zalo_id'] : "";
-        $phone      = isset($_POST['phone']) ? $_POST['phone'] : "";
-        $name       = isset($_POST['name']) ? $_POST['name'] : "";
-        $alias      = isset($_POST['alias']) ? $_POST['alias'] : "";
-        $city       = isset($_POST['city']) ? $_POST['city'] : "";
-        $district   = isset($_POST['district']) ? $_POST['district'] : "";
-        $address    = isset($_POST['address']) ? $_POST['address'] : "";
-        
-        if(empty($zalo_id)) {
-            echo json_encode([
-                "error" => 1,
-                "message" => "Không có dữ liệu để lưu",
-                "data" => [
-                    'zalo_id'   => $zalo_id,
-                    'phone'     => $phone,
-                    'name'      => $name,
-                    'alias'     => $alias,
-                    'city'      => $city,
-                    'district'  => $district,
-                    'address'   => $address,
-                ]
-            ]);
-            exit();
-        }
-
-        $Zalo = new Zalo();
-        if(empty($phone)) $phone = $Zalo->get_phone_by_alias($alias);
-
-        // Lấy thông tin liên hệ nếu đã tồn tại
-        $contact_id = $db->getOne("SELECT id FROM contacts WHERE zalo_id = '$zalo_id' AND deleted = 0 LIMIT 1");
-        if(strlen($phone) > 8 && (!$contact_id || empty($contact_id))) {
-            $contact_id = $db->getOne("SELECT id FROM contacts WHERE phone_mobile = '{$Zalo->unformat_zalo_phone($phone)}' AND deleted = 0 LIMIT 1");
-        }
-
-        // Lưu thông tin
-        $contact = new Contact();
-        if($contact_id && !empty($contact_id)) {
-            $contact->retrieve($contact_id);
-        }
-        else {
-            $contact->description = "Liên hệ tạo từ Zalo OA";
-            $contact->assigned_user_id = $current_user->id;
-        }
-        $contact->zalo_id = $zalo_id;
-        $contact->zalo_name = $alias ?? $name;
-        $contact->phone_mobile = $phone;
-        $contact->last_name = $name;
-        $contact->primary_address_city = $city;
-        $contact->primary_address_state = $district;
-        $contact->primary_address_street = $address;
-        $contact->save();
-
-        echo json_encode([
-            "error" => 0,
-            "message" => "Lưu thành công"
-        ]);
         exit();
     }
     elseif($action == 'search_contact') { // Version 2

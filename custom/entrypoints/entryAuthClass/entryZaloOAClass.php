@@ -8,26 +8,80 @@ require_once "custom/include/helpers/api/APIOMNI.php";
  */
 class entryZaloOAClass extends entryClass {
     /**
+     * Get zalo user info
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getUserInfo($params = []) {
+        $oa_id = $params["oa_id"] ?? "";
+        $zalo_id = $params["zalo_id"] ?? "";
+
+        $zaloContact = new EC_Zalo_Contacts();
+        $user_data = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+
+        return [
+            "status" => !empty($user_data) ? 1 : 0,
+            "message" => "",
+            "data" => $user_data
+        ];
+    }
+
+    /**
+     * Get list recent messages from each user
+     * 
+     * @param array $params
+     * @return array
+     */
+    public function getListRecentMessages($params = []) {
+        $oa_id = $params["oa_id"] ?? "";
+        $timestamp = $params['timestamp'] ?? 0;
+        $current_list_user = isset($params['current_list_user']) && !empty($params['current_list_user']) ? array_unique(explode(',', $params['current_list_user'])) : []; // array
+
+        $zaloMessage = new EC_Zalo_Messages();
+        $results = $zaloMessage->get_list_recent_messages($oa_id, $timestamp, $current_list_user);
+        $results['status'] == isset($results['data']) && !empty($results['data']) ? 1 : 0;
+        return $results;
+    }
+
+    /**
+     * Get messages of user
+     * 
+     * @param array $params
+     * @return array Not contain status key
+     */
+    public function getMessages($params = []) {
+        $oa_id = $params["oa_id"] ?? "";
+        $zalo_id = $params["zalo_id"] ?? "";
+        $zalo_phone = $params["zalo_phone"] ?? "";
+        $offset = (int)($params['offset'] ?? 0);
+        $is_get_user_info = (int)($params['is_get_user_info'] ?? 1);
+
+        $zaloMessage = new EC_Zalo_Messages();
+        return $zaloMessage->get_messages($oa_id, $zalo_id , $zalo_phone, $offset, $is_get_user_info);
+    }
+
+    /**
      * Send consultation message
      * 
      * @param array $params
      * @return array
      */
     public function sendMessage($params = []) {
+        $oa_id   = $params['oa_id'] ?? "";
         $zalo_id = $params['zalo_id'] ?? "";
         $type    = $params['type'] ?? "text";
         $data    = ['text' => $params['text'] ?? ""];
 
-        if(empty($zalo_id) || empty($type)) {
+        if(empty($zalo_id) || empty($oa_id) || empty($type)) {
             return [
-                "error" => 1,
+                "status" => 0,
                 "message" => "Dữ liệu không hợp lệ",
-                "data" => ["zalo_id" => $zalo_id, "type" => $type]
+                "data" => null
             ];
         }
 
-        $zalOA = new APIZaloOA();
-        $oa_id = $zalOA->get_oa_id();
+        $zalOA = new APIZaloOA($oa_id);
 
         // Prepare body request (data)
         if ($type == 'image') {
@@ -39,25 +93,28 @@ class entryZaloOAClass extends entryClass {
                 // Check extension
                 if(!in_array($ext, $zalOA->get_file_extension('image'))) {
                     return [
-                        "error" => 1,
+                        "status" => 0,
                         "message" => "Không hỗ trợ định dạng $ext",
-                        "description" => "Chỉ hỗ trợ định dạng " . implode(',', $zalOA->get_file_extension('image'))
+                        "description" => "Chỉ hỗ trợ định dạng " . implode(',', $zalOA->get_file_extension('image')),
+                        "data" => null,
                     ];
                 }
     
                 // Check size
                 if($ext == 'gif' && $_FILES["image"]["size"] > 5000000) {
                     return [
-                        "error" => 1,
+                        "status" => 0,
                         "message" => "Dung lượng ảnh quá lớn",
-                        "description" => "Dung lượng tối đa 5MB cho định dạng .gif"
+                        "description" => "Dung lượng tối đa 5MB cho định dạng .gif",
+                        "data" => null,
                     ];
                 }
                 elseif($ext != 'gif' && $_FILES["image"]["size"] > 1000000) {
                     return [
-                        "error" => 1,
+                        "status" => 0,
                         "message" => "Dung lượng ảnh quá lớn",
-                        "description" => "Dung lượng tối đa 1MB cho định dạng jpg, png"
+                        "description" => "Dung lượng tối đa 1MB cho định dạng jpg, png",
+                        "data" => null,
                     ];
                 }
                 
@@ -73,17 +130,19 @@ class entryZaloOAClass extends entryClass {
                 }
                 else {
                     return [
-                        'error' => 1,
-                        'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
-                        'data' => $arr_upload
+                        "status" => 0,
+                        "message" => "Gửi ảnh thất bại, vui lòng thử lại",
+                        "data" => null,
+                        "description" => $arr_upload,
                     ];
                 }
             }
             else {
                 return [
-                    'error' => 1,
-                    'message' => 'Gửi ảnh thất bại, vui lòng thử lại',
-                    'data' => $_FILES
+                    "status" => 0,
+                    "message" => "Gửi ảnh thất bại, vui lòng thử lại",
+                    "data" => null,
+                    "description" => $_FILES,
                 ];
             }
         }
@@ -96,8 +155,9 @@ class entryZaloOAClass extends entryClass {
                 // Check extension
                 if(!in_array($ext, $zalOA->get_file_extension('file'))) {
                     return [
-                        "error" => 1,
+                        "status" => 0,
                         "message" => "Không hỗ trợ định dạng $ext",
+                        "data" => null,
                         "description" => "Các định dạng hỗ trợ: ". implode(', ', $zalOA->get_file_extension('file'))
                     ];
                 }
@@ -105,9 +165,9 @@ class entryZaloOAClass extends entryClass {
                 // Check size
                 if($_FILES["file"]["size"] > 5000000) {
                     return [
-                        "error" => 1,
-                        "message" => "Dung lượng file quá lớn",
-                        "description" => "Tối đa 5MB"
+                        "status" => 0,
+                        "message" => "Dung lượng file tối đa 5MB",
+                        "data" => null,
                     ];
                 }
                 
@@ -119,17 +179,19 @@ class entryZaloOAClass extends entryClass {
                 }
                 else {
                     return [
-                        'error' => 1,
-                        'message' => 'Gửi file thất bại, vui lòng thử lại',
-                        'data' => $arr_upload
+                        "status" => 0,
+                        "message" => "Gửi file thất bại, vui lòng thử lại",
+                        "data" => null,
+                        "description" => $arr_upload
                     ];
                 }
             }
             else {
                 return [
-                    'error' => 1,
-                    'message' => 'Gửi file thất bại, vui lòng thử lại',
-                    'data' => $_FILES
+                    "status" => 0,
+                    "message" => "Gửi file thất bại, vui lòng thử lại",
+                    "data" => null,
+                    "description" => $_FILES
                 ];
             }
         }
@@ -239,6 +301,9 @@ class entryZaloOAClass extends entryClass {
             $zalomes->save();
         }
 
+        // Replace key error to status
+        $arr_message['status'] = !$arr_message['error'];
+        unset($arr_message['error']);
         return $arr_message;
     }
 
@@ -338,7 +403,10 @@ class entryZaloOAClass extends entryClass {
             return $arr;
         }
         catch(Throwable $th) {
-            return ["{$th->getMessage()} on line {$th->getLine()}"];
+            return [
+                "status" => 0,
+                "message" => "Exception error {$th->getMessage()} on line {$th->getLine()}"
+            ];
         }
     }
 }
