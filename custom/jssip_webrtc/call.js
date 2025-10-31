@@ -383,7 +383,7 @@ ua.on('newRTCSession', function (ev) {
         $('#template-notes').html(`
             <option value="">--Trống--</option>
             <option value="out_telesale_call">Telephone sale khách hàng</option>
-            <option value="out_confirm_ticket">Xác nhận thông tin, tư vấn</option>
+            <option value="out_confirm_consult">Xác nhận thông tin, tư vấn</option>
             <option value="out_customer_care">CSKH nhắc ngày giờ bay</option>
             <option value="out_no_subscriber_unreachable">Số thuê bao, không liên lạc</option>
             <option value="out_no_response">Không nghe máy, chưa nghe</option>
@@ -408,8 +408,7 @@ ua.on('newRTCSession', function (ev) {
                     audio_jssip.muted = false; // Sau khi phát, bật lại âm thanh
                 }).catch(error => console.warn("Không thể tự động phát âm thanh:", error));
             });
-        }
-        else {
+        } else {
             session._connection.ontrack = (e) => {
                 if (e.streams && e.streams[0]) {
                     audio_jssip.srcObject = e.streams[0];
@@ -477,18 +476,20 @@ $(document).ready(function () {
     // Nút gọi đi - Phone
     $(document).on('click', '.btn-voiceip-calling', function () {
         let id = $(this).attr('id');
-        let phone = '', call_id = '', zalo_id = '';
+        let phone = '', call_id = '';
         let booking_id = booking_name = type_call_booking = journey_id = '';
         let outbound_phone = $('#select-phone-outbound').val();
+        let type_call = '';
 
         // Gọi bằng numpad
         if (id == 'btn-voiceip-main-calling') {
             phone = $('#call_voiceip_main_number').val().trim();
-        } else if (id == 'btnCalled' || id == 'btnRecall' || 'btnRemind') {
+        } else if (['btnCalled','btnRecall','btnRemind'].includes(id)) {
             phone = $(this).attr('phone');
             booking_id = $(this).attr('booking_id');
             booking_name = $(this).attr('booking_name');
             type_call_booking = (id == 'btnCalled') ? 'called' : (id == 'btnRemind') ? 'remind' : 'recall';
+            type_call = (id == 'btnRemind' && booking_id.length > 0) ? 'out_customer_care' : 'out_confirm_consult';
             journey_id = $(this).attr('iti_id');
         } else if (id == 'listview-call_from' || id == 'listview-call_to') {
             phone = $(this).attr('phone');
@@ -497,6 +498,8 @@ $(document).ready(function () {
             phone = $(this).attr('call_to');
             call_id = $(this).attr('call_id');
         }
+
+        console.warn('type_call ', type_call);
 
         if (phone.length > 2 && phone != SIP_USER) {
             callOptions.extraHeaders = ['X-Caller: ' + outbound_phone]
@@ -523,6 +526,7 @@ $(document).ready(function () {
                         let email = data.email;
                         let zaloid = (data.zalo_id && data.zalo_id.length > 0) ? data.zalo_id : '';
                         let is_call_zalo = data.is_call_zalo ? data.is_call_zalo : false;
+                        let zalo_name = data.zalo_name ? data.zalo_name : '';
                         let is_uncomfortable = data.is_uncomfortable ? data.is_uncomfortable : false;
                         phone = (data.phone && data.phone.length > 0) ? data.phone : phone;
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
@@ -536,7 +540,7 @@ $(document).ready(function () {
                         $('input[name="voiceip-contact-id"]').val(contact_id);
 
                         $('#voiceip-name').val(name);
-                        $('#voiceip-info-name').html(name);
+                        $('#voiceip-info-name').html(is_call_zalo && zalo_name.length > 0 ? zalo_name : name);
 
                         if (email && email.length > 0) {
                             $('#voiceip-email').val(email);
@@ -551,6 +555,15 @@ $(document).ready(function () {
                             $('#voiceip-info-zaloid').html(zaloid);
                             display_avatar_zalo(avatar);
                         }
+
+                        setTimeout(function () {
+                            const $sel = $('#template-notes');
+                            if ($sel.find(`option[value="${type_call}"]`).length) {
+                                $sel.val(type_call).trigger('change');
+                            } else {
+                                $sel.val('').trigger('change');
+                            }
+                        }, 500);
 
                         if (is_uncomfortable) {
                             $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');

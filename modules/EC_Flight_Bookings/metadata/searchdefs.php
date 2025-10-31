@@ -276,6 +276,20 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'name' => 'ip_address',
             ),
+            'is_telesale' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_TELESALE',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_telesale',
+            ),
+            'is_ctv' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_CTV',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_ctv',
+            ),
 
             // 'favorites_only' => 
             // array(

@@ -61,8 +61,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $data['avatar']     = $row['zalo_avatar'] ?? '';
                 $data['zalo_id']    = $row['zalo_id'] ?? $zalo_id;
                 $data['zalo_name']     = $row['zalo_name'] ?? '';
-                $data['last_interaction']     = $row['zalo_last_interaction'] ?? '';
-                $data['is_uncomfortable']       = $row['is_uncomfortable'] ?? '';
+                $data['last_interaction'] = $row['zalo_last_interaction'] ?? '';
+                $data['is_uncomfortable'] = (bool)$row['is_uncomfortable'] ?? '';
             }
         }
 
@@ -94,7 +94,11 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             if ($period < 30) {
                 $data['is_call_zalo'] = true;
             }
-        } 
+        } else if (!empty($data['last_interaction']) && $period < 30){
+            $data['is_call_zalo'] = true;
+        }
+
+        $data['period'] = $period;
 
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;
@@ -125,9 +129,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
             $call_status    = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
 
-            $is_uncomfortable     = isset($_POST['is_uncomfortable']) ? $_POST['is_uncomfortable'] : "";
-            $is_ctv     = isset($_POST['is_ctv']) ? $_POST['is_ctv'] : "";
-            $is_compare_price     = isset($_POST['is_compare_price']) ? $_POST['is_compare_price'] : "";
+            $is_uncomfortable     = isset($_POST['is_uncomfortable']) ? $_POST['is_uncomfortable'] : false;
+            $is_ctv     = isset($_POST['is_ctv']) ? $_POST['is_ctv'] : false;
+            $is_compare_price     = isset($_POST['is_compare_price']) ? $_POST['is_compare_price'] : false;
 
             // Validate
             if (empty($call_id) || empty($note)) {
@@ -215,6 +219,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $con->email1 = $email;
                     $save = true;
                 }
+                if ($is_uncomfortable) {
+                    $con->is_uncomfortable = $is_uncomfortable;
+                }
 
                 if ($save === true) {
                     $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: $call_id";
@@ -228,6 +235,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $con->last_name         = $name;
                     $con->email1            = $email;
                     $con->description       = "Liên hệ tạo từ cuộc gọi có call_ID: $call_id";
+                    if ($is_uncomfortable) {
+                        $con->is_uncomfortable = $is_uncomfortable;
+                    }
                     $con->assigned_user_id  = $current_user->id;
                     $con->save();
                 }
@@ -249,6 +259,9 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         ,journey_id = '{$journey_id}'
                         ,type_call_sources = '{$type_call}'
                         ,status = '{$call_status}'
+                        ,is_uncomfortable = '{$is_uncomfortable}'
+                        ,is_ctv = '{$is_ctv}'
+                        ,is_compare_price = '{$is_compare_price}'
                     WHERE call_id = '{$call_id}' AND deleted = 0";
                 $result_update_call = $db->query($sql_update_call);
 
@@ -424,34 +437,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     } 
                 }
             }
-
-            /**********  3. Handle Zalo  **********/
-            // if (!empty($zalo_id) && empty($phone)) {
-            //     require_once('modules/EC_Zalo/Zalo.php');
-            //     $objZalo = new Zalo();
-            //     $ecZalo = new EC_Zalo();
-            //     $user_info = $ecZalo->get_zalo_user_info($zalo_id);
-
-            //     if (!empty($user_info)) {
-            //         $zalo_phone = $objZalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
-            //         if (empty($zalo_phone)) $zalo_phone = $objZalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
-
-            //         if (empty($zalo_phone)) {
-            //             $data['element'] = $objZalo->get_template('request_user_info');
-            //             $result = json_decode($objZalo->send_consultation('request_user_info', $zalo_id, $data), true);
-
-            //             if(isset($result['error']) && $result['error'] == 0) {
-            //                 if($this->notificationChannel == 'Mattermost') {
-            //                     Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "Gửi yêu cầu thông tin đến Zalo **$zalo_id**");
-            //                 }
-            //                 else {
-            //                     Telegram::sendMessage("Gửi yêu cầu thông tin đến Zalo <b>$zalo_id</b>", $sugar_config['telegram']['zalo']['bot_token'] ?? '', $sugar_config['telegram']['zalo']['chat_id'] ?? '');
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
-
+            
             echo json_encode(["status" => 1, "message" => "Success"]);
             exit;
         }
@@ -873,11 +859,11 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 function get_call_info($phone)
 {
     if (is_null($phone) || empty($phone)) return '';
-
     global $db, $app_list_strings;
     $html = '';
+    $user_list = get_user_array(true, '', '', true);
 
-    $sql = "SELECT id, name, status, direction, call_from, call_to, description
+    $sql = "SELECT id, name, status, direction, call_from, call_to, description, assigned_user_id
             FROM calls
             WHERE (call_from = '" . trim($phone) . "' OR call_to = '" . trim($phone) . "') AND deleted = 0
             ORDER BY date_entered DESC
@@ -894,6 +880,7 @@ function get_call_info($phone)
                         <th>Direction</th>
                         <th>Gọi từ</th>
                         <th>Gọi đến</th>
+                        <th>Nhân viên</th>
                         <th>Mô tả</th>
                     </thead>
                     <tbody>';
@@ -921,6 +908,7 @@ function get_call_info($phone)
                         <td align="left" class="direction_call fw-bold ' . $direction_class . '">' . $app_list_strings['calls_direction_list'][$row['direction']] . '</td>
                         <td align="center" class="from_call">' . $row['call_from'] . '</td>
                         <td align="center" class="to_call">' . $row['call_to'] . '</td>
+                        <td align="center" class="employee_name">' . $user_list[$row['assigned_user_id']] . '</td>
                         <td align="left" class="description_call" style="max-width: 250px;">' . $row['description'] . '</td>
                     </tr>';
             $i++;
