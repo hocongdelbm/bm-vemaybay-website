@@ -282,7 +282,7 @@ class EC_HoaDonBan extends Basic {
 					$outInv->tinhtrang		= 0;
 					$outInv->is_signed		= 0;
 					$outInv->description 	= "Hóa đơn tạo tự động";
-					$outInv->date_entered 	= date('Y-m-d H:i:s', time() - 7*3600 + $additionalSecond);
+					$outInv->date_entered 	= date('Y-m-d H:i:s', time() + $additionalSecond);
 					$parentId = $outInv->save2();
 
 					// Check here

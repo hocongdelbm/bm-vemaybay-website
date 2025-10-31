@@ -951,6 +951,7 @@ EOHTML;
                 '";</script>'; // cn: bug 12274 - create session-stored key to defend against CSRF
             echo '<script type="text/javascript">var name_format = "' . $locale->getLocaleFormatMacro() . '";</script>';
             echo '<script type="text/javascript">const logger_call_center = ' . ($sugar_config['logger_call_center'] ? 'true' : 'false') . ';</script>';
+            echo '<script type="text/javascript">const apply_stun_server = ' . ($sugar_config['apply_stun_server'] ? 'true' : 'false') . ';</script>';
 
             echo self::getJavascriptValidation();
             if (!is_file(sugar_cached('jsLanguage/') . $GLOBALS['current_language'] . '.js')) {
@@ -1324,7 +1325,6 @@ EOHTML;
                 </div>
             ';
 
-            // $js_file = ($current_user->user_name == 'hungnh') ? 'call_test.js' : 'call.js';
             $js_file = 'call.js';
             $css .= '<link rel="stylesheet" href="custom/jssip_webrtc/call.css?ver='.date("YmdHi").'">';
             $js .= '<audio id="audio_jssip" loop="true"></audio>

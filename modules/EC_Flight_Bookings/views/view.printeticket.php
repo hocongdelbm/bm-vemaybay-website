@@ -11,37 +11,23 @@ class Viewprinteticket extends SugarView {
 	}
 
 	function populateContent($smartyobj, $lang, $khuhoi, $listPassengerIDs) {
-		// Detect department id
-		$created_by = new User();
-		$created_by->retrieve($this->bean->created_by);
-		// $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // travelpass $created_by->department_id
-		$department_info = myGetDepartmentInfo("f15f801d-a9bc-cc92-4152-655f5e89867f"); // MHV
-
-		$com_website 	= $department_info['com_website2'];
-		$com_phone 	= $department_info['com_phone'];
-		if (!empty($department_info['com_hotline1']))
-			$com_phone .= ' - ' . $department_info['com_hotline1'];
-		if (!empty($department_info['com_hotline2']))
-			$com_phone .= ' - ' . $department_info['com_hotline2'];
-
 		// Lấy danh sách, số lượng, thông tin hành khách
 		$pass_inf = $this->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $listPassengerIDs, $smartyobj);
 
-		if ($pass_inf['pass_cnt'] <= 1 && isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 3) {
+		if ($pass_inf['pass_cnt'] <= 1 && isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == "3") {
 			$is_change_inf = 1;
-			$_REQUEST['add_type'] = 0;
-		} else {
-			$is_change_inf = 0;
-			if(!isset($_REQUEST['add_type'])) {
-				$_REQUEST['add_type'] = 0;
-			}
+			$_REQUEST['add_type'] = "0";
+		}
+		else {
+			$is_change_inf = $_REQUEST['add_type'] == "3" ? 1 : 0;
+			if(!isset($_REQUEST['add_type'])) $_REQUEST['add_type'] = "0";
 		}
 		$smartyobj->assign('ADD_TYPE', $_REQUEST['add_type']);
 
-
-		// KHÔNG THAY ĐỔI HÀNH TRÌNH
-		if ((isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 0) || !isset($_REQUEST['add_type'])) {
+		// Không thay đổi hành trình
+		if (!isset($_REQUEST['add_type']) || $_REQUEST['add_type'] == "0") {
 			$iti_inf = $this->listOfItineraries($_REQUEST['booking_id'], $khuhoi, $_REQUEST['wayflight'], $lang, $_REQUEST['itinerary_id'], $is_change_inf);
+			
 			if ($is_change_inf && $khuhoi) {
 				if ($iti_inf['direction'] == 1) $fdirection = 0;
 				else $fdirection = 1;
@@ -80,6 +66,58 @@ class Viewprinteticket extends SugarView {
 
 			$smartyobj->assign('LIST_OF_ITINERARIES', $iti_html);
 		}
+		// Chắc là có đổi hành trình
+		else if(isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == "3") {
+			$iti_inf = $this->listOfItineraries($_REQUEST['booking_id'], $khuhoi, $_REQUEST['wayflight'], $lang, $_REQUEST['itinerary_id'], $is_change_inf);
+			if($khuhoi) {
+				if ($iti_inf['direction'] == 1) $fdirection = 0;
+				else $fdirection = 1;
+
+				$another_iti = $this->getAnotherIti($_REQUEST['booking_id'], $fdirection, $pass_inf['pass_id'], $pass_inf['edit_no']);
+				
+				if(!empty($another_iti)){
+					$airline 			= myGetAirlineInfo2(trim($another_iti['airline_code']), 'CODE');
+					$departure 			= myGetAirportInfo2(trim($another_iti['departure']));
+					$arrival 			= myGetAirportInfo2(trim($another_iti['arrival']));
+					$departure_date 	= date('d/m/Y', strtotime($another_iti['departure_date'])) . ' <br /> ' . date('H:i', strtotime($another_iti['departure_date'])) .' - ' .date('H:i', strtotime($another_iti['arrival_date']));
+					$airline 			= $airline['data'][0]['name'];
+					$flight_number 	= $another_iti['flight_number'];
+					$departure_inf 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
+					$arrival_inf 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
+
+					$html1 = '<tr class="no-change-iti">
+								<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px; line-height: 20px;">' . $departure_date . '</td>
+								<td style="border:1px solid #ccc; padding: 10px 7px;">' . $airline . '</td>
+								<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px;">' . $flight_number . '</td>
+								<td style="border:1px solid #ccc; padding: 10px 7px;">' . $departure_inf . '</td>
+								<td style="border:1px solid #ccc; padding: 10px 7px;">' . $arrival_inf . '</td>
+							</tr>';
+				} else {
+					$html1 = '';
+				}
+
+				if ($fdirection == 0){
+					$iti_html = $html1 . $iti_inf['html'];
+				}
+				else {
+					$iti_html = $iti_inf['html'] . $html1;
+				}
+			}
+			else $iti_html = $iti_inf['html'];
+
+			$smartyobj->assign('LIST_OF_ITINERARIES', $iti_html);
+		}
+
+		// // Detect department id
+		// $created_by = new User();
+		// $created_by->retrieve($this->bean->created_by);
+		$department_info = myGetDepartmentInfo("f15f801d-a9bc-cc92-4152-655f5e89867f"); // MHV
+		$com_website = $department_info['com_website2'];
+		$com_phone = $department_info['com_phone'];
+		if (!empty($department_info['com_hotline1']))
+			$com_phone .= ' - ' . $department_info['com_hotline1'];
+		if (!empty($department_info['com_hotline2']))
+			$com_phone .= ' - ' . $department_info['com_hotline2'];
 
 		$smartyobj->assign('BOOKING_NUMBER', $_REQUEST['booking']);
 		$smartyobj->assign('LIST_OF_PASSENGER', $pass_inf['html']);
@@ -106,7 +144,6 @@ class Viewprinteticket extends SugarView {
 		$arrival 	= myGetAirportInfo2(trim($iti->arrival));
 		$pass_id 	= '';
 
-
 		// Lấy thông tin của 1 chiều đang có
 		// Lượt đi
 		if ($iti->direction == 0) {
@@ -115,9 +152,9 @@ class Viewprinteticket extends SugarView {
 			$flight_number1 = $iti->flight_number;
 			$departure1 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
 			$arrival1 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
-		} 
+		}
+		// Lượt về 
 		else {
-			// Lượt về
 			$departure_date2 = date('d/m/Y H:i', strtotime(' -7 hours', strtotime($iti->departure_date)));
 			$airline2 		= $airline['data'][0]['name'] ?? '';
 			$flight_number2 = $iti->flight_number;
@@ -397,12 +434,11 @@ class Viewprinteticket extends SugarView {
 					}
 				}
 
-				$html .= '
-					<tr>
-						<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . (empty($new_name['name']) ? $row['name'] : $new_name['name']) . '</td>
-						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
-						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
-					</tr>';
+				$html .= '<tr>
+					<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . (empty($new_name['name']) ? $row['name'] : $new_name['name']) . '</td>
+					<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
+					<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
+				</tr>';
 				
 				if(empty($html_dep_itineraries)) {
 					$html_dep_itineraries .= '

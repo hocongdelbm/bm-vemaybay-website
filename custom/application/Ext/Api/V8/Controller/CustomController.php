@@ -17,7 +17,7 @@ class CustomController extends BaseController
     public function save_booking(Request $request, Response $response, array $args)
     {
         try {
-            global $sugar_config;
+            global $db, $sugar_config;
             $params  = (array)$request->getParsedBody();
             $user_id = $params['user_id'];
             $request_ip = $request->getServerParam('REMOTE_ADDR');
@@ -28,9 +28,12 @@ class CustomController extends BaseController
 
             // Save booking
             $booking = BeanFactory::newBean("EC_Flight_Bookings");
-            foreach ($params['ec_flight_bookings'] as $key => $value) {
-                $booking->$key = $value;
+            if(isset($params['ec_flight_bookings']) && !empty($params['ec_flight_bookings'])) {
+                foreach ($params['ec_flight_bookings'] as $key => $value) {
+                    $booking->$key = $value;
+                }
             }
+
             $booking->update_modified_by    = false;
             $booking->set_created_by        = false;
             $booking->created_by            = $user_id;
@@ -41,47 +44,73 @@ class CustomController extends BaseController
                 $booking->nganluong_code     = get_payment_link();
                 $booking->nganluong_datepaid = date('Y-m-d H:i:s');
             }
+
+            /**
+             * Map calls and booking telesale - get lastest call telesale of phone
+             * Loại trừ các booking tham khảo, booking TEST
+             */
+            if (!empty($booking->phone) && !empty($booking->contact_name) && !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)) {
+                $sql_check = "SELECT id
+                            FROM calls
+                            WHERE direction = 'outbound'
+                                AND call_to = '" . trim($booking->phone) . "'
+                                AND deleted = 0
+                            ORDER BY date_entered DESC
+                            LIMIT 1";
+                $call_id = $db->getOne($sql_check);
+                if (!empty($call_id)) {
+                    $booking->telesale_call_id = $call_id;
+                    $booking->is_telesale = 1;
+                }
+            }
+
             $booking->save();
 
             // Save journeys
-            foreach ($params['ec_booking_itineraries'] as $i) {
-                $itinerary = BeanFactory::newBean("EC_Booking_Itineraries");
-                foreach ($i as $key => $value) {
-                    $itinerary->$key = $value;
-                    $itinerary->booking_id = $booking->id;
-                    $itinerary->update_modified_by  = false;
-                    $itinerary->set_created_by      = false;
-                    $itinerary->created_by          = $user_id;
-                    $itinerary->modified_user_id    = $user_id;
-                    $itinerary->save();
+            if(isset($params['ec_booking_itineraries']) && !empty($params['ec_booking_itineraries'])) {
+                foreach ($params['ec_booking_itineraries'] as $i) {
+                    $itinerary = BeanFactory::newBean("EC_Booking_Itineraries");
+                    foreach ($i as $key => $value) {
+                        $itinerary->$key = $value;
+                        $itinerary->booking_id = $booking->id;
+                        $itinerary->update_modified_by  = false;
+                        $itinerary->set_created_by      = false;
+                        $itinerary->created_by          = $user_id;
+                        $itinerary->modified_user_id    = $user_id;
+                        $itinerary->save();
+                    }
                 }
             }
 
             // Save passengers
-            foreach ($params['ec_booking_passengers'] as $p) {
-                $pass = BeanFactory::newBean("EC_Booking_Passengers");
-                foreach ($p as $key => $value) {
-                    $pass->$key = $value;
-                    $pass->booking_id = $booking->id;
-                    $pass->update_modified_by   = false;
-                    $pass->set_created_by       = false;
-                    $pass->created_by           = $user_id;
-                    $pass->modified_user_id     = $user_id;
-                    $pass->save();
+            if(isset($params['ec_booking_passengers']) && !empty($params['ec_booking_passengers'])) {
+                foreach ($params['ec_booking_passengers'] as $p) {
+                    $pass = BeanFactory::newBean("EC_Booking_Passengers");
+                    foreach ($p as $key => $value) {
+                        $pass->$key = $value;
+                        $pass->booking_id = $booking->id;
+                        $pass->update_modified_by   = false;
+                        $pass->set_created_by       = false;
+                        $pass->created_by           = $user_id;
+                        $pass->modified_user_id     = $user_id;
+                        $pass->save();
+                    }
                 }
             }
 
             // Save details
-            foreach ($params['ec_booking_details'] as $d) {
-                $detail = BeanFactory::newBean("EC_Booking_Details");
-                foreach ($d as $key => $value) {
-                    $detail->$key = $value;
-                    $detail->booking_id = $booking->id;
-                    $detail->update_modified_by = false;
-                    $detail->set_created_by     = false;
-                    $detail->created_by         = $user_id;
-                    $detail->modified_user_id   = $user_id;
-                    $detail->save();
+            if(isset($params['ec_booking_details']) && !empty($params['ec_booking_details'])) {
+                foreach ($params['ec_booking_details'] as $d) {
+                    $detail = BeanFactory::newBean("EC_Booking_Details");
+                    foreach ($d as $key => $value) {
+                        $detail->$key = $value;
+                        $detail->booking_id = $booking->id;
+                        $detail->update_modified_by = false;
+                        $detail->set_created_by     = false;
+                        $detail->created_by         = $user_id;
+                        $detail->modified_user_id   = $user_id;
+                        $detail->save();
+                    }
                 }
             }
 
@@ -243,7 +272,7 @@ class CustomController extends BaseController
                     $call->direction = 'spam';
 
                     // Update số đó vào file JSON
-                    if(!in_array(trim($call_from), $arr_whitelist)){
+                    if (!in_array(trim($call_from), $arr_whitelist)) {
                         add_blacklist_phone($call_from);
                     }
                 } else {
@@ -422,7 +451,7 @@ class CustomController extends BaseController
         $contacts = (array)$request->getParsedBody() ?? [];
         $request_ip = $request->getServerParam('REMOTE_ADDR');
 
-        if(is_array($contacts) && count($contacts) > 0) {
+        if (is_array($contacts) && count($contacts) > 0) {
             foreach ($contacts as $contactData) {
                 $contact = BeanFactory::newBean('Contacts');
                 foreach ($contactData as $key => $value) {
@@ -434,7 +463,7 @@ class CustomController extends BaseController
                     }
                 }
                 $contact_id = $contact->save();
-    
+
                 if (!$contact_id) {
                     // $messages = "- SAVE CONTACT - APPS SCRIPT - ERROR:\n" .
                     //     "<pre>[ERROR]: Lưu thông tin liên hệ Apps script thất bại! " . json_encode($contactData) . "</pre>";
@@ -453,7 +482,7 @@ class CustomController extends BaseController
                     // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
             }
-        } 
+        }
 
         return $response->withJson([
             'error' => 0,

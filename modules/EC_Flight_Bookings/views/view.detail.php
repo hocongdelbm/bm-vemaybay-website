@@ -47,10 +47,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->createModal(); // Modal for confirm action
 
-		// if($current_user->user_name == 'hungnh') {
-		// 	pr(calculateBKAmt($this->bean->id));
-		// 	pr(format_number(calculateBKTotalAmtOfEmployee($this->bean->assigned_user_id, date('Y-m-01'), date('Y-m-t'))));
-		// }
+		if($current_user->user_name == 'hungnh') {
+			pr(calculateBKAmt($this->bean->id));
+			pr(calculateBKTotalAmt($this->bean->id));
+		}
 
 		parent::display();
 		$this->displayJS();
@@ -102,8 +102,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		echo $js;
 	}
 
-	private function displayCSS()
-	{
+	private function displayCSS() {
 		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.4">
@@ -315,15 +314,40 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_IS_EXPORTED', $is_exported);
 
 		// Đã giữ chỗ
-		$is_hold = '<input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . ' />';
-		$is_agent = '
-			<label for="is_agent" class="ms-5">Là đại lý:</label>&nbsp
-			<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '/>&nbsp;
+		$is_wrap_hold = '<div class="d-flex align-items-center flex-wrap gap-2"><input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . ' />';
+		$is_wrap_hold .= '
+			<label for="is_agent" class="ms-3">Là đại lý:</label>
+			<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '/>
 			<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
 				' . $this->bean->agent_name . '
 			</a>
 		';
-		$this->ss->assign('CUSTOM_IS_HOLD', $is_hold . $is_agent);
+
+		if (!$this->bean->is_telesale) {
+			$is_wrap_hold .= '</form>
+						<form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
+							<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+							<input type="hidden" name="action" value="Save" />
+							<input type="hidden" name="record" value="' . $this->bean->id . '" />
+							<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+							<input type="hidden" name="is_telesale_value" value="1" />
+
+							<label for="btnCheckIsTelesale" class="ms-2">Là BK Telesale:</label>
+							<input type="checkbox" class="form-check-input" name="btnCheckIsTelesale" id="btnCheckIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
+						</form>';
+		} else {
+			$call = BeanFactory::getBean('Calls', $this->bean->telesale_call_id);
+			$call_id = $call->id;
+			$call_name = $call->name;
+			$is_wrap_hold .= '<label for="is_telesale" class="ms-2">Là BK Telesale:</label>
+							<input type="checkbox" disabled name="is_telesale" id="is_telesale" ' . ($this->bean->is_telesale ? 'checked="checked"' : '') . '/>
+							<a href="index.php?module=Calls&action=DetailView&record=' . $call_id . '" target="_blank">' . $call_name . '</a>
+			';
+		}
+
+		$is_wrap_hold .= '</div>';
+
+		$this->ss->assign('CUSTOM_IS_HOLD', $is_wrap_hold);
 
 		// Date ticket issue (ngày xuất vé) - giao vé
 		$ticket_issue = '<span class="is_ticket_exported d-flex align-items-center">
@@ -1259,13 +1283,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$res = $this->bean->db->query($sql);
 		$i = 0;
 		$check_dep = $check_ret = false;
-		$print_ticket_btn = $send_ticket_btn = '';
-
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			if ($i % 2 > 0)
-				$even_or_odd = 'even';
-			else
-				$even_or_odd = 'odd';
+			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
 
 			$airline_code = $airline_code_logo = $row['airline_code'];
 			$img_style = 'style="width:45px"';
@@ -1318,35 +1337,27 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			if ($row['is_layover'] == 0 && $use_mail_eticket) {
 				// PRINT BUTTON
-				if (empty($print_ticket_btn)) {
-					$print_ticket_btn .= '<input type="button" ln="' . $i . '" name="btnPrintEticket" value="In vé" title="In vé" class="btn btn-primary-2" />';
-				} else
-					$print_ticket_btn .= '';
+				$print_ticket_btn = '<input type="button" ln="'. $i .'" name="btnPrintEticket" value="In vé" title="In vé" class="btn btn-primary-2" />';
 
 				// SEND BUTTON
-				if (empty($send_ticket_btn)) {
-					$send_ticket_btn .= '<input type="button" ln="' . $i . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" class="btn btn-primary-2" />';
-				} else
-					$send_ticket_btn .= '';
+				$send_ticket_btn = '<input type="button" ln="'. $i .'" name="btnSendEticket" value="Gửi vé" title="Gửi vé" class="btn btn-primary-2" />';
 
 				// REMIND BUTTON
 				$remind_btn = '';
 				if ($row['is_remind'] == 0 && ($row['booking_status'] == 7 || $row['booking_status'] == 8)) {
-					// $remind_btn = '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$this->bean->id.'" booking_name="'.$this->bean->name.'" phone="'.$this->bean->phone.'" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
-
 					$remind_btn .= '<div class="dropdown">
-										<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-											Remind
-										</button>
-										<ul class="dropdown-menu dropdown-menu-end box-list">
-											<li class="box-item">
-												<a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a>
-											</li>
-											<li class="box-item">
-												<a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="' . $this->bean->id . '" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a>
-											</li>
-										</ul>
-									</div>';
+						<button class="btn btn-primary-2 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+							Remind
+						</button>
+						<ul class="dropdown-menu dropdown-menu-end box-list">
+							<li class="box-item">
+								<a class="dropdown-item btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="' . $this->bean->id . '" booking_name="' . $this->bean->name . '" phone="' . $this->bean->phone . '" id="btnRemind" href="javascript:void(0)">Gọi nhắc nhở lịch bay</a>
+							</li>
+							<li class="box-item">
+								<a class="dropdown-item confirm-remind" iti_id="' . $row['id'] . '" booking_id="' . $this->bean->id . '" id="confirm-remind" href="javascript:void(0)">Đã nhắc nhở khách</a>
+							</li>
+						</ul>
+					</div>';
 				}
 
 				// SMS BUTTON
@@ -1361,29 +1372,29 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				/>';
 
 				$html .= '<td data-label="" class="text-center">
-							<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $i . '" target="_blank">
-								<input type="hidden" name="module" value="EC_Flight_Bookings" />
-								<input type="hidden" name="action" value="printeticket" />
-								<input type="hidden" name="record" value="' . $this->bean->id . '" />
-								<input type="hidden" name="return_module" value="EC_Flight_Bookings" />
-								<input type="hidden" name="return_action" value="" />
-								<input type="hidden" name="return_id" value="' . $this->bean->id . '" />
-								<input type="hidden" name="booking" value="' . $this->bean->name . '" />
-								<input type="hidden" name="booking_id" value="' . $this->bean->id . '" />
-								<input type="hidden" name="contact_email" value="' . $this->bean->email . '" />
-								<input type="hidden" name="contact_name" value="' . $this->bean->contact_name . '" />
-								<input type="hidden" name="itinerary_id" value="' . $row['id'] . '" />
-								<input type="hidden" name="direction" value="' . $row['direction'] . '" />
-								<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
-								<input type="hidden" name="ticket_type" value="' . $this->bean->ticket_type . '" />
-								<div class="action-button-ticket d-flex gap-2 align-items-center justify-content-center">
-									' . $print_ticket_btn . '
-									' . $send_ticket_btn . '
-									' . $sms_btn . '
-									' . $remind_btn . '
-								</div>
-							</form>
-						</td>';
+					<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $i . '" target="_blank">
+						<input type="hidden" name="module" value="EC_Flight_Bookings" />
+						<input type="hidden" name="action" value="printeticket" />
+						<input type="hidden" name="record" value="' . $this->bean->id . '" />
+						<input type="hidden" name="return_module" value="EC_Flight_Bookings" />
+						<input type="hidden" name="return_action" value="" />
+						<input type="hidden" name="return_id" value="' . $this->bean->id . '" />
+						<input type="hidden" name="booking" value="' . $this->bean->name . '" />
+						<input type="hidden" name="booking_id" value="' . $this->bean->id . '" />
+						<input type="hidden" name="contact_email" value="' . $this->bean->email . '" />
+						<input type="hidden" name="contact_name" value="' . $this->bean->contact_name . '" />
+						<input type="hidden" name="itinerary_id" value="' . $row['id'] . '" />
+						<input type="hidden" name="direction" value="' . $row['direction'] . '" />
+						<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
+						<input type="hidden" name="ticket_type" value="' . $this->bean->ticket_type . '" />
+						<div class="action-button-ticket d-flex gap-2 align-items-center justify-content-center">
+							' . $print_ticket_btn . '
+							' . $send_ticket_btn . '
+							' . $sms_btn . '
+							' . $remind_btn . '
+						</div>
+					</form>
+				</td>';
 			} else {
 				$html .= '<td data-label="" class="text-center">&nbsp;</td>';
 			}

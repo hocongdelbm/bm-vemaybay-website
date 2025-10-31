@@ -26,6 +26,7 @@ class Configurator
         'hide_subpanels',
         'stackTrace',
         'logger_call_center',
+        'apply_stun_server',
     ];
     public $errors = array('main' => '');
     public $logger = null;

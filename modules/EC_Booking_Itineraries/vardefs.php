@@ -292,7 +292,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'vname'     => 'LBL_ADD_TYPE',
             'type'      => 'int',
             'default'   => 0,
-            
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
