@@ -694,7 +694,6 @@ $dictionary['Contact'] = array(
 			'studio' => 'visible',
 			'dependency' => false,
 		),
-
         'points' => array(
             'name'       => 'points',
             'vname'      => 'LBL_POINTS',
@@ -704,6 +703,16 @@ $dictionary['Contact'] = array(
             'importable' => true,
             'reportable' => false,
             'audited'    => true,
+        ),
+        'is_uncomfortable' => array(
+            'name'       => 'is_uncomfortable',
+            'vname'      => 'LBL_IS_UNCOMFORTABLE',
+            'comments'   => 'Đánh dấu khách hàng khó chịu',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+            'audited' => 1,
         ),
     ),
     'indices' => array(
