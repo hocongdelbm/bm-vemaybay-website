@@ -465,15 +465,15 @@ class EC_Zalo_Contacts extends Basic
             WHERE zc.zalo_id = '{$zalo_id}'
                 AND zc.oa_id = '{$oa_id}'
                 AND zc.deleted = 0";
+
         $res = $this->db->query($sql);
         $dbInfo = $this->db->fetchByAssoc($res);
 
         $last_interaction = $dbInfo['last_interaction'] ?? null;
         if(is_null($last_interaction) || !strtotime($last_interaction)) return false;
-        else return false;
         $is_follower = (bool)($dbInfo['last_interaction'] ?? 0);
         $current_datetime = date('Y-m-d H:i:s');
-
+        
         $value = strtotime($current_datetime) - strtotime($last_interaction);
 
         if($act === 'call') return $value <= 30;
