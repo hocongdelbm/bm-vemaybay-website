@@ -80,7 +80,7 @@ class EC_Zalo extends Basic {
         $res = $this->db->query($sql);
         $dbInfo = $this->db->fetchByAssoc($res);
 
-        if(is_array($dbInfo) && !empty($dbInfo) && date('Y-m-d') != date('Y-m-d', strtotime($dbInfo['date_modified']))) {
+        if(is_array($dbInfo) && !empty($dbInfo) && date('Y-m-d') == date('Y-m-d', strtotime($dbInfo['date_modified']))) {
             unset($dbInfo['date_modified']);
             $dbInfo['quota'] = json_decode(html_entity_decode($dbInfo['quota_info']), true);
             return $dbInfo;

@@ -68,8 +68,8 @@ class Viewchatzalo extends SugarView {
         }
 
         $smarty->assign('OA_ID', $this->zaloOA->get_oa_id());
-        $smarty->assign('OA_AVATAR', isset($info_oa['avatar']) ? $info_oa['avatar'] : '');
-        $smarty->assign('OA_NAME', isset($info_oa['name']) ? $info_oa['name'] : '');
+        $smarty->assign('OA_AVATAR', $info_oa['avatar'] ?? '');
+        $smarty->assign('OA_NAME', $info_oa['name'] ?? '');
         $smarty->assign('OA_SUB_QUOTA', $sub_quota);
         $smarty->assign('DEFAULT_AVATAR', $this->default_avatar);
         $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode($this->image_file)));

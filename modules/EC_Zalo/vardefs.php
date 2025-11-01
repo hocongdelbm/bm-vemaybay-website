@@ -40,7 +40,6 @@ $dictionary['EC_Zalo'] = array(
             'name' => 'num_follower',
             'vname' => 'LBL_NUM_FOLLOWER',
             'type' => 'int',
-            'dbtype' => 'tinyint',
             'required' => false,
             'audited' => 1,
         ),
