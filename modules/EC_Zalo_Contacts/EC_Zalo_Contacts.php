@@ -500,25 +500,31 @@ class EC_Zalo_Contacts extends Basic
 
         $res = $this->db->query($sql);
         while($row = $this->db->fetchByAssoc($res)) {
-            $zaloContact = new EC_Zalo_Contacts();
-            $zaloContact->zalo_id           = $row['zalo_id'];
-            $zaloContact->oa_id             = '2941581384627345950';
-            $zaloContact->contact_id        = $row['id'];
-            $zaloContact->name              = $row['zalo_name'] ?? $row['last_name'];
-            $zaloContact->alias             = $row['zalo_name'] ?? '';
-            $zaloContact->avatar            = $row['zalo_avatar'] ?? '';
-            $zaloContact->birth_date        = $row['birthdate'];
-            $zaloContact->last_interaction  = $row['zalo_last_interaction'];
-            $zaloContact->is_follower       = (int)$row['zalo_is_follower'];
-            $zaloContact->tags              = $row['zalo_tags'];
-            $zaloContact->province_city     = $row['province_city'];
-            $zaloContact->ward_commune      = $row['ward_commune'];
-            $zaloContact->address           = $row['address'];
-            $zaloContact->description       = "Sync from contacts table";
-            $newId = $zaloContact->save();
+            try {
+                $zaloContact = new EC_Zalo_Contacts();
+                $zaloContact->zalo_id           = $row['zalo_id'];
+                $zaloContact->oa_id             = '2941581384627345950';
+                $zaloContact->contact_id        = $row['id'];
+                $zaloContact->name              = $row['zalo_name'] ?? $row['last_name'];
+                $zaloContact->alias             = $row['zalo_name'] ?? '';
+                $zaloContact->avatar            = $row['zalo_avatar'] ?? '';
+                $zaloContact->birth_date        = $row['birthdate'];
+                $zaloContact->last_interaction  = $row['zalo_last_interaction'];
+                $zaloContact->is_follower       = (int)$row['zalo_is_follower'];
+                $zaloContact->tags              = $row['zalo_tags'];
+                $zaloContact->province_city     = $row['province_city'];
+                $zaloContact->ward_commune      = $row['ward_commune'];
+                $zaloContact->address           = $row['address'];
+                $zaloContact->description       = "Sync from contacts table";
+                $newId = $zaloContact->save();
 
-            if($newId) echo "<p>$newId: Success</p>";
-            else echo "<p class='text-danger'>{$row['zalo_id']}: Fail $newId</p>";
+                if($newId) echo "<p>$newId: Success</p>";
+                else echo "<p class='text-danger'>{$row['zalo_id']}: Fail $newId</p>";
+            }
+            catch(Throwable $th) {
+                $zid = $row['zalo_id'] ?? '';
+                echo "<p class='text-danger'>{$zid}: Maybe duplicate</p>";
+            }
         }
     }
 
