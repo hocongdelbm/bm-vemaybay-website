@@ -1873,7 +1873,6 @@ function generate_form_data() {
  */
 function send_message(data) {
     if(data) {
-        console.warn(data);
         $.ajax({
             url: URL,
             type: "POST",
@@ -1963,6 +1962,13 @@ function handleQuotaUser(quota, last_interaction = null) {
             enable_send_message();
         }
         else if(quota !== null && quota?.quota_type && quota.quota_type == 'sub_quota') {
+            quota_html = `<div class="noti-mess-feedback noti_blue">
+                <span>Tin nhắn tiếp theo được miễn phí (Đặc quyền OA Premium)</span>
+            </div>`;
+            enable_send_message();
+        }
+        else if (oa_sub_quota > 0) {
+            oa_sub_quota -= 1;
             quota_html = `<div class="noti-mess-feedback noti_blue">
                 <span>Tin nhắn tiếp theo được miễn phí (Đặc quyền OA Premium)</span>
             </div>`;
