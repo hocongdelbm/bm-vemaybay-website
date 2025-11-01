@@ -94,7 +94,7 @@ class EC_Zalo_Contacts extends Basic
         $refresh_time = 86400*7; // 7 days
 
         // Receive data from database
-        if(!empty($dbInfo) && time() - strtotime($dbInfo['date_modified']) < $refresh_time) {
+        if(is_array($dbInfo) && !empty($dbInfo) && time() - strtotime($dbInfo['date_modified']) < $refresh_time) {
             $zalo_display_name  = $dbInfo['display_name'] ?? '';
             $zalo_user_alias    = $dbInfo['user_alias'] ?? '';
             $zalo_avatar        = $dbInfo['avatar'] ?? '';
@@ -389,6 +389,12 @@ class EC_Zalo_Contacts extends Basic
         // Tags
         $tag_names = $user_data['tags_and_notes_info']['tag_names'] ?? [];
         $tag_names = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
+
+        // Quota
+        $quota_info = null;
+        if(isset($user_data['quota']) && !empty($user_data['quota'])) {
+            $quota_info = is_string($user_data['quota']) ? $user_data['quota']: json_encode($user_data['quota']);
+        }
        
         $zaloContact = new EC_Zalo_Contacts();
         if(empty($record_id)) {
@@ -412,7 +418,15 @@ class EC_Zalo_Contacts extends Basic
         $zaloContact->province_city     = $user_data['shared_info']['city'] ?? '';
         $zaloContact->ward_commune      = $user_data['shared_info']['district'] ?? '';
         $zaloContact->address           = $user_data['shared_info']['address'] ?? '';
+        $zaloContact->quota_info        = $quota_info;
         return $zaloContact->save();
+    }
+
+    /**
+     * Init consultation quota for user
+     */
+    public function init_consultation_quota() {
+        return ["remain" => 8, "total" => 8];
     }
 	
     /**

@@ -50,17 +50,27 @@ class Viewchatzalo extends SugarView {
         global $current_user;
         $fullname = explode(' ', $current_user->name);
 
-        $json_info_oa = $this->zaloOA->get_info_oa();
-        $arr_info_oa = json_decode($json_info_oa, true);
-
-        if(!isset($arr_info_oa['error']) || $arr_info_oa['error'] == -216) {
+        $info_oa = $this->bean->get_info_oa($this->zaloOA->get_oa_id());
+        if(isset($info_oa['error']) && $info_oa['error'] == -216) {
             echo $this->populate_content_auth();
             exit();
         }
 
+        $sub_quota = 0;
+        if(!empty($info_oa)) {
+            foreach($info_oa['quota'] as $q) {
+                if($q['quota_type'] == 'sub_quota') $sub_quota = (int)$q['remain'];
+            }
+        }
+        else {
+            echo "<h3>Không có thông tin Zalo OA</h3>";
+            exit();
+        }
+
         $smarty->assign('OA_ID', $this->zaloOA->get_oa_id());
-        $smarty->assign('OA_AVATAR', isset($arr_info_oa['data']['avatar']) ? $arr_info_oa['data']['avatar'] : '');
-        $smarty->assign('OA_NAME', isset($arr_info_oa['data']['name']) ? $arr_info_oa['data']['name'] : '');
+        $smarty->assign('OA_AVATAR', isset($info_oa['avatar']) ? $info_oa['avatar'] : '');
+        $smarty->assign('OA_NAME', isset($info_oa['name']) ? $info_oa['name'] : '');
+        $smarty->assign('OA_SUB_QUOTA', $sub_quota);
         $smarty->assign('DEFAULT_AVATAR', $this->default_avatar);
         $smarty->assign('IMAGE_FILE', str_replace('"', "'", json_encode($this->image_file)));
         $smarty->assign('ENTRYPOINT', $this->entrypoint);
@@ -100,12 +110,10 @@ class Viewchatzalo extends SugarView {
     }
 
     public function populate_content_auth() {
-        return '
-            <center class="wrap-auth">
-                <h6>OA cần xác thực và ủy quyền</h6>
-                <a href="'.$this->zaloOA->get_link_integrate().'" class="btn btn-primary">Xác thực</a>
-            </center>
-        ';
+        return '<center class="wrap-auth">
+            <h6>OA cần xác thực và ủy quyền</h6>
+            <a href="'.$this->zaloOA->get_link_integrate().'" class="btn btn-primary">Xác thực</a>
+        </center>';
     }
 
     /**
@@ -227,218 +235,5 @@ class Viewchatzalo extends SugarView {
         elseif($date == date('Y-m-d', strtotime("-2 days"))) return $week[date('N', $timestamp)];
         elseif($year != date('Y')) return date('d/m/Y', $timestamp);
         else return date('d/m', $timestamp);
-    }
-
-
-
-    /**
-     * Get list user chat
-     * 
-     * @deprecated
-     * @param int $offset
-     * @param array $current_list_user
-     * @return string
-     */
-    public function get_list_user($offset = 0, $current_list_user = []) {
-        return '';
-        $html = '';
-        $list_zalo_id = ['interaction' => [], 'no_interaction' => []];
-
-        while(count($list_zalo_id['interaction']) < 12) {
-            $json = $this->zaloOA->get_recent_messages($offset);
-            $arr = json_decode($json, true);
-
-            if(isset($arr['error']) && $arr['error'] == 0 && !empty($arr['data'])) {
-                foreach($arr['data'] as $row) {
-                    $zalo_id = $row['src'] == 1 ? $row['from_id'] : $row['to_id'];
-
-                    if($row['type'] === 'nosupport' && $row['src'] === 1) continue;
-                    if(in_array($zalo_id, $current_list_user)) continue;
-                    if(in_array($zalo_id, $list_zalo_id['no_interaction']) || in_array($zalo_id, $list_zalo_id['interaction'])) continue;
-
-                    // Lấy thông tin người dùng
-                    $user_info = json_decode($this->zaloOA->get_user($zalo_id), true);
-                    if(isset($user_info['error']) && $user_info['error'] != 0) {
-                        $list_zalo_id['no_interaction'][] = $zalo_id;
-                        continue;
-                    }
-                    else $list_zalo_id['interaction'][] = $zalo_id;
-
-                    $user_info['data']['chat_link'] = $this->zaloOA->get_chat_link($zalo_id);
-                    $html .= $this->create_li_chat($row, $user_info['data']);
-                }
-            }
-            else break;
-
-            $offset += 10;
-        }
-
-        return $html.$offset;
-    }
-
-    /**
-     * Create li chat
-     * 
-     * @deprecated
-     * @param array $message_data
-     * @param array $user_data
-     * @return string
-     */
-    public function create_li_chat($message_data, $user_data) {
-        return '';
-        if(empty($message_data)) return '';
-
-        /**********  1. Handle message  **********/
-        $message_src  = $message_data['src'];
-        $message_prefix = $message_src === 0 ? '<span style="margin-right:4px">OA:</span>' : '';
-        $message_type = $message_data['type'];
-        $message_text = isset($message_data['message']) ? $message_data['message'] : '';
-        $message_time = $this->format_display_time($message_data['time']);
-
-        // Nội dung tin nhắn hiển thị
-        $message_content = '';
-        if($message_type == 'text') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.$message_text.'
-                </div>
-            ';
-        }
-        elseif($message_type == 'photo' || $message_type == 'image') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    <div class="icon icon_'.$message_type.'">
-                        '.$this->get_icons('image', '#8D8D8F', 20, 21).'
-                    </div>
-                    Hình ảnh
-                </div>
-            ';
-        }
-        elseif($message_type == 'gif') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    <div class="icon icon_'.$message_type.'">
-                        '.$this->get_icons('gif', '#8D8D8F', 20, 17).'
-                    </div>
-                    GIF
-                </div>
-            ';
-        }
-        elseif($message_type == 'sticker') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    <div class="icon icon_'.$message_type.'">
-                        '.$this->get_icons('sticker', '#8D8D8F', 20, 21).'
-                    </div>
-                    Sticker
-                </div>
-            ';
-        }
-        elseif($message_type == 'voice' || $message_type == 'audio') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    <div class="icon icon_'.$message_type.'">
-                        '.$this->get_icons('voice', '#8D8D8F', 20, 21).'
-                    </div>
-                    Tin nhắn thoại
-                </div>
-            ';
-        }
-        else if($message_type == 'video') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    <div class="icon icon_'.$message_type.'">
-                        '.$this->get_icons('video', '#8D8D8F').'
-                    </div>
-                    Video
-                </div>
-            ';
-        }
-        else if($message_type == 'file') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    <div class="icon icon_'.$message_type.'">
-                        '.$this->get_icons('file', '#8D8D8F', 20, 18).'
-                    </div>
-                    Tệp đính kèm
-                </div>
-            ';
-        }
-        elseif($message_type == 'link' || $message_type == 'links') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    [Tin liên kết]
-                </div>
-            ';
-        }
-        elseif($message_type == 'location') {
-            $message_content = '
-                <div class="lastest_message">
-                    '.$message_prefix.'
-                    <div class="icon icon_'.$message_type.'">
-                        '.$this->get_icons('location', '#8D8D8F', 20, 21).'
-                    </div>
-                    Vị trí
-                </div>
-            ';
-        }
-        else {
-            $message_content = '<div class="lastest_message">'.$message_prefix.'Bạn có một tin nhắn mới</div>';
-        }
-
-
-        /**********  2. Handle user info  **********/
-        // ID
-        $zalo_id = isset($user_data['user_id']) ? $user_data['user_id'] : '';
-        if(empty($zalo_id)) $zalo_id = $message_src === 1 ? $message_data['from_id'] : $message_data['to_id'];
-
-        // Name
-        $name = isset($user_data['user_alias']) ? $user_data['user_alias'] : '';
-        if(empty($name)) $name = $user_data['display_name'] ? $user_data['display_name'] : '';
-        if(empty($name)) $message_src === 1 ? $message_data['from_display_name'] : $message_data['to_display_name'];
-        if(strlen($name) > 24) $name = mb_substr($name, 0, 24) . '...'; // Format name
-
-        // Avatar
-        $avatar = isset($user_data['avatar']) ? $user_data['avatar'] : '';
-        if(empty($avatar)) $avatar = $message_src === 1 ? $message_data['from_avatar'] : $message_data['to_avatar'];
-        
-        // Tags
-        $tags = isset($user_data['tags_and_notes_info']['tag_names']) ? $user_data['tags_and_notes_info']['tag_names'] : [];
-        $html_tags = count($tags) > 0 ? '<div class="tag-content mt-1">' : '<div class="tag-content">';
-        foreach($tags as $t) $html_tags .= '<div class="tag" data="'.$t.'">'.$t.'</div>';
-        $html_tags .= '</div>';
-
-        return '
-            <li class="item_mess mess_links" id="li'.$zalo_id.'">
-                <div class="mess_avt">
-                    <div class="imgDrop">
-                        <img class="avatar-user-list" src="'.$avatar.'" alt="Avatar user" />
-                    </div>
-                </div>
-                <div class="__content">
-                    <div class="info_content">
-                        <div class="mess_content">
-                            <div class="mess_name truncate">'.$name.'</div>
-                        </div>
-                        <div class="mess_more has_btn_more">
-                            <div class="mess_time">'.$message_time.'</div>
-                            <div class="mess_number"></div>
-                        </div>
-                    </div>
-                    <div class="box-parent box-lastest_message">
-                        '.$message_content.'
-                    </div>
-                    '.$html_tags.'
-                </div>
-                <div id="liuserinfo'.$zalo_id.'" style="display:none">'.json_encode($user_data).'</div>
-            </li>
-        ';
     }
 }

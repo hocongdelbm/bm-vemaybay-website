@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $zalomes = new EC_Zalo_Messages();
 
                     $sender_id      = $data['sender']['id'] ?? '';
-                    $admin_id       = $data['sender']['admin_id'] ?? '';
+                    $admin_id       = $data['sender']['admin_id'] ?? ''; // Chỉ có khi OA gửi tin nhắn bằng tool chat OA - https://oa.zalo.me/chatv2
                     $recipient_id   = $data['recipient']['id'] ?? '';
                     $src            = strpos($event, "user_send") === false ? 0 : 1;
                     $msg_id         = $data['message']['msg_id'] ?? '';
@@ -87,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                     // Handle assigned user
                     $assigned_user_id = $assigned_user_name = $assigned_user_avatar = '';
-                    if($src == 0 && !empty($admin_id) && strlen($admin_id) > 10) {
+                    if($src == 0 && !empty($admin_id) && strlen($admin_id) > 10) { // Gửi bằng web quản trị Zalo OA
                         $sql_assigned_user = "SELECT id
                             ,TRIM(CONCAT(IFNULL(u.last_name, ''), ' ', IFNULL(u.first_name, ''))) AS name 
                             ,u.photo
@@ -125,7 +125,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $zalomes->data = !empty($msg_data) ? json_encode($msg_data, JSON_UNESCAPED_UNICODE) : '';
                     $zalomes->response = trim($response);
                     $zalomes->assigned_user_id = $assigned_user_id;
-                    if($zalomes->src == 0 && empty($admin_id)) {
+                    if($zalomes->src == 0 && empty($admin_id)) { // Gửi bằng API
                         $sql_update_message = "UPDATE ec_zalo_messages
                             SET sub_type = '{$zalomes->sub_type}'
                                 ,thumbnail = '{$zalomes->thumbnail}'
@@ -138,24 +138,75 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
                     else $zalomes->save();
 
-                    // Add new or update user (zalo last interaction)
+                    // Update quota
                     try {
-                        if($zalomes->src == 1) {
-                            // Search by Zalo ID
-                            $sqlCheck = "SELECT id FROM ec_zalo_contacts WHERE zalo_id = '{$sender_id}' AND oa_id = '{$recipient_id}' AND deleted = 0";
-                            $record_id = $this->db->getOne($sqlCheck) ?? '';
+                        $quota_user = $quota_oa = [];
+                        $last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
+                        $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
 
-                            if(!$record_id || empty($record_id)) {
-                                $json_user = $zaloOA->get_user($sender_id);
-                                $user_info = json_decode($json_user, true);
-                                if(isset($user_info['error']) && $user_info['error'] == 0) {
-                                    $beanZaloContact = new EC_Zalo_Contacts();
-                                    $beanZaloContact->custom_save($user_info['data'], $recipient_id, 'Liên hệ tạo bởi webhook gửi/nhận tin nhắn');
-                                }
+                        // Get user quota info
+                        $zaloContact = new EC_Zalo_Contacts();
+                        $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_id);
+
+                        // Quota user
+                        if($zalomes->src == 1) {
+                            if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
+                                $zaloUserInfo["quota"]["cs_reply"] = $zaloContact->init_consultation_quota(); // Refresh cs_reply
+                                $quota_user = $zaloUserInfo["quota"];
+
+                                $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
+                                $sqlUpdate = "UPDATE ec_zalo_contacts 
+                                    SET last_interaction = '$last_interaction'
+                                        ,quota_info = '". json_encode($quota_user) ."'
+                                        ,description = 'Cập nhật tương tác và hạn ngạch qua webhook user send'
+                                        ,modified_user_id = ''
+                                        ,date_modified = '$date_modified'
+                                    WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                $db->query($sqlUpdate);
                             }
-                            else {
-                                $last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
-                                $db->query("UPDATE ec_zalo_contacts SET last_interaction = '$last_interaction' WHERE zalo_id = '{$sender_id}' AND oa_id = '{$recipient_id}' AND deleted = 0");
+                        }
+                        // Quota oa (Only update when not send by API)
+                        else if($zalomes->src == 0 && !empty($admin_id)) {
+                            if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
+                                $quota_user = $zaloUserInfo["quota"];
+
+                                if(isset($quota_user["cs_reply"]) && !empty($quota_user["cs_reply"])) {
+                                    if(isset($quota_user["cs_reply"]["remain"]) && $quota_user["cs_reply"]["remain"] > 0) {
+                                        $quota_user["cs_reply"]["remain"] -= 1;
+
+                                        $sqlUpdate = "UPDATE ec_zalo_contacts 
+                                            SET last_interaction = '$last_interaction'
+                                                ,quota_info = '". json_encode($quota_user) ."'
+                                                ,description = 'Cập nhật tương tác và hạn ngạch qua webhook oa send'
+                                                ,modified_user_id = ''
+                                                ,date_modified = '$date_modified'
+                                            WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                        $db->query($sqlUpdate);
+                                    }
+                                    else if(isset($quota_user["cs_reply"]["remain"])) {
+                                        $beanZaloOA = new EC_Zalo();
+                                        $zaloOAInfo = $beanZaloOA->get_info_oa($sender_id);
+
+                                        $quota_oa = $zaloOAInfo["quota"];
+                                        $isUpdate = false;
+                                        foreach ($quota_oa as $qkey => $qValue) {
+                                            if($qValue['quota_type'] == 'sub_quota') {
+                                                if(isset($quota_oa[$qkey]["remain"]) && $quota_oa[$qkey]["remain"] > 0) {
+                                                    $quota_oa[$qkey]["remain"] -= 1;
+                                                    $isUpdate = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        if($isUpdate) {
+                                            $sqlUpdate = "UPDATE ec_zalo
+                                                SET quota_info = '". json_encode($quota_oa) ."'
+                                                WHERE id = '{$sender_id}' AND deleted = 0";
+                                            $db->query($sqlUpdate);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -168,7 +219,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         'src'                   => $zalomes->src,
                         'from_id'               => $sender_id,
                         'to_id'                 => $recipient_id,
-                        'timestamp'             => $timestamp,
+                        'timestamp'             => (int)$timestamp,
                         'message_type'          => $zalomes->type,
                         'type'                  => $zalomes->sub_type,
                         'message'               => $zalomes->description,
@@ -183,6 +234,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         'assigned_user_id'      => $assigned_user_id,
                         'assigned_user_name'    => $assigned_user_name,
                         'assigned_user_avatar'  => $assigned_user_avatar,
+                        'quota_user'            => $quota_user
                     ];
                     if($zalomes->quote_message_id && !empty($zalomes->quote_message_id)) {
                         $zaloMessage = new EC_Zalo_Messages();
@@ -224,7 +276,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $input_phone = $query_params['contact_phone'] ?? '';
 
                     if(strlen($input_phone) > 9) {
-
                         // Get contact by zalo id
                         $count_contact = 0;
                         $contact_id = $contact_phone = '';
@@ -270,12 +321,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 exit();
             }
             else if(in_array($event, ['follow', 'unfollow'])) {
+                // Update quota
                 try {
                     $zalo_user_id = $data['follower']['id'] ?? '';
                     $zalo_last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
                     $follower = $event == 'follow' ? 1 : 0;
+                    $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
 
                     if(!empty($zalo_user_id)) {
+                        if($follower == 1) {
+                            // Get user info
+                            $zaloContact = new EC_Zalo_Contacts();
+                            $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_i);
+
+                            if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
+                                $zaloUserInfo["quota"]["cs_reply"] = $zaloContact->init_consultation_quota(); // Refresh cs_reply
+                                $quota_user = $zaloUserInfo["quota"];
+
+                                $sqlUpdate = "UPDATE ec_zalo_contacts 
+                                    SET is_follower = $follower
+                                        ,last_interaction = '$zalo_last_interaction'
+                                        ,quota_info = '". json_encode($quota_user) ."'
+                                        ,description = 'Cập nhật tương tác và hạn ngạch qua webhook user follow'
+                                        ,modified_user_id = ''
+                                        ,date_modified = '$date_modified'
+                                    WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                $db->query($sqlUpdate);
+                            }
+                        }
+                        else {
+                            $db->query("UPDATE ec_zalo_contacts
+                                SET is_follower = $follower
+                                    ,last_interaction = '$zalo_last_interaction'
+                                    ,description = 'Cập nhật tương tác qua webhook user unfollow'
+                                    ,modified_user_id = ''
+                                    ,date_modified = '$date_modified'
+                                WHERE zalo_id = '$zalo_user_id' AND oa_id = '{$zaloOA->get_oa_id()}' AND deleted = 0");
+                        }
+
                         // // Send code to engage in event 02/09/2025
                         // $eventActive = time() > strtotime('2025-08-21 23:59:59') && time() < strtotime('2025-08-29 00:00:00');
                         // if($eventActive && $follower == 1) {
@@ -305,10 +388,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         //         Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                         //     }
                         // }
-
-                        $db->query("UPDATE ec_zalo_contacts
-                            SET is_follower = $follower, last_interaction = '$zalo_last_interaction'
-                            WHERE zalo_id = '$zalo_user_id' AND oa_id = '{$zaloOA->get_oa_id()}' AND deleted = 0");
                     }
 
                     header("HTTP/1.1 200 OK");

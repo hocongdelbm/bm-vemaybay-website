@@ -328,6 +328,7 @@
 <input type="hidden" name="oa_id" value="{$OA_ID}" readonly />
 <input type="hidden" name="oa_name" value="{$OA_NAME}" readonly />
 <input type="hidden" name="oa_avatar" value="{$OA_AVATAR}" readonly />
+<input type="hidden" name="oa_sub_quota" value="{$OA_SUB_QUOTA}" readonly />
 <input type="hidden" name="admin_id" value="{$ADMIN_ID}" readonly />
 <input type="hidden" name="admin_name" value="{$ADMIN_NAME}" readonly />
 <input type="hidden" name="default_avatar" value="{$DEFAULT_AVATAR}" readonly />
@@ -344,4 +345,4 @@
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.8"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=3.9"></script>

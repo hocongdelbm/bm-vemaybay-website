@@ -312,8 +312,14 @@ class entryZaloOAClass extends entryClass {
                             ];
 
                             // Update new quota user to db
+                            $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
                             $quotaInfo = json_encode($quotaInfo);
-                            $db->query("UPDATE ec_zalo_contacts SET quota_info = '{$quotaInfo}' WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0");
+                            $db->query("UPDATE ec_zalo_contacts
+                                SET quota_info = '{$quotaInfo}'
+                                    ,description = 'Cập nhật hạn ngạch qua API gửi tin tư vấn'
+                                    ,modified_user_id = '{$this->currentUser->id}'
+                                    ,date_modified = '$date_modified'
+                                WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0");
                             break;
 
                         case 'sub_quota': // Tin gửi ra là tin nằm trong hạn mức miễn phí theo gói
@@ -327,7 +333,7 @@ class entryZaloOAClass extends entryClass {
                                     if($qValue['quota_type'] == 'sub_quota') {
                                         $quotaInfo[$qKey]['remain'] = $quotaData['remain'];
                                         $quotaInfo[$qKey]['total'] = $quotaData['total'];
-                                        $quotaInfo[$qKey]['valid_through'] = date('d-m-Y', strtotime(str_replace("/","-", $quotaData['expired_date'])));
+                                        $quotaInfo[$qKey]['valid_through'] = date('d-m-Y', strtotime(str_replace("/", "-", $quotaData['expired_date'])));
                                         $isUpdated = true;
                                         break;
                                     }
@@ -340,7 +346,7 @@ class entryZaloOAClass extends entryClass {
                                     "asset_id"      => "",
                                     "product_type"  => "cs",
                                     "quota_type"    => "sub_quota",
-                                    "valid_through" => date('d-m-Y', strtotime(str_replace("/","-", $quotaData['expired_date']))),
+                                    "valid_through" => date('d-m-Y', strtotime(str_replace("/", "-", $quotaData['expired_date']))),
                                     "total"         => $quotaData['total'],
                                     "remain"        => $quotaData['remain']
                                 ];
