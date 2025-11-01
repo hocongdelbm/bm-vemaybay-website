@@ -223,8 +223,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 								$point_log->save();
 								
 								// Send point info to customer via Zalo
-								require_once('modules/EC_Zalo/Zalo.php');
-								$Zalo = new Zalo();
+								require_once "custom/include/helpers/api/APIZaloOA.php";
+								$zaloOA = new APIZaloOA();
 								$Booking = new EC_Flight_Bookings();
 								if(!empty($con_zalo_id)) {
 									$total_discount = (int)($total_point/$Booking->point_step) * $Booking->point_step * 1000;
@@ -249,7 +249,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										],
 									];
 									
-									$json = $Zalo->send_transaction($con_zalo_id, 'transaction_reward', $header, $text, $table, $text2);
+									$json = $zaloOA->send_transaction($con_zalo_id, 'transaction_reward', $header, $text, $table, $text2);
 									$arr = json_decode($json, true);
 
 									if(isset($arr['error']) && $arr['error'] == 0) {
@@ -261,7 +261,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										// $content .= "- Tổng tích lũy: **$total_point điểm**";
 										// Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
 
-										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>";
+										$content = "<b>⭐️ TIN NHẮN TÍCH ĐIỂM</b>";
 										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua Zalo ID";
 										$content .= "\nBooking: <b>$record_name</b>";
 										$content .= "\nSĐT: <b>$con_phone</b>";
@@ -296,8 +296,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 									}
 								}
 								else if(5 < date('H') && date('H') < 22) {
-									require_once("modules/EC_Zalo/OMNI.php");
-									$Omni = new OMNI();
+									require_once "custom/include/helpers/api/APIOMNI.php";
+									$Omni = new APIOMNI();
 									$template_id = $Omni->getTemplateCode('points');
 									$template_data = json_encode([
 										"point" => $point,
@@ -332,7 +332,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										// $content .= "- Tổng tích lũy: **$total_point điểm**";
 										// Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $content);
 
-										$content = "<b>(AUTO) TIN NHẮN TÍCH ĐIỂM</b>";
+										$content = "<b>⭐️ TIN NHẮN TÍCH ĐIỂM</b>";
 										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua <b>ZNS</b>";
 										$content .= "\nBooking: <b>$record_name</b>";
 										$content .= "\nSĐT: <b>$con_phone</b>";

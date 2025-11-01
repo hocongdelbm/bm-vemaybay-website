@@ -63,7 +63,7 @@ class EC_Zalo_Contacts extends Basic
         if(!$zalo_id || strlen($zalo_id) < 15) return [];
 
         $zaloOA = new APIZaloOA($oa_id);
-        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id(); 
+        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
         $userData = [];
 
         $sql = "SELECT id AS user_external_id
@@ -427,6 +427,48 @@ class EC_Zalo_Contacts extends Basic
      */
     public function init_consultation_quota() {
         return ["remain" => 8, "total" => 8];
+    }
+    
+    /**
+     * Check zalo contact action
+     * 
+     * @param string $act call, send_consultation, send_transaction, send_promotion
+     * @param string $zalo_id
+     * @param string $oa_id
+     * 
+     * @return bool
+     */
+    public function check_zalo_contact_action($act, $zalo_id, $oa_id = '') {
+        if(empty($zalo_id)) return false;
+
+        if(!is_string($oa_id) || empty($oa_id)) {
+            $zaloOA = new APIZaloOA();
+            $oa_id = $zaloOA->get_oa_id();
+        }
+
+        $sql = "SELECT zc.id
+                ,zc.last_interaction
+                ,zc.is_follower
+            FROM ec_zalo_contacts zc
+            WHERE zc.zalo_id = '{$zalo_id}'
+                AND zc.oa_id = '{$oa_id}'
+                AND zc.deleted = 0";
+        $res = $this->db->query($sql);
+        $dbInfo = $this->db->fetchByAssoc($res);
+
+        $last_interaction = $dbInfo['last_interaction'] ?? null;
+        if(is_null($last_interaction) || !strtotime($last_interaction)) return false;
+        else return false;
+        $is_follower = (bool)($dbInfo['last_interaction'] ?? 0);
+        $current_datetime = date('Y-m-d H:i:s');
+
+        $value = strtotime($current_datetime) - strtotime($last_interaction);
+
+        if($act === 'call') return $value <= 30;
+        elseif($act === 'send_consultation') return $value <= 7;
+        elseif($act === 'send_transaction') return true;
+        elseif($act === 'send_promotion') return $is_follower;
+        return false;
     }
 	
     /**

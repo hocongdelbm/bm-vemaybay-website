@@ -35,7 +35,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if (!empty($where)) {
-             // Lấy thông tin liên hệ
+            // Lấy thông tin liên hệ
             $sql = "SELECT con.id
                 ,con.last_name AS name
                 ,con.phone_mobile AS phone
@@ -53,7 +53,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 LEFT JOIN email_addresses e ON e.id = eb.email_address_id
             WHERE (". implode(' AND ', $where) .") 
                 AND con.deleted = 0
-            ORDER BY con.date_entered
+            ORDER BY con.date_entered, 
             LIMIT 1";
 
             $res = $db->query($sql);
@@ -76,34 +76,35 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
          * Kiểm tra tương tác Zalo
          * Fix error: strtotime('d/m/Y') thường không parse được
          */
-        $db_last_interaction  = !empty($data['last_interaction']) ? strtotime($data['last_interaction']) : 0; // "Y-m-d H:i:s"
-        $period = (int)((strtotime(date('Y-m-d')) - $db_last_interaction) / 86400);
-        if (empty($data['last_interaction']) || $period >= 30) {
-            require_once('modules/EC_Zalo/Zalo.php');
-            $zalo = new Zalo();
-            $ecZalo = new EC_Zalo();
+        $data['is_call_zalo'] = false;
+        // $db_last_interaction  = !empty($data['last_interaction']) ? strtotime($data['last_interaction']) : 0; // "Y-m-d H:i:s"
+        // $period = (int)((strtotime(date('Y-m-d')) - $db_last_interaction) / 86400);
+        // if (empty($data['last_interaction']) || $period >= 30) {
+        //     require_once('modules/EC_Zalo/Zalo.php');
+        //     $zalo = new Zalo();
+        //     $ecZalo = new EC_Zalo();
 
-            // Get user info
-            $user_info = $ecZalo->get_zalo_user_info($data['zalo_id']);
-            if (!empty($user_info)) {
-                $zalo_phone = $data['phone'] ?? '';
-                if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
-                if (empty($zalo_phone)) $zalo_phone = $zalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
+        //     // Get user info
+        //     $user_info = $ecZalo->get_zalo_user_info($data['zalo_id']);
+        //     if (!empty($user_info)) {
+        //         $zalo_phone = $data['phone'] ?? '';
+        //         if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
+        //         if (empty($zalo_phone)) $zalo_phone = $zalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
     
-                if (empty($data['phone'])) $data['phone'] = $zalo_phone;
-                if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
-                $data['avatar'] = $user_info['avatars']['240'] ?? $user_info['avatar'] ?? '';
-                $data['last_interaction'] = date('Y-m-d', strtotime($user_info['user_last_interaction_date'])) ?? ''; // dd/mm/yyyy
-            }
+        //         if (empty($data['phone'])) $data['phone'] = $zalo_phone;
+        //         if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
+        //         $data['avatar'] = $user_info['avatars']['240'] ?? $user_info['avatar'] ?? '';
+        //         $data['last_interaction'] = date('Y-m-d', strtotime($user_info['user_last_interaction_date'])) ?? ''; // dd/mm/yyyy
+        //     }
 
-            // Check interaction within 30 days with data from API
-            $period = (int)((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400);
-            if ($period < 30) {
-                $data['is_call_zalo'] = true;
-            }
-        } else if (!empty($data['last_interaction']) && $period < 30){
-            $data['is_call_zalo'] = true;
-        }
+        //     // Check interaction within 30 days with data from API
+        //     $period = (int)((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400);
+        //     if ($period < 30) {
+        //         $data['is_call_zalo'] = true;
+        //     }
+        // } else if (!empty($data['last_interaction']) && $period < 30){
+        //     $data['is_call_zalo'] = true;
+        // }
 
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;

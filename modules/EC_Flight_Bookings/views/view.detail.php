@@ -1,8 +1,6 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry)
-	die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
-require_once('modules/EC_Zalo/Zalo.php');
 require_once('modules/EC_Messages/SMS.php');
 
 class EC_Flight_BookingsViewDetail extends ViewDetail
@@ -2567,8 +2565,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$sql = "SELECT zm.sub_type, COUNT(*) AS count
 			FROM ec_zalo_messages zm
-			WHERE zm.parent_id = '$bookingId'
-				AND zm.parent_type = 'EC_Flight_Bookings'
+			WHERE zm.booking_id = '$bookingId'
 				AND zm.type = 'zns'
 				AND zm.to_id = '$phoneNumber'
 				AND zm.deleted = 0
