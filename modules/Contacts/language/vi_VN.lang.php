@@ -197,4 +197,8 @@ $mod_strings = array(
     'LNK_POINTS_LOG' => 'Quá trình tích điểm',
     'LBL_INFO_POINTS' => 'Quá trình tích điểm',
     'LBL_INFO_CALLS' => 'Lịch sử cuộc gọi',
+
+    'LBL_IS_UNCOMFORTABLE' => 'Khách khó chịu',
+    'LBL_IS_CTV' => 'Là CTV?',
+    'LBL_IS_COMPARE_PRICE' => 'Khách so sánh giá',
 );

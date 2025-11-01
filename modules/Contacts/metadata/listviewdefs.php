@@ -197,6 +197,24 @@ $listViewDefs['Contacts'] = array(
         'default' => false,
         'sortable' => false,
     ),
+    'IS_UNCOMFORTABLE' => array(
+        'type' => 'bool',
+        'label' => 'LBL_IS_UNCOMFORTABLE',
+        'width' => '10%',
+        'default' => true,
+    ),
+    'IS_COMPARE_PRICE' => array(
+        'type' => 'bool',
+        'label' => 'LBL_IS_COMPARE_PRICE',
+        'width' => '10%',
+        'default' => true,
+    ),
+    'IS_CTV' => array(
+        'type' => 'bool',
+        'label' => 'LBL_IS_CTV',
+        'width' => '10%',
+        'default' => true,
+    ),
     'DATE_ENTERED' => array(
         'width' => '10',
         'label' => 'LBL_DATE_ENTERED',

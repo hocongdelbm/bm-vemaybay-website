@@ -279,5 +279,7 @@ $mod_strings = array(
   'LBL_RECALL_C'   => 'Recall',
 
   'LBL_EMAIL_RESERVATION'   => 'Email đặt chỗ',
+  'LBL_IS_TELESALE'   => 'Là Telesale',
+  'LBL_IS_CTV'   => 'CTV',
   
 );

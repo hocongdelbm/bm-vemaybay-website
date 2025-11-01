@@ -914,6 +914,16 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
             'audited' => 1,
         ),
+        'is_ctv' => array(
+            'name'       => 'is_ctv',
+            'vname'      => 'LBL_IS_CTV',
+            'comments'   => 'Đánh dấu booking này là từ CTV',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+            'audited' => 1,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_bk_name', 'type' => 'index', 'fields' => array('name')),

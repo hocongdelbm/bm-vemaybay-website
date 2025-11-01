@@ -142,6 +142,12 @@ $searchdefs['Calls'] = array(
 				'default' => true,
 				'width' => '10%',
 			),
+			'call_reason' => array(
+				'name' => 'call_reason',
+				'label' => 'LBL_CALL_REASON',
+				'default' => true,
+				'width' => '10%',
+			),
 			'current_user_only' => array(
 				'name' => 'current_user_only',
 				'label' => 'LBL_CURRENT_USER_FILTER',

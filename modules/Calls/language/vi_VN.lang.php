@@ -162,4 +162,7 @@ $mod_strings = array(
     'LBL_CALL_MOS' => 'Chất lượng âm thanh',
     'LBL_LIST_CALL_MOS' => 'Mos',
     'LBL_CALL_FAILED_CAUSE' => 'Nguyên nhân thất bại',
+    'LBL_IS_UNCOMFORTABLE' => 'Khách khó chịu',
+    'LBL_IS_CTV' => 'CTV',
+    'LBL_IS_COMPARE_PRICE' => 'So sánh giá',
 );
