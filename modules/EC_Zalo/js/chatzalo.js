@@ -1801,7 +1801,7 @@ function create_li_chat_new(zalo_id, message_data) {
             }),
             success: function (response) {
                 if (response && response?.status && response.status == 1) {
-                    let li = create_li_chat(message_data, obj['data']);
+                    let li = create_li_chat(message_data, response.data);
                     $('#list_mess_main').prepend(li);
                 }
             },
