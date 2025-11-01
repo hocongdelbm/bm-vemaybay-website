@@ -22,6 +22,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             'last_interaction'  => '',
             'is_call_zalo'  => false, 
             'is_uncomfortable'  => false, 
+            'is_ctv'  => false, 
+            'is_compare_price'  => false, 
         ];
 
         $where = [];
@@ -39,6 +41,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 ,con.phone_mobile AS phone
                 ,e.email_address AS email
                 ,con.is_uncomfortable
+                ,con.is_ctv
+                ,con.is_compare_price
                 ,con.zalo_id
                 ,con.zalo_avatar
                 ,con.zalo_name
@@ -63,6 +67,8 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $data['zalo_name']     = $row['zalo_name'] ?? '';
                 $data['last_interaction'] = $row['zalo_last_interaction'] ?? '';
                 $data['is_uncomfortable'] = (bool)$row['is_uncomfortable'] ?? '';
+                $data['is_ctv'] = (bool)$row['is_ctv'] ?? '';
+                $data['is_compare_price'] = (bool)$row['is_compare_price'] ?? '';
             }
         }
 
@@ -98,8 +104,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         } else if (!empty($data['last_interaction']) && $period < 30){
             $data['is_call_zalo'] = true;
         }
-
-        $data['period'] = $period;
 
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;
@@ -223,6 +227,12 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 if ($is_uncomfortable) {
                     $con->is_uncomfortable = $is_uncomfortable;
                 }
+                if ($is_ctv) {
+                    $con->is_ctv = $is_ctv;
+                }
+                if ($is_compare_price) {
+                    $con->is_compare_price = $is_compare_price;
+                }
 
                 if ($save === true) {
                     $con->description = "Cập nhật thông tin Liên hệ từ cuộc gọi có call_ID: $call_id";
@@ -260,9 +270,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         ,journey_id = '{$journey_id}'
                         ,type_call_sources = '{$type_call}'
                         ,status = '{$call_status}'
-                        ,is_uncomfortable = '{$is_uncomfortable}'
-                        ,is_ctv = '{$is_ctv}'
-                        ,is_compare_price = '{$is_compare_price}'
                     WHERE call_id = '{$call_id}' AND deleted = 0";
                 $result_update_call = $db->query($sql_update_call);
 

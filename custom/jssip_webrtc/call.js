@@ -499,8 +499,6 @@ $(document).ready(function () {
             call_id = $(this).attr('call_id');
         }
 
-        console.warn('type_call ', type_call);
-
         if (phone.length > 2 && phone != SIP_USER) {
             callOptions.extraHeaders = ['X-Caller: ' + outbound_phone]
 
@@ -528,6 +526,8 @@ $(document).ready(function () {
                         let is_call_zalo = data.is_call_zalo ? data.is_call_zalo : false;
                         let zalo_name = data.zalo_name ? data.zalo_name : '';
                         let is_uncomfortable = data.is_uncomfortable ? data.is_uncomfortable : false;
+                        let is_ctv = data.is_ctv ? data.is_ctv : false;
+                        let is_compare_price = data.is_compare_price ? data.is_compare_price : false;
                         phone = (data.phone && data.phone.length > 0) ? data.phone : phone;
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
@@ -566,8 +566,12 @@ $(document).ready(function () {
                         }, 500);
 
                         if (is_uncomfortable) {
+                            $('#is_uncomfortable').prop('checked', true);
                             $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');
                         }
+
+                        $('#is_ctv').prop('checked', is_ctv);
+                        $('#is_compare_price').prop('checked', is_compare_price);
 
                         // Make a call
                         if (!ua || !ua.isConnected() || !ua.isRegistered()) {
