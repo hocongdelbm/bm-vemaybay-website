@@ -165,6 +165,24 @@ $searchdefs['Contacts'] = array(
                 'default' => true,
                 'width' => '10%',
             ),
+            'is_uncomfortable' => array(
+				'name' => 'is_uncomfortable',
+				'label' => 'LBL_IS_UNCOMFORTABLE',
+				'default' => true,
+				'width' => '10%',
+			),
+            'is_ctv' => array(
+				'name' => 'is_ctv',
+				'label' => 'LBL_IS_CTV',
+				'default' => true,
+				'width' => '10%',
+			),
+            'is_compare_price' => array(
+				'name' => 'is_compare_price',
+				'label' => 'LBL_IS_COMPARE_PRICE',
+				'default' => true,
+				'width' => '10%',
+			),
             // 'lead_source' =>
             //     array(
             //         'name' => 'lead_source',
