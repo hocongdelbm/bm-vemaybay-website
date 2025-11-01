@@ -68,9 +68,10 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
 
         /**
          * Kiểm tra tương tác Zalo
+         * Fix error: strtotime('d/m/Y') thường không parse được
          */
-        $db_last_interaction = !empty($data['last_interaction']) ? date('d/m/Y', strtotime($data['last_interaction'])) : '';
-        $period = (int)((strtotime(date('d/m/Y')) - strtotime($db_last_interaction)) / 86400);
+        $db_last_interaction  = !empty($data['last_interaction']) ? strtotime($data['last_interaction']) : 0; // "Y-m-d H:i:s"
+        $period = (int)((strtotime(date('Y-m-d')) - $db_last_interaction) / 86400);
         if (empty($data['last_interaction']) || $period >= 30) {
             require_once('modules/EC_Zalo/Zalo.php');
             $zalo = new Zalo();
@@ -86,7 +87,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 if (empty($data['phone'])) $data['phone'] = $zalo_phone;
                 if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
                 $data['avatar'] = $user_info['avatars']['240'] ?? $user_info['avatar'] ?? '';
-                $data['last_interaction'] = $user_info['user_last_interaction_date'] ?? ''; // dd/mm/yyyy
+                $data['last_interaction'] = date('Y-m-d', strtotime($user_info['user_last_interaction_date'])) ?? ''; // dd/mm/yyyy
             }
 
             // Check interaction within 30 days with data from API

@@ -540,7 +540,7 @@ $(document).ready(function () {
                         $('input[name="voiceip-contact-id"]').val(contact_id);
 
                         $('#voiceip-name').val(name);
-                        $('#voiceip-info-name').html(is_call_zalo && zalo_name.length > 0 ? zalo_name : name);
+                        $('#voiceip-info-name').html(name);
 
                         if (email && email.length > 0) {
                             $('#voiceip-email').val(email);
