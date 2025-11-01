@@ -52,6 +52,98 @@ class EC_Zalo_Contacts extends Basic
     }
 
     /**
+     * Add or update zalo user
+     * 
+     * @param array $user_data Data from API
+     * @param string $oa_id
+     * @param string $description
+     * 
+     * @return string|bool
+     */
+    public function custom_save($user_data, $oa_id = '', $description = '') {
+        global $current_user;
+
+        $zalo_id = $user_data['user_id'] ?? '';
+        if(empty($zalo_id)) return false;
+
+        $zaloOA = new APIZaloOA($oa_id);
+        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
+
+        $user_external_id = $user_data['user_external_id'] ?? '';
+        $record_id = $user_external_id;
+        if(empty($record_id)) {
+            $sqlCheck = "SELECT id FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0";
+            $record_id = $this->db->getOne($sqlCheck) ?? '';
+        }
+
+        // Alias
+        $user_alias = $user_data['user_alias'] ?? '';
+
+        // Last interaction
+        $last_interaction = $this->format_datetime($user_data['user_last_interaction_date'] ?? '');
+
+        // Phone
+        $phone = $zaloOA->get_phone_by_alias($user_alias);
+        if(empty($phone)) $phone = $zaloOA->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
+
+        // Contact
+        $contact_id = '';
+        if(!empty($phone)) {
+            $contact_id = $this->db->getOne("SELECT id FROM contacts WHERE phone_mobile = '{$phone}' AND deleted = 0 ORDER BY date_entered LIMIT 1") ?? '';
+        }
+
+        // Date of birth
+        $shared_user_dob = $this->format_date($user_data['shared_info']['user_dob'] ?? '');
+
+        // Tags
+        $tag_names = $user_data['tags_and_notes_info']['tag_names'] ?? [];
+        $tag_names = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
+
+        // Quota
+        $quota_info = null;
+        if(isset($user_data['quota']) && !empty($user_data['quota'])) {
+            $quota_info = is_string($user_data['quota']) ? $user_data['quota']: json_encode($user_data['quota']);
+        }
+       
+        $zaloContact = new EC_Zalo_Contacts();
+        if(empty($record_id)) {
+            $zaloContact->zalo_id = $zalo_id;
+            $zaloContact->oa_id = $oa_id;
+            $zaloContact->description = !empty($description) ? $description : "Liên hệ tạo khi gọi API Zalo OA";
+            $zaloContact->assigned_user_id = $current_user->id != '1' ? $current_user->id : null;
+        }
+        else {
+            $zaloContact->retrieve($record_id);
+            $zaloContact->description = !empty($description) ? $description : "Thông tin cập nhật qua API Zalo OA";
+        }
+        $zaloContact->contact_id        = $contact_id;
+        $zaloContact->name              = $user_data['display_name'] ?? '';
+        $zaloContact->alias             = $user_alias;
+        $zaloContact->avatar            = $user_data['avatar'] ?? '';
+        $zaloContact->last_interaction  = $last_interaction;
+        $zaloContact->is_follower       = (int)$user_data['user_is_follower'];
+        $zaloContact->birth_date        = $shared_user_dob;
+        $zaloContact->tags              = $tag_names;
+        $zaloContact->province_city     = $user_data['shared_info']['city'] ?? '';
+        $zaloContact->ward_commune      = $user_data['shared_info']['district'] ?? '';
+        $zaloContact->address           = $user_data['shared_info']['address'] ?? '';
+        $zaloContact->quota_info        = $quota_info;
+        return $zaloContact->save();
+    }
+    
+    public function map_contact_zalo($contact_id, $zalo_id, $oa_id = '') {
+        $zaloOA = new APIZaloOA($oa_id);
+        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
+
+        $sql = "UPDATE ec_zalo_contacts
+            SET contact_id = '{$contact_id}'
+            WHERE zalo_id = '{$zalo_id}'
+                AND oa_id = '{$oa_id}'
+                AND deleted = 0";
+        return $this->db->query($sql);
+    }
+
+    /**
      * Get zalo user info
      * 
      * @param string $zalo_id
@@ -340,86 +432,6 @@ class EC_Zalo_Contacts extends Basic
         }
         
         return $listUserData;
-    }
-
-    /**
-     * Add or update zalo user
-     * 
-     * @param array $user_data Data from API
-     * @param string $oa_id
-     * @param string $description
-     * 
-     * @return string|bool
-     */
-    public function custom_save($user_data, $oa_id = '', $description = '') {
-        global $current_user;
-
-        $zalo_id = $user_data['user_id'] ?? '';
-        if(empty($zalo_id)) return false;
-
-        $zaloOA = new APIZaloOA($oa_id);
-        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
-
-        $user_external_id = $user_data['user_external_id'] ?? '';
-        $record_id = $user_external_id;
-        if(empty($record_id)) {
-            $sqlCheck = "SELECT id FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0";
-            $record_id = $this->db->getOne($sqlCheck) ?? '';
-        }
-
-        // Alias
-        $user_alias = $user_data['user_alias'] ?? '';
-
-        // Last interaction
-        $last_interaction = $this->format_datetime($user_data['user_last_interaction_date'] ?? '');
-
-        // Phone
-        $phone = $zaloOA->get_phone_by_alias($user_alias);
-        if(empty($phone)) $phone = $zaloOA->unformat_zalo_phone($user_data['shared_info']['phone'] ?? '');
-
-        // Contact
-        $contact_id = '';
-        if(!empty($phone)) {
-            $contact_id = $this->db->getOne("SELECT id FROM contacts WHERE phone_mobile = '{$phone}' AND deleted = 0 ORDER BY date_entered LIMIT 1") ?? '';
-        }
-
-        // Date of birth
-        $shared_user_dob = $this->format_date($user_data['shared_info']['user_dob'] ?? '');
-
-        // Tags
-        $tag_names = $user_data['tags_and_notes_info']['tag_names'] ?? [];
-        $tag_names = is_array($tag_names) ? implode(',', $tag_names) : $tag_names;
-
-        // Quota
-        $quota_info = null;
-        if(isset($user_data['quota']) && !empty($user_data['quota'])) {
-            $quota_info = is_string($user_data['quota']) ? $user_data['quota']: json_encode($user_data['quota']);
-        }
-       
-        $zaloContact = new EC_Zalo_Contacts();
-        if(empty($record_id)) {
-            $zaloContact->zalo_id = $zalo_id;
-            $zaloContact->oa_id = $oa_id;
-            $zaloContact->description = !empty($description) ? $description : "Liên hệ tạo khi gọi API Zalo OA";
-            $zaloContact->assigned_user_id = $current_user->id != '1' ? $current_user->id : null;
-        }
-        else {
-            $zaloContact->retrieve($record_id);
-            $zaloContact->description = !empty($description) ? $description : "Thông tin cập nhật qua API Zalo OA";
-        }
-        $zaloContact->contact_id        = $contact_id;
-        $zaloContact->name              = $user_data['display_name'] ?? '';
-        $zaloContact->alias             = $user_alias;
-        $zaloContact->avatar            = $user_data['avatar'] ?? '';
-        $zaloContact->last_interaction  = $last_interaction;
-        $zaloContact->is_follower       = (int)$user_data['user_is_follower'];
-        $zaloContact->birth_date        = $shared_user_dob;
-        $zaloContact->tags              = $tag_names;
-        $zaloContact->province_city     = $user_data['shared_info']['city'] ?? '';
-        $zaloContact->ward_commune      = $user_data['shared_info']['district'] ?? '';
-        $zaloContact->address           = $user_data['shared_info']['address'] ?? '';
-        $zaloContact->quota_info        = $quota_info;
-        return $zaloContact->save();
     }
 
     /**

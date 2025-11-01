@@ -31,7 +31,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $where[] = 'con.phone_mobile = ' . $db->quote($phone);
         }
         if (!empty($zalo_id)) {
-            $where[] = 'con.zalo_id = ' . $db->quote($zalo_id);
+            $where[] = 'zc.zalo_id = ' . $db->quote($zalo_id);
         }
 
         if (!empty($where)) {
@@ -43,17 +43,18 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 ,con.is_uncomfortable
                 ,con.is_ctv
                 ,con.is_compare_price
-                ,con.zalo_id
-                ,con.zalo_avatar
-                ,con.zalo_name
-                ,con.zalo_last_interaction
+                ,zc.zalo_id
+                ,zc.avatar
+                ,zc.alias
+                ,zc.last_interaction
             FROM contacts con
                 LEFT JOIN email_addr_bean_rel eb ON eb.bean_id = con.id 
                     AND eb.bean_module = 'Contacts' AND eb.deleted = 0
                 LEFT JOIN email_addresses e ON e.id = eb.email_address_id
+                LEFT JOIN ec_zalo_contacts zc ON zc.contact_id = con.id
             WHERE (". implode(' AND ', $where) .") 
                 AND con.deleted = 0
-            ORDER BY con.date_entered, 
+            ORDER BY con.date_entered
             LIMIT 1";
 
             $res = $db->query($sql);
@@ -62,49 +63,24 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $data['name']       = $row['name'] ?? '';
                 $data['phone']      = $row['phone'] ?? $phone;
                 $data['email']      = $row['email'] ?? '';
-                $data['avatar']     = $row['zalo_avatar'] ?? '';
-                $data['zalo_id']    = $row['zalo_id'] ?? $zalo_id;
-                $data['zalo_name']     = $row['zalo_name'] ?? '';
-                $data['last_interaction'] = $row['zalo_last_interaction'] ?? '';
                 $data['is_uncomfortable'] = (bool)$row['is_uncomfortable'] ?? '';
                 $data['is_ctv'] = (bool)$row['is_ctv'] ?? '';
                 $data['is_compare_price'] = (bool)$row['is_compare_price'] ?? '';
+
+                $data['avatar']     = $row['avatar'] ?? '';
+                $data['zalo_id']    = $row['zalo_id'] ?? $zalo_id;
+                $data['zalo_name']  = $row['alias'] ?? '';
+                $data['last_interaction'] = $row['last_interaction'] ?? '';
             }
         }
 
-        /**
-         * Kiểm tra tương tác Zalo
-         * Fix error: strtotime('d/m/Y') thường không parse được
-         */
+        // Kiểm tra tương tác Zalo
         $data['is_call_zalo'] = false;
-        // $db_last_interaction  = !empty($data['last_interaction']) ? strtotime($data['last_interaction']) : 0; // "Y-m-d H:i:s"
-        // $period = (int)((strtotime(date('Y-m-d')) - $db_last_interaction) / 86400);
-        // if (empty($data['last_interaction']) || $period >= 30) {
-        //     require_once('modules/EC_Zalo/Zalo.php');
-        //     $zalo = new Zalo();
-        //     $ecZalo = new EC_Zalo();
-
-        //     // Get user info
-        //     $user_info = $ecZalo->get_zalo_user_info($data['zalo_id']);
-        //     if (!empty($user_info)) {
-        //         $zalo_phone = $data['phone'] ?? '';
-        //         if (empty($zalo_phone)) $zalo_phone = $zalo->get_phone_by_alias($user_info['user_alias'] ?? ''); // Get phone from user_alias
-        //         if (empty($zalo_phone)) $zalo_phone = $zalo->unformat_zalo_phone($user_info['shared_info']['phone'] ?? '');
-    
-        //         if (empty($data['phone'])) $data['phone'] = $zalo_phone;
-        //         if (empty($data['name'])) $data['name'] = $user_info['display_name'] ?? '';
-        //         $data['avatar'] = $user_info['avatars']['240'] ?? $user_info['avatar'] ?? '';
-        //         $data['last_interaction'] = date('Y-m-d', strtotime($user_info['user_last_interaction_date'])) ?? ''; // dd/mm/yyyy
-        //     }
-
-        //     // Check interaction within 30 days with data from API
-        //     $period = (int)((strtotime(date('d/m/Y')) - strtotime($data['last_interaction'])) / 86400);
-        //     if ($period < 30) {
-        //         $data['is_call_zalo'] = true;
-        //     }
-        // } else if (!empty($data['last_interaction']) && $period < 30){
-        //     $data['is_call_zalo'] = true;
-        // }
+        try {
+            $zaloContact = new EC_Zalo_Contacts();
+            $data['is_call_zalo'] = !empty($data['zalo_id']) ? $zaloContact->check_zalo_contact_action('call', $data['zalo_id']) : false;
+        }
+        catch(Throwable $th) {}
 
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;
@@ -158,16 +134,19 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 $where_clauses = [];
                 if (!empty($phone)) {
                     $phone_escaped = $db->quote($phone);
-                    $where_clauses[] = 'phone_mobile = ' . $phone_escaped;
+                    $where_clauses[] = 'c.phone_mobile = ' . $phone_escaped;
                 }
                 if (!empty($zalo_id)) {
                     $zalo_escaped = $db->quote($zalo_id);
-                    $where_clauses[] = 'zalo_id = ' . $zalo_escaped;
+                    $where_clauses[] = 'zc.zalo_id = ' . $zalo_escaped;
                 }
 
                 if (!empty($where_clauses)) {
-                    $sql = 'SELECT id, phone_mobile, zalo_id FROM contacts 
-                            WHERE (' . implode(' OR ', $where_clauses) . ') AND deleted = 0';
+                    $sql = 'SELECT c.id, c.phone_mobile, zc.zalo_id
+                            FROM contacts c
+                                LEFT JOIN ec_zalo_contacts zc ON zc.contact_id = c.id
+                            WHERE ('. implode(' OR ', $where_clauses) .')
+                                AND c.deleted = 0';
                     $result = $db->query($sql);
             
                     $found_ids = [];
@@ -213,10 +192,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $con->phone_mobile = trim($phone);
                     $save = true;
                 }
-                if (empty($con->zalo_id) && !empty($zalo_id) && !isExitsPhoneNumber('contacts', $zalo_id)) {
-                    $con->zalo_id = trim($zalo_id);
-                    $save = true;
-                }
                 if (!empty($name)) {
                     $con->last_name = $name;
                     $save = true;
@@ -243,7 +218,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             else {
                 if(!empty($call_id) && !isExitsPhoneNumber('contacts', $phone)) {
                     $con->phone_mobile      = trim($phone);
-                    $con->zalo_id           = $zalo_id;
                     $con->last_name         = $name;
                     $con->email1            = $email;
                     $con->description       = "Liên hệ tạo từ cuộc gọi có call_ID: $call_id";
@@ -254,6 +228,15 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                     $con->save();
                 }
             }
+
+            // Map contact and zalo
+            try {
+                if(!empty($zalo_id) && is_string($con->id)) {
+                    $zaloContact = new EC_Zalo_Contacts();
+                    $zaloContact->map_contact_zalo($con->id, $zalo_id);
+                }
+            }
+            catch(Throwable $th) {}
 
             // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
             $currentDate = date('Y-m-d H:i:s', strtotime('+7 hour'));
