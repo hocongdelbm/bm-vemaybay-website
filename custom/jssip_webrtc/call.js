@@ -566,7 +566,7 @@ $(document).ready(function () {
                         }, 500);
 
                         if (is_uncomfortable) {
-                            $('#is_uncomfortable').prop('checked', true);
+                            $('#is_uncomfortable').prop('checked', is_uncomfortable);
                             $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');
                         }
 
@@ -907,14 +907,16 @@ $(document).ready(function () {
                 cache: false,
                 success: function (response) {
                     if (response.length > 0 && response != '[]') {
-                        data = JSON.parse(response);
+                        let data = JSON.parse(response);
                         let contact_id = data.contact_id;
                         let name = data.name;
                         let phone = arg_phone.length > 0 ? arg_phone : data.phone;
                         let zaloid = arg_zaloid.length > 0 ? arg_zaloid : data.zalo_id;
                         let email = data.email;
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
-
+                        let is_uncomfortable = data.is_uncomfortable ? data.is_uncomfortable : false;
+                        let is_ctv = data.is_ctv ? data.is_ctv : false;
+                        let is_compare_price = data.is_compare_price ? data.is_compare_price : false;
                         let info_booking = data.info_booking;
                         let info_refund_ticket = data.info_refund_ticket;
                         let info_call = data.info_call;
@@ -932,6 +934,15 @@ $(document).ready(function () {
                             $('#voiceip-info-zaloid').html(zaloid);
                             display_avatar_zalo(avatar);
                         }
+
+                        if (is_uncomfortable) {
+                            $('#is_uncomfortable').prop('checked', is_uncomfortable);
+                            $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');
+                        }
+
+                        $('#is_ctv').prop('checked', is_ctv);
+                        $('#is_compare_price').prop('checked', is_compare_price);
+
 
                         if (email && email.length > 0) {
                             $('#voiceip-email').val(email);
