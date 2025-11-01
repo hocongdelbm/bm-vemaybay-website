@@ -162,7 +162,7 @@ class entryZaloOAClass extends entryClass {
             return [
                 "status" => 0,
                 "message" => "Dữ liệu không hợp lệ",
-                "data" => null
+                "data" => $params
             ];
         }
 

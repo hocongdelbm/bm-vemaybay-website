@@ -207,7 +207,7 @@ class EC_Zalo_Contacts extends Basic
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
         $listUserData = [];
 
-        $condition = strlen($search_value) < 10 ? "c.phone_mobile LIKE '%$search_value'" : "c.phone_mobile = $search_value";
+        $condition = strlen($search_value) < 10 ? "c.phone_mobile LIKE '%$search_value'" : "c.phone_mobile = '$search_value'";
         $sql = "SELECT zc.zalo_id
             ,zc.id AS user_external_id
             ,zc.contact_id
@@ -224,7 +224,7 @@ class EC_Zalo_Contacts extends Basic
             ,zc.address
             ,zc.quota_info
         FROM ec_zalo_contacts zc
-            LEFT JOIN contacts c WHERE c.id = zc.contact_id AND c.deleted = 0
+            LEFT JOIN contacts c ON c.id = zc.contact_id
         WHERE $condition
             AND zc.oa_id = '{$oa_id}'
             AND zc.contact_id IS NOT NULL
@@ -299,7 +299,7 @@ class EC_Zalo_Contacts extends Basic
             ,zc.address
             ,zc.quota_info
         FROM ec_zalo_contacts zc
-            LEFT JOIN contacts c WHERE c.id = zc.contact_id AND c.deleted = 0
+            LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
         WHERE MATCH(zc.alias) AGAINST('\"$search_value\"')
             AND zc.oa_id = '{$oa_id}'
             AND zc.deleted = 0";

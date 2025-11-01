@@ -20,7 +20,8 @@ try {
         $className  = global_test_input($reqBody['class'] ?? $params['class'] ?? '');
         $method     = global_test_input($reqBody['method'] ?? $params['method'] ?? '');
         $methodParams = $reqBody['params'] ?? $params['params'] ?? [];
-
+        if(is_string($methodParams)) $methodParams = json_decode(html_entity_decode($methodParams), true);
+        
         $entryClass = entryFactory::create($className);
         if($entryClass) {
             if (method_exists($entryClass, $method)) {

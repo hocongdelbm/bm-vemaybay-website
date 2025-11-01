@@ -335,11 +335,11 @@ $(document).ready(function () {
         // formData.append('type', 'request_user_info');
         formData.append('class', 'entryZaloOAClass');
         formData.append('method', 'sendMessage');
-        formData.append('params', {
+        formData.append('params', JSON.stringify({
             'oa_id': OA_ID,
             'zalo_id': zalo_id,
             'type': 'request_user_info',
-        });
+        }));
         send_message(formData);
     });
 
@@ -816,7 +816,7 @@ $(document).ready(function () {
 
                     if(response?.status && response.status == 1) {
                         let html = '';
-                        $.each(obj['data'], function(index, item) {
+                        $.each(response.data, function(index, item) {
                             html += create_li_chat(item.message_info, item.user_info);
                         });
                         if(html.length > 0) $('#list_mess_search').html(html);
@@ -1862,7 +1862,7 @@ function generate_form_data() {
     let formData = new FormData();
     formData.append('class', 'entryZaloOAClass');
     formData.append('method', 'sendMessage');
-    formData.append('params', params);
+    formData.append('params', JSON.stringify(params));
     return formData;
 }
 
@@ -1873,12 +1873,16 @@ function generate_form_data() {
  */
 function send_message(data) {
     if(data) {
+        console.warn(data);
         $.ajax({
             url: URL,
             type: "POST",
-            contentType: "application/json",
+            // contentType: "application/json",
+            // data: JSON.stringify(data),
+            data: data,               // send the FormData directly
+            processData: false,       // prevent jQuery from turning it into a query string
+            contentType: false, 
             dataType: "json",
-            data: JSON.stringify(data),
             beforeSend: function() {
                 $('.loader_send_message').remove();
                 $('#section-message__details').append('<div class="loader_send_message"></div>');
@@ -1928,8 +1932,6 @@ function handleQuotaUser(quota, last_interaction = null) {
             disable_send_message();
         }
         else {
-            console.warn(typeof quota.cs_reply.remain);
-            console.warn(oa_sub_quota);
             if(quota?.cs_reply && quota.cs_reply.remain > 0) {
                 quota_html = `<div class="noti-mess-feedback noti_green">
                     <span>Còn ${quota.cs_reply.remain}/${quota.cs_reply.total} tin nhắn miễn phí với người dùng trong 48h</span>
