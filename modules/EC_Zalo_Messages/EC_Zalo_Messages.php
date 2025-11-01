@@ -112,7 +112,7 @@ class EC_Zalo_Messages extends Basic {
      * @return array
      */
     public function get_list_recent_messages($oa_id, $last_timestamp = 0, $current_list_user = [], $limit_record = 15) {
-        $results = [];
+        $results = ['data' => []];
         $list_zalo_id = ['interaction' => [], 'no_interaction' => []];
         $zaloContact = new EC_Zalo_Contacts();
 
@@ -151,7 +151,10 @@ class EC_Zalo_Messages extends Basic {
             $zalo_id = $row['src'] == 1 ? $row['from_id'] : $row['to_id'];
 
             // if(in_array($zalo_id, $current_list_user)) continue;
-            if(in_array($zalo_id, $list_zalo_id['no_interaction']) || in_array($zalo_id, $list_zalo_id['interaction'])) continue;
+            if((!empty($list_zalo_id['no_interaction']) && in_array($zalo_id, $list_zalo_id['no_interaction']))
+                || (!empty($list_zalo_id['interaction']) && in_array($zalo_id, $list_zalo_id['interaction']))) {
+                continue;
+            }
 
             // Get zalo user info
             $user_info = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);

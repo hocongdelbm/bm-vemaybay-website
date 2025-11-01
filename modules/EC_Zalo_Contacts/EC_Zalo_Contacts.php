@@ -66,7 +66,7 @@ class EC_Zalo_Contacts extends Basic
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
         $userData = [];
 
-        $sql = "SELECT id AS user_external_id
+        $sql = "SELECT zc.id AS user_external_id
             ,zc.contact_id
             ,c.phone_mobile AS phone_number
             ,zc.name AS display_name
@@ -82,7 +82,7 @@ class EC_Zalo_Contacts extends Basic
             ,zc.quota_info
             ,DATE_ADD(zc.date_modified, INTERVAL 7 HOUR) AS date_modified
         FROM ec_zalo_contacts zc
-            LEFT JOIN contacts c ON c.id = zc.contact_id WHERE zc.contact_id IS NOT NULL AND c.deleted = 0
+            LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
         WHERE zc.zalo_id = '{$zalo_id}'
             AND zc.oa_id = '{$oa_id}'
             AND zc.deleted = 0
