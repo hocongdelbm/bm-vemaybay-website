@@ -345,4 +345,4 @@
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.9"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=4.0"></script>

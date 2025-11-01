@@ -1920,7 +1920,7 @@ function handleQuotaUser(quota, last_interaction = null) {
     let time_check_day = (last_interaction && last_interaction > 0) ? ~~((Date.now() - parseInt(last_interaction)) / 1000 / 3600 / 24) : 0;
 
     // Thông tin quota từ user
-    if(time_check_day && time_check_day > 0) {
+    if(last_interaction !== null) {
         if(time_check_day > 7) {
             quota_html = `<div class="noti-mess-feedback noti_grey">
                 <span>Không thể trò chuyện. Người dùng đã hết tương tác với OA trong vòng 7 ngày gần nhất</span>
@@ -1928,6 +1928,8 @@ function handleQuotaUser(quota, last_interaction = null) {
             disable_send_message();
         }
         else {
+            console.warn(typeof quota.cs_reply.remain);
+            console.warn(oa_sub_quota);
             if(quota?.cs_reply && quota.cs_reply.remain > 0) {
                 quota_html = `<div class="noti-mess-feedback noti_green">
                     <span>Còn ${quota.cs_reply.remain}/${quota.cs_reply.total} tin nhắn miễn phí với người dùng trong 48h</span>
