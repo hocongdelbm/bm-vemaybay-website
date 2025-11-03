@@ -19,10 +19,11 @@ $listViewDefs[$module_name] = array(
     ),
 
     'CONTACT_NAME' => array(
-        'width' => '20',
+        'width' => '20%',
         'label' => 'LBL_CONTACT',
+        'link' => true,
         'default' => true,
-        'link' => true
+        'sortable' => false,
     ),
 
     'IS_FOLLOWER' => array(
