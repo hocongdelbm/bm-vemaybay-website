@@ -181,7 +181,7 @@ $GLOBALS['app_list_strings']['world_region_list'] = array(
   5 => 'Châu Phi',
 );
 
-//TRONG MODULE EC_CUSTOMER
+// TRONG MODULE EC_CUSTOMER
 $GLOBALS['app_list_strings']['customer_type_list'] = array(
   'NEW' => 'Mới',
   'VIP' => 'VIP',
@@ -190,6 +190,25 @@ $GLOBALS['app_list_strings']['customer_type_list'] = array(
   'DANGER' => 'Lý thông gấu',
   'WARNING' => 'Lý thông me',
   'IGNORE' => 'Linh tinh',
+);
+
+$GLOBALS['app_list_strings']['lead_source_dom'] = array(
+  '' => '',
+  'Cold Call' => 'Cuộc gọi hoàn hảo',
+  'Zalo OA' => 'Zalo OA',
+  'Web Site' => 'Trang web',
+  'Direct Mail' => 'Gửi mail trực tiếp',
+  'Email' => 'Email',
+  'Self Generated' => 'Tự tạo',
+  'Existing Customer' => 'Khách hàng có sẵn',
+  'Employee' => 'Nhân viên',
+  'Partner' => 'Đối tác',
+  'Public Relations' => 'Quan hệ cộng đồng',
+  'Campaign' => 'Chiến dịch kinh doanh',
+  'Word of mouth' => 'Truyền miệng',
+  'Conference' => 'Hội nghị',
+  'Trade Show' => 'Hội chợ triển lãm',
+  'Other' => 'Khác',
 );
 
 $GLOBALS['app_list_strings']['contact_type_list'] = array(

@@ -55,9 +55,27 @@ $app_list_strings['moduleList'] = array(
   'EC_Payment_Voucher'      => 'Payment Voucher',
   'EC_Payment_Types'        => 'Payment Types',
   'EC_Banks'                => 'Banks',
-  'EC_HoanVe'                => 'Hoàn vé',
+  'EC_HoanVe'               => 'Hoàn vé',
 );
 
+$GLOBALS['app_list_strings']['lead_source_dom'] = array(
+  '' => '',
+  'Cold Call' => 'Cold Call',
+  'Zalo OA' => 'Zalo OA',
+  'Web Site' => 'Website',
+  'Direct Mail' => 'Direct Mail',
+  'Email' => 'Email',
+  'Self Generated' => 'Self Generated',
+  'Existing Customer' => 'Existing Customer',
+  'Employee' => 'Employee',
+  'Partner' => 'Partner',
+  'Public Relations' => 'Public Relations',
+  'Campaign' => 'Business Campaign',
+  'Word of mouth' => 'Word of Mouth',
+  'Conference' => 'Conference',
+  'Trade Show' => 'Trade Show',
+  'Other' => 'Other',
+);
 
 $GLOBALS['app_list_strings']['booking_ticket_type_list'] = array(
   1 => 'Nội địa',

@@ -37,7 +37,7 @@ $dictionary['EC_Zalo_Contacts'] = array(
         ),
         'contact_name' => array(
             'name' => 'contact_name',
-            'vname' => 'LBL_CONTACT_NAME',
+            'vname' => 'LBL_CONTACT',
             'type' => 'relate',
             'source' => 'non-db',
             'rname' => 'name',

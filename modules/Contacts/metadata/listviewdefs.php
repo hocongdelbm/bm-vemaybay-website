@@ -67,21 +67,6 @@ $listViewDefs['Contacts'] = array(
         'label' => 'LBL_PHONE_MOBILE',
         'default' => true,
     ),
-    'POINTS' => array(
-        'width' => '10%',
-        'label' => 'LBL_POINTS',
-        'default' => true,
-    ),
-    'ZALO_ID' => array(
-        'width' => '15%',
-        'label' => 'LBL_ZALO_ID',
-        'default' => true,
-    ),
-    // 'ZALO_ID' => array(
-    //     'width' => '15%',
-    //     'label' => 'LBL_ZALO_ID',
-    //     'default' => true
-    // ),
     'EMAIL1' => array(
         'width' => '15%',
         'label' => 'LBL_LIST_EMAIL_ADDRESS',
@@ -89,6 +74,11 @@ $listViewDefs['Contacts'] = array(
         'link' => true,
         'customCode' => '{$EMAIL1_LINK}',
         'default' => true
+    ),
+    'POINTS' => array(
+        'width' => '10%',
+        'label' => 'LBL_POINTS',
+        'default' => true,
     ),
     'PHONE_WORK' => array(
         'width' => '15%',

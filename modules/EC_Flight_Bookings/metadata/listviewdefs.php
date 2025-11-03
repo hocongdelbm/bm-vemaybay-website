@@ -66,5 +66,5 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_DATE_ENTERED',
         'width' => '15%',
         'default' => true,
-    )
+    ),
 );

@@ -459,7 +459,7 @@ class EC_Zalo_Contacts extends Basic
             $zaloOA = new APIZaloOA();
             $oa_id = $zaloOA->get_oa_id();
         }
-
+        
         $sql = "SELECT zc.id
                 ,zc.last_interaction
                 ,zc.is_follower
@@ -473,7 +473,31 @@ class EC_Zalo_Contacts extends Basic
 
         $last_interaction = $dbInfo['last_interaction'] ?? null;
         if(is_null($last_interaction) || !strtotime($last_interaction)) return false;
-        $is_follower = (bool)($dbInfo['last_interaction'] ?? 0);
+        $is_follower = (bool)($dbInfo['is_follower'] ?? 0);
+        $current_datetime = date('Y-m-d H:i:s');
+
+        $value = strtotime($current_datetime) - strtotime($last_interaction); // giây
+        $day = round($value / 86400); //Ngày
+
+        if($act === 'call') return $day <= 30;
+        elseif($act === 'send_consultation') return $day <= 7;
+        elseif($act === 'send_transaction') return true;
+        elseif($act === 'send_promotion') return $is_follower;
+        return false;
+    }
+
+    /**
+     * Check zalo contact action by available data
+     * 
+     * @param string $act call, send_consultation, send_transaction, send_promotion
+     * @param string $last_interaction Y-m-d H:i:s
+     * @param int $is_follower
+     * 
+     * @return bool
+     */
+    public function check_zalo_contact_action_by_data($act, $last_interaction, $is_follower) {
+        if(is_null($last_interaction) || !strtotime($last_interaction)) return false;
+        $is_follower = (bool)($is_follower ?? 0);
         $current_datetime = date('Y-m-d H:i:s');
 
         $value = strtotime($current_datetime) - strtotime($last_interaction); // giây

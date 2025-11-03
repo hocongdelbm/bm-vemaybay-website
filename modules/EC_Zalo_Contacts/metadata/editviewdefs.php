@@ -9,14 +9,6 @@ $viewdefs[$module_name]['EditView'] = array(
         ),
     ),
     'panels' => array(
-        'default' => array(
-            array(
-                'name',
-                'assigned_user_name',
-            ),
-            array(
-                'description',
-            ),
-        ),
+        'default' => array(),
     ),
 );
