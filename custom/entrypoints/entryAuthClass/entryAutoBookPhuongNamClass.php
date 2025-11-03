@@ -315,10 +315,11 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!isset($f["transactionID"]) || $f["flightNo"] != ($flightNo[$i] ?? '')) continue;
 
                         // Standard data for automatic booking in the next step
+                        $flightNumber = trim(str_replace($f["airlineCode"] ?? $airlineCodeSearch, '', $f['flightNo']));
                         $standardData[$i] = [
                             "SystemCode" => $f['airlineCode'],
                             "TransactionId" => $f['transactionID'] ?? null,
-                            "FlightNumber" => preg_replace('/\D/', '', $f['flightNo']),
+                            "FlightNumber" => $flightNumber,
                             "FarePricings" => [
                                 [
                                     "FareBasis" => $f['fareBasis'],
