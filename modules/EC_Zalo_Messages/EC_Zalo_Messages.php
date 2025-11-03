@@ -476,4 +476,15 @@ class EC_Zalo_Messages extends Basic {
 
         return $result;
     }
+
+    /**
+     * 
+     */
+    public function send_maintain_interaction_message() {
+        $zaloContact = new EC_Zalo_Contacts();
+
+        $listUsers6day = $zaloContact->get_list_zalo_user_by_last_interaction_day(6);
+        $listUsers30day = $zaloContact->get_list_zalo_user_by_last_interaction_day(30);
+        
+    }
 }
