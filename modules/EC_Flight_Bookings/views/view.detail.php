@@ -13,7 +13,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private $editing_rights = false;
 
 	function display()
-	{
+	{	
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 

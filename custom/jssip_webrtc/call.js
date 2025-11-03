@@ -382,6 +382,7 @@ ua.on('newRTCSession', function (ev) {
         // `)
         $('#template-notes').html(`
             <option value="">--Trống--</option>
+            <option value="out_price">Hỏi giá vé máy bay</option>
             <option value="out_telesale_call">Telephone sale khách hàng</option>
             <option value="out_confirm_consult">Xác nhận thông tin, tư vấn</option>
             <option value="out_customer_care">CSKH nhắc ngày giờ bay</option>

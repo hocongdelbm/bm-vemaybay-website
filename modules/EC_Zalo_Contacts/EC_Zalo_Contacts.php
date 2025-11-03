@@ -451,6 +451,8 @@ class EC_Zalo_Contacts extends Basic
      * @return bool
      */
     public function check_zalo_contact_action($act, $zalo_id, $oa_id = '') {
+        global $current_user;
+
         if(empty($zalo_id)) return false;
 
         if(!is_string($oa_id) || empty($oa_id)) {
@@ -473,11 +475,12 @@ class EC_Zalo_Contacts extends Basic
         if(is_null($last_interaction) || !strtotime($last_interaction)) return false;
         $is_follower = (bool)($dbInfo['last_interaction'] ?? 0);
         $current_datetime = date('Y-m-d H:i:s');
-        
-        $value = strtotime($current_datetime) - strtotime($last_interaction);
 
-        if($act === 'call') return $value <= 30;
-        elseif($act === 'send_consultation') return $value <= 7;
+        $value = strtotime($current_datetime) - strtotime($last_interaction); // giây
+        $day = round($value / 86400); //Ngày
+
+        if($act === 'call') return $day <= 30;
+        elseif($act === 'send_consultation') return $day <= 7;
         elseif($act === 'send_transaction') return true;
         elseif($act === 'send_promotion') return $is_follower;
         return false;

@@ -2097,6 +2097,7 @@ $GLOBALS['app_list_strings']['call_reason_list'] = array(
   'in_complaint_delay' => 'Khách phàn nàn, khó chịu (Gọi đến)',
   'in_other' => 'Trường hợp khác (Gọi đến)',
   'horizontal' => '---------------------------------------',
+  'out_price' => 'Hỏi giá vé máy bay (Gọi đi)',
   'out_telesale_call' => 'Telephone sale khách hàng (Gọi đi)',
   'out_confirm_consult' => 'Xác nhận thông tin, tư vấn (Gọi đi)',
   'out_customer_care' => 'CSKH nhắc ngày giờ bay (Gọi đi)',
