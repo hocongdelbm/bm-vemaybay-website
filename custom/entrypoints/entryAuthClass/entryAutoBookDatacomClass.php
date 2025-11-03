@@ -40,7 +40,8 @@ class entryAutoBookDatacomClass extends entryClass {
             'VNA' => 'VN',
             'VNP' => 'VN',
             'BBA' => 'QH',
-            'VTA' => 'VU'
+            'VTA' => 'VU',
+            '9G' => '9G'
         ];
         // BM database
         $this->supplierId = "ebdf163a-7b85-30bf-62be-5a4af5a1166c";
