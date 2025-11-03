@@ -1602,20 +1602,20 @@ class entryAutoBookDatacomClass extends entryClass {
         $str = strtolower(trim($str));
 
         preg_match('/(\d+)\s*piece/i', $str, $pieceMatches);
-        $piece = $pieceMatches[1] ?? "";
+        $piece = (int)($pieceMatches[1] ?? 0);
 
         preg_match('/(\d+)\s*kg/i', $str, $weightMatches);
-        $weight = $weightMatches[1] ?? "";
+        $weight = (int)($weightMatches[1] ?? 0);
 
-        if(!empty($piece) && !empty($weight)) {
+        if($piece > 0 && $weight > 0) {
             return ["value" => "{$piece}x{$weight}", "description" => "$piece kiện x {$weight}kg"];
         }
-        elseif(!empty($piece)) {
-            return ["value" => "{$piece}", "description" => "$piece kiện"];
+        elseif($piece > 0) {
+            return ["value" => $piece, "description" => "$piece kiện"];
         }
-        elseif(!empty($weight)) {
-            return ["value" => "{$weight}", "description" => "{$weight}kg"];
+        elseif($weight > 0) {
+            return ["value" => $weight, "description" => "{$weight}kg"];
         }
-        return ["value" => $str, "description" => $str];
+        return ["value" => "", "description" => ""];
     }
 }
