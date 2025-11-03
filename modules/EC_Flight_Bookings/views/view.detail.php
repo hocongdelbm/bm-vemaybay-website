@@ -321,7 +321,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			</a>
 		';
 
-		if($this->bean->booking_status == 8) {
+		if($this->bean->booking_status == 8 || $this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
 			if (!$this->bean->is_telesale) {
 				$is_wrap_hold .= '</form>
 							<form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
@@ -343,7 +343,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 								<a href="index.php?module=Calls&action=DetailView&record=' . $call_id . '" target="_blank">' . $call_name . '</a>
 				';
 			}
+		}
 
+		if($this->bean->booking_status == 8) {
+			// Là CTV
 			if (!$this->bean->is_ctv) {
 				$is_wrap_hold .= '</form>
 							<form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
@@ -360,8 +363,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				$is_wrap_hold .= '<label for="is_ctv" class="ms-2">Là CTV:</label>
 								<input type="checkbox" disabled name="is_ctv" id="is_ctv" ' . ($this->bean->is_ctv ? 'checked="checked"' : '') . '/>';
 			}
-
-			// Là CTV
 		}
 
 		$is_wrap_hold .= '</div>';
