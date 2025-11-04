@@ -218,6 +218,21 @@ class EC_HoaDonBan extends Basic {
 		$beanBooking = new EC_Flight_Bookings();
 		$listBookingTickets = $beanBooking->getListTickets($bookingId);
 
+		// Get info in booking
+		$sqlBooking = "SELECT name
+				,IFNULL(tax_code, '') AS iv_tax_code
+				,IFNULL(company_name, '') AS iv_company_name
+				,IFNULL(company_address, '') AS iv_address
+				,shipping_address
+				,total_bought_amount
+				,luggage_fee
+				,total_amount
+			FROM ec_flight_bookings
+			WHERE id = '{$bookingId}' AND deleted = 0
+			LIMIT 1";
+		$resBooking = $this->db->query($sqlBooking);
+		$bookingInfo = $this->db->fetchByAssoc($resBooking);
+
 		foreach ($listBookingTickets as $times => $listValue) {
 			$additionalSecond++;
 			$listBookingTicketNumber = array_keys($listValue);
@@ -226,21 +241,6 @@ class EC_HoaDonBan extends Basic {
 			$diff = array_diff($listBookingTicketNumber, $listAvailableTicketNumber);
 			if (empty($diff)) {
 				try {
-					// Get info in booking
-					$sqlBooking = "SELECT name
-							,IFNULL(tax_code, '') AS iv_tax_code
-							,IFNULL(company_name, '') AS iv_company_name
-							,IFNULL(company_address, '') AS iv_address
-							,shipping_address
-							,total_bought_amount
-							,luggage_fee
-							,total_amount
-						FROM ec_flight_bookings
-						WHERE id = '{$bookingId}' AND deleted = 0
-						LIMIT 1";
-					$resBooking = $this->db->query($sqlBooking);
-					$bookingInfo = $this->db->fetchByAssoc($resBooking);
-
 					$invArr = json_decode(str_replace('&quot;', '"', $bookingInfo['shipping_address']), 1);
 					$bookingInfo['iv_account_name'] 	= trim($invArr['iv_account_name'] ?? '');
 					$bookingInfo['iv_email'] 			= trim($invArr['iv_email'] ?? '');
@@ -289,9 +289,11 @@ class EC_HoaDonBan extends Basic {
 					if(!$parentId || !is_string($parentId)) continue;
 
 					$totalBaggagePrice = 0; // Baggage purchase price in booking
-					foreach($listValue as $tknum => $bookingtk) {
-						if($bookingtk['type'] == 'baggage') {
-							$totalBaggagePrice += $bookingtk['purchasePrice'] ?? 0;
+					foreach($listValue as $tknum => $arr) {
+						foreach ($arr as $bookingtk) {
+							if($bookingtk['type'] == 'baggage') {
+								$totalBaggagePrice += $bookingtk['purchasePrice'] ?? 0;
+							}
 						}
 					}
 
@@ -313,7 +315,7 @@ class EC_HoaDonBan extends Basic {
 					$totalServiceFee = 0;
 					if($times < 1) {
 						// Tickets and baggage are issued separately
-						if($times < 1 && $isIssueBaggage) {
+						if($isIssueBaggage) {
 							$totalFlightServiceFee  = $bookingInfo['total_amount'] - $bookingInfo['total_bought_amount'] - $bookingInfo['luggage_fee'];
 							$totalBaggageServiceFee = $bookingInfo['luggage_fee'] - $totalBaggagePrice;
 						}

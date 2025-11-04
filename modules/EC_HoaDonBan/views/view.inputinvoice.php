@@ -475,8 +475,7 @@ class Viewinputinvoice extends SugarView {
             $html .= '<td class="text-end vat_input">' . $vat_input . '</td>';
             $html .= '<td class="text-end cost_input_vat">' . $cost_input_vat . '</td>';
             $html .= '<td class="text-end author_input">' . $author_input . '</td>';
-            // $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['cost'] + $row['authorized_fee']) . '</td>';
-            $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['total']) . '</td>';
+            $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['cost'] + $row['authorized_fee']) . '</td>';
             $html .= '<td class="text-center ticket_type">'. $ticket_type_input .'</td>';
             $html .= '<td class="text-center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $row['booking'] . '</a></td>';
             $html .= '<td class="text-center supplier_infor">' . $app_list_strings['supplier_invoice_list'][$row['supplier']] . '</td>';
