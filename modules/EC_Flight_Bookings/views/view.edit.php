@@ -70,7 +70,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 	function displayCSS() {
 		$css = '';
-		$css .= '<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.edit.css?v=1.0">';
+		$css .= '<link rel="stylesheet" href="modules/EC_Flight_Bookings/css/view.edit.css?v=1.1">';
 		echo $css;
 	}
 
@@ -94,7 +94,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			</script>';
 		}
 
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.2"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.3"></script>';
 		echo $js;
 	}
 
