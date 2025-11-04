@@ -26,9 +26,11 @@ custom/configs/*
 !/upload/index.html
 /upload_backup/
 
+# Ignore images
+custom/themes/default/images/zalo_oa
+!custom/themes/default/images/zalo_oa/.gitkeep
+
 # Ignore in zalo
-modules/EC_Zalo/images/
-modules/EC_Zalo/json/
 modules/EC_Zalo/nohup.out
 
 secure_sessions/*
