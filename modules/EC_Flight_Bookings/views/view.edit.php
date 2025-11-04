@@ -34,8 +34,10 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			// if($current_user->id != '1') $this->populateLineDetails();
 			// if($current_user->id != '1') $this->populateLineItineraries();
 
-			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) $this->populateLinePassengers2();
-			else $this->populateLinePassengers();
+			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
+				$this->populateLinePassengers();
+			}
+			else $this->populateLinePassengersOld();
 
 			parent::display();
 		}
@@ -53,8 +55,10 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			// if($current_user->id != '1') $this->populateLineDetails();
 			// if($current_user->id != '1') $this->populateLineItineraries();
 
-			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) $this->populateLinePassengers2();
-			else $this->populateLinePassengers();
+			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage)|| substr($this->bean->name, 0, 2) === 'BK') {
+				$this->populateLinePassengers();
+			}
+			else $this->populateLinePassengersOld();
 
 			parent::display();
 		}
@@ -90,7 +94,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			</script>';
 		}
 
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.0"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.2"></script>';
 		echo $js;
 	}
 
@@ -315,7 +319,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					<th scope="col" style="width:14%;" class="text-center">Ngày giờ đến</th>
 					<th scope="col" style="width:14%;" class="text-center">Hạn giữ chỗ</th>
 					<th scope="col" style="width:8%;" class="text-center">Giá cơ bản</th>
-					<th scope="col" style="width:2%;" class="text-center">Transit</th>
+					<th scope="col" style="width:2%;" class="text-center">Quá cảnh</th>
 					<th scope="col" style="width:3%;" class="text-center">&nbsp;</th>
 				</tr>
 			</thead>';
@@ -382,33 +386,32 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					$this->_inbound_ticket_class = $row['ticket_class'];
 				}
 
-	
 				$i++;
 			}
 	
 			$sep = my_get_number_separators();
 			$html .= '<tr id="iti_last_row" class="footer-tr">
-						<td colspan="12" class="text-start">
-							<input type="hidden" name="discount_percent_list" id="discount_percent_list" value="' . get_select_options_with_id($app_list_strings['discount_percent_list'], '') . '" />
-							<input type="hidden" name="direction_list" id="direction_list" value="' . get_select_options_with_id($app_list_strings['bk_direction_list'], '') . '" />
-							<input type="hidden" name="passenger_type_list" id="passenger_type_list" value="' . get_select_options_with_id($app_list_strings['passenger_type_list'], '') . '" />
-							<input type="hidden" name="passenger_salutation_list" id="passenger_salutation_list" value="' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], '') . '" />
-							<input type="hidden" name="vna_luggage_price_list" id="vna_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['vietnamair_luggage_price_list2'], '') . '" />
-							<input type="hidden" name="vnp_luggage_price_list" id="vnp_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['pacificair_luggage_price_list'], '') . '" />
-							<input type="hidden" name="vja_luggage_price_list" id="vja_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietjet_luggage_price_list'], '') . '" />
-							<input type="hidden" name="bba_luggage_price_list" id="bba_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['bambooair_luggage_price_list'], '') . '" />
-							<input type="hidden" name="vta_luggage_price_list" id="vta_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietravel_luggage_price_list2'], '') . '" />
-							<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
-							<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
-							<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
-							<input type="hidden" id="cal_date_format" name="cal_date_format" value="' . $cal_date_format . '" />
-							<input type="hidden" id="iti_row_count" name="iti_row_count" value="' . $row_count . '" />
-							<input type="hidden" id="booking_prev_name" name="booking_prev_name" value="' . $booking_prev_name . '" />
-							<input type="hidden" id="journey" name="journey" value="' . $this->_journey . '" />
-							<input type="button" class="btn btn-primary" id="btnItineraryAddRow" value="Thêm dòng" title="Thêm dòng" />
-							Số dòng = <label id="lbl_iti_row_count">' . $row_count . '</label>
-						</td>
-					</tr>';
+				<td colspan="12" class="text-start">
+					<input type="hidden" name="discount_percent_list" id="discount_percent_list" value="' . get_select_options_with_id($app_list_strings['discount_percent_list'], '') . '" />
+					<input type="hidden" name="direction_list" id="direction_list" value="' . get_select_options_with_id($app_list_strings['bk_direction_list'], '') . '" />
+					<input type="hidden" name="passenger_type_list" id="passenger_type_list" value="' . get_select_options_with_id($app_list_strings['passenger_type_list'], '') . '" />
+					<input type="hidden" name="passenger_salutation_list" id="passenger_salutation_list" value="' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], '') . '" />
+					<input type="hidden" name="vna_luggage_price_list" id="vna_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['vietnamair_luggage_price_list2'], '') . '" />
+					<input type="hidden" name="vnp_luggage_price_list" id="vnp_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['pacificair_luggage_price_list'], '') . '" />
+					<input type="hidden" name="vja_luggage_price_list" id="vja_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietjet_luggage_price_list'], '') . '" />
+					<input type="hidden" name="bba_luggage_price_list" id="bba_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['bambooair_luggage_price_list'], '') . '" />
+					<input type="hidden" name="vta_luggage_price_list" id="vta_luggage_price_list" value="' . get_select_options_with_id($app_list_strings['new_vietravel_luggage_price_list2'], '') . '" />
+					<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
+					<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
+					<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
+					<input type="hidden" id="cal_date_format" name="cal_date_format" value="' . $cal_date_format . '" />
+					<input type="hidden" id="iti_row_count" name="iti_row_count" value="' . $row_count . '" />
+					<input type="hidden" id="booking_prev_name" name="booking_prev_name" value="' . $booking_prev_name . '" />
+					<input type="hidden" id="journey" name="journey" value="' . $this->_journey . '" />
+					<input type="button" class="btn btn-primary" id="btnItineraryAddRow" value="Thêm dòng" title="Thêm dòng" />
+					Số dòng = <label id="lbl_iti_row_count">' . $row_count . '</label>
+				</td>
+			</tr>';
 			$html .= '</table>';
 		} else {
 			// Tạo mới hành trình
@@ -593,7 +596,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 	}
 
 	/* HÀNH KHÁCH */
-	function populateLinePassengers() {
+	function populateLinePassengersOld() {
 		global $app_list_strings, $timedate, $current_user;
 		$date_format = $timedate->get_date_format();
 		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
@@ -620,8 +623,9 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					p.cic,
 					p.passport_number
 				FROM ec_booking_passengers p
-				WHERE p.booking_id = '".$this->bean->id. "'
+				WHERE p.booking_id = '{$this->bean->id}'
 					AND p.booking_id IS NOT NULL
+					AND p.booking_id != ''
 					AND add_type IS NULL
 					AND p.deleted = 0
 				ORDER BY p.type, p.date_entered";
@@ -847,7 +851,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 	/**
 	 * Render passengers info as HTML
 	 */
-	public function populateLinePassengers2() {
+	public function populateLinePassengers() {
 		global $app_list_strings, $timedate, $current_user;
 		$date_format = $timedate->get_date_format();
 		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
@@ -880,8 +884,9 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 					p.cic,
 					p.passport_number
 				FROM ec_booking_passengers p
-				WHERE p.booking_id = '".$this->bean->id. "'
+				WHERE p.booking_id = '{$this->bean->id}'
 					AND p.booking_id IS NOT NULL
+					AND p.booking_id != ''
 					AND add_type IS NULL
 					AND p.deleted = 0
 				ORDER BY p.type, p.date_entered";
@@ -990,17 +995,39 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 				$inputNameBagTax   	= "psg_vat_luggage_purchase$suffix";
 				$inputNameSuppplier = "psg_luggage_supplier$suffix";
 				$inputNameTicketNum = "psg_eluggage_$roundName";
+				$inputNameSellingPrice = "psg_luggage_price$suffix"; // Giá bán
+				$inputNameAvaiBagIndex = "psg_luggage_index_$roundName";
+
 				// Value
-				$bagText  		= $row["luggage_purchase_text$suffix"] ?? '';
-				$bagPrice  		= $row["luggage_purchase$suffix"] ?? 0;
-				$bagTax 		= $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
-				$bagSuppplier 	= $row["supplier$suffix" . "_id"] ?? '';
-				$bagTicketNum 	= $row["eluggage_$roundName"] ?? '';
+				$bagText = $row["luggage_purchase_text$suffix"] ?? '';
+				$bagPrice = $row["luggage_purchase$suffix"] ?? 0;
+				$bagTax = $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
+				$bagSuppplier = $row["supplier$suffix" . "_id"] ?? '';
+				$bagTicketNum = $row["eluggage_$roundName"] ?? '';
+				$bagSellingPrice = $row["luggage_price$suffix"] ?? 0;
+				$avaiBag = $row["luggage_index_$roundName"] ?? '';
+
 				// Label
 				$suffix_text = $roundName == "outbound" ? "lượt đi" : "lượt về";
 
 				$html .= '<tr id="psg_baggage_line_'.$roundName.'_'.$i.'">
 					<td data-label="'.$roundName.' baggage information" class="row_psg_price" colspan="10">
+						<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
+							<span class="text-label" style="width:155px;">Hành lý có sẵn '.$suffix_text.':</span>
+							<div>
+								<input type="text" name="'.$inputNameAvaiBagIndex.'[]"
+									id="'. ($inputNameAvaiBagIndex . $i) .'"
+									value="'. $avaiBag .'"
+									style="width:80px" maxlength="6" size="6"
+								/> 
+								<button type="button" title="Hướng dẫn nhập liệu" style="border:none; background:none; padding:0;"
+									data-bs-toggle="popover"
+									data-bs-html="true"
+									data-bs-content="Nhập <b>1x23</b> = 1 kiện x 23kg<br>Nhập <b>1T23</b> = 1 kiện tổng 23kg<br>Nhập <b>5</b> trở xuống = 5 kiện<br>Nhập <b>6</b> trở lên = 6kg">
+									<svg width="18px" height="18px" stroke-width="2.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#a1a1a1"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18.01L12.01 17.9989" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+								</button>
+							</div>
+						</div>
 						<div class="psg_price-wrap d-flex gap-3 align-items-center">
 							<div class="col_psg_price col-psg-bag-text">
 								<span class="text-label">Hành lý mua thêm '.$suffix_text.'</span>
@@ -1009,6 +1036,15 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 									value="'.$bagText.'"
 									class="psg_luggage_purchase_input"
 									maxlength="100" size="100"
+								/>
+							</div>
+							<div class="col_psg_price col-psg-bag-selling-price">
+								<span class="text-label">Giá bán (VAT): </span>
+								<input type="text" name="'.$inputNameSellingPrice.'[]"
+									id="'. ($inputNameSellingPrice . $i) .'"
+									value="'. format_number($bagSellingPrice) .'"
+									class="allow-number-only psg_luggage_purchase_input"
+									maxlength="12"
 								/>
 							</div>
 							<div class="col_psg_price col-psg-bag-price">

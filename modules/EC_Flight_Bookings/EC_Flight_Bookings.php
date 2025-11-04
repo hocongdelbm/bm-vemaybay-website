@@ -459,6 +459,12 @@ class EC_Flight_Bookings extends Basic
 			// Supplier
 			$psg->supplier_id 			= $_POST['psg_luggage_supplier'][$i];
 			$psg->supplier_inbound_id 	= $_POST['psg_luggage_supplier_inbound'][$i];
+			// Selling price
+			$psg->luggage_price			= unformat_number($_POST['psg_luggage_price'][$i] ?? 0);
+			$psg->luggage_price_inbound = unformat_number($_POST['psg_luggage_price_inbound'][$i] ?? 0);
+			// Available baggage
+			$psg->luggage_index_outbound = trim($_POST['psg_luggage_index_outbound'][$i] ?? '');
+			$psg->luggage_index_inbound = trim($_POST['psg_luggage_index_inbound'][$i] ?? '');
 
 			if ((int)$psg->deleted === 1) {
 				if (!empty($psg->id)) $psg->mark_deleted($psg->id);

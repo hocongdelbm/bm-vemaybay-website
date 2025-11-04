@@ -31,10 +31,12 @@ table#tbl_line_passengers tbody tr td .psg_price-wrap .col_psg_price {
 }
 .psg_price-wrap .col_psg_price input {max-width: unset;}
 .psg_price-wrap .col_psg_price.col-psg-bag-text {flex: 1;}
+.psg_price-wrap .col_psg_price.col-psg-bag-selling-price {width: 12%;}
 .psg_price-wrap .col_psg_price.col-psg-bag-price {width: 12%;}
 .psg_price-wrap .col_psg_price.col-psg-bag-tax {width: 10%;}
 .psg_price-wrap .col_psg_price.col-psg-bag-supplier {width: 23%;}
-.psg_price-wrap .col_psg_price.col-psg-bag-ticketnum {width: 15%;}
+.psg_price-wrap .col_psg_price.col-psg-bag-supplier .select2-container {width: 100% !important;}
+.psg_price-wrap .col_psg_price.col-psg-bag-ticketnum {width: 14%;}
 
 /* ================= RESPONSIVE TABLE ================ */
 @media screen and (max-width: 600px) {

@@ -601,6 +601,12 @@ $(document).ready(function () {
 			minLength: 1
 		});
 	});
+
+	// Enable popover in available baggage
+	var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+	var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+		return new bootstrap.Popover(popoverTriggerEl)
+	});
 });
 
 function insertItineraryLine(ln) {
@@ -834,11 +840,22 @@ function insertPassengerLine2(ln) {
 		const inputNameBagTax    = `psg_vat_luggage_purchase${suffix}`;
 		const inputNameSupplier  = `psg_luggage_supplier${suffix}`;
 		const inputNameTicketNum = `psg_eluggage_${roundName}`;
+		const inputNameSellingPrice = `psg_luggage_price${suffix}`;
+		const inputNameAvaiBagIndex = `psg_luggage_index_${roundName}`;
 		// Labels
 		const suffixtext = roundName === "outbound" ? "lượt đi" : "lượt về";
 
 		html += `<tr id="psg_baggage_line_${roundName}_${ln}">
 			<td data-label="${roundName} baggage information" class="row_psg_price" colspan="10">
+				<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
+					<span class="text-label" style="width:155px;">Hành lý có sẵn ${suffixtext}:</span>
+					<div>
+						<input type="text" name="${inputNameAvaiBagIndex}[]"
+							id="${inputNameAvaiBagIndex}${ln}"
+							style="width:80px" maxlength="6" size="6"
+						/> 
+					</div>
+				</div>
 				<div class="psg_price-wrap d-flex gap-3 align-items-center">
 					<div class="col_psg_price col-psg-bag-text">
 						<span class="text-label">Hành lý mua thêm ${suffixtext}: </span>
@@ -846,6 +863,14 @@ function insertPassengerLine2(ln) {
 							id="${inputNameBagtext}${ln}"
 							class="psg_luggage_purchase_input"
 							maxlength="100" size="100"
+						/>
+					</div>
+					<div class="col_psg_price col-psg-bag-selling-price">
+						<span class="text-label">Giá bán (VAT): </span>
+						<input type="text" name="${inputNameSellingPrice}[]"
+							id="${inputNameSellingPrice}${ln}"
+							class="allow-number-only psg_luggage_purchase_input"
+							maxlength="12"
 						/>
 					</div>
 					<div class="col_psg_price col-psg-bag-price">
@@ -885,7 +910,6 @@ function insertPassengerLine2(ln) {
 			</td>
 		</tr>`;
 	});
-
 	return html;
 }
 

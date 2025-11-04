@@ -288,7 +288,7 @@ class EC_HoaDonBan extends Basic {
 					// Check here
 					if(!$parentId || !is_string($parentId)) continue;
 
-					$totalBaggagePrice = 0; // Baggage purchase price
+					$totalBaggagePrice = 0; // Baggage purchase price in booking
 					foreach($listValue as $tknum => $bookingtk) {
 						if($bookingtk['type'] == 'baggage') {
 							$totalBaggagePrice += $bookingtk['purchasePrice'] ?? 0;
