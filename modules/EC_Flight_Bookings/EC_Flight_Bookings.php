@@ -437,8 +437,14 @@ class EC_Flight_Bookings extends Basic
 			$psg->deleted 			= (int)($_POST['psg_deleted'][$i] ?? 0);
 			// CCCD / Passport
 			$id_number = trim($_POST['psg_id_number'][$i] ?? '');
-			if(ctype_digit($id_number) && strlen($id_number) == 12) $psg->cic = $id_number;
-			else $psg->passport_number = $id_number;
+			if(ctype_digit($id_number) && strlen($id_number) == 12) {
+				$psg->cic = $id_number;
+				$psg->passport_number = "";
+			}
+			else {
+				$psg->passport_number = $id_number;
+				$psg->cic = "";
+			}
 
 			/******  BAGGAGES INFO  ******/
 			// Text
