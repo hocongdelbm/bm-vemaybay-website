@@ -375,7 +375,7 @@ class EC_HoaDonBan extends Basic {
 						$outInvDetail->phidv 		= $serviceFee;
 						$outInvDetail->giamua 		= $tk['total'];
 						$outInvDetail->thuesuat 	= $taxRate;
-						$outInvDetail->dongia 		= ($outInvDetail->giamua + $serviceFee - $outInvDetail->phithuho) / $divide;
+						$outInvDetail->dongia 		= (($outInvDetail->giamua / $tk['qty']) + $serviceFee - $outInvDetail->phithuho) / $divide;
 						$outInvDetail->tienthue 	= $outInvDetail->dongia * $taxRate * $tk['qty'];
 						$outInvDetail->thanhtien 	= ($outInvDetail->dongia + $outInvDetail->tienthue + $outInvDetail->phithuho) * $outInvDetail->soluong;
 						$outInvDetail->parent_id 	= $parentId;
