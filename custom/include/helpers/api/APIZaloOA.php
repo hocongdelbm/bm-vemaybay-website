@@ -3,6 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class APIZaloOA {
     private $template_path;
+    private $images_path;
     private $domain;
     protected $oa_id;
     protected $app_id;
@@ -12,8 +13,9 @@ class APIZaloOA {
 
     public function __construct($oa_id = '') {
         global $sugar_config;
-        $this->template_path    = "custom/json_files/zalo_oa/templates.json";
         $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
+        $this->template_path    = "custom/json_files/zalo_oa/templates.json";
+        $this->images_path      = "https://{$this->domain}/custom/themes/default/images/zalo_oa";
         $this->oa_id            = is_string($oa_id) && !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['oa_id'] ?? '';
         // App info
         $this->app_id           = $sugar_config['zalo_config']['app_id'] ?? '';
@@ -24,6 +26,7 @@ class APIZaloOA {
 
     public function get_oa_id() {return $this->oa_id;}
     public function get_app_id() {return $this->app_id;}
+    public function get_images_path() {return $this->images_path;}
 
 
     /***************  AUTH  ***************/
@@ -574,7 +577,7 @@ class APIZaloOA {
     }
     
     /** 
-     * Send transaction messages
+     * Send transaction message
      * 
      * @param string $zalo_id
      * @param string $type transaction_reward, transaction_order, transaction_billing,...
@@ -612,6 +615,78 @@ class APIZaloOA {
                     "type" => "template",
                     "payload" => [
                         "template_type" => $type, // Type
+                        "language" => "VI",
+                        "elements" => [
+                            [
+                                "type" => "banner",
+                                "image_url" => $banner_link
+                            ],
+                            [
+                                "type" => "header",
+                                "content" => $header,
+                                "align" => ""
+                            ],
+                            [
+                                "type" => "text",
+                                "content" => $text,
+                                "align" => ""
+                            ],
+                        ],
+                    ]
+                ]
+            ]
+        ];
+        if(!empty($table)) {
+            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "table",
+                "content" => $table
+            ];
+        }
+        if(!empty($text2)) {
+            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "text",
+                "align" => "center",
+                "content" => $text2
+            ];
+        }
+        if(!empty($buttons)) $requestBody["message"]["attachment"]["payload"]["buttons"] = $buttons;
+
+        return $this->send_request("POST", $url, json_encode($requestBody), $header, $curlOptions);
+    }
+
+    /** 
+     * Send promotion message
+     * 
+     * @param string $zalo_id
+     * @param string $banner_link
+     * @param string $header
+     * @param string $text 
+     * @param array $table
+     * @param string $text2
+     * @param array $buttons 
+     * @return string json
+     */
+    public function send_promotion($zalo_id, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = []) {
+        $url = "https://openapi.zalo.me/v3.0/oa/message/transaction";
+        $header = [
+            "Content-Type: application/json",
+            "access_token: ". $this->get_token()
+        ];
+        $curlOptions = [
+            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
+            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
+        ];
+
+        // Request body
+        $requestBody = [
+            "recipient" => [
+                "user_id" => $zalo_id
+            ],
+            "message" => [
+                "attachment" => [
+                    "type" => "template",
+                    "payload" => [
+                        "template_type" => "promotion", // Type
                         "language" => "VI",
                         "elements" => [
                             [

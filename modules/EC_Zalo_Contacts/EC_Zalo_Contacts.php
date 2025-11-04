@@ -472,6 +472,32 @@ class EC_Zalo_Contacts extends Basic
     }
 
     /**
+     * Get users with birthday
+     * 
+     * @param string $birthdate Y-m-d
+     * @return array
+     */
+    public function get_users_with_birthday($birthdate = '') {
+        $birthdate = trim($birthdate);
+        if(!is_string($birthdate) || strlen($birthdate) != 10) $birthdate = date('Y-m-d');
+
+        $results = [];
+        $sql = "SELECT zalo_id
+                ,oa_id
+                ,id AS user_external_id
+                ,name AS display_name
+                ,DATE_ADD(zc.last_interaction, INTERVAL 7 HOUR) AS last_interaction
+                ,is_follower
+            FROM ec_zalo_contacts
+            WHERE birth_date = '{$birthdate}' AND deleted = 0";
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetchByAssoc($res)) {   
+            $results[] = $row;
+        }
+        return $results;
+    }
+
+    /**
      * Init consultation quota for user
      */
     public function init_consultation_quota() {

@@ -478,13 +478,52 @@ class EC_Zalo_Messages extends Basic {
     }
 
     /**
+     * Send happy birthday message
+     * 
+     * @param string $zalo_id
+     * @param string $oa_id
+     * @return bool
+     */
+    public function send_happy_birthday_message($zalo_id = '', $oa_id = '') {
+        $zaloOA = new APIZaloOA($oa_id);
+        $banner = $zaloOA->get_images_path() . "/banners/happy_birthday.png";
+        $header = "Chúc mừng sinh nhật quý khách hàng 🎉";
+        $text = "Chúc Bạn luôn vui vẻ và hạnh phúc. Nhân dịp đặc biệt này, Tìm Chuyến Bay xin gửi tặng Bạn voucher 50k áp dụng cho vé khứ hồi như một món quà nhỏ.❤️❤️";
+        $table = [
+            [
+                "key" => "Voucher",
+                "value" => "Giảm 50.000đ"
+            ],
+            [
+                "key" => "Hạn sử dụng dùng",
+                "value" => "Đến hết dd/mm/yyyy"
+            ]
+        ];
+        $buttons = [
+
+        ];
+
+        if(!empty($zalo_id)) {
+
+        }
+        else {
+
+            $zaloContact = new EC_Zalo_Contacts();
+            $listUser = $zaloContact->get_users_with_birthday();
+            foreach($listUser as $u) {
+                $zaloOA->send_promotion($u['zalo_id'], $banner, $header, $text, $table, $buttons);
+            }
+        }
+    }
+
+    /**
      * 
      */
     public function send_maintain_interaction_message() {
         $zaloContact = new EC_Zalo_Contacts();
 
-        $listUsers6day = $zaloContact->get_list_zalo_user_by_last_interaction_day(6);
-        $listUsers30day = $zaloContact->get_list_zalo_user_by_last_interaction_day(30);
+        // $listUsers6day = $zaloContact->get_list_zalo_user_by_last_interaction_day(6);
+        // $listUsers30day = $zaloContact->get_list_zalo_user_by_last_interaction_day(30);
         
     }
 }
