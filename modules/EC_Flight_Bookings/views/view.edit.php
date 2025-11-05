@@ -1,5 +1,6 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry)
+	die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
 
@@ -39,10 +40,10 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			// if($current_user->id != '1') $this->populateLineDetails();
 			// if($current_user->id != '1') $this->populateLineItineraries();
 
-			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
+			if (!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
 				$this->populateLinePassengers();
-			}
-			else $this->populateLinePassengersOld();
+			} else
+				$this->populateLinePassengersOld();
 
 			parent::display();
 		} else if (in_array($this->bean->booking_status, $status__com_arr) && (isManagerUser($current_user->id))) {
@@ -59,10 +60,10 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			// if($current_user->id != '1') $this->populateLineDetails();
 			// if($current_user->id != '1') $this->populateLineItineraries();
 
-			if(!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage)|| substr($this->bean->name, 0, 2) === 'BK') {
+			if (!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
 				$this->populateLinePassengers();
-			}
-			else $this->populateLinePassengersOld();
+			} else
+				$this->populateLinePassengersOld();
 
 			parent::display();
 		} else {
@@ -605,7 +606,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 	}
 
 	/* HÀNH KHÁCH */
-	function populateLinePassengersOld() {
+	function populateLinePassengersOld()
+	{
 		global $app_list_strings, $timedate, $current_user;
 		$date_format = $timedate->get_date_format();
 		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
@@ -860,7 +862,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 	/**
 	 * Render passengers info as HTML
 	 */
-	public function populateLinePassengers() {
+	public function populateLinePassengers()
+	{
 		global $app_list_strings, $timedate, $current_user;
 		$date_format = $timedate->get_date_format();
 		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
@@ -1062,7 +1065,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				$suffix_text = $roundName == "outbound" ? "lượt đi" : "lượt về";
 
 				// Build baggage options dropdown
-				$baggageOptionsHtml = '<option value="">-- Chọn hành lý --</option>';  // This will always be available
+				$baggageOptionsHtml = '<option value="">-- Chọn hành lý --</option>';
 				$foundMatch = false;
 				if (!empty($baggageOptions) && is_array($baggageOptions)) {
 					foreach ($baggageOptions as $baggage) {
@@ -1071,31 +1074,33 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 						$value = $baggage['value'] ?? 0;
 
 						if (!empty($description)) {
-							$displayText = preg_replace('/\s*\([^)]*\)\s*$/', '', $description);
+							$displayText = trim(preg_replace('/^Thêm\s+/', '', $description));
+
+							$saveValue = trim(preg_replace('/\s*\([^)]*\)\s*$/', '', preg_replace('/^Thêm\s+/', '', $description)));
 
 							$selected = '';
-							if ($bagText == $description) {
+							if ($bagText == $saveValue) {
 								$selected = 'selected';
 								$foundMatch = true;
 							}
 
-							$baggageOptionsHtml .= '<option value="' . htmlspecialchars($description) . '" data-cost="' . $cost . '" data-value="' . $value . '" ' . $selected . '>' . htmlspecialchars($displayText) . '</option>';
+							$baggageOptionsHtml .= '<option value="' . htmlspecialchars($saveValue) . '" data-text="' . htmlspecialchars($displayText) . '" data-cost="' . $cost . '" data-value="' . $value . '" ' . $selected . '>' . htmlspecialchars($displayText) . '</option>';
 						}
 					}
 				}
 				if (!empty($bagText) && !$foundMatch) {
 					$customDisplayText = preg_replace('/\s*\([^)]*\)\s*$/', '', $bagText);
-					$baggageOptionsHtml .= '<option value="' . htmlspecialchars($bagText) . '" data-cost="' . $bagPrice . '" data-value="' . $bagPrice . '" selected>' . htmlspecialchars($customDisplayText) . ' (Tùy chỉnh)</option>';
+					$baggageOptionsHtml .= '<option value="' . htmlspecialchars($bagText) . '" data-text="' . htmlspecialchars($customDisplayText) . ' (Tùy chỉnh)" data-cost="' . $bagPrice . '" data-value="' . $bagPrice . '" selected>' . htmlspecialchars($customDisplayText) . ' (Tùy chỉnh)</option>';
 				}
 
-				$html .= '<tr id="psg_baggage_line_'.$roundName.'_'.$i.'">
-					<td data-label="'.$roundName.' baggage information" class="row_psg_price" colspan="10">
+				$html .= '<tr id="psg_baggage_line_' . $roundName . '_' . $i . '">
+					<td data-label="' . $roundName . ' baggage information" class="row_psg_price" colspan="10">
 						<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
-							<span class="text-label" style="width:155px;">Hành lý có sẵn '.$suffix_text.':</span>
+							<span class="text-label" style="width:155px;">Hành lý có sẵn ' . $suffix_text . ':</span>
 							<div>
-								<input type="text" name="'.$inputNameAvaiBagIndex.'[]"
-									id="'. ($inputNameAvaiBagIndex . $i) .'"
-									value="'. $avaiBag .'"
+								<input type="text" name="' . $inputNameAvaiBagIndex . '[]"
+									id="' . ($inputNameAvaiBagIndex . $i) . '"
+									value="' . $avaiBag . '"
 									style="width:80px" maxlength="6" size="6"
 								/> 
 								<button type="button" title="Hướng dẫn nhập liệu" style="border:none; background:none; padding:0;"
@@ -1108,57 +1113,57 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 						</div>
 						<div class="psg_price-wrap d-flex gap-3 align-items-center">
 							<div class="col_psg_price col-psg-bag-text">
-								<span class="text-label">Hành lý mua thêm '.$suffix_text.'</span>
+								<span class="text-label">Hành lý mua thêm ' . $suffix_text . '</span>
 								<select name="' . $inputNameBagText . '[]"
 									id="' . ($inputNameBagText . $i) . '"
 									class="psg_luggage_purchase_select"
 									style="width:100%; max-width:400px;"
 									onchange="updateBaggagePriceFromSelect(' . $i . ', \'' . $roundName . '\')">
-									'. $baggageOptionsHtml .'
+									' . $baggageOptionsHtml . '
 								</select>
 							</div>
 							<div class="col_psg_price col-psg-bag-selling-price">
 								<span class="text-label">Giá bán (VAT): </span>
-								<input type="text" name="'.$inputNameSellingPrice.'[]"
-									id="'. ($inputNameSellingPrice . $i) .'"
-									value="'. format_number($bagSellingPrice) .'"
+								<input type="text" name="' . $inputNameSellingPrice . '[]"
+									id="' . ($inputNameSellingPrice . $i) . '"
+									value="' . format_number($bagSellingPrice) . '"
 									class="allow-number-only psg_luggage_purchase_input"
 									maxlength="12"
 								/>
 							</div>
 							<div class="col_psg_price col-psg-bag-price">
 								<span class="text-label">Giá mua (VAT): </span>
-								<input type="text" name="'.$inputNameBagPrice.'[]"
-									id="'. ($inputNameBagPrice . $i) .'"
-									value="'. format_number($bagPrice) .'"
+								<input type="text" name="' . $inputNameBagPrice . '[]"
+									id="' . ($inputNameBagPrice . $i) . '"
+									value="' . format_number($bagPrice) . '"
 									class="allow-number-only psg_luggage_purchase_input"
 									maxlength="12"
-									onkeyup="calculateBagPurchasePrice('.$i.', '.$dir.');"
-									onpaste="calculateBagPurchasePrice('.$i.', '.$dir.');"
+									onkeyup="calculateBagPurchasePrice(' . $i . ', ' . $dir . ');"
+									onpaste="calculateBagPurchasePrice(' . $i . ', ' . $dir . ');"
 								/>
 							</div>
 							<div class="col_psg_price col-psg-bag-tax">
 								<span class="text-label">VAT giá mua: </span>
-								<input type="text" name="'.$inputNameBagTax.'[]"
-									id="'. ($inputNameBagTax . $i) .'"
-									value="'. format_number($bagTax) .'"
+								<input type="text" name="' . $inputNameBagTax . '[]"
+									id="' . ($inputNameBagTax . $i) . '"
+									value="' . format_number($bagTax) . '"
 									class="allow-number-only psg_luggage_purchase_input"
 									maxlength="12"
-									onkeyup="calculateBagPurchasePrice('.$i.', '.$dir.');"
+									onkeyup="calculateBagPurchasePrice(' . $i . ', ' . $dir . ');"
 								/>
 							</div>
 							<div class="col_psg_price col-psg-bag-supplier">
 								<span class="text-label">NCC: </span>
-								<select name="'.$inputNameSuppplier.'[]" id="'. ($inputNameSuppplier . $i) .'" class="psg_luggage_purchase_select">
+								<select name="' . $inputNameSuppplier . '[]" id="' . ($inputNameSuppplier . $i) . '" class="psg_luggage_purchase_select">
 									<option value=""></option>
-									'. myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $bagSuppplier, 'id', $sql_supplier) .'
+									' . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', $bagSuppplier, 'id', $sql_supplier) . '
 								</select>
 							</div>
 							<div class="col_psg_price col-psg-bag-ticketnum">
-								<span class="text-label">Số vé HL '.$suffix_text.': </span>
-								<input type="text" name="'.$inputNameTicketNum.'[]"
-									id="'. ($inputNameTicketNum . $i) .'"
-									value="'.$bagTicketNum.'"
+								<span class="text-label">Số vé HL ' . $suffix_text . ': </span>
+								<input type="text" name="' . $inputNameTicketNum . '[]"
+									id="' . ($inputNameTicketNum . $i) . '"
+									value="' . $bagTicketNum . '"
 									class="psg_luggage_purchase_input"
 									maxlength="25" size="25"
 								/>
