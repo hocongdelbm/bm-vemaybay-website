@@ -855,8 +855,11 @@ function insertPassengerLine2(ln) {
 				let value = baggage.value || 0;
 
 				if (description) {
-					let displayText = description.replace(/\s*\([^)]*\)\s*$/, '');
-					baggageOptionsHtml += `<option value="${escapeHtml(description)}" data-cost="${cost}" data-value="${value}">${escapeHtml(displayText)}</option>`;
+					let displayText = description.replace(/^Thêm\s+/, '').replace(/\s*\([^)]*\)\s*$/, '');
+
+					let saveValue = description.replace(/^Thêm\s+/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+					baggageOptionsHtml += `<option value="${escapeHtml(saveValue)}" data-text="${escapeHtml(displayText)}" data-cost="${cost}" data-value="${value}">${escapeHtml(displayText)}</option>`;
 				}
 			});
 		}
@@ -923,7 +926,7 @@ function initializeSelect2ForRow(ln) {
 	$('#psg_luggage_purchase_text' + ln).select2({
 		width: '100%'
 	});
-	
+
 	$('#psg_luggage_purchase_text_inbound' + ln).select2({
 		width: '100%'
 	});
@@ -1658,23 +1661,19 @@ function isValidDateBirthDay(date) {
 	return true;
 }
 
-//update price baggage new site (TCB, VJNet)
 function updateBaggagePriceFromSelect(rowIndex, direction) {
 	var selectId = direction === 'outbound'
 		? 'psg_luggage_purchase_text' + rowIndex
 		: 'psg_luggage_purchase_text_inbound' + rowIndex;
 
-	var priceInputId = direction === 'outbound'
-		? 'psg_luggage_purchase' + rowIndex
-		: 'psg_luggage_purchase_inbound' + rowIndex;
+	var sellingPriceInputId = direction === 'outbound'
+		? 'psg_luggage_price' + rowIndex
+		: 'psg_luggage_price_inbound' + rowIndex;
 
 	var selectedOption = $('#' + selectId + ' option:selected');
 	var cost = selectedOption.data('cost') || 0;
 
-	$('#' + priceInputId).val(formatNumber(cost));
-
-	var dir = direction === 'outbound' ? 0 : 1;
-	calculateBagPurchasePrice(rowIndex, dir);
+	$('#' + sellingPriceInputId).val(formatNumber(cost));
 	updateTotalBaggageFee();
 }
 
@@ -1689,10 +1688,10 @@ function updateTotalBaggageFee() {
 			continue; // Skip deleted rows
 		}
 
-		var outboundPrice = $('#psg_luggage_purchase' + i).val() || '0';
+		var outboundPrice = $('#psg_luggage_price' + i).val() || '0';
 		outboundPrice = parseFloat(outboundPrice.replace(/,/g, '')) || 0;
 
-		var inboundPrice = $('#psg_luggage_purchase_inbound' + i).val() || '0';
+		var inboundPrice = $('#psg_luggage_price_inbound' + i).val() || '0';
 		inboundPrice = parseFloat(inboundPrice.replace(/,/g, '')) || 0;
 
 		totalBaggageFee += outboundPrice + inboundPrice;
@@ -1706,11 +1705,6 @@ function formatNumber(num) {
 	if (!num) return '';
 	return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-
-$(document).on('keyup paste', 'input[name="psg_luggage_purchase[]"], input[name="psg_luggage_purchase_inbound[]"]', function () {
-	updateTotalBaggageFee();
-});
-
 
 function updateRowCount() {
 	var rowCount = parseInt($('#psg_row_count').val()) || 0;

@@ -1753,14 +1753,14 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 					// Hành lý mua thêm
 					$suffix = $roundName == "outbound" ? "" : "_inbound";
-					if ($row["luggage_purchase$suffix"] && $row["luggage_purchase$suffix"] > 0) {
+					if ($row["luggage_price$suffix"] && $row["luggage_price$suffix"] > 0) {
 						$bagText = $row["luggage_purchase_text$suffix"] ?? '';
 						// $bagCost = $row["luggage_purchase{$suffix}_no_vat"] ?? 0;
 						// $bagTax = $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
 						$bagPrice = $row["luggage_purchase$suffix"] ?? 0;
 						$bagTicketNum = $row["eluggage_$roundName"] ?? '';
 						$bagSellingPrice = $row["luggage_price$suffix"] ?? 0;
-						$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal shadow-sm ms-1" style="font-size:13px">Số vé HL: <b>' . $bagTicketNum . '</b></span>' : '';
+						$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal ms-1">Số vé HL: <b>' . $bagTicketNum . '</b></span>' : '';
 
 						$rowBagHTML .= '<p class="fst-italic info-purchage-baggage">
 							' . $roundNameHTML . '
