@@ -198,8 +198,8 @@
 #tbl_pax tbody tr.psg-line td {
     vertical-align: baseline;
 }
-#tbl_pax tbody tr.psg-line.luggage {
-    background-color: #fff8e4 !important;
+#tbl_pax tbody tr.psg-line.luggage:hover {
+    background-color: unset;
 }
 
 

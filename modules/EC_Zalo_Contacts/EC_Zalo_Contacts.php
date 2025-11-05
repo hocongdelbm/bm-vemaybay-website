@@ -456,10 +456,17 @@ class EC_Zalo_Contacts extends Basic
         $sql = "SELECT zalo_id
                 ,oa_id
                 ,id AS user_external_id
+                ,contact_id
                 ,name AS display_name
+                ,alias AS user_alias
+                ,avatar
                 ,birth_date
-                ,DATE_ADD(zc.last_interaction, INTERVAL 7 HOUR) AS last_interaction
+                ,DATE_ADD(last_interaction, INTERVAL 7 HOUR) AS last_interaction
                 ,is_follower
+                ,tags
+                ,province_city
+                ,ward_commune
+                ,address
                 ,quota_info
             FROM ec_zalo_contacts zc
             WHERE TIMESTAMPDIFF(DAY, last_interaction, UTC_TIMESTAMP()) = {$day}
@@ -485,9 +492,18 @@ class EC_Zalo_Contacts extends Basic
         $sql = "SELECT zalo_id
                 ,oa_id
                 ,id AS user_external_id
+                ,contact_id
                 ,name AS display_name
-                ,DATE_ADD(zc.last_interaction, INTERVAL 7 HOUR) AS last_interaction
+                ,alias AS user_alias
+                ,avatar
+                ,birth_date
+                ,DATE_ADD(last_interaction, INTERVAL 7 HOUR) AS last_interaction
                 ,is_follower
+                ,tags
+                ,province_city
+                ,ward_commune
+                ,address
+                ,quota_info
             FROM ec_zalo_contacts
             WHERE birth_date = '{$birthdate}' AND deleted = 0";
         $res = $this->db->query($sql);
@@ -498,10 +514,37 @@ class EC_Zalo_Contacts extends Basic
     }
 
     /**
-     * Init consultation quota for user
+     * Get users with birth month
+     * 
+     * @param int $birthmonth
+     * @return array
      */
-    public function init_consultation_quota() {
-        return ["remain" => 8, "total" => 8];
+    public function get_users_with_birthmonth($birthmonth = null) {
+        if(!is_numeric($birthmonth) || $birthmonth < 1 || $birthmonth > 12) return [];
+
+        $results = [];
+        $sql = "SELECT zalo_id
+                ,oa_id
+                ,id AS user_external_id
+                ,contact_id
+                ,name AS display_name
+                ,alias AS user_alias
+                ,avatar
+                ,birth_date
+                ,DATE_ADD(last_interaction, INTERVAL 7 HOUR) AS last_interaction
+                ,is_follower
+                ,tags
+                ,province_city
+                ,ward_commune
+                ,address
+                ,quota_info
+            FROM ec_zalo_contacts
+            WHERE MONTH(birth_date) = {$birthmonth} AND deleted = 0";
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetchByAssoc($res)) {   
+            $results[] = $row;
+        }
+        return $results;
     }
     
     /**
@@ -557,6 +600,43 @@ class EC_Zalo_Contacts extends Basic
         elseif($act === 'send_transaction') return $day <= 365;
         elseif($act === 'send_promotion') return $is_follower;
         return false;
+    }
+
+    /**
+     * Update promotion quota after sending to user success
+     * 
+     * @return bool
+     */
+    public function update_promotion_quota($zalo_id, $oa_id) {
+        if(empty($zalo_id)) return false;
+
+        if(!is_string($oa_id) || empty($oa_id)) {
+            $zaloOA = new APIZaloOA();
+            $oa_id = $zaloOA->get_oa_id();
+        }
+
+        // $sql = "SELECT quota_info
+        //     FROM ec_zalo_contacts
+        //     WHERE zalo_id = '{$zalo_id}'
+        //         AND oa_id = '{$oa_id}'
+        //         AND deleted = 0";
+        // $quota_info_json = html_entity_decode($this->db->getOne($sql));
+        // $quota_info = json_decode($quota_info_json, true);
+
+        // if(is_array($quota_info) && !empty($quota_info)) {
+
+        // }
+        // else {
+        //     $quota_info = [];
+        //     // $quota_info = 
+        // }
+    }
+
+    /**
+     * Init consultation quota for user
+     */
+    public function init_consultation_quota() {
+        return ["remain" => 8, "total" => 8];
     }
 	
     /**

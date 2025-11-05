@@ -437,8 +437,14 @@ class EC_Flight_Bookings extends Basic
 			$psg->deleted 			= (int)($_POST['psg_deleted'][$i] ?? 0);
 			// CCCD / Passport
 			$id_number = trim($_POST['psg_id_number'][$i] ?? '');
-			if(ctype_digit($id_number) && strlen($id_number) == 12) $psg->cic = $id_number;
-			else $psg->passport_number = $id_number;
+			if(ctype_digit($id_number) && strlen($id_number) == 12) {
+				$psg->cic = $id_number;
+				$psg->passport_number = "";
+			}
+			else {
+				$psg->passport_number = $id_number;
+				$psg->cic = "";
+			}
 
 			/******  BAGGAGES INFO  ******/
 			// Text
@@ -459,6 +465,12 @@ class EC_Flight_Bookings extends Basic
 			// Supplier
 			$psg->supplier_id 			= $_POST['psg_luggage_supplier'][$i];
 			$psg->supplier_inbound_id 	= $_POST['psg_luggage_supplier_inbound'][$i];
+			// Selling price
+			$psg->luggage_price			= unformat_number($_POST['psg_luggage_price'][$i] ?? 0);
+			$psg->luggage_price_inbound = unformat_number($_POST['psg_luggage_price_inbound'][$i] ?? 0);
+			// Available baggage
+			$psg->luggage_index_outbound = trim($_POST['psg_luggage_index_outbound'][$i] ?? '');
+			$psg->luggage_index_inbound = trim($_POST['psg_luggage_index_inbound'][$i] ?? '');
 
 			if ((int)$psg->deleted === 1) {
 				if (!empty($psg->id)) $psg->mark_deleted($psg->id);

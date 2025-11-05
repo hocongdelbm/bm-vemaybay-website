@@ -524,7 +524,8 @@ $(document).ready(function () {
                     let passDateOfBirthInputs   = document.querySelectorAll(`input[name="${PREFIX}PassengerDateOfBirth[]"]`);
                     let passParentIdInputs      = document.querySelectorAll(`select[name="${PREFIX}PassengerParentId[]"]`);
                     passIdInputs.forEach((input, index) => {
-                        let gender      = passTitleInputs[index].value == 'Ms' ? 0 : 1;
+                        let title       = passTitleInputs[index].value;
+                        let gender      = title == 'Ms' ? 0 : 1;
                         let type        = passTypeInputs[index].value.toUpperCase();
                         let firstName   = getMiddleAndFirstName(passFullnameInputs[index].value);
                         let parentId    = parseInt(passParentIdInputs[index].value);
@@ -539,6 +540,7 @@ $(document).ready(function () {
                             "Index"     : index + 1,
                             "ParentId"  : parentId,
                             "Type"      : type,
+                            "Title"     : title,
                             "Gender"    : gender,
                             "Surname"   : getLastName(passFullnameInputs[index].value),
                             "GivenName" : firstName,

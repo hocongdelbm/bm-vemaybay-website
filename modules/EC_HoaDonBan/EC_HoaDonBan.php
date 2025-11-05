@@ -288,7 +288,7 @@ class EC_HoaDonBan extends Basic {
 					// Check here
 					if(!$parentId || !is_string($parentId)) continue;
 
-					$totalBaggagePrice = 0; // Baggage purchase price
+					$totalBaggagePrice = 0; // Baggage purchase price in booking
 					foreach($listValue as $tknum => $bookingtk) {
 						if($bookingtk['type'] == 'baggage') {
 							$totalBaggagePrice += $bookingtk['purchasePrice'] ?? 0;
@@ -375,7 +375,7 @@ class EC_HoaDonBan extends Basic {
 						$outInvDetail->phidv 		= $serviceFee;
 						$outInvDetail->giamua 		= $tk['total'];
 						$outInvDetail->thuesuat 	= $taxRate;
-						$outInvDetail->dongia 		= ($outInvDetail->giamua + $serviceFee - $outInvDetail->phithuho) / $divide;
+						$outInvDetail->dongia 		= (($outInvDetail->giamua / $tk['qty']) + $serviceFee - $outInvDetail->phithuho) / $divide;
 						$outInvDetail->tienthue 	= $outInvDetail->dongia * $taxRate * $tk['qty'];
 						$outInvDetail->thanhtien 	= ($outInvDetail->dongia + $outInvDetail->tienthue + $outInvDetail->phithuho) * $outInvDetail->soluong;
 						$outInvDetail->parent_id 	= $parentId;

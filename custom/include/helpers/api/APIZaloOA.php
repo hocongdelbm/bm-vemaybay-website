@@ -667,7 +667,7 @@ class APIZaloOA {
      * @return string json
      */
     public function send_promotion($zalo_id, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = []) {
-        $url = "https://openapi.zalo.me/v3.0/oa/message/transaction";
+        $url = "https://openapi.zalo.me/v3.0/oa/message/promotion";
         $header = [
             "Content-Type: application/json",
             "access_token: ". $this->get_token()

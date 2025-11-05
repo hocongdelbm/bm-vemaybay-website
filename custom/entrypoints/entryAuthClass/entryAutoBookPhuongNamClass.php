@@ -35,7 +35,8 @@ class entryAutoBookPhuongNamClass extends entryClass {
             'VNA' => 'VN',
             'VNP' => 'VN',
             'BBA' => 'QH',
-            'VTA' => 'VU'
+            'VTA' => 'VU',
+            '9G' => '9G'
         ];
         // BM database
         $this->supplierId = "7eafb1bc-6ac2-3816-3ea9-6455f638436e";
@@ -1011,7 +1012,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     }
                     else {
                         $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
-                        if($systemCode == ($this->mappingSystemCode[$airlineCodeOutbound] ?? '')) {
+                        if($systemCode == ($this->mappingSystemCode[$airlineCodeOutbound] ?? $airlineCodeOutbound)) {
                             $colNamePNR = 'pnr_outbound';
                             // $colNameLugIndex = 'luggage_index_outbound';
                             $direction = '0';

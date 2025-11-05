@@ -31,7 +31,7 @@ class EC_Zalo_Messages extends Basic {
     public $to_id;
     public $timestamp;
     public $type;
-    PUBLIC $sub_type;
+    public $sub_type;
     public $thumbnail;
     public $url;
     public $attached_description;
@@ -482,37 +482,119 @@ class EC_Zalo_Messages extends Basic {
      * 
      * @param string $zalo_id
      * @param string $oa_id
-     * @return bool
+     * @return array
      */
     public function send_happy_birthday_message($zalo_id = '', $oa_id = '') {
         $zaloOA = new APIZaloOA($oa_id);
         $banner = $zaloOA->get_images_path() . "/banners/happy_birthday.png";
         $header = "Chúc mừng sinh nhật quý khách hàng 🎉";
-        $text = "Chúc Bạn luôn vui vẻ và hạnh phúc. Nhân dịp đặc biệt này, Tìm Chuyến Bay xin gửi tặng Bạn voucher 50k áp dụng cho vé khứ hồi như một món quà nhỏ.❤️❤️";
+        $text = "Chúc Bạn luôn vui vẻ và hạnh phúc. Nhân dịp đặc biệt này, Tìm Chuyến Bay xin gửi tặng Bạn voucher 50k như một món quà nhỏ.❤️❤️";
         $table = [
             [
                 "key" => "Voucher",
                 "value" => "Giảm 50.000đ"
             ],
             [
-                "key" => "Hạn sử dụng dùng",
-                "value" => "Đến hết dd/mm/yyyy"
+                "key" => "Điều kiện",
+                "value" => "Giảm trực tiếp cho vé khứ hồi"
+            ],
+            [
+                "key" => "Hạn sử dụng",
+                "value" => "Đến hết ". date('d/m/Y', strtotime('+30 days'))
             ]
         ];
         $buttons = [
-
+            [
+                "title"=> "Tham khảo chương trình",
+                "type"=> "oa.open.url",
+                "payload"=> [
+                    "url"=> "https://timchuyenbay.vn"
+                ],
+                "image_icon"=> ""
+            ],
+            [
+                "title"=> "Đặt vé ngay",
+                "type"=> "oa.open.url",
+                "payload"=> [
+                    "url"=> "https://timchuyenbay.vn"
+                ],
+                "image_icon"=> ""
+            ]
         ];
 
+        $results = [];
         if(!empty($zalo_id)) {
+            $response = $zaloOA->send_promotion($zalo_id, $banner, $header, $text, $table, $buttons);
+            $res = json_decode($response, true);
+            if(isset($res['error']) && $res['error'] == 0) {
+                $results[$zalo_id] = 1;
 
+                // Update quota to user
+                
+            }
         }
         else {
-
             $zaloContact = new EC_Zalo_Contacts();
             $listUser = $zaloContact->get_users_with_birthday();
             foreach($listUser as $u) {
-                $zaloOA->send_promotion($u['zalo_id'], $banner, $header, $text, $table, $buttons);
+                if($zaloContact->check_zalo_contact_action_by_data('send_promotion', $u['last_interaction'], $u['is_follower'])) {
+                    $response = $zaloOA->send_promotion($u['zalo_id'], $banner, $header, $text, $table, $buttons);
+                    $res = json_decode($response, true);
+                    if(isset($res['error']) && $res['error'] == 0) {
+                        $results[$zalo_id] = 1;
+
+                        // Update quota to user
+
+                    }
+                }
             }
+        }
+        return $results;
+    }
+
+    /**
+     * Send promotion message
+     * 
+     * @param string $sub_type
+     * @param string $zalo_id
+     * @param string $banner_link
+     * @param string $header
+     * @param string $text
+     * @param array $table
+     * @param string $text2
+     * @param array $buttons
+     * @param string $oa_id
+     * @return array
+     */
+    public function send_promotion_message($sub_type, $zalo_id, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = [], $oa_id = "") {
+        $zaloOA = $zaloOA = new APIZaloOA($oa_id);
+
+        // Prepare data here
+        
+
+        $response = $zaloOA->send_promotion($zalo_id, $banner_link, $header, $text, $table, $text2, $buttons);
+        $res = json_decode($response, true);
+        if(isset($res['error']) && $res['error'] == 0) {
+
+
+            $zaloMessage = new EC_Zalo_Messages();
+            $zaloMessage->message_id = $res['data']['message_id'] ?? '';
+            $zaloMessage->src = 0;
+            $zaloMessage->from_id = $zaloOA->get_oa_id();
+            $zaloMessage->to_id = $zalo_id;
+            $zaloMessage->timestamp = round(microtime(true) * 1000);;
+            $zaloMessage->type = 'promotion';
+            $zaloMessage->sub_type = $sub_type;
+
+            $zaloMessage->thumbnail;
+            $zaloMessage->url;
+            $zaloMessage->attached_description;
+
+            $zaloMessage->template_id;
+            $zaloMessage->cost;
+            $zaloMessage->data;
+            $zaloMessage->response;
+            $zaloMessage->booking_id;
         }
     }
 
