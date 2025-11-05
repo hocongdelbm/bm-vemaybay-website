@@ -945,7 +945,7 @@ function connectWebSocket() {
         let timestamp       = data['timestamp'] ?? 0;
         let type            = data['type'] ?? '';
         // let message         = data['message'] ?? '';
-        if(sender_id == '7658987821159451152' || recipient_id == '7658987821159451152') console.log('ZALO_SOCKET: ', e.data); // For test
+        if(sender_id == '7658987821159451152' || recipient_id == '7658987821159451152') console.log('ZALO_SOCKET Event debug: ', e.data); // For debug
 
         /**********  OA EVENT CUSTOM **********/
         if(event == 'oa_typing') {
