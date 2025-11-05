@@ -99,7 +99,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			</script>';
 		}
 
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.3"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.4"></script>';
 		echo $js;
 	}
 
