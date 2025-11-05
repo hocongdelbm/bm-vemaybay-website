@@ -1759,7 +1759,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						// $bagTax = $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
 						$bagPrice = $row["luggage_purchase$suffix"] ?? 0;
 						$bagTicketNum = $row["eluggage_$roundName"] ?? '';
-						$bagSellingPrice = $row["luggage_price_$roundName"] ?? 0;
+						$bagSellingPrice = $row["luggage_price$suffix"] ?? 0;
 						$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal shadow-sm ms-1" style="font-size:13px">Số vé HL: <b>' . $bagTicketNum . '</b></span>' : '';
 
 						$rowBagHTML .= '<p class="fst-italic">
