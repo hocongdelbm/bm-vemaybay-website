@@ -1157,29 +1157,29 @@ class entryAutoBookDatacomClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
 
-                    // Update available checked baggage info (Use for website have new baggage)
-                    if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
-                        foreach($bk["ListFlightFare"] as $ff) {
-                            $roundText = $ff["Leg"] == 1 ? 'inbound' : 'outbound';
+                    // // Update available checked baggage info (Use for website have new baggage)
+                    // if($booking->id && !empty($booking->id) && in_array($booking->created_by, $booking->list_website_new_baggage)) {
+                    //     foreach($bk["ListFlightFare"] as $ff) {
+                    //         $roundText = $ff["Leg"] == 1 ? 'inbound' : 'outbound';
 
-                            foreach($ff["FareInfo"]["ListFarePax"] as $farePax) {
-                                $paxType = strtolower($farePax["PaxType"] ?? '');   
-                                $paxTypeValue = $paxType == 'adt' ? '0' : ($paxType == 'chd' ? '1' : '2');
+                    //         foreach($ff["FareInfo"]["ListFarePax"] as $farePax) {
+                    //             $paxType = strtolower($farePax["PaxType"] ?? '');   
+                    //             $paxTypeValue = $paxType == 'adt' ? '0' : ($paxType == 'chd' ? '1' : '2');
 
-                                // $handBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["HandBaggage"] ?? '');
-                                $freeBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["FreeBaggage"] ?? '');
-                                $freeBaggageValue = $freeBaggage["value"] ?? '';
+                    //             // $handBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["HandBaggage"] ?? '');
+                    //             $freeBaggage = $this->extractBaggageValue($farePax["ListFareInfo"][0]["FreeBaggage"] ?? '');
+                    //             $freeBaggageValue = $freeBaggage["value"] ?? '';
 
-                                $sqlUpdate = "UPDATE ec_booking_passengers p
-                                    SET p.luggage_index_{$roundText} = '{$freeBaggageValue}'
-                                    WHERE p.booking_id = '{$bookingId}'
-                                        AND p.id IN ({$inListPassengerId})
-                                        AND p.type = '{$paxTypeValue}'
-                                        AND p.deleted = 0";
-                                if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
-                            }
-                        }
-                    }
+                    //             $sqlUpdate = "UPDATE ec_booking_passengers p
+                    //                 SET p.luggage_index_{$roundText} = '{$freeBaggageValue}'
+                    //                 WHERE p.booking_id = '{$bookingId}'
+                    //                     AND p.id IN ({$inListPassengerId})
+                    //                     AND p.type = '{$paxTypeValue}'
+                    //                     AND p.deleted = 0";
+                    //             if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
+                    //         }
+                    //     }
+                    // }
                 }
                 else {
                     $direction = '0';
