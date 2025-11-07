@@ -619,7 +619,7 @@ class Viewinputinvoice extends SugarView {
 
             // Số vé
             if (isset($request_fields['ticket_code']) && !empty($request_fields['ticket_code'])) {
-                $sql_search .= ' AND name = "' . $request_fields['ticket_code'] . '"';
+                $sql_search .= ' AND in_inv.name = "' . $request_fields['ticket_code'] . '"';
             }
 
             // Code vé
@@ -634,18 +634,18 @@ class Viewinputinvoice extends SugarView {
 
             // Tình trạng
             if (isset($request_fields['preview'])) {
-                $sql_search .= ' AND status = "0"';
-            } else $sql_search .= ' AND status = "1"';
+                $sql_search .= ' AND in_inv.status = "0"';
+            } else $sql_search .= ' AND in_inv.status = "1"';
 
             // Số vé không có booking
             if ($missing_bk == 1) {
-                $sql_search .= ' AND (booking_id IS NULL OR booking_id = "")';
+                $sql_search .= ' AND (in_inv.booking_id IS NULL OR in_inv.booking_id = "")';
             } else if ($missing_bk == 2) {
-                $sql_search .= ' AND (booking_id IS NOT NULL OR booking_id <> "")';
+                $sql_search .= ' AND (in_inv.booking_id IS NOT NULL OR in_inv.booking_id <> "")';
             }
         }
         else {
-            $sql_search .= ' AND status = "1"';
+            $sql_search .= ' AND in_inv.status = "1"';
         }
 
         return $sql_search;
