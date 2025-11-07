@@ -31,6 +31,19 @@ abstract class entryClass {
     }
 
     /**
+     * Clean input data
+     * 
+     * @param string $data
+     * @return string
+     */
+    public function cleanInput($data) {
+        $data = trim($data);
+        $data = stripslashes($data);
+        $data = htmlspecialchars($data);
+        return $data;
+    }
+
+    /**
      * Send SQL error notification
      * 
      * @param string $sqlQuery

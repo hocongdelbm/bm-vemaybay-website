@@ -243,7 +243,8 @@ $(document).ready(function () {
         step: 1,
         weekNumbers: false
     });
-
+    
+    // Duplicate feature
     $('i.icon-duplicate').on('click', function () {
         var base64Data = $(this).attr('form-data');
         var jsonStr = atob(base64Data);
@@ -367,27 +368,25 @@ $(document).ready(function () {
 
         formData.set('for', 'duplicateInvoice');
 
-        // Optionally, collect as JSON (if you want to send as JSON)
-        // var formData = {};
-        // $('#dynamic-form').find('input, select').each(function() {
-        //   formData[this.name] = $(this).val();
-        // });
-
         $.ajax({
-            url: 'index.php?entryPoint=entryPointEC_HoaDonBan',
-            type: 'POST',
-            data: formData,
-            processData: false, // don't let jQuery process the data
-            contentType: false, // let the browser set it (multipart/form-data)
+            url: ENTRYPOINT,
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            cache: false,
+            data: JSON.stringify({
+                class: "entryInputInvoiceClass",
+                method: "duplicateTicket",
+                params: Object.fromEntries(formData.entries())
+            }),
             beforeSend: function() {
                 $('.container-waiting').show();
             },
             success: function(response) {
                 $('.container-waiting').hide();
-                let obj = JSON.parse(response);
                 $('#modal-duplicate-input-invoice').hide();
-                if(obj.error == 0) showModalNotify(1, 'Thêm thành công');
-                else showModalNotify(0, obj.message ?? 'Thao tác thất bại');
+                if('status' in response && response.status == 1) showModalNotify(1, response.message || 'Thao tác thành công');
+                else showModalNotify(0, response.message || 'Thao tác thất bại');
             },
             error: function(xhr, status, error) {
                 $('.container-waiting').hide();
@@ -396,7 +395,6 @@ $(document).ready(function () {
             }
         });
     });
-
     $(document).on('input', '#modal-duplicate-input-invoice input.money', function () {
         if($(this).attr('id') == 'cost_no_vat') {
             let cost_no_vat = unformatNumber($('#modal-duplicate-input-invoice input#cost_no_vat').val());
@@ -413,6 +411,46 @@ $(document).ready(function () {
 
         let format_value = formatNumber(unformatNumber($(this).val()));
         $(this).val(format_value);
+    });
+
+    // Remove feature
+    $('i.icon-remove').on('click', function () {
+        const recordId = $(this).attr('record-id');
+        const recordName = $(this).attr('record-name');
+        
+        if(recordId && recordId.length > 0) {
+            if(confirm(`Xác nhận xóa hóa đơn đầu vào ${recordName}`)) {
+                $.ajax({
+                    url: ENTRYPOINT,
+                    type: "POST",
+                    contentType: "application/json",
+                    dataType: "json",
+                    cache: false,
+                    data: JSON.stringify({
+                        class: "entryInputInvoiceClass",
+                        method: "removeTicket",
+                        params: {
+                            ticketId: recordId,
+                        }
+                    }),
+                    beforeSend: function() {
+                        $('.container-waiting').show();
+                    },
+                    success: function(response) {
+                        $('.container-waiting').hide();
+                        if('status' in response && response.status == 1) {
+                            showModalNotify(1, response.message || 'Thao tác thành công');
+                            $(`#record-${recordId}`).remove();
+                        }
+                        else showModalNotify(0, response.message || 'Thao tác thất bại');
+                    },
+                    error: function(xhr, status, error) {
+                        $('.container-waiting').hide();
+                        showModalNotify(0, error);
+                    }
+                });
+            }
+        }
     });
 
     $(document).on('input', '#im_ticketing_fee, #im_ticketing_fee_vat_percent', function () {

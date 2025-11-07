@@ -64,6 +64,7 @@ class Viewinputinvoice extends SugarView {
         if (!isset($_POST['denied'])) {
             $smarty->assign('SUPPLIER', (empty($_REQUEST['supplier_name']) ? '' : ' NCC ' . $_REQUEST['supplier_name']));
             $smarty->assign('INVOICE_NUMBER', $_REQUEST['invoice_number'] ?? '');
+            $smarty->assign('BOOKING_SEARCH', $_REQUEST['booking_search'] ?? '');
             $smarty->assign('TICKET_CODE', $_REQUEST['ticket_code'] ?? '');
             $smarty->assign('TICKET_C', $_REQUEST['ticket_c'] ?? '');
             $smarty->assign('FROM_DATE_ACCOUNTING', $_REQUEST['from_date_accounting'] ?? '');
@@ -284,7 +285,7 @@ class Viewinputinvoice extends SugarView {
                 SUM(cost) AS total_cost_vat,
                 SUM(authorized_fee) AS total_authorized,
                 COUNT(id) AS row_num
-            FROM ec_input_invoices 
+            FROM ec_input_invoices in_inv
             WHERE deleted = 0 ' . $sql_search;
 
         $res = $this->bean->db->query($sql);
@@ -310,36 +311,33 @@ class Viewinputinvoice extends SugarView {
         $sql_search = $this->populateSearchCondition($request_fields);
         $sql_limit = $this->populateLimitCondition($request_fields);
 
-        $sql = "SELECT id
-                ,name
-                ,is_other_fee
-                ,cost_no_vat
-                ,vat
-                ,cost
-                ,authorized_fee
-                ,qty
-                ,accounting_date
-                ,invoice_date
-                ,supplier
-                ,company_unit
-                ,invoice_number
-                ,invoice_serial
-                ,itinerary
-                ,ticket_type
-                ,booking_id
+        $sql = "SELECT in_inv.id
+                ,in_inv.name
+                ,in_inv.is_other_fee
+                ,in_inv.cost_no_vat
+                ,in_inv.vat
+                ,in_inv.cost
+                ,in_inv.authorized_fee
+                ,in_inv.qty
+                ,in_inv.accounting_date
+                ,in_inv.invoice_date
+                ,in_inv.supplier
+                ,in_inv.company_unit
+                ,in_inv.invoice_number
+                ,in_inv.invoice_serial
+                ,in_inv.itinerary
+                ,in_inv.ticket_type
+                ,in_inv.booking_id
+                ,bk.name AS booking
                 ,(
-                    SELECT name
-                    FROM ec_flight_bookings
-                    WHERE id = ec_input_invoices.booking_id
-                ) AS booking 
-                ,(
-                    SELECT IFNULL(SUM(soluong), 0)
-                    FROM ec_chitiethoadon 
-                    WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                    SELECT IFNULL(SUM(ct.soluong), 0)
+                    FROM ec_chitiethoadon ct
+                    WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                 ) AS export
-            FROM ec_input_invoices
-            WHERE deleted = 0 $sql_search
-            ORDER BY invoice_date DESC, supplier, invoice_serial, invoice_number, order_by_no
+            FROM ec_input_invoices in_inv
+                LEFT JOIN ec_flight_bookings bk ON bk.id = in_inv.booking_id
+            WHERE in_inv.deleted = 0 $sql_search
+            ORDER BY in_inv.invoice_date DESC, in_inv.supplier, in_inv.invoice_serial, in_inv.invoice_number, in_inv.order_by_no
             $sql_limit";
 
         $res        = $this->bean->db->query($sql);
@@ -446,16 +444,27 @@ class Viewinputinvoice extends SugarView {
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">
-                        <title>ionicons-v5-j</title>
                         <path d="M408,112H184a72,72,0,0,0-72,72V408a72,72,0,0,0,72,72H408a72,72,0,0,0,72-72V184A72,72,0,0,0,408,112ZM375.55,312H312v63.55c0,8.61-6.62,16-15.23,16.43A16,16,0,0,1,280,376V312H216.45c-8.61,0-16-6.62-16.43-15.23A16,16,0,0,1,216,280h64V216.45c0-8.61,6.62-16,15.23-16.43A16,16,0,0,1,312,216v64h64a16,16,0,0,1,16,16.77C391.58,305.38,384.16,312,375.55,312Z"></path><path d="M395.88,80A72.12,72.12,0,0,0,328,32H104a72,72,0,0,0-72,72V328a72.12,72.12,0,0,0,48,67.88V160a80,80,0,0,1,80-80Z"></path>
                     </g>
                 </svg>
             </i>';
 
-            $html .= '<tr class="' . $row_class . ' ' . $error_minus . '">';
+            // Remove
+            $icon_delete = '<i class="icon-remove" record-id="'.$row['id'].'" record-name="'.$row['name'].'" title="Xóa">
+                <svg fill="#ff4242" height="13px" width="13px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 459.739 459.739" xml:space="preserve" stroke="#ff4242">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M229.869,0C102.917,0,0,102.917,0,229.869c0,126.952,102.917,229.869,229.869,229.869s229.869-102.917,229.869-229.869 C459.738,102.917,356.821,0,229.869,0z M313.676,260.518H146.063c-16.926,0-30.649-13.723-30.649-30.649 c0-16.927,13.723-30.65,30.649-30.65h167.613c16.925,0,30.649,13.723,30.649,30.65C344.325,246.795,330.601,260.518,313.676,260.518 z"></path>
+                    </g>
+                </svg>
+            </i>';
+
+            $html .= '<tr class="'. trim($row_class . ' ' . $error_minus) .'" id="record-'.$row['id'].'">';
             $html .= '<td class="text-center sep_order">
                 '. (++$i) .'
                 '. $icon_duplicate .'
+                '. $icon_delete .'
             </td>';
             $html .= '<td class="text-center accounting_date">' . $accounting_date . '</td>';
             $html .= '<td class="text-center invoice_date">' . date('d-m-Y', strtotime($row['invoice_date'])) . '</td>';
@@ -618,6 +627,11 @@ class Viewinputinvoice extends SugarView {
                 $sql_search .= ' AND ticket_code = "' . $request_fields['ticket_c'] . '"';
             }
 
+            // Booking
+            if (isset($request_fields['booking_search']) && !empty($request_fields['booking_search'])) {
+                $sql_search .= ' AND bk.name = "' . trim($request_fields['booking_search']) . '"';
+            }
+
             // Tình trạng
             if (isset($request_fields['preview'])) {
                 $sql_search .= ' AND status = "0"';
@@ -667,8 +681,13 @@ class Viewinputinvoice extends SugarView {
                     // $objReader = new Spreadsheet();
                     // $objReader = IOFactory::load("cache/upload/inputinvoices/$fileName");
                     // $sheet = $objReader->getActiveSheet();
+                    try {
+                        $spreadsheet = IOFactory::load("cache/upload/inputinvoices/$fileName");
+                    }
+                    catch(Throwable $th) {
+                        echo "<p class='text-danger'>{$th->getMessage()} on line {$th->getLine()} at {$th->getFile()}</p>";
+                    }
 
-                    $spreadsheet = IOFactory::load("cache/upload/inputinvoices/$fileName");
                     $k = 0;
                     $array_data = [];
                     foreach ($spreadsheet->getAllSheets() as $sheetIndex => $sheet) {
@@ -1351,12 +1370,10 @@ class Viewinputinvoice extends SugarView {
 
         $filename = str_replace("%20", "", $filename);
         $filename = str_replace(" ", "", $filename);
-        $upload_file = date('YmdHi') . '_HDDauVao_' . $filename;
+        $upload_file = date('YmdHi') . '_HDDauVao_' . $filename; // 202307180331_HDDauVao_479684.xls
 
-        if (move_uploaded_file($_FILES[$file]["tmp_name"], $folder . $upload_file)) {
-            return $upload_file;
-        } else {
-            return $upload_file; // 202307180331_HDDauVao_479684.xls
-        }
+        $status = move_uploaded_file($_FILES[$file]["tmp_name"], $folder . $upload_file);
+        var_dump($status);
+        return $upload_file;
     }
 }
