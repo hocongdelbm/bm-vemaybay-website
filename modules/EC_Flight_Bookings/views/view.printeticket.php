@@ -76,22 +76,22 @@ class Viewprinteticket extends SugarView {
 				$another_iti = $this->getAnotherIti($_REQUEST['booking_id'], $fdirection, $pass_inf['pass_id'], $pass_inf['edit_no']);
 				
 				if(!empty($another_iti)){
-					$airline 			= myGetAirlineInfo2(trim($another_iti['airline_code']), 'CODE');
-					$departure 			= myGetAirportInfo2(trim($another_iti['departure']));
-					$arrival 			= myGetAirportInfo2(trim($another_iti['arrival']));
-					$departure_date 	= date('d/m/Y', strtotime($another_iti['departure_date'])) . ' <br /> ' . date('H:i', strtotime($another_iti['departure_date'])) .' - ' .date('H:i', strtotime($another_iti['arrival_date']));
-					$airline 			= $airline['data'][0]['name'];
+					$airline 		= myGetAirlineInfo2(trim($another_iti['airline_code']), 'CODE');
+					$departure 		= myGetAirportInfo2(trim($another_iti['departure']));
+					$arrival 		= myGetAirportInfo2(trim($another_iti['arrival']));
+					$departure_date = date('d/m/Y', strtotime($another_iti['departure_date'])) . ' <br /> ' . date('H:i', strtotime($another_iti['departure_date'])) .' - ' .date('H:i', strtotime($another_iti['arrival_date']));
+					$airline 		= $airline['data'][0]['name'];
 					$flight_number 	= $another_iti['flight_number'];
 					$departure_inf 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
-					$arrival_inf 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
+					$arrival_inf 	= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
 
 					$html1 = '<tr class="no-change-iti">
-								<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px; line-height: 20px;">' . $departure_date . '</td>
-								<td style="border:1px solid #ccc; padding: 10px 7px;">' . $airline . '</td>
-								<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px;">' . $flight_number . '</td>
-								<td style="border:1px solid #ccc; padding: 10px 7px;">' . $departure_inf . '</td>
-								<td style="border:1px solid #ccc; padding: 10px 7px;">' . $arrival_inf . '</td>
-							</tr>';
+						<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px; line-height: 20px;">' . $departure_date . '</td>
+						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $airline . '</td>
+						<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px;">' . $flight_number . '</td>
+						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $departure_inf . '</td>
+						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $arrival_inf . '</td>
+					</tr>';
 				} else {
 					$html1 = '';
 				}
@@ -632,15 +632,17 @@ class Viewprinteticket extends SugarView {
 	function getAnotherIti($booking_id, $direction, $passenger_id, $line) {
 		// assigned_user_id IS NULL or Empty
 		global $db;
-		$sql = 'SELECT * FROM ec_booking_itineraries 
-				WHERE booking_id = "' . $booking_id . '"
-					AND direction = ' . $direction . '
-					AND (assigned_user_id IS NULL OR assigned_user_id = "" OR assigned_user_id = "' . $passenger_id . '")
+		$sql = "SELECT * FROM ec_booking_itineraries 
+				WHERE booking_id = '{$booking_id}'
+					AND direction = '{$direction}'
+					-- AND (assigned_user_id IS NULL OR assigned_user_id = '' OR assigned_user_id = '{$passenger_id}')
+					AND (assigned_user_id IS NULL OR assigned_user_id = '{$passenger_id}' OR name != 'route')
 					AND deleted = 0
-					AND IF(sabre_logs = 0, 0, sabre_logs) <= ' . $line . '
+					AND IF(sabre_logs = 0, 0, sabre_logs) <= {$line}
 				ORDER BY sabre_logs DESC
-				LIMIT 1';
-		
+				LIMIT 1";
+		// global $current_user;
+		// if($current_user->id == '1') pr($sql);
 		$res = $db->query($sql);
 		return $db->fetchByAssoc($res);
 	}
