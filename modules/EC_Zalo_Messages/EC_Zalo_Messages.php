@@ -567,16 +567,58 @@ class EC_Zalo_Messages extends Basic {
      * @return array
      */
     public function send_promotion_message($sub_type, $zalo_id, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = [], $oa_id = "") {
-        $zaloOA = $zaloOA = new APIZaloOA($oa_id);
+        if(empty($zalo_id)) return false; 
 
-        // Prepare data here
-        
+        $zaloOA = new APIZaloOA($oa_id);
 
-        $response = $zaloOA->send_promotion($zalo_id, $banner_link, $header, $text, $table, $text2, $buttons);
+        $requestBody = [
+            "recipient" => [
+                "user_id" => $zalo_id
+            ],
+            "message" => [
+                "attachment" => [
+                    "type" => "template",
+                    "payload" => [
+                        "template_type" => "promotion", // Type
+                        "language" => "VI",
+                        "elements" => [
+                            [
+                                "type" => "banner",
+                                "image_url" => $banner_link
+                            ],
+                            [
+                                "type" => "header",
+                                "content" => $header,
+                                "align" => ""
+                            ],
+                            [
+                                "type" => "text",
+                                "content" => $text,
+                                "align" => ""
+                            ],
+                        ],
+                    ]
+                ]
+            ]
+        ];
+        if(!empty($table)) {
+            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "table",
+                "content" => $table
+            ];
+        }
+        if(!empty($text2)) {
+            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "text",
+                "align" => "center",
+                "content" => $text2
+            ];
+        }
+        if(!empty($buttons)) $requestBody["message"]["attachment"]["payload"]["buttons"] = $buttons;
+
+        $response = $zaloOA->send_promotion($requestBody);
         $res = json_decode($response, true);
         if(isset($res['error']) && $res['error'] == 0) {
-
-
             $zaloMessage = new EC_Zalo_Messages();
             $zaloMessage->message_id = $res['data']['message_id'] ?? '';
             $zaloMessage->src = 0;
@@ -585,17 +627,19 @@ class EC_Zalo_Messages extends Basic {
             $zaloMessage->timestamp = round(microtime(true) * 1000);;
             $zaloMessage->type = 'promotion';
             $zaloMessage->sub_type = $sub_type;
+            $zaloMessage->cost = 0;
+            $zaloMessage->data = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
+            $zaloMessage->response = $response;
+            if($zaloMessage->save()) {
+                // Save quota zalo 
 
-            $zaloMessage->thumbnail;
-            $zaloMessage->url;
-            $zaloMessage->attached_description;
+                // Save quota user
 
-            $zaloMessage->template_id;
-            $zaloMessage->cost;
-            $zaloMessage->data;
-            $zaloMessage->response;
-            $zaloMessage->booking_id;
+                return true;
+            }
         }
+
+        return false;
     }
 
     /**

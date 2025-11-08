@@ -658,15 +658,19 @@ class APIZaloOA {
      * Send promotion message
      * 
      * @param string $zalo_id
-     * @param string $banner_link
-     * @param string $header
-     * @param string $text 
-     * @param array $table
-     * @param string $text2
-     * @param array $buttons 
      * @return string json
      */
-    public function send_promotion($zalo_id, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = []) {
+    public function send_promotion($request_body) {
+        $hour = date('H');
+        if($hour < 6 || $hour > 21) {
+            return json_encode([
+                "error" => 1,
+                "httpCode" => 403,
+                "message" => "Promotional message are only sent within 6h - 22h",
+                "data" => null
+            ]);
+        }
+
         $url = "https://openapi.zalo.me/v3.0/oa/message/promotion";
         $header = [
             "Content-Type: application/json",
@@ -676,54 +680,7 @@ class APIZaloOA {
             CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
             CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
         ];
-
-        // Request body
-        $requestBody = [
-            "recipient" => [
-                "user_id" => $zalo_id
-            ],
-            "message" => [
-                "attachment" => [
-                    "type" => "template",
-                    "payload" => [
-                        "template_type" => "promotion", // Type
-                        "language" => "VI",
-                        "elements" => [
-                            [
-                                "type" => "banner",
-                                "image_url" => $banner_link
-                            ],
-                            [
-                                "type" => "header",
-                                "content" => $header,
-                                "align" => ""
-                            ],
-                            [
-                                "type" => "text",
-                                "content" => $text,
-                                "align" => ""
-                            ],
-                        ],
-                    ]
-                ]
-            ]
-        ];
-        if(!empty($table)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "table",
-                "content" => $table
-            ];
-        }
-        if(!empty($text2)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "text",
-                "align" => "center",
-                "content" => $text2
-            ];
-        }
-        if(!empty($buttons)) $requestBody["message"]["attachment"]["payload"]["buttons"] = $buttons;
-
-        return $this->send_request("POST", $url, json_encode($requestBody), $header, $curlOptions);
+        return $this->send_request("POST", $url, json_encode($request_body), $header, $curlOptions);
     }
 
 
