@@ -328,10 +328,10 @@
                                                            </button>
                                                        </div>
                                                        <div class="call-button--wrap flex-between">
-                                                            <button class="btn btn-calling flex-fill btn-voiceip-calling-zalo d-none" type="button" id="btn-voiceip-main-zalo">
+                                                            <button class="btn btn-calling flex-fill btn-voiceip-calling btn-voiceip-calling-zalo" type="button" id="btn-voiceip-main-zalo">
                                                                  Zalo
                                                             </button>
-                                                           <button class="btn-calling flex-fill btn-voiceip-calling" type="button" id="btn-voiceip-main-calling">
+                                                           <button class="btn-calling flex-fill btn-voiceip-calling btn-voiceip-calling-teco" type="button" id="btn-voiceip-main-calling">
                                                                Gọi
                                                            </button>
                                                        </div>
