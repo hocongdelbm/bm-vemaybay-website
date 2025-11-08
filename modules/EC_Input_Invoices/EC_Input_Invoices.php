@@ -191,8 +191,10 @@ class EC_Input_Invoices extends Basic {
                 $note->save();
 
                 // Auto create output invoice
-                $beanOutInv = new EC_HoaDonBan();
-                $beanOutInv->createAuto($booking_id);
+                if(isset($this->total) && $this->total > 0) {
+                    $beanOutInv = new EC_HoaDonBan();
+                    $beanOutInv->createAuto($booking_id);
+                }
             }
 
             return $input_invoice_id;

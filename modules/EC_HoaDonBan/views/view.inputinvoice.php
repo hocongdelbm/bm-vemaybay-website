@@ -128,6 +128,7 @@ class Viewinputinvoice extends SugarView {
                     $bk_arr[$input_inv->booking_id]['ticket_code'][]    = $input_inv->name;
                     $bk_arr[$input_inv->booking_id]['invoice_number']   = $input_inv->invoice_number;
                     $bk_arr[$input_inv->booking_id]['booking_name']     = $input_inv->booking;
+                    $bk_arr[$input_inv->booking_id]['total']            = $total;
                 }
             }
 
@@ -157,6 +158,7 @@ class Viewinputinvoice extends SugarView {
         if (isset($post_fields['confirmed'])) {
             $at = 0;
             foreach ($bk_arr as $bk_id => $bk_inf) {
+                if(isset($bk_inf['total']) && $bk_inf['total'] < 0) continue;
                 $this->bean->createAuto($bk_id, $at);
                 $at++;
             }
@@ -270,23 +272,24 @@ class Viewinputinvoice extends SugarView {
         $sql_search = $this->populateSearchCondition($request_fields);
 
         $sql = 'SELECT 
-                SUM(qty) AS total_qty,
+                SUM(in_inv.qty) AS total_qty,
                 SUM(
                     IFNULL(
                         (
-                            SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                            WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                            SELECT IFNULL(SUM(ct.soluong), 0)
+                            FROM ec_chitiethoadon ct
+                            WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                         ),
                         0
                     )
                 ) AS total_export,
-                SUM(cost_no_vat) AS total_cost,
-                SUM(vat) AS total_vat,
-                SUM(cost) AS total_cost_vat,
-                SUM(authorized_fee) AS total_authorized,
-                COUNT(id) AS row_num
+                SUM(in_inv.cost_no_vat) AS total_cost,
+                SUM(in_inv.vat) AS total_vat,
+                SUM(in_inv.cost) AS total_cost_vat,
+                SUM(in_inv.authorized_fee) AS total_authorized,
+                COUNT(in_inv.id) AS row_num
             FROM ec_input_invoices in_inv
-            WHERE deleted = 0 ' . $sql_search;
+            WHERE in_inv.deleted = 0 ' . $sql_search;
 
         $res = $this->bean->db->query($sql);
         $row = $this->bean->db->fetchByAssoc($res);
@@ -537,54 +540,54 @@ class Viewinputinvoice extends SugarView {
                 // Từ ngày
                 if (isset($request_fields['from_date']) && !empty($request_fields['from_date'])) {
                     $from_date = $request_fields['from_date'];
-                    $sql_search .= ' AND invoice_date >= "' . date('Y-m-d', strtotime($from_date)) . '"';
+                    $sql_search .= ' AND in_inv.invoice_date >= "' . date('Y-m-d', strtotime($from_date)) . '"';
                 }
 
                 // Đến ngày
                 if (isset($request_fields['to_date']) && !empty($request_fields['to_date'])) {
                     $to_date = $request_fields['to_date'];
-                    $sql_search .= ' AND invoice_date <= "' . date('Y-m-d', strtotime($to_date)) . '"';
+                    $sql_search .= ' AND in_inv.invoice_date <= "' . date('Y-m-d', strtotime($to_date)) . '"';
                 }
 
                 // Ngày hạch toán từ ngày
                 if (isset($request_fields['from_date_accounting']) && !empty($request_fields['from_date_accounting'])) {
                     $from_date_accounting = $request_fields['from_date_accounting'];
-                    $sql_search .= ' AND accounting_date >= "' . date('Y-m-d', strtotime($from_date_accounting)) . '"';
+                    $sql_search .= ' AND in_inv.accounting_date >= "' . date('Y-m-d', strtotime($from_date_accounting)) . '"';
                 }
 
                 // Ngày hạch toán đến ngày
                 if (isset($request_fields['to_date_accounting']) && !empty($request_fields['to_date_accounting'])) {
                     $to_date_accounting = $request_fields['to_date_accounting'];
-                    $sql_search .= ' AND accounting_date <= "' . date('Y-m-d', strtotime($to_date_accounting)) . '"';
+                    $sql_search .= ' AND in_inv.accounting_date <= "' . date('Y-m-d', strtotime($to_date_accounting)) . '"';
                 }
 
                 // Số vé thiếu sl
                 if ($missing_qty == 1) {
-                    $sql_search .= ' AND (qty IS NULL OR qty = "" OR qty = 0)';
+                    $sql_search .= ' AND (in_inv.qty IS NULL OR in_inv.qty = "" OR in_inv.qty = 0)';
                 } else if ($missing_bk == 2) {
-                    $sql_search .= ' AND qty > 0';
+                    $sql_search .= ' AND in_inv.qty > 0';
                 }
 
                 // Số vé bị xuất dư sl
                 if ($over_qty == 1) {
                     $sql_search .= ' AND (qty - (
-                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                        WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon ct
+                        WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                     )) < 0';
                 }
 
                 // Tình trạng còn tồn
                 if ($stock_stt == 1) {
                     $sql_search .= ' AND (qty - (
-                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                        WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon ct
+                        WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                     )) > 0';
                 }
                 // Tình trạng hết tồn
                 else if ($stock_stt == 2) {
                     $sql_search .= ' AND (qty - (
-                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                        WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon ct
+                        WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                     )) = 0';
                 }
             }
@@ -592,29 +595,29 @@ class Viewinputinvoice extends SugarView {
             // Nhà cung cấp
             if (isset($request_fields['supplier']) && !empty($request_fields['supplier'])) {
                 if ($request_fields['supplier'] == 'EMPTY') {
-                    $sql_search .= ' AND (supplier IS NULL OR supplier = "")';
+                    $sql_search .= ' AND (in_inv.supplier IS NULL OR in_inv.supplier = "")';
                 } else {
-                    $sql_search .= ' AND supplier = "' . $request_fields['supplier'] . '"';
+                    $sql_search .= ' AND in_inv.supplier = "' . $request_fields['supplier'] . '"';
                 }
             }
 
             // Đơn vị công ty
             if (isset($request_fields['company_unit']) && !empty($request_fields['company_unit'])) {
                 if ($request_fields['company_unit'] == 'EMPTY') {
-                    $sql_search .= ' AND (company_unit IS NULL OR company_unit = "")';
+                    $sql_search .= ' AND (in_inv.company_unit IS NULL OR in_inv.company_unit = "")';
                 } else {
-                    $sql_search .= ' AND company_unit = "' . $request_fields['company_unit'] . '"';
+                    $sql_search .= ' AND in_inv.company_unit = "' . $request_fields['company_unit'] . '"';
                 }
             }
 
             // Số hoá đơn
             if (isset($request_fields['invoice_number']) && !empty($request_fields['invoice_number'])) {
-                $sql_search .= ' AND invoice_number = "' . $request_fields['invoice_number'] . '"';
+                $sql_search .= ' AND in_inv.invoice_number = "' . $request_fields['invoice_number'] . '"';
             }
 
             // Ký hiệu hoá đơn
             if (isset($request_fields['invoice_serial']) && !empty($request_fields['invoice_serial'])) {
-                $sql_search .= ' AND invoice_serial = "' . $request_fields['invoice_serial'] . '"';
+                $sql_search .= ' AND in_inv.invoice_serial = "' . $request_fields['invoice_serial'] . '"';
             }
 
             // Số vé
@@ -624,7 +627,7 @@ class Viewinputinvoice extends SugarView {
 
             // Code vé
             if (isset($request_fields['ticket_c']) && !empty($request_fields['ticket_c'])) {
-                $sql_search .= ' AND ticket_code = "' . $request_fields['ticket_c'] . '"';
+                $sql_search .= ' AND in_inv.ticket_code = "' . $request_fields['ticket_c'] . '"';
             }
 
             // Booking
