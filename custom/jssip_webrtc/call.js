@@ -482,8 +482,10 @@ $(document).ready(function () {
         let outbound_phone = $('#select-phone-outbound').val();
         let type_call = '';
 
+        let is_call_direction_zalo = $(this).hasClass('btn-voiceip-calling-zalo') ? true : false;
+
         // Gọi bằng numpad
-        if (id == 'btn-voiceip-main-calling') {
+        if (id == 'btn-voiceip-main-calling' || id == 'btn-voiceip-main-zalo') {
             phone = $('#call_voiceip_main_number').val().trim();
         } else if (['btnCalled','btnRecall','btnRemind'].includes(id)) {
             phone = $(this).attr('phone');
@@ -565,7 +567,7 @@ $(document).ready(function () {
                                 $sel.val('').trigger('change');
                             }
                         }, 500);
-
+                        
                         if (is_uncomfortable) {
                             $('#is_uncomfortable').prop('checked', is_uncomfortable);
                             $('#notes-uncomfortable').html('Chú ý: Khách khó tính, khó chịu, khó ở, khó chiều.');
@@ -580,7 +582,12 @@ $(document).ready(function () {
                             return false;
                         }
 
-                        ua.call((zaloid && zaloid.length > 0 && is_call_zalo) ? zaloid : phone, callOptions);
+                        let phone_call = phone;
+                        if(is_call_direction_zalo && zaloid && zaloid.length > 0 && is_call_zalo){
+                            phone_call = zaloid;
+                        }
+
+                        ua.call(phone_call, callOptions);
                     }
 
                     if (id == 'btnCalled' || id == 'btnRecall' || 'btnRemind') {
