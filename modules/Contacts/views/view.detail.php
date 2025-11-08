@@ -268,7 +268,7 @@ class ContactsViewDetail extends ViewDetail
         $res = $this->bean->db->query($sql);
         while($row = $this->bean->db->fetchByAssoc($res)) {
             $is_follower_html = $row['is_follower'] ? '<span class="text-primary">Đã quan tâm</span>' : '<span>Chưa quan tâm</span>';
-            $last_interaction = date('d-m-Y H:i', strtotime($row['last_interaction']));
+            $last_interaction = !empty($row['last_interaction']) ? date('d-m-Y H:i', strtotime($row['last_interaction'])) : '';
 
             $is_call = $zaloContact->check_zalo_contact_action_by_data('call', $row['last_interaction'], $row['is_follower']);
             $is_send_consultation = $zaloContact->check_zalo_contact_action_by_data('send_consultation', $row['last_interaction'], $row['is_follower']);

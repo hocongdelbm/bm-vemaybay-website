@@ -147,7 +147,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                         // Quota user
                         if($zalomes->src == 1) {
-                            // Get user quota info
                             $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_id);
 
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
@@ -161,7 +160,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         ,description = 'Cập nhật tương tác và hạn ngạch qua webhook user send'
                                         ,modified_user_id = ''
                                         ,date_modified = '$date_modified'
-                                    WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                    WHERE zalo_id = '". $zaloUserInfo['user_id'] ."' AND deleted = 0";
+
                                 $db->query($sqlUpdate);
                             }
                         }
@@ -183,7 +183,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                 ,description = 'Cập nhật tương tác và hạn ngạch qua webhook oa send'
                                                 ,modified_user_id = ''
                                                 ,date_modified = '$date_modified'
-                                            WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                            WHERE zalo_id = '". $zaloUserInfo['user_id'] ."' AND deleted = 0";
                                         $db->query($sqlUpdate);
                                     }
                                     else if(isset($quota_user["cs_reply"]["remain"])) {
@@ -363,7 +363,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         ,description = 'Cập nhật tương tác và hạn ngạch qua webhook user follow'
                                         ,modified_user_id = ''
                                         ,date_modified = '$date_modified'
-                                    WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                    WHERE zalo_id = '". $zaloUserInfo['user_id'] ."' AND deleted = 0";
                                 $db->query($sqlUpdate);
                             }
                         }

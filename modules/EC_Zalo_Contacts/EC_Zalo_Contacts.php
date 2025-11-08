@@ -69,8 +69,8 @@ class EC_Zalo_Contacts extends Basic
         $zaloOA = new APIZaloOA($oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
 
-        $user_external_id = $user_data['user_external_id'] ?? '';
-        $record_id = $user_external_id;
+        // $user_external_id = $user_data['user_external_id'] ?? '';
+        $record_id = '';
         if(empty($record_id)) {
             $sqlCheck = "SELECT id FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0";
             $record_id = $this->db->getOne($sqlCheck) ?? '';
@@ -80,7 +80,7 @@ class EC_Zalo_Contacts extends Basic
         $user_alias = $user_data['user_alias'] ?? '';
 
         // Last interaction
-        $last_interaction = $this->format_datetime($user_data['user_last_interaction_date'] ?? '');
+        $last_interaction = $this->format_datetime($user_data['user_last_interaction_date'] ?? '', 'Y-m-d H:i:s');
 
         // Phone
         $phone = $zaloOA->get_phone_by_alias($user_alias);
