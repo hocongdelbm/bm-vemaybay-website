@@ -65,5 +65,11 @@ td.sep_order {
     cursor: pointer;
     position: absolute;
     top: 0;
+    left: 1px;
+}
+.icon-remove {
+    cursor: pointer;
+    position: absolute;
+    top: 0;
     right: 1px;
 }

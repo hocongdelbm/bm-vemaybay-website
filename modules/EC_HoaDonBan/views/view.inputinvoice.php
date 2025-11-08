@@ -64,6 +64,7 @@ class Viewinputinvoice extends SugarView {
         if (!isset($_POST['denied'])) {
             $smarty->assign('SUPPLIER', (empty($_REQUEST['supplier_name']) ? '' : ' NCC ' . $_REQUEST['supplier_name']));
             $smarty->assign('INVOICE_NUMBER', $_REQUEST['invoice_number'] ?? '');
+            $smarty->assign('BOOKING_SEARCH', $_REQUEST['booking_search'] ?? '');
             $smarty->assign('TICKET_CODE', $_REQUEST['ticket_code'] ?? '');
             $smarty->assign('TICKET_C', $_REQUEST['ticket_c'] ?? '');
             $smarty->assign('FROM_DATE_ACCOUNTING', $_REQUEST['from_date_accounting'] ?? '');
@@ -127,6 +128,7 @@ class Viewinputinvoice extends SugarView {
                     $bk_arr[$input_inv->booking_id]['ticket_code'][]    = $input_inv->name;
                     $bk_arr[$input_inv->booking_id]['invoice_number']   = $input_inv->invoice_number;
                     $bk_arr[$input_inv->booking_id]['booking_name']     = $input_inv->booking;
+                    $bk_arr[$input_inv->booking_id]['total']            = $total;
                 }
             }
 
@@ -156,6 +158,7 @@ class Viewinputinvoice extends SugarView {
         if (isset($post_fields['confirmed'])) {
             $at = 0;
             foreach ($bk_arr as $bk_id => $bk_inf) {
+                if(isset($bk_inf['total']) && $bk_inf['total'] < 0) continue;
                 $this->bean->createAuto($bk_id, $at);
                 $at++;
             }
@@ -269,23 +272,24 @@ class Viewinputinvoice extends SugarView {
         $sql_search = $this->populateSearchCondition($request_fields);
 
         $sql = 'SELECT 
-                SUM(qty) AS total_qty,
+                SUM(in_inv.qty) AS total_qty,
                 SUM(
                     IFNULL(
                         (
-                            SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                            WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                            SELECT IFNULL(SUM(ct.soluong), 0)
+                            FROM ec_chitiethoadon ct
+                            WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                         ),
                         0
                     )
                 ) AS total_export,
-                SUM(cost_no_vat) AS total_cost,
-                SUM(vat) AS total_vat,
-                SUM(cost) AS total_cost_vat,
-                SUM(authorized_fee) AS total_authorized,
-                COUNT(id) AS row_num
-            FROM ec_input_invoices 
-            WHERE deleted = 0 ' . $sql_search;
+                SUM(in_inv.cost_no_vat) AS total_cost,
+                SUM(in_inv.vat) AS total_vat,
+                SUM(in_inv.cost) AS total_cost_vat,
+                SUM(in_inv.authorized_fee) AS total_authorized,
+                COUNT(in_inv.id) AS row_num
+            FROM ec_input_invoices in_inv
+            WHERE in_inv.deleted = 0 ' . $sql_search;
 
         $res = $this->bean->db->query($sql);
         $row = $this->bean->db->fetchByAssoc($res);
@@ -310,36 +314,33 @@ class Viewinputinvoice extends SugarView {
         $sql_search = $this->populateSearchCondition($request_fields);
         $sql_limit = $this->populateLimitCondition($request_fields);
 
-        $sql = "SELECT id
-                ,name
-                ,is_other_fee
-                ,cost_no_vat
-                ,vat
-                ,cost
-                ,authorized_fee
-                ,qty
-                ,accounting_date
-                ,invoice_date
-                ,supplier
-                ,company_unit
-                ,invoice_number
-                ,invoice_serial
-                ,itinerary
-                ,ticket_type
-                ,booking_id
+        $sql = "SELECT in_inv.id
+                ,in_inv.name
+                ,in_inv.is_other_fee
+                ,in_inv.cost_no_vat
+                ,in_inv.vat
+                ,in_inv.cost
+                ,in_inv.authorized_fee
+                ,in_inv.qty
+                ,in_inv.accounting_date
+                ,in_inv.invoice_date
+                ,in_inv.supplier
+                ,in_inv.company_unit
+                ,in_inv.invoice_number
+                ,in_inv.invoice_serial
+                ,in_inv.itinerary
+                ,in_inv.ticket_type
+                ,in_inv.booking_id
+                ,bk.name AS booking
                 ,(
-                    SELECT name
-                    FROM ec_flight_bookings
-                    WHERE id = ec_input_invoices.booking_id
-                ) AS booking 
-                ,(
-                    SELECT IFNULL(SUM(soluong), 0)
-                    FROM ec_chitiethoadon 
-                    WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                    SELECT IFNULL(SUM(ct.soluong), 0)
+                    FROM ec_chitiethoadon ct
+                    WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                 ) AS export
-            FROM ec_input_invoices
-            WHERE deleted = 0 $sql_search
-            ORDER BY invoice_date DESC, supplier, invoice_serial, invoice_number, order_by_no
+            FROM ec_input_invoices in_inv
+                LEFT JOIN ec_flight_bookings bk ON bk.id = in_inv.booking_id
+            WHERE in_inv.deleted = 0 $sql_search
+            ORDER BY in_inv.invoice_date DESC, in_inv.supplier, in_inv.invoice_serial, in_inv.invoice_number, in_inv.order_by_no
             $sql_limit";
 
         $res        = $this->bean->db->query($sql);
@@ -446,16 +447,27 @@ class Viewinputinvoice extends SugarView {
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">
-                        <title>ionicons-v5-j</title>
                         <path d="M408,112H184a72,72,0,0,0-72,72V408a72,72,0,0,0,72,72H408a72,72,0,0,0,72-72V184A72,72,0,0,0,408,112ZM375.55,312H312v63.55c0,8.61-6.62,16-15.23,16.43A16,16,0,0,1,280,376V312H216.45c-8.61,0-16-6.62-16.43-15.23A16,16,0,0,1,216,280h64V216.45c0-8.61,6.62-16,15.23-16.43A16,16,0,0,1,312,216v64h64a16,16,0,0,1,16,16.77C391.58,305.38,384.16,312,375.55,312Z"></path><path d="M395.88,80A72.12,72.12,0,0,0,328,32H104a72,72,0,0,0-72,72V328a72.12,72.12,0,0,0,48,67.88V160a80,80,0,0,1,80-80Z"></path>
                     </g>
                 </svg>
             </i>';
 
-            $html .= '<tr class="' . $row_class . ' ' . $error_minus . '">';
+            // Remove
+            $icon_delete = '<i class="icon-remove" record-id="'.$row['id'].'" record-name="'.$row['name'].'" title="Xóa">
+                <svg fill="#ff4242" height="13px" width="13px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 459.739 459.739" xml:space="preserve" stroke="#ff4242">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M229.869,0C102.917,0,0,102.917,0,229.869c0,126.952,102.917,229.869,229.869,229.869s229.869-102.917,229.869-229.869 C459.738,102.917,356.821,0,229.869,0z M313.676,260.518H146.063c-16.926,0-30.649-13.723-30.649-30.649 c0-16.927,13.723-30.65,30.649-30.65h167.613c16.925,0,30.649,13.723,30.649,30.65C344.325,246.795,330.601,260.518,313.676,260.518 z"></path>
+                    </g>
+                </svg>
+            </i>';
+
+            $html .= '<tr class="'. trim($row_class . ' ' . $error_minus) .'" id="record-'.$row['id'].'">';
             $html .= '<td class="text-center sep_order">
                 '. (++$i) .'
                 '. $icon_duplicate .'
+                '. $icon_delete .'
             </td>';
             $html .= '<td class="text-center accounting_date">' . $accounting_date . '</td>';
             $html .= '<td class="text-center invoice_date">' . date('d-m-Y', strtotime($row['invoice_date'])) . '</td>';
@@ -475,8 +487,7 @@ class Viewinputinvoice extends SugarView {
             $html .= '<td class="text-end vat_input">' . $vat_input . '</td>';
             $html .= '<td class="text-end cost_input_vat">' . $cost_input_vat . '</td>';
             $html .= '<td class="text-end author_input">' . $author_input . '</td>';
-            // $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['cost'] + $row['authorized_fee']) . '</td>';
-            $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['total']) . '</td>';
+            $html .= '<td class="text-end ln_total allow_number_only">' . format_number($row['cost'] + $row['authorized_fee']) . '</td>';
             $html .= '<td class="text-center ticket_type">'. $ticket_type_input .'</td>';
             $html .= '<td class="text-center"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $row['booking'] . '</a></td>';
             $html .= '<td class="text-center supplier_infor">' . $app_list_strings['supplier_invoice_list'][$row['supplier']] . '</td>';
@@ -529,54 +540,54 @@ class Viewinputinvoice extends SugarView {
                 // Từ ngày
                 if (isset($request_fields['from_date']) && !empty($request_fields['from_date'])) {
                     $from_date = $request_fields['from_date'];
-                    $sql_search .= ' AND invoice_date >= "' . date('Y-m-d', strtotime($from_date)) . '"';
+                    $sql_search .= ' AND in_inv.invoice_date >= "' . date('Y-m-d', strtotime($from_date)) . '"';
                 }
 
                 // Đến ngày
                 if (isset($request_fields['to_date']) && !empty($request_fields['to_date'])) {
                     $to_date = $request_fields['to_date'];
-                    $sql_search .= ' AND invoice_date <= "' . date('Y-m-d', strtotime($to_date)) . '"';
+                    $sql_search .= ' AND in_inv.invoice_date <= "' . date('Y-m-d', strtotime($to_date)) . '"';
                 }
 
                 // Ngày hạch toán từ ngày
                 if (isset($request_fields['from_date_accounting']) && !empty($request_fields['from_date_accounting'])) {
                     $from_date_accounting = $request_fields['from_date_accounting'];
-                    $sql_search .= ' AND accounting_date >= "' . date('Y-m-d', strtotime($from_date_accounting)) . '"';
+                    $sql_search .= ' AND in_inv.accounting_date >= "' . date('Y-m-d', strtotime($from_date_accounting)) . '"';
                 }
 
                 // Ngày hạch toán đến ngày
                 if (isset($request_fields['to_date_accounting']) && !empty($request_fields['to_date_accounting'])) {
                     $to_date_accounting = $request_fields['to_date_accounting'];
-                    $sql_search .= ' AND accounting_date <= "' . date('Y-m-d', strtotime($to_date_accounting)) . '"';
+                    $sql_search .= ' AND in_inv.accounting_date <= "' . date('Y-m-d', strtotime($to_date_accounting)) . '"';
                 }
 
                 // Số vé thiếu sl
                 if ($missing_qty == 1) {
-                    $sql_search .= ' AND (qty IS NULL OR qty = "" OR qty = 0)';
+                    $sql_search .= ' AND (in_inv.qty IS NULL OR in_inv.qty = "" OR in_inv.qty = 0)';
                 } else if ($missing_bk == 2) {
-                    $sql_search .= ' AND qty > 0';
+                    $sql_search .= ' AND in_inv.qty > 0';
                 }
 
                 // Số vé bị xuất dư sl
                 if ($over_qty == 1) {
                     $sql_search .= ' AND (qty - (
-                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                        WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon ct
+                        WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                     )) < 0';
                 }
 
                 // Tình trạng còn tồn
                 if ($stock_stt == 1) {
                     $sql_search .= ' AND (qty - (
-                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                        WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon ct
+                        WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                     )) > 0';
                 }
                 // Tình trạng hết tồn
                 else if ($stock_stt == 2) {
                     $sql_search .= ' AND (qty - (
-                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon 
-                        WHERE ticket_number_id = ec_input_invoices.id AND deleted = 0
+                        SELECT IFNULL(SUM(soluong), 0) FROM ec_chitiethoadon ct
+                        WHERE ct.ticket_number_id = in_inv.id AND ct.deleted = 0
                     )) = 0';
                 }
             }
@@ -584,55 +595,60 @@ class Viewinputinvoice extends SugarView {
             // Nhà cung cấp
             if (isset($request_fields['supplier']) && !empty($request_fields['supplier'])) {
                 if ($request_fields['supplier'] == 'EMPTY') {
-                    $sql_search .= ' AND (supplier IS NULL OR supplier = "")';
+                    $sql_search .= ' AND (in_inv.supplier IS NULL OR in_inv.supplier = "")';
                 } else {
-                    $sql_search .= ' AND supplier = "' . $request_fields['supplier'] . '"';
+                    $sql_search .= ' AND in_inv.supplier = "' . $request_fields['supplier'] . '"';
                 }
             }
 
             // Đơn vị công ty
             if (isset($request_fields['company_unit']) && !empty($request_fields['company_unit'])) {
                 if ($request_fields['company_unit'] == 'EMPTY') {
-                    $sql_search .= ' AND (company_unit IS NULL OR company_unit = "")';
+                    $sql_search .= ' AND (in_inv.company_unit IS NULL OR in_inv.company_unit = "")';
                 } else {
-                    $sql_search .= ' AND company_unit = "' . $request_fields['company_unit'] . '"';
+                    $sql_search .= ' AND in_inv.company_unit = "' . $request_fields['company_unit'] . '"';
                 }
             }
 
             // Số hoá đơn
             if (isset($request_fields['invoice_number']) && !empty($request_fields['invoice_number'])) {
-                $sql_search .= ' AND invoice_number = "' . $request_fields['invoice_number'] . '"';
+                $sql_search .= ' AND in_inv.invoice_number = "' . $request_fields['invoice_number'] . '"';
             }
 
             // Ký hiệu hoá đơn
             if (isset($request_fields['invoice_serial']) && !empty($request_fields['invoice_serial'])) {
-                $sql_search .= ' AND invoice_serial = "' . $request_fields['invoice_serial'] . '"';
+                $sql_search .= ' AND in_inv.invoice_serial = "' . $request_fields['invoice_serial'] . '"';
             }
 
             // Số vé
             if (isset($request_fields['ticket_code']) && !empty($request_fields['ticket_code'])) {
-                $sql_search .= ' AND name = "' . $request_fields['ticket_code'] . '"';
+                $sql_search .= ' AND in_inv.name = "' . $request_fields['ticket_code'] . '"';
             }
 
             // Code vé
             if (isset($request_fields['ticket_c']) && !empty($request_fields['ticket_c'])) {
-                $sql_search .= ' AND ticket_code = "' . $request_fields['ticket_c'] . '"';
+                $sql_search .= ' AND in_inv.ticket_code = "' . $request_fields['ticket_c'] . '"';
+            }
+
+            // Booking
+            if (isset($request_fields['booking_search']) && !empty($request_fields['booking_search'])) {
+                $sql_search .= ' AND bk.name = "' . trim($request_fields['booking_search']) . '"';
             }
 
             // Tình trạng
             if (isset($request_fields['preview'])) {
-                $sql_search .= ' AND status = "0"';
-            } else $sql_search .= ' AND status = "1"';
+                $sql_search .= ' AND in_inv.status = "0"';
+            } else $sql_search .= ' AND in_inv.status = "1"';
 
             // Số vé không có booking
             if ($missing_bk == 1) {
-                $sql_search .= ' AND (booking_id IS NULL OR booking_id = "")';
+                $sql_search .= ' AND (in_inv.booking_id IS NULL OR in_inv.booking_id = "")';
             } else if ($missing_bk == 2) {
-                $sql_search .= ' AND (booking_id IS NOT NULL OR booking_id <> "")';
+                $sql_search .= ' AND (in_inv.booking_id IS NOT NULL OR in_inv.booking_id <> "")';
             }
         }
         else {
-            $sql_search .= ' AND status = "1"';
+            $sql_search .= ' AND in_inv.status = "1"';
         }
 
         return $sql_search;
@@ -668,8 +684,13 @@ class Viewinputinvoice extends SugarView {
                     // $objReader = new Spreadsheet();
                     // $objReader = IOFactory::load("cache/upload/inputinvoices/$fileName");
                     // $sheet = $objReader->getActiveSheet();
+                    try {
+                        $spreadsheet = IOFactory::load("cache/upload/inputinvoices/$fileName");
+                    }
+                    catch(Throwable $th) {
+                        echo "<p class='text-danger'>{$th->getMessage()} on line {$th->getLine()} at {$th->getFile()}</p>";
+                    }
 
-                    $spreadsheet = IOFactory::load("cache/upload/inputinvoices/$fileName");
                     $k = 0;
                     $array_data = [];
                     foreach ($spreadsheet->getAllSheets() as $sheetIndex => $sheet) {
@@ -1352,12 +1373,10 @@ class Viewinputinvoice extends SugarView {
 
         $filename = str_replace("%20", "", $filename);
         $filename = str_replace(" ", "", $filename);
-        $upload_file = date('YmdHi') . '_HDDauVao_' . $filename;
+        $upload_file = date('YmdHi') . '_HDDauVao_' . $filename; // 202307180331_HDDauVao_479684.xls
 
-        if (move_uploaded_file($_FILES[$file]["tmp_name"], $folder . $upload_file)) {
-            return $upload_file;
-        } else {
-            return $upload_file; // 202307180331_HDDauVao_479684.xls
-        }
+        $status = move_uploaded_file($_FILES[$file]["tmp_name"], $folder . $upload_file);
+        var_dump($status);
+        return $upload_file;
     }
 }

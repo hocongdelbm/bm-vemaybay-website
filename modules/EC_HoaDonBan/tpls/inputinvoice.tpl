@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.4">
+<link rel="stylesheet" type="text/css" href="modules/EC_HoaDonBan/css/view.inputinvoice.css?v=1.5">
 
 <div class="box-section">
     <div id="import_invoice">
@@ -57,11 +57,11 @@
                                     </td>
                                     <td width="12%"><span class="label">Số vé:</span></td>
                                     <td width="21%">
-                                        <input class="box-input" type="text" name="ticket_code" value="{$TICKET_CODE}">
+                                        <input class="box-input" type="text" name="ticket_code" value="{$TICKET_CODE}" />
                                     </td>
                                     <td width="12%"><span class="label">Số hoá đơn:</span></td>
                                     <td width="21%">
-                                        <input type="text" class="box-input" name="invoice_number" id="invoice_number" value="{$INVOICE_NUMBER}">
+                                        <input type="text" class="box-input" name="invoice_number" id="invoice_number" value="{$INVOICE_NUMBER}" />
                                     </td>
                                 </tr>
                                 <tr>
@@ -104,10 +104,11 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td width="12%"><span class="label">Nhà cung cấp:</span></td>
+                                    <td width="12%"><span class="label">Booking</span></td>
                                     <td width="21%">
-                                        <select class="box-select" name="supplier">{$SUPPLIER_OPTION}</select>
+                                        <input type="text" class="box-input" name="booking_search" id="booking_search" value="{$BOOKING_SEARCH}" />
                                     </td>
+
                                     <td width="12%"><span class="label">Thiếu booking:</span></td>
                                     <td width="21%">
                                         <select class="box-select" name="missing_bk">{$MISSING_BK}</select>
@@ -126,11 +127,19 @@
                                     <td width="21%">
                                         <select class="box-select" name="over_qty">{$OVER_QTY}</select>
                                     </td>  
+                                    <td width="12%"><span class="label">Nhà cung cấp:</span></td>
+                                    <td width="21%">
+                                        <select class="box-select" name="supplier">{$SUPPLIER_OPTION}</select>
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td width="12%"><span class="label">Đơn vị:</span></td>
                                     <td width="21%">
                                         <select class="box-select" name="company_unit">{$COMPANY_UNIT_OPTION}</select>
-                                    </td>    
+                                    </td>
+                                    <td colspan="6"></td> 
                                 </tr>
+
                                 {if !$PREVIEW}
                                 <tr>
                                     <td class="text-center">
@@ -509,4 +518,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=1.9"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=2.0"></script>

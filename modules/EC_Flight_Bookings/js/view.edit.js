@@ -216,7 +216,7 @@ $(document).ready(function () {
 	}
 
 	// Check flight type
-	if($('#flight_type').val() == 1){
+	if ($('#flight_type').val() == 1) {
 		$(".date_ticket_issue_inbound").addClass('d-none');
 		$(".airline-wrap__inbound").addClass('d-none');
 	} else {
@@ -326,7 +326,7 @@ $(document).ready(function () {
 		let ln = $('input[name="psg_id[]"]').length;
 		let is_new = $(this).attr('data-is-new');
 
-		if(is_new === '1') $('#psg_last_row').before(insertPassengerLine2(ln));
+		if (is_new === '1') $('#psg_last_row').before(insertPassengerLine2(ln));
 		else $('#psg_last_row').before(insertPassengerLine(ln));
 
 		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
@@ -341,6 +341,11 @@ $(document).ready(function () {
 			step: 1,
 			weekNumbers: false
 		});
+
+		// Initialize Select2 for the new row
+		if (is_new === '1') {
+			initializeSelect2ForRow(ln);
+		}
 
 		ln++;
 		$('#psg_row_count').val(ln);
@@ -432,7 +437,7 @@ $(document).ready(function () {
 	$("#discount_amount").on('input', function (e) {
 		e.preventDefault();
 	});
-	$('#discount_amount').on('contextmenu', function(e) {
+	$('#discount_amount').on('contextmenu', function (e) {
 		e.preventDefault();
 	});
 
@@ -742,32 +747,24 @@ function insertPassengerLine2(ln) {
 	let supplier_list = $('#supplier_list').val();
 	let passenger_type_list = $('#passenger_type_list').val();
 	let passenger_salutation_list = $('#passenger_salutation_list').val();
-	let aircode_out = $('#airline').val().toLowerCase();
-	let aircode_in = $('#airline_inbound').val().toLowerCase();
 
-	switch (aircode_out) {
-		case 'vj': aircode_out = 'vja'; break;
-		case 'vn': aircode_out = 'vna'; break;
-		case 'bl': aircode_out = 'vnp'; break;
-		case 'qh': aircode_out = 'bba'; break;
-		case 'vu': aircode_out = 'vta'; break;
+	// Get baggage options from hidden fields
+	let baggageOptionsOutbound = [];
+	let baggageOptionsInbound = [];
+
+	try {
+		let outboundJson = $('#baggage_options_outbound').val();
+		let inboundJson = $('#baggage_options_inbound').val();
+
+		if (outboundJson) {
+			baggageOptionsOutbound = JSON.parse(outboundJson);
+		}
+		if (inboundJson) {
+			baggageOptionsInbound = JSON.parse(inboundJson);
+		}
+	} catch (e) {
+		console.error('Error parsing baggage options:', e);
 	}
-	switch (aircode_in) {
-		case 'vj': aircode_in = 'vja'; break;
-		case 'vn': aircode_in = 'vna'; break;
-		case 'bl': aircode_in = 'vnp'; break;
-		case 'qh': aircode_in = 'bba'; break;
-		case 'vu': aircode_in = 'vta'; break;
-	}
-
-	let psg_luggage_price_out = $('#' + aircode_out + '_luggage_price_list').val();
-	let psg_luggage_price_in = $('#' + aircode_in + '_luggage_price_list').val();
-
-	if ($.trim(psg_luggage_price_out) == '')
-		psg_luggage_price_out = '<option value="0">-- Không --</option>';
-	if ($.trim(psg_luggage_price_in) == '')
-		psg_luggage_price_in = '<option value="0">-- Không --</option>';
-
 
 	let html = '';
 	/**********  Info line   **********/
@@ -811,7 +808,7 @@ function insertPassengerLine2(ln) {
 	</td>`;
 
 	// PNR lượt đi
-	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" class="text-center" maxlength="30" /></td>`;
+	html += `<td data-label="PNR lượt đi"><input type="text" name="psg_pnr_outbound[]" id="psg_pnr_outbound${ln}" class="text-center" maxlength="30" /></td>`;
 	// PNR lượt về
 	html += `<td data-label="PNR lượt về"><input type="text" name="psg_pnr_inbound[]" id="psg_pnr_inbound${ln}" class="text-center" maxlength="30" /></td>`;
 	// Số vé lượt đi
@@ -834,16 +831,38 @@ function insertPassengerLine2(ln) {
 	rounds.forEach(roundName => {
 		const suffix = roundName === "outbound" ? "" : "_inbound";
 		const direction = roundName === "outbound" ? 0 : 1;
+
+		// Select appropriate baggage options
+		const baggageOptions = roundName === "outbound" ? baggageOptionsOutbound : baggageOptionsInbound;
+
 		// Input names
-		const inputNameBagtext   = `psg_luggage_purchase_text${suffix}`;
-		const inputNameBagPrice  = `psg_luggage_purchase${suffix}`;
-		const inputNameBagTax    = `psg_vat_luggage_purchase${suffix}`;
-		const inputNameSupplier  = `psg_luggage_supplier${suffix}`;
+		const inputNameBagtext = `psg_luggage_purchase_text${suffix}`;
+		const inputNameBagPrice = `psg_luggage_purchase${suffix}`;
+		const inputNameBagTax = `psg_vat_luggage_purchase${suffix}`;
+		const inputNameSupplier = `psg_luggage_supplier${suffix}`;
 		const inputNameTicketNum = `psg_eluggage_${roundName}`;
 		const inputNameSellingPrice = `psg_luggage_price${suffix}`;
 		const inputNameAvaiBagIndex = `psg_luggage_index_${roundName}`;
 		// Labels
 		const suffixtext = roundName === "outbound" ? "lượt đi" : "lượt về";
+
+		// Build baggage options HTML
+		let baggageOptionsHtml = '<option value="">-- Chọn hành lý --</option>';
+		if (baggageOptions && Array.isArray(baggageOptions)) {
+			baggageOptions.forEach(function (baggage) {
+				let description = baggage.description || '';
+				let cost = baggage.cost || 0;
+				let value = baggage.value || 0;
+
+				if (description) {
+					let displayText = description.replace(/^Thêm\s+/, '').replace(/\s*\([^)]*\)\s*$/, '');
+
+					let saveValue = description.replace(/^Thêm\s+/, '').replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+					baggageOptionsHtml += `<option value="${escapeHtml(saveValue)}" data-text="${escapeHtml(displayText)}" data-cost="${cost}" data-value="${value}">${escapeHtml(displayText)}</option>`;
+				}
+			});
+		}
 
 		html += `<tr id="psg_baggage_line_${roundName}_${ln}">
 			<td data-label="${roundName} baggage information" class="row_psg_price" colspan="10">
@@ -858,12 +877,8 @@ function insertPassengerLine2(ln) {
 				</div>
 				<div class="psg_price-wrap d-flex gap-3 align-items-center">
 					<div class="col_psg_price col-psg-bag-text">
-						<span class="text-label">Hành lý mua thêm ${suffixtext}: </span>
-						<input type="text" name="${inputNameBagtext}[]"
-							id="${inputNameBagtext}${ln}"
-							class="psg_luggage_purchase_input"
-							maxlength="100" size="100"
-						/>
+						<span class="text-label">Hành lý mua thêm ${suffixtext}</span>
+						<select name="${inputNameBagtext}[]" id="${inputNameBagtext}${ln}" class="psg_luggage_purchase_select" style="width: 100%; max-width: 400px;" onchange="updateBaggagePriceFromSelect(${ln}, '${roundName}')">${baggageOptionsHtml}</select>
 					</div>
 					<div class="col_psg_price col-psg-bag-selling-price">
 						<span class="text-label">Giá bán (VAT): </span>
@@ -875,42 +890,46 @@ function insertPassengerLine2(ln) {
 					</div>
 					<div class="col_psg_price col-psg-bag-price">
 						<span class="text-label">Giá mua (VAT): </span>
-						<input type="text" name="${inputNameBagPrice}[]"
-							id="${inputNameBagPrice}${ln}"
-							class="allow-number-only psg_luggage_purchase_input"
-							maxlength="12"
-							onkeyup="calculateBagPurchasePrice(${ln}, ${direction});"
-							onpaste="calculateBagPurchasePrice(${ln}, ${direction});"
-						/>
+						<input type="text" name="${inputNameBagPrice}[]" id="${inputNameBagPrice}${ln}" value="0" class="allow-number-only psg_luggage_purchase_input" maxlength="12" onkeyup="calculateBagPurchasePrice(${ln}, ${direction}); updateTotalBaggageFee();" onpaste="calculateBagPurchasePrice(${ln}, ${direction}); updateTotalBaggageFee();" />
 					</div>
 					<div class="col_psg_price col-psg-bag-tax">
 						<span class="text-label">VAT giá mua: </span>
-						<input type="text" name="${inputNameBagTax}[]"
-							id="${inputNameBagTax}${ln}"
-							class="allow-number-only psg_luggage_purchase_input"
-							onkeyup="calculateBagPurchasePrice(${ln}, ${direction});"
-						/>
+						<input type="text" name="${inputNameBagTax}[]" id="${inputNameBagTax}${ln}" value="0" class="allow-number-only psg_luggage_purchase_input" maxlength="12" onkeyup="calculateBagPurchasePrice(${ln}, ${direction});" />
 					</div>
 					<div class="col_psg_price col-psg-bag-supplier">
 						<span class="text-label">NCC: </span>
-						<select name="${inputNameSupplier}[]" id="${inputNameSupplier}${ln}" class="psg_luggage_purchase_select">
-							<option value=""></option>
-							${supplier_list}
-						</select>
+						<select name="${inputNameSupplier}[]" id="${inputNameSupplier}${ln}" class="psg_luggage_purchase_select"><option value=""></option>${supplier_list}</select>
 					</div>
 					<div class="col_psg_price col-psg-bag-ticketnum">
 						<span class="text-label">Số vé HL ${suffixtext}: </span>
-						<input type="text" name="${inputNameTicketNum}[]"
-							id="${inputNameTicketNum}${ln}"
-							class="psg_luggage_purchase_input"
-							maxlength="25" size="25"
-						/>
+						<input type="text" name="${inputNameTicketNum}[]" id="${inputNameTicketNum}${ln}" class="psg_luggage_purchase_input" maxlength="25" size="25" />
 					</div>
 				</div>
 			</td>
 		</tr>`;
 	});
 	return html;
+}
+
+function escapeHtml(text) {
+	var map = {
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;',
+		"'": '&#039;'
+	};
+	return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+}
+
+function initializeSelect2ForRow(ln) {
+	$('#psg_luggage_purchase_text' + ln).select2({
+		width: '100%'
+	});
+
+	$('#psg_luggage_purchase_text_inbound' + ln).select2({
+		width: '100%'
+	});
 }
 
 function insertPassengerLine(ln) {
@@ -1144,12 +1163,13 @@ function markPassengerRowDeleted2(ln) {
 
 	var luggage_fee = unformatNumber($('#luggage_fee').val());
 	var luggage_price_outbound = unformatNumber($(`#psg_luggage_purchase${ln}`).val());
-	var luggage_price_inbound  = unformatNumber($(`#psg_luggage_purchase_inbound${ln}`).val());
+	var luggage_price_inbound = unformatNumber($(`#psg_luggage_purchase_inbound${ln}`).val());
 	luggage_fee -= (luggage_price_outbound + luggage_price_inbound);
 	$('#luggage_fee').val(luggage_fee);
 
 	$('#lbl_psg_row_count').text(parseInt($('#lbl_psg_row_count').text()) - 1);
 
+	updateRowCount();
 	calculateLuggagePrice();
 }
 
@@ -1230,8 +1250,8 @@ function calculateLineTotal(ln, is_cal_admin = 0, is_cal_tax = 0) {
 	//	total_price = price + tax_fee + service_fee + admin_fee + airport_fee;
 	//	total_bought_price = price + tax_fee + admin_fee + airport_fee;
 	// } else {
-		total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
-		total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
+	total_bought_price = qty * (price + tax_fee + admin_fee + airport_fee);
+	total_price = qty * (price + tax_fee + service_fee + admin_fee + airport_fee);
 	// }
 
 	// Chiết khấu
@@ -1529,7 +1549,7 @@ function checkLineItems() {
 				$('#psg_full_name' + i).select();
 				return false;
 			}
-			if(psg_arr[i].value == '0' && !isValidDateBirthDay($('#psg_birthday' + i).val())){
+			if (psg_arr[i].value == '0' && !isValidDateBirthDay($('#psg_birthday' + i).val())) {
 				let text_warning = 'Ngày sinh không hợp lệ!';
 				showToastWarning(text_warning);
 				$('#psg_birthday' + i).focus();
@@ -1608,35 +1628,94 @@ function checkLineItems() {
 // Validate birthday
 function isValidDateBirthDay(date) {
 
-	if(date.length == 0){
+	if (date.length == 0) {
 		return true;
 	}
-	
-    const dateParts = date.split('-');
 
-    const [day, month, year] = dateParts;
+	const dateParts = date.split('-');
 
-    const currentYear = new Date().getFullYear();
-    if (year < 1900 || year > currentYear) {
-        return false;
-    }
+	const [day, month, year] = dateParts;
 
-    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+	const currentYear = new Date().getFullYear();
+	if (year < 1900 || year > currentYear) {
+		return false;
+	}
 
-    if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
-        daysInMonth[1] = 29; // Tháng 2 có 29 ngày trong năm nhuận
-    }
+	const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-    if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]) {
-        return false;
-    }
+	if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
+		daysInMonth[1] = 29; // Tháng 2 có 29 ngày trong năm nhuận
+	}
 
-    const today = new Date();
-    const birthDate = new Date(`${year}-${month}-${day}`);
+	if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]) {
+		return false;
+	}
 
-    if (birthDate > today) {
-        return false; // Nếu ngày sinh sau ngày hôm nay thì không hợp lệ
-    }
+	const today = new Date();
+	const birthDate = new Date(`${year}-${month}-${day}`);
 
-    return true;
+	if (birthDate > today) {
+		return false; // Nếu ngày sinh sau ngày hôm nay thì không hợp lệ
+	}
+
+	return true;
+}
+
+function updateBaggagePriceFromSelect(rowIndex, direction) {
+	var selectId = direction === 'outbound'
+		? 'psg_luggage_purchase_text' + rowIndex
+		: 'psg_luggage_purchase_text_inbound' + rowIndex;
+
+	var sellingPriceInputId = direction === 'outbound'
+		? 'psg_luggage_price' + rowIndex
+		: 'psg_luggage_price_inbound' + rowIndex;
+
+	var selectedOption = $('#' + selectId + ' option:selected');
+	var cost = selectedOption.data('cost') || 0;
+
+	$('#' + sellingPriceInputId).val(formatNumber(cost));
+	updateTotalBaggageFee();
+}
+
+function updateTotalBaggageFee() {
+	var totalBaggageFee = 0;
+
+	var rowCount = parseInt($('#psg_row_count').val()) || 0;
+
+	for (var i = 0; i < rowCount; i++) {
+		var isDeleted = $('#psg_deleted' + i).val();
+		if (isDeleted == '1') {
+			continue; // Skip deleted rows
+		}
+
+		var outboundPrice = $('#psg_luggage_price' + i).val() || '0';
+		outboundPrice = parseFloat(outboundPrice.replace(/,/g, '')) || 0;
+
+		var inboundPrice = $('#psg_luggage_price_inbound' + i).val() || '0';
+		inboundPrice = parseFloat(inboundPrice.replace(/,/g, '')) || 0;
+
+		totalBaggageFee += outboundPrice + inboundPrice;
+	}
+
+	$('#luggage_fee').val(formatNumber(totalBaggageFee));
+	calculateTotal();
+}
+
+function formatNumber(num) {
+	if (!num) return '';
+	return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function updateRowCount() {
+	var rowCount = parseInt($('#psg_row_count').val()) || 0;
+	var activeCount = 0;
+
+	for (var i = 0; i < rowCount; i++) {
+		var isDeleted = $('#psg_deleted' + i).val();
+		if (isDeleted != '1') {
+			activeCount++;
+		}
+	}
+
+	$('#lbl_psg_row_count').text(activeCount);
 }

@@ -16,7 +16,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{	
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
-
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
 
 		// Create and update contact
@@ -59,8 +58,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.4.9"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.4"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.5"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.5"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
 
@@ -103,7 +102,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private function displayCSS() {
 		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.5">
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.6">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
@@ -1754,25 +1753,25 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 					// Hành lý mua thêm
 					$suffix = $roundName == "outbound" ? "" : "_inbound";
-					if ($row["luggage_purchase$suffix"] && $row["luggage_purchase$suffix"] > 0) {
+					if ($row["luggage_price$suffix"] && $row["luggage_price$suffix"] > 0) {
 						$bagText = $row["luggage_purchase_text$suffix"] ?? '';
 						// $bagCost = $row["luggage_purchase{$suffix}_no_vat"] ?? 0;
 						// $bagTax = $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
 						$bagPrice = $row["luggage_purchase$suffix"] ?? 0;
 						$bagTicketNum = $row["eluggage_$roundName"] ?? '';
-						$bagSellingPrice = $row["luggage_price_$roundName"] ?? 0;
-						$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal shadow-sm ms-1" style="font-size:13px">Số vé HL: <b>' . $bagTicketNum . '</b></span>' : '';
+						$bagSellingPrice = $row["luggage_price$suffix"] ?? 0;
+						$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal ms-1">Số vé HL: <b>' . $bagTicketNum . '</b></span>' : '';
 
-						$rowBagHTML .= '<p class="fst-italic">
+						$rowBagHTML .= '<p class="fst-italic info-purchage-baggage">
 							' . $roundNameHTML . '
 							' . $bagText . '
-							<span class="badge bg-light text-dark fw-normal shadow-sm ms-1" style="font-size:13px">
+							<span class="badge bg-light text-dark fw-normal ms-1">
 								Giá bán (VAT): <b>' . format_number($bagSellingPrice) . ' VND</b>
 							</span>
-							<span class="badge bg-light text-dark fw-normal shadow-sm ms-1" style="font-size:13px">
+							<span class="badge bg-light text-dark fw-normal ms-1">
 								Giá mua (VAT): <b>' . format_number($bagPrice) . ' VND</b>
 							</span>
-							<span class="badge bg-light text-dark fw-normal shadow-sm ms-1" style="font-size:13px">
+							<span class="badge bg-light text-dark fw-normal ms-1">
 								Nhà cung cấp: <b>' . $row["supplier$suffix"] . '</b>
 							</span>
 							' . $bagTicketNumHTML . '
