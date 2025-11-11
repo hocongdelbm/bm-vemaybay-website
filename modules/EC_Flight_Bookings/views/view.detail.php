@@ -44,10 +44,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$this->createModal(); // Modal for confirm action
 
-		// if($current_user->user_name == 'hungnh') {
-		// 	pr(calculateBKAmt($this->bean->id));
-		// 	pr(calculateBKTotalAmt($this->bean->id));
-		// }
+		if($current_user->user_name == 'hungnh') {
+			pr(calculateBKAmt($this->bean->id));
+		}
 
 		parent::display();
 		$this->displayJS();

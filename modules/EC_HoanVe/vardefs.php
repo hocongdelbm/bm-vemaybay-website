@@ -8,7 +8,7 @@ $dictionary['EC_HoanVe'] = array(
     'fields' =>  array(
         'ngaychungtu' =>
         array(
-            'required' => '1',
+            'required' => true,
             'name' => 'ngaychungtu',
             'vname' => 'LBL_NGAYCHUNGTU',
             'type' => 'date',
@@ -21,6 +21,21 @@ $dictionary['EC_HoanVe'] = array(
             'audited' => 1,
             'reportable' => 0,
             'display_default' => 'now',
+        ),
+        'ticket_validity' =>
+        array(
+            'required' => true,
+            'name' => 'ticket_validity',
+            'vname' => 'LBL_TICKET_VALIDITY',
+            'type' => 'date',
+            'massupdate' => 0,
+            'comments' => 'Hạn bảo lưu vé',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+            'audited' => 1,
+            'reportable' => 0,
         ),
         'ngayhachtoan' =>
         array(

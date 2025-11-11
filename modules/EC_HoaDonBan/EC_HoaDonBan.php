@@ -345,18 +345,18 @@ class EC_HoaDonBan extends Basic {
 						$serviceFee = 0;
 						if($tk['ticket_type'] == 'flight') {
 							$avgFlightServiceFee = $totalFlightServiceFee / $totalQtyTicket[$tk['ticket_type']];
-							$serviceFee = $code == 'VMB_QT' ? 0 : $avgFlightServiceFee * $tk['qty'];
+							$serviceFee = $code == 'VMB_QT' ? 0 : $avgFlightServiceFee;
 						}
 						elseif($tk['ticket_type'] == 'ticketing_fee') {
 							$serviceFee = $totalFlightServiceFee;
 						}
 						elseif($tk['ticket_type'] == 'baggage' && $times < 1) {
 							$avgBaggageServiceFee = $totalBaggageServiceFee / $totalQtyTicket[$tk['ticket_type']];
-							$serviceFee = $avgBaggageServiceFee * $tk['qty'];
+							$serviceFee = $avgBaggageServiceFee;
 						}
 						else {
 							$avgServiceFee = $totalServiceFee / $totalQtyAllTicket;
-							$serviceFee = $avgServiceFee * $tk['qty'];
+							$serviceFee = $avgServiceFee;
 						}
 
 						$taxRate = $tk['vat_per'];
@@ -375,11 +375,11 @@ class EC_HoaDonBan extends Basic {
 						$outInvDetail->phisanbay 	= 0;
 						$outInvDetail->phikhac 		= 0;
 						$outInvDetail->phidv 		= $serviceFee;
-						$outInvDetail->giamua 		= $tk['total'];
+						$outInvDetail->giamua 		= $tk['total'] / $tk['qty'];
 						$outInvDetail->thuesuat 	= $taxRate;
-						$outInvDetail->dongia 		= ((($outInvDetail->giamua + $serviceFee) / $tk['qty']) - $outInvDetail->phithuho) / $divide;
+						$outInvDetail->dongia 		= ($outInvDetail->giamua + $serviceFee - $outInvDetail->phithuho) / $divide;
 						$outInvDetail->tienthue 	= $outInvDetail->dongia * $taxRate * $tk['qty'];
-						$outInvDetail->thanhtien 	= ($outInvDetail->dongia + $outInvDetail->tienthue + $outInvDetail->phithuho) * $outInvDetail->soluong;
+						$outInvDetail->thanhtien 	= ($outInvDetail->dongia + $outInvDetail->phithuho) * $outInvDetail->soluong + $outInvDetail->tienthue;
 						$outInvDetail->parent_id 	= $parentId;
 						$outInvDetail->parent_type 	= 'EC_HoaDonBan';
 						$outInvDetail->order_by_no 	= $i;

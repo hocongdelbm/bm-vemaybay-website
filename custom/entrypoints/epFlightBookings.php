@@ -2146,20 +2146,16 @@ if (isset($_POST['for']) && $_POST['for'] == 'get3TicketBooking') {
 				, GROUP_CONCAT(IF(i.direction = 0, IF(i.departure_date IS NULL, NULL, DATE_FORMAT(i.departure_date, "%d-%m-%Y %H:%i:%s")), NULL) SEPARATOR "|") AS departure_date
 				, GROUP_CONCAT(IF(i.direction = 1, IF(i.departure_date IS NULL, NULL, DATE_FORMAT(i.departure_date, "%d-%m-%Y %H:%i:%s")), NULL) SEPARATOR "|") AS arrival_date
 				, IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0) AS total_ticket
-				, IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id)), 0) AS bk_sales 
-				, (IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id)), 0) / IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0)) AS average_fee 
+				, IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id AND (add_type IS NULL OR add_type = ""))), 0) AS bk_sales 
+				, (IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id AND (add_type IS NULL OR add_type = ""))), 0) / IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0)) AS average_fee 
 				, (SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.deleted = 0 AND i.booking_id = bk.id) AS min_dep_time
 				, (SELECT GROUP_CONCAT(DISTINCT service_fee) FROM ec_booking_details WHERE deleted = 0 AND booking_id = bk.id) AS service_fee
 				, u.user_name
 			FROM ec_flight_bookings bk
-			LEFT JOIN ec_booking_itineraries i 
-			ON i.booking_id = bk.id
-			LEFT JOIN users u ON u.id = bk.assigned_user_id
+			LEFT JOIN ec_booking_itineraries i ON i.booking_id = bk.id
+			LEFT JOIN users u ON u.id = bk.assigned_user_id AND u.title = "Bot"
 			WHERE bk.deleted = 0 AND i.deleted = 0 AND bk.total_qty <= 3
-			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= 
-				"' . date('Y-m-d', strtotime($_POST['fdate'])) . '"
-			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= 
-				"' . date('Y-m-d', strtotime($_POST['tdate'])) . ' 23:59:59"
+			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN  "' . date('Y-m-d', strtotime($_POST['fdate'])) . '" AND "' . date('Y-m-d', strtotime($_POST['tdate'])) . ' 23:59:59"
 			AND bk.created_by = "' . $_POST['user'] . '"
 			GROUP BY bk.id
 			HAVING TIMESTAMPDIFF(MINUTE, bk_date_entered, min_dep_time) > 1440
@@ -2770,6 +2766,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 					<th width="10%">Gọi đến</th>
 					<th width="10%" class="hide-mobile">Thời gian</th>
 					<th width="10%" class="hide-mobile">Thời lượng</th>
+					<th class="hide-mobile">Nguồn</th>
 					<th class="hide-mobile">Booking</th>
 					<th class="hide-mobile">Ghi chú</th>
 				</thead>
@@ -2791,8 +2788,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 				c.booking_id,
 				c.description
 			FROM calls c
-			LEFT JOIN users u 
-			ON c.call_sources = u.last_name
+			LEFT JOIN users u ON c.call_sources = u.last_name
 			WHERE
 			c.deleted = 0
 			AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" AND "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
@@ -2819,6 +2815,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 					<td class="text-center">' . $row['call_to'] . '</td>
 					<td class="text-center">' . $row['date_start'] . '</td>
 					<td class="text-center">' . global_secondsToTimeFormat($row['call_duration']) . '</td>
+					<td class="text-center hide-mobile">
+						' . $row['call_sources'] . '
+					</td>
 					<td class="text-center hide-mobile">
 						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $booking_name . '</a>
 					</td>

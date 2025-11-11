@@ -23,7 +23,6 @@ $listViewDefs[$module_name] = array(
     'TINHTRANG' =>
     array(
         'type' => 'enum',
-        'studio' => 'visible',
         'label' => 'LBL_TINHTRANG',
         'width' => '8%',
         'default' => true,
@@ -31,7 +30,6 @@ $listViewDefs[$module_name] = array(
     'BOOKING' =>
     array(
         'type' => 'relate',
-        'studio' => 'visible',
         'label' => 'LBL_BOOKING',
         'width' => '8%',
         'default' => true,
@@ -41,6 +39,13 @@ $listViewDefs[$module_name] = array(
         'type' => 'text',
         'label' => 'LBL_DESCRIPTION',
         'width' => '25%',
+        'default' => true,
+    ),
+    'TICKET_VALIDITY' =>
+    array(
+        'type' => 'date',
+        'label' => 'LBL_TICKET_VALIDITY',
+        'width' => '8%',
         'default' => true,
     ),
     'TONGTIENHANG' =>

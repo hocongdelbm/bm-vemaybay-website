@@ -45,5 +45,6 @@ $mod_strings = array (
   'LBL_NGAYHACHTOAN' => 'Ngày ghi sổ',
   'LBL_THONGBAO' => 'Đã chi tiền',
   'LNK_RETURN_BK' => 'Booking Hoàn vé',
+  'LBL_TICKET_VALIDITY' => 'Hạn bảo lưu',
 );
 ?>

@@ -61,7 +61,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
                 array(
                     'name' => 'tinhtrang',
-                    'studio' => 'visible',
                     'label' => 'LBL_TINHTRANG',
                 ),
             ),
@@ -83,7 +82,10 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'studio' => 'visible',
                     'label' => 'LBL_ASSIGNED_TO_NAME',
                 ),
-                array(),
+                array(
+                    'name' => 'ticket_validity',
+                    'label' => 'LBL_TICKET_VALIDITY',
+                ),
             ),
         ),
         'lbl_lineitems_panel' =>
