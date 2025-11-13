@@ -346,8 +346,8 @@ class Viewsendconfirm extends SugarView {
 				"bagIndex" 		=> $row["luggage_index_outbound"] ?? $row["luggage_price"],
 				"bagPurchaseText" => $row["luggage_purchase_text"],
 			]);
-			$bagOutText = !empty($bagOut['purchase']) ? $bagOut['purchase'] : $bagOut['available'];
-			$tdBaggage = '<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">'. trim($bagOutText) .'</td>';
+			$bagOutDescription = $this->bean->generateCombinedPassengerBaggageInfo($bagOut['available'], $bagOut['purchase'], '', '');
+			$tdBaggage = '<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">'. trim($bagOutDescription) .'</td>';
 
 			// Baggage inbound
 			if($flight_type == '0') {
@@ -360,8 +360,8 @@ class Viewsendconfirm extends SugarView {
 					"bagIndex" 		=> $row["luggage_index_inbound"] ?? $row["luggage_price_inbound"],
 					"bagPurchaseText" => $row["luggage_purchase_text_inbound"],
 				]);
-				$bagInText = !empty($bagIn['purchase']) ? $bagIn['purchase'] : $bagIn['available'];
-				$tdBaggage .= '<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">'. trim($bagInText) .'</td>';
+				$bagInDescription = $this->bean->generateCombinedPassengerBaggageInfo($bagIn['available'], $bagIn['purchase'], '', '');
+				$tdBaggage .= '<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">'. trim($bagInDescription) .'</td>';
 			}
 
 			$html .= '<tr>

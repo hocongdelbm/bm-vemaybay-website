@@ -47,4 +47,34 @@ class Baggage {
         }
         return $str;
     }
+
+    /**
+     * Parse baggage description to array
+     * 
+     * @param string $str 1 kiện x 23kg, 23kg,...
+     * @return array [package, weight]
+     */
+    public static function parsePackage(string $str): array {
+        $str = strtolower($str);
+
+        // Extract package count
+        $packages = null;
+        if (preg_match('/(\d+)\s*packages?/', $str, $matches)) {
+            $packages = intval($matches[1]);
+        }
+        else if (preg_match('/(\d+)\s*kiện?/', $str, $matches)) {
+            $packages = intval($matches[1]);
+        }
+
+        // Extract weight
+        $weight = null;
+        if (preg_match('/(\d+)\s*kg/', $str, $matches)) {
+            $weight = intval($matches[1]);
+        }
+
+        return [
+            'package' => $packages,
+            'weight' => $weight
+        ];
+    }
 }

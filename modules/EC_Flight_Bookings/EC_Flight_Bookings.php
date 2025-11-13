@@ -1159,6 +1159,19 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	/**
+	 * Check is use new baggage
+	 * 
+	 * @param string $date_entered
+	 * @param string $created_by
+	 * @return bool
+	 */
+	public function isUseNewBaggage($date_entered, $created_by) {
+		$date_entered = str_replace("/", "-", trim($date_entered));
+		if(strtotime($date_entered) > strtotime('2025-10-01') && in_array($created_by, $this->list_website_new_baggage)) return true;
+		return false;
+	}
+
+	/**
 	 * Get baggage info by baggage data
 	 * 
 	 * @param array $bagData
@@ -1208,7 +1221,7 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	/**
-	 * Generate passenger baggage info
+	 * Generate passenger baggage info (Use in show detail booking)
 	 * 
 	 * @param array $passInfo Information of a specific passenger
 	 * @param int $orderNumber
@@ -1219,13 +1232,13 @@ class EC_Flight_Bookings extends Basic
 	public function generatePassengerBaggageInfo($passInfo, $orderNumber = 0, $returnType = 'HTML') {
 		$date_entered = $passInfo['date_entered'] ?? date('Y-m-d');
 		$created_by   = $passInfo['createdBy'] ?? '';
-		$bookingName  = $passInfo['bookingName'] ?? '';
+		// $bookingName  = $passInfo['bookingName'] ?? '';
 		$airlineCodeOutbound = $passInfo['airlineCodeOutbound'] ?? '';
 		$ticketClassOutbound = $passInfo['ticketClassOutbound'] ?? '';
 		$airlineCodeInbound = $passInfo['airlineCodeInbound'] ?? '';
 		$ticketClassInbound = $passInfo['ticketClassInbound'] ?? '';
 
-		if(strtotime($date_entered) > strtotime('2025-10-01') && (in_array($created_by, $this->list_website_new_baggage) || substr($bookingName, 0, 2) === 'BK')) {
+		if($this->isUseNewBaggage($date_entered, $created_by)) {
 			$rowBagHTML = '';
 			foreach (['outbound', 'inbound'] as $roundName) {
 				$roundNameHTML = $roundName == "outbound" ? '<b class="color-primary mr-1">Lượt đi:</b>' : '<b class="color-red mr-1">Lượt về:</b>';
@@ -1355,6 +1368,82 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	/**
+	 * Generate passenger baggage info (Use in sending email booking)
+	 * 
+	 * @param string $depAvaiBagText
+	 * @param string $depPurchaseBagText
+	 * @param string $retAvaiBagText
+	 * @param string $retPurchaseBagText
+	 * @param string $language vn, es
+	 * @return string
+	 */
+	public function generateCombinedPassengerBaggageInfo($depAvaiBagText, $depPurchaseBagText, $retAvaiBagText, $retPurchaseBagText, $language = 'vn') {
+		$isRoundtrip = false;
+		if((!empty($depAvaiBagText) || !empty($depPurchaseBagText)) && (!empty($retAvaiBagText) || !empty($retPurchaseBagText))) $isRoundtrip = true;
+
+		// Departure
+		$baggageDescriptionDep = '';
+		if(!empty($depAvaiBagText) && !empty($depPurchaseBagText)) {
+			$avaiBagDepParts = Baggage::parsePackage($depAvaiBagText); // Array
+			$purchasedBagDepParts = Baggage::parsePackage($depPurchaseBagText); // Array
+
+			// Conbine
+			if($avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight']) && stripos($row['luggage_index_outbound'] ?? '', 'T') === false) {
+				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagDepParts['weight'] . 'kg';
+			}
+			elseif(is_null($avaiBagDepParts['package']) && is_null($purchasedBagDepParts['package'])) {
+				$baggageDescriptionDep .= ($avaiBagDepParts['weight'] + $purchasedBagDepParts['weight']) . 'kg';
+			}
+			elseif(is_null($avaiBagDepParts['weight']) && is_null($purchasedBagDepParts['weight'])) {
+				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện');
+			}
+			else {
+				$baggageDescriptionDep .= "$depAvaiBagText + $depPurchaseBagText";
+			}
+		}
+		elseif(!empty($depAvaiBagText)) $baggageDescriptionDep .= $depAvaiBagText;
+		elseif(!empty($depPurchaseBagText)) $baggageDescriptionDep .= $depPurchaseBagText;
+		if(!empty($baggageDescriptionDep) && $isRoundtrip) $baggageDescriptionDep .= ($language == 'en' ? ' (Departure)' : ' (Lượt đi)');
+
+		// Return
+		$baggageDescriptionRet = '';
+		if(!empty($retAvaiBagText) && !empty($retPurchaseBagText)) {
+			$avaiBagRetParts = Baggage::parsePackage($retAvaiBagText); // Array
+			$purchasedBagRetParts = Baggage::parsePackage($retPurchaseBagText); // Array
+
+			// Conbine
+			if($avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight']) && stripos($row['luggage_index_inbound'] ?? '', 'T') === false) {
+				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagRetParts['weight'] . 'kg';
+			}
+			elseif(is_null($avaiBagRetParts['package']) && is_null($purchasedBagRetParts['package'])) {
+				$baggageDescriptionRet .= ($avaiBagRetParts['weight'] + $purchasedBagRetParts['weight']) . 'kg';
+			}
+			elseif(is_null($avaiBagRetParts['weight']) && is_null($purchasedBagRetParts['weight'])) {
+				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện');
+			}
+			else {
+				$baggageDescriptionRet = "$retAvaiBagText + $retPurchaseBagText";
+			}
+		}
+		elseif(!empty($retAvaiBagText)) $baggageDescriptionRet .= $retAvaiBagText;
+		elseif(!empty($retPurchaseBagText)) $baggageDescriptionRet .= $retPurchaseBagText;
+		if(!empty($baggageDescriptionRet) && $isRoundtrip) $baggageDescriptionRet .= ($language == 'en' ? ' (Return)' : ' (Lượt về)');
+
+
+		// Combine two way
+		if (!empty($baggageDescriptionDep) && !empty($baggageDescriptionRet)) {
+			if(stripos($baggageDescriptionDep, '+') !== false || stripos($baggageDescriptionRet, '+') !== false) {
+				return "{$baggageDescriptionDep}\n{$baggageDescriptionRet}";
+			}
+			else {
+				return "{$baggageDescriptionDep} - {$baggageDescriptionRet}";
+			}
+		}
+		else return trim("$baggageDescriptionDep $baggageDescriptionRet");
+	}
+	
+
+	/**
      * Get list ticket number in booking by times
      * 
      * @param string $bookingId
@@ -1452,20 +1541,4 @@ class EC_Flight_Bookings extends Basic
 
         return $listTickets;
     }
-
-	/**
-	 * Get total price of purchase baggages in booking by times
-	 * 
-	 * @param string $bookingId
-	 */
-	public function getTotalBaggagePrice($bookingId, $times = 0) {
-		$timesContidions = '';
-		if($times < 1) $timesContidions = "AND p.add_type != 1 AND p.add_type != 2";
-
-		$sql = "SELECT SUM(IFNULL(p.luggage_purchase, 0)) + SUM(IFNULL(p.luggage_purchase_inbound, 0)) AS total_baggage_price
-			FROM ec_booking_passengers p
-			WHERE p.booking_id = '{$bookingId}'
-				AND p.deleted = 0
-				{$timesContidions}";
-	}
 }
