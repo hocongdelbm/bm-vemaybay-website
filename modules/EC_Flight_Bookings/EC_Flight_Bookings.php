@@ -1159,6 +1159,19 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	/**
+	 * Check is use new baggage
+	 * 
+	 * @param string $date_entered
+	 * @param string $created_by
+	 * @return bool
+	 */
+	public function isUseNewBaggage($date_entered, $created_by) {
+		$date_entered = str_replace("/", "-", trim($date_entered));
+		if(strtotime($date_entered) > strtotime('2025-10-01') && in_array($created_by, $this->list_website_new_baggage)) return true;
+		return false;
+	}
+
+	/**
 	 * Get baggage info by baggage data
 	 * 
 	 * @param array $bagData
@@ -1206,6 +1219,229 @@ class EC_Flight_Bookings extends Basic
 			return ['available' => '', 'purchase' => ''];
 		}
 	}
+
+	/**
+	 * Generate passenger baggage info (Use in show detail booking)
+	 * 
+	 * @param array $passInfo Information of a specific passenger
+	 * @param int $orderNumber
+	 * @param string $returnType HTML, JSON
+	 * 
+	 * @return string HTML
+	 */
+	public function generatePassengerBaggageInfo($passInfo, $orderNumber = 0, $returnType = 'HTML') {
+		$date_entered = $passInfo['date_entered'] ?? date('Y-m-d');
+		$created_by   = $passInfo['createdBy'] ?? '';
+		// $bookingName  = $passInfo['bookingName'] ?? '';
+		$airlineCodeOutbound = $passInfo['airlineCodeOutbound'] ?? '';
+		$ticketClassOutbound = $passInfo['ticketClassOutbound'] ?? '';
+		$airlineCodeInbound = $passInfo['airlineCodeInbound'] ?? '';
+		$ticketClassInbound = $passInfo['ticketClassInbound'] ?? '';
+
+		if($this->isUseNewBaggage($date_entered, $created_by)) {
+			$rowBagHTML = '';
+			foreach (['outbound', 'inbound'] as $roundName) {
+				$roundNameHTML = $roundName == "outbound" ? '<b class="color-primary mr-1">Lượt đi:</b>' : '<b class="color-red mr-1">Lượt về:</b>';
+
+				// Hành lý có sẵn
+				if (!empty($passInfo["luggage_index_$roundName"])) {
+					$rowBagHTML .= '<p class="fst-italic">
+						' . $roundNameHTML . '
+						' . Baggage::renderAvailableBaggage($passInfo["luggage_index_$roundName"]) . '
+						<span>(Hạng vé có sẵn)</span>
+					</p>';
+				}
+
+				// Hành lý mua thêm
+				$suffix = $roundName == "outbound" ? "" : "_inbound";
+				$bagText = $passInfo["luggage_purchase_text$suffix"] ?? '';
+				$bagSellingPrice = $passInfo["luggage_price$suffix"] ?? 0;
+				if ($bagSellingPrice > 0 || !empty($bagText)) {
+					// $bagCost = $passInfo["luggage_purchase{$suffix}_no_vat"] ?? 0;
+					// $bagTax = $passInfo["vat_luggage_purchase$suffix"] ?? 0; // VAT
+					$bagPrice = $passInfo["luggage_purchase$suffix"] ?? 0;
+					$bagTicketNum = $passInfo["eluggage_$roundName"] ?? '';
+					$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal ms-1">Số vé HL: <b>' . $bagTicketNum . '</b></span>' : '';
+
+					$rowBagHTML .= '<p class="fst-italic info-purchage-baggage">
+						' . $roundNameHTML . '
+						' . $bagText . '
+						<span class="badge bg-light text-dark fw-normal ms-1">
+							Giá bán (VAT): <b>' . format_number($bagSellingPrice) . ' VND</b>
+						</span>
+						<span class="badge bg-light text-dark fw-normal ms-1">
+							Giá mua (VAT): <b>' . format_number($bagPrice) . ' VND</b>
+						</span>
+						<span class="badge bg-light text-dark fw-normal ms-1">
+							Nhà cung cấp: <b>' . $passInfo["supplier$suffix"] . '</b>
+						</span>
+						' . $bagTicketNumHTML . '
+					</p>';
+				}
+			}
+			return '<tr class="psg-line luggage" ' . (empty($rowBagHTML) ? 'style="display:none;"' : '') . '>
+				<td data-label="Hành lý ký gửi" class="text-center align-middle">
+					<svg fill="#000000" width="24px" height="24px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 290.626 290.626" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <g> <path d="M126.563,70.313H98.438v-56.25C98.438,6.309,92.128,0,84.375,0H56.25c-7.753,0-14.063,6.309-14.063,14.063v56.25H14.063 C6.309,70.313,0,76.622,0,84.375v168.75c0,5.297,2.977,9.862,7.312,12.258c-1.645,2.559-2.625,5.578-2.625,8.836 c0,9.047,7.359,16.406,16.406,16.406S37.5,283.266,37.5,274.219c0-2.527-0.623-4.894-1.645-7.031h68.916 c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V84.375C140.625,76.622,134.316,70.313,126.563,70.313z M51.563,14.063c0-2.588,2.099-4.688,4.687-4.688h28.125c2.588,0,4.688,2.1,4.688,4.688v4.688h-37.5V14.063z M51.563,28.125h37.5 v42.188h-37.5V28.125z M9.375,84.375c0-2.588,2.1-4.687,4.688-4.687h4.688V93.75H9.375V84.375z M9.374,253.125v-9.375h0.001 h9.375v14.063h-4.688C11.474,257.813,9.374,255.713,9.374,253.125z M21.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031s7.031,3.154,7.031,7.031S24.97,281.25,21.094,281.25z M119.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031s7.031,3.155,7.031,7.031 C126.562,278.095,123.408,281.25,119.531,281.25z M131.25,253.125c0,2.587-2.1,4.688-4.687,4.688h-4.688V243.75h9.375V253.125z M131.25,234.375h-9.375c-5.17,0-9.375,4.205-9.375,9.375v14.063H28.125V243.75c0-5.17-4.205-9.375-9.375-9.375H9.375v-131.25 h9.375c5.17,0,9.375-4.205,9.375-9.375V79.688h14.063h56.25H112.5V93.75c0,5.17,4.205,9.375,9.375,9.375h9.375V234.375z M131.25,93.75h-9.375V79.688h4.688c2.587,0,4.687,2.099,4.687,4.687V93.75z"></path> <rect x="23.438" y="112.5" width="9.375" height="112.5"></rect> <rect x="46.875" y="112.5" width="9.375" height="112.5"></rect> <rect x="107.813" y="112.5" width="9.375" height="112.5"></rect> <rect x="84.375" y="112.5" width="9.375" height="112.5"></rect> <path d="M276.563,112.5h-112.5c-7.753,0-14.063,6.309-14.063,14.063v126.563c0,5.297,2.977,9.862,7.313,12.258 c-1.645,2.559-2.625,5.578-2.625,8.836c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-2.527-0.623-4.894-1.645-7.031h68.916c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406 s16.406-7.359,16.406-16.406c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V126.563 C290.625,118.809,284.316,112.5,276.563,112.5z M171.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.154,7.031,7.031S174.97,281.25,171.094,281.25z M269.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.155,7.031,7.031 C276.562,278.095,273.408,281.25,269.531,281.25z M281.248,253.125c0.002,2.587-2.098,4.688-4.685,4.688h-112.5 c-2.587,0-4.688-2.1-4.688-4.688v-95.784l8.067-4.842c7.838-4.702,16.814-7.186,25.955-7.186h39.164l-2.63,7.894 c-0.82,2.456,0.506,5.114,2.962,5.93c0.492,0.159,0.994,0.239,1.481,0.239c1.964,0,3.792-1.242,4.444-3.206l3.619-10.856h2.62 l3.619,10.856c0.656,1.964,2.484,3.206,4.448,3.206c0.488,0,0.989-0.08,1.481-0.244c2.452-0.816,3.783-3.469,2.962-5.93 l-2.4-7.195c6.342,1.012,12.469,3.164,18.014,6.492l8.067,4.842V253.125z M281.251,146.405l-3.239-1.945 c-8.798-5.273-18.802-8.166-29.034-8.466c-0.145-0.019-0.281-0.009-0.427-0.014c-0.441-0.005-0.881-0.042-1.322-0.042h-53.831 c-10.842,0-21.483,2.948-30.778,8.522l-3.244,1.945v-19.842c-0.001-2.588,2.099-4.688,4.687-4.688h112.5 c2.587,0,4.688,2.1,4.688,4.688V146.405z"></path> <path d="M164.063,107.813h112.5c7.753,0,14.063-6.309,14.039-14.531l-3.97-39.698c-0.534-5.334-2.025-10.467-4.416-15.263 c-7.364-14.723-22.055-23.911-38.466-24.202v-0.056C243.75,6.309,237.441,0,229.688,0h-18.75 c-7.753,0-14.063,6.309-14.063,14.063v0.056c-16.411,0.291-31.102,9.483-38.466,24.206c-2.395,4.791-3.881,9.928-4.416,15.263 L150,93.75C150,101.503,156.309,107.813,164.063,107.813z M210.938,9.375h18.75c2.587,0,4.688,2.1,4.688,4.688H206.25 C206.25,11.475,208.35,9.375,210.938,9.375z M163.322,54.52c0.422-4.195,1.589-8.236,3.473-12.005 c5.887-11.766,17.714-19.078,30.872-19.078h45.291c13.158,0,24.984,7.313,30.872,19.078c1.884,3.769,3.052,7.809,3.473,12.005 l3.947,39.23c0,2.588-2.1,4.688-4.688,4.688h-112.5c-2.587,0-4.688-2.1-4.711-4.219L163.322,54.52z"></path> <path d="M239.064,51.563h-0.001c0,2.592,2.095,4.688,4.688,4.688c2.593,0,4.688-2.095,4.688-4.688v-9.375h9.375v-9.375h-75v9.375 h56.25V51.563z"></path> </g> </g> </g> </g></svg>
+				</td>
+				<td colspan="10" class="text-start align-middle flex-wrap">' . $rowBagHTML . '</td>
+			</tr>';
+		}
+		else {
+			$luggage_price = '';
+
+			/***** Hành lý chiều đi *****/
+			// Bag_out là list option hành lý
+			$bag_out = generateLuggage($date_entered, $airlineCodeOutbound, $ticketClassOutbound, $passInfo['type'], (int)$passInfo['luggage_index_outbound']);
+			if (!empty($passInfo['luggage_index_outbound'])) {
+				$passInfo['luggage_price'] = (int)$passInfo['luggage_index_outbound'];
+			}
+
+			$bag_out2 = $bag_out[(int)$passInfo['luggage_price']] ?? '';
+
+			$bag_weight_out = 0;
+			if (isset($bag_out2) && !empty($bag_out2)) {
+				preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+				$bag_weight_out = isset($ob_output[1]) ? (int) $ob_output[1] : 0;
+			}
+
+			if ($bag_weight_out > 0) {
+				$lug_purchase_inf = '';
+				if ($passInfo['luggage_purchase'] > 0) {
+					$lug_purchase_inf .= ' - Giá mua: ' . format_number($passInfo['luggage_purchase_no_vat']) . ' - VAT giá mua: ' . format_number($passInfo['vat_luggage_purchase']);
+				}
+
+				$eluggage_outbound = '';
+				if (strlen($passInfo['eluggage_outbound']) > 0) {
+					$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
+						(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($passInfo['eluggage_outbound']) . '</strong>)
+						<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $orderNumber . '" value="' . strtoupper($passInfo['eluggage_outbound']) . '"  />
+					</span>';
+				}
+				$luggage_price .= '<div class="luggage__outbound">
+					<span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($passInfo['luggage_purchase']) . ' - Nhà cung cấp: ' . $passInfo['supplier'] . $lug_purchase_inf . ')
+					' . $eluggage_outbound . '
+				</div>';
+			}
+
+			/***** Hành lý chiều về *****/
+			if (!empty($airlineCodeInbound)) {
+				$bag_in = generateLuggage($date_entered, $airlineCodeInbound, $ticketClassInbound, $passInfo['type'], (int)$passInfo['luggage_index_inbound']);
+
+				if (!empty($passInfo['luggage_index_inbound'])) {
+					$passInfo['luggage_price_inbound'] = (int) $passInfo['luggage_index_inbound'];
+				}
+
+				$bag_in2 = $bag_in[(int) $passInfo['luggage_price_inbound']] ?? '';
+
+				$bag_weight_in = 0;
+				if (isset($bag_in2) && !empty($bag_in2)) {
+					preg_match('/(\d+)kg/isU', $bag_in2, $ib_output);
+					$bag_weight_in = isset($ib_output[1]) ? (int) $ib_output[1] : 0;
+				}
+
+				if ($bag_weight_in > 0) {
+					$in_lug_purchase_inf = '';
+					if ($passInfo['luggage_purchase_inbound'] > 0) {
+						$in_lug_purchase_inf .= ' - Giá mua: ' . format_number($passInfo['luggage_purchase_inbound_no_vat']) . ' - VAT giá mua: ' . format_number($passInfo['vat_luggage_purchase_inbound']);
+					}
+
+					$eluggage_inbound = '';
+					if (strlen($passInfo['eluggage_inbound']) > 0) {
+						$eluggage_inbound .= '<span data-label="Số vé HL về" class="text-center" class="eluggage_inbound">
+							(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($passInfo['eluggage_inbound']) . '</strong>)
+							<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $orderNumber . '" value="' . strtoupper($passInfo['eluggage_inbound']) . '"  />
+						</span>';
+					}
+
+					$luggage_price .= '<div class="luggage__inbound mt-2">
+						<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($passInfo['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $passInfo['supplier_inbound'] . $in_lug_purchase_inf . ')
+						' . $eluggage_inbound . '
+					</div>';
+				}
+			}
+
+			return '<tr class="psg-line luggage" ' . (trim($luggage_price) == '' ? 'style="display:none;"' : '') . '>
+				<td data-label="Hành lý ký gửi" class="text-center bg-yellow align-middle">&nbsp;</td>
+				<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
+			</tr>';
+		}
+	}
+
+	/**
+	 * Generate passenger baggage info (Use in sending email booking)
+	 * 
+	 * @param string $depAvaiBagText
+	 * @param string $depPurchaseBagText
+	 * @param string $retAvaiBagText
+	 * @param string $retPurchaseBagText
+	 * @param string $language vn, es
+	 * @return string
+	 */
+	public function generateCombinedPassengerBaggageInfo($depAvaiBagText, $depPurchaseBagText, $retAvaiBagText, $retPurchaseBagText, $language = 'vn') {
+		$isRoundtrip = false;
+		if((!empty($depAvaiBagText) || !empty($depPurchaseBagText)) && (!empty($retAvaiBagText) || !empty($retPurchaseBagText))) $isRoundtrip = true;
+
+		// Departure
+		$baggageDescriptionDep = '';
+		if(!empty($depAvaiBagText) && !empty($depPurchaseBagText)) {
+			$avaiBagDepParts = Baggage::parsePackage($depAvaiBagText); // Array
+			$purchasedBagDepParts = Baggage::parsePackage($depPurchaseBagText); // Array
+
+			// Conbine
+			if($avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight']) && stripos($row['luggage_index_outbound'] ?? '', 'T') === false) {
+				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagDepParts['weight'] . 'kg';
+			}
+			elseif(is_null($avaiBagDepParts['package']) && is_null($purchasedBagDepParts['package'])) {
+				$baggageDescriptionDep .= ($avaiBagDepParts['weight'] + $purchasedBagDepParts['weight']) . 'kg';
+			}
+			elseif(is_null($avaiBagDepParts['weight']) && is_null($purchasedBagDepParts['weight'])) {
+				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện');
+			}
+			else {
+				$baggageDescriptionDep .= "$depAvaiBagText + $depPurchaseBagText";
+			}
+		}
+		elseif(!empty($depAvaiBagText)) $baggageDescriptionDep .= $depAvaiBagText;
+		elseif(!empty($depPurchaseBagText)) $baggageDescriptionDep .= $depPurchaseBagText;
+		if(!empty($baggageDescriptionDep) && $isRoundtrip) $baggageDescriptionDep .= ($language == 'en' ? ' (Departure)' : ' (Lượt đi)');
+
+		// Return
+		$baggageDescriptionRet = '';
+		if(!empty($retAvaiBagText) && !empty($retPurchaseBagText)) {
+			$avaiBagRetParts = Baggage::parsePackage($retAvaiBagText); // Array
+			$purchasedBagRetParts = Baggage::parsePackage($retPurchaseBagText); // Array
+
+			// Conbine
+			if($avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight']) && stripos($row['luggage_index_inbound'] ?? '', 'T') === false) {
+				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagRetParts['weight'] . 'kg';
+			}
+			elseif(is_null($avaiBagRetParts['package']) && is_null($purchasedBagRetParts['package'])) {
+				$baggageDescriptionRet .= ($avaiBagRetParts['weight'] + $purchasedBagRetParts['weight']) . 'kg';
+			}
+			elseif(is_null($avaiBagRetParts['weight']) && is_null($purchasedBagRetParts['weight'])) {
+				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện');
+			}
+			else {
+				$baggageDescriptionRet = "$retAvaiBagText + $retPurchaseBagText";
+			}
+		}
+		elseif(!empty($retAvaiBagText)) $baggageDescriptionRet .= $retAvaiBagText;
+		elseif(!empty($retPurchaseBagText)) $baggageDescriptionRet .= $retPurchaseBagText;
+		if(!empty($baggageDescriptionRet) && $isRoundtrip) $baggageDescriptionRet .= ($language == 'en' ? ' (Return)' : ' (Lượt về)');
+
+
+		// Combine two way
+		if (!empty($baggageDescriptionDep) && !empty($baggageDescriptionRet)) {
+			if(stripos($baggageDescriptionDep, '+') !== false || stripos($baggageDescriptionRet, '+') !== false) {
+				return "{$baggageDescriptionDep}\n{$baggageDescriptionRet}";
+			}
+			else {
+				return "{$baggageDescriptionDep} - {$baggageDescriptionRet}";
+			}
+		}
+		else return trim("$baggageDescriptionDep $baggageDescriptionRet");
+	}
+	
 
 	/**
      * Get list ticket number in booking by times
@@ -1305,20 +1541,4 @@ class EC_Flight_Bookings extends Basic
 
         return $listTickets;
     }
-
-	/**
-	 * Get total price of purchase baggages in booking by times
-	 * 
-	 * @param string $bookingId
-	 */
-	public function getTotalBaggagePrice($bookingId, $times = 0) {
-		$timesContidions = '';
-		if($times < 1) $timesContidions = "AND p.add_type != 1 AND p.add_type != 2";
-
-		$sql = "SELECT SUM(IFNULL(p.luggage_purchase, 0)) + SUM(IFNULL(p.luggage_purchase_inbound, 0)) AS total_baggage_price
-			FROM ec_booking_passengers p
-			WHERE p.booking_id = '{$bookingId}'
-				AND p.deleted = 0
-				{$timesContidions}";
-	}
 }

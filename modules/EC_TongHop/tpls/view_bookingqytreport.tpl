@@ -2,41 +2,25 @@
 	<script>
 		$(document).ready(function() {
 			$('input[type=radio][name=optionRadio]').change(function() {
-				$('#from_date').val($('input[name=optionRadio]:checked').attr('fromdate'));
-				$('#to_date').val($('input[name=optionRadio]:checked').attr('todate'));
+				const $r = $('input[name=optionRadio]:checked');
+  				setDateInputs($r.attr('fromdate'), $r.attr('todate'));
 
-				sessionStorage.setItem('optionRadio_bkreport', $(this).val());
-				sessionStorage.removeItem('date_select_bkreport');
+				// vô hiệu hóa select để nó không post
+				$('#date_select').prop('selectedIndex', 0); 
 			});
 
 			$(document).on("change", "#date_select", function(e) {
-				$("#from_date").val($(this).find("option:selected").attr("fromdate"));
-				$("#to_date").val($(this).find("option:selected").attr("todate"));
-
-				sessionStorage.setItem('date_select_bkreport', $(this).val());
-				sessionStorage.removeItem('optionRadio_bkreport');
+				const $opt = $(this).find('option:selected');
+  				setDateInputs($opt.attr('fromdate'), $opt.attr('todate'));
+				$('input[name=optionRadio]').prop('checked', false)
 			});
 
-			// Check sessionStorage - js
-			const selectOption = document.getElementById('date_select');
-			const radioOptions = document.getElementsByName('optionRadio');
-			const savedSelectOption = sessionStorage.getItem('date_select_bkreport');
-			if (savedSelectOption) {
-				selectOption.value = savedSelectOption;
-			} else {
-				const savedRadioOption = sessionStorage.getItem('optionRadio_bkreport');
-				if (savedRadioOption) {
-					radioOptions.forEach(radio => {
-						if (radio.value === savedRadioOption) {
-							radio.checked = true;
-						}
-					});
-				}
+			function setDateInputs(from, to) {
+				$('#from_date').val(from || '');
+				$('#to_date').val(to   || '');
 			}
 
-
 			$(".show_detail_bk").click(function() {
-
 				if ($(this).hasClass('displayed')) {
 					$("#warning_note").text("");
 					$(".detail_bk--wrap").remove();
@@ -47,26 +31,23 @@
 					$(this).addClass('displayed');
 
 					if ($(this).attr("type") == 'show_prior_bk') {
-						getPriorBK($(this).attr("user"), $(this).attr("sname"));
+						getPriorBK($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"));
 					} else if ($(this).attr("type") == 'show_2ticket_bk') {
-						get2TicketBK($(this).attr("user"), $(this).attr("sname"));
+						get2TicketBK($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"));
 					} else if ($(this).attr("type") == 'show_3ticket_bk') {
-						get3TicketBK($(this).attr("user"), $(this).attr("sname"));
+						get3TicketBK($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"));
 					} else if ($(this).attr("type") == 'show_4to8ticket_bk') {
-						get4To8TicketBK($(this).attr("user"), $(this).attr("sname"));
-					} else if ($(this).attr("type") == 'show_9ticket_bk') {
-						get9TicketBK($(this).attr("user"), $(this).attr("sname"));
+						get4To8TicketBK($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"));
 					} else if ($(this).attr("type") == 'show_booker_bk') {
-						getBookerBK($(this).attr("user"), $(this).attr("sname"));
+						getBookerBK($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"));
 					} else if ($(this).attr("type") == 'show_khachhang_bk') {
-						getKhachHangBK($(this).attr("user"), $(this).attr("sname"));
+						getKhachHangBK($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"));
 					} else if ($(this).attr("type") == 'show_thamkhao_bk') {
-						getThamKhaoBK($(this).attr("user"), $(this).attr("sname"));
+						getThamKhaoBK($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"));
 					} else if ($(this).attr("type") == 'show_inter_bk') {
-						getBookingInter($(this).attr("user"), $(this).attr("sname"))
+						getBookingInter($(this).attr("user"), $(this).attr("sname"), $(this).attr("from_date"), $(this).attr("to_date"))
 					} else if ($(this).attr("type") == 'show_detail_call') {
-						getDetailCallBookingQtyReport($(this).attr("user"), $(this).attr("sname"), $(this)
-							.attr("direction"));
+						getDetailCallBookingQtyReport($(this).attr("user"), $(this).attr("sname"), $(this).attr("direction"), $(this).attr("from_date"), $(this).attr("to_date"));
 					}
 				}
 			});
@@ -85,8 +66,8 @@
 						url: "index.php?entryPoint=entryPointFlightBookings",
 						type: "POST",
 						data: {
-							fdate: $('#from_date').val(),
-							tdate: $('#to_date').val(),
+							fdate: $(this).attr("from_date"),
+							tdate: $(this).attr("to_date"),
 							for: "getToTalBKInOneDay",
 						},
 						beforeSend: function() {
@@ -115,13 +96,13 @@
 			});
 		});
 
-		function getPriorBK(user_id, user_name) {
+		function getPriorBK(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "getPriorBooking",
 				},
@@ -142,13 +123,13 @@
 			});
 		}
 
-		function get2TicketBK(user_id, user_name) {
+		function get2TicketBK(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "get2TicketBooking",
 				},
@@ -169,13 +150,13 @@
 			});
 		}
 
-		function get3TicketBK(user_id, user_name) {
+		function get3TicketBK(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "get3TicketBooking",
 				},
@@ -196,13 +177,13 @@
 			});
 		}
 
-		function get4To8TicketBK(user_id, user_name) {
+		function get4To8TicketBK(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "get4To8TicketBooking",
 				},
@@ -223,40 +204,13 @@
 			});
 		}
 
-		function get9TicketBK(user_id, user_name) {
+		function getBookerBK(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
-					user: user_id,
-					for: "get9TicketBooking",
-				},
-				beforeSend: function() {
-					$(".container-waiting").show();
-					$(".detail_bk--wrap").remove();
-				},
-				success: function(response) {
-					$(".container-waiting").hide();
-					$("#warning_note").html(
-						'<div class="d-flex justify-content-center align-items-center gap-2"><h3 class="sub-title mb-0">Danh sách booking trên 9 vé site ' +
-						user_name +
-						' </h3> <input type="button" class="hide_detail_btn btn btn-dark" id="hide_detail_btn" value="Ẩn"></div>'
-					);
-					$(".detail_bk--wrap").remove();
-					$("#warning_note").after(response);
-				}
-			});
-		}
-
-		function getBookerBK(user_id, user_name) {
-			$.ajax({
-				url: "index.php?entryPoint=entryPointFlightBookings",
-				type: "POST",
-				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "getBookerBooking",
 				},
@@ -277,13 +231,13 @@
 			});
 		}
 
-		function getKhachHangBK(user_id, user_name) {
+		function getKhachHangBK(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "getKhachHangBooking",
 				},
@@ -304,13 +258,13 @@
 			});
 		}
 
-		function getThamKhaoBK(user_id, user_name) {
+		function getThamKhaoBK(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "getThamKhaoBooking",
 				},
@@ -331,13 +285,13 @@
 			});
 		}
 
-		function getBookingInter(user_id, user_name) {
+		function getBookingInter(user_id, user_name, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					user: user_id,
 					for: "getInterBooking",
 				},
@@ -358,13 +312,13 @@
 			});
 		}
 
-		function getDetailCallBookingQtyReport(user_id, user_name, direction) {
+		function getDetailCallBookingQtyReport(user_id, user_name, direction, from_date, to_date) {
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				type: "POST",
 				data: {
-					fdate: $('#from_date').val(),
-					tdate: $('#to_date').val(),
+					fdate: from_date,
+					tdate: to_date,
 					direction: direction,
 					user: user_id,
 					for: "getDetailCallBookingQtyReport",
@@ -482,20 +436,19 @@
 			</div>
 
 			<div class="d-flex align-items-center gap-2">
-				<input type="radio" value="yesterday" id="yesterday" class="rd_time form-check-input" name="optionRadio"
-					fromdate="{$YESTERDAY_FROMDATE}" todate="{$YESTERDAY_TODATE}">
+				{$RADIO_TODAY}
+				<label class="cursor-pointer" for="today">Hôm nay</label>
+
+				{$RADIO_YESTERDAY}
 				<label class="cursor-pointer" for="yesterday">Hôm qua</label>
 
-				<input type="radio" value="daybefore" id="daybefore" class="rd_time form-check-input" name="optionRadio"
-					fromdate="{$DAYBEFORE_FROMDATE}" todate="{$DAYBEFORE_TODATE}">
+				{$RADIO_DAYBEFORE}
 				<label class="cursor-pointer" for="daybefore">Hôm trước</label>
 
-				<input type="radio" value="current_week" id="current_week" class="rd_time form-check-input"
-					name="optionRadio" fromdate="{$CURRENT_WEEK_FROMDATE}" todate="{$CURRENT_WEEK_TODATE}">
+				{$RADIO_CURRENTWEEK}
 				<label class="cursor-pointer" for="current_week">Tuần này</label>
 
-				<input type="radio" value="previous_week" id="previous_week" class="rd_time form-check-input"
-					name="optionRadio" fromdate="{$PREVIOUS_WEEK_FROMDATE}" todate="{$PREVIOUS_WEEK_TODATE}">
+				{$RADIO_PREVIOUSWEEK}
 				<label class="cursor-pointer" for="previous_week">Tuần trước</label>
 			</div>
 		</div>
@@ -511,7 +464,7 @@
 
 	<div class="bookingqtyreport-note">Doanh số Vé Quốc tế đã bao gồm trong cái Tổng</div>
 
-	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3" cellpadding="0" cellspacing="0">
+	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3 d-none" cellpadding="0" cellspacing="0">
 		<thead>
 			<tr class="text-nowrap">
 				<!-- <th rowspan="2" style="width: 3%;">STT</th> -->
@@ -579,6 +532,76 @@
 			</tr>
 		</thead>
 		{$rpt_body}
+	</table>
+
+	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3" cellpadding="0" cellspacing="0">
+		<thead>
+			<tr class="text-nowrap">
+				<!-- <th rowspan="2" style="width: 3%;">STT</th> -->
+				<th rowspan="2" style="width: 10%;">Trang web</th>
+				<th colspan="4" style="width: 12%;">Doanh số</th>
+				<th rowspan="2" colspan="2" style="width: 5%;">Tổng BK</th>
+				<th rowspan="2" style="width: 5%;">Booker đặt</th>
+				<th rowspan="2" style="width: 5%;">KH đặt</th>
+				<th rowspan="2" style="width: 5%;">Tham khảo</th>
+	
+				<th colspan="2" style="width: 8%; background-color: #068FFF; color: #fff">Cuộc gọi</th>
+	
+				<th colspan="3" style="width: 5%;">BK Vé cận</th>
+				<th colspan="3" style="width: 5%;">BK dưới 3 vé</th>
+				<th colspan="3" style="width: 5%;">BK 4-8 vé</th>
+				<!-- <th colspan="3" style="width: 5%;">BK trên 9 vé</th> -->
+				<th colspan="3" style="width: 8%; background-color: #8BE8E5;">BK Quốc tế</th>
+	
+				<!-- <th colspan="2" style="width: 7%; background-color: #1B9C85; color: #fff">Hoàn tất</th>
+				<th colspan="2" style="width: 7%; background-color: #068FFF; color: #fff">Xác nhận</th> -->
+				{* <th colspan="2" style="width: 8%; background-color: #068FFF; color: #fff">Hoàn tất</th> *}
+	
+				<!-- <th colspan="2" style="width: 8%; background-color: #BBD6B8;">Đã gọi</th> -->
+				<th colspan="2" style="width: 8%; background-color: #E94560; color: #fff">Hủy</th>
+			</tr>
+			<tr class="text-nowrap">
+				<th colspan="2" style="width: 7%;">Số tiền</th>
+				<th style="width: 3%;">Vé</th>
+				<th style="width: 3%;">BK OK</th>
+	
+				<th style="width: 3%; background-color: #068FFF; color: #fff">Gọi đến /<br> Tạo BK</th>
+				<th style="width: 4%; background-color: #068FFF; color: #fff">Gọi nhỡ</th>
+	
+				<!-- vé cận -->
+				<th style="width: 3%;">BK</th>
+				<th colspan="2" style="width: 4%;">DS</th>
+	
+				<!-- bk 3 vé -->
+				<th style="width: 3%;">BK</th>
+				<th colspan="2" style="width: 4%;">DS</th>
+	
+				<!-- bk 4-8 vé -->
+				<th style="width: 3%;">BK</th>
+				<th colspan="2" style="width: 4%;">DS</th>
+	
+				<!-- bk từ 9 vé -->
+				<!-- <th style="width: 3%;">BK</th>
+				<th colspan="2" style="width: 4%;">DS</th> -->
+	
+				<!-- INTER -->
+				<th style="width: 3%; background-color: #8BE8E5;">BK</th>
+				<th colspan="2" style="width: 4%; background-color: #8BE8E5;">DS</th>
+	
+				<!-- <th style="width: 3%; background-color: #1B9C85; color: #fff">SL</th>
+				<th style="width: 4%; background-color: #1B9C85; color: #fff">%</th> -->
+	
+				{* <th style="width: 3%; background-color: #068FFF; color: #fff">SL</th>
+				<th style="width: 4%; background-color: #068FFF; color: #fff">%</th> *}
+	
+				<!-- <th style="width: 3%; background-color: #BBD6B8;">SL</th>
+				<th style="width: 4%; background-color: #BBD6B8;">%</th> -->
+	
+				<th style="width: 3%; background-color: #E94560; color: #fff;">SL</th>
+				<th style="width: 4%; background-color: #E94560; color: #fff;">%</th>
+			</tr>
+		</thead>
+		{$rpt_body_compare}
 	</table>
 </div>
 

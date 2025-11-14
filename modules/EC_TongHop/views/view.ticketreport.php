@@ -524,9 +524,11 @@ class Viewticketreport extends SugarView
                         ,(SUM(IFNULL(bkd.total_bought_price,0)) 
 							+
 							IFNULL((
-								SELECT IF(bk.flight_type='0', SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0) + IF(px.luggage_price_inbound>0, IFNULL(px.luggage_purchase_inbound,0), 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
+								SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
 								FROM ec_booking_passengers px
-								WHERE px.booking_id=bk.id AND px.deleted=0 AND px.add_type IS NULL
+								WHERE px.booking_id = bk.id 
+                                AND px.deleted = 0 
+                                AND (px.add_type IS NULL OR px.add_type = '')
 							),0)) AS total_bought_price";
 
         if (isset($current_user->view_percent) && $current_user->view_percent < 100) {
@@ -539,7 +541,7 @@ class Viewticketreport extends SugarView
                         IFNULL((
                             SELECT IF(bk.flight_type='0', SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0) + IF(px.luggage_price_inbound>0, IFNULL(px.luggage_purchase_inbound,0), 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
                             FROM ec_booking_passengers px
-                            WHERE px.booking_id=bk.id AND px.deleted=0 AND px.add_type IS NULL
+                            WHERE px.booking_id=bk.id AND px.deleted=0  AND (px.add_type IS NULL OR px.add_type = '')
                         ),0)
                     ) / 100
                 ) AS total_bought_price ";
@@ -613,7 +615,7 @@ class Viewticketreport extends SugarView
             FROM ec_booking_details bkd 
             LEFT JOIN ec_flight_bookings bk ON bkd.booking_id=bk.id AND bk.deleted=0 
             WHERE 
-                bk.booking_status IN ('7', '8')
+                bk.booking_status IN ('3', '7', '8')
                 " . $sql_search . $sql_role . " 
                 AND bkd.deleted=0 
             GROUP BY bk.id" . $sql_having;
@@ -789,7 +791,9 @@ class Viewticketreport extends SugarView
             ";
         }
 
-        // pr($sql);
+        // if($GLOBALS['current_user']->user_name == 'hungnh'){
+        //     pr($sql);
+        // }
 
         $res    = $db->query($sql);
         $i      = 0;

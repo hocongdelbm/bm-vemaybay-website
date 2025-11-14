@@ -140,6 +140,14 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'name' => 'ngayhachtoan',
             ),
+            'ticket_validity' =>
+            array(
+                'type' => 'date',
+                'label' => 'LBL_TICKET_VALIDITY',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'ticket_validity',
+            ),
             'date_entered' => array(
                 'type' => 'datetime',   
                 'label' => 'LBL_DATE_ENTERED',

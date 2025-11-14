@@ -143,13 +143,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $quota_user = $quota_oa = [];
                         $last_interaction = date('Y-m-d H:i:s', (int)($timestamp / 1000));
                         $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
-
-                        // Get user quota info
                         $zaloContact = new EC_Zalo_Contacts();
-                        $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_id);
 
                         // Quota user
                         if($zalomes->src == 1) {
+                            $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_id);
+
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 $zaloUserInfo["quota"]["cs_reply"] = $zaloContact->init_consultation_quota(); // Refresh cs_reply
                                 $quota_user = $zaloUserInfo["quota"];
@@ -161,12 +160,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         ,description = 'Cập nhật tương tác và hạn ngạch qua webhook user send'
                                         ,modified_user_id = ''
                                         ,date_modified = '$date_modified'
-                                    WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                    WHERE zalo_id = '". $zaloUserInfo['user_id'] ."' AND deleted = 0";
+
                                 $db->query($sqlUpdate);
                             }
                         }
                         // Quota oa (Only update when not send by API)
                         else if($zalomes->src == 0 && !empty($admin_id)) {
+                            // Get user quota info
+                            $zaloUserInfo = $zaloContact->get_zalo_user_info($recipient_id, $sender_id);
+
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 $quota_user = $zaloUserInfo["quota"];
 
@@ -180,7 +183,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                 ,description = 'Cập nhật tương tác và hạn ngạch qua webhook oa send'
                                                 ,modified_user_id = ''
                                                 ,date_modified = '$date_modified'
-                                            WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                            WHERE zalo_id = '". $zaloUserInfo['user_id'] ."' AND deleted = 0";
                                         $db->query($sqlUpdate);
                                     }
                                     else if(isset($quota_user["cs_reply"]["remain"])) {
@@ -210,7 +213,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             }
                         }
                     }
-                    catch(Exception $e) {}
+                    catch(Exception $e) {
+                        if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
+                            $message = Mattermost::$line_separation;
+                            $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
+                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
+                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
+                        }
+                        else {
+                            $message = "<b>[WARNING]</b> Webhook Zalo";
+                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
+                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                        }
+                    }
                     
                     // Send data to chat
                     $data_chat = [
@@ -345,7 +363,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         ,description = 'Cập nhật tương tác và hạn ngạch qua webhook user follow'
                                         ,modified_user_id = ''
                                         ,date_modified = '$date_modified'
-                                    WHERE id = '". $zaloDBInfo['id'] ."' AND deleted = 0";
+                                    WHERE zalo_id = '". $zaloUserInfo['user_id'] ."' AND deleted = 0";
                                 $db->query($sqlUpdate);
                             }
                         }

@@ -1,4 +1,7 @@
 <?php
+
+use function FastRoute\TestFixtures\empty_options_cached;
+
 require_once("include/Sugar_Smarty.php");
 class Viewprinteticket extends SugarView {
 	function display() {
@@ -215,14 +218,12 @@ class Viewprinteticket extends SugarView {
 				p.pnr_inbound,
 				p.eticket_outbound,
 				p.eticket_inbound,
-
 				p.luggage_price,
 				p.luggage_price_inbound,
 				p.luggage_index_outbound,
 				p.luggage_index_inbound,
 				p.luggage_purchase_text,
 				p.luggage_purchase_text_inbound,
-
 				p.cic,
 				p.passport_number,
 				p.booking_id,
@@ -259,40 +260,36 @@ class Viewprinteticket extends SugarView {
 				}
 				
 				// Hành lý mới
-				$luggage_price = '';
-				// Hành lý có sẵn mới
-				if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
+				$baggageDescription = '';
+				if($this->bean->isUseNewBaggage($row['date_entered'], $this->bean->created_by)) {
+					// Available baggage text
 					$luggage_index_outbound = Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '');
 					$luggage_index_inbound = Baggage::renderAvailableBaggage($row['luggage_index_inbound'] ?? '');
 
-					if($khuhoi) {
-						if(!empty($luggage_index_outbound)) $luggage_price .= "$luggage_index_outbound (Lượt đi)";
-						if(!empty($luggage_index_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_index_inbound (Lượt về)" : " - $luggage_index_inbound (Lượt về)";
-					}
-					elseif($direction == '1') {
-						if(!empty($luggage_index_inbound)) $luggage_price .= $luggage_index_inbound;
-					}
-					else {
-						if(!empty($luggage_index_outbound)) $luggage_price .= $luggage_index_outbound;
-					}
-				}
-				// Hành lý mua thêm
-				$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
-				$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
-				if(!empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
-					if($khuhoi) {
-						if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? "$luggage_purchase_text (Lượt đi)" : "\n$luggage_purchase_text (Lượt đi)";
-						if(!empty($luggage_purchase_text_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_purchase_text_inbound (Lượt về)" : " - $luggage_purchase_text_inbound (Lượt về)";
-					}
-					elseif($direction == '1') {
-						if(!empty($luggage_purchase_text_inbound)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text_inbound : "\n$luggage_purchase_text_inbound";
-					}
-					else {
-						if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text : "\n$luggage_purchase_text";
-					}
+					// Purchased baggage text
+					$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
+					$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
+					
+					$baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, $luggage_index_inbound, $luggage_purchase_text_inbound, $lang);
 				}
 				// Hành lý cũ
-				elseif(!in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
+				else {
+					// Hành lý mua thêm
+					$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
+					$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
+					if(!empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
+						if($khuhoi) {
+							if(!empty($luggage_purchase_text)) $baggageDescription .=  empty($baggageDescription) ? "$luggage_purchase_text (Lượt đi)" : "\n$luggage_purchase_text (Lượt đi)";
+							if(!empty($luggage_purchase_text_inbound)) $baggageDescription .= empty($baggageDescription) ? "$luggage_purchase_text_inbound (Lượt về)" : " - $luggage_purchase_text_inbound (Lượt về)";
+						}
+						elseif($direction == '1') {
+							if(!empty($luggage_purchase_text_inbound)) $baggageDescription .=  empty($baggageDescription) ? $luggage_purchase_text_inbound : "\n$luggage_purchase_text_inbound";
+						}
+						else {
+							if(!empty($luggage_purchase_text)) $baggageDescription .=  empty($baggageDescription) ? $luggage_purchase_text : "\n$luggage_purchase_text";
+						}
+					}
+
 					if ($khuhoi) {
 						// Hành lý chiều đi
 						$bag_out = generateLuggage($row['date_entered'], $row['aircode_outbound'], $row['ticket_class_outbound'], $row['type'], $row['luggage_index_outbound']);
@@ -308,8 +305,8 @@ class Viewprinteticket extends SugarView {
 						}
 						// if ($bag_weight_out >= 0) {
 						if ($bag_weight_out > 0) {
-							$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
-							$luggage_price .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
+							$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+							$baggageDescription .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
 						}
 
 						// Hành lý chiều về
@@ -329,9 +326,9 @@ class Viewprinteticket extends SugarView {
 
 							// if ($bag_weight_in >= 0) {
 							if ($bag_weight_in > 0) {
-								$luggage_price .= $bag_weight_out > 0 ? ' <br /> ' : '';
-								$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
-								$luggage_price .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
+								$baggageDescription .= $bag_weight_out > 0 ? ' <br /> ' : '';
+								$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
+								$baggageDescription .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
 							}
 						}
 
@@ -380,9 +377,9 @@ class Viewprinteticket extends SugarView {
 
 							// if ($bag_weight_in >= 0) {
 							if ($bag_weight_in > 0) {
-								$luggage_price .= $bag_weight_out > 0 ? ' <br /> ' : '';
-								$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
-								$luggage_price .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
+								$baggageDescription .= $bag_weight_out > 0 ? ' <br /> ' : '';
+								$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
+								$baggageDescription .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
 							}
 						}
 
@@ -428,8 +425,8 @@ class Viewprinteticket extends SugarView {
 						}
 						// if ($bag_weight_out >= 0) {
 						if ($bag_weight_out > 0) {
-							$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
-							$luggage_price .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
+							$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+							$baggageDescription .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
 						}
 					}
 				}
@@ -437,7 +434,7 @@ class Viewprinteticket extends SugarView {
 				$html .= '<tr>
 					<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . (empty($new_name['name']) ? $row['name'] : $new_name['name']) . '</td>
 					<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
-					<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
+					<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $baggageDescription . '</td>
 				</tr>';
 				
 				if(empty($html_dep_itineraries)) {
@@ -487,40 +484,36 @@ class Viewprinteticket extends SugarView {
 					}
 
 					// Hành lý mới
-					$luggage_price = '';
-					// Hành lý có sẵn mới
-					if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
+					$baggageDescription = '';
+					if($this->bean->isUseNewBaggage($row['date_entered'], $this->bean->created_by)) {
+						// Available baggage text
 						$luggage_index_outbound = Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '');
 						$luggage_index_inbound = Baggage::renderAvailableBaggage($row['luggage_index_inbound'] ?? '');
 
-						if($khuhoi) {
-							if(!empty($luggage_index_outbound)) $luggage_price .= "$luggage_index_outbound (Lượt đi)";
-							if(!empty($luggage_index_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_index_inbound (Lượt về)" : " - $luggage_index_inbound (Lượt về)";
-						}
-						elseif($direction == '1') {
-							if(!empty($luggage_index_inbound)) $luggage_price .= $luggage_index_inbound;
-						}
-						else {
-							if(!empty($luggage_index_outbound)) $luggage_price .= $luggage_index_outbound;
-						}
-					}
-					// Hành lý mua thêm
-					$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
-					$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
-					if(!empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
-						if($khuhoi) {
-							if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? "$luggage_purchase_text (Lượt đi)" : "\n$luggage_purchase_text (Lượt đi)";
-							if(!empty($luggage_purchase_text_inbound)) $luggage_price .= empty($luggage_price) ? "$luggage_purchase_text_inbound (Lượt về)" : " - $luggage_purchase_text_inbound (Lượt về)";
-						}
-						elseif($direction == '1') {
-							if(!empty($luggage_purchase_text_inbound)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text_inbound : "\n$luggage_purchase_text_inbound";
-						}
-						else {
-							if(!empty($luggage_purchase_text)) $luggage_price .=  empty($luggage_price) ? $luggage_purchase_text : "\n$luggage_purchase_text";
-						}
+						// Purchased baggage text
+						$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
+						$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
+
+						$baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, $luggage_index_inbound, $luggage_purchase_text_inbound, $lang);
 					}
 					// Hành lý cũ
-					elseif(!in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
+					else {
+						// Hành lý mua thêm
+						$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
+						$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
+						if(!empty($luggage_purchase_text) || !empty($luggage_purchase_text_inbound)) {
+							if($khuhoi) {
+								if(!empty($luggage_purchase_text)) $baggageDescription .=  empty($baggageDescription) ? "$luggage_purchase_text (Lượt đi)" : "\n$luggage_purchase_text (Lượt đi)";
+								if(!empty($luggage_purchase_text_inbound)) $baggageDescription .= empty($baggageDescription) ? "$luggage_purchase_text_inbound (Lượt về)" : " - $luggage_purchase_text_inbound (Lượt về)";
+							}
+							elseif($direction == '1') {
+								if(!empty($luggage_purchase_text_inbound)) $baggageDescription .=  empty($baggageDescription) ? $luggage_purchase_text_inbound : "\n$luggage_purchase_text_inbound";
+							}
+							else {
+								if(!empty($luggage_purchase_text)) $baggageDescription .=  empty($baggageDescription) ? $luggage_purchase_text : "\n$luggage_purchase_text";
+							}
+						}
+
 						if ($khuhoi) {
 							// Thông tin hành lý lượt đi
 							$bag_out = generateLuggage($row['date_entered'], $row['aircode_outbound'], $row['ticket_class_outbound'], $row['type'], $row['luggage_index_outbound']);
@@ -538,8 +531,8 @@ class Viewprinteticket extends SugarView {
 							}
 							// if ($bag_weight_out >= 0) {
 							if ($bag_weight_out > 0) {
-								$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
-								$luggage_price .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
+								$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+								$baggageDescription .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
 							}
 
 							// Thông tin hành lý lượt về
@@ -559,10 +552,10 @@ class Viewprinteticket extends SugarView {
 								}
 								// if ($bag_weight_in >= 0) {
 								if ($bag_weight_in > 0) {
-									// $luggage_price .= $bag_weight_out >= 0 ? ' - ' : '';
-									$luggage_price .= $bag_weight_out > 0 ? ' - ' : '';
-									$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
-									$luggage_price .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
+									// $baggageDescription .= $bag_weight_out >= 0 ? ' - ' : '';
+									$baggageDescription .= $bag_weight_out > 0 ? ' - ' : '';
+									$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
+									$baggageDescription .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
 								}
 							}
 						}
@@ -584,10 +577,10 @@ class Viewprinteticket extends SugarView {
 								}
 					
 								if ($bag_weight_in > 0) {
-									// $luggage_price .= $bag_weight_out >= 0 ? ' - ' : '';
-									$luggage_price .= $bag_weight_out > 0 ? ' - ' : '';
-									$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
-									$luggage_price .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
+									// $baggageDescription .= $bag_weight_out >= 0 ? ' - ' : '';
+									$baggageDescription .= $bag_weight_out > 0 ? ' - ' : '';
+									$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
+									$baggageDescription .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
 								}
 							}
 						}
@@ -608,8 +601,8 @@ class Viewprinteticket extends SugarView {
 							}
 							// if ($bag_weight_out >= 0) {
 							if ($bag_weight_out > 0) {
-								$luggage_price .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
-								$luggage_price .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
+								$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+								$baggageDescription .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
 							}
 						}
 					}
@@ -617,7 +610,7 @@ class Viewprinteticket extends SugarView {
 					$html .= '<tr class="initital_iti">
 						<td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . (empty($new_name['name']) ? $row['name'] : $new_name['name']) . '</td>
 						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
-						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $luggage_price . '</td>
+						<td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . $baggageDescription . '</td>
 					</tr>';
 				}
 			} 

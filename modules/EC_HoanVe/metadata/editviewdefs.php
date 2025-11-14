@@ -68,7 +68,10 @@ $viewdefs[$module_name]['EditView'] = array(
                         'cols' => 45,
                     ),
                 ),
-                array()
+                array(
+                    'name' => 'ticket_validity',
+                    'label' => 'LBL_TICKET_VALIDITY',
+                ),
             ),
         ),
         'lbl_lineitems_panel' => array(
