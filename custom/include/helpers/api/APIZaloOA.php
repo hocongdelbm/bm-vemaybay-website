@@ -4,7 +4,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 class APIZaloOA {
     private $template_path;
     private $images_path;
-    private $domain;
+    protected $domain;
     protected $oa_id;
     protected $app_id;
     protected $app_secret;
@@ -15,7 +15,7 @@ class APIZaloOA {
         global $sugar_config;
         $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
         $this->template_path    = "custom/json_files/zalo_oa/templates.json";
-        $this->images_path      = "https://{$this->domain}/custom/themes/default/images/zalo_oa";
+        $this->images_path      = "custom/themes/SuiteP/images/zalo_oa";
         $this->oa_id            = is_string($oa_id) && !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['oa_id'] ?? '';
         // App info
         $this->app_id           = $sugar_config['zalo_config']['app_id'] ?? '';
@@ -27,6 +27,7 @@ class APIZaloOA {
     public function get_oa_id() {return $this->oa_id;}
     public function get_app_id() {return $this->app_id;}
     public function get_images_path() {return $this->images_path;}
+    public function get_domain() {return $this->domain;}
 
 
     /***************  AUTH  ***************/

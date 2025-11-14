@@ -555,19 +555,19 @@ class EC_Zalo_Messages extends Basic {
     /**
      * Send promotion message
      * 
-     * @param string $sub_type
      * @param string $zalo_id
+     * @param string $oa_id
+     * @param string $sub_type Custom type
      * @param string $banner_link
      * @param string $header
      * @param string $text
      * @param array $table
      * @param string $text2
      * @param array $buttons
-     * @param string $oa_id
      * @return array
      */
-    public function send_promotion_message($sub_type, $zalo_id, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = [], $oa_id = "") {
-        if(empty($zalo_id)) return false; 
+    public function send_promotion_message($zalo_id, $oa_id, $sub_type, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = []) {
+        if(empty($zalo_id)) return false;
 
         $zaloOA = new APIZaloOA($oa_id);
 
@@ -640,6 +640,121 @@ class EC_Zalo_Messages extends Basic {
         }
 
         return false;
+    }
+
+    /**
+     * Send transaction message
+
+     * @param string $zalo_id
+     * @param string $oa_id
+     * @param string $type https://developers.zalo.me/docs/official-account/tin-nhan/tin-giao-dich/gui-tin-giao-dich
+     * @param string $header
+     * @param string $text
+     * @param array $table
+     * @param string $text2
+     * @param array $buttons
+     * @return array
+     */
+    public function send_transaction_message($zalo_id, $oa_id, $type, $header, $text, $table = [], $text2 = [], $buttons = []) {
+        if(empty($zalo_id)) return false;
+
+        global $sugar_config;
+        $zaloOA = new APIZaloOA($oa_id);
+
+        $requestBody = [
+            "recipient" => [
+                "user_id" => $zalo_id
+            ],
+            "message" => [
+                "attachment" => [
+                    "type" => "template",
+                    "payload" => [
+                        "template_type" => $type, // Type
+                        "language" => "VI",
+                        "elements" => [
+                            [
+                                "type" => "banner",
+                                "image_url" => $banner_link
+                            ],
+                            [
+                                "type" => "header",
+                                "content" => $header,
+                                "align" => ""
+                            ],
+                            [
+                                "type" => "text",
+                                "content" => $text,
+                                "align" => ""
+                            ],
+                        ],
+                    ]
+                ]
+            ]
+        ];
+        if(!empty($table)) {
+            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "table",
+                "content" => $table
+            ];
+        }
+        if(!empty($text2)) {
+            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
+                "type" => "text",
+                "align" => "center",
+                "content" => $text2
+            ];
+        }
+        if(!empty($buttons)) $requestBody["message"]["attachment"]["payload"]["buttons"] = $buttons;
+
+        return $this->send_request("POST", $url, json_encode($requestBody), $header, $curlOptions);
+    }
+
+
+    public function get_transaction_message_banner($type, $oa_id = '') {
+        $zaloOA = new APIZaloOA($oa_id);
+        $banner_link = "https://{$zaloOA->get_domain()}/{$zaloOA->get_images_path()}/banners/";
+        switch ($type) {
+            case 'transaction_reward': // Tích điểm
+                $banner_link .= "banner_points.jpg";
+                break;
+            case 'transaction_billing': // Hóa đơn
+                $banner_link .= "";
+                break;
+            case 'transaction_order': // Đơn hàng	
+                $banner_link .= "";
+                break;
+            case 'transaction_contract': // Hợp đồng
+                $banner_link .= "";
+                break;
+            case 'transaction_booking': // Lịch hẹn
+                $banner_link .= "";
+                break;
+            case 'transaction_membership': // Thành viên
+                $banner_link .= "";
+                break;
+            case 'transaction_event': // Sự kiện
+                $banner_link .= "";
+                break;
+            case 'transaction_transaction': // Giao dịch
+                $banner_link .= "";
+                break;
+            case 'transaction_account': // Tài khoản
+                $banner_link .= "";
+                break;
+            case 'transaction_internal': // Nội bộ
+                $banner_link .= "";
+                break;
+            case 'transaction_partnership': // 	Đối tác
+                $banner_link .= "";
+                break;
+            case 'transaction_rating': // Đánh giá
+                $banner_link .= "";
+                break;
+            default:
+                $banner_link = '';
+                break;
+        }
+        return $banner_link;
     }
 
     /**
