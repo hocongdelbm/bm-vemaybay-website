@@ -3,8 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
 require_once('modules/EC_Messages/SMS.php');
 
-class EC_Flight_BookingsViewDetail extends ViewDetail
-{
+class EC_Flight_BookingsViewDetail extends ViewDetail {
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
 	private $_outbound_ticket_class = '';
@@ -12,8 +11,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private $_is_had_rv = 0;
 	private $editing_rights = false;
 
-	function display()
-	{	
+	function display() {	
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
@@ -57,7 +55,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.5"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.5"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
@@ -101,7 +99,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private function displayCSS() {
 		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.6">
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.7">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
@@ -1640,7 +1638,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		global $app_list_strings, $timedate;
 		$date_format = $timedate->get_date_format();
-		$booking_date = !empty($this->bean->id) ? $this->bean->date_entered : '';
 
 		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
 		$html .= '<thead>
