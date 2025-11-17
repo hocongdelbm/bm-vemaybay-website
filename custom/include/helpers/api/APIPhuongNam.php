@@ -679,6 +679,7 @@ class APIPhuongNam {
     public function translateBaggage($string) {
         $string = strtolower(trim($string));
         $string = str_replace("checked baggage", "Hành lý ký gửi", $string);
+        $string = str_replace("prepaid baggage", "Hành lý trả trước", $string);
         $string = str_replace("baggage", "Hành lý", $string);
         $string = str_replace("bag", "Hành lý", $string);
         $string = str_replace("oversize piece", "Kiện quá khổ", $string);
