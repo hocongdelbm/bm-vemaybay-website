@@ -186,7 +186,7 @@ class entryFareSystemClass extends entryClass
             "BBA" => "QH",
             "VTA" => "VU",
             "VJA" => "VJ",
-            "VNP" => "BL"
+            "VNP" => "VN"
         ];
 
         if (isset($airlineMapping[$airlineCode])) {
