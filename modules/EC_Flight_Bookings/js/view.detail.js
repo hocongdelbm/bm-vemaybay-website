@@ -719,8 +719,14 @@ $(document).ready(function () {
 		}
 
 		if (booking_status == '8' && frmSaveWorkingProcess == 'frmCompleted') {
+			let complete_ok = parseInt($(`#${frmSaveWorkingProcess} input:hidden[name="complete_ok"]`).val());
+			if(!complete_ok) {
+				showModalNotify(2, "Vui lòng điền đầy đủ giá bán hành lý trước khi hoàn tất");
+				return;
+			}
 			$(this).submit();
-		} else {
+		}
+		else {
 			if (!$(this).hasClass("error")) {
 				$('#dlgWorkingProcessNote').dialog({
 					modal: true,
