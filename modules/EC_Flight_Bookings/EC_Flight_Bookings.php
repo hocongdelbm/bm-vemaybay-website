@@ -1242,7 +1242,10 @@ class EC_Flight_Bookings extends Basic {
 			$purchasedBagDepParts = Baggage::parsePackage($depPurchaseBagText); // Array
 
 			// Conbine
-			if($avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight']) && stripos($row['luggage_index_outbound'] ?? '', 'T') === false) {
+			if($avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight'])
+				&& $avaiBagDepParts['package'] > 0 && $purchasedBagDepParts['package'] > 0
+				&& stripos($depAvaiBagText, 't') === false
+			) {
 				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagDepParts['weight'] . 'kg';
 			}
 			elseif(is_null($avaiBagDepParts['package']) && is_null($purchasedBagDepParts['package'])) {
@@ -1266,7 +1269,10 @@ class EC_Flight_Bookings extends Basic {
 			$purchasedBagRetParts = Baggage::parsePackage($retPurchaseBagText); // Array
 
 			// Conbine
-			if($avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight']) && stripos($row['luggage_index_inbound'] ?? '', 'T') === false) {
+			if($avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight']) 
+				&& $avaiBagDepParts['package'] > 0 && $purchasedBagDepParts['package'] > 0
+				&& stripos($retAvaiBagText, 't') === false
+			) {
 				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagRetParts['weight'] . 'kg';
 			}
 			elseif(is_null($avaiBagRetParts['package']) && is_null($purchasedBagRetParts['package'])) {
