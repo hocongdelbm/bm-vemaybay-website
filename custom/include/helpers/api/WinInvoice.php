@@ -124,7 +124,7 @@ class WinInvoice {
 
         /******  5. CALL API  ******/
         $path = "invoice/add_type_2";
-        $res = $this->sendRequest('POST', $path, json_encode($post_data, JSON_UNESCAPED_UNICODE), $this->header()); // Array
+        $res = $this->sendRequest('POST', $path, json_encode($post_data, JSON_UNESCAPED_UNICODE), $this->header(), ); // Array
         return json_encode($res);
     }
 
@@ -319,7 +319,7 @@ class WinInvoice {
             CURLOPT_SSL_VERIFYPEER  => 0,
             CURLOPT_ENCODING        => '',
             CURLOPT_MAXREDIRS       => 10,
-            CURLOPT_TIMEOUT         => 45,
+            CURLOPT_TIMEOUT         => 60,
         ]);
         $json = curl_exec($curl);
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -443,8 +443,8 @@ class WinInvoice {
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
             curl_setopt($curl, CURLOPT_FAILONERROR, 1);
             curl_setopt($curl, CURLOPT_MAXREDIRS, 16);
-            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 20);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 32);
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 24);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 60);
             foreach ($curlOptions as $key => $value) {
                 curl_setopt($curl, $key, $value);
             }

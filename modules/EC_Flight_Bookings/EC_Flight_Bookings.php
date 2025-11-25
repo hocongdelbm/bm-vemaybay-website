@@ -1,6 +1,5 @@
 <?php
-class EC_Flight_Bookings extends Basic
-{
+class EC_Flight_Bookings extends Basic {
 	public $new_schema = true;
 	public $module_dir = 'EC_Flight_Bookings';
 	public $object_name = 'EC_Flight_Bookings';
@@ -66,7 +65,7 @@ class EC_Flight_Bookings extends Basic
 	public $total_amount;
 	public $ip_address;
 	public $point_step = 50;
-	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO', 'CUONG NGUYEN', 'CUONG NG'];
+	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
 	public $list_website_new_baggage = ['557d4a5b-27ce-5cb1-4531-5800ab9ed31d', '2b2c93b3-e916-113c-29bc-5b4c6de75db4', 'dc22131a-795a-6cd3-2caa-52d40d3b5622'];
 
 	public function bean_implements($interface)
@@ -81,8 +80,7 @@ class EC_Flight_Bookings extends Basic
 
 
 	/*==================== CUSTOM ====================*/
-	function save($check_notify = FALSE)
-	{
+	function save($check_notify = FALSE) {
 		global $current_user, $app_list_strings, $db;
 
 		// Set up current user for use new API
@@ -246,8 +244,8 @@ class EC_Flight_Bookings extends Basic
 
 		// Save passengers
 		if (isset($_POST['psg_id']) && !is_null($_POST['psg_id'])) {
-			if(in_array($this->created_by, $this->list_website_new_baggage)) $this->saveLinePassengers2();
-			else $this->saveLinePassengers();
+			if(in_array($this->created_by, $this->list_website_new_baggage)) $this->saveLinePassengers();
+			else $this->saveLinePassengersOld();
 		}
 
 		// Change flight time
@@ -265,16 +263,10 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	function save2($check_notify = FALSE)
-	{
-		parent::save($check_notify);
-	}
+	public function save2($check_notify = FALSE) { parent::save($check_notify); }
 
 	// Save booking from webservice
-	function save_from_webservice($check_notify = FALSE)
-	{
-		parent::save($check_notify);
-	}
+	public function save_from_webservice($check_notify = FALSE) { parent::save($check_notify); }
 
 	// Generate booking random string
 	function generate_booking_name() {
@@ -409,8 +401,12 @@ class EC_Flight_Bookings extends Basic
 			$this->db->query($sql);
 		}
 	}
-
-	public function saveLinePassengers2() {
+	
+	/**
+	 * Save passengers info
+	 * @return 
+	 */
+	public function saveLinePassengers() {
 		$bk = new EC_Flight_Bookings;
 		$bk->retrieve($this->id);
 
@@ -534,153 +530,22 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	function saveLinePassengers()
-	{
-		global $app_list_strings;
-
-		$bk = new EC_Flight_Bookings;
-		$bk->retrieve($this->id);
-
-		$row_count = count($_POST['psg_id']);
-		for ($i = 0; $i < $row_count; $i++) {
-			$psg = new EC_Booking_Passengers();
-			if (!empty($_POST['psg_id'][$i])) $psg->retrieve($_POST['psg_id'][$i]);
-			else $psg->id = '';
-
-			$psg->type 		 	= $_POST['psg_traveller_type'][$i];
-			$psg->salutation 	= $_POST['psg_salutation'][$i];
-			$psg->name 		 	= strtoupper(myRemoveUnicodeChars(trim(stripslashes($_POST['psg_full_name'][$i]))));
-
-			if (isset($_POST['psg_birthday'][$i]) && strtotime($_POST['psg_birthday'][$i]) !== false) {
-				$date_str = str_replace('/', '-', $_POST['psg_birthday'][$i]);
-				$psg->birthday = date('d-m-Y', strtotime($date_str));
-			} 
-
-			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
-			$psg->eticket_inbound 	= trim(stripslashes($_POST['psg_eticket_inbound'][$i]));
-			
-			$psg->eluggage_outbound = trim(stripslashes($_POST['psg_eluggage_outbound'][$i]));
-			$psg->eluggage_inbound 	= trim(stripslashes($_POST['psg_eluggage_inbound'][$i]));
-
-			$psg->pnr_outbound 		= trim(stripslashes($_POST['psg_pnr_outbound'][$i]));
-			$psg->pnr_inbound 		= trim(stripslashes($_POST['psg_pnr_inbound'][$i]));
-
-			if (isset($_POST['psg_luggage_price'][$i])) {
-				if (((!isset($_POST['psg_luggage_ob_ind']) || empty($_POST['psg_luggage_ob_ind'][$i])) && (string)$this->airline !== 'VJA' && (string)$this->airline !== 'VJ') || ((string)$this->airline !== 'VJA' && (string)$this->airline !== 'VJ')) {
-					$psg->luggage_price = unformat_number($_POST['psg_luggage_price'][$i]);
-					$psg->luggage_index_outbound = '';
-				} else {
-					// BK đặt từ ngày 21-11-2022, VJA có giá mới
-					$list_key = strtotime($bk->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
-					$psg->luggage_price = $app_list_strings[$list_key][(int)$_POST['psg_luggage_price'][$i]];
-
-					$psg->luggage_index_outbound = (int)$_POST['psg_luggage_price'][$i];
-				}
-			}
-
-			if (isset($_POST['psg_luggage_price_inbound'][$i])) {
-				if (((!isset($_POST['psg_luggage_ib_ind']) || empty($_POST['psg_luggage_ib_ind'][$i])) && (string)$this->airline !== 'VJA' && (string)$this->airline !== 'VJ') || ((string)$this->airline_inbound !== 'VJA' && (string)$this->airline_inbound !== 'VJ')) {
-					$psg->luggage_price_inbound = unformat_number($_POST['psg_luggage_price_inbound'][$i]);
-					$psg->luggage_index_inbound = '';
-				} else {
-					// BK đặt từ ngày 21-11-2022, VJA có giá mới
-					$list_key = strtotime($bk->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
-					$psg->luggage_price_inbound = $app_list_strings[$list_key][(int)$_POST['psg_luggage_price_inbound'][$i]];
-					$psg->luggage_index_inbound = (int)$_POST['psg_luggage_price_inbound'][$i];
-				}
-			}
-
-			$psg->luggage_purchase 				= unformat_number($_POST['psg_luggage_purchase'][$i]);
-			$psg->luggage_purchase_inbound 		= unformat_number($_POST['psg_luggage_purchase_inbound'][$i]);
-
-			$psg->supplier_id 					= $_POST['psg_luggage_supplier'][$i];
-			$psg->supplier_inbound_id 			= $_POST['psg_luggage_supplier_inbound'][$i];
-			$psg->booking_id 					= $this->id;
-			$psg->add_type 						= $_POST['psg_add_type'][$i] ?? null;
-			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i] ?? '';
-			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? 0;
-			
-			$psg->luggage_purchase_no_vat 		= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
-			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
-			$psg->luggage_purchase_inbound_no_vat = unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
-			$psg->vat_luggage_purchase_inbound 	= unformat_number($_POST['psg_detail_lug_pur_ib_vat'][$i]);
-
-			$psg->cic 							= trim($_POST['psg_cic'][$i]) ?? '';
-			$psg->passport_number 				= trim($_POST['psg_passport_number'][$i]) ?? '';
-
-			if ((int)$psg->deleted === 1) {
-				if (!empty($psg->id)) $psg->mark_deleted($psg->id);
-				else continue;
-			} elseif (!empty($psg->name)) {
-				$psg->save();
-			}
-		}
-
-		// Khi booking ở trạng thái xác nhận
-		// Kiểm tra nếu có dù chỉ 1 số vé cũng chuyển sang trạng thái đã xuất vé
-		// Sau khi chuyển sang trạng thái đã xuất vé thì cập nhật trạng thái trong bảng ec_customer - info_data
-		if ((int)$this->booking_status === 3) {
-			$booking = new EC_Flight_Bookings;
-			$booking->retrieve($this->id);
-
-			for ($i = 0; $i < $row_count; $i++) {
-				if (!empty($_POST['psg_eticket_outbound'][$i])) {
-					$booking->is_ticket_exported = '1';
-					if (empty($booking->date_ticket_issue)) {
-						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
-					} else {
-						if (isAllowedUser()) {
-							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
-						}
-					}
-					break;
-				} else {
-					$booking->is_ticket_exported = '0';
-					$booking->date_ticket_issue = '';
-				}
-			}
-
-			for ($i = 0; $i < $row_count; $i++) {
-				if (!empty($_POST['psg_eticket_inbound'][$i])) {
-					$booking->is_ticket_inbound_exported = '1';
-					if (empty($booking->date_ticket_inbound_issue)) {
-						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
-					} else {
-						if (isAllowedUser()) {
-							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
-						}
-					}
-					break;
-				} else {
-					$booking->is_ticket_inbound_exported = '0';
-					$booking->date_ticket_inbound_issue = '';
-				}
-			}
-
-			if (!empty($booking->is_ticket_exported) || !empty($booking->is_ticket_inbound_exported)) {
-				$booking->booking_status = '7';
-			}
-			$booking->save2();
-
-			// Cập nhật trạng thái trong ec_customer
-			// UpdateInforBookingOfCustomer($this->id);
-		}
-	}
-
-	// Lưu thay đổi Ngày bay / Hành trình / Thông tin hành khách / Hành lý / Số vé / Code vé
-	function saveChangeFlightTime() {
-		global $current_user;
+	/**
+	 * Save when changing flight info such as: flight date, itinerary, passengers, baggages, ticket code, PNR
+	 * @return 
+	 */
+	public function saveChangeFlightTime() {
+		global $sugar_config;
+		$vat_rate = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
 		
 		// ======== THAY ĐỔI THÔNG TIN HÀNH KHÁCH =========
-		// lấy stt của các lần thay đổi thông tin hành khách trước
+		// Lấy STT của các lần thay đổi thông tin hành khách trước
 		$sql_pass_order = 'SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
 
 		$pass_order = $this->db->getOne($sql_pass_order);
 
-		// lưu thông tin hành khách
-		$pass_replace = array();
+		// Lưu thông tin hành khách
+		$pass_replace = [];
 		for ($i = 0; $i < count($_POST['pass_id']); $i++) {
 			$pass = new EC_Booking_Passengers;
 			$pass->retrieve($_POST['pass_id'][$i]);
@@ -702,7 +567,7 @@ class EC_Flight_Bookings extends Basic
 					$create_new = 1;
 			}
 
-			// tạo mới hành khách
+			// Tạo mới hành khách
 			if ($create_new) {
 				if (!empty($_POST['pass_name'][$i])) {
 					$pass_n 					= new EC_Booking_Passengers;
@@ -711,87 +576,76 @@ class EC_Flight_Bookings extends Basic
 					$pass_n->birthday 			= $_POST['pass_birthday' . $i];
 					$pass_n->type 				= $pass->type;
 					$pass_n->booking_id 		= $pass->booking_id;
+					$pass_n->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
+					$pass_n->pnr_inbound 		= $_POST['pass_pnr_inbound'][$i];
 					$pass_n->eticket_outbound 	= $_POST['pass_eticket_outbound'][$i];
 					$pass_n->eticket_inbound 	= $_POST['pass_eticket_inbound'][$i];
 					$pass_n->eluggage_outbound 	= $_POST['pass_eluggage_outbound'][$i];
 					$pass_n->eluggage_inbound 	= $_POST['pass_eluggage_inbound'][$i];
-					$pass_n->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
-					$pass_n->pnr_inbound 		= $_POST['pass_pnr_inbound'][$i];
 					$pass_n->direction 			= $pass->direction;
-
+					$pass_n->add_type 			= 2;
+					$pass_n->parent_detail_id 	= $pass->id;
+					$pass_n->go_with 			= ($pass_order + 1);
+					// CCCD / Passport
+					$pass_n->cic = trim($pass->cic ?? '');
+					$pass_n->passport_number = trim($pass->passport_number ?? '');
+					// Hành lý mua thêm
 					if (isset($_POST['pass_luggage_ob'][$i])) {
-						if (!isset($_POST['pass_luggage_ob_ind']) || empty($_POST['pass_luggage_ob_ind'][$i])) {
-							$pass_n->luggage_price = (int)$_POST['pass_luggage_ob'][$i];
-						} else {
-							$luggage_price_arr 				= generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ob'], $_POST['pass_ticket_class_ob'][$i], (int)$_POST['pass_luggage_ob'][$i]);
-							$pass_n->luggage_price 			= $luggage_price_arr[(int)$_POST['pass_luggage_ob'][$i]];
-							$pass_n->luggage_index_outbound = (int)$_POST['pass_luggage_ob'][$i];
-						}
+						$pass_n->luggage_index_outbound = $pass->luggage_index_outbound;
+						$pass_n->luggage_purchase_text 	= trim($_POST['pass_luggage_ob'][$i]);
+						$pass_n->luggage_price 			= unformat_number($_POST['pass_luggage_price'][$i]);
+						$pass_n->luggage_purchase 		= unformat_number($_POST['pass_luggage_purchase'][$i]);
+						$pass_n->vat_luggage_purchase 	 = $pass_n->luggage_purchase > 0 ? $pass_n->luggage_purchase * $vat_rate : 0;
+						$pass_n->luggage_purchase_no_vat = $pass_n->luggage_purchase > 0 ? $pass_n->luggage_purchase - $pass_n->vat_luggage_purchase : 0;
+						$pass_n->supplier_id = trim($_POST['supplier_outbound'][$i]);
 					}
 					if (isset($_POST['pass_luggage_ib'][$i])) {
-						if (!isset($_POST['pass_luggage_ib_ind']) || empty($_POST['pass_luggage_ib_ind'][$i])) {
-							$pass_n->luggage_price_inbound = (int)$_POST['pass_luggage_ib'][$i];
-						} else {
-							$luggage_price_ib_arr 			= generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ib'], $_POST['pass_ticket_class_ib'][$i], (int)$_POST['pass_luggage_ib'][$i]);
-							$pass_n->luggage_price_inbound 	= $luggage_price_ib_arr[(int)$_POST['pass_luggage_ib'][$i]];
-							$pass_n->luggage_index_inbound 	= (int)$_POST['pass_luggage_ib'][$i];
-						}
+						$pass_n->luggage_index_inbound 			= $pass->luggage_index_inbound;
+						$pass_n->luggage_purchase_text_inbound 	= trim($_POST['pass_luggage_ib'][$i]);
+						$pass_n->luggage_price_inbound 			= unformat_number($_POST['pass_luggage_price_inbound'][$i]);
+						$pass_n->luggage_purchase_inbound 		= unformat_number($_POST['pass_luggage_purchase_inbound'][$i]);
+						$pass_n->vat_luggage_purchase_inbound 	 = $pass_n->luggage_purchase_inbound > 0 ? $pass_n->luggage_purchase_inbound * $vat_rate : 0;
+						$pass_n->luggage_purchase_inbound_no_vat = $pass_n->luggage_purchase_inbound > 0 ? $pass_n->luggage_purchase_inbound - $pass_n->vat_luggage_purchase_inbound : 0;
+						$pass_n->supplier_inbound_id = trim($_POST['supplier_inbound'][$i]);
 					}
-					$pass_n->luggage_purchase 			= $_POST['bought_price_outbound'][$i];
-					$pass_n->luggage_purchase_inbound 	= $_POST['bought_price_inbound'][$i];
-					$pass_n->supplier_id 				= $_POST['supplier_outbound'][$i];
-					$pass_n->supplier_inbound_id 		= $_POST['supplier_inbound'][$i];
-					$pass_n->add_type 					= 2;
-					$pass_n->parent_detail_id 			= $pass->id;
-					$pass_n->go_with 					= ($pass_order + 1);
 					$pass_n->save();
 
 					$pass_replace[$pass->id] = $pass_n->id;
 				}
-			} else {
-
+			}
+			else {
 				$birthday = '';
-				if (!empty($_POST['pass_birthday' . $i])) {
-					$birthday = $_POST['pass_birthday' . $i];
-				} 
+				if (!empty($_POST['pass_birthday' . $i])) $birthday = $_POST['pass_birthday' . $i];
 
-				$pass = new EC_Booking_Passengers;
-				$pass->retrieve($_POST['pass_id'][$i]);
+				// $pass = new EC_Booking_Passengers;
+				// $pass->retrieve($_POST['pass_id'][$i]);
 				$pass->birthday 			= $birthday;
 				$pass->salutation 			= $_POST['pass_salutation'][$i];
 				$pass->name 				= $_POST['pass_name'][$i];
+				$pass->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
+				$pass->pnr_inbound 			= $_POST['pass_pnr_inbound'][$i];
 				$pass->eticket_outbound 	= $_POST['pass_eticket_outbound'][$i];
 				$pass->eticket_inbound 		= $_POST['pass_eticket_inbound'][$i];
 				$pass->eluggage_outbound 	= $_POST['pass_eluggage_outbound'][$i];
 				$pass->eluggage_inbound 	= $_POST['pass_eluggage_inbound'][$i];
-				$pass->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
-				$pass->pnr_inbound 			= $_POST['pass_pnr_inbound'][$i];
 
-				$pass->luggage_purchase 	 	= $_POST['bought_price_outbound'][$i];
-				$pass->luggage_purchase_inbound = $_POST['bought_price_inbound'][$i];
-				$pass->supplier_id 			 	= $_POST['supplier_outbound'][$i];
-				$pass->supplier_inbound_id 	 	= $_POST['supplier_inbound'][$i];
-
+				// Hành lý mua thêm
 				if (isset($_POST['pass_luggage_ob'][$i])) {
-					if (!isset($_POST['pass_luggage_ob_ind']) || empty($_POST['pass_luggage_ob_ind'][$i])) {
-						$pass->luggage_price = (int)$_POST['pass_luggage_ob'][$i];
-					} else {
-						$pass->luggage_price = generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ob'], $_POST['pass_ticket_class_ob'][$i], (int)$_POST['pass_luggage_ob'][$i]);
-						$pass->luggage_index_outbound = (int)$_POST['pass_luggage_ob'][$i];
-					}
+					$pass_n->luggage_purchase_text 	= trim($_POST['pass_luggage_ob'][$i]);
+					$pass_n->luggage_price 			= unformat_number($_POST['pass_luggage_price'][$i]);
+					$pass_n->luggage_purchase 		= unformat_number($_POST['pass_luggage_purchase'][$i]);
+					$pass_n->vat_luggage_purchase 	 = $pass_n->luggage_purchase > 0 ? $pass_n->luggage_purchase * $vat_rate : 0;
+					$pass_n->luggage_purchase_no_vat = $pass_n->luggage_purchase > 0 ? $pass_n->luggage_purchase - $pass_n->vat_luggage_purchase : 0;
+					$pass_n->supplier_id = trim($_POST['supplier_outbound'][$i]);
 				}
-
 				if (isset($_POST['pass_luggage_ib'][$i])) {
-					if (!isset($_POST['pass_luggage_ib_ind']) || empty($_POST['pass_luggage_ib_ind'][$i])) {
-						$pass->luggage_price_inbound = (int)$_POST['pass_luggage_ib'][$i];
-					} else {
-						$pass->luggage_price_inbound = generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ib'], $_POST['pass_ticket_class_ib'][$i], (int)$_POST['pass_luggage_ib'][$i]);
-						$pass->luggage_index_inbound = (int)$_POST['pass_luggage_ib'][$i];
-					}
+					$pass_n->luggage_purchase_text_inbound 	= trim($_POST['pass_luggage_ib'][$i]);
+					$pass_n->luggage_price_inbound 			= unformat_number($_POST['pass_luggage_price_inbound'][$i]);
+					$pass_n->luggage_purchase_inbound 		= unformat_number($_POST['pass_luggage_purchase_inbound'][$i]);
+					$pass_n->vat_luggage_purchase_inbound 	 = $pass_n->luggage_purchase_inbound > 0 ? $pass_n->luggage_purchase_inbound * $vat_rate : 0;
+					$pass_n->luggage_purchase_inbound_no_vat = $pass_n->luggage_purchase_inbound > 0 ? $pass_n->luggage_purchase_inbound - $pass_n->vat_luggage_purchase_inbound : 0;
+					$pass_n->supplier_inbound_id = trim($_POST['supplier_inbound'][$i]);
 				}
-
-				$pass->luggage_purchase 			= str_replace(array(',', '.'), '', $_POST['bought_price_outbound'][$i]);
-				$pass->luggage_purchase_inbound 	= str_replace(array(',', '.'), '', $_POST['bought_price_inbound'][$i]);
 				$pass->save();
 			}
 		}
@@ -1388,7 +1242,10 @@ class EC_Flight_Bookings extends Basic
 			$purchasedBagDepParts = Baggage::parsePackage($depPurchaseBagText); // Array
 
 			// Conbine
-			if($avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight']) && stripos($row['luggage_index_outbound'] ?? '', 'T') === false) {
+			if($avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight'])
+				&& $avaiBagDepParts['package'] > 0 && $purchasedBagDepParts['package'] > 0
+				&& stripos($depAvaiBagText, 't') === false
+			) {
 				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagDepParts['weight'] . 'kg';
 			}
 			elseif(is_null($avaiBagDepParts['package']) && is_null($purchasedBagDepParts['package'])) {
@@ -1412,7 +1269,10 @@ class EC_Flight_Bookings extends Basic
 			$purchasedBagRetParts = Baggage::parsePackage($retPurchaseBagText); // Array
 
 			// Conbine
-			if($avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight']) && stripos($row['luggage_index_inbound'] ?? '', 'T') === false) {
+			if($avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight']) 
+				&& $avaiBagDepParts['package'] > 0 && $purchasedBagDepParts['package'] > 0
+				&& stripos($retAvaiBagText, 't') === false
+			) {
 				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagRetParts['weight'] . 'kg';
 			}
 			elseif(is_null($avaiBagRetParts['package']) && is_null($purchasedBagRetParts['package'])) {
@@ -1442,6 +1302,100 @@ class EC_Flight_Bookings extends Basic
 		else return trim("$baggageDescriptionDep $baggageDescriptionRet");
 	}
 	
+	/**
+	 * Generate options to buy extra baggage
+	 * 
+	 * @param string $airlineCode
+	 * @param string $ticketClass
+	 * @param string $currentValue Use to mark selected item
+	 * @param string $currentPrice Baggage purchase price
+	 * @return string HTML
+	 */
+	public function generateBaggageOptions($airlineCode, $ticketClass = '', $currentValue = '', $currentPrice = 0) {
+		$options = "<option value=''>Chọn hành lý</option>";
+		if(is_string($airlineCode) && !empty($airlineCode)) {
+			try {
+				require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
+				$baggageData = [];
+
+				$cacheKey = "extra_baggage_options_".strtolower($airlineCode);
+				$cacheTime = 3600;
+
+				// Get data in SESSION cache
+				$cacheKey = "extra_baggage_options_".strtolower($airlineCode);
+				if(isset($_SESSION) && isset($_SESSION[$cacheKey]) && !empty($_SESSION[$cacheKey])) {
+					$sessionData = $_SESSION[$cacheKey];
+					if(is_array($sessionData) && !empty($sessionData)) {
+						$expiredAt = $sessionData['expiredAt']; // Timestamp
+						if(time() < $expiredAt) $baggageData = $sessionData['data'];
+					}
+				}
+
+				// Get data from API
+				if(!is_array($baggageData) || empty($baggageData)) {
+					$fareSystem = new entryFareSystemClass();
+					$baggageResponse = $fareSystem->getBaggageOption(['airlineCode' => $airlineCode]);
+					$baggageResponse = json_decode($baggageResponse, true);
+
+					if (isset($baggageResponse['status']) && $baggageResponse['status'] == 1) {
+						$baggageData = $baggageResponse['data'] ?? [];
+						if(!empty($baggageData)) {
+							$_SESSION[$cacheKey] = [
+								'data' => $baggageData,
+								'expiredAt' => time() + $cacheTime
+							];
+						}
+						else {
+							$_SESSION[$cacheKey] = null;
+							unset($_SESSION[$cacheKey]);
+						}
+					}
+				}
+
+				$foundMatch = false;
+				$currentValue = trim(preg_replace('/\s*\([^)]*\)\s*$/', '', preg_replace('/^Thêm\s+/', '', $currentValue)));
+
+				foreach ($baggageData as $bag) {
+					$cost = $bag['cost'] ?? 0;
+					$value = $bag['value'] ?? 0;
+					$description = $bag['description'] ?? '';
+
+					if (!empty($description)) {
+						$displayText = trim(preg_replace('/^Thêm\s+/', '', $description));
+						$saveValue = trim(preg_replace('/\s*\([^)]*\)\s*$/', '', preg_replace('/^Thêm\s+/', '', $description)));
+
+						$selected = '';
+						if ($currentValue == $saveValue) {
+							$selected = 'selected';
+							$foundMatch = true;
+						}
+
+						$options .= "<option value='". htmlspecialchars($saveValue) ."'
+							data-text='". htmlspecialchars($displayText) ."'
+							data-cost='{$cost}'
+							data-value='{$value}'
+							{$selected}
+						>
+							". htmlspecialchars($displayText) ."
+						</option>";
+					}
+				}
+				if (!empty($currentValue) && !$foundMatch) {
+					$options .= '<option value="'. htmlspecialchars($currentValue) .'"
+						data-text="'. htmlspecialchars($currentValue) .' (Tùy chỉnh)"
+						data-cost="'. $currentPrice .'"
+						data-value="'. $currentPrice .'" selected
+					>
+						'. htmlspecialchars($currentValue) . ' (Tùy chỉnh)
+					</option>';
+				}
+			}
+			catch (Throwable $th) {
+				$GLOBALS['log']->fatal("Error fetching baggage options: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+			}
+		}
+		return $options;
+	}
 
 	/**
      * Get list ticket number in booking by times
@@ -1541,4 +1495,435 @@ class EC_Flight_Bookings extends Basic
 
         return $listTickets;
     }
+
+	/***********  OLD FUNCTIONS  ***********/
+
+	function saveLinePassengersOld() {
+		global $app_list_strings;
+
+		$bk = new EC_Flight_Bookings;
+		$bk->retrieve($this->id);
+
+		$row_count = count($_POST['psg_id']);
+		for ($i = 0; $i < $row_count; $i++) {
+			$psg = new EC_Booking_Passengers();
+			if (!empty($_POST['psg_id'][$i])) $psg->retrieve($_POST['psg_id'][$i]);
+			else $psg->id = '';
+
+			$psg->type 		 	= $_POST['psg_traveller_type'][$i];
+			$psg->salutation 	= $_POST['psg_salutation'][$i];
+			$psg->name 		 	= strtoupper(myRemoveUnicodeChars(trim(stripslashes($_POST['psg_full_name'][$i]))));
+
+			if (isset($_POST['psg_birthday'][$i]) && strtotime($_POST['psg_birthday'][$i]) !== false) {
+				$date_str = str_replace('/', '-', $_POST['psg_birthday'][$i]);
+				$psg->birthday = date('d-m-Y', strtotime($date_str));
+			} 
+
+			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
+			$psg->eticket_inbound 	= trim(stripslashes($_POST['psg_eticket_inbound'][$i]));
+			
+			$psg->eluggage_outbound = trim(stripslashes($_POST['psg_eluggage_outbound'][$i]));
+			$psg->eluggage_inbound 	= trim(stripslashes($_POST['psg_eluggage_inbound'][$i]));
+
+			$psg->pnr_outbound 		= trim(stripslashes($_POST['psg_pnr_outbound'][$i]));
+			$psg->pnr_inbound 		= trim(stripslashes($_POST['psg_pnr_inbound'][$i]));
+
+			if (isset($_POST['psg_luggage_price'][$i])) {
+				if (((!isset($_POST['psg_luggage_ob_ind']) || empty($_POST['psg_luggage_ob_ind'][$i])) && (string)$this->airline !== 'VJA' && (string)$this->airline !== 'VJ') || ((string)$this->airline !== 'VJA' && (string)$this->airline !== 'VJ')) {
+					$psg->luggage_price = unformat_number($_POST['psg_luggage_price'][$i]);
+					$psg->luggage_index_outbound = '';
+				} else {
+					// BK đặt từ ngày 21-11-2022, VJA có giá mới
+					$list_key = strtotime($bk->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
+					$psg->luggage_price = $app_list_strings[$list_key][(int)$_POST['psg_luggage_price'][$i]];
+
+					$psg->luggage_index_outbound = (int)$_POST['psg_luggage_price'][$i];
+				}
+			}
+
+			if (isset($_POST['psg_luggage_price_inbound'][$i])) {
+				if (((!isset($_POST['psg_luggage_ib_ind']) || empty($_POST['psg_luggage_ib_ind'][$i])) && (string)$this->airline !== 'VJA' && (string)$this->airline !== 'VJ') || ((string)$this->airline_inbound !== 'VJA' && (string)$this->airline_inbound !== 'VJ')) {
+					$psg->luggage_price_inbound = unformat_number($_POST['psg_luggage_price_inbound'][$i]);
+					$psg->luggage_index_inbound = '';
+				} else {
+					// BK đặt từ ngày 21-11-2022, VJA có giá mới
+					$list_key = strtotime($bk->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
+					$psg->luggage_price_inbound = $app_list_strings[$list_key][(int)$_POST['psg_luggage_price_inbound'][$i]];
+					$psg->luggage_index_inbound = (int)$_POST['psg_luggage_price_inbound'][$i];
+				}
+			}
+
+			$psg->luggage_purchase 				= unformat_number($_POST['psg_luggage_purchase'][$i]);
+			$psg->luggage_purchase_inbound 		= unformat_number($_POST['psg_luggage_purchase_inbound'][$i]);
+
+			$psg->supplier_id 					= $_POST['psg_luggage_supplier'][$i];
+			$psg->supplier_inbound_id 			= $_POST['psg_luggage_supplier_inbound'][$i];
+			$psg->booking_id 					= $this->id;
+			$psg->add_type 						= $_POST['psg_add_type'][$i] ?? null;
+			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i] ?? '';
+			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? 0;
+			
+			$psg->luggage_purchase_no_vat 		= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
+			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
+			$psg->luggage_purchase_inbound_no_vat = unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
+			$psg->vat_luggage_purchase_inbound 	= unformat_number($_POST['psg_detail_lug_pur_ib_vat'][$i]);
+
+			$psg->cic 							= trim($_POST['psg_cic'][$i]) ?? '';
+			$psg->passport_number 				= trim($_POST['psg_passport_number'][$i]) ?? '';
+
+			if ((int)$psg->deleted === 1) {
+				if (!empty($psg->id)) $psg->mark_deleted($psg->id);
+				else continue;
+			} elseif (!empty($psg->name)) {
+				$psg->save();
+			}
+		}
+
+		// Khi booking ở trạng thái xác nhận
+		// Kiểm tra nếu có dù chỉ 1 số vé cũng chuyển sang trạng thái đã xuất vé
+		// Sau khi chuyển sang trạng thái đã xuất vé thì cập nhật trạng thái trong bảng ec_customer - info_data
+		if ((int)$this->booking_status === 3) {
+			$booking = new EC_Flight_Bookings;
+			$booking->retrieve($this->id);
+
+			for ($i = 0; $i < $row_count; $i++) {
+				if (!empty($_POST['psg_eticket_outbound'][$i])) {
+					$booking->is_ticket_exported = '1';
+					if (empty($booking->date_ticket_issue)) {
+						$now = date('d-m-Y H:i:s');
+						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+					} else {
+						if (isAllowedUser()) {
+							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
+						}
+					}
+					break;
+				} else {
+					$booking->is_ticket_exported = '0';
+					$booking->date_ticket_issue = '';
+				}
+			}
+
+			for ($i = 0; $i < $row_count; $i++) {
+				if (!empty($_POST['psg_eticket_inbound'][$i])) {
+					$booking->is_ticket_inbound_exported = '1';
+					if (empty($booking->date_ticket_inbound_issue)) {
+						$now = date('d-m-Y H:i:s');
+						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+					} else {
+						if (isAllowedUser()) {
+							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+						}
+					}
+					break;
+				} else {
+					$booking->is_ticket_inbound_exported = '0';
+					$booking->date_ticket_inbound_issue = '';
+				}
+			}
+
+			if (!empty($booking->is_ticket_exported) || !empty($booking->is_ticket_inbound_exported)) {
+				$booking->booking_status = '7';
+			}
+			$booking->save2();
+
+			// Cập nhật trạng thái trong ec_customer
+			// UpdateInforBookingOfCustomer($this->id);
+		}
+	}
+
+	// Lưu thay đổi Ngày bay / Hành trình / Thông tin hành khách / Hành lý / Số vé / Code vé
+	function saveChangeFlightTimeOld() {
+		global $current_user;
+		
+		// ======== THAY ĐỔI THÔNG TIN HÀNH KHÁCH =========
+		// lấy stt của các lần thay đổi thông tin hành khách trước
+		$sql_pass_order = 'SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
+
+		$pass_order = $this->db->getOne($sql_pass_order);
+
+		// lưu thông tin hành khách
+		$pass_replace = array();
+		for ($i = 0; $i < count($_POST['pass_id']); $i++) {
+			$pass = new EC_Booking_Passengers;
+			$pass->retrieve($_POST['pass_id'][$i]);
+
+			$create_new = 0;
+			if (
+				isset($_POST['pass_name']) && $pass->name != $_POST['pass_name'][$i]
+				|| isset($_POST['pass_birthday' . $i]) && $pass->birthday != $_POST['pass_birthday' . $i]
+				|| isset($_POST['pass_eticket_outbound']) && $pass->eticket_outbound != $_POST['pass_eticket_outbound'][$i]
+				|| isset($_POST['pass_eticket_inbound']) && $pass->eticket_inbound != $_POST['pass_eticket_inbound'][$i]
+				|| isset($_POST['pass_pnr_outbound']) && $pass->pnr_outbound != $_POST['pass_pnr_outbound'][$i]
+				|| isset($_POST['pass_pnr_inbound']) && $pass->pnr_inbound != $_POST['pass_pnr_inbound'][$i]
+				|| !isset($_POST['pass_luggage_ob_ind']) && $pass->luggage_price != $_POST['pass_luggage_ob'][$i]
+				|| isset($_POST['pass_luggage_ob_ind']) && $pass->luggage_index_outbound != $_POST['pass_luggage_ob_ind'][$i]
+				|| !isset($_POST['pass_luggage_ib_ind']) && $pass->luggage_price_inbound != $_POST['pass_luggage_ib'][$i]
+				|| isset($_POST['pass_luggage_ib_ind']) && $pass->luggage_index_inbound != $_POST['pass_luggage_ib_ind'][$i]
+			) {
+				if (!isset($_POST['edit_pass_id']))
+					$create_new = 1;
+			}
+
+			// tạo mới hành khách
+			if ($create_new) {
+				if (!empty($_POST['pass_name'][$i])) {
+					$pass_n 					= new EC_Booking_Passengers;
+					$pass_n->name 				= $_POST['pass_name'][$i];
+					$pass_n->salutation 		= $_POST['pass_salutation'][$i];
+					$pass_n->birthday 			= $_POST['pass_birthday' . $i];
+					$pass_n->type 				= $pass->type;
+					$pass_n->booking_id 		= $pass->booking_id;
+					$pass_n->eticket_outbound 	= $_POST['pass_eticket_outbound'][$i];
+					$pass_n->eticket_inbound 	= $_POST['pass_eticket_inbound'][$i];
+					$pass_n->eluggage_outbound 	= $_POST['pass_eluggage_outbound'][$i];
+					$pass_n->eluggage_inbound 	= $_POST['pass_eluggage_inbound'][$i];
+					$pass_n->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
+					$pass_n->pnr_inbound 		= $_POST['pass_pnr_inbound'][$i];
+					$pass_n->direction 			= $pass->direction;
+
+					if (isset($_POST['pass_luggage_ob'][$i])) {
+						if (!isset($_POST['pass_luggage_ob_ind']) || empty($_POST['pass_luggage_ob_ind'][$i])) {
+							$pass_n->luggage_price = (int)$_POST['pass_luggage_ob'][$i];
+						} else {
+							$luggage_price_arr 				= generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ob'], $_POST['pass_ticket_class_ob'][$i], (int)$_POST['pass_luggage_ob'][$i]);
+							$pass_n->luggage_price 			= $luggage_price_arr[(int)$_POST['pass_luggage_ob'][$i]];
+							$pass_n->luggage_index_outbound = (int)$_POST['pass_luggage_ob'][$i];
+						}
+					}
+					if (isset($_POST['pass_luggage_ib'][$i])) {
+						if (!isset($_POST['pass_luggage_ib_ind']) || empty($_POST['pass_luggage_ib_ind'][$i])) {
+							$pass_n->luggage_price_inbound = (int)$_POST['pass_luggage_ib'][$i];
+						} else {
+							$luggage_price_ib_arr 			= generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ib'], $_POST['pass_ticket_class_ib'][$i], (int)$_POST['pass_luggage_ib'][$i]);
+							$pass_n->luggage_price_inbound 	= $luggage_price_ib_arr[(int)$_POST['pass_luggage_ib'][$i]];
+							$pass_n->luggage_index_inbound 	= (int)$_POST['pass_luggage_ib'][$i];
+						}
+					}
+					$pass_n->luggage_purchase 			= $_POST['bought_price_outbound'][$i];
+					$pass_n->luggage_purchase_inbound 	= $_POST['bought_price_inbound'][$i];
+					$pass_n->supplier_id 				= $_POST['supplier_outbound'][$i];
+					$pass_n->supplier_inbound_id 		= $_POST['supplier_inbound'][$i];
+					$pass_n->add_type 					= 2;
+					$pass_n->parent_detail_id 			= $pass->id;
+					$pass_n->go_with 					= ($pass_order + 1);
+					$pass_n->save();
+
+					$pass_replace[$pass->id] = $pass_n->id;
+				}
+			} else {
+
+				$birthday = '';
+				if (!empty($_POST['pass_birthday' . $i])) {
+					$birthday = $_POST['pass_birthday' . $i];
+				} 
+
+				$pass = new EC_Booking_Passengers;
+				$pass->retrieve($_POST['pass_id'][$i]);
+				$pass->birthday 			= $birthday;
+				$pass->salutation 			= $_POST['pass_salutation'][$i];
+				$pass->name 				= $_POST['pass_name'][$i];
+				$pass->eticket_outbound 	= $_POST['pass_eticket_outbound'][$i];
+				$pass->eticket_inbound 		= $_POST['pass_eticket_inbound'][$i];
+				$pass->eluggage_outbound 	= $_POST['pass_eluggage_outbound'][$i];
+				$pass->eluggage_inbound 	= $_POST['pass_eluggage_inbound'][$i];
+				$pass->pnr_outbound 		= $_POST['pass_pnr_outbound'][$i];
+				$pass->pnr_inbound 			= $_POST['pass_pnr_inbound'][$i];
+
+				$pass->luggage_purchase 	 	= $_POST['bought_price_outbound'][$i];
+				$pass->luggage_purchase_inbound = $_POST['bought_price_inbound'][$i];
+				$pass->supplier_id 			 	= $_POST['supplier_outbound'][$i];
+				$pass->supplier_inbound_id 	 	= $_POST['supplier_inbound'][$i];
+
+				if (isset($_POST['pass_luggage_ob'][$i])) {
+					if (!isset($_POST['pass_luggage_ob_ind']) || empty($_POST['pass_luggage_ob_ind'][$i])) {
+						$pass->luggage_price = (int)$_POST['pass_luggage_ob'][$i];
+					} else {
+						$pass->luggage_price = generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ob'], $_POST['pass_ticket_class_ob'][$i], (int)$_POST['pass_luggage_ob'][$i]);
+						$pass->luggage_index_outbound = (int)$_POST['pass_luggage_ob'][$i];
+					}
+				}
+
+				if (isset($_POST['pass_luggage_ib'][$i])) {
+					if (!isset($_POST['pass_luggage_ib_ind']) || empty($_POST['pass_luggage_ib_ind'][$i])) {
+						$pass->luggage_price_inbound = (int)$_POST['pass_luggage_ib'][$i];
+					} else {
+						$pass->luggage_price_inbound = generateLuggage($_POST['bk_date_entered'], $_POST['pass_airline_ib'], $_POST['pass_ticket_class_ib'][$i], (int)$_POST['pass_luggage_ib'][$i]);
+						$pass->luggage_index_inbound = (int)$_POST['pass_luggage_ib'][$i];
+					}
+				}
+
+				$pass->luggage_purchase 			= str_replace(array(',', '.'), '', $_POST['bought_price_outbound'][$i]);
+				$pass->luggage_purchase_inbound 	= str_replace(array(',', '.'), '', $_POST['bought_price_inbound'][$i]);
+				$pass->save();
+			}
+		}
+
+		if (!empty($_POST['applied_passenger'])) {
+			$old_pass_arr = array_keys($pass_replace);
+			for ($k = 0; $k < count($old_pass_arr); $k++) {
+				$idx = array_search($old_pass_arr, $_POST['applied_passenger']);
+				$_POST['applied_passenger'][$idx] = $pass_replace[$old_pass_arr[$k]];
+			}
+		}
+
+		// ========== THAY ĐỔI HÀNH TRÌNH =============
+		// Lấy STT của các lần thay đổi hành trình trước
+		$sql_iti_order = 'SELECT MAX(IFNULL(sabre_logs, 0)) FROM ec_booking_itineraries WHERE deleted = 0 AND booking_id = "' . $_POST['booking_id'] . '"';
+		$iti_order = $this->db->getOne($sql_iti_order); // 0, 1, 2
+
+		// Nếu là lưu mới thông tin hành trình
+		if (!isset($_POST['iti_id']) || empty($_POST['iti_id']) || is_null($_POST['iti_id'])) {
+			// Lưu lượt đi của hành trình
+			if (
+				!empty($_POST['flight_number0'])
+				&& !empty($_POST['ticket_class0'])
+				&& !empty($_POST['departure0'])
+				&& !empty($_POST['arrival0'])
+				&& !empty($_POST['departure_date0'])
+				&& ((int)$_POST['departure_hour0'] >= 0 && (int)$_POST['departure_hour0'] < 24)
+				&& ((int)$_POST['departure_minute0'] >= 0 && (int)$_POST['departure_minute0'] < 60)
+				&& !empty($_POST['arrival_date0'])
+				&& ((int)$_POST['arrival_hour0'] >= 0 && (int)$_POST['arrival_hour0'] < 24)
+				&& ((int)$_POST['arrival_minute0'] >= 0 && (int)$_POST['arrival_minute0'] < 60)
+				&& ((isset($_POST['applied_all']) && $_POST['applied_all'] == 'on') || count($_POST['applied_passenger']) > 0)
+			) {
+
+				if ($_POST['applied_all'] == 'on') {
+					for ($p = 0; $p < count($_POST['pass_id']); $p++) {
+						if (in_array($_POST['pass_id'][$p], array_keys($pass_replace))) {
+							$pass_id = $pass_replace[$_POST['pass_id'][$p]];
+						} else $pass_id = $_POST['pass_id'][$p];
+						// lượt đi
+						$this->saveFlightItinerary($_POST['pass_name'][$p], 0, $_POST, $pass_id, $iti_order);
+					}
+				} else {
+					for ($p = 0; $p < count($_POST['pass_id']); $p++) {
+						// lượt đi
+						if (in_array($_POST['pass_id'][$p], array_keys($pass_replace))) {
+							$pass_id = $pass_replace[$_POST['pass_id'][$p]];
+						} else $pass_id = $_POST['pass_id'][$p];
+						$this->saveFlightItinerary($_POST['pass_name'][$p], 0, $_POST, $pass_id, $iti_order);
+					}
+				}
+			} else {
+				// Nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
+				// tìm lại lần thay đổi hành trình mới nhất nếu có
+				// đổi hành khách áp dụng
+				foreach ($pass_replace as $old_pass_id => $new_pass_id) {
+					$sql = 'SELECT id
+							FROM ec_booking_itineraries
+							WHERE deleted = 0 AND add_type = 3
+							AND assigned_user_id = "' . $old_pass_id . '"
+							AND direction = 0
+							ORDER BY date_entered DESC
+							LIMIT 1';
+					$res = $this->db->query($sql);
+					$row = $this->db->fetchByAssoc($res);
+
+					if (!empty($row['id'])) {
+						$new_iti = new EC_Booking_Itineraries;
+						$new_iti->retrieve($row['id']);
+						$new_iti->id = '';
+						$new_iti->date_entered = NULL;
+
+						$new_iti->departure_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($new_iti->departure_date)));
+						$new_iti->arrival_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($new_iti->arrival_date)));
+
+						$new_iti->assigned_user_id = $new_pass_id;
+						$new_iti->save();
+
+						$old_iti = new EC_Booking_Itineraries;
+						$old_iti->retrieve($row['id']);
+
+						$old_iti->departure_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($old_iti->departure_date)));
+						$old_iti->arrival_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($old_iti->arrival_date)));
+
+						$old_iti->add_type = 1;
+						$old_iti->save();
+					}
+				}
+			}
+
+			// Lưu lượt về của hành trình
+			if (
+				!empty($_POST['flight_number1'])
+				&& !empty($_POST['ticket_class1'])
+				&& !empty($_POST['departure1'])
+				&& !empty($_POST['arrival1'])
+				&& !empty($_POST['departure_date1'])
+				&& ((int)$_POST['departure_hour1'] >= 0 && (int)$_POST['departure_hour1'] < 24)
+				&& ((int)$_POST['departure_minute1'] >= 0 && (int)$_POST['departure_minute1'] < 60)
+				&& !empty($_POST['arrival_date1'])
+				&& ((int)$_POST['arrival_hour1'] >= 0 && (int)$_POST['arrival_hour1'] < 24)
+				&& ((int)$_POST['arrival_minute1'] >= 0 && (int)$_POST['arrival_minute1'] < 60)
+				// phần thông tin B
+				&& ($_POST['applied_all'] == 'on' || count($_POST['applied_passenger']) > 0)
+			) {
+				if ($_POST['applied_all'] == 'on') {
+					for ($p = 0; $p < count($_POST['pass_id']); $p++) {
+						if (in_array($_POST['pass_id'][$p], array_keys($pass_replace))) {
+							$pass_id = $pass_replace[$_POST['pass_id'][$p]];
+						} else $pass_id = $_POST['pass_id'][$p];
+						// lượt về
+						$this->saveFlightItinerary($_POST['pass_name'][$p], 1, $_POST, $pass_id, $iti_order);
+					}
+				} else {
+					for ($p = 0; $p < count($_POST['pass_id']); $p++) {
+						if (in_array($_POST['pass_id'][$p], array_keys($pass_replace))) {
+							$pass_id = $pass_replace[$_POST['pass_id'][$p]];
+						} else $pass_id = $_POST['pass_id'][$p];
+						$this->saveFlightItinerary($_POST['pass_name'][$p], 1, $_POST, $pass_id, $iti_order);
+					}
+				}
+			} else {
+				// Nếu không có thay đổi hành trình, nhưng thay đổi hành khách,
+				// tìm lại lần thay đổi hành trình mới nhất nếu có
+				// đổi hành khách áp dụng
+				foreach ($pass_replace as $old_pass_id => $new_pass_id) {
+					$sql = 'SELECT id
+							FROM ec_booking_itineraries
+							WHERE deleted = 0 AND add_type = 3
+							AND assigned_user_id = "' . $old_pass_id . '"
+							AND direction = 1
+							ORDER BY date_entered DESC
+							LIMIT 1';
+					$res = $this->db->query($sql);
+					$row = $this->db->fetchByAssoc($res);
+
+					if (!empty($row['id'])) {
+						$new_iti = new EC_Booking_Itineraries;
+						$new_iti->retrieve($row['id']);
+						$new_iti->id = '';
+						$new_iti->date_entered = NULL;
+
+						$new_iti->departure_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($new_iti->departure_date)));
+						$new_iti->arrival_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($new_iti->arrival_date)));
+
+						$new_iti->assigned_user_id = $new_pass_id;
+						$new_iti->save();
+
+						$old_iti = new EC_Booking_Itineraries;
+						$old_iti->retrieve($row['id']);
+
+						$old_iti->departure_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($old_iti->departure_date)));
+						$old_iti->arrival_date = date("Y-m-d H:i:s", strtotime('-7 hours', strtotime($old_iti->arrival_date)));
+
+						$old_iti->add_type = 1;
+						$old_iti->save();
+					}
+				}
+			}
+		}
+		else { // nếu là sửa lại thông tin hành trình
+			$applied_pass_arr 		= explode(',', $_POST['applied_pass']);
+			$applied_pass_name_arr 	= explode(',', $_POST['applied_pass_name']);
+			$iti_id_arr 			= explode(',', $_POST['iti_id']);
+
+			for ($t = 0; $t < count($applied_pass_arr); $t++) {
+				$_POST['iti_id'] = $iti_id_arr[$t];
+				$this->saveFlightItinerary($applied_pass_name_arr[$t], '', $_POST, $applied_pass_arr[$t], '');
+			}
+		}
+	}
 }

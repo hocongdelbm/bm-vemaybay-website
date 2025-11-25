@@ -710,10 +710,26 @@ function renderPassengers(data) {
         let listBaggage = passenger.ListBaggage
         if(listBaggage) {
             listBaggage.forEach(function (baggage) {
-                if(baggage.FlightId > 1) purchasedBaggageRet = true;
-                else purchasedBaggageDep = true;
+                // if(baggage.FlightId > 1) purchasedBaggageRet = true;
+                // else purchasedBaggageDep = true;
+
+                let bagDirectionText = '';
+                data.ListFlight.forEach(function (flight, index) {
+                    if(baggage.FlightId == flight.FlightId) {
+                        if(index > 0) {
+                            purchasedBaggageRet = true;
+                            bagDirectionText = 'Lượt về';
+                        }
+                        else {
+                            purchasedBaggageDep = true;
+                            bagDirectionText = 'Lượt đi';
+                        }
+                        return true; // stops the loop
+                    }
+                });
+
                 purchasedServicesHTML += `<p class="purchased-item">
-                    ${icon_baggage} ${baggage.FlightId == 2 ? 'Lượt về' : 'Lượt đi'}: <b style="color:blue;">${baggage.Name ?? baggage.Description} ${formatCurrency(baggage.TotalAmount)}</b>
+                    ${icon_baggage} ${bagDirectionText}: <b style="color:blue;">${baggage.Name ?? baggage.Description} ${formatCurrency(baggage.TotalAmount)}</b>
                 </p>`;
             });
         }

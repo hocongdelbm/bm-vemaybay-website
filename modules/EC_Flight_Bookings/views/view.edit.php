@@ -1,6 +1,5 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry)
-	die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
 
@@ -18,12 +17,11 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		parent::__construct();
 	}
 
-	function display()
-	{
+	function display() {
 		global $current_user;
 
-		$status_arr = array('1', '6', '2', '3'); // allow edit
-		$status__com_arr = array('7', '8'); // allow edit admin và QL chỉnh (Admin edit all)
+		$status_arr = ['1', '6', '2', '3']; // allow edit
+		$status__com_arr = ['7', '8']; // allow edit admin và QL chỉnh (Admin edit all)
 
 		if (
 			(empty($this->bean->id)
@@ -925,50 +923,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		';
 
 		$i = 0;
-		if (!empty($this->bean->id)) {
-			$booking_date = $this->bean->date_entered;
-		} else {
-			$booking_date = '';
-		}
-
-		// GET BAGGAGE OPTIONS FROM API FOR BOTH DIRECTIONS
-		$fareSystem = new entryFareSystemClass();
-		$airlineCodeOutbound = $this->bean->airline ?? '';
-		$airlineCodeInbound = $this->bean->airline_inbound ?? $airlineCodeOutbound; // Fallback to outbound if no inbound
-
-		$baggageOptionsOutbound = [];
-		$baggageOptionsInbound = [];
-
-		// Fetch baggage options for outbound
-		if (!empty($airlineCodeOutbound)) {
-			try {
-				$baggageResponse = $fareSystem->getBaggageOption(['airlineCode' => $airlineCodeOutbound]);
-				$baggageData = json_decode($baggageResponse, true);
-
-				if (isset($baggageData['status']) && $baggageData['status'] == 1 && isset($baggageData['data'])) {
-					$baggageOptionsOutbound = $baggageData['data'];
-				}
-			} catch (Exception $e) {
-				$GLOBALS['log']->fatal("Error fetching outbound baggage options: " . $e->getMessage());
-			}
-		}
-
-		// Fetch baggage options for inbound
-		if (!empty($airlineCodeInbound) && $airlineCodeInbound != $airlineCodeOutbound) {
-			try {
-				$baggageResponse = $fareSystem->getBaggageOption(['airlineCode' => $airlineCodeInbound]);
-				$baggageData = json_decode($baggageResponse, true);
-
-				if (isset($baggageData['status']) && $baggageData['status'] == 1 && isset($baggageData['data'])) {
-					$baggageOptionsInbound = $baggageData['data'];
-				}
-			} catch (Exception $e) {
-				$GLOBALS['log']->fatal("Error fetching inbound baggage options: " . $e->getMessage());
-			}
-		} else {
-			$baggageOptionsInbound = $baggageOptionsOutbound;
-		}
-
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$passenger_id = isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true' ? '' : $row['id'];
 
@@ -1040,9 +994,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				$suffix = $roundName == "outbound" ? "" : "_inbound";
 				$dir = $roundName == "outbound" ? 0 : 1;
 
-				// Select the correct baggage options based on direction
-				$baggageOptions = $roundName == "outbound" ? $baggageOptionsOutbound : $baggageOptionsInbound;
-
 				// Input name
 				$inputNameBagText = "psg_luggage_purchase_text$suffix";
 				$inputNameBagPrice = "psg_luggage_purchase$suffix";
@@ -1065,33 +1016,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				$suffix_text = $roundName == "outbound" ? "lượt đi" : "lượt về";
 
 				// Build baggage options dropdown
-				$baggageOptionsHtml = '<option value="">-- Chọn hành lý --</option>';
-				$foundMatch = false;
-				if (!empty($baggageOptions) && is_array($baggageOptions)) {
-					foreach ($baggageOptions as $baggage) {
-						$description = $baggage['description'] ?? '';
-						$cost = $baggage['cost'] ?? 0;
-						$value = $baggage['value'] ?? 0;
-
-						if (!empty($description)) {
-							$displayText = trim(preg_replace('/^Thêm\s+/', '', $description));
-
-							$saveValue = trim(preg_replace('/\s*\([^)]*\)\s*$/', '', preg_replace('/^Thêm\s+/', '', $description)));
-
-							$selected = '';
-							if ($bagText == $saveValue) {
-								$selected = 'selected';
-								$foundMatch = true;
-							}
-
-							$baggageOptionsHtml .= '<option value="' . htmlspecialchars($saveValue) . '" data-text="' . htmlspecialchars($displayText) . '" data-cost="' . $cost . '" data-value="' . $value . '" ' . $selected . '>' . htmlspecialchars($displayText) . '</option>';
-						}
-					}
-				}
-				if (!empty($bagText) && !$foundMatch) {
-					$customDisplayText = preg_replace('/\s*\([^)]*\)\s*$/', '', $bagText);
-					$baggageOptionsHtml .= '<option value="' . htmlspecialchars($bagText) . '" data-text="' . htmlspecialchars($customDisplayText) . ' (Tùy chỉnh)" data-cost="' . $bagPrice . '" data-value="' . $bagPrice . '" selected>' . htmlspecialchars($customDisplayText) . ' (Tùy chỉnh)</option>';
-				}
+				$baggageOptionsHtml = $this->bean->generateBaggageOptions($roundName == "inbound" ? $this->bean->airline_inbound : $this->bean->airline, '', $bagText, $bagPrice);
 
 				$html .= '<tr id="psg_baggage_line_' . $roundName . '_' . $i . '">
 					<td data-label="' . $roundName . ' baggage information" class="row_psg_price" colspan="10">
@@ -1183,8 +1108,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />
 				<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >
 				<!-- Store baggage options as JSON for JavaScript -->
-				<input type="hidden" id="baggage_options_outbound" value="' . htmlspecialchars(json_encode($baggageOptionsOutbound), ENT_QUOTES, 'UTF-8') . '" />
-				<input type="hidden" id="baggage_options_inbound" value="' . htmlspecialchars(json_encode($baggageOptionsInbound), ENT_QUOTES, 'UTF-8') . '" />
+				<input type="hidden" id="baggage_options_outbound" value="' . htmlspecialchars(json_encode($this->bean->generateBaggageOptions($this->bean->airline)), ENT_QUOTES, 'UTF-8') . '" />
+				<input type="hidden" id="baggage_options_inbound" value="' . htmlspecialchars(json_encode($this->bean->generateBaggageOptions($this->bean->airline_inbound)), ENT_QUOTES, 'UTF-8') . '" />
 			</td>
 		</tr>';
 		$html .= '</table>';

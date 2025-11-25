@@ -238,7 +238,10 @@
 		</div>	
 	</form>
 
-	<div class="currentsales-note">Doanh số Vé Quốc tế được tách riêng hoàn toàn</div>
+	<div class="currentsales-note">
+		<span class="fw-bold fst-italic">Lưu ý:</span>
+		<span class="form-label ms-2">Doanh số Vé Quốc tế được tách riêng hoàn toàn | Doanh số lấy theo ngày xuất vé</span>
+	</div>
 
 	<table id="tbl-doanhsohientai" class="table-current-sales table-details__booking mt-3" border="0" cellpadding="0" cellspacing="0">
 	{$DATA}

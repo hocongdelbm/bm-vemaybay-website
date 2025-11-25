@@ -3,8 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
 require_once('modules/EC_Messages/SMS.php');
 
-class EC_Flight_BookingsViewDetail extends ViewDetail
-{
+class EC_Flight_BookingsViewDetail extends ViewDetail {
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
 	private $_outbound_ticket_class = '';
@@ -12,8 +11,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private $_is_had_rv = 0;
 	private $editing_rights = false;
 
-	function display()
-	{	
+	function display() {	
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
@@ -57,7 +55,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.5"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.7"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.5"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
@@ -101,7 +99,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private function displayCSS() {
 		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.6">
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.7">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
@@ -957,6 +955,18 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 		// Completed button
 		else if ($this->bean->booking_status == '7' && $this->editing_rights) {
+			// Check booking with full baggage price or not
+			$complete_ok = $this->bean->db->getOne("SELECT COUNT(*)
+				FROM ec_booking_passengers 
+				WHERE booking_id = '{$this->bean->id}'
+					AND deleted = 0
+					AND (
+						(luggage_purchase > 0 AND (luggage_price IS NULL OR luggage_price = 0))
+						OR
+						(luggage_purchase_inbound > 0 AND (luggage_price_inbound IS NULL OR luggage_price_inbound = 0))
+					)
+			") > 0 ? 0 : 1;
+
 			$status_button = '</form>
 				<form class="frmBookingStatus" action="index.php" method="post" name="frmCompleted" id="frmCompleted">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -969,6 +979,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<input type="hidden" name="lydothangthua_id" value="' . $this->bean->lydothangthua_id . '" />
 				<input type="hidden" name="ghichuthangthua" value="' . $this->bean->ghichuthangthua . '" />
 				<input type="hidden" name="optLyDoThangThua" value="' . str_replace('"', "'", myGetSelectOptionsWithDb('EC_LyDoThangThua', $this->bean->lydothangthua_id, 'id', " AND loailydo='0' ORDER BY date_entered ")) . '" />
+				<input type="hidden" name="complete_ok" value="'.$complete_ok.'" />
 				<input type="submit" class="btn btn-success save-popup-dialog" name="btnCompleted" id="btnCompleted" value="' . $app_list_strings['booking_status_list']['8'] . '" title="' . $app_list_strings['booking_status_list']['8'] . '" />
 			</form>';
 		}
@@ -1158,22 +1169,22 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Booking ở trạng thái "xuất vé" hoặc "hoàn tất
 		if ($this->bean->booking_status == '7' || $this->bean->booking_status == '8') {
-			// Add luggage
-			$add_luggage = '
-			<input id="add_luggage_btn" type="button" value="Hành lý">
-			</form><form id="add_luggage" method="post" style="display:none; background-color:#fff;">
-				<input type="hidden" id="bkg_no_luggage" name="record" value="' . $this->bean->id . '">
-				<input type="hidden" name="module" value="EC_Flight_Bookings">
-				<input type="hidden" name="createRV" value="1">
-				<input type="hidden" name="action" value="Save">
-				<input type="hidden" id="flight_type" value="' . $this->bean->flight_type . '">
-				<input type="hidden" id="airline_out" value="' . $this->bean->airline . '">
-				<input type="hidden" id="airline_in" value="' . $this->bean->airline_inbound . '">
-				<div class="detail view" id="line_passengers_luggage_area">
-				</div>
-				<input id="add_luggage_btn" class="btn btn-primary mt-2" type="submit" value="Lưu">
-			</form>';
-			$this->ss->assign('ADD_LUGGAGE', $add_luggage);
+			// // Add luggage
+			// $add_luggage = '
+			// <input id="add_luggage_btn" type="button" value="Hành lý">
+			// </form><form id="add_luggage" method="post" style="display:none; background-color:#fff;">
+			// 	<input type="hidden" id="bkg_no_luggage" name="record" value="' . $this->bean->id . '">
+			// 	<input type="hidden" name="module" value="EC_Flight_Bookings">
+			// 	<input type="hidden" name="createRV" value="1">
+			// 	<input type="hidden" name="action" value="Save">
+			// 	<input type="hidden" id="flight_type" value="' . $this->bean->flight_type . '">
+			// 	<input type="hidden" id="airline_out" value="' . $this->bean->airline . '">
+			// 	<input type="hidden" id="airline_in" value="' . $this->bean->airline_inbound . '">
+			// 	<div class="detail view" id="line_passengers_luggage_area">
+			// 	</div>
+			// 	<input id="add_luggage_btn" class="btn btn-primary mt-2" type="submit" value="Lưu">
+			// </form>';
+			// $this->ss->assign('ADD_LUGGAGE', $add_luggage);
 
 			// Change name - Đổi tên hành khách
 			$change_name = '
@@ -1640,7 +1651,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		global $app_list_strings, $timedate;
 		$date_format = $timedate->get_date_format();
-		$booking_date = !empty($this->bean->id) ? $this->bean->date_entered : '';
 
 		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
 		$html .= '<thead>

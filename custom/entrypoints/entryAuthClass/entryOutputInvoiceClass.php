@@ -203,11 +203,12 @@ class entryOutputInvoiceClass extends entryClass {
                 ];
             }
             else {
+                $responseSignArr = json_decode($responseSign, true);
                 return [
                     "status" => 0,
-                    "message" => "Thao tác chưa thành công",
+                    "message" => $responseSignArr["message"] ?? $responseSign ?? "Thao tác chưa thành công",
                     "data" => null,
-                    "description" => json_decode($responseSign, true)
+                    "description" => $responseSignArr
                 ];
             }
         }
@@ -280,8 +281,8 @@ class entryOutputInvoiceClass extends entryClass {
 
         return [
             "status" => 0,
-            "message" => "Hóa đơn thiếu thông tin để thao tác",
-            "data" => null
+            "message" => "Hóa đơn thiếu thông tin để thao tác $invRef, $invSerial, $recordId",
+            "data" => null,
         ];
     }
 }

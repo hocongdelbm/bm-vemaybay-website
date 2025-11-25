@@ -270,7 +270,8 @@ class Viewprinteticket extends SugarView {
 					$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
 					$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
 					
-					$baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, $luggage_index_inbound, $luggage_purchase_text_inbound, $lang);
+					if($khuhoi) $baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, $luggage_index_inbound, $luggage_purchase_text_inbound, $lang);
+					else $baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, '', '', $lang);
 				}
 				// Hành lý cũ
 				else {
@@ -494,7 +495,8 @@ class Viewprinteticket extends SugarView {
 						$luggage_purchase_text = preg_replace('/\s*\([^)]*\)/', '', ($row['luggage_purchase_text'] ?? ''));
 						$luggage_purchase_text_inbound = preg_replace('/\s*\([^)]*\)/', '', $row['luggage_purchase_text_inbound']);
 
-						$baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, $luggage_index_inbound, $luggage_purchase_text_inbound, $lang);
+						if ($khuhoi) $baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, $luggage_index_inbound, $luggage_purchase_text_inbound, $lang);
+						else $baggageDescription = $this->bean->generateCombinedPassengerBaggageInfo($luggage_index_outbound, $luggage_purchase_text, '', '', $lang);
 					}
 					// Hành lý cũ
 					else {

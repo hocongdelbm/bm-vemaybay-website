@@ -1,5 +1,4 @@
 $(document).ready(function () {
-
 	// Hover button RECALL
 	$(document).on('mouseenter', '.btn-calling--wrap', function () {
 		$(this).addClass('active');
@@ -116,7 +115,6 @@ $(document).ready(function () {
 
 	// Lấy tên các hành khách được chọn
 	$(document).on('change', '#applied_passenger', function () {
-
 		var passengers = $('#applied_passenger').val();
 
 		if (passengers == null || passengers.length == 0) {
@@ -721,8 +719,14 @@ $(document).ready(function () {
 		}
 
 		if (booking_status == '8' && frmSaveWorkingProcess == 'frmCompleted') {
+			let complete_ok = parseInt($(`#${frmSaveWorkingProcess} input:hidden[name="complete_ok"]`).val());
+			if(!complete_ok) {
+				showModalNotify(2, "Vui lòng điền đầy đủ giá bán hành lý trước khi hoàn tất");
+				return;
+			}
 			$(this).submit();
-		} else {
+		}
+		else {
 			if (!$(this).hasClass("error")) {
 				$('#dlgWorkingProcessNote').dialog({
 					modal: true,
@@ -941,7 +945,6 @@ $(document).ready(function () {
 	});
 	// End add luggage
 
-
 	// Begin change name
 	$("#change_name_btn").click(function () {
 		$.ajax({
@@ -980,7 +983,7 @@ $(document).ready(function () {
 			data: "for=changeFlightTime&id=" + $("form[name='DetailView']>input[name='record']").val(),
 			beforeSend: function () {
 				$("body").css({ "cursor": "wait" });
-				$("#line_itineraries_area").html("Loading, Please wait ... ");
+				$("#line_itineraries_area").html("<center><i>Vui lòng chờ trong giây lát...</i></center>");
 			},
 			success: function (response) {
 				$("#line_itineraries_area").html(response);
@@ -1007,12 +1010,25 @@ $(document).ready(function () {
 		});
 	});
 
-	$("#tbl_change_flight_time").on("submit", function (event) {
+	$(document).on('change', 'select[name="pass_luggage_ob[]"], select[name="pass_luggage_ib[]"]', function () {
+		let name  = $(this).attr('name'); // name="pass_luggage_ob[]" or "...ib[]"
+		let index = $(`select[name="${name}"]`).index(this);
+		// let value = $(this).val(); // selected option value
+		let dataCost  = $(this).find(':selected').data('cost'); // get data-cost
+		// let dataText  = $(this).find(':selected').data('text'); // get data-text
+		// let dataValue = $(this).find(':selected').data('value'); // get data-value
 
-		if (!checkLineItems(3)) {
-			return false;
+		// Update luggage_price[] at same index
+		if(name == 'pass_luggage_ob[]') {
+			$('input[name="pass_luggage_price[]"]').eq(index).val(formatNumber(dataCost));
 		}
+		else if(name == 'pass_luggage_ib[]') {
+			$('input[name="pass_luggage_price_inbound[]"]').eq(index).val(formatNumber(dataCost));
+		}
+	});
 
+	$("#tbl_change_flight_time").on("submit", function (event) {
+		if (!checkLineItems(3)) return false;
 		return true;
 	});
 	// End change flight time
@@ -1716,6 +1732,12 @@ function getPassengerLine(booking_id, pass_id = '', type = '') {
 				$(".pass_birthday").eq(index).attr("name", "pass_birthday" + index);
 				$(".pass_order").eq(index).text("Hành khách " + (index + 1) + ":");
 				addToValidate('tbl_change_flight_time', 'pass_birthday' + index, 'date', false, 'Ngày phải nhập theo cú pháp: 01-01-2022');
+			});
+
+			// Active select2
+			$('.table-change-passengers select.box-select2').select2();
+			$('.table-change-passengers select.box-select2-non-search').select2({
+				minimumResultsForSearch: Infinity
 			});
 		}
 	});

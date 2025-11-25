@@ -591,7 +591,7 @@ function insertRow(ln, invoice_type) {
 			<select name="ct_percent_vat[]" id="ct_percent_vat${ln}" onchange="calculateLineTotal(${ln})">
 				<option value="0">0%</option>
 				<option value="0.08">8%</option>
-				<!-- <option value="0.1">10%</option> -->
+				<option value="0.1">10%</option>
 				<option value="-1">KCT</option>
 				<!-- <option value="-2">KKKNT</option> -->
 			</select>
