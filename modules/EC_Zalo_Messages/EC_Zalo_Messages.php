@@ -631,10 +631,11 @@ class EC_Zalo_Messages extends Basic {
             $zaloMessage->data = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
             $zaloMessage->response = $response;
             if($zaloMessage->save()) {
-                // Save quota zalo 
+                // Save quota zalo
 
                 // Save quota user
-
+                $zaloContact = new EC_Zalo_Contacts();
+                $zaloContact->update_promotion_quota($zalo_id, $zaloOA->get_oa_id());
                 return true;
             }
         }
@@ -655,60 +656,7 @@ class EC_Zalo_Messages extends Basic {
      * @param array $buttons
      * @return array
      */
-    public function send_transaction_message($zalo_id, $oa_id, $type, $header, $text, $table = [], $text2 = [], $buttons = []) {
-        if(empty($zalo_id)) return false;
-
-        global $sugar_config;
-        $zaloOA = new APIZaloOA($oa_id);
-
-        $requestBody = [
-            "recipient" => [
-                "user_id" => $zalo_id
-            ],
-            "message" => [
-                "attachment" => [
-                    "type" => "template",
-                    "payload" => [
-                        "template_type" => $type, // Type
-                        "language" => "VI",
-                        "elements" => [
-                            [
-                                "type" => "banner",
-                                "image_url" => $banner_link
-                            ],
-                            [
-                                "type" => "header",
-                                "content" => $header,
-                                "align" => ""
-                            ],
-                            [
-                                "type" => "text",
-                                "content" => $text,
-                                "align" => ""
-                            ],
-                        ],
-                    ]
-                ]
-            ]
-        ];
-        if(!empty($table)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "table",
-                "content" => $table
-            ];
-        }
-        if(!empty($text2)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "text",
-                "align" => "center",
-                "content" => $text2
-            ];
-        }
-        if(!empty($buttons)) $requestBody["message"]["attachment"]["payload"]["buttons"] = $buttons;
-
-        return $this->send_request("POST", $url, json_encode($requestBody), $header, $curlOptions);
-    }
-
+    public function send_transaction_message($zalo_id, $oa_id, $type, $header, $text, $table = [], $text2 = [], $buttons = []) {}
 
     public function get_transaction_message_banner($type, $oa_id = '') {
         $zaloOA = new APIZaloOA($oa_id);
@@ -755,16 +703,5 @@ class EC_Zalo_Messages extends Basic {
                 break;
         }
         return $banner_link;
-    }
-
-    /**
-     * 
-     */
-    public function send_maintain_interaction_message() {
-        $zaloContact = new EC_Zalo_Contacts();
-
-        // $listUsers6day = $zaloContact->get_list_zalo_user_by_last_interaction_day(6);
-        // $listUsers30day = $zaloContact->get_list_zalo_user_by_last_interaction_day(30);
-        
     }
 }

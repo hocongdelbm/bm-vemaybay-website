@@ -9,6 +9,7 @@ class EC_Zalo_ContactsViewEdit extends ViewEdit {
 
     public function display() {
         parent::display();
+
         // $this->bean->sync_data_from_contacts_table();
     }
 }

@@ -605,6 +605,8 @@ class EC_Zalo_Contacts extends Basic
     /**
      * Update promotion quota after sending to user success
      * 
+     * @param string $zalo_id
+     * @param string $oa_id
      * @return bool
      */
     public function update_promotion_quota($zalo_id, $oa_id) {
@@ -615,21 +617,30 @@ class EC_Zalo_Contacts extends Basic
             $oa_id = $zaloOA->get_oa_id();
         }
 
-        // $sql = "SELECT quota_info
-        //     FROM ec_zalo_contacts
-        //     WHERE zalo_id = '{$zalo_id}'
-        //         AND oa_id = '{$oa_id}'
-        //         AND deleted = 0";
-        // $quota_info_json = html_entity_decode($this->db->getOne($sql));
-        // $quota_info = json_decode($quota_info_json, true);
+        $sql = "SELECT quota_info
+            FROM ec_zalo_contacts
+            WHERE zalo_id = '{$zalo_id}'
+                AND oa_id = '{$oa_id}'
+                AND deleted = 0";
+        $quota_info_json = html_entity_decode($this->db->getOne($sql));
+        $quota_info = json_decode($quota_info_json, true);
 
-        // if(is_array($quota_info) && !empty($quota_info)) {
+        if(is_array($quota_info) && !empty($quota_info) && isset($quota_info["promotion"])) {
+            $quota_info["promotion"]["daily_remain"] = 0;
+            if(isset($quota_info["promotion"]["monthly_remain"])) $quota_info["promotion"]["monthly_remain"] -= 1;
+        }
+        else {
+            $quota_info = [
+                "promotion" => [
+                    "daily_remain"  => 0,
+                    "daily_total"   => 1,
+                    "monthly_remain"=> 3,
+                    "monthly_total" => 4
+                ]
+            ];
+        }
 
-        // }
-        // else {
-        //     $quota_info = [];
-        //     // $quota_info = 
-        // }
+        return true;
     }
 
     /**
