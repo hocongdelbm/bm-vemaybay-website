@@ -462,7 +462,10 @@
 		</div>
 	</form>
 
-	<div class="bookingqtyreport-note">Doanh số Vé Quốc tế đã bao gồm trong cái Tổng</div>
+	<div class="bookingqtyreport-note">
+		<span class="fw-bold fst-italic">Lưu ý:</span>
+		<span class="form-label ms-2">Doanh số Vé Quốc tế đã bao gồm trong cái Tổng | Doanh số lấy theo ngày tạo của booking</span>
+	</div>
 
 	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3 d-none" cellpadding="0" cellspacing="0">
 		<thead>
