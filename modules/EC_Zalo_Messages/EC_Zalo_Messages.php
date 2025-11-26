@@ -66,7 +66,7 @@ class EC_Zalo_Messages extends Basic {
     }
 
     public function save($check_notify = FALSE) {
-		parent::save($check_notify);
+		return parent::save($check_notify);
 	}
     
     /**
@@ -564,7 +564,7 @@ class EC_Zalo_Messages extends Basic {
      * @param array $table
      * @param string $text2
      * @param array $buttons
-     * @return array
+     * @return bool
      */
     public function send_promotion_message($zalo_id, $oa_id, $sub_type, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = []) {
         if(empty($zalo_id)) return false;
@@ -630,14 +630,16 @@ class EC_Zalo_Messages extends Basic {
             $zaloMessage->cost = 0;
             $zaloMessage->data = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
             $zaloMessage->response = $response;
+
             if($zaloMessage->save()) {
                 // Save quota zalo
 
                 // Save quota user
                 $zaloContact = new EC_Zalo_Contacts();
                 $zaloContact->update_promotion_quota($zalo_id, $zaloOA->get_oa_id());
-                return true;
             }
+            
+            return true;
         }
 
         return false;

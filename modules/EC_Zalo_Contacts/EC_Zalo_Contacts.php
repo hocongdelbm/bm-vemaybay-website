@@ -617,30 +617,50 @@ class EC_Zalo_Contacts extends Basic
             $oa_id = $zaloOA->get_oa_id();
         }
 
-        $sql = "SELECT quota_info
-            FROM ec_zalo_contacts
-            WHERE zalo_id = '{$zalo_id}'
-                AND oa_id = '{$oa_id}'
-                AND deleted = 0";
-        $quota_info_json = html_entity_decode($this->db->getOne($sql));
-        $quota_info = json_decode($quota_info_json, true);
+        try {
+            $sql = "SELECT quota_info
+                FROM ec_zalo_contacts
+                WHERE zalo_id = '{$zalo_id}'
+                    AND oa_id = '{$oa_id}'
+                    AND deleted = 0";
 
-        if(is_array($quota_info) && !empty($quota_info) && isset($quota_info["promotion"])) {
-            $quota_info["promotion"]["daily_remain"] = 0;
-            if(isset($quota_info["promotion"]["monthly_remain"])) $quota_info["promotion"]["monthly_remain"] -= 1;
-        }
-        else {
-            $quota_info = [
-                "promotion" => [
-                    "daily_remain"  => 0,
-                    "daily_total"   => 1,
-                    "monthly_remain"=> 3,
-                    "monthly_total" => 4
-                ]
-            ];
-        }
+            $quota_info_json = html_entity_decode($this->db->getOne($sql));
+            $quota_info = json_decode($quota_info_json, true);
 
-        return true;
+            if(is_array($quota_info) && !empty($quota_info) && isset($quota_info["promotion"])) {
+                $quota_info["promotion"]["daily_remain"] = 0;
+                if(isset($quota_info["promotion"]["monthly_remain"]) && $quota_info["promotion"]["monthly_remain"] > 0) {
+                    $quota_info["promotion"]["monthly_remain"] -= 1;
+                }
+            }
+            else {
+                $quota_info = [
+                    "promotion" => [
+                        "daily_remain"  => 0,
+                        "daily_total"   => 1,
+                        "monthly_remain"=> 3,
+                        "monthly_total" => 4
+                    ]
+                ];
+            }
+
+            $quota_info = json_encode($quota_info);
+            $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
+            $sqlUpdate = "UPDATE ec_zalo_contacts
+                SET quota_info = '{$quota_info}'
+                    ,date_modified = '$dateModified'
+                    ,modified_user_id = ''
+                WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}'";
+
+            return $this->db->query($sqlUpdate) ?? false;
+        }
+        catch(Throwable $th) {
+            global $sugar_config;
+            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+            Telegram::sendMessage("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}", $botToken, $chatId, $threadId);
+        }
     }
 
     /**

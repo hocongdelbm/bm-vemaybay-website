@@ -24,7 +24,7 @@ $dictionary['EC_HoanVe'] = array(
         ),
         'ticket_validity' =>
         array(
-            'required' => true,
+            'required' => false,
             'name' => 'ticket_validity',
             'vname' => 'LBL_TICKET_VALIDITY',
             'type' => 'date',
