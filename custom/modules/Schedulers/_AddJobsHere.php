@@ -29,10 +29,11 @@ $job_strings[] = 'saveReportWeekly'; // Lưu kết quả doanh số cuối ngày
 
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
 
+$job_strings[] = 'sendPromotionMessageZalo'; // Gửi tin nhắn khuyến mãi ZALO đồng loạt
+
 function updateLogAutocall(){
 	return update_log_autocall();
 }
-
 
 function saveReportWeekly()
 {
@@ -2401,5 +2402,31 @@ function calculateCashFlow()
 {
 	$EC_CashFlow = new EC_CashFlow();
 	$EC_CashFlow->handle();
+	return true;
+}
+
+function sendPromotionMessageZalo() {
+	require_once('custom/entrypoints/entryNonAuthClass/entryZaloPromotionClass.php');
+	$entry = new entryZaloPromotionClass();
+	$json = $entry->sendTicketPricesLunarNewYear2026(['number' => 250]);
+	$arr = json_decode($json, true);
+	if(isset($arr['status']) && $arr['status'] == 1) {
+		global $sugar_config;
+		preg_match_all('/\d+/', $arr['message'] ?? '', $matches);
+		$count = (int)($matches[0][0] ?? 0);
+		if($count > 0) {
+			$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+			$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+			Telegram::sendMessage("⚙️ Hệ thống đã gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> đến {$count} người dùng quan tâm", $botToken, $chatId);
+		}
+	}
+	else {
+		$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+		$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+		$message  = "🔴 Hệ thống gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> chưa thành công";
+		if(isset($arr['message']) && !empty($arr['message'])) $message .= "\n<i>" . $arr['message'] . "</i>";
+		Telegram::sendMessage($message, $botToken, $chatId);
+	}
+
 	return true;
 }
