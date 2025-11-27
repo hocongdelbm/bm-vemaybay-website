@@ -43,29 +43,38 @@ class entryZaloPromotionClass extends entryClass {
             ];
 
             $sub_type = "lunar-new-year-2026";
-            $start_datetime = date('Y-m-01 05:59:59');
-            $end_datetime = date('Y-m-d 22:00:00', strtotime('last day of this month'));
+            $start_datetime = date('Y-m-01 06:00:00', strtotime('-7 hours'));
+            $end_datetime   = date('Y-m-d 21:59:59', strtotime('last day of this month -7 hours'));
             $sqlCheck = "SELECT DISTINCT(to_id) AS zalo_id
                 FROM ec_zalo_messages
-                WHERE DATE_ADD(date_entered, INTERVAL 7 HOUR) > '{$start_datetime}'
-                    AND DATE_ADD(date_entered, INTERVAL 7 HOUR) < '{$end_datetime}'
+                WHERE date_entered BETWEEN '{$start_datetime}' AND '{$end_datetime}'
                     AND src = 0
                     AND type = 'promotion'
-                    AND deleted = 0";
+                    AND sub_type = '{$sub_type}'
+                    AND deleted = 0
+                UNION
+                SELECT to_id AS zalo_id
+                FROM ec_zalo_messages
+                WHERE date_entered BETWEEN '{$start_datetime}' AND '{$end_datetime}'
+                    AND src = 0
+                    AND type = 'promotion'
+                    AND deleted = 0
+                GROUP BY to_id
+                HAVING COUNT(*) > 2";
             $resCheck = $db->query($sqlCheck);
 
-            $listCheck = [];
+            $listNotSend = [];
             while($rowCheck = $db->fetchByAssoc($resCheck)) {
-                $listCheck[] = $rowCheck['zalo_id'];
+                $listNotSend[] = $rowCheck['zalo_id'];
             }
-            $listCheck = "'" . implode("','", $listCheck ) . "'";
+            $listNotSend = "'" . implode("','", $listNotSend ) . "'";
 
             $oa_id = $sugar_config['zalo_config']['oa_id'] ?? '';
             $sql = "SELECT zalo_id
                 FROM ec_zalo_contacts
                 WHERE oa_id = '{$oa_id}'
                     AND is_follower = 1
-                    AND zalo_id NOT IN ({$listCheck})
+                    AND zalo_id NOT IN ({$listNotSend})
                 ORDER BY date_entered ASC
                 LIMIT {$number}";
             $res = $db->query($sql);
