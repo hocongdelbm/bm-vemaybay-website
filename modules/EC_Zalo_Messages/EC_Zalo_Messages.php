@@ -145,7 +145,7 @@ class EC_Zalo_Messages extends Basic {
             AND zm.type != 'promotion'
             {$where_clause}
         ORDER BY zm.timestamp DESC
-        LIMIT 200";
+        LIMIT 400";
 
         $res = $this->db->query($sql);
         while($row = $this->db->fetchByAssoc($res)) {
@@ -226,6 +226,7 @@ class EC_Zalo_Messages extends Basic {
             FROM ec_zalo_messages zm
                 LEFT JOIN users u ON u.id = zm.assigned_user_id
             WHERE (zm.from_id = '$zalo_id' OR zm.to_id = '$zalo_id' OR zm.to_id = '$zalo_phone')
+                AND zm.type != 'promotion'
                 AND zm.deleted = 0
             ORDER BY zm.timestamp DESC
             LIMIT {$offset}, {$limit_message}";
@@ -417,6 +418,7 @@ class EC_Zalo_Messages extends Basic {
             FROM ec_zalo_messages zm
                 LEFT JOIN users u ON u.id = zm.assigned_user_id
             WHERE $where_clause
+                AND zm.type != 'promotion'
                 AND zm.deleted = 0
             ORDER BY zm.timestamp DESC
             LIMIT 1";
