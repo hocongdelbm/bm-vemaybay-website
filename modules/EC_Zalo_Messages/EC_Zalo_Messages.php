@@ -142,6 +142,7 @@ class EC_Zalo_Messages extends Basic {
             LEFT JOIN users u ON u.id = zm.assigned_user_id
         WHERE (from_id = '{$oa_id}' OR to_id = '{$oa_id}')
             AND zm.type != 'zns'
+            AND zm.type != 'promotion'
             {$where_clause}
         ORDER BY zm.timestamp DESC
         LIMIT 200";
