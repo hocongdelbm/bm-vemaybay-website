@@ -145,7 +145,7 @@ class EC_Zalo_Messages extends Basic {
             AND zm.type != 'promotion'
             {$where_clause}
         ORDER BY zm.timestamp DESC
-        LIMIT 400";
+        LIMIT 500";
 
         $res = $this->db->query($sql);
         while($row = $this->db->fetchByAssoc($res)) {
