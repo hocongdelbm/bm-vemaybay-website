@@ -82,7 +82,7 @@ class EC_Zalo extends Basic {
         $dbInfo = $this->db->fetchByAssoc($res);
 
         $api_oauth_info = json_decode(html_entity_decode($dbInfo['api_oauth_info']), true);
-        if($api_oauth_info['error'] == -14014 || $api_oauth_info['error'] == -216) return $api_oauth_info;
+        if(is_null($api_oauth_info) || empty($api_oauth_info) || !isset($api_oauth_info['access_token'])) return ['error' => -216];
 
         if(is_array($dbInfo) && !empty($dbInfo) && date('Y-m-d') == date('Y-m-d', strtotime($dbInfo['date_modified']))) {
             unset($dbInfo['date_modified']);
