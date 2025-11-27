@@ -51,7 +51,7 @@ class Viewchatzalo extends SugarView {
         $fullname = explode(' ', $current_user->name);
 
         $info_oa = $this->bean->get_info_oa($this->zaloOA->get_oa_id());
-        if(isset($info_oa['error']) && $info_oa['error'] == -216) {
+        if(isset($info_oa['error']) && ($info_oa['error'] == -216 || $info_oa['error'] == -14014)) {
             echo $this->populate_content_auth();
             exit();
         }
