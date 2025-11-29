@@ -920,7 +920,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             ];
         }
 
-        // Booking type: oneway (Một chiều), roundtrip (Khứ hồi cùng hãng) , twoway (Khứ hồi 2 hãng khác nhau)
+        // Booking type: oneway (Một chiều), roundtrip (Khứ hồi cùng hãng), twoway (Khứ hồi 2 hãng khác nhau)
         $bookingType = null;
         $countItinerary = count($requestBody['Flights']);
         if($countItinerary == 1) $bookingType = 'oneway';
@@ -1011,20 +1011,34 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
                     else {
-                        $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
-                        if($systemCode == ($this->mappingSystemCode[$airlineCodeOutbound] ?? $airlineCodeOutbound)) {
-                            $colNamePNR = 'pnr_outbound';
-                            // $colNameLugIndex = 'luggage_index_outbound';
-                            $direction = '0';
+                        // $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
+                        // if($systemCode == ($this->mappingSystemCode[$airlineCodeOutbound] ?? $airlineCodeOutbound)) {
+                        //     $colNamePNR = 'pnr_outbound';
+                        //     // $colNameLugIndex = 'luggage_index_outbound';
+                        //     $direction = '0';
+                        // }
+                        // else {
+                        //     $colNamePNR = 'pnr_inbound';
+                        //     // $colNameLugIndex = 'luggage_index_inbound';
+                        //     $direction = '1';
+                        // }
+
+                        $direction = '0';
+                        $roundText = 'outbound';
+                        if($bookingType == 'twoway') {
+                            if($i == 1) {
+                                $direction = '1';
+                                $roundText = 'inbound';
+                            }
                         }
                         else {
-                            $colNamePNR = 'pnr_inbound';
-                            // $colNameLugIndex = 'luggage_index_inbound';
-                            $direction = '1';
+                            $sql = "SELECT direction
+                                FROM ec_booking_itineraries
+                                WHERE id = '{$listItineraryId[0]}' AND booking_id = '$bookingId' AND deleted = 0";
+                            $direction = $db->getOne($sql);
+                            $roundText = $direction == '1' ? 'inbound' : 'outbound'; 
                         }
-
-                        // $fareBasic = $requestBody['Flights'][$i]['FarePricings'][0]['FareBasis'] ?? '';
-                        // $fareClass = FareClass::getFareClass($systemCode, $fareBasic);
+                        $colNamePNR = "pnr_{$roundText}";
 
                         // Update PNR
                         $sqlUpdate = "UPDATE ec_booking_passengers
