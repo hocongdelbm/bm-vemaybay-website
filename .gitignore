@@ -26,19 +26,19 @@ custom/configs/*
 !/upload/index.html
 /upload_backup/
 
-# Images
-custom/themes/default/images/zalo_oa/*
-!custom/themes/default/images/zalo_oa/.gitkeep
-
-# Ignore in zalo
+# Zalo websocket logs
 modules/EC_Zalo/nohup.out
-
 
 secure_sessions/*
 !secure_sessions/logs
 
+# Images
+custom/themes/default/images/zalo_oa/*
+!custom/themes/default/images/zalo_oa/.gitkeep
+
 # JSON config
 custom/json_files/**/*.json
+custom/jssip_webrtc/blacklist.json
 
 # Ignore vendor
 vendor
