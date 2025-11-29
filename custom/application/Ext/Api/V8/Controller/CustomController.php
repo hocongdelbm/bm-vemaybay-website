@@ -280,8 +280,15 @@ class CustomController extends BaseController
         }
 
         // Bổ sung assigned_user_id cho cuộc gọi đi / nội bộ
-        if ($call_direction == 'outbound' || $call_direction == 'internal') {
+        if(in_array($call->direction, array('outbound', 'internal'))) {
             $call->assigned_user_id = custom_get_sip_number($call_from);
+        } else if (in_array($call->direction, array('inbound'))) {
+            if (trim($dialed)) {
+				$user_id = custom_get_sip_number(trim($dialed));
+				if (!empty($user_id)) {
+					$call->assigned_user_id = $user_id;
+				}
+			}
         }
 
         $call->date_start   = date('d-m-Y H:i:s', strtotime($call_start));
