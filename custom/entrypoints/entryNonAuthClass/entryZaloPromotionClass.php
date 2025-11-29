@@ -74,6 +74,7 @@ class entryZaloPromotionClass extends entryClass {
                 FROM ec_zalo_contacts
                 WHERE oa_id = '{$oa_id}'
                     AND is_follower = 1
+                    AND status = ''
                     AND zalo_id NOT IN ({$listNotSend})
                 ORDER BY date_entered ASC
                 LIMIT {$number}";

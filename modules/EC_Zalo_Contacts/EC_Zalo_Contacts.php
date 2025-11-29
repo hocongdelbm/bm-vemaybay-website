@@ -40,6 +40,7 @@ class EC_Zalo_Contacts extends Basic
     public $ward_commune;
     public $address;
     public $quota_info;
+    public $status;
 	
     public function bean_implements($interface) {
         switch($interface)
@@ -128,6 +129,7 @@ class EC_Zalo_Contacts extends Basic
         $zaloContact->ward_commune      = $user_data['shared_info']['district'] ?? '';
         $zaloContact->address           = $user_data['shared_info']['address'] ?? '';
         $zaloContact->quota_info        = $quota_info;
+        $zaloContact->status            = '';
         return $zaloContact->save();
     }
     
@@ -183,6 +185,7 @@ class EC_Zalo_Contacts extends Basic
             ,zc.ward_commune
             ,zc.address
             ,zc.quota_info
+            ,zc.status
             ,DATE_ADD(zc.date_modified, INTERVAL 7 HOUR) AS date_modified
         FROM ec_zalo_contacts zc
             LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
@@ -259,6 +262,9 @@ class EC_Zalo_Contacts extends Basic
 
                 $this->custom_save($userData, $oa_id);
             }
+            else {
+                $this->handle_error_zalo_contact_info($zalo_id, $result['user_info']['error'] ?? null, $json_user);
+            }
         }
 
         // Add quota
@@ -326,6 +332,7 @@ class EC_Zalo_Contacts extends Basic
             ,zc.ward_commune
             ,zc.address
             ,zc.quota_info
+            ,zc.status
         FROM ec_zalo_contacts zc
             LEFT JOIN contacts c ON c.id = zc.contact_id
         WHERE $condition
@@ -401,6 +408,7 @@ class EC_Zalo_Contacts extends Basic
             ,zc.ward_commune
             ,zc.address
             ,zc.quota_info
+            ,zc.status
         FROM ec_zalo_contacts zc
             LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
         WHERE MATCH(zc.alias) AGAINST('\"$search_value\"')
@@ -468,6 +476,7 @@ class EC_Zalo_Contacts extends Basic
                 ,ward_commune
                 ,address
                 ,quota_info
+                ,status
             FROM ec_zalo_contacts zc
             WHERE TIMESTAMPDIFF(DAY, last_interaction, UTC_TIMESTAMP()) = {$day}
                 AND deleted = 0";
@@ -504,6 +513,7 @@ class EC_Zalo_Contacts extends Basic
                 ,ward_commune
                 ,address
                 ,quota_info
+                ,status
             FROM ec_zalo_contacts
             WHERE birth_date = '{$birthdate}' AND deleted = 0";
         $res = $this->db->query($sql);
@@ -538,6 +548,7 @@ class EC_Zalo_Contacts extends Basic
                 ,ward_commune
                 ,address
                 ,quota_info
+                ,status
             FROM ec_zalo_contacts
             WHERE MONTH(birth_date) = {$birthmonth} AND deleted = 0";
         $res = $this->db->query($sql);
@@ -570,11 +581,13 @@ class EC_Zalo_Contacts extends Basic
             FROM ec_zalo_contacts zc
             WHERE zc.zalo_id = '{$zalo_id}'
                 AND zc.oa_id = '{$oa_id}'
+                AND zc.status = ''
                 AND zc.deleted = 0";
 
         $res = $this->db->query($sql);
         $dbInfo = $this->db->fetchByAssoc($res);
 
+        if(!$dbInfo || empty($dbInfo)) return false;
         return $this->check_zalo_contact_action_by_data($act, $dbInfo['last_interaction'], $dbInfo['is_follower']);
     }
 
@@ -600,6 +613,70 @@ class EC_Zalo_Contacts extends Basic
         elseif($act === 'send_transaction') return $day <= 365;
         elseif($act === 'send_promotion') return $is_follower;
         return false;
+    }
+
+    /**
+     * Handle error zalo contact info
+     * 
+     * @param string $zalo_id
+     * @param int $error_code
+     * @param string $error_description
+     * 
+     * @return void
+     */
+    public function handle_error_zalo_contact_info($zalo_id, $error_code, $error_description = '') {
+        if(!is_string($zalo_id) || empty($zalo_id)) return;
+        $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
+        try {
+            switch ((int)$error_code) {
+                case -213:
+                    $sqlUpdate = "UPDATE ec_zalo_contacts
+                        SET is_follower = 0
+                            ,description = 'Handle error zalo contact info'
+                            ,modified_user_id = ''
+                            ,date_modified = '{$date_modified}'
+                        WHERE zalo_id = '{$zalo_id}' AND deleted = 0";
+                    $this->db->query($sqlUpdate);
+                    break;
+                case -227:
+                    $sqlUpdate = "UPDATE ec_zalo_contacts
+                        SET status = 'banned'
+                            ,description = 'Handle error zalo contact info'
+                            ,modified_user_id = ''
+                            ,date_modified = '{$date_modified}'
+                        WHERE zalo_id = '{$zalo_id}' AND deleted = 0";
+                    $this->db->query($sqlUpdate);
+                    break;
+                case -244:
+                    $sqlUpdate = "UPDATE ec_zalo_contacts
+                        SET status = 'restricted'
+                            ,description = 'Handle error zalo contact info'
+                            ,modified_user_id = ''
+                            ,date_modified = '{$date_modified}'
+                        WHERE zalo_id = '{$zalo_id}' AND deleted = 0";
+                    $this->db->query($sqlUpdate);
+                    break;
+                default:
+                    global $sugar_config;
+                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+                    $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                    $message = "<b>[INFO] handle_error_zalo_contact_info()</b>";
+                    $message .= "\nZalo id: {$zalo_id}";
+                    $message .= "\n<pre>{$error_description}</pre>";
+                    Telegram::sendMessageData($message, $botToken, $chatId, $threadId);
+                    break;
+            }
+        }
+        catch(Throwable $th) {
+            global $sugar_config;
+            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+            $message = "<b>[ERROR] Error when running handle_error_zalo_contact_info()</b>";
+            $message .= "\n{$th->getMessage()} on line {$th->getLine()}";
+            Telegram::sendMessageData($message, $botToken, $chatId, $threadId);
+        }
     }
 
     /**

@@ -146,6 +146,17 @@ $dictionary['EC_Zalo_Contacts'] = array(
             'importable' => true,
             'audited'    => true,
         ),
+
+        'status' => array(
+            'name'       => 'status',
+            'vname'      => 'LBL_STATUS',
+            'type'       => 'varchar',
+            'len'        => 16,
+            'default'    => '',
+            'comment'    => 'Zalo user status',
+            'importable' => 1,
+            'audited'    => 1,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_zalocontact_id', 'type' => 'unique', 'fields' => array('zalo_id', 'oa_id')),

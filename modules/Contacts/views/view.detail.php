@@ -264,7 +264,7 @@ class ContactsViewDetail extends ViewDetail
                 ,ward_commune
                 ,address
             FROM ec_zalo_contacts
-            WHERE contact_id = '{$this->bean->id}' AND deleted = 0";
+            WHERE contact_id = '{$this->bean->id}' AND status = '' AND deleted = 0";
         $res = $this->bean->db->query($sql);
         while($row = $this->bean->db->fetchByAssoc($res)) {
             $is_follower_html = $row['is_follower'] ? '<span class="text-primary">Đã quan tâm</span>' : '<span>Chưa quan tâm</span>';

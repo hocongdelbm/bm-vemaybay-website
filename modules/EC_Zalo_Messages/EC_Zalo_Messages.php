@@ -627,7 +627,7 @@ class EC_Zalo_Messages extends Basic {
             $zaloMessage->src = 0;
             $zaloMessage->from_id = $zaloOA->get_oa_id();
             $zaloMessage->to_id = $zalo_id;
-            $zaloMessage->timestamp = round(microtime(true) * 1000);;
+            $zaloMessage->timestamp = round(microtime(true) * 1000);
             $zaloMessage->type = 'promotion';
             $zaloMessage->sub_type = $sub_type;
             $zaloMessage->cost = 0;
@@ -644,8 +644,16 @@ class EC_Zalo_Messages extends Basic {
             
             return true;
         }
+        else {
+            try {
+                $errCode = $res['error'] ?? null;
+                $zaloContact = new EC_Zalo_Contacts();
+                $zaloContact->handle_error_zalo_contact_info($zalo_id, $errCode, $response);
+            }
+            catch(Throwable $th) {}
 
-        return false;
+            return false;
+        }
     }
 
     /**
