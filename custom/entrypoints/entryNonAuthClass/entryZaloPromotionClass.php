@@ -47,8 +47,7 @@ class entryZaloPromotionClass extends entryClass {
             $end_datetime   = date('Y-m-d 21:59:59', strtotime('last day of this month -7 hours'));
             $sqlCheck = "SELECT DISTINCT(to_id) AS zalo_id
                 FROM ec_zalo_messages
-                WHERE date_entered BETWEEN '{$start_datetime}' AND '{$end_datetime}'
-                    AND src = 0
+                WHERE src = 0
                     AND type = 'promotion'
                     AND sub_type = '{$sub_type}'
                     AND deleted = 0
@@ -73,11 +72,12 @@ class entryZaloPromotionClass extends entryClass {
             $sql = "SELECT zalo_id
                 FROM ec_zalo_contacts
                 WHERE oa_id = '{$oa_id}'
-                    AND is_follower = 1
+                    -- AND is_follower = 1
                     AND status = ''
                     AND zalo_id NOT IN ({$listNotSend})
                 ORDER BY date_entered ASC
                 LIMIT {$number}";
+
             $res = $db->query($sql);
 
             $zaloMessage = new EC_Zalo_Messages();
