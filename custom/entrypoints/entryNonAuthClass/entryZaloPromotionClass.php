@@ -84,6 +84,8 @@ class entryZaloPromotionClass extends entryClass {
             $count = 0;
             $results = [];
             while($row = $db->fetchByAssoc($res)) {
+                if($count >= 250) break;
+
                 $status = $zaloMessage->send_promotion_message(
                     $row['zalo_id'],
                     $oa_id,

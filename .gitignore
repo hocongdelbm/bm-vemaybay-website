@@ -40,6 +40,9 @@ custom/themes/default/images/zalo_oa/*
 custom/json_files/**/*.json
 custom/jssip_webrtc/blacklist.json
 
+custom/templates_export/*
+!custom/templates_export/.gitkeep
+
 # Ignore vendor
 vendor
 
