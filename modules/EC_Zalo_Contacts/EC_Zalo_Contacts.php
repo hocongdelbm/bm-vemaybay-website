@@ -695,41 +695,44 @@ class EC_Zalo_Contacts extends Basic
         }
 
         try {
-            $sql = "SELECT quota_info
-                FROM ec_zalo_contacts
-                WHERE zalo_id = '{$zalo_id}'
-                    AND oa_id = '{$oa_id}'
-                    AND deleted = 0";
+            $sqlCheck = "SELECT COUNT(*) FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0";
+            $isExistInDB = (int)($this->db->getOne($sqlCheck) ?? 0);
 
-            $quota_info_json = html_entity_decode($this->db->getOne($sql));
-            $quota_info = json_decode($quota_info_json, true);
+            $bean = new EC_Zalo_Contacts();
+            $zaloInfo = $bean->get_zalo_user_info($zalo_id, $oa_id);
 
-            if(is_array($quota_info) && !empty($quota_info) && isset($quota_info["promotion"])) {
-                $quota_info["promotion"]["daily_remain"] = 0;
-                if(isset($quota_info["promotion"]["monthly_remain"]) && $quota_info["promotion"]["monthly_remain"] > 0) {
-                    $quota_info["promotion"]["monthly_remain"] -= 1;
+            if($isExistInDB) {
+                $quota_info = $zaloInfo['quota'] ?? []; 
+
+                if(is_array($quota_info) && !empty($quota_info) && isset($quota_info["promotion"])) {
+                    $quota_info["promotion"]["daily_remain"] = 0;
+                    if(isset($quota_info["promotion"]["monthly_remain"]) && $quota_info["promotion"]["monthly_remain"] > 0) {
+                        $quota_info["promotion"]["monthly_remain"] -= 1;
+                    }
                 }
-            }
-            else {
-                $quota_info = [
-                    "promotion" => [
-                        "daily_remain"  => 0,
-                        "daily_total"   => 1,
-                        "monthly_remain"=> 3,
-                        "monthly_total" => 4
-                    ]
-                ];
-            }
+                else {
+                    $quota_info = [
+                        "promotion" => [
+                            "daily_remain"  => 0,
+                            "daily_total"   => 1,
+                            "monthly_remain"=> 3,
+                            "monthly_total" => 4
+                        ]
+                    ];
+                }
 
-            $quota_info = json_encode($quota_info);
-            $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
-            $sqlUpdate = "UPDATE ec_zalo_contacts
-                SET quota_info = '{$quota_info}'
-                    ,date_modified = '$dateModified'
-                    ,modified_user_id = ''
-                WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}'";
+                $quota_info = json_encode($quota_info);
+                $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
+                $sqlUpdate = "UPDATE ec_zalo_contacts
+                    SET quota_info = '{$quota_info}'
+                        ,date_modified = '$dateModified'
+                        ,modified_user_id = ''
+                    WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}'";
 
-            return $this->db->query($sqlUpdate) ?? false;
+                return $this->db->query($sqlUpdate) ?? false;
+            }
+            elseif(!empty($zaloInfo)) return true;
+            return false;
         }
         catch(Throwable $th) {
             global $sugar_config;

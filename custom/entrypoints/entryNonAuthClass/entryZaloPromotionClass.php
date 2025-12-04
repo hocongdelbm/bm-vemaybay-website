@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once 'custom/entrypoints/entryNonAuthClass/entryClass.php';
+require_once 'custom/include/helpers/api/APIZaloOA.php';
 
 /**
  * Class entryZaloPromotionClass
@@ -19,6 +20,10 @@ class entryZaloPromotionClass extends entryClass {
 
         try {
             $number = (int)($params['number'] ?? 100);
+            $oa_id = $sugar_config['zalo_config']['oa_id'] ?? '';
+
+            $countSuccess = 0;
+            $results = [];
 
             // Content
             $banner_link = "https://gmi.vietjet.net/uploads/2021/07/ve-may-bay-tet-3.webp";
@@ -41,8 +46,10 @@ class entryZaloPromotionClass extends entryClass {
                     ]
                 ]
             ];
-
             $sub_type = "lunar-new-year-2026";
+
+
+            /******  Stage 1: Get list user who will not send  ******/ 
             $start_datetime = date('Y-m-01 06:00:00', strtotime('-7 hours'));
             $end_datetime   = date('Y-m-d 21:59:59', strtotime('last day of this month -7 hours'));
             $sqlCheck = "SELECT DISTINCT(to_id) AS zalo_id
@@ -66,49 +73,69 @@ class entryZaloPromotionClass extends entryClass {
             while($rowCheck = $db->fetchByAssoc($resCheck)) {
                 $listNotSend[] = $rowCheck['zalo_id'];
             }
-            $listNotSend = "'" . implode("','", $listNotSend ) . "'";
+            // $listNotSend = "'" . implode("','", $listNotSend ) . "'";
 
-            $oa_id = $sugar_config['zalo_config']['oa_id'] ?? '';
-            $sql = "SELECT zalo_id
-                FROM ec_zalo_contacts
-                WHERE oa_id = '{$oa_id}'
-                    -- AND is_follower = 1
-                    AND status = ''
-                    AND zalo_id NOT IN ({$listNotSend})
-                ORDER BY date_entered ASC
-                LIMIT {$number}";
 
-            $res = $db->query($sql);
-
+            /******  Stage 2: Get list follower by API and send message  ******/ 
+            $apiZaloOA   = new APIZaloOA();
             $zaloMessage = new EC_Zalo_Messages();
-            $count = 0;
-            $results = [];
-            while($row = $db->fetchByAssoc($res)) {
-                if($count >= 250) break;
+            $start_date = '2024_01_01';
+            $end_date   = '2025_11_30';
+            $is_follower = true;
 
-                $status = $zaloMessage->send_promotion_message(
-                    $row['zalo_id'],
-                    $oa_id,
-                    $sub_type,
-                    $banner_link,
-                    $header,
-                    $text,
-                    $table,
-                    $text2,
-                    $buttons
-                );
+            // Get data from cache
+            $cacheHelper = new CacheHelper('file');
+            $cache_key = "{$sub_type}-zalo-promotional-messages";
+            $cacheData = $cacheHelper->get($cache_key);
+            $offset = $cacheData['offset'] ?? 0;
 
-                $results[$row['zalo_id']] = $status;
-                if($status) $count++;
+            $i = 0;
+            while($countSuccess < $number && $i < 25) {
+                $i++;
+                $res = json_decode($apiZaloOA->get_list_user($offset, 50, "{$start_date}:{$end_date}", $is_follower), true);
+
+                if(isset($res['error']) && $res['error'] == 0) {
+                    $listUsers = $res['data']['users'] ?? [];
+                    
+                    foreach($listUsers as $u) {
+                        if($countSuccess >= $number) break;
+
+                        if(array_search($u['user_id'], $listNotSend) === false) {
+                            $status = $zaloMessage->send_promotion_message(
+                                $u['user_id'],
+                                $oa_id,
+                                $sub_type,
+                                $banner_link,
+                                $header,
+                                $text,
+                                $table,
+                                $text2,
+                                $buttons
+                            );
+
+                            if($status) $countSuccess++;
+                            $results[$u['user_id']] = $status;
+                        }
+
+                        $offset++;
+                    }
+                }
+                else {
+                    break;
+                }
             }
+
+            $cacheData['offset'] = $offset;
+            $cacheHelper->set($cache_key, $cacheData);
 
             return json_encode([
                 "status" => 1,
-                "message" => "Sent successfully to {$count} users",
+                "message" => "Sent successfully to {$countSuccess} users",
                 "data" => $results
             ]);
         }
         catch(Throwable $th) {
+            $GLOBALS['log']->fatal("Error when running sendTicketPricesLunarNewYear2026(): {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return json_encode([
                 "status" => 0,
                 "message" => "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}",

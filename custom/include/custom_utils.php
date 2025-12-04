@@ -1,7 +1,5 @@
 <?php
-
-use PhpOffice\PhpSpreadsheet\Shared\OLE\PPS;
-use Symfony\Component\Validator\Constraints\Length;
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 /**
  * Get new report terms
@@ -941,7 +939,6 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
 function myGetTotalRecordByDay($module, $str = '0', $len = 4)
 {
     global $db;
-    date_default_timezone_set('Asia/Ho_Chi_Minh');
     $total = 0;
     $date_entered = date('Y-m-d H:i:s', strtotime(date('Y-m-d 16:59:59')) - 86400); // giờ sugarcrm lệch 7h so với giờ server
     $sql = "SELECT COUNT(id) + 1 FROM " . strtolower($module) . " WHERE date_entered > '" . $date_entered . "' ";
@@ -1146,7 +1143,6 @@ function myGatewaySendUSSD($arr, $times_request = 10, $total_port = 8)
  */
 function myGetAge($dob, $current_time)
 {
-    date_default_timezone_set('Asia/Ho_Chi_Minh');
     $dob = strtotime($dob);
     $current_time = strtotime(!empty($current_time) ? $current_time : date('Y-m-d'));
 
@@ -2455,5 +2451,8 @@ require_once 'custom/include/utils/FareClass.php';
 require_once 'custom/include/utils/Baggage.php';
 // Init helpers
 foreach (glob("custom/include/helpers/*Helper.php") as $file) {
+    if (is_file($file)) require_once $file;
+}
+foreach (glob("custom/include/helpers/cache/*Helper.php") as $file) {
     if (is_file($file)) require_once $file;
 }
