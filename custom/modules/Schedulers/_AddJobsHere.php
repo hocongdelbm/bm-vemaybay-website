@@ -2408,7 +2408,7 @@ function calculateCashFlow()
 function sendPromotionMessageZalo() {
 	require_once('custom/entrypoints/entryNonAuthClass/entryZaloPromotionClass.php');
 	$entry = new entryZaloPromotionClass();
-	$json = $entry->sendTicketPricesLunarNewYear2026(['number' => 500]);
+	$json = $entry->sendTicketPricesLunarNewYear2026(['number' => 600]);
 	$arr = json_decode($json, true);
 	if(isset($arr['status']) && $arr['status'] == 1) {
 		global $sugar_config;
