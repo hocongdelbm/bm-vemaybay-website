@@ -87,7 +87,7 @@ class entryZaloPromotionClass extends entryClass {
             $cacheHelper = new CacheHelper('file');
             $cache_key = "{$sub_type}-zalo-promotional-messages";
             $cacheData = $cacheHelper->get($cache_key);
-            $offset = $cacheData['offset'] ?? 0;
+            $offset = (int)($cacheData['offset'] ?? 0);
 
             $i = 0;
             while($countSuccess < $number && $i < 25) {

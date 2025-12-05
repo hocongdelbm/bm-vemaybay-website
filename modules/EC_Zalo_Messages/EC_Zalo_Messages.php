@@ -645,13 +645,7 @@ class EC_Zalo_Messages extends Basic {
             return true;
         }
         else {
-            try {
-                $errCode = $res['error'] ?? null;
-                $zaloContact = new EC_Zalo_Contacts();
-                $zaloContact->handle_error_zalo_contact_info($zalo_id, $errCode, $response);
-            }
-            catch(Throwable $th) {}
-
+            EC_Zalo::handle_error_oa_api($res['error'] ?? null, $zalo_id, $zaloOA->get_oa_id(), $res['message'] ?? '');
             return false;
         }
     }

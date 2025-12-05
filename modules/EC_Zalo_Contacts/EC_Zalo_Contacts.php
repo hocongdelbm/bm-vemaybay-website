@@ -237,10 +237,10 @@ class EC_Zalo_Contacts extends Basic
         // Receive data from API
         if(empty($userData)) {
             $json_user = $zaloOA->get_user($zalo_id);
-            $result['user_info'] = json_decode($json_user, true);
+            $result_user_info = json_decode($json_user, true);
 
-            if(isset($result['user_info']['error']) && $result['user_info']['error'] == 0) {
-                $userData = $result['user_info']['data'];
+            if(isset($result_user_info['error']) && $result_user_info['error'] == 0) {
+                $userData = $result_user_info['data'];
 
                 // Last interaction
                 $zalo_last_interaction = $this->format_datetime($userData['user_last_interaction_date'] ?? '');
@@ -263,7 +263,7 @@ class EC_Zalo_Contacts extends Basic
                 $this->custom_save($userData, $oa_id);
             }
             else {
-                $this->handle_error_zalo_contact_info($zalo_id, $result['user_info']['error'] ?? null, $json_user);
+                EC_Zalo::handle_error_oa_api($result_user_info['error'] ?? null, $zalo_id, $oa_id, $result_user_info['message'] ?? '');
             }
         }
 
@@ -616,70 +616,6 @@ class EC_Zalo_Contacts extends Basic
     }
 
     /**
-     * Handle error zalo contact info
-     * 
-     * @param string $zalo_id
-     * @param int $error_code
-     * @param string $error_description
-     * 
-     * @return void
-     */
-    public function handle_error_zalo_contact_info($zalo_id, $error_code, $error_description = '') {
-        if(!is_string($zalo_id) || empty($zalo_id)) return;
-        $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
-        try {
-            switch ((int)$error_code) {
-                case -213:
-                    $sqlUpdate = "UPDATE ec_zalo_contacts
-                        SET is_follower = 0
-                            ,description = 'Handle error zalo contact info'
-                            ,modified_user_id = ''
-                            ,date_modified = '{$date_modified}'
-                        WHERE zalo_id = '{$zalo_id}' AND deleted = 0";
-                    $this->db->query($sqlUpdate);
-                    break;
-                case -227:
-                    $sqlUpdate = "UPDATE ec_zalo_contacts
-                        SET status = 'banned'
-                            ,description = 'Handle error zalo contact info'
-                            ,modified_user_id = ''
-                            ,date_modified = '{$date_modified}'
-                        WHERE zalo_id = '{$zalo_id}' AND deleted = 0";
-                    $this->db->query($sqlUpdate);
-                    break;
-                case -244:
-                    $sqlUpdate = "UPDATE ec_zalo_contacts
-                        SET status = 'restricted'
-                            ,description = 'Handle error zalo contact info'
-                            ,modified_user_id = ''
-                            ,date_modified = '{$date_modified}'
-                        WHERE zalo_id = '{$zalo_id}' AND deleted = 0";
-                    $this->db->query($sqlUpdate);
-                    break;
-                default:
-                    global $sugar_config;
-                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                    $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                    $message = "<b>[INFO] handle_error_zalo_contact_info()</b>";
-                    $message .= "\nZalo id: {$zalo_id}";
-                    $message .= "\n<pre>{$error_description}</pre>";
-                    Telegram::sendMessageData($message, $botToken, $chatId, $threadId);
-                    break;
-            }
-        }
-        catch(Throwable $th) {
-            global $sugar_config;
-            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-            $message = "<b>[ERROR] Error when running handle_error_zalo_contact_info()</b>";
-            $message .= "\n{$th->getMessage()} on line {$th->getLine()}";
-            Telegram::sendMessageData($message, $botToken, $chatId, $threadId);
-        }
-    }
-
-    /**
      * Update promotion quota after sending to user success
      * 
      * @param string $zalo_id
@@ -725,6 +661,8 @@ class EC_Zalo_Contacts extends Basic
                 $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
                 $sqlUpdate = "UPDATE ec_zalo_contacts
                     SET quota_info = '{$quota_info}'
+                        ,is_follower = 1
+                        ,status = ''
                         ,date_modified = '$dateModified'
                         ,modified_user_id = ''
                     WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}'";
@@ -736,10 +674,10 @@ class EC_Zalo_Contacts extends Basic
         }
         catch(Throwable $th) {
             global $sugar_config;
-            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-            Telegram::sendMessage("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}", $botToken, $chatId, $threadId);
+            $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+            $chatId   = $sugar_config['telegram']['chat_id'] ?? '';
+            $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
+            Telegram::sendMessage("<b>[ERROR] Throwable in ".__FUNCTION__."()</b>\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}", $botToken, $chatId, $threadId);
         }
     }
 

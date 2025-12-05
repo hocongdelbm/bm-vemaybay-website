@@ -138,6 +138,91 @@ class EC_Zalo extends Basic {
     }
 
     /**
+     * Handle error zalo oa api
+     * 
+     * @param int $error_code
+     * @param string $error_description
+     * @param string $zalo_id
+     * @param string $oa_id
+     * 
+     * @return void
+     */
+    public static function handle_error_oa_api($error_code, $error_description = '', $zalo_id = '', $oa_id = '') {
+        try {
+            if(is_null($error_code) || empty($error_code)) return;
+
+            global $db;
+            $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
+
+            $description = $error_description;
+            if(empty($description)) $description = "Handle error({$error_code}) oa api";
+
+            switch ((int)$error_code) {
+                case -213:
+                    if(!empty($zalo_id)) {
+                        $where = "zalo_id = '{$zalo_id}'";
+                        if(!empty($oa_id)) $where .= " oa_id = '{$oa_id}'";
+
+                        $sqlUpdate = "UPDATE ec_zalo_contacts
+                            SET is_follower = 0
+                                ,description = '{$description}'
+                                ,modified_user_id = ''
+                                ,date_modified = '{$date_modified}'
+                            WHERE $where AND deleted = 0";
+                        $db->query($sqlUpdate);
+                    }
+                    break;
+                case -227:
+                    if(!empty($zalo_id)) {
+                        $where = "zalo_id = '{$zalo_id}'";
+                        if(!empty($oa_id)) $where .= " oa_id = '{$oa_id}'";
+
+                        $sqlUpdate = "UPDATE ec_zalo_contacts
+                            SET status = 'banned'
+                                ,description = '{$description}'
+                                ,modified_user_id = ''
+                                ,date_modified = '{$date_modified}'
+                            WHERE $where AND deleted = 0";
+                        $db->query($sqlUpdate);
+                    }
+                    break;
+                case -244:
+                    if(!empty($zalo_id)) {
+                        $where = "zalo_id = '{$zalo_id}'";
+                        if(!empty($oa_id)) $where .= " oa_id = '{$oa_id}'";
+
+                        $sqlUpdate = "UPDATE ec_zalo_contacts
+                            SET status = 'restricted'
+                                ,description = '{$description}'
+                                ,modified_user_id = ''
+                                ,date_modified = '{$date_modified}'
+                            WHERE $where AND deleted = 0";
+                        $db->query($sqlUpdate);
+                    }
+                    break;
+                default:
+                    global $sugar_config;
+                    $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId   = $sugar_config['telegram']['chat_id'] ?? '';
+                    $threadId = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+                    $message  = "[INFO] Unprocessed cases in ".__FUNCTION__."()";
+                    $message .= "\n{$error_code}: {$error_description}";
+                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                    break;
+            }
+        }
+        catch(Throwable $th) {
+            global $sugar_config;
+            $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+            $chatId   = $sugar_config['telegram']['chat_id'] ?? '';
+            $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
+            $message  = "<b>[ERROR] Throwable in ".__FUNCTION__."()</b>";
+            $message .= "\n{$th->getMessage()} on line {$th->getLine()}";
+            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+        }
+    }
+
+    /**
      * Format date
      * 
      * @param string $dateStr

@@ -1038,7 +1038,7 @@ class EC_Flight_Bookings extends Basic {
 			$ticketClass = $bagData['ticketClass'] ?? ''; // Using for get available baggage info in old data
 			$passType 	 = $bagData['passType'] ?? '0'; // Using for get available baggage info in old data
 			$dateEntered = $bagData['dateEntered'] ?? $this->date_entered; // Using for get available baggage info in old data
-			$createdBy 	 = $this->created_by ?? '';
+			$createdBy 	 = $this->created_by ?? $bagData['createdBy'] ?? ''; // Using for get available baggage info in old data
 			$bagIndex 	 = $bagData['bagIndex'] ?? ''; // Using for get available baggage info in new data or in old data with Vietjet
 			$bagPurchaseText = $bagData['bagPurchaseText'] ?? ''; // Using for get purchase baggage info
 
