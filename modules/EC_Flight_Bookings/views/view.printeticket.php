@@ -187,16 +187,21 @@ class Viewprinteticket extends SugarView {
 		} 
 		// Là hành trình thay đổi
 		else {
+			$passengerList = "'" . implode("','", $listPassengerIDs) . "'";
+			
 			$sql_con = ' 
-			AND p.id IN (
-				SELECT assigned_user_id FROM ec_booking_itineraries
-				WHERE booking_id = "' . $booking_id . '" AND add_type = 3 AND deleted = 0
-					AND sabre_logs = (
-						SELECT sabre_logs
-						FROM ec_booking_itineraries
-						WHERE id = "' . $iti_id . '"
-					)
-			) 
+			AND (
+				p.id IN (
+					SELECT assigned_user_id FROM ec_booking_itineraries
+					WHERE booking_id = "' . $booking_id . '" AND add_type = 3 AND deleted = 0
+						AND sabre_logs = (
+							SELECT sabre_logs
+							FROM ec_booking_itineraries
+							WHERE id = "' . $iti_id . '"
+						)
+				) 
+				OR p.id IN(' . $passengerList . ')
+			)
 			AND p.id NOT IN (
 				SELECT assigned_user_id FROM ec_booking_itineraries
 				WHERE booking_id = "' . $booking_id . '" AND add_type = 3 AND deleted = 0
@@ -207,7 +212,7 @@ class Viewprinteticket extends SugarView {
 					)
 			)';
 		}
-
+		
 		$html = '';
 		$html_itineraries = '';
 		$sql = "SELECT p.id,
