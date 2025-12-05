@@ -115,6 +115,7 @@ class entryZaloPromotionClass extends entryClass {
 
                             if($status) $countSuccess++;
                             $results[$u['user_id']] = $status;
+                            $listNotSend[] = $u['user_id'];
                         }
 
                         $offset++;
