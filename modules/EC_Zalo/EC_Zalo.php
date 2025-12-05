@@ -161,7 +161,7 @@ class EC_Zalo extends Basic {
                 case -213:
                     if(!empty($zalo_id)) {
                         $where = "zalo_id = '{$zalo_id}'";
-                        if(!empty($oa_id)) $where .= " oa_id = '{$oa_id}'";
+                        if(!empty($oa_id)) $where .= " AND oa_id = '{$oa_id}'";
 
                         $sqlUpdate = "UPDATE ec_zalo_contacts
                             SET is_follower = 0
@@ -175,7 +175,7 @@ class EC_Zalo extends Basic {
                 case -227:
                     if(!empty($zalo_id)) {
                         $where = "zalo_id = '{$zalo_id}'";
-                        if(!empty($oa_id)) $where .= " oa_id = '{$oa_id}'";
+                        if(!empty($oa_id)) $where .= " AND oa_id = '{$oa_id}'";
 
                         $sqlUpdate = "UPDATE ec_zalo_contacts
                             SET status = 'banned'
@@ -189,7 +189,7 @@ class EC_Zalo extends Basic {
                 case -244:
                     if(!empty($zalo_id)) {
                         $where = "zalo_id = '{$zalo_id}'";
-                        if(!empty($oa_id)) $where .= " oa_id = '{$oa_id}'";
+                        if(!empty($oa_id)) $where .= " AND oa_id = '{$oa_id}'";
 
                         $sqlUpdate = "UPDATE ec_zalo_contacts
                             SET status = 'restricted'
