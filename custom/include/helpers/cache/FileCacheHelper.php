@@ -5,7 +5,7 @@ class FileCacheHelper implements CacheInterfaceHelper {
     public function __construct() {
         $this->path = 'cache/cachehelper/';
         if (!file_exists($this->path)) {
-            mkdir($this->path, 0755, true);
+            mkdir($this->path, 0700, true);
         }
     }
 
