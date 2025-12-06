@@ -1,5 +1,4 @@
 <?php
-
 class CacheHelper {
 
     /** @var CacheInterface */

@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 class SessionCacheHelper implements CacheInterfaceHelper {
     public function get($key) {
         if (!isset($_SESSION[$key])) {

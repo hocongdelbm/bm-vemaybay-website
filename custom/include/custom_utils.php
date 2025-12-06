@@ -1,6 +1,4 @@
 <?php
-date_default_timezone_set('Asia/Ho_Chi_Minh');
-
 /**
  * Get new report terms
  * @param string $selectedValue
@@ -938,6 +936,7 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
 // Get total record of module by day
 function myGetTotalRecordByDay($module, $str = '0', $len = 4)
 {
+    date_default_timezone_set('Asia/Ho_Chi_Minh');
     global $db;
     $total = 0;
     $date_entered = date('Y-m-d H:i:s', strtotime(date('Y-m-d 16:59:59')) - 86400); // giờ sugarcrm lệch 7h so với giờ server
@@ -1143,6 +1142,7 @@ function myGatewaySendUSSD($arr, $times_request = 10, $total_port = 8)
  */
 function myGetAge($dob, $current_time)
 {
+    date_default_timezone_set('Asia/Ho_Chi_Minh');
     $dob = strtotime($dob);
     $current_time = strtotime(!empty($current_time) ? $current_time : date('Y-m-d'));
 

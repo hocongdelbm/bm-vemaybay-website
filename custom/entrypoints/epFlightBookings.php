@@ -1,5 +1,4 @@
 <?php
-
 global $db, $current_user, $app_list_strings;
 
 if (isset($_POST['for']) && $_POST['for'] == 'getBookingStatus') {
