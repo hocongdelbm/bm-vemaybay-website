@@ -489,7 +489,7 @@ class EC_Flight_Bookings extends Basic {
 					$booking->is_ticket_exported = '1';
 					if (empty($booking->date_ticket_issue)) {
 						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_issue = date("d-m-Y", strtotime('', strtotime($now)));
+						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
@@ -507,7 +507,7 @@ class EC_Flight_Bookings extends Basic {
 					$booking->is_ticket_inbound_exported = '1';
 					if (empty($booking->date_ticket_inbound_issue)) {
 						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('', strtotime($now)));
+						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
@@ -1591,7 +1591,7 @@ class EC_Flight_Bookings extends Basic {
 					$booking->is_ticket_exported = '1';
 					if (empty($booking->date_ticket_issue)) {
 						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_issue = date("d-m-Y", strtotime('', strtotime($now)));
+						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
@@ -1609,7 +1609,7 @@ class EC_Flight_Bookings extends Basic {
 					$booking->is_ticket_inbound_exported = '1';
 					if (empty($booking->date_ticket_inbound_issue)) {
 						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('', strtotime($now)));
+						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];

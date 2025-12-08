@@ -1,5 +1,4 @@
 <?php
-date_default_timezone_set('Asia/Ho_Chi_Minh');
 class FileCacheHelper implements CacheInterfaceHelper {
     private $path;
 
@@ -15,6 +14,8 @@ class FileCacheHelper implements CacheInterfaceHelper {
     }
 
     public function get($key) {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+
         $file = $this->filePath($key);
         if (!file_exists($file)) {
             return null;
@@ -42,6 +43,7 @@ class FileCacheHelper implements CacheInterfaceHelper {
     }
 
     public function set($key, $value, $ttl = 0) {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
         $expiresAt = 0; // 0 = never expire
         if ($ttl > 0) {
             $expiresAt = time() + $ttl;

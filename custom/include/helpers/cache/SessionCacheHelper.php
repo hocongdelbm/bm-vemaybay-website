@@ -1,7 +1,8 @@
 <?php
-date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 class SessionCacheHelper implements CacheInterfaceHelper {
     public function get($key) {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
         if (!isset($_SESSION[$key])) {
             return null;
         }
@@ -24,6 +25,7 @@ class SessionCacheHelper implements CacheInterfaceHelper {
     }
 
     public function set($key, $value, $ttl = 0) {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
         $expiresAt = 0; // 0 = never expire
         if ($ttl > 0) {
             $expiresAt = time() + (int) $ttl; // $ttl in seconds
