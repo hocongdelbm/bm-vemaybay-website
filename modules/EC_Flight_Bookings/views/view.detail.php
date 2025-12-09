@@ -56,7 +56,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// External file
 		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.7"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.5"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
 

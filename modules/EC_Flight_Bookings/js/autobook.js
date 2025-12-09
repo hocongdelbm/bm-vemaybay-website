@@ -534,6 +534,12 @@ $(document).ready(function () {
                             if(airlineCodes.includes('QH')) {
                                 firstName = getFirstName(passFullnameInputs[index].value);
                             }
+                            else if(airlineCodes.includes('9G')) {
+                                title = title == 'Mr' ? 'MSTR' : 'MISS';
+                            }
+                        }
+                        if(airlineCodes.includes('9G')) {
+                            title = title.toUpperCase();
                         }
 
                         requestBody.ListPassenger.push({

@@ -139,6 +139,13 @@ class entryAutoBookDatacomClass extends entryClass {
                 return ["status" => 0, "message" => "Hãng Bamboo phải autobook riêng"];
             }
 
+            if(isset($dataItineraries['dep']) && isset($dataItineraries['ret'])
+                && $dataItineraries['dep']['airlineCode'] != $dataItineraries['ret']['airlineCode']
+                && ($dataItineraries['dep']['airlineCode'] == '9G' || $dataItineraries['ret']['airlineCode'] == '9G')
+            ) {
+                return ["status" => 0, "message" => "Hãng Sun PhuQuoc phải autobook riêng"];
+            }
+
             // Thông tin hành khách
             $adtCount = $chdCount = $infCount = 0;
             $dataPassengers = [];

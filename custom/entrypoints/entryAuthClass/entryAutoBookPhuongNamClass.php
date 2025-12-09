@@ -1011,18 +1011,6 @@ class entryAutoBookPhuongNamClass extends entryClass {
                         if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                     }
                     else {
-                        // $airlineCodeOutbound = $db->getOne("SELECT airline FROM ec_flight_bookings WHERE id = '$bookingId' AND deleted = 0") ?? '';
-                        // if($systemCode == ($this->mappingSystemCode[$airlineCodeOutbound] ?? $airlineCodeOutbound)) {
-                        //     $colNamePNR = 'pnr_outbound';
-                        //     // $colNameLugIndex = 'luggage_index_outbound';
-                        //     $direction = '0';
-                        // }
-                        // else {
-                        //     $colNamePNR = 'pnr_inbound';
-                        //     // $colNameLugIndex = 'luggage_index_inbound';
-                        //     $direction = '1';
-                        // }
-
                         $direction = '0';
                         $roundText = 'outbound';
                         if($bookingType == 'twoway') {
