@@ -516,12 +516,11 @@ class Viewcashflow extends SugarView {
 		
 		$sql = "SELECT SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0))
 				FROM (
-				
 					-- OPENING AMOUNT
 					SELECT p.id
-						   ,(IFNULL(p.dunodau,0)-IFNULL(p.ducodau,0)) AS thutien
-						   ,0 AS chitien
-						   ,p.assigned_user_id
+						,(IFNULL(p.dunodau,0)-IFNULL(p.ducodau,0)) AS thutien
+						,0 AS chitien
+						,p.assigned_user_id
 					FROM ec_chitiettaikhoan".$report_year." p
 					WHERE p.deleted=0 
 					AND SUBSTRING(p.sotaikhoan, 1, 4)='1111'
@@ -529,55 +528,53 @@ class Viewcashflow extends SugarView {
 					
 					-- RECEIPT VOUCHER
 					UNION
-					 SELECT p.id
-						   ,p.amount_converted AS thutien
-						   ,0 AS chitien
-						   ,p.assigned_user_id
-					 FROM ec_receipt_voucher p
-					 WHERE p.deleted=0 
-					 AND p.receipt_type='cash' 
-					 AND p.amount_converted IS NOT NULL 
-					 AND p.rv_status='1' 
-					 AND p.is_margin=0 ".$sql_search."
+					SELECT p.id
+						,p.amount_converted AS thutien
+						,0 AS chitien
+						,p.assigned_user_id
+					FROM ec_receipt_voucher p
+					WHERE p.deleted=0 
+					AND p.receipt_type='cash' 
+					AND p.amount_converted IS NOT NULL 
+					AND p.rv_status='1' 
+					AND p.is_margin=0 ".$sql_search."
 					 
-					 -- PAYMENT VOUCHER
-					 UNION
-					 SELECT p.id
-						   ,0 AS thutien
-						   ,p.amount AS chitien
-					 	   ,p.assigned_user_id
-					 FROM ec_payment_voucher p
-					 WHERE p.deleted=0 
-					 AND p.hinhthucchi='cash' 
-					 AND p.amount IS NOT NULL 
-					 AND p.pv_status='3' ".$sql_search."
+					-- PAYMENT VOUCHER
+					UNION
+					SELECT p.id
+						,0 AS thutien
+						,p.amount AS chitien
+						,p.assigned_user_id
+					FROM ec_payment_voucher p
+					WHERE p.deleted=0 
+					AND p.hinhthucchi='cash' 
+					AND p.amount IS NOT NULL 
+					AND p.pv_status='3' ".$sql_search."
 					 
-					 -- TRANSFER FROM
-					 UNION
-					 SELECT p.id
-						   ,0 AS thutien
-						   ,p.sotien AS chitien
-					 	   ,p.assigned_user_id
-					 FROM ec_chuyentiennoibo p
-					 WHERE p.deleted=0 
-					 AND p.ghiso=1 
-					 AND p.tutienmat=1 ".str_replace('p.com_location_id', 'p.tudiadiem_id', $sql_search)."
+					-- TRANSFER FROM
+					UNION
+					SELECT p.id
+						,0 AS thutien
+						,p.sotien AS chitien
+						,p.assigned_user_id
+					FROM ec_chuyentiennoibo p
+					WHERE p.deleted=0 
+					AND p.ghiso=1 
+					AND p.tutienmat=1 ".str_replace('p.com_location_id', 'p.tudiadiem_id', $sql_search)."
 					 
-					 -- TRANSFER TO
-					 UNION
-					 SELECT p.id
-						   ,p.sotien AS thutien
-						   ,0 AS chitien
-					 	   ,p.assigned_user_id
-					 FROM ec_chuyentiennoibo p
-					 WHERE p.deleted=0 
-					 AND p.ghiso=1 
-					 AND p.dentienmat=1 ".str_replace('p.com_location_id', 'p.dendiadiem_id', $sql_search)."
-				 ) AS tmp ";
+					-- TRANSFER TO
+					UNION
+					SELECT p.id
+						,p.sotien AS thutien
+						,0 AS chitien
+						,p.assigned_user_id
+					FROM ec_chuyentiennoibo p
+					WHERE p.deleted=0 
+					AND p.ghiso=1 
+					AND p.dentienmat=1 ".str_replace('p.com_location_id', 'p.dendiadiem_id', $sql_search)."
+				) AS tmp ";
 		
-		// if($current_user->user_name == 'hungnh'){
-		// 	pr($sql);
-		// }
+		// if($current_user->user_name == 'hungnh') pr($sql);
 
 		$total_amount += $db->getOne($sql);
 		return $total_amount;

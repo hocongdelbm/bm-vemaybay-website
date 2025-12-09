@@ -429,7 +429,6 @@ class entryZaloOAClass extends entryClass {
             $arr = json_decode($json, true);
 
             if(isset($arr['status']) && $arr['status'] == 1) {
-                // $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
                 $templateData['template_id'] = $template_id;
 
                 // Save to zalo message
@@ -485,7 +484,12 @@ class entryZaloOAClass extends entryClass {
                 $fullname   = trim("{$this->currentUser->last_name} {$this->currentUser->first_name}");
                 $botToken   = $this->telegramConfig['zalo']['bot_token'] ?? '';
                 $chatId     = $this->telegramConfig['zalo']['chat_id'] ?? '';
-                Telegram::sendMessage("<b>$fullname</b>: Gửi ZNS $template_name đến Zalo <b>$phoneNumber</b>", $botToken, $chatId);
+                $message    = "<b>$fullname</b>: Gửi ZNS $template_name đến Zalo <b>$phoneNumber</b>";
+                if(!empty($parentId) && $parentType == 'EC_Flight_Bookings') {
+                    $bklink = "https://".$zaloOA->get_domain()."/index.php?module={$parentType}&action=DetailView&record={$parentId}";
+                    $message .= " - <a href='{$bklink}'>Booking</a>";
+                }
+                Telegram::sendMessage($message, $botToken, $chatId);
             }
             else {
                 $arr["message"] = $omni->getErrorDescription($arr["code"] ?? "");
