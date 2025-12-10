@@ -174,7 +174,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- RECEIPT VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -192,7 +192,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- PAYMENT VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -210,7 +210,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- FROM TRANSFER VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -228,7 +228,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- TO TRANSFER VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
