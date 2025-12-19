@@ -492,4 +492,41 @@ class CustomController extends BaseController
             'ip' => $request_ip,
         ], 200);
     }
+    // Save voucher in APP
+    public function save_voucher(Request $request, Response $response, array $args) {
+        try {
+            global $db, $sugar_config;
+            $params = (array)$request->getParsedBody();
+            
+            $booking_id = $params['booking_id'];
+            $voucher_id = $params['voucher_id'];
+            $discount_amount = $params['discount_amount'];
+            $request_ip = $request->getServerParam('REMOTE_ADDR');
+
+            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) {
+                return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
+            }
+
+            $booking = BeanFactory::getBean("EC_Flight_Bookings", $booking_id);
+            if (!$booking) {
+                return $response->withJson(['error' => true, 'message' => "Booking not found"], 404);
+            }
+
+            $booking->load_relationship('vouchers');
+            $booking->vouchers->add($voucher_id);
+
+            $sql = "UPDATE bookings_vouchers SET discount_amount = $discount_amount 
+                    WHERE booking_id = '$booking_id' AND voucher_id = '$voucher_id' AND deleted = 0";
+            $db->query($sql);
+
+            return $response->withJson([
+                'error' => false,
+                'message' => "Voucher saved successfully",
+                'data' => ['booking_id' => $booking_id, 'voucher_id' => $voucher_id]
+            ], 201);
+
+        } catch (Throwable $e) {
+            return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
 }
