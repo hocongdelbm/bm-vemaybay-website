@@ -816,7 +816,7 @@ class Viewinputinvoice extends SugarView {
                     }
                     $data[$i]['itinerary'] = $itiFormat;
                 }
-                else if ($supplier == 'HNH') {
+                elseif ($supplier == 'HNH') {
                     // Định dạng số vé
                     if(!ctype_digit($data[$i]['ticket_code'])) {
                         if(stripos($data[$i]['ticket_code'], 'VJA') === 0) {
@@ -842,6 +842,7 @@ class Viewinputinvoice extends SugarView {
                     }
                     $data[$i]['itinerary'] = $itiFormat;
                 }
+                // elseif ($supplier == 'VJA') {}
                 
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
@@ -912,13 +913,19 @@ class Viewinputinvoice extends SugarView {
 
                     if($input_iv->supplier == 'HNH') {
                         $input_iv->cost_no_vat  = ($data[$i]['total'] - $data[$i]['authorized_collection']) / 1.08;
-                        $input_iv->vat_per      =  0.08;
+                        $input_iv->vat_per      = 0.08;
                         $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
                     }
                     else if($input_iv->supplier == 'PNA') {
                         $input_iv->cost_no_vat  = $data[$i]['ticket_price'] + $data[$i]['other_charge'];
-                        $input_iv->vat_per      =  0.08;
+                        $input_iv->vat_per      = 0.08;
+                        $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
+                        $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
+                    }
+                    else if($input_iv->supplier == 'VJA') {
+                        $input_iv->cost_no_vat  = $data[$i]['ticket_price'] + $data[$i]['other_charge'];
+                        $input_iv->vat_per      = 0.08;
                         $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
                     }
@@ -1018,22 +1025,7 @@ class Viewinputinvoice extends SugarView {
     function populateBookingPriceDetail($data_arr, $supplier) {
         global $db;
 
-        if ($supplier == 'VJA') {
-            $sql = '
-                SELECT p.booking_id
-                FROM ec_booking_passengers p 
-                    INNER JOIN ec_flight_bookings b ON b.id = p.booking_id AND b.deleted = 0
-                        AND b.booking_status = 8
-                WHERE p.deleted = 0 
-                    AND (
-                        TRIM(eticket_outbound) LIKE "' . $data_arr['ticket_code'] . '%"
-                        OR TRIM(eticket_inbound) LIKE "' . $data_arr['ticket_code'] . '%"
-                    ) LIMIT 1';
-            $res = $this->bean->db->query($sql);
-            $row = $this->bean->db->fetchByAssoc($res);
-            $data_arr['booking_id'] = $row['booking_id'];
-        }
-        elseif($supplier == 'PNA' || $supplier == 'HNH') {
+        if($supplier == 'PNA' || $supplier == 'HNH' || $supplier == 'VJA') {
             $ticketCode = trim($data_arr['ticket_code'] ?? '');
 
             $sql = "SELECT p.booking_id

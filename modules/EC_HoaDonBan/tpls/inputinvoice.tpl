@@ -178,8 +178,7 @@
                                                 data-col-authorized-collection="L"
                                                 data-col-other-charge="P"
                                                 data-col-total="S"
-                                                data-col-itinerary="C"
-                                            >
+                                                data-col-itinerary="C">
                                                 Hồng Ngọc Hà
                                             </option>
                                             <option value="PNA"
@@ -190,9 +189,19 @@
                                                 data-col-authorized-collection="J"
                                                 data-col-other-charge="K"
                                                 data-col-total="Q"
-                                                data-col-itinerary="D"
-                                            >
+                                                data-col-itinerary="D">
                                                 Phương Nam
+                                            </option>
+                                            <option value="VJA"
+                                                data-col-ticket-code="B"
+                                                data-col-pass-qty="F"
+                                                data-col-ticket-price="L"
+                                                data-col-vat="M"
+                                                data-col-authorized-collection="N"
+                                                data-col-other-charge=""
+                                                data-col-total="O"
+                                                data-col-itinerary="G">
+                                                VietjetAir
                                             </option>
                                         </select>
                                         <input type="hidden" name="supplier_name" id="supplier_name" value="Hồng Ngọc Hà">
