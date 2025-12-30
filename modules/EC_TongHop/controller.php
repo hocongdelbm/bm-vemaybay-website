@@ -41,6 +41,9 @@ class EC_TongHopController extends SugarController{
             case "iplist":
                 $this->action = "iplist";
                 break;
+            case "test":
+                $this->action = "test";
+                break;
             case "analytics":
                 $this->action = "analytics";
                 break;

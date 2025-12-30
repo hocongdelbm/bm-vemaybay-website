@@ -528,7 +528,7 @@ class Viewbookingqtyreport extends SugarView
 					WHERE (bk_psg.add_type IS NULL OR bk_psg.add_type = '')
 					AND u.title = 'Bot'
 					$where_period
-					GROUP BY period, user_id
+					GROUP BY period, bk.id, user_id
 					HAVING TIMESTAMPDIFF(MINUTE, ts_local, min_dep_time) > 1440 
 					
 					--  BLOCK 3: Prior bookings <=1440
