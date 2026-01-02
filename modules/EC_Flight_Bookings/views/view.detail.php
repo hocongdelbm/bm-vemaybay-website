@@ -787,7 +787,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		// $assigned_user_name_list = get_user_array(true, 'Active', '', true);
 		// $assigned_user_name = $assigned_user_name_list[$this->bean->assigned_user_id];
 		if ($GLOBALS['current_user']->id == 1) { // Only show with user has id = 1
-			$assigned_user_name .= '
+			$assigned_user_name = '
 				<input type="button" class="btn btn-primary-2" id="reassigned_user_btn" value="Sửa giao cho">
 				<form style="display:none;" id="reassigned_user_frm">
 					<input type="hidden" name="module" value="' . $this->bean->module_dir . '">

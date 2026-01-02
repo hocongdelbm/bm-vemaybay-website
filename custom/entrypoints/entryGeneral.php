@@ -14,13 +14,13 @@ try {
 
         // Get data
         $params = $_GET;
-        $reqBody = [];
+        $reqBody = null;
         if(stripos($contentType, 'application/json') !== false) $reqBody = json_decode(file_get_contents('php://input'), true);
         else $reqBody = $_POST;
 
-        $className  = global_test_input($reqBody['class'] ?? $params['class'] ?? '');
-        $method     = global_test_input($reqBody['method'] ?? $params['method'] ?? '');
-        $methodParams = $reqBody['params'] ?? $params['params'] ?? [];
+        $className      = global_test_input($params['class'] ?? $reqBody['class'] ??'');
+        $method         = global_test_input($params['method'] ?? $reqBody['method'] ?? '');
+        $methodParams   = $reqBody['params'] ?? $reqBody ?? $params['params'] ?? [];
         if(is_string($methodParams)) $methodParams = json_decode(html_entity_decode($methodParams), true);
         
         $entryClass = entryFactory::create($className);

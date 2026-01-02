@@ -7,7 +7,6 @@ $job_strings[] = 'KetChuyenTienGuiNganHangSCK'; // ket chuyen tien gui ngan hang
 $job_strings[] = 'KetChuyenCongNoPhaiThu'; // kết chuyển công nợ phải thu vào đầu mỗi năm
 $job_strings[] = 'KetChuyenCongNoPhaiTra'; // kết chuyển công nợ phải trả vào đầu mỗi năm
 
-
 $job_strings[] = 'createMonthSalary'; // Đầu mỗi tháng tạo 1 bảng lương
 $job_strings[] = 'updateSales'; // cập nhật thưởng doanh số trong bảng lương
 $job_strings[] = 'updateEfforts'; // cập nhật nỗ lực trong bảng lương
@@ -22,13 +21,9 @@ $job_strings[] = 'checkBookingHandle'; // Kiểm tra xem booking đã giao đư�
 $job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay không
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
-
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
-
 $job_strings[] = 'saveReportWeekly'; // Lưu kết quả doanh số cuối ngày vào table ec_report_weekly
-
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
-
 $job_strings[] = 'sendPromotionMessageZalo'; // Gửi tin nhắn khuyến mãi ZALO đồng loạt
 
 function updateLogAutocall(){
@@ -368,8 +363,8 @@ function updateOnlineReport()
 	return true;
 }
 
-function TuDongTaoBang()
-{
+
+function TuDongTaoBang() {
 	$thang = date('n');
 	$nam   = date('Y');
 
@@ -410,32 +405,36 @@ function TuDongTaoBang()
 	} else return false;
 }
 
-function KetChuyenTienMatSCK()
-{
-	$GLOBALS['log']->info('----->Ket chuyen tien mat so du cuoi ky vao dau moi nam');
-	$db = DBManagerFactory::getInstance();
+function KetChuyenTienMatSCK() {
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
+
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen tien mat so du cuoi ky vao dau moi nam');
 
 	$report_year = date('Y');
-	$today = ($report_year - 1) . '-01-01';
-	$to_date = ($report_year - 1) . '-12-31';
+	$last_year = $report_year - 1;
+	$from_date = "$last_year-01-01";
+	$to_date   = "$last_year-12-31";
 
-	$sql_search = " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($from_date)) . "' ";
-	$sql_search .= " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d 23:59:59', strtotime($to_date)) . "' ";
+	// $sql_search  = "AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($from_date)) . "'";
+	// $sql_search .= "AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d 23:59:59', strtotime($to_date)) . "'";
 
-	$sql = "
-		SELECT 
-			(SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0))) AS sotien,
-			tmp.diadiem_id,
-			tmp.diadiem 
+	$sql_search  = "AND DATE(p.ngayhachtoan) >= '$from_date'";
+	$sql_search .= "AND DATE(p.ngayhachtoan) <= '$to_date'";
+
+	$sql = "SELECT (SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0))) AS sotien
+			,tmp.diadiem_id
+			,tmp.diadiem
 		FROM (
 			-- OPENING AMOUNT
-			SELECT
-				(IFNULL(dunodau, 0) - IFNULL(ducodau, 0)) AS thutien,
-			  	0 AS chitien,
-			  	p.location_id AS diadiem_id,
-			  	p.name AS diadiem,
-			  	p.id
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
+			SELECT 
+				(IFNULL(dunodau, 0) - IFNULL(ducodau, 0)) AS thutien
+			  	,0 AS chitien
+			  	,p.location_id AS diadiem_id
+			  	,p.name AS diadiem
+			  	,p.id
+			FROM ec_chitiettaikhoan{$last_year} p
 			WHERE p.deleted = 0 AND SUBSTR(TRIM(p.sotaikhoan), 1, 4) = '1111'
 
 			-- RECEIPT VOUCHER
@@ -455,7 +454,7 @@ function KetChuyenTienMatSCK()
 				AND p.receipt_type = 'cash'
 				AND p.rv_status = '1'
 				AND p.com_location_id IS NOT NULL
-				" . $sql_search . "
+				$sql_search
 
 			-- PAYMENT VOUCHER
 			UNION
@@ -474,7 +473,7 @@ function KetChuyenTienMatSCK()
 				AND p.hinhthucchi = 'cash'
 				AND p.pv_status = '3'
 				AND p.com_location_id IS NOT NULL
-				" . $sql_search . "
+				$sql_search
 
 			-- FROM TRANSFER VOUCHER
 			UNION
@@ -493,7 +492,7 @@ function KetChuyenTienMatSCK()
 				AND p.ghiso = 1
 				AND p.tutienmat = 1
 				AND p.tudiadiem_id IS NOT NULL
-				" . str_replace('p.com_location_id', 'p.tudiadiem_id', $sql_search) . "
+				$sql_search
 
 			-- TO TRANSFER VOUCHER
 			UNION
@@ -512,9 +511,11 @@ function KetChuyenTienMatSCK()
 				AND p.ghiso = 1
 				AND p.dentienmat = 1 
 				AND p.dendiadiem_id IS NOT NULL
-				" . str_replace('p.com_location_id', 'p.dendiadiem_id', $sql_search) . "
+				$sql_search
 		) AS tmp
 		GROUP BY tmp.diadiem_id";
+
+	$GLOBALS['log']->$log_level($sql);
 
 	$res = $db->query($sql);
 	// $soton = 0;
@@ -529,149 +530,149 @@ function KetChuyenTienMatSCK()
 		}
 
 		// Xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		$sql_del = "UPDATE ec_chitiettaikhoan{$report_year}
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row['diadiem_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row['diadiem_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row['diadiem'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "1111"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "EC_Bank_Account"
-				  , NULL
-				  , NULL
-				  , "' . $row['diadiem_id'] . '"
-				)';
-		$db->query($sql);
-	} // end while
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row['diadiem'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "1111"
+				, ' . $no . '
+				, ' . $co . '
+				, "EC_Bank_Account"
+				, NULL
+				, NULL
+				, "' . $row['diadiem_id'] . '"
+			)';
+		$db->query($sqlInsert);
+	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen tien mat so du cuoi ky vao dau moi nam");
-
+	$GLOBALS['log']->$log_level('-----> End Ket chuyen tien mat so du cuoi ky vao dau moi nam');
 	return true;
 }
 
-function KetChuyenTienGuiNganHangSCK()
-{
-	$GLOBALS['log']->info('----->Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam');
-	// $db = DBManagerFactory::getInstance();
-	global $db;
+function KetChuyenTienGuiNganHangSCK() {
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-	// kết chuyển số đầu kỳ năm mới chính là bảng dòng tiền của năm cũ
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam');
+
+	// Kết chuyển số đầu kỳ năm mới chính là bảng dòng tiền của năm cũ
 	$report_year = date('Y');
-	$from_date = ($report_year - 1) . '-01-01';
-	$to_date = ($report_year - 1) . '-12-31';
+	$last_year = $report_year - 1;
+	$from_date = "$last_year-01-01";
+	$to_date = "$last_year-12-31";
 
-	$sql_search = " AND DATE(p.ngayhachtoan) >= '" . date('Y-01-01', strtotime($from_date)) . "' ";
-	$sql_search .= " AND DATE(p.ngayhachtoan) <= '" . date('Y-m-d', strtotime($to_date)) . "' ";
+	$sql_search = "AND DATE(p.ngayhachtoan) >= '$from_date'";
+	$sql_search .= "AND DATE(p.ngayhachtoan) <= '$to_date'";
 
 	// lấy thông tin các tài khoản ngân hàng
 	// $location_np = $this->getLocationByDep('8df43570-09de-d2b3-b2fd-506eca7522f7');
 	// $location_tp = $this->getLocationByDep('48840c01-3a4f-c430-f703-56f32c7cd8a4');
 	// $sql_search .= " AND p.com_location_id IN ('".implode("','", $location_np).'\',\''.implode("','", $location_tp)."') ";
-	$sql_ba = "
-		SELECT 
-			SUM(IFNULL(tmp.thutien,0))
-			- SUM(IFNULL(tmp.chitien,0)) AS sotien
-		  , tmp.tknganhang_id
-		  , tmp.tknganhang
-		  , tmp.sotaikhoan 
+
+	$sql_ba = " SELECT SUM(IFNULL(tmp.thutien,0)) - SUM(IFNULL(tmp.chitien,0)) AS sotien
+		,tmp.tknganhang_id
+		,tmp.tknganhang
+		,tmp.sotaikhoan 
 		FROM (
 			-- OPENING AMOUNT
 			SELECT p.id
-				  ,(
-				  	  IFNULL(p.dunodau,0)
-				  	- IFNULL(p.ducodau,0)
-				  ) AS thutien
-				  ,0 AS chitien
-				  ,p.parent_id AS tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS assigned_user_id
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
-			WHERE p.deleted=0
+				,(IFNULL(p.dunodau,0) - IFNULL(p.ducodau,0)) AS thutien
+				,0 AS chitien
+				,p.parent_id AS tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.parent_id LIMIT 1) AS assigned_user_id
+			FROM ec_chitiettaikhoan$last_year p
+			WHERE p.deleted = 0
 			AND p.parent_type IN ('EC_TaiKhoanNganHang', 'EC_Bank_Account') 
 			AND p.parent_id IS NOT NULL
+
 			-- RECEIPT VOUCHER
 			UNION 
 			SELECT p.id
-				  ,p.amount_converted AS thutien
-				  ,0 AS chitien
-				  ,p.tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
+				,p.amount_converted AS thutien
+				,0 AS chitien
+				,p.tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_receipt_voucher p
-			WHERE p.deleted=0 
-			AND p.receipt_type='credit_transfer' 
-			AND p.amount IS NOT NULL 
-			AND p.rv_status='1' 
-			AND p.is_margin=0 " . $sql_search . "
+			WHERE p.deleted = 0 
+				AND p.receipt_type = 'credit_transfer' 
+				AND p.amount IS NOT NULL 
+				AND p.rv_status='1'
+				AND p.is_margin=0
+				$sql_search
 			
 			-- PAYMENT VOUCHER
 			UNION
 			SELECT p.id
-				  ,0 AS thutien
-				  ,p.amount AS chitien
-				  ,p.tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
+				,0 AS thutien
+				,p.amount AS chitien
+				,p.tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_payment_voucher p
 			WHERE p.deleted=0 
-			AND p.hinhthucchi='credit_transfer' 
-			AND p.amount IS NOT NULL 
-			AND p.pv_status='3' " . $sql_search . "
+				AND p.hinhthucchi='credit_transfer' 
+				AND p.amount IS NOT NULL 
+				AND p.pv_status='3'
+				$sql_search
 			
 			-- TRANSFER FROM
 			UNION
 			SELECT p.id
-				  ,0 AS thutien
-				  ,IFNULL(p.sotien,0) AS chitien
-				  ,p.tutknganhang_id AS tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS assigned_user_id
+				,0 AS thutien
+				,IFNULL(p.sotien,0) AS chitien
+				,p.tutknganhang_id AS tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.tutknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_chuyentiennoibo p
 			WHERE p.deleted=0 
-			AND p.ghiso=1 
-			AND p.tutienmat=0 " . $sql_search . "
+				AND p.ghiso=1 
+				AND p.tutienmat=0
+				$sql_search
 			
 			-- TRANSFER TO
 			UNION
 			SELECT p.id
-				  ,IFNULL(p.sotien,0) AS thutien
-				  ,0 AS chitien
-				  ,p.dentknganhang_id AS tknganhang_id
-				  ,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS tknganhang
-				  ,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS sotaikhoan
-				  ,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS ngungtheodoi
-				  ,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS assigned_user_id
+				,IFNULL(p.sotien,0) AS thutien
+				,0 AS chitien
+				,p.dentknganhang_id AS tknganhang_id
+				,(SELECT t.name FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS tknganhang
+				,(SELECT t.account_number FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS sotaikhoan
+				,(SELECT t.unfollow FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS ngungtheodoi
+				,(SELECT t.assigned_user_id FROM ec_bank_account t WHERE t.deleted=0 AND t.id=p.dentknganhang_id LIMIT 1) AS assigned_user_id
 			FROM ec_chuyentiennoibo p
 			WHERE p.deleted=0 
-			AND p.ghiso=1 
-			AND p.dentienmat=0 " . $sql_search . "
-				
+				AND p.ghiso=1 
+				AND p.dentienmat=0
+				$sql_search
 		) AS tmp
-		LEFT JOIN users u ON tmp.assigned_user_id=u.id AND u.deleted=0
+			LEFT JOIN users u ON tmp.assigned_user_id = u.id AND u.deleted = 0
 		WHERE tmp.ngungtheodoi=0
-		GROUP BY tmp.tknganhang_id ";
+		GROUP BY tmp.tknganhang_id";
+
+	$GLOBALS['log']->$log_level($sql_ba);
 
 	$res_ba = $db->query($sql_ba);
 	while ($row_ba = $db->fetchByAssoc($res_ba)) {
@@ -683,69 +684,62 @@ function KetChuyenTienGuiNganHangSCK()
 			$co = 0;
 		}
 
-		// xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		// Xoá số đầu kỳ đang có cập nhật lại
+		$sql_del = "UPDATE ec_chitiettaikhoan{$report_year}
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row_ba['tknganhang_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row_ba['tknganhang_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row_ba['tknganhang'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "1121"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "EC_Bank_Account"
-				  , "' . $row_ba['tknganhang_id'] . '"
-				  , NULL
-				  , NULL
-				)';
-		$db->query($sql);
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row_ba['tknganhang'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "1121"
+				, ' . $no . '
+				, ' . $co . '
+				, "EC_Bank_Account"
+				, "' . $row_ba['tknganhang_id'] . '"
+				, NULL
+				, NULL
+			)';
+		$db->query($sqlInsert);
 	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam");
+	$GLOBALS['log']->$log_level('-----> End Ket chuyen tien gui ngan hang so du cuoi ky vao dau moi nam');
 	return true;
 }
 
-function KetChuyenCongNoPhaiThu()
-{
-	$GLOBALS['log']->info('----->Ket chuyen cong no phai thu cuoi ky vao dau moi nam');
-	$db = DBManagerFactory::getInstance();
+function KetChuyenCongNoPhaiThu() {
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
+
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen cong no phai thu cuoi ky vao dau moi nam');
 
 	$report_year = date('Y');
-	$from_date = ($report_year - 1) . '-01-01';
-	$to_date = ($report_year - 1) . '-12-31';
+	$last_year 	= $report_year - 1;
+	$from_date 	= "$last_year-01-01";
+	$to_date 	= "$last_year-12-31";
 
-	$sql_search = "
-		AND p.date_ticket_issue >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($to_date)) . "'";
+	$sql_search = "AND DATE(p.ngayhachtoan) >= '$from_date' AND DATE(p.ngayhachtoan) <= '$to_date'";
 
-	$sql_search2 = "
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($to_date)) . "'";
-
-	$sql = "
-		SELECT 
-			SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
-		  , a.id AS agent_id
-		  , a.name AS agent_name
+	$sql = "SELECT SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
+		  	,a.id AS agent_id
+		  	,a.name AS agent_name
 		FROM (
 			-- OPENING AMOUNT
 			SELECT p.id
-				  ,p.parent_id AS agent_id
-				  ,SUM(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
-				  ,0 AS pay_amount
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
+				,p.parent_id AS agent_id
+				,SUM(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
+				,0 AS pay_amount
+			FROM ec_chitiettaikhoan$last_year p
 			WHERE p.deleted = 0
 			AND p.sotaikhoan = '131'
 			AND p.parent_type = 'Accounts'
@@ -754,51 +748,53 @@ function KetChuyenCongNoPhaiThu()
 			-- BOOKING
 			UNION
 			SELECT p.id
-				  ,p.agent_id
-				  ,SUM(IFNULL(p.total_amount, 0)) AS debt_amount
-				  ,0 AS pay_amount
+				,p.agent_id
+				,SUM(IFNULL(p.total_amount, 0)) AS debt_amount
+				,0 AS pay_amount
 			FROM ec_flight_bookings p
-			WHERE p.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_agent = 1
-			" . $sql_search . "
-			
+			WHERE p.date_ticket_issue >= '$from_date'
+				AND p.date_ticket_issue <= '$to_date'
+				AND p.booking_status IN ('7', '8')
+				AND p.is_agent = 1
+				AND p.deleted = 0
 			GROUP BY p.id
 
 			-- PAYMENT VOUCHER
 			UNION
 			SELECT p.id
-				  ,p.supplier_id AS agent_id
-				  ,SUM(IFNULL(p.amount, 0)) AS debt_amount
-				  ,0 AS pay_amount
+				,p.supplier_id AS agent_id
+				,SUM(IFNULL(p.amount, 0)) AS debt_amount
+				,0 AS pay_amount
 			FROM ec_payment_voucher p
 			LEFT JOIN ec_payment_types pt ON p.ec_payment_types_id_c = pt.id AND pt.deleted = 0
 			WHERE p.deleted = 0
-			AND p.pv_status = '3'
-			AND pt.is_receipt_debt = 1
-			" . $sql_search2 . "
+				AND p.pv_status = '3'
+				AND pt.is_receipt_debt = 1
+				$sql_search
 			GROUP BY p.id
 
 			-- RECEIPT VOUCHER
 			UNION
 			SELECT p.id
-				  ,p.account_id_c AS agent_id
-				  ,0 AS debt_amount
-				  ,SUM(IFNULL(p.amount_converted, 0)) AS pay_amount
+				,p.account_id_c AS agent_id
+				,0 AS debt_amount
+				,SUM(IFNULL(p.amount_converted, 0)) AS pay_amount
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.rv_status = '1'
-			AND p.account_id_c IS NOT NULL
-			" . $sql_search2 . "
+				AND p.rv_status = '1'
+				AND p.account_id_c IS NOT NULL
+				$sql_search
 			GROUP BY p.id
 		) AS tmp
-		LEFT JOIN accounts a ON tmp.agent_id = a.id 
-		AND a.deleted = 0
+			LEFT JOIN accounts a ON tmp.agent_id = a.id AND a.deleted = 0
 		WHERE a.is_stop_tracking = 0
-		AND a.account_type IS NOT NULL
-		AND a.account_type <> 'Supplier'
+			AND a.account_type IS NOT NULL
+			AND a.account_type <> 'Supplier'
 		GROUP BY tmp.agent_id
 		HAVING sotien <> 0";
+	
+	$GLOBALS['log']->$log_level($sql);
+
 	$res = $db->query($sql);
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['sotien'] < 0) {
@@ -809,227 +805,217 @@ function KetChuyenCongNoPhaiThu()
 			$co = 0;
 		}
 
-		// xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		// Xoá số đầu kỳ đang có cập nhật lại
+		$sql_del = "UPDATE ec_chitiettaikhoan$report_year
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row['agent_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row['agent_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row['agent_name'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "131"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "Accounts"
-				  , "' . $row['agent_id'] . '"
-				  , NULL
-				  , NULL
-				)';
-		$db->query($sql);
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row['agent_name'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "131"
+				, ' . $no . '
+				, ' . $co . '
+				, "Accounts"
+				, "' . $row['agent_id'] . '"
+				, NULL
+				, NULL
+			)';
+		$db->query($sqlInsert);
 	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen cong no phai thu cuoi ky vao dau moi nam");
+	$GLOBALS['log']->$log_level("-----> End Ket chuyen cong no phai thu cuoi ky vao dau moi nam");
 	return true;
 }
 
-function KetChuyenCongNoPhaiTra()
-{
-	$GLOBALS['log']->info('----->Ket chuyen cong no phai tra cuoi ky vao dau moi nam');
-	$db = DBManagerFactory::getInstance();
+function KetChuyenCongNoPhaiTra() {
+	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-	$report_year 	= date('Y');
-	$from_date 	= ($report_year - 1) . '-01-01';
-	$to_date 		= ($report_year - 1) . '-12-31';
+	global $db, $sugar_config;
+	$log_level = $sugar_config['logger']['level'] ?? 'info';
+	$GLOBALS['log']->$log_level('-----> Ket chuyen cong no phai tra cuoi ky vao dau moi nam');
 
-	$sql_search = "
-		AND p.date_ticket_issue >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND p.date_ticket_issue <= '" . date('Y-m-d', strtotime($to_date)) . "'";
+	$report_year = date('Y');
+	$last_year 	= $report_year - 1;
+	$from_date 	= "$last_year-01-01";
+	$to_date 	= "$last_year-12-31";
 
-	$sql_search2 = "
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($from_date)) . "'
-		AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($to_date)) . "'";
+	$sql_search_bk = "AND p.date_ticket_issue >= '$from_date' AND p.date_ticket_issue <= '$to_date'";
+	$sql_search = "AND DATE(p.ngayhachtoan) >= '$from_date' AND DATE(p.ngayhachtoan) <= '$to_date'";
 
-	$sql = "
-		SELECT 
-			SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
-		  , a.id AS supplier_id
-		  , a.name AS supplier
+	$sql = "SELECT SUM(IFNULL(tmp.debt_amount, 0)) - SUM(IFNULL(tmp.pay_amount, 0)) AS sotien
+			,a.id AS supplier_id
+			,a.name AS supplier
 		FROM (
 			-- START TERM
-			SELECT 
+			SELECT
 				SUM(IFNULL(p.dunodau, 0) - IFNULL(p.ducodau, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.parent_id AS supplier_id 
-			  , p.id
-			FROM ec_chitiettaikhoan" . ($report_year - 1) . " p
+				,0 AS pay_amount
+				,p.parent_id AS supplier_id 
+				,p.id
+			FROM ec_chitiettaikhoan$last_year p
 			WHERE p.deleted = 0
-			AND p.parent_type = 'Accounts'
-			AND p.sotaikhoan IN ('144','331')
-			AND p.parent_id IS NOT NULL
+				AND p.parent_type = 'Accounts'
+				AND p.sotaikhoan IN ('144','331')
+				AND p.parent_id IS NOT NULL
 			GROUP BY p.parent_id
 
 			-- BOOKING DETAILS
 			UNION
-			SELECT 
+			SELECT
 				SUM(IFNULL(d.total_bought_price, 0)) AS thutien
-			  , 0 AS pay_amount
-			  , d.supplier_id
-			  , d.id
+				,0 AS pay_amount
+				,d.supplier_id
+				,d.id
 			FROM ec_booking_details d
-			LEFT JOIN ec_flight_bookings p 
-			ON d.booking_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			" . $sql_search . "
-			AND d.total_bought_price > 0
-			AND d.supplier_id IS NOT NULL
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				$sql_search_bk
+				AND d.total_bought_price > 0
+				AND d.supplier_id IS NOT NULL
 			GROUP BY d.supplier_id
 
 			-- BOOKING PAXS OUTBOUND
 			UNION
-			SELECT 
+			SELECT
 				SUM(IFNULL(d.luggage_purchase, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , d.supplier_id
-			  , CONCAT(d.id, '-OUTBOUND') AS id
+				,0 AS pay_amount
+				,d.supplier_id
+				,CONCAT(d.id, '-OUTBOUND') AS id
 			FROM ec_booking_passengers d
-			LEFT JOIN ec_flight_bookings p 
-			ON d.booking_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			" . $sql_search . "
-			AND d.luggage_price > 0
-			AND d.luggage_purchase > 0
-			AND d.supplier_id IS NOT NULL
-			AND d.add_type IS NULL
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				$sql_search_bk
+				AND d.luggage_price > 0
+				AND d.luggage_purchase > 0
+				AND d.supplier_id IS NOT NULL
+				AND d.add_type IS NULL
 			GROUP BY d.supplier_id
 
 			-- BOOKING PAXS INBOUND
 			UNION
-			SELECT 
+			SELECT
 				SUM(IFNULL(d.luggage_purchase_inbound, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , d.supplier_inbound_id AS supplier_id
-			  , CONCAT(d.id, '-INBOUND') AS id
+				,0 AS pay_amount
+				,d.supplier_inbound_id AS supplier_id
+				,CONCAT(d.id, '-INBOUND') AS id
 			FROM ec_booking_passengers d
-			LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_flight_bookings p ON d.booking_id = p.id AND p.deleted = 0
 			WHERE d.deleted = 0
-			AND p.booking_status IN ('7', '8')
-			AND p.is_ticket_exported = 1
-			" . $sql_search . "
-			AND d.luggage_price_inbound > 0
-			AND d.luggage_purchase_inbound > 0
-			AND d.supplier_inbound_id IS NOT NULL
-			AND d.add_type IS NULL
+				AND p.booking_status IN ('7', '8')
+				AND p.is_ticket_exported = 1
+				$sql_search_bk
+				AND d.luggage_price_inbound > 0
+				AND d.luggage_purchase_inbound > 0
+				AND d.supplier_inbound_id IS NOT NULL
+				AND d.add_type IS NULL
 			GROUP BY d.supplier_inbound_id
 
 			-- RECEIPT
 			UNION
-			SELECT 
+			SELECT
 				p.amount AS debt_amount
-			  , 0 AS pay_amount
-			  , account_id_c AS supplier_id
-			  , p.id AS id
+				,0 AS pay_amount
+				,account_id_c AS supplier_id
+				,p.id AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu = '9'
-			AND p.account_id_c IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu = '9'
+				AND p.account_id_c IS NOT NULL
+				$sql_search
 
 			-- SUPPLIER 1
 			UNION
-			SELECT 
+			SELECT
 				IFNULL(p.bought_amount, 0) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.supplier_id
-			  , CONCAT(p.id, '-SUPPLIER1') AS id
+				,0 AS pay_amount
+				,p.supplier_id
+				,CONCAT(p.id, '-SUPPLIER1') AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
-			AND p.supplier_id IS NOT NULL
-			AND p.bought_amount IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu IN ('4', '5')
+				AND p.supplier_id IS NOT NULL
+				AND p.bought_amount IS NOT NULL
+				$sql_search
 
 			-- SUPPLIER 2
 			UNION
-			SELECT 
+			SELECT
 				IFNULL(p.bought_amount2, 0) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.supplier2_id AS supplier_id
-			  , CONCAT(p.id, '-SUPPLIER2') AS id
+				,0 AS pay_amount
+				,p.supplier2_id AS supplier_id
+				,CONCAT(p.id, '-SUPPLIER2') AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
-			AND p.supplier2_id IS NOT NULL
-			AND p.bought_amount2 IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu IN ('4', '5')
+				AND p.supplier2_id IS NOT NULL
+				AND p.bought_amount2 IS NOT NULL
+				$sql_search
 
 			-- SUPPLIER 3
 			UNION
-			SELECT 
+			SELECT
 				IFNULL(p.bought_amount3, 0) AS debt_amount
-			  , 0 AS pay_amount
-			  , p.supplier3_id AS supplier_id
-			  , CONCAT(p.id, '-SUPPLIER3') AS id
+				,0 AS pay_amount
+				,p.supplier3_id AS supplier_id
+				,CONCAT(p.id, '-SUPPLIER3') AS id
 			FROM ec_receipt_voucher p
 			WHERE p.deleted = 0
-			AND p.loai_thu IN ('4', '5')
-			AND p.supplier3_id IS NOT NULL
-			AND p.bought_amount3 IS NOT NULL
-			" . $sql_search2 . "
+				AND p.loai_thu IN ('4', '5')
+				AND p.supplier3_id IS NOT NULL
+				AND p.bought_amount3 IS NOT NULL
+				$sql_search
 
 			-- TICKET REFUND
 			UNION
 			SELECT 
 				- SUM(IFNULL(c.sotienhang, 0)) AS debt_amount
-			  , 0 AS pay_amount
-			  , c.nhacc_id AS supplier_id
-			  , p.id
+				,0 AS pay_amount
+				,c.nhacc_id AS supplier_id
+				,p.id
 			FROM ec_chitiethoanve c
-			LEFT JOIN ec_hoanve p ON c.hoanve_id = p.id AND p.deleted = 0
+				LEFT JOIN ec_hoanve p ON c.hoanve_id = p.id AND p.deleted = 0
 			WHERE c.deleted = 0
-			AND c.dahoan = 1
-			AND p.tinhtrang = '1'
-			" . $sql_search2 . "
-			AND c.sotienhang > 0
-			AND c.nhacc_id IS NOT NULL
+				AND c.dahoan = 1
+				AND p.tinhtrang = '1'
+				$sql_search
+				AND c.sotienhang > 0
+				AND c.nhacc_id IS NOT NULL
 			GROUP BY c.nhacc_id
 
 			-- PAYMENT VOUCHER
 			UNION
 			SELECT 
 				0 AS debt_amount
-			  , IFNULL(p.amount, 0) AS pay_amount
-			  , p.supplier_id
-			  , p.id
+				,IFNULL(p.amount, 0) AS pay_amount
+				,p.supplier_id
+				,p.id
 			FROM ec_payment_voucher p
 			WHERE p.deleted = 0
-			AND p.pv_status = '3'
-			" . $sql_search2 . "
-			AND p.supplier_id IS NOT NULL
+				AND p.pv_status = '3'
+				$sql_search
+				AND p.supplier_id IS NOT NULL
 		) AS tmp
-		LEFT JOIN accounts a 
-		ON tmp.supplier_id = a.id 
-		AND a.deleted = 0
-		WHERE a.is_stop_tracking = 0
-		AND a.account_type = 'Supplier'
+		LEFT JOIN accounts a ON tmp.supplier_id = a.id AND a.deleted = 0
+		WHERE a.is_stop_tracking = 0 AND a.account_type = 'Supplier'
 		GROUP BY tmp.supplier_id
 		HAVING sotien <> 0";
 
-	$GLOBALS['log']->info($sql);
+	$GLOBALS['log']->$log_level($sql);
+
 	$res = $db->query($sql);
 	while ($row = $db->fetchByAssoc($res)) {
 		if ($row['sotien'] < 0) {
@@ -1041,38 +1027,37 @@ function KetChuyenCongNoPhaiTra()
 		}
 
 		// xoá số đầu kỳ đang có cập nhật lại
-		$sql_del = '
-			UPDATE ec_chitiettaikhoan' . $report_year . ' 
+		$sql_del = "UPDATE ec_chitiettaikhoan$report_year
 			SET deleted = 1
-			WHERE deleted = 0 
-			AND parent_id = "' . $row['supplier_id'] . '"';
+			WHERE deleted = 0 AND parent_id = '{$row['supplier_id']}'";
 		$db->query($sql_del);
 
-		$sql = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
-				VALUES(
-					uuid()
-				  , "' . $row['supplier'] . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . date('Y-m-d H:i:s') . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , NULL
-				  , 0
-				  , "' . $GLOBALS['current_user']->id . '"
-				  , "331"
-				  , ' . $no . '
-				  , ' . $co . '
-				  , "Accounts"
-				  , "' . $row['supplier_id'] . '"
-				  , NULL
-				  , NULL
-				)';
-		$db->query($sql);
+		$sqlInsert = 'INSERT INTO ec_chitiettaikhoan' . $report_year . '
+			VALUES(
+				uuid()
+				, "' . $row['supplier'] . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, "' . $GLOBALS['current_user']->id . '"
+				, NULL
+				, 0
+				, "' . $GLOBALS['current_user']->id . '"
+				, "331"
+				, ' . $no . '
+				, ' . $co . '
+				, "Accounts"
+				, "' . $row['supplier_id'] . '"
+				, NULL
+				, NULL
+			)';
+		$db->query($sqlInsert);
 	}
 
-	$GLOBALS['log']->info("----->End Ket chuyen cong no phai tra cuoi ky vao dau moi nam");
+	$GLOBALS['log']->$log_level("-----> End Ket chuyen cong no phai tra cuoi ky vao dau moi nam");
 	return true;
 }
+
 
 /*
 	LOOP CHECK IF BOOKING OVER 24h 
@@ -2406,10 +2391,10 @@ function calculateCashFlow()
 }
 
 function sendPromotionMessageZalo() {
-	require_once('custom/entrypoints/entryNonAuthClass/entryZaloPromotionClass.php');
-	$entry = new entryZaloPromotionClass();
-	$json = $entry->sendTicketPricesLunarNewYear2026(['number' => 250]);
-	$arr = json_decode($json, true);
+	$entry = new entryFactory();
+	$obj  = $entry->create('entryZaloMessageClass');
+	$json = $obj->sendTicketPricesLunarNewYear2026(['number' => 250]);
+	$arr  = json_decode($json, true);
 	if(isset($arr['status']) && $arr['status'] == 1) {
 		global $sugar_config;
 		preg_match_all('/\d+/', $arr['message'] ?? '', $matches);
