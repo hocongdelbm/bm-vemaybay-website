@@ -1,17 +1,19 @@
 <?php
 date_default_timezone_set('Asia/Ho_Chi_Minh');
-require_once 'custom/entrypoints/entryNonAuthClass/entryClass.php';
+require_once 'custom/entrypoints/entryClass.php';
 require_once 'custom/include/helpers/api/APIZaloOA.php';
+require_once 'custom/include/helpers/api/APIOMNI.php';
 
 /**
- * Class entryZaloPromotionClass
+ * Class entryZaloMessageClass
  * 
  * Gửi tin khuyến mãi hàng loạt trong Zalo 
  */
-class entryZaloPromotionClass extends entryClass {
+class entryZaloMessageClass extends entryClass {
     /**
      * Send info about ticket prices in Lunar New Year 2026
      * 
+     * @param array $params
      * @return string JSON
      * @author DucPham
      */
@@ -136,12 +138,49 @@ class entryZaloPromotionClass extends entryClass {
             ]);
         }
         catch(Throwable $th) {
-            $GLOBALS['log']->fatal("Error when running sendTicketPricesLunarNewYear2026(): {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return json_encode([
                 "status" => 0,
-                "message" => "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}",
+                "message" => "Exception error $logId",
+                "errorId" => $logId,
                 "data" => null
             ]);
+        }
+    }
+
+    /**
+     * Send ZNS
+     * 
+     * @param array $params
+     * @return string JSON
+     * @author DucPham
+     */
+    public function sendZNS($params = []) {
+        try {
+            $type = $params["type"] ?? ""; // ZNS type
+            
+            if(!in_array($type, ['otp', 'share-phone'])) {
+                return [
+                    "status" => 0,
+                    "message" => "Loại tin không hỗ trợ",
+                    "data" => null
+                ];
+            }
+
+            $epFactory = new entryFactory();
+            $entryZaloOAClass = $epFactory->create('entryZaloOAClass');
+            return $entryZaloOAClass->sendZNS($params);
+        }
+        catch(Throwable $th) {
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            return [
+                "status" => 0,
+                "message" => "Exception error $logId",
+                "errorId" => $logId,
+                "data" => null
+            ];
         }
     }
 }

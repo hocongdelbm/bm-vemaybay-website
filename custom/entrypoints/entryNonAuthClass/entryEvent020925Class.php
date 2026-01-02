@@ -1,5 +1,5 @@
 <?php
-require_once 'custom/entrypoints/entryNonAuthClass/entryClass.php';
+require_once 'custom/entrypoints/entryClass.php';
 
 /**
  * Class entryEvent020925Class

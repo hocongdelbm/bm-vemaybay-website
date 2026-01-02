@@ -3,8 +3,8 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 try {
-    $entryAuth = false;
-    require_once 'custom/entrypoints/entryFactory.php';
+    // $entryAuth = false;
+    // require_once 'custom/entrypoints/entryFactory.php';
 
     $request_method = $_SERVER['REQUEST_METHOD'] ?? '';
     if (in_array($request_method, ['POST', 'GET'])) {
@@ -33,13 +33,13 @@ try {
 
         // Get data
         $params = $_GET;
-        $reqBody = [];
+        $reqBody = null;
         if(stripos($contentType, 'application/json') !== false) $reqBody = json_decode(file_get_contents('php://input'), true);
         else $reqBody = $_POST;
 
-        $className  = global_test_input($reqBody['class'] ?? $params['class'] ?? '');
-        $method     = global_test_input($reqBody['method'] ?? $params['method'] ?? '');
-        $methodParams = $reqBody['params'] ?? $params['params'] ?? [];
+        $className  = global_test_input($params['class'] ?? $reqBody['class'] ?? '');
+        $method     = global_test_input($params['method'] ?? $reqBody['method'] ?? '');
+        $methodParams = $reqBody['params'] ?? $reqBody ?? $params['params'] ?? [];
 
         $entryClass = entryFactory::create($className);
         if($entryClass) {
@@ -70,7 +70,7 @@ try {
                 // }
 
                 $response = $entryClass->$method($methodParams);
-                if(!is_string($response)) $response = json_encode($response);
+                if(!is_string($response)) $response = json_encode($response, JSON_UNESCAPED_UNICODE);
                 echo $response;
                 exit;
             }

@@ -2456,3 +2456,4 @@ foreach (glob("custom/include/helpers/*Helper.php") as $file) {
 foreach (glob("custom/include/helpers/cache/*Helper.php") as $file) {
     if (is_file($file)) require_once $file;
 }
+require_once 'custom/entrypoints/entryFactory.php'; // Init entry

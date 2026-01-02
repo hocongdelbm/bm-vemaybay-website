@@ -80,6 +80,9 @@ class APIOMNI {
             case 'share-phone':
                 return "467011"; // Gửi thông tin chương trình chia sẻ SĐT
                 break;
+            case 'otp':
+                return "518686"; // Gửi OTP qua SĐT
+                break;
             default:
                 return "";
         }
@@ -120,6 +123,9 @@ class APIOMNI {
                 break;
             case '467011':
                 return "Gửi thông tin chương trình chia sẻ SĐT";
+                break;
+            case '518686':
+                return "Gửi OTP";
                 break;
             default:
                 return "";

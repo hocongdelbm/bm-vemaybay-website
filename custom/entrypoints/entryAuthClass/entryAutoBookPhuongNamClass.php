@@ -1,5 +1,5 @@
 <?php
-require_once "custom/entrypoints/entryAuthClass/entryClass.php";
+require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIPhuongNam.php";
 
 /**

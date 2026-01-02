@@ -1,5 +1,5 @@
 <?php
-require_once "custom/entrypoints/entryAuthClass/entryClass.php";
+require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIDatacom.php";
 
 /**
@@ -18,7 +18,7 @@ class entryAutoBookDatacomClass extends entryClass {
 
     public function __construct() {
         parent::__construct();
-        global $sugar_config, $current_user;
+        global $sugar_config;
 
         $this->vatPercentage = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
         $this->interSystemCode = $sugar_config['api_autobook']['InterSystemCode'] ?? '1A';

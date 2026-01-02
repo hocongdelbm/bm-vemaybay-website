@@ -1,5 +1,5 @@
 <?php
-require_once "custom/entrypoints/entryAuthClass/entryClass.php";
+require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIZaloOA.php";
 require_once "custom/include/helpers/api/APIOMNI.php";
 
@@ -412,10 +412,11 @@ class entryZaloOAClass extends entryClass {
             $parentType    = $params["parentType"] ?? "";
             $templateData  = $params['templateData'] ?? [];
 
-            if(empty($phoneNumber) || empty($type) || empty($templateData) || empty($parentId)) {
+            if(empty($phoneNumber) || empty($type) || empty($templateData)) {
                 return [
                     "status" => 0,
                     "message" => "Dữ liệu cung cấp không hợp lệ",
+                    "data" => null
                 ];
             }
 
@@ -448,7 +449,7 @@ class entryZaloOAClass extends entryClass {
                     $zalomes->template_id   = $template_id;
                     $zalomes->data          = json_encode($templateData);
                     $zalomes->response      = trim($json);
-                    $zalomes->booking_id    = $parentId;
+                    $zalomes->booking_id    = $parentType == 'EC_Flight_Bookings' ? $parentId : "";
                     $zalomes->assigned_user_id = $this->currentUser->id;
                     $zalomes->save();
 
@@ -498,9 +499,12 @@ class entryZaloOAClass extends entryClass {
             return $arr;
         }
         catch(Throwable $th) {
+            $logId = LoggerHelper::generateLogId();
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return [
                 "status" => 0,
-                "message" => "Exception error {$th->getMessage()} on line {$th->getLine()}"
+                "message" => "Exception error $logId",
+                "data" => null
             ];
         }
     }

@@ -3,8 +3,9 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 try {
-    $entryAuth = true;
-    require_once 'custom/entrypoints/entryFactory.php';
+    // $entryAuth = true;
+    // require_once 'custom/entrypoints/entryFactory.php';
+
     $request_method = $_SERVER['REQUEST_METHOD'] ?? '';
     if (in_array($request_method, ['POST', 'GET'])) {
         $headers = getallheaders();

@@ -41,6 +41,16 @@ class LoggerHelper {
         }
     }
 
+    /**
+     * Generate log id
+     * 
+     * @return string
+     * @author DucPham
+     */
+    public static function generateLogId() {
+        return "LOG" . round(microtime(true) * 1000) . bin2hex(random_bytes(6));
+    }
+
     // Shortcut methods for common levels
     public static function error(string $message, $context = null): void
     {
