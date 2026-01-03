@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 class EC_Flight_Bookings extends Basic {
 	public $new_schema = true;
 	public $module_dir = 'EC_Flight_Bookings';
@@ -488,8 +490,7 @@ class EC_Flight_Bookings extends Basic {
 				if (!empty($_POST['psg_eticket_outbound'][$i])) {
 					$booking->is_ticket_exported = '1';
 					if (empty($booking->date_ticket_issue)) {
-						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+						$booking->date_ticket_issue = date("d-m-Y");
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
@@ -506,8 +507,7 @@ class EC_Flight_Bookings extends Basic {
 				if (!empty($_POST['psg_eticket_inbound'][$i])) {
 					$booking->is_ticket_inbound_exported = '1';
 					if (empty($booking->date_ticket_inbound_issue)) {
-						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+						$booking->date_ticket_inbound_issue = date("d-m-Y");
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
@@ -1590,8 +1590,7 @@ class EC_Flight_Bookings extends Basic {
 				if (!empty($_POST['psg_eticket_outbound'][$i])) {
 					$booking->is_ticket_exported = '1';
 					if (empty($booking->date_ticket_issue)) {
-						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+						$booking->date_ticket_issue = date("d-m-Y");
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
@@ -1608,8 +1607,7 @@ class EC_Flight_Bookings extends Basic {
 				if (!empty($_POST['psg_eticket_inbound'][$i])) {
 					$booking->is_ticket_inbound_exported = '1';
 					if (empty($booking->date_ticket_inbound_issue)) {
-						$now = date('d-m-Y H:i:s');
-						$booking->date_ticket_inbound_issue = date("d-m-Y", strtotime('+7 hours', strtotime($now)));
+						$booking->date_ticket_inbound_issue = date("d-m-Y");
 					} else {
 						if (isAllowedUser()) {
 							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
