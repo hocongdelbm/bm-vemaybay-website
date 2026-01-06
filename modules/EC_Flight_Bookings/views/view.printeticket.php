@@ -1,8 +1,6 @@
 <?php
-
-use function FastRoute\TestFixtures\empty_options_cached;
-
 require_once("include/Sugar_Smarty.php");
+
 class Viewprinteticket extends SugarView {
 	function display() {
 		$smartyCont = new Sugar_Smarty();
@@ -653,8 +651,7 @@ class Viewprinteticket extends SugarView {
 		global $db;
 		$html = '';
 
-		$sql = "
-			SELECT 
+		$sql = "SELECT 
 				i.id,
 				i.departure_date,
 				i.arrival_date,
@@ -666,26 +663,20 @@ class Viewprinteticket extends SugarView {
 				i.airline_code,
 				i.direction
 			FROM ec_booking_itineraries i
-			WHERE i.booking_id='" . $booking_id . "'
+			WHERE i.booking_id = '$booking_id'
 				AND i.deleted = 0 
 				AND IF((i.sabre_logs = 0 or i.sabre_logs IS NULL), 0, i.sabre_logs) = (
 					SELECT IF((sabre_logs = 0 or sabre_logs IS NULL), 0, sabre_logs)
 					FROM ec_booking_itineraries
-					WHERE id = '" . $iti_id . "'
-			)";
+					WHERE id = '$iti_id'
+				)";
 
-		//		if(!$khuhoi){
-		//			$sql .= " AND i.id='".$itinerary_id."' ";
-		//		}
+		if (!$khuhoi || $is_change_inf == 1) $sql .= " AND i.direction = '$way_flight' ";
 
-		if (!$khuhoi || $is_change_inf == 1) {
-			$sql .= " AND i.direction = '" . $way_flight . "' ";
-		}
+		$sql .= "GROUP BY IF(sabre_logs = 0, i.id, i.direction)";
 
-		$sql .= "
-			GROUP BY IF(sabre_logs = 0, i.id, i.direction) 
-			ORDER BY i.direction, i.departure_date, i.date_entered
-		";
+		if($this->bean->ticket_type === '2') $sql .= "ORDER BY i.direction, i.transit_order";
+		else $sql .= "ORDER BY i.direction, i.departure_date, i.date_entered";
 
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
