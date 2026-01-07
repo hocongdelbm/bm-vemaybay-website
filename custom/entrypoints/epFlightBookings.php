@@ -2595,14 +2595,14 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 				, GROUP_CONCAT(IF(i.direction = 0, IF(i.departure_date IS NULL, NULL, DATE_FORMAT(i.departure_date, "%d-%m-%Y %H:%i:%s")), NULL) SEPARATOR "|") AS departure_date
 				, GROUP_CONCAT(IF(i.direction = 1, IF(i.departure_date IS NULL, NULL, DATE_FORMAT(i.departure_date, "%d-%m-%Y %H:%i:%s")), NULL) SEPARATOR "|") AS arrival_date
 				, IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0) AS total_ticket
-				, IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT (IFNULL(luggage_purchase, 0)) + (IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id ORDER BY bk.date_entered DESC LIMIT 1)), 0) AS bk_sales 
+				-- , IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT (IFNULL(luggage_purchase, 0)) + (IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id ORDER BY bk.date_entered DESC LIMIT 1)), 0) AS bk_sales 
+				, bk.id as booking_id
 				, (IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT (IFNULL(luggage_purchase, 0)) + (IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id ORDER BY bk.date_entered DESC LIMIT 1)), 0) / IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0)) AS average_fee 
 				, (SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.deleted = 0 AND i.booking_id = bk.id) AS min_dep_time
 				, (SELECT GROUP_CONCAT(DISTINCT service_fee) FROM ec_booking_details WHERE deleted = 0 AND booking_id = bk.id) AS service_fee
 				, u.user_name
 			FROM ec_flight_bookings bk
-			INNER JOIN ec_booking_itineraries i 
-			ON i.deleted = 0 AND i.booking_id = bk.id
+			INNER JOIN ec_booking_itineraries i ON i.deleted = 0 AND i.booking_id = bk.id
 			INNER JOIN users u ON u.id = bk.assigned_user_id
 			WHERE bk.deleted = 0 AND bk.ticket_type = 2
 			AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= 
@@ -2618,6 +2618,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 	$i = $total = $canceled = $completed = $exported = $confirmed = $called = $paidwait = 0;
 	$created = $ticket_completed = $total_sale = 0;
 	while ($row = $db->fetchByAssoc($res)) {
+		$bk_sales = calculateBKTotalAmt($row['booking_id']);
+
 		$departure_date = implode("<br>", explode("|", $row['departure_date']));
 		$arrival_date = implode("<br>", explode("|", $row['arrival_date']));
 		$service_fee = implode("&nbsp;/&nbsp;", array_map(function ($val) {
@@ -2640,10 +2642,10 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 					<td class="text-center fw-semibold">
 						<font color="' . $app_list_strings['booking_status_color_list'][$row['booking_status']] . '">' . $app_list_strings['booking_status_list'][$row['booking_status']] . '</font>
 					</td>
-					<td class="text-center hide-mobile">' . $service_fee . '</td>
-					<td class="text-center">' . format_number($row['total_ticket']) . '</td>
-					<td class="text-center">' . format_number($row['bk_sales']) . '</td>
-					<td class="text-center">' . format_number($row['average_fee']) . '</td>
+					<td class="text-center hide-mobile" data-field="service_fee">' . $service_fee . '</td>
+					<td class="text-center" data-field="total_ticket">' . format_number($row['total_ticket']) . '</td>
+					<td class="text-center" data-field="bk_sales">' . format_number($bk_sales) . '</td>
+					<td class="text-center" data-field="average_fee">' . format_number($row['average_fee']) . '</td>
 					<td class="text-center hide-mobile">' . $row['user_name'] . '</td>
 					<td class="text-center hide-mobile">
 						' . date('d-m-Y H:i:s', strtotime($row['bk_date_entered'])) . '
@@ -2655,7 +2657,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 			';
 		$i++;
 		$total++;
-		$total_sale += $row['bk_sales'];
+		$total_sale += $bk_sales;
 		switch ($row['booking_status']) {
 			case 4:
 				$canceled++;
@@ -2736,6 +2738,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 	$html = '<div class="box-section detail_bk--wrap">' . $html1 . $html2 . '</div>';
 
 	echo $html;
+	exit;
 }
 
 // Xem chi tiết cuộc gọi đến - nhỡ theo site
