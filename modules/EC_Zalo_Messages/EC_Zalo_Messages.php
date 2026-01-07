@@ -645,7 +645,7 @@ class EC_Zalo_Messages extends Basic {
             return true;
         }
         else {
-            EC_Zalo::handle_error_oa_api($res['error'] ?? null, $zalo_id, $zaloOA->get_oa_id(), $res['message'] ?? '');
+            EC_Zalo::handle_error_oa_api($res['error'] ?? null, $res['message'] ?? '', $zalo_id, $zaloOA->get_oa_id());
             return false;
         }
     }

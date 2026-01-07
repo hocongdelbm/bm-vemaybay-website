@@ -263,7 +263,7 @@ class EC_Zalo_Contacts extends Basic
                 $this->custom_save($userData, $oa_id);
             }
             else {
-                EC_Zalo::handle_error_oa_api($result_user_info['error'] ?? null, $zalo_id, $oa_id, $result_user_info['message'] ?? '');
+                EC_Zalo::handle_error_oa_api($result_user_info['error'] ?? null, $result_user_info['message'] ?? '', $zalo_id, $oa_id);
             }
         }
 
