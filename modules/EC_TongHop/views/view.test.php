@@ -488,14 +488,7 @@ class Viewtest extends SugarView
 						0 AS prior_bk,
 						0 AS com_prior_bk,
 						0 AS com_prior_ticket,
-						- SUM(
-							IF(
-							TIMESTAMPDIFF(MINUTE, DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), (SELECT MIN(departure_date) FROM ec_booking_itineraries WHERE booking_id = bk.id AND deleted = 0)) <= 1440 
-							AND bk.booking_status IN (3, 7, 8),
-							IFNULL(bk_psg.luggage_purchase, 0) + IFNULL(bk_psg.luggage_purchase_inbound, 0),
-							0
-							)
-						) AS prior_bk_sales,
+						0 AS prior_bk_sales,
 						0 AS bk_inter_ticket,
 						0 AS com_inter_ticket_qty,
 						0 AS com_inter_ticket,
@@ -529,7 +522,7 @@ class Viewtest extends SugarView
 					AND u.title = 'Bot'
 					$where_period
 					GROUP BY period, bk.id, user_id
-					HAVING TIMESTAMPDIFF(MINUTE, ts_local, min_dep_time) > 1440 
+					-- HAVING TIMESTAMPDIFF(MINUTE, ts_local, min_dep_time) > 1440 
 					
 					--  BLOCK 3: Prior bookings <=1440
 					UNION ALL
@@ -644,7 +637,8 @@ class Viewtest extends SugarView
 						COUNT(bk.id) AS prior_bk,
 						SUM(IF(bk.booking_status IN (3, 7, 8), 1, 0)) AS com_prior_bk,
 						SUM(IF(bk.booking_status IN (3, 7, 8), bk.total_qty, 0)) AS com_prior_ticket,
-						SUM(IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount), 0)) AS prior_bk_sales,
+						-- SUM(IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount), 0)) AS prior_bk_sales,
+						SUM(IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount)- IFNULL(p.luggage_total, 0), 0)) AS prior_bk_sales,
 						SUM(
 							IFNULL(
 							(
@@ -687,6 +681,15 @@ class Viewtest extends SugarView
 						(SELECT MIN(i.departure_date) FROM ec_booking_itineraries i WHERE i.booking_id = bk.id AND i.deleted = 0) AS min_dep_time,
 						DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS ts_local
 					FROM ec_flight_bookings bk
+					LEFT JOIN (
+						SELECT
+							booking_id,
+							SUM(IFNULL(luggage_purchase, 0) + IFNULL(luggage_purchase_inbound, 0)) AS luggage_total
+						FROM ec_booking_passengers
+						WHERE deleted = 0
+						AND (add_type IS NULL OR add_type = '')
+						GROUP BY booking_id
+					) p ON p.booking_id = bk.id
 					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
 					WHERE u.title = 'Bot'
 					$where_period
