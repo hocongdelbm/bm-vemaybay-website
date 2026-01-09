@@ -1315,9 +1315,7 @@ class EC_Flight_Bookings extends Basic {
 		$options = "<option value=''>Chọn hành lý</option>";
 		if(is_string($airlineCode) && !empty($airlineCode)) {
 			try {
-				require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
 				$baggageData = [];
-
 				$cacheKey = "extra_baggage_options_".strtolower($airlineCode);
 				$cacheTime = 3600;
 
@@ -1333,7 +1331,9 @@ class EC_Flight_Bookings extends Basic {
 
 				// Get data from API
 				if(!is_array($baggageData) || empty($baggageData)) {
-					$fareSystem = new entryFareSystemClass();
+					$epFactory = new entryFactory();
+            		$fareSystem = $epFactory->create('entryFareSystemClass');
+					
 					$baggageResponse = $fareSystem->getBaggageOption(['airlineCode' => $airlineCode]);
 					$baggageResponse = json_decode($baggageResponse, true);
 

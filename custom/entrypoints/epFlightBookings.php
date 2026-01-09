@@ -2618,7 +2618,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInterBooking') {
 	$i = $total = $canceled = $completed = $exported = $confirmed = $called = $paidwait = 0;
 	$created = $ticket_completed = $total_sale = 0;
 	while ($row = $db->fetchByAssoc($res)) {
-		$bk_sales = calculateBKTotalAmt($row['booking_id']);
+		// Chưa cộng doanh số hành lý mua thêm cho booking đó
+		$bk_sales_arr = calculateBKAmt($row['booking_id']);
+		$bk_sales = $bk_sales_arr['total_profit_no_receipt'];
 
 		$departure_date = implode("<br>", explode("|", $row['departure_date']));
 		$arrival_date = implode("<br>", explode("|", $row['arrival_date']));
