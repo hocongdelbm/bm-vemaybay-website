@@ -61,7 +61,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private function exc_dataRevenue()
 	{
 		// Lấy tất cả danh sách các booking hoàn tất booking_status = 8 trong năm 2025
-		$year = 2026;
+		$year = 2024;
 		for ($month = 1; $month <= 12; $month++) {
 			// Ngày đầu tháng
 			$from = sprintf('%04d-%02d-01 00:00:00', $year, $month);
@@ -69,19 +69,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			// Ngày cuối tháng
 			$lastDay = date('t', strtotime($from));
 			$to = sprintf('%04d-%02d-%02d 23:59:59', $year, $month, $lastDay);
-
-			// pr($from . ' - ' . $to);
-
-			// $get_sql = "
-			// 	SELECT id
-			// 	FROM ec_flight_bookings
-			// 	WHERE booking_status = 8
-			// 	AND date_entered BETWEEN
-			// 		DATE_SUB('2025-12-01 00:00:00', INTERVAL 7 HOUR)
-			// 		AND
-			// 		DATE_SUB('2025-12-31 23:59:59', INTERVAL 7 HOUR)
-			// 	AND deleted = 0
-			// ";
 			$get_sql = "
 				SELECT id
 				FROM ec_flight_bookings
@@ -94,10 +81,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			";
 			$res = $this->bean->db->query($get_sql);
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
-				// if(!in_array($month, [1, 2, 3, 4])) continue;
+				if(!in_array($month, [1, 2, 3, 4])) continue;
 				// if(!in_array($month, [5, 6, 7, 8])) continue;
-				// if (!in_array($month, [9, 10, 11, 12])) continue;
-
+				// if(!in_array($month, [9, 10, 11, 12])) continue;
 				saveRevenueBooking($row['id']);
 				unset($row);
 			}

@@ -605,13 +605,8 @@ function calculateBKAmt($booking_id, $only_profit = false)
             'total_purchase_points_refunded'  => $row['total_purchase_points_refunded'],
             'total_purchase_luggage'        => $row['total_purchase_luggage'],
             'total_purchase_receipt'        => $row['total_purchase_receipt'],
-<<<<<<< HEAD
-            'total_profit'                  => $row['total_profit'],
-            'total_profit_no_receipt'         => $row['total_profit'] - ($row['total_amount_receipt'] - $row['total_purchase_receipt']),
-=======
             'total_purchase'                => $row['total_purchase'],
             'total_profit'                  => $row['total_amount'] - $row['total_purchase'],
->>>>>>> hungnh_report
         );
     }
 
