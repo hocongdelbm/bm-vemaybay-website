@@ -3,7 +3,8 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
 require_once('modules/EC_Messages/SMS.php');
 
-class EC_Flight_BookingsViewDetail extends ViewDetail {
+class EC_Flight_BookingsViewDetail extends ViewDetail
+{
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
 	private $_outbound_ticket_class = '';
@@ -11,7 +12,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	private $_is_had_rv = 0;
 	private $editing_rights = false;
 
-	function display() {	
+	function display()
+	{
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
@@ -42,12 +44,67 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		$this->createModal(); // Modal for confirm action
 
-		if($current_user->user_name == 'hungnh') {
+		if ($current_user->user_name == 'hungnh') {
 			pr(calculateBKAmt($this->bean->id));
+
+			// Cập nhật data doanh số cho table ec_revenue
+			// $this->exc_dataRevenue();
 		}
 
 		parent::display();
 		$this->displayJS();
+	}
+
+	/**
+	 * Chạy theo quý tránh timeout 504
+	 */
+	private function exc_dataRevenue()
+	{
+		// Lấy tất cả danh sách các booking hoàn tất booking_status = 8 trong năm 2025
+		$year = 2026;
+		for ($month = 1; $month <= 12; $month++) {
+			// Ngày đầu tháng
+			$from = sprintf('%04d-%02d-01 00:00:00', $year, $month);
+
+			// Ngày cuối tháng
+			$lastDay = date('t', strtotime($from));
+			$to = sprintf('%04d-%02d-%02d 23:59:59', $year, $month, $lastDay);
+
+			// pr($from . ' - ' . $to);
+
+			// $get_sql = "
+			// 	SELECT id
+			// 	FROM ec_flight_bookings
+			// 	WHERE booking_status = 8
+			// 	AND date_entered BETWEEN
+			// 		DATE_SUB('2025-12-01 00:00:00', INTERVAL 7 HOUR)
+			// 		AND
+			// 		DATE_SUB('2025-12-31 23:59:59', INTERVAL 7 HOUR)
+			// 	AND deleted = 0
+			// ";
+			$get_sql = "
+				SELECT id
+				FROM ec_flight_bookings
+				WHERE booking_status = 8
+				AND date_entered BETWEEN
+					DATE_SUB('{$from}', INTERVAL 7 HOUR)
+					AND
+					DATE_SUB('{$to}', INTERVAL 7 HOUR)
+				AND deleted = 0
+			";
+			$res = $this->bean->db->query($get_sql);
+			while ($row = $this->bean->db->fetchByAssoc($res)) {
+				// if(!in_array($month, [1, 2, 3, 4])) continue;
+				// if(!in_array($month, [5, 6, 7, 8])) continue;
+				// if (!in_array($month, [9, 10, 11, 12])) continue;
+
+				saveRevenueBooking($row['id']);
+				unset($row);
+			}
+			unset($res);
+			gc_collect_cycles();
+			sleep(3);
+		}
 	}
 
 	private function displayJS()
@@ -96,7 +153,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		echo $js;
 	}
 
-	private function displayCSS() {
+	private function displayCSS()
+	{
 		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.7">
@@ -104,6 +162,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
 	}
+
+
 
 	// Line Note Message - Made by: DucPham at 28/09/2022
 	function populateLineNotesMessage()
@@ -317,7 +377,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			</a>
 		';
 
-		if($this->bean->booking_status == 8 || $this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
+		if ($this->bean->booking_status == 8 || $this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
 			if (!$this->bean->is_telesale) {
 				$is_wrap_hold .= '</form>
 							<form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
@@ -341,7 +401,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			}
 		}
 
-		if($this->bean->booking_status == 8) {
+		if ($this->bean->booking_status == 8) {
 			// Là CTV
 			if (!$this->bean->is_ctv) {
 				$is_wrap_hold .= '</form>
@@ -442,7 +502,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay<h6>
 					<form method="dialog">
 						<input type="hidden" name="zalo_flight_type" id="zalo_flight_type" value="' . $this->bean->flight_type . '" />
-						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="'. base64_encode(rawurlencode(json_encode($journeys_info, JSON_UNESCAPED_UNICODE))) .'" />
+						<input type="hidden" name="zalo_journeys" id="zalo_journeys" value="' . base64_encode(rawurlencode(json_encode($journeys_info, JSON_UNESCAPED_UNICODE))) . '" />
 						<input type="hidden" name="zalo_passenger" id="zalo_passenger" value="' . $pass_and_bag['passenger'] . '" />
 						<input type="hidden" name="zalo_baggage" id="zalo_baggage" value="' . $pass_and_bag['baggage'] . '" />
 						<input type="hidden" name="zalo_booking_id" id="zalo_booking_id" value="' . $this->bean->id . '" />
@@ -454,37 +514,37 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
 									<label for="type_journey" class="form-check-label">Tin nhắn hành trình
-										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['journey'] .' tin">('. $zns_history['journey'] .')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['journey'] . ' tin">(' . $zns_history['journey'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_payment" name="zalo_type" value="payment">
 									<label for="type_payment" class="form-check-label">Tin nhắn thanh toán
-										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['payment'] .' tin">('. $zns_history['payment'] .')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['payment'] . ' tin">(' . $zns_history['payment'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_code" name="zalo_type" value="code">
 									<label for="type_code" class="form-check-label">Tin nhắn code vé
-										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['code'] .' tin">('. $zns_history['code'] .')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['code'] . ' tin">(' . $zns_history['code'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_after-call-sale" name="zalo_type" value="after-call-sale">
 									<label for="type_after-call-sale" class="form-check-label">Tin CSKH - Call sale
-										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['callsale'] .' tin">('. $zns_history['callsale'] .')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['callsale'] . ' tin">(' . $zns_history['callsale'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_remind-flight" name="zalo_type" value="remind-flight">
 									<label for="type_remind-flight" class="form-check-label">Nhắc nhở giờ bay
-										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['remind'] .' tin">('. $zns_history['remind'] .')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['remind'] . ' tin">(' . $zns_history['remind'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_delay" name="zalo_type" value="delay">
 									<label for="type_delay" class="form-check-label">Thông báo delay
-										<span class="me-2 text-danger" title="Đã gửi '. $zns_history['delay'] .' tin">('. $zns_history['delay'] .')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['delay'] . ' tin">(' . $zns_history['delay'] . ')</span>
 									</label>
 								</div>
 							</div>	
@@ -495,7 +555,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 						</div>
 						<div class="row mt-2 pt-3" style="border-top: 1px solid #e0e0e0;">
 							<div class="col-6 wrap-phone">
-								Gửi tới: <input type="text" name="phone_zalo" id="phone_zalo" value="'. $this->bean->phone .'" style="width:120px; margin-left:10px; height:10px;"/>
+								Gửi tới: <input type="text" name="phone_zalo" id="phone_zalo" value="' . $this->bean->phone . '" style="width:120px; margin-left:10px; height:10px;"/>
 							</div>
 							<div class="col-6 wrap-button">
 								<button type="button" id="confirm-send-zalo" class="btn btn-confirm me-2">Gửi</button>
@@ -979,7 +1039,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<input type="hidden" name="lydothangthua_id" value="' . $this->bean->lydothangthua_id . '" />
 				<input type="hidden" name="ghichuthangthua" value="' . $this->bean->ghichuthangthua . '" />
 				<input type="hidden" name="optLyDoThangThua" value="' . str_replace('"', "'", myGetSelectOptionsWithDb('EC_LyDoThangThua', $this->bean->lydothangthua_id, 'id', " AND loailydo='0' ORDER BY date_entered ")) . '" />
-				<input type="hidden" name="complete_ok" value="'.$complete_ok.'" />
+				<input type="hidden" name="complete_ok" value="' . $complete_ok . '" />
 				<input type="submit" class="btn btn-success save-popup-dialog" name="btnCompleted" id="btnCompleted" value="' . $app_list_strings['booking_status_list']['8'] . '" title="' . $app_list_strings['booking_status_list']['8'] . '" />
 			</form>';
 		}
@@ -1248,6 +1308,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			);
 		} else
 			$this->ss->assign('BUTTON_AUTO_BOOK', '');
+
+		// Cập nhật doanh số của booking trong table ec_revenue
+		$update_revenue = '';
+		if (is_admin($current_user)) {
+			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
+		}
+		$this->ss->assign('UPDATE_REVENUE', $update_revenue);
 	}
 
 	// Display all itineraries
@@ -1366,10 +1433,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 			if ($row['is_layover'] == 0 && $use_mail_eticket) {
 				// PRINT BUTTON
-				$print_ticket_btn = '<input type="button" ln="'. $i .'" name="btnPrintEticket" value="In vé" title="In vé" class="btn btn-primary-2" />';
+				$print_ticket_btn = '<input type="button" ln="' . $i . '" name="btnPrintEticket" value="In vé" title="In vé" class="btn btn-primary-2" />';
 
 				// SEND BUTTON
-				$send_ticket_btn = '<input type="button" ln="'. $i .'" name="btnSendEticket" value="Gửi vé" title="Gửi vé" class="btn btn-primary-2" />';
+				$send_ticket_btn = '<input type="button" ln="' . $i . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" class="btn btn-primary-2" />';
 
 				// REMIND BUTTON
 				$remind_btn = '';
@@ -1896,7 +1963,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			// 		<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
 			// 	</tr>';
 			// }
-			
+
 			$i++;
 		}
 
@@ -2356,7 +2423,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	 * 
 	 * @return void
 	 */
-	private function createModal() {
+	private function createModal()
+	{
 		echo '<div class="modal fade" id="modal-confirm">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -2379,7 +2447,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	 * @param string $bookingId
 	 * @return array
 	 */
-	public function getJourneysByBooking($bookingId) {
+	public function getJourneysByBooking($bookingId)
+	{
 		$journeys = [];
 		if (is_null($bookingId) || empty($bookingId)) return $journeys;
 
@@ -2469,7 +2538,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	 * @param string $booking_id
 	 * @return array [passenger, baggage]
 	 */
-	public function getPassengerAndBaggage($booking_id) {
+	public function getPassengerAndBaggage($booking_id)
+	{
 		if (is_null($booking_id) || empty($booking_id)) return ['passenger' => '', 'baggage' => ''];
 
 		$adt = $chd = $inf = 0;
@@ -2505,7 +2575,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				preg_match_all('/\d+/', $bagText, $matches);
 				$pack   = (int)($matches[0][0] ?? 0); // 1
 				$weight = (int)($matches[0][1] ?? 0); // 20
-				
+
 				$totalPackRet += $pack;
 				$totalWeightRet += $weight;
 			}
@@ -2535,13 +2605,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		$bag = '';
 		if ($totalPackDep * $totalWeightDep != 0) $bag .= "{$totalPackDep} kiện đi (tổng {$totalWeightDep}kg)";
-		elseif($totalPackDep > 0) $bag .= "{$totalPackDep} kiện đi";
-		elseif($totalWeightDep > 0) $bag .= "{$totalWeightDep}kg lượt đi";
+		elseif ($totalPackDep > 0) $bag .= "{$totalPackDep} kiện đi";
+		elseif ($totalWeightDep > 0) $bag .= "{$totalWeightDep}kg lượt đi";
 
-		if(!empty($bag)) $bag .= ', ';
+		if (!empty($bag)) $bag .= ', ';
 		if ($totalPackRet * $totalWeightRet != 0) $bag .= "{$totalPackRet} kiện về (tổng {$totalWeightRet}kg)";
-		elseif($totalPackRet > 0) $bag .= "{$totalPackRet} kiện về";
-		elseif($totalWeightRet > 0) $bag .= "{$totalWeightRet}kg lượt về";
+		elseif ($totalPackRet > 0) $bag .= "{$totalPackRet} kiện về";
+		elseif ($totalWeightRet > 0) $bag .= "{$totalWeightRet}kg lượt về";
 
 		if (empty($bag)) $bag = "Không";
 		return ['passenger' => $pass, 'baggage' => trim($bag)];
@@ -2585,7 +2655,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	 * @param string $bookingId
 	 * @return array
 	 */
-	public function getHistoryZNS($phoneNumber, $bookingId) {
+	public function getHistoryZNS($phoneNumber, $bookingId)
+	{
 		$result = [
 			'journey' => 0,
 			'payment' => 0,
@@ -2595,7 +2666,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			'delay' => 0,
 		];
 
-		if(empty($phoneNumber) || empty($bookingId)) return $result;
+		if (empty($phoneNumber) || empty($bookingId)) return $result;
 
 		$sql = "SELECT zm.sub_type, COUNT(*) AS count
 			FROM ec_zalo_messages zm

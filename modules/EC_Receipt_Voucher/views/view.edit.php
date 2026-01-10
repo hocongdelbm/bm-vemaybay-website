@@ -93,7 +93,7 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		
 
 		// LOAI THU
-		$loaithu_arr = ['4', '5', '10', '11', '12', '13', '14', '16'];
+		$loaithu_arr = ['4', '5', '10', '11', '12', '13', '14', '16', '27'];
 		$loaithu = '<style>
 			.ui-autocomplete-loading {
 				background: white url(custom/jqueryui/css/ui-lightness/images/ui-anim_basic_16x16.gif) right center no-repeat;

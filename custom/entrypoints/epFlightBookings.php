@@ -340,8 +340,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 	while ($row = $db->fetchByAssoc($res)) {
 		// Giới tính, họ tên, ngày sinh
 		$styleFirst = $i > 0 ? "border-top:8px solid var(--bgdecs-color)" : "";
-		$html .= '<tr class="line_pass' . $row['id'] . '" style="'.$styleFirst.'">
-			<td colspan="4" class="'. ($i > 0 ? "pt-2" : "") .'">
+		$html .= '<tr class="line_pass' . $row['id'] . '" style="' . $styleFirst . '">
+			<td colspan="4" class="' . ($i > 0 ? "pt-2" : "") . '">
 				<b class="pass_order" style="font-size:14px">Hành khách ' . ($i + 1) . ':</b> ' . $app_list_strings['passenger_type_list'][$row['type']] . '
 				<div class="d-flex align-items-center gap-2 mt-1">
 					<select class="box-select box-select2-non-search" name="pass_salutation[]">' . get_select_options_with_id($app_list_strings['passenger_salutation_list'], (int) $row['salutation']) . '</select>
@@ -376,8 +376,8 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 			$baggage_inbound = '
 				<td width="20%" class="text-label text-nowrap">Thêm HL lượt về:</td>
 				<td class="pass_luggage_ln pass_luggage_right">
-					<select class="pass_luggage pass_luggage_ib box-select box-select2-non-search" name="pass_luggage_ib[]" ln="'. $i .'" style="width:100%">
-						'. $booking->generateBaggageOptions($booking->airline_inbound, $ticket_class_ib, $row['luggage_purchase_text_inbound'], $row['luggage_purchase_inbound']) .'
+					<select class="pass_luggage pass_luggage_ib box-select box-select2-non-search" name="pass_luggage_ib[]" ln="' . $i . '" style="width:100%">
+						' . $booking->generateBaggageOptions($booking->airline_inbound, $ticket_class_ib, $row['luggage_purchase_text_inbound'], $row['luggage_purchase_inbound']) . '
 					</select>
 				</td>
 			';
@@ -385,13 +385,13 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 			// Giá bán HL lượt về
 			$selling_price_inbound = '
 				<td width="20%" class="text-label text-nowrap">Giá bán HL lượt về:</td>
-				<td><input type="text" name="pass_luggage_price_inbound[]" value="'. $row['luggage_price_inbound'] .'" class="box-input allow-number-only"></td>
+				<td><input type="text" name="pass_luggage_price_inbound[]" value="' . $row['luggage_price_inbound'] . '" class="box-input allow-number-only"></td>
 			';
 
 			// Giá mua HL lượt về
 			$purchase_price_inbound = '
 				<td width="20%" class="text-label text-nowrap">Giá mua HL lượt về:</td>
-				<td><input type="text" name="pass_luggage_purchase_inbound[]" value="'. $row['luggage_purchase_inbound'] .'" class="box-input allow-number-only"></td>
+				<td><input type="text" name="pass_luggage_purchase_inbound[]" value="' . $row['luggage_purchase_inbound'] . '" class="box-input allow-number-only"></td>
 			';
 
 			// Nhà cung cấp HL lượt đi
@@ -402,8 +402,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 					<input type="hidden" name="iti_ib" value="' . $row_t['iti_id_ib'] . '">
 				</td>
 			';
-		}
-		else {
+		} else {
 			$eticket_inbound = '<td></td><td></td>';
 			$eluggage_inbound = '<td></td><td></td>';
 			$pnr_inbound = '<td></td><td></td>';
@@ -433,30 +432,30 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 			<td><input class="box-input" type="text" value="' . $row['eluggage_outbound'] . '" name="pass_eluggage_outbound[]"></td>
 			' . $eluggage_inbound . '
 		</tr>';
-		
+
 		// Lựa chọn HL lượt đi
 		$html .= '<tr class="line_pass' . $row['id'] . '">
 			<td width="20%" class="text-label text-nowrap">Thêm HL lượt đi:</td>
 			<td class="pass_luggage_ln pass_luggage_left">
-				<select class="pass_luggage pass_luggage_ob box-select box-select2-non-search" name="pass_luggage_ob[]" ln="'. $i .'" style="width:100%">
-					'. $booking->generateBaggageOptions($booking->airline, $ticket_class_ob, $row['luggage_purchase_text'], $row['luggage_purchase']) .'
+				<select class="pass_luggage pass_luggage_ob box-select box-select2-non-search" name="pass_luggage_ob[]" ln="' . $i . '" style="width:100%">
+					' . $booking->generateBaggageOptions($booking->airline, $ticket_class_ob, $row['luggage_purchase_text'], $row['luggage_purchase']) . '
 				</select>
 			</td>
-			'. $baggage_inbound .'
+			' . $baggage_inbound . '
 		</tr>';
 
 		// Giá bán HL lượt đi
 		$html .= '<tr class="line_pass' . $row['id'] . '">
 			<td width="20%" class="text-label text-nowrap">Giá bán HL lượt đi:</td>
 			<td><input type="text" name="pass_luggage_price[]" value="' . $row['luggage_price'] . '"  class="box-input allow-number-only"></td>
-			'. $selling_price_inbound .'
+			' . $selling_price_inbound . '
 		</tr>';
 
 		// Giá mua HL lượt đi
 		$html .= '
 			<td width="20%" class="text-label text-nowrap">Giá mua HL lượt đi:</td>
-			<td><input type="text" name="pass_luggage_purchase[]" value="'. $row['luggage_purchase'] .'" class="box-input allow-number-only"></td>
-			'. $purchase_price_inbound .'
+			<td><input type="text" name="pass_luggage_purchase[]" value="' . $row['luggage_purchase'] . '" class="box-input allow-number-only"></td>
+			' . $purchase_price_inbound . '
 		';
 
 		// Nhà cung cấp HL lượt đi
@@ -466,7 +465,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getPassengerLine') {
 				<select name="supplier_outbound[]" class="box-select box-select2">' . get_select_options_with_id($supplier, trim($row['supplier_id'])) . '</select>
 				<input type="hidden" name="iti_ob" value="' . $row_t['iti_id_ob'] . '">
 			</td>
-			'. $supplier_inbound .'
+			' . $supplier_inbound . '
 		</tr>';
 
 		$html .= "<input type='hidden' name='pass_type[]' value='" . $row['type'] . "' />";
@@ -614,7 +613,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInvoiceInf') {
 		<tr>
 			<td class="label">CCCD/Hộ chiếu:</td>
 			<td>
-				<input type="text" class="box-input" name="iv_identity_number" value="'. $inv_inf['iv_identity_number'] .'" maxlength="12" />
+				<input type="text" class="box-input" name="iv_identity_number" value="' . $inv_inf['iv_identity_number'] . '" maxlength="12" />
 			</td>
 		</tr>';
 	$html .= '
@@ -748,6 +747,20 @@ if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 		echo 0;
 		exit();
 	}
+}
+
+// Cập nhật doanh số booking
+if (isset($_POST['for']) && $_POST['for'] == 'updateRevenueBooking') {
+	$booking_id = (isset($_POST["booking_id"]) && !empty($_POST["booking_id"])) ? $_POST["booking_id"] : null;
+
+	if (empty($booking_id) || is_null($booking_id)) {
+		echo 0;
+		exit();
+	}
+
+	saveRevenueBooking($booking_id);
+	echo 1;
+	exit();
 }
 
 function populateLineDetails($booking_id)
@@ -1445,7 +1458,8 @@ function populatePassLuggage($airline, $ticket_class, $pass_type, $luggage_index
 	return $luggage_arr;
 }
 
-function populateEditedLinePassenger($booking_id){
+function populateEditedLinePassenger($booking_id)
+{
 	global $app_list_strings, $db, $current_user;
 
 	$booking = new EC_Flight_Bookings;
@@ -1540,11 +1554,10 @@ function populateEditedLinePassenger($booking_id){
 			$html1 .= '<tr><td colspan="13" class="bg-yellow"><b>Lần thay đổi thứ ' . $row['go_with'] . ': </b>';
 
 			// Thêm form tạo phiếu thu cho lần thay đổi
-			if($row['luggage_purchase'] > 0 || $row['luggage_purchase_inbound'] > 0 || $row['luggage_price'] > 0 || $row['luggage_price_inbound'] > 0) {
+			if ($row['luggage_purchase'] > 0 || $row['luggage_purchase_inbound'] > 0 || $row['luggage_price'] > 0 || $row['luggage_price_inbound'] > 0) {
 				$loaithu = 5;
 				$noidungthu = "Thu tiền hành lý booking {$booking->name}";
-			}
-			else {
+			} else {
 				$loaithu = 4;
 				$noidungthu = "Thu tiền đổi thông tin chuyến bay booking {$booking->name}";
 			}
@@ -1684,7 +1697,7 @@ function populateEditedLinePassenger($booking_id){
 		// 	<td class="text-center align-middle hide-mobile">&nbsp;</td>
 		// 	<td colspan="10" class="text-start align-middle fst-italic">' . $luggage_price . '</td>
 		// </tr>';
-		
+
 		$i++;
 		$k++;
 
@@ -3814,23 +3827,6 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingInter') {
 if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 	global $current_user;
 
-	$html = '<div class="box-section infor-booking__domestic--wrap">
-				<table id="tbl-infor-booking__domestic" class="table-infor-booking__domestic table-details__booking" border="0" cellpadding="0" cellspacing="0">
-					<thead>
-						<tr>
-							<th width="6%" align="center">Booking</th>
-							<th width="7%" align="center">Tình trạng</th>
-							<th width="11%" align="center" class="hide-mobile">Liên hệ</th>
-							<th width="7%" align="center" class="hide-mobile">Điện thoại</th>
-							<th width="7%" align="center" class="hide-mobile">Phí dịch vụ</th>
-							<th width="3%" align="center">Vé</th>
-							<th width="8%" align="center">Doanh số</th>
-							<th width="8%" align="center">Phí bình quân</th>
-							<th width="8%" align="center" class="hide-mobile">Ngày tạo</th>
-							<th class="hide-mobile" width="8%" align="center">Ngày xuất vé</th>
-						</tr>
-					</thead>';
-
 	$sql_search = "";
 	// Từ ngày
 	if (!empty($_POST['fdate']) && strtotime($_POST['fdate']) !== false) {
@@ -3850,220 +3846,77 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 		$post_to_date = date('d-m-Y');
 	}
 
-	$sql_domestic = 'SELECT 
-						bk.id AS parent_id
-						, bk.name AS parent_name
-						, "EC_Flight_Bookings" AS parent_type
-						,SUM(bkd.quantity) AS total_quantity 
-						,bk.total_amount AS subtotal_amount 
-						,(SUM(IFNULL(bkd.total_bought_price,0)) 
-						+
-						IFNULL((
-							SELECT IF(bk.flight_type="0", SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0) + IF(px.luggage_price_inbound>0, IFNULL(px.luggage_purchase_inbound,0), 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
-							FROM ec_booking_passengers px
-							WHERE px.booking_id=bk.id AND px.deleted=0 AND px.add_type IS NULL
-						),0)) AS total_bought_price
-						, bk.flight_type
-						, bk.ticket_type
-						, bk.description AS booking_description
-						, bk.booking_status AS booking_status
-						, "booking_status_list" AS status_list
-						, "booking_status_color_list" AS color_status_list
-						, bk.is_ticket_exported
-						, bk.assigned_user_id AS user_id
-						, (SELECT u.user_name FROM users u WHERE u.id=bk.assigned_user_id) AS user_name
-						, IFNULL((
-						SELECT SUM(IFNULL(r.amount_converted,0))
-						FROM ec_receipt_voucher r
-						WHERE r.booking_id=bkd.booking_id
-							AND r.rv_status="1"
-							AND r.loai_thu="1"
-							AND r.deleted=0
-						GROUP BY r.booking_id
-						), 0) AS receipt_amount
-						,DATE_FORMAT(bk.date_ticket_issue, "%d-%m-%Y") AS date_ticket_issue
-						,(SELECT amount FROM ec_payment_voucher WHERE booking_id=bkd.booking_id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5" AND deleted=0 LIMIT 1) AS discount_amt
-						,bk.phone AS contact_mobile
-						,bk.contact_name AS contact_name
-						,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), "%d-%m-%Y") AS bk_date_entered
-						,DATE_FORMAT(bk.date_ticket_issue, "%d-%m-%Y") AS bk_date_ticket_issue
-						, bkd.service_fee AS service_fee
-						, (IF(bk.booking_status IN (3, 7, 8), (bk.total_amount - bk.total_bought_amount - (SELECT SUM(IFNULL(luggage_purchase, 0)) + SUM(IFNULL(luggage_purchase_inbound, 0)) FROM ec_booking_passengers WHERE deleted = 0 AND booking_id = bk.id)), 0) / IFNULL((SELECT SUM(quantity) FROM ec_booking_details WHERE deleted = 0 AND booking_id =  bk.id), 0)) AS average_fee 
-					FROM ec_booking_details bkd 
-					LEFT JOIN ec_flight_bookings bk ON bkd.booking_id=bk.id AND bk.deleted=0 
-					WHERE bk.booking_status IN ("7", "8")
-						AND bk.ticket_type <> 2
-						' . $sql_search . ' 
-						AND bkd.deleted=0 
-					GROUP BY bk.id
-							
-					UNION
-					SELECT 
-						p.id AS parent_id
-						,p.name AS parent_name
-						,"EC_Receipt_Voucher" AS parent_type
-						,0 AS total_quantity
-						,SUM(IF(p.rv_status IN (1, 2), p.amount, 0))  AS subtotal_amount
-						,SUM(
-						IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount, 0), 0) 
-						+ IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount2, 0), 0) 
-						+ IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount3, 0), 0)
-						) AS total_bought_price
-						,"" AS flight_type
-						,"" AS ticket_type
-						,p.description AS booking_description
-						,p.rv_status AS parent_status
-						,"receipt_voucher_status_list" AS status_list
-						, "receipt_voucher_status_color_list" AS color_status_list
-						,"" AS is_ticket_exported
-						, p.assigned_user_id AS user_id
-						,(SELECT u.user_name FROM users u WHERE u.id=p.assigned_user_id) AS user_name
-						,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
-						,DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), "%d-%m-%Y") AS date_ticket_issue
-						,0 AS discount_amt
-						,p.guest_phone AS contact_mobile
-						,p.guest_name AS contact_name
-						,DATE_FORMAT(DATE_ADD(p.date_entered, INTERVAL 7 HOUR), "%d-%m-%Y") AS bk_date_entered
-						,"" AS bk_date_ticket_issue
-						,"" AS service_fee
-						,"" AS average_fee
-					FROM ec_receipt_voucher p
-					LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
-					WHERE bk.ticket_type <> 2
-					AND p.loai_thu IN ("4", "5", "10", "11", "12", "13", "14", "16") 
-					AND DATE(p.ngayhachtoan)>="' . date("Y-m-d", strtotime($post_from_date)) . '"
-					AND DATE(p.ngayhachtoan)<="' . date("Y-m-d", strtotime($post_to_date)) . '"
-					AND p.deleted=0
-					AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
-					GROUP BY p.id
-					
-					-- hoan ve
-					UNION
-					SELECT 
-						hv_t.parent_id, hv_t.parent_name, hv_t.parent_type
-						, SUM(hv_t.total_quantity) AS total_quantity
-						, SUM(hv_t.subtotal_amount) AS subtotal_amount
-						, SUM(hv_t.total_bought_price) AS total_bought_price, hv_t.flight_type
-						, hv_t.ticket_type, hv_t.booking_description
-						, hv_t.parent_status, hv_t.status_list, hv_t.color_status_list
-						, hv_t.is_ticket_exported, hv_t.user_id, hv_t.user_name
-						, hv_t.receipt_amount
-						, hv_t.date_ticket_issue, hv_t.discount_amt, hv_t.contact_mobile, hv_t.contact_name
-						, hv_t.date_entered AS bk_date_entered
-						, "" AS bk_date_ticket_issue
-						,"" AS service_fee
-						,"" AS average_fee
-					FROM 
-					(
-						SELECT 
-							p.id AS parent_id
-							,p.name AS parent_name
-							,"EC_HoanVe" AS parent_type
-							, -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
-							,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS subtotal_amount
-							,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS total_bought_price
-							,"" AS flight_type
-							,"" AS ticket_type
-							,p.description AS booking_description
-							,p.tinhtrang AS parent_status
-							,"tinhtranghoanve_list" AS status_list
-							, "tinhtranghoanvecolor_list" AS color_status_list
-							,"" AS is_ticket_exported
-							, bk.assigned_user_id AS user_id
-							, (SELECT u.user_name FROM users u WHERE u.id=bk.assigned_user_id) AS user_name
-							, 0 AS receipt_amount
-							,DATE_FORMAT(p.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue
-							,0 AS discount_amt
-							,bk.phone AS contact_mobile
-							,bk.contact_name AS contact_name
-							,DATE_FORMAT(DATE_ADD(p.date_entered, INTERVAL 7 HOUR), "%d-%m-%Y") AS date_entered
-						FROM ec_hoanve p
-						INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
-						WHERE p.deleted=0
-						AND bk.ticket_type <> 2
-						AND p.tinhtrang="1"
-						AND DATE(p.ngayhachtoan)>="' . date("Y-m-d", strtotime($post_from_date)) . '"
-						AND DATE(p.ngayhachtoan)<="' . date("Y-m-d", strtotime($post_to_date)) . '"
-						GROUP BY p.id
-
-						-- hoan ve > 0
-						UNION
-						SELECT 
-							p.id AS parent_id
-							,p.name AS parent_name
-							,"EC_HoanVe" AS parent_type
-							, 0 AS total_quantity
-							, SUM(IFNULL(p.tongtienhang,0))  AS subtotal_amount
-							, SUM(IFNULL(p.tongtienkhach,0)) AS total_bought_price
-							,"" AS flight_type
-							,"" AS ticket_type
-							,p.description AS booking_description
-							,p.tinhtrang AS parent_status
-							,"tinhtranghoanve_list" AS status_list
-							, "tinhtranghoanvecolor_list" AS color_status_list
-							,"" AS is_ticket_exported
-							, p.assigned_user_id AS user_id
-							, (SELECT u.user_name FROM users u WHERE u.id=bk.assigned_user_id) AS user_name
-							, 0 AS receipt_amount
-							,DATE_FORMAT(p.ngayhachtoan, "%d-%m-%Y") AS date_ticket_issue
-							,0 AS discount_amt
-							,bk.phone AS contact_mobile
-							,bk.contact_name AS contact_name
-							,DATE_FORMAT(DATE_ADD(p.date_entered, INTERVAL 7 HOUR), "%d-%m-%Y") AS date_entered
-						FROM ec_hoanve p
-						INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
-						WHERE p.deleted=0
-						AND bk.ticket_type <> 2
-						AND p.tinhtrang="1" 
-						AND p.ngayhachtoan>="' . date('Y-m-d', strtotime($post_from_date)) . '"
-						AND p.ngayhachtoan<="' . date('Y-m-d', strtotime($post_to_date)) . '"
-						GROUP BY p.id
-						HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
-					) AS hv_t
-		GROUP BY hv_t.parent_id
-		ORDER BY total_quantity DESC';
+	$sql_domestic = '
+		SELECT 
+			name as parent_name,
+			booking_id AS parent_id, 
+			"EC_Flight_Bookings" AS parent_type, 
+			date_entered_bk as bk_date_entered,
+			ticket_type,
+			date_ticket_issue,
+			ticket_qty as total_quantity,
+			total_amount as subtotal_amount,
+			total_purchase as total_bought_price,
+			date_ticket_issue as bk_date_ticket_issue,
+			total_profit
+			FROM ec_revenue bk
+			WHERE
+			deleted = 0
+			' . $sql_search . ' 
+			ORDER BY ticket_qty DESC
+	';
 
 	// if($current_user->user_name == 'hungnh'){
 	// 	pr($sql_domestic);
 	// }
 
+	$html = '<div class="box-section infor-booking__domestic--wrap">
+			<table id="tbl-infor-booking__domestic" class="table-infor-booking__domestic table-details__booking" border="0" cellpadding="0" cellspacing="0">
+				<thead>
+					<tr>
+						<th width="3%" align="center">STT</th>
+						<th width="6%" align="center">Booking</th>
+						<th width="3%" align="center">Vé</th>
+						<th width="3%" align="center">Loại vé</th>
+						<th width="8%" align="center">Doanh số</th>
+						<th width="8%" align="center">Phí bình quân</th>
+						<th width="8%" align="center" class="hide-mobile">Ngày tạo</th>
+						<th class="hide-mobile" width="8%" align="center">Ngày xuất vé</th>
+					</tr>
+				</thead>';
+
 	$res_domestic = $db->query($sql_domestic);
 	$i = 0;
 	$total_ticket = 0;
 	$total_bk_sales = 0;
-	$total_amount_domestic = 0;
 	while ($row = $db->fetchByAssoc($res_domestic)) {
-
 		if ($row['bk_date_ticket_issue'] == '' || empty($row['bk_date_ticket_issue'])) {
 			$date_ticket_issue = '';
 		} else {
 			$date_ticket_issue = date('d-m-Y', strtotime($row['bk_date_ticket_issue']));
 		}
 
+		$ticket_type_text = ((int)$row['ticket_type'] === 1 ? '<span class="text-dark fw-semibold">Nội địa</span>' : '<span class="text-success fw-semibold">Quốc tế</span>');
+
 		$html .= '<tr>
+					<td align="center">' . ($i + 1) . '</td>
 					<td align="center"><a href="index.php?module=' . $row['parent_type'] . '&amp;action=DetailView&amp;record=' . $row['parent_id'] . '" target="_blank">' . $row['parent_name'] . '</a></td>
-					<td align="center" class="fw-bold" style="color:' . $app_list_strings[$row['color_status_list']][$row['booking_status']] . '">' . $app_list_strings[$row['status_list']][$row['booking_status']] . '</td>
-					<td align="left" class="hide-mobile">' . $row['contact_name'] . '</td>
-					<td align="left" class="hide-mobile">' . $row['contact_mobile'] . '</td>
-					<td align="right" class="fw-bold hide-mobile">' . format_number(($row['service_fee'])) . '</td>
 					<td align="center">' . $row['total_quantity'] . '</td>
+					<td align="center">' . $ticket_type_text . '</td>
 					<td align="right" class="fw-bold">' . format_number(($row['subtotal_amount'] - $row['total_bought_price'])) . '</td>
-					<td align="right" class="fw-bold">' . format_number(($row['average_fee'])) . '</td>
+					<td align="right" class="fw-bold">' . format_number(($row['total_profit'] / $row['total_quantity'])) . '</td>
 					<td align="center" class="hide-mobile">' . date('d-m-Y', strtotime($row['bk_date_entered'])) . '</td>
 					<td align="center" class="hide-mobile">' . $date_ticket_issue . '</td>
 				</tr>';
 		$i++;
 		$total_ticket += $row['total_quantity'];
 		$total_bk_sales += ($row['subtotal_amount'] - $row['total_bought_price']);
-		$total_amount_domestic += $row['subtotal_amount'];
 	}
 
 	$html .= '<tr class="footer-tr">
-				<td colspan="2" class="text-start fw-bold">Số dòng = ' . $i . '</td>
-				<td class="hide-mobile">&nbsp;</td>
-				<td class="hide-mobile">&nbsp;</td>
-				<td class="fee-service hide-mobile">&nbsp;</td>
+				<td class="text-start fw-bold" colspan="2">Số dòng = ' . $i . '</td>
 				<td align="center">' . format_number($total_ticket) . '</td>
+				<td class="hide-mobile">&nbsp;</td>
 				<td align="right" class="text-end fw-bold color-red">' . format_number($total_bk_sales) . '</td>
 				<td align="right" class="text-end fw-bold color-red">' . format_number($total_bk_sales / $total_ticket) . '</td>
 				<td class="hide-mobile">&nbsp;</td>

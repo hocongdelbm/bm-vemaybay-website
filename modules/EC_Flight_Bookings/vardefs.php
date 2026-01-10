@@ -35,7 +35,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
             'dependency' => false,
             'audited' => 1,
-            'studio'     => 'visible',
         ),
 
         // Add by DucPham from table ec_flight_bookings_cstm - 24/04/2023

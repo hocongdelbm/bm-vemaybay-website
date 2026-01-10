@@ -11,7 +11,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 	}
 	
 	function displayJS(){
-		global $app_list_strings, $current_user;
+		global $current_user;
 		$js = '<script>
 			var rv_status = "'.$this->bean->rv_status.'";
 			var amount_type = "'.$this->bean->amount_type.'";
@@ -22,7 +22,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 	}
 	
 	function populateCustomFields(){
-		global $app_list_strings, $current_user;
+		global $app_list_strings;
 
 		// Amount
 		$amount = '<span>'.format_number($this->bean->amount).'
@@ -30,7 +30,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 		</span>';
 		$this->ss->assign('AMOUNT', $amount);
 
-        	$loaithu_arr = array('4', '5', '10', '11', '12', '13', '14', '16');
+        	$loaithu_arr = array('4', '5', '10', '11', '12', '13', '14', '16', '27');
 		$loai_thu = '<label>'.$app_list_strings['loai_thu_list'][(int)$this->bean->loai_thu].'</label>';
 		if(($this->bean->loai_thu == 4 || $this->bean->loai_thu == 5) && ($this->bean->is_debt || !empty($this->bean->customer))) {
 			$loai_thu .= '&nbsp;-&nbsp;Đối tượng:&nbsp;<label>' . $this->bean->customer . '</label>';

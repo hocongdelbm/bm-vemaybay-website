@@ -124,7 +124,7 @@ class Viewbkreport_telesale extends SugarView
                 $html .= '<tr>
                             <td class="text-center hide-mobile">' . ($i + 1) . '</td>
                             <td class="text-center"><a target="_blank" title="Xem chi tiết" href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking_name'] . '</a></td>
-                            <td class="text-end total_amount_all">' . format_number($info_bk['total_amount_all']) . '</td>
+                            <td class="text-end total_amount">' . format_number($info_bk['total_amount']) . '</td>
                             <td class="text-end hide-mobile total_purchase">' . format_number($info_bk['total_purchase']) . '</td>
                             <td class="text-end hide-mobile total_profit">' . format_number($info_bk['total_profit']) . '</td>
                             <td class="text-end hide-mobile booking_created_at">' . $row['booking_created_at'] . '</td>
@@ -136,7 +136,7 @@ class Viewbkreport_telesale extends SugarView
                         </tr>
                     ';
 
-                $total_amount += (int)$info_bk['total_amount_all'];
+                $total_amount += (int)$info_bk['total_amount'];
                 $total_purchase += (int)$info_bk['total_purchase'];
                 $total_profit += (int)$info_bk['total_profit'];
                 $i++;
