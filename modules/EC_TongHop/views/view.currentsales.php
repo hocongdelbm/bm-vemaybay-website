@@ -14,7 +14,7 @@ class Viewcurrentsales extends SugarView
             $this->populateContent($smartyCont);
             $smartyCont->display('modules/EC_TongHop/tpls/view_currentsales.tpl');
         } else {
-            header("Location: index.php?module$=EC_TongHop&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
+            header("Location: index.php?module=EC_TongHop&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
             exit();
         }
     }

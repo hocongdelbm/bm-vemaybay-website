@@ -168,7 +168,7 @@ class Viewbkagent extends SugarView
                if ($sl_bk > 0) {
                     foreach ($bkIds as $bk_id) {
                          $info_price = calculateBKAmt($bk_id);
-                         $airline_amout += $info_price['total_amount_all'];
+                         $airline_amout += $info_price['total_amount'];
                          $airline_purchase += $info_price['total_purchase'];
                          $airline_profit += $info_price['total_profit'];
                     }

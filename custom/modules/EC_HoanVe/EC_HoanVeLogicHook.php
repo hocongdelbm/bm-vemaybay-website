@@ -52,4 +52,13 @@ class EC_HoanVeLogicHook
 			}
 		}
 	}
+
+	// Cập nhật thông tin doanh số khi hoàn tất hoàn vé
+	function saveRevenueBookingHoanVe($bean, $event, $arguments)
+	{
+		if (!empty($bean->booking_id) && $bean->tinhtrang == 1) {
+			saveRevenueBooking($bean->booking_id);
+			return true;
+		}
+	}
 }

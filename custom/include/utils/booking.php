@@ -11,7 +11,7 @@ function createContactsForBooking($phoneNumber, $contactName = '')
     global $db, $current_user;
 
     $phoneNumber = trim($phoneNumber);
-    if(!$phoneNumber || empty($phoneNumber)) return false;
+    if (!$phoneNumber || empty($phoneNumber)) return false;
 
     $sql_contact = "SELECT id FROM contacts WHERE phone_mobile = '$phoneNumber' AND deleted = 0";
     $contact_id = $db->getOne($sql_contact);
@@ -22,7 +22,7 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         $contact->phone_mobile = $phoneNumber;
         $contact->description = 'Liên hệ mới tạo từ booking';
         $contact_id = $contact->save();
-        if(empty($contact_id)) {
+        if (empty($contact_id)) {
             // $message = Mattermost::$line_separation;
             // $message .= "Tạo liên hệ mới thất bại với số điện thoại: **$phoneNumber**";
             // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
@@ -44,7 +44,7 @@ function createContactsForBooking($phoneNumber, $contactName = '')
                 LIMIT 1";
             $get_contact_name = $db->getOne($sql_booking);
 
-            if($get_contact_name && !empty($get_contact_name)) {
+            if ($get_contact_name && !empty($get_contact_name)) {
                 $contact->last_name = $get_contact_name;
                 $contact->save();
             }
@@ -433,9 +433,11 @@ function calculateBKTotalAmt($booking_id)
  * Tính amount của 1 booking.
  * Các trạng thái đã chuyển khoản: 8, 7, 3
  * @param string $booking_id của booking
+ * @param bool $only_profit: Chỉ lấy giá trị doanh số của booking
  * @return array Trả về mảng gồm tất cả các cột có tác động đến doanh số của booking
+ * p/s: Doanh số đã bao gồm hành lý đi kèm, hành lý mua thêm, hoàn vé và sử dụng điểm giảm giá
  */
-function calculateBKAmt($booking_id)
+function calculateBKAmt($booking_id, $only_profit = false)
 {
     global $db;
 
@@ -465,8 +467,8 @@ function calculateBKAmt($booking_id)
                     AND pt.loai_thu IN ('4','5')
                     AND pt.deleted = 0
                 ), 0)
-            ) AS total_amount_all,
-            IFNULL(b.total_amount, 0) as total_amount,
+            ) AS total_amount,
+            IFNULL(b.total_amount, 0) as total_amount_booking,
             -- GIÁ BÁN Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế
             IFNULL((
                 SELECT SUM(IFNULL(pt.amount, 0))
@@ -504,7 +506,7 @@ function calculateBKAmt($booking_id)
                             AND pc_inner.deleted = 0
                     )
                     AND pc2.deleted = 0
-            ), 0) as total_amount_points_refunded,
+            ), 0) as total_purchase_points_refunded,
             -- Tiền hãng hoàn là khoản total_amount
             IFNULL((
                 SELECT SUM(IFNULL(hv.tongtienhang, 0))
@@ -578,37 +580,43 @@ function calculateBKAmt($booking_id)
                     ) 
                 FROM ec_booking_passengers p 
                 WHERE p.booking_id = b.id AND p.deleted = 0 AND p.add_type IS NULL
-            ), 0) as total_purchase_luggage,
-            ((SELECT total_amount_all) - (SELECT total_purchase)) AS total_profit 
+            ), 0) as total_purchase_luggage
             FROM ec_flight_bookings b 
             WHERE b.id = '" . $booking_id . "' 
             AND booking_status IN ('8', '7', '3') 
             AND b.deleted = 0";
 
-            // if($GLOBALS['current_user']->user_name == 'hungnh') {
-            //     pr($sql);
-            // }
+    // if($GLOBALS['current_user']->user_name == 'hungnh') {
+    //     pr($sql);
+    // }
     $res = $db->query($sql);
     $result = array();
     while ($row = $db->fetchByAssoc($res)) {
         $result = array(
             'booking_id'                    => $row['booking_id'],
             'booking'                       => $row['booking'],
-            'total_amount_all'              => $row['total_amount_all'],
-            'total_amount'                  => $row['total_amount'],
+            'total_amount_booking'          => $row['total_amount_booking'],
             'total_amount_points'           => $row['total_amount_points'],
-            'total_amount_points_refunded'  => $row['total_amount_points_refunded'],
             'total_amount_receipt'          => $row['total_amount_receipt'],
             'total_amount_brand_refunded'   => $row['total_amount_brand_refunded'],
-            'total_purchase'                => $row['total_purchase'],
+            'total_amount'                  => $row['total_amount'],
             'total_purchase_booking'        => $row['total_purchase_booking'],
             'total_purchase_pass_refunded'  => $row['total_purchase_pass_refunded'],
+            'total_purchase_points_refunded'  => $row['total_purchase_points_refunded'],
             'total_purchase_luggage'        => $row['total_purchase_luggage'],
             'total_purchase_receipt'        => $row['total_purchase_receipt'],
+<<<<<<< HEAD
             'total_profit'                  => $row['total_profit'],
             'total_profit_no_receipt'         => $row['total_profit'] - ($row['total_amount_receipt'] - $row['total_purchase_receipt']),
+=======
+            'total_purchase'                => $row['total_purchase'],
+            'total_profit'                  => $row['total_amount'] - $row['total_purchase'],
+>>>>>>> hungnh_report
         );
     }
+
+    if ($only_profit) return $result['total_profit'];
+
     return $result;
 }
 
@@ -651,7 +659,8 @@ function calculateBKTotalAmtFromContact($contactId)
  *
  * @return int Trả về tổng doanh số
  */
-function calculateBKTotalAmtOfEmployee($user_id, $from_date, $to_date) {
+function calculateBKTotalAmtOfEmployee($user_id, $from_date, $to_date)
+{
     global $db;
 
     $sql = "SELECT 
@@ -734,4 +743,298 @@ function calculatePointsFromBooking($booking_id)
             AND deleted = 0";
     $total_service_fee = $db->getOne($sql) ?? 0;
     return (int)($total_service_fee / 10000); // Quy đổi 10.000 VND = 1 point
+}
+
+/**
+ * Lưu thông tin doanh số của booking
+ */
+function saveRevenueBooking($booking_id)
+{
+    if (empty($booking_id)) return;
+
+    global $current_user, $db;
+
+    //Kiểm tra đã có row trong ec_revenue hay chưa
+    $check_exists_sql = 'SELECT COUNT(*) FROM ec_revenue WHERE booking_id = "' . $booking_id . '" AND deleted = 0';
+    $is_exists = (int)$db->getOne($check_exists_sql);
+
+    $booking = new EC_Flight_Bookings();
+    $booking->retrieve($booking_id);
+
+    /**
+     * Kiểm tra vé cận
+     */
+    $is_prior = 0;
+    $date_entered = $booking->fetched_row['date_entered'];
+    $date_ticket_issue = date('Y-m-d', strtotime($booking->date_ticket_issue));
+
+    $sql_dep_time = 'SELECT MIN(i.departure_date) 
+						FROM ec_booking_itineraries i 
+						LEFT JOIN ec_flight_bookings bk ON bk.id = i.booking_id AND bk.deleted = 0
+						WHERE i.deleted = 0
+						AND bk.id = "' . $booking_id . '"';
+    $min_dep_time = $db->getOne($sql_dep_time);
+    if (!empty($date_entered) && !empty($min_dep_time)) {
+        // convert sang timestamp
+        $entered_ts = strtotime($date_entered) + 7 * 3600; // +7 tiếng
+        $dep_ts     = strtotime($min_dep_time);
+
+        // chênh lệch phút
+        $diff_minutes = ($dep_ts - $entered_ts) / 60;
+
+        if ($diff_minutes < 1440 && $diff_minutes >= 0) {
+            $is_prior = 1; // vé cận
+        }
+    }
+
+    $ds_arr = calculateBKAmt($booking_id);
+    if ($is_exists) {
+        // Update doanh số
+        $update = "
+            UPDATE ec_revenue SET
+                assigned_user_id = '{$booking->assigned_user_id}',
+                modified_user_id = '{$current_user->id}',
+                date_ticket_issue = '{$date_ticket_issue}',
+                ticket_type = '{$booking->ticket_type}',
+                ticket_qty = {$booking->total_qty},
+                is_prior = {$is_prior},
+                total_amount_bk = {$ds_arr['total_amount_booking']},
+                total_amount_points = {$ds_arr['total_amount_points']},
+                total_amount_brand_refunded = {$ds_arr['total_amount_brand_refunded']},
+                total_amount_receipt = {$ds_arr['total_amount_receipt']},
+                total_amount = {$ds_arr['total_amount']},
+                total_purchase_booking = {$ds_arr['total_purchase_booking']},
+                total_purchase_luggage = {$ds_arr['total_purchase_luggage']},
+                total_purchase_pass_refunded = {$ds_arr['total_purchase_pass_refunded']},
+                total_purchase_points_refunded = {$ds_arr['total_purchase_points_refunded']},
+                total_purchase_receipt = {$ds_arr['total_purchase_receipt']},
+                total_purchase = {$ds_arr['total_purchase']},
+                total_profit = {$ds_arr['total_profit']}
+            WHERE booking_id = '{$booking_id}'
+            AND deleted = 0
+        ";
+
+        $db->query($update);
+    } else {
+        // Add record
+        // INSERT
+        $insert = "
+            INSERT INTO ec_revenue (
+				id,
+                booking_id,
+                name,
+                created_by,
+				assigned_user_id,
+				modified_user_id,
+                date_entered_bk,
+                date_ticket_issue,
+                ticket_type,
+                ticket_qty,
+                is_prior,
+                total_amount_bk,
+                total_amount_points,
+                total_amount_brand_refunded,
+                total_amount_receipt,
+                total_amount,
+                total_purchase_booking,
+                total_purchase_luggage,
+                total_purchase_pass_refunded,
+                total_purchase_points_refunded,
+                total_purchase_receipt,
+                total_purchase,
+                total_profit,
+				date_entered,
+                date_modified
+            ) VALUES (
+			 	UUID(),
+                '{$booking_id}',
+                '{$booking->name}',
+                '{$booking->created_by}',
+                '{$booking->assigned_user_id}',
+                '{$current_user->id}',
+                '{$date_entered}',
+                '{$date_ticket_issue}',
+                '{$booking->ticket_type}',
+                {$booking->total_qty},
+                {$is_prior},
+                {$ds_arr['total_amount_booking']},
+                {$ds_arr['total_amount_points']},
+                {$ds_arr['total_amount_brand_refunded']},
+                {$ds_arr['total_amount_receipt']},
+                {$ds_arr['total_amount']},
+                {$ds_arr['total_purchase_booking']},
+                {$ds_arr['total_purchase_luggage']},
+                {$ds_arr['total_purchase_pass_refunded']},
+                {$ds_arr['total_purchase_points_refunded']},
+                {$ds_arr['total_purchase_receipt']},
+                {$ds_arr['total_purchase']},
+                {$ds_arr['total_profit']},
+				NOW(),
+                NOW()
+            )
+        ";
+        $db->query($insert);
+    }
+}
+
+/**
+ * 
+ */
+function calculateRevenueOfDate($from_date, $to_date)
+{
+    global $db;
+
+    $sql = "SELECT 
+                bk.id AS parent_id
+                , bk.name AS parent_name
+                , 'EC_Flight_Bookings' AS parent_type
+                , SUM(bkd.quantity) AS total_quantity
+                , bk.total_amount AS subtotal_amount 
+                , (SUM(IFNULL(bkd.total_bought_price,0)) 
+                +
+                IFNULL((
+                    SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
+                    FROM ec_booking_passengers px
+                    WHERE px.booking_id = bk.id 
+                    AND px.deleted = 0 
+                    AND (px.add_type IS NULL OR px.add_type = '')
+                ),0)) AS total_bought_price
+                , bk.flight_type
+                , bk.ticket_type
+                , bk.booking_status AS parent_status
+                , IFNULL((
+                    SELECT SUM(IFNULL(r.amount_converted,0))
+                    FROM ec_receipt_voucher r
+                    WHERE 
+                        r.booking_id = bk.id
+                        AND r.rv_status='1'
+                        AND r.loai_thu='1'
+                        AND r.deleted=0
+                    GROUP BY r.booking_id
+                ), 0) AS receipt_amount
+                ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
+                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
+                ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS bk_date_ticket_issue
+            FROM ec_booking_details bkd 
+            LEFT JOIN ec_flight_bookings bk ON bkd.booking_id=bk.id AND bk.deleted=0 
+            WHERE 
+                bk.booking_status IN ('3', '7', '8')
+                AND bk.date_ticket_issue BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                AND bkd.deleted = 0 
+            GROUP BY bk.id
+
+            UNION
+            SELECT 
+                p.id AS parent_id
+                ,p.name AS parent_name
+                ,'EC_Receipt_Voucher' AS parent_type
+                ,0 AS total_quantity
+                ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0))  AS subtotal_amount
+                ,SUM(
+                    IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount, 0), 0) 
+                    + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount2, 0), 0) 
+                    + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount3, 0), 0)
+                ) AS total_bought_price
+                ,'' AS flight_type
+                ,'' AS ticket_type
+                ,p.rv_status AS parent_status
+                ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
+                ,DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS date_ticket_issue
+                ,'' AS bk_date_entered
+                ,'' AS bk_date_ticket_issue
+            FROM ec_receipt_voucher p
+            WHERE 
+                p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
+                AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                AND p.deleted=0
+                AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
+            GROUP BY p.id
+
+            UNION
+            SELECT 
+                hv_t.parent_id
+                , hv_t.parent_name
+                , hv_t.parent_type
+                , SUM(hv_t.total_quantity) AS total_quantity
+                , SUM(hv_t.subtotal_amount) AS subtotal_amount
+                , SUM(hv_t.total_bought_price) AS total_bought_price
+                , hv_t.flight_type
+                , hv_t.ticket_type
+                , hv_t.parent_status
+                , hv_t.receipt_amount
+                , hv_t.date_ticket_issue
+                , '' AS bk_date_entered
+                , '' AS bk_date_ticket_issue
+            FROM 
+            (
+                SELECT 
+                    p.id AS parent_id
+                    ,p.name AS parent_name
+                    ,'EC_HoanVe' AS parent_type
+                    , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
+                    ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS subtotal_amount
+                    ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS total_bought_price
+                    ,'' AS flight_type
+                    ,'' AS ticket_type
+                    ,p.tinhtrang AS parent_status
+                    , 0 AS receipt_amount
+                    ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                FROM ec_hoanve p
+                INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
+                WHERE p.deleted=0
+                AND p.tinhtrang='1'
+                AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                GROUP BY p.id
+
+                -- hoan ve > 0
+                UNION
+                SELECT 
+                    p.id AS parent_id
+                    ,p.name AS parent_name
+                    ,'EC_HoanVe' AS parent_type
+                    , 0 AS total_quantity
+                    , SUM(IFNULL(p.tongtienhang,0))  AS subtotal_amount
+                    , SUM(IFNULL(p.tongtienkhach,0)) AS total_bought_price
+                    ,'' AS flight_type
+                    ,'' AS ticket_type
+                    ,p.tinhtrang AS parent_status
+                    , 0 AS receipt_amount
+                    ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                FROM ec_hoanve p
+                INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
+                WHERE p.deleted=0
+                AND p.tinhtrang='1' 
+                AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                GROUP BY p.id
+                HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
+            ) AS hv_t
+            GROUP BY hv_t.parent_id
+        ";
+
+    $result = array(
+        'from_date' => $from_date,
+        'to_date' => $to_date,
+        'count' => 0,
+        'total_revenue' => 0,
+        'details' => array()
+    );
+    // pr($sql);
+
+    $res    = $db->query($sql);
+    $i = 0;
+    while ($row = $db->fetchByAssoc($res)) {
+        // Tổng doanh số
+        $profit_amount = $row['subtotal_amount'] - $row['total_bought_price'];
+        $result['total_revenue'] += $profit_amount;
+
+        // Details
+        $result['details'][$row['parent_id']] = $row;
+        $result['details'][$row['parent_id']]['profit_amount'] = $profit_amount;
+
+        $i++;
+    }
+
+    $result['count'] = $i;
+
+    return $result;
 }

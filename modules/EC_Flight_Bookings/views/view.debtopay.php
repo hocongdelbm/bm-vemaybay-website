@@ -251,7 +251,7 @@ class Viewdebtopay extends SugarView
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5', '14')
+				AND p.loai_thu IN ('4', '5', '14', '27')
 				AND p.supplier_id IS NOT NULL
 				AND p.bought_amount IS NOT NULL
 				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
@@ -266,7 +266,7 @@ class Viewdebtopay extends SugarView
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5', '14')
+				AND p.loai_thu IN ('4', '5', '14', '27')
 				AND p.supplier2_id IS NOT NULL
 				AND p.bought_amount2 IS NOT NULL
 				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
@@ -281,7 +281,7 @@ class Viewdebtopay extends SugarView
 					  ,'' AS accounting_code
 				FROM ec_receipt_voucher p
 				WHERE p.deleted = 0
-				AND p.loai_thu IN ('4', '5', '14')
+				AND p.loai_thu IN ('4', '5', '14', '27')
 				AND p.supplier3_id IS NOT NULL
 				AND p.bought_amount3 IS NOT NULL
 				AND p.ngaychungtu >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
@@ -391,16 +391,16 @@ class Viewdebtopay extends SugarView
 
 		/**
 		 * Loại thu "Thu tiền khách sạn phát sinh từ ngày 17/05/2025"
-		 * Nếu cả $post_fdate và $post_tdate đều trước ngày 17/05/2025, dùng: AND p.loai_thu IN ('4', '5')
-		 * Nếu bất kỳ ngày nào sau hoặc đúng 17/05/2025, dùng: AND p.loai_thu IN ('4', '5', '14')
+		 * Nếu cả $post_fdate và $post_tdate đều trước ngày 17/05/2025, dùng: AND p.loai_thu IN ('4', '5', '27')
+		 * Nếu bất kỳ ngày nào sau hoặc đúng 17/05/2025, dùng: AND p.loai_thu IN ('4', '5', '14', '27')
 		 */
 		$targetDate = '2025-05-17';
 		$fromDate = date('Y-m-d', strtotime($post_fdate));
 		$toDate   = date('Y-m-d', strtotime($post_tdate));
 		if ($fromDate < $targetDate && $toDate < $targetDate) {
-			$sql_hotel = " AND p.loai_thu IN ('4', '5') ";
+			$sql_hotel = " AND p.loai_thu IN ('4', '5', '27') ";
 		} else {
-			$sql_hotel = " AND p.loai_thu IN ('4', '5', '14') ";
+			$sql_hotel = " AND p.loai_thu IN ('4', '5', '14', '27') ";
 		}
 
 		// Get opening amount
