@@ -51,7 +51,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			// $this->exc_dataRevenue();
 
 			// Quét và cập nhật booking tham khảo - cận
-			// $this->rebuildBookingFlagsByYear(2025);
+			// $this->rebuildBookingFlagsByYear(2023);
 		}
 
 		parent::display();

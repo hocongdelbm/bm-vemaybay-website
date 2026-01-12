@@ -20,7 +20,6 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'studio' => 'visible',
             'dependency' => false,
         ),
         'tknganhang_id' =>
@@ -222,14 +221,13 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'len' => 4,
             'default' => '1',
             'required' => 1,
-            'massupdate' => 0,
+            'massupdate' => 1,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
             'audited' => 1,
             'reportable' => 0,
             'options' => 'loai_thu_list',
-            'studio' => 'visible',
             'dependency' => false,
         ),
 

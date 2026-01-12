@@ -19,12 +19,12 @@ $listViewDefs[$module_name] = array(
     'IS_REFERENCE' => array(
         'label' => 'LBL_IS_REFERENCE',
         'width' => '12%',
-        'default' => true,
+        'default' => false,
     ),
     'IS_PRIOR' => array(
         'label' => 'LBL_IS_PRIOR',
         'width' => '12%',
-        'default' => true,
+        'default' => false,
     ),
     'PHONE' => array(
         'label' => 'LBL_PHONE',
