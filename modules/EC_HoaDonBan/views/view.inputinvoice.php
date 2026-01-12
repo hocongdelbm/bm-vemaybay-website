@@ -187,9 +187,7 @@ class Viewinputinvoice extends SugarView {
             if (!empty($rm_ticket_code)) {
                 $sql_ext = " AND name = '$rm_ticket_code'";
             }
-            $sql = "SELECT id
-                    ,name
-                    ,booking_id
+            $sql = "SELECT id, name
                 FROM ec_input_invoices 
                 WHERE invoice_number = '$rm_invoice_number'
                     AND invoice_serial = '$rm_invoice_serial'
@@ -198,13 +196,13 @@ class Viewinputinvoice extends SugarView {
                     AND deleted = 0";
             $res = $this->bean->db->query($sql);
 
-            $rm_id = $rm_note = [];
+            $rm_id = [];
             while ($row = $this->bean->db->fetchByAssoc($res)) {
                 $rm_id[] = $row['id'];
-                if (!empty($row['booking_id'])) $rm_note[] = "Đã lấy hóa đơn đầu vào số: $rm_invoice_number, số vé: " . $row['name'];
             }
             $in_list_in_inv_id = "'" . implode("','", $rm_id) . "'";
-            $in_list_note = "'" . implode("','", $rm_note) . "'";
+
+            if($in_list_in_inv_id == "''") return false;
 
             // Chỉ cho phép xóa HĐ chưa ký
             $rm_bk_id = $rm_out_inv_id = [];
@@ -217,10 +215,10 @@ class Viewinputinvoice extends SugarView {
                     AND (hd.sohoadon IS NULL OR hd.sohoadon = '' OR hd.sohoadon = '0')
                     AND hd.deleted = 0");
             while ($row = $this->bean->db->fetchByAssoc($res_out_inv_id)) {
-                if(in_array($row['id'], $rm_out_inv_id, true) === false)  $rm_out_inv_id[] = $row['id'];
-                if(in_array($row['booking_id'], $rm_bk_id, true) === false)  $rm_bk_id[] = $row['booking_id'];
+                if(in_array($row['id'], $rm_out_inv_id, true) === false) $rm_out_inv_id[] = $row['id'];
+                if(in_array($row['booking_id'], $rm_bk_id, true) === false) $rm_bk_id[] = $row['booking_id'];
             }
-            $in_list_out_inv_id = "'" . str_replace(",", "','", $rm_out_inv_id) . "'"; // Danh sách ID hóa đơn ra được xóa
+            $in_list_out_inv_id = "'" . implode("','", $rm_out_inv_id) . "'"; // Danh sách ID hóa đơn ra được xóa
             $in_list_bk_id = "'" . implode("','", $rm_bk_id) . "'"; // Danh sách ID booking có hóa đơn vào được xóa
 
             $des = trim("Xóa hóa đơn đã nạp $rm_invoice_number, $rm_invoice_serial");
@@ -260,7 +258,7 @@ class Viewinputinvoice extends SugarView {
                     ,modified_user_id = '{$current_user->id}'
                 WHERE parent_id IN ($in_list_bk_id)
                     AND parent_type = 'EC_Flight_Bookings'
-                    AND description IN ($in_list_note)");
+                    AND description LIKE '%lấy hóa đơn đầu vào số $rm_invoice_number%'");
             
             return true;
         }
