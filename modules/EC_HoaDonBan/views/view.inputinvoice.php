@@ -26,7 +26,7 @@ class Viewinputinvoice extends SugarView {
         }
         // Xoá hoá đơn đã nạp
         else if (isset($_POST['remove'])) {
-            $this->deleteInvoiceData($_POST);
+            $this->deleteInputInvoiceData($_POST);
         }
         // Nếu xác nhận thì cập nhật status = 1
         else if (isset($_POST['confirmed']) || isset($_POST['denied'])) {
@@ -165,38 +165,109 @@ class Viewinputinvoice extends SugarView {
         }
     }
 
-    function deleteInvoiceData($post_fields) {
-        // Xoá note đã lấy hoá đơn đầu vào của những booking trong hoá đơn
-        $post_fields['rm_invoice_number'] = trim($post_fields['rm_invoice_number']);
-        $post_fields['rm_invoice_serial'] = trim($post_fields['rm_invoice_serial']);
-        $post_fields['rm_ticket_code'] = trim($post_fields['rm_ticket_code']);
-        if (!empty($post_fields['rm_ticket_code'])) {
-            $sql_ext = ' AND name = "' . $post_fields['rm_ticket_code'] . '"';
-        }
-        $sql1 = 'SELECT * FROM ec_input_invoices 
-            WHERE deleted = 0 AND invoice_number = "' . $post_fields['rm_invoice_number'] . '" 
-                AND invoice_serial = "' . $post_fields['rm_invoice_serial'] . '"
-                AND status = 1' . $sql_ext;
+    /**
+     * Xóa hóa đơn đầu vào đã nạp
+     * 
+     * @param array $post_fields [rm_invoice_number, rm_invoice_serial, rm_supplier, rm_ticket_code]
+     * @return bool
+     * @author DucPham
+     */
+    public function deleteInputInvoiceData($post_fields) {
+        $rm_invoice_number  = trim($post_fields['rm_invoice_number'] ?? '');
+        $rm_invoice_serial  = trim($post_fields['rm_invoice_serial'] ?? '');
+        $rm_ticket_code     = trim($post_fields['rm_ticket_code'] ?? '');
+        $rm_supplier        = trim($post_fields['rm_supplier'] ?? '');
 
-        $res1 = $this->bean->db->query($sql1);
+        if(empty($rm_invoice_number) || empty($rm_invoice_serial)) return false;
 
-        $rm_note = $rm_bk = $rm_id = [];
-        while ($row1 = $this->bean->db->fetchByAssoc($res1)) {
-            if (!empty($row1['booking_id'])) {
-                $rm_bk[] = $row1['booking_id'];
-                $rm_note[] = "Đã lấy hóa đơn đầu vào số: " . $row1['invoice_number'] . ", số vé: " . $row1['name'];
+        global $current_user;
+
+        try {
+            // Lấy dữ liệu hóa đơn đầu vào
+            if (!empty($rm_ticket_code)) {
+                $sql_ext = " AND name = '$rm_ticket_code'";
             }
-            $rm_id[] = $row1['id'];
-        }
-        $sql2 = 'UPDATE notes SET deleted = 1 
-            WHERE description IN ("' . implode('","', $rm_note) . '") 
-                AND parent_id IN ("' . implode('","', $rm_bk) . '")
-                AND parent_type = "EC_Flight_Bookings"';
-        $this->bean->db->query($sql2);
+            $sql = "SELECT id
+                    ,name
+                    ,booking_id
+                FROM ec_input_invoices 
+                WHERE invoice_number = '$rm_invoice_number'
+                    AND invoice_serial = '$rm_invoice_serial'
+                    $sql_ext
+                    AND status = 1
+                    AND deleted = 0";
+            $res = $this->bean->db->query($sql);
 
-        // Xoá số hoá đơn đầu vào
-        $sql3 = 'UPDATE ec_input_invoices SET deleted = 1 WHERE id IN ("' . implode('","', $rm_id) . '")';
-        $this->bean->db->query($sql3);
+            $rm_id = $rm_note = [];
+            while ($row = $this->bean->db->fetchByAssoc($res)) {
+                $rm_id[] = $row['id'];
+                if (!empty($row['booking_id'])) $rm_note[] = "Đã lấy hóa đơn đầu vào số: $rm_invoice_number, số vé: " . $row['name'];
+            }
+            $in_list_in_inv_id = "'" . implode("','", $rm_id) . "'";
+            $in_list_note = "'" . implode("','", $rm_note) . "'";
+
+            // Chỉ cho phép xóa HĐ chưa ký
+            $rm_bk_id = $rm_out_inv_id = [];
+            $res_out_inv_id = $this->bean->db->query("SELECT hd.id, cthd.booking_id
+                FROM ec_hoadonban hd
+                    LEFT JOIN ec_chitiethoadon cthd ON cthd.parent_id = hd.id AND cthd.deleted = 0
+                WHERE cthd.ticket_number_id IN($in_list_in_inv_id)
+                    AND hd.tinhtrang != '2'
+                    AND hd.is_signed = 0
+                    AND (hd.sohoadon IS NULL OR hd.sohoadon = '' OR hd.sohoadon = '0')
+                    AND hd.deleted = 0");
+            while ($row = $this->bean->db->fetchByAssoc($res_out_inv_id)) {
+                if(in_array($row['id'], $rm_out_inv_id, true) === false)  $rm_out_inv_id[] = $row['id'];
+                if(in_array($row['booking_id'], $rm_bk_id, true) === false)  $rm_bk_id[] = $row['booking_id'];
+            }
+            $in_list_out_inv_id = "'" . str_replace(",", "','", $rm_out_inv_id) . "'"; // Danh sách ID hóa đơn ra được xóa
+            $in_list_bk_id = "'" . implode("','", $rm_bk_id) . "'"; // Danh sách ID booking có hóa đơn vào được xóa
+
+            $des = trim("Xóa hóa đơn đã nạp $rm_invoice_number, $rm_invoice_serial");
+            $date_modified = date('Y-m-d H:i:s', time() - 7*3600);
+
+            // Xoá chi tiết hóa đơn đầu ra
+            $this->bean->db->query("UPDATE ec_chitiethoadon
+                SET deleted = 1
+                    ,description = '$des'
+                    ,date_modified = '$date_modified'
+                    ,modified_user_id = '{$current_user->id}'
+                WHERE parent_id IN($in_list_out_inv_id)
+                    AND (parent_type = 'EC_HoaDonBan' OR parent_type IS NULL OR parent_type = '')");
+
+            // Xoá hóa đơn đầu ra
+            $this->bean->db->query("UPDATE ec_hoadonban
+                SET deleted = 1
+                    ,description = '$des'
+                    ,date_modified = '$date_modified'
+                    ,modified_user_id = '{$current_user->id}'
+                WHERE id IN($in_list_out_inv_id)");
+
+            // Xoá hoá đơn đầu vào
+            $this->bean->db->query("UPDATE ec_input_invoices in_inv
+                LEFT JOIN ec_chitiethoadon cthd ON cthd.ticket_number_id = in_inv.id AND cthd.deleted = 1
+                SET in_inv.deleted = 1
+                    ,in_inv.description = '$des'
+                    ,in_inv.date_modified = '$date_modified'
+                    ,in_inv.modified_user_id = '{$current_user->id}'
+                WHERE cthd.parent_id IN($in_list_out_inv_id)
+                    AND in_inv.id IN ($in_list_in_inv_id)");
+
+            // Xóa notes
+            $this->bean->db->query("UPDATE notes
+                SET deleted = 1
+                    ,date_modified = '$date_modified'
+                    ,modified_user_id = '{$current_user->id}'
+                WHERE parent_id IN ($in_list_bk_id)
+                    AND parent_type = 'EC_Flight_Bookings'
+                    AND description IN ($in_list_note)");
+            
+            return true;
+        }
+        catch(Throwable $th) {
+            $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            return false;
+        }
     }
 
     // Màn hình preview
