@@ -60,7 +60,13 @@ class CustomController extends BaseController
                 }
             }
 
+            // Đánh dấu booking tham khảo
+            if (strtoupper(trim($booking->contact_name) === 'THAM KHAO')) {
+                $booking->is_reference = 1;
+            }
+
             $booking->save();
+            $booking_id = $booking->id;
 
             // Save journeys
             if (isset($params['ec_booking_itineraries']) && !empty($params['ec_booking_itineraries'])) {
@@ -76,6 +82,11 @@ class CustomController extends BaseController
                         $itinerary->save();
                     }
                 }
+            }
+
+            // ===== ĐÁNH DẤU VÉ CẬN =====
+            if (!empty($booking_id)) {
+                updateIsPriorForBooking($booking_id);
             }
 
             // Save passengers
@@ -139,7 +150,7 @@ class CustomController extends BaseController
 
             // Return
             $data = [
-                'booking_id' => $booking->id,
+                'booking_id' => $booking_id,
                 'booking_name' => $booking->name,
                 'subtotal_amount' => $booking->subtotal_amount,
                 'luggage_fee' => $booking->luggage_fee,
@@ -499,6 +510,7 @@ class CustomController extends BaseController
             'ip' => $request_ip,
         ], 200);
     }
+
     // Save voucher in APP
     public function save_voucher(Request $request, Response $response, array $args)
     {
@@ -534,7 +546,6 @@ class CustomController extends BaseController
                 'message' => "Voucher saved successfully",
                 'data' => ['booking_id' => $booking_id, 'voucher_id' => $voucher_id]
             ], 201);
-
         } catch (Throwable $e) {
             return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
         }

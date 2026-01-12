@@ -467,14 +467,10 @@ class Viewreport_sales_issue extends SugarView
 						0 AS inbound,
 						0 AS missed,
 						0 AS inbound_bk,
-                        SUM(
-							IFNULL(
-							(SELECT COUNT(DISTINCT parent_id) FROM ec_flight_bookings_audit WHERE parent_id = bk.id AND field_name = 'contact_name' AND before_value_string IN ('Tham Khao')),
-							0
-							) + (SELECT COUNT(DISTINCT id) FROM ec_flight_bookings WHERE id = bk.id AND contact_name IN ('Tham Khao'))
-						) AS tham_khao_bk
+						SUM(is_reference) AS tham_khao_bk
 					FROM ec_flight_bookings bk
 					WHERE deleted = 0
+                    AND is_reference = 1
 					" . str_replace('date_ticket_issue', 'DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR))', $where_period) . "
 					GROUP BY period
                 ) t

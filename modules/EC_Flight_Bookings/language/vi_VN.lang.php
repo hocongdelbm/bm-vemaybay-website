@@ -96,7 +96,7 @@ $mod_strings = array(
   'LBL_CURRENCY_RATE' => 'Tỉ giá',
   'LBL_CURRENCY_NOTE' => 'Nguồn tỉ giá',
   'LBL_THUEPHI_QUOCTE' => 'Thuế phí QT',
-  
+
   'LBL_TOTAL_QTY' => 'SL',
   'LBL_TOTAL_BOUGHT_PRICE' => 'Tổng giá mua',
   'LBL_IS_MAIL_CONFIRM' => 'Đã gửi mail',
@@ -245,7 +245,7 @@ $mod_strings = array(
   'LBL_IS_INVOICE_INPUT_EXPORT' => 'Hóa đơn đầu vào',
   'LBL_INVOICE' => 'Hóa đơn',
   'LBL_IS_TICKET_EXPORTED_OUTBOUND' => 'Đã xuất vé lượt về',
-  
+
   'LBL_VOUCHER' => 'Voucher',
   'LBL_HAS_VOUCHER' => 'Có Voucher',
   'LBL_INFO_PAYMENT' => 'Thông tin thanh toán',
@@ -271,7 +271,7 @@ $mod_strings = array(
   'LBL_ITINERARY_PANEL'   => 'Hành trình',
   'LBL_PANEL_ITINERARY'   => 'Hành trình',
   'LBL_PANEL_PASSENGER'   => 'Hành khách',
-  
+
   // IN VÉ
   'LBL_PRINT_AS_PDF'   => 'In vé',
   'LBL_PASSENGER_LT_FILTER'   => 'Lý thông',
@@ -281,5 +281,6 @@ $mod_strings = array(
   'LBL_EMAIL_RESERVATION'   => 'Email đặt chỗ',
   'LBL_IS_TELESALE'   => 'Là Telesale',
   'LBL_IS_CTV'   => 'CTV',
-  
+  'LBL_IS_REFERENCE'   => 'BK tham khảo',
+  'LBL_IS_PRIOR'   => 'Vé cận',
 );

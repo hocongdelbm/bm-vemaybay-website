@@ -253,6 +253,7 @@ class EC_Flight_Bookings extends Basic {
 		// Change flight time
 		if (isset($_POST['save_change_flight'])) {
 			$this->saveChangeFlightTime();
+			updateIsPriorForBooking($this->id);
 		}
 
 		// LƯU THÔNG TIN KHÁCH HÀNG
@@ -805,8 +806,7 @@ class EC_Flight_Bookings extends Basic {
 					}
 				}
 			}
-		}
-		else { // nếu là sửa lại thông tin hành trình
+		} else { // nếu là sửa lại thông tin hành trình
 			$applied_pass_arr 		= explode(',', $_POST['applied_pass']);
 			$applied_pass_name_arr 	= explode(',', $_POST['applied_pass_name']);
 			$iti_id_arr 			= explode(',', $_POST['iti_id']);

@@ -20,7 +20,7 @@ $viewdefs[$module_name]['EditView'] = array(
                 'file' => 'custom/jqueryui/plugins/fromPopupReturn.js',
             ),
             array(
-                'file' => 'modules/EC_Receipt_Voucher/js/EC_Receipt_Voucher.js',
+                'file' => 'modules/EC_Receipt_Voucher/js/view.edit.js',
             ),
         ),
     ),
@@ -37,7 +37,6 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
                 array(
                     'name' => 'amount_type',
-                    'studio' => 'visible',
                     'label' => 'LBL_AMOUNT_TYPE',
                     'customCode' => '{$AMOUNT_TYPE}',
                 ),

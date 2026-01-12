@@ -153,35 +153,33 @@
 					</div>
 				</div>
 			</div>
+			<div class="button-action--wrap">
+				<input type="submit" id="btnView" name="btnView" class="btn btn-primary button-action" value="Tìm kiếm" title="Tìm kiếm" />
+				<input type="button" id="btnSearch_cancel" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ" title="Hủy bỏ"/>
+			</div>	
+			<ul class="currentsales-note m-0">
+				<li class="fst-italic"><i>Lưu ý:</i> Doanh số lấy theo ngày xuất vé</li>
+				<li class="fst-italic">Doanh số PThu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
+			</ul>
 		</div>
-				
-		<div class="button-action--wrap">
-			<input type="submit" id="btnView" name="btnView" class="btn btn-primary button-action" value="Tìm kiếm" title="Tìm kiếm" />
-			<input type="button" id="btnSearch_cancel" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ" title="Hủy bỏ"/>
-		</div>	
 	</form>
 
-	<ul class="currentsales-note">
-		<li class="fw-bold fst-italic">Lưu ý:</li>
-		<li class="form-label ms-2">Doanh số lấy theo ngày xuất vé</li>
-		<li class="form-label ms-2">Doanh số PThu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
-	</ul>
 	<table id="tbl-doanhsohientai" class="table-current-sales table-details__booking mt-3" border="0" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th width="12%">Thời gian</th>
-                <th width="5%">Số vé</th>
-                <th width="10%">D/s Nội địa</th>
-                <th width="10%">D/s Quốc tế</th>
-                <th width="10%">Tổng Doanh số</th>
-                <th width="10%">Doanh số PThu</th>
-                <th width="5%">Booking</th>
-                <th width="5%">BK 2-3 vé</th>
-                <th width="5%">BK 4-6 vé</th>
-                <th width="5%">BK tham khảo</th>
-                <th width="5%" class="text-success">Cuộc gọi đến</th>
-                <th width="5%">Gọi đến tạo BK</th>
-                <th width="5%" class="text-danger">Gọi nhỡ</th>
+                <th width="12%" style="background-color: #068FFF; color: #fff">Thời gian</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">Số vé</th>
+                <th width="10%" style="background-color: #068FFF; color: #fff">D/s Nội địa</th>
+                <th width="10%" style="background-color: #068FFF; color: #fff">D/s Quốc tế</th>
+                <th width="10%" style="background-color: #068FFF; color: #fff">Tổng Doanh số</th>
+                <th width="10%" style="background-color: #068FFF; color: #fff">Doanh số PThu</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">Booking</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">BK 2-3 vé</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">BK 4-6 vé</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">BK tham khảo</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">Cuộc gọi đến</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">Gọi đến tạo BK</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">Gọi nhỡ</th>
             </tr>
         </thead>
         <tbody>
@@ -198,16 +196,16 @@
     <table id="tbl-chuaxuatve" class="table-chuaxuatve table-details__booking" border="0" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th width="6%" align="center">Booking</th>
-                <th width="9%" align="center">Hành trình</th>
-                <th width="5%" align="center" class="hide-mobile">Hãng</th>
-                <th width="8%" align="center" class="hide-mobile">Ngày bay</th>
-                <th width="7%" align="center" class="hide-mobile">Tình trạng</th>
-                <th width="3%" align="center">Vé</th>
-                <th width="8%" align="center">Doanh số</th>
-                <th width="8%" align="center" class="hide-mobile">Doanh thu</th>
-                <th width="6%" align="center" class="hide-mobile">Giao cho</th>
-                <th width="8%" align="center" class="hide-mobile">Ngày tạo</th>
+                <th width="6%" align="center" style="background-color: #068FFF; color: #fff">Booking</th>
+                <th width="9%" align="center" style="background-color: #068FFF; color: #fff">Hành trình</th>
+                <th width="5%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Hãng</th>
+                <th width="8%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Ngày bay</th>
+                <th width="7%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Tình trạng</th>
+                <th width="3%" align="center" style="background-color: #068FFF; color: #fff">Vé</th>
+                <th width="8%" align="center" style="background-color: #068FFF; color: #fff">Doanh số</th>
+                <th width="8%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Doanh thu</th>
+                <th width="6%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Giao cho</th>
+                <th width="8%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Ngày tạo</th>
             </tr>
         </thead>
         {$DATA2}

@@ -873,7 +873,7 @@ function saveRevenueBooking($booking_id)
 }
 
 /**
- * 
+ * Tính toán doanh thu
  */
 function calculateRevenueOfDate($from_date, $to_date)
 {
@@ -1032,4 +1032,35 @@ function calculateRevenueOfDate($from_date, $to_date)
     $result['count'] = $i;
 
     return $result;
+}
+
+/**
+ * Cập nhật giá trị vé cận booking
+ */
+function updateIsPriorForBooking($booking_id)
+{
+
+    if (empty($booking_id)) return;
+
+    global $db;
+    $sql = "UPDATE ec_flight_bookings bk
+            SET bk.is_prior =
+            (
+                SELECT
+                    IF(
+                        TIMESTAMPDIFF(
+                            MINUTE,
+                            DATE_ADD(bk.date_entered, INTERVAL 7 HOUR),
+                            MIN(i.departure_date)
+                        ) BETWEEN 1 AND 1440,
+                        1,
+                        0
+                    )
+                FROM ec_booking_itineraries i
+                WHERE i.booking_id = bk.id
+                AND i.deleted = 0
+            )
+            WHERE bk.id = '{$booking_id}';
+    ";
+    $db->query($sql);
 }

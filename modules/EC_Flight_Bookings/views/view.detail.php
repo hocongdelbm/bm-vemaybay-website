@@ -49,11 +49,60 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			// Cập nhật data doanh số cho table ec_revenue
 			// $this->exc_dataRevenue();
+
+			// Quét và cập nhật booking tham khảo - cận
+			// $this->rebuildBookingFlagsByYear(2025);
 		}
 
 		parent::display();
 		$this->displayJS();
 	}
+
+	public function rebuildBookingFlagsByYear(int $year)
+	{
+		global $db;
+
+		// ===== 2. UPDATE VÉ CẬN =====
+		$sqlPrior = "
+			UPDATE ec_flight_bookings bk
+			JOIN (
+				SELECT
+					i.booking_id,
+					TIMESTAMPDIFF(
+						MINUTE,
+						DATE_ADD(bk.date_entered, INTERVAL 7 HOUR),
+						MIN(i.departure_date)
+					) AS diff_minutes
+				FROM ec_flight_bookings bk
+				JOIN ec_booking_itineraries i ON i.booking_id = bk.id AND i.deleted = 0
+				WHERE bk.deleted = 0
+				AND YEAR(bk.date_entered) = $year
+				GROUP BY i.booking_id
+				HAVING diff_minutes BETWEEN 1 AND 1440
+			) x ON x.booking_id = bk.id
+			SET bk.is_prior = 1
+		";
+		$db->query($sqlPrior);
+
+		// ===== 3. UPDATE BOOKING THAM KHẢO =====
+		$sqlReference = "
+			UPDATE ec_flight_bookings bk
+			LEFT JOIN ec_flight_bookings_audit a ON a.parent_id = bk.id
+			AND a.field_name = 'contact_name'
+			AND a.before_value_string = 'Tham Khao'
+			SET bk.is_reference = 1
+			WHERE bk.deleted = 0
+			AND YEAR(bk.date_entered) = $year
+			AND (
+				bk.contact_name = 'Tham Khao'
+				OR a.parent_id IS NOT NULL
+			)
+		";
+		$db->query($sqlReference);
+
+		return true;
+	}
+
 
 	/**
 	 * Chạy theo quý tránh timeout 504
@@ -81,7 +130,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			";
 			$res = $this->bean->db->query($get_sql);
 			while ($row = $this->bean->db->fetchByAssoc($res)) {
-				if(!in_array($month, [1, 2, 3, 4])) continue;
+				if (!in_array($month, [1, 2, 3, 4])) continue;
 				// if(!in_array($month, [5, 6, 7, 8])) continue;
 				// if(!in_array($month, [9, 10, 11, 12])) continue;
 				saveRevenueBooking($row['id']);
@@ -573,8 +622,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$is_paid .= '<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnCheckIsPaid" id="btnCheckIsPaid" value="Đã thanh toán" title="Đã thanh toán" />';
 			$is_paid .= '</form>';
 		} else {
-			$is_paid = '<input type="checkbox" disabled="disabled" checked="checked" />';
+			$is_paid = '<input type="checkbox" disabled checked />';
 		}
+
+		if($this->bean->is_prior){
+			$is_paid .= '- Vé cận: <input type="checkbox" disabled checked />';
+		}
+
 		if (!empty($this->bean->delivery_man))
 			$is_paid .= '- Giao vé: ' . $this->bean->delivery_man;
 		$this->ss->assign('IS_PAID', $is_paid);

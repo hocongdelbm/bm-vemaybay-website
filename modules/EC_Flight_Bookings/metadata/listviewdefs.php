@@ -16,6 +16,16 @@ $listViewDefs[$module_name] = array(
         'width' => '12%',
         'default' => true,
     ),
+    'IS_REFERENCE' => array(
+        'label' => 'LBL_IS_REFERENCE',
+        'width' => '12%',
+        'default' => true,
+    ),
+    'IS_PRIOR' => array(
+        'label' => 'LBL_IS_PRIOR',
+        'width' => '12%',
+        'default' => true,
+    ),
     'PHONE' => array(
         'label' => 'LBL_PHONE',
         'width' => '10%',
@@ -47,11 +57,11 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_BOOKING_STATUS',
         'width' => '8%',
     ),
-    'RECALL_C' => array (
-		'width' => '10%',
-		'label' => 'LBL_RECALL_C',
-		'default' => true,
-	),
+    'RECALL_C' => array(
+        'width' => '10%',
+        'label' => 'LBL_RECALL_C',
+        'default' => true,
+    ),
     'ASSIGNED_USER_NAME' => array(
         'width' => '9%',
         'label' => 'LBL_ASSIGNED_TO_NAME',
