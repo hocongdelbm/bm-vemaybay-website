@@ -25,6 +25,33 @@
             });
 		});
 
+		$(".show_detail_call").click(function() {
+			let direction = $(this).data("direction");
+			let from_date = $(this).data('from-date');
+            let to_date = $(this).data('to-date');
+            let is_booking = $(this).data('is-booking');
+
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				type: "POST",
+				data: {
+					fdate: from_date,
+					tdate: to_date,
+					direction: direction,
+					is_booking: is_booking,
+					for: "getDetailCallBookingQtyReport",
+				},
+				beforeSend: function() {
+					$(".container-waiting").show();
+				},
+				success: function(response) {
+					$(".container-waiting").hide();
+                    $("#infor_booking_inter__title").html('<h1 class="title">Danh sách chi tiết cuộc gọi ' + direction + ' từ ngày '+ from_date +' đến ngày '+ to_date +'</h1>');
+                    $("#infor_booking_inter__content").html(response);
+				}
+			});
+		});
+
 		$(document).on("change", "#date_select", function(e) {
 			$("#from_date").val($(this).find("option:selected").attr("fromdate"));
 			$("#to_date").val($(this).find("option:selected").attr("todate"));
@@ -137,21 +164,24 @@
 	<ul class="currentsales-note">
 		<li class="fw-bold fst-italic">Lưu ý:</li>
 		<li class="form-label ms-2">Doanh số lấy theo ngày xuất vé</li>
-		<li class="form-label ms-2">Doanh số PT: Cột "tổng doanh số" bên báo cáo "doanh thu trong ngày"</li>
+		<li class="form-label ms-2">Doanh số PThu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
 	</ul>
-
 	<table id="tbl-doanhsohientai" class="table-current-sales table-details__booking mt-3" border="0" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th width="15%">Thời gian</th>
-                <th width="8%">Số vé</th>
-                <th width="12%">D/s Nội địa</th>
-                <th width="12%">D/s Quốc tế</th>
-                <th width="12%">Tổng Doanh số</th>
-                <th width="12%">Doanh số PT</th>
-                <th width="8%">Booking</th>
-                <th width="8%">Booking 2-3 vé</th>
-                <th width="8%">Booking 4-6 vé</th>
+                <th width="12%">Thời gian</th>
+                <th width="5%">Số vé</th>
+                <th width="10%">D/s Nội địa</th>
+                <th width="10%">D/s Quốc tế</th>
+                <th width="10%">Tổng Doanh số</th>
+                <th width="10%">Doanh số PThu</th>
+                <th width="5%">Booking</th>
+                <th width="5%">BK 2-3 vé</th>
+                <th width="5%">BK 4-6 vé</th>
+                <th width="5%">BK tham khảo</th>
+                <th width="5%" class="text-success">Cuộc gọi đến</th>
+                <th width="5%">Gọi đến tạo BK</th>
+                <th width="5%" class="text-danger">Gọi nhỡ</th>
             </tr>
         </thead>
         <tbody>
@@ -164,7 +194,6 @@
 
 {if $DATA2 != ''}
 <h1 class="title my-3">Booking chưa xuất vé</h1>
-
 <div class="box-section">
     <table id="tbl-chuaxuatve" class="table-chuaxuatve table-details__booking" border="0" cellpadding="0" cellspacing="0">
         <thead>
@@ -174,10 +203,6 @@
                 <th width="5%" align="center" class="hide-mobile">Hãng</th>
                 <th width="8%" align="center" class="hide-mobile">Ngày bay</th>
                 <th width="7%" align="center" class="hide-mobile">Tình trạng</th>
-                <th width="11%" align="center">Liên hệ</th>
-                <th width="7%" align="center">Điện thoại</th>
-                <!-- <th width="12%" align="center">Email</th> -->
-                <th width="12%" align="center" class="hide-mobile">Ghi chú</th>
                 <th width="3%" align="center">Vé</th>
                 <th width="8%" align="center">Doanh số</th>
                 <th width="8%" align="center" class="hide-mobile">Doanh thu</th>
@@ -187,14 +212,11 @@
         </thead>
         {$DATA2}
         <tr class="footer-tr">
-                <td colspan="4" class="text-start fw-bold">Số dòng = {$SODONG}</td>
-            <td align="center" class="hide-mobile">&nbsp;</td>
-            <td align="center" class="hide-mobile">&nbsp;</td>
-            <td align="center" class="hide-mobile">&nbsp;</td>
-            <td align="center" class="hide-mobile">&nbsp;</td>
-                <td align="center">{$TONGSOVECHUAXUAT}</td>
-                <td align="right" class="text-end fw-bold color-red">{$TONGTIENDOANHSO}</td>
-                <td align="right" class="text-end fw-bold color-red hide-mobile">{$TONGTIENCHUAXUAT}</td>
+			<td align="left" colspan="2" class="text-start fw-bold">Số dòng = {$SODONG}</td>
+            <td align="center" colspan="3" class="hide-mobile">&nbsp;</td>
+			<td align="center">{$TONGSOVECHUAXUAT}</td>
+			<td align="right" class="text-end fw-bold color-red">{$TONGTIENDOANHSO}</td>
+			<td align="right" class="text-end fw-bold color-red hide-mobile">{$TONGTIENCHUAXUAT}</td>
             <td align="center" class="hide-mobile">&nbsp;</td>
             <td align="center" class="hide-mobile">&nbsp;</td>
         </tr>
