@@ -179,8 +179,7 @@ class entryFareSystemClass extends entryClass
     }
 
     public function getBaggageOption($params = []) {
-        $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
-
+        $airlineCode = trim($params['airlineCode'] ?? '');
         $airlineMapping = [
             "VNA" => "VN",
             "BBA" => "QH",
@@ -192,16 +191,14 @@ class entryFareSystemClass extends entryClass
         if (isset($airlineMapping[$airlineCode])) {
             $airlineCode = $airlineMapping[$airlineCode];
         }
+
         $patchData = [
             "airlineCode" => $airlineCode
         ];
 
         $curl = curl_init();
-
-        $updateUrl = $this->enpoint . '/service/getOptionBaggage';
-
         curl_setopt_array($curl, [
-            CURLOPT_URL => $updateUrl,
+            CURLOPT_URL => "{$this->enpoint}/service/getOptionBaggage",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => 'GET',
             CURLOPT_POSTFIELDS => json_encode($patchData),
@@ -216,10 +213,8 @@ class entryFareSystemClass extends entryClass
         ]);
 
         $response = curl_exec($curl);
-
         $error = curl_error($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
         curl_close($curl);
 
         return $response;

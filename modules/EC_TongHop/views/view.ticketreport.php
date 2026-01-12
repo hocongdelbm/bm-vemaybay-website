@@ -599,7 +599,6 @@ class Viewticketreport extends SugarView
                     GROUP BY r.booking_id
                 ), 0) AS receipt_amount
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
-                ,(SELECT amount FROM ec_payment_voucher WHERE booking_id=bkd.booking_id AND pv_status='3' AND ec_payment_types_id_c='3f9f8060-1866-2b2e-8322-52e36b8f58d5' AND deleted=0 LIMIT 1) AS discount_amt
                 ,bk.phone AS contact_mobile
                 ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS bk_date_ticket_issue
@@ -658,7 +657,6 @@ class Viewticketreport extends SugarView
                     ,'' AS country
                     ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
                     ,DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS date_ticket_issue
-                    ,0 AS discount_amt
                     ,p.guest_phone AS contact_mobile
                     ,'' AS bk_date_entered
                     ,'' AS bk_date_ticket_issue
@@ -691,7 +689,8 @@ class Viewticketreport extends SugarView
                     , hv_t.ticket_class_outbound, hv_t.ticket_class_inbound
                     , hv_t.is_ticket_exported, hv_t.is_agent, hv_t.user_id, hv_t.user_name
                     , hv_t.recheck_status, hv_t.country, hv_t.receipt_amount
-                    , hv_t.date_ticket_issue, hv_t.discount_amt, hv_t.contact_mobile
+                    , hv_t.date_ticket_issue
+                    , hv_t.contact_mobile
                     , '' AS bk_date_entered
                     , '' AS bk_date_ticket_issue
                     , 0 AS not_from_web
@@ -708,8 +707,8 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_inbound
                         , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
                         , 0 AS total_points_amount
-                        ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS subtotal_amount
-                        ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS total_bought_price
+                        , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS subtotal_amount
+                        , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS total_bought_price
                         ,'' AS flight_type
                         ,'' AS ticket_type
                         ,'' AS booking_description
@@ -729,7 +728,6 @@ class Viewticketreport extends SugarView
                         , '' AS country
                         , 0 AS receipt_amount
                         ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
-                        ,0 AS discount_amt
                         ,'' AS contact_mobile
                     FROM ec_hoanve p
                     INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
@@ -741,7 +739,6 @@ class Viewticketreport extends SugarView
                     GROUP BY p.id
 
                     -- hoan ve > 0
-
                     UNION
                     SELECT 
                         p.id AS parent_id
@@ -751,8 +748,8 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_inbound
                         , 0 AS total_quantity
                         , 0 AS total_points_amount
-                        , SUM(IFNULL(p.tongtienhang,0))  AS subtotal_amount
-                        , SUM(IFNULL(p.tongtienkhach,0)) AS total_bought_price
+                        , - SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
+                        , - SUM(IFNULL(p.tongtienhang,0))  AS total_bought_price
                         ,'' AS flight_type
                         ,'' AS ticket_type
                         ,'' AS booking_description
@@ -772,7 +769,6 @@ class Viewticketreport extends SugarView
                         , '' AS country
                         , 0 AS receipt_amount
                         ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
-                        ,0 AS discount_amt
                         ,'' AS contact_mobile
                     FROM ec_hoanve p
                     INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
@@ -792,7 +788,7 @@ class Viewticketreport extends SugarView
         }
 
         // if($GLOBALS['current_user']->user_name == 'hungnh'){
-        //     pr($sql);
+        // pr($sql);
         // }
 
         $res    = $db->query($sql);
@@ -808,7 +804,7 @@ class Viewticketreport extends SugarView
         $html = $xls = '';
         while ($row = $db->fetchByAssoc($res)) {
 
-            $profit_amount = $row['subtotal_amount'] - $row['total_bought_price'] - $row['discount_amt'];
+            $profit_amount = $row['subtotal_amount'] - $row['total_bought_price'];
 
             if ($row['total_bought_price'] > $row['subtotal_amount'] && $row['parent_type']) {
                 $bg_class = 'error1';

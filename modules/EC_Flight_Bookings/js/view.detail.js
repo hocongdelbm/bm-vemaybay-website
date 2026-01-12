@@ -235,6 +235,34 @@ $(document).ready(function () {
 		else return true;
 	});
 
+	$(document).on('click', '#update_revenue', function () {
+		if (!confirm('Bạn có chắc chắn muốn cập nhật doanh số cho booking này?')) return false;
+		else {
+			let booking_id = $("input[name='booking_id']").val();
+
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					booking_id: booking_id,
+					for: "updateRevenueBooking",
+				},
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					if (response == 1) {
+						let text_warning = 'Cập nhật doanh số thành công.';
+						showModalNotify(1, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					} else {
+						let text_warning = 'Cập nhật thất bại. Vui lòng liên hệ IT để được hỗ trợ.';
+						showModalNotify(0, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					}
+				}
+			});
+		};
+	});
+
 	$(document).on('click', '#confirm-remind', function () {
 		let journey_id = $(this).attr('iti_id');
 		let booking_id = $(this).attr('booking_id');

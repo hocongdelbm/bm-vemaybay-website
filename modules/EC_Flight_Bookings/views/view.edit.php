@@ -35,8 +35,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			$this->populateBasicFields();
 			$this->populateLineDetails();
 			$this->populateLineItineraries();
-			// if($current_user->id != '1') $this->populateLineDetails();
-			// if($current_user->id != '1') $this->populateLineItineraries();
 
 			if (!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
 				$this->populateLinePassengers();
@@ -55,8 +53,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			$this->populateBasicFields();
 			$this->populateLineDetails();
 			$this->populateLineItineraries();
-			// if($current_user->id != '1') $this->populateLineDetails();
-			// if($current_user->id != '1') $this->populateLineItineraries();
 
 			if (!$this->bean->created_by || in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
 				$this->populateLinePassengers();

@@ -20,7 +20,6 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'studio' => 'visible',
             'dependency' => false,
         ),
         'tknganhang_id' =>
@@ -222,14 +221,13 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'len' => 4,
             'default' => '1',
             'required' => 1,
-            'massupdate' => 0,
+            'massupdate' => 1,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
             'audited' => 1,
             'reportable' => 0,
             'options' => 'loai_thu_list',
-            'studio' => 'visible',
             'dependency' => false,
         ),
 
@@ -240,7 +238,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'len' => 36,
             'required' => 0,
             'audited' => 1,
-            'massupdate' => 0,
+            'massupdate' => 1,
             'importable' => 1,
             'reportable' => 0,
             'duplicate_merge' => 'disabled',
@@ -257,7 +255,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'module' => 'EC_Flight_Bookings',
             'rname' => 'name',
             'quicksearch' => 'enabled',
-            'studio' => 'visible',
+            'massupdate' => 1,
         ),
 
         'rv_status' => array(

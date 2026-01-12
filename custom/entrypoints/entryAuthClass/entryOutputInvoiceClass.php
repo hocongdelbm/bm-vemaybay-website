@@ -228,9 +228,9 @@ class entryOutputInvoiceClass extends entryClass {
      * @return array
      */
     public function delete($params = []) {
-        $recordId   = global_test_input($_POST['recordId'] ?? '');
-        $invRef     = global_test_input($_POST['invRef'] ?? '');
-        $invSerial  = global_test_input($_POST['invSerial'] ?? ''); // Ký hiệu hóa đơn
+        $recordId   = global_test_input($params['recordId'] ?? '');
+        $invRef     = global_test_input($params['invRef'] ?? '');
+        $invSerial  = global_test_input($params['invSerial'] ?? ''); // Ký hiệu hóa đơn
 
         if (!empty($recordId) && !empty($invRef) && !empty($invSerial)) {
             $winInv = new WinInvoice();

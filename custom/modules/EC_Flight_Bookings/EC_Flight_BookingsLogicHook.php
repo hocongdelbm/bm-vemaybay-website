@@ -185,7 +185,7 @@ class EC_Flight_BookingsLogicHook
 
 		// Đánh dấu booking CTV
 		if (isset($_POST['is_ctv_value'])) {
-			$focus->db->query("UPDATE ec_flight_bookings SET is_ctv = ".$_POST['is_ctv_value'].", date_modified = '" . date('Y-m-d H:i:s') . "', modified_user_id = '" . $focus->db->quote($current_user->id) . "' WHERE id = '" . $focus->db->quote($focus->id) . "'");
+			$focus->db->query("UPDATE ec_flight_bookings SET is_ctv = " . $_POST['is_ctv_value'] . ", date_modified = '" . date('Y-m-d H:i:s') . "', modified_user_id = '" . $focus->db->quote($current_user->id) . "' WHERE id = '" . $focus->db->quote($focus->id) . "'");
 		}
 	}
 
@@ -359,5 +359,13 @@ class EC_Flight_BookingsLogicHook
 		$rc_val 	= $bean->db->getOne($sql);
 
 		$bean->recall_c = $rc_val;
+	}
+
+	// Lưu thông tin doanh số sau khi Hoàn tất
+	function saveRevenueBookingHook($bean, $event, $arguments)
+	{
+		if ((int)$bean->booking_status !== 8) return;
+		saveRevenueBooking($bean->id);
+		return true;
 	}
 }

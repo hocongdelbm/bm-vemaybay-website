@@ -141,7 +141,7 @@ $(document).ready(function () {
             }),
 			cache: false,
 			beforeSend: function() {
-				closeDialog('dialog-create-invoice');
+				closeDialog('dialog-remove-invoice');
 				$('.container-waiting').show();
 			},
 			success: function (response) {

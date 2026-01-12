@@ -57,3 +57,10 @@ $hook_array["after_save"][] = array(
     "EC_Flight_BookingsLogicHook",
     "updateKPI"
 );
+$hook_array["after_save"][] = array(
+    4,
+    "Lưu thông tin doanh số BK",
+    "custom/modules/EC_Flight_Bookings/EC_Flight_BookingsLogicHook.php",
+    "EC_Flight_BookingsLogicHook",
+    "saveRevenueBookingHook"
+);

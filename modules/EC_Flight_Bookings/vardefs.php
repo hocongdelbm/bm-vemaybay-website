@@ -35,7 +35,6 @@ $dictionary['EC_Flight_Bookings'] = array(
             'reportable' => false,
             'dependency' => false,
             'audited' => 1,
-            'studio'     => 'visible',
         ),
 
         // Add by DucPham from table ec_flight_bookings_cstm - 24/04/2023
@@ -923,6 +922,24 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
             'audited' => 1,
+        ),
+        'is_reference' => array(
+            'name'       => 'is_reference',
+            'vname'      => 'LBL_IS_REFERENCE',
+            'comments'   => 'Đánh dấu booking tham khảo',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
+        ),
+        'is_prior' => array(
+            'name'       => 'is_prior',
+            'vname'      => 'LBL_IS_PRIOR',
+            'comments'   => 'Đánh dấu booking cận',
+            'type'       => 'bool',
+            'default'    => 0,
+            'importable' => true,
+            'reportable' => false,
         ),
     ),
     'indices' => array(
