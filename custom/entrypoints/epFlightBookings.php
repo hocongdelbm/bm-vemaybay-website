@@ -2768,14 +2768,25 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 					<th width="10%">Gọi đến</th>
 					<th width="10%" class="hide-mobile">Thời gian</th>
 					<th width="10%" class="hide-mobile">Thời lượng</th>
-					<th class="hide-mobile">Nguồn</th>
-					<th class="hide-mobile">Booking</th>
+					<th width="10%" class="hide-mobile">Nguồn</th>
+					<th width="10%" class="hide-mobile">Booking</th>
 					<th class="hide-mobile">Ghi chú</th>
 				</thead>
 		';
 
 	$from_date = $_POST['fdate'];
 	$to_date = $_POST['tdate'];
+	$direction = $_POST['direction'];
+
+	$where_user = '';
+	if (isset($_POST['user'])) {
+		$where_user = 'AND u.id = "' . $_POST['user'] . '"';
+	}
+
+	$where_call_bk = '';
+	if (isset($_POST['is_booking'])) {
+		$where_call_bk = 'AND c.booking_id IS NOT NULL AND c.booking_id <> ""';
+	}
 
 	$sql = 'SELECT
 				c.id,
@@ -2794,8 +2805,9 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 			WHERE
 			c.deleted = 0
 			AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" AND "' . date('Y-m-d', strtotime($to_date)) . ' 23:59:59"
-			AND c.direction = "' . $_POST['direction'] . '"
-			AND u.id = "' . $_POST['user'] . '";
+			AND c.direction = "' . $direction . '"
+			' . $where_user . '
+			' . $where_call_bk . '
 			';
 
 	$res = $db->query($sql);
