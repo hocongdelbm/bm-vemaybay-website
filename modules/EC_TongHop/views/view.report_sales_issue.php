@@ -501,9 +501,6 @@ class Viewreport_sales_issue extends SugarView
                 $res = $db->query($sql);
                 while ($row = $db->fetchByAssoc($res)) {
                     $ds_pt_arr = calculateRevenueOfDate($row['from_date'], $row['to_date']);
-                    // if ($row['from_date'] == '2026-01-08') {
-                    //     pr($ds_pt_arr);
-                    // }
 
                     $from_date_row = 'Từ ngày <span class="form-label fw-semibold text-danger">' . date('d-m-Y', strtotime($row['from_date'])) . '</span> Đến ngày <span class="form-label fw-semibold text-danger">' . date('d-m-Y', strtotime($row['to_date'])) . '</span>';
                     if (strtotime($row['from_date']) === strtotime($row['to_date'])) {
@@ -548,7 +545,7 @@ class Viewreport_sales_issue extends SugarView
                                     ' . format_number($row['total_profit_inter']) . '
                                 </td>
                                 <td align="right" data-label="Doanh số tổng">' . format_number($row['total_profit']) . '</td>
-                                <td align="right" data-label="Doanh số PThu">' . format_number($ds_pt_arr['total_revenue']) . '</td>
+                                <td align="right" data-label="Doanh số PThu">' . format_number($ds_pt_arr['total_profit']) . '</td>
                                 <td align="center" data-label="Booking">' . format_number($row['total_qty']) . '</td>
                                 <td align="center" data-label="BK 2-3 vé">' . format_number($row['total_bk_2_3']) . '</td>
                                 <td align="center" data-label="BK 4-6 vé">' . format_number($row['total_bk_4_6']) . '</td>
@@ -611,6 +608,7 @@ class Viewreport_sales_issue extends SugarView
 					(SELECT i.departure_date FROM ec_booking_itineraries i WHERE i.booking_id=b.id AND i.direction='0' AND i.deleted=0 LIMIT 1) AS dep_date,
 					(SELECT i.departure_date FROM ec_booking_itineraries i WHERE i.booking_id=b.id AND i.direction='1' AND i.deleted=0 LIMIT 1) AS ret_date,
 					b.booking_status,
+					b.description,
 					b.total_amount,
 					b.date_entered,
 					(SELECT SUM(d.quantity) FROM ec_booking_details d WHERE d.booking_id=b.id AND d.deleted=0 LIMIT 1) AS total_tkt,
@@ -637,6 +635,7 @@ class Viewreport_sales_issue extends SugarView
     				<td align="center">' . format_number($row['total_tkt']) . '</td>
     				<td align="right"  class="fw-bold">' . format_number($row['total_amount'] - $row['total_bought_price']) . '</td>
     				<td align="right"  class="fw-bold hide-mobile">' . format_number($row['total_amount']) . '</td>
+    				<td align="left"  class="hide-mobile text-wrap">' . $row['description'] . '</td>
     				<td align="center" class="hide-mobile"><a href="index.php?module=Employees&return_module=Employees&action=DetailView&record=' . $row['user_id'] . '" target="_blank">' . $row['user_name'] . '</a></td>
     				<td align="center" class="hide-mobile">' . date('d-m-Y H:i', strtotime($row['date_entered']) + 7 * 3600) . '</td>
     			</tr>';

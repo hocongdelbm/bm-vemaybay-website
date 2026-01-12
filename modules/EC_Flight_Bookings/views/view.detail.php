@@ -58,7 +58,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->displayJS();
 	}
 
-	public function rebuildBookingFlagsByYear(int $year)
+	private function rebuildBookingFlagsByYear(int $year)
 	{
 		global $db;
 
@@ -102,7 +102,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		return true;
 	}
-
 
 	/**
 	 * Chạy theo quý tránh timeout 504
@@ -1351,7 +1350,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
-		if (is_admin($current_user)) {
+		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
 			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
 		}
 		$this->ss->assign('UPDATE_REVENUE', $update_revenue);

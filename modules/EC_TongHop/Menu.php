@@ -32,7 +32,8 @@ if (ACLController::checkAccess('EC_TongHop', 'list', true) && ($title_info == 'A
 // if(ACLController::checkAccess('EC_TongHop', 'view', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=currentsales&return_module=EC_TongHop&return_action=currentsales", "Doanh số xuất vé","goldcup_16x16", 'EC_TongHop'); //Doanh số xuất vé old
 if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=report_sales_issue&return_module=EC_TongHop&return_action=report_sales_issue", "Doanh số xuất vé", "goldcup_16x16", 'EC_TongHop'); //Doanh số xuất vé new
 
-if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=ticketreport&return_module=EC_TongHop&return_action=ticketreport", "Doanh thu trong ngày", "coinicon_16x16", 'EC_TongHop');
+// if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=ticketreport&return_module=EC_TongHop&return_action=ticketreport", "Doanh thu trong ngày", "coinicon_16x16", 'EC_TongHop');
+if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=report_sales_revenue&return_module=EC_TongHop&return_action=report_sales_revenue", "Doanh thu trong ngày", "coinicon_16x16", 'EC_TongHop');
 
 if (is_admin($current_user)) $module_menu[] = array("index.php?module=EC_TongHop&action=addbonus&return_module=EC_TongHop&return_action=employeekpi", 'Bonus add thêm', "bonus_16", 'EC_TongHop');
 

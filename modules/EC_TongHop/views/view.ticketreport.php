@@ -707,8 +707,8 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_inbound
                         , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
                         , 0 AS total_points_amount
-                        ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS subtotal_amount
-                        ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS total_bought_price
+                        , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS subtotal_amount
+                        , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS total_bought_price
                         ,'' AS flight_type
                         ,'' AS ticket_type
                         ,'' AS booking_description
@@ -739,7 +739,6 @@ class Viewticketreport extends SugarView
                     GROUP BY p.id
 
                     -- hoan ve > 0
-
                     UNION
                     SELECT 
                         p.id AS parent_id
@@ -749,8 +748,8 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_inbound
                         , 0 AS total_quantity
                         , 0 AS total_points_amount
-                        , SUM(IFNULL(p.tongtienhang,0))  AS subtotal_amount
-                        , SUM(IFNULL(p.tongtienkhach,0)) AS total_bought_price
+                        , - SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
+                        , - SUM(IFNULL(p.tongtienhang,0))  AS total_bought_price
                         ,'' AS flight_type
                         ,'' AS ticket_type
                         ,'' AS booking_description

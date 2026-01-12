@@ -204,6 +204,7 @@
                 <th width="3%" align="center" style="background-color: #068FFF; color: #fff">Vé</th>
                 <th width="8%" align="center" style="background-color: #068FFF; color: #fff">Doanh số</th>
                 <th width="8%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Doanh thu</th>
+                <th width="15%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Mô tả</th>
                 <th width="6%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Giao cho</th>
                 <th width="8%" align="center" style="background-color: #068FFF; color: #fff" class="hide-mobile">Ngày tạo</th>
             </tr>
@@ -215,6 +216,7 @@
 			<td align="center">{$TONGSOVECHUAXUAT}</td>
 			<td align="right" class="text-end fw-bold color-red">{$TONGTIENDOANHSO}</td>
 			<td align="right" class="text-end fw-bold color-red hide-mobile">{$TONGTIENCHUAXUAT}</td>
+            <td align="center" class="hide-mobile">&nbsp;</td>
             <td align="center" class="hide-mobile">&nbsp;</td>
             <td align="center" class="hide-mobile">&nbsp;</td>
         </tr>
