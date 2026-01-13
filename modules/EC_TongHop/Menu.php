@@ -29,6 +29,7 @@ if (is_admin($current_user)) {
 // }
 
 if (ACLController::checkAccess('EC_TongHop', 'list', true) && ($title_info == 'Admin' || $title_info == 'Administrator' || $title_info == 'QuanLy' || $current_user->id == '9f381038-99c2-7515-938f-558939fee19a' || $current_user->id == '37cd4853-721c-9808-af64-5600c8835d03')) $module_menu[] = array("index.php?module=EC_TongHop&action=bookingqtyreport&return_module=EC_TongHop&return_action=bookingqtyreport", "Doanh số Booking", "qtyreport_16x16", 'EC_TongHop');
+if ($current_user->user_name == 'hungnh') $module_menu[] = array("index.php?module=EC_TongHop&action=report_sales_create&return_module=EC_TongHop&return_action=report_sales_create", "Doanh số Booking new", "qtyreport_16x16", 'EC_TongHop');
 // if(ACLController::checkAccess('EC_TongHop', 'view', true))$module_menu[]=Array("index.php?module=EC_TongHop&action=currentsales&return_module=EC_TongHop&return_action=currentsales", "Doanh số xuất vé","goldcup_16x16", 'EC_TongHop'); //Doanh số xuất vé old
 if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=report_sales_issue&return_module=EC_TongHop&return_action=report_sales_issue", "Doanh số xuất vé", "goldcup_16x16", 'EC_TongHop'); //Doanh số xuất vé new
 

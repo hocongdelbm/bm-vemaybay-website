@@ -1,5 +1,6 @@
 <?php
-$action_view_map['bookingqtyreport']    = 'bookingqtyreport'; //Doanh số booking
+$action_view_map['bookingqtyreport']    = 'bookingqtyreport'; //Doanh số booking old
+$action_view_map['report_sales_create']    = 'report_sales_create'; //Doanh số booking theo ngày tạo new
 $action_view_map['currentsales']        = 'currentsales'; //Doanh số xuất vé old
 $action_view_map['report_sales_issue']  = 'report_sales_issue'; //Doanh số xuất vé new
 $action_view_map['ticketreport']        = 'ticketreport'; //Doanh thu bán vé old

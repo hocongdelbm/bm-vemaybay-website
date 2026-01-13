@@ -2784,7 +2784,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailCallBookingQtyReport') {
 	}
 
 	$where_call_bk = '';
-	if (isset($_POST['is_booking'])) {
+	if (isset($_POST['is_booking']) && $_POST['is_booking']) {
 		$where_call_bk = 'AND c.booking_id IS NOT NULL AND c.booking_id <> ""';
 	}
 

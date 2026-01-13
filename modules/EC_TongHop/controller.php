@@ -25,6 +25,9 @@ class EC_TongHopController extends SugarController
                case "report_sales_issue":
                     $this->action = "report_sales_issue";
                     break;
+               case "report_sales_create":
+                    $this->action = "report_sales_create";
+                    break;
                case "report_sales_revenue":
                     $this->action = "report_sales_revenue";
                     break;
@@ -83,6 +86,8 @@ class EC_TongHopController extends SugarController
                $this->action = "currentsales";
           if ($this->return_action == "report_sales_issue")
                $this->action = "report_sales_issue";
+          if ($this->return_action == "report_sales_create")
+               $this->action = "report_sales_create";
           if ($this->return_action == "report_sales_revenue")
                $this->action = "report_sales_revenue";
           if ($this->return_action == "ticketreport")
