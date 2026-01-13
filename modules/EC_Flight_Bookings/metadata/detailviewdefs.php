@@ -97,10 +97,15 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUSTOM_NAME}',
                 ),
                 array(
-                    'name' => 'is_hold',
-                    'label' => 'LBL_IS_HOLD',
-                    'customCode' => '{$CUSTOM_IS_HOLD}',
+                    'name' => 'CUSTOMER_SOURCE',
+                    'label' => 'LBL_CUSTOMER_SOURCE',
+                    'customCode' => '{$CUSTOM_CUSTOMER_SOURCE}',
                 ),
+                // array(
+                //     'name' => 'is_hold',
+                //     'label' => 'LBL_IS_HOLD',
+                //     'customCode' => '{$CUSTOM_IS_HOLD}',
+                // ),
             ),
 
             array(
@@ -111,9 +116,18 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUSTOM_TICKET_TYPE}',
                 ),
                 array(
-                    'name' => 'is_paid',
-                    'label' => 'LBL_IS_PAID',
-                    'customCode' => '{$IS_PAID}',
+                    'name' => 'bookmark',
+                    'label' => 'LBL_BOOKMARK',
+                    'customCode' => '{$CUSTOM_BOOKMARK}'
+                ),
+            ),
+
+            array(
+                array(),
+                array(
+                    'name' => 'bookmark_system',
+                    'label' => 'LBL_BOOKMARK_SYSTEM',
+                    'customCode' => '{$CUSTOM_BOOKMARK_SYSTEM}'
                 ),
             ),
 
@@ -124,9 +138,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_HOLDING_STATUS',
                 ),
                 array(
-                    'name' => 'is_ticket_exported',
-                    'label' => 'LBL_IS_TICKET_EXPORTED',
-                    'customCode' => '{$CUSTOM_IS_EXPORTED}',
+                    'name' => 'is_paid',
+                    'label' => 'LBL_IS_PAID',
+                    'customCode' => '{$IS_PAID}',
                 ),
             ),
 
@@ -136,11 +150,10 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'studio' => 'visible',
                     'label' => 'LBL_PAYMENT_TYPE',
                 ),
-
                 array(
-                    'name' => 'date_ticket_issue',
-                    'label' => 'LBL_DATE_TICKET_ISSUE',
-                    'customCode' => '{$CUSTOM_DATE_TICKET_ISSUE}',
+                    'name' => 'is_ticket_exported',
+                    'label' => 'LBL_IS_TICKET_EXPORTED',
+                    'customCode' => '{$CUSTOM_IS_EXPORTED}',
                 ),
             ),
 
@@ -151,9 +164,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUSTOM_AIRLINE}',
                 ),
                 array(
-                    'name' => 'is_invoice_export',
-                    'label' => 'LBL_INVOICE',
-                    'customCode' => '{$IS_INVOICE_EXPORT}',
+                    'name' => 'date_ticket_issue',
+                    'label' => 'LBL_DATE_TICKET_ISSUE',
+                    'customCode' => '{$CUSTOM_DATE_TICKET_ISSUE}',
                 ),
             ),
            
@@ -164,10 +177,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_DESCRIPTION',
                 ),
                 array(
-                    'name' => 'recheck_status',
-                    'studio' => 'visible',
-                    'label' => 'Thao tác',
-                    'customCode' => '{$RECHECK_STATUS}',
+                    'name' => 'is_invoice_export',
+                    'label' => 'LBL_INVOICE',
+                    'customCode' => '{$IS_INVOICE_EXPORT}',
                 ),
             ),
            
@@ -178,17 +190,23 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_LYDOTHANGTHUA',
                 ),
                 array(
-                    'name' => 'ghichuthangthua',
+                    'name' => 'recheck_status',
                     'studio' => 'visible',
-                    'label' => 'LBL_GHICHUTHANGTHUA',
+                    'label' => 'Thao tác',
+                    'customCode' => '{$RECHECK_STATUS}',
                 ),
             ),
 
             array(
                 array(
-                    'name' => 'is_mail_confirm',
-                    'label' => 'LBL_IS_MAIL_CONFIRM',
+                    'name' => 'ghichuthangthua',
+                    'studio' => 'visible',
+                    'label' => 'LBL_GHICHUTHANGTHUA',
                 ),
+                // array(
+                //     'name' => 'is_mail_confirm',
+                //     'label' => 'LBL_IS_MAIL_CONFIRM',
+                // ),
                 array(
                     'name' => 'nganluong_code',
                     'label' => 'LBL_NGANLUONG_CODE',

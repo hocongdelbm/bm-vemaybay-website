@@ -2659,7 +2659,11 @@ $app_list_strings['absence_status_list'] = array(
   0 => 'Mới tạo',
   1 => 'Chờ duyệt',
   2 => 'Đã duyệt',
-  
 );
 
-
+$app_list_strings['booking_customer_source_list'] = [
+  'system' => 'Hệ thống',
+  'new'    => 'Mới',
+  'agent'  => 'Đại lý CTV',
+  'care'   => 'Chăm sóc KH',
+];

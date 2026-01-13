@@ -820,6 +820,21 @@ $dictionary['EC_Flight_Bookings'] = array(
             'importable' => true,
             'reportable' => false,
         ),
+        
+        // Add by DucPham - 13/01/2026
+        'customer_source' => array(
+            'name'       => 'customer_source',
+            'vname'      => 'LBL_CUSTOMER_SOURCE',
+            'type'       => 'enum',
+            'options'    => 'booking_customer_source_list',
+            'len'        => 10,
+            'default'    => 'system',
+            'massupdate' => 0,
+            'importable' => 1,
+            'reportable' => 1,
+            'audited'    => 1,
+            'studio'     => 'visible',
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_bk_name', 'type' => 'index', 'fields' => array('name')),

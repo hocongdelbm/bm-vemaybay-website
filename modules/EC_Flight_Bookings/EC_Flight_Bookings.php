@@ -923,94 +923,94 @@ class EC_Flight_Bookings extends Basic {
 		return $this->db->getOne($sql);
 	}
 
-	public function saveInforCustomer($journey_from_to) {
-		global $db;
+	// public function saveInforCustomer($journey_from_to) {
+	// 	global $db;
 
-		// Kiểm tra customer có tồn tại trong bảng ec_customer hay chưa dựa trên thông tin từ bảng ec_flight_bookings
-		$sql_check_customer = '
-			SELECT IF(COUNT(c.phone) > 0, 1, 0)
-			FROM ec_customer c
-			WHERE c.phone = "' . $this->phone . '"';
+	// 	// Kiểm tra customer có tồn tại trong bảng ec_customer hay chưa dựa trên thông tin từ bảng ec_flight_bookings
+	// 	$sql_check_customer = '
+	// 		SELECT IF(COUNT(c.phone) > 0, 1, 0)
+	// 		FROM ec_customer c
+	// 		WHERE c.phone = "' . $this->phone . '"';
 
-		$count_customer = $db->getOne($sql_check_customer);
-		$cus 		 = new EC_Customer;
+	// 	$count_customer = $db->getOne($sql_check_customer);
+	// 	$cus 		 = new EC_Customer;
 
-		if (isset($journey_from_to) && !empty($journey_from_to)) {
-			$journey 	= $journey_from_to;
-		} else {
-			$journey_array = journeyOfBooking($this->id);
-			$journey 		= $journey_array["departure"] . ' - ' . $journey_array["arrival"];
-		}
+	// 	if (isset($journey_from_to) && !empty($journey_from_to)) {
+	// 		$journey 	= $journey_from_to;
+	// 	} else {
+	// 		$journey_array = journeyOfBooking($this->id);
+	// 		$journey 		= $journey_array["departure"] . ' - ' . $journey_array["arrival"];
+	// 	}
 
-		if (!$count_customer) {
-			// TẠO KHÁCH HÀNG MỚI
-			$cus->name 	 = $this->contact_name;
-			$cus->phone  = $this->phone;
-			$cus->email  = $this->email;
-			$cus->gender = $this->contact_title;
-			$cus->type 	 = 'NEW';
+	// 	if (!$count_customer) {
+	// 		// TẠO KHÁCH HÀNG MỚI
+	// 		$cus->name 	 = $this->contact_name;
+	// 		$cus->phone  = $this->phone;
+	// 		$cus->email  = $this->email;
+	// 		$cus->gender = $this->contact_title;
+	// 		$cus->type 	 = 'NEW';
 
-			// LƯU THÔNG TIN BOOKING CỦA KHÁCH HÀNG MỚI
-			$booking_list = array();
-			$booking_list[$this->id] = array(
-				'booking_number'			=> $this->name,
-				'booking_status' 			=> $this->booking_status,
-				'booking_date' 				=> $this->date_entered,
-				'booking_quantity' 			=> $this->total_qty,
-				'journey'					=> $journey,
-				'customer_name' 			=> trim(stripslashes($this->contact_name)),
-				'customer_email' 			=> $this->email,
-				'customer_price_total' 		=> unformat_number($this->total_amount),
-				'customer_price_revenue' 	=> calculateBKTotalAmt($this->id),
-				'customer_ip' 				=> $this->ip_address,
-			);
+	// 		// LƯU THÔNG TIN BOOKING CỦA KHÁCH HÀNG MỚI
+	// 		$booking_list = array();
+	// 		$booking_list[$this->id] = array(
+	// 			'booking_number'			=> $this->name,
+	// 			'booking_status' 			=> $this->booking_status,
+	// 			'booking_date' 				=> $this->date_entered,
+	// 			'booking_quantity' 			=> $this->total_qty,
+	// 			'journey'					=> $journey,
+	// 			'customer_name' 			=> trim(stripslashes($this->contact_name)),
+	// 			'customer_email' 			=> $this->email,
+	// 			'customer_price_total' 		=> unformat_number($this->total_amount),
+	// 			'customer_price_revenue' 	=> calculateBKTotalAmt($this->id),
+	// 			'customer_ip' 				=> $this->ip_address,
+	// 		);
 
-			$cus->info_data	= json_encode($booking_list);
-			$cus->save();
-		} else {
-			// get booking_list hiện có của KH đó
-			$sql_get_booking_info = '
-			SELECT c.info_data
-			FROM ec_customer c
-			WHERE c.phone = "' . $this->phone . '"';
-			$current_booking = $db->getOne($sql_get_booking_info);
+	// 		$cus->info_data	= json_encode($booking_list);
+	// 		$cus->save();
+	// 	} else {
+	// 		// get booking_list hiện có của KH đó
+	// 		$sql_get_booking_info = '
+	// 		SELECT c.info_data
+	// 		FROM ec_customer c
+	// 		WHERE c.phone = "' . $this->phone . '"';
+	// 		$current_booking = $db->getOne($sql_get_booking_info);
 
-			// convert booking_list hiện có thành array
-			$current_booking_array 	= json_decode(html_entity_decode($current_booking), true);
+	// 		// convert booking_list hiện có thành array
+	// 		$current_booking_array 	= json_decode(html_entity_decode($current_booking), true);
 
-			// Khi booking thay đổi thông tin thì tiến hành cập nhật booking này bên bảng ec_customer
-			if (isset($current_booking_array[$this->id])) {
-				$current_booking_array[$this->id]['booking_status'] 		= $this->booking_status;
-				$current_booking_array[$this->id]['booking_quantity'] 		= $this->total_qty;
-				$current_booking_array[$this->id]['customer_name'] 		= $this->contact_name;
-				$current_booking_array[$this->id]['customer_email'] 		= $this->email;
-				$current_booking_array[$this->id]['journey'] 			= $journey;
-				$current_booking_array[$this->id]['customer_price_total'] 	= unformat_number($this->total_amount);
-				$current_booking_array[$this->id]['customer_price_revenue'] = calculateBKTotalAmt($this->id);
-			} else {
-				$current_booking_array[$this->id] = array(
-					'booking_number'		=> $this->name,
-					'booking_status' 		=> $this->booking_status,
-					'booking_date' 			=> $this->date_entered,
-					'booking_quantity' 		=> $this->total_qty,
-					'journey'				=> $journey,
-					'customer_name' 		=> trim(stripslashes($this->contact_name)),
-					'customer_email' 		=> $this->email,
-					'customer_price_total' 	=> unformat_number($this->total_amount),
-					'customer_price_revenue' => calculateBKTotalAmt($this->id),
-					'customer_ip' 			=> $this->ip_address,
-				);
-			}
+	// 		// Khi booking thay đổi thông tin thì tiến hành cập nhật booking này bên bảng ec_customer
+	// 		if (isset($current_booking_array[$this->id])) {
+	// 			$current_booking_array[$this->id]['booking_status'] 		= $this->booking_status;
+	// 			$current_booking_array[$this->id]['booking_quantity'] 		= $this->total_qty;
+	// 			$current_booking_array[$this->id]['customer_name'] 		= $this->contact_name;
+	// 			$current_booking_array[$this->id]['customer_email'] 		= $this->email;
+	// 			$current_booking_array[$this->id]['journey'] 			= $journey;
+	// 			$current_booking_array[$this->id]['customer_price_total'] 	= unformat_number($this->total_amount);
+	// 			$current_booking_array[$this->id]['customer_price_revenue'] = calculateBKTotalAmt($this->id);
+	// 		} else {
+	// 			$current_booking_array[$this->id] = array(
+	// 				'booking_number'		=> $this->name,
+	// 				'booking_status' 		=> $this->booking_status,
+	// 				'booking_date' 			=> $this->date_entered,
+	// 				'booking_quantity' 		=> $this->total_qty,
+	// 				'journey'				=> $journey,
+	// 				'customer_name' 		=> trim(stripslashes($this->contact_name)),
+	// 				'customer_email' 		=> $this->email,
+	// 				'customer_price_total' 	=> unformat_number($this->total_amount),
+	// 				'customer_price_revenue' => calculateBKTotalAmt($this->id),
+	// 				'customer_ip' 			=> $this->ip_address,
+	// 			);
+	// 		}
 
-			// Cập nhật field info_data
-			$updated_booking_data  = json_encode($current_booking_array);
-			$sql_update_booking = '
-				UPDATE ec_customer c
-				SET c.type = "' . getCustomerType($this->phone) . '" , info_data = \'' . $updated_booking_data . '\'
-				WHERE c.phone = "' . $this->phone . '" AND c.deleted = 0';
-			$db->query($sql_update_booking);
-		}
-	}
+	// 		// Cập nhật field info_data
+	// 		$updated_booking_data  = json_encode($current_booking_array);
+	// 		$sql_update_booking = '
+	// 			UPDATE ec_customer c
+	// 			SET c.type = "' . getCustomerType($this->phone) . '" , info_data = \'' . $updated_booking_data . '\'
+	// 			WHERE c.phone = "' . $this->phone . '" AND c.deleted = 0';
+	// 		$db->query($sql_update_booking);
+	// 	}
+	// }
 
 	/**
 	 * Check is use new baggage

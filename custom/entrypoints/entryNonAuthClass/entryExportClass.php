@@ -1,13 +1,12 @@
 <?php
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once 'custom/entrypoints/entryClass.php';
-require_once 'custom/include/helpers/api/APIZaloOA.php';
 
 /**
- * Class entryBookingClass
+ * Class entryExportClass
  *
  */
-class entryBookingClass extends entryClass {
+class entryExportClass extends entryClass {
     public function exportBookings($params = []) {
         try {
             if(count($params) > 10) return "Only a maximum of 10 bookings are supported per request";

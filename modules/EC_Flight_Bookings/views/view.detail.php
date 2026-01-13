@@ -146,7 +146,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.7"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.8"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
@@ -339,10 +339,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 									<textarea rows="1" class="box-input input-note-description" id="note-description" placeholder="Thêm diễn giải..."></textarea>
 								</div>
 								<div class="wrap-icon">
-									<input type="hidden" name="note-username" id="note-username" value="' . $note_username . '">
-									<input type="hidden" name="note-name" id="note-name" value="' . $this->bean->name . '">
-									<input type="hidden" name="note-parent-id" id="note-parent-id" value="' . $this->bean->id . '">
-									<input type="hidden" name="note-booking-status" id="note-booking-status" value="' . $this->bean->booking_status . '">
+									<input type="hidden" name="note-username" id="note-username" value="' . $note_username . '" />
+									<input type="hidden" name="note-name" id="note-name" value="' . $this->bean->name . '" />
+									<input type="hidden" name="note-parent-id" id="note-parent-id" value="' . $this->bean->id . '" />
+									<input type="hidden" name="note-booking-status" id="note-booking-status" value="' . $this->bean->booking_status . '" />
+									<input type="hidden" name="note-contact-name" id="note-contact-name" value="' . $this->bean->contact_name . '" />
+									
 									<svg xmlns="http://www.w3.org/2000/svg" id="icon-send-notes" width="20" height="20" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
 										<path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
 									</svg>
@@ -386,6 +388,81 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Loại vé - Chuyến bay
 		$ticket_type = $app_list_strings['booking_ticket_type_list'][$this->bean->ticket_type] . ' - Chuyến bay: ' . $app_list_strings['bk_flight_type_list'][$this->bean->flight_type];
 		$this->ss->assign('CUSTOM_TICKET_TYPE', $ticket_type);
+		
+		// Nguồn khách hàng
+		$customer_source = '<div class="d-flex align-items-center flex-nowrap gap-3">';
+		foreach($app_list_strings['booking_customer_source_list'] as $value => $label) {
+			$checked = $value == $this->bean->customer_source ? 'checked="checked"' : '';
+			$customer_source .= '<div class="item">
+				<input type="checkbox" name="customer_source" id="customer_source_'.$value.'" value="'.$value.'" '.$checked.' /> '.$label.'
+			</div>';
+		}
+		$customer_source .= '</div>';
+		$this->ss->assign('CUSTOM_CUSTOMER_SOURCE', $customer_source);
+
+		// Đánh dấu
+		$list_bookmark = '
+			<label for="is_agent" class="">Là đại lý:</label>
+			<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '/>
+			<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
+				'. $this->bean->agent_name .'
+			</a>
+		';
+		if ($this->bean->booking_status == 8 || $this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
+			if (!$this->bean->is_telesale) {
+				$list_bookmark .= '</form>
+					<form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
+						<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+						<input type="hidden" name="action" value="Save" />
+						<input type="hidden" name="record" value="' . $this->bean->id . '" />
+						<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+						<input type="hidden" name="is_telesale_value" value="1" />
+
+						<label for="btnCheckIsTelesale" class="ms-2">Là BK Telesale:</label>
+						<input type="checkbox" class="form-check-input" name="btnCheckIsTelesale" id="btnCheckIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
+					</form>';
+			}
+			else {
+				$call = BeanFactory::getBean('Calls', $this->bean->telesale_call_id);
+				$call_id = $call->id;
+				$call_name = $call->name;
+				$list_bookmark .= '<label for="is_telesale" class="ms-2">Là BK Telesale:</label>
+					<input type="checkbox" disabled name="is_telesale" id="is_telesale" ' . ($this->bean->is_telesale ? 'checked="checked"' : '') . '/>
+					<a href="index.php?module=Calls&action=DetailView&record=' . $call_id . '" target="_blank">' . $call_name . '</a>
+				';
+			}
+		}
+		if ($this->bean->booking_status == 8) {
+			// Là CTV
+			if (!$this->bean->is_ctv) {
+				$list_bookmark .= '</form>
+					<form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
+						<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+						<input type="hidden" name="action" value="Save" />
+						<input type="hidden" name="record" value="' . $this->bean->id . '" />
+						<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+						<input type="hidden" name="is_ctv_value" value="1" />
+
+						<label for="btnCheckIsCTV" class="ms-2">Là CTV:</label>
+						<input type="checkbox" class="form-check-input" name="btnCheckIsCTV" id="btnCheckIsCTV" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
+					</form>';
+			} else {
+				$list_bookmark .= '<label for="is_ctv" class="ms-2">Là CTV:</label>
+					<input type="checkbox" disabled name="is_ctv" id="is_ctv" ' . ($this->bean->is_ctv ? 'checked="checked"' : '') . '/>';
+			}
+		}
+		$this->ss->assign('CUSTOM_BOOKMARK', $list_bookmark);
+
+		// Hệ thống đánh dấu
+		$list_bookmark_system = '<div class="d-flex align-items-center gap-3">';
+		$list_bookmark_system .= '<div class="item">
+			<input type="checkbox" id="is_mail_confirm" '. ($this->bean->is_mail_confirm ? 'checked="checked"' : '') .' disabled /> Gửi mail xác nhận
+		</div>';
+		$list_bookmark_system .= '<div class="item">
+			<input type="checkbox" id="is_prior" '. ($this->bean->is_prior ? 'checked="checked"' : '') .' disabled /> Vé cận
+		</div>';
+		$list_bookmark_system .= '</div>';
+		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', $list_bookmark_system);
 
 		// Đã xuất vé
 		$is_ticket_exported = '<span class="is_ticket_exported d-flex align-items-center">
@@ -400,64 +477,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		</span>';
 		$is_exported = $is_ticket_exported;
 		$this->ss->assign('CUSTOM_IS_EXPORTED', $is_exported);
-
-		// Đã giữ chỗ
-		$is_wrap_hold = '<div class="d-flex align-items-center flex-wrap gap-2"><input disabled type="checkbox" name="is_hold" id="is_hold" ' . ($this->bean->is_hold ? 'checked="checked"' : '') . ' />';
-		$is_wrap_hold .= '
-			<label for="is_agent" class="ms-3">Là đại lý:</label>
-			<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '/>
-			<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
-				' . $this->bean->agent_name . '
-			</a>
-		';
-
-		if ($this->bean->booking_status == 8 || $this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
-			if (!$this->bean->is_telesale) {
-				$is_wrap_hold .= '</form>
-							<form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
-								<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-								<input type="hidden" name="action" value="Save" />
-								<input type="hidden" name="record" value="' . $this->bean->id . '" />
-								<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-								<input type="hidden" name="is_telesale_value" value="1" />
-	
-								<label for="btnCheckIsTelesale" class="ms-2">Là BK Telesale:</label>
-								<input type="checkbox" class="form-check-input" name="btnCheckIsTelesale" id="btnCheckIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
-							</form>';
-			} else {
-				$call = BeanFactory::getBean('Calls', $this->bean->telesale_call_id);
-				$call_id = $call->id;
-				$call_name = $call->name;
-				$is_wrap_hold .= '<label for="is_telesale" class="ms-2">Là BK Telesale:</label>
-								<input type="checkbox" disabled name="is_telesale" id="is_telesale" ' . ($this->bean->is_telesale ? 'checked="checked"' : '') . '/>
-								<a href="index.php?module=Calls&action=DetailView&record=' . $call_id . '" target="_blank">' . $call_name . '</a>
-				';
-			}
-		}
-
-		if ($this->bean->booking_status == 8) {
-			// Là CTV
-			if (!$this->bean->is_ctv) {
-				$is_wrap_hold .= '</form>
-							<form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
-								<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-								<input type="hidden" name="action" value="Save" />
-								<input type="hidden" name="record" value="' . $this->bean->id . '" />
-								<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-								<input type="hidden" name="is_ctv_value" value="1" />
-	
-								<label for="btnCheckIsCTV" class="ms-2">Là CTV:</label>
-								<input type="checkbox" class="form-check-input" name="btnCheckIsCTV" id="btnCheckIsCTV" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
-							</form>';
-			} else {
-				$is_wrap_hold .= '<label for="is_ctv" class="ms-2">Là CTV:</label>
-								<input type="checkbox" disabled name="is_ctv" id="is_ctv" ' . ($this->bean->is_ctv ? 'checked="checked"' : '') . '/>';
-			}
-		}
-
-		$is_wrap_hold .= '</div>';
-
-		$this->ss->assign('CUSTOM_IS_HOLD', $is_wrap_hold);
 
 		// Date ticket issue (ngày xuất vé) - giao vé
 		$ticket_issue = '<span class="is_ticket_exported d-flex align-items-center">
@@ -477,7 +496,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		/************  CONTACT  ************/
 		$contact_title = $app_list_strings['passenger_salutation_list'][(int) $this->bean->contact_title];
 		$link_contact = $this->bean->contact_id ? "index.php?module=Contacts&action=DetailView&record=" . $this->bean->contact_id : "#";
-		// $type_contact 	= classifyContact($this->bean->contact_id);
+		// $type_contact = classifyContact($this->bean->contact_id);
 		$type_contact = classifyContactv2($this->bean->contact_id);
 
 		$contact_name_new = '<a target="_blank" href="' . $link_contact . '" class="contact_name" data="' . $this->bean->contact_name . '"><span>' . ($contact_title ? $contact_title . '. ' : '') . $this->bean->contact_name . '</span></a>';
@@ -617,19 +636,14 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			  	<input type="hidden" name="record" value="' . $this->bean->id . '" />
 			  	<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
 			  	<input type="hidden" name="is_paid" value="1" />
+			  	<input type="hidden" name="contact_name" value="' . $this->bean->contact_name . '" />
 			  	' . $bk_stt;
 			$is_paid .= '<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnCheckIsPaid" id="btnCheckIsPaid" value="Đã thanh toán" title="Đã thanh toán" />';
 			$is_paid .= '</form>';
 		} else {
 			$is_paid = '<input type="checkbox" disabled checked />';
 		}
-
-		if($this->bean->is_prior){
-			$is_paid .= '- Vé cận: <input type="checkbox" disabled checked />';
-		}
-
-		if (!empty($this->bean->delivery_man))
-			$is_paid .= '- Giao vé: ' . $this->bean->delivery_man;
+		if (!empty($this->bean->delivery_man)) $is_paid .= '- Giao vé: ' . $this->bean->delivery_man;
 		$this->ss->assign('IS_PAID', $is_paid);
 
 

@@ -597,6 +597,7 @@ $(document).ready(function () {
 		let booking_status = $('#note-booking-status').val();
 		let description = $('#note-description').val().trim();
 		let username = $('#note-username').val();
+		let contact_name = $('#note-contact-name').val();
 		let send_loading = '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
 
 		let dt = new Date();
@@ -623,11 +624,12 @@ $(document).ready(function () {
 			url: "index.php?entryPoint=entryPointSaveNote",
 			type: "POST",
 			data: {
+				type: "ADD",
 				name: name,
 				parent_id: parent_id,
 				description: description,
 				booking_status: booking_status,
-				type: "ADD"
+				contact_name: contact_name,
 			},
 			success: function (res) {
 				if (res == 1) {
@@ -638,7 +640,6 @@ $(document).ready(function () {
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
 				let text_warning = 'ERROR: Vui lòng liên hệ bộ phận IT!';
 				showToastWarning(text_warning);
-
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
 			}
@@ -1213,7 +1214,6 @@ $(document).ready(function () {
 		$('#new_payment_amount').val('');
 	});
 
-
 	// GET THÔNG TIN BANK - SEND CUSTOMER
 	$('#get_bank').on('click', function () {
 		let booking_id = $(this).attr('booking_id');
@@ -1357,6 +1357,49 @@ $(document).ready(function () {
 					console.error("Error: " + errorThrown);
 					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
 				}
+			});
+		}
+	});
+
+	$('input[name="customer_source"]').click(function() {
+		let customer_source = $(this).val();
+		if(customer_source && customer_source.length > 0) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointGeneral",
+				type: "POST",
+				contentType: "application/json", 
+				dataType: "json",  
+				data: JSON.stringify({
+					class: "entryBookingClass",
+					method: "updateFields",
+					params: {
+						bookingId: bookingId,
+						fields: {
+							customer_source: customer_source
+						}
+					}
+				}),
+				beforeSend: function () {
+					$('.container-waiting').show();
+				},
+				success: function (res) {
+					if('status' in res && res.status === 1) {
+						$('input[type="checkbox"][name="customer_source"]').prop('checked', false);
+						$(`input#customer_source_${customer_source}`).prop('checked', true);
+					}
+					else {
+						$(`input#customer_source_${customer_source}`).prop('checked', false);
+					}
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$(`input#customer_source_${customer_source}`).prop('checked', false);
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+				},
+				complete: function() {
+					$('.container-waiting').hide();
+				},
 			});
 		}
 	});

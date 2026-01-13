@@ -283,4 +283,7 @@ $mod_strings = array(
   'LBL_IS_CTV'   => 'CTV',
   'LBL_IS_REFERENCE'   => 'BK tham khảo',
   'LBL_IS_PRIOR'   => 'Vé cận',
+  'LBL_CUSTOMER_SOURCE' => 'Nguồn KH',
+  'LBL_BOOKMARK' => 'Đánh dấu',
+  'LBL_BOOKMARK_SYSTEM' => 'Hệ thống đánh dấu',
 );

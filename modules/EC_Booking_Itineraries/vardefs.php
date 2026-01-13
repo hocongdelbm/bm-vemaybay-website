@@ -206,7 +206,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'vname'     => 'LBL_TIME_LIMIT',
             'type'      => 'datetimecombo',
             'dbType'    => 'datetime',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -220,7 +219,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
         //     'type'      => 'varchar',
         //     'len'       => 50,
         //     'default'   => '',
-
         //     'importable' => 'true',
         //     'duplicate_merge' => 'disabled',
         //     'duplicate_merge_dom_value' => ' ',
@@ -235,7 +233,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'type'      => 'char',
             'len'       => 2,
             'default'   => '0',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
@@ -249,7 +246,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'vname'     => 'LBL_IS_LAYOVER',
             'type'      => 'bool',
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -263,7 +259,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'type'      => 'varchar',
             'len'       => 15,
             'default'   => '',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -276,7 +271,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'vname'     => 'LBL_STOPS',
             'type'      => 'int',
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
@@ -307,7 +301,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'type'      => 'char',
             'len'       => 36,
             'default'   => '',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -321,7 +314,6 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'vname'     => 'LBL_TRANSIT_ORDER',
             'type'      => 'int',
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
@@ -337,14 +329,12 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'type'      => 'bool',
             'len'       => 1,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
         )
-
     ),
     'indices' => array(
         array('name' => 'idx_iti_name', 'type' => 'index', 'fields' => array('name')),
@@ -353,13 +343,7 @@ $dictionary['EC_Booking_Itineraries'] = array(
         array('name' => 'idx_iti_flgnum', 'type' => 'index', 'fields' => array('flight_number')),
         array('name' => 'idx_iti_departure', 'type' => 'index', 'fields' => array('departure')),
         array('name' => 'idx_iti_arrival', 'type' => 'index', 'fields' => array('arrival')),
-        // array('name' => 'idx_iti_del', 'type' => 'index', 'fields' => array('deleted')),
-        // array('name' => 'idx_iti_direct', 'type' => 'index', 'fields' => array('direction')),
-        // array('name' => 'idx_iti_booked', 'type' => 'index', 'fields' => array('is_booked')),
-        // array('name' => 'idx_iti_layover', 'type' => 'index', 'fields' => array('is_layover')),
-        array(
-            'name' => 'idx_itinerary_booking_date', 'type' => 'index', 'fields' => array('booking_id', 'departure_date', 'deleted')
-        ),
+        array('name' => 'idx_itinerary_booking_date', 'type' => 'index', 'fields' => array('booking_id', 'departure_date', 'deleted')),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

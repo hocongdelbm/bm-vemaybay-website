@@ -5,25 +5,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if($type == 'ADD') {
         // Validate
-        $name           = (isset($_POST["name"]) && !empty($_POST["name"])) ? $_POST["name"] : null;
-        $description    = (isset($_POST["description"]) && !empty($_POST["description"])) ? $_POST["description"] : null;
-        $parent_id      = (isset($_POST["parent_id"]) && !empty($_POST["parent_id"])) ? $_POST["parent_id"] : null;
-        $booking_status = (isset($_POST["booking_status"]) && !empty($_POST["booking_status"])) ? $_POST["booking_status"] : null;
-        if(is_null($name)  || is_null($description) || is_null($parent_id) || is_null($booking_status)) {
+        $booking_name   = $_POST["name"] ?? "";
+        $description    = $_POST["description"] ?? "";
+        $parent_id      = $_POST["parent_id"] ?? "";
+        $booking_status = $_POST["booking_status"] ?? null;
+        $contact_name   = $_POST["contact_name"] ?? "";
+
+        if(empty($booking_name) || empty($description) || empty($parent_id) || is_null($booking_status)) {
             echo 0;
             exit();
         }
 
         $n = new Note();
-        $n->name            = $name;
+        $n->name            = $booking_name;
         $n->description     = $description;
         $n->parent_type     = 'EC_Flight_Bookings';
         $n->parent_id       = $parent_id;
         $n->booking_status  = $booking_status;
-        $check = $n->save();
-
-        if(strlen($check) > 0) echo 1;
+        if($n->save()) {
+            if (stripos($description, "Đã chuyển khoản vào") !== false) {
+                global $sugar_config;
+                $channel = $sugar_config['notification_channel'] ?? 'Telegram';
+                if($channel == 'Mattermost') {}
+                else {
+                    $m = trim("Booking $booking_name, $contact_name, $description");
+                    $botToken = $sugar_config['telegram']['bot_token'] ?? '';
+                    $chatId   = $sugar_config['telegram']['thongbao']['chat_id'];
+                    Telegram::sendMessage($m, $botToken, $chatId);
+                }
+            }
+            echo 1;
+        }
         else echo 0;
+
         exit();
     }
     elseif ($type == "DELETE") {
