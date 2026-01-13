@@ -61,7 +61,7 @@ class CustomController extends BaseController
             }
 
             // Đánh dấu booking tham khảo
-            if (strtoupper(trim($booking->contact_name) === 'THAM KHAO')) {
+            if (strtoupper(trim($booking->contact_name)) === 'THAM KHAO') {
                 $booking->is_reference = 1;
             }
 
