@@ -345,7 +345,7 @@ $(document).ready(function() {
 	$('#icon-search-masothue').click(function() {
 		let mst = $('#masothue').val();
 
-		if(mst.length > 0) {
+		if(mst.length > 9) {
 			$('.container-waiting').show();
 			$.ajax({
 				url: "index.php?entryPoint=entryPointEC_HoaDonBan&for=getConpanyInfo",
@@ -416,6 +416,13 @@ $(document).ready(function() {
 
 		if($('#company_unit').val() == ''){
 			showToastWarning('Vui lòng lựa chọn đơn vị hóa đơn!');
+			preventSubmit();
+			return false;
+		}
+		
+		let masothue = $('#masothue').val().trim();
+		if(masothue.length != 10 || masothue.length != 14){
+			showToastWarning('Mã số thuế không hợp lệ!');
 			preventSubmit();
 			return false;
 		}

@@ -134,10 +134,11 @@ class entryInputInvoiceClass extends entryClass {
     }
 
     /**
-     * Remove ticket by id
+     * Remove ticket (input invoice) by id (ticket id)
      * 
      * @param array $params
      * @return array
+     * @author DucPham
      */
     public function removeTicket($params = []) {
         $ticketId = trim($params['ticketId'] ?? '');
@@ -145,14 +146,73 @@ class entryInputInvoiceClass extends entryClass {
         if(empty($ticketId)) return ["status" => 0, "message" => "Không tìm thấy số vé", "data" => null];
 
         global $db;
-        $dateModified = date('Y-m-d H:i:s', time() - 7*60*60);
-        $sql = "UPDATE ec_input_invoices
-            SET deleted = 1
-                ,modified_user_id = '{$this->currentUser->id}'
-                ,date_modified = '{$dateModified}'
-            WHERE id = '{$ticketId}'";
+
+        $sql = "SELECT hd.id
+                , hd.name
+                , hd.tinhtrang
+                , hd.kyhieuhd
+            FROM ec_input_invoices in_inv
+                LEFT JOIN ec_chitiethoadon cthd ON cthd.ticket_number_id = in_inv.id AND cthd.deleted = 0
+                LEFT JOIN ec_hoadonban hd ON hd.id = cthd.parent_id AND hd.deleted = 0
+            WHERE in_inv.id = '{$ticketId}' AND in_inv.deleted = 0
+            LIMIT 1";
+
+        $res  = $db->query($sql);
+        $data = $db->fetchByAssoc($res);
+        $out_inv_id = $data['id'] ?? '';
+        $status     = $data['tinhtrang'] ?? '';
+        $invSerial  = $data['kyhieuhd'] ?? '';
+        $invRef     = $data['name'] ?? '';
+
+        if($status === '0' || $status === '1') {
+            if($status === '1') {
+                // Bỏ ghi sổ
+                $ep = new entryFactory();
+                $epOutInvoice = $ep->create('entryOutputInvoiceClass');
+                $epOutInvoice->delete([
+                    'recordId'  => $out_inv_id,
+                    'invRef'    => $invRef,
+                    'invSerial' => $invSerial,
+                ]);
+            }
+
+            $dateModified = date('Y-m-d H:i:s', time() - 7*3600);
+            $sql = "UPDATE ec_input_invoices
+                SET deleted = 1
+                    ,description = 'Xóa đầu vào $ticketId'
+                    ,modified_user_id = '{$this->currentUser->id}'
+                    ,date_modified = '{$dateModified}'
+                WHERE id = '{$ticketId}' AND deleted = 0";
+
+            if($db->query($sql)) {
+                $sql = "UPDATE ec_chitiethoadon
+                    SET deleted = 1
+                        ,description = 'Xóa chi tiết đầu ra $ticketId'
+                        ,modified_user_id = '{$this->currentUser->id}'
+                        ,date_modified = '{$dateModified}'
+                    WHERE ticket_number_id = '{$ticketId}' AND deleted = 0";
+
+                if($db->query($sql)) {
+                    $db->query("UPDATE ec_hoadonban hd
+                        SET hd.deleted = 1
+                            ,hd.description = 'Xóa đầu ra khi đá xóa hết chi tiết'
+                            ,hd.date_modified = '$dateModified'
+                            ,hd.modified_user_id = '{$this->currentUser->id}'
+                        WHERE hd.id = '$out_inv_id'
+                            AND NOT EXISTS (
+                                SELECT 1
+                                FROM ec_chitiethoadon cthd
+                                WHERE cthd.parent_id = '$out_inv_id'
+                                    AND (cthd.parent_type = 'EC_HoaDonBan' OR cthd.parent_type IS NULL OR cthd.parent_type = '')
+                                    AND cthd.deleted = 0
+                            )");
+                }
+
+                return ["status" => 1, "message" => "Xóa thành công", "data" => null];
+            }
+            return ["status" => 0, "message" => "Thao tác chưa thành công, vui lòng thử lại sau", "data" => null];
+        }
         
-        if($db->query($sql)) return ["status" => 1, "message" => "Xóa thành công", "data" => null];
-        return ["status" => 0, "message" => "Thao tác chưa thành công, vui lòng thử lại sau", "data" => null];
+        return ["status" => 0, "message" => "Không thể xóa đầu vào khi đầu ra đã ký", "data" => null];
     }
 }

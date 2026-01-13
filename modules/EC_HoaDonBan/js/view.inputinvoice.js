@@ -437,16 +437,17 @@ $(document).ready(function () {
                         $('.container-waiting').show();
                     },
                     success: function(response) {
-                        $('.container-waiting').hide();
                         if('status' in response && response.status == 1) {
                             showModalNotify(1, response.message || 'Thao tác thành công');
                             $(`#record-${recordId}`).remove();
                         }
-                        else showModalNotify(0, response.message || 'Thao tác thất bại');
+                        else showModalNotify('warning', response.message || 'Thao tác thất bại');
                     },
                     error: function(xhr, status, error) {
-                        $('.container-waiting').hide();
                         showModalNotify(0, error);
+                    },
+                    complete: function () {
+                        $('.container-waiting').hide();
                     }
                 });
             }

@@ -244,11 +244,12 @@ class entryOutputInvoiceClass extends entryClass {
 
                 // Update status
                 try {
+                    $date_modified = date('Y-m-d H:i:s', time() - 7*3600);
                     $sqlUpdate = "UPDATE ec_hoadonban
                         SET tinhtrang = '0'
                             ,invoice_data = ''
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                            ,date_modified = '$date_modified'
                         WHERE id = '$recordId' AND deleted = 0";
                     if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
 
@@ -256,13 +257,15 @@ class entryOutputInvoiceClass extends entryClass {
                         SET deleted = 1
                             ,description = 'Đã hủy {$invRef}'
                             ,modified_user_id = '{$this->currentUser->id}'
-                            ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
+                            ,date_modified = '$date_modified'
                         WHERE parent_id = '$recordId'
                             AND parent_type = 'EC_HoaDonBan'
                             AND deleted = 0";
                     if(!$db->query($sqlUpdate)) $this->sendSQLErrorNotification($sqlUpdate);
                 }
-                catch(Throwable $th) {}
+                catch(Throwable $th) {
+                    $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+                }
 
                 return [
                     "status" => 1,
