@@ -18,8 +18,7 @@ class AlertsViewList extends ViewList {
 	public function listViewProcess() {
 		global $current_user;
 
-		// if(!is_admin($current_user)) 
-		$this->params['custom_where'] = " AND alerts.assigned_user_id = '$current_user->id'";
+		$this->params['custom_where'] = " AND (alerts.assigned_user_id = '$current_user->id' OR alerts.created_by = '$current_user->id') ";
         parent::listViewProcess();
     }
 

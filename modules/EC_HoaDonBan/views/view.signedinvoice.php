@@ -163,14 +163,17 @@ class Viewsignedinvoice extends SugarView {
             $date_invoice = date('d-m-Y', strtotime($invData['invDate']));
             // Số hóa đơn
             $number_invoice = (int)$invData['invNumber'];
+            if((int)$invData['invCustomer'] == 1) $number_invoice = (int)((string)$number_invoice . '266');
             // Mã khách hàng
-            $buyerCode = $invData['buyerCode'];
+            $buyerCode = (int)$invData['invCustomer'] == 1 ? 'KVL' : $invData['buyerCode'];
             // Tên khách hàng
             $name_customer = empty($invData['buyerName']) ? $invData['buyerCompany'] : $invData['buyerName'];
             // Địa chỉ
             $buyerAddress = $invData['buyerAddress'];
             // MST
             $buyerTax = $invData['buyerTax'];
+            // Diễn giải
+            $description = trim("Bán hàng $name_customer số hóa đơn $number_invoice");
 
             foreach (($invData['items'] ?? []) as $index => $item) {
                 $sheet->setCellValue("A" . ($index + 2), '');
@@ -191,7 +194,7 @@ class Viewsignedinvoice extends SugarView {
                 $sheet->setCellValue("P" . ($index + 2), $name_customer);
                 $sheet->setCellValue("Q" . ($index + 2), $buyerAddress);
                 $sheet->setCellValue("R" . ($index + 2), $buyerTax);
-                $sheet->setCellValue("S" . ($index + 2), '');
+                $sheet->setCellValue("S" . ($index + 2), $description);
                 $sheet->setCellValue("T" . ($index + 2), '');
                 $sheet->setCellValue("U" . ($index + 2), '');
                 $sheet->setCellValue("V" . ($index + 2), $item['itemCode']);
