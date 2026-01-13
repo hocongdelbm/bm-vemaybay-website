@@ -19,7 +19,7 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 	}
 
 	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.edit.js?v=1.0.5'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.edit.js?v=1.0.6'></script>";
 	}
 
 	protected function populateLineItems() {

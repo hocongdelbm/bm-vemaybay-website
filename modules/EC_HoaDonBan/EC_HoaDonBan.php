@@ -434,7 +434,7 @@ class EC_HoaDonBan extends Basic {
 	 * @return bool
 	 */
 	public function checkTaxCode($tax_code) {
-		if(strlen($tax_code) == 10 || (strlen($tax_code) == 14 && strpos($tax_code, "-") !== false)) return true;
+		if(strlen($tax_code) == 10 || (strlen($tax_code) == 14 && $tax_code[10] === '-')) return true;
 		return false;
 	}
 

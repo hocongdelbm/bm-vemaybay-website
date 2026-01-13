@@ -415,13 +415,13 @@ $(document).ready(function() {
 		e.preventDefault(); // Don't remove it
 
 		if($('#company_unit').val() == ''){
-			showToastWarning('Vui lòng lựa chọn đơn vị hóa đơn!');
+			showToastWarning('warning', 'Vui lòng lựa chọn đơn vị hóa đơn!');
 			preventSubmit();
 			return false;
 		}
 		
 		let masothue = $('#masothue').val().trim();
-		if(masothue.length != 10 || masothue.length != 14){
+		if(masothue.length != 10 && masothue.length != 14 || (masothue.length == 14 && masothue[10] !== '-')) {
 			showToastWarning('Mã số thuế không hợp lệ!');
 			preventSubmit();
 			return false;
