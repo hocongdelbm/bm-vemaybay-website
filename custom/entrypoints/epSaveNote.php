@@ -10,6 +10,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $parent_id      = $_POST["parent_id"] ?? "";
         $booking_status = $_POST["booking_status"] ?? null;
         $contact_name   = $_POST["contact_name"] ?? "";
+        $total_amount   = $_POST["total_amount"] ?? null;
+        $total_qty      = $_POST["total_qty"] ?? null;
 
         if(empty($booking_name) || empty($description) || empty($parent_id) || is_null($booking_status)) {
             echo 0;
@@ -23,12 +25,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $n->parent_id       = $parent_id;
         $n->booking_status  = $booking_status;
         if($n->save()) {
-            if (stripos($description, "Đã chuyển khoản vào") !== false) {
+            if (mb_stripos($description, "Đã chuyển khoản") !== false) {
                 global $sugar_config;
                 $channel = $sugar_config['notification_channel'] ?? 'Telegram';
+
+                $m = '';
+                if($n->hasMoney($description)) $m = trim("Booking $booking_name, $contact_name, $description");
+                else {
+                    $total_amount_format = !is_null($total_amount) ? number_format($total_amount, 0) : '';
+                    $m = trim("Booking $booking_name, $contact_name, $description $total_amount_format ($total_qty vé)");
+                }
+
                 if($channel == 'Mattermost') {}
                 else {
-                    $m = trim("Booking $booking_name, $contact_name, $description");
                     $botToken = $sugar_config['telegram']['bot_token'] ?? '';
                     $chatId   = $sugar_config['telegram']['thongbao']['chat_id'];
                     Telegram::sendMessage($m, $botToken, $chatId);

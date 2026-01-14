@@ -598,6 +598,8 @@ $(document).ready(function () {
 		let description = $('#note-description').val().trim();
 		let username = $('#note-username').val();
 		let contact_name = $('#note-contact-name').val();
+		let total_amount = $('#note-total-amount').val();
+		let total_qty = $('#note-total-qty').val();
 		let send_loading = '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
 
 		let dt = new Date();
@@ -630,6 +632,8 @@ $(document).ready(function () {
 				description: description,
 				booking_status: booking_status,
 				contact_name: contact_name,
+				total_amount: total_amount,
+				total_qty: total_qty,
 			},
 			success: function (res) {
 				if (res == 1) {

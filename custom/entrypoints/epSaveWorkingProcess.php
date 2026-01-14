@@ -23,6 +23,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	$recall_status 				= isset($_POST['recall_status']) ? $_POST['recall_status'] : null;
 	$check_debt 				= isset($_POST['check_debt']) ? $_POST['check_debt'] : null;
 	$bonus 						= isset($_POST['bonus']) ? $_POST['bonus'] : null;
+	$total_amount 	= $_POST['total_amount'] ?? null; // Booking total amount
+	$total_qty  	= $_POST['total_qty'] ?? null; // Booking total quantity
 	$txtWorkingProcessNote 		= isset($_POST['txtWorkingProcessNote']) ? trim(addslashes($_POST['txtWorkingProcessNote'])) : '';
 
 	if ($module && $action && $action == 'Save' && $record) {
@@ -380,12 +382,19 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		if (!empty($txtWorkingProcessNote)) $note->save();
 
 		// Send a message when a customer makes a bank transfer
-		if ($is_paid === 1 || stripos($txtWorkingProcessNote, "Đã chuyển khoản vào") !== false) {
+		if ($is_paid === 1 || mb_stripos($txtWorkingProcessNote, "Đã chuyển khoản") !== false) {
 			global $sugar_config;
 			$channel = $sugar_config['notification_channel'] ?? 'Telegram';
+
+			$m = '';
+			if($note->hasMoney($txtWorkingProcessNote)) $m = trim("Booking $record_name, $contact_name, $txtWorkingProcessNote");
+			else {
+				$total_amount_format = !is_null($total_amount) ? number_format($total_amount, 0) : '';
+				$m = trim("Booking $record_name, $contact_name, $txtWorkingProcessNote $total_amount_format ($total_qty vé)");
+			}
+			
 			if($channel == 'Mattermost') {}
 			else {
-				$m = trim("Booking $record_name, $contact_name, $txtWorkingProcessNote");
 				$botToken = $sugar_config['telegram']['bot_token'] ?? '';
 				$chatId   = $sugar_config['telegram']['thongbao']['chat_id'];
 				Telegram::sendMessage($m, $botToken, $chatId);

@@ -146,7 +146,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.8"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
@@ -344,6 +344,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 									<input type="hidden" name="note-parent-id" id="note-parent-id" value="' . $this->bean->id . '" />
 									<input type="hidden" name="note-booking-status" id="note-booking-status" value="' . $this->bean->booking_status . '" />
 									<input type="hidden" name="note-contact-name" id="note-contact-name" value="' . $this->bean->contact_name . '" />
+									<input type="hidden" name="note-total-amount" id="note-total-amount" value="' . $this->bean->total_amount . '" />
+									<input type="hidden" name="note-total-qty" id="note-total-qty" value="' . $this->bean->total_qty . '" />
 									
 									<svg xmlns="http://www.w3.org/2000/svg" id="icon-send-notes" width="20" height="20" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
 										<path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
@@ -637,6 +639,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			  	<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
 			  	<input type="hidden" name="is_paid" value="1" />
 			  	<input type="hidden" name="contact_name" value="' . $this->bean->contact_name . '" />
+			  	<input type="hidden" name="total_amount" value="' . $this->bean->total_amount . '" />
+			  	<input type="hidden" name="total_qty" value="' . $this->bean->total_qty . '" />
 			  	' . $bk_stt;
 			$is_paid .= '<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnCheckIsPaid" id="btnCheckIsPaid" value="Đã thanh toán" title="Đã thanh toán" />';
 			$is_paid .= '</form>';
