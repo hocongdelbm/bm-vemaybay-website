@@ -24,7 +24,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	$bonus 						= isset($_POST['bonus']) ? $_POST['bonus'] : null;
 	$total_amount 	= $_POST['total_amount'] ?? null; // Booking total amount
 	$total_qty  	= $_POST['total_qty'] ?? null; // Booking total quantity
-	$customer_source= $_POST['customer_source'] ?? ''; // Booking total quantity
 	$txtWorkingProcessNote = isset($_POST['txtWorkingProcessNote']) ? trim(addslashes($_POST['txtWorkingProcessNote'])) : '';
 
 	if ($module && $action && $action == 'Save' && $record) {
@@ -387,14 +386,16 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			$channel = $sugar_config['notification_channel'] ?? 'Telegram';
 
 			$m = '';
-			if($note->hasMoney($txtWorkingProcessNote)) $m = trim("Booking $record_name, $contact_name, $txtWorkingProcessNote");
+			if($note->hasMoney($txtWorkingProcessNote)) $m = trim("$record_name - $contact_name - $txtWorkingProcessNote");
 			else {
 				$total_amount_format = !is_null($total_amount) ? number_format($total_amount, 0) : '';
-				$m = trim("Booking $record_name, $contact_name, $txtWorkingProcessNote $total_amount_format ($total_qty vé)");
+				$m = trim("$record_name - $contact_name - $txtWorkingProcessNote $total_amount_format ($total_qty vé)");
 			}
-			if(!empty($customer_source) && isset($app_list_strings[$customer_source])) {
-				$c = $app_list_strings[$customer_source];
-				if($c == 'Mới' || $c == 'Hệ thống') $c = 'KH ' . strtolower($c);
+
+			$customer_source = $db->getOne("SELECT customer_source FROM ec_flight_bookings WHERE id = '$record' AND deleted = 0");
+			if(isset($app_list_strings['booking_customer_source_list'][$customer_source])) {
+				$c = $app_list_strings['booking_customer_source_list'][$customer_source];
+				if($c == 'Mới') $c = 'KH ' . strtolower($c);
 				$m .= " - <b>$c</b>";
 			}
 			

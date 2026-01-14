@@ -12,7 +12,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $contact_name   = $_POST["contact_name"] ?? "";
         $total_amount   = $_POST["total_amount"] ?? null;
         $total_qty      = $_POST["total_qty"] ?? null;
-        $customer_source= $_POST["customer_source"] ?? '';
 
         if(empty($booking_name) || empty($description) || empty($parent_id) || is_null($booking_status)) {
             echo 0;
@@ -36,9 +35,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $total_amount_format = !is_null($total_amount) ? number_format($total_amount, 0) : '';
                     $m = trim("$booking_name - $contact_name - $description $total_amount_format ($total_qty vé)");
                 }
-                if(!empty($customer_source) && isset($app_list_strings[$customer_source])) {
-                    $c = $app_list_strings[$customer_source];
-                    if($c == 'Mới' || $c == 'Hệ thống') $c = 'KH ' . strtolower($c);
+
+                $customer_source = $db->getOne("SELECT customer_source FROM ec_flight_bookings WHERE id = '$parent_id' AND deleted = 0");
+                if(isset($app_list_strings['booking_customer_source_list'][$customer_source])) {
+                    $c = $app_list_strings['booking_customer_source_list'][$customer_source];
+                    if($c == 'Mới') $c = 'KH ' . strtolower($c);
                     $m .= " - <b>$c</b>";
                 }
 

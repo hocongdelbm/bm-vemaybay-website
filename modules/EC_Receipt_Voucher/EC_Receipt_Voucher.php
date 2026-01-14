@@ -1,7 +1,5 @@
 <?php
-
-class EC_Receipt_Voucher extends Basic
-{
+class EC_Receipt_Voucher extends Basic {
 	public $new_schema = true;
 	public $module_dir = 'EC_Receipt_Voucher';
 	public $object_name = 'EC_Receipt_Voucher';
@@ -56,8 +54,7 @@ class EC_Receipt_Voucher extends Basic
 		return false;
 	}
 
-	function save($check_notify = FALSE)
-	{
+	function save($check_notify = FALSE) {
 		global $current_user, $sugar_config, $app_list_strings;
 
 		// Check booking is paid

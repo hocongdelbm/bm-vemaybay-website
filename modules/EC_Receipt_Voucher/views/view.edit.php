@@ -68,10 +68,10 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		</span>';
 		$this->ss->assign('AMOUNT_TYPE', $amount_type);
 
-		// NGAY HACH TOAN
-		// $this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan) ? date($date_format.' H:i', strtotime($this->bean->ngayhachtoan)+7*3600) : date($date_format.' H:i');
-		$this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan) ? date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) - 7*3600) : date($date_format.' H:i', strtotime(date('d-m-Y H:i'))+7*3600);
-
+		// NGAY HACH TOAN (Giờ lưu dưới DB là giờ VietNam)
+		$this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan) 
+			? date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) - 7*3600)
+			: date($date_format.' H:i');
 
 		// TAI KHOAN NGAN HANG
 		$display = (isset($_POST['receipt_type']) && $_POST['receipt_type'] == 'credit_transfer') || $this->bean->receipt_type ==  'credit_transfer' ? '' : 'display:none';
