@@ -8,7 +8,6 @@ require_once 'custom/entrypoints/entryClass.php';
  * Xử lý ajax cho booking
  */
 class entryBookingClass extends entryClass {
-
     /**
      * Update fields
      *
@@ -24,22 +23,15 @@ class entryBookingClass extends entryClass {
         if(empty($fields)) return ['status' => 0, 'message' => 'Dữ liệu không hợp lệ'];
         $list_allowed_fields = ['customer_source'];
 
-        global $db;
-        $set = '';
-        foreach($fields as $name => $value) {
-            if(in_array($name, $list_allowed_fields)) {
-                if(!empty($set)) $set .= ", ";
-                if(is_string($value)) $set .= "$name = '$value'";
-                else $set .= "$name = $value";
-            }
-        }
-        // Update log
-        $set .= ", date_modified = '". date('Y-m-d H:i:s', time() - 7*3600) ."'";
-        $set .= ", modified_user_id = '{$this->currentUser->id}'";
-
         try {
-            $sqlUpdate = "UPDATE ec_flight_bookings SET $set WHERE id = '$bookingId' AND deleted = 0";
-            if($db->query($sqlUpdate)) return ['status' => 1, 'message' => 'Thao tác thành công'];
+            $bookingBean = new EC_Flight_Bookings();
+            $bookingBean->retrieve($bookingId);
+            foreach($fields as $name => $value) {
+                if(in_array($name, $list_allowed_fields)) {
+                    $bookingBean->$name = $value;
+                }
+            }
+            if($bookingBean->save2()) return ['status' => 1, 'message' => 'Thao tác thành công'];
             return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
         }
         catch(Throwable $th) {

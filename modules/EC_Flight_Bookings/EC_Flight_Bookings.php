@@ -273,10 +273,10 @@ class EC_Flight_Bookings extends Basic {
 		}
 	}
 
-	public function save2($check_notify = FALSE) { parent::save($check_notify); }
+	public function save2($check_notify = FALSE) { return parent::save($check_notify); }
 
 	// Save booking from webservice
-	public function save_from_webservice($check_notify = FALSE) { parent::save($check_notify); }
+	public function save_from_webservice($check_notify = FALSE) { return parent::save($check_notify); }
 
 	// Generate booking random string
 	function generate_booking_name() {
