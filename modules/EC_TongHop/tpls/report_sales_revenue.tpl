@@ -121,7 +121,7 @@
                 </select>
                 <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
                     <div class="d-flex gap-2 align-items-center date_trigger--wrap fdate_trigger--wrap">
-                        <span class="sublabel">Từ ngày: </span>    
+                        <span class="sublabel">Từ: </span>    
                         <div class="dateTime d-flex gap-2 position-relative">
                             <input class="date_input box-input" type="text" maxlength="10" size="11" tabindex="103" title="" value="{$FROM_DATE_VALUE}" id="from_date" name="from_date" autocomplete="off">
                             <button class="icon_dateTime" type="button" id="fdate_trigger" onclick="return false;">
@@ -133,15 +133,14 @@
                             {literal}
                                 <script type="text/javascript">
                                     Calendar.setup({
-                                                inputField: "from_date",
-                                                daFormat: "%d-%m-%Y",
-                                                button: "fdate_trigger",
-                                                singleClick: true,
-                                                dateStr: "",
-                                                position: [244, 202],
-                                                step: 1
-                                            }
-                                    );
+                                        inputField: "from_date",
+                                        daFormat: "%d-%m-%Y",
+                                        button: "fdate_trigger",
+                                        singleClick: true,
+                                        dateStr: "",
+                                        position: [244, 202],
+                                        step: 1
+                                    });
                                 </script>
                             {/literal}
                         </div>
@@ -159,7 +158,7 @@
                     </svg>
             
                     <div class="d-flex gap-2 align-items-center date_trigger--wrap tdate_trigger--wrap">
-                        <span class="sublabel">Đến ngày: </span>    
+                        <span class="sublabel">Đến: </span>    
                         <div class="dateTime d-flex gap-2 position-relative">
                             <input  class="date_input box-input" type="text" maxlength="10" size="11" title="" value="{$TO_DATE_VALUE}" id="to_date" name="to_date" autocomplete="off">
                             <button class="icon_dateTime" type="button" id="tdate_trigger" onclick="return false;">
@@ -171,14 +170,13 @@
                             {literal}
                                 <script type="text/javascript">
                                     Calendar.setup({
-                                                inputField: "to_date",
-                                                daFormat: "%d-%m-%Y",
-                                                button: "tdate_trigger",
-                                                singleClick: true,
-                                                dateStr: "",
-                                                step: 2
-                                            }
-                                    );
+                                        inputField: "to_date",
+                                        daFormat: "%d-%m-%Y",
+                                        button: "tdate_trigger",
+                                        singleClick: true,
+                                        dateStr: "",
+                                        step: 2
+                                    });
                                 </script>
                             {/literal}
                         </div>
@@ -201,6 +199,11 @@
                     <div class="d-flex align-items-center gap-2">
                         <label for="payment_stt" class="text-label">Tình trạng thu:</label>
                         <select class="box-select" id="payment_stt" name="payment_stt">{$PAYMENT_STT}</select>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="customer_source" class="text-label">Nguồn KH</label>
+                        <select class="box-select" id="customer_source" name="customer_source">{$CUSTOMER_SOURCE_OPTS}</select>
                     </div>
                 </div>
             </div>

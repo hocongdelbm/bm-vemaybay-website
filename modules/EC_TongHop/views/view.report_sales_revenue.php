@@ -37,7 +37,7 @@ class Viewreport_sales_revenue extends SugarView
 
     function populateContent($smartyobj)
     {
-        global $current_user;
+        global $current_user, $app_list_strings;
 
         // Từ ngày
         if (!empty($_REQUEST['from_date']) && strtotime($_REQUEST['from_date']) !== false) {
@@ -132,7 +132,9 @@ class Viewreport_sales_revenue extends SugarView
         // routing
         $data = '';
         $payment_stt = isset($_POST['payment_stt']) ? $_POST['payment_stt'] : 0;
-        $data = $this->bookingQuery($post_from_date, $post_to_date, array('payment_stt' => $payment_stt));
+        $customer_source = $_POST['customer_source'] ?? '';
+
+        $data = $this->bookingQuery($post_from_date, $post_to_date, ['payment_stt' => $payment_stt, 'customer_source' => $customer_source]);
 
         $smartyobj->assign('DATA', (is_array($data) ? $data['html'] : $data));
         $smartyobj->assign('DATA_TOTAL', $data['html_total']);
@@ -164,6 +166,9 @@ class Viewreport_sales_revenue extends SugarView
         );
 
         $smartyobj->assign('PAYMENT_STT', get_select_options_with_id($payment_status, (int)$payment_stt));
+        
+        $customer_source_opts = array_merge(['' => 'Tất cả'], $app_list_strings['booking_customer_source_list']);
+        $smartyobj->assign('CUSTOMER_SOURCE_OPTS', get_select_options_with_id($customer_source_opts, $customer_source));
     }
 
     // Thống kê doanh thu theo booking

@@ -913,6 +913,12 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
         $sql_having = ' HAVING is_ctv = 1';
     }
 
+    // Where condition by booking fields
+    $where_bk_fields = '';
+    if(isset($condition_arr['customer_source']) && !empty($condition_arr['customer_source'])) {
+        $where_bk_fields .= " AND bk.customer_source = '{$condition_arr['customer_source']}' ";
+    }
+
     $sql = "SELECT 
                 bk.id AS parent_id
                 , bk.name AS parent_name
@@ -981,9 +987,11 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
             LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted=0 
             WHERE bk.booking_status IN ('3', '7', '8')
                 AND bk.date_ticket_issue BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                " . $sql_role . " 
+                $where_bk_fields
+                $sql_role
                 AND bkd.deleted = 0 
-            GROUP BY bk.id " . $sql_having;
+            GROUP BY bk.id
+            $sql_having";
 
     if (empty($condition_arr['payment_stt'])) {
         $sql .= " UNION
@@ -1060,11 +1068,11 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                             , 0 AS receipt_amount
                             ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
                         FROM ec_hoanve p
-                        INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
+                            INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
                         WHERE p.deleted=0
-                        AND p.tinhtrang='1'
-                        AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                        " . $sql_role . "
+                            AND p.tinhtrang='1'
+                            AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                            " . $sql_role . "
                         GROUP BY p.id
 
                         -- hoan ve > 0
@@ -1085,11 +1093,11 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                             , 0 AS receipt_amount
                             ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
                         FROM ec_hoanve p
-                        INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
+                            INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
                         WHERE p.deleted=0
-                        AND p.tinhtrang='1' 
-                        AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                        " . str_replace('bk', 'p', $sql_role) . "
+                            AND p.tinhtrang='1' 
+                            AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                            " . str_replace('bk', 'p', $sql_role) . "
                         GROUP BY p.id
                         HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
                     ) AS hv_t
@@ -1097,10 +1105,6 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                     ORDER BY total_quantity DESC 
                 ";
     }
-
-    // if ($current_user->user_name == 'hungnh') {
-    //     pr($sql);
-    // }
 
     $result = array(
         'from_date' => $from_date,
