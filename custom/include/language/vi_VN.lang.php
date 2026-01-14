@@ -1993,7 +1993,7 @@ $GLOBALS['app_list_strings']['request_status_list'] = array(
   3 => 'Huỷ',
 );
 
-$GLOBALS['app_list_strings']['domestic_airport_list'] = array(
+$GLOBALS['app_list_strings']['domestic_airport_list'] = [
   'HAN' => 'Hà Nội',
   'HPH' => 'Hải Phòng',
   'DIN' => 'Điện Biên',
@@ -2017,7 +2017,7 @@ $GLOBALS['app_list_strings']['domestic_airport_list'] = array(
   'CAH' => 'Cà Mau',
   'THD' => 'Thanh Hóa',
   'VDO' => 'Vân Đồn',
-);
+];
 
 $GLOBALS['app_list_strings']['receipt_voucher_status_list'] = array(
   0 => 'Đang thu',

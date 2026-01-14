@@ -163,8 +163,18 @@ class entryInputInvoiceClass extends entryClass {
         $status     = $data['tinhtrang'] ?? '';
         $invSerial  = $data['kyhieuhd'] ?? '';
         $invRef     = $data['name'] ?? '';
+        $dateModified = date('Y-m-d H:i:s', time() - 7*3600);
 
-        if($status === '0' || $status === '1') {
+        if(empty($out_inv_id)) { // Chưa có HĐ đầu ra
+            $sql = "UPDATE ec_input_invoices
+                SET deleted = 1
+                    ,description = 'Xóa đầu vào $ticketId'
+                    ,modified_user_id = '{$this->currentUser->id}'
+                    ,date_modified = '{$dateModified}'
+                WHERE id = '{$ticketId}' AND deleted = 0";
+            if($db->query($sql)) return ["status" => 1, "message" => "Xóa thành công", "data" => null];
+        }
+        elseif($status === '0' || $status === '1') { // Có HĐ ra mà chưa ký
             if($status === '1') {
                 // Bỏ ghi sổ
                 $ep = new entryFactory();
@@ -176,7 +186,6 @@ class entryInputInvoiceClass extends entryClass {
                 ]);
             }
 
-            $dateModified = date('Y-m-d H:i:s', time() - 7*3600);
             $sql = "UPDATE ec_input_invoices
                 SET deleted = 1
                     ,description = 'Xóa đầu vào $ticketId'

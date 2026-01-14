@@ -71,4 +71,24 @@ class Flight {
 
         return trim($nice_duration);
     }
+
+    /**
+     * Check location code is international
+     * 
+     * @param string $code
+     * @return true
+     */
+    public static function isDomesticLocation($code) {
+        return isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code]);
+    }
+
+    /**
+     * Check location code is international
+     * 
+     * @param string $code
+     * @return true
+     */
+    public static function isInterLocation($code) {
+        return !isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code]);
+    }
 }

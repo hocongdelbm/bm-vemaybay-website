@@ -817,6 +817,9 @@ class Viewinputinvoice extends SugarView {
                                     }
                                 }
 
+                                // Check is international
+                                $array_data[$k]['is_inter'] = $this->checkInter($array_data[$k]['itinerary'] ?? '');
+
                                 $k++;
                             }
                         }
@@ -978,7 +981,6 @@ class Viewinputinvoice extends SugarView {
                     AND deleted = 0 
                     AND invoice_serial = "' . $data[$i]['invoice_serial'] . '"'
                     . $sql_iti;
-
             $is_exist = $db->getOne($sql);
 
             if (!$is_exist && !empty($data[$i]['booking_id']) && $data[$i]['pass_qty'] > 0) {
@@ -999,18 +1001,20 @@ class Viewinputinvoice extends SugarView {
                 $input_iv->assigned_user_id     = $current_user->id;
 
                 // Nếu là vé quốc tế, VAT = 0
-                if (isset($data[$i]['is_intern'])) {
-                    $input_iv->cost_no_vat      = $input_iv->cost;
-                    $input_iv->vat_per          = 0;
-                    $input_iv->vat              = 0;
-                    $input_iv->authorized_fee   = 0;
+                if (isset($data[$i]['is_inter'])) {
+                    $input_iv->vat              = $data[$i]['vat'] ?? 0;
+                    $input_iv->vat_per          = $input_iv->vat > 0 ? 0.08 : 0;
+                    $input_iv->authorized_fee   = $data[$i]['authorized_collection'] ?? 0;
+                    $input_iv->cost_no_vat      = ($data[$i]['total'] - $input_iv->authorized_fee);
+                    if($input_iv->vat_per > 0) $input_iv->cost_no_vat /= 1.08;
+                    $input_iv->cost             = $input_iv->cost_no_vat + $input_iv->vat;
                 }
                 // Vé nội địa
                 else {
                     $input_iv->authorized_fee = $data[$i]['authorized_collection'] ?? 0;
 
                     if($input_iv->supplier == 'HNH') {
-                        $input_iv->cost_no_vat  = ($data[$i]['total'] - $data[$i]['authorized_collection']) / 1.08;
+                        $input_iv->cost_no_vat  = ($data[$i]['total'] - $input_iv->authorized_fee) / 1.08;
                         $input_iv->vat_per      = 0.08;
                         $input_iv->vat          = $input_iv->cost_no_vat * $input_iv->vat_per;
                         $input_iv->cost         = $input_iv->cost_no_vat + $input_iv->vat;
@@ -1466,7 +1470,22 @@ class Viewinputinvoice extends SugarView {
         $upload_file = date('YmdHi') . '_HDDauVao_' . $filename; // 202307180331_HDDauVao_479684.xls
 
         $status = move_uploaded_file($_FILES[$file]["tmp_name"], $folder . $upload_file);
-        var_dump($status);
         return $upload_file;
+    }
+
+    /**
+     * Check itinerary is international 
+     * 
+     * @param string $itinerary
+     * @return bool
+     */
+    public function checkInter($itinerary) {
+        if(!empty($itinerary) && strpos($itinerary, '-') !== false) {
+            $arr = explode('-', $itinerary);
+            foreach($arr as $i) {
+                if(Flight::isInterLocation($i)) return true;
+            }
+        }
+        return false;
     }
 }
