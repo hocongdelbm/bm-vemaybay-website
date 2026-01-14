@@ -58,7 +58,6 @@ $app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
 $app_list_strings['moduleList']['EC_TaiKhoan']            = 'Tài khoản kế toán';
 $app_list_strings['moduleList']['EC_NhomTaiKhoan']        = 'Nhóm tài khoản';
-$app_list_strings['moduleList']['EC_HoaDonMua']           = 'Hóa đơn mua';
 $app_list_strings['moduleList']['EC_ChiTietTaiKhoan']     = 'Nhập số dư ban đầu';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
