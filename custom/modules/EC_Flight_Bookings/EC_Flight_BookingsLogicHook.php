@@ -176,6 +176,7 @@ class EC_Flight_BookingsLogicHook
 		 * Map cuộc gọi và booking cho case booker đặt giùm khách hàng
 		 */
 		if (empty($focus->telesale_call_id) && isset($_POST['is_telesale_value']) && !empty($focus->phone) && !in_array(strtoupper(trim($focus->contact_name)), $focus->contact_name_ignore)) {
+			
 			$call = BeanFactory::newBean("Calls");
 			$call_id = $call->getTelesaleCalls($focus->phone, $focus->fetched_row['date_entered']);
 			if (!empty($call_id)) {

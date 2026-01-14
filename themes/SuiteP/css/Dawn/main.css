@@ -209,21 +209,15 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
   height: 8px;
   background-color: #dceefc;
 }
-
-select::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #aab7cf;
-}
+select::-webkit-scrollbar {width: 6px;}
+::-webkit-scrollbar-thumb {background-color: #aab7cf;}
 
 .select2-results__options::-webkit-scrollbar {
-  width: 7px;
+  width: 6px;
 }
 
 #sidebar::-webkit-scrollbar {
@@ -3128,9 +3122,7 @@ select#iv_payment_method {
   padding: 0;
 }
 
-.detail-view #recheck_status,
-.detail-view #assigned_user_name,
-.detail-view #is_paid {
+.detail-view #assigned_user_name {
   display: flex;
   align-items: center;
   justify-content: space-between;

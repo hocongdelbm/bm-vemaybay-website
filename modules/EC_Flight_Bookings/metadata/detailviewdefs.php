@@ -46,9 +46,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$BUTTON_AUTO_BOOK}',
                 ),
-                // array(
-                //     'customCode' => '{$RESERVATION_VJA}',
-                // ),
                 // Chia doanh số
                 // array(
                 //     'customCode' => '{$SHARE_PROFIT}',
@@ -101,11 +98,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'label' => 'LBL_CUSTOMER_SOURCE',
                     'customCode' => '{$CUSTOM_CUSTOMER_SOURCE}',
                 ),
-                // array(
-                //     'name' => 'is_hold',
-                //     'label' => 'LBL_IS_HOLD',
-                //     'customCode' => '{$CUSTOM_IS_HOLD}',
-                // ),
             ),
 
             array(
@@ -123,19 +115,10 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
 
             array(
-                array(),
                 array(
                     'name' => 'bookmark_system',
                     'label' => 'LBL_BOOKMARK_SYSTEM',
                     'customCode' => '{$CUSTOM_BOOKMARK_SYSTEM}'
-                ),
-            ),
-
-            array(
-                array(
-                    'name' => 'holding_status',
-                    'studio' => 'visible',
-                    'label' => 'LBL_HOLDING_STATUS',
                 ),
                 array(
                     'name' => 'is_paid',
@@ -146,9 +129,9 @@ $viewdefs[$module_name]['DetailView'] = array(
 
             array(
                 array(
-                    'name' => 'payment_type',
+                    'name' => 'holding_status',
                     'studio' => 'visible',
-                    'label' => 'LBL_PAYMENT_TYPE',
+                    'label' => 'LBL_HOLDING_STATUS',
                 ),
                 array(
                     'name' => 'is_ticket_exported',
@@ -159,9 +142,9 @@ $viewdefs[$module_name]['DetailView'] = array(
 
             array(
                 array(
-                    'name' => 'airline',
-                    'label' => 'LBL_AIRLINE',
-                    'customCode' => '{$CUSTOM_AIRLINE}',
+                    'name' => 'payment_type',
+                    'studio' => 'visible',
+                    'label' => 'LBL_PAYMENT_TYPE',
                 ),
                 array(
                     'name' => 'date_ticket_issue',
@@ -169,12 +152,12 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CUSTOM_DATE_TICKET_ISSUE}',
                 ),
             ),
-           
+
             array(
                 array(
-                    'name' => 'description',
-                    'comment' => 'Full text of the note',
-                    'label' => 'LBL_DESCRIPTION',
+                    'name' => 'airline',
+                    'label' => 'LBL_AIRLINE',
+                    'customCode' => '{$CUSTOM_AIRLINE}',
                 ),
                 array(
                     'name' => 'is_invoice_export',
@@ -185,15 +168,28 @@ $viewdefs[$module_name]['DetailView'] = array(
            
             array(
                 array(
-                    'name' => 'lydothangthua',
-                    'studio' => 'visible',
-                    'label' => 'LBL_LYDOTHANGTHUA',
+                    'name' => 'description',
+                    'comment' => 'Full text of the note',
+                    'label' => 'LBL_DESCRIPTION',
                 ),
                 array(
                     'name' => 'recheck_status',
                     'studio' => 'visible',
                     'label' => 'Thao tác',
                     'customCode' => '{$RECHECK_STATUS}',
+                ),
+            ),
+           
+            array(
+                array(
+                    'name' => 'lydothangthua',
+                    'studio' => 'visible',
+                    'label' => 'LBL_LYDOTHANGTHUA',
+                ),
+                array(
+                    'name' => 'payment',
+                    'label' => 'LBL_PAYMENT',
+                    'customCode' => '{$CUSTOM_NGANLUONG_CODE}',
                 ),
             ),
 
@@ -203,14 +199,10 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'studio' => 'visible',
                     'label' => 'LBL_GHICHUTHANGTHUA',
                 ),
-                // array(
-                //     'name' => 'is_mail_confirm',
-                //     'label' => 'LBL_IS_MAIL_CONFIRM',
-                // ),
                 array(
-                    'name' => 'nganluong_code',
-                    'label' => 'LBL_NGANLUONG_CODE',
-                    'customCode' => '{$CUSTOM_NGANLUONG_CODE}',
+                    'name' => 'transaction_history',
+                    'label' => 'LBL_TRANSACTION_HISTORY',
+                    'customCode' => '{$CUSTOM_TRANSACTION_HISTORY}',
                 ),
             ),
 
@@ -280,7 +272,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 //     'studio' => 'visible',
                 //     'label' => 'LBL_COUNTRY',
                 // ),
-             
             ),
         ),
 
@@ -288,7 +279,6 @@ $viewdefs[$module_name]['DetailView'] = array(
             array(
                 array(
                     'name' => 'line_itineraries',
-                    // 'label' => 'LBL_LINE_ITINERARIES',
                     'label' => false,
                     'customCode' => '{$LINE_ITINERARIES}',
                 ),
@@ -300,7 +290,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'name' => 'line_details',
                     'studio' => 'visible',
-                    // 'label' => 'LBL_LINE_DETAILS',
                     'label' => false,
                     'customCode' => '{$LINE_DETAILS}',
                 ),
@@ -312,7 +301,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'name' => 'line_passengers',
                     'studio' => 'visible',
-                    // 'label' => 'LBL_LINE_PASSENGERS',
                     'label' => false,
                     'customCode' => '{$LINE_PASSENGERS}',
                 ),

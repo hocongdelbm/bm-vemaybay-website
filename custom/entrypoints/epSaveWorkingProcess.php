@@ -5,7 +5,6 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 // $GLOBALS['current_language'] = $_SESSION['authenticated_user_language'];
 // $app_strings = return_application_language($GLOBALS['current_language']);
 // $mod_strings = return_module_language($GLOBALS['current_language'], 'ACL');
-// global $app_list_strings, $app_strings, $mod_strings, $db, $current_user;
 global $db, $current_user, $sugar_config;
 
 if (!empty($_SESSION['authenticated_user_id'])) {
@@ -25,7 +24,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	$bonus 						= isset($_POST['bonus']) ? $_POST['bonus'] : null;
 	$total_amount 	= $_POST['total_amount'] ?? null; // Booking total amount
 	$total_qty  	= $_POST['total_qty'] ?? null; // Booking total quantity
-	$txtWorkingProcessNote 		= isset($_POST['txtWorkingProcessNote']) ? trim(addslashes($_POST['txtWorkingProcessNote'])) : '';
+	$customer_source= $_POST['customer_source'] ?? ''; // Booking total quantity
+	$txtWorkingProcessNote = isset($_POST['txtWorkingProcessNote']) ? trim(addslashes($_POST['txtWorkingProcessNote'])) : '';
 
 	if ($module && $action && $action == 'Save' && $record) {
 
@@ -383,7 +383,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 		// Send a message when a customer makes a bank transfer
 		if ($is_paid === 1 || mb_stripos($txtWorkingProcessNote, "Đã chuyển khoản") !== false) {
-			global $sugar_config;
+			global $sugar_config, $app_list_strings;
 			$channel = $sugar_config['notification_channel'] ?? 'Telegram';
 
 			$m = '';
@@ -391,6 +391,11 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			else {
 				$total_amount_format = !is_null($total_amount) ? number_format($total_amount, 0) : '';
 				$m = trim("Booking $record_name, $contact_name, $txtWorkingProcessNote $total_amount_format ($total_qty vé)");
+			}
+			if(!empty($customer_source) && isset($app_list_strings[$customer_source])) {
+				$c = $app_list_strings[$customer_source];
+				if($c == 'Mới' || $c == 'Hệ thống') $c = 'KH ' . strtolower($c);
+				$m .= " - <b>$c</b>";
 			}
 			
 			if($channel == 'Mattermost') {}

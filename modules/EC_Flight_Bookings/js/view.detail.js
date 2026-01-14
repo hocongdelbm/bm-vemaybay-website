@@ -1,4 +1,7 @@
 $(document).ready(function () {
+	const formDetailView = $('#formDetailView');
+	const bookingId = formDetailView.find('input[name="record"]').val();
+
 	// Hover button RECALL
 	$(document).on('mouseenter', '.btn-calling--wrap', function () {
 		$(this).addClass('active');
@@ -600,6 +603,7 @@ $(document).ready(function () {
 		let contact_name = $('#note-contact-name').val();
 		let total_amount = $('#note-total-amount').val();
 		let total_qty = $('#note-total-qty').val();
+		let customer_source = $('#note-customer-source').val();
 		let send_loading = '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
 
 		let dt = new Date();
@@ -634,6 +638,7 @@ $(document).ready(function () {
 				contact_name: contact_name,
 				total_amount: total_amount,
 				total_qty: total_qty,
+				customer_source: customer_source
 			},
 			success: function (res) {
 				if (res == 1) {
@@ -1365,6 +1370,7 @@ $(document).ready(function () {
 		}
 	});
 
+	// Change customer source
 	$('input[name="customer_source"]').click(function() {
 		let customer_source = $(this).val();
 		if(customer_source && customer_source.length > 0) {
@@ -1378,9 +1384,7 @@ $(document).ready(function () {
 					method: "updateFields",
 					params: {
 						bookingId: bookingId,
-						fields: {
-							customer_source: customer_source
-						}
+						fields: {customer_source: customer_source}
 					}
 				}),
 				beforeSend: function () {

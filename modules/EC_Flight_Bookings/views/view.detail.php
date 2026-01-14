@@ -146,7 +146,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.1"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
@@ -191,7 +191,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	{
 		echo '
 			<link type="text/css" rel="stylesheet" href="./themes/SuiteP/libs/css/select2.min.css">
-			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.7">
+			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/view.detail.css?v=2.0.8">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/api_zalo.css?v=2.0">
 			<link type="text/css" rel="stylesheet" href="./modules/EC_Flight_Bookings/css/autobook.css?v=1.0">
 		';
@@ -346,7 +346,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 									<input type="hidden" name="note-contact-name" id="note-contact-name" value="' . $this->bean->contact_name . '" />
 									<input type="hidden" name="note-total-amount" id="note-total-amount" value="' . $this->bean->total_amount . '" />
 									<input type="hidden" name="note-total-qty" id="note-total-qty" value="' . $this->bean->total_qty . '" />
-									
+									<input type="hidden" name="note-customer-source" id="note-customer-source" value="' . $this->bean->customer_source . '" />
 									<svg xmlns="http://www.w3.org/2000/svg" id="icon-send-notes" width="20" height="20" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
 										<path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
 									</svg>
@@ -376,8 +376,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('BUTTON_LINE_NOTES', $html);
 	}
 
-	function populateCustomFields()
-	{
+	private function populateCustomFields() {
 		global $app_list_strings, $current_user;
 
 		// Thông tin hoá đơn
@@ -395,7 +394,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$customer_source = '<div class="d-flex align-items-center flex-nowrap gap-3">';
 		foreach($app_list_strings['booking_customer_source_list'] as $value => $label) {
 			$checked = $value == $this->bean->customer_source ? 'checked="checked"' : '';
-			$customer_source .= '<div class="item">
+			$customer_source .= '<div class="item" style="font-size:13px;">
 				<input type="checkbox" name="customer_source" id="customer_source_'.$value.'" value="'.$value.'" '.$checked.' /> '.$label.'
 			</div>';
 		}
@@ -403,65 +402,77 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('CUSTOM_CUSTOMER_SOURCE', $customer_source);
 
 		// Đánh dấu
-		$list_bookmark = '
-			<label for="is_agent" class="">Là đại lý:</label>
-			<input disabled type="checkbox" name="is_agent" id="is_agent" ' . ($this->bean->is_agent ? 'checked="checked"' : '') . '/>
-			<a ' . ($this->bean->is_agent ? '' : 'style="display:none;"') . ' href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
-				'. $this->bean->agent_name .'
-			</a>
-		';
-		if ($this->bean->booking_status == 8 || $this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
-			if (!$this->bean->is_telesale) {
-				$list_bookmark .= '</form>
-					<form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
-						<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-						<input type="hidden" name="action" value="Save" />
-						<input type="hidden" name="record" value="' . $this->bean->id . '" />
-						<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-						<input type="hidden" name="is_telesale_value" value="1" />
-
-						<label for="btnCheckIsTelesale" class="ms-2">Là BK Telesale:</label>
-						<input type="checkbox" class="form-check-input" name="btnCheckIsTelesale" id="btnCheckIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
-					</form>';
-			}
-			else {
-				$call = BeanFactory::getBean('Calls', $this->bean->telesale_call_id);
-				$call_id = $call->id;
-				$call_name = $call->name;
-				$list_bookmark .= '<label for="is_telesale" class="ms-2">Là BK Telesale:</label>
-					<input type="checkbox" disabled name="is_telesale" id="is_telesale" ' . ($this->bean->is_telesale ? 'checked="checked"' : '') . '/>
-					<a href="index.php?module=Calls&action=DetailView&record=' . $call_id . '" target="_blank">' . $call_name . '</a>
-				';
-			}
+		$list_bookmark = '<div class="d-flex align-items-star flex-nowrap gap-3">';
+		// Telesale
+		if($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
+			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0");
+			$list_bookmark .= '<div class="item">
+				<label for="checkIsTelesale">Là BK Telesale</label>
+				<input type="checkbox" name="is_telesale" id="checkIsTelesale" checked="checked" disabled />
+				<br />
+				<a href="index.php?module=Calls&action=DetailView&record='. $this->bean->telesale_call_id .'" target="_blank">'. $call_name .'</a>
+			</div>';
 		}
-		if ($this->bean->booking_status == 8) {
-			// Là CTV
-			if (!$this->bean->is_ctv) {
-				$list_bookmark .= '</form>
-					<form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
-						<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-						<input type="hidden" name="action" value="Save" />
-						<input type="hidden" name="record" value="' . $this->bean->id . '" />
-						<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-						<input type="hidden" name="is_ctv_value" value="1" />
-
-						<label for="btnCheckIsCTV" class="ms-2">Là CTV:</label>
-						<input type="checkbox" class="form-check-input" name="btnCheckIsCTV" id="btnCheckIsCTV" onclick="this.form.submit(); $(\'.container-waiting\').show();"/>
-					</form>';
-			} else {
-				$list_bookmark .= '<label for="is_ctv" class="ms-2">Là CTV:</label>
-					<input type="checkbox" disabled name="is_ctv" id="is_ctv" ' . ($this->bean->is_ctv ? 'checked="checked"' : '') . '/>';
-			}
+		elseif($this->bean->booking_status == '8') {
+			$list_bookmark .= '<div class="item">
+				</form><form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
+					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+					<input type="hidden" name="action" value="Save" />
+					<input type="hidden" name="record" value="' . $this->bean->id . '" />
+					<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+					<input type="hidden" name="is_telesale_value" value="1" />
+					<label for="checkIsTelesale">Là BK Telesale</label>
+					<input type="checkbox" name="is_telesale" id="checkIsTelesale" onclick="this.form.submit(); $(\'.container-waiting\').show();" />
+				</form>
+			</div>';
 		}
+		// CTV
+		if($this->bean->is_ctv) {
+			$list_bookmark .= '<div class="item">
+				<label for="checkIsCTV" >Là CTV</label>
+				<input type="checkbox" name="is_ctv" id="checkIsCTV" checked="checked" disabled />
+			</div>';
+		}
+		else if ($this->bean->booking_status == '8') {
+			$list_bookmark .= '<div class="item">
+				</form><form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
+					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
+					<input type="hidden" name="action" value="Save" />
+					<input type="hidden" name="record" value="' . $this->bean->id . '" />
+					<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+					<input type="hidden" name="is_ctv_value" value="1" />
+					<label for="checkIsCTV">Là CTV</label>
+					<input type="checkbox" name="is_ctv" id="checkIsCTV" onclick="this.form.submit(); $(\'.container-waiting\').show();" />
+				</form>
+			</div>';
+		}
+		// Đại lý
+		if($this->bean->is_agent && !empty($this->bean->agent_id)) {
+			$list_bookmark .= '<div class="item">
+				<label for="is_agent">Là đại lý</label>
+				<input type="checkbox" name="is_agent" id="check_is_agent" checked="checked" disabled />
+				<br />
+				<a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
+					'. $this->bean->agent_name .'
+				</a>
+			</div>';
+		}
+		else {
+			$list_bookmark .= '<div class="item">
+				<label for="check_is_agent">Là đại lý</label>
+				<input type="checkbox" name="is_agent" id="check_is_agent" disabled />
+			</div>';
+		}
+		$list_bookmark .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK', $list_bookmark);
 
 		// Hệ thống đánh dấu
 		$list_bookmark_system = '<div class="d-flex align-items-center gap-3">';
 		$list_bookmark_system .= '<div class="item">
-			<input type="checkbox" id="is_mail_confirm" '. ($this->bean->is_mail_confirm ? 'checked="checked"' : '') .' disabled /> Gửi mail xác nhận
+			<input type="checkbox" id="is_prior" '. ($this->bean->is_prior ? 'checked="checked"' : '') .' disabled /> Vé cận
 		</div>';
 		$list_bookmark_system .= '<div class="item">
-			<input type="checkbox" id="is_prior" '. ($this->bean->is_prior ? 'checked="checked"' : '') .' disabled /> Vé cận
+			<input type="checkbox" id="is_mail_confirm" '. ($this->bean->is_mail_confirm ? 'checked="checked"' : '') .' disabled /> Gửi mail xác nhận
 		</div>';
 		$list_bookmark_system .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', $list_bookmark_system);
@@ -641,6 +652,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			  	<input type="hidden" name="contact_name" value="' . $this->bean->contact_name . '" />
 			  	<input type="hidden" name="total_amount" value="' . $this->bean->total_amount . '" />
 			  	<input type="hidden" name="total_qty" value="' . $this->bean->total_qty . '" />
+			  	<input type="hidden" name="customer_source" value="' . $this->bean->customer_source . '" />
 			  	' . $bk_stt;
 			$is_paid .= '<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnCheckIsPaid" id="btnCheckIsPaid" value="Đã thanh toán" title="Đã thanh toán" />';
 			$is_paid .= '</form>';
@@ -654,7 +666,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Recheck status
 		$recheck_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'recheck');
 		$recheck_status = '</form>
-		<form class="frmBookingStatus flex-fill d-flex gap-1 align-items-center" action="index.php" method="post" name="frmRecheckStatus" id="frmRecheckStatus">
+		<form class="frmBookingStatus d-flex gap-1 align-items-center" action="index.php" method="post" name="frmRecheckStatus" id="frmRecheckStatus">
 		  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
 		  <input type="hidden" name="action" value="Save" />
 		  <input type="hidden" name="record" value="' . $this->bean->id . '" />
@@ -665,20 +677,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// Recall status
 		$recall_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'recall');
-		// $recall_status = '</form>
-		// <form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmRecallStatus" id="frmRecallStatus">
-		//   <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
-		//   <input type="hidden" name="action" value="Save" />
-		//   <input type="hidden" name="record" value="' . $this->bean->id . '" />
-		//   <input type="hidden" name="record_name" value="' . $this->bean->name . '" />
-		//   <input type="hidden" name="recall_status" value="2" />
-		//   <input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnRecallStatus" id="btnRecallStatus" value="Recall (' . $recall_count . ')" title="Recall (' . $recall_count . ')" />
-		// </form>';
-		// $recall_status = '<button type="button" id="btnRecall" class="btn btn-primary-2 btn-voiceip-calling flex-fill" booking_id="'.$this->bean->id.'" booking_name="'.$this->bean->name.'" phone="'.$this->bean->phone.'">
-		// 	Recall ('.$recall_count.')
-		// </button>';
-
-		$recall_status = '<div class="btn btn-primary-2 btn-calling--wrap flex-fill position-relative">
+		$recall_status = '<div class="btn btn-primary-2 btn-calling--wrap position-relative">
 			<a href="#" class="recall-link collapsed">Recall (' . $recall_count . ')</a>
 			<div class="collapse box-list--calling">
 				<ul class="d-flex align-items-center gap-2 flex-column"> 
@@ -701,7 +700,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$check_debt_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'check_debt');
 		if (ACLController::checkAccess('EC_Payment_Voucher', 'edit', true)) {
 			$check_debt .= '</form>
-			<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmCheckDebt" id="frmCheckDebt">
+			<form class="frmBookingStatus" action="index.php" method="post" name="frmCheckDebt" id="frmCheckDebt">
 			  <input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
 			  <input type="hidden" name="action" value="Save" />
 			  <input type="hidden" name="record" value="' . $this->bean->id . '" />
@@ -711,11 +710,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			</form>';
 		}
 
-		// support customer
+		// Support customer
 		$support = '';
 		$support_count = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'support');
 		$support .= '</form>
-		<form class="frmBookingStatus flex-fill" action="index.php" method="post" name="frmSupportCustomer" id="frmSupportCustomer">
+		<form class="frmBookingStatus" action="index.php" method="post" name="frmSupportCustomer" id="frmSupportCustomer">
 			<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
 			<input type="hidden" name="action" value="Save" />
 			<input type="hidden" name="record" value="' . $this->bean->id . '" />
@@ -724,7 +723,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			<input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
 			<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnSupportCustomer" id="btnSupportCustomer" value="Hỗ trợ KH (' . $support_count . ')" title="Hỗ trợ KH (' . $support_count . ')" />
 		</form>';
-
 		/*if(is_admin($current_user)){
 			// bonus
 			$total_bonus = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'bonus');
@@ -739,7 +737,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			  <input type="submit" name="btnBonus" id="btnBonus" value="Bonus ('.$total_bonus.')" title="Bonus ('.$total_bonus.')" />
 			</form>';
 		}*/
-
 		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt . $support);
 
 		// Is invoice export
@@ -790,34 +787,35 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			'timchuyenbay.com',
 			'timchuyenbay.vn'
 		];
-
 		if (in_array($server_name, $array_servername)) {
-			$nganluong_code = '
-				<div class="nganluong__wrap">
-					<button class="flex-fill outline-none" id="copy_payment_link" onclick="copyContent(\'' . $payment_link . '\')">
-						<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
-					</button>
-					<button class="flex-fill outline-none" id="get_qr_code">
-						<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-						<span>QR code</span>
-					</button>
-					<button class="flex-fill outline-none btn btn-primary-2" id="get_bank" booking_id="' . $this->bean->id . '">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
-							<path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
-						</svg>
-						<span>Ngân hàng</span>
-					</button>
-					<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-							<path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483m.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
-							<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
-							<path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
-						</svg>
-						<p class="title-history">Các giao dịch</p>
-					</button>
-				</div>';
+			$nganluong_code = '<div class="nganluong__wrap">
+				<button class="flex-fill outline-none" id="copy_payment_link" onclick="copyContent(\'' . $payment_link . '\')">
+					<img src="themes/SuiteP/images/modules/ec_flight_booking/onepay.svg" alt="onepay">
+				</button>
+				<button class="flex-fill outline-none" id="get_qr_code">
+					<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+					<span>QR code</span>
+				</button>
+				<button class="flex-fill outline-none btn btn-primary-2" id="get_bank" booking_id="' . $this->bean->id . '">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
+						<path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+					</svg>
+					<span>Ngân hàng</span>
+				</button>
+			</div>';
+			$nganluong_code .= $this->generateDialogGetQRCode($this->bean->total_amount, $this->bean->phone);
+
+			// Lịch sử giao dịch
+			$transaction_history = '<button type="button" class="history-transaction d-flex align-items-center gap-2 cursor-pointer btn btn-primary-2" data-bs-toggle="modal" data-bs-target="#history-transaction">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+					<path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483m.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535m-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+					<path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
+					<path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
+				</svg>
+				<p class="title-history">Các giao dịch</p>
+			</button>';
 			if (empty($this->bean->nganluong_info) || is_null($this->bean->nganluong_info)) {
-				$nganluong_code .= '<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
+				$transaction_history .= '<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
 					<div class="modal-dialog modal-dialog-centered">
 						<div class="modal-content">
 							<div class="modal-header">
@@ -834,11 +832,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</div>
 					</div>
 				</div>';
-			} else {
+			}
+			else {
 				// Lịch sử giao dịch
 				$nganluong_info = json_decode(html_entity_decode($this->bean->nganluong_info), true);
 
-				$nganluong_code .= '<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
+				$transaction_history .= '<div class="modal fade" id="history-transaction" tabindex="-1" aria-labelledby="history-transactionLabel" aria-hidden="true">
 					<div class="modal-dialog modal-dialog-centered">
 						<div class="modal-content">
 							<div class="modal-header">
@@ -851,7 +850,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 							</div>
 							<div class="modal-body d-flex align-items-center gap-3 justify-content-center flex-column">';
 				foreach ($nganluong_info as $val) {
-					$nganluong_code .= '<div class="history-card">
+					$transaction_history .= '<div class="history-card">
 						<div class="history-line time-transaction">
 							<div class="transaction-label">Thời gian</div>
 							<div class="transaction-value">' . date('H:i:s d/m/Y', strtotime('+7 hours', strtotime($val['payment_date']))) . '</div>
@@ -874,7 +873,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</div>
 					</div>';
 				}
-				$nganluong_code .= '</div>
+				$transaction_history .= '</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
 							</div>
@@ -882,9 +881,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					</div>
 				</div>';
 			}
-
-			$nganluong_code .= $this->generateDialogGetQRCode($this->bean->total_amount, $this->bean->phone);
-		} else {
+			$this->ss->assign('CUSTOM_TRANSACTION_HISTORY', $transaction_history);
+		}
+		else {
 			$nganluong_code = '<div class="nganluong__wrap">
 				<button class="flex-fill outline-none" id="get_qr_code">
 					<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>

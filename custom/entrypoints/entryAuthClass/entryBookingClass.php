@@ -33,10 +33,13 @@ class entryBookingClass extends entryClass {
                 else $set .= "$name = $value";
             }
         }
+        // Update log
+        $set .= ", date_modified = '". date('Y-m-d H:i:s', time() - 7*3600) ."'";
+        $set .= ", modified_user_id = '{$this->currentUser->id}'";
 
         try {
             $sqlUpdate = "UPDATE ec_flight_bookings SET $set WHERE id = '$bookingId' AND deleted = 0";
-            if($db->query($sqlUpdate)) return ['status' => 1, 'message' => 'Thao tác thành công']; 
+            if($db->query($sqlUpdate)) return ['status' => 1, 'message' => 'Thao tác thành công'];
             return ['status' => 0, 'message' => 'Thao tác không thành công, vui lòng thử lại'];
         }
         catch(Throwable $th) {
