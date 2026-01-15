@@ -202,10 +202,10 @@ class Viewinputinvoice extends SugarView {
 
             // Xoá HĐ đầu vào chưa có HĐ đầu ra
             $this->bean->db->query("UPDATE ec_input_invoices in_inv
-                SET in_inv.deleted = 1
-                    ,in_inv.description = '$des'
-                    ,in_inv.date_modified = '$date_modified'
-                    ,in_inv.modified_user_id = '{$current_user->id}'
+                SET deleted = 1
+                    ,description = '$des'
+                    ,date_modified = '$date_modified'
+                    ,modified_user_id = '{$current_user->id}'
                 WHERE in_inv.id IN ($in_list_in_inv_id)
                     AND NOT EXISTS (
                         SELECT 1
@@ -221,12 +221,12 @@ class Viewinputinvoice extends SugarView {
                     , hd.kyhieuhd
                     , cthd.booking_id
                 FROM ec_hoadonban hd
-                    LEFT JOIN ec_chitiethoadon cthd ON cthd.parent_id = hd.id AND cthd.deleted = 0
+                    LEFT JOIN ec_chitiethoadon cthd ON cthd.parent_id = hd.id
                 WHERE cthd.ticket_number_id IN($in_list_in_inv_id)
                     AND hd.tinhtrang != '2'
                     AND hd.is_signed = 0
-                    AND (hd.sohoadon IS NULL OR hd.sohoadon = '' OR hd.sohoadon = '0')
-                    AND hd.deleted = 0");
+                    AND (hd.sohoadon IS NULL OR hd.sohoadon = '' OR hd.sohoadon = '0')");
+
             while ($row = $this->bean->db->fetchByAssoc($res_out_inv_id)) {
                 if(in_array($row['id'], $rm_out_inv_id, true) === false) {
                     if($row['tinhtrang'] == '1') {
