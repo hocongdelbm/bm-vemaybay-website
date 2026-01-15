@@ -288,15 +288,15 @@
                         <table cellpadding="0" cellspacing="0" class="table-tabs table-invoice table-delete-invoice">
                             <tbody>
                                 <tr>
-                                    <td width="12%"><span class="label">Số hoá đơn</span>(<span class="required">*</span>)</td>
+                                    <td width="12%"><span class="label">Số hoá đơn</span><span class="required">*</span></td>
                                     <td width="21%">
                                         <input type="text" class="box-input" name="rm_invoice_number" id="rm_invoice_number" value="">
                                     </td>
-                                    <td width="12%"><span class="label">KHHĐ</span>(<span class="required">*</span>)</td>
+                                    <td width="12%"><span class="label">KHHĐ</span><span class="required">*</span></td>
                                     <td width="21%">
                                         <input type="text" class="box-input" name="rm_invoice_serial" id="rm_invoice_serial" value="">
                                     </td>
-                                    <td width="12%"><span class="label">Nhà cung cấp</span></td>
+                                    <td width="12%"><span class="label">Nhà cung cấp</span><span class="required">*</span></td>
                                     <td width="21%">
                                         <select class="box-select" name="rm_supplier">{$SUPPLIER_OPTION}</select>
                                     </td>
@@ -527,4 +527,4 @@
 
 <script src="custom/jqueryui/plugins/jquery.number.min.js"></script>
 <script src="custom/jqueryui/plugins/formatNumber.js"></script>
-<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=2.2"></script>
+<script src="modules/EC_HoaDonBan/js/view.inputinvoice.js?v=2.3"></script>

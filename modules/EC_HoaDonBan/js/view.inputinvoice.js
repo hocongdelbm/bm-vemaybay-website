@@ -47,6 +47,7 @@ $(document).ready(function () {
     $("#remove_frm").submit(function () {
         addToValidate('remove_frm', 'rm_invoice_number', 'varchar', true, 'Không được để trống');
         addToValidate('remove_frm', 'rm_invoice_serial', 'varchar', true, 'Không được để trống');
+        addToValidate('remove_frm', 'rm_supplier', 'varchar', true, 'Không được để trống');
         if (!check_form('remove_frm')) {
             return false;
         }
