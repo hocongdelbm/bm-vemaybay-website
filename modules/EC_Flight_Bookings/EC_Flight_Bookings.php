@@ -66,16 +66,20 @@ class EC_Flight_Bookings extends Basic {
 	public $total_qty;
 	public $total_amount;
 	public $ip_address;
-	public $point_step = 50;
-	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
-	public $list_website_new_baggage = ['557d4a5b-27ce-5cb1-4531-5800ab9ed31d', '2b2c93b3-e916-113c-29bc-5b4c6de75db4', 'dc22131a-795a-6cd3-2caa-52d40d3b5622', 'd83ad3f6-3b3b-ba7b-f046-5512bad66c66'];
-	
+	public $account_id;
+	public $account_name;
+	public $discount_percent;
+
 	public $is_prior;
 	public $is_reference;
 	public $is_ctv;
 	public $is_telesale;
 	public $telesale_call_id;
 	public $is_output_invoice_checked;
+
+	public $point_step = 50;
+	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
+	public $list_website_new_baggage = ['557d4a5b-27ce-5cb1-4531-5800ab9ed31d', '2b2c93b3-e916-113c-29bc-5b4c6de75db4', 'dc22131a-795a-6cd3-2caa-52d40d3b5622', 'd83ad3f6-3b3b-ba7b-f046-5512bad66c66'];
 	
 	public function bean_implements($interface)
 	{

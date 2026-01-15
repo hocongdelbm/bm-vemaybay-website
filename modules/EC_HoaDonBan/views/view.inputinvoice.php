@@ -979,7 +979,7 @@ class Viewinputinvoice extends SugarView {
                 // elseif ($supplier == 'VJA') {}
 
                 // Check is international
-                $data[$i]['is_inter'] = $this->checkInter($data[$i]['itinerary']['itinerary'] ?? '');
+                $data[$i]['is_inter'] = $this->checkInter($data[$i]['itinerary'] ?? '');
                 
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);

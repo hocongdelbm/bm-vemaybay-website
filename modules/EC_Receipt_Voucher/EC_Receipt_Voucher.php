@@ -63,7 +63,7 @@ class EC_Receipt_Voucher extends Basic {
 			&& isset($this->rv_status) && $this->rv_status == '1'
 			&& !myIsBookingPaid($this->booking_id)
 		) {
-			header('Location: index.php?module=' . $this->module_dir . '&action=Error&error_string=' . urlencode('Booking ' . $this->booking_name . ' chưa nhấn đã thanh toán.'));
+			header("Location: index.php?module={$this->module_dir}&action=Error&error_string=" . urlencode("Booking {$this->booking_name} chưa nhấn đã thanh toán."));
 			exit;
 		}
 
@@ -74,16 +74,15 @@ class EC_Receipt_Voucher extends Basic {
 			$is_tele = 1;
 		}
 
-		// Ghi nhận ngày ghi sổ
+		// Ghi nhận ngày ghi sổ theo giờ VietNam
 		if (isset($_POST['ngayhachtoan']) && !empty($_POST['ngayhachtoan'])) {
-			// $this->ngayhachtoan = date('Y-m-d H:i:s', strtotime($_POST['ngayhachtoan']) - 7 * 3600);
 			$this->ngayhachtoan = date('Y-m-d H:i:s', strtotime($_POST['ngayhachtoan']));
 		}
 
-		// Notes - not use?
-		if (isset($_POST['ngaythutien']) && $_POST['ngaythutien'] != '0000-00-00 00:00:00') {
-			$this->ngaythutien = date('Y-m-d H:i:s', strtotime($_POST['ngaythutien']) - 7 * 3600);
-		}
+		// // Notes - not use?
+		// if (isset($_POST['ngaythutien']) && $_POST['ngaythutien'] != '0000-00-00 00:00:00') {
+		// 	$this->ngaythutien = date('Y-m-d H:i:s', strtotime($_POST['ngaythutien']) - 7 * 3600);
+		// }
 
 		// nếu là trạng thái công nợ
 		if ($this->rv_status == 2) {

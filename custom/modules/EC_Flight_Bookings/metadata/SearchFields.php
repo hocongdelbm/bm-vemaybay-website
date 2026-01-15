@@ -157,23 +157,22 @@ $searchFields['EC_Flight_Bookings'] = array(
 			WHERE eluggage_inbound LIKE',
 		'db_field' => array('id'),
 	),
-
-    'pnr_outbound_search' => array(
+    'pnr_outbound_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
 			WHERE deleted = 0 AND pnr_outbound LIKE',
-        'db_field' => array('id'),
-    ),
-    'pnr_inbound_search' => array(
+        'db_field' => ['id'],
+    ],
+    'pnr_inbound_search' => [
         'query_type' => 'default',
         'operator' => 'subquery',
         'subquery' => 'SELECT booking_id
 			FROM ec_booking_passengers
 			WHERE deleted = 0 AND pnr_inbound LIKE',
-        'db_field' => array('id'),
-    ),
+        'db_field' => ['id'],
+    ],
     // 'departure_date' =>
     // array(
     //   'query_type' => 'format',
@@ -231,6 +230,37 @@ $searchFields['EC_Flight_Bookings'] = array(
         'enable_range_search' => true,
         'is_date_field' => true,
     ),
+    'booking_status' => [
+        'query_type' => 'format',
+        'operator' => 'subquery',
+        'subquery' =>
+        '
+            SELECT id
+            FROM ec_flight_bookings 
+            WHERE deleted = 0
+            AND (
+                IF(
+                    FIND_IN_SET("100", "{0}") > 0,
+                    id IN (
+                        SELECT parent_id
+                        FROM ec_flight_bookings_audit a
+                        WHERE field_name = "assigned_user_id" 
+                        AND date_created > IFNULL((
+                            SELECT date_created
+                            FROM ec_flight_bookings_audit 
+                            WHERE parent_id = a.parent_id
+                            AND field_name = "booking_status"
+                            AND after_value_string = "8"
+                            ORDER BY date_created
+                            LIMIT 1
+                        ), "' . date('Y-m-d H:i:s', strtotime('+1 hour')) . '")
+                    ),
+                    booking_status IN ({0})
+                )
+            )
+        ',
+        'db_field' => array('id'),
+    ],
     // 'booking_status' =>
     // array(
     //     'query_type' => 'format',
@@ -268,36 +298,4 @@ $searchFields['EC_Flight_Bookings'] = array(
     //     ),
     //     'db_field' => array('id'),
     // ),
-    'booking_status' =>
-    array(
-        'query_type' => 'format',
-        'operator' => 'subquery',
-        'subquery' =>
-        '
-            SELECT id
-            FROM ec_flight_bookings 
-            WHERE deleted = 0
-            AND (
-                IF(
-                    FIND_IN_SET("100", "{0}") > 0,
-                    id IN (
-                        SELECT parent_id
-                        FROM ec_flight_bookings_audit a
-                        WHERE field_name = "assigned_user_id" 
-                        AND date_created > IFNULL((
-                            SELECT date_created
-                            FROM ec_flight_bookings_audit 
-                            WHERE parent_id = a.parent_id
-                            AND field_name = "booking_status"
-                            AND after_value_string = "8"
-                            ORDER BY date_created
-                            LIMIT 1
-                        ), "' . date('Y-m-d H:i:s', strtotime('+1 hour')) . '")
-                    ),
-                    booking_status IN ({0})
-                )
-            )
-        ',
-        'db_field' => array('id'),
-    ),
 );
