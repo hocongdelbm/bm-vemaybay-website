@@ -204,7 +204,6 @@ class EC_HoaDonBan extends Basic {
 	 * @param string $bookingId
 	 * @param int $additionalSecond Use to create orderedly
 	 * @return bool
-	 * 
 	 * @author Duc Pham
 	 */
 	public function createAuto($bookingId, $additionalSecond = 0) {
@@ -230,8 +229,7 @@ class EC_HoaDonBan extends Basic {
 				,luggage_fee
 				,total_amount
 			FROM ec_flight_bookings
-			WHERE id = '{$bookingId}' AND deleted = 0
-			LIMIT 1";
+			WHERE id = '{$bookingId}' AND deleted = 0";
 		$resBooking = $this->db->query($sqlBooking);
 		$bookingInfo = $this->db->fetchByAssoc($resBooking);
 
@@ -286,7 +284,7 @@ class EC_HoaDonBan extends Basic {
 					$outInv->tinhtrang		= 0;
 					$outInv->is_signed		= 0;
 					$outInv->description 	= "Hóa đơn tạo tự động";
-					$outInv->date_entered 	= date('Y-m-d H:i:s', time() + $additionalSecond);
+					$outInv->date_entered 	= date('Y-m-d H:i:s', time() + $additionalSecond - 7*3600);
 					$parentId = $outInv->save2();
 
 					// Check here

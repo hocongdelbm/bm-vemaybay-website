@@ -1453,8 +1453,8 @@ class EC_Flight_Bookings extends Basic {
 			$goWith = (int)($row['goWith'] ?? 0); // Changed times of passenger in booking
 			$ticketType = (int)($row['addType'] ?? 0);
 
-			// // Only get list ticket code for next processing
-			// if($goWith < $outputInvQty) continue;
+			// Only get list ticket code for next processing
+			if($goWith < $outputInvQty) continue;
 
 			// Only get list ticket code in changed times which have receipt voucher
 			if($goWith > 0 && array_search($goWith, $goWithArray) === false) continue;
