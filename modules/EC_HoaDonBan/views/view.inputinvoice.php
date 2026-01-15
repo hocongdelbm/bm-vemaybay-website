@@ -180,10 +180,11 @@ class Viewinputinvoice extends SugarView {
     public function removeInputInvoiceData($post_fields) {
         $rm_invoice_number  = trim($post_fields['rm_invoice_number'] ?? '');
         $rm_invoice_serial  = trim($post_fields['rm_invoice_serial'] ?? '');
+        $rm_supplier        = trim($post_fields['rm_supplier'] ?? '');
         $rm_ticket_code     = trim($post_fields['rm_ticket_code'] ?? '');
         $results = [];
 
-        if(empty($rm_invoice_number) || empty($rm_invoice_serial)) return $results;
+        if(empty($rm_invoice_number) || empty($rm_invoice_serial) || empty($rm_supplier)) return $results;
 
         global $current_user;
         try {
@@ -196,6 +197,7 @@ class Viewinputinvoice extends SugarView {
                 FROM ec_input_invoices 
                 WHERE invoice_number = '$rm_invoice_number'
                     AND invoice_serial = '$rm_invoice_serial'
+                    AND supplier = '$rm_supplier'
                     $sql_ext
                     AND status = 1
                     AND deleted = 0";
