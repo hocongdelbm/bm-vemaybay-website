@@ -26,7 +26,12 @@ class Viewinputinvoice extends SugarView {
         }
         // Xoá hoá đơn đã nạp
         else if (isset($_POST['remove'])) {
-            $this->deleteInputInvoiceData($_POST);
+            $report_removed_data = $this->removeInputInvoiceData($_POST);
+            $smarty->assign('COUNT_REMOVED_IN_INV', $report_removed_data['count_rm_in_inv'] ?? 0);
+            $smarty->assign('REPORT_REMOVED_INV', $report_removed_data['rm_out_inv'] ?? []);
+            $smarty->assign('REPORT_SIGNED_INV', $report_removed_data['signed_out_inv'] ?? []);
+            $smarty->display("modules/{$this->bean->module_dir}/tpls/report_removed_input_invoices.tpl");
+            return;
         }
         // Nếu xác nhận thì cập nhật status = 1
         else if (isset($_POST['confirmed']) || isset($_POST['denied'])) {
@@ -85,7 +90,7 @@ class Viewinputinvoice extends SugarView {
         $smarty->assign('MISSING_QTY', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['missing_qty'] ?? 0)));
         $smarty->assign('STOCK_STT', get_select_options_with_id([0 => 'Tất cả', 1 => 'Còn', 2 => 'Hết'], (int)($_REQUEST['stock_stt'] ?? 0)));
         $smarty->assign('OVER_QTY', get_select_options_with_id([0 => 'Tất cả', 1 => 'Có'], (int)($_REQUEST['over_qty'] ?? 0)));
-        $smarty->display('modules/EC_HoaDonBan/tpls/inputinvoice.tpl');
+        $smarty->display("modules/{$this->bean->module_dir}/tpls/view.inputinvoice.tpl");
     }
 
     function removeNotImportedInvoice() {
@@ -166,19 +171,19 @@ class Viewinputinvoice extends SugarView {
     }
 
     /**
-     * Xóa hóa đơn đầu vào đã nạp
+     * Bỏ hóa đơn đầu vào đã nạp
      * 
      * @param array $post_fields [rm_invoice_number, rm_invoice_serial, rm_supplier, rm_ticket_code]
-     * @return bool
+     * @return array [rm_out_inv, signed_out_inv, count_rm_in_inv]
      * @author DucPham
      */
-    public function deleteInputInvoiceData($post_fields) {
+    public function removeInputInvoiceData($post_fields) {
         $rm_invoice_number  = trim($post_fields['rm_invoice_number'] ?? '');
         $rm_invoice_serial  = trim($post_fields['rm_invoice_serial'] ?? '');
         $rm_ticket_code     = trim($post_fields['rm_ticket_code'] ?? '');
-        $rm_supplier        = trim($post_fields['rm_supplier'] ?? '');
+        $results = [];
 
-        if(empty($rm_invoice_number) || empty($rm_invoice_serial)) return false;
+        if(empty($rm_invoice_number) || empty($rm_invoice_serial)) return $results;
 
         global $current_user;
         try {
@@ -197,11 +202,11 @@ class Viewinputinvoice extends SugarView {
             $res = $this->bean->db->query($sql);
             $rm_id = [];
             while ($row = $this->bean->db->fetchByAssoc($res)) $rm_id[] = $row['id'];
-            if(empty($rm_id)) return false;
+            if(empty($rm_id)) return $results;
             $in_list_in_inv_id = "'" . implode("','", $rm_id) . "'";
 
             // Xoá HĐ đầu vào chưa có HĐ đầu ra
-            $this->bean->db->query("UPDATE ec_input_invoices in_inv
+            $sqlRemove = "UPDATE ec_input_invoices in_inv
                 SET deleted = 1
                     ,description = '$des'
                     ,date_modified = '$date_modified'
@@ -211,29 +216,46 @@ class Viewinputinvoice extends SugarView {
                         SELECT 1
                         FROM ec_chitiethoadon cthd
                         WHERE cthd.ticket_number_id = in_inv.id AND cthd.deleted = 0
-                    )");
+                    )";
+            if($this->bean->db->query($sqlRemove)) {
+                $results['count_rm_in_inv'] = $this->bean->db->getOne("SELECT COUNT(*)
+                    FROM ec_input_invoices
+                    WHERE id IN ($in_list_in_inv_id) AND deleted = 1");
+            }
 
             // Chỉ cho phép xóa HĐ chưa ký
             $rm_bk_id = $rm_out_inv_id = [];
-            $res_out_inv_id = $this->bean->db->query("SELECT hd.id
+            $sql = "SELECT hd.id
                     , hd.name
                     , hd.tinhtrang
+                    , hd.is_signed
+                    , hd.sohoadon
                     , hd.kyhieuhd
                     , cthd.booking_id
                 FROM ec_hoadonban hd
                     LEFT JOIN ec_chitiethoadon cthd ON cthd.parent_id = hd.id
-                WHERE cthd.ticket_number_id IN($in_list_in_inv_id)
-                    AND hd.tinhtrang != '2'
-                    AND hd.is_signed = 0
-                    AND (hd.sohoadon IS NULL OR hd.sohoadon = '' OR hd.sohoadon = '0')");
+                WHERE cthd.ticket_number_id IN($in_list_in_inv_id)";
+            $res_out_inv_id = $this->bean->db->query($sql);
 
             while ($row = $this->bean->db->fetchByAssoc($res_out_inv_id)) {
-                if(in_array($row['id'], $rm_out_inv_id, true) === false) {
-                    if($row['tinhtrang'] == '1') {
-                        // Bỏ ghi sổ
+                if(!isset($results["rm_out_inv"][$row['id']]) && !isset($results["signed_out_inv"][$row['id']])) {
+                    $tinhtrang = $row['tinhtrang'] ?? '0';
+                    $is_signed = $row['is_signed'] ?? 0;
+                    $sohoadon  = $row['sohoadon'] ?? '';
+                    $deleteInfo = [];
+
+                    if($tinhtrang == '2' || $is_signed == 1 || (strlen($sohoadon) > 0 && $sohoadon != '0')) { // Đã ký
+                        $results["signed_out_inv"][$row['id']] = [
+                            'name'   => $row['name'],
+                            'status' => '2',
+                        ];
+                        continue;
+                    }
+                    else if($tinhtrang == '1') { // Đã ghi sổ
+                        // Bỏ ghi sổ (Đã bao gồm luôn xóa chi tiết HĐ đầu ra ở đây)
                         $ep = new entryFactory();
                         $epOutInvoice = $ep->create('entryOutputInvoiceClass');
-                        $epOutInvoice->delete([
+                        $deleteInfo = $epOutInvoice->delete([
                             'recordId'  => $row['id'],
                             'invRef'    => $row['name'],
                             'invSerial' => $row['kyhieuhd'],
@@ -241,24 +263,38 @@ class Viewinputinvoice extends SugarView {
                     }
                     else {
                         // Xoá chi tiết HĐ đầu ra
-                        $this->bean->db->query("UPDATE ec_chitiethoadon
+                        $sqlRemove = "UPDATE ec_chitiethoadon
                             SET deleted = 1
                                 ,description = '$des'
                                 ,date_modified = '$date_modified'
                                 ,modified_user_id = '{$current_user->id}'
                             WHERE parent_id = '{$row['id']}'
-                                AND (parent_type = 'EC_HoaDonBan' OR parent_type IS NULL OR parent_type = '')");
+                                AND (parent_type = 'EC_HoaDonBan' OR parent_type IS NULL OR parent_type = '')";
+                        $this->bean->db->query($sqlRemove);
                     }
 
                     // Xoá HĐ đầu ra
-                    $this->bean->db->query("UPDATE ec_hoadonban
+                    $sqlRemove = "UPDATE ec_hoadonban
                         SET deleted = 1
                             ,description = '$des'
                             ,date_modified = '$date_modified'
                             ,modified_user_id = '{$current_user->id}'
-                        WHERE id = '{$row['id']}'");
+                        WHERE id = '{$row['id']}'";
+                    if($this->bean->db->query($sqlRemove)) {
+                        $rm_out_inv_id[] = $row['id'];
+                        $results["rm_out_inv"][$row['id']] = [
+                            'name'   => $row['name'],
+                            'status' => $tinhtrang,
+                            'count_in' => 1, // Số lượng đầu vào
+                        ];
 
-                    $rm_out_inv_id[] = $row['id'];
+                        if($tinhtrang == '1') {
+                            $results["rm_out_inv"][$row['id']]['message'] = $deleteInfo['message'];
+                        }
+                    }
+                }
+                elseif(isset($results["rm_out_inv"][$row['id']])) {
+                    $results["rm_out_inv"][$row['id']]['count_in'] += 1;
                 }
 
                 if(in_array($row['booking_id'], $rm_bk_id, true) === false) $rm_bk_id[] = $row['booking_id'];
@@ -289,11 +325,11 @@ class Viewinputinvoice extends SugarView {
                         AND description LIKE '%lấy hóa đơn đầu vào số $rm_invoice_number%'");
             }
             
-            return true;
+            return $results;
         }
         catch(Throwable $th) {
             $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
-            return false;
+            return $results ?? [];
         }
     }
 

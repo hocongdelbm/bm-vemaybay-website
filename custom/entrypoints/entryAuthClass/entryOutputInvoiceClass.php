@@ -276,7 +276,7 @@ class entryOutputInvoiceClass extends entryClass {
 
             return [
                 "status" => 0,
-                "message" => "Thao tác chưa thành công",
+                "message" => "Thao tác hủy hóa đơn chưa thành công",
                 "data" => null,
                 "description" => json_decode($responseDelete, true)
             ];
@@ -284,7 +284,7 @@ class entryOutputInvoiceClass extends entryClass {
 
         return [
             "status" => 0,
-            "message" => "Hóa đơn thiếu thông tin để thao tác $invRef, $invSerial, $recordId",
+            "message" => "Hóa đơn thiếu thông tin để hủy $invRef, $invSerial, $recordId",
             "data" => null,
         ];
     }
