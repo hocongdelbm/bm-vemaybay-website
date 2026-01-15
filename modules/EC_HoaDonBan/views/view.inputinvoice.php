@@ -188,7 +188,7 @@ class Viewinputinvoice extends SugarView {
 
         global $current_user;
         try {
-            $des = trim("Xóa hóa đơn đã nạp $rm_invoice_number, $rm_invoice_serial");
+            $des = trim("Xóa hóa đơn đã nạp $rm_invoice_number, $rm_invoice_serial, $rm_supplier");
             $date_modified = date('Y-m-d H:i:s', time() - 7*3600);
 
             // Lấy tất cả số vé từ thông tin hóa đơn đầu vào

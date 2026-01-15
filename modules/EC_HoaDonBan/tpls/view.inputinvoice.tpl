@@ -288,21 +288,25 @@
                         <table cellpadding="0" cellspacing="0" class="table-tabs table-invoice table-delete-invoice">
                             <tbody>
                                 <tr>
-                                    <td width="12%"><span class="label">Số hoá đơn</span><span class="required">*</span></td>
-                                    <td width="21%">
-                                        <input type="text" class="box-input" name="rm_invoice_number" id="rm_invoice_number" value="">
+                                    <td width="25%" class="text-center">
+                                        <span class="label">Số hoá đơn</span><span class="required">* </span>
+                                        <input type="text" class="box-input" name="rm_invoice_number" id="rm_invoice_number" value="" size="16" />
                                     </td>
-                                    <td width="12%"><span class="label">KHHĐ</span><span class="required">*</span></td>
-                                    <td width="21%">
-                                        <input type="text" class="box-input" name="rm_invoice_serial" id="rm_invoice_serial" value="">
+                                    <td width="25%" class="text-center">
+                                        <span class="label" title="Ký hiệu hóa đơn">KHHĐ</span><span class="required">* </span>
+                                        <input type="text" class="box-input" name="rm_invoice_serial" id="rm_invoice_serial" value="" size="12" />
                                     </td>
-                                    <td width="12%"><span class="label">Nhà cung cấp</span><span class="required">*</span></td>
-                                    <td width="21%">
+                                    <td width="25%" class="text-center">
+                                        <span class="label">Nhà cung cấp</span><span class="required">* </span>
                                         <select class="box-select" name="rm_supplier">{$SUPPLIER_OPTION}</select>
+                                    </td>
+                                    <td width="25%" class="text-center">
+                                        <span class="label">Số vé </span>
+                                        <input type="text" class="box-input" name="rm_ticket_code" id="rm_ticket_code" value="" />
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="6" class="center">
+                                    <td colspan="4" class="center">
                                         <input type="submit" value="Xoá HĐ" class="btn btn-danger" id="remove_btn" name="remove">
                                     </td>
                                 </tr>
