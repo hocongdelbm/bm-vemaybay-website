@@ -324,7 +324,7 @@ class Viewinputinvoice extends SugarView {
                         ,modified_user_id = '{$current_user->id}'
                     WHERE parent_id IN ($in_list_bk_id)
                         AND parent_type = 'EC_Flight_Bookings'
-                        AND description LIKE '%lấy hóa đơn đầu vào số $rm_invoice_number%'");
+                        AND description LIKE '%lấy hóa đơn đầu vào số: $rm_invoice_number%'");
             }
             
             return $results;
