@@ -817,9 +817,6 @@ class Viewinputinvoice extends SugarView {
                                     }
                                 }
 
-                                // Check is international
-                                $array_data[$k]['is_inter'] = $this->checkInter($array_data[$k]['itinerary'] ?? '');
-
                                 $k++;
                             }
                         }
@@ -944,6 +941,9 @@ class Viewinputinvoice extends SugarView {
                     $data[$i]['itinerary'] = $itiFormat;
                 }
                 // elseif ($supplier == 'VJA') {}
+
+                // Check is international
+                $data[$i]['is_inter'] = $this->checkInter($data[$i]['itinerary']['itinerary'] ?? '');
                 
                 // Tìm thông tin giá vé và booking dựa theo số vé trong booking
                 $data[$i] = $this->populateBookingPriceDetail($data[$i], $supplier);
@@ -967,7 +967,7 @@ class Viewinputinvoice extends SugarView {
         $err                = "";
 
         for ($i = 0; $i < count($data); $i++) {
-            if (!empty($data[$i]['itinerary']) && !$data[$i]['is_intern']) {
+            if (!empty($data[$i]['itinerary']) && !$data[$i]['is_inter']) {
                 $sql_iti = ' AND itinerary = "' . $data[$i]['itinerary'] . '"';
             } else $sql_iti = '';
 
@@ -1001,7 +1001,7 @@ class Viewinputinvoice extends SugarView {
                 $input_iv->assigned_user_id     = $current_user->id;
 
                 // Nếu là vé quốc tế, VAT = 0
-                if (isset($data[$i]['is_inter'])) {
+                if (isset($data[$i]['is_inter']) && $data[$i]['is_inter']) {
                     $input_iv->vat              = $data[$i]['vat'] ?? 0;
                     $input_iv->vat_per          = $input_iv->vat > 0 ? 0.08 : 0;
                     $input_iv->authorized_fee   = $data[$i]['authorized_collection'] ?? 0;
@@ -1157,7 +1157,7 @@ class Viewinputinvoice extends SugarView {
             if (!empty($data_arr['ticket_price'])) {
                 // Hãng BBA hoá đơn không có hành trình
                 // Vé quốc tế không có chiều đi / về, tiền là tính tổng cả 2
-                if ($supplier == 'BBA' || $data_arr['is_intern']) {
+                if ($supplier == 'BBA' || $data_arr['is_inter']) {
                     $sql_iti = '';
                 } else {
                     $sql_iti = '
@@ -1230,7 +1230,7 @@ class Viewinputinvoice extends SugarView {
             if ($rowCount1 > 0) {
                 while ($row1 = $db->fetchByAssoc($res1)) {
                     // Vé quốc tế, chỉ có tổng tiền, nên tính là lượt đi
-                    if ($data_arr['is_intern']) {
+                    if ($data_arr['is_inter']) {
                         $direction_str = 0;
                     }
                     // Vé nội địa
@@ -1317,7 +1317,7 @@ class Viewinputinvoice extends SugarView {
                             $unit_price = $result[0][$d]['unit_price'];
 
                             // Vé quốc tế
-                            if ($data_arr['is_intern']) {
+                            if ($data_arr['is_inter']) {
                                 // NCC HNH, vé quốc tế thì lấy hãng bay
                                 // để lấy thông tin hành trình
                                 if ($supplier == 'HNH') {
