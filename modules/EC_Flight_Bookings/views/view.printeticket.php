@@ -70,6 +70,7 @@ class Viewprinteticket extends SugarView {
 		// Chắc là có đổi hành trình
 		else if(isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == "3") {
 			$iti_inf = $this->listOfItineraries($_REQUEST['booking_id'], $khuhoi, $_REQUEST['wayflight'], $lang, $_REQUEST['itinerary_id'], $is_change_inf);
+
 			if($khuhoi) {
 				if ($iti_inf['direction'] == 1) $fdirection = 0;
 				else $fdirection = 1;
@@ -187,19 +188,29 @@ class Viewprinteticket extends SugarView {
 		else {
 			$passengerList = "'" . implode("','", $listPassengerIDs) . "'";
 			
+			// $sql_con = ' 
+			// AND (
+			// 	p.id IN (
+			// 		SELECT assigned_user_id FROM ec_booking_itineraries
+			// 		WHERE booking_id = "' . $booking_id . '" AND add_type = 3 AND deleted = 0
+			// 			AND sabre_logs = (
+			// 				SELECT sabre_logs
+			// 				FROM ec_booking_itineraries
+			// 				WHERE id = "' . $iti_id . '"
+			// 			)
+			// 	) 
+			// 	OR p.id IN(' . $passengerList . ')
+			// )
 			$sql_con = ' 
-			AND (
-				p.id IN (
-					SELECT assigned_user_id FROM ec_booking_itineraries
-					WHERE booking_id = "' . $booking_id . '" AND add_type = 3 AND deleted = 0
-						AND sabre_logs = (
-							SELECT sabre_logs
-							FROM ec_booking_itineraries
-							WHERE id = "' . $iti_id . '"
-						)
-				) 
-				OR p.id IN(' . $passengerList . ')
-			)
+			AND p.id IN (
+				SELECT assigned_user_id FROM ec_booking_itineraries
+				WHERE booking_id = "' . $booking_id . '" AND add_type = 3 AND deleted = 0
+					AND sabre_logs = (
+						SELECT sabre_logs
+						FROM ec_booking_itineraries
+						WHERE id = "' . $iti_id . '"
+					)
+			) 
 			AND p.id NOT IN (
 				SELECT assigned_user_id FROM ec_booking_itineraries
 				WHERE booking_id = "' . $booking_id . '" AND add_type = 3 AND deleted = 0
@@ -242,9 +253,10 @@ class Viewprinteticket extends SugarView {
 				$sql_con
 			ORDER BY p.type, p.date_entered ";
 
+			
 		$res = $db->query($sql);
 		$rowCount = $db->countRows($res);
-
+		
 		if ($iti->add_type == 3 && $rowCount > 1) {
 			$html_dep_itineraries = $html_ret_itineraries = '';
 
