@@ -41,6 +41,18 @@ $listViewDefs['Documents'] = array(
     'label' => 'LBL_LIST_CATEGORY',
     'default' => true,
   ),
+
+  'BOOKING_NAME' =>
+  array(
+    'width' => '10%',
+    'label' => 'LBL_BOOKING_NAME',
+    'default' => true,
+    'id' => 'BOOKING_ID',
+    'module' => 'EC_Flight_Bookings',
+    'related_fields' => array(
+        0 => 'booking_id' // Đảm bảo query luôn lấy booking_id kèm theo
+    ),
+  ),
   'SUBCATEGORY_ID' =>
   array(
     'width' => '15%',

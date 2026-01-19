@@ -30,7 +30,8 @@ $viewdefs['Documents'] =
         ),
         'javascript' => '{sugar_getscript file="include/javascript/popup_parent_helper.js"}
 {sugar_getscript file="cache/include/javascript/sugar_grp_jsolait.js"}
-{sugar_getscript file="modules/Documents/documents.js"}',
+{sugar_getscript file="modules/Documents/documents.js"}
+{sugar_getscript file="modules/Documents/js/booking_popup.js"}',
         'useTabs' => false,
         'tabDefs' =>
         array(
@@ -89,6 +90,31 @@ $viewdefs['Documents'] =
           array(
             array(
               'name' => 'description',
+            ),
+          ),
+          array(
+            array(
+              'name' => 'booking_id',
+              'label' => 'LBL_BOOKING_ID',
+              'customCode' => '<div class="flex-start">
+                                  <input name="booking_name" 
+                                  type="text" 
+                                  size="30" 
+                                  maxlength="255" 
+                                  value="{$BOOKING_NAME}" 
+                                  readonly>
+
+                                  <input name="booking_id" 
+                                        type="hidden" 
+                                        value="{$fields.booking_id.value}"/>
+
+                                  <input title="{$APP.LBL_SELECT_BUTTON_TITLE}" 
+                                        type="{$BOOKING_BUTTON_AVAILABILITY}" 
+                                        class="btn btn-primary" 
+                                        value="{$APP.LBL_SELECT_BUTTON_LABEL}" 
+                                        name="btn2" 
+                                        onclick=\'open_popup("EC_Flight_Bookings", 600, 400, "", true, false, {$encoded_booking_popup_data}, "single", true);\'/>
+                              </div>',
             ),
           ),
           array(

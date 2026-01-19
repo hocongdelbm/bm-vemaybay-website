@@ -107,6 +107,20 @@ $viewdefs['Documents'] =
             0 => 'category_id',
             1 => 'subcategory_id',
           ),
+
+          5 => (
+            array(
+              0 => array(
+                'name' => 'booking_name',
+                'label' => 'LBL_BOOKING_NAME',
+              ),
+              1 => array(
+                'name' => 'booking_id',
+                'label' => 'LBL_BOOKING_ID',
+              ),
+            )
+          ),
+
           6 =>
           array(
             0 => 'related_doc_name',

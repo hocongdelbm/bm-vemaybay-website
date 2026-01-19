@@ -127,4 +127,8 @@ $mod_strings = array(
     'LBL_BUGS_SUBPANEL_TITLE' => 'Lỗi',
 
     'LBL_AOS_CONTRACTS' => 'Hợp đồng',
+
+    'LBL_BOOKING_ID' => 'Mã đặt chỗ',
+    'LBL_BOOKING_NAME' => 'Đặt chỗ',
+
 );

@@ -65,24 +65,25 @@ class DocumentsViewEdit extends ViewEdit
     {
         global $app_list_strings, $mod_strings;
 
-        $load_signed=false;
+        $load_signed = false;
         if ((isset($_REQUEST['load_signed_id']) && !empty($_REQUEST['load_signed_id']))) {
-            $load_signed=true;
+            $load_signed = true;
             if (isset($_REQUEST['record'])) {
-                $this->bean->related_doc_id=$_REQUEST['record'];
+                $this->bean->related_doc_id = $_REQUEST['record'];
             }
             if (isset($_REQUEST['selected_revision_id'])) {
-                $this->bean->related_doc_rev_id=$_REQUEST['selected_revision_id'];
+                $this->bean->related_doc_rev_id = $_REQUEST['selected_revision_id'];
             }
 
-            $this->bean->id=null;
-            $this->bean->document_name=null;
-            $this->bean->filename=null;
-            $this->bean->is_template=0;
+            $this->bean->id = null;
+            $this->bean->document_name = null;
+            $this->bean->filename = null;
+            $this->bean->is_template = 0;
         } //if
 
-        if (!empty($this->bean->id) ||
-            (empty($this->bean->id) && !empty($_REQUEST['record']) && !empty($_REQUEST['action']) && strtolower($_REQUEST['action'])=='quickedit')
+        if (
+            !empty($this->bean->id) ||
+            (empty($this->bean->id) && !empty($_REQUEST['record']) && !empty($_REQUEST['action']) && strtolower($_REQUEST['action']) == 'quickedit')
         ) {
             $this->ss->assign("FILE_OR_HIDDEN", "hidden");
             if (!$this->ev->isDuplicate) {
@@ -99,12 +100,10 @@ class DocumentsViewEdit extends ViewEdit
             'field_to_name_array' => array(
                 'id' => 'related_doc_id',
                 'document_name' => 'related_document_name',
-                ),
-            );
+            ),
+        );
         $json = getJSONobj();
         $this->ss->assign('encoded_document_popup_request_data', $json->encode($popup_request_data));
-
-
         //get related document name.
         if (!empty($this->bean->related_doc_id)) {
             $this->ss->assign("RELATED_DOCUMENT_NAME", Document::get_document_name($this->bean->related_doc_id));
@@ -118,6 +117,39 @@ class DocumentsViewEdit extends ViewEdit
             $this->ss->assign("RELATED_DOCUMENT_REVISION_DISABLED", "disabled");
         }
 
+        $booking_popup_data = array(
+            'call_back_function' => 'booking_set_return',
+            'form_name' => 'EditView',
+            'field_to_name_array' => array(
+                'id' => 'booking_id',
+                'name' => 'booking_name',
+            ),
+        );
+        $json = getJSONobj();
+        $this->ss->assign('encoded_booking_popup_data', $json->encode($booking_popup_data));
+        //get booking name.
+        // Check nếu có booking_id từ URL (khi redirect từ booking detail)
+        if (!empty($_REQUEST['booking_id']) && empty($this->bean->id)) {
+            $this->bean->booking_id = $_REQUEST['booking_id'];
+            if (!empty($_REQUEST['booking_name'])) {
+                $this->ss->assign("BOOKING_NAME", $_REQUEST['booking_name']);
+            }
+        } elseif (!empty($this->bean->booking_id)) {
+            require_once('modules/EC_Flight_Bookings/EC_Flight_Bookings.php');
+            $booking = new EC_Flight_Bookings();
+            $booking->retrieve($this->bean->booking_id);
+            $this->ss->assign("BOOKING_NAME", $booking->name);
+        } else {
+            $this->ss->assign("BOOKING_NAME", "");
+        }
+        // Set booking button availability
+        if ($load_signed) {
+            $this->ss->assign("BOOKING_BUTTON_AVAILABILITY", "hidden");
+        } else {
+            $this->ss->assign("BOOKING_BUTTON_AVAILABILITY", "button");
+        }
+
+      
 
         //set parent information in the form.
         if (isset($_REQUEST['parent_id'])) {
@@ -165,7 +197,7 @@ class DocumentsViewEdit extends ViewEdit
         $params = array();
         $params[] = $this->_getModuleTitleListParam($browserTitle);
         if (!empty($this->bean->id)) {
-            $params[] = "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>".$this->bean->document_name."</a>";
+            $params[] = "<a href='index.php?module={$this->module}&action=DetailView&record={$this->bean->id}'>" . $this->bean->document_name . "</a>";
             $params[] = $GLOBALS['app_strings']['LBL_EDIT_BUTTON_LABEL'];
         } else {
             $params[] = $GLOBALS['app_strings']['LBL_CREATE_BUTTON_LABEL'];

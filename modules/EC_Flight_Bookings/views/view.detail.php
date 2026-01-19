@@ -375,7 +375,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('BUTTON_LINE_NOTES', $html);
 	}
 
-	private function populateCustomFields() {
+	private function populateCustomFields()
+	{
 		global $app_list_strings, $current_user;
 
 		// Thông tin hoá đơn
@@ -388,13 +389,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Loại vé - Chuyến bay
 		$ticket_type = $app_list_strings['booking_ticket_type_list'][$this->bean->ticket_type] . ' - Chuyến bay: ' . $app_list_strings['bk_flight_type_list'][$this->bean->flight_type];
 		$this->ss->assign('CUSTOM_TICKET_TYPE', $ticket_type);
-		
+
 		// Nguồn khách hàng
 		$customer_source = '<div class="d-flex align-items-center flex-nowrap gap-3">';
-		foreach($app_list_strings['booking_customer_source_list'] as $value => $label) {
+		foreach ($app_list_strings['booking_customer_source_list'] as $value => $label) {
 			$checked = $value == $this->bean->customer_source ? 'checked="checked"' : '';
 			$customer_source .= '<div class="item" style="font-size:13px;">
-				<input type="checkbox" name="customer_source" id="customer_source_'.$value.'" value="'.$value.'" '.$checked.' /> '.$label.'
+				<input type="checkbox" name="customer_source" id="customer_source_' . $value . '" value="' . $value . '" ' . $checked . ' /> ' . $label . '
 			</div>';
 		}
 		$customer_source .= '</div>';
@@ -403,16 +404,15 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Đánh dấu
 		$list_bookmark = '<div class="d-flex align-items-star flex-nowrap gap-3">';
 		// Telesale
-		if($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
+		if ($this->bean->is_telesale && !empty($this->bean->telesale_call_id)) {
 			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0");
 			$list_bookmark .= '<div class="item">
 				<label for="checkIsTelesale">Là BK Telesale</label>
 				<input type="checkbox" name="is_telesale" id="checkIsTelesale" checked="checked" disabled />
 				<br />
-				<a href="index.php?module=Calls&action=DetailView&record='. $this->bean->telesale_call_id .'" target="_blank">'. $call_name .'</a>
+				<a href="index.php?module=Calls&action=DetailView&record=' . $this->bean->telesale_call_id . '" target="_blank">' . $call_name . '</a>
 			</div>';
-		}
-		elseif($this->bean->booking_status == '8') {
+		} elseif ($this->bean->booking_status == '8') {
 			$list_bookmark .= '<div class="item">
 				</form><form name="frmCheckIsTelesale" id="frmCheckIsTelesale" action="index.php" method="post">
 					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -426,13 +426,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			</div>';
 		}
 		// CTV
-		if($this->bean->is_ctv) {
+		if ($this->bean->is_ctv) {
 			$list_bookmark .= '<div class="item">
 				<label for="checkIsCTV" >Là CTV</label>
 				<input type="checkbox" name="is_ctv" id="checkIsCTV" checked="checked" disabled />
 			</div>';
-		}
-		else if ($this->bean->booking_status == '8') {
+		} else if ($this->bean->booking_status == '8') {
 			$list_bookmark .= '<div class="item">
 				</form><form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
 					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -446,17 +445,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			</div>';
 		}
 		// Đại lý
-		if($this->bean->is_agent && !empty($this->bean->agent_id)) {
+		if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
 			$list_bookmark .= '<div class="item">
 				<label for="is_agent">Là đại lý</label>
 				<input type="checkbox" name="is_agent" id="check_is_agent" checked="checked" disabled />
 				<br />
 				<a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
-					'. $this->bean->agent_name .'
+					' . $this->bean->agent_name . '
 				</a>
 			</div>';
-		}
-		else {
+		} else {
 			$list_bookmark .= '<div class="item">
 				<label for="check_is_agent">Là đại lý</label>
 				<input type="checkbox" name="is_agent" id="check_is_agent" disabled />
@@ -468,10 +466,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Hệ thống đánh dấu
 		$list_bookmark_system = '<div class="d-flex align-items-center gap-3">';
 		$list_bookmark_system .= '<div class="item">
-			<input type="checkbox" id="is_prior" '. ($this->bean->is_prior ? 'checked="checked"' : '') .' disabled /> Vé cận
+			<input type="checkbox" id="is_prior" ' . ($this->bean->is_prior ? 'checked="checked"' : '') . ' disabled /> Vé cận
 		</div>';
 		$list_bookmark_system .= '<div class="item">
-			<input type="checkbox" id="is_mail_confirm" '. ($this->bean->is_mail_confirm ? 'checked="checked"' : '') .' disabled /> Gửi mail xác nhận
+			<input type="checkbox" id="is_mail_confirm" ' . ($this->bean->is_mail_confirm ? 'checked="checked"' : '') . ' disabled /> Gửi mail xác nhận
 		</div>';
 		$list_bookmark_system .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', $list_bookmark_system);
@@ -830,8 +828,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</div>
 					</div>
 				</div>';
-			}
-			else {
+			} else {
 				// Lịch sử giao dịch
 				$nganluong_info = json_decode(html_entity_decode($this->bean->nganluong_info), true);
 
@@ -880,8 +877,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				</div>';
 			}
 			$this->ss->assign('CUSTOM_TRANSACTION_HISTORY', $transaction_history);
-		}
-		else {
+		} else {
 			$nganluong_code = '<div class="nganluong__wrap">
 				<button class="flex-fill outline-none" id="get_qr_code">
 					<svg width="20px" height="20px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M9 6.6V8.4C9 8.73137 8.73137 9 8.4 9H6.6C6.26863 9 6 8.73137 6 8.4V6.6C6 6.26863 6.26863 6 6.6 6H8.4C8.73137 6 9 6.26863 9 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 12H9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 12V15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18H15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 12.0111L12.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 12.0111L18.01 12" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 15.0111L12.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15.0111L18.01 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 18.0111L18.01 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 9.01111L12.01 9" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 6.01111L12.01 6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 15.6V17.4C9 17.7314 8.73137 18 8.4 18H6.6C6.26863 18 6 17.7314 6 17.4V15.6C6 15.2686 6.26863 15 6.6 15H8.4C8.73137 15 9 15.2686 9 15.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 6.6V8.4C18 8.73137 17.7314 9 17.4 9H15.6C15.2686 9 15 8.73137 15 8.4V6.6C15 6.26863 15.2686 6 15.6 6H17.4C17.7314 6 18 6.26863 18 6.6Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 3H21V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 21H21V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 3H3V6" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 21H3V18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -1193,6 +1189,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$this->ss->assign('VIEWED_BOOKING', $viewed);
 		}
 
+		$doc_button = '<input type="button" 
+						class="btn btn-primary" 
+						value="Tài liệu" 
+						onclick="window.location.href=\'index.php?module=Documents&action=EditView&booking_id=' . $this->bean->id . '&booking_name=' . $this->bean->name . '\'" />';
+		$this->ss->assign('DOC_BUTTON', $doc_button);
 		// Create receipt voucher button
 		$this->_is_had_rv = myCheckValueExist('EC_Receipt_Voucher', array('booking_id'), array($this->bean->id), '');
 		if (

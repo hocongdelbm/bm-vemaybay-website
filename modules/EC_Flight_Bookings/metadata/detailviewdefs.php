@@ -8,6 +8,7 @@ $viewdefs[$module_name]['DetailView'] = array(
                 'EDIT',
                 'DELETE',
                 'DUPLICATE',
+
                 array(
                     'customCode' => '{$CALLS_BUTTON}',
                 ),
@@ -61,6 +62,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
                 array(
                     'customCode' => '{$VIEWED_BOOKING}',
+                ),
+                array(
+                    'customCode' => '{$DOC_BUTTON}',
                 ),
             )
         ),
@@ -165,7 +169,7 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$IS_INVOICE_EXPORT}',
                 ),
             ),
-           
+
             array(
                 array(
                     'name' => 'description',
@@ -179,7 +183,7 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$RECHECK_STATUS}',
                 ),
             ),
-           
+
             array(
                 array(
                     'name' => 'lydothangthua',
