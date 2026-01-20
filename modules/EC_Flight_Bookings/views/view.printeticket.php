@@ -21,7 +21,8 @@ class Viewprinteticket extends SugarView
 		$bean = BeanFactory::getBean('EC_Flight_Bookings', $booking_id);
 		$created_by = new User();
 		$created_by->retrieve($bean->created_by);
-		$department_info = myGetDepartmentInfo($created_by->department_id);
+		// $department_info = myGetDepartmentInfo($created_by->department_id);
+		$department_info = myGetDepartmentInfo("f15f801d-a9bc-cc92-4152-655f5e89867f");
 
 		$com_website = $department_info['com_website2'];
 		$com_phone = $department_info['com_phone'];
