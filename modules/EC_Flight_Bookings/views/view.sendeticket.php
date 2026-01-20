@@ -144,6 +144,6 @@ class Viewsendeticket extends SugarView {
 		
 		$body = generateSendmailHtml($booking_infos);
 			 
-		return mySendMail($current_user->id, $contact_email, $contact_name, $subject, $body);  
+		// return mySendMail($current_user->id, $contact_email, $contact_name, $subject, $body);  
 	}
 }

@@ -105,6 +105,10 @@ $(document).ready(function () {
         }
     });
 
+    $('#select-all-passengers').on('change', function() {
+        $('.check-passenger').prop('checked', $(this).is(':checked')).trigger('change');
+    });
+    
     var pendingPrintData = null;
 
     $(document).on('click', '.btnPrintEticket-selection', function () {

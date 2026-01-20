@@ -1788,7 +1788,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
 		$html .= '<thead>
 			<tr>
-				<th scope="col" width="2%"></th>
+				<th scope="col" width="2%"><input type="checkbox" id="select-all-passengers"/></th>
 				<th scope="col" width="3%">STT</th>
 				<th scope="col" width="7%">Loại</th>
 				<th scope="col" width="7%">Giới tính</th>

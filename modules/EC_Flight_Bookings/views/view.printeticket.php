@@ -177,46 +177,60 @@ class Viewprinteticket extends SugarView
 			return '<tr><td colspan="5" style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">Không có hành trình</td></tr>';
 		}
 
+		usort($itinerariesData, function ($a, $b) {
+			$t1 = strtotime(str_replace('/', '-', $a['departureDate'] ?? ''));
+			$t2 = strtotime(str_replace('/', '-', $b['departureDate'] ?? ''));
+			return $t1 - $t2;
+		});
+
 		foreach ($itinerariesData as $itinerary) {
 
-			// Get airline info
 			$airlineCode = $itinerary['airlineCode'] ?? $itinerary['airline'] ?? '';
 			$airline = myGetAirlineInfo2(trim($airlineCode), 'CODE');
 			$airlineName = $airline['data'][0]['name'] ?? $itinerary['airline'];
 
-			// Get departure airport info
 			$departureCode = $itinerary['departure'] ?? '';
 			$departure = myGetAirportInfo2(trim($departureCode));
 			$departureName = ($departure['data'][0]['name'] ?? '') . ' (' . ($departure['data'][0]['code'] ?? $departureCode) . ')';
 
-			// Get arrival airport info
 			$arrivalCode = $itinerary['arrival'] ?? '';
 			$arrival = myGetAirportInfo2(trim($arrivalCode));
 			$arrivalName = ($arrival['data'][0]['name'] ?? '') . ' (' . ($arrival['data'][0]['code'] ?? $arrivalCode) . ')';
 
-			// Format dates
 			$departureDateTime = $itinerary['departureDate'] ?? '';
 			$arrivalDateTime = $itinerary['arrivalDate'] ?? '';
 
-			// Extract time from arrival date
-			$arrivalTime = '';
+			$dateDisplay = '';
+			$timeRange = '';
+
+			if (!empty($departureDateTime)) {
+				$parts = explode(' ', $departureDateTime);
+				if (isset($parts[0])) {
+					$dateDisplay = str_replace('-', '/', $parts[0]);
+				}
+				if (isset($parts[1])) {
+					$timeRange .= $parts[1];
+				}
+			}
+
 			if (!empty($arrivalDateTime)) {
 				$parts = explode(' ', $arrivalDateTime);
-				$arrivalTime = isset($parts[1]) ? $parts[1] : '';
+				if (isset($parts[1])) {
+					if ($timeRange !== '')
+						$timeRange .= ' - ';
+					$timeRange .= $parts[1];
+				}
 			}
 
-			// Build flight display
-			$flightDisplay = $departureDateTime;
-			if ($arrivalTime) {
-				$flightDisplay .= ' - ' . $arrivalTime;
+			$flightDisplay = $dateDisplay;
+			if ($timeRange !== '') {
+				$flightDisplay .= '<br>' . $timeRange;
 			}
 
-			// Get flight number
 			$flightNumber = trim($itinerary['flightNumber']);
 
-			// Build HTML row
 			$html .= '<tr>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($flightDisplay) . '</td>
+            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . $flightDisplay . '</td>
             <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($airlineName) . '</td>
             <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($flightNumber) . '</td>
             <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($departureName) . '</td>
