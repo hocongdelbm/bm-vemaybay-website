@@ -66,6 +66,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$DOC_BUTTON}',
                 ),
+                array(
+                    'customCode' => '{$DOC_LIST_BUTTON}',
+                ),
             )
         ),
         'maxColumns' => '2',

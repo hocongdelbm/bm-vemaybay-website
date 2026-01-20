@@ -31,7 +31,10 @@ $viewdefs['Documents'] =
         'javascript' => '{sugar_getscript file="include/javascript/popup_parent_helper.js"}
 {sugar_getscript file="cache/include/javascript/sugar_grp_jsolait.js"}
 {sugar_getscript file="modules/Documents/documents.js"}
-{sugar_getscript file="modules/Documents/js/booking_popup.js"}',
+{sugar_getscript file="modules/Documents/js/booking_popup.js"}
+{sugar_getscript file="modules/Documents/js/preview_handler.js"}
+
+',
         'useTabs' => false,
         'tabDefs' =>
         array(
@@ -57,6 +60,17 @@ $viewdefs['Documents'] =
             array(
               'name' => 'status_id',
               'label' => 'LBL_DOC_STATUS',
+            ),
+          ),
+          array(
+            0 =>
+            array(
+              'name' => 'preview_image',
+              'label' => 'LBL_PREVIEW_PHOTO',
+              'customCode' => '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd;">' .
+                              '<img id="file-preview-image" src="{$PREVIEW_IMAGE_URL}" style="max-width:300px; max-height:300px; {if !$HAS_PREVIEW_IMAGE}display:none;{/if}"/>' .
+                              '<div id="file-preview-text" style="color: #999; {if $HAS_PREVIEW_IMAGE}display:none;{/if}">Chưa chọn file</div>' .
+                              '</div>' ,
             ),
           ),
           array(
@@ -95,7 +109,7 @@ $viewdefs['Documents'] =
           array(
             array(
               'name' => 'booking_id',
-              'label' => 'LBL_BOOKING_ID',
+              'label' => 'LBL_BOOKING_NAME',
               'customCode' => '<div class="flex-start">
                                   <input name="booking_name" 
                                   type="text" 

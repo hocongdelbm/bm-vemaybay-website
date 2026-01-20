@@ -54,7 +54,7 @@ class DocumentsViewDetail extends ViewDetail
         $params = array();
         $params[] = $this->_getModuleTitleListParam($browserTitle);
         $params[] = $this->bean->document_name;
-        
+
         return $params;
     }
 
@@ -67,7 +67,23 @@ class DocumentsViewDetail extends ViewDetail
             $this->displayErrors();
         }
 
-
+        $this->populateCustomCode();
         parent::display();
+    }
+
+    private function populateCustomCode()
+    {
+        $preview_html = '';
+        if (!empty($this->bean->preview_image)) {
+            // Sử dụng ID của Document record, không phải revision_id
+            $preview_html = '<div class="preview-photo-container">
+                <img src="index.php?entryPoint=download&id=' . $this->bean->id . '_preview_image&type=Documents"
+                    style="max-width: 70%; max-height: 300px; object-fit: contain;"
+                    alt="Preview Photo">
+            </div>';
+        } else {
+            $preview_html = '<div class="no-preview-photo" style="color:#999;">Không có ảnh preview</div>';
+        }
+        $this->ss->assign('PREVIEW_IMAGE_HTML', $preview_html);
     }
 }

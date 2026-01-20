@@ -167,5 +167,6 @@ $mod_strings = array(
 
     'LBL_AOS_CONTRACTS' => 'Contracts',
 
-    'LBL_BOOKING_ID' => 'Booking ID'
+    'LBL_BOOKING_NAME' => 'Booking',
+    'LBL_PREVIEW_PHOTO' => 'Preview',
 );

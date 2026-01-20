@@ -186,6 +186,16 @@ class DocumentsViewEdit extends ViewEdit
             $this->ss->assign("RELATED_DOCUMENT_BUTTON_AVAILABILITY", "button");
         } //if-else
 
+        // Assign preview image URL for EditView
+        if (!empty($this->bean->id) && !empty($this->bean->preview_image)) {
+            $preview_url = "index.php?entryPoint=download&id={$this->bean->id}_preview_image&type=Documents";
+            $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
+            $this->ss->assign("HAS_PREVIEW_IMAGE", true);
+        } else {
+            $this->ss->assign("PREVIEW_IMAGE_URL", "");
+            $this->ss->assign("HAS_PREVIEW_IMAGE", false);
+        }
+
         parent::display();
     }
 
@@ -205,4 +215,6 @@ class DocumentsViewEdit extends ViewEdit
 
         return $params;
     }
+
+
 }

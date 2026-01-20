@@ -149,6 +149,37 @@ class Document extends File
                 //update document with latest revision id
                 $this->process_save_dates = false; //make sure that conversion does not happen again.
                 $this->document_revision_id = $Revision->id;
+
+                // Luôn kiểm tra và cập nhật preview khi có file mới
+                if (!empty($this->filename)) {
+                    $file_path = "upload://{$this->document_revision_id}";
+                    if (file_exists($file_path)) {
+                        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                        $mime_type = finfo_file($finfo, $file_path);
+                        finfo_close($finfo);
+
+                        $preview_path = "upload://{$this->id}_preview_image";
+
+                        if (strpos($mime_type, 'image/') === 0) {
+                            // File mới LÀ ảnh → Tạo/Cập nhật preview
+                            copy($file_path, $preview_path);
+                            $this->preview_image = $this->id . '_preview_image';
+                            $GLOBALS['log']->fatal("REVISION: Image detected, set preview_image = {$this->preview_image}");
+                        } else {
+                            // File mới KHÔNG phải ảnh → Xóa preview cũ (nếu có)
+                            if (file_exists($preview_path)) {
+                                unlink($preview_path);
+                                $GLOBALS['log']->fatal("REVISION: Non-image, deleted preview file");
+                            }
+                            $this->preview_image = '';
+                            $GLOBALS['log']->fatal("REVISION: Non-image detected (MIME: {$mime_type}), cleared preview_image");
+                        }
+                    } else {
+                        $GLOBALS['log']->fatal("REVISION: File not found at {$file_path}");
+                    }
+                } else {
+                    $GLOBALS['log']->fatal("REVISION: No filename provided");
+                }
             }
 
 
@@ -163,6 +194,32 @@ class Document extends File
                 $loadSignedIdQuoted = $this->db->quote($_POST['load_signed_id']);
                 $query = "update linked_documents set deleted=1 where id='" . $loadSignedIdQuoted . "'";
                 $this->db->query($query);
+            }
+        } else {
+            // XỬ LÝ UPDATE - Khi edit document có sẵn
+            if (!empty($_FILES['filename_file'])) {
+                // Có upload file mới
+                $file_path = "upload://{$this->id}";
+                
+                if (file_exists($file_path)) {
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mime_type = finfo_file($finfo, $file_path);
+                    finfo_close($finfo);
+                    
+                    $preview_path = "upload://{$this->id}_preview_image";
+                    
+                    if (strpos($mime_type, 'image/') === 0) {
+                        // File mới LÀ ảnh → Update preview
+                        copy($file_path, $preview_path);
+                        $this->preview_image = $this->id . '_preview_image';
+                    } else {
+                        // File mới KHÔNG phải ảnh → Xóa preview cũ
+                        if (file_exists($preview_path)) {
+                            unlink($preview_path);
+                        }
+                        $this->preview_image = '';
+                    }
+                }
             }
         }
 

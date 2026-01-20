@@ -108,18 +108,19 @@ $viewdefs['Documents'] =
             1 => 'subcategory_id',
           ),
 
-          5 => (
+          5 => 
             array(
-              0 => array(
+              0 => 
+              array(
+                'name' => 'preview_image',
+                'label' => 'LBL_PREVIEW_PHOTO',
+                'customCode' => '{$PREVIEW_IMAGE_HTML}',
+              ),
+              1 => array(
                 'name' => 'booking_name',
                 'label' => 'LBL_BOOKING_NAME',
               ),
-              1 => array(
-                'name' => 'booking_id',
-                'label' => 'LBL_BOOKING_ID',
-              ),
-            )
-          ),
+            ),
 
           6 =>
           array(

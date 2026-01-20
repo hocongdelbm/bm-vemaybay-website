@@ -134,7 +134,36 @@ class DocumentRevision extends SugarBean
             $row = $this->db->fetchByAssoc($ret);
             $this->document_id = $row['document_id'];
         }
-        $query = "UPDATE documents set document_revision_id='".$this->db->quote($this->id)."', doc_type='".$this->db->quote($this->doc_type)."', doc_url='".$this->db->quote($this->doc_url)."', doc_id='".$this->db->quote($this->doc_id)."' where id = '".$this->db->quote($this->document_id)."'";
+        
+        // Kiểm tra và cập nhật preview_image khi tạo revision mới
+        $preview_update = '';
+        if (!empty($this->filename)) {
+            $file_path = "upload://{$this->id}";
+            if (file_exists($file_path)) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime_type = finfo_file($finfo, $file_path);
+                finfo_close($finfo);
+                
+                $preview_path = "upload://{$this->document_id}_preview_image";
+                
+                if (strpos($mime_type, 'image/') === 0) {
+                    // File mới LÀ ảnh → Copy vào preview
+                    copy($file_path, $preview_path);
+                    $preview_update = ", preview_image='".$this->db->quote($this->document_id . '_preview_image')."'";
+                    $GLOBALS['log']->fatal("REVISION SAVE: Image file detected, updated preview_image");
+                } else {
+                    // File mới KHÔNG phải ảnh → Xóa preview cũ
+                    if (file_exists($preview_path)) {
+                        unlink($preview_path);
+                        $GLOBALS['log']->fatal("REVISION SAVE: Non-image file, deleted preview file");
+                    }
+                    $preview_update = ", preview_image=''";
+                    $GLOBALS['log']->fatal("REVISION SAVE: Non-image file (MIME: {$mime_type}), cleared preview_image");
+                }
+            }
+        }
+        
+        $query = "UPDATE documents set document_revision_id='".$this->db->quote($this->id)."', doc_type='".$this->db->quote($this->doc_type)."', doc_url='".$this->db->quote($this->doc_url)."', doc_id='".$this->db->quote($this->doc_id)."'{$preview_update} where id = '".$this->db->quote($this->document_id)."'";
         $this->db->query($query, true);
 
         return $saveRet;
