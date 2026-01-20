@@ -169,10 +169,8 @@ class Viewprinteticket extends SugarView
 		return $translatedText;
 	}
 
-
 	function buildItineraryHTMLFromData($itinerariesData, $lang)
 	{
-
 		$html = '';
 
 		if (empty($itinerariesData) || !is_array($itinerariesData)) {
@@ -181,32 +179,54 @@ class Viewprinteticket extends SugarView
 
 		foreach ($itinerariesData as $itinerary) {
 
+			// Get airline info
+			$airlineCode = $itinerary['airlineCode'] ?? $itinerary['airline'] ?? '';
+			$airline = myGetAirlineInfo2(trim($airlineCode), 'CODE');
+			$airlineName = $airline['data'][0]['name'] ?? $itinerary['airline'];
+
+			// Get departure airport info
+			$departureCode = $itinerary['departure'] ?? '';
+			$departure = myGetAirportInfo2(trim($departureCode));
+			$departureName = ($departure['data'][0]['name'] ?? '') . ' (' . ($departure['data'][0]['code'] ?? $departureCode) . ')';
+
+			// Get arrival airport info
+			$arrivalCode = $itinerary['arrival'] ?? '';
+			$arrival = myGetAirportInfo2(trim($arrivalCode));
+			$arrivalName = ($arrival['data'][0]['name'] ?? '') . ' (' . ($arrival['data'][0]['code'] ?? $arrivalCode) . ')';
+
+			// Format dates
 			$departureDateTime = $itinerary['departureDate'] ?? '';
 			$arrivalDateTime = $itinerary['arrivalDate'] ?? '';
 
+			// Extract time from arrival date
 			$arrivalTime = '';
 			if (!empty($arrivalDateTime)) {
 				$parts = explode(' ', $arrivalDateTime);
 				$arrivalTime = isset($parts[1]) ? $parts[1] : '';
 			}
 
+			// Build flight display
 			$flightDisplay = $departureDateTime;
 			if ($arrivalTime) {
 				$flightDisplay .= ' - ' . $arrivalTime;
 			}
-			$airlineName = $itinerary['airline'];
+
+			// Get flight number
+			$flightNumber = trim($itinerary['flightNumber']);
 
 			// Build HTML row
 			$html .= '<tr>
             <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($flightDisplay) . '</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($airlineName) . ' Airlines</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars(trim($itinerary['flightNumber'])) . '</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($itinerary['departure']) . '</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($itinerary['arrival']) . '</td>
-        	</tr>';
+            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($airlineName) . '</td>
+            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($flightNumber) . '</td>
+            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($departureName) . '</td>
+            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($arrivalName) . '</td>
+        </tr>';
 		}
+
 		return $html;
 	}
+
 	// function populateContent($smartyobj, $lang, $khuhoi, $listPassengerIDs) {
 	// 	// Lấy danh sách, số lượng, thông tin hành khách
 	// 	$pass_inf = $this->listOfPassengers($_REQUEST['booking_id'], $_REQUEST['direction'], $_REQUEST['airline_code'], $khuhoi, $lang, $_REQUEST['itinerary_id'], $listPassengerIDs, $smartyobj);
