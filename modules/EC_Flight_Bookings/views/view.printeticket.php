@@ -101,6 +101,9 @@ class Viewprinteticket extends SugarView
 						$luggageOutbound = $this->translateLuggageText($luggageOutbound, $lang);
 						$baggageDescription .= $luggageOutbound . ' (' . $labelOutbound . ')';
 					}
+					if (!empty($passenger['luggage']['outbound']) && !empty($passenger['luggage']['inbound'])) {
+						$baggageDescription .= ' -';
+					}
 					if (!empty($passenger['luggage']['inbound'])) {
 						$luggageInbound = $this->cleanLuggageText($passenger['luggage']['inbound']);
 						$luggageInbound = $this->translateLuggageText($luggageInbound, $lang);

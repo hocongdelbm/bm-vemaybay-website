@@ -1367,12 +1367,20 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign(
 				'PRINT_TICKET',
 				'<div class="btn-group btnPrintEticket-selection">
-					<button type="button" class="btn btn-warning btnPrintEticket-selection" data-bs-display="static" aria-expanded="false">
+					<button type="button" class="btn btn-warning btnPrintEticket" data-bs-display="static" aria-expanded="false">
 						In vé
 					</button>
 				</div>'
 			);
-
+		//Send Ticket
+		$this->ss->assign(
+				'SEND_TICKET',
+				'<div class="btn-group btnSendEticket-selection">
+					<button type="button" class="btn btn-warning btnSendEticket" data-bs-display="static" aria-expanded="false">
+						Gửi vé
+					</button>
+				</div>'
+			);
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
@@ -1553,8 +1561,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
 						<input type="hidden" name="ticket_type" value="' . $this->bean->ticket_type . '" />
 						<div class="action-button-ticket d-flex gap-2 align-items-center justify-content-center">
-							' . $print_ticket_btn . '
-							' . $send_ticket_btn . '
 							' . $sms_btn . '
 							' . $remind_btn . '
 						</div>

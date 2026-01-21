@@ -382,9 +382,9 @@ $(document).ready(function () {
 				<label class="form-check-label" for="pass${passId}" style="vertical-align:sub;">${passName}</label>
 			</div>`;
 		});
-		$('#dlgSelectLanguage .option-passenger').html(checkBoxPassengers);
+		$('#dlgChonNgonNgu .option-passenger').html(checkBoxPassengers);
 		
-		$('#dlgSelectLanguage').dialog({
+		$('#dlgChonNgonNgu').dialog({
 			height: 80,
 			width: 320,
 			modal: true,
