@@ -1376,7 +1376,6 @@ function populateEditedLineItineraries($booking_id)
 				<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
 				<input type="hidden" name="ticket_type" value="' . $booking->ticket_type . '" />
 				<div class="d-flex align-items-center gap-2 justify-content-center">
-					' . $send_ticket_btn . '
 					<input type="button" name="btnSendSMS" value="SMS" title="Send SMS"
 						class="btn btn-primary-2 fw-semibold flex-fill"
 						direction="' . $row['direction'] . '" 
