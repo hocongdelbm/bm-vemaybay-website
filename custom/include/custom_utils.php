@@ -2449,6 +2449,7 @@ require_once 'custom/include/utils/string.php';
 require_once 'custom/include/utils/Flight.php';
 require_once 'custom/include/utils/FareClass.php';
 require_once 'custom/include/utils/Baggage.php';
+require_once 'custom/include/utils/printSendTicket.php';
 // Init helpers
 foreach (glob("custom/include/helpers/*Helper.php") as $file) {
     if (is_file($file)) require_once $file;

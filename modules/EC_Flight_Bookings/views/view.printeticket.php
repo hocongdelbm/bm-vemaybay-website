@@ -53,8 +53,8 @@ class Viewprinteticket extends SugarView
 			}
 		}
 
-		$passengerHTML = $this->buildPassengerHTMLFromData($passengersData, $khuhoi, $lang);
-		$itineraryHTML = $this->buildItineraryHTMLFromData($itinerariesData, $lang);
+		$passengerHTML = buildPassengerHTMLFromData($passengersData, $khuhoi, $lang);
+		$itineraryHTML = buildItineraryHTMLFromData($itinerariesData, $lang);
 
 		$smartyCont->assign('BOOKING_NUMBER', $booking_number);
 		$smartyCont->assign('LIST_OF_PASSENGER', $passengerHTML);
@@ -70,179 +70,177 @@ class Viewprinteticket extends SugarView
 		$smartyCont->assign('MINUTE_BEFORE', '120');
 	}
 
-	function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
-	{
-		$html = '';
+	// function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
+	// {
+	// 	$html = '';
 
-		if (empty($passengersData) || !is_array($passengersData)) {
-			return '<tr><td colspan="3" style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">Không có hành khách</td></tr>';
-		}
+	// 	if (empty($passengersData) || !is_array($passengersData)) {
+	// 		return '<tr><td colspan="3" style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">Không có hành khách</td></tr>';
+	// 	}
 
-		$labelOutbound = ($lang == 'en') ? 'Outbound' : 'Lượt đi';
-		$labelInbound = ($lang == 'en') ? 'Inbound' : 'Lượt về';
+	// 	$labelOutbound = ($lang == 'en') ? 'Outbound' : 'Lượt đi';
+	// 	$labelInbound = ($lang == 'en') ? 'Inbound' : 'Lượt về';
 
-		foreach ($passengersData as $passenger) {
+	// 	foreach ($passengersData as $passenger) {
 
-			// Get PNR
-			$pnr = '';
-			if ($khuhoi) {
-				$pnr = (!empty($passenger['pnrOutbound']) ? $passenger['pnrOutbound'] : (!empty($passenger['eticketOutbound']) ? $passenger['eticketOutbound'] : ''));
-				$pnr .= trim($pnr) != '' ? ' - ' : '';
-				$pnr .= (!empty($passenger['pnrInbound']) ? $passenger['pnrInbound'] : (!empty($passenger['eticketInbound']) ? $passenger['eticketInbound'] : ''));
-			} else {
-				$pnr = (!empty($passenger['pnrOutbound']) ? $passenger['pnrOutbound'] : (!empty($passenger['eticketOutbound']) ? $passenger['eticketOutbound'] : ''));
-			}
+	// 		// Get PNR
+	// 		$pnr = '';
+	// 		if ($khuhoi) {
+	// 			$pnr = (!empty($passenger['pnrOutbound']) ? $passenger['pnrOutbound'] : (!empty($passenger['eticketOutbound']) ? $passenger['eticketOutbound'] : ''));
+	// 			$pnr .= trim($pnr) != '' ? ' - ' : '';
+	// 			$pnr .= (!empty($passenger['pnrInbound']) ? $passenger['pnrInbound'] : (!empty($passenger['eticketInbound']) ? $passenger['eticketInbound'] : ''));
+	// 		} else {
+	// 			$pnr = (!empty($passenger['pnrOutbound']) ? $passenger['pnrOutbound'] : (!empty($passenger['eticketOutbound']) ? $passenger['eticketOutbound'] : ''));
+	// 		}
 
-			$baggageDescription = '';
-			if (isset($passenger['luggage'])) {
-				if ($khuhoi) {
-					if (!empty($passenger['luggage']['outbound'])) {
-						$luggageOutbound = $this->cleanLuggageText($passenger['luggage']['outbound']);
-						$luggageOutbound = $this->translateLuggageText($luggageOutbound, $lang);
-						$baggageDescription .= $luggageOutbound . ' (' . $labelOutbound . ')';
-					}
-					if (!empty($passenger['luggage']['outbound']) && !empty($passenger['luggage']['inbound'])) {
-						$baggageDescription .= ' -';
-					}
-					if (!empty($passenger['luggage']['inbound'])) {
-						$luggageInbound = $this->cleanLuggageText($passenger['luggage']['inbound']);
-						$luggageInbound = $this->translateLuggageText($luggageInbound, $lang);
-						$baggageDescription .= ($baggageDescription ? ' ' : '') . $luggageInbound . ' (' . $labelInbound . ')';
-					}
-				} else {
-					$baggageDescription = $this->cleanLuggageText($passenger['luggage']['outbound'] ?? '');
-					$baggageDescription = $this->translateLuggageText($baggageDescription, $lang);
-				}
-			}
+	// 		$baggageDescription = '';
+	// 		if (isset($passenger['luggage'])) {
+	// 			if ($khuhoi) {
+	// 				if (!empty($passenger['luggage']['outbound'])) {
+	// 					$luggageOutbound = $this->cleanLuggageText($passenger['luggage']['outbound']);
+	// 					$luggageOutbound = $this->translateLuggageText($luggageOutbound, $lang);
+	// 					$baggageDescription .= $luggageOutbound . ' (' . $labelOutbound . ')';
+	// 				}
+	// 				if (!empty($passenger['luggage']['outbound']) && !empty($passenger['luggage']['inbound'])) {
+	// 					$baggageDescription .= ' -';
+	// 				}
+	// 				if (!empty($passenger['luggage']['inbound'])) {
+	// 					$luggageInbound = $this->cleanLuggageText($passenger['luggage']['inbound']);
+	// 					$luggageInbound = $this->translateLuggageText($luggageInbound, $lang);
+	// 					$baggageDescription .= ($baggageDescription ? ' ' : '') . $luggageInbound . ' (' . $labelInbound . ')';
+	// 				}
+	// 			} else {
+	// 				$baggageDescription = $this->cleanLuggageText($passenger['luggage']['outbound'] ?? '');
+	// 				$baggageDescription = $this->translateLuggageText($baggageDescription, $lang);
+	// 			}
+	// 		}
 
-			// Build HTML row
-			$html .= '<tr>
-            <td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . htmlspecialchars($passenger['fullname']) . '</td>
-            <td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
-            <td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $baggageDescription . '</td>
-        </tr>';
-		}
+	// 		// Build HTML row
+	// 		$html .= '<tr>
+    //         <td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . htmlspecialchars($passenger['fullname']) . '</td>
+    //         <td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
+    //         <td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $baggageDescription . '</td>
+    //     </tr>';
+	// 	}
 
-		return $html;
-	}
+	// 	return $html;
+	// }
+	// function cleanLuggageText($text)
+	// {
+	// 	$text = strip_tags($text);
 
+	// 	$text = preg_replace('/\s*\([^)]*\)/', '', $text);
 
-	function cleanLuggageText($text)
-	{
-		$text = strip_tags($text);
+	// 	$text = preg_replace('/Giá bán:.*?VND/i', '', $text);
+	// 	$text = preg_replace('/Giá mua:.*?VND/i', '', $text);
+	// 	$text = preg_replace('/Nhà cung cấp:.*?(\n|$)/i', '', $text);
 
-		$text = preg_replace('/\s*\([^)]*\)/', '', $text);
+	// 	$text = preg_replace('/Lượt đi:/i', '', $text);
+	// 	$text = preg_replace('/Lượt về:/i', '', $text);
+	// 	$text = preg_replace('/Outbound:/i', '', $text);
+	// 	$text = preg_replace('/Inbound:/i', '', $text);
 
-		$text = preg_replace('/Giá bán:.*?VND/i', '', $text);
-		$text = preg_replace('/Giá mua:.*?VND/i', '', $text);
-		$text = preg_replace('/Nhà cung cấp:.*?(\n|$)/i', '', $text);
+	// 	$text = preg_replace('/Thêm\s+/i', '+ ', $text);
 
-		$text = preg_replace('/Lượt đi:/i', '', $text);
-		$text = preg_replace('/Lượt về:/i', '', $text);
-		$text = preg_replace('/Outbound:/i', '', $text);
-		$text = preg_replace('/Inbound:/i', '', $text);
+	// 	$text = preg_replace('/\s+/', ' ', $text);
 
-		$text = preg_replace('/Thêm\s+/i', '+ ', $text);
+	// 	$text = trim($text);
 
-		$text = preg_replace('/\s+/', ' ', $text);
+	// 	return $text;
+	// }
 
-		$text = trim($text);
+	// function translateLuggageText($text, $lang)
+	// {
+	// 	if ($lang != 'en') {
+	// 		return $text;
+	// 	}
 
-		return $text;
-	}
+	// 	$translations = [
+	// 		'kiện' => 'piece',
+	// 		'Kiện' => 'Piece',
+	// 		'kg' => 'kg',
+	// 		'hành lý' => 'baggage',
+	// 		'Hành lý' => 'Baggage',
+	// 		'x' => 'x',
+	// 		'+' => '+'
+	// 	];
 
-	function translateLuggageText($text, $lang)
-	{
-		if ($lang != 'en') {
-			return $text;
-		}
+	// 	$translatedText = str_replace(array_keys($translations), array_values($translations), $text);
 
-		$translations = [
-			'kiện' => 'piece',
-			'Kiện' => 'Piece',
-			'kg' => 'kg',
-			'hành lý' => 'baggage',
-			'Hành lý' => 'Baggage',
-			'x' => 'x',
-			'+' => '+'
-		];
+	// 	return $translatedText;
+	// }
 
-		$translatedText = str_replace(array_keys($translations), array_values($translations), $text);
+	// function buildItineraryHTMLFromData($itinerariesData, $lang)
+	// {
+	// 	$html = '';
 
-		return $translatedText;
-	}
+	// 	if (empty($itinerariesData) || !is_array($itinerariesData)) {
+	// 		return '<tr><td colspan="5" style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">Không có hành trình</td></tr>';
+	// 	}
 
-	function buildItineraryHTMLFromData($itinerariesData, $lang)
-	{
-		$html = '';
+	// 	usort($itinerariesData, function ($a, $b) {
+	// 		$t1 = strtotime(str_replace('/', '-', $a['departureDate'] ?? ''));
+	// 		$t2 = strtotime(str_replace('/', '-', $b['departureDate'] ?? ''));
+	// 		return $t1 - $t2;
+	// 	});
 
-		if (empty($itinerariesData) || !is_array($itinerariesData)) {
-			return '<tr><td colspan="5" style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">Không có hành trình</td></tr>';
-		}
+	// 	foreach ($itinerariesData as $itinerary) {
 
-		usort($itinerariesData, function ($a, $b) {
-			$t1 = strtotime(str_replace('/', '-', $a['departureDate'] ?? ''));
-			$t2 = strtotime(str_replace('/', '-', $b['departureDate'] ?? ''));
-			return $t1 - $t2;
-		});
+	// 		$airlineCode = $itinerary['airlineCode'] ?? $itinerary['airline'] ?? '';
+	// 		$airline = myGetAirlineInfo2(trim($airlineCode), 'CODE');
+	// 		$airlineName = $airline['data'][0]['name'] ?? $itinerary['airline'];
 
-		foreach ($itinerariesData as $itinerary) {
+	// 		$departureCode = $itinerary['departure'] ?? '';
+	// 		$departure = myGetAirportInfo2(trim($departureCode));
+	// 		$departureName = ($departure['data'][0]['name'] ?? '') . ' (' . ($departure['data'][0]['code'] ?? $departureCode) . ')';
 
-			$airlineCode = $itinerary['airlineCode'] ?? $itinerary['airline'] ?? '';
-			$airline = myGetAirlineInfo2(trim($airlineCode), 'CODE');
-			$airlineName = $airline['data'][0]['name'] ?? $itinerary['airline'];
+	// 		$arrivalCode = $itinerary['arrival'] ?? '';
+	// 		$arrival = myGetAirportInfo2(trim($arrivalCode));
+	// 		$arrivalName = ($arrival['data'][0]['name'] ?? '') . ' (' . ($arrival['data'][0]['code'] ?? $arrivalCode) . ')';
 
-			$departureCode = $itinerary['departure'] ?? '';
-			$departure = myGetAirportInfo2(trim($departureCode));
-			$departureName = ($departure['data'][0]['name'] ?? '') . ' (' . ($departure['data'][0]['code'] ?? $departureCode) . ')';
+	// 		$departureDateTime = $itinerary['departureDate'] ?? '';
+	// 		$arrivalDateTime = $itinerary['arrivalDate'] ?? '';
 
-			$arrivalCode = $itinerary['arrival'] ?? '';
-			$arrival = myGetAirportInfo2(trim($arrivalCode));
-			$arrivalName = ($arrival['data'][0]['name'] ?? '') . ' (' . ($arrival['data'][0]['code'] ?? $arrivalCode) . ')';
+	// 		$dateDisplay = '';
+	// 		$timeRange = '';
 
-			$departureDateTime = $itinerary['departureDate'] ?? '';
-			$arrivalDateTime = $itinerary['arrivalDate'] ?? '';
+	// 		if (!empty($departureDateTime)) {
+	// 			$parts = explode(' ', $departureDateTime);
+	// 			if (isset($parts[0])) {
+	// 				$dateDisplay = str_replace('-', '/', $parts[0]);
+	// 			}
+	// 			if (isset($parts[1])) {
+	// 				$timeRange .= $parts[1];
+	// 			}
+	// 		}
 
-			$dateDisplay = '';
-			$timeRange = '';
+	// 		if (!empty($arrivalDateTime)) {
+	// 			$parts = explode(' ', $arrivalDateTime);
+	// 			if (isset($parts[1])) {
+	// 				if ($timeRange !== '')
+	// 					$timeRange .= ' - ';
+	// 				$timeRange .= $parts[1];
+	// 			}
+	// 		}
 
-			if (!empty($departureDateTime)) {
-				$parts = explode(' ', $departureDateTime);
-				if (isset($parts[0])) {
-					$dateDisplay = str_replace('-', '/', $parts[0]);
-				}
-				if (isset($parts[1])) {
-					$timeRange .= $parts[1];
-				}
-			}
+	// 		$flightDisplay = $dateDisplay;
+	// 		if ($timeRange !== '') {
+	// 			$flightDisplay .= '<br>' . $timeRange;
+	// 		}
 
-			if (!empty($arrivalDateTime)) {
-				$parts = explode(' ', $arrivalDateTime);
-				if (isset($parts[1])) {
-					if ($timeRange !== '')
-						$timeRange .= ' - ';
-					$timeRange .= $parts[1];
-				}
-			}
+	// 		$flightNumber = trim($itinerary['flightNumber']);
 
-			$flightDisplay = $dateDisplay;
-			if ($timeRange !== '') {
-				$flightDisplay .= '<br>' . $timeRange;
-			}
+	// 		$html .= '<tr>
+    //         <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . $flightDisplay . '</td>
+    //         <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($airlineName) . '</td>
+    //         <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($flightNumber) . '</td>
+    //         <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($departureName) . '</td>
+    //         <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($arrivalName) . '</td>
+    //     </tr>';
+	// 	}
 
-			$flightNumber = trim($itinerary['flightNumber']);
-
-			$html .= '<tr>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . $flightDisplay . '</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($airlineName) . '</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($flightNumber) . '</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($departureName) . '</td>
-            <td style="border:1px solid #ccc; padding: 10px 7px; text-align:center;">' . htmlspecialchars($arrivalName) . '</td>
-        </tr>';
-		}
-
-		return $html;
-	}
+	// 	return $html;
+	// }
 
 	// function populateContent($smartyobj, $lang, $khuhoi, $listPassengerIDs) {
 	// 	// Lấy danh sách, số lượng, thông tin hành khách
