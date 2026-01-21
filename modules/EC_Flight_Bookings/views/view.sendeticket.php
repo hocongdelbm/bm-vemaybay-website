@@ -128,7 +128,7 @@ class Viewsendeticket extends SugarView
 		if (!isset($_REQUEST['confirm_send']) || $_REQUEST['confirm_send'] != '1') {
 			echo '<html><head><meta charset="UTF-8"><title>Preview Email</title></head><body>';
 			echo '<div style="padding: 20px; background: #f5f5f5;">';
-			echo '<h2>Xem trước email gửi cho: ' . htmlspecialchars($contact_email) . '</h2>';
+			echo '<h4>Xem trước NỘI DUNG email gửi cho: ' . htmlspecialchars($contact_email) . '</h2>';
 			echo '<p><strong>Subject:</strong> ' . htmlspecialchars($subject) . '</p>';
 
 			echo '<form method="POST" action="" style="margin: 20px 0;">';
