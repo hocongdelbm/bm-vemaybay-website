@@ -219,8 +219,6 @@ $(document).ready(function () {
             itineraryIds: Object.keys(selectedItineraries).join(',')
         };
 
-        console.log('Send Data:', pendingPrintData);
-
         // Get booking info from first itinerary
         var firstItinerary = Object.values(selectedItineraries)[0];
         if (firstItinerary) {
@@ -287,8 +285,6 @@ $(document).ready(function () {
             console.error('No pending send data!');
             return;
         }
-
-        console.log('Submitting send form with language:', language);
 
         // Create form
         var form = $('<form>', {
