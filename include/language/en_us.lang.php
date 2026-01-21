@@ -810,7 +810,7 @@ $app_list_strings = array(
         'Pending' => 'Pending',
     ),
     'document_template_type_dom' => array(
-        '' => '',
+        '' => '--All--',
         'mailmerge' => 'Mail Merge',
         'eula' => 'EULA',
         'nda' => 'NDA',

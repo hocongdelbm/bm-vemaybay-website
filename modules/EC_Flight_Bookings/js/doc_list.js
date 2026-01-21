@@ -1,20 +1,27 @@
+if (typeof ENTRYPOINT === 'undefined') {
+    const ENTRYPOINT = 'index.php?entryPoint=entryPointGeneral';
+}
 function showUploadedDocuments(booking_id) {
     showLoadingPopup();
     
     $.ajax({
-        url: 'index.php',
+        url: ENTRYPOINT,
         type: 'POST',
-        data: {
-            entryPoint: 'ep_GetUploadedDocuments',
-            booking_id: booking_id
-        },
+        contentType: 'application/json',
         dataType: 'json',
+        data: JSON.stringify({
+            class: 'entryBookingClass',
+            method: 'getUploadedDocuments',
+            params: {
+                booking_id: booking_id
+            }
+        }),
         success: function (response) {
             hideLoadingPopup();
             
             if (response.success) {
-                renderDocumentPopup(response.data);
-                console.log('Tài liệu đã tải lên:', response.data);
+                renderDocumentPopup(response.documents);
+                console.log('Tài liệu đã tải lên:', response.documents);
             } else {
                 alert('Lỗi: ' + (response.error || 'Không thể tải dữ liệu'));
             }
@@ -23,7 +30,7 @@ function showUploadedDocuments(booking_id) {
             hideLoadingPopup();
             console.error('Lỗi kết nối: ' + error);
         }
-    });
+    })
 }
 
 function renderDocumentPopup(documents) {

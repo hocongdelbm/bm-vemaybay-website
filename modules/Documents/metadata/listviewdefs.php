@@ -48,6 +48,7 @@ $listViewDefs['Documents'] = array(
     'label' => 'LBL_BOOKING_NAME',
     'default' => true,
     'id' => 'BOOKING_ID',
+    'link' => true,
     'module' => 'EC_Flight_Bookings',
     'related_fields' => array(
         0 => 'booking_id' // Đảm bảo query luôn lấy booking_id kèm theo
@@ -84,13 +85,26 @@ $listViewDefs['Documents'] = array(
     'id' => 'ASSIGNED_USER_ID',
     'default' => false
   ),
+  'CREATED_BY_NAME' =>
+  array(
+    'width' => '10%',
+    'label' => 'LBL_CREATED_BY',
+    'module' => 'Users',
+    'id' => 'USERS_ID',
+    'default' => true,
+    'sortable' => false,
+    'related_fields' =>
+    array(
+      0 => 'created_by',
+    ),
+  ),
   'MODIFIED_BY_NAME' =>
   array(
     'width' => '10%',
     'label' => 'LBL_MODIFIED_USER',
     'module' => 'Users',
     'id' => 'USERS_ID',
-    'default' => false,
+    'default' => true,
     'sortable' => false,
     'related_fields' =>
     array(

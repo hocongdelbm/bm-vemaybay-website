@@ -5,8 +5,7 @@ $searchdefs['Documents'] =
     array(
       'basic_search' =>
       array(
-        0 => 'document_name',
-        1 => array('name' => 'favorites_only', 'label' => 'LBL_FAVORITES_FILTER', 'type' => 'bool',),
+        0 => 'document_name'
       ),
       'advanced_search' =>
       array(
@@ -16,19 +15,54 @@ $searchdefs['Documents'] =
           'default' => true,
           'width' => '10%',
         ),
-        'status' =>
-        array(
-          'type' => 'varchar',
-          'label' => 'LBL_DOC_STATUS',
-          'width' => '10%',
-          'default' => true,
-          'name' => 'status',
-        ),
         'active_date' =>
         array(
           'name' => 'active_date',
           'default' => true,
           'width' => '10%',
+        ),
+        'exp_date' =>
+        array(
+          'name' => 'exp_date',
+          'default' => true,
+          'width' => '10%',
+        ),
+        
+        'booking_name' =>
+        array(
+          'type' => 'relate',
+          'studio' => 'visible',
+          'label' => 'LBL_BOOKING_NAME',
+          'width' => '10%',
+          'default' => true,
+          'name' => 'booking_name',
+          'displayParams' =>
+          array(
+            'field' =>
+            array(
+              'readonly' => 'readonly',
+              'style' => 'background-color: #f0f0f0;',
+            ),
+          ),
+        ),
+
+        'status_id' => array(
+          'name' => 'status_id',
+          'type' => 'enum',
+          'label' => 'LBL_DOC_STATUS',
+          'width' => '10%',
+          'default' => true,
+          'options' => 'document_status_dom',
+        ),
+
+
+        'template_type' =>
+        array(
+          'type' => 'enum',
+          'label' => 'LBL_TEMPLATE_TYPE',
+          'width' => '10%',
+          'default' => true,
+          'name' => 'template_type',
         ),
         'category_id' =>
         array(
@@ -42,14 +76,9 @@ $searchdefs['Documents'] =
           'default' => true,
           'width' => '10%',
         ),
-        'template_type' =>
-        array(
-          'type' => 'enum',
-          'label' => 'LBL_TEMPLATE_TYPE',
-          'width' => '10%',
-          'default' => true,
-          'name' => 'template_type',
-        ),
+
+
+
         // 'assigned_user_id' =>
         // array(
         //   'name' => 'assigned_user_id',
@@ -66,12 +95,6 @@ $searchdefs['Documents'] =
         //   'default' => true,
         //   'width' => '10%',
         // ),
-        'exp_date' =>
-        array(
-          'name' => 'exp_date',
-          'default' => true,
-          'width' => '10%',
-        ),
       ),
     ),
     'templateMeta' =>

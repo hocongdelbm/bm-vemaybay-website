@@ -449,6 +449,7 @@ $dictionary['Document'] = array(
     ),
     'indices' => array(
         array('name' => 'idx_doc_cat', 'type' => 'index', 'fields' => array('category_id', 'subcategory_id')),
+        array('name' => 'idx_fbk_id', 'type' => 'index', 'fields' => array('booking_id', 'deleted')),
     ),
     'relationships' => array(
         'document_revisions' => array(
