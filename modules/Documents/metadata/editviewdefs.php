@@ -68,9 +68,9 @@ $viewdefs['Documents'] =
               'name' => 'preview_image',
               'label' => 'LBL_PREVIEW_PHOTO',
               'customCode' => '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd;">' .
-                              '<img id="file-preview-image" src="{$PREVIEW_IMAGE_URL}" style="max-width:300px; max-height:300px; {if !$HAS_PREVIEW_IMAGE}display:none;{/if}"/>' .
-                              '<div id="file-preview-text" style="color: #999; {if $HAS_PREVIEW_IMAGE}display:none;{/if}">Chưa chọn file</div>' .
-                              '</div>' ,
+                '<img id="file-preview-image" src="{$PREVIEW_IMAGE_URL}" style="max-width:300px; max-height:300px; {if !$HAS_PREVIEW_IMAGE}display:none;{/if}"/>' .
+                '<div id="file-preview-text" style="color: #999; {if $HAS_PREVIEW_IMAGE}display:none;{/if}">Chưa chọn file</div>' .
+                '</div>',
             ),
           ),
           array(

@@ -5,7 +5,24 @@ $searchdefs['Documents'] =
     array(
       'basic_search' =>
       array(
-        0 => 'document_name'
+        0 => 'document_name',
+        1 => 
+        array(
+          'name' => 'booking_name',
+          'label' => 'LBL_BOOKING_NAME',
+          'type' => 'relate',
+          'default' => true,
+          'width' => '10%',
+          'displayParams' =>
+          array(
+            'field' =>
+            array(
+              'readonly' => 'readonly',
+              'style' => 'background-color: #f0f0f0;',
+            ),
+          ),
+        ),
+        2 => 'active_date',
       ),
       'advanced_search' =>
       array(
@@ -70,12 +87,12 @@ $searchdefs['Documents'] =
           'default' => true,
           'width' => '10%',
         ),
-        'subcategory_id' =>
-        array(
-          'name' => 'subcategory_id',
-          'default' => true,
-          'width' => '10%',
-        ),
+        // 'subcategory_id' =>
+        // array(
+        //   'name' => 'subcategory_id',
+        //   'default' => true,
+        //   'width' => '10%',
+        // ),
 
 
 

@@ -69,6 +69,7 @@ class DocumentsViewDetail extends ViewDetail
 
         $this->populateCustomCode();
         parent::display();
+        $this->getScripts();
     }
 
     private function populateCustomCode()
@@ -77,13 +78,21 @@ class DocumentsViewDetail extends ViewDetail
         if (!empty($this->bean->preview_image)) {
             // Sử dụng ID của Document record, không phải revision_id
             $preview_html = '<div class="preview-photo-container">
-                <img src="index.php?entryPoint=download&id=' . $this->bean->id . '_preview_image&type=Documents"
-                    style="max-width: 70%; max-height: 300px; object-fit: contain;"
+                <img id="previewImage" src="index.php?entryPoint=download&id=' . $this->bean->id . '_preview_image&type=Documents"
+                    style="max-width: 70%; max-height: 300px; object-fit: contain; cursor: zoom-in;"
                     alt="Preview Photo">
             </div>';
         } else {
             $preview_html = '<div class="no-preview-photo" style="color:#999;">Không có ảnh preview</div>';
         }
         $this->ss->assign('PREVIEW_IMAGE_HTML', $preview_html);
+    }
+    //Load ViewerJS scripts (for zoom image)
+    private function getScripts() {
+        echo '
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
+            <script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.0.0">
+        ';
     }
 }

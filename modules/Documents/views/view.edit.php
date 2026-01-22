@@ -197,6 +197,7 @@ class DocumentsViewEdit extends ViewEdit
         }
 
         parent::display();
+        $this->getScripts();
     }
 
     /**
@@ -215,6 +216,4 @@ class DocumentsViewEdit extends ViewEdit
 
         return $params;
     }
-
-
 }

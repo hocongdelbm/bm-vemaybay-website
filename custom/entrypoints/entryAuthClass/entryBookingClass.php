@@ -47,11 +47,10 @@ class entryBookingClass extends entryClass
         $booking_id = $params['booking_id'] ?? '';
 
         if (empty($booking_id) || $booking_id == '') {
-            echo json_encode([
+            return json_encode([
                 'success' => false,
-                'error' => 'Missing booking_id'
+                'message' => 'Booking ID không hợp lệ'
             ]);
-            exit;
         }
 
         global $db, $app_list_strings;
@@ -91,11 +90,9 @@ class entryBookingClass extends entryClass
                 'revision_id' => $row['revision_id']
             ];
         }
-        echo json_encode([
+        return json_encode([
             'success' => true,
-            'documents' => $documents,
-            'total' => count($documents)
+            'documents' => $documents
         ]);
-        exit;
     }
 }

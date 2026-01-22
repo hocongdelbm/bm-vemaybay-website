@@ -51,9 +51,11 @@ $listViewDefs['Documents'] = array(
     'link' => true,
     'module' => 'EC_Flight_Bookings',
     'related_fields' => array(
-        0 => 'booking_id' // Đảm bảo query luôn lấy booking_id kèm theo
+      0 => 'booking_id' // Đảm bảo query luôn lấy booking_id kèm theo
     ),
   ),
+
+
   'SUBCATEGORY_ID' =>
   array(
     'width' => '15%',
@@ -77,39 +79,27 @@ $listViewDefs['Documents'] = array(
     'label' => 'LBL_LIST_EXP_DATE',
     'default' => false,
   ),
-  'ASSIGNED_USER_NAME' =>
-  array(
-    'width' => '10',
-    'label' => 'LBL_LIST_ASSIGNED_USER',
-    'module' => 'Employees',
-    'id' => 'ASSIGNED_USER_ID',
-    'default' => false
-  ),
-  'CREATED_BY_NAME' =>
+
+  'ASSIGNED_USER_ID' =>
   array(
     'width' => '10%',
-    'label' => 'LBL_CREATED_BY',
-    'module' => 'Users',
-    'id' => 'USERS_ID',
-    'default' => true,
-    'sortable' => false,
-    'related_fields' =>
-    array(
-      0 => 'created_by',
-    ),
+    'label' => 'LBL_ASSIGNED_TO',
+    'default' => false,
   ),
-  'MODIFIED_BY_NAME' =>
-  array(
-    'width' => '10%',
-    'label' => 'LBL_MODIFIED_USER',
-    'module' => 'Users',
-    'id' => 'USERS_ID',
+  // 'ASSIGNED_USER_NAME' =>
+  // array(
+  //   'width' => '10%',
+  //   'label' => 'LBL_ASSIGNED_TO',
+  //   'module' => 'Employees',
+  //   'id' => 'ASSIGNED_USER_ID',
+  //   'default' => true,
+  //   'related_fields' => array('assigned_user_id'),
+  // ),
+
+  'ASSIGNED_USER_NAME' => array(
+    'width' => '9%',
+    'label' => 'LBL_ASSIGNED_TO_NAME',
     'default' => true,
-    'sortable' => false,
-    'related_fields' =>
-    array(
-      0 => 'modified_user_id',
-    ),
   ),
   'DATE_ENTERED' => array(
     'width' => '10%',
