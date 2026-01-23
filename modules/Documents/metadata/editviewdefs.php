@@ -72,6 +72,10 @@ $viewdefs['Documents'] =
                 '<div id="file-preview-text" style="color: #999; {if $HAS_PREVIEW_IMAGE}display:none;{/if}">Chưa chọn file</div>' .
                 '</div>',
             ),
+            1 =>
+            array(
+              'name' => 'description',
+            ),
           ),
           array(
             0 => 'document_name',
@@ -102,12 +106,7 @@ $viewdefs['Documents'] =
             1 => 'subcategory_id',
           ),
           array(
-            array(
-              'name' => 'description',
-            ),
-          ),
-          array(
-            array(
+            0 => array(
               'name' => 'booking_id',
               'label' => 'LBL_BOOKING_NAME',
               'customCode' => '<div class="flex-start">
@@ -130,13 +129,11 @@ $viewdefs['Documents'] =
                                         onclick=\'open_popup("EC_Flight_Bookings", 600, 400, "", true, false, {$encoded_booking_popup_data}, "single", true);\'/>
                               </div>',
             ),
-          ),
-          array(
-            array(
+            1 => array(
               'name' => 'related_doc_name',
               'customCode' => '<div class="flex-start"><input name="related_document_name" type="text" size="30" maxlength="255" value="{$RELATED_DOCUMENT_NAME}" readonly><input name="related_doc_id" type="hidden" value="{$fields.related_doc_id.value}"/><input title="{$APP.LBL_SELECT_BUTTON_TITLE}" type="{$RELATED_DOCUMENT_BUTTON_AVAILABILITY}" class="btn btn-primary" value="{$APP.LBL_SELECT_BUTTON_LABEL}" name="btn2" onclick=\'open_popup("Documents", 600, 400, "", true, false, {$encoded_document_popup_request_data}, "single", true);\'/></div>',
             ),
-            array(
+            2 => array(
               'name' => 'related_doc_rev_number',
               'customCode' => '<select name="related_doc_rev_id" id="related_doc_rev_id" {$RELATED_DOCUMENT_REVISION_DISABLED}>{$RELATED_DOCUMENT_REVISION_OPTIONS}</select>',
             ),

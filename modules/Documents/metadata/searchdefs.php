@@ -6,7 +6,7 @@ $searchdefs['Documents'] =
       'basic_search' =>
       array(
         0 => 'document_name',
-        1 => 
+        1 =>
         array(
           'name' => 'booking_name',
           'label' => 'LBL_BOOKING_NAME',
@@ -32,19 +32,6 @@ $searchdefs['Documents'] =
           'default' => true,
           'width' => '10%',
         ),
-        'active_date' =>
-        array(
-          'name' => 'active_date',
-          'default' => true,
-          'width' => '10%',
-        ),
-        'exp_date' =>
-        array(
-          'name' => 'exp_date',
-          'default' => true,
-          'width' => '10%',
-        ),
-        
         'booking_name' =>
         array(
           'type' => 'relate',
@@ -62,6 +49,12 @@ $searchdefs['Documents'] =
             ),
           ),
         ),
+        'active_date' =>
+        array(
+          'name' => 'active_date',
+          'default' => true,
+          'width' => '10%',
+        ),
 
         'status_id' => array(
           'name' => 'status_id',
@@ -71,7 +64,6 @@ $searchdefs['Documents'] =
           'default' => true,
           'options' => 'document_status_dom',
         ),
-
 
         'template_type' =>
         array(
