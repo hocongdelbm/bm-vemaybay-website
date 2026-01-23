@@ -63,12 +63,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$VIEWED_BOOKING}',
                 ),
-                array(
-                    'customCode' => '{$DOC_BUTTON}',
-                ),
-                array(
-                    'customCode' => '{$DOC_LIST_BUTTON}',
-                ),
             )
         ),
         'maxColumns' => '2',
@@ -210,6 +204,16 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'name' => 'transaction_history',
                     'label' => 'LBL_TRANSACTION_HISTORY',
                     'customCode' => '{$CUSTOM_TRANSACTION_HISTORY}',
+                ),
+            ),
+
+            array(
+                array(),
+
+                array(
+                    'name' => 'documents',
+                    'label' => 'LBL_DOCUMENTS',
+                    'customCode' => '{$DOC_BUTTON} {$DOC_LIST_BUTTON}',
                 ),
             ),
 
