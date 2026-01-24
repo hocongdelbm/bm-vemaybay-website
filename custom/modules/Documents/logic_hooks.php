@@ -4,6 +4,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 }
 
 $hook_array = array();
+
 $hook_array['before_save'] = array();
 $hook_array['before_save'][] = array(
     1,
@@ -11,4 +12,31 @@ $hook_array['before_save'][] = array(
     'custom/modules/Documents/AssignToCreator.php',
     'AssignToCreator',
     'assign'
+);
+
+$hook_array['after_save'] = array();
+$hook_array['after_save'][] = array(
+    1,
+    'Upload document to NextCloud',
+    'custom/modules/Documents/NextCloudUpload.php',
+    'NextCloudUpload',
+    'handleUpload'
+);
+
+$hook_array['before_delete'] = array();
+$hook_array['before_delete'][] = array(
+    1,
+    'Move document to trash on NextCloud',
+    'custom/modules/Documents/NextCloudUpload.php',
+    'NextCloudUpload',
+    'handleDelete'
+);
+
+$hook_array['after_delete'] = array();
+$hook_array['after_delete'][] = array(
+    1,
+    'Move document to trash on NextCloud',
+    'custom/modules/Documents/NextCloudUpload.php',
+    'NextCloudUpload',
+    'handleDeleteCleanup'
 );

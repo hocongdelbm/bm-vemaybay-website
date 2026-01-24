@@ -527,7 +527,7 @@ $app_list_strings = array(
         'Pending' => 'Trì hoãn',
         'Rejected' => 'Đã từ chối',
     ),
-    
+
     'bug_priority_default_key' => 'Trung bình',
     'bug_priority_dom' => array(
         'Urgent' => 'Khẩn cấp',

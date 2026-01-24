@@ -357,6 +357,76 @@ class DocumentRevision extends SugarBean
         }
         return parent::bean_implements($interface);
     }
+    
+    /**
+     * Override deleteFiles() to PREVENT moving files to deleted folder
+     * All files are stored on NextCloud - no need for local storage
+     * This directly deletes files instead of moving to deleted/
+     * 
+     * @return bool
+     */
+    public function deleteFiles()
+    {
+        $GLOBALS['log']->info("[OVERRIDE-deleteFiles-Revision] Revision ID: {$this->id} - Deleting files directly (NOT moving to deleted/)");
+        
+        try {
+            if (!$this->id || !$this->haveFiles()) {
+                $GLOBALS['log']->info("[OVERRIDE-deleteFiles-Revision] No files to delete");
+                return true;
+            }
+            
+            $files = $this->getFiles();
+            if (empty($files)) {
+                $GLOBALS['log']->info("[OVERRIDE-deleteFiles-Revision] getFiles() returned empty");
+                return true;
+            }
+            
+            $GLOBALS['log']->info("[OVERRIDE-deleteFiles-Revision] Files to delete: " . json_encode($files));
+            
+            $deletedCount = 0;
+            foreach ($files as $fileId) {
+                // Xóa file chính
+                $uploadPath = "upload://{$fileId}";
+                if (file_exists($uploadPath)) {
+                    if (@unlink($uploadPath)) {
+                        $deletedCount++;
+                        $GLOBALS['log']->info("[OVERRIDE-deleteFiles-Revision] ✓ DELETED: {$uploadPath}");
+                    } else {
+                        $GLOBALS['log']->warn("[OVERRIDE-deleteFiles-Revision] ✗ Failed to delete: {$uploadPath}");
+                    }
+                }
+                
+                // Xóa preview image nếu có
+                $previewPath = "upload://{$fileId}_preview_image";
+                if (file_exists($previewPath)) {
+                    if (@unlink($previewPath)) {
+                        $deletedCount++;
+                        $GLOBALS['log']->info("[OVERRIDE-deleteFiles-Revision] ✓ DELETED preview: {$previewPath}");
+                    }
+                }
+            }
+            
+            $GLOBALS['log']->info("[OVERRIDE-deleteFiles-Revision] Completed - Deleted {$deletedCount} files directly, skipped deleted/ folder");
+            
+            // Return true - KHÔNG insert vào cron_remove_documents
+            return true;
+            
+        } catch (Exception $e) {
+            $GLOBALS['log']->error("[OVERRIDE-deleteFiles-Revision] Exception: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Override restoreFiles() for consistency
+     * 
+     * @return bool
+     */
+    public function restoreFiles()
+    {
+        $GLOBALS['log']->info("[OVERRIDE-restoreFiles-Revision] Revision ID: {$this->id} - Cannot restore (files stored on NextCloud only)");
+        return true;
+    }
 }
 
 require_once('modules/Documents/DocumentExternalApiDropDown.php');

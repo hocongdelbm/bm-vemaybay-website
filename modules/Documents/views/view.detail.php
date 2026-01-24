@@ -74,13 +74,20 @@ class DocumentsViewDetail extends ViewDetail
 
     private function populateCustomCode()
     {
+        global $sugar_config;
+        
         $preview_html = '';
         if (!empty($this->bean->preview_image)) {
-            // Sử dụng ID của Document record, không phải revision_id
+            // Lấy URL từ NextCloud thay vì local file
+            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/');
+            $remoteFileName = 'bmvmb/modules/documents/preview-images/' . $this->bean->id . '_preview_image';
+            $previewUrl = $endpoint . '/' . rawurlencode($remoteFileName);
+            
             $preview_html = '<div class="preview-photo-container">
-                <img id="previewImage" src="index.php?entryPoint=download&id=' . $this->bean->id . '_preview_image&type=Documents"
+                <img id="previewImage" src="' . $previewUrl . '"
                     style="max-width: 70%; max-height: 300px; object-fit: contain; cursor: zoom-in;"
-                    alt="Preview Photo">
+                    alt="Preview Photo"
+                    onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh preview</div>\';">
             </div>';
         } else {
             $preview_html = '<div class="no-preview-photo" style="color:#999;">Không có ảnh preview</div>';
