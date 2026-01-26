@@ -102,7 +102,7 @@
                                     <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 900px; padding: 0 5px 10px;font-size: 14px;" width="900">
                                         <thead>
                                             <tr>
-                                                <th width="35%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">EXTRA BAGGAGE</th>
+                                                <th width="35%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">NAME</th>
                                                 <th width="20%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">BOOKING CODE</th>
                                                 <th width="45%" align="left" style="font-weight:bold;border:1px solid #ccc; padding: 10px 7px;text-align:center;">EXTRA BAGGAGE</th>
                                             </tr>
