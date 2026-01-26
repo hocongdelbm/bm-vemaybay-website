@@ -213,7 +213,7 @@ class EC_Flight_Bookings extends Basic {
 			}
 
 			$list_user_kt = [
-				'37cd4853-721c-9808-af64-5600c8835d03', //Kế toán chịu trách nhiệm xuất hóa đơn - ngandtk
+				'72ece22c-cb25-8e30-9dea-56f2201cd359', //Kế toán chịu trách nhiệm xuất hóa đơn - trangbtq
 			];
 			$alertData = [
 				'name' 			=> $user_inv,
@@ -224,8 +224,8 @@ class EC_Flight_Bookings extends Basic {
 				'priority' 		=> 'low',
 				'type' 			=> 'readonly',
 			];
-			$alert 		= new Alert();
-			$alertId 	= $alert->autoCreateAlert('EC_Flight_Bookings', $list_user_kt, $alertData);
+			$alert = new Alert();
+			$alertId = $alert->autoCreateAlert('EC_Flight_Bookings', $list_user_kt, $alertData);
 		} 
 
 		// Begin save working process for delivery man
@@ -359,8 +359,7 @@ class EC_Flight_Bookings extends Basic {
 		}
 	}
 
-	function saveLineDetails()
-	{
+	function saveLineDetails() {
 		global $app_list_strings;
 
 		$row_count = count($_POST['bkd_quantity']);
@@ -418,12 +417,9 @@ class EC_Flight_Bookings extends Basic {
 	
 	/**
 	 * Save passengers info
-	 * @return 
+	 * @return
 	 */
 	public function saveLinePassengers() {
-		$bk = new EC_Flight_Bookings;
-		$bk->retrieve($this->id);
-
 		$row_count = count($_POST['psg_id']);
 		for ($i = 0; $i < $row_count; $i++) {
 			$psg = new EC_Booking_Passengers();
@@ -491,54 +487,68 @@ class EC_Flight_Bookings extends Basic {
 			}
 		}
 
-		// Khi booking ở trạng thái xác nhận
-		// Kiểm tra nếu có dù chỉ 1 số vé cũng chuyển sang trạng thái đã xuất vé
-		// Sau khi chuyển sang trạng thái đã xuất vé thì cập nhật trạng thái trong bảng ec_customer - info_data
+		// Khi booking ở trạng thái Xác nhận, kiểm tra đủ số vé mới chuyển sang trạng thái Xuất vé
 		if ((int)$this->booking_status === 3) {
 			$booking = new EC_Flight_Bookings;
 			$booking->retrieve($this->id);
-
+			$isAllowedUser = isAllowedUser();
+			
+			$is_ticket_exported = $is_ticket_inbound_exported = false;
+			$is_ticket_exported_fully = $is_ticket_inbound_exported_fully = true;
 			for ($i = 0; $i < $row_count; $i++) {
-				if (!empty($_POST['psg_eticket_outbound'][$i])) {
-					$booking->is_ticket_exported = '1';
-					if (empty($booking->date_ticket_issue)) {
-						$booking->date_ticket_issue = date("d-m-Y");
-					} else {
-						if (isAllowedUser()) {
-							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
-						}
+				// Lượt đi
+				$psg_eticket_outbound = $_POST['psg_eticket_outbound'][$i] ?? '';
+				if (!empty($psg_eticket_outbound)) {
+					$is_ticket_exported = true;
+				}
+				else {
+					$is_ticket_exported_fully = false;
+				}
+
+				// Lượt về
+				if($booking->flight_type === '0') {
+					$psg_eticket_inbound = $_POST['psg_eticket_inbound'][$i] ?? '';
+					if (!empty($psg_eticket_inbound)) {
+						$is_ticket_inbound_exported = true;
 					}
-					break;
-				} else {
-					$booking->is_ticket_exported = '0';
-					$booking->date_ticket_issue = '';
+					else {
+						$is_ticket_inbound_exported_fully = false;
+					}
 				}
 			}
-
-			for ($i = 0; $i < $row_count; $i++) {
-				if (!empty($_POST['psg_eticket_inbound'][$i])) {
-					$booking->is_ticket_inbound_exported = '1';
-					if (empty($booking->date_ticket_inbound_issue)) {
-						$booking->date_ticket_inbound_issue = date("d-m-Y");
-					} else {
-						if (isAllowedUser()) {
-							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
-						}
-					}
-					break;
-				} else {
-					$booking->is_ticket_inbound_exported = '0';
-					$booking->date_ticket_inbound_issue = '';
-				}
+			if($booking->flight_type === '1') {
+				$is_ticket_inbound_exported = false;
+				$is_ticket_inbound_exported_fully = false;
 			}
-
-			if (!empty($booking->is_ticket_exported) || !empty($booking->is_ticket_inbound_exported)) {
+			
+			// Cập nhật thông tin xuất vé lượt đi
+			$booking->is_ticket_exported = $is_ticket_exported;
+			if($is_ticket_exported) {
+				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("d-m-Y");
+				if ($isAllowedUser) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
+			}
+			else {
+				$booking->date_ticket_issue = '';
+			}
+			
+			// Cập nhật thông tin xuất vé lượt về
+			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
+			if ($is_ticket_inbound_exported) {
+				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("d-m-Y");
+				if ($isAllowedUser) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+			}
+			else {
+				$booking->date_ticket_inbound_issue = '';
+			}
+			
+			// Cập nhật tình trạng
+			if(($booking->flight_type === '1' && $is_ticket_exported_fully)
+				|| ($booking->flight_type === '0' && $is_ticket_exported_fully && $is_ticket_inbound_exported_fully)
+			) {
 				$booking->booking_status = '7';
 			}
+			
 			$booking->save2();
-
-			// Cập nhật trạng thái trong ec_customer
-			// UpdateInforBookingOfCustomer($this->id);
 		}
 	}
 
@@ -1635,9 +1645,6 @@ class EC_Flight_Bookings extends Basic {
 				$booking->booking_status = '7';
 			}
 			$booking->save2();
-
-			// Cập nhật trạng thái trong ec_customer
-			// UpdateInforBookingOfCustomer($this->id);
 		}
 	}
 
