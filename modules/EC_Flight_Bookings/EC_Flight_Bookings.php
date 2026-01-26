@@ -417,7 +417,7 @@ class EC_Flight_Bookings extends Basic {
 	
 	/**
 	 * Save passengers info
-	 * @return
+	 * @return void
 	 */
 	public function saveLinePassengers() {
 		$row_count = count($_POST['psg_id']);
