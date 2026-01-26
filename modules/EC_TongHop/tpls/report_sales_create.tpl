@@ -438,62 +438,12 @@
 				class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ"
 				title="Hủy bỏ" />
 		</div>
+
+		<ul class="bookingqtyreport-note m-0">
+			<li class="fst-italic"><i>Lưu ý:</i> Doanh số lấy theo ngày tạo của booking. Booking đã hoàn tất</li>
+			<li class="fst-italic">Doanh số Vé Quốc tế đã bao gồm trong cái Tổng</li>
+		</ul>
 	</form>
-
-	<div class="bookingqtyreport-note">
-		<span class="fw-bold fst-italic">Lưu ý:</span>
-		<span class="form-label ms-2">Doanh số Vé Quốc tế đã bao gồm trong cái Tổng | Doanh số lấy theo ngày tạo của booking</span>
-	</div>
-
-	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3 d-none" cellpadding="0" cellspacing="0">
-		<thead>
-			<tr class="text-nowrap">
-				<th rowspan="2" style="width: 10%;">Trang web</th>
-				<th colspan="4" style="width: 12%;">Doanh số</th>
-				<th rowspan="2" colspan="2" style="width: 5%;">Tổng BK</th>
-				<th rowspan="2" style="width: 5%;">Booker đặt</th>
-				<th rowspan="2" style="width: 5%;">KH đặt</th>
-				<th rowspan="2" style="width: 5%;">Tham khảo</th>
-
-				<th colspan="2" style="width: 8%; background-color: #068FFF; color: #fff">Cuộc gọi</th>
-
-				<th colspan="3" style="width: 5%;">BK Vé cận</th>
-				<th colspan="3" style="width: 5%;">BK dưới 3 vé</th>
-				<th colspan="3" style="width: 5%;">BK 4-8 vé</th>
-				<th colspan="3" style="width: 8%; background-color: #8BE8E5;">BK Quốc tế</th>
-				<th colspan="2" style="width: 8%; background-color: #E94560; color: #fff">Hủy</th>
-			</tr>
-			<tr class="text-nowrap">
-				<th colspan="2" style="width: 7%;">Số tiền</th>
-				<th style="width: 3%;">Vé</th>
-				<th style="width: 3%;">BK OK</th>
-
-				<th style="width: 3%; background-color: #068FFF; color: #fff">Gọi đến /<br> Tạo BK</th>
-				<th style="width: 4%; background-color: #068FFF; color: #fff">Gọi nhỡ</th>
-
-				<!-- vé cận -->
-				<th style="width: 3%;">BK</th>
-				<th colspan="2" style="width: 4%;">DS</th>
-
-				<!-- bk 3 vé -->
-				<th style="width: 3%;">BK</th>
-				<th colspan="2" style="width: 4%;">DS</th>
-
-				<!-- bk 4-8 vé -->
-				<th style="width: 3%;">BK</th>
-				<th colspan="2" style="width: 4%;">DS</th>
-
-				<!-- INTER -->
-				<th style="width: 3%; background-color: #8BE8E5;">BK</th>
-				<th colspan="2" style="width: 4%; background-color: #8BE8E5;">DS</th>
-
-                <!-- Hủy -->
-				<th style="width: 3%; background-color: #E94560; color: #fff;">SL</th>
-				<th style="width: 4%; background-color: #E94560; color: #fff;">%</th>
-			</tr>
-		</thead>
-		{$rpt_body}
-	</table>
 
 	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3" cellpadding="0" cellspacing="0">
 		<thead>
@@ -511,11 +461,9 @@
 				<th colspan="3" style="width: 5%;">BK dưới 3 vé</th>
 				<th colspan="3" style="width: 5%;">BK 4-8 vé</th>
 				<th colspan="3" style="width: 8%; background-color: #8BE8E5;">BK Quốc tế</th>
-	
-				<th colspan="2" style="width: 8%; background-color: #E94560; color: #fff">Hủy</th>
 			</tr>
 			<tr class="text-nowrap">
-				<th colspan="2" style="width: 7%;">Số tiền</th>
+				<th colspan="2" style="width: 5%;">Số tiền</th>
 				<th style="width: 3%;">Vé</th>
 				<th style="width: 3%;">BK OK</th>
 	
@@ -537,10 +485,6 @@
 				<!-- INTER -->
 				<th style="width: 3%; background-color: #8BE8E5;">BK</th>
 				<th colspan="2" style="width: 4%; background-color: #8BE8E5;">DS</th>
-	
-                <!-- Hủy -->
-				<th style="width: 3%; background-color: #E94560; color: #fff;">SL</th>
-				<th style="width: 4%; background-color: #E94560; color: #fff;">%</th>
 			</tr>
 		</thead>
         <tbody>
