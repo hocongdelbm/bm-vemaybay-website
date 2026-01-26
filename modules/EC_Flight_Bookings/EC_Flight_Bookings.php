@@ -944,95 +944,6 @@ class EC_Flight_Bookings extends Basic {
 		return $this->db->getOne($sql);
 	}
 
-	// public function saveInforCustomer($journey_from_to) {
-	// 	global $db;
-
-	// 	// Kiểm tra customer có tồn tại trong bảng ec_customer hay chưa dựa trên thông tin từ bảng ec_flight_bookings
-	// 	$sql_check_customer = '
-	// 		SELECT IF(COUNT(c.phone) > 0, 1, 0)
-	// 		FROM ec_customer c
-	// 		WHERE c.phone = "' . $this->phone . '"';
-
-	// 	$count_customer = $db->getOne($sql_check_customer);
-	// 	$cus 		 = new EC_Customer;
-
-	// 	if (isset($journey_from_to) && !empty($journey_from_to)) {
-	// 		$journey 	= $journey_from_to;
-	// 	} else {
-	// 		$journey_array = journeyOfBooking($this->id);
-	// 		$journey 		= $journey_array["departure"] . ' - ' . $journey_array["arrival"];
-	// 	}
-
-	// 	if (!$count_customer) {
-	// 		// TẠO KHÁCH HÀNG MỚI
-	// 		$cus->name 	 = $this->contact_name;
-	// 		$cus->phone  = $this->phone;
-	// 		$cus->email  = $this->email;
-	// 		$cus->gender = $this->contact_title;
-	// 		$cus->type 	 = 'NEW';
-
-	// 		// LƯU THÔNG TIN BOOKING CỦA KHÁCH HÀNG MỚI
-	// 		$booking_list = array();
-	// 		$booking_list[$this->id] = array(
-	// 			'booking_number'			=> $this->name,
-	// 			'booking_status' 			=> $this->booking_status,
-	// 			'booking_date' 				=> $this->date_entered,
-	// 			'booking_quantity' 			=> $this->total_qty,
-	// 			'journey'					=> $journey,
-	// 			'customer_name' 			=> trim(stripslashes($this->contact_name)),
-	// 			'customer_email' 			=> $this->email,
-	// 			'customer_price_total' 		=> unformat_number($this->total_amount),
-	// 			'customer_price_revenue' 	=> calculateBKTotalAmt($this->id),
-	// 			'customer_ip' 				=> $this->ip_address,
-	// 		);
-
-	// 		$cus->info_data	= json_encode($booking_list);
-	// 		$cus->save();
-	// 	} else {
-	// 		// get booking_list hiện có của KH đó
-	// 		$sql_get_booking_info = '
-	// 		SELECT c.info_data
-	// 		FROM ec_customer c
-	// 		WHERE c.phone = "' . $this->phone . '"';
-	// 		$current_booking = $db->getOne($sql_get_booking_info);
-
-	// 		// convert booking_list hiện có thành array
-	// 		$current_booking_array 	= json_decode(html_entity_decode($current_booking), true);
-
-	// 		// Khi booking thay đổi thông tin thì tiến hành cập nhật booking này bên bảng ec_customer
-	// 		if (isset($current_booking_array[$this->id])) {
-	// 			$current_booking_array[$this->id]['booking_status'] 		= $this->booking_status;
-	// 			$current_booking_array[$this->id]['booking_quantity'] 		= $this->total_qty;
-	// 			$current_booking_array[$this->id]['customer_name'] 		= $this->contact_name;
-	// 			$current_booking_array[$this->id]['customer_email'] 		= $this->email;
-	// 			$current_booking_array[$this->id]['journey'] 			= $journey;
-	// 			$current_booking_array[$this->id]['customer_price_total'] 	= unformat_number($this->total_amount);
-	// 			$current_booking_array[$this->id]['customer_price_revenue'] = calculateBKTotalAmt($this->id);
-	// 		} else {
-	// 			$current_booking_array[$this->id] = array(
-	// 				'booking_number'		=> $this->name,
-	// 				'booking_status' 		=> $this->booking_status,
-	// 				'booking_date' 			=> $this->date_entered,
-	// 				'booking_quantity' 		=> $this->total_qty,
-	// 				'journey'				=> $journey,
-	// 				'customer_name' 		=> trim(stripslashes($this->contact_name)),
-	// 				'customer_email' 		=> $this->email,
-	// 				'customer_price_total' 	=> unformat_number($this->total_amount),
-	// 				'customer_price_revenue' => calculateBKTotalAmt($this->id),
-	// 				'customer_ip' 			=> $this->ip_address,
-	// 			);
-	// 		}
-
-	// 		// Cập nhật field info_data
-	// 		$updated_booking_data  = json_encode($current_booking_array);
-	// 		$sql_update_booking = '
-	// 			UPDATE ec_customer c
-	// 			SET c.type = "' . getCustomerType($this->phone) . '" , info_data = \'' . $updated_booking_data . '\'
-	// 			WHERE c.phone = "' . $this->phone . '" AND c.deleted = 0';
-	// 		$db->query($sql_update_booking);
-	// 	}
-	// }
-
 	/**
 	 * Check is use new baggage
 	 * 
@@ -1522,9 +1433,6 @@ class EC_Flight_Bookings extends Basic {
 	function saveLinePassengersOld() {
 		global $app_list_strings;
 
-		$bk = new EC_Flight_Bookings;
-		$bk->retrieve($this->id);
-
 		$row_count = count($_POST['psg_id']);
 		for ($i = 0; $i < $row_count; $i++) {
 			$psg = new EC_Booking_Passengers();
@@ -1555,7 +1463,7 @@ class EC_Flight_Bookings extends Basic {
 					$psg->luggage_index_outbound = '';
 				} else {
 					// BK đặt từ ngày 21-11-2022, VJA có giá mới
-					$list_key = strtotime($bk->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
+					$list_key = strtotime($this->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
 					$psg->luggage_price = $app_list_strings[$list_key][(int)$_POST['psg_luggage_price'][$i]];
 
 					$psg->luggage_index_outbound = (int)$_POST['psg_luggage_price'][$i];
@@ -1568,7 +1476,7 @@ class EC_Flight_Bookings extends Basic {
 					$psg->luggage_index_inbound = '';
 				} else {
 					// BK đặt từ ngày 21-11-2022, VJA có giá mới
-					$list_key = strtotime($bk->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
+					$list_key = strtotime($this->date_entered) >= strtotime('2022-11-21') ? 'vietjet_index_price_list2' : 'vietjet_index_price_list';
 					$psg->luggage_price_inbound = $app_list_strings[$list_key][(int)$_POST['psg_luggage_price_inbound'][$i]];
 					$psg->luggage_index_inbound = (int)$_POST['psg_luggage_price_inbound'][$i];
 				}
@@ -1600,50 +1508,67 @@ class EC_Flight_Bookings extends Basic {
 			}
 		}
 
-		// Khi booking ở trạng thái xác nhận
-		// Kiểm tra nếu có dù chỉ 1 số vé cũng chuyển sang trạng thái đã xuất vé
-		// Sau khi chuyển sang trạng thái đã xuất vé thì cập nhật trạng thái trong bảng ec_customer - info_data
+		// Khi booking ở trạng thái Xác nhận, kiểm tra đủ số vé mới chuyển sang trạng thái Xuất vé
 		if ((int)$this->booking_status === 3) {
 			$booking = new EC_Flight_Bookings;
 			$booking->retrieve($this->id);
-
+			$isAllowedUser = isAllowedUser();
+			
+			$is_ticket_exported = $is_ticket_inbound_exported = false;
+			$is_ticket_exported_fully = $is_ticket_inbound_exported_fully = true;
 			for ($i = 0; $i < $row_count; $i++) {
-				if (!empty($_POST['psg_eticket_outbound'][$i])) {
-					$booking->is_ticket_exported = '1';
-					if (empty($booking->date_ticket_issue)) {
-						$booking->date_ticket_issue = date("d-m-Y");
-					} else {
-						if (isAllowedUser()) {
-							$booking->date_ticket_issue = $_POST['date_ticket_issue'];
-						}
+				// Lượt đi
+				$psg_eticket_outbound = $_POST['psg_eticket_outbound'][$i] ?? '';
+				if (!empty($psg_eticket_outbound)) {
+					$is_ticket_exported = true;
+				}
+				else {
+					$is_ticket_exported_fully = false;
+				}
+
+				// Lượt về
+				if($booking->flight_type === '0') {
+					$psg_eticket_inbound = $_POST['psg_eticket_inbound'][$i] ?? '';
+					if (!empty($psg_eticket_inbound)) {
+						$is_ticket_inbound_exported = true;
 					}
-					break;
-				} else {
-					$booking->is_ticket_exported = '0';
-					$booking->date_ticket_issue = '';
+					else {
+						$is_ticket_inbound_exported_fully = false;
+					}
 				}
 			}
-
-			for ($i = 0; $i < $row_count; $i++) {
-				if (!empty($_POST['psg_eticket_inbound'][$i])) {
-					$booking->is_ticket_inbound_exported = '1';
-					if (empty($booking->date_ticket_inbound_issue)) {
-						$booking->date_ticket_inbound_issue = date("d-m-Y");
-					} else {
-						if (isAllowedUser()) {
-							$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
-						}
-					}
-					break;
-				} else {
-					$booking->is_ticket_inbound_exported = '0';
-					$booking->date_ticket_inbound_issue = '';
-				}
+			if($booking->flight_type === '1') {
+				$is_ticket_inbound_exported = false;
+				$is_ticket_inbound_exported_fully = false;
 			}
-
-			if (!empty($booking->is_ticket_exported) || !empty($booking->is_ticket_inbound_exported)) {
+			
+			// Cập nhật thông tin xuất vé lượt đi
+			$booking->is_ticket_exported = $is_ticket_exported;
+			if($is_ticket_exported) {
+				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("d-m-Y");
+				if ($isAllowedUser) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
+			}
+			else {
+				$booking->date_ticket_issue = '';
+			}
+			
+			// Cập nhật thông tin xuất vé lượt về
+			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
+			if ($is_ticket_inbound_exported) {
+				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("d-m-Y");
+				if ($isAllowedUser) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+			}
+			else {
+				$booking->date_ticket_inbound_issue = '';
+			}
+			
+			// Cập nhật tình trạng
+			if(($booking->flight_type === '1' && $is_ticket_exported_fully)
+				|| ($booking->flight_type === '0' && $is_ticket_exported_fully && $is_ticket_inbound_exported_fully)
+			) {
 				$booking->booking_status = '7';
 			}
+			
 			$booking->save2();
 		}
 	}

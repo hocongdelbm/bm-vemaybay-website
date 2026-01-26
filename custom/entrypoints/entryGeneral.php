@@ -27,7 +27,7 @@ try {
         if($entryClass) {
             if (method_exists($entryClass, $method)) {
                 $response = $entryClass->$method($methodParams);
-                if(!is_string($response)) $response = json_encode($response);
+                if(!is_string($response)) $response = json_encode($response, JSON_UNESCAPED_UNICODE);
                 echo $response;
                 exit;
             }

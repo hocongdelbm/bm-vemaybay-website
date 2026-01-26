@@ -97,7 +97,7 @@ class EC_Input_Invoices extends Basic {
                 $this->invoice_serial       = $_POST['im_invoice_serial'];
                 $this->accounting_date      = $_POST['im_accounting_date'];
                 $this->supplier             = $_POST['im_supplier'];
-                $this->company_unit         = $_POST['im_company_unit'];
+                $this->company_unit         = $_POST['im_company_unit'] ?? 'MHV';
                 $this->ticket_type          = $_POST['im_ticket_type'] ?? '';
                 $this->itinerary            = $_POST['im_iti'];
                 $this->booking_id           = $_POST['im_booking_id'];
@@ -122,7 +122,7 @@ class EC_Input_Invoices extends Basic {
                     $beanInInv->invoice_serial  = $_POST['im_invoice_serial'];
                     $beanInInv->accounting_date = $_POST['im_accounting_date'];
                     $beanInInv->supplier        = $_POST['im_supplier'];
-                    $beanInInv->company_unit    = $_POST['im_company_unit'];
+                    $beanInInv->company_unit    = $_POST['im_company_unit'] ?? 'MHV';
                     $beanInInv->ticket_type     = 'ticketing_fee';
                     $beanInInv->itinerary       = $_POST['im_iti'];
                     $beanInInv->booking_id      = $_POST['im_booking_id'];
@@ -147,7 +147,7 @@ class EC_Input_Invoices extends Basic {
                 $this->invoice_serial       = $_POST['im_invoice_serial'];
                 $this->accounting_date      = $_POST['im_accounting_date'];
                 $this->supplier             = $_POST['im_supplier'];
-                $this->company_unit         = $_POST['im_company_unit'];
+                $this->company_unit         = $_POST['im_company_unit'] ?? 'MHV';
                 $this->ticket_type          = $_POST['im_ticket_type'] ?? '';
                 $this->itinerary            = $_POST['im_iti'];
                 $this->booking_id           = $_POST['im_booking_id'];
@@ -252,7 +252,7 @@ class EC_Input_Invoices extends Basic {
             FROM ec_input_invoices i
             WHERE i.booking_id = '{$bookingId}'
                 AND i.status = '1'
-                AND i.company_unit = 'MHV'
+                -- AND i.company_unit = 'MHV'
                 AND i.deleted = 0";
                 
         $listTicket = [];
