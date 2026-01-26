@@ -96,44 +96,34 @@ $viewdefs['Documents'] =
             ),
           ),
           array(
+            0 => 'category_id',
+            1 => 'subcategory_id',
+          ),
+          array(
             array(
               'name' => 'active_date',
             ),
             'exp_date',
           ),
           array(
-            0 => 'category_id',
-            1 => 'subcategory_id',
-          ),
-          array(
             0 => array(
-              'name' => 'booking_id',
+              'name' => 'booking_name',
               'label' => 'LBL_BOOKING_NAME',
-              'customCode' => '<div class="flex-start">
-                                  <input name="booking_name" 
-                                  type="text" 
-                                  size="30" 
-                                  maxlength="255" 
-                                  value="{$BOOKING_NAME}" 
-                                  readonly>
-
-                                  <input name="booking_id" 
-                                        type="hidden" 
-                                        value="{$fields.booking_id.value}"/>
-
-                                  <input title="{$APP.LBL_SELECT_BUTTON_TITLE}" 
-                                        type="{$BOOKING_BUTTON_AVAILABILITY}" 
-                                        class="btn btn-primary" 
-                                        value="{$APP.LBL_SELECT_BUTTON_LABEL}" 
-                                        name="btn2" 
-                                        onclick=\'open_popup("EC_Flight_Bookings", 600, 400, "", true, false, {$encoded_booking_popup_data}, "single", true);\'/>
-                              </div>',
+              'displayParams' => array(
+                'field' => array(
+                  'readonly' => true,
+                ),
+              ),
             ),
             1 => array(
               'name' => 'related_doc_name',
               'customCode' => '<div class="flex-start"><input name="related_document_name" type="text" size="30" maxlength="255" value="{$RELATED_DOCUMENT_NAME}" readonly><input name="related_doc_id" type="hidden" value="{$fields.related_doc_id.value}"/><input title="{$APP.LBL_SELECT_BUTTON_TITLE}" type="{$RELATED_DOCUMENT_BUTTON_AVAILABILITY}" class="btn btn-primary" value="{$APP.LBL_SELECT_BUTTON_LABEL}" name="btn2" onclick=\'open_popup("Documents", 600, 400, "", true, false, {$encoded_document_popup_request_data}, "single", true);\'/></div>',
             ),
-            2 => array(
+          ),
+
+          array(
+            0 => array(),
+            1 => array(
               'name' => 'related_doc_rev_number',
               'customCode' => '<select name="related_doc_rev_id" id="related_doc_rev_id" {$RELATED_DOCUMENT_REVISION_DISABLED}>{$RELATED_DOCUMENT_REVISION_OPTIONS}</select>',
             ),

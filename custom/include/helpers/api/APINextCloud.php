@@ -6,8 +6,9 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 class APINextCloud
 {
-    private $endpoint;
-    private $authorization;
+    private $ENDPOINT;
+    private $USERNAME;
+    private $PASSWORD;
     private $USER_ERROR_CODE = 400;
     private $SYSTEM_ERROR_CODE = 500;
 
@@ -15,8 +16,9 @@ class APINextCloud
     public function __construct()
     {
         global $sugar_config;
-        $this->endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/');
-        $this->authorization = $sugar_config['next-cloud']['authorization'];
+        $this->USERNAME = $sugar_config['next-cloud']['user'];
+        $this->PASSWORD = $sugar_config['next-cloud']['password'];
+        $this->ENDPOINT = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $this->USERNAME;
     }
 
     public function createFolder($remoteFolderPath)
@@ -25,9 +27,9 @@ class APINextCloud
             return $error;
         }
         $cleanedPath = $this->encodePath(rtrim($remoteFolderPath, '/'));
-        $url = $this->endpoint . '/' . $cleanedPath . '/'; //For collection, folder must end with '/'
+        $url = $this->ENDPOINT . '/' . $cleanedPath . '/'; //For collection, folder must end with '/'
         $header = [
-            "Authorization: {$this->authorization}"
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD)
         ];
         return $this->sendRequest('MKCOL', $url, $header);
     }
@@ -42,10 +44,10 @@ class APINextCloud
         if ($error = $this->validateRemoteFileName($remoteFileName)) {
             return $error;
         }
-        $url = $this->endpoint . '/' . $this->encodePath($remoteFileName);
+        $url = $this->ENDPOINT . '/' . $this->encodePath($remoteFileName);
         $fileData = file_get_contents($localFilePath); // Read file content
         $header = [
-            "Authorization: {$this->authorization}",
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
             "Content-Type: application/octet-stream",
             "Content-Length: " . strlen($fileData)
         ];
@@ -57,9 +59,9 @@ class APINextCloud
         if ($error = $this->validateRemoteFileName($remoteFileName)) {
             return $error;
         }
-        $url = $this->endpoint . '/' . $this->encodePath($remoteFileName);
+        $url = $this->ENDPOINT . '/' . $this->encodePath($remoteFileName);
         $header = [
-            "Authorization: {$this->authorization}"
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD)
         ];
         return $this->sendRequest('DELETE', $url, $header);
     }
@@ -73,10 +75,10 @@ class APINextCloud
             return $error;
         }
 
-        $url = $this->endpoint . '/' . $this->encodePath($remoteFileName);
+        $url = $this->ENDPOINT . '/' . $this->encodePath($remoteFileName);
         $header = [
-            "Authorization: {$this->authorization}",
-            "Destination: " . rtrim($this->endpoint, '/') . '/' . $this->encodePath($destitationPath)
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
+            "Destination: " . rtrim($this->ENDPOINT, '/') . '/' . $this->encodePath($destitationPath)
         ];
         return $this->sendRequest('MOVE', $url, $header);
     }

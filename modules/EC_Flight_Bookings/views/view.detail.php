@@ -151,7 +151,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.0"></script>';
-		    
+
 		$js .= '<script>
 			var booking_status = "' . $this->bean->booking_status . '";
 			var win_reason = "' . str_replace('"', "'", $this->getWinLoseReasonRadio($this->bean->lydothangthua_id, '0')) . '";
@@ -1190,31 +1190,34 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$this->ss->assign('VIEWED_BOOKING', $viewed);
 		}
 
-		// Chuyển sang dùng thẻ <button> để chứa được SVG
+
+		$common_style = 'display: inline-flex; align-items: center; justify-content: center; height: 34px; padding: 0 12px; vertical-align: middle; gap: 6px;';
+		//Thêm style flex để căn chỉnh
 		$doc_button = '<button type="button" id="btnDocument" class="btn btn-primary btn btn-primary-2 cursor-pointer" 
-                onclick="window.location.href=\'index.php?module=Documents&action=EditView&booking_id=' . $this->bean->id . '&booking_name=' . $this->bean->name . '\'">';
+        style="' . $common_style . '" 
+        onclick="window.location.href=\'index.php?module=Documents&action=EditView&booking_id=' . $this->bean->id . '&booking_name=' . $this->bean->name . '\'">';
 
-		// Chèn SVG vào bên trong (Thêm style margin-right để icon cách chữ ra một chút cho đẹp)
+		// 2. Chèn SVG: 
 		$doc_button .= '<svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 24 24"><title/><g id="Complete"><g id="upload"><g>
-						<path d="M3,12.3v7a2,2,0,0,0,2,2H19a2,2,0,0,0,2-2v-7" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><g>
-						<polyline data-name="Right" fill="none" id="Right-2" points="7.9 6.7 12 2.7 16.1 6.7" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
-						<line fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="12" x2="12" y1="16.3" y2="4.8"/>
-						</g></g></g></g>
-						</svg>';
+                <path d="M3,12.3v7a2,2,0,0,0,2,2H19a2,2,0,0,0,2-2v-7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><g>
+                <polyline data-name="Right" fill="none" id="Right-2" points="7.9 6.7 12 2.7 16.1 6.7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                <line fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" x1="12" x2="12" y1="16.3" y2="4.8"/>
+                </g></g></g></g>
+                </svg>';
 
-		// Thêm text của nút và đóng thẻ button
-		$doc_button .= 'Tài liệu</button>';
+		$doc_button .= '<span>Tài liệu</span></button>';
 
 		// Gán vào Smarty
 		$this->ss->assign('DOC_BUTTON', $doc_button);
 
-		//DOC_LIST_BUTTON - View Documents List button
-		$doc_button =     '<button id="btn-uploaded-docs" class="btn btn-primary btn btn-primary-2 cursor-pointer" type="button" 
-            onclick="showUploadedDocuments(\'' . $this->bean->id . '\')">
-			<svg fill="#000000" width="18px" height="18px" viewBox="0 0 100.4 100.4" id="Layer_1" version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" stroke="#ffffff"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <path d="M79.1,10.1H63.2V3.3c0-0.8-0.7-1.5-1.5-1.5H38c-0.8,0-1.5,0.7-1.5,1.5v6.8H19.7c-3.5,0-6.3,2.8-6.3,6.3v75.4 c0,3.5,2.8,6.3,6.3,6.3h59.5c3.5,0,6.3-2.8,6.3-6.3V16.4C85.4,12.9,82.6,10.1,79.1,10.1z M38,29.5h23.7c0.8,0,1.5-0.7,1.5-1.5v-6.5 h10.5v64.7H25.1V21.6h11.4V28C36.5,28.9,37.2,29.5,38,29.5z M60.2,4.8V20c0,0,0,0,0,0s0,0,0,0v6.5H39.5v-6.5c0,0,0,0,0,0s0,0,0,0 v-8.5c0,0,0,0,0,0s0,0,0,0V4.8L60.2,4.8L60.2,4.8z M82.4,91.7c0,1.8-1.5,3.3-3.3,3.3H19.7c-1.8,0-3.3-1.5-3.3-3.3V16.4 c0-1.8,1.5-3.3,3.3-3.3h16.8v5.5H23.6c-0.8,0-1.5,0.7-1.5,1.5v67.7c0,0.8,0.7,1.5,1.5,1.5h51.6c0.8,0,1.5-0.7,1.5-1.5V20.1 c0-0.8-0.7-1.5-1.5-1.5h-12v-5.5h15.9c1.8,0,3.3,1.5,3.3,3.3V91.7z"></path> <path d="M28.8,46.4c0,0.8,0.7,1.5,1.5,1.5h38.5c0.8,0,1.5-0.7,1.5-1.5s-0.7-1.5-1.5-1.5H30.3C29.5,44.9,28.8,45.6,28.8,46.4z"></path> <path d="M68.8,55.4H30.3c-0.8,0-1.5,0.7-1.5,1.5s0.7,1.5,1.5,1.5h38.5c0.8,0,1.5-0.7,1.5-1.5S69.6,55.4,68.8,55.4z"></path> <path d="M68.8,66.4H30.3c-0.8,0-1.5,0.7-1.5,1.5c0,0.8,0.7,1.5,1.5,1.5h38.5c0.8,0,1.5-0.7,1.5-1.5C70.3,67.1,69.6,66.4,68.8,66.4z "></path> </g> </g></svg>
-         Danh sách đã tải
-    </button>';
-		$this->ss->assign('DOC_LIST_BUTTON', $doc_button);
+		// --- NÚT 2: DANH SÁCH ĐÃ TẢI (Không Icon) ---
+		$doc_button_2 = '<button id="btn-uploaded-docs" class="btn btn-primary btn btn-primary-2 cursor-pointer" type="button" 
+        style="' . $common_style . '" 
+        onclick="showUploadedDocuments(\'' . $this->bean->id . '\')">';
+
+		// Không cần span độn nữa vì đã set height cứng ở trên
+		$doc_button_2 .= '<span>Danh sách đã tải</span></button>';
+		$this->ss->assign('DOC_LIST_BUTTON', $doc_button_2);
 
 		// Create receipt voucher button
 		$this->_is_had_rv = myCheckValueExist('EC_Receipt_Voucher', array('booking_id'), array($this->bean->id), '');

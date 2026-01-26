@@ -125,10 +125,11 @@ class NextCloudUpload
                 return;
             }
 
-            // Tạo download URL qua SuiteCRM proxy (để handle authentication với NextCloud)
-            $publicUrl = 'index.php?entryPoint=downloadFromNextCloud&file=' . urlencode($remoteFileName);
+            // Lấy endpoint từ config để tạo URL công khai
+            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $sugar_config['next-cloud']['user'];
+            $publicUrl = $endpoint . '/' . rawurlencode($remoteFileName);
 
-            $GLOBALS['log']->info("NextCloudUpload: Successfully uploaded - Proxy URL: {$publicUrl}");
+            $GLOBALS['log']->info("NextCloudUpload: Successfully uploaded - URL: {$publicUrl}");
 
             // Lưu URL vào revision trước để tránh upload lại
             $revision->doc_url = $publicUrl;
@@ -211,8 +212,29 @@ class NextCloudUpload
             }
             $GLOBALS['log']->info("NextCloudUpload: All folders are ready on NextCloud");
 
-            // Tạo tên file trên NextCloud: {document_id}_preview_image
-            $remoteFileName = $folderPath . '/' . $bean->id . '_preview_image';
+            // Phát hiện extension từ file local
+            $imageInfo = @getimagesize($localFilePath);
+            $extension = '.jpg'; // default
+            if ($imageInfo !== false) {
+                switch ($imageInfo[2]) {
+                    case IMAGETYPE_JPEG:
+                        $extension = '.jpg';
+                        break;
+                    case IMAGETYPE_PNG:
+                        $extension = '.png';
+                        break;
+                    case IMAGETYPE_GIF:
+                        $extension = '.gif';
+                        break;
+                    case IMAGETYPE_WEBP:
+                        $extension = '.webp';
+                        break;
+                }
+            }
+            $GLOBALS['log']->info("NextCloudUpload: Detected image extension: {$extension}");
+
+            // Tạo tên file trên NextCloud: {document_id}_preview_image.extension
+            $remoteFileName = $folderPath . '/' . $bean->id . '_preview_image' . $extension;
 
             // Upload file lên NextCloud
             $GLOBALS['log']->info("NextCloudUpload: Uploading file to {$remoteFileName}");
@@ -225,10 +247,20 @@ class NextCloudUpload
             }
 
             // Lấy endpoint từ config để tạo URL công khai
-            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/');
+            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $sugar_config['next-cloud']['user'];
             $publicUrl = $endpoint . '/' . rawurlencode($remoteFileName);
 
             $GLOBALS['log']->info("NextCloudUpload: Successfully uploaded - URL: {$publicUrl}");
+
+            // LƯU TÊN FILE VÀO DB - Lưu tên file có extension để view.detail.php dùng
+            $filename = $bean->id . '_preview_image' . $extension;
+            $GLOBALS['db']->query("
+                UPDATE documents 
+                SET preview_image = " . $GLOBALS['db']->quoted($filename) . ",
+                    date_modified = NOW()
+                WHERE id = " . $GLOBALS['db']->quoted($bean->id) . "
+            ");
+            $GLOBALS['log']->info("NextCloudUpload: Saved preview_image filename to DB: {$filename}");
 
             // Xóa file local sau khi upload thành công
             if (file_exists($localFilePath)) {

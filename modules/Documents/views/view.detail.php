@@ -75,31 +75,52 @@ class DocumentsViewDetail extends ViewDetail
     private function populateCustomCode()
     {
         global $sugar_config;
-        
+
         $preview_html = '';
+
+        // Kiểm tra xem field preview_image có dữ liệu không
         if (!empty($this->bean->preview_image)) {
-            // Lấy URL từ NextCloud thay vì local file
-            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/');
-            $remoteFileName = 'bmvmb/modules/documents/preview-images/' . $this->bean->id . '_preview_image';
+
+            // Lấy endpoint gốc
+            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $sugar_config['next-cloud']['user'];
+            
+            // Lấy extension từ preview_image field (đã có full filename trong DB)
+            $preview_image_extension = strrchr($this->bean->preview_image, '.');
+            
+            // Đường dẫn trên Cloud
+            $remoteFileName = 'bmvmb/modules/documents/preview-images/' . $this->bean->id . '_preview_image' . $preview_image_extension;
+
+            // Encode URL để xử lý các tên file có dấu tiếng Việt hoặc khoảng trắng
             $previewUrl = $endpoint . '/' . rawurlencode($remoteFileName);
             
+            // DEBUG: Log để kiểm tra
+            $GLOBALS['log']->info("VIEW DETAIL - Preview Image Field: {$this->bean->preview_image}");
+            $GLOBALS['log']->info("VIEW DETAIL - Extension: {$preview_image_extension}");
+            $GLOBALS['log']->info("VIEW DETAIL - Remote FileName: {$remoteFileName}");
+            $GLOBALS['log']->info("VIEW DETAIL - Preview URL: {$previewUrl}");
+
+            // Render HTML
+            // Lưu ý: Thẻ img src trỏ thẳng về NextCloud chỉ chạy nếu ảnh đó được Public 
+            // hoặc trình duyệt đã có session đăng nhập NextCloud.
             $preview_html = '<div class="preview-photo-container">
                 <img id="previewImage" src="' . $previewUrl . '"
                     style="max-width: 70%; max-height: 300px; object-fit: contain; cursor: zoom-in;"
                     alt="Preview Photo"
-                    onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh preview</div>\';">
+                    onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh (Lỗi 404/403)</div>\';">
             </div>';
         } else {
             $preview_html = '<div class="no-preview-photo" style="color:#999;">Không có ảnh preview</div>';
         }
+
         $this->ss->assign('PREVIEW_IMAGE_HTML', $preview_html);
     }
     //Load ViewerJS scripts (for zoom image)
-    private function getScripts() {
+    private function getScripts()
+    {
         echo '
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css">
             <script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
-            <script src="modules/'.$this->bean->module_dir.'/js/view.detail.js?v=1.0.0">
+            <script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.0.0">
         ';
     }
 }
