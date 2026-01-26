@@ -271,7 +271,8 @@ class Viewinputinvoice extends SugarView {
                                 ,date_modified = '$date_modified'
                                 ,modified_user_id = '{$current_user->id}'
                             WHERE parent_id = '{$row['id']}'
-                                AND (parent_type = 'EC_HoaDonBan' OR parent_type IS NULL OR parent_type = '')";
+                                AND (parent_type = 'EC_HoaDonBan' OR parent_type IS NULL OR parent_type = '')
+                                AND deleted = 0";
                         $this->bean->db->query($sqlRemove);
                     }
 
@@ -281,7 +282,7 @@ class Viewinputinvoice extends SugarView {
                             ,description = '$des'
                             ,date_modified = '$date_modified'
                             ,modified_user_id = '{$current_user->id}'
-                        WHERE id = '{$row['id']}'";
+                        WHERE id = '{$row['id']}' AND deleted = 0";
                     if($this->bean->db->query($sqlRemove)) {
                         $rm_out_inv_id[] = $row['id'];
                         $results["rm_out_inv"][$row['id']] = [
@@ -291,7 +292,7 @@ class Viewinputinvoice extends SugarView {
                         ];
 
                         if($tinhtrang == '1') {
-                            $results["rm_out_inv"][$row['id']]['message'] = $deleteInfo['message'];
+                            $results["rm_out_inv"][$row['id']]['message'] = $deleteInfo['message'] ?? '';
                         }
                     }
                 }
@@ -1042,12 +1043,14 @@ class Viewinputinvoice extends SugarView {
 
                 // Nếu là vé quốc tế, VAT = 0
                 if (isset($data[$i]['is_inter']) && $data[$i]['is_inter']) {
-                    $input_iv->vat              = $data[$i]['vat'] ?? 0;
-                    $input_iv->vat_per          = $input_iv->vat > 0 ? 0.08 : 0;
-                    $input_iv->authorized_fee   = $data[$i]['authorized_collection'] ?? 0;
-                    $input_iv->cost_no_vat      = ($data[$i]['total'] - $input_iv->authorized_fee);
-                    if($input_iv->vat_per > 0) $input_iv->cost_no_vat /= 1.08;
-                    $input_iv->cost             = $input_iv->cost_no_vat + $input_iv->vat;
+                    if($input_iv->supplier == 'HNH') {
+                        $input_iv->vat              = $data[$i]['vat'] ?? 0;
+                        $input_iv->vat_per          = $input_iv->vat > 0 ? 0.08 : 0;
+                        $input_iv->authorized_fee   = $data[$i]['authorized_collection'] ?? 0;
+                        $input_iv->cost_no_vat      = ($data[$i]['total'] - $input_iv->authorized_fee);
+                        if($input_iv->vat_per > 0) $input_iv->cost_no_vat /= 1.08;
+                        $input_iv->cost             = $input_iv->cost_no_vat + $input_iv->vat;
+                    }
                 }
                 // Vé nội địa
                 else {

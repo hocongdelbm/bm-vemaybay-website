@@ -339,16 +339,17 @@ class EC_HoaDonBan extends Basic {
 					$i = 0;
 					$tongsl = $tongthanhtoan = 0;
 					$listDoneTickets = [];
+					$serviceFeeInter = 0; // Service fee for international ticket will be added up and insert to the new row
 					foreach ($listAvailableTickets as $tkid => $tk) {
 						if(array_search($tk['ticket_number'], $listBookingTicketNumber) === false) continue;
 
 						$code = $this->getCodeDetail($tk['ticket_type'], $tk['itinerary']); // Item code
 
-						$serviceFee = $serviceFee2 = 0;
+						$serviceFee = 0;
 						if($tk['ticket_type'] == 'flight') {
 							$avgFlightServiceFee = $totalFlightServiceFee / $totalQtyTicket[$tk['ticket_type']];
 							$serviceFee = $code == 'VMB_QT' ? 0 : $avgFlightServiceFee;
-							$serviceFee2 = $code == 'VMB_QT' ? $avgFlightServiceFee : 0;
+							$serviceFeeInter += $code == 'VMB_QT' ? $avgFlightServiceFee : 0;
 						}
 						elseif($tk['ticket_type'] == 'ticketing_fee') {
 							$serviceFee = $totalFlightServiceFee;
@@ -367,70 +368,71 @@ class EC_HoaDonBan extends Basic {
 						if($taxRate == 0.08) $divide = 1.08;
 						else if($taxRate == 0.1) $divide = 1.1;
 
-						$outInvDetail = new EC_ChiTietHoaDon();
-						$outInvDetail->id 			= '';
-						$outInvDetail->name 		= trim(stripslashes($tk['ticket_number']));
-						$outInvDetail->booking_id 	= $bookingId;
-						$outInvDetail->booking 		= $bookingInfo['name'] ?? '';
-						$outInvDetail->mahang 		= $code;
-						$outInvDetail->soluong 		= $tk['qty'];
-						$outInvDetail->phithuho 	= $tk['authorized_fee'] / $tk['qty'];
-						$outInvDetail->phisanbay 	= 0;
-						$outInvDetail->phikhac 		= 0;
-						$outInvDetail->phidv 		= $serviceFee;
-						$outInvDetail->giamua 		= $tk['total'] / $tk['qty'];
-						$outInvDetail->thuesuat 	= $taxRate;
-						$outInvDetail->dongia 		= ($outInvDetail->giamua + $serviceFee - $outInvDetail->phithuho) / $divide;
-						$outInvDetail->tienthue 	= $outInvDetail->dongia * $taxRate * $tk['qty'];
-						$outInvDetail->thanhtien 	= ($outInvDetail->dongia + $outInvDetail->phithuho) * $outInvDetail->soluong + $outInvDetail->tienthue;
-						$outInvDetail->parent_id 	= $parentId;
-						$outInvDetail->parent_type 	= 'EC_HoaDonBan';
-						$outInvDetail->order_by_no 	= $i;
-						$outInvDetail->ticket_number_id = $tkid;
-						if($outInvDetail->mahang == 'PK') $outInvDetail->name = 'PK';
-						if($outInvDetail->save()) {
+						$cthd = new EC_ChiTietHoaDon();
+						$cthd->id 			= '';
+						$cthd->name 		= trim(stripslashes($tk['ticket_number']));
+						$cthd->booking_id 	= $bookingId;
+						$cthd->booking 		= $bookingInfo['name'] ?? '';
+						$cthd->mahang 		= $code;
+						$cthd->soluong 		= $tk['qty'];
+						$cthd->phithuho 	= $tk['authorized_fee'] / $tk['qty'];
+						$cthd->phisanbay 	= 0;
+						$cthd->phikhac 		= 0;
+						$cthd->phidv 		= $serviceFee;
+						$cthd->giamua 		= $tk['total'] / $tk['qty'];
+						$cthd->thuesuat 	= $taxRate;
+						$cthd->dongia 		= ($cthd->giamua + $serviceFee - $cthd->phithuho) / $divide;
+						$cthd->tienthue 	= $cthd->dongia * $taxRate * $tk['qty'];
+						$cthd->thanhtien 	= ($cthd->dongia + $cthd->phithuho) * $cthd->soluong + $cthd->tienthue;
+						$cthd->parent_id 	= $parentId;
+						$cthd->parent_type 	= 'EC_HoaDonBan';
+						$cthd->order_by_no 	= $i;
+						$cthd->ticket_number_id = $tkid;
+						if($cthd->mahang == 'PK') $cthd->name = 'PK';
+						if($cthd->save()) {
 							array_push($listDoneTickets, $tkid);
-							$tongsl += $tk['qty'];
-							$tongthanhtoan += $outInvDetail->thanhtien;
 							$beanInInv->updateInventoryStatus($tkid);
 
-							// Quốc tế tách riêng dòng phí DV
-							if($code == 'VMB_QT') {
-								$svTaxRate = 0.08;
-								$svDivide = 1;
-								if($svTaxRate == 0.08) $svDivide = 1.08;
-								else if($svTaxRate == 0.1) $svDivide = 1.1;
-
-								$svOutInvDetail = new EC_ChiTietHoaDon();
-								$svOutInvDetail->id 		= '';
-								$svOutInvDetail->name 		= 'PK';
-								$svOutInvDetail->booking_id = $bookingId;
-								$svOutInvDetail->booking 	= $bookingInfo['name'] ?? '';
-								$svOutInvDetail->mahang 	= 'PK';
-								$svOutInvDetail->soluong 	= 1;
-								$svOutInvDetail->phithuho 	= 0;
-								$svOutInvDetail->phisanbay 	= 0;
-								$svOutInvDetail->phikhac 	= 0;
-								$svOutInvDetail->phidv 		= $serviceFee2;
-								$svOutInvDetail->giamua 	= 0;
-								$svOutInvDetail->thuesuat 	= 0.08;
-								$svOutInvDetail->dongia 	= ($svOutInvDetail->giamua + $serviceFee2 - $svOutInvDetail->phithuho) / $svDivide;
-								$svOutInvDetail->tienthue 	= $svOutInvDetail->dongia * $taxRate * $outInvDetail->soluong;
-								$svOutInvDetail->thanhtien 	= ($svOutInvDetail->dongia + $svOutInvDetail->phithuho) * $svOutInvDetail->soluong + $svOutInvDetail->tienthue;
-								$svOutInvDetail->parent_id 	= $parentId;
-								$svOutInvDetail->parent_type = 'EC_HoaDonBan';
-								$svOutInvDetail->order_by_no = $i + 1;
-								$svOutInvDetail->ticket_number_id = '';
-								$svOutInvDetail->save();
-
-								$tongsl += $svOutInvDetail->soluong;
-								$tongthanhtoan += $svOutInvDetail->thanhtien;
-							}
+							$tongsl += $tk['qty'];
+							$tongthanhtoan += $cthd->thanhtien;
 						}
 						
 						$i++;
 					}
 					$listAvailableTickets = array_diff_key($listAvailableTickets, array_flip($listDoneTickets));
+
+					// Quốc tế tách riêng dòng phí DV
+					if($serviceFeeInter > 0) {
+						$svTaxRate = 0.08;
+						$svDivide = 1;
+						if($svTaxRate == 0.08) $svDivide = 1.08;
+						else if($svTaxRate == 0.1) $svDivide = 1.1;
+
+						$cthd2 = new EC_ChiTietHoaDon();
+						$cthd2->id 			= '';
+						$cthd2->name 		= 'PK';
+						$cthd2->mahang 		= 'PK';
+						$cthd2->booking_id 	= $bookingId;
+						$cthd2->booking 	= $bookingInfo['name'] ?? '';
+						$cthd2->soluong 	= 1;
+						$cthd2->phithuho 	= 0;
+						$cthd2->phisanbay 	= 0;
+						$cthd2->phikhac 	= 0;
+						$cthd2->phidv 		= $serviceFeeInter;
+						$cthd2->giamua 		= 0;
+						$cthd2->thuesuat 	= $svTaxRate;
+						$cthd2->dongia 		= ($cthd2->giamua + $serviceFeeInter - $cthd2->phithuho) / $svDivide;
+						$cthd2->tienthue 	= $cthd2->dongia * $svTaxRate * $cthd2->soluong;
+						$cthd2->thanhtien 	= ($cthd2->dongia + $cthd2->phithuho) * $cthd2->soluong + $cthd2->tienthue;
+						$cthd2->parent_id 	= $parentId;
+						$cthd2->parent_type = 'EC_HoaDonBan';
+						$cthd2->order_by_no = $i + 1;
+						$cthd2->ticket_number_id = '';
+						$cthd2->save();
+
+						$tongsl += $cthd2->soluong;
+						$tongthanhtoan += $cthd2->thanhtien;
+					}
 
 					if($i * $tongsl * $tongthanhtoan != 0) {
 						$dateModified = date('Y-m-d H:i:s', time() - 7*3600 + $additionalSecond);
