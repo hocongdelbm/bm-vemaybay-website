@@ -479,6 +479,8 @@ class Viewinputinvoice extends SugarView {
             ORDER BY in_inv.invoice_date DESC, in_inv.supplier, in_inv.invoice_serial, in_inv.invoice_number, in_inv.order_by_no
             $sql_limit";
 
+
+
         $res        = $this->bean->db->query($sql);
         $html       = '';
         $total_qty  = $total_export = $total_left = 0;
@@ -763,7 +765,7 @@ class Viewinputinvoice extends SugarView {
 
             // Code vé
             if (isset($request_fields['ticket_c']) && !empty($request_fields['ticket_c'])) {
-                $sql_search .= ' AND in_inv.ticket_code = "' . $request_fields['ticket_c'] . '"';
+                $sql_search .= ' AND in_inv.name = "' . $request_fields['ticket_c'] . '"';
             }
 
             // Booking

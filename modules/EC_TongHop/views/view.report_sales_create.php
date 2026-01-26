@@ -21,8 +21,7 @@ class Viewreport_sales_create extends SugarView
             $user_title == 'QuanLy'
         ) {
             $smarty = new Sugar_Smarty();
-            $this->generateSearchResult($smarty);
-            $this->populateRadioBtn($smarty);
+            $this->populateContent($smarty);
             $smarty->display('modules/EC_TongHop/tpls/report_sales_create.tpl');
         } else {
             header("Location: index.php?module=EC_TongHop&action=Error&error_string=" . urlencode("Bạn không có quyền xem báo cáo này. Vui lòng liên hệ quản trị viên để được cấp quyền."));
@@ -30,52 +29,41 @@ class Viewreport_sales_create extends SugarView
         }
     }
 
-    function generateSearchResult($smarty)
+    function populateContent($smarty)
     {
-        if (!isset($_POST['from_date']) || empty($_POST['from_date'])) {
-            $_POST['from_date'] = date('d-m-Y');
+       global $db, $current_user;
+
+        $smarty->assign('MODULE_NAME', $this->bean->object_name);
+        $smarty->assign('MODULE_ACTION', 'report_sales_issue');
+
+        $from_date          = isset($_REQUEST['from_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['from_date']) : date('Y-m-d');
+        $to_date            = isset($_REQUEST['to_date']) ? preg_replace('/[^0-9\-]/', '', $_REQUEST['to_date']) : date('Y-m-d');
+        $fr_date_arr        = explode('-', $from_date); // 0=>day, 1=>month, 2=>year
+        $to_date_arr        = explode('-', $to_date);
+
+        // From date
+        if (!empty($from_date) && checkdate((int)$fr_date_arr[1], (int)$fr_date_arr[0], (int)$fr_date_arr[2])) {
+            $from_date_sql = date('Y-m-d', strtotime($from_date));
+            $from_date_value = $from_date;
+        } else {
+            $from_date_sql = date('Y-m-d');
+            $from_date_value = date('d-m-Y');
         }
+        $from_date_sql_yesterday = date('Y-m-d', strtotime($from_date_sql . ' -1 day'));
+        $from_date_sql_daybefore = date('Y-m-d', strtotime($from_date_sql . ' -2 day'));
+        $smarty->assign('FROM_DATE_VALUE', date('d-m-Y', strtotime($from_date_value)));
 
-        if (!isset($_POST['to_date']) || empty($_POST['to_date'])) {
-            $_POST['to_date'] = date('d-m-Y');
+        // To date
+        if (!empty($to_date) && checkdate((int)$to_date_arr[1], (int)$to_date_arr[0], (int)$to_date_arr[2])) {
+            $to_date_sql = date('Y-m-d', strtotime($to_date));
+            $to_date_value = $to_date;
+        } else {
+            $to_date_sql = date('Y-m-d');
+            $to_date_value = date('d-m-Y');
         }
-
-        if (isset($_POST['from_date'])) {
-            $smarty->assign('from_date', $_POST['from_date']);
-        }
-
-        if (isset($_POST['to_date'])) {
-            $smarty->assign('to_date', $_POST['to_date']);
-        }
-
-        $html = $this->genBKSale_compare($_POST['from_date'], $_POST['to_date']);
-        $smarty->assign('rpt_body_compare', $html);
-    }
-
-    function populateRadioBtn($smartyobj)
-    {
-        //Radio option
-        $option_today = '<input type="radio" value="today" id="today" class="rd_time form-check-input" name="optionRadio" ' . ($_POST['optionRadio'] == 'today' ? 'checked' : '') . ' fromdate="' . date('d-m-Y') . '" todate="' . date('d-m-Y') . '">';
-        $smartyobj->assign('RADIO_TODAY', $option_today);
-
-        $option_yesterday = '<input type="radio" value="yesterday" id="yesterday" class="rd_time form-check-input" name="optionRadio" ' . ($_POST['optionRadio'] == 'yesterday' ? 'checked' : '') . ' fromdate="' . date('d-m-Y', strtotime('-1 day')) . '" todate="' . date('d-m-Y', strtotime('-1 day')) . '">';
-        $smartyobj->assign('RADIO_YESTERDAY', $option_yesterday);
-
-        $option_daybefore = '<input type="radio" value="daybefore" id="daybefore" class="rd_time form-check-input" name="optionRadio" ' . ($_POST['optionRadio'] == 'daybefore' ? 'checked' : '') . ' fromdate="' . date('d-m-Y', strtotime('-2 days')) . '" todate="' . date('d-m-Y', strtotime('-2 days')) . '">';
-        $smartyobj->assign('RADIO_DAYBEFORE', $option_daybefore);
-
-        $option_current_week = '<input type="radio" value="current_week" id="current_week" class="rd_time form-check-input" name="optionRadio" ' . ($_POST['optionRadio'] == 'current_week' ? 'checked' : '') . ' fromdate="' . date('d-m-Y', strtotime('monday this week')) . '" todate="' . date('d-m-Y', strtotime('sunday this week')) . '">';
-        $smartyobj->assign('RADIO_CURRENTWEEK', $option_current_week);
-
-        $option_previous_week = '<input type="radio" value="previous_week" id="previous_week" class="rd_time form-check-input" name="optionRadio" ' . ($_POST['optionRadio'] == 'previous_week' ? 'checked' : '') . ' fromdate="' . date('d-m-Y', strtotime('monday previous week')) . '" todate="' . date('d-m-Y', strtotime('sunday previous week')) . '">';
-        $smartyobj->assign('RADIO_PREVIOUSWEEK', $option_previous_week);
-
-        $smartyobj->assign('CURRENT_FROMDATE', date('d-m-Y', strtotime('first day of this month')));
-        $smartyobj->assign('CURRENT_TODATE', date('d-m-Y', strtotime('last day of this month')));
-        $smartyobj->assign('PREVIOUS_FROMDATE', date('d-m-Y', strtotime('first day of last month')));
-        $smartyobj->assign('PREVIOUS_TODATE', date('t-m-Y', strtotime('last day of last month')));
-        $smartyobj->assign('PREVIOUSYEAR_FROMDATE', date('d-m-Y', strtotime('-1 year')));
-        $smartyobj->assign('PREVIOUSYEAR_TODATE', date('d-m-Y', strtotime('-1 year')));
+        $to_date_sql_yesterday   = date('Y-m-d', strtotime($to_date_sql . ' -1 day'));
+        $to_date_sql_daybefore   = date('Y-m-d', strtotime($to_date_sql . ' -2 day'));
+        $smarty->assign('TO_DATE_VALUE', date('d-m-Y', strtotime($to_date_value)));
 
         switch (ceil(date('n') / 3)) {
             case 1:
@@ -97,156 +85,435 @@ class Viewreport_sales_create extends SugarView
             default:
                 break;
         }
+
         $arr_date = array(
             '<option value="" fromdate="" todate="">---Trống---</option>',
-            '<option ' . ($_POST['date_select'] == 'this_month' ? 'selected' : '') . ' value="this_month" fromdate="' . date('d-m-Y', strtotime('first day of this month')) . '" todate="' . date('d-m-Y', strtotime('last day of this month')) . '">Tháng này</option>',
-            '<option ' . ($_POST['date_select'] == 'previous_month' ? 'selected' : '') . ' value="previous_month" fromdate="' . date('d-m-Y', strtotime('first day of last month')) . '" todate="' . date('d-m-Y', strtotime('last day of last month')) . '">Tháng trước</option>',
-            '<option ' . ($_POST['date_select'] == 'quarter_this' ? 'selected' : '') . ' value="quarter_this" fromdate="' . $quater_fromdate . '" todate="' . $quater_todate . '">Quý này</option>',
-            '<option ' . ($_POST['date_select'] == 'quarter_previous' ? 'selected' : '') . ' value="quarter_previous" fromdate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))) . '" todate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))) . '">Quý trước</option>',
-            '<option ' . ($_POST['date_select'] == 'this_year' ? 'selected' : '') . ' value="this_year" fromdate="' . date('01-01-Y') . '" todate="' . date('31-12-Y') . '">Năm nay</option>',
-            '<option ' . ($_POST['date_select'] == 'previous_year' ? 'selected' : '') . ' value="previous_year" fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'today' ? 'selected' : '') . ' value="today" fromdate="' . date('d-m-Y') . '" todate="' . date('d-m-Y') . '">Hôm nay</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'yesterday' ? 'selected' : '') . ' value="yesterday" fromdate="' . date('d-m-Y', strtotime('-1 day')) . '" todate="' . date('d-m-Y', strtotime('-1 day')) . '">Hôm qua</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_week' ? 'selected' : '') . ' value="this_week" fromdate="' . date('d-m-Y', strtotime('monday this week')) . '" todate="' . date('d-m-Y', strtotime('sunday this week')) . '">Tuần này</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_week' ? 'selected' : '') . ' value="previous_week" fromdate="' . date('d-m-Y', strtotime('monday previous week')) . '" todate="' . date('d-m-Y', strtotime('sunday previous week')) . '">Tuần trước</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_month' ? 'selected' : '') . ' value="this_month" fromdate="' . date('d-m-Y', strtotime('first day of this month')) . '" todate="' . date('d-m-Y', strtotime('last day of this month')) . '">Tháng này</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_month' ? 'selected' : '') . ' value="previous_month" fromdate="' . date('d-m-Y', strtotime('first day of last month')) . '" todate="' . date('d-m-Y', strtotime('last day of last month')) . '">Tháng trước</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'quarter_this' ? 'selected' : '') . ' value="quarter_this" fromdate="' . $quater_fromdate . '" todate="' . $quater_todate . '">Quý này</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'quarter_previous' ? 'selected' : '') . ' value="quarter_previous" fromdate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))) . '" todate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))) . '">Quý trước</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_year' ? 'selected' : '') . ' value="this_year" fromdate="' . date('01-01-Y') . '" todate="' . date('31-12-Y') . '">Năm nay</option>',
+            '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_year' ? 'selected' : '') . ' value="previous_year" fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>',
         );
-        $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
-        $smartyobj->assign('CURRENT_QUARTER_FROMDATE', $quater_fromdate);
-        $smartyobj->assign('CURRENT_QUARTER_TODATE', $quater_todate);
-        $smartyobj->assign('PREVIOUS_QUARTER_FROMDATE', date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))));
-        $smartyobj->assign('PREVIOUS_QUARTER_TODATE', date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))));
-    }
+        $smarty->assign('DATE_OPTION', implode('', $arr_date));
 
-    function genBKSale_compare($from_date, $to_date)
-    {
-        // Chuẩn hoá khoảng current theo đúng format bạn đang dùng
-        $cur_from_day = date('Y-m-d', strtotime($from_date));
-        $cur_to_day   = date('Y-m-d', strtotime($to_date));
-        $cur_from     = $cur_from_day;
-        $cur_to       = $cur_to_day . ' 23:59:59';
-
-        $sel = $_POST['optionRadio'] ?? ($_POST['date_select'] ?? 'today');
-
+        $sel = ($_POST['date_select'] ?? 'today');
         // Helpers
-        $mkRange = function ($fromDay, $toDay) {
-            return ['from' => $fromDay, 'to' => $toDay . ' 23:59:59'];
-        };
         $shiftDays = function ($day, $deltaDays) {
             return date('Y-m-d', strtotime("$day $deltaDays"));
         };
+        $shiftRange = function ($from, $to, $step) {
+            $days = (strtotime($to) - strtotime($from)) / 86400 + 1;
+            $offset = -$days * $step;
 
-        // Tính range current trước
-        $ranges = [
-            'current' => ['from' => $cur_from, 'to' => $cur_to],
-        ];
+            return [
+                'from' => date('Y-m-d', strtotime("$from $offset days")),
+                'to'   => date('Y-m-d', strtotime("$to   $offset days")),
+            ];
+        };
+        $mkRange = function ($fromDay, $toDay) {
+            return ['from' => $fromDay, 'to' => $toDay];
+        };
+        $mkWeekRange = function ($base, $shiftWeek = 0) {
+            $monday = date('Y-m-d', strtotime("monday this week $shiftWeek week", strtotime($base)));
+            $sunday = date('Y-m-d', strtotime("sunday this week $shiftWeek week", strtotime($base)));
+            return ['from' => $monday, 'to' => $sunday];
+        };
+        $mkMonthRange = function ($base, $shiftMonth = 0) {
+            $from = date('Y-m-01', strtotime("$base $shiftMonth month"));
+            $to   = date('Y-m-t',  strtotime("$base $shiftMonth month"));
+            return ['from' => $from, 'to' => $to];
+        };
+        $mkQuarterRange = function ($base, $shiftQuarter = 0) {
+            $ts = strtotime("$base " . ($shiftQuarter * 3) . " months");
 
-        // Tính 2 khoảng “cùng kỳ” tiếp theo: prev1, prev2
+            $year    = (int)date('Y', $ts);
+            $month   = (int)date('n', $ts);
+            $quarter = (int)ceil($month / 3);
+
+            $startMonth = ($quarter - 1) * 3 + 1;
+
+            $from = date('Y-m-d', strtotime("$year-$startMonth-01"));
+            $to   = date('Y-m-t', strtotime("$from +2 months"));
+
+            return ['from' => $from, 'to' => $to];
+        };
+        $mkYearRange = function ($base, $shiftYear = 0) {
+            $year = (int)date('Y', strtotime("$base $shiftYear year"));
+            return [
+                'from' => "$year-01-01",
+                'to'   => "$year-12-31",
+            ];
+        };
+
+        $sel = ($_POST['date_select'] ?? 'today');
+        $title_current = 'Hiện tại: mốc thời gian hôm nay, hôm qua và hôm trước';
+        $title_prev1 = 'Cùng kỳ: so sánh với mốc thời gian hiện tại ở trên (07 ngày)';
+        $title_prev2 = 'Cùng kỳ kế tiếp: so sánh với mốc thời gian hiện tại ở trên (14 ngày)';
         switch ($sel) {
-            // NGÀY & TUẦN: dịch nguyên cửa sổ theo tuần (–7 ngày * k)
             case 'today':
-            case 'yesterday':
-            case 'daybefore':
+            case 'yesterday': {
+                    $ranges = [
+                        // ===== HÔM NAY =====
+                        'today_current' => $mkRange($from_date_sql, $to_date_sql),
+                        'today_prev1'   => $mkRange(
+                            $shiftDays($from_date_sql, '-7 days'),
+                            $shiftDays($to_date_sql,   '-7 days')
+                        ),
+                        'today_prev2'   => $mkRange(
+                            $shiftDays($from_date_sql, '-14 days'),
+                            $shiftDays($to_date_sql,   '-14 days')
+                        ),
+
+                        // ===== HÔM QUA =====
+                        'yesterday_current' => $mkRange($from_date_sql_yesterday, $to_date_sql_yesterday),
+                        'yesterday_prev1'   => $mkRange(
+                            $shiftDays($from_date_sql_yesterday, '-7 days'),
+                            $shiftDays($to_date_sql_yesterday,   '-7 days')
+                        ),
+                        'yesterday_prev2'   => $mkRange(
+                            $shiftDays($from_date_sql_yesterday, '-14 days'),
+                            $shiftDays($to_date_sql_yesterday,   '-14 days')
+                        ),
+
+                        // ===== HÔM KIA =====
+                        'daybefore_current' => $mkRange($from_date_sql_daybefore, $to_date_sql_daybefore),
+                        'daybefore_prev1'   => $mkRange(
+                            $shiftDays($from_date_sql_daybefore, '-7 days'),
+                            $shiftDays($to_date_sql_daybefore,   '-7 days')
+                        ),
+                        'daybefore_prev2'   => $mkRange(
+                            $shiftDays($from_date_sql_daybefore, '-14 days'),
+                            $shiftDays($to_date_sql_daybefore,   '-14 days')
+                        ),
+                    ];
+                    break;
+                }
             case 'this_week':
             case 'previous_week': {
-                    // prev1: -7d, prev2: -14d (dịch đồng thời FROM và TO)
-                    $prev1_from = $shiftDays($cur_from_day, '-7 days');
-                    $prev1_to   = $shiftDays($cur_to_day,   '-7 days');
+                    $weekAnchor = $from_date_sql;
 
-                    $prev2_from = $shiftDays($cur_from_day, '-14 days');
-                    $prev2_to   = $shiftDays($cur_to_day,   '-14 days');
+                    $ranges = [
+                        // ===== CURRENT =====
+                        'today_current'     => $mkWeekRange($weekAnchor, 0),
+                        'yesterday_current' => $mkWeekRange($weekAnchor, 0),
+                        'daybefore_current' => $mkWeekRange($weekAnchor, 0),
 
-                    $ranges['prev1'] = $mkRange($prev1_from, $prev1_to);
-                    $ranges['prev2'] = $mkRange($prev2_from, $prev2_to);
+                        // ===== PREV 1 =====
+                        'today_prev1'     => $mkWeekRange($weekAnchor, -1),
+                        'yesterday_prev1' => $mkWeekRange($weekAnchor, -1),
+                        'daybefore_prev1' => $mkWeekRange($weekAnchor, -1),
+
+                        // ===== PREV 2 =====
+                        'today_prev2'     => $mkWeekRange($weekAnchor, -2),
+                        'yesterday_prev2' => $mkWeekRange($weekAnchor, -2),
+                        'daybefore_prev2' => $mkWeekRange($weekAnchor, -2),
+                    ];
+                    $title_current = 'Hiện tại: Tuần đang chọn';
+                    $title_prev1 = 'Cùng kỳ: so sánh với tuần đang chọn hiện tại ở trên';
+                    $title_prev2 = 'Cùng kỳ kế tiếp: so sánh với tuần cùng kỳ ở trên';
                     break;
                 }
-
-                // THÁNG: dùng ranh giới tháng (tránh lỗi 31→01)
             case 'this_month':
             case 'previous_month': {
-                    // prev1 = tháng trước của current
-                    $base1      = strtotime("$cur_from_day -1 month");
-                    $prev1_from = date('Y-m-01', $base1);
-                    $prev1_to   = date('Y-m-t',  $base1);
+                    $monthAnchor = $from_date_sql;
 
-                    // prev2 = lùi thêm 1 tháng nữa
-                    $base2      = strtotime("$cur_from_day -2 month");
-                    $prev2_from = date('Y-m-01', $base2);
-                    $prev2_to   = date('Y-m-t',  $base2);
+                    $ranges = [
+                        // ===== CURRENT =====
+                        'today_current'     => $mkMonthRange($monthAnchor, 0),
+                        'yesterday_current' => $mkMonthRange($monthAnchor, 0),
+                        'daybefore_current' => $mkMonthRange($monthAnchor, 0),
 
-                    $ranges['prev1'] = $mkRange($prev1_from, $prev1_to);
-                    $ranges['prev2'] = $mkRange($prev2_from, $prev2_to);
+                        // ===== PREV 1 =====
+                        'today_prev1'     => $mkMonthRange($monthAnchor, -1),
+                        'yesterday_prev1' => $mkMonthRange($monthAnchor, -1),
+                        'daybefore_prev1' => $mkMonthRange($monthAnchor, -1),
+
+                        // ===== PREV 2 =====
+                        'today_prev2'     => $mkMonthRange($monthAnchor, -2),
+                        'yesterday_prev2' => $mkMonthRange($monthAnchor, -2),
+                        'daybefore_prev2' => $mkMonthRange($monthAnchor, -2),
+                    ];
+                    $title_current = 'Hiện tại: Tháng đang chọn';
+                    $title_prev1 = 'Cùng kỳ: so sánh với tháng đang chọn hiện tại ở trên';
+                    $title_prev2 = 'Cùng kỳ kế tiếp: so sánh với tháng cùng kỳ ở trên';
                     break;
                 }
-
-                // QUÝ: tính theo đầu quý hiện tại rồi -3m và -6m
             case 'quarter_this':
             case 'quarter_previous': {
-                    $ts = strtotime($cur_from_day);
-                    $y  = (int)date('Y', $ts);
-                    $m  = (int)date('n', $ts);
-                    $qStartMonth = (int)(floor(($m - 1) / 3) * 3 + 1);
-                    $curQStart   = strtotime(sprintf('%04d-%02d-01', $y, $qStartMonth));
+                    $quarterAnchor = $from_date_sql;
+                    $offset = ($sel === 'quarter_previous') ? -1 : 0;
 
-                    // prev1 quarter
-                    $p1Start = strtotime('-3 months', $curQStart);
-                    $p1End   = strtotime('+3 months -1 day', $p1Start);
+                    $ranges = [
+                        // ===== CURRENT =====
+                        'today_current'     => $mkQuarterRange($quarterAnchor, $offset),
+                        'yesterday_current' => $mkQuarterRange($quarterAnchor, $offset),
+                        'daybefore_current' => $mkQuarterRange($quarterAnchor, $offset),
 
-                    // prev2 quarter
-                    $p2Start = strtotime('-6 months', $curQStart);
-                    $p2End   = strtotime('+3 months -1 day', $p2Start);
+                        // ===== PREV 1 =====
+                        'today_prev1'     => $mkQuarterRange($quarterAnchor, $offset - 1),
+                        'yesterday_prev1' => $mkQuarterRange($quarterAnchor, $offset - 1),
+                        'daybefore_prev1' => $mkQuarterRange($quarterAnchor, $offset - 1),
 
-                    $ranges['prev1'] = ['from' => date('Y-m-d', $p1Start), 'to' => date('Y-m-d', $p1End) . ' 23:59:59'];
-                    $ranges['prev2'] = ['from' => date('Y-m-d', $p2Start), 'to' => date('Y-m-d', $p2End) . ' 23:59:59'];
+                        // ===== PREV 2 =====
+                        'today_prev2'     => $mkQuarterRange($quarterAnchor, $offset - 2),
+                        'yesterday_prev2' => $mkQuarterRange($quarterAnchor, $offset - 2),
+                        'daybefore_prev2' => $mkQuarterRange($quarterAnchor, $offset - 2),
+                    ];
+                    $title_current = 'Hiện tại: Quý đang chọn';
+                    $title_prev1 = 'Cùng kỳ: so sánh với quý đang chọn hiện tại ở trên';
+                    $title_prev2 = 'Cùng kỳ kế tiếp: so sánh với quý cùng kỳ ở trên';
                     break;
                 }
-
-                // NĂM: năm trước và năm trước nữa
             case 'this_year':
             case 'previous_year': {
-                    $yCur = (int)date('Y', strtotime($cur_from_day));
+                    $yearAnchor = $from_date_sql;
+                    $offset = ($sel === 'previous_year') ? -1 : 0;
 
-                    $ranges['prev1'] = [
-                        'from' => sprintf('%04d-01-01', $yCur - 1),
-                        'to'   => sprintf('%04d-12-31 23:59:59', $yCur - 1),
+                    $ranges = [
+                        // ===== CURRENT =====
+                        'today_current'     => $mkYearRange($yearAnchor, $offset),
+                        'yesterday_current' => $mkYearRange($yearAnchor, $offset),
+                        'daybefore_current' => $mkYearRange($yearAnchor, $offset),
+
+                        // ===== PREV 1 =====
+                        'today_prev1'     => $mkYearRange($yearAnchor, $offset - 1),
+                        'yesterday_prev1' => $mkYearRange($yearAnchor, $offset - 1),
+                        'daybefore_prev1' => $mkYearRange($yearAnchor, $offset - 1),
+
+                        // ===== PREV 2 =====
+                        'today_prev2'     => $mkYearRange($yearAnchor, $offset - 2),
+                        'yesterday_prev2' => $mkYearRange($yearAnchor, $offset - 2),
+                        'daybefore_prev2' => $mkYearRange($yearAnchor, $offset - 2),
                     ];
-                    $ranges['prev2'] = [
-                        'from' => sprintf('%04d-01-01', $yCur - 2),
-                        'to'   => sprintf('%04d-12-31 23:59:59', $yCur - 2),
-                    ];
+                    $title_current = 'Hiện tại: Năm đang chọn';
+                    $title_prev1 = 'Cùng kỳ: so sánh với năm đang chọn hiện tại ở trên';
+                    $title_prev2 = 'Cùng kỳ kế tiếp: so sánh với năm cùng kỳ ở trên';
                     break;
                 }
-                // MẶC ĐỊNH: cửa sổ liền kề cùng độ dài ngay trước current, và liền kề trước nữa
             default: {
-                    $days = (int)((strtotime($cur_to_day) - strtotime($cur_from_day)) / 86400) + 1; // inclusive
+                    $anchorFrom = $from_date_sql;
+                    $anchorTo   = $to_date_sql;
 
-                    // prev1: ngay trước current
-                    $prev1_end   = $shiftDays($cur_from_day, '-1 day');
-                    $prev1_start = date('Y-m-d', strtotime("$prev1_end -" . ($days - 1) . " days"));
+                    $current = $mkRange($anchorFrom, $anchorTo);
+                    $prev1   = $shiftRange($anchorFrom, $anchorTo, 1);
+                    $prev2   = $shiftRange($anchorFrom, $anchorTo, 2);
 
-                    // prev2: ngay trước prev1
-                    $prev2_end   = $shiftDays($prev1_start, '-1 day');
-                    $prev2_start = date('Y-m-d', strtotime("$prev2_end -" . ($days - 1) . " days"));
+                    $ranges = [
+                        // ===== CURRENT =====
+                        'today_current'     => $current,
+                        'yesterday_current' => $current,
+                        'daybefore_current' => $current,
 
-                    $ranges['prev1'] = $mkRange($prev1_start, $prev1_end);
-                    $ranges['prev2'] = $mkRange($prev2_start, $prev2_end);
+                        // ===== PREV 1 =====
+                        'today_prev1'     => $prev1,
+                        'yesterday_prev1' => $prev1,
+                        'daybefore_prev1' => $prev1,
+
+                        // ===== PREV 2 =====
+                        'today_prev2'     => $prev2,
+                        'yesterday_prev2' => $prev2,
+                        'daybefore_prev2' => $prev2,
+                    ];
                     break;
                 }
         }
 
-        $select_period = "CASE
-							WHEN DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '{$ranges['current']['from']}' AND '{$ranges['current']['to']}' THEN 'current'
-							WHEN DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '{$ranges['prev1']['from']}' AND '{$ranges['prev1']['to']}' THEN 'prev1'
-							ELSE 'prev2'
-						END AS period";
+		// pr($ranges);
 
-        $where_period = "
-			AND
-			(
-				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '{$ranges['current']['from']}' AND '{$ranges['current']['to']}'
-			    OR 
-				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '{$ranges['prev1']['from']}' AND '{$ranges['prev1']['to']}'
-			    OR 
-				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '{$ranges['prev2']['from']}' AND '{$ranges['prev2']['to']}'
-			)
-		";
+		$select_period = "CASE
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_current']['from']}' AND '{$ranges['today_current']['to']}' THEN 'today_current'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev1']['from']}'   AND '{$ranges['today_prev1']['to']}'   THEN 'today_prev1'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev2']['from']}'   AND '{$ranges['today_prev2']['to']}'   THEN 'today_prev2'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_current']['from']}' AND '{$ranges['yesterday_current']['to']}' THEN 'yesterday_current'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev1']['from']}'   AND '{$ranges['yesterday_prev1']['to']}'   THEN 'yesterday_prev1'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev2']['from']}'   AND '{$ranges['yesterday_prev2']['to']}'   THEN 'yesterday_prev2'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_current']['from']}' AND '{$ranges['daybefore_current']['to']}' THEN 'daybefore_current'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev1']['from']}'   AND '{$ranges['daybefore_prev1']['to']}'   THEN 'daybefore_prev1'
+                            WHEN DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'   THEN 'daybefore_prev2'
+                            ELSE 'unknown'
+                        END AS period";
+        $where_period = "AND (
+                            DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_current']['from']}' AND '{$ranges['today_current']['to']}'
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev1']['from']}'   AND '{$ranges['today_prev1']['to']}'
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev2']['from']}'   AND '{$ranges['today_prev2']['to']}'
+
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_current']['from']}' AND '{$ranges['yesterday_current']['to']}'
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev1']['from']}'   AND '{$ranges['yesterday_prev1']['to']}'
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev2']['from']}'   AND '{$ranges['yesterday_prev2']['to']}'
+
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_current']['from']}' AND '{$ranges['daybefore_current']['to']}'
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev1']['from']}'   AND '{$ranges['daybefore_prev1']['to']}'
+                            OR DATE(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'
+                        )";
 
         try {
+			// get thông tin doanh số theo ngày tạo
+            $sql = "SELECT
+                    t.period,
+                    CASE
+                        WHEN t.period IN ('today_current', 'yesterday_current', 'daybefore_current')
+                            THEN 'current'
+                        WHEN t.period IN ('today_prev1', 'yesterday_prev1', 'daybefore_prev1')
+                            THEN 'prev1'
+                        WHEN t.period IN ('today_prev2', 'yesterday_prev2', 'daybefore_prev2')
+                            THEN 'prev2'
+                    END AS period_group,
+                    CASE
+                        WHEN t.period = 'today_current' THEN '{$ranges['today_current']['from']}'
+                        WHEN t.period = 'today_prev1'   THEN '{$ranges['today_prev1']['from']}'
+                        WHEN t.period = 'today_prev2'   THEN '{$ranges['today_prev2']['from']}'
+                        WHEN t.period = 'yesterday_current' THEN '{$ranges['yesterday_current']['from']}'
+                        WHEN t.period = 'yesterday_prev1'   THEN '{$ranges['yesterday_prev1']['from']}'
+                        WHEN t.period = 'yesterday_prev2'   THEN '{$ranges['yesterday_prev2']['from']}'
+                        WHEN t.period = 'daybefore_current' THEN '{$ranges['daybefore_current']['from']}'
+                        WHEN t.period = 'daybefore_prev1'   THEN '{$ranges['daybefore_prev1']['from']}'
+                        WHEN t.period = 'daybefore_prev2'   THEN '{$ranges['daybefore_prev2']['from']}'
+                    END AS from_date,
+                    CASE
+                        WHEN t.period = 'today_current' THEN '{$ranges['today_current']['to']}'
+                        WHEN t.period = 'today_prev1'   THEN '{$ranges['today_prev1']['to']}'
+                        WHEN t.period = 'today_prev2'   THEN '{$ranges['today_prev2']['to']}'
+                        WHEN t.period = 'yesterday_current' THEN '{$ranges['yesterday_current']['to']}'
+                        WHEN t.period = 'yesterday_prev1'   THEN '{$ranges['yesterday_prev1']['to']}'
+                        WHEN t.period = 'yesterday_prev2'   THEN '{$ranges['yesterday_prev2']['to']}'
+                        WHEN t.period = 'daybefore_current' THEN '{$ranges['daybefore_current']['to']}'
+                        WHEN t.period = 'daybefore_prev1'   THEN '{$ranges['daybefore_prev1']['to']}'
+                        WHEN t.period = 'daybefore_prev2'   THEN '{$ranges['daybefore_prev2']['to']}'
+                    END AS to_date,
+                    SUM(t.total_qty)             AS total_qty,
+                    SUM(t.total_ticket_qty)      AS total_ticket_qty,
+                    SUM(t.total_bk_2_3)          AS total_bk_2_3,
+                    SUM(t.total_bk_4_6)          AS total_bk_4_6,
+                    SUM(t.total_profit)          AS total_profit,
+                    SUM(t.total_profit_domestic) AS total_profit_domestic,
+                    SUM(t.total_profit_inter)    AS total_profit_inter,
+                    SUM(t.inbound) AS inbound,
+                    SUM(t.missed) AS missed,
+                    SUM(t.inbound_bk) AS inbound_bk,
+                    SUM(t.tham_khao_bk) AS tham_khao_bk,
+                    SUM(t.total_qty_inter) AS total_qty_inter,
+                    SUM(t.total_qty_inter_com) AS total_qty_inter_com
+                FROM (
+                    -- Block 1: Doanh số booking
+                    SELECT
+                        $select_period,
+						u.last_name,
+						u.user_name,
+						u.id AS user_id,
+                        COUNT(bk.id) AS total_qty,
+                        SUM(bk.ticket_qty) AS total_ticket_qty,
+                        SUM(bk.total_amount) AS total_amount,
+                        SUM(bk.total_purchase) AS total_purchase,
+                        SUM(bk.total_profit) AS total_profit,
+
+                        -- Domestic
+                        SUM(CASE WHEN bk.ticket_type = 1 THEN bk.total_amount ELSE 0 END) AS total_amount_domestic,
+                        SUM(CASE WHEN bk.ticket_type = 1 THEN bk.total_purchase ELSE 0 END) AS total_purchase_domestic,
+                        SUM(CASE WHEN bk.ticket_type = 1 THEN bk.total_profit ELSE 0 END) AS total_profit_domestic,
+                        -- Inter
+                        SUM(CASE WHEN bk.ticket_type = 2 THEN bk.total_amount ELSE 0 END) AS total_amount_inter,
+                        SUM(CASE WHEN bk.ticket_type = 2 THEN bk.total_purchase ELSE 0 END) AS total_purchase_inter,
+                        SUM(CASE WHEN bk.ticket_type = 2 THEN bk.total_profit ELSE 0 END) AS total_profit_inter,
+
+                        -- Booking theo số vé
+                        SUM(CASE WHEN bk.ticket_qty BETWEEN 2 AND 3 THEN 1 ELSE 0 END) AS total_bk_2_3,
+                        SUM(CASE WHEN bk.ticket_qty BETWEEN 4 AND 6 THEN 1 ELSE 0 END) AS total_bk_4_6,
+                        0 AS inbound,
+                        0 AS missed,
+                        0 AS inbound_bk,
+                        0 AS tham_khao_bk,
+                        0 AS total_qty_inter,
+                        SUM(CASE WHEN bk.ticket_type = 2 THEN 1 ELSE 0 END) AS total_qty_inter_com
+                    FROM ec_revenue bk
+					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
+                    WHERE bk.deleted = 0
+                    $where_period
+                    GROUP BY period
+
+                    -- Block 2: Cuộc gọi
+                    UNION ALL
+					SELECT
+						" . str_replace('bk.date_entered', 'c.date_entered', $select_period) . ",
+						u.last_name,
+						u.user_name,
+						u.id AS user_id,
+						0 AS total_qty,
+						0 AS total_ticket_qty,
+						0 AS total_amount,
+						0 AS total_purchase,
+						0 AS total_profit,
+						0 AS total_amount_domestic,
+						0 AS total_purchase_domestic,
+						0 AS total_profit_domestic,
+						0 AS total_amount_inter,
+						0 AS total_purchase_inter,
+						0 AS total_profit_inter,
+						0 AS total_bk_2_3,
+						0 AS total_bk_4_6,
+						SUM(CASE WHEN c.direction = 'inbound' THEN 1 ELSE 0 END) AS inbound,
+						SUM(CASE WHEN c.direction = 'missed'  THEN 1 ELSE 0 END) AS missed,
+						SUM(CASE WHEN c.direction = 'inbound' AND c.booking_id IS NOT NULL AND c.booking_id <> '' THEN 1 ELSE 0 END) AS inbound_bk,
+                        0 AS tham_khao_bk,
+                        0 AS total_qty_inter,
+                        0 AS total_qty_inter_com
+					FROM calls c
+					LEFT JOIN users u ON c.call_sources = u.last_name AND u.deleted = 0
+					WHERE bk.deleted = 0
+					" . str_replace('bk.date_entered', 'c.date_entered', $where_period) . "
+					GROUP BY period
+
+                    -- Block 3: Booking tham khảo
+                    UNION ALL
+					SELECT
+                        $select_period,
+						0 AS total_qty,
+						0 AS total_ticket_qty,
+						0 AS total_amount,
+						0 AS total_purchase,
+						0 AS total_profit,
+						0 AS total_amount_domestic,
+						0 AS total_purchase_domestic,
+						0 AS total_profit_domestic,
+						0 AS total_amount_inter,
+						0 AS total_purchase_inter,
+						0 AS total_profit_inter,
+						0 AS total_bk_2_3,
+						0 AS total_bk_4_6,
+						0 AS inbound,
+						0 AS missed,
+						0 AS inbound_bk,
+                        SUM(CASE WHEN bk.is_reference = 1 THEN 1 ELSE 0 END) AS tham_khao_bk,
+                        SUM(CASE WHEN bk.ticket_type = 2 THEN 1 ELSE 0 END) AS total_qty_inter,
+                        0 AS total_qty_inter_com
+					FROM ec_flight_bookings bk
+					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
+					WHERE bk.deleted = 0
+                    $where_period
+					GROUP BY period
+                ) t
+                GROUP BY period
+                ORDER BY
+                    CASE t.period
+                        WHEN 'today_current' THEN 1
+                        WHEN 'yesterday_current' THEN 2
+                        WHEN 'daybefore_current' THEN 3
+                        WHEN 'today_prev1'   THEN 4
+                        WHEN 'yesterday_prev1'   THEN 5
+                        WHEN 'daybefore_prev1'   THEN 6
+                        WHEN 'today_prev2'   THEN 7
+                        WHEN 'yesterday_prev2'   THEN 8
+                        WHEN 'daybefore_prev2'   THEN 9
+                        ELSE 10
+                    END;
+            ";
+
+			pr($sql);
+
             $sql = "
 				SELECT
 					period,
@@ -817,11 +1084,7 @@ class Viewreport_sales_create extends SugarView
 				END,
 				total_sales DESC";
 
-            // if($GLOBALS['current_user']->user_name == 'admin'){
-            // pr($sql);
-            // }
-
-            $res = $this->bean->db->query($sql);
+            // $res = $this->bean->db->query($sql);
 
             $html = '<tbody><form id="booking_search" name="search_form" method="POST" action="index.php?module=EC_TongHop&action=ListView" target="_blank">';
             $i = 0;

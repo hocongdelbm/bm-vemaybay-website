@@ -364,8 +364,7 @@
 				<div class="d-flex gap-2 align-items-center date_trigger--wrap fdate_trigger--wrap">
 					<span class="text-label">Từ ngày: </span>
 					<div class="dateTime d-flex gap-2 position-relative">
-						<input class="date_input box-input" type="text" maxlength="10" size="8" tabindex="103" title=""
-							value="{$from_date}" id="from_date" name="from_date" autocomplete="off">
+						<input class="date_input box-input" type="text" maxlength="10" size="8" tabindex="103" title="" value="{$FROM_DATE_VALUE}" id="from_date" name="from_date" autocomplete="off">
 						<button class="icon_dateTime" type="button" id="from_date_trigger" onclick="return false;">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
 								class="bi bi-calendar2" viewBox="0 0 16 16">
@@ -405,8 +404,7 @@
 				<div class="d-flex gap-2 align-items-center date_trigger--wrap tdate_trigger--wrap">
 					<span class="text-label">Đến ngày: </span>
 					<div class="dateTime d-flex gap-2 position-relative">
-						<input class="date_input box-input" type="text" maxlength="10" size="8" title=""
-							value="{$to_date}" id="to_date" name="to_date" autocomplete="off">
+						<input class="date_input box-input" type="text" maxlength="10" size="8" title="" value="{$TO_DATE_VALUE}" id="to_date" name="to_date" autocomplete="off">
 						<button class="icon_dateTime" type="button" id="to_date_trigger" onclick="return false;">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
 								class="bi bi-calendar2" viewBox="0 0 16 16">
@@ -430,23 +428,6 @@
 						{/literal}
 					</div>
 				</div>
-			</div>
-
-			<div class="d-flex align-items-center gap-2">
-				{$RADIO_TODAY}
-				<label class="cursor-pointer" for="today">Hôm nay</label>
-
-				{$RADIO_YESTERDAY}
-				<label class="cursor-pointer" for="yesterday">Hôm qua</label>
-
-				{$RADIO_DAYBEFORE}
-				<label class="cursor-pointer" for="daybefore">Hôm trước</label>
-
-				{$RADIO_CURRENTWEEK}
-				<label class="cursor-pointer" for="current_week">Tuần này</label>
-
-				{$RADIO_PREVIOUSWEEK}
-				<label class="cursor-pointer" for="previous_week">Tuần trước</label>
 			</div>
 		</div>
 
@@ -562,7 +543,9 @@
 				<th style="width: 4%; background-color: #E94560; color: #fff;">%</th>
 			</tr>
 		</thead>
-		{$rpt_body_compare}
+        <tbody>
+			{$rpt_body_compare}
+        </tbody>
 	</table>
 </div>
 

@@ -1394,7 +1394,7 @@ function populateEditedLineItineraries($booking_id)
 		// Quá cảnh để trống
 		$html .= '
 				<td class="text-center p-2">
-					<svg xmlns="http://www.w3.org/2000/svg" data-id="' . $row['iti_id'] . '" class="edit_iti_row cursor-pointer" width="24" height="24" viewBox="0 0 24 24" style="fill: #2a2a2a;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
+					<svg xmlns="http://www.w3.org/2000/svg" data-id="' . $row['iti_id'] . '" class="edit_iti_row cursor-pointer" width="20" height="20" viewBox="0 0 24 24" style="fill: #2a2a2a;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
 				</td>';
 		$html .= '</tr>';
 
@@ -1608,9 +1608,11 @@ function populateEditedLinePassenger($booking_id)
 			<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
 			<td data-label="Loại HK" class="text-center passenger_type">' . $app_list_strings['passenger_type_list'][$row['type']] . '</td>
 			<td data-label="Danh xưng" class="text-center passenger_salutation">' . $app_list_strings['passenger_salutation_list'][$row['salutation']] . '</td>
-			<td data-label="Họ tên" class="text-start passenger_name" style="display: flex; border: none;">
-				<p class="fullname" style="margin-right: auto">' . $row['name'] . '</p>
-				<svg xmlns="http://www.w3.org/2000/svg" class="edit_pass_row cursor-pointer" data-id="' . $row['id'] . '" width="24" height="24" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
+			<td data-label="Họ tên" class="text-start passenger_name">
+				<div class="d-flex">
+					<p class="fullname" style="margin-right: auto">' . $row['name'] . '</p>
+					<svg xmlns="http://www.w3.org/2000/svg" class="edit_pass_row cursor-pointer" data-id="' . $row['id'] . '" width="20" height="20" viewBox="0 0 24 24" style="#202020;transform: ;msFilter:;"><path d="m18.988 2.012 3 3L19.701 7.3l-3-3zM8 16h3l7.287-7.287-3-3L8 13z"></path><path d="M19 19H8.158c-.026 0-.053.01-.079.01-.033 0-.066-.009-.1-.01H5V5h6.847l2-2H5c-1.103 0-2 .896-2 2v14c0 1.104.897 2 2 2h14a2 2 0 0 0 2-2v-8.668l-2 2V19z"></path></svg>
+				</div>
 			</td>
 			<td data-label="Ngày sinh" class="text-center passenger_birthday">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date('d-m-Y', strtotime($row['birthday'])) : '') . '</td>
 			<td data-label="Giấy tờ" class="passenger_id text-start"></td>
@@ -3891,7 +3893,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getInfoBookingDomestic') {
 			WHERE
 			deleted = 0
 			' . $sql_search . ' 
-			ORDER BY ticket_qty DESC
+			ORDER BY ticket_qty DESC, total_profit DESC
 	';
 
 	// if($current_user->user_name == 'hungnh'){
