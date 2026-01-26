@@ -105,52 +105,69 @@ $(document).ready(function () {
         }
     });
 
+    $('#select-all-passengers').on('change', function () {
+        $('.check-passenger').prop('checked', $(this).is(':checked')).trigger('change');
+    });
+
     var pendingPrintData = null;
 
-    $(document).on('click', '.btnPrintEticket-selection', function () {
+    function showWarningToast(message, scrollTargetSelector) {
+        var $toast = $('.toast-warning');
 
-        var passengerCount = Object.keys(selectedPassengers).length;
-        var itineraryCount = Object.keys(selectedItineraries).length;
+        $toast.find('.progress-bar').stop(true, true).css('width', '0%');
 
-        if (passengerCount === 0 || itineraryCount === 0) {
-            $('.toast-warning').addClass('active');
-            $('.toast-warning #toast-content').text('Vui lòng chọn hành khách và hành trình');
-            $('.toast-warning .progress-bar').animate({ width: "100%" }, 3000);
-            setTimeout(function () {
-                $(".toast-warning").removeClass('active');
-            }, 4000);
+        $toast.addClass('active');
+        $toast.find('#toast-content').text(message);
+        $toast.find('.progress-bar').animate({ width: "100%" }, 3000);
 
-            $('html, body').animate({
-                scrollTop: $("#tbl_pax").offset().top
-            }, 1000);
+        setTimeout(function () {
+            $toast.removeClass('active');
+        }, 4000);
+
+        $('html, body').animate({
+            scrollTop: $(scrollTargetSelector).offset().top
+        }, 1000);
+    }
+
+    $(document).on('click', '.btnPrintEticket-selection, .btnSendEticket-selection', function () {
+
+        var isPrint = $(this).hasClass('btnPrintEticket-selection');
+        var actionType = isPrint ? 'print-selection' : 'send-selection';
+
+        var passengers = Object.values(selectedPassengers);
+        var itineraries = Object.values(selectedItineraries);
+
+        if (passengers.length === 0) {
+            showWarningToast('Vui lòng chọn hành khách', '#tbl_pax');
             return false;
         }
 
-        pendingPrintData = {
-            passengers: Object.values(selectedPassengers),
-            itineraries: Object.values(selectedItineraries),
-            passengerIds: Object.keys(selectedPassengers).join(','),
-            itineraryIds: Object.keys(selectedItineraries).join(',')
-        };
-
-
-        var firstItinerary = Object.values(selectedItineraries)[0];
-        if (firstItinerary) {
-            pendingPrintData.bookingId = firstItinerary.bookingId;
-            pendingPrintData.booking = firstItinerary.booking;
-            pendingPrintData.contactEmail = firstItinerary.contactEmail;
-            pendingPrintData.contactName = firstItinerary.contactName;
-
-            var directions = Object.values(selectedItineraries).map(function (iti) {
-                return iti.directionCode;
-            });
-            pendingPrintData.khuhoi = (directions.includes('0') && directions.includes('1')) ? 1 : 0;
+        if (itineraries.length === 0) {
+            showWarningToast('Vui lòng chọn hành trình', '#itinerary_tbl');
+            return false;
         }
+
+        var firstItinerary = itineraries[0];
+
+        var directions = itineraries.map(function (iti) { return iti.directionCode; });
+        var isRoundTrip = (directions.includes('0') && directions.includes('1')) ? 1 : 0;
+
+        pendingPrintData = {
+            passengers: passengers,
+            itineraries: itineraries,
+            passengerIds: Object.keys(selectedPassengers).join(','),
+            itineraryIds: Object.keys(selectedItineraries).join(','),
+            // Booking Info
+            bookingId: firstItinerary.bookingId,
+            booking: firstItinerary.booking,
+            contactEmail: firstItinerary.contactEmail,
+            contactName: firstItinerary.contactName,
+            khuhoi: isRoundTrip
+        };
 
         $('input[name="ngonngu"]').prop('checked', false);
         $('#vn').prop('checked', true);
-
-        $('#what_form').val('print-selection');
+        $('#what_form').val(actionType);
 
         $('#dlgSelectLanguage').dialog({
             height: 'auto',
@@ -163,114 +180,66 @@ $(document).ready(function () {
     $(document).on('click', '#btnSelectLanguage', function () {
         var whatForm = $('#what_form').val();
 
-        if (whatForm !== 'print-selection') {
-            return;
-        }
-
+        if (!['print-selection', 'send-selection'].includes(whatForm)) return;
         if (!pendingPrintData) {
-            console.error('No pending print data!');
+            console.error('No pending data!');
             $('#dlgSelectLanguage').dialog('close');
             return;
         }
 
         var selectedLanguage = $('input[name="ngonngu"]:checked').val();
 
-        submitPrintForm(selectedLanguage);
+        submitEticketForm(whatForm, selectedLanguage);
 
+        // Cleanup
         $('#dlgSelectLanguage').dialog('close');
-
         pendingPrintData = null;
         $('#what_form').val('');
     });
 
-    function submitPrintForm(language) {
-        if (!pendingPrintData) {
-            console.error('No pending print data!');
-            return;
-        }
+    function submitEticketForm(actionType, language) {
+        if (!pendingPrintData) return;
+
+        var isPrint = (actionType === 'print-selection');
+
+        // Dynamic Form Configuration
+        var formActionUrl = isPrint ? 'index.php?print=true' : 'index.php';
+        var hiddenActionVal = isPrint ? 'printeticket' : 'sendeticket';
+
         var form = $('<form>', {
             'method': 'POST',
-            'action': 'index.php?print=true',
+            'action': formActionUrl,
             'target': '_blank'
         });
 
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'module',
-            'value': 'EC_Flight_Bookings'
-        }));
+        // Encode Data
+        var passJSON = JSON.stringify(pendingPrintData.passengers);
+        var itiJSON = JSON.stringify(pendingPrintData.itineraries);
+        var passB64 = btoa(unescape(encodeURIComponent(passJSON)));
+        var itiB64 = btoa(unescape(encodeURIComponent(itiJSON)));
 
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'action',
-            'value': 'printeticket'
-        }));
+        var fields = {
+            'module': 'EC_Flight_Bookings',
+            'action': hiddenActionVal,
+            'lang': language,
+            'khuhoi': pendingPrintData.khuhoi,
+            'booking_id': pendingPrintData.bookingId,
+            'booking': pendingPrintData.booking,
+            'contact_email': pendingPrintData.contactEmail,
+            'contact_name': pendingPrintData.contactName,
+            'passengersData': passB64,
+            'itinerariesData': itiB64,
+            'listPassengers': pendingPrintData.passengerIds,
+            'listItineraries': pendingPrintData.itineraryIds
+        };
 
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'lang',
-            'value': language
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'khuhoi',
-            'value': pendingPrintData.khuhoi
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'booking_id',
-            'value': pendingPrintData.bookingId
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'booking',
-            'value': pendingPrintData.booking
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'contact_email',
-            'value': pendingPrintData.contactEmail
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'contact_name',
-            'value': pendingPrintData.contactName
-        }));
-
-        var passengersJSON = JSON.stringify(pendingPrintData.passengers);
-        var itinerariesJSON = JSON.stringify(pendingPrintData.itineraries);
-
-        var passengersBase64 = btoa(unescape(encodeURIComponent(passengersJSON)));
-        var itinerariesBase64 = btoa(unescape(encodeURIComponent(itinerariesJSON)));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'passengersData',
-            'value': passengersBase64
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'itinerariesData',
-            'value': itinerariesBase64
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'listPassengers',
-            'value': pendingPrintData.passengerIds
-        }));
-
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': 'listItineraries',
-            'value': pendingPrintData.itineraryIds
-        }));
+        $.each(fields, function (name, value) {
+            $('<input>').attr({
+                type: 'hidden',
+                name: name,
+                value: value
+            }).appendTo(form);
+        });
 
         $('body').append(form);
         form.submit();
