@@ -7,10 +7,14 @@ class LoggerHelper {
      *
      * @param string $level Log level: emergency, alert, critical, error, warning, notice, info, debug
      * @param string $message Log message
-     * @param mixed context Additional contextual data
+     * @param mixed Context additional contextual data
+     * @return string Log id
      */
-    public static function log($level, $message, $context = null): void
+    public static function log($level, $message, $context = null): ?string
     {
+        // Generate log id
+        $logId = self::generateLogId();
+
         try {
             $level = strtoupper($level);
             $dateTime = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
@@ -22,7 +26,7 @@ class LoggerHelper {
             if(is_array($context) || is_object($context)) $contextString = json_encode($context);
             elseif(is_string($context)) $contextString = $context;
 
-            $logLine = trim("[{$date} {$time}] {$level} {$message}");
+            $logLine = trim("[{$date} {$time}][$logId] {$level} {$message}");
             if ($contextString !== '') $logLine .= " {$contextString}";
             $logLine .= PHP_EOL;
 
@@ -34,10 +38,12 @@ class LoggerHelper {
                 mkdir($path, 0744, true);
             }
 
-            file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX);
+            if(file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX)) return $logId;
+            return null;
         }
         catch(Throwable $th) {
-            pr($th->getMessage());
+            $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+            return $logId;
         }
     }
 
@@ -52,23 +58,23 @@ class LoggerHelper {
     }
 
     // Shortcut methods for common levels
-    public static function error(string $message, $context = null): void
+    public static function error(string $message, $context = null): ?string
     {
-        self::log(__FUNCTION__, $message, $context);
+        return self::log(__FUNCTION__, $message, $context);
     }
 
-    public static function warning(string $message, $context = null): void
+    public static function warning(string $message, $context = null): ?string
     {
-        self::log(__FUNCTION__, $message, $context);
+        return self::log(__FUNCTION__, $message, $context);
     }
 
-    public static function info(string $message, $context = null): void
+    public static function info(string $message, $context = null): ?string
     {
-        self::log(__FUNCTION__, $message, $context);
+        return self::log(__FUNCTION__, $message, $context);
     }
 
-    public static function debug(string $message, $context = null): void
+    public static function debug(string $message, $context = null): ?string
     {
-        self::log(__FUNCTION__, $message, $context);
+        return self::log(__FUNCTION__, $message, $context);
     }
 }
