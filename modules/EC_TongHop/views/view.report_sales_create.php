@@ -398,6 +398,9 @@ class Viewreport_sales_create extends SugarView
                     SUM(t.com_tham_khao_bk) 	 AS com_tham_khao_bk,
                     SUM(t.total_ticket_qty)      AS total_ticket_qty,
 
+                    SUM(t.total_profit)      	 AS total_profit,
+                    SUM(t.total_profit_inter)    AS total_profit_inter,
+
                     SUM(t.prior_bk)      		 AS prior_bk,
                     SUM(t.com_prior_bk)      	 AS com_prior_bk,
                     SUM(t.com_prior_ticket)   	 AS com_prior_ticket,
@@ -448,14 +451,14 @@ class Viewreport_sales_create extends SugarView
 
                         -- Booking theo số vé
 						0 AS 1_3_bk,
-						SUM(CASE WHEN bk.ticket_qty BETWEEN 1 AND 3 THEN 1 ELSE 0 END) AS com_1_3_bk,
-						SUM(CASE WHEN bk.ticket_qty BETWEEN 1 AND 3 THEN bk.ticket_qty ELSE 0 END) AS com_1_3_ticket,
-                        SUM(CASE WHEN bk.ticket_qty BETWEEN 1 AND 3 THEN bk.total_profit ELSE 0 END) AS 1_3_bk_sales,
+						SUM(CASE WHEN bk.ticket_qty BETWEEN 1 AND 3 AND bk.is_prior = 0 THEN 1 ELSE 0 END) AS com_1_3_bk,
+						SUM(CASE WHEN bk.ticket_qty BETWEEN 1 AND 3 AND bk.is_prior = 0 THEN bk.ticket_qty ELSE 0 END) AS com_1_3_ticket,
+                        SUM(CASE WHEN bk.ticket_qty BETWEEN 1 AND 3 AND bk.is_prior = 0 THEN bk.total_profit ELSE 0 END) AS 1_3_bk_sales,
 
 						0 AS 4_8_bk,
-						SUM(CASE WHEN bk.ticket_qty BETWEEN 4 AND 8 THEN 1 ELSE 0 END) AS com_4_8_bk,
-						SUM(CASE WHEN bk.ticket_qty BETWEEN 4 AND 8 THEN bk.ticket_qty ELSE 0 END) AS com_4_8_ticket,
-                        SUM(CASE WHEN bk.ticket_qty BETWEEN 4 AND 8 THEN bk.total_profit ELSE 0 END) AS 4_8_bk_sales,
+						SUM(CASE WHEN bk.ticket_qty BETWEEN 4 AND 8 AND bk.is_prior = 0 THEN 1 ELSE 0 END) AS com_4_8_bk,
+						SUM(CASE WHEN bk.ticket_qty BETWEEN 4 AND 8 AND bk.is_prior = 0 THEN bk.ticket_qty ELSE 0 END) AS com_4_8_ticket,
+                        SUM(CASE WHEN bk.ticket_qty BETWEEN 4 AND 8 AND bk.is_prior = 0 THEN bk.total_profit ELSE 0 END) AS 4_8_bk_sales,
 
 						-- Booking quốc tế
                         0 AS inter_bk,
@@ -524,92 +527,114 @@ class Viewreport_sales_create extends SugarView
 					" . str_replace('bk.date_entered_bk', 'c.date_entered', $where_period) . "
 					GROUP BY period, u.id
 
-                    -- Block 3: Booking tham khảo, SL Booking QT
+                    -- Block 3: Tham số khác
                     UNION ALL
 					SELECT
-						" . str_replace('bk.date_entered_bk', 'bk.date_entered', $select_period) . ",
-						u.last_name,
-						u.user_name,
-						u.id AS user_id,
-						COUNT(bk.id) AS total_qty,
+						period,
+						last_name,
+						user_name,
+						user_id,
+
+						COUNT(bk_id) AS total_qty,
 						0 AS total_qty_com,
-						SUM(
-							CASE
-								WHEN (
-									bk.contact_name IN ('Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi')
-									OR aud_booker.parent_id IS NOT NULL
-								)
-								THEN 1 ELSE 0
-							END
-						) AS booker_bk,
-						SUM(
-							CASE
-								WHEN bk.booking_status IN (8)
-								AND (
-									bk.contact_name IN ('Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi')
-									OR aud_booker.parent_id IS NOT NULL
-								)
-								THEN 1 ELSE 0
-							END
-						) AS booker_bk_com,
-						SUM(
-        					CASE
-								WHEN bk.contact_name IS NOT NULL
-								AND bk.contact_name <> ''
-								AND bk.contact_name NOT IN ('Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi', 'Tham Khao')
-								AND aud_all.parent_id IS NULL
-								THEN 1 ELSE 0
-							END
-						) AS khach_hang_bk,
-						SUM(
-							CASE
-								WHEN bk.booking_status IN (8)
-								AND bk.contact_name IS NOT NULL
-								AND bk.contact_name <> ''
-								AND bk.contact_name NOT IN ('Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi', 'Tham Khao')
-								AND aud_all.parent_id IS NULL
-								THEN 1 ELSE 0
-							END
-						) AS com_khach_hang_bk,
-						SUM(CASE WHEN bk.is_reference = 1 THEN 1 ELSE 0 END) AS tham_khao_bk,
-						SUM(CASE WHEN bk.is_reference = 1 AND bk.booking_status IN (8) THEN 1 ELSE 0 END) AS com_tham_khao_bk,
+
+						SUM(is_booker) AS booker_bk,
+						SUM(is_booker_com) AS booker_bk_com,
+
+						SUM(is_customer) AS khach_hang_bk,
+						SUM(is_customer_com) AS com_khach_hang_bk,
+
+						SUM(is_reference) AS tham_khao_bk,
+						SUM(is_reference_com) AS com_tham_khao_bk,
+
 						0 AS total_ticket_qty,
 						0 AS total_profit,
 						0 AS total_profit_inter,
 
-						-- Booking cận
-						SUM(CASE WHEN bk.is_prior = 1 THEN 1 ELSE 0 END) AS prior_bk,
+						SUM(is_prior) AS prior_bk,
 						0 AS com_prior_bk,
 						0 AS com_prior_ticket,
-                        0 AS prior_bk_sales,
+						0 AS prior_bk_sales,
 
-                        -- Booking theo số vé
-						SUM(CASE WHEN bk.total_qty <= 3 THEN 1 ELSE 0 END) AS 1_3_bk,
+						-- booking theo số vé
+						SUM(CASE WHEN total_ticket BETWEEN 1 AND 3 AND is_prior = 0 THEN 1 ELSE 0 END) AS 1_3_bk,
 						0 AS com_1_3_bk,
 						0 AS com_1_3_ticket,
-                        0 AS 1_3_bk_sales,
+						0 AS 1_3_bk_sales,
 
-						SUM(CASE WHEN bk.total_qty >= 4 AND bk.total_qty <= 8 THEN 1 ELSE 0 END) AS 4_8_bk,
+						SUM(CASE WHEN total_ticket BETWEEN 4 AND 8 AND is_prior = 0 THEN 1 ELSE 0 END) AS 4_8_bk,
 						0 AS com_4_8_bk,
 						0 AS com_4_8_ticket,
-                        0 AS 4_8_bk_sales,
+						0 AS 4_8_bk_sales,
 
-                        -- Booking quốc tế
-						SUM(CASE WHEN bk.ticket_type = 2 THEN 1 ELSE 0 END) AS inter_bk,
-                        0 AS com_inter_bk,
-                        0 AS com_inter_ticket,
-                        0 AS inter_bk_sales,
+						SUM(CASE WHEN ticket_type = 2 THEN 1 ELSE 0 END) AS inter_bk,
+						0 AS com_inter_bk,
+						0 AS com_inter_ticket,
+						0 AS inter_bk_sales,
 
 						0 AS inbound,
 						0 AS missed,
 						0 AS inbound_bk
-					FROM ec_flight_bookings bk
-					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
-					LEFT JOIN ec_flight_bookings_audit aud_booker ON aud_booker.parent_id = bk.id AND aud_booker.field_name = 'contact_name' AND aud_booker.before_value_string IN ('Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi')
-					LEFT JOIN ec_flight_bookings_audit aud_all ON aud_all.parent_id = bk.id AND aud_all.field_name = 'contact_name' AND aud_all.before_value_string IN ('Panda Po', 'Bao Gia Khach', 'Khach Hang Hoi', 'Tham Khao')
-					WHERE bk.deleted = 0
-					" . str_replace('bk.date_entered_bk', 'bk.date_entered', $where_period) . "
-					GROUP BY period, u.id
+
+					FROM (
+						SELECT
+							" . str_replace('bk.date_entered_bk', 'bk.date_entered', $select_period) . ",
+							u.last_name,
+							u.user_name,
+							u.id AS user_id,
+							bk.id AS bk_id,
+							bk.ticket_type,
+							bk.is_prior,
+							IFNULL(SUM(d.quantity), 0) AS total_ticket,
+
+							-- booker
+							CASE
+								WHEN bk.contact_name IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi')
+								OR aud_booker.parent_id IS NOT NULL
+								THEN 1 ELSE 0
+							END AS is_booker,
+
+							CASE
+								WHEN bk.booking_status = 8
+								AND (
+									bk.contact_name IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi')
+									OR aud_booker.parent_id IS NOT NULL
+								)
+								THEN 1 ELSE 0
+							END AS is_booker_com,
+
+							-- khách hàng
+							CASE
+								WHEN bk.contact_name IS NOT NULL
+								AND bk.contact_name <> ''
+								AND bk.contact_name NOT IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+								AND aud_all.parent_id IS NULL
+								THEN 1 ELSE 0
+							END AS is_customer,
+
+							CASE
+								WHEN bk.booking_status = 8
+								AND bk.contact_name IS NOT NULL
+								AND bk.contact_name <> ''
+								AND bk.contact_name NOT IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+								AND aud_all.parent_id IS NULL
+								THEN 1 ELSE 0
+							END AS is_customer_com,
+
+							-- tham khảo
+							CASE WHEN bk.is_reference = 1 THEN 1 ELSE 0 END AS is_reference,
+							CASE WHEN bk.is_reference = 1 AND bk.booking_status = 8 THEN 1 ELSE 0 END AS is_reference_com
+
+						FROM ec_flight_bookings bk
+						LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
+						LEFT JOIN ec_booking_details d ON d.booking_id = bk.id AND d.deleted = 0
+						LEFT JOIN ec_flight_bookings_audit aud_booker ON aud_booker.parent_id = bk.id AND aud_booker.field_name = 'contact_name' AND aud_booker.before_value_string IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi')
+						LEFT JOIN ec_flight_bookings_audit aud_all ON aud_all.parent_id = bk.id AND aud_all.field_name = 'contact_name' AND aud_all.before_value_string IN ('Panda Po','Bao Gia Khach','Khach Hang Hoi','Tham Khao')
+						WHERE bk.deleted = 0
+						" . str_replace('bk.date_entered_bk', 'bk.date_entered', $where_period) . "
+						GROUP BY bk.id
+					) x
+					GROUP BY period, user_id
                 ) t
                 GROUP BY period, user_id
                 ORDER BY

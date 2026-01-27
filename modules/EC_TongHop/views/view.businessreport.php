@@ -7,6 +7,14 @@ class Viewbusinessreport extends SugarView
 {
     function display()
     {
+		global $current_user;
+
+    	// Bảo trì
+		if ($current_user->user_name != 'hungnh') {
+			echo '<p class="alert alert-danger fw-semibold">Báo cáo doanh số Tuần đang cập nhật. Vui lòng quay lại sau!</p>';
+			exit();
+		}
+
         $smartyCont = new Sugar_Smarty();
         $this->populateContent($smartyCont);
         $smartyCont->display('modules/EC_TongHop/tpls/view_business_report.tpl');

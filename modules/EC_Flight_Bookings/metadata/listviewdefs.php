@@ -24,7 +24,7 @@ $listViewDefs[$module_name] = array(
     'IS_PRIOR' => array(
         'label' => 'LBL_IS_PRIOR',
         'width' => '12%',
-        'default' => false,
+        'default' => true,
     ),
     'PHONE' => array(
         'label' => 'LBL_PHONE',
