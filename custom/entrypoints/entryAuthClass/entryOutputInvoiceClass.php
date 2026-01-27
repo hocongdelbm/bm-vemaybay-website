@@ -109,7 +109,7 @@ class entryOutputInvoiceClass extends entryClass {
                         if(empty($invNumber)) continue;
 
                         global $db;
-                        $jsonSafe       = $db->quote($json);
+                        $jsonSafe       = str_replace("'", "\'", $json);
                         $invNumberSafe  = $db->quote($invNumber);
                         $invSerialSafe  = $db->quote($invSerial);
                         $invDateSafe    = $db->quote($invDate);
@@ -122,13 +122,13 @@ class entryOutputInvoiceClass extends entryClass {
                            "UPDATE ec_hoadonban
                             SET tinhtrang = '2',
                                 is_signed = 1,
-                                sohoadon = $invNumberSafe,
-                                kyhieuhd = $invSerialSafe,
-                                ngayhoadon = $invDateSafe,
-                                invoice_data = $jsonSafe,
-                                modified_user_id = $userIdSafe,
-                                date_modified = $dateModified
-                            WHERE id = $recordIdSafe AND name = $invRefSafe AND deleted = 0";
+                                sohoadon = '$invNumberSafe',
+                                kyhieuhd = '$invSerialSafe',
+                                ngayhoadon = '$invDateSafe',
+                                invoice_data = '$jsonSafe',
+                                modified_user_id = '$userIdSafe',
+                                date_modified = '$dateModified'
+                            WHERE id = '$recordIdSafe' AND name = '$invRefSafe' AND deleted = 0";
 
                         if($db->query($sqlUpdate)) {
                             // Save working process & note (KPI)

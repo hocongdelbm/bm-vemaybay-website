@@ -473,7 +473,7 @@ class Viewreport_sales_create extends SugarView
 					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
                     WHERE bk.deleted = 0
                     $where_period
-                    GROUP BY period, bk.booking_id
+                    GROUP BY period, u.id, bk.booking_id
 
                     -- Block 2: Cuộc gọi
                     UNION ALL
@@ -653,7 +653,9 @@ class Viewreport_sales_create extends SugarView
 					total_profit DESC
             ";
 
-			// pr($sql);
+			// if($current_user->user_name == 'hungnh'){
+			// 	pr($sql);
+			// }
 
 			$res = $this->bean->db->query($sql);
 

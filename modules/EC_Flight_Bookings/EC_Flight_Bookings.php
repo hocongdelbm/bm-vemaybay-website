@@ -420,7 +420,7 @@ class EC_Flight_Bookings extends Basic {
 	 * @return void
 	 */
 	public function saveLinePassengers() {
-		$row_count = count($_POST['psg_id']);
+		$row_count = count($_POST['psg_id'] ?? []);
 		for ($i = 0; $i < $row_count; $i++) {
 			$psg = new EC_Booking_Passengers();
 			if (!empty($_POST['psg_id'][$i])) $psg->retrieve($_POST['psg_id'][$i]);
@@ -524,7 +524,7 @@ class EC_Flight_Bookings extends Basic {
 			// Cập nhật thông tin xuất vé lượt đi
 			$booking->is_ticket_exported = $is_ticket_exported;
 			if($is_ticket_exported) {
-				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("d-m-Y");
+				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("Y-m-d");
 				if ($isAllowedUser) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
 			}
 			else {
@@ -534,7 +534,7 @@ class EC_Flight_Bookings extends Basic {
 			// Cập nhật thông tin xuất vé lượt về
 			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
 			if ($is_ticket_inbound_exported) {
-				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("d-m-Y");
+				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("Y-m-d");
 				if ($isAllowedUser) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
 			}
 			else {
@@ -1545,7 +1545,7 @@ class EC_Flight_Bookings extends Basic {
 			// Cập nhật thông tin xuất vé lượt đi
 			$booking->is_ticket_exported = $is_ticket_exported;
 			if($is_ticket_exported) {
-				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("d-m-Y");
+				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("Y-m-d");
 				if ($isAllowedUser) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
 			}
 			else {
@@ -1555,7 +1555,7 @@ class EC_Flight_Bookings extends Basic {
 			// Cập nhật thông tin xuất vé lượt về
 			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
 			if ($is_ticket_inbound_exported) {
-				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("d-m-Y");
+				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("Y-m-d");
 				if ($isAllowedUser) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
 			}
 			else {

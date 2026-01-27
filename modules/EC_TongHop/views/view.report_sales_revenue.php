@@ -174,6 +174,8 @@ class Viewreport_sales_revenue extends SugarView
     // Thống kê doanh thu theo booking
     function bookingQuery($post_fdate, $post_tdate, $condition_arr)
     {
+        global $current_user;
+
         $user_list = get_user_array(true, '', '', true);
 
         $i      = 0;
@@ -185,7 +187,9 @@ class Viewreport_sales_revenue extends SugarView
         $total_points_amount = 0;
 
         $data_revenue = calculateRevenueOfDate(date('Y-m-d', strtotime($post_fdate)), date('Y-m-d', strtotime($post_tdate)), $condition_arr);
-        // pr($data_revenue);
+        // if($current_user->user_name == 'hungnh'){
+        // 	pr($data_revenue);
+        // }
 
         $html = '';
         if (!empty($data_revenue) && $data_revenue['count'] > 0) {
