@@ -76,20 +76,6 @@ $dictionary['Document'] = array(
             'docUrl' => 'doc_url',
             'docId' => 'doc_id',
         ),
-        //custom fields
-
-        'preview_image' => array(
-            'name' => 'preview_image',
-            'vname' => 'LBL_PREVIEW_PHOTO',
-            'type' => 'image',
-            'dbType' => 'varchar',
-            'len' => '255',
-            'width' => '300',
-            'height' => 'auto',
-            'border' => true,
-            'reportable' => false,
-            'importable' => false,
-        ),
         // Link to Booking - Van Dahy
         'booking_id' => array(
             'required' => false,

@@ -61,7 +61,7 @@ $viewdefs['Documents'] =
               'name' => 'filename',
               'displayParams' =>
               array(
-                'link' => 'filename',
+                'link' => true,
                 'id' => 'document_revision_id',
               ),
             ),

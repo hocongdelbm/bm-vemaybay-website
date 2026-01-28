@@ -76,40 +76,33 @@ class DocumentsViewDetail extends ViewDetail
     {
         global $sugar_config;
 
+        // Custom filename display with download link via proxy
+        $filename_html = '';
+        if (!empty($this->bean->filename)) {
+            $downloadUrl = 'index.php?entryPoint=NextCloudPreview&id=' . $this->bean->id . '&download=yes';
+            $filename_html = '<a href="' . $downloadUrl . '" target="_blank" class="tabDetailViewDFLink">' . $this->bean->filename . '</a>';
+        }
+        $this->ss->assign('CUSTOM_FILENAME', $filename_html);
+
         $preview_html = '';
 
-        // Kiểm tra xem field preview_image có dữ liệu không
-        if (!empty($this->bean->preview_image)) {
-
-            // Lấy endpoint gốc
-            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $sugar_config['next-cloud']['user'];
-            
-            // Lấy extension từ preview_image field (đã có full filename trong DB)
-            $preview_image_extension = strrchr($this->bean->preview_image, '.');
-            
-            // Đường dẫn trên Cloud
-            $remoteFileName = 'bmvmb/modules/documents/preview-images/' . $this->bean->id . '_preview_image' . $preview_image_extension;
-
-            // Encode URL để xử lý các tên file có dấu tiếng Việt hoặc khoảng trắng
-            $previewUrl = $endpoint . '/' . rawurlencode($remoteFileName);
-            
-            // DEBUG: Log để kiểm tra
-            $GLOBALS['log']->info("VIEW DETAIL - Preview Image Field: {$this->bean->preview_image}");
-            $GLOBALS['log']->info("VIEW DETAIL - Extension: {$preview_image_extension}");
-            $GLOBALS['log']->info("VIEW DETAIL - Remote FileName: {$remoteFileName}");
-            $GLOBALS['log']->info("VIEW DETAIL - Preview URL: {$previewUrl}");
-
-            // Render HTML
-            // Lưu ý: Thẻ img src trỏ thẳng về NextCloud chỉ chạy nếu ảnh đó được Public 
-            // hoặc trình duyệt đã có session đăng nhập NextCloud.
+        // Get the document revision to check MIME type
+        $revision = BeanFactory::getBean('DocumentRevisions', $this->bean->document_revision_id);
+        
+        // Check if the file is an image based on MIME type
+        if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
+            // This is an image file - display it via proxy
+            $previewUrl = 'index.php?entryPoint=NextCloudPreview&id=' . $this->bean->id;
+            // Render HTML - Using proxy URL to display the main file as image
             $preview_html = '<div class="preview-photo-container">
                 <img id="previewImage" src="' . $previewUrl . '"
                     style="max-width: 70%; max-height: 300px; object-fit: contain; cursor: zoom-in;"
                     alt="Preview Photo"
-                    onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh (Lỗi 404/403)</div>\';">
+                    onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh (Lỗi kết nối)</div>\';">
             </div>';
         } else {
-            $preview_html = '<div class="no-preview-photo" style="color:#999;">Không có ảnh preview</div>';
+            // Not an image or no revision found - show placeholder
+            $preview_html = '<div class="no-preview-photo" style="color:#999;">File không phải là hình ảnh</div>';
         }
 
         $this->ss->assign('PREVIEW_IMAGE_HTML', $preview_html);

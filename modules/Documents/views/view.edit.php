@@ -186,11 +186,20 @@ class DocumentsViewEdit extends ViewEdit
             $this->ss->assign("RELATED_DOCUMENT_BUTTON_AVAILABILITY", "button");
         } //if-else
 
-        // Assign preview image URL for EditView
-        if (!empty($this->bean->id) && !empty($this->bean->preview_image)) {
-            $preview_url = "index.php?entryPoint=download&id={$this->bean->id}_preview_image&type=Documents";
-            $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
-            $this->ss->assign("HAS_PREVIEW_IMAGE", true);
+        // Assign preview URL for EditView - check if file is an image
+        if (!empty($this->bean->id) && !empty($this->bean->document_revision_id)) {
+            $revision = BeanFactory::getBean('DocumentRevisions', $this->bean->document_revision_id);
+            
+            // Only show preview if the file is an image
+            if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
+                // Use NextCloudPreview proxy entry point for authenticated image fetching
+                $preview_url = "index.php?entryPoint=NextCloudPreview&id={$this->bean->id}";
+                $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
+                $this->ss->assign("HAS_PREVIEW_IMAGE", true);
+            } else {
+                $this->ss->assign("PREVIEW_IMAGE_URL", "");
+                $this->ss->assign("HAS_PREVIEW_IMAGE", false);
+            }
         } else {
             $this->ss->assign("PREVIEW_IMAGE_URL", "");
             $this->ss->assign("HAS_PREVIEW_IMAGE", false);

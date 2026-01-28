@@ -109,11 +109,6 @@ $viewdefs['Documents'] =
             0 => array(
               'name' => 'booking_name',
               'label' => 'LBL_BOOKING_NAME',
-              'displayParams' => array(
-                'field' => array(
-                  'readonly' => true,
-                ),
-              ),
             ),
             1 => array(
               'name' => 'related_doc_name',
