@@ -115,7 +115,7 @@
                 <path fill-rule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8"></path>
             </svg>
             
-            <div class="action--wrap d-flex align-items-center gap-4">
+            <div class="action--wrap d-flex align-items-center gap-2 flex-wrap">
                 <select id="rc_date_select" name="rc_date_select">
                     {$DATE_OPTION}
                 </select>
@@ -183,81 +183,79 @@
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-2 optionRadio--wrap">
-                    <input type="radio" value="yesterday" id="yesterday" class="rd_time form-check-input" name="optionRadio" fromdate="{$YESTERDAY_FROMDATE}" todate="{$YESTERDAY_TODATE}">
-                    <label class="cursor-pointer" for="yesterday">Hôm qua</label> 
-        
-                    <input type="radio" value="daybefore" id="daybefore" class="rd_time form-check-input" name="optionRadio" fromdate="{$DAYBEFORE_FROMDATE}" todate="{$DAYBEFORE_TODATE}">
-                    <label class="cursor-pointer" for="daybefore">Hôm trước</label> 
-        
-                    <input type="radio" value="current_week" id="current_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$CURRENT_WEEK_FROMDATE}" todate="{$CURRENT_WEEK_TODATE}">
-                    <label class="cursor-pointer" for="current_week">Tuần này</label>
-        
-                    <input type="radio" value="previous_week" id="previous_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$PREVIOUS_WEEK_FROMDATE}" todate="{$PREVIOUS_WEEK_TODATE}"> 
-                    <label class="cursor-pointer" for="previous_week">Tuần trước</label> 
+                <input type="radio" value="yesterday" id="yesterday" class="rd_time form-check-input" name="optionRadio" fromdate="{$YESTERDAY_FROMDATE}" todate="{$YESTERDAY_TODATE}">
+                <label class="cursor-pointer" for="yesterday">Hôm qua</label> 
+    
+                <input type="radio" value="daybefore" id="daybefore" class="rd_time form-check-input" name="optionRadio" fromdate="{$DAYBEFORE_FROMDATE}" todate="{$DAYBEFORE_TODATE}">
+                <label class="cursor-pointer" for="daybefore">Hôm trước</label> 
+    
+                <input type="radio" value="current_week" id="current_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$CURRENT_WEEK_FROMDATE}" todate="{$CURRENT_WEEK_TODATE}">
+                <label class="cursor-pointer" for="current_week">Tuần này</label>
+    
+                <input type="radio" value="previous_week" id="previous_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$PREVIOUS_WEEK_FROMDATE}" todate="{$PREVIOUS_WEEK_TODATE}"> 
+                <label class="cursor-pointer" for="previous_week">Tuần trước</label> 
 
-                    <div class="d-flex align-items-center gap-2">
-                        <label for="payment_stt" class="text-label">Tình trạng thu:</label>
-                        <select class="box-select" id="payment_stt" name="payment_stt">{$PAYMENT_STT}</select>
-                    </div>
-
-                    <div class="d-flex align-items-center gap-2">
-                        <label for="customer_source" class="text-label">Nguồn KH</label>
-                        <select class="box-select" id="customer_source" name="customer_source">{$CUSTOMER_SOURCE_OPTS}</select>
-                    </div>
+                <div class="d-flex align-items-center gap-2">
+                    <label for="payment_stt" class="text-label">Tình trạng thu:</label>
+                    <select class="box-select" id="payment_stt" name="payment_stt">{$PAYMENT_STT}</select>
                 </div>
-            </div>
 
-            <div class="box-color__sales my-3">
-                <div class="color-block__wrap">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="color-block sales_smaller_receipt"></span>
-                        <div class="d-flex align-items-center gap-1">
-                            <span>Doanh thu</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
-                            <span>Phiếu thu</span>
+                <div class="d-flex align-items-center gap-2">
+                    <label for="customer_source" class="text-label">Nguồn KH</label>
+                    <select class="box-select" id="customer_source" name="customer_source">{$CUSTOMER_SOURCE_OPTS}</select>
+                </div>
+
+                <div class="box-color__sales my-3">
+                    <div class="color-block__wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="color-block sales_smaller_receipt"></span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span>Doanh thu</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
+                                <span>Phiếu thu</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="color-block__wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="color-block error1"></span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span>Doanh thu</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
+                                <span>Giá mua</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="color-block__wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="color-block error2"></span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span>Phiếu thu</span> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg> 
+                                <span>Doanh thu</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="color-block__wrap">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="color-block equal"></span>
+                            <div class="d-flex align-items-center gap-1">
+                                <span>Doanh thu</span> 
+                                <span>=</span>
+                                <span>Giá mua</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="color-block__wrap">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="color-block error1"></span>
-                        <div class="d-flex align-items-center gap-1">
-                            <span>Doanh thu</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
-                            <span>Giá mua</span>
-                        </div>
-                    </div>
+    
+                <div class="button-action--wrap my-3">
+                    <input type="submit" id="btnSearch" value="Tìm kiếm" name="btnSearch" class="btn btn-primary" title="Tìm kiếm"/>
+                    <input type="submit" id="btnClear" value="Reset" name="btnClear" class="btn btn-secondary" title="Reset" />
+                    {if $IS_ALLOW_RECHECK}
+                    <input type="button" id="btnRecheck" value="Recheck" name="btnRecheck" class="btn btn-warning" title="Recheck"/>
+                    {/if}
+                    <input type="button" id="btnSearch_cancel" value="Hủy bỏ" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" title="Hủy bỏ"/>
                 </div>
-                <div class="color-block__wrap">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="color-block error2"></span>
-                        <div class="d-flex align-items-center gap-1">
-                            <span>Phiếu thu</span> 
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg> 
-                            <span>Doanh thu</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="color-block__wrap">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="color-block equal"></span>
-                        <div class="d-flex align-items-center gap-1">
-                            <span>Doanh thu</span> 
-                            <span>=</span>
-                            <span>Giá mua</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="button-action--wrap my-3">
-                <input type="submit" id="btnSearch" value="Tìm kiếm" name="btnSearch" class="btn btn-primary" title="Tìm kiếm"/>
-                <input type="submit" id="btnClear" value="Reset" name="btnClear" class="btn btn-secondary" title="Reset" />
-                {if $IS_ALLOW_RECHECK}
-                <input type="button" id="btnRecheck" value="Recheck" name="btnRecheck" class="btn btn-warning" title="Recheck"/>
-                {/if}
-                <input type="button" id="btnSearch_cancel" value="Hủy bỏ" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" title="Hủy bỏ"/>
             </div>
         </form>
 

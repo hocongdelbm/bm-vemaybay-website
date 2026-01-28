@@ -25,8 +25,36 @@ $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 $job_strings[] = 'saveReportWeekly'; // Lưu kết quả doanh số cuối ngày vào table ec_report_weekly
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
 $job_strings[] = 'sendPromotionMessageZalo'; // Gửi tin nhắn khuyến mãi ZALO đồng loạt
+$job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking
 
-function updateLogAutocall(){
+/**
+ * Cập nhật doanh số trong ngày vào ec_revenue
+ */
+function saveRevenueBookingJob()
+{
+	global $db;
+
+	$from = date('Y-m-d 00:00:00');
+	$to   = date('Y-m-d 23:59:59');
+
+	$sql = "SELECT id 
+				FROM ec_flight_bookings 
+				WHERE booking_status = 8 
+				AND date_entered BETWEEN '$from' AND '$to'
+				AND deleted = 0";
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) > 0) {
+		while ($row = $db->fetchByAssoc($res)) {
+			saveRevenueBooking($row['id']);
+		}
+	}
+
+	return true;
+}
+
+function updateLogAutocall()
+{
 	return update_log_autocall();
 }
 
@@ -364,7 +392,8 @@ function updateOnlineReport()
 }
 
 
-function TuDongTaoBang() {
+function TuDongTaoBang()
+{
 	$thang = date('n');
 	$nam   = date('Y');
 
@@ -405,7 +434,8 @@ function TuDongTaoBang() {
 	} else return false;
 }
 
-function KetChuyenTienMatSCK() {
+function KetChuyenTienMatSCK()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -539,8 +569,8 @@ function KetChuyenTienMatSCK() {
 			VALUES(
 				uuid()
 				, "' . $row['diadiem'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -561,7 +591,8 @@ function KetChuyenTienMatSCK() {
 	return true;
 }
 
-function KetChuyenTienGuiNganHangSCK() {
+function KetChuyenTienGuiNganHangSCK()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -694,8 +725,8 @@ function KetChuyenTienGuiNganHangSCK() {
 			VALUES(
 				uuid()
 				, "' . $row_ba['tknganhang'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -716,7 +747,8 @@ function KetChuyenTienGuiNganHangSCK() {
 	return true;
 }
 
-function KetChuyenCongNoPhaiThu() {
+function KetChuyenCongNoPhaiThu()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -792,7 +824,7 @@ function KetChuyenCongNoPhaiThu() {
 			AND a.account_type <> 'Supplier'
 		GROUP BY tmp.agent_id
 		HAVING sotien <> 0";
-	
+
 	$GLOBALS['log']->$log_level($sql);
 
 	$res = $db->query($sql);
@@ -815,8 +847,8 @@ function KetChuyenCongNoPhaiThu() {
 			VALUES(
 				uuid()
 				, "' . $row['agent_name'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -837,7 +869,8 @@ function KetChuyenCongNoPhaiThu() {
 	return true;
 }
 
-function KetChuyenCongNoPhaiTra() {
+function KetChuyenCongNoPhaiTra()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -1036,8 +1069,8 @@ function KetChuyenCongNoPhaiTra() {
 			VALUES(
 				uuid()
 				, "' . $row['supplier'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -2251,7 +2284,7 @@ function checkBookingHandle()
 		// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 		$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
 
-		if(!$res || !isset($res['id']) || is_null($res['id'])) {
+		if (!$res || !isset($res['id']) || is_null($res['id'])) {
 			$GLOBALS['log']->error('Telegram sent message failed.');
 		}
 	}
@@ -2278,10 +2311,10 @@ function checkBookingHandle()
 			// }
 
 			global $sugar_config;
-			$message = 'Booking '. $reassign_bk['booking_name'] ." được giao lại cho $user->last_name $user->first_name";
+			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
 			// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 			$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
-			if(!$res || !isset($res['id']) || is_null($res['id'])) {
+			if (!$res || !isset($res['id']) || is_null($res['id'])) {
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
 		}
@@ -2373,7 +2406,7 @@ function reAssignBooking()
 				$message = 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
 				// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 				$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
-				if(!$res || !isset($res['id']) || is_null($res['id'])) {
+				if (!$res || !isset($res['id']) || is_null($res['id'])) {
 					$GLOBALS['log']->error('Telegram sent message failed.');
 				}
 			}
@@ -2390,26 +2423,26 @@ function calculateCashFlow()
 	return true;
 }
 
-function sendPromotionMessageZalo() {
+function sendPromotionMessageZalo()
+{
 	$entry = new entryFactory();
 	$obj  = $entry->create('entryZaloMessageClass');
 	$json = $obj->sendTicketPricesLunarNewYear2026(['number' => 250]);
 	$arr  = json_decode($json, true);
-	if(isset($arr['status']) && $arr['status'] == 1) {
+	if (isset($arr['status']) && $arr['status'] == 1) {
 		global $sugar_config;
 		preg_match_all('/\d+/', $arr['message'] ?? '', $matches);
 		$count = (int)($matches[0][0] ?? 0);
-		if($count > 0) {
+		if ($count > 0) {
 			$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
 			$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
 			Telegram::sendMessage("⚙️ Hệ thống đã gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> đến {$count} người dùng quan tâm", $botToken, $chatId);
 		}
-	}
-	else {
+	} else {
 		$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
 		$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
 		$message  = "🔴 Hệ thống gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> chưa thành công";
-		if(isset($arr['message']) && !empty($arr['message'])) $message .= "\n<i>" . $arr['message'] . "</i>";
+		if (isset($arr['message']) && !empty($arr['message'])) $message .= "\n<i>" . $arr['message'] . "</i>";
 		Telegram::sendMessage($message, $botToken, $chatId);
 	}
 

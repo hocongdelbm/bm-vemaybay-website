@@ -90,6 +90,7 @@ class Viewreport_sales_create extends SugarView
 			'<option value="" fromdate="" todate="">---Trống---</option>',
 			'<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'today' ? 'selected' : '') . ' value="today" fromdate="' . date('d-m-Y') . '" todate="' . date('d-m-Y') . '">Hôm nay</option>',
 			'<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'yesterday' ? 'selected' : '') . ' value="yesterday" fromdate="' . date('d-m-Y', strtotime('-1 day')) . '" todate="' . date('d-m-Y', strtotime('-1 day')) . '">Hôm qua</option>',
+			'<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'daybefore' ? 'selected' : '') . ' value="daybefore" fromdate="' . date('d-m-Y', strtotime('-2 day')) . '" todate="' . date('d-m-Y', strtotime('-2 day')) . '">Hôm trước</option>',
 			'<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_week' ? 'selected' : '') . ' value="this_week" fromdate="' . date('d-m-Y', strtotime('monday this week')) . '" todate="' . date('d-m-Y', strtotime('sunday this week')) . '">Tuần này</option>',
 			'<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_week' ? 'selected' : '') . ' value="previous_week" fromdate="' . date('d-m-Y', strtotime('monday previous week')) . '" todate="' . date('d-m-Y', strtotime('sunday previous week')) . '">Tuần trước</option>',
 			'<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_month' ? 'selected' : '') . ' value="this_month" fromdate="' . date('d-m-Y', strtotime('first day of this month')) . '" todate="' . date('d-m-Y', strtotime('last day of this month')) . '">Tháng này</option>',
@@ -156,6 +157,7 @@ class Viewreport_sales_create extends SugarView
 		$title_prev2 = 'Cùng kỳ kế tiếp: so sánh với mốc thời gian hiện tại ở trên (14 ngày)';
 		switch ($sel) {
 			case 'today':
+			case 'daybefore':
 			case 'yesterday': {
 					$ranges = [
 						// ===== HÔM NAY =====

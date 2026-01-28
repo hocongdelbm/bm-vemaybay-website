@@ -175,7 +175,7 @@ class EC_Flight_Bookings extends Basic {
 		}
 
 		// Ngày xuất vé
-		$this->date_ticket_issue = $this->is_ticket_exported ? $this->date_ticket_issue : '';
+		// $this->date_ticket_issue = $this->is_ticket_exported ? $this->date_ticket_issue : '';
 
 		// Lý do thắng thua
 		$this->description = (isset($this->ghichuthangthua) && !empty($this->ghichuthangthua) && $this->booking_status == '4') ? $this->ghichuthangthua : $this->description;
@@ -311,8 +311,7 @@ class EC_Flight_Bookings extends Basic {
 
 	function saveLineItineraries()
 	{
-		global $current_user;
-		$row_count = count($_POST['iti_airline_code']);
+		$row_count = count($_POST['iti_airline_code'] ?? []);
 
 		for ($i = 0; $i < $row_count; $i++) {
 			$iti = new EC_Booking_Itineraries();
@@ -362,7 +361,7 @@ class EC_Flight_Bookings extends Basic {
 	function saveLineDetails() {
 		global $app_list_strings;
 
-		$row_count = count($_POST['bkd_quantity']);
+		$row_count = count($_POST['bkd_quantity'] ?? []);
 		$total_bought_amount = 0;
 
 		for ($i = 0; $i < $row_count; $i++) {
@@ -412,6 +411,9 @@ class EC_Flight_Bookings extends Basic {
 					SET total_bought_amount = ' . $total_bought_amount . ' 
 					WHERE id = "' . $this->id . '"';
 			$this->db->query($sql);
+
+			// Cập nhật doanh số ec_revenue
+			saveRevenueBooking($this->id);
 		}
 	}
 	
@@ -1545,8 +1547,8 @@ class EC_Flight_Bookings extends Basic {
 			// Cập nhật thông tin xuất vé lượt đi
 			$booking->is_ticket_exported = $is_ticket_exported;
 			if($is_ticket_exported) {
-				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("Y-m-d");
-				if ($isAllowedUser) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
+				if (empty($booking->date_ticket_issue) || strtotime($booking->date_ticket_issue) === false) $booking->date_ticket_issue = date("Y-m-d");
+				if ($isAllowedUser) $booking->date_ticket_issue = $_POST['date_ticket_issue'] ?? date("Y-m-d");
 			}
 			else {
 				$booking->date_ticket_issue = '';
@@ -1555,8 +1557,8 @@ class EC_Flight_Bookings extends Basic {
 			// Cập nhật thông tin xuất vé lượt về
 			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
 			if ($is_ticket_inbound_exported) {
-				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("Y-m-d");
-				if ($isAllowedUser) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+				if (empty($booking->date_ticket_inbound_issue) || strtotime($booking->date_ticket_inbound_issue) === false ) $booking->date_ticket_inbound_issue = date("Y-m-d");
+				if ($isAllowedUser) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'] ?? date("Y-m-d");
 			}
 			else {
 				$booking->date_ticket_inbound_issue = '';
