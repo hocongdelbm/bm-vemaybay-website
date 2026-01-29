@@ -785,41 +785,41 @@ class Viewreport_sales_create extends SugarView
 				}
 				$periodNow = $row['period'];
 
-				$sub['total_profit']          += (float)$row['total_profit'];
-				$sub['total_ticket_qty']         += (float)$row['total_ticket_qty'];
-				$sub['total_qty']             += (int)$row['total_qty'];
-				$sub['total_qty_com']             += (int)$row['total_qty_com'];
+				$sub['total_profit']          += (float)($row['total_profit'] ?? 0);
+				$sub['total_ticket_qty']         += (float)($row['total_ticket_qty'] ?? 0);
+				$sub['total_qty']             += (int)($row['total_qty'] ?? 0);
+				$sub['total_qty_com']             += (int)($row['total_qty_com'] ?? 0);
 
-				$sub['booker_bk']                += (int)$row['booker_bk'];
-				$sub['booker_bk_com']            += (int)$row['booker_bk_com'];
-				$sub['khach_hang_bk']        += (int)$row['khach_hang_bk'];
-				$sub['com_khach_hang_bk']    += (int)$row['com_khach_hang_bk'];
-				$sub['tham_khao_bk']         += (int)$row['tham_khao_bk'];
-				$sub['com_tham_khao_bk']     += (int)$row['com_tham_khao_bk'];
+				$sub['booker_bk']                += (int)($row['booker_bk'] ?? 0);
+				$sub['booker_bk_com']            += (int)($row['booker_bk_com'] ?? 0);
+				$sub['khach_hang_bk']        += (int)($row['khach_hang_bk'] ?? 0);
+				$sub['com_khach_hang_bk']    += (int)($row['com_khach_hang_bk'] ?? 0);
+				$sub['tham_khao_bk']         += (int)($row['tham_khao_bk'] ?? 0);
+				$sub['com_tham_khao_bk']     += (int)($row['com_tham_khao_bk'] ?? 0);
 
-				$sub['inbound']            += (int)$row['inbound'];
-				$sub['missed']             += (int)$row['missed'];
-				$sub['inbound_bk']         += (int)$row['inbound_bk'];
+				$sub['inbound']            += (int)($row['inbound'] ?? 0);
+				$sub['missed']             += (int)($row['missed'] ?? 0);
+				$sub['inbound_bk']         += (int)($row['inbound_bk'] ?? 0);
 
-				$sub['prior_bk']             += (int)$row['prior_bk'];
-				$sub['com_prior_bk']         += (int)$row['com_prior_bk'];
-				$sub['com_prior_ticket']     += (int)$row['com_prior_ticket'];
-				$sub['prior_bk_sales']       += (float)$row['prior_bk_sales'];
+				$sub['prior_bk']             += (int)($row['prior_bk'] ?? 0);
+				$sub['com_prior_bk']         += (int)($row['com_prior_bk'] ?? 0);
+				$sub['com_prior_ticket']     += (int)($row['com_prior_ticket'] ?? 0);
+				$sub['prior_bk_sales']       += (float)($row['prior_bk_sales'] ?? 0);
 
-				$sub['1_3_bk']        += (int)$row['1_3_bk'];
-				$sub['com_1_3_bk']    += (int)$row['com_1_3_bk'];
-				$sub['com_1_3_ticket']        += (int)$row['com_1_3_ticket'];
-				$sub['1_3_bk_sales']  += (float)$row['1_3_bk_sales'];
+				$sub['1_3_bk']        += (int)($row['1_3_bk'] ?? 0);
+				$sub['com_1_3_bk']    += (int)($row['com_1_3_bk'] ?? 0);
+				$sub['com_1_3_ticket'] += (int)($row['com_1_3_ticket'] ?? 0);
+				$sub['1_3_bk_sales']  += (float)($row['1_3_bk_sales'] ?? 0);
 
-				$sub['4_8_bk']        += (int)$row['4_8_bk'];
-				$sub['com_4_8_bk']    += (int)$row['com_4_8_bk'];
-				$sub['com_4_8ticket']        += (int)$row['com_4_8ticket'];
-				$sub['4_8_bk_sales']  += (float)$row['4_8_bk_sales'];
+				$sub['4_8_bk']        += (int)($row['4_8_bk'] ?? 0);
+				$sub['com_4_8_bk']    += (int)($row['com_4_8_bk'] ?? 0);
+				$sub['com_4_8ticket'] += (int)($row['com_4_8ticket'] ?? 0);
+				$sub['4_8_bk_sales']  += (float)($row['4_8_bk_sales'] ?? 0);
 
-				$sub['inter_bk']      += (int)$row['inter_bk'];
-				$sub['com_inter_bk'] += (int)$row['com_inter_bk'];
-				$sub['com_inter_ticket']     += (int)$row['com_inter_ticket'];
-				$sub['inter_bk_sales'] += (float)$row['inter_bk_sales'];
+				$sub['inter_bk']      += (int)($row['inter_bk'] ?? 0);
+				$sub['com_inter_bk'] += (int)($row['com_inter_bk'] ?? 0);
+				$sub['com_inter_ticket']     += (int)($row['com_inter_ticket'] ?? 0);
+				$sub['inter_bk_sales'] += (float)($row['inter_bk_sales'] ?? 0);
 
 				// Line title
 				if (strpos($row['period_group'], 'current') !== false && !$mark_current) {
@@ -872,15 +872,15 @@ class Viewreport_sales_create extends SugarView
 						<tr>
 							<td class="text-start fw-semibold" title="Site vé ' . $site_name . '">' . $site_name . '</td>
 							<td colspan="2" class="text-end">
-								<div class="total text-end total_profit" title="Doanh số của site ' . $site_name . ' ' . $text_date . '">' . format_number($row['total_profit']) . '</div>
+								<div class="total text-end total_profit" title="Doanh số của site ' . $site_name . ' ' . $text_date . '">' . format_number($row['total_profit'] ?? 0) . '</div>
 							</td>
 
-							<td class="text-center total_ticket_qty" title="Tổng số vé của site ' . $site_name . ' ' . $text_date . '">' . format_number($row['total_ticket_qty']) . '</td>
+							<td class="text-center total_ticket_qty" title="Tổng số vé của site ' . $site_name . ' ' . $text_date . '">' . format_number($row['total_ticket_qty'] ?? 0) . '</td>
 							<td class="text-center fw-semibold color-blue total_qty_com" title="Tổng booking hoàn tất của site ' . $site_name . ' ' . $text_date . '">' . format_number($row['total_qty_com']) . '</td>
 							
 							<td colspan="2">
 								<div class="d-flex align-items-center justify-content-between gap-1">
-									<div class="total_qty_com_percent text-start" title="Tỉ lệ giữa BK OK trên tổng BK của site ' . $site_name . ' ' . $text_date . '">(' . format_number(($row['total_qty_com']) / $denominator_total_qty * 100) . '%)</div>
+									<div class="total_qty_com_percent text-start" title="Tỉ lệ giữa BK OK trên tổng BK của site ' . $site_name . ' ' . $text_date . '">(' . format_number(($row['total_qty_com'] ?? 0) / $denominator_total_qty * 100) . '%)</div>
 									<div class="hide-mobile total_qty text-end color-red fw-semibold" title="Tổng số lượng booking của site ' . $site_name . ' ' . $text_date . '">&nbsp;&nbsp;' . format_number($row['total_qty']) . '</div>
 								</div>
 							</td>
@@ -908,32 +908,32 @@ class Viewreport_sales_create extends SugarView
 							</td>
 							<td colspan="2">
 								<div class="d-flex align-items-center justify-content-between gap-1">
-									<div class="com_prior_ticket text-start">(' . format_number($row['com_prior_ticket']) . '&nbsp;vé)</div>
-									<div class="prior_bk_sales text-end">' . format_number($row['prior_bk_sales']) . '</div>
+									<div class="com_prior_ticket text-start">(' . format_number($row['com_prior_ticket'] ?? 0) . '&nbsp;vé)</div>
+									<div class="prior_bk_sales text-end">' . format_number($row['prior_bk_sales'] ?? 0) . '</div>
 								</div>
 							</td>
 
 							<td class="text-end"><span class="show_detail_bk show_detail" from_date="' . $ranges[$row['period']]['from'] . '" to_date="' . $ranges[$row['period']]['to'] . '" sname="' . $row['last_name'] . '" type="show_3ticket_bk" user="' . $row['user_id'] . '">' . format_number($row['1_3_bk']) . '&nbsp;/&nbsp;' . format_number($row['com_1_3_bk']) . '</span></td>
 							<td colspan="2">
 								<div class="d-flex align-items-center justify-content-between gap-1">
-									<div class="com_1_3_ticket text-start">(' . format_number($row['com_1_3_ticket']) . '&nbsp;vé)</div>
-									<div class="1_3_bk_sales text-end">' . format_number($row['1_3_bk_sales']) . '</div>
+									<div class="com_1_3_ticket text-start">(' . format_number($row['com_1_3_ticket'] ?? 0) . '&nbsp;vé)</div>
+									<div class="1_3_bk_sales text-end">' . format_number($row['1_3_bk_sales'] ?? 0) . '</div>
 								</div>
 							</td>
 
 							<td class="text-end"><span class="show_detail_bk show_detail" from_date="' . $ranges[$row['period']]['from'] . '" to_date="' . $ranges[$row['period']]['to'] . '" sname="' . $row['last_name'] . '" type="show_4to8ticket_bk" user="' . $row['user_id'] . '">' . format_number($row['4_8_bk']) . '&nbsp;/&nbsp;' . format_number($row['com_4_8_bk']) . '</span></td>
 							<td colspan="2">
 								<div class="d-flex align-items-center justify-content-between gap-1">
-									<div class="com_4_8ticket text-start">(' . format_number($row['com_4_8ticket']) . '&nbsp;vé)</div>
-									<div class="new_4to8ticket_sales text-end">' . format_number($row['4_8_bk_sales']) . '</div>
+									<div class="com_4_8ticket text-start">(' . format_number($row['com_4_8ticket'] ?? 0) . '&nbsp;vé)</div>
+									<div class="new_4to8ticket_sales text-end">' . format_number($row['4_8_bk_sales'] ?? 0) . '</div>
 								</div>
 							</td>
 
 							<td class="text-end"><span class="show_detail_bk show_detail inter" from_date="' . $ranges[$row['period']]['from'] . '" to_date="' . $ranges[$row['period']]['to'] . '" sname="' . $row['last_name'] . '" type="show_inter_bk" user="' . $row['user_id'] . '">' . format_number($row['inter_bk']) . '&nbsp;/&nbsp;' . format_number($row['com_inter_bk']) . '</span></td>
 							<td colspan="2" class="inter">
 								<div class="d-flex align-items-center justify-content-between gap-1">
-									<div class="com_inter_ticket text-start">(' . format_number($row['com_inter_ticket']) . '&nbsp;vé)</div>
-									<div class="new_inter_ticket_sales text-end">' . format_number($row['inter_bk_sales']) . '</div>
+									<div class="com_inter_ticket text-start">(' . format_number($row['com_inter_ticket'] ?? 0) . '&nbsp;vé)</div>
+									<div class="new_inter_ticket_sales text-end">' . format_number($row['inter_bk_sales'] ?? 0) . '</div>
 								</div>
 							</td>
 						</tr>';

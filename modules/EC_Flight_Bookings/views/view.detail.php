@@ -1727,18 +1727,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$i = 0;
 		$total_qty = $total_supplier_discount = 0;
+		$total_basic_amount = 0;
+		$total_vat_amount = 0;
+		$total_airport_amount = 0;
+		$total_admin_amount = 0;
+		$total_service_amount = 0;
+		$total_issue_fee = 0;
+
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$admin_fee_inf = '';
-			// if ($row['admin_fee_no_vat'] > 0) {
-			// 	$admin_fee_inf = '<div style="text-align: left; width: 100%; position: relative;">
-			// 					TVAT:&nbsp;' . str_replace('0', '&nbsp;&nbsp;', str_pad('', strlen(format_number($row['admin_fee_no_vat'])), '0')) . '
-			// 						<span style="position: absolute; right: 0;">' . format_number($row['admin_fee_no_vat']) . '</span>
-			// 					</div>
-			// 					<div style="text-align: left; width: 100%; position: relative;">&nbsp;&nbsp;VAT:&nbsp;
-			// 						<span style="position: absolute; right: 0;">' . format_number($row['vat_admin']) . '</span>
-			// 					</div>';
-			// }
 			if ($row['admin_fee_no_vat'] > 0) {
 				$admin_fee_inf = '<div class="admin_fee_no_vat--wrap d-flex align-items-center justify-content-between">
 								<span class="text-start">TVAT:</span>
@@ -1762,32 +1760,28 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<td data-label="Phí sân bay" class="text-end">' . format_number($row['airport_fee']) . '</td>
 				<td data-label="Phí admin" class="text-end"><div class="admin_fee">' . format_number($row['admin_fee']) . '</div>' . $admin_fee_inf . '</td>
 				<td data-label="Phí dịch vụ" class="text-end">' . format_number($row['service_fee']) . '</td>
-				<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>';
-
-			// $html .= '<td class="text-end">
-			// 	<input type="hidden" name="bkd_total_bought_price[]" id="bkd_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
-			// 	' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
-			// </td>';
-			$html .= '<td data-label="Giá mua" class="text-end" title="Đã gồm số lượng">
-				<input type="hidden" name="check_total_bought_price[]" id="check_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
-				' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
-			</td>';
-			$html .= '<td data-label="Chiết khấu" class="text-end">' . format_number($row['supplier_discount']) . '</td>';
-			$html .= '<td data-label="Phí xuất vé" class="text-end">' . format_number($row['fee_bought']) . '</td>';
-
-			// $html .= '<td class="text-start">
-			// 	<input type="hidden" name="bkd_supplier_id[]" id="bkd_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
-			// 	<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
-			// </td>';
-			$html .= '<td data-label="NCC" class="text-start">
-				<input type="hidden" name="check_supplier_id[]" id="check_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
-				<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
-			</td>';
-
-			$html .= '</tr>';
+				<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>
+				<td data-label="Giá mua" class="text-end" title="Đã gồm số lượng">
+					<input type="hidden" name="check_total_bought_price[]" id="check_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
+					' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
+				</td>
+				<td data-label="Chiết khấu" class="text-end">' . format_number($row['supplier_discount']) . '</td>
+				<td data-label="Phí xuất vé" class="text-end">' . format_number($row['fee_bought']) . '</td>
+				<td data-label="NCC" class="text-start">
+					<input type="hidden" name="check_supplier_id[]" id="check_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
+					<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
+				</td>
+			</tr>';
 
 			$total_qty += $row['quantity'];
 			$total_supplier_discount += $row['supplier_discount'];
+			$total_basic_amount += $row['unit_price'];
+			$total_vat_amount += $row['tax_and_fee'];
+			$total_airport_amount += $row['airport_fee'];
+			$total_admin_amount += $row['admin_fee'];
+			$total_service_amount += $row['service_fee'];
+			$total_issue_fee += $row['fee_bought'];
+
 			$i++;
 		}
 
@@ -1799,16 +1793,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
 					</td>
 					<td data-label="Tổng số vé" class="text-center">' . format_number($total_qty) . '</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
+					<td data-label="Giá cơ bản" class="hide-mobile text-end show-landscape">' . format_number($total_basic_amount) . '</td>
+					<td data-label="VAT" class="hide-mobile text-end show-landscape">' . format_number($total_vat_amount) . '</td>
+					<td data-label="Phí sân bay" class="hide-mobile text-end show-landscape">' . format_number($total_airport_amount) . '</td>
+					<td data-label="Phí admin" class="hide-mobile text-end show-landscape">' . format_number($total_admin_amount) . '</td>
+					<td data-label="Phí DV" class="hide-mobile text-end show-landscape">' . format_number($total_service_amount) . '</td>
 					<td data-label="Tổng thành tiền" class="text-end into_money">' . format_number($this->bean->subtotal_amount) . '</td>
 					<td data-label="Tổng giá mua" class="text-end purchase_price">' . format_number($this->bean->total_bought_amount) . '</td>
 					<td data-label="Tổng chiết khấu" class="text-end supplier_discount">' . format_number($total_supplier_discount) . '</td>
-					<td class="text-end hide-mobile show-landscape">&nbsp;</td>
-					<td class="text-end hide-mobile show-landscape">&nbsp;</td>
+					<td data-label="Phí xuất vé" class="text-end hide-mobile show-landscape">' . format_number($total_issue_fee) . '</td>
+					<td class="text-end hide-mobile show-landscape"></td>
 				</tr>';
 		$html .= '</table>';
 		$html .= "<input type='hidden' id='supplier_option_val' value='" . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', 'AND account_type=\'Supplier\' AND is_stop_tracking=0') . "'>";
@@ -2445,7 +2439,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	// Hiện thông tin hoá đơn
 	function populateInvoiceInf()
 	{
-		$iv_account_name = $iv_email = $iv_payment_method = $iv_bank_account = $iv_name_banks = '';
+		$iv_account_name = $iv_email = $iv_identity_number = $iv_payment_method = $iv_bank_account = $iv_name_banks = '';
 
 		if (!empty($this->bean->shipping_address)) {
 			$invoice_arr = json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);

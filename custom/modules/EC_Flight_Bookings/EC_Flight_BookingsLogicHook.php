@@ -19,10 +19,10 @@ class EC_Flight_BookingsLogicHook
 		$sql = "SELECT IFNULL(SUM(d.quantity), 0) AS total_ticket
 			FROM ec_flight_bookings bk
 			LEFT JOIN ec_booking_details d ON d.booking_id = bk.id AND d.deleted = 0
-			WHERE bk.deleted = 0
-			AND bk.id = '{$focus->id}'
+			WHERE bk.id = '{$focus->id}'
+			AND bk.deleted = 0
 		";
-		$focus->total_qty = $focus->db->getOne($sql);
+		$focus->total_qty = (int)$focus->db->getOne($sql);
 	}
 
 	function checkBeforeDelete($focus, $event, $arguments)

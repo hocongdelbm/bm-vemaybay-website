@@ -426,6 +426,7 @@ class Viewinputinvoice extends SugarView {
                 SUM(in_inv.authorized_fee) AS total_authorized,
                 COUNT(in_inv.id) AS row_num
             FROM ec_input_invoices in_inv
+            LEFT JOIN ec_flight_bookings bk ON bk.id = in_inv.booking_id AND bk.deleted = 0
             WHERE in_inv.deleted = 0 ' . $sql_search;
 
         $res = $this->bean->db->query($sql);

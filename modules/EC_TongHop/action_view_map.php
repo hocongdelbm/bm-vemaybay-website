@@ -11,6 +11,7 @@ $action_view_map['cashflow']            = 'cashflow';
 $action_view_map['yearlyreport']        = 'yearlyreport';
 $action_view_map['profitreport']        = 'profitreport';
 $action_view_map['businessreport']      = 'businessreport'; //Báo cáo kinh doanh tuần
+$action_view_map['report_sales_weekly']      = 'report_sales_weekly'; //Báo cáo kinh doanh tuần new
 
 $action_view_map['test'] = 'test';
 $action_view_map['iplist'] = 'iplist';

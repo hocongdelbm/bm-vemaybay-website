@@ -17,7 +17,8 @@ $arr_user_whitelist = [
 $is_panda = (in_array($GLOBALS['current_user']->user_name, $arr_user_whitelist));
 
 if (is_admin($current_user)) {
-    if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=businessreport&return_module=EC_TongHop&return_action=businessreport&date_select=this_week", "Báo cáo tuần", "businessreport", 'EC_TongHop');
+    // if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=businessreport&return_module=EC_TongHop&return_action=businessreport&date_select=this_week", "Báo cáo tuần", "businessreport", 'EC_TongHop');
+    if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=report_sales_weekly&return_module=EC_TongHop&return_action=report_sales_weekly&date_select=this_week", "Báo cáo tuần", "report_sales_weekly", 'EC_TongHop');
     if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=bkreport_telesale&return_module=EC_TongHop&return_action=bkreport_telesale", "Doanh số BK Telesale", "goldcup_16x16", 'EC_TongHop');
 }
 
