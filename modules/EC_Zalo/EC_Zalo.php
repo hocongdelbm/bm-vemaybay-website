@@ -163,10 +163,11 @@ class EC_Zalo extends Basic {
                 case -213:
                     if(!empty($zalo_id)) {
                         if(empty($description)) $description = 'User has not followed OA';
+                        $descriptionEscaped = $db->quote($description);
 
                         $sqlUpdate = "UPDATE ec_zalo_contacts
                             SET is_follower = 0
-                                ,description = '{$description}'
+                                ,description = '{$descriptionEscaped}'
                                 ,modified_user_id = ''
                                 ,date_modified = '{$date_modified}'
                             WHERE $whereZaloId AND deleted = 0";
@@ -176,10 +177,11 @@ class EC_Zalo extends Basic {
                 case -227:
                     if(!empty($zalo_id)) {
                         if(empty($description)) $description = 'User is banned or has been inactive for more than 45 days';
+                        $descriptionEscaped = $db->quote($description);
 
                         $sqlUpdate = "UPDATE ec_zalo_contacts
                             SET status = 'banned'
-                                ,description = '{$description}'
+                                ,description = '{$descriptionEscaped}'
                                 ,modified_user_id = ''
                                 ,date_modified = '{$date_modified}'
                             WHERE $whereZaloId AND deleted = 0";
@@ -189,10 +191,11 @@ class EC_Zalo extends Basic {
                 case -232:
                     if(!empty($zalo_id)) {
                         if(empty($description)) $description = 'User has not interacted with the OA, or the last interaction has expired';
+                        $descriptionEscaped = $db->quote($description);
 
                         $sqlUpdate = "UPDATE ec_zalo_contacts
                             SET status = 'expired'
-                                ,description = '{$description}'
+                                ,description = '{$descriptionEscaped}'
                                 ,modified_user_id = ''
                                 ,date_modified = '{$date_modified}'
                             WHERE $whereZaloId AND deleted = 0";
@@ -202,10 +205,11 @@ class EC_Zalo extends Basic {
                 case -244:
                     if(!empty($zalo_id)) {
                         if(empty($description)) $description = 'User has restricted this message type from your OA';
+                        $descriptionEscaped = $db->quote($description);
 
                         $sqlUpdate = "UPDATE ec_zalo_contacts
                             SET status = 'restricted'
-                                ,description = '{$description}'
+                                ,description = '{$descriptionEscaped}'
                                 ,modified_user_id = ''
                                 ,date_modified = '{$date_modified}'
                             WHERE $whereZaloId AND deleted = 0";

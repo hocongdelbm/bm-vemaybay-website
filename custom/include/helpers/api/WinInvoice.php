@@ -10,9 +10,9 @@ class WinInvoice {
 
     public function __construct() {
         global $sugar_config;
-        $this->ENDPOINT = $sugar_config['win_invoice']['endpoint'] ?? '';
-        $this->USER     = $sugar_config['win_invoice']['user'] ?? '';
-        $this->PASSWORD = $sugar_config['win_invoice']['password'] ?? '';
+        $this->ENDPOINT      = $sugar_config['win_invoice']['endpoint'] ?? '';
+        $this->USER          = $sugar_config['win_invoice']['user'] ?? '';
+        $this->PASSWORD      = $sugar_config['win_invoice']['password'] ?? '';
         $this->TVAN_ENDPOINT = $sugar_config['win_invoice']['tvan_endpoint'] ?? '';
         $this->TVAN_USER     = $sugar_config['win_invoice']['tvan_user'] ?? '';
         $this->TVAN_PASSWORD = $sugar_config['win_invoice']['tvan_password'] ?? '';
@@ -36,12 +36,7 @@ class WinInvoice {
      */
     public function set($invoice, $buyer, $items) {
         if (!is_array($invoice) || !is_array($buyer) || !is_array($items) || empty($invoice) || empty($buyer) || empty($items)) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 400,
-                "message" => "Thiếu dữ liệu để xử lý yêu cầu",
-                "data" => null,
-            ]);
+            return $this->returnError(400, "Thiếu dữ liệu để xử lý yêu cầu");
         }
 
         $post_data = array();
@@ -84,6 +79,7 @@ class WinInvoice {
         $post_data['buyerPassportNumber']   = $buyer['buyerPassportNumber'] ?? ''; // Passport
         // $post_data['govUnitCode']           = $buyer['govUnitCode'] ?? ''; // Mã đơn vị có quan hệ với ngân sách
 
+
         /******  3. THÔNG TIN SẢN PHẨM/DỊCH VỤ  ******/
         $post_data['items'] = [];
         $check_item = true;
@@ -112,20 +108,17 @@ class WinInvoice {
             ];
         }
 
+
         /******  4. KIỂM TRA DỮ LIỆU  ******/
         if (empty($post_data['items']) || $check_item === false) {
-            return json_encode([
-                'error' => 1,
-                "httpCode" => 400,
-                'message' => 'Sản phảm/Dịch vụ không hợp lệ',
-                'data' => null
-            ]);
+            return $this->returnError(400, "Danh sách sản phẩm/Dịch vụ không hợp lệ");
         }
+
 
         /******  5. CALL API  ******/
         $path = "invoice/add_type_2";
-        $res = $this->sendRequest('POST', $path, json_encode($post_data, JSON_UNESCAPED_UNICODE), $this->header(), ); // Array
-        return json_encode($res);
+        $post_data = json_encode($post_data, JSON_UNESCAPED_UNICODE);
+        return $this->sendRequest('POST', $path, $post_data, $this->header());
     }
 
     /**
@@ -136,12 +129,7 @@ class WinInvoice {
      */
     public function sign($invRef) {
         if (is_null($invRef) || empty($invRef)) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 400,
-                "message" => "Không tìm thấy số chứng từ",
-                "data" => null,
-            ]);
+            return $this->returnError(400, "Không tìm thấy số chứng từ");
         }
 
         $arrInv = json_decode($this->get($invRef), true);
@@ -149,49 +137,28 @@ class WinInvoice {
             $requestBody = $arrInv['data'][0] ?? [];
 
             if(empty($requestBody)) {
-                return json_encode([
-                    "error" => 1,
-                    "httpCode" => 400,
-                    "message" => "Không lấy được dữ liệu hóa đơn",
-                    "data" => null
-                ]);
+                return $this->returnError(400, "Không lấy được dữ liệu hóa đơn");
             }
 
             $y = date('y');
             if(($requestBody['invSerial'] == "C{$y}MHV" && (int)$requestBody['invCustomer'] != 1)
                 || ($requestBody['invSerial'] == "C{$y}THV" && (int)$requestBody['invCustomer'] != 0)
             ) {
-                return json_encode([
-                    "error" => 1,
-                    "httpCode" => 400,
-                    "message" => "Ký hiệu HĐ và loại KH không khớp",
-                    "data" => null
-                ]);
+                return $this->returnError(400, "Ký hiệu HĐ và loại khách hàng không khớp");
             }
 
             $requestBody['invAutoSign'] = '1'; // KÝ TỰ ĐỘNG
 
             if (empty($requestBody['items'])) {
-                return json_encode([
-                    "error" => 1,
-                    "httpCode" => 400,
-                    "message" => "Sản phảm/Dịch vụ không hợp lệ",
-                    "data" => null,
-                    "description" => $requestBody,
-                ]);
+                return $this->returnError(400, "Danh sách sản phẩm/Dịch vụ không hợp lệ", $requestBody);
             }
             
             $path = "invoice/add_type_2";
-            $res = $this->sendRequest('POST', $path, json_encode($requestBody, JSON_UNESCAPED_UNICODE), $this->header()); // Array
-            return json_encode($res);
+            $requestBody = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
+            return $this->sendRequest('POST', $path, $requestBody, $this->header());
         }
 
-        return json_encode([
-            "error" => 1,
-            "httpCode" => 404,
-            "message" => "Không tìm thấy hóa đơn",
-            "data" => null,
-        ]);
+        return $this->returnError(404, "Không tìm thấy hóa đơn");
     }
 
     /**
@@ -204,18 +171,12 @@ class WinInvoice {
      */
     public function get($invRef) {
         if (!is_string($invRef) || empty($invRef)) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 400,
-                "message" => "Số hóa đơn không hợp lệ",
-                "data" => null,
-            ]);
+            return $this->returnError(400, "Số hóa đơn không hợp lệ");
         }
 
         $path = 'invoice/get_inv';
         $requestBody = json_encode(['invRef' => $invRef]);
-        $res = $this->sendRequest('POST', $path, $requestBody, $this->header());
-        return json_encode($res);
+        return $this->sendRequest('POST', $path, $requestBody, $this->header());
     }
 
     /**
@@ -223,7 +184,7 @@ class WinInvoice {
      * 
      * @param string $invRef Số phiếu bán
      * @param string $invSerial Ký hiệu HĐ
-     * @return string XML
+     * @return string JSON
      */
     public function getXML($invRef, $invSerial) {
         $path = "invoice/get_xml_content";
@@ -233,8 +194,7 @@ class WinInvoice {
             "invSample" => $this->INVOICE_NUMBER,
         ]);
 
-        $res = $this->sendRequest('POST', $path, $requestBody, $this->header());
-        return json_encode($res);
+        return $this->sendRequest('POST', $path, $requestBody, $this->header());
     }
 
     /** 
@@ -242,16 +202,11 @@ class WinInvoice {
      * 
      * @param string $from_date yyyy/mm/dd
      * @param string $to_date yyyy/mm/dd
-     * @return string
+     * @return string JSON
      */
     public function get_list($from_date, $to_date) {
         if (empty($from_date) || empty($to_date)) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 400,
-                "message" => "Thiếu dữ liệu để xử lý yêu cầu",
-                "data" => null,
-            ]);
+            return $this->returnError(400, "Thiếu dữ liệu để xử lý yêu cầu");
         }
 
         $path = 'invoice/get_signed_inv';
@@ -259,8 +214,8 @@ class WinInvoice {
             "fromDate" => date('Y/m/d', strtotime($from_date)),
             "toDate" => date('Y/m/d', strtotime($to_date))
         ]);
-        $res = $this->sendRequest('POST', $path, $requestBody, $this->header());
-        return json_encode($res);
+
+        return $this->sendRequest('POST', $path, $requestBody, $this->header());
     }
 
     /**
@@ -268,7 +223,7 @@ class WinInvoice {
      * 
      * @param array $params Thông tin hóa đơn
      * @param int $raw Là bản nháp
-     * @return string
+     * @return string JSON
      */
     public function get_link($params, $isRaw = 1) {
         if (is_null($params) || empty($params)) return '';
@@ -287,24 +242,19 @@ class WinInvoice {
             $requestBody['invSign']   = $params['invSerial'] ?? '';
             $requestBody['invRef']    = $params['invRef'] ?? ''; // Số phiếu bán
         }
-        $res = $this->sendRequest('POST', $path, json_encode($requestBody), $this->header());
-        return json_encode($res);
+
+        return $this->sendRequest('POST', $path, json_encode($requestBody), $this->header());
     }
 
     /**
      * Lấy thông tin công ty dựa vào mã số thuế
      * 
      * @param string $tax_code Mã số thuế
-     * @return string
+     * @return string JSON
      */
     public function get_company_info($tax_code) {
         if (is_null($tax_code) || empty($tax_code)) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 400,
-                "message" => "Mã số thuế không hợp lệ",
-                "data" => null,
-            ]);
+            return $this->returnError(400, "Mã số thuế không hợp lệ");
         }
 
         $curl = curl_init();
@@ -336,12 +286,7 @@ class WinInvoice {
      */
     public function delete($params, $is_signed = 0) {
         if (is_null($params) || empty($params)) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 400,
-                "message" => "Thiếu dữ liệu để xử lý yêu cầu",
-                "data" => null,
-            ]);
+            return $this->returnError(400, "Thiếu dữ liệu để xử lý yêu cầu");
         }
 
         $path = '';
@@ -354,12 +299,7 @@ class WinInvoice {
             $requestBody['note']      = $params['note'] ?? '';
         }
         elseif ($is_signed == 1) { // Hiện tại chỗ này chưa sử dụng vì còn nhiều thủ tục
-            return json_encode([
-                "error" => 0,
-                "httpCode" => 200,
-                "message" => "Tính năng chưa sử dụng vì còn nhiều thủ tục",
-                "data" => null,
-            ]);
+            return $this->returnError(0, "Tính năng chưa sử dụng vì còn nhiều thủ tục");
 
             $path = 'invoice/delete?client_id=' . $this->USER;
             $requestBody['invcSign']      = $params['invcSign'] ?? ''; // Ký hiệu HĐ
@@ -369,8 +309,7 @@ class WinInvoice {
             $requestBody['returnDocNo']   = $params['returnDocNo'] ?? ''; // Số biên bản thu hồi/xóa hóa đơn
         }
 
-        $res = $this->sendRequest('POST', $path, json_encode($requestBody), $this->header());
-        return json_encode($res);
+        return $this->sendRequest('POST', $path, json_encode($requestBody), $this->header());
     }
 
     /**
@@ -378,16 +317,11 @@ class WinInvoice {
      * 
      * @param string $invRef Số phiếu bán
      * @param string $invSerial Ký hiệu HĐ
-     * @return int
+     * @return string JSON
      */
     public function is_signed($invRef, $invSerial) {
         if (is_null($invRef) || empty($invRef)) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 400,
-                "message" => "Số phiếu bán không hợp lệ",
-                "data" => null,
-            ]);
+            return $this->returnError(400, "Số phiếu bán không hợp lệ");
         }
 
         $path = 'invoice/check_signed';
@@ -397,16 +331,7 @@ class WinInvoice {
             'invSerial' => $invSerial
         ]);
 
-        $res = $this->sendRequest('POST', $path, json_encode($requestBody), $this->header());
-        return json_encode($res);
-    }
-
-    // Format date to yyyy-mm-dd
-    public function format_date($date) {
-        if (is_null($date) || empty($date)) return '';
-        $str_replace = str_replace('/', '-', $date);
-        $result = strtotime($str_replace) !== FALSE ? date('Y-m-d', strtotime($str_replace)) : '';
-        return $result;
+        return $this->sendRequest('POST', $path, json_encode($requestBody), $this->header());
     }
 
     /**
@@ -418,7 +343,7 @@ class WinInvoice {
      * @param array $header
      * @param array $curlOptions
      * 
-     * @return array [status, httpCode, message, data, description]
+     * @return string JSON {error, httpCode, message, data, description}
      */
     protected function sendRequest($method, $path, $requestBody = null, $header = [], $curlOptions = []) {
         $url = "{$this->ENDPOINT}/{$path}";
@@ -426,14 +351,12 @@ class WinInvoice {
         try {
             $curl = curl_init();
             if ($curl === false) {
-                LoggerHelper::error("$method $url cURL failed to initialize");
-                return [
-                    "error" => 1,
-                    "httpCode" => 500,
-                    "message" => "Lỗi hệ thống, xem chi tiết để biết thêm thông tin",
-                    "data" => null,
-                    "description" => "cURL failed to initialize in BM"
-                ];
+                $logId = LoggerHelper::error("$method $url cURL failed to initialize");
+                return $this->returnError(
+                    0,
+                    "Lỗi hệ thống, xem chi tiết để biết thêm thông tin",
+                    "Mã lỗi: $logId",
+                );
             }
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
@@ -455,54 +378,68 @@ class WinInvoice {
             curl_close($curl);
 
             if ($response === false || $errorNo) {
-                LoggerHelper::error("$method $url cURL error $errorNo: $error");
-                return [
-                    "error" => 1,
-                    "httpCode" => 500,
-                    "message" => "Không thể kết nối đến {$this->ENDPOINT}",
-                    "data" => null,
-                    "description" => "cURL error $errorNo: $error"
-                ];
+                $logId = LoggerHelper::error("$method $url cURL error $errorNo: $error");
+                return $this->returnError(
+                    $httpCode,
+                    "Không thể kết nối đến API Wininvoice",
+                    "Mã lỗi: $logId",
+                );
             }
 
             $responseArr = json_decode($response, true);
-            LoggerHelper::info("$method $url $httpCode", [
+            $logId = LoggerHelper::info("$method $url $httpCode", [
                 'request' => is_array($requestBody) ? $requestBody : (json_decode($requestBody, true) ?? $requestBody),
                 'reponse' => $responseArr ?? $response
             ]);
 
             // Success
             if(200 <= $httpCode && $httpCode < 300 && isset($responseArr['isSuccess']) && $responseArr['isSuccess'] === true) {
-                return [
+                return json_encode([
                     "error"     => 0,
                     "httpCode"  => $httpCode,
                     "message"   => "Thao tác thành công",
                     "data"      => $responseArr['data'] ?? []
-                ]; 
+                ], JSON_UNESCAPED_UNICODE); 
             }
             
-            return [
-                "error" => 1,
-                "httpCode" => $httpCode,
-                "message" => $responseArr["errorMessage"] ?? trim("Thao tác chưa thành công $path"),
-                "data" => null,
-                "description" => $responseArr
-            ]; 
+            return $this->returnError(
+                $httpCode,
+                $responseArr["errorMessage"] ?? trim("Thao tác chưa thành công $path"),
+                "Mã lỗi: $logId",
+            );
         }
         catch (Throwable $th) {
             $message = "Exception error {$th->getCode()}: {$th->getMessage()} on line {$th->getLine()}";
-            LoggerHelper::error("$method $url $message");
-            return [
-                "error" => 1,
-                "httpCode" => 500,
-                "message" => "Thao tác lỗi, xem chi tiết để biết thêm thông tin",
-                "data" => null,
-                "description" => $message
-            ];
+            $logId = LoggerHelper::error("$method $url $message");
+            return $this->returnError(
+                $httpCode ?? 0,
+                "Đã có lỗi xảy ra",
+                "Mã lỗi: $logId",
+            );
         }
         finally {
             if (isset($curl) && is_resource($curl)) curl_close($curl);
         }
+    }
+
+    /**
+     * Return error in standard format
+     * 
+     * @param string $httpCode
+     * @param string $message
+     * @param string $description
+     * @param mixed $data
+     * 
+     * @return string JSON {error, httpCode, message, data, description}
+     */
+    protected function returnError($httpCode = 0, $message = '', $description = '', $data = null) {
+        $arr = [];
+        $arr['error'] = 1;
+        $arr['httpCode'] = $httpCode;
+        $arr['message'] = $message;
+        $arr['data'] = $data;
+        if(!empty($description)) $arr['description'] = $description;
+        return json_encode($arr, JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -516,5 +453,13 @@ class WinInvoice {
         $arr = json_decode($raw, true);
         if($arr && isset($arr['error']) && $arr['error'] == 0) return 1;
         return 0;
+    }
+
+    // Format date to yyyy-mm-dd
+    public function format_date($date) {
+        if (is_null($date) || empty($date)) return '';
+        $str_replace = str_replace('/', '-', $date);
+        $result = strtotime($str_replace) !== FALSE ? date('Y-m-d', strtotime($str_replace)) : '';
+        return $result;
     }
 }

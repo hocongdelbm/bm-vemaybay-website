@@ -154,4 +154,6 @@ $mod_strings = [
     // AUTOCALL
     'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
     'LBL_SENDPROMOTIONMESSAGEZALO' => 'Gửi tin nhắn khuyến mãi Zalo đồng loạt',
+
+    'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
 ];

@@ -47,6 +47,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		if ($current_user->user_name == 'hungnh') {
 			pr(calculateBKAmt($this->bean->id));
 
+			// Cập nhật doanh số theo ngày
+			// $this->saveRevenueBookingJob();
+
 			// Cập nhật data doanh số cho table ec_revenue
 			// $this->exc_dataRevenue();
 
@@ -58,6 +61,34 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->displayJS();
 	}
 
+	/**
+	 * Cập nhật doanh số trong ngày vào ec_revenue
+	 */
+	private function saveRevenueBookingJob()
+	{
+
+		$from = date('Y-m-d 00:00:00');
+		$to   = date('Y-m-d 23:59:59');
+
+		$sql = "SELECT id 
+				FROM ec_flight_bookings 
+				WHERE booking_status = 8 
+				AND date_entered BETWEEN '$from' AND '$to'
+				AND deleted = 0";
+
+		$res = $this->bean->db->query($sql);
+		if ($this->bean->db->countRows($res) > 0) {
+			while ($row = $this->bean->db->fetchByAssoc($res)) {
+				saveRevenueBooking($row['id']);
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Cập nhật dữ liệu is_prior và is_reference cho BK
+	 */
 	private function rebuildBookingFlagsByYear(int $year)
 	{
 		global $db;
@@ -150,7 +181,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.0"></script>';
+			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.0"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0"></script>';
 
 		$js .= '<script>
 			var booking_status = "' . $this->bean->booking_status . '";
@@ -445,6 +477,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				</form>
 			</div>';
 		}
+
 		// Đại lý
 		if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
 			$list_bookmark .= '<div class="item">
@@ -461,6 +494,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<input type="checkbox" name="is_agent" id="check_is_agent" disabled />
 			</div>';
 		}
+
+		// Đã giữ chỗ
+		$list_bookmark .= '<div class="item">
+				<label for="is_hold">Đã giữ chỗ</label>
+				<input type="checkbox" name="is_hold" id="check_is_hold" ' . ($this->bean->is_hold ? 'checked' : '') . ' disabled />
+			</div>';
+
 		$list_bookmark .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK', $list_bookmark);
 
@@ -1356,7 +1396,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->ss->assign('SHARE_PROFIT', $this->createShareProfitBtn());
 
 		// Auto book
-		if (in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
+		if (in_array($this->bean->booking_status, [1, 2, 3, 6])) {
+			// if (in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
 			$agencyOptions = '
 				<li>
 					<a type="button" id="auto-book-datacom" class="dropdown-item btn-auto-book" data-entry-class="entryAutoBookDatacomClass">
@@ -1388,7 +1429,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			);
 		} else
 			$this->ss->assign('BUTTON_AUTO_BOOK', '');
-
+		//PRINT_TICKET
+		$this->ss->assign(
+			'PRINT_TICKET',
+			'<div class="btn-group btnPrintEticket-selection">
+					<button type="button" class="btn btn-warning btnPrintEticket" data-bs-display="static" aria-expanded="false">
+						In vé
+					</button>
+				</div>'
+		);
+		//Send Ticket
+		$this->ss->assign(
+			'SEND_TICKET',
+			'<div class="btn-group btnSendEticket-selection">
+					<button type="button" class="btn btn-warning btnSendEticket" data-bs-display="static" aria-expanded="false">
+						Gửi vé
+					</button>
+				</div>'
+		);
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
@@ -1496,7 +1554,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="Autobook" /></td>';
 				$check_ret = true;
 			} else
-				$html .= '<td data-label="" class="text-center"></td>';
+				$html .= '<td data-label="" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="" /></td>';
 
 			$flight_number = $row['flight_number'] ?? '';
 			$html .= '<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
@@ -1513,7 +1571,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			if ($row['is_layover'] == 0 && $use_mail_eticket) {
 				// PRINT BUTTON
-				$print_ticket_btn = '<input type="button" ln="' . $i . '" name="btnPrintEticket" value="In vé" title="In vé" class="btn btn-primary-2" />';
+				// $print_ticket_btn = '<input type="button" ln="' . $i . '" name="btnPrintEticket-selection" value="In vé" title="In vé" class="btn btn-primary-2" />';
 
 				// SEND BUTTON
 				$send_ticket_btn = '<input type="button" ln="' . $i . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" class="btn btn-primary-2" />';
@@ -1567,8 +1625,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
 						<input type="hidden" name="ticket_type" value="' . $this->bean->ticket_type . '" />
 						<div class="action-button-ticket d-flex gap-2 align-items-center justify-content-center">
-							' . $print_ticket_btn . '
-							' . $send_ticket_btn . '
 							' . $sms_btn . '
 							' . $remind_btn . '
 						</div>
@@ -1701,18 +1757,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$i = 0;
 		$total_qty = $total_supplier_discount = 0;
+		$total_basic_amount = 0;
+		$total_vat_amount = 0;
+		$total_airport_amount = 0;
+		$total_admin_amount = 0;
+		$total_service_amount = 0;
+		$total_issue_fee = 0;
+
 		$res = $this->bean->db->query($sql);
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
 			$admin_fee_inf = '';
-			// if ($row['admin_fee_no_vat'] > 0) {
-			// 	$admin_fee_inf = '<div style="text-align: left; width: 100%; position: relative;">
-			// 					TVAT:&nbsp;' . str_replace('0', '&nbsp;&nbsp;', str_pad('', strlen(format_number($row['admin_fee_no_vat'])), '0')) . '
-			// 						<span style="position: absolute; right: 0;">' . format_number($row['admin_fee_no_vat']) . '</span>
-			// 					</div>
-			// 					<div style="text-align: left; width: 100%; position: relative;">&nbsp;&nbsp;VAT:&nbsp;
-			// 						<span style="position: absolute; right: 0;">' . format_number($row['vat_admin']) . '</span>
-			// 					</div>';
-			// }
 			if ($row['admin_fee_no_vat'] > 0) {
 				$admin_fee_inf = '<div class="admin_fee_no_vat--wrap d-flex align-items-center justify-content-between">
 								<span class="text-start">TVAT:</span>
@@ -1736,32 +1790,28 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<td data-label="Phí sân bay" class="text-end">' . format_number($row['airport_fee']) . '</td>
 				<td data-label="Phí admin" class="text-end"><div class="admin_fee">' . format_number($row['admin_fee']) . '</div>' . $admin_fee_inf . '</td>
 				<td data-label="Phí dịch vụ" class="text-end">' . format_number($row['service_fee']) . '</td>
-				<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>';
-
-			// $html .= '<td class="text-end">
-			// 	<input type="hidden" name="bkd_total_bought_price[]" id="bkd_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
-			// 	' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
-			// </td>';
-			$html .= '<td data-label="Giá mua" class="text-end" title="Đã gồm số lượng">
-				<input type="hidden" name="check_total_bought_price[]" id="check_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
-				' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
-			</td>';
-			$html .= '<td data-label="Chiết khấu" class="text-end">' . format_number($row['supplier_discount']) . '</td>';
-			$html .= '<td data-label="Phí xuất vé" class="text-end">' . format_number($row['fee_bought']) . '</td>';
-
-			// $html .= '<td class="text-start">
-			// 	<input type="hidden" name="bkd_supplier_id[]" id="bkd_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
-			// 	<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
-			// </td>';
-			$html .= '<td data-label="NCC" class="text-start">
-				<input type="hidden" name="check_supplier_id[]" id="check_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
-				<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
-			</td>';
-
-			$html .= '</tr>';
+				<td data-label="Thành tiền" class="text-end" title="Đã gồm số lượng">' . format_number($row['total_price']) . '</td>
+				<td data-label="Giá mua" class="text-end" title="Đã gồm số lượng">
+					<input type="hidden" name="check_total_bought_price[]" id="check_total_bought_price' . $i . '" value="' . format_number($row['total_bought_price']) . '" />
+					' . (ACLController::checkAccess('Bugs', 'list', true) ? format_number($row['total_bought_price']) : '&nbsp;') . '
+				</td>
+				<td data-label="Chiết khấu" class="text-end">' . format_number($row['supplier_discount']) . '</td>
+				<td data-label="Phí xuất vé" class="text-end">' . format_number($row['fee_bought']) . '</td>
+				<td data-label="NCC" class="text-start">
+					<input type="hidden" name="check_supplier_id[]" id="check_supplier_id' . $i . '" value="' . $row['supplier_id'] . '" />
+					<a href="index.php?module=Accounts&action=DetailView&record=' . $row['supplier_id'] . '" target="_blank">' . $row['supplier'] . '</a>
+				</td>
+			</tr>';
 
 			$total_qty += $row['quantity'];
 			$total_supplier_discount += $row['supplier_discount'];
+			$total_basic_amount += $row['unit_price'];
+			$total_vat_amount += $row['tax_and_fee'];
+			$total_airport_amount += $row['airport_fee'];
+			$total_admin_amount += $row['admin_fee'];
+			$total_service_amount += $row['service_fee'];
+			$total_issue_fee += $row['fee_bought'];
+
 			$i++;
 		}
 
@@ -1773,16 +1823,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
 					</td>
 					<td data-label="Tổng số vé" class="text-center">' . format_number($total_qty) . '</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
-					<td class="hide-mobile show-landscape">&nbsp;</td>
+					<td data-label="Giá cơ bản" class="hide-mobile text-end show-landscape">' . format_number($total_basic_amount) . '</td>
+					<td data-label="VAT" class="hide-mobile text-end show-landscape">' . format_number($total_vat_amount) . '</td>
+					<td data-label="Phí sân bay" class="hide-mobile text-end show-landscape">' . format_number($total_airport_amount) . '</td>
+					<td data-label="Phí admin" class="hide-mobile text-end show-landscape">' . format_number($total_admin_amount) . '</td>
+					<td data-label="Phí DV" class="hide-mobile text-end show-landscape">' . format_number($total_service_amount) . '</td>
 					<td data-label="Tổng thành tiền" class="text-end into_money">' . format_number($this->bean->subtotal_amount) . '</td>
 					<td data-label="Tổng giá mua" class="text-end purchase_price">' . format_number($this->bean->total_bought_amount) . '</td>
 					<td data-label="Tổng chiết khấu" class="text-end supplier_discount">' . format_number($total_supplier_discount) . '</td>
-					<td class="text-end hide-mobile show-landscape">&nbsp;</td>
-					<td class="text-end hide-mobile show-landscape">&nbsp;</td>
+					<td data-label="Phí xuất vé" class="text-end hide-mobile show-landscape">' . format_number($total_issue_fee) . '</td>
+					<td class="text-end hide-mobile show-landscape"></td>
 				</tr>';
 		$html .= '</table>';
 		$html .= "<input type='hidden' id='supplier_option_val' value='" . myGetSelectOptionsWithDbExt('Accounts', 'ticker_symbol', '', 'id', 'AND account_type=\'Supplier\' AND is_stop_tracking=0') . "'>";
@@ -1802,7 +1852,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
 		$html .= '<thead>
 			<tr>
-				<th scope="col" width="2%"></th>
+				<th scope="col" width="2%"><input type="checkbox" id="select-all-passengers"/></th>
 				<th scope="col" width="3%">STT</th>
 				<th scope="col" width="7%">Loại</th>
 				<th scope="col" width="7%">Giới tính</th>
@@ -1914,135 +1964,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$row['airlineCodeInbound']  = $this->_inbound_airline ?? '';
 			$row['ticketClassInbound']  = $this->_inbound_ticket_class ?? '';
 			$html .= $this->bean->generatePassengerBaggageInfo($row, $i);
-
-			// if (in_array($this->bean->created_by, $this->bean->list_website_new_baggage) || substr($this->bean->name, 0, 2) === 'BK') {
-			// 	$rowBagHTML = '';
-			// 	foreach (['outbound', 'inbound'] as $roundName) {
-			// 		$roundNameHTML = $roundName == "outbound" ? '<b class="color-primary mr-1">Lượt đi:</b>' : '<b class="color-red mr-1">Lượt về:</b>';
-
-			// 		// Hành lý có sẵn
-			// 		if (!empty($row["luggage_index_$roundName"])) {
-			// 			$rowBagHTML .= '<p class="fst-italic">
-			// 				' . $roundNameHTML . '
-			// 				' . Baggage::renderAvailableBaggage($row["luggage_index_$roundName"]) . '
-			// 				<span>(Hạng vé có sẵn)</span>
-			// 			</p>';
-			// 		}
-
-			// 		// Hành lý mua thêm
-			// 		$suffix = $roundName == "outbound" ? "" : "_inbound";
-			// 		if ($row["luggage_price$suffix"] && $row["luggage_price$suffix"] > 0) {
-			// 			$bagText = $row["luggage_purchase_text$suffix"] ?? '';
-			// 			// $bagCost = $row["luggage_purchase{$suffix}_no_vat"] ?? 0;
-			// 			// $bagTax = $row["vat_luggage_purchase$suffix"] ?? 0; // VAT
-			// 			$bagPrice = $row["luggage_purchase$suffix"] ?? 0;
-			// 			$bagTicketNum = $row["eluggage_$roundName"] ?? '';
-			// 			$bagSellingPrice = $row["luggage_price$suffix"] ?? 0;
-			// 			$bagTicketNumHTML = !empty($bagTicketNum) ? '<span class="badge bg-light text-dark fw-normal ms-1">Số vé HL: <b>' . $bagTicketNum . '</b></span>' : '';
-
-			// 			$rowBagHTML .= '<p class="fst-italic info-purchage-baggage">
-			// 				' . $roundNameHTML . '
-			// 				' . $bagText . '
-			// 				<span class="badge bg-light text-dark fw-normal ms-1">
-			// 					Giá bán (VAT): <b>' . format_number($bagSellingPrice) . ' VND</b>
-			// 				</span>
-			// 				<span class="badge bg-light text-dark fw-normal ms-1">
-			// 					Giá mua (VAT): <b>' . format_number($bagPrice) . ' VND</b>
-			// 				</span>
-			// 				<span class="badge bg-light text-dark fw-normal ms-1">
-			// 					Nhà cung cấp: <b>' . $row["supplier$suffix"] . '</b>
-			// 				</span>
-			// 				' . $bagTicketNumHTML . '
-			// 			</p>';
-			// 		}
-			// 	}
-
-			// 	$html .= '<tr class="psg-line luggage" ' . (empty($rowBagHTML) ? 'style="display:none;"' : '') . '>
-			// 		<td data-label="Hành lý ký gửi" class="text-center align-middle">
-			// 			<svg fill="#000000" width="24px" height="24px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 290.626 290.626" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <g> <path d="M126.563,70.313H98.438v-56.25C98.438,6.309,92.128,0,84.375,0H56.25c-7.753,0-14.063,6.309-14.063,14.063v56.25H14.063 C6.309,70.313,0,76.622,0,84.375v168.75c0,5.297,2.977,9.862,7.312,12.258c-1.645,2.559-2.625,5.578-2.625,8.836 c0,9.047,7.359,16.406,16.406,16.406S37.5,283.266,37.5,274.219c0-2.527-0.623-4.894-1.645-7.031h68.916 c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V84.375C140.625,76.622,134.316,70.313,126.563,70.313z M51.563,14.063c0-2.588,2.099-4.688,4.687-4.688h28.125c2.588,0,4.688,2.1,4.688,4.688v4.688h-37.5V14.063z M51.563,28.125h37.5 v42.188h-37.5V28.125z M9.375,84.375c0-2.588,2.1-4.687,4.688-4.687h4.688V93.75H9.375V84.375z M9.374,253.125v-9.375h0.001 h9.375v14.063h-4.688C11.474,257.813,9.374,255.713,9.374,253.125z M21.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031s7.031,3.154,7.031,7.031S24.97,281.25,21.094,281.25z M119.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031s7.031,3.155,7.031,7.031 C126.562,278.095,123.408,281.25,119.531,281.25z M131.25,253.125c0,2.587-2.1,4.688-4.687,4.688h-4.688V243.75h9.375V253.125z M131.25,234.375h-9.375c-5.17,0-9.375,4.205-9.375,9.375v14.063H28.125V243.75c0-5.17-4.205-9.375-9.375-9.375H9.375v-131.25 h9.375c5.17,0,9.375-4.205,9.375-9.375V79.688h14.063h56.25H112.5V93.75c0,5.17,4.205,9.375,9.375,9.375h9.375V234.375z M131.25,93.75h-9.375V79.688h4.688c2.587,0,4.687,2.099,4.687,4.687V93.75z"></path> <rect x="23.438" y="112.5" width="9.375" height="112.5"></rect> <rect x="46.875" y="112.5" width="9.375" height="112.5"></rect> <rect x="107.813" y="112.5" width="9.375" height="112.5"></rect> <rect x="84.375" y="112.5" width="9.375" height="112.5"></rect> <path d="M276.563,112.5h-112.5c-7.753,0-14.063,6.309-14.063,14.063v126.563c0,5.297,2.977,9.862,7.313,12.258 c-1.645,2.559-2.625,5.578-2.625,8.836c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-2.527-0.623-4.894-1.645-7.031h68.916c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406 s16.406-7.359,16.406-16.406c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V126.563 C290.625,118.809,284.316,112.5,276.563,112.5z M171.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.154,7.031,7.031S174.97,281.25,171.094,281.25z M269.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.155,7.031,7.031 C276.562,278.095,273.408,281.25,269.531,281.25z M281.248,253.125c0.002,2.587-2.098,4.688-4.685,4.688h-112.5 c-2.587,0-4.688-2.1-4.688-4.688v-95.784l8.067-4.842c7.838-4.702,16.814-7.186,25.955-7.186h39.164l-2.63,7.894 c-0.82,2.456,0.506,5.114,2.962,5.93c0.492,0.159,0.994,0.239,1.481,0.239c1.964,0,3.792-1.242,4.444-3.206l3.619-10.856h2.62 l3.619,10.856c0.656,1.964,2.484,3.206,4.448,3.206c0.488,0,0.989-0.08,1.481-0.244c2.452-0.816,3.783-3.469,2.962-5.93 l-2.4-7.195c6.342,1.012,12.469,3.164,18.014,6.492l8.067,4.842V253.125z M281.251,146.405l-3.239-1.945 c-8.798-5.273-18.802-8.166-29.034-8.466c-0.145-0.019-0.281-0.009-0.427-0.014c-0.441-0.005-0.881-0.042-1.322-0.042h-53.831 c-10.842,0-21.483,2.948-30.778,8.522l-3.244,1.945v-19.842c-0.001-2.588,2.099-4.688,4.687-4.688h112.5 c2.587,0,4.688,2.1,4.688,4.688V146.405z"></path> <path d="M164.063,107.813h112.5c7.753,0,14.063-6.309,14.039-14.531l-3.97-39.698c-0.534-5.334-2.025-10.467-4.416-15.263 c-7.364-14.723-22.055-23.911-38.466-24.202v-0.056C243.75,6.309,237.441,0,229.688,0h-18.75 c-7.753,0-14.063,6.309-14.063,14.063v0.056c-16.411,0.291-31.102,9.483-38.466,24.206c-2.395,4.791-3.881,9.928-4.416,15.263 L150,93.75C150,101.503,156.309,107.813,164.063,107.813z M210.938,9.375h18.75c2.587,0,4.688,2.1,4.688,4.688H206.25 C206.25,11.475,208.35,9.375,210.938,9.375z M163.322,54.52c0.422-4.195,1.589-8.236,3.473-12.005 c5.887-11.766,17.714-19.078,30.872-19.078h45.291c13.158,0,24.984,7.313,30.872,19.078c1.884,3.769,3.052,7.809,3.473,12.005 l3.947,39.23c0,2.588-2.1,4.688-4.688,4.688h-112.5c-2.587,0-4.688-2.1-4.711-4.219L163.322,54.52z"></path> <path d="M239.064,51.563h-0.001c0,2.592,2.095,4.688,4.688,4.688c2.593,0,4.688-2.095,4.688-4.688v-9.375h9.375v-9.375h-75v9.375 h56.25V51.563z"></path> </g> </g> </g> </g></svg>
-			// 		</td>
-			// 		<td colspan="10" class="text-start align-middle flex-wrap">' . $rowBagHTML . '</td>
-			// 	</tr>';
-			// }
-			// else {
-			// 	$luggage_price = '';
-			// 	// Hành lý chiều đi
-
-			// 	// Bag_out là list option hành lý
-			// 	$bag_out = generateLuggage($booking_date, $this->_outbound_airline, $this->_outbound_ticket_class, $row['type'], (int) $row['luggage_index_outbound']);
-			// 	if (!empty($row['luggage_index_outbound'])) {
-			// 		$row['luggage_price'] = (int) $row['luggage_index_outbound'];
-			// 	}
-
-			// 	$bag_out2 = $bag_out[(int) $row['luggage_price']] ?? '';
-
-			// 	$bag_weight_out = 0;
-			// 	if (isset($bag_out2) && !empty($bag_out2)) {
-			// 		preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-			// 		$bag_weight_out = isset($ob_output[1]) ? (int) $ob_output[1] : 0;
-			// 	}
-
-			// 	if ($bag_weight_out > 0) {
-			// 		$lug_purchase_inf = '';
-			// 		if ($row['luggage_purchase'] > 0) {
-			// 			$lug_purchase_inf .= ' - Giá mua: ' . format_number($row['luggage_purchase_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase']);
-			// 		}
-
-			// 		$eluggage_outbound = '';
-			// 		if (strlen($row['eluggage_outbound']) > 0) {
-			// 			$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
-			// 									(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($row['eluggage_outbound']) . '</strong>)
-			// 									<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $i . '" value="' . strtoupper($row['eluggage_outbound']) . '"  />
-			// 								</span>';
-			// 		}
-			// 		$luggage_price .= '<div class="luggage__outbound">
-			// 								<span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase']) . ' - Nhà cung cấp: ' . $row['supplier'] . $lug_purchase_inf . ')
-			// 								' . $eluggage_outbound . '
-			// 							</div>';
-			// 	}
-
-			// 	// Hành lý chiều về
-			// 	if ($this->bean->flight_type == '0') {
-			// 		$bag_in = generateLuggage($booking_date, $this->_inbound_airline, $this->_inbound_ticket_class, $row['type'], (int) $row['luggage_index_inbound']);
-
-			// 		if (!empty($row['luggage_index_inbound'])) {
-			// 			$row['luggage_price_inbound'] = (int) $row['luggage_index_inbound'];
-			// 		}
-
-			// 		$bag_in2 = $bag_in[(int) $row['luggage_price_inbound']] ?? '';
-
-			// 		$bag_weight_in = 0;
-			// 		if (isset($bag_in2) && !empty($bag_in2)) {
-			// 			preg_match('/(\d+)kg/isU', $bag_in2, $ib_output);
-			// 			$bag_weight_in = isset($ib_output[1]) ? (int) $ib_output[1] : 0;
-			// 		}
-
-			// 		if ($bag_weight_in > 0) {
-			// 			$in_lug_purchase_inf = '';
-			// 			if ($row['luggage_purchase_inbound'] > 0) {
-			// 				$in_lug_purchase_inf .= ' - Giá mua: ' . format_number($row['luggage_purchase_inbound_no_vat']) . ' - VAT giá mua: ' . format_number($row['vat_luggage_purchase_inbound']);
-			// 			}
-
-			// 			$eluggage_inbound = '';
-			// 			if (strlen($row['eluggage_inbound']) > 0) {
-			// 				$eluggage_inbound .= '<span data-label="Số vé HL về" class="text-center" class="eluggage_inbound">
-			// 					(<span class="color-red fst-italic fw-semibold">Số vé HL lượt về</span>: <strong>' . strtoupper($row['eluggage_inbound']) . '</strong>)
-			// 					<input type="hidden" name="eluggage_inbound[]" id="eluggage_inbound' . $i . '" value="' . strtoupper($row['eluggage_inbound']) . '"  />
-			// 				</span>';
-			// 			}
-
-			// 			$luggage_price .= '<div class="luggage__inbound mt-2">
-			// 				<span class="color-red fst-italic fw-semibold">Lượt về</span>: ' . $bag_in2 . ' (Giá mua (VAT): ' . format_number($row['luggage_purchase_inbound']) . ' - Nhà cung cấp: ' . $row['supplier_inbound'] . $in_lug_purchase_inf . ')
-			// 				' . $eluggage_inbound . '
-			// 			</div>';
-			// 		}
-			// 	}
-
-			// 	$html .= '<tr class="psg-line luggage" ' . (trim($luggage_price) == '' ? 'style="display:none;"' : '') . '>
-			// 		<td data-label="Hành lý ký gửi" class="text-center bg-yellow align-middle">&nbsp;</td>
-			// 		<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
-			// 	</tr>';
-			// }
 
 			$i++;
 		}
@@ -2363,7 +2284,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 	function populatePrintLanguage()
 	{
-		$html = '<div id="dlgChonNgonNgu" style="display:none;" title="Ngôn ngữ">
+		$html = '<div id="dlgSelectLanguage" style="display:none;" title="Ngôn ngữ">
 			<div class="d-flex flex-column align-items-center gap-3">
 				<div class="option-group d-flex gap-4">
 					<div class="form-group">
@@ -2374,15 +2295,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<label for="en" class="form-check-label">Tiếng Anh</label>
 						<input class="form-check-input" type="radio" name="ngonngu" id="en" value="en" style="vertical-align:middle; margin-top: 0;" /> 
 					</div>
-					<div class="form-group">
-						<label for="khuhoi">Khứ hồi</label>
-						<input class="form-check-input" style="vertical-align:middle; margin-top: 0;" ' . ($this->bean->flight_type == '0' ? 'checked="checked"' : '') . ' type="checkbox" name="khuhoi" id="khuhoi" value="' . ($this->bean->flight_type == '0' ? 1 : 0) . '" /> 
-					</div>
+					
 				</div>
 				<div class="option-passenger"></div>
 				<div class="form-group">
 					<input type="hidden" id="what_form" value="" />
-					<input type="button" class="btn btn-primary" id="btnChonNgonNgu" value="Tiếp tục" title="Tiếp tục" />
+					<input type="button" class="btn btn-primary" id="btnSelectLanguage" value="Tiếp tục" title="Tiếp tục" />
 				</div>
 			</div>
 		</div>';
@@ -2422,7 +2340,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	// Hiện thông tin hoá đơn
 	function populateInvoiceInf()
 	{
-		$iv_account_name = $iv_email = $iv_payment_method = $iv_bank_account = $iv_name_banks = '';
+		$iv_account_name = $iv_email = $iv_identity_number = $iv_payment_method = $iv_bank_account = $iv_name_banks = '';
 
 		if (!empty($this->bean->shipping_address)) {
 			$invoice_arr = json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);

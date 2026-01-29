@@ -109,16 +109,26 @@ class entryOutputInvoiceClass extends entryClass {
                         if(empty($invNumber)) continue;
 
                         global $db;
-                        $sqlUpdate = "UPDATE ec_hoadonban
-                            SET tinhtrang = '2'
-                                ,is_signed = 1
-                                ,sohoadon = '$invNumber'
-                                ,kyhieuhd = '$invSerial'
-                                ,ngayhoadon = '$invDate'
-                                ,invoice_data = '$json'
-                                ,modified_user_id = '{$this->currentUser->id}'
-                                ,date_modified = '" . date('Y-m-d H:i:s', time() - 7*60*60) . "'
-                            WHERE id = '$recordId' AND name = '$invRef' AND deleted = 0";
+                        $jsonSafe       = str_replace("'", "\'", $json);
+                        $invNumberSafe  = $db->quote($invNumber);
+                        $invSerialSafe  = $db->quote($invSerial);
+                        $invDateSafe    = $db->quote($invDate);
+                        $recordIdSafe   = $db->quote($recordId);
+                        $invRefSafe     = $db->quote($invRef);
+                        $userIdSafe     = $db->quote($this->currentUser->id);
+                        $dateModified   = $db->quote(date('Y-m-d H:i:s', time() - 7*60*60));
+
+                        $sqlUpdate =
+                           "UPDATE ec_hoadonban
+                            SET tinhtrang = '2',
+                                is_signed = 1,
+                                sohoadon = '$invNumberSafe',
+                                kyhieuhd = '$invSerialSafe',
+                                ngayhoadon = '$invDateSafe',
+                                invoice_data = '$jsonSafe',
+                                modified_user_id = '$userIdSafe',
+                                date_modified = '$dateModified'
+                            WHERE id = '$recordIdSafe' AND name = '$invRefSafe' AND deleted = 0";
 
                         if($db->query($sqlUpdate)) {
                             // Save working process & note (KPI)

@@ -158,7 +158,7 @@
 				<input type="button" id="btnSearch_cancel" name="search_cancel" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ" title="Hủy bỏ"/>
 			</div>	
 			<ul class="currentsales-note m-0">
-				<li class="fst-italic"><i>Lưu ý:</i> Doanh số lấy theo ngày xuất vé</li>
+				<li class="fst-italic"><i>Lưu ý:</i> Doanh số lấy theo ngày xuất vé. Booking đã hoàn tất</li>
 				<li class="fst-italic">Doanh số PThu: Cột "tổng doanh số" bên BC "doanh thu trong ngày"</li>
 			</ul>
 		</div>
@@ -169,14 +169,15 @@
             <tr>
                 <th width="12%" style="background-color: #068FFF; color: #fff">Thời gian</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">Số vé</th>
-                <th width="10%" style="background-color: #068FFF; color: #fff">D/s Nội địa</th>
-                <th width="10%" style="background-color: #068FFF; color: #fff">D/s Quốc tế</th>
-                <th width="10%" style="background-color: #068FFF; color: #fff">Tổng Doanh số</th>
-                <th width="10%" style="background-color: #068FFF; color: #fff">Doanh số PThu</th>
-                <th width="5%" style="background-color: #068FFF; color: #fff">Booking</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">D/s Nội địa</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">D/s Quốc tế</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">Tổng Doanh số</th>
+                <th width="8%" style="background-color: #068FFF; color: #fff">Doanh số PThu</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff" title="Tổng số lượng BK hoàn tất">Booking</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">BK 2-3 vé</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">BK 4-6 vé</th>
-                <th width="5%" style="background-color: #068FFF; color: #fff">BK tham khảo</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff" title="Tổng số lượng BK quốc tế / Số lượng BK quốc tế hoàn tất">Tổng BK <br> Quốc tế</th>
+                <th width="5%" style="background-color: #068FFF; color: #fff">Tổng BK <br> tham khảo</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">Cuộc gọi đến</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">Gọi đến tạo BK</th>
                 <th width="5%" style="background-color: #068FFF; color: #fff">Gọi nhỡ</th>

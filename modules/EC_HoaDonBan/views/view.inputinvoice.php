@@ -426,6 +426,7 @@ class Viewinputinvoice extends SugarView {
                 SUM(in_inv.authorized_fee) AS total_authorized,
                 COUNT(in_inv.id) AS row_num
             FROM ec_input_invoices in_inv
+            LEFT JOIN ec_flight_bookings bk ON bk.id = in_inv.booking_id AND bk.deleted = 0
             WHERE in_inv.deleted = 0 ' . $sql_search;
 
         $res = $this->bean->db->query($sql);
@@ -479,6 +480,8 @@ class Viewinputinvoice extends SugarView {
             WHERE in_inv.deleted = 0 $sql_search
             ORDER BY in_inv.invoice_date DESC, in_inv.supplier, in_inv.invoice_serial, in_inv.invoice_number, in_inv.order_by_no
             $sql_limit";
+
+
 
         $res        = $this->bean->db->query($sql);
         $html       = '';
@@ -764,7 +767,7 @@ class Viewinputinvoice extends SugarView {
 
             // Code vé
             if (isset($request_fields['ticket_c']) && !empty($request_fields['ticket_c'])) {
-                $sql_search .= ' AND in_inv.ticket_code = "' . $request_fields['ticket_c'] . '"';
+                $sql_search .= ' AND in_inv.name = "' . $request_fields['ticket_c'] . '"';
             }
 
             // Booking

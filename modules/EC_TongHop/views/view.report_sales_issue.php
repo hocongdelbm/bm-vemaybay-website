@@ -52,14 +52,7 @@ class Viewreport_sales_issue extends SugarView
         }
         $to_date_sql_yesterday   = date('Y-m-d', strtotime($to_date_sql . ' -1 day'));
         $to_date_sql_daybefore   = date('Y-m-d', strtotime($to_date_sql . ' -2 day'));
-
         $smartyobj->assign('TO_DATE_VALUE', date('d-m-Y', strtotime($to_date_value)));
-        $smartyobj->assign('CURRENT_FROMDATE', date('d-m-Y', strtotime('first day of this month')));
-        $smartyobj->assign('CURRENT_TODATE', date('d-m-Y', strtotime('last day of this month')));
-        $smartyobj->assign('PREVIOUS_FROMDATE', date('d-m-Y', strtotime('first day of last month')));
-        $smartyobj->assign('PREVIOUS_TODATE', date('t-m-Y', strtotime('last day of last month')));
-        $smartyobj->assign('PREVIOUSYEAR_FROMDATE', date('d-m-Y', strtotime('-1 year')));
-        $smartyobj->assign('PREVIOUSYEAR_TODATE', date('d-m-Y', strtotime('-1 year')));
 
         switch (ceil(date('n') / 3)) {
             case 1:
@@ -389,7 +382,9 @@ class Viewreport_sales_issue extends SugarView
                     SUM(t.inbound) AS inbound,
                     SUM(t.missed) AS missed,
                     SUM(t.inbound_bk) AS inbound_bk,
-                    SUM(t.tham_khao_bk) AS tham_khao_bk
+                    SUM(t.tham_khao_bk) AS tham_khao_bk,
+                    SUM(t.total_qty_inter) AS total_qty_inter,
+                    SUM(t.total_qty_inter_com) AS total_qty_inter_com
                 FROM (
                     -- Block 1: Doanh số booking
                     SELECT
@@ -415,7 +410,9 @@ class Viewreport_sales_issue extends SugarView
                         0 AS inbound,
                         0 AS missed,
                         0 AS inbound_bk,
-                        0 AS tham_khao_bk
+                        0 AS tham_khao_bk,
+                        0 AS total_qty_inter,
+                        SUM(CASE WHEN ticket_type = 2 THEN 1 ELSE 0 END) AS total_qty_inter_com
                     FROM ec_revenue
                     WHERE deleted = 0
                     $where_period
@@ -441,7 +438,9 @@ class Viewreport_sales_issue extends SugarView
 						SUM(CASE WHEN direction = 'inbound' THEN 1 ELSE 0 END) AS inbound,
 						SUM(CASE WHEN direction = 'missed'  THEN 1 ELSE 0 END) AS missed,
 						SUM(CASE WHEN direction = 'inbound' AND booking_id IS NOT NULL AND booking_id <> '' THEN 1 ELSE 0 END) AS inbound_bk,
-                        0 AS tham_khao_bk
+                        0 AS tham_khao_bk,
+                        0 AS total_qty_inter,
+                        0 AS total_qty_inter_com
 					FROM calls
 					WHERE deleted = 0
 					" . str_replace('date_ticket_issue', 'DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR))', $where_period) . "
@@ -467,10 +466,11 @@ class Viewreport_sales_issue extends SugarView
 						0 AS inbound,
 						0 AS missed,
 						0 AS inbound_bk,
-						SUM(is_reference) AS tham_khao_bk
+                        SUM(CASE WHEN is_reference = 1 THEN 1 ELSE 0 END) AS tham_khao_bk,
+                        SUM(CASE WHEN ticket_type = 2 THEN 1 ELSE 0 END) AS total_qty_inter,
+                        0 AS total_qty_inter_com
 					FROM ec_flight_bookings bk
 					WHERE deleted = 0
-                    AND is_reference = 1
 					" . str_replace('date_ticket_issue', 'DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR))', $where_period) . "
 					GROUP BY period
                 ) t
@@ -490,7 +490,9 @@ class Viewreport_sales_issue extends SugarView
                     END;
             ";
 
-            // pr($sql);
+            // if($current_user->user_name == 'hungnh'){
+            //     pr($sql);
+            // }
 
             $html = '';
             $mark_current = false;
@@ -533,12 +535,18 @@ class Viewreport_sales_issue extends SugarView
 							</tr>';
                     }
 
+                    // Column SL BK quốc tế
+                    $column_inter = 0;
+                    if ($row['total_qty_inter'] > 0) {
+                        $column_inter = format_number($row['total_qty_inter']) . ' / ' . format_number($row['total_qty_inter_com']);
+                    }
+
                     $html .= '<tr data-period="' . $row['period'] . '">
                                 <td align="center" data-label="Ngày" class="text-nowrap">
                                     ' . $from_date_row . '
                                 </td>
                                 <td align="center" data-label="Tổng số vé">
-                                    <span class="detail_domestic" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '">' . format_number($row['total_ticket_qty']) . '</span>
+                                    <span class="detail_domestic" title="Chi tiết booking theo ngày xuất vé" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '">' . format_number($row['total_ticket_qty']) . '</span>
                                 </td>
                                 <td align="right" data-label="Nội địa">' . format_number($row['total_profit_domestic']) . '</td>
                                 <td align="right" data-label="Quốc tế">
@@ -549,6 +557,7 @@ class Viewreport_sales_issue extends SugarView
                                 <td align="center" data-label="Booking">' . format_number($row['total_qty']) . '</td>
                                 <td align="center" data-label="BK 2-3 vé">' . format_number($row['total_bk_2_3']) . '</td>
                                 <td align="center" data-label="BK 4-6 vé">' . format_number($row['total_bk_4_6']) . '</td>
+                                <td align="center" data-label="BK tham khảo">' . $column_inter . '</td>
                                 <td align="center" data-label="BK tham khảo">' . format_number($row['tham_khao_bk']) . '</td>
                                 <td align="center" data-label="Cuộc gọi đến">
                                     <span class="show_detail_call text-decoration-underline cursor-pointer text-primary fw-bold" data-from-date="' . $row['from_date'] . '" data-to-date="' . $row['to_date'] . '" data-direction="inbound" data-is-booking="0">' . format_number($row['inbound']) . '</span>
@@ -561,6 +570,8 @@ class Viewreport_sales_issue extends SugarView
                                 </td>
                             </tr>';
                 }
+            } else {
+                $html .= '<tr><td colspan="15">0</td></tr>';
             }
 
             $smartyobj->assign('DATA', $html);

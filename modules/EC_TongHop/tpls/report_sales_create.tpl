@@ -344,7 +344,7 @@
 {/literal}
 
 <div class="title-wrap d-flex align-items-center justify-content-between gap-2">
-	<h1 class="title">Ds theo ngày tạo Booking new</h1>
+	<h1 class="title">Ds theo ngày tạo Booking</h1>
 	<svg xmlns="http://www.w3.org/2000/svg" id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block" viewBox="0 0 16 16">
 		<path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5" />
 	</svg>
@@ -364,8 +364,7 @@
 				<div class="d-flex gap-2 align-items-center date_trigger--wrap fdate_trigger--wrap">
 					<span class="text-label">Từ ngày: </span>
 					<div class="dateTime d-flex gap-2 position-relative">
-						<input class="date_input box-input" type="text" maxlength="10" size="8" tabindex="103" title=""
-							value="{$from_date}" id="from_date" name="from_date" autocomplete="off">
+						<input class="date_input box-input" type="text" maxlength="10" size="8" tabindex="103" title="" value="{$FROM_DATE_VALUE}" id="from_date" name="from_date" autocomplete="off">
 						<button class="icon_dateTime" type="button" id="from_date_trigger" onclick="return false;">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
 								class="bi bi-calendar2" viewBox="0 0 16 16">
@@ -405,8 +404,7 @@
 				<div class="d-flex gap-2 align-items-center date_trigger--wrap tdate_trigger--wrap">
 					<span class="text-label">Đến ngày: </span>
 					<div class="dateTime d-flex gap-2 position-relative">
-						<input class="date_input box-input" type="text" maxlength="10" size="8" title=""
-							value="{$to_date}" id="to_date" name="to_date" autocomplete="off">
+						<input class="date_input box-input" type="text" maxlength="10" size="8" title="" value="{$TO_DATE_VALUE}" id="to_date" name="to_date" autocomplete="off">
 						<button class="icon_dateTime" type="button" id="to_date_trigger" onclick="return false;">
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
 								class="bi bi-calendar2" viewBox="0 0 16 16">
@@ -431,23 +429,6 @@
 					</div>
 				</div>
 			</div>
-
-			<div class="d-flex align-items-center gap-2">
-				{$RADIO_TODAY}
-				<label class="cursor-pointer" for="today">Hôm nay</label>
-
-				{$RADIO_YESTERDAY}
-				<label class="cursor-pointer" for="yesterday">Hôm qua</label>
-
-				{$RADIO_DAYBEFORE}
-				<label class="cursor-pointer" for="daybefore">Hôm trước</label>
-
-				{$RADIO_CURRENTWEEK}
-				<label class="cursor-pointer" for="current_week">Tuần này</label>
-
-				{$RADIO_PREVIOUSWEEK}
-				<label class="cursor-pointer" for="previous_week">Tuần trước</label>
-			</div>
 		</div>
 
 		<div class="button-action--wrap">
@@ -457,62 +438,12 @@
 				class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ"
 				title="Hủy bỏ" />
 		</div>
+
+		<ul class="bookingqtyreport-note m-0">
+			<li class="fst-italic"><i>Lưu ý:</i> Doanh số lấy theo ngày tạo của booking. Booking đã hoàn tất</li>
+			<li class="fst-italic">Doanh số Vé Quốc tế đã bao gồm trong cái Tổng</li>
+		</ul>
 	</form>
-
-	<div class="bookingqtyreport-note">
-		<span class="fw-bold fst-italic">Lưu ý:</span>
-		<span class="form-label ms-2">Doanh số Vé Quốc tế đã bao gồm trong cái Tổng | Doanh số lấy theo ngày tạo của booking</span>
-	</div>
-
-	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3 d-none" cellpadding="0" cellspacing="0">
-		<thead>
-			<tr class="text-nowrap">
-				<th rowspan="2" style="width: 10%;">Trang web</th>
-				<th colspan="4" style="width: 12%;">Doanh số</th>
-				<th rowspan="2" colspan="2" style="width: 5%;">Tổng BK</th>
-				<th rowspan="2" style="width: 5%;">Booker đặt</th>
-				<th rowspan="2" style="width: 5%;">KH đặt</th>
-				<th rowspan="2" style="width: 5%;">Tham khảo</th>
-
-				<th colspan="2" style="width: 8%; background-color: #068FFF; color: #fff">Cuộc gọi</th>
-
-				<th colspan="3" style="width: 5%;">BK Vé cận</th>
-				<th colspan="3" style="width: 5%;">BK dưới 3 vé</th>
-				<th colspan="3" style="width: 5%;">BK 4-8 vé</th>
-				<th colspan="3" style="width: 8%; background-color: #8BE8E5;">BK Quốc tế</th>
-				<th colspan="2" style="width: 8%; background-color: #E94560; color: #fff">Hủy</th>
-			</tr>
-			<tr class="text-nowrap">
-				<th colspan="2" style="width: 7%;">Số tiền</th>
-				<th style="width: 3%;">Vé</th>
-				<th style="width: 3%;">BK OK</th>
-
-				<th style="width: 3%; background-color: #068FFF; color: #fff">Gọi đến /<br> Tạo BK</th>
-				<th style="width: 4%; background-color: #068FFF; color: #fff">Gọi nhỡ</th>
-
-				<!-- vé cận -->
-				<th style="width: 3%;">BK</th>
-				<th colspan="2" style="width: 4%;">DS</th>
-
-				<!-- bk 3 vé -->
-				<th style="width: 3%;">BK</th>
-				<th colspan="2" style="width: 4%;">DS</th>
-
-				<!-- bk 4-8 vé -->
-				<th style="width: 3%;">BK</th>
-				<th colspan="2" style="width: 4%;">DS</th>
-
-				<!-- INTER -->
-				<th style="width: 3%; background-color: #8BE8E5;">BK</th>
-				<th colspan="2" style="width: 4%; background-color: #8BE8E5;">DS</th>
-
-                <!-- Hủy -->
-				<th style="width: 3%; background-color: #E94560; color: #fff;">SL</th>
-				<th style="width: 4%; background-color: #E94560; color: #fff;">%</th>
-			</tr>
-		</thead>
-		{$rpt_body}
-	</table>
 
 	<table id="booking_qty" class="table-details__booking table-booking_qty mt-3" cellpadding="0" cellspacing="0">
 		<thead>
@@ -530,11 +461,9 @@
 				<th colspan="3" style="width: 5%;">BK dưới 3 vé</th>
 				<th colspan="3" style="width: 5%;">BK 4-8 vé</th>
 				<th colspan="3" style="width: 8%; background-color: #8BE8E5;">BK Quốc tế</th>
-	
-				<th colspan="2" style="width: 8%; background-color: #E94560; color: #fff">Hủy</th>
 			</tr>
 			<tr class="text-nowrap">
-				<th colspan="2" style="width: 7%;">Số tiền</th>
+				<th colspan="2" style="width: 5%;">Số tiền</th>
 				<th style="width: 3%;">Vé</th>
 				<th style="width: 3%;">BK OK</th>
 	
@@ -556,13 +485,11 @@
 				<!-- INTER -->
 				<th style="width: 3%; background-color: #8BE8E5;">BK</th>
 				<th colspan="2" style="width: 4%; background-color: #8BE8E5;">DS</th>
-	
-                <!-- Hủy -->
-				<th style="width: 3%; background-color: #E94560; color: #fff;">SL</th>
-				<th style="width: 4%; background-color: #E94560; color: #fff;">%</th>
 			</tr>
 		</thead>
-		{$rpt_body_compare}
+        <tbody>
+			{$rpt_body_compare}
+        </tbody>
 	</table>
 </div>
 

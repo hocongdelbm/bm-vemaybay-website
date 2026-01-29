@@ -900,17 +900,20 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
 
     $sql_having = '';
     // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
-    if ($condition_arr['payment_stt'] == 1) {
-        // Chưa thu
-        $sql_having = ' HAVING receipt_amount = 0';
-    } else if ($condition_arr['payment_stt'] == 2) {
-        // Chưa thu đủ
-        $sql_having = ' HAVING receipt_amount < subtotal_amount AND receipt_amount > 0';
-    } else if ($condition_arr['payment_stt'] == 3) {
-        // Booking telesale
-        $sql_having = ' HAVING is_telesale = 1';
-    } else if ($condition_arr['payment_stt'] == 4) {
-        $sql_having = ' HAVING is_ctv = 1';
+
+    if(isset($condition_arr['payment_stt'])){
+        if ($condition_arr['payment_stt'] == 1) {
+            // Chưa thu
+            $sql_having = ' HAVING receipt_amount = 0';
+        } else if ($condition_arr['payment_stt'] == 2) {
+            // Chưa thu đủ
+            $sql_having = ' HAVING receipt_amount < subtotal_amount AND receipt_amount > 0';
+        } else if ($condition_arr['payment_stt'] == 3) {
+            // Booking telesale
+            $sql_having = ' HAVING is_telesale = 1';
+        } else if ($condition_arr['payment_stt'] == 4) {
+            $sql_having = ' HAVING is_ctv = 1';
+        }
     }
 
     // Where condition by booking fields
@@ -983,6 +986,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                 ) AS paid_time
                 , bk.is_telesale as is_telesale
                 , bk.is_ctv as is_ctv
+                , bk.phone as contact_mobile
             FROM ec_booking_details bkd 
             LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted=0 
             WHERE bk.booking_status IN ('3', '7', '8')
@@ -1019,6 +1023,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                         ,'' AS paid_time
                         , 0 as is_telesale
                         , 0 as is_ctv
+                        , '' as contact_mobile
                     FROM ec_receipt_voucher p
                     WHERE 
                         p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
@@ -1049,6 +1054,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                         , '' AS paid_time
                         , 0 as is_telesale
                         , 0 as is_ctv
+                        , '' as contact_mobile
                     FROM 
                     (
                         -- hoan ve < 0

@@ -22,210 +22,39 @@ $job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay kh�
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
-$job_strings[] = 'saveReportWeekly'; // Lưu kết quả doanh số cuối ngày vào table ec_report_weekly
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
 $job_strings[] = 'sendPromotionMessageZalo'; // Gửi tin nhắn khuyến mãi ZALO đồng loạt
+$job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 
-function updateLogAutocall(){
-	return update_log_autocall();
-}
-
-function saveReportWeekly()
+/**
+ * Cập nhật doanh số trong ngày vào ec_revenue
+ */
+function saveRevenueBookingJob()
 {
 	global $db;
-	$date_report = date('Y-m-d', strtotime('-1 day +7 hours'));
 
-	$sql_exist = '
-		SELECT IF(COUNT(id) > 0, 1, 0) as count
-		FROM ec_report_weekly
-		WHERE from_date = "' . $date_report . '" 
-			AND to_date = "' . $date_report . '"
-			AND type = "BOOKING"
-			AND deleted = 0';
-	$count_rows = $db->getOne($sql_exist);
+	$from = date('Y-m-d 00:00:00');
+	$to   = date('Y-m-d 23:59:59');
 
-	// Bước 2: Tạo dữ liệu trong ec_report_weekly theo from_date - to_date
-	$sql_select = '
-		SELECT last_name, user_name, user_id,
-			SUM(bk_created) AS bk_created,
-			SUM(bk_called) AS bk_called,
-			SUM(bk_paying) AS bk_paying,
-			SUM(bk_confirmed) AS bk_confirmed,
-			SUM(bk_printed) AS bk_printed,
-			SUM(bk_completed) AS bk_completed,
-			SUM(bk_cancelled) AS bk_cancelled,
-			SUM(total) AS total,
-			SUM(total_sales) AS total_sales,
-			SUM(total_ticket) AS total_ticket,
-			0 AS advertisement_cost,
-			"' . $date_report . '" AS from_date,
-			"' . $date_report . '" AS to_date
-		FROM (
-			SELECT
-				u.last_name, u.user_name, u.id AS user_id,
-				COUNT(IF(bk.booking_status = 1, bk.id, NULL)) AS bk_created,
-				COUNT(IF(bk.booking_status = 6, bk.id, NULL)) AS bk_called,
-				COUNT(IF(bk.booking_status = 2, bk.id, NULL)) AS bk_paying,
-				COUNT(IF(bk.booking_status = 3, bk.id, NULL)) AS bk_confirmed,
-				COUNT(IF(bk.booking_status = 7, bk.id, NULL)) AS bk_printed,
-				COUNT(IF(bk.booking_status = 8, bk.id, NULL)) AS bk_completed,
-				COUNT(IF(bk.booking_status = 4, bk.id, NULL)) AS bk_cancelled,
-				COUNT(bk.id) AS total,
-				SUM(IF(bk.booking_status IN (3, 7, 8), bk.total_amount - bk.total_bought_amount, 0)) AS total_sales,
-				SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
-				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
-			FROM ec_flight_bookings bk
-				LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
-			WHERE u.title = "Bot" 
-				AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . $date_report . '"
-				AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . $date_report . ' 23:59:59"
-				AND bk.deleted = 0 
-			GROUP BY bk.id
-			
-			UNION
-			SELECT 
-				IF(u.title = "Bot", u.last_name, "Chưa xác định") AS last_name,
-				IF(u.title = "Bot", u.user_name, "") AS user_name,
-				IF(u.title = "Bot", u.id, "BK_UNK") AS user_id,
-				0 AS bk_created,
-				0 AS bk_called,
-				0 AS bk_paying,
-				0 AS bk_confirmed,
-				0 AS bk_printed,
-				0 AS bk_completed,
-				0 AS bk_cancelled,
-				0 AS total,
-				- (
-					SUM(IFNULL(bk_psg.luggage_purchase, 0)) + SUM(IFNULL(bk_psg.luggage_purchase_inbound, 0))
-				) AS total_sales,
-				0 AS total_ticket,
-				"" AS bk_date_entered
-			FROM ec_booking_passengers bk_psg
-				INNER JOIN ec_flight_bookings bk ON bk.id = bk_psg.booking_id
-					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . $date_report . '"
-					AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . $date_report . ' 23:59:59"
-					AND bk.booking_status IN (3, 7, 8)
-				INNER JOIN users u ON bk.created_by = u.id 
-			WHERE (bk_psg.add_type IS NULL OR bk_psg.add_type = "") AND bk_psg.deleted = 0
-			GROUP BY user_id
-			
-			UNION
-			SELECT
-				"Booking chưa xác định" AS last_name, "" AS user_name, "BK_UNK" AS user_id,
-				COUNT(IF(bk.booking_status = 1, bk.id, NULL)) AS bk_created,
-				COUNT(IF(bk.booking_status = 6, bk.id, NULL)) AS bk_called,
-				COUNT(IF(bk.booking_status = 2, bk.id, NULL)) AS bk_paying,
-				COUNT(IF(bk.booking_status = 3, bk.id, NULL)) AS bk_confirmed,
-				COUNT(IF(bk.booking_status = 7, bk.id, NULL)) AS bk_printed,
-				COUNT(IF(bk.booking_status = 8, bk.id, NULL)) AS bk_completed,
-				COUNT(IF(bk.booking_status = 4, bk.id, NULL)) AS bk_cancelled,
-				COUNT(bk.id) AS total,
-				SUM(IF(bk.booking_status = 8, bk.total_amount - bk.total_bought_amount - bk.luggage_fee, 0)) AS total_sales,
-				SUM(IF(bk.booking_status IN (3, 7, 8), (SELECT SUM(quantity) FROM ec_booking_details WHERE booking_id = bk.id AND deleted = 0), 0)) AS total_ticket,
-				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) AS bk_date_entered
-			FROM ec_flight_bookings bk
-				LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
-			WHERE
-				DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) >= "' . $date_report . '"
-				AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) <= "' . $date_report . ' 23:59:59"
-				AND (
-					(u.title = "Bot" AND LOWER(bk.contact_name) IN ("tim chuyen bay", "callnow", "call now"))
-					OR u.title <> "Bot"
-				)
-				AND bk.deleted = 0 
-			GROUP BY bk.id
+	$sql = "SELECT id 
+				FROM ec_flight_bookings 
+				WHERE booking_status = 8 
+				AND date_entered BETWEEN '$from' AND '$to'
+				AND deleted = 0";
 
-		) AS tmp
-		GROUP BY user_id
-		ORDER BY total_sales DESC
-	';
-	$results = $db->query($sql_select);
-
-	if ((int)$count_rows == 0) {
-		// CREATE
-		while ($row = $db->fetchByAssoc($results)) {
-			$rp = new EC_Report_Weekly();
-			$rp->user_id = $row['user_id'];
-			$rp->last_name = $row['last_name'];
-			$rp->user_name = $row['user_name'];
-			$rp->bk_created = $row['bk_created'];
-			$rp->bk_called = $row['bk_called'];
-			$rp->bk_paying = $row['bk_paying'];
-			$rp->bk_confirmed = $row['bk_confirmed'];
-			$rp->bk_printed = $row['bk_printed'];
-			$rp->bk_completed = $row['bk_completed'];
-			$rp->bk_cancelled = $row['bk_cancelled'];
-			$rp->total_qty = $row['total'];
-			$rp->total_sales = $row['total_sales'];
-			$rp->total_ticket = $row['total_ticket'];
-			$rp->type = 'BOOKING';
-			$rp->advertisement_cost = 0;
-			$rp->from_date = $today;
-			$rp->to_date = $today;
-			$rp->report_date = date('Y-m-d');
-			$rp->save();
-		}
-	} else {
-		// UPDATE
-		while ($row = $db->fetchByAssoc($results)) {
-			// Bước 3: Kiểm tra xem user_id đã tồn tại trong khoảng thời gian chưa
-			$check_sql = '
-				SELECT COUNT(*)
-				FROM ec_report_weekly
-				WHERE user_id = "' . $row['user_id'] . '" 
-					AND from_date = "' . $date_report . '" 
-					AND to_date = "' . $date_report . '"
-					AND type = "BOOKING"
-					AND deleted = 0';
-			$user_exists = $db->getOne($check_sql);
-
-			if ((int)$user_exists > 0) {
-				$update_sql = '
-					UPDATE ec_report_weekly
-					SET 
-						bk_created = ' . (int)$row['bk_created'] . ',
-						bk_called = ' . (int)$row['bk_called'] . ',
-						bk_paying = ' . (int)$row['bk_paying'] . ',
-						bk_confirmed = ' . (int)$row['bk_confirmed'] . ',
-						bk_printed = ' . (int)$row['bk_printed'] . ',
-						bk_completed = ' . (int)$row['bk_completed'] . ',
-						bk_cancelled = ' . (int)$row['bk_cancelled'] . ',
-						total_qty = ' . $row['total'] . ',
-						total_sales = ' . $row['total_sales'] . ',
-						total_ticket = ' . $row['total_ticket'] . '
-					WHERE user_id = "' . $row['user_id'] . '" 
-						AND from_date = "' . $date_report . '" 
-						AND to_date = "' . $date_report . '"
-						AND type = "BOOKING"
-						AND deleted = 0
-				';
-				$result_update = $db->query($update_sql);
-			} else {
-				$rp = new EC_Report_Weekly();
-				$rp->user_id = $row['user_id'];
-				$rp->last_name = $row['last_name'];
-				$rp->user_name = $row['user_name'];
-				$rp->bk_created = (int)$row['bk_created'];
-				$rp->bk_called = (int)$row['bk_called'];
-				$rp->bk_paying = (int)$row['bk_paying'];
-				$rp->bk_confirmed = (int)$row['bk_confirmed'];
-				$rp->bk_printed = (int)$row['bk_printed'];
-				$rp->bk_completed = (int)$row['bk_completed'];
-				$rp->bk_cancelled = (int)$row['bk_cancelled'];
-				$rp->total_qty = $row['total'];
-				$rp->total_sales = $row['total_sales'];
-				$rp->total_ticket = $row['total_ticket'];
-				$rp->type = 'BOOKING';
-				$rp->advertisement_cost = 0;
-				$rp->from_date = $date_report;
-				$rp->to_date = $date_report;
-				$rp->report_date = $today;
-				$rp->save();
-			}
+	$res = $db->query($sql);
+	if ($db->countRows($res) > 0) {
+		while ($row = $db->fetchByAssoc($res)) {
+			saveRevenueBooking($row['id']);
 		}
 	}
 
 	return true;
+}
+
+function updateLogAutocall()
+{
+	return update_log_autocall();
 }
 
 function checkExpirationDateVoucher()
@@ -364,7 +193,8 @@ function updateOnlineReport()
 }
 
 
-function TuDongTaoBang() {
+function TuDongTaoBang()
+{
 	$thang = date('n');
 	$nam   = date('Y');
 
@@ -405,7 +235,8 @@ function TuDongTaoBang() {
 	} else return false;
 }
 
-function KetChuyenTienMatSCK() {
+function KetChuyenTienMatSCK()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -539,8 +370,8 @@ function KetChuyenTienMatSCK() {
 			VALUES(
 				uuid()
 				, "' . $row['diadiem'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -561,7 +392,8 @@ function KetChuyenTienMatSCK() {
 	return true;
 }
 
-function KetChuyenTienGuiNganHangSCK() {
+function KetChuyenTienGuiNganHangSCK()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -694,8 +526,8 @@ function KetChuyenTienGuiNganHangSCK() {
 			VALUES(
 				uuid()
 				, "' . $row_ba['tknganhang'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -716,7 +548,8 @@ function KetChuyenTienGuiNganHangSCK() {
 	return true;
 }
 
-function KetChuyenCongNoPhaiThu() {
+function KetChuyenCongNoPhaiThu()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -792,7 +625,7 @@ function KetChuyenCongNoPhaiThu() {
 			AND a.account_type <> 'Supplier'
 		GROUP BY tmp.agent_id
 		HAVING sotien <> 0";
-	
+
 	$GLOBALS['log']->$log_level($sql);
 
 	$res = $db->query($sql);
@@ -815,8 +648,8 @@ function KetChuyenCongNoPhaiThu() {
 			VALUES(
 				uuid()
 				, "' . $row['agent_name'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -837,7 +670,8 @@ function KetChuyenCongNoPhaiThu() {
 	return true;
 }
 
-function KetChuyenCongNoPhaiTra() {
+function KetChuyenCongNoPhaiTra()
+{
 	date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 	global $db, $sugar_config;
@@ -1036,8 +870,8 @@ function KetChuyenCongNoPhaiTra() {
 			VALUES(
 				uuid()
 				, "' . $row['supplier'] . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
-				, "' . date('Y-m-d H:i:s', time() - 7*3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
+				, "' . date('Y-m-d H:i:s', time() - 7 * 3600) . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, "' . $GLOBALS['current_user']->id . '"
 				, NULL
@@ -2251,7 +2085,7 @@ function checkBookingHandle()
 		// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 		$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
 
-		if(!$res || !isset($res['id']) || is_null($res['id'])) {
+		if (!$res || !isset($res['id']) || is_null($res['id'])) {
 			$GLOBALS['log']->error('Telegram sent message failed.');
 		}
 	}
@@ -2278,10 +2112,10 @@ function checkBookingHandle()
 			// }
 
 			global $sugar_config;
-			$message = 'Booking '. $reassign_bk['booking_name'] ." được giao lại cho $user->last_name $user->first_name";
+			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
 			// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 			$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
-			if(!$res || !isset($res['id']) || is_null($res['id'])) {
+			if (!$res || !isset($res['id']) || is_null($res['id'])) {
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
 		}
@@ -2373,7 +2207,7 @@ function reAssignBooking()
 				$message = 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
 				// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
 				$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
-				if(!$res || !isset($res['id']) || is_null($res['id'])) {
+				if (!$res || !isset($res['id']) || is_null($res['id'])) {
 					$GLOBALS['log']->error('Telegram sent message failed.');
 				}
 			}
@@ -2390,26 +2224,26 @@ function calculateCashFlow()
 	return true;
 }
 
-function sendPromotionMessageZalo() {
+function sendPromotionMessageZalo()
+{
 	$entry = new entryFactory();
 	$obj  = $entry->create('entryZaloMessageClass');
 	$json = $obj->sendTicketPricesLunarNewYear2026(['number' => 250]);
 	$arr  = json_decode($json, true);
-	if(isset($arr['status']) && $arr['status'] == 1) {
+	if (isset($arr['status']) && $arr['status'] == 1) {
 		global $sugar_config;
 		preg_match_all('/\d+/', $arr['message'] ?? '', $matches);
 		$count = (int)($matches[0][0] ?? 0);
-		if($count > 0) {
+		if ($count > 0) {
 			$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
 			$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
 			Telegram::sendMessage("⚙️ Hệ thống đã gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> đến {$count} người dùng quan tâm", $botToken, $chatId);
 		}
-	}
-	else {
+	} else {
 		$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
 		$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
 		$message  = "🔴 Hệ thống gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> chưa thành công";
-		if(isset($arr['message']) && !empty($arr['message'])) $message .= "\n<i>" . $arr['message'] . "</i>";
+		if (isset($arr['message']) && !empty($arr['message'])) $message .= "\n<i>" . $arr['message'] . "</i>";
 		Telegram::sendMessage($message, $botToken, $chatId);
 	}
 

@@ -14,6 +14,15 @@ class EC_Flight_BookingsLogicHook
 		if ($current_user->id != '4f4d7a13-4171-9b7d-251c-64dd8f9885e4') {
 			$focus->ip_address = '';
 		}
+
+		// Số vé
+		$sql = "SELECT IFNULL(SUM(d.quantity), 0) AS total_ticket
+			FROM ec_flight_bookings bk
+			LEFT JOIN ec_booking_details d ON d.booking_id = bk.id AND d.deleted = 0
+			WHERE bk.id = '{$focus->id}'
+			AND bk.deleted = 0
+		";
+		$focus->total_qty = (int)$focus->db->getOne($sql);
 	}
 
 	function checkBeforeDelete($focus, $event, $arguments)
