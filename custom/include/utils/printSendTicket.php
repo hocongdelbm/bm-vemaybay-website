@@ -29,7 +29,7 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
 
         $baggageDescription = '';
         if (isset($passenger['luggage'])) {
-            if ($khuhoi) {
+            // if ($khuhoi) {
                 if (!empty($passenger['luggage']['outbound'])) {
                     $luggageOutbound = cleanLuggageText($passenger['luggage']['outbound']);
                     $luggageOutbound = translateLuggageText($luggageOutbound, $lang);
@@ -43,10 +43,10 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
                     $luggageInbound = translateLuggageText($luggageInbound, $lang);
                     $baggageDescription .= ($baggageDescription ? ' ' : '') . $luggageInbound . ' (' . $labelInbound . ')';
                 }
-            } else {
-                $baggageDescription = cleanLuggageText($passenger['luggage']['outbound'] ?? '');
-                $baggageDescription = translateLuggageText($baggageDescription, $lang);
-            }
+            // } else {
+            //     $baggageDescription = cleanLuggageText($passenger['luggage']['outbound'] ?? '');
+            //     $baggageDescription = translateLuggageText($baggageDescription, $lang);
+            // }
         }
 
         // Build HTML row
