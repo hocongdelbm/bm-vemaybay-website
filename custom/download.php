@@ -66,7 +66,7 @@ if (!isset($_REQUEST['isTempFile'])) {
     if (isset($focus->doc_url) && !empty($focus->doc_url)) {
         // Custom: Intercept NextCloud/vnbackup URLs
         if (strpos($focus->doc_url, 'vnbackup.com') !== false || strpos($focus->doc_url, 'remote.php/dav') !== false) {
-            $redirectUrl = 'index.php?entryPoint=NextCloudPreview&id=' . $_REQUEST['id'] . '&download=yes'; // Force download
+            $redirectUrl = 'index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' . $_REQUEST['id'] . '&download=yes'; // Force download
             header('Location: ' . $redirectUrl);
             sugar_die("Remote NextCloud file detected, redirecting to proxy.");
         }
@@ -78,7 +78,7 @@ if (!isset($_REQUEST['isTempFile'])) {
     if (isset($focusRevision) && isset($focusRevision->doc_url) && !empty($focusRevision->doc_url)) {
          // Custom: Intercept NextCloud/vnbackup URLs
          if (strpos($focusRevision->doc_url, 'vnbackup.com') !== false || strpos($focusRevision->doc_url, 'remote.php/dav') !== false) {
-            $redirectUrl = 'index.php?entryPoint=NextCloudPreview&id=' . $_REQUEST['id'] . '&download=yes'; // Force download
+            $redirectUrl = 'index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' . $_REQUEST['id'] . '&download=yes'; // Force download
             header('Location: ' . $redirectUrl);
             sugar_die("Remote NextCloud file detected, redirecting to proxy.");
         }

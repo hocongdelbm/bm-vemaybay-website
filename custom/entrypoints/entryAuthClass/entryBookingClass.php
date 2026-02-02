@@ -81,7 +81,7 @@ class entryBookingClass extends entryClass
                 'category' => $category,
                 'date_entered' => date('d/m/Y H:i', strtotime($row['date_entered'])),
                 'created_by_name' => $row['created_by'] ?: 'N/A',
-                'preview_image' => "index.php?entryPoint=NextCloudPreview&id=" . $row['id'],
+                'preview_image' => "index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=" . $row['id'],
                 'revision_id' => $row['revision_id']
             ];
         }

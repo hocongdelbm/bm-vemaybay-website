@@ -40,11 +40,11 @@
 
 *}
 <span class="sugar_field" id="{{if empty($displayParams.idName)}}{{sugarvar key='name'}}{{else}}{{$displayParams.idName}}{{/if}}">
-<a href="index.php?entryPoint=NextCloudPreview&id={$fields.{{$vardef.fileId}}.value}&download=yes" class="tabDetailViewDFLink" target='_blank'>{{sugarvar key='value'}}</a>
+<a href="index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id={$fields.{{$vardef.fileId}}.value}&download=yes" class="tabDetailViewDFLink" target='_blank'>{{sugarvar key='value'}}</a>
 &nbsp;
 
 {if $fields.show_preview.value !== false}
-	<a href="index.php?entryPoint=NextCloudPreview&id={$fields.{{$vardef.fileId}}.value}&preview=yes"
+	<a href="index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id={$fields.{{$vardef.fileId}}.value}&preview=yes"
 		class="tabDetailViewDFLink"
 		target='_blank'
 		style="border-bottom: 0px;">

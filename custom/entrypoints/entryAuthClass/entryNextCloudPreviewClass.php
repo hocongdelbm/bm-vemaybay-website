@@ -4,7 +4,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 }
 
 require_once 'custom/entrypoints/entryClass.php';
-require_once 'custom/include/helpers/api/APIOCS.php';
+require_once 'custom/include/helpers/api/APINextCloud.php';
 
 /**
  * NextCloud Document Public Share Entry Point
@@ -22,7 +22,7 @@ class entryNextCloudPreviewClass extends entryClass
     public function __construct()
     {
         parent::__construct();
-        $this->ocsApi = new APIOCS();
+        $this->ocsApi = new APINextCloud();
     }
 
     public function getPublicLinkOCS($params = [])

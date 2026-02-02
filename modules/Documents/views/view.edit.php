@@ -193,7 +193,7 @@ class DocumentsViewEdit extends ViewEdit
             // Only show preview if the file is an image
             if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
                 // Use NextCloudPreview proxy entry point for authenticated image fetching
-                $preview_url = "index.php?entryPoint=NextCloudPreview&id={$this->bean->id}";
+                $preview_url = "index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id={$this->bean->id}";
                 $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
                 $this->ss->assign("HAS_PREVIEW_IMAGE", true);
             } else {
