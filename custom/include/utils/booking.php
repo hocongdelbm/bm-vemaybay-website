@@ -901,7 +901,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
     $sql_having = '';
 
     // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
-    if(isset($condition_arr['payment_stt'])){
+    if (isset($condition_arr['payment_stt'])) {
         if ($condition_arr['payment_stt'] == 1) {
             // Chưa thu
             $sql_having = ' HAVING receipt_amount = 0';
@@ -918,18 +918,20 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
 
     // Where condition by booking fields
     $where_bk_fields = '';
-    if(isset($condition_arr['customer_source']) && !empty($condition_arr['customer_source'])) {
+    if (isset($condition_arr['customer_source']) && !empty($condition_arr['customer_source'])) {
         $where_bk_fields .= " AND bk.customer_source = '{$condition_arr['customer_source']}' ";
     }
-    
+
     // Where condition by booking fields ticket_type (1/Nội địa, 2/Quốc tế)
     $where_ticket_type = '';
-    if(isset($condition_arr['ticket_type']) && !empty($condition_arr['ticket_type'])) {
+    if (isset($condition_arr['ticket_type']) && !empty($condition_arr['ticket_type'])) {
         $where_ticket_type .= " AND bk.ticket_type = '{$condition_arr['ticket_type']}' ";
     }
 
     $sql = "SELECT 
                 bk.id AS parent_id
+                , bk.id AS booking_id
+                , bk.name AS booking_name
                 , bk.name AS parent_name
                 , 'EC_Flight_Bookings' AS parent_type
                 , SUM(bkd.quantity) AS total_quantity
@@ -983,7 +985,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                 ), 0) AS receipt_amount
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
                 ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
-                ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS bk_date_ticket_issue
+                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y') AS voucher_date
                 ,(
                     SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR)
                     FROM ec_working_process
@@ -1008,12 +1010,14 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
         $sql .= " UNION
                     SELECT 
                         p.id AS parent_id
-                        ,p.name AS parent_name
-                        ,'EC_Receipt_Voucher' AS parent_type
-                        ,0 AS total_quantity
-                        ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0))  AS subtotal_amount
+                        , p.booking_id AS booking_id
+                        , bk.name AS booking_name
+                        , p.name AS parent_name
+                        , 'EC_Receipt_Voucher' AS parent_type
+                        , 0 AS total_quantity
+                        , SUM(IF(p.rv_status IN (1, 2), p.amount, 0))  AS subtotal_amount
                         , 0 AS total_points_amount
-                        ,SUM(
+                        , SUM(
                             IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount, 0), 0) 
                             + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount2, 0), 0) 
                             + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount3, 0), 0)
@@ -1024,14 +1028,15 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                         ,p.rv_status AS parent_status
                         , p.assigned_user_id AS user_id
                         ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
-                        ,DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS date_ticket_issue
-                        ,'' AS bk_date_entered
-                        ,'' AS bk_date_ticket_issue
-                        ,'' AS paid_time
+                        , '' AS date_ticket_issue
+                        , '' AS bk_date_entered
+                        , DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS voucher_date
+                        , '' AS paid_time
                         , 0 as is_telesale
                         , 0 as is_ctv
                         , '' as contact_mobile
                     FROM ec_receipt_voucher p
+                    LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
                     WHERE 
                         p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
                         AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
@@ -1043,6 +1048,8 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                     UNION
                     SELECT 
                         hv_t.parent_id
+                        , hv_t.booking_id AS booking_id
+                        , hv_t.booking_name AS booking_name
                         , hv_t.parent_name
                         , hv_t.parent_type
                         , SUM(hv_t.total_quantity) AS total_quantity
@@ -1057,7 +1064,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                         , hv_t.receipt_amount
                         , hv_t.date_ticket_issue
                         , '' AS bk_date_entered
-                        , '' AS bk_date_ticket_issue
+                        , hv_t.voucher_date AS voucher_date
                         , '' AS paid_time
                         , 0 as is_telesale
                         , 0 as is_ctv
@@ -1067,8 +1074,10 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                         -- hoan ve < 0
                         SELECT 
                             p.id AS parent_id
-                            ,p.name AS parent_name
-                            ,'EC_HoanVe' AS parent_type
+                            , p.booking_id AS booking_id
+                            , bk.name AS booking_name
+                            , p.name AS parent_name
+                            , 'EC_HoanVe' AS parent_type
                             , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
                             , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS subtotal_amount
                             , 0 AS total_points_amount
@@ -1077,9 +1086,10 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                             ,'' AS ticket_type
                             ,'' AS booking_description
                             , p.tinhtrang AS parent_status
-                            , p.assigned_user_id AS user_id
+                            , bk.assigned_user_id AS user_id
                             , 0 AS receipt_amount
-                            ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                            ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
+                            ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
                         FROM ec_hoanve p
                             INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
                         WHERE p.deleted=0
@@ -1092,8 +1102,10 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                         UNION
                         SELECT 
                             p.id AS parent_id
-                            ,p.name AS parent_name
-                            ,'EC_HoanVe' AS parent_type
+                            , p.booking_id AS booking_id
+                            , bk.name AS booking_name
+                            , p.name AS parent_name
+                            , 'EC_HoanVe' AS parent_type
                             , 0 AS total_quantity
                             , - SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
                             , 0 AS total_points_amount
@@ -1102,9 +1114,10 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                             , '' AS ticket_type
                             , '' AS booking_description
                             , p.tinhtrang AS parent_status
-                            , p.assigned_user_id AS user_id
+                            , bk.assigned_user_id AS user_id
                             , 0 AS receipt_amount
-                            ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
+                            ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
+                            ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
                         FROM ec_hoanve p
                             INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
                         WHERE p.deleted=0
@@ -1128,7 +1141,10 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
         'total_bought' => 0,
         'details' => array()
     );
-    // pr($sql);
+
+    // if ($GLOBALS['current_user']->user_name == 'hungnh') {
+    //     pr($sql);
+    // }
 
     $res    = $db->query($sql);
     $i = 0;

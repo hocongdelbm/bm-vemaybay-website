@@ -581,7 +581,7 @@ class EC_Zalo_Contacts extends Basic
             FROM ec_zalo_contacts zc
             WHERE zc.zalo_id = '{$zalo_id}'
                 AND zc.oa_id = '{$oa_id}'
-                AND zc.status = ''
+                AND (zc.status = '' OR zc.status IS NULL)
                 AND zc.deleted = 0";
 
         $res = $this->db->query($sql);

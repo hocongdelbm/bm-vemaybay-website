@@ -123,6 +123,12 @@ class Viewagentreport extends SugarView
 			return;
 		} // end if
 
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_month' ? 'selected' : '') . ' value="this_month" data-fromdate="' . date('d-m-Y', strtotime("first day of this month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of this month")) . '">Tháng này</option>';
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_month' ? 'selected' : '') . ' value="previous_month" data-fromdate="' . date('d-m-Y', strtotime("first day of previous month")) . '" data-todate="' . date('d-m-Y', strtotime("last day of previous month")) . '">Tháng trước</option>';
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'this_year' ? 'selected' : '') . ' value="this_year" data-fromdate="' . date('01-01-Y') . '" data-todate="' . date('31-12-Y') . '">Năm nay</option>';
+		$date_select .= '<option ' . (isset($_POST['date_select']) && (string)$_POST['date_select'] === 'previous_year' ? 'selected' : '') . ' value="previous_year" data-fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" data-todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>';
+		$smartyobj->assign('DATE_SELECT_OPTIONS', $date_select);
+
 		$agt_arr = $this->getAgentList($opening_year, $accounting_code, $post_fdate, $post_tdate);
 		$smartyobj->assign('AGENT_LIST', $agt_arr['html']);
 		$smartyobj->assign('TOTAL_DEBT', format_number($agt_arr['total_debt']));

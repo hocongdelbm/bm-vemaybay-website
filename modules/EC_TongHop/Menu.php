@@ -43,7 +43,7 @@ if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] = arr
 
 if (isAllowedUser()) {
     if (ACLController::checkAccess('EC_TongHop', 'edit', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=cashflow&return_module=EC_TongHop&return_action=cashflow", "Báo cáo dòng tiền", "finance-16", 'EC_TongHop');
-    if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=yearlyreport&return_module=EC_TongHop&return_action=yearlyreport", "Báo cáo tổng hợp", "linechart_16x16", 'EC_TongHop');
+    // if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[] = array("index.php?module=EC_TongHop&action=yearlyreport&return_module=EC_TongHop&return_action=yearlyreport", "Báo cáo tổng hợp", "linechart_16x16", 'EC_TongHop');
 
     if (ACLController::checkAccess('EC_TongHop', 'view', true)) $module_menu[]     = array("index.php?module=EC_TongHop&action=profitreport&return_module=EC_TongHop&return_action=profitreport", "Báo cáo lãi lỗ", "profit_16x16", 'EC_TongHop');
     // if (ACLController::checkAccess('EC_TongHop', 'list', true)) $module_menu[] 	= array("index.php?module=EC_TongHop&action=iplist&return_module=EC_TongHop&return_action=iplist", "IP Tracking", "ip-location", 'EC_TongHop');
