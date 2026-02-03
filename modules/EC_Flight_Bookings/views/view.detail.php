@@ -1193,9 +1193,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		$common_style = 'display: inline-flex; align-items: center; justify-content: center; height: 34px; padding: 0 12px; vertical-align: middle; gap: 6px;';
 		//Thêm style flex để căn chỉnh
-		$doc_button = '<button type="button" id="btnDocument" class="btn btn-primary btn btn-primary-2 cursor-pointer" 
+		$doc_button = '<a id="btnDocument" class="btn btn-primary btn btn-primary-2 cursor-pointer" 
         style="' . $common_style . '" 
-        onclick="window.location.href=\'index.php?module=Documents&action=EditView&booking_id=' . $this->bean->id . '&booking_name=' . $this->bean->name . '\'">';
+        href="index.php?module=Documents&action=EditView&booking_id=' . $this->bean->id . '&booking_name=' . $this->bean->name . '" target="_blank">';
 
 		// 2. Chèn SVG: 
 		$doc_button .= '<svg xmlns="http://www.w3.org/2000/svg" width="18px" height="18px" viewBox="0 0 24 24"><title/><g id="Complete"><g id="upload"><g>
@@ -1205,7 +1205,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
                 </g></g></g></g>
                 </svg>';
 
-		$doc_button .= '<span>Tài liệu</span></button>';
+		$doc_button .= '<span>Tài liệu</span></a>';
 
 		// Gán vào Smarty
 		$this->ss->assign('DOC_BUTTON', $doc_button);
