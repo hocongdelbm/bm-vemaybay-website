@@ -69,28 +69,39 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
 }
 
 function combineDuplicateBaggage($text) {
-    // Find main baggage pattern like "1 kiện x 23kg"
-    preg_match('/(\d+)\s*kiện\s*(?:x\s*)?(\d+)\s*kg/i', $text, $mainMatches);
+    // Find ALL main baggage patterns like "1 kiện x 23kg"
+    preg_match_all('/(\d+)\s*kiện\s*(?:x\s*)?(\d+)\s*kg/i', $text, $matches);
     
+    $baggageItems = [];
+    
+    // Combine main baggage by weight
+    for ($i = 0; $i < count($matches[0]); $i++) {
+        $package = (int)$matches[1][$i];
+        $weight = (int)$matches[2][$i];
+        
+        $key = $weight . 'kg';
+        if (!isset($baggageItems[$key])) {
+            $baggageItems[$key] = 0;
+        }
+        $baggageItems[$key] += $package;
+    }
+
+    // Build combined result
+    $result = '';
+    foreach ($baggageItems as $weight => $totalPackage) {
+        if ($result) $result .= ' + ';
+        $result .= $totalPackage . ' kiện x ' . $weight;
+    }
+
     // Find additional baggage like "Thêm 10kg" or "+ 10kg"
     preg_match('/(?:Thêm|\+)\s*(\d+)\s*kg/i', $text, $additionalMatches);
     
-    $result = '';
-    
-    // Add main baggage
-    if (!empty($mainMatches[0])) {
-        $package = (int)$mainMatches[1];
-        $weight = (int)$mainMatches[2];
-        $result .= $package . ' kiện x ' . $weight . 'kg';
-    }
-    
-    // Add additional baggage
     if (!empty($additionalMatches[0])) {
         if ($result) $result .= ' + ';
         $result .= $additionalMatches[1] . 'kg';
     }
-    
-    return $result ?: $text; // Return original if no match
+
+    return $result ?: $text;
 }
 
 function generateCombinedPassengerBaggageInfo($depAvaiBagText, $depPurchaseBagText, $retAvaiBagText, $retPurchaseBagText, $language = 'vn')
