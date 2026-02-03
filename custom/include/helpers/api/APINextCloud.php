@@ -9,6 +9,7 @@ class APINextCloud
     private $ENDPOINT;
     private $USERNAME;
     private $PASSWORD;
+    private $BASE_OCS_URL;
     private $USER_ERROR_CODE = 400;
     private $SYSTEM_ERROR_CODE = 500;
 
@@ -19,6 +20,7 @@ class APINextCloud
         $this->USERNAME = $sugar_config['next-cloud']['user'];
         $this->PASSWORD = $sugar_config['next-cloud']['password'];
         $this->ENDPOINT = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $this->USERNAME;
+        $this->BASE_OCS_URL = $sugar_config['next-cloud']['base_url_ocs'];
     }
 
     public function createFolder($remoteFolderPath)
@@ -82,6 +84,197 @@ class APINextCloud
         ];
         return $this->sendRequest('MOVE', $url, $header);
     }
+
+    /**
+     * ======Public API Methods ======
+     */
+        /**
+     * Create a public share for a file or folder
+     * 
+     * @param string $remoteFolderPath Path to the file/folder on NextCloud (e.g., "/Documents/MyFolder")
+     * @param int $permissions Optional permissions (1=read, 15=read+write+create+delete)
+     * @param string $password Optional password for the share
+     * @param string $expireDate Optional expire date (Y-m-d format)
+     * 
+     * @return string JSON response containing share link
+     */
+    public function createShare($remoteFolderPath, $permissions = 1, $password = null, $expireDate = null)
+    {
+        if (empty($remoteFolderPath)) {
+            return $this->createErrorResponse(
+                "Remote path is required",
+                "The remote file/folder path cannot be empty.",
+                $this->USER_ERROR_CODE
+            );
+        }
+
+        // OCS API endpoint for creating shares
+        $url = $this->BASE_OCS_URL . '?format=json';
+        
+        $postData = [
+            'path' => $remoteFolderPath,
+            'shareType' => 3, // 3 = public link
+            'permissions' => $permissions
+        ];
+
+        if (!is_null($password)) {
+            $postData['password'] = $password;
+        }
+
+        $header = [
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
+            "Content-Type: application/x-www-form-urlencoded",
+            "OCS-APIRequest: true"
+        ];
+
+        return $this->sendRequest('POST', $url, $header, http_build_query($postData));
+    }
+
+    /**
+     * Get all shares for a path or all shares for current user
+     * 
+     * @param string $path Optional path to get shares for
+     * @param bool $reshares Include reshares
+     * @param bool $subfiles Include shares of subfiles
+     * 
+     * @return string JSON response
+     */
+    public function getShares($path = null, $reshares = false, $subfiles = false)
+    {
+        $url = $this->BASE_OCS_URL . '?format=json';
+        
+        $params = [
+            'reshares' => $reshares ? 'true' : 'false',
+            'subfiles' => $subfiles ? 'true' : 'false'
+        ];
+        
+        if (!is_null($path)) {
+            $params['path'] = $path;
+        }
+        
+        $url .= '&' . http_build_query($params);
+        
+        $header = [
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
+            "OCS-APIRequest: true"
+        ];
+
+        return $this->sendRequest('GET', $url, $header);
+    }
+
+    /**
+     * Get information about a specific share
+     * 
+     * @param int $shareId The share ID
+     * 
+     * @return string JSON response
+     */
+    public function getShareInfo($shareId)
+    {
+        $url = $this->BASE_OCS_URL . '/' . $shareId . '?format=json';
+        
+        $header = [
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
+            "OCS-APIRequest: true"
+        ];
+
+        return $this->sendRequest('GET', $url, $header);
+    }
+
+    /**
+     * Delete a share
+     * 
+     * @param int $shareId The share ID
+     * 
+     * @return string JSON response
+     */
+    public function deleteShare($shareId)
+    {
+        $url = $this->BASE_OCS_URL . '/' . $shareId . '?format=json';
+        
+        $header = [
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
+            "OCS-APIRequest: true"
+        ];
+
+        return $this->sendRequest('DELETE', $url, $header);
+    }
+
+    /**
+     * Update share permissions, password, or expiration
+     * 
+     * @param int $shareId The share ID
+     * @param array $updates Array of updates (e.g., ['password' => 'newpass', 'expireDate' => '2026-12-31'])
+     * 
+     * @return string JSON response
+     */
+    public function updateShare($shareId, $updates)
+    {
+        $url = $this->BASE_OCS_URL . '/' . $shareId . '?format=json';
+        
+        $header = [
+            "Authorization: Basic " . base64_encode($this->USERNAME . ":" . $this->PASSWORD),
+            "Content-Type: application/x-www-form-urlencoded",
+            "OCS-APIRequest: true"
+        ];
+
+        return $this->sendRequest('PUT', $url, $header, http_build_query($updates));
+    }
+
+    /**
+     * Fetch file from public share URL (no authentication)
+     * 
+     * @param string $publicShareUrl The public share download URL
+     * 
+     * @return array ['success' => bool, 'data' => file content, 'contentType' => mime type, 'httpCode' => int, 'error' => string]
+     */
+    public function fetchPublicFile($publicShareUrl)
+    {
+        if (empty($publicShareUrl)) {
+            return [
+                'success' => false,
+                'data' => null,
+                'contentType' => null,
+                'httpCode' => 400,
+                'error' => 'Public share URL is required'
+            ];
+        }
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $publicShareUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        // NOTE: No Authorization header - this is PUBLIC access
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+        $fileData = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($fileData === false || $httpCode != 200) {
+            return [
+                'success' => false,
+                'data' => null,
+                'contentType' => null,
+                'httpCode' => $httpCode,
+                'error' => $error ?: "HTTP {$httpCode}"
+            ];
+        }
+
+        return [
+            'success' => true,
+            'data' => $fileData,
+            'contentType' => $contentType,
+            'httpCode' => $httpCode,
+            'error' => null
+        ];
+    }
+
     /**
      * ======== UTILITY METHODS ========
      */
@@ -147,6 +340,28 @@ class APINextCloud
                     'message' => 'Action completed successfully (No body returned)',
                     'data' => null
                 ];
+            }
+
+            // OCS returns: {"ocs": {"meta": {...}, "data": {...}}}
+            if (isset($responseArr['ocs'])) {
+                $ocsData = $responseArr['ocs'];
+                $meta = $ocsData['meta'] ?? [];
+                $statusCode = $meta['statuscode'] ?? 0;
+                
+                // OCS statuscode: 100 = OK (legacy), 200 = OK (modern), 400+ = errors
+                if ($statusCode == 100 || $statusCode == 200) {
+                    $responseArr = [
+                        'status' => 1,
+                        'message' => $meta['message'] ?? 'Success',
+                        'data' => $ocsData['data'] ?? null
+                    ];
+                } else {
+                    return $this->createErrorResponse(
+                        $meta['message'] ?? "OCS Error $statusCode",
+                        $ocsData,
+                        $statusCode
+                    );
+                }
             }
 
             if ($httpCode < 200 || $httpCode >= 300) {

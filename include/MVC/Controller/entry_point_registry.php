@@ -132,6 +132,5 @@ $entry_point_registry = array(
     'entryPointGeneralNA' => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
     'entryPointGeneral' => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryTelegramWebhook' => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
-    //NextCloud Preview - Van Dahy
-    'NextCloudPreview' => ['file' => 'custom/entrypoints/epNextCloudPreview.php', 'auth' => false],
+
 );

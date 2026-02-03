@@ -79,7 +79,7 @@ class DocumentsViewDetail extends ViewDetail
         // Custom filename display with download link via proxy
         $filename_html = '';
         if (!empty($this->bean->filename)) {
-            $downloadUrl = 'index.php?entryPoint=NextCloudPreview&id=' . $this->bean->id . '&download=yes';
+            $downloadUrl = "index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id={$this->bean->id}&download=yes";
             $filename_html = '<a href="' . $downloadUrl . '" target="_blank" class="tabDetailViewDFLink">' . $this->bean->filename . '</a>';
         }
         $this->ss->assign('CUSTOM_FILENAME', $filename_html);
@@ -92,7 +92,7 @@ class DocumentsViewDetail extends ViewDetail
         // Check if the file is an image based on MIME type
         if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
             // This is an image file - display it via proxy
-            $previewUrl = 'index.php?entryPoint=NextCloudPreview&id=' . $this->bean->id;
+            $previewUrl = 'index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' . $this->bean->id;
             // Render HTML - Using proxy URL to display the main file as image
             $preview_html = '<div class="preview-photo-container">
                 <img id="previewImage" src="' . $previewUrl . '"

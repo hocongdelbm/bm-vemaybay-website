@@ -59,6 +59,7 @@ $viewdefs['Documents'] =
             0 =>
             array(
               'name' => 'filename',
+              'customCode' => '{$CUSTOM_FILENAME}',
               'displayParams' =>
               array(
                 'link' => true,
