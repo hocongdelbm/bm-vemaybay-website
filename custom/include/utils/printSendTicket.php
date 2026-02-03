@@ -9,9 +9,6 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
 </tr>';
     }
 
-    $labelOutbound = ($lang == 'en') ? 'Outbound' : 'Lượt đi';
-    $labelInbound = ($lang == 'en') ? 'Inbound' : 'Lượt về';
-
     foreach ($passengersData as $passenger) {
 
         // Get PNR
@@ -29,24 +26,34 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
 
         $baggageDescription = '';
         if (isset($passenger['luggage'])) {
-            // if ($khuhoi) {
-                if (!empty($passenger['luggage']['outbound'])) {
-                    $luggageOutbound = cleanLuggageText($passenger['luggage']['outbound']);
-                    $luggageOutbound = translateLuggageText($luggageOutbound, $lang);
-                    $baggageDescription .= $luggageOutbound . ' (' . $labelOutbound . ')';
-                }
-                if (!empty($passenger['luggage']['outbound']) && !empty($passenger['luggage']['inbound'])) {
-                    $baggageDescription .= ' -';
-                }
-                if (!empty($passenger['luggage']['inbound'])) {
-                    $luggageInbound = cleanLuggageText($passenger['luggage']['inbound']);
-                    $luggageInbound = translateLuggageText($luggageInbound, $lang);
-                    $baggageDescription .= ($baggageDescription ? ' ' : '') . $luggageInbound . ' (' . $labelInbound . ')';
-                }
-            // } else {
-            //     $baggageDescription = cleanLuggageText($passenger['luggage']['outbound'] ?? '');
-            //     $baggageDescription = translateLuggageText($baggageDescription, $lang);
-            // }
+            $depBagText = $passenger['luggage']['outbound'] ?? '';
+            $retBagText = $passenger['luggage']['inbound'] ?? '';
+
+            // Clean both
+            $depBagText = cleanLuggageText($depBagText);
+            $retBagText = cleanLuggageText($retBagText);
+
+            // Combine duplicates
+            $depBagText = combineDuplicateBaggage($depBagText);
+            $retBagText = combineDuplicateBaggage($retBagText);
+
+            // Add labels
+            if ($khuhoi) {
+                $labelOutbound = ($lang == 'en') ? '(Outbound)' : '(Lượt đi)';
+                $labelInbound = ($lang == 'en') ? '(Inbound)' : '(Lượt về)';
+
+            }
+            // Build result
+            if (!empty($depBagText) && !empty($retBagText)) {
+                $baggageDescription = "{$depBagText} {$labelOutbound} - {$retBagText} {$labelInbound}";
+            } elseif (!empty($depBagText)) {
+                $baggageDescription = "{$depBagText} {$labelOutbound}";
+            } elseif (!empty($retBagText)) {
+                $baggageDescription = "{$retBagText} {$labelInbound}";
+            }
+
+            // Translate
+            $baggageDescription = translateLuggageText($baggageDescription, $lang);
         }
 
         // Build HTML row
@@ -60,27 +67,86 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
 
     return $html;
 }
+
+function combineDuplicateBaggage($text) {
+    // Find ALL main baggage patterns like "1 kiện x 23kg"
+    preg_match_all('/(\d+)\s*kiện\s*(?:x\s*)?(\d+)\s*kg/i', $text, $matches);
+    
+    $baggageItems = [];
+    
+    // Combine main baggage by weight
+    for ($i = 0; $i < count($matches[0]); $i++) {
+        $package = (int)$matches[1][$i];
+        $weight = (int)$matches[2][$i];
+        
+        $key = $weight . 'kg';
+        if (!isset($baggageItems[$key])) {
+            $baggageItems[$key] = 0;
+        }
+        $baggageItems[$key] += $package;
+    }
+
+    // Build combined result
+    $result = '';
+    foreach ($baggageItems as $weight => $totalPackage) {
+        if ($result) $result .= ' + ';
+        $result .= $totalPackage . ' kiện x ' . $weight;
+    }
+
+    // Find additional baggage like "Thêm 10kg" or "+ 10kg"
+    preg_match('/(?:Thêm|\+)\s*(\d+)\s*kg/i', $text, $additionalMatches);
+    
+    if (!empty($additionalMatches[0])) {
+        if ($result) $result .= ' + ';
+        $result .= $additionalMatches[1] . 'kg';
+    }
+
+    return $result ?: $text;
+}
+
+function generateCombinedPassengerBaggageInfo($depAvaiBagText, $depPurchaseBagText, $retAvaiBagText, $retPurchaseBagText, $language = 'vn')
+{
+    $isRoundtrip = false;
+    if ((!empty($depAvaiBagText) || !empty($depPurchaseBagText)) && (!empty($retAvaiBagText) || !empty($retPurchaseBagText)))
+        $isRoundtrip = true;
+
+    // Departure
+    $baggageDescriptionDep = '';
+    if (!empty($depAvaiBagText) && !empty($depPurchaseBagText)) {
+        $baggageDescriptionDep .= "$depAvaiBagText + $depPurchaseBagText";
+    } elseif (!empty($depAvaiBagText))
+        $baggageDescriptionDep .= $depAvaiBagText;
+    elseif (!empty($depPurchaseBagText))
+        $baggageDescriptionDep .= $depPurchaseBagText;
+
+    // Return
+    $baggageDescriptionRet = '';
+    if (!empty($retAvaiBagText) && !empty($retPurchaseBagText)) {
+        $baggageDescriptionRet .= "$retAvaiBagText + $retPurchaseBagText";
+    } elseif (!empty($retAvaiBagText))
+        $baggageDescriptionRet .= $retAvaiBagText;
+    elseif (!empty($retPurchaseBagText))
+        $baggageDescriptionRet .= $retPurchaseBagText;
+
+    if (!empty($baggageDescriptionDep) && !empty($baggageDescriptionRet)) {
+        return "{$baggageDescriptionDep} - {$baggageDescriptionRet}";
+    } else
+        return trim("$baggageDescriptionDep $baggageDescriptionRet");
+}
+
 function cleanLuggageText($text)
 {
     $text = strip_tags($text);
-
     $text = preg_replace('/\s*\([^)]*\)/', '', $text);
-
-    $text = preg_replace('/Giá bán:.*?VND/i', '', $text);
-    $text = preg_replace('/Giá mua:.*?VND/i', '', $text);
+    $text = preg_replace('/Giá bán.*?VND/i', '', $text);
+    $text = preg_replace('/Giá mua.*?VND/i', '', $text);
     $text = preg_replace('/Nhà cung cấp:.*?(\n|$)/i', '', $text);
-
     $text = preg_replace('/Lượt đi:/i', '', $text);
     $text = preg_replace('/Lượt về:/i', '', $text);
     $text = preg_replace('/Outbound:/i', '', $text);
     $text = preg_replace('/Inbound:/i', '', $text);
-
-    $text = preg_replace('/Thêm\s+/i', '+ ', $text);
-
     $text = preg_replace('/\s+/', ' ', $text);
-
     $text = trim($text);
-
     return $text;
 }
 
@@ -94,15 +160,10 @@ function translateLuggageText($text, $lang)
         'kiện' => 'piece',
         'Kiện' => 'Piece',
         'kg' => 'kg',
-        'hành lý' => 'baggage',
-        'Hành lý' => 'Baggage',
-        'x' => 'x',
-        '+' => '+'
+        'x' => 'x'
     ];
 
-    $translatedText = str_replace(array_keys($translations), array_values($translations), $text);
-
-    return $translatedText;
+    return str_replace(array_keys($translations), array_values($translations), $text);
 }
 
 function buildItineraryHTMLFromData($itinerariesData, $lang)
