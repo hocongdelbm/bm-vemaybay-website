@@ -79,7 +79,9 @@ class entryBookingClass extends entryClass
                 'id' => $row['id'],
                 'document_name' => $row['document_name'],
                 'category' => $category,
-                'date_entered' => date('d/m/Y H:i', strtotime($row['date_entered'])),
+                'date_entered' => (new DateTime($row['date_entered'], new DateTimeZone('UTC')))
+                        ->setTimezone(new DateTimeZone('Asia/Ho_Chi_Minh'))
+                        ->format('d/m/Y H:i'),
                 'created_by_name' => $row['created_by'] ?: 'N/A',
                 'preview_image' => "index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=" . $row['id'],
                 'revision_id' => $row['revision_id']

@@ -70,7 +70,7 @@ function renderDocumentPopup(documents) {
                     '<td>' + doc.date_entered + '</td>' +
                     '<td>' + doc.created_by_name + '</td>' +
                     '<td>' +
-                    '<a href="index.php?entryPoint=download&id=' + doc.revision_id + '&type=Documents" class="uiverse-btn"><span class="box box-success">Tải</span></a>' +
+                        '<a href="index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' + doc.id + '&download=yes" class="uiverse-btn" target="_blank" class="tabDetailViewDFLink" ><span class="box box-success">Tải</span></a>' +
                     '</td>' +
                     '</tr>';
         });
