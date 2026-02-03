@@ -899,8 +899,8 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
     }
 
     $sql_having = '';
-    // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
 
+    // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
     if(isset($condition_arr['payment_stt'])){
         if ($condition_arr['payment_stt'] == 1) {
             // Chưa thu
@@ -920,6 +920,12 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
     $where_bk_fields = '';
     if(isset($condition_arr['customer_source']) && !empty($condition_arr['customer_source'])) {
         $where_bk_fields .= " AND bk.customer_source = '{$condition_arr['customer_source']}' ";
+    }
+    
+    // Where condition by booking fields ticket_type (1/Nội địa, 2/Quốc tế)
+    $where_ticket_type = '';
+    if(isset($condition_arr['ticket_type']) && !empty($condition_arr['ticket_type'])) {
+        $where_ticket_type .= " AND bk.ticket_type = '{$condition_arr['ticket_type']}' ";
     }
 
     $sql = "SELECT 
@@ -992,6 +998,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
             WHERE bk.booking_status IN ('3', '7', '8')
                 AND bk.date_ticket_issue BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
                 $where_bk_fields
+                $where_ticket_type
                 $sql_role
                 AND bkd.deleted = 0 
             GROUP BY bk.id
