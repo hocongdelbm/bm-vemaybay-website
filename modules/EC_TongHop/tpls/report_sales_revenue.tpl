@@ -201,8 +201,13 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    <label for="customer_source" class="text-label">Nguồn KH</label>
+                    <label for="customer_source" class="text-label">Nguồn KH:</label>
                     <select class="box-select" id="customer_source" name="customer_source">{$CUSTOMER_SOURCE_OPTS}</select>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <label for="ticket_type" class="text-label">Loại vé:</label>
+                    <select class="box-select" id="ticket_type" name="ticket_type">{$TICKET_TYPE_OPTS}</select>
                 </div>
 
                 <div class="box-color__sales my-3">

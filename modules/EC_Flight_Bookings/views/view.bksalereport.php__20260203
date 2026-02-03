@@ -74,8 +74,7 @@ class Viewbksalereport extends SugarView
 
 		if (!isset($_REQUEST['for'])) {
 			if (is_admin($current_user) || $current_user->title == 'QuanLy') {
-				// $ds = $this->getDSBooking($from_date, $to_date);
-				$ds = $this->getDSBookingNew($from_date, $to_date);
+				$ds = $this->getDSBooking($from_date, $to_date);
 			} else {
 				$ds = $this->getDSBooking($from_date, $to_date, $current_user->id);
 			}
@@ -94,110 +93,9 @@ class Viewbksalereport extends SugarView
 	}
 
 	// Doanh số booker
-	function getDSBookingNew($from_date, $to_date)
-	{
-		$user_list = get_user_array(true, '', '', true);
-
-		// lấy mức ds tối thiểu
-		$min_rate = 50000000;
-
-		$html = '
-			<thead>
-				<th width="5%">STT</th>
-				<th width="20%">Họ và tên</th>
-				<th width="5%">Booking</th>
-				<th width="5%">Vé</th>
-				<th width="10%">Doanh thu</th>
-				<th width="10%">Giá mua</th>
-				<th width="10%">Doanh số</th>
-			</thead><tbody>';
-
-		// doanh số bao gồm doanh số bán vé, đổi ngày bay, hành lý và hoàn vé
-		$data_revenue = calculateRevenueOfDate($from_date, $to_date);
-		// if ($GLOBALS['current_user']->user_name == 'hungnh') {
-		// 	pr($data_revenue);
-		// }
-
-		$total_bk_qty = $total_ticket_qty = 0;
-		$total_revenue_amount = 0;
-		$total_bought_amount = 0;
-		$total_profit_amount = 0;
-		$i = 1;
-
-		// 1. Gom dữ liệu
-		$grouped = [];
-		if (!empty($data_revenue) && $data_revenue['count'] > 0) {
-			foreach ($data_revenue['details'] as $row) {
-				$uid = $row['user_id'] ?: 'empty';
-
-				if (!isset($grouped[$uid])) {
-					$grouped[$uid] = [
-						'user_id'    => $row['user_id'],
-						'full_name'  => $row['user_id'] ? $user_list[$row['user_id']] : '(Trống)',
-						'title'      => $row['title'],
-						'total_bk'   => 0,
-						'ticket_qty' => 0,
-						'revenue_amount'    => 0,
-						'bought_amount'    => 0,
-						'profit_amount'    => 0,
-					];
-				}
-
-				if ($row['parent_type'] == 'EC_Flight_Bookings') {
-					$grouped[$uid]['total_bk']   += 1;
-				}
-				$grouped[$uid]['ticket_qty'] += (int)$row['total_quantity'];
-				$grouped[$uid]['revenue_amount']    += (int)$row['subtotal_amount'];
-				$grouped[$uid]['bought_amount']    += (int)$row['total_bought_price'];
-				$grouped[$uid]['profit_amount']    += (int)$row['profit_amount'];
-			}
-
-			// 2. SORT ở đây
-			uasort($grouped, function ($a, $b) {
-				return $b['ticket_qty'] <=> $a['ticket_qty'];
-			});
-
-			// 3. Loop render
-			foreach ($grouped as $row) {
-				$html .= '<tr>
-							<td class="text-center">' . $i . '</td>
-							<td>
-								<a href="index.php?module=EC_Flight_Bookings&action=bksalereport&for=showDetail&user=' . $row['user_id'] . '&from_date=' . $from_date . '&to_date=' . $to_date . '" target="_blank">
-									' . $row['full_name'] . '
-								</a>
-							</td>
-							<td class="text-center">' . format_number($row['total_bk']) . '</td>
-							<td class="text-center">' . format_number($row['ticket_qty']) . '</td>
-							<td class="text-end">' . format_number($row['revenue_amount']) . '</td>
-							<td class="text-end">' . format_number($row['bought_amount']) . '</td>
-							<td class="text-end">' . format_number($row['profit_amount']) . '</td>
-						</tr>';
-
-				$i++;
-
-				$total_bk_qty     += $row['total_bk'];
-				$total_ticket_qty += $row['ticket_qty'];
-				$total_revenue_amount    += $row['revenue_amount'];
-				$total_bought_amount    += $row['bought_amount'];
-				$total_profit_amount    += $row['profit_amount'];
-			}
-		}
-
-		$html .= '<tr class="last-row footer-tr">
-					<td></td>
-					<td>Tổng cộng</td>
-					<td class="text-center">' . format_number($total_bk_qty) . '</td>
-					<td class="text-center">' . format_number($total_ticket_qty) . '</td>
-					<td class="text-end">' . format_number($total_revenue_amount) . '</td>
-					<td class="text-end">' . format_number($total_bought_amount) . '</td>
-					<td class="text-end">' . format_number($total_profit_amount) . '</td>
-				</tr></tbody>';
-
-		return $html;
-	}
-
 	function getDSBooking($from_date, $to_date, $assigned_user_id = '')
 	{
+		global $current_user;
 		// chỉ xem của 1 nhân viên
 		$user_search = '';
 		if (!empty($assigned_user_id)) {
@@ -214,8 +112,8 @@ class Viewbksalereport extends SugarView
 				<th width="5%">Booking</th>
 				<th width="5%">Vé</th>
 				<th width="10%">Doanh số</th>
+				<th width="10%">Thưởng DS</th>
 				<th>Ghi chú</th>
-				<th>Thưởng DS</th>
 			</thead><tbody>';
 
 		// doanh số bao gồm doanh số bán vé, đổi ngày bay, hành lý và hoàn vé
@@ -341,6 +239,23 @@ class Viewbksalereport extends SugarView
 					AND t.deleted = 0
 					' . str_replace('bk', 't', $user_search) . '
 				GROUP BY t.id
+
+				-- cộng thêm ds được chia
+				UNION
+				SELECT 
+					assigned_user_id,
+					ec_flight_bookings_id_c AS id,
+					"" AS voucher_id,
+					0 AS total_bk,
+					0 AS total_qty,
+					total_amount AS doanhso,
+					0 AS luggage_purchase_price 
+				FROM ec_completed_bookings com
+				WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
+					AND DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
+					' . str_replace('bk', 'com', $user_search) . '
+					AND deleted = 0 
+				AND completed_bk_type = "SHARE_PROFIT"
 			) AS t
 			LEFT JOIN users u ON u.id = t.user_id
 			LEFT JOIN ec_employee_salary s ON s.assigned_user_id = t.user_id
@@ -349,8 +264,8 @@ class Viewbksalereport extends SugarView
 			GROUP BY t.user_id
 			ORDER BY doanhso DESC';
 
-		// if ($GLOBALS['current_user']->user_name == 'hungnh') {
-		// 	pr($sql);
+		// if($GLOBALS['current_user']->user_name == 'hungnh'){
+			// pr($sql);
 		// }
 
 		$res = $this->bean->db->query($sql);
@@ -406,10 +321,12 @@ class Viewbksalereport extends SugarView
 			$assigned_user_id_bk = ' AND (bk.assigned_user_id = "' . $assigned_user_id . '" OR bk.assigned_user_id IS NULL)';
 			$assigned_user_id_hv = ' AND (hv.assigned_user_id = "' . $assigned_user_id . '" OR hv.assigned_user_id IS NULL)';
 			$assigned_user_id_t = ' AND (t.assigned_user_id = "' . $assigned_user_id . '" OR t.assigned_user_id IS NULL)';
+			$assigned_user_id_share = ' AND (com_bk.assigned_user_id = "' . $assigned_user_id . '" OR com_bk.assigned_user_id IS NULL)';
 		} else {
 			$assigned_user_id_bk = ' AND bk.assigned_user_id = "' . $assigned_user_id . '"';
 			$assigned_user_id_hv = ' AND hv.assigned_user_id = "' . $assigned_user_id . '"';
 			$assigned_user_id_t = ' AND t.assigned_user_id = "' . $assigned_user_id . '"';
+			$assigned_user_id_share = ' AND com_bk.assigned_user_id = "' . $assigned_user_id . '"';
 		}
 		$html = '<thead>
 					<th>STT</th>
@@ -476,6 +393,7 @@ class Viewbksalereport extends SugarView
 					FROM ec_flight_bookings bk
 					LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id AND dt.deleted = 0 
 					WHERE bk.date_ticket_issue BETWEEN "' . date('Y-m-d', strtotime($from_date)) . '" AND "' . date('Y-m-d', strtotime($to_date)) . '"
+					-- WHERE bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '"  AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
 						AND bk.booking_status = 8 
 						' . $assigned_user_id_bk . '
 						AND bk.deleted = 0 
@@ -573,6 +491,30 @@ class Viewbksalereport extends SugarView
 						' . $assigned_user_id_t . '
 						AND t.deleted = 0 
 					GROUP BY t.id
+
+					-- doanh so dc share
+					UNION
+					SELECT 
+						com_bk.assigned_user_id AS user_id,
+						com_bk.ec_flight_bookings_id_c AS booking_id,
+						CONCAT(bk.name, " (Share)") AS booking,
+						"" AS voucher_id, "" AS voucher_name,
+						"UReceived_Share_Profit" AS voucher_type,
+						DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%d-%m-%Y") AS date_ticket_issue,
+						0 AS total_bk,
+						0 AS total_qty,
+						0 AS return_qty,
+						com_bk.total_amount AS doanhso,
+						0 AS luggage_purchase_price,
+						0 AS return_service_fee,
+						0 AS change_service_fee
+					FROM ec_completed_bookings com_bk
+						INNER JOIN ec_flight_bookings bk ON bk.id = com_bk.ec_flight_bookings_id_c AND bk.deleted = 0
+					WHERE DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
+						AND DATE_FORMAT(DATE_ADD(com_bk.date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
+						AND com_bk.completed_bk_type = "SHARE_PROFIT"
+						' . $assigned_user_id_share . '
+						AND com_bk.deleted = 0 
 				) AS t
 				ORDER BY t.voucher_type, t.date_ticket_issue';
 

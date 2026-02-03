@@ -21,8 +21,8 @@ class Viewreport_sales_revenue extends SugarView
         global $current_user;
 
         // if ($current_user->user_name != 'hungnh') {
-        //     echo '<p class="alert alert-danger">Hệ thống đang bảo trì. Vui lòng quay lại sau!</p>';
-        //     exit;
+            // echo '<p class="alert alert-danger">Hệ thống đang bảo trì. Vui lòng quay lại sau!</p>';
+            // exit;
         // }
 
         if (ACLController::checkAccess('EC_Flight_Bookings', 'edit', true)) {
@@ -131,10 +131,11 @@ class Viewreport_sales_revenue extends SugarView
 
         // routing
         $data = '';
-        $payment_stt = isset($_POST['payment_stt']) ? $_POST['payment_stt'] : 0;
+        $payment_stt = $_POST['payment_stt'] ?? 0;
         $customer_source = $_POST['customer_source'] ?? '';
+        $ticket_type = $_POST['ticket_type'] ?? '';
 
-        $data = $this->bookingQuery($post_from_date, $post_to_date, ['payment_stt' => $payment_stt, 'customer_source' => $customer_source]);
+        $data = $this->bookingQuery($post_from_date, $post_to_date, ['payment_stt' => $payment_stt, 'customer_source' => $customer_source, 'ticket_type' => $ticket_type]);
 
         $smartyobj->assign('DATA', (is_array($data) ? $data['html'] : $data));
         $smartyobj->assign('DATA_TOTAL', $data['html_total']);
@@ -169,6 +170,9 @@ class Viewreport_sales_revenue extends SugarView
         
         $customer_source_opts = array_merge(['' => 'Tất cả'], $app_list_strings['booking_customer_source_list']);
         $smartyobj->assign('CUSTOMER_SOURCE_OPTS', get_select_options_with_id($customer_source_opts, $customer_source));
+        
+        $ticket_type_opts = ['' => 'Tất cả'] + $app_list_strings['booking_ticket_type_list'];
+        $smartyobj->assign('TICKET_TYPE_OPTS', get_select_options_with_id($ticket_type_opts, (int)$ticket_type));
     }
 
     // Thống kê doanh thu theo booking
