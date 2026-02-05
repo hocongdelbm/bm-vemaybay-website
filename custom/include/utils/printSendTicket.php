@@ -1,5 +1,5 @@
 <?php
-function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
+function buildPassengerHTMLFromData($passengersData, $itinerariesData,$khuhoi, $lang)
 {
     $html = '';
 
@@ -11,49 +11,67 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
 
     foreach ($passengersData as $passenger) {
 
-        // Get PNR
         $pnr = '';
-        if ($khuhoi) {
-            $pnr = (!empty($passenger['pnrOutbound']) ? $passenger['pnrOutbound'] : (!empty($passenger['eticketOutbound']) ?
-                $passenger['eticketOutbound'] : ''));
-            $pnr .= trim($pnr) != '' ? ' - ' : '';
-            $pnr .= (!empty($passenger['pnrInbound']) ? $passenger['pnrInbound'] : (!empty($passenger['eticketInbound']) ?
-                $passenger['eticketInbound'] : ''));
-        } else {
+        $baggageDescription = '';
+        
+        $outboundDirectionCode = null;
+        $inboundDirectionCode = null;
+        
+        if (!empty($itinerariesData) && is_array($itinerariesData)) {
+            foreach ($itinerariesData as $itinerary) {
+                if ($itinerary['directionCode'] == '0') {
+                    $outboundDirectionCode = '0';
+                } elseif ($itinerary['directionCode'] == '1') {
+                    $inboundDirectionCode = '1';
+                }
+            }
+        }
+
+        if (!is_null($outboundDirectionCode)) {
             $pnr = (!empty($passenger['pnrOutbound']) ? $passenger['pnrOutbound'] : (!empty($passenger['eticketOutbound']) ?
                 $passenger['eticketOutbound'] : ''));
         }
 
-        $baggageDescription = '';
+        if (!is_null($inboundDirectionCode)) {
+            $pnr .= trim($pnr) != '' ? ' - ' : '';
+            $pnr .= (!empty($passenger['pnrInbound']) ? $passenger['pnrInbound'] : (!empty($passenger['eticketInbound']) ?
+                $passenger['eticketInbound'] : ''));
+        }
+
         if (isset($passenger['luggage'])) {
-            $depBagText = $passenger['luggage']['outbound'] ?? '';
-            $retBagText = $passenger['luggage']['inbound'] ?? '';
-
-            // Clean both
-            $depBagText = cleanLuggageText($depBagText);
-            $retBagText = cleanLuggageText($retBagText);
-
-            // Combine duplicates
-            $depBagText = combineDuplicateBaggage($depBagText);
-            $retBagText = combineDuplicateBaggage($retBagText);
-
-            // Add labels
-            if ($khuhoi) {
-                $labelOutbound = ($lang == 'en') ? '(Outbound)' : '(Lượt đi)';
-                $labelInbound = ($lang == 'en') ? '(Inbound)' : '(Lượt về)';
-
+            $baggageText = '';
+            
+            if (!is_null($outboundDirectionCode) && !empty($passenger['luggage']['outbound'])) {
+                $depBagText = cleanLuggageText($passenger['luggage']['outbound']);
+                $depBagText = combineDuplicateBaggage($depBagText);
+                
+                if ($khuhoi) {
+                    $labelOutbound = ($lang == 'en') ? '(Outbound)' : '(Lượt đi)';
+                    $baggageText .= "{$depBagText} {$labelOutbound}";
+                } else {
+                    $baggageText .= $depBagText;
+                }
             }
-            // Build result
-            if (!empty($depBagText) && !empty($retBagText)) {
-                $baggageDescription = "{$depBagText} {$labelOutbound} - {$retBagText} {$labelInbound}";
-            } elseif (!empty($depBagText)) {
-                $baggageDescription = "{$depBagText} {$labelOutbound}";
-            } elseif (!empty($retBagText)) {
-                $baggageDescription = "{$retBagText} {$labelInbound}";
+
+            if (!is_null($inboundDirectionCode) && !empty($passenger['luggage']['inbound'])) {
+                $retBagText = cleanLuggageText($passenger['luggage']['inbound']);
+                $retBagText = combineDuplicateBaggage($retBagText);
+                
+                if ($khuhoi) {
+                    $labelInbound = ($lang == 'en') ? '(Inbound)' : '(Lượt về)';
+                    
+                    if (!empty($baggageText)) {
+                        $baggageText .= " - {$retBagText} {$labelInbound}";
+                    } else {
+                        $baggageText .= "{$retBagText} {$labelInbound}";
+                    }
+                } else {
+                    $baggageText .= $retBagText;
+                }
             }
 
             // Translate
-            $baggageDescription = translateLuggageText($baggageDescription, $lang);
+            $baggageDescription = translateLuggageText($baggageText, $lang);
         }
 
         // Build HTML row
@@ -61,7 +79,7 @@ function buildPassengerHTMLFromData($passengersData, $khuhoi, $lang)
     <td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . htmlspecialchars($passenger['fullname']) . '
     </td>
     <td align="center" style="border:1px solid #ccc; padding: 10px 7px;">' . strtoupper($pnr) . '</td>
-    <td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . $baggageDescription . '</td>
+    <td align="left" style="border:1px solid #ccc; padding: 10px 7px;">' . htmlspecialchars($baggageDescription) . '</td>
 </tr>';
     }
 
