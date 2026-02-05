@@ -97,7 +97,7 @@ class Viewsendeticket extends SugarView
 		}
 
 		// Build HTML from received data (reuse the same functions from printeticket)
-		$passengerHTML = buildPassengerHTMLFromData($passengersData, $khuhoi, $lang);
+		$passengerHTML = buildPassengerHTMLFromData($passengersData, $itinerariesData,$khuhoi, $lang);
 		$itineraryHTML = buildItineraryHTMLFromData($itinerariesData, $lang);
 
 		// Prepare email subject
