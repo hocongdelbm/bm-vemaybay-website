@@ -53,7 +53,7 @@ class Viewprinteticket extends SugarView
 			}
 		}
 
-		$passengerHTML = buildPassengerHTMLFromData($passengersData, $khuhoi, $lang);
+		$passengerHTML = buildPassengerHTMLFromData($passengersData, $itinerariesData,$khuhoi, $lang);
 		$itineraryHTML = buildItineraryHTMLFromData($itinerariesData, $lang);
 
 		$smartyCont->assign('BOOKING_NUMBER', $booking_number);

@@ -12,6 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $IP_WHITELIST = [
             '14.161.31.237', //LBM
             '157.119.248.142', //td timchuyenbay
+            '103.160.4.96', //td timchuyenbay new
             
             // Haihung
             '171.252.188.26', 
