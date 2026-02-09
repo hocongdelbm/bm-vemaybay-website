@@ -1396,9 +1396,8 @@ function checkLineItems() {
 	if (iti_arr.length > 0) {
 		for (var i = 0; i < iti_arr.length; i++) {
 			if (iti_arr[i].value == '0') {
-				// Get the actual line number from the parent row ID
 				var row = $(iti_arr[i]).closest('tr');
-				var rowId = row.attr('id'); // e.g., "iti_line_5"
+				var rowId = row.attr('id');
 				var lineNumber = rowId.replace('iti_line_', '');
 
 				// Check airline code
