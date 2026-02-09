@@ -91,6 +91,7 @@ class Viewcheckflydate extends SugarView {
 					i.base_price,
 					i.ticket_class,
 					b.date_ticket_issue,
+					b.checkin_status,
 					i.is_remind,
 					(
 					    SELECT SUM(IFNULL(d.quantity, 0)) 
@@ -128,10 +129,18 @@ class Viewcheckflydate extends SugarView {
                 $class_remind   = '';
             }
 
+            $class_checkin_status   = '';
+            if($row['checkin_status'] == 1){
+                $class_checkin_status   = 'text-danger';
+            } else if ($row['checkin_status'] == 2){
+                $class_checkin_status   = 'text-success';
+            }
+
             $html .= '<tr class="'.$class_remind.'" style="'.$is_remind.'">
 				<td class="fw-semibold hide-mobile" align="center">' . ($i + 1) . '</td>
 				<td class="fw-semibold" align="center"><a target="_blank" href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking'] . '</a></td>
 				<td align="left">' . $row['contact_name'] . '</td>
+				<td align="center" class="fw-semibold '.$class_checkin_status.'">' . $app_list_strings['booking_checkin_status_list'][$row['checkin_status']] . '</td>
 				<td align="center">' . $row['phone'] . '</td>
 				<td align="center" class="hide-mobile">
                     <img style="width:40px;" src="custom/themes/default/images/airline-icon-100x100/' . $aircode[$row['airline_code']] . '.png" border="0" />

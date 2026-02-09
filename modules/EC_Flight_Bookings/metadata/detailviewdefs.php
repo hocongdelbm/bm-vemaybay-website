@@ -68,6 +68,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$SEND_TICKET}',
                 ),
+                array(
+                    'customCode' => '{$CHECKIN_STATUS}',
+                ),
             )
         ),
         'maxColumns' => '2',

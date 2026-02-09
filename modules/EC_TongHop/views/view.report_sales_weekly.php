@@ -35,33 +35,11 @@ class Viewreport_sales_weekly extends SugarView
         // DATA REPORT
         $html_report = $this->genInforReport($date_report);
         $smartyobj->assign('DATA_REPORT', $html_report);
-
-        // SAVE QC COST
-        if (isset($_POST) && !empty($_POST) && isset($_POST['btnSaveCostQc'])) {
-            $this->saveCostQc();
-        }
-    }
-
-    function saveCostQc()
-    {
-        global $db;
-        $cost_qc       = (int)str_replace('.', '', $_POST['cost-qc']) ?? 0;
-        $user_id       = $_POST['user_id'];
-        $from_date     = $_POST['from_date'];
-        $to_date       = $_POST['to_date'];
-        $date_select   = $_GET['date_select'];
-
-        // Lưu giá trị QC vào file log
-
-
-        // header("Location: index.php?module=EC_TongHop&action=businessreport&date_select=" . $date_select);
-        return true;
     }
 
     function genInforReport($period)
     {
-        global $db, $current_user;
-        $user_list = get_user_array(true, '', '', true);
+        global $db;
 
         $date_ranges    = [];
         $today          = date('Y-m-d');
@@ -205,6 +183,94 @@ class Viewreport_sales_weekly extends SugarView
                         </tr>	
                     </thead><tbody>';
 
+                //     $sql_get = "SELECT
+                // 		t.last_name,
+                // 		t.user_name,
+                // 		t.user_id,
+                //         SUM(t.total_qty)             AS total_qty,
+                //         SUM(t.total_qty_com)         AS total_qty_com,
+                //         SUM(t.total_ticket_qty)      AS total_ticket_qty,
+                //         SUM(t.total_profit)      	 AS total_profit,
+                //         SUM(t.total_profit_inter)    AS total_profit_inter,
+
+                //         SUM(t.inbound) AS inbound,
+                //         SUM(t.missed) AS missed,
+                //         SUM(t.inbound_bk) AS inbound_bk,
+                //         SUM(t.inbound_bk_com) AS inbound_bk_com
+                //     FROM (
+                //         -- Block 1: Doanh số booking
+                //         SELECT
+                // 			u.last_name,
+                // 			u.user_name,
+                // 			u.id AS user_id,
+                //             0 AS total_qty,
+                //             COUNT(bk.id) AS total_qty_com,
+                //             SUM(bk.ticket_qty) AS total_ticket_qty,
+                //             SUM(bk.total_profit) AS total_profit,
+                //             SUM(CASE WHEN bk.ticket_type = 2 THEN bk.total_profit ELSE 0 END) AS total_profit_inter,
+
+                //             0 AS inbound,
+                //             0 AS missed,
+                //             0 AS inbound_bk,
+                //             0 AS inbound_bk_com
+                //         FROM ec_revenue bk
+                // 		LEFT JOIN users u ON u.id = bk.created_by AND u.deleted = 0
+                //         WHERE bk.deleted = 0
+                //         AND DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                //         GROUP BY u.id, bk.booking_id
+
+                //         -- Block 2: Cuộc gọi
+                //         UNION ALL
+                // 		SELECT
+                // 			u.last_name,
+                // 			u.user_name,
+                // 			u.id AS user_id,
+                // 			0 AS total_qty,
+                // 			0 AS total_qty_com,
+                // 			0 AS total_ticket_qty,
+                // 			0 AS total_profit,
+                // 			0 AS total_profit_inter,
+
+                // 			SUM(CASE WHEN c.direction = 'inbound' THEN 1 ELSE 0 END) AS inbound,
+                // 			SUM(CASE WHEN c.direction = 'missed'  THEN 1 ELSE 0 END) AS missed,
+                // 			SUM(CASE WHEN c.direction = 'inbound' AND c.booking_id IS NOT NULL AND c.booking_id <> '' THEN 1 ELSE 0 END) AS inbound_bk,
+                // 			SUM(CASE WHEN c.direction = 'inbound' AND c.booking_id IS NOT NULL AND c.booking_id <> '' AND bk.booking_status = 8 THEN 1 ELSE 0 END) AS inbound_bk_com
+                // 		FROM calls c
+                // 		LEFT JOIN users u ON c.call_sources = u.last_name AND u.deleted = 0
+                //         LEFT JOIN ec_flight_bookings bk ON bk.id = c.booking_id AND bk.deleted = 0
+                // 		WHERE c.deleted = 0
+                // 		AND u.title = 'Bot'
+                //         AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                // 		GROUP BY u.id
+
+                //         -- Block 3: Các giá trị ngoài hoàn tất (Tổng số BK, ...)
+                //         UNION ALL
+                //         SELECT
+                //             u.last_name,
+                //             u.user_name,
+                //             u.id AS user_id,
+                //             COUNT(bk.id) AS total_qty,
+                //             0 AS total_qty_com,
+                //             0 AS total_ticket_qty,
+                //             0 AS total_profit,
+                //             0 AS total_profit_inter,
+                //             0 AS inbound,
+                //             0 AS missed,
+                //             0 AS inbound_bk,
+                //             0 AS inbound_bk_com
+                //         FROM ec_flight_bookings bk
+                //         LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
+                //         WHERE bk.deleted = 0
+                //         AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                //         GROUP BY u.id
+                //     ) t
+                //     GROUP BY user_id
+                //     ORDER BY total_profit DESC
+                // ";
+
+                $from_date_sql =   date('Y-m-d', strtotime($from_date . ' -1 days'));
+                $to_date_sql =   date('Y-m-d', strtotime($to_date));
+
                 $sql_get = "SELECT
 					t.last_name,
 					t.user_name,
@@ -238,8 +304,9 @@ class Viewreport_sales_weekly extends SugarView
                     FROM ec_revenue bk
 					LEFT JOIN users u ON u.id = bk.created_by AND u.deleted = 0
                     WHERE bk.deleted = 0
-                    AND DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
-                    GROUP BY u.id, bk.booking_id
+                    -- AND DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                    AND bk.date_entered_bk BETWEEN '$from_date_sql 17:00:00'  AND '$to_date_sql 16:59:59'
+                    GROUP BY u.id
 
                     -- Block 2: Cuộc gọi
                     UNION ALL
@@ -262,7 +329,8 @@ class Viewreport_sales_weekly extends SugarView
                     LEFT JOIN ec_flight_bookings bk ON bk.id = c.booking_id AND bk.deleted = 0
 					WHERE c.deleted = 0
 					AND u.title = 'Bot'
-                    AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                    -- AND DATE_ADD(c.date_entered, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                    AND c.date_entered BETWEEN '$from_date_sql 17:00:00'  AND '$to_date_sql 16:59:59'
 					GROUP BY u.id
 
                     -- Block 3: Các giá trị ngoài hoàn tất (Tổng số BK, ...)
@@ -283,7 +351,8 @@ class Viewreport_sales_weekly extends SugarView
                     FROM ec_flight_bookings bk
                     LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
                     WHERE bk.deleted = 0
-                    AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                    -- AND DATE_ADD(bk.date_entered, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
+                    AND bk.date_entered BETWEEN '$from_date_sql 17:00:00'  AND '$to_date_sql 16:59:59'
                     GROUP BY u.id
                 ) t
                 GROUP BY user_id
@@ -291,7 +360,7 @@ class Viewreport_sales_weekly extends SugarView
             ";
 
                 // if ($current_user->user_name == 'hungnh') {
-                    // pr($sql_get);
+                //     pr($sql_get);
                 // }
 
                 $res = $db->query($sql_get);
@@ -325,16 +394,13 @@ class Viewreport_sales_weekly extends SugarView
                                                 <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2"/>
                                             </svg>
                                         </button>';
-                        $cost_qc = empty($row['advertisement_cost']) ? $btn_add_qc : format_number($row['advertisement_cost'] ?? 0);
 
                         $html .= '
                                 <tr>
                                     <td class="text-start fw-semibold">' . $row['last_name'] . '</td>
         
-                                    <td colspan="2" class="text-start">
-                                        <div class="d-flex align-items-center justify-content-between gap-1">
-                                            <div class="total text-start">' . format_number($row['total_profit']) . '</div>
-                                        </div>
+                                    <td colspan="2">
+                                        <div class="total text-end">' . format_number($row['total_profit']) . '</div>
                                     </td>
                                     <td class="text-center total_ticket">' . $row['total_ticket_qty'] . '</td>
                                     <td class="text-center fw-semibold color-blue">' . format_number($row['total_qty_com']) . '</td>
@@ -343,9 +409,6 @@ class Viewreport_sales_weekly extends SugarView
                                             <div class="total_percent text-end">(' . format_number(($row['total_qty_com']) / $denominator_total * 100) . '%)</div>
                                             <div class="hide-mobile total text-end color-red fw-semibold">&nbsp;&nbsp;' . format_number($row['total_qty']) . '</div>
                                         </div>
-                                    </td>
-                                    <td class="text-center d-none">
-                                        ' . $cost_qc . ' 
                                     </td>
                                 </tr>';
                     }
@@ -369,10 +432,9 @@ class Viewreport_sales_weekly extends SugarView
                                     <td colspan="2" class="text-end color-red fw-semibold">
                                         <div class="total_sale">' . format_number($total_sale) . '</div>
                                     </td>
-                                    <td class="text-end color-red fw-semibold total_sale_ticket">' . $total_sale_ticket . '</td>
-                                    <td class="text-end total_sale_qty">' . $total_sale_qty . '</td>
+                                    <td class="text-center color-red fw-semibold total_sale_ticket">' . $total_sale_ticket . '</td>
+                                    <td class="text-center total_sale_qty">' . $total_sale_qty . '</td>
                                     <td colspan="2" class="text-end total__booking">' . format_number($total_bk) . '</td>
-                                    <td class="text-end total_qc d-none">' . format_number($total_qc_cost) . '</td>
                                 </tr>
                             </tfoot>
                         </table>';

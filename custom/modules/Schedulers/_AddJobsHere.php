@@ -25,6 +25,94 @@ $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
 $job_strings[] = 'sendPromotionMessageZalo'; // Gửi tin nhắn khuyến mãi ZALO đồng loạt
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
+$job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
+
+/**
+ * Thông báo hành trình cần checkin
+ */
+function notifyCheckinJourney()
+{
+	global $db, $sugar_config;
+	$notification_channel = strtoupper($sugar_config['notification_channel'] ?? 'TELEGRAM');
+
+	$sql = "SELECT
+				b.id AS booking_id,
+				b.name AS booking,
+				b.contact_name,
+				b.phone,
+				i.departure,
+				i.arrival,
+				i.departure_date,
+				i.arrival_date,
+				i.airline_code,
+				i.flight_number,
+				i.base_price,
+				i.ticket_class,
+				b.date_ticket_issue,
+				b.checkin_status
+			FROM ec_booking_itineraries i
+			JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
+			WHERE b.booking_status IN ('7','8')
+				AND i.deleted = 0
+				AND i.departure_date != ''
+				AND b.checkin_status = 0
+				AND NOW() >= DATE_SUB(i.departure_date, INTERVAL 24 HOUR)
+				AND NOW() <= DATE_SUB(i.departure_date, INTERVAL 24 HOUR) + INTERVAL 1 MINUTE
+			ORDER BY i.departure_date ASC
+		";
+
+	$res = $db->query($sql);
+	if ($db->countRows($res) > 0) {
+		while ($row = $db->fetchByAssoc($res)) {
+			try {
+				if ($notification_channel == 'TELEGRAM') {
+					$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+					$chatId     = $sugar_config['telegram']['checkin']['chat_id'] ?? '';
+
+					$booking_id = $row['booking_id'];
+					$booking_name = $row['booking'];
+					$departure = $row['departure'];
+					$arrival = $row['arrival'];
+					$departure_date = date('d/m/Y', strtotime($row['departure_date']));
+					$departure_date_hour = date('H:i', strtotime($row['departure_date']));
+					$contact_name = $row['contact_name'];
+					$contact_phone = $row['phone'];
+
+					$link = $sugar_config['site_url'] . "/index.php?module=EC_Flight_Bookings&action=DetailView&record=$booking_id";
+					$text = "<b>Checkin Booking : $booking_name</b>, $departure - $arrival ngày $departure_date lúc $departure_date_hour.";
+					$text .= "\nLiên hệ: $contact_name - $contact_phone";
+
+					$messageData = [
+						'text' => $text,
+						'parse_mode' => 'HTML',
+						'reply_markup' => [
+							'inline_keyboard' => [
+								[
+									[
+										'text' => 'Checkin ngay',
+										'url' => $link,
+									],
+								],
+							],
+						]
+					];
+					Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
+				}
+			} catch (Throwable $th) {
+				$message = "<b>[ERROR] Send info Checkin Failed</b>";
+				$message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+
+				if ($notification_channel == 'TELEGRAM') {
+					$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+					$chatId     = $sugar_config['telegram']['checkin']['chat_id'] ?? '';
+					Telegram::sendMessage($message, $botToken, $chatId);
+				}
+			}
+		}
+	}
+
+	return true;
+}
 
 /**
  * Cập nhật doanh số trong ngày vào ec_revenue
@@ -2003,7 +2091,7 @@ function checkStatusOnlineUser()
 // Thời gian xử lý tối đa là 2 phút
 function checkBookingHandle()
 {
-	global $db, $app_list_strings;
+	global $db;
 	$sql = '
 		SELECT 
 			onl.id, onl.booking_id,

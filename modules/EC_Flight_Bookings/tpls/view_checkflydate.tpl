@@ -18,7 +18,7 @@
 <div class="box-section position-relative mt-0">
 	<div class="overlay-mobile"></div>
 
-    <form id="ec_search_form" name="search_form" method="post" action="index.php">
+    <form id="ec_search_form" name="search_form" method="post" action="index.php" class="mb-3">
         <input type="hidden" name="module" value="EC_Flight_Bookings" />
         <input type="hidden" name="action" value="checkflydate" />
 
@@ -112,7 +112,7 @@
             <input type="button" id="btnSearch_cancel" name="search" class="btn btn-secondary button-action--cancel d-xl-none d-lg-none d-block" value="Hủy bỏ" title="Hủy bỏ"/>
         </div>
 
-        <div class="frmSearch-note d-flex gap-2 align-items-center mb-3 hide-mobile">
+        <div class="frmSearch-note d-flex gap-2 align-items-center hide-mobile">
             <div class="box-note"></div>
             <div class="text-note">Đã gọi thông báo cho khách hàng về lịch bay.</div>
         </div>
@@ -123,7 +123,8 @@
             <tr>
                 <th width="2%" class="hide-mobile">STT</th>
                 <th width="7%">Booking</th>
-                <th width="15%">Liên hệ</th>
+                <th width="10%">Liên hệ</th>
+                <th width="5%">Checkin</th>
                 <th width="7%">Điện thoại</th>
                 <!-- <th width="7%">Email</th> -->
                 <th width="7%" class="hide-mobile">Hãng</th>

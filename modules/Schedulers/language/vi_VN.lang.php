@@ -156,4 +156,5 @@ $mod_strings = [
     'LBL_SENDPROMOTIONMESSAGEZALO' => 'Gửi tin nhắn khuyến mãi Zalo đồng loạt',
 
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
+    'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',
 ];

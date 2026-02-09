@@ -61,6 +61,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$this->displayJS();
 	}
 
+	
 	/**
 	 * Cập nhật doanh số trong ngày vào ec_revenue
 	 */
@@ -1218,7 +1219,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 
 		// Những nhân viên đã xem booking
-		if (isAllowedUser()) {
+		// if (isAllowedUser()) {
+		if (is_admin($current_user) && $current_user->title != 'QuanLy') {
 			$viewed = '</form>
 			<form action="index.php" method="post" name="frmViewedBooking" id="frmViewedBooking" class="d-flex align-items-center gap-2">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -1419,13 +1421,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					</button>
 				</div>'
 		);
-		
+
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
 			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
 		}
 		$this->ss->assign('UPDATE_REVENUE', $update_revenue);
+
+		// Button thông tin checkin
+		$checkin_status = '</form>
+			<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
+				<input type="hidden" name="module" value="EC_Flight_Bookings" />
+				<input type="hidden" name="action" value="Save" />
+				<input type="hidden" name="record" value="' . $this->bean->id . '" />
+				<select class="select-box" id="checkin_status" name="checkin_status" >' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$this->bean->checkin_status) . '</select>
+				<input type="submit" class="btn btn-warning" name="btnChangeStatusCheckin" id="btnChangeStatusCheckin" value="TT checkin" title="Trạng thái checkin" />
+			</form>';
+		$this->ss->assign('CHECKIN_STATUS', $checkin_status);
 	}
 
 	// Display all itineraries

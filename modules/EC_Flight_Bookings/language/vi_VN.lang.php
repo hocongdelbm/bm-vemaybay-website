@@ -277,6 +277,7 @@ $mod_strings = array(
   'LBL_PRINT_AS_PDF'   => 'In vé',
   'LBL_PASSENGER_LT_FILTER'   => 'Lý thông',
 
+  'LBL_CHECKIN_STATUS'   => 'Trạng thái checkin',
   'LBL_RECALL_C'   => 'Recall',
 
   'LBL_EMAIL_RESERVATION'   => 'Email đặt chỗ',
