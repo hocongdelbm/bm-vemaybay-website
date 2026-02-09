@@ -177,7 +177,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.1"></script>
+		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0"></script>
@@ -1180,7 +1180,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<option value="sendmail_closetime.html">Mail cận giờ bay</option>
 						<!-- <option value="sendmail_promo.html">Mail vé khuyến mãi</option> -->
 					</select>
-					<input type="submit" class="btn btn-primary save-popup-dialog" value="Tiếp tục" title="Tiếp tục" />
+					<input type="submit" class="btn btn-primary save-popup-dialog" value="Gửi mail" title="Gửi mail" />
+					<input type="button" class="btn btn-primary" id="btnPreviewSendMail" booking_id="' . $this->bean->id . '" value="Xem trước" title="Xem trước" />
+					<div id="dialog_mail_confirm_preview" style="display: none;"></div>
 					<input type="button" class="btn btn-secondary" id="btnCancelSendMail" value="Hủy bỏ" title="Hủy bỏ" />
 				</span>
 				<button type="button" class="btn btn-email" id="btnSendMail" value="Gửi mail" >
@@ -1199,9 +1201,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		/**
 		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
 		 */
-		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || $current_user->user_name == 'hungnh') {
+		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
 			// if (ACLController::checkAccess('Bugs', 'edit', true) && $this->editing_rights && !in_array($this->bean->booking_status, array(4, 7, 8))) {
-			// if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id)  || $current_user->user_name == 'hungnh' || $current_user->user_name == 'admin' || strtotime($time_current) < strtotime("08:00:00") || strtotime($time_current) > strtotime("20:59:59")) {
+			// if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id) || $current_user->user_name == 'admin' || strtotime($time_current) < strtotime("08:00:00") || strtotime($time_current) > strtotime("20:59:59")) {
 			$change_status = '</form>
 				<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 					<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -1417,6 +1419,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					</button>
 				</div>'
 		);
+		
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {

@@ -3897,3 +3897,100 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 	echo json_encode(['error' => 1, 'message' => 'Failed']);
 	exit();
 }
+
+
+/**
+ * Preview send mail
+ */
+if (isset($_POST['for']) && $_POST['for'] == 'previewSendMail') {
+	$booking_id = $_POST['booking_id'] ?? '';
+	$bk = BeanFactory::getBean('EC_Flight_Bookings', $booking_id);
+
+	$contact_name 		= ucwords(myRemoveUnicodeChars($bk->contact_name));
+	$bk_name 			= ucwords(myRemoveUnicodeChars($bk->name));
+	$bk_status 			= $app_list_strings['booking_status_list'][$bk->booking_status];
+	$trip_type 			= $app_list_strings['bk_flight_type_list'][$bk->flight_type];
+	$payment_type 		= $app_list_strings['booking_payment_type_list'][$bk->payment_type];
+	$total_amount		= format_number($bk->total_amount) . ' VND';
+
+	$html = '';
+
+	// Block infor booking
+	$html = '<div class="container text-dark">
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Mã đơn hàng</span>
+					</div>
+					<div class="col-8">
+						<span class="text-danger fw-semibold">' . $bk_name . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Loại vé</span>
+					</div>
+					<div class="col-8">
+						<span class="text-dark fw-semibold">' . $trip_type . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Hình thức thanh toán</span>
+					</div>
+					<div class="col-8">
+						<span class="text-dark fw-semibold">' . $payment_type . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Tổng số tiền</span>
+					</div>
+					<div class="col-8">
+						<span class="text-danger fw-semibold">' . $total_amount . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Số điện thoại</span>
+					</div>
+					<div class="col-8">
+						<span class="text-dark fw-semibold">' . $bk->phone . '</span>
+					</div>
+				</div>
+			</div>
+		';
+
+	// Block infor Passenger Mail Confirm
+	$pas_info = $bk->getPassengerInfoMailConfirm($booking_id, $bk->flight_type);
+	$html .= '<div class="container text-dark">
+				<div class="row mb-3">
+					<div class="col-12">
+						<table align="center" border="0" cellpadding="0" cellspacing="0">
+							<tbody>
+								' . $pas_info . '
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-12">
+						<img src="themes/SuiteP/images/modules/ec_flight_booking/row-dash.png" class="w-100">
+					</div>
+				</div>
+			</div>
+		';
+
+	// Block infor Route Mail Confirm
+	$route_infos = $bk->getRouteInfosMailConfirm($booking_id, 'preview');
+	$html .= '<div class="container text-dark">
+				<div class="row mb-3">
+					<div class="col-12">
+						' . $route_infos['html'] . '
+					</div>
+				</div>
+			</div>
+		';
+
+	echo $html;
+	exit();
+}

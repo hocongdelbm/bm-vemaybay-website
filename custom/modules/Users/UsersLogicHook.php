@@ -6,9 +6,9 @@ class UsersLogicHook
 		global $current_user;
 
 		if ($current_user->user_name == 'pandadth') {
-			$url = "index.php?module=EC_TongHop&action=businessreport&return_module=EC_TongHop&return_action=businessreport";
+			$url = "index.php?module=EC_TongHop&action=report_sales_weekly&return_module=EC_TongHop&return_action=report_sales_weekly";
 		} else {
-			$url = "index.php?module=Home&action=index";
+			$url = "index.php?module=EC_TongHop&action=report_sales_issue&return_module=EC_TongHop&return_action=report_sales_issue";
 		}
 
 		SugarApplication::redirect($url);

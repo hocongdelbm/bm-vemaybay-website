@@ -60,7 +60,8 @@ class Viewreport_sales_weekly extends SugarView
 
     function genInforReport($period)
     {
-        global $db;
+        global $db, $current_user;
+        $user_list = get_user_array(true, '', '', true);
 
         $date_ranges    = [];
         $today          = date('Y-m-d');
@@ -235,7 +236,7 @@ class Viewreport_sales_weekly extends SugarView
                         0 AS inbound_bk,
                         0 AS inbound_bk_com
                     FROM ec_revenue bk
-					LEFT JOIN users u ON bk.created_by = u.id AND u.deleted = 0
+					LEFT JOIN users u ON u.id = bk.created_by AND u.deleted = 0
                     WHERE bk.deleted = 0
                     AND DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR) BETWEEN '$from_date' AND '$to_date 23:59:59'
                     GROUP BY u.id, bk.booking_id
@@ -289,7 +290,9 @@ class Viewreport_sales_weekly extends SugarView
                 ORDER BY total_profit DESC
             ";
 
-                // pr($sql_get);
+                // if ($current_user->user_name == 'hungnh') {
+                    // pr($sql_get);
+                // }
 
                 $res = $db->query($sql_get);
                 $row_count     = $db->countRows($res);

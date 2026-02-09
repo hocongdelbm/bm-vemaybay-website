@@ -52,6 +52,7 @@ $mod_strings = array(
   'LBL_PANEL16' => 'Thông tin booking',
 
   'LBL_PANEL_BANK' => 'Chuyển khoản',
+  'LBL_JOURNEY' => 'Hành trình',
 
   'LBL_BOOKING_CONTENT_OUTBOUND'  => 'Nội dung vé chiều đi',
   'LBL_BOOKING_CONTENT_INBOUND'   => 'Nội dung vé chiều về',

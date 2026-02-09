@@ -300,6 +300,36 @@ $(document).ready(function () {
 		$(this).hide();
 	});
 
+	// Preview form send mail
+	$('#btnPreviewSendMail').on('click', function () {
+		$("#dialog_mail_confirm_preview").dialog({
+			title: "Xác nhận thông tin",
+			width: 700,
+			modal: true,
+			resizable: false,
+			position: {
+				my: "center top",
+				at: "center top+50",
+				of: window
+			}
+		});
+		
+		$.ajax({
+			url: "index.php?entryPoint=entryPointFlightBookings",
+			type: "POST",
+			data: {
+				"booking_id": $(this).attr('booking_id'),
+				"for": "previewSendMail",
+			},
+			beforeSend: function () {
+				$("#dialog_mail_confirm_preview").html('');
+			},
+			success: function (response) {
+				$("#dialog_mail_confirm_preview").html(response);
+			}
+		});
+	});
+
 	// Close form send mail
 	$('#btnCancelSendMail').on('click', function () {
 		$('#frmContinueSendMail').hide();
