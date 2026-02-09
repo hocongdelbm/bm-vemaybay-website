@@ -62,8 +62,14 @@ class entryNextCloudPreviewClass extends entryClass
                     $document,
                     $revision
                 );
-                $this->outputDebugInfo($debugInfo);
-                return;
+                
+                // Check if output mode (default for HTTP requests)
+                $outputMode = $params['outputMode'] ?? true;
+                if ($outputMode) {
+                    $this->outputDebugInfo($debugInfo);
+                } else {
+                    return $debugInfo;
+                }
             }
 
             // Step 6: Fetch file from public URL
@@ -85,14 +91,28 @@ class entryNextCloudPreviewClass extends entryClass
                 'shareToken' => $shareInfo['shareToken']
             ];
 
-            // Output for HTTP requests
-            $downloadMode = $params['download'] ?? $_REQUEST['download'] ?? '';
-            $this->outputFile($result['fileData'], $result['contentType'], $revision, $downloadMode);
+            // Check if output mode (default for HTTP requests)
+            $outputMode = $params['outputMode'] ?? true;
+            if ($outputMode) {
+                // Output for HTTP requests
+                $downloadMode = $params['download'] ?? $_REQUEST['download'] ?? '';
+                $this->outputFile($result['fileData'], $result['contentType'], $revision, $downloadMode);
+            }
             
             return $result;
         } catch (Exception $e) {
             $GLOBALS['log']->error("NextCloudPreview: Exception - " . $e->getMessage());
-            $this->outputError('Internal server error', 500);
+            
+            // Check if output mode (default for HTTP requests)
+            $outputMode = $params['outputMode'] ?? true;
+            if ($outputMode) {
+                $this->outputError('Internal server error', 500);
+            } else {
+                return [
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+            }
         }
     }
 
@@ -297,9 +317,6 @@ class entryNextCloudPreviewClass extends entryClass
         } else {
             header('Content-Disposition: inline; filename="' . $revision->filename . '"');
         }
-
-        header('Cache-Control: public, max-age=3600');
-        header('Pragma: cache');
 
         echo $fileData;
         exit;
