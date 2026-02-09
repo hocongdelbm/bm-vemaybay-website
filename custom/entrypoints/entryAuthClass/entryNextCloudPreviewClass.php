@@ -31,70 +31,89 @@ class entryNextCloudPreviewClass extends entryClass
             // Step 1: Get and validate document ID from params or request
             $id = $params['id'] ?? $_REQUEST['id'] ?? '';
             $id = trim($id);
-            $this->validateDocumentId($id);
-            
+            if (!$this->validateDocumentId($id)) {
+                throw new Exception('Invalid document ID');
+            }
+
             // Step 2: Load document and revision entities
             $entities = $this->loadDocumentAndRevision($id);
+            if (empty($entities)) {
+                throw new Exception('Document not found');
+            }
             $document = $entities['document'];
             $revision = $entities['revision'];
-            
+
             // Step 3: Build remote file path
             $remoteFilePath = $this->buildRemoteFilePath($document, $revision);
-            
+
             // Step 4: Get or create public share
             $shareInfo = $this->getOrCreatePublicShare($remoteFilePath, $revision);
-            
+            if (empty($shareInfo)) {
+                throw new Exception('Failed to get or create public share');
+            }
+
             // Step 5: Check debug mode
             $debugMode = $params['debug'] ?? $_REQUEST['debug'] ?? '';
             if ($debugMode == 'yes') {
-                $this->outputDebugInfo(
+                $debugInfo = $this->prepareDebugInfo(
                     $shareInfo['publicShareUrl'],
                     $shareInfo['shareToken'],
                     $remoteFilePath,
                     $document,
                     $revision
                 );
+                $this->outputDebugInfo($debugInfo);
                 return;
             }
-            
+
             // Step 6: Fetch file from public URL
             $fileResult = $this->fetchFileFromPublicUrl($shareInfo['publicShareUrl']);
-            
+            if (empty($fileResult)) {
+                throw new Exception('Failed to fetch file from public URL');
+            }
+
             // Step 7: Determine MIME type
             $contentType = $this->determineMineType($fileResult['contentType'], $revision);
-            
-            // Step 8: Output file to browser
+
+            // Step 8: Prepare result
+            $result = [
+                'success' => true,
+                'fileData' => $fileResult['fileData'],
+                'contentType' => $contentType,
+                'filename' => $revision->filename,
+                'publicShareUrl' => $shareInfo['publicShareUrl'],
+                'shareToken' => $shareInfo['shareToken']
+            ];
+
+            // Output for HTTP requests
             $downloadMode = $params['download'] ?? $_REQUEST['download'] ?? '';
-            $this->outputFile($fileResult['fileData'], $contentType, $revision, $downloadMode);
+            $this->outputFile($result['fileData'], $result['contentType'], $revision, $downloadMode);
             
+            return $result;
         } catch (Exception $e) {
             $GLOBALS['log']->error("NextCloudPreview: Exception - " . $e->getMessage());
-            header('HTTP/1.1 500 Internal Server Error');
-            echo 'Internal server error';
-            exit;
+            $this->outputError('Internal server error', 500);
         }
     }
 
     /**
      * Validate document ID
      * @param string $id
-     * @throws Exception if invalid
+     * @return bool True if valid, false otherwise
      */
     private function validateDocumentId($id)
     {
         if (empty($id)) {
             $GLOBALS['log']->error('NextCloudPreview: Missing ID');
-            header('HTTP/1.1 400 Bad Request');
-            echo 'Missing ID';
-            exit;
+            return false;
         }
-        // Valid - continue execution
+        return true;
     }
 
     /**
      * Load document and revision beans
      * @param string $id Document or Revision ID
-     * @return array ['document' => SugarBean, 'revision' => SugarBean]
+     * @return array|null ['document' => SugarBean, 'revision' => SugarBean] or null on error
      */
     private function loadDocumentAndRevision($id)
     {
@@ -106,9 +125,7 @@ class entryNextCloudPreviewClass extends entryClass
             $document = BeanFactory::getBean('Documents', $revision->document_id);
             if (empty($document->id)) {
                 $GLOBALS['log']->error("NextCloudPreview: Document not found for revision - ID: {$id}");
-                header('HTTP/1.1 404 Not Found');
-                echo 'Document not found';
-                exit;
+                return null;
             }
         } else {
             // Try to load as Document (if coming from document ID)
@@ -116,9 +133,7 @@ class entryNextCloudPreviewClass extends entryClass
 
             if (empty($document->id)) {
                 $GLOBALS['log']->error("NextCloudPreview: Document not found - ID: {$id}");
-                header('HTTP/1.1 404 Not Found');
-                echo 'Document not found';
-                exit;
+                return null;
             }
 
             // Get revision from document
@@ -126,12 +141,10 @@ class entryNextCloudPreviewClass extends entryClass
 
             if (empty($revision->id) || empty($revision->filename)) {
                 $GLOBALS['log']->error("NextCloudPreview: Cannot retrieve document revision or filename");
-                header('HTTP/1.1 404 Not Found');
-                echo 'Document revision not found';
-                exit;
+                return null;
             }
         }
-        
+
         return ['document' => $document, 'revision' => $revision];
     }
 
@@ -146,7 +159,13 @@ class entryNextCloudPreviewClass extends entryClass
         // Build the remote file path using new naming convention: {document_name}_v{revision}.{filename}
         $documentName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $document->document_name);
         $revisionNumber = $revision->revision ?? '1';
-        $remoteFilePath = '/bmvmb/modules/documents/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
+        $cleanDocumentName = trim($document->document_name);
+        $cleanFileName = trim($revision->filename);
+        if ($cleanDocumentName === $cleanFileName) {
+             $remoteFilePath = '/bmvmb/modules/documents/' .'v' . $revisionNumber . '_' . $revision->filename;
+        } else {
+            $remoteFilePath = '/bmvmb/modules/documents/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
+        }
 
         return $remoteFilePath;
     }
@@ -155,14 +174,13 @@ class entryNextCloudPreviewClass extends entryClass
      * Get or create public share for file
      * @param string $remoteFilePath Remote file path on NextCloud
      * @param SugarBean $revision Document revision bean
-     * @return array ['publicShareUrl' => string, 'shareToken' => string]
+     * @return array|null ['publicShareUrl' => string, 'shareToken' => string] or null on error
      */
     private function getOrCreatePublicShare($remoteFilePath, $revision)
     {
-        
         $publicShareUrl = null;
         $shareToken = null;
-        
+
         // Check if a share already exists for this path via OCS API
         $existingSharesJson = $this->ocsApi->getShares($remoteFilePath);
         $existingShares = json_decode($existingSharesJson, true);
@@ -180,9 +198,7 @@ class entryNextCloudPreviewClass extends entryClass
 
             if ($createShareResult['status'] != 1) {
                 $GLOBALS['log']->error("NextCloudPreview: Failed to create share - " . json_encode($createShareResult));
-                header('HTTP/1.1 502 Bad Gateway');
-                echo 'Failed to create public share for file';
-                exit;
+                return null;
             }
 
             $shareData = $createShareResult['data'];
@@ -193,9 +209,7 @@ class entryNextCloudPreviewClass extends entryClass
 
         if (empty($publicShareUrl)) {
             $GLOBALS['log']->error("NextCloudPreview: Could not obtain public share URL");
-            header('HTTP/1.1 502 Bad Gateway');
-            echo 'Could not obtain public share URL';
-            exit;
+            return null;
         }
 
         return [
@@ -207,28 +221,26 @@ class entryNextCloudPreviewClass extends entryClass
     /**
      * Fetch file from public share URL
      * @param string $publicShareUrl Public share download URL
-     * @return array ['fileData' => string, 'contentType' => string]
+     * @return array|null ['fileData' => string, 'contentType' => string] or null on error
      */
     private function fetchFileFromPublicUrl($publicShareUrl)
     {
         $GLOBALS['log']->info("NextCloudPreview: Fetching file from PUBLIC URL (no auth): {$publicShareUrl}");
-        
+
         // Fetch file from public URL using APIOCS (no authentication needed)
         $result = $this->ocsApi->fetchPublicFile($publicShareUrl);
 
         if (!$result['success']) {
             $GLOBALS['log']->error("NextCloudPreview: Failed to fetch file from public URL - HTTP {$result['httpCode']} - Error: {$result['error']}");
-            header('HTTP/1.1 502 Bad Gateway');
-            echo 'Failed to fetch file from NextCloud';
-            exit;
+            return null;
         }
 
         return [
             'fileData' => $result['data'],
             'contentType' => $result['contentType']
         ];
-    }     
-    
+    }
+
     /**
      * Determine MIME type from content type or file extension
      * @param string $contentType Content type from server
@@ -292,21 +304,21 @@ class entryNextCloudPreviewClass extends entryClass
         echo $fileData;
         exit;
     }
-             
+
     /**
-     * Output debug information as JSON
+     * Prepare debug information
      * @param string $publicShareUrl Public share URL
      * @param string $shareToken Share token
      * @param string $remoteFilePath Remote file path
      * @param SugarBean $document Document bean
      * @param SugarBean $revision Revision bean
+     * @return array Debug information
      */
-    private function outputDebugInfo($publicShareUrl, $shareToken, $remoteFilePath, $document, $revision)
+    private function prepareDebugInfo($publicShareUrl, $shareToken, $remoteFilePath, $document, $revision)
     {
         $revisionNumber = $revision->revision ?? '1';
-        
-        header('Content-Type: application/json');
-        echo json_encode([
+
+        return [
             'mode' => 'PUBLIC_SHARE',
             'auth_required' => false,
             'public_share_url' => $publicShareUrl,
@@ -316,7 +328,37 @@ class entryNextCloudPreviewClass extends entryClass
             'revision' => $revisionNumber,
             'filename' => $revision->filename,
             'message' => 'This URL is PUBLIC and does NOT require authentication'
-        ], JSON_PRETTY_PRINT);
+        ];
+    }
+
+    /**
+     * Output debug information as JSON
+     * @param array $debugInfo Debug information
+     */
+    private function outputDebugInfo($debugInfo)
+    {
+        header('Content-Type: application/json');
+        echo json_encode($debugInfo, JSON_PRETTY_PRINT);
+        exit;
+    }
+
+    /**
+     * Output error message with HTTP status code
+     * @param string $message Error message
+     * @param int $statusCode HTTP status code
+     */
+    private function outputError($message, $statusCode = 500)
+    {
+        $statusMessages = [
+            400 => 'Bad Request',
+            404 => 'Not Found',
+            500 => 'Internal Server Error',
+            502 => 'Bad Gateway'
+        ];
+        
+        $statusText = $statusMessages[$statusCode] ?? 'Error';
+        header("HTTP/1.1 {$statusCode} {$statusText}");
+        echo $message;
         exit;
     }
 }
