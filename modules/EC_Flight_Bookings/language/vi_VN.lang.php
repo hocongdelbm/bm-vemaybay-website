@@ -272,6 +272,8 @@ $mod_strings = array(
   'LBL_ITINERARY_PANEL'   => 'Hành trình',
   'LBL_PANEL_ITINERARY'   => 'Hành trình',
   'LBL_PANEL_PASSENGER'   => 'Hành khách',
+  'LBL_BOOKINGS_PANEL' => 'Thông tin booking',
+  'LBL_RELATE_PANEL' => 'Chứng từ liên quan',
 
   // IN VÉ
   'LBL_PRINT_AS_PDF'   => 'In vé',

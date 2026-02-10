@@ -749,6 +749,36 @@ if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 	}
 }
 
+// Nhắc nhở khách hàng lịch bay - button Remind
+if (isset($_POST['for']) && $_POST['for'] == 'changeCheckinStatus') {
+	$status     = isset($_POST['status']) ? (int)$_POST['status'] : 0;
+    $journey_id = isset($_POST['journey_id']) ? trim($_POST['journey_id']) : '';
+
+	if ($journey_id === '') {
+		$GLOBALS['log']->fatal('changeCheckinStatus FAILED: missing journey_id | POST=' . json_encode($_POST));
+		echo 0;
+		exit();
+	}
+
+	$journey_id = $db->quote($journey_id);
+	 $sql = "
+        UPDATE ec_booking_itineraries
+        SET checkin_status = {$status}
+        WHERE id = '{$journey_id}'
+    ";
+    $result = $db->query($sql);
+
+    if ($result) {
+        echo 1;
+    } else {
+        $GLOBALS['log']->fatal(
+            'changeCheckinStatus FAILED | SQL=' . $sql
+        );
+        echo 0;
+    }
+    exit;
+}
+
 // Cập nhật doanh số booking
 if (isset($_POST['for']) && $_POST['for'] == 'updateRevenueBooking') {
 	$booking_id = (isset($_POST["booking_id"]) && !empty($_POST["booking_id"])) ? $_POST["booking_id"] : null;
@@ -1225,9 +1255,11 @@ function populateEditedLineItineraries($booking_id)
 				,iti.time_limit
 				,iti.is_layover
 				,iti.is_remind
+				,iti.checkin_status
 				,bk.ticket_type
 				,bk.phone as bk_phone
 				,bk.name as bk_name
+				,bk.booking_status as booking_status
 				,GROUP_CONCAT(TRIM(iti.name)) AS pass_name
 				,GROUP_CONCAT(
 					IF(iti.assigned_user_id IN (
@@ -1322,23 +1354,14 @@ function populateEditedLineItineraries($booking_id)
 			<td data-label="Ngày giờ đi" class="text-center">' . (trim($row['departure_date']) != '' ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '') . '</td>
 			<td data-label="Ngày giờ đến" class="text-center">' . (trim($row['arrival_date']) != '' ? date($date_format . ' H:i', strtotime($row['arrival_date'])) : '') . '</td>';
 
-		// Nút in vé
-		$print_ticket_btn = $send_ticket_btn = $remind_btn = '';
+		// Nút nhắc lịch bay - checkin
+		$remind_btn = '';
+		$checkin_status = '';
+
 		if ($print_iti != $row['sabre_logs']) {
 			$print_iti = $row['sabre_logs'];
-			$print_ticket_btn = '<input type="hidden" name="add_type" value="3">
-				<input type="button" name="btnPrintEticket" value="In vé" title="In vé"
-					class="btn btn-primary-2 fw-semibold flex-fill"
-					ln="' . $j . '"
-					data-times-change="' . $print_iti . '"
-				/>
-			';
-			$send_ticket_btn = '<input type="button" name="btnSendEticket" value="Gửi vé" title="Gửi vé"
-				class="btn btn-primary-2 fw-semibold flex-fill"
-				ln="' . $j . '"
-				data-times-change="' . $print_iti . '"
-			/>';
 
+			// remind
 			if ($row['is_remind'] == 0) {
 				// $remind_btn .= '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
 
@@ -1355,6 +1378,11 @@ function populateEditedLineItineraries($booking_id)
 						</li>
 					</ul>
 				</div>';
+			}
+
+			// Checkin
+			if ((int)$row['checkin_status'] !== 2 && in_array((int)$row['booking_status'], [7, 8])){
+				$checkin_status = '<select class="select-box" id="checkin_status_iti" name="checkin_status_iti" iti_id="' . $row['id'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
 			}
 		}
 
@@ -1387,6 +1415,7 @@ function populateEditedLineItineraries($booking_id)
 						style="max-width:30%"
 					/>
 					' . $remind_btn . '
+					' . $checkin_status . '
 				</div>
 			</form>
 		</td>';

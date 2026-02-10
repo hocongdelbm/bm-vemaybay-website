@@ -4,6 +4,7 @@ $(document).ready(function(){
         "line_itineraries", // Hành trình
         "line_details", // Chi tiết vé
         "line_passengers", // Hành khách
+        "line_relate_voucher", // Phiếu thu
         "line_items", // ec_customer - danh sách booking , ec_hoanve
     ];
     arr_box.forEach(element => {

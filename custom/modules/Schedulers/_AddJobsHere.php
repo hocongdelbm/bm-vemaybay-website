@@ -48,14 +48,13 @@ function notifyCheckinJourney()
 				i.flight_number,
 				i.base_price,
 				i.ticket_class,
-				b.date_ticket_issue,
-				b.checkin_status
+				b.date_ticket_issue
 			FROM ec_booking_itineraries i
 			JOIN ec_flight_bookings b ON i.booking_id = b.id AND b.deleted = 0
 			WHERE b.booking_status IN ('7','8')
 				AND i.deleted = 0
 				AND i.departure_date != ''
-				AND b.checkin_status = 0
+				AND i.checkin_status = 0
 				AND NOW() >= DATE_SUB(i.departure_date, INTERVAL 24 HOUR)
 				AND NOW() <= DATE_SUB(i.departure_date, INTERVAL 24 HOUR) + INTERVAL 1 MINUTE
 			ORDER BY i.departure_date ASC

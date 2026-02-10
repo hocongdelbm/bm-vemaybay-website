@@ -293,6 +293,37 @@ $(document).ready(function () {
 		});
 	});
 
+	// Change checkin status
+	$(document).on("change", "select#checkin_status_iti", function () {
+		if (!confirm('Thay đổi trạng thái checkin?')) return false;
+		else {
+			let status = $(this).find(":selected").val();
+			let journey_id = $(this).attr('iti_id');
+
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					status: status,
+					journey_id: journey_id,
+					for: "changeCheckinStatus",
+				},
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					if (response == 1) {
+						setTimeout(() => {
+							location.reload();
+						}, 150);
+					} else {
+						let text_warning = 'Lỗi khi thực hiện thay đổi trạng thái checkin. Vui lòng liên hệ IT để được hỗ trợ.';
+						showModalNotify(0, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					}
+				}
+			});
+		};
+		
+	});
 
 	// Open form send mail
 	$('#btnSendMail').on('click', function () {
