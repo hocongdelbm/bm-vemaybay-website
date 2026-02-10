@@ -209,4 +209,48 @@ class Alert extends Basic
 
         return null; // Lỗi khi lưu alert
     }
+    /**Custom functions- Dahy Van
+     * 
+     * Override deleteFiles() to PREVENT moving files to deleted folder
+     * All files are stored on NextCloud - no need for local storage
+     * This directly deletes files instead of moving to deleted/
+     * 
+     * @return bool
+     */
+    public function deleteFiles()
+    {
+        $GLOBALS['log']->info("[OVERRIDE-deleteFiles] Document ID: {$this->id} - Deleting files directly (NOT moving to deleted/)");
+
+        try {
+            if (!$this->id || !$this->haveFiles()) {
+                $GLOBALS['log']->info("[OVERRIDE-deleteFiles] No files to delete");
+                return true;
+            }
+
+            $files = $this->getFiles();
+            if (empty($files)) {
+                $GLOBALS['log']->info("[OVERRIDE-deleteFiles] getFiles() returned empty");
+                return true;
+            }
+
+            $deletedCount = 0;
+            foreach ($files as $fileId) {
+                // Xóa file chính
+                $uploadPath = "upload://{$fileId}";
+                if (file_exists($uploadPath)) {
+                    if (@unlink($uploadPath)) {
+                        $deletedCount++;
+                        $GLOBALS['log']->info("[OVERRIDE-deleteFiles]  DELETED: {$uploadPath}");
+                    } else {
+                        $GLOBALS['log']->warn("[OVERRIDE-deleteFiles]  Failed to delete: {$uploadPath}");
+                    }
+                }
+            }
+            // Return true - KHÔNG insert vào cron_remove_documents vì không cần dọn dẹp gì
+            return true;
+        } catch (Exception $e) {
+            $GLOBALS['log']->error("[OVERRIDE-deleteFiles] Exception: " . $e->getMessage());
+            return false;
+        }
+    }
 }

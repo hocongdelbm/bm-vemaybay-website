@@ -198,6 +198,16 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
             array(
+                array(),
+
+                array(
+                    'name' => 'documents',
+                    'label' => 'LBL_DOCUMENTS',
+                    'customCode' => '{$DOC_BUTTON} {$DOC_LIST_BUTTON}',
+                ),
+            ),
+
+            array(
                 array(
                     'name' => 'ip_address',
                     'label' => 'LBL_IP_ADDRESS',

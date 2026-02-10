@@ -164,6 +164,9 @@ class Document extends File
                 $query = "update linked_documents set deleted=1 where id='" . $loadSignedIdQuoted . "'";
                 $this->db->query($query);
             }
+        } else {
+            // XỬ LÝ UPDATE - Khi edit document có sẵn
+            // No preview_image generation needed - removed for refactoring
         }
 
         return parent::save($check_notify);
@@ -401,6 +404,67 @@ class Document extends File
         }
 
         return false;
+    }
+
+    /**Custom functions- Dahy Van
+     * 
+     * Override deleteFiles() to PREVENT moving files to deleted folder
+     * All files are stored on NextCloud - no need for local storage
+     * This directly deletes files instead of moving to deleted/
+     * 
+     * @return bool
+     */
+    public function deleteFiles()
+    {
+        $GLOBALS['log']->info("[OVERRIDE-deleteFiles] Document ID: {$this->id} - Deleting files directly (NOT moving to deleted/)");
+        
+        try {
+            if (!$this->id || !$this->haveFiles()) {
+                $GLOBALS['log']->info("[OVERRIDE-deleteFiles] No files to delete");
+                return true;
+            }
+            
+            $files = $this->getFiles();
+            if (empty($files)) {
+                $GLOBALS['log']->info("[OVERRIDE-deleteFiles] getFiles() returned empty");
+                return true;
+            }
+
+            $deletedCount = 0;
+            foreach ($files as $fileId) {
+                // Xóa file chính
+                $uploadPath = "upload://{$fileId}";
+                if (file_exists($uploadPath)) {
+                    if (@unlink($uploadPath)) {
+                        $deletedCount++;
+                        $GLOBALS['log']->info("[OVERRIDE-deleteFiles]  DELETED: {$uploadPath}");
+                    } else {
+                        $GLOBALS['log']->warn("[OVERRIDE-deleteFiles]  Failed to delete: {$uploadPath}");
+                    }
+                }
+            }
+            
+            $GLOBALS['log']->info("[OVERRIDE-deleteFiles] Completed - Deleted {$deletedCount} files directly, skipped deleted/ folder");
+            
+            // Return true - KHÔNG insert vào cron_remove_documents vì không cần dọn dẹp gì
+            return true;
+            
+        } catch (Exception $e) {
+            $GLOBALS['log']->error("[OVERRIDE-deleteFiles] Exception: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Override restoreFiles() for consistency
+     * Since files are deleted directly (not moved to deleted/), there's nothing to restore
+     * 
+     * @return bool
+     */
+    public function restoreFiles()
+    {
+        $GLOBALS['log']->info("[OVERRIDE-restoreFiles] Document ID: {$this->id} - Cannot restore (files stored on NextCloud only)");
+        return true;
     }
 
     //static function.

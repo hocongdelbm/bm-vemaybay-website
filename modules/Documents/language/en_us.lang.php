@@ -166,4 +166,7 @@ $mod_strings = array(
     'LBL_BUGS_SUBPANEL_TITLE' => 'Bugs',
 
     'LBL_AOS_CONTRACTS' => 'Contracts',
+
+    'LBL_BOOKING_NAME' => 'Booking',
+    'LBL_PREVIEW_PHOTO' => 'Preview',
 );

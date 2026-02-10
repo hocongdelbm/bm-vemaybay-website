@@ -5,7 +5,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 $entry_point_registry = array(
     'emailImage'                            => array('file' => 'modules/EmailMan/EmailImage.php', 'auth' => false),
-    'download'                              => array('file' => 'download.php', 'auth' => true),
+    'download'                              => array('file' => 'custom/download.php', 'auth' => true), //custom
     'export'                                => array('file' => 'export.php', 'auth' => true),
     'export_dataset'                        => array('file' => 'export_dataset.php', 'auth' => true),
     'Changenewpassword'                     => array('file' => 'modules/Users/Changenewpassword.php', 'auth' => false),
@@ -132,4 +132,5 @@ $entry_point_registry = array(
     'entryPointGeneralNA' => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
     'entryPointGeneral' => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryTelegramWebhook' => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
+
 );

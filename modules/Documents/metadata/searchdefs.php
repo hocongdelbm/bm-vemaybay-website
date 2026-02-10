@@ -6,7 +6,23 @@ $searchdefs['Documents'] =
       'basic_search' =>
       array(
         0 => 'document_name',
-        1 => array('name' => 'favorites_only', 'label' => 'LBL_FAVORITES_FILTER', 'type' => 'bool',),
+        1 =>
+        array(
+          'name' => 'booking_name',
+          'label' => 'LBL_BOOKING_NAME',
+          'type' => 'relate',
+          'default' => true,
+          'width' => '10%',
+          'displayParams' =>
+          array(
+            'field' =>
+            array(
+              'readonly' => 'readonly',
+              'style' => 'background-color: #f0f0f0;',
+            ),
+          ),
+        ),
+        2 => 'active_date',
       ),
       'advanced_search' =>
       array(
@@ -16,13 +32,22 @@ $searchdefs['Documents'] =
           'default' => true,
           'width' => '10%',
         ),
-        'status' =>
+        'booking_name' =>
         array(
-          'type' => 'varchar',
-          'label' => 'LBL_DOC_STATUS',
+          'type' => 'relate',
+          'studio' => 'visible',
+          'label' => 'LBL_BOOKING_NAME',
           'width' => '10%',
           'default' => true,
-          'name' => 'status',
+          'name' => 'booking_name',
+          'displayParams' =>
+          array(
+            'field' =>
+            array(
+              'readonly' => 'readonly',
+              'style' => 'background-color: #f0f0f0;',
+            ),
+          ),
         ),
         'active_date' =>
         array(
@@ -30,18 +55,16 @@ $searchdefs['Documents'] =
           'default' => true,
           'width' => '10%',
         ),
-        'category_id' =>
-        array(
-          'name' => 'category_id',
-          'default' => true,
+
+        'status_id' => array(
+          'name' => 'status_id',
+          'type' => 'enum',
+          'label' => 'LBL_DOC_STATUS',
           'width' => '10%',
-        ),
-        'subcategory_id' =>
-        array(
-          'name' => 'subcategory_id',
           'default' => true,
-          'width' => '10%',
+          'options' => 'document_status_dom',
         ),
+
         'template_type' =>
         array(
           'type' => 'enum',
@@ -50,6 +73,21 @@ $searchdefs['Documents'] =
           'default' => true,
           'name' => 'template_type',
         ),
+        'category_id' =>
+        array(
+          'name' => 'category_id',
+          'default' => true,
+          'width' => '10%',
+        ),
+        // 'subcategory_id' =>
+        // array(
+        //   'name' => 'subcategory_id',
+        //   'default' => true,
+        //   'width' => '10%',
+        // ),
+
+
+
         // 'assigned_user_id' =>
         // array(
         //   'name' => 'assigned_user_id',
@@ -66,12 +104,6 @@ $searchdefs['Documents'] =
         //   'default' => true,
         //   'width' => '10%',
         // ),
-        'exp_date' =>
-        array(
-          'name' => 'exp_date',
-          'default' => true,
-          'width' => '10%',
-        ),
       ),
     ),
     'templateMeta' =>
