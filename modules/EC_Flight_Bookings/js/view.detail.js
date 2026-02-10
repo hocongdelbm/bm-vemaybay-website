@@ -293,11 +293,72 @@ $(document).ready(function () {
 		});
 	});
 
+	// Change checkin status
+	$(document).on("change", "select#checkin_status_iti", function () {
+		if (!confirm('Thay đổi trạng thái checkin?')) return false;
+		else {
+			let status = $(this).find(":selected").val();
+			let journey_id = $(this).attr('iti_id');
+
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					status: status,
+					journey_id: journey_id,
+					for: "changeCheckinStatus",
+				},
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					if (response == 1) {
+						setTimeout(() => {
+							location.reload();
+						}, 150);
+					} else {
+						let text_warning = 'Lỗi khi thực hiện thay đổi trạng thái checkin. Vui lòng liên hệ IT để được hỗ trợ.';
+						showModalNotify(0, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					}
+				}
+			});
+		};
+		
+	});
 
 	// Open form send mail
 	$('#btnSendMail').on('click', function () {
 		$('#frmContinueSendMail').css('display', 'block');
 		$(this).hide();
+	});
+
+	// Preview form send mail
+	$('#btnPreviewSendMail').on('click', function () {
+		$("#dialog_mail_confirm_preview").dialog({
+			title: "Xác nhận thông tin",
+			width: 700,
+			modal: true,
+			resizable: false,
+			position: {
+				my: "center top",
+				at: "center top+50",
+				of: window
+			}
+		});
+		
+		$.ajax({
+			url: "index.php?entryPoint=entryPointFlightBookings",
+			type: "POST",
+			data: {
+				"booking_id": $(this).attr('booking_id'),
+				"for": "previewSendMail",
+			},
+			beforeSend: function () {
+				$("#dialog_mail_confirm_preview").html('');
+			},
+			success: function (response) {
+				$("#dialog_mail_confirm_preview").html(response);
+			}
+		});
 	});
 
 	// Close form send mail

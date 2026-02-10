@@ -220,7 +220,7 @@ class entryAutoBookPhuongNamClass extends entryClass {
             $booking = new EC_Flight_Bookings();
             $booking->retrieve($bookingId);
             $dataContact['name'] = $booking->contact_name;
-            $dataContact['email'] = $booking->email_reservation;
+            $dataContact['email'] = !empty($booking->email_reservation) ? $booking->email_reservation : 'info@timchuyenbay.com';
             $dataContact['phone'] = trim($booking->phone);
             $dataContact['title'] = $booking->contact_title == '0' ? 'Mr.' : 'Ms.';
             $dataContact['address'] = !empty($booking->address) ? trim($booking->address) : '48/8 Lam Sơn, P. Gia Định';

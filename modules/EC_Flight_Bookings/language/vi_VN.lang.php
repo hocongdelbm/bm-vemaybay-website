@@ -52,6 +52,7 @@ $mod_strings = array(
   'LBL_PANEL16' => 'Thông tin booking',
 
   'LBL_PANEL_BANK' => 'Chuyển khoản',
+  'LBL_JOURNEY' => 'Hành trình',
 
   'LBL_BOOKING_CONTENT_OUTBOUND'  => 'Nội dung vé chiều đi',
   'LBL_BOOKING_CONTENT_INBOUND'   => 'Nội dung vé chiều về',
@@ -271,11 +272,14 @@ $mod_strings = array(
   'LBL_ITINERARY_PANEL'   => 'Hành trình',
   'LBL_PANEL_ITINERARY'   => 'Hành trình',
   'LBL_PANEL_PASSENGER'   => 'Hành khách',
+  'LBL_BOOKINGS_PANEL' => 'Thông tin booking',
+  'LBL_RELATE_PANEL' => 'Chứng từ liên quan',
 
   // IN VÉ
   'LBL_PRINT_AS_PDF'   => 'In vé',
   'LBL_PASSENGER_LT_FILTER'   => 'Lý thông',
 
+  'LBL_CHECKIN_STATUS'   => 'Trạng thái checkin',
   'LBL_RECALL_C'   => 'Recall',
 
   'LBL_EMAIL_RESERVATION'   => 'Email đặt chỗ',

@@ -2,8 +2,10 @@
 require_once("include/Sugar_Smarty.php");
 // require_once("phpexcel/Classes/PHPExcel/IOFactory.php");
 
-class Viewcheckflydate extends SugarView {
-    function display() {
+class Viewcheckflydate extends SugarView
+{
+    function display()
+    {
         if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
             $smartyCont = new Sugar_Smarty();
             $this->populateContent($smartyCont);
@@ -14,7 +16,8 @@ class Viewcheckflydate extends SugarView {
         }
     }
 
-    function populateContent($smartyobj) {
+    function populateContent($smartyobj)
+    {
         global $db, $app_list_strings, $current_user;
         $sql_search = "";
 
@@ -77,7 +80,7 @@ class Viewcheckflydate extends SugarView {
             $aircode_inter_arr2[$item['code']] = $item['code'];
         }
 
-        $aircode = array_merge(array('VNA' => 'VN', 'VJA' => 'VJ', 'JET' => 'BL', 'BBA' => 'QH', 'VNP' => 'VNP', 'VTA' => 'VTA'), $aircode_inter_arr2);
+        $aircode = array_merge(array('VNA' => 'VN', 'VN' => 'VNA', 'VJA' => 'VJ', 'JET' => 'BL', 'BBA' => 'QH', 'VNP' => 'VNP', 'VTA' => 'VTA'), $aircode_inter_arr2);
         $sql = "SELECT b.id AS booking_id,
 					b.name AS booking,
 					b.contact_name,
@@ -91,6 +94,7 @@ class Viewcheckflydate extends SugarView {
 					i.base_price,
 					i.ticket_class,
 					b.date_ticket_issue,
+					i.checkin_status,
 					i.is_remind,
 					(
 					    SELECT SUM(IFNULL(d.quantity, 0)) 
@@ -111,7 +115,7 @@ class Viewcheckflydate extends SugarView {
 				ORDER BY b.date_ticket_issue, complete_time ";
 
         // if($current_user->user_name == 'hungnh'){
-        //     pr($sql);
+        // pr($sql);
         // }
 
         $res    = $db->query($sql);
@@ -120,7 +124,7 @@ class Viewcheckflydate extends SugarView {
 
         while ($row = $db->fetchByAssoc($res)) {
             $complete_time = (empty($row['complete_time']) ? '' : date('d/m/Y H:i:s', strtotime($row['complete_time'])));
-            if($row['is_remind'] == 1){
+            if ($row['is_remind'] == 1) {
                 $is_remind     = 'background: #cfeafe';
                 $class_remind   = 'remind';
             } else {
@@ -128,10 +132,18 @@ class Viewcheckflydate extends SugarView {
                 $class_remind   = '';
             }
 
-            $html .= '<tr class="'.$class_remind.'" style="'.$is_remind.'">
+            $class_checkin_status   = '';
+            if ($row['checkin_status'] == 1) {
+                $class_checkin_status   = 'text-danger';
+            } else if ($row['checkin_status'] == 2) {
+                $class_checkin_status   = 'text-success';
+            }
+
+            $html .= '<tr class="' . $class_remind . '" style="' . $is_remind . '">
 				<td class="fw-semibold hide-mobile" align="center">' . ($i + 1) . '</td>
 				<td class="fw-semibold" align="center"><a target="_blank" href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '">' . $row['booking'] . '</a></td>
 				<td align="left">' . $row['contact_name'] . '</td>
+				<td align="center" class="fw-semibold ' . $class_checkin_status . '">' . $app_list_strings['booking_checkin_status_list'][$row['checkin_status']] . '</td>
 				<td align="center">' . $row['phone'] . '</td>
 				<td align="center" class="hide-mobile">
                     <img style="width:40px;" src="custom/themes/default/images/airline-icon-100x100/' . $aircode[$row['airline_code']] . '.png" border="0" />
@@ -157,7 +169,8 @@ class Viewcheckflydate extends SugarView {
         $smartyobj->assign('AIRLINES', get_select_options_with_id(($app_list_strings['aircode_list'] + $aircode_inter_arr), (isset($_POST['airlines']) ? $_POST['airlines'] : '')));
     }
 
-    function getHourList($val) {
+    function getHourList($val)
+    {
         $html = '';
         for ($i = 0; $i < 24; $i++) {
             $selected = ($i == $val) ? 'selected="selected"' : '';
@@ -166,7 +179,8 @@ class Viewcheckflydate extends SugarView {
         return $html;
     }
 
-    function getMinuteList($val) {
+    function getMinuteList($val)
+    {
         $html = '';
         for ($i = 0; $i < 60; $i++) {
             $selected = ($i == $val) ? 'selected="selected"' : '';

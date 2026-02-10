@@ -17,8 +17,6 @@ class EC_HoanVeViewDetail extends ViewDetail {
 			var tinhtrang="'.$this->bean->tinhtrang.'";
 		</script>';
 
-		$js .= '<script src="modules/EC_HoanVe/js/view.detail.js"></script>';
-
 		echo $js;
 	}
 	

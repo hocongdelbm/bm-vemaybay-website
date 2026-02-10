@@ -42,6 +42,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		// Thông tin hành khách ban đầu (Chưa đổi)
 		$this->ss->assign('LINE_PASSENGERS', $this->populateLinePassengers());
 
+		// Danh sách phiếu thu
+		$this->ss->assign('LINE_RELATE_VOUCHER', $this->populateLineRelateVoucher());
+
 		$this->createModal(); // Modal for confirm action
 
 		if ($current_user->user_name == 'hungnh') {
@@ -177,7 +180,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		global $app_list_strings, $current_user;
 
 		// External file
-		$js = '<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.1"></script>
+		$js = '
+			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.4"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>
@@ -1181,7 +1185,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<option value="sendmail_closetime.html">Mail cận giờ bay</option>
 						<!-- <option value="sendmail_promo.html">Mail vé khuyến mãi</option> -->
 					</select>
-					<input type="submit" class="btn btn-primary save-popup-dialog" value="Tiếp tục" title="Tiếp tục" />
+					<input type="submit" class="btn btn-primary save-popup-dialog" value="Gửi mail" title="Gửi mail" />
+					<input type="button" class="btn btn-primary" id="btnPreviewSendMail" booking_id="' . $this->bean->id . '" value="Xem trước" title="Xem trước" />
+					<div id="dialog_mail_confirm_preview" style="display: none;"></div>
 					<input type="button" class="btn btn-secondary" id="btnCancelSendMail" value="Hủy bỏ" title="Hủy bỏ" />
 				</span>
 				<button type="button" class="btn btn-email" id="btnSendMail" value="Gửi mail" >
@@ -1200,9 +1206,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		/**
 		 * Trong khung giờ 21h - 6h sáng thì được thấy nút "chuyển trạng thái booking"
 		 */
-		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || $current_user->user_name == 'hungnh') {
+		if (isManagerUser($current_user->id) && !in_array($this->bean->booking_status, [7, 8]) || is_admin($current_user)) {
 			// if (ACLController::checkAccess('Bugs', 'edit', true) && $this->editing_rights && !in_array($this->bean->booking_status, array(4, 7, 8))) {
-			// if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id)  || $current_user->user_name == 'hungnh' || $current_user->user_name == 'admin' || strtotime($time_current) < strtotime("08:00:00") || strtotime($time_current) > strtotime("20:59:59")) {
+			// if (!in_array($this->bean->booking_status, array(3, 4, 7, 8)) && isManagerUser($current_user->id) || $current_user->user_name == 'admin' || strtotime($time_current) < strtotime("08:00:00") || strtotime($time_current) > strtotime("20:59:59")) {
 			$change_status = '</form>
 				<form action="index.php" method="post" name="frmChangeStatus" id="frmChangeStatus" class="d-flex align-items-center gap-2">
 					<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -1217,7 +1223,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 
 		// Những nhân viên đã xem booking
-		if (isAllowedUser()) {
+		// if (isAllowedUser()) {
+		if (is_admin($current_user) && $current_user->title != 'QuanLy') {
 			$viewed = '</form>
 			<form action="index.php" method="post" name="frmViewedBooking" id="frmViewedBooking" class="d-flex align-items-center gap-2">
 				<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -1447,6 +1454,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					</button>
 				</div>'
 		);
+
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
@@ -1506,9 +1514,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					iti.is_layover,
 					iti.date_entered,
 					iti.is_remind,
+					iti.checkin_status,
 					bk.booking_status
 				FROM ec_booking_itineraries iti
-				LEFT JOIN ec_flight_bookings bk ON bk.id = iti.booking_id
+				LEFT JOIN ec_flight_bookings bk ON bk.id = iti.booking_id AND bk.deleted = 0
 				WHERE iti.booking_id = '" . $this->bean->id . "' 
 					AND iti.deleted = 0 
 					AND iti.add_type = 0
@@ -1570,12 +1579,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<td data-label="Giá cơ bản" class="text-end">' . format_number($row['base_price']) . '</td>';
 
 			if ($row['is_layover'] == 0 && $use_mail_eticket) {
-				// PRINT BUTTON
-				// $print_ticket_btn = '<input type="button" ln="' . $i . '" name="btnPrintEticket-selection" value="In vé" title="In vé" class="btn btn-primary-2" />';
-
-				// SEND BUTTON
-				$send_ticket_btn = '<input type="button" ln="' . $i . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" class="btn btn-primary-2" />';
-
 				// REMIND BUTTON
 				$remind_btn = '';
 				if ($row['is_remind'] == 0 && ($row['booking_status'] == 7 || $row['booking_status'] == 8)) {
@@ -1608,6 +1611,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					applied_pass="' . ($row['direction'] == 0 ? $departure_applied_pass : $arrival_applied_pass) . '"
 				/>';
 
+				// TT Checkin status
+				$checkin_status = '';
+				if ((int)$row['checkin_status'] !== 2 && in_array((int)$this->bean->booking_status, [7, 8])) {
+					$checkin_status = '<select class="select-box" id="checkin_status_iti" name="checkin_status_iti" iti_id="' . $row['id'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
+				}
+
 				$html .= '<td data-label="" class="text-center">
 					<form action="index.php?print=true" method="post" name="frmPrintEticket" id="frmPrintEticket' . $i . '" target="_blank">
 						<input type="hidden" name="module" value="EC_Flight_Bookings" />
@@ -1627,6 +1636,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<div class="action-button-ticket d-flex gap-2 align-items-center justify-content-center">
 							' . $sms_btn . '
 							' . $remind_btn . '
+							' . $checkin_status . '
 						</div>
 					</form>
 				</td>';
@@ -1972,10 +1982,110 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		/* CHANGE PASSENGER INFO */
 		// $html .= $this->populateEditedInfo(2);
-		$html .= '</table></div>';
+		$html .= '</table>';
 
 		return $html;
 	}
+
+	/**
+	 * Render table default receipt voucher
+	 * @return string HTML
+	 */
+	function populateLineRelateVoucher()
+	{
+		global $current_user, $db;
+
+		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
+		$html .= '<thead>
+			<tr>
+				<th scope="col" width="5%">STT</th>
+				<th scope="col" width="15%">Ngày chứng từ</th>
+				<th scope="col" width="15%">Tên phiếu</th>
+				<th scope="col" width="15%">Tình trạng</th>
+				<th scope="col" width="15%">Số tiền</th>
+				<th scope="col">Ghi chú</th>
+			</tr>
+		</thead>';
+
+		$sql = "SELECT id, name, rv_status, amount, description, ngaychungtu, guest_name, loai_thu
+				FROM ec_receipt_voucher
+				WHERE booking_id = '" . $this->bean->id . "'
+				AND deleted = 0		
+		";
+
+		$booking_id = $db->quote($this->bean->id);
+
+		$sql = "(
+					SELECT
+						id,
+						name,
+						rv_status as status,
+						'receipt_voucher_status_list' AS status_list,
+						'receipt_voucher_status_color_list' AS status_list_color,
+						amount,
+						description,
+						ngaychungtu,
+						'EC_Receipt_Voucher' AS parent_type
+					FROM ec_receipt_voucher
+					WHERE booking_id = '$booking_id'
+					AND deleted = 0
+				)
+				UNION ALL
+				(
+					SELECT
+						id,
+						name,
+						tinhtrang AS status,
+						'tinhtranghoanve_list' AS status_list,
+						'tinhtranghoanvecolor_list' AS status_list_color,
+						tongtienkhach AS amount,
+						description,
+						ngaychungtu,
+						'EC_HoanVe' AS parent_type
+					FROM ec_hoanve
+					WHERE booking_id = '$booking_id'
+					AND deleted = 0
+				)
+				ORDER BY ngaychungtu DESC";
+
+		// if ($current_user->user_name == 'hungnh') {
+		// 	pr($sql);
+		// }
+
+		$res = $db->query($sql);
+		$count = $db->countRows($res);
+
+		if ($count > 0) {
+			$i = 1;
+			while ($row = $db->fetchByAssoc($res)) {
+				$html .= '<tr>
+							<td data-label="STT" class="text-center">' . $i . '</td>
+							<td data-label="Ngày chứng từ" class="text-center">
+									' . date('d-m-Y', strtotime($row['ngaychungtu'])) . '
+							</td>
+							<td data-label="Tên phiếu" class="text-center">
+								<a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['id'] . '" target="_blank">
+									' . $row['name'] . '
+								</a>
+							</td>
+							<td data-label="Tình trạng" class="text-center fw-semibold" style="color:' . $GLOBALS['app_list_strings'][$row['status_list_color']][$row['status']] . ';">' . $GLOBALS['app_list_strings'][$row['status_list']][$row['status']] . '</td>
+							<td data-label="Số tiền" class="text-center">' . format_number($row['amount']) . '</td>
+							<td data-label="Ghi chú" class="text-start text-wrap">' . $row['description'] . '</td>
+						</tr>';
+
+				$i++;
+			}
+		} else {
+			$html .= '<tr>
+						<td colspan="8" class="text-start fw-semibold">Không có chứng từ liên quan.</td>
+					</tr>';
+		}
+
+		$html .= '</table>';
+
+		return $html;
+	}
+
 
 	function getOldPassName($booking_id, $detail_id, $date_entered)
 	{

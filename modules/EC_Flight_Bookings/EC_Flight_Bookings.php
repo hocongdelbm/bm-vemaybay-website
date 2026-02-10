@@ -1,7 +1,8 @@
 <?php
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-class EC_Flight_Bookings extends Basic {
+class EC_Flight_Bookings extends Basic
+{
 	public $new_schema = true;
 	public $module_dir = 'EC_Flight_Bookings';
 	public $object_name = 'EC_Flight_Bookings';
@@ -80,7 +81,7 @@ class EC_Flight_Bookings extends Basic {
 	public $point_step = 50;
 	public $contact_name_ignore = ['THAM KHAO', 'TEST', 'IT', 'DEMO'];
 	public $list_website_new_baggage = ['557d4a5b-27ce-5cb1-4531-5800ab9ed31d', '2b2c93b3-e916-113c-29bc-5b4c6de75db4', 'dc22131a-795a-6cd3-2caa-52d40d3b5622', 'd83ad3f6-3b3b-ba7b-f046-5512bad66c66'];
-	
+
 	public function bean_implements($interface)
 	{
 		switch ($interface) {
@@ -93,7 +94,8 @@ class EC_Flight_Bookings extends Basic {
 
 
 	/*==================== CUSTOM ====================*/
-	function save($check_notify = FALSE) {
+	function save($check_notify = FALSE)
+	{
 		global $current_user, $app_list_strings, $db;
 
 		// Set up current user for use new API
@@ -109,22 +111,20 @@ class EC_Flight_Bookings extends Basic {
 		}
 
 		// Set name of booking
-        $is_alert = 0;
+		$is_alert = 0;
 		$isDuplicate = false;
 		// If duplicate save
 		if (isset($_POST['duplicateSave']) && $_POST['duplicateSave'] == 'true' && isset($_POST['booking_prev_name']) && !empty($_POST['booking_prev_name'])) {
 			$isDuplicate = true;
 			$prefix = substr($_POST['booking_prev_name'], 0, 2);
 			$this->name = $prefix . $this->generate_booking_name();
-		}
-		else if (empty($this->name)) {
+		} else if (empty($this->name)) {
 			if (isset($current_user->agent_prefix) && !empty($current_user->agent_prefix)) $prefix = $current_user->agent_prefix;
 			else $prefix = 'BK';
 
 			$this->name = $prefix . $this->generate_booking_name();
 			$is_alert = 1;
-		}
-		else {
+		} else {
 			// Edit name of booking
 			// Lấy booking_name hiện tại từ db
 			$sql_get_current_name 	= 'SELECT name FROM ec_flight_bookings WHERE id = "' . $this->id . '"';
@@ -198,7 +198,7 @@ class EC_Flight_Bookings extends Basic {
 		$this->saveInvoiceInf($_POST, $this->id);
 
 		// MST là bắt buộc khi xuất hóa đơn
-		if(!empty($this->tax_code) && (int)$is_alert === 1){
+		if (!empty($this->tax_code) && (int)$is_alert === 1) {
 			$inv_arr = json_decode(str_replace("&quot;", "\"", $this->shipping_address), 1);
 
 			$name 		= $inv_arr['iv_account_name'] ?? '';
@@ -219,14 +219,14 @@ class EC_Flight_Bookings extends Basic {
 				'name' 			=> $user_inv,
 				'parent_type' 	=> 'EC_Flight_Bookings',
 				'parent_id' 	=> $this->id,
-				'description' 	=> 'Booking '.$this->name.' yêu cầu xuất hóa đơn.',
-				'url_redirect' 	=> 'index.php?module=EC_Flight_Bookings&action=DetailView&record='.$this->id.'',
+				'description' 	=> 'Booking ' . $this->name . ' yêu cầu xuất hóa đơn.',
+				'url_redirect' 	=> 'index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $this->id . '',
 				'priority' 		=> 'low',
 				'type' 			=> 'readonly',
 			];
 			$alert = new Alert();
 			$alertId = $alert->autoCreateAlert('EC_Flight_Bookings', $list_user_kt, $alertData);
-		} 
+		}
 
 		// Begin save working process for delivery man
 		if (isset($this->delivery_man_id) && !empty($this->delivery_man_id) && $this->fetched_row['delivery_man_id'] != $this->delivery_man_id) {
@@ -257,7 +257,7 @@ class EC_Flight_Bookings extends Basic {
 
 		// Save passengers
 		if (isset($_POST['psg_id']) && !is_null($_POST['psg_id'])) {
-			if(in_array($this->created_by, $this->list_website_new_baggage)) $this->saveLinePassengers();
+			if (in_array($this->created_by, $this->list_website_new_baggage)) $this->saveLinePassengers();
 			else $this->saveLinePassengersOld();
 		}
 
@@ -270,20 +270,27 @@ class EC_Flight_Bookings extends Basic {
 		// LƯU THÔNG TIN KHÁCH HÀNG
 		// $this->saveInforCustomer($journey);
 
-		if($isDuplicate) {
+		if ($isDuplicate) {
 			$redirect_url = "index.php?module={$this->module_dir}&action=DetailView&record=$recordId";
 			header("Location: {$redirect_url}");
 			exit();
 		}
 	}
 
-	public function save2($check_notify = FALSE) { return parent::save($check_notify); }
+	public function save2($check_notify = FALSE)
+	{
+		return parent::save($check_notify);
+	}
 
 	// Save booking from webservice
-	public function save_from_webservice($check_notify = FALSE) { return parent::save($check_notify); }
+	public function save_from_webservice($check_notify = FALSE)
+	{
+		return parent::save($check_notify);
+	}
 
 	// Generate booking random string
-	function generate_booking_name() {
+	function generate_booking_name()
+	{
 		// New 10/07/2023
 		$booking_name = '';
 		$booking_name .= date('y') . date('m') . date('d');
@@ -358,7 +365,8 @@ class EC_Flight_Bookings extends Basic {
 		}
 	}
 
-	function saveLineDetails() {
+	function saveLineDetails()
+	{
 		global $app_list_strings;
 
 		$row_count = count($_POST['bkd_quantity'] ?? []);
@@ -416,12 +424,13 @@ class EC_Flight_Bookings extends Basic {
 			saveRevenueBooking($this->id);
 		}
 	}
-	
+
 	/**
 	 * Save passengers info
 	 * @return void
 	 */
-	public function saveLinePassengers() {
+	public function saveLinePassengers()
+	{
 		$row_count = count($_POST['psg_id'] ?? []);
 		for ($i = 0; $i < $row_count; $i++) {
 			$psg = new EC_Booking_Passengers();
@@ -445,11 +454,10 @@ class EC_Flight_Bookings extends Basic {
 			$psg->deleted 			= (int)($_POST['psg_deleted'][$i] ?? 0);
 			// CCCD / Passport
 			$id_number = trim($_POST['psg_id_number'][$i] ?? '');
-			if(ctype_digit($id_number) && strlen($id_number) == 12) {
+			if (ctype_digit($id_number) && strlen($id_number) == 12) {
 				$psg->cic = $id_number;
 				$psg->passport_number = "";
-			}
-			else {
+			} else {
 				$psg->passport_number = $id_number;
 				$psg->cic = "";
 			}
@@ -466,7 +474,7 @@ class EC_Flight_Bookings extends Basic {
 			$psg->vat_luggage_purchase_inbound 	= unformat_number($_POST['psg_vat_luggage_purchase_inbound'][$i]);
 			// Cost
 			$psg->luggage_purchase_no_vat 			= $psg->luggage_purchase - $psg->vat_luggage_purchase;
-			$psg->luggage_purchase_inbound_no_vat 	= $psg->luggage_purchase_inbound - $psg->vat_luggage_purchase_inbound ;
+			$psg->luggage_purchase_inbound_no_vat 	= $psg->luggage_purchase_inbound - $psg->vat_luggage_purchase_inbound;
 			// Ticket
 			$psg->eluggage_outbound = trim(stripslashes($_POST['psg_eluggage_outbound'][$i]));
 			$psg->eluggage_inbound 	= trim(stripslashes($_POST['psg_eluggage_inbound'][$i]));
@@ -483,8 +491,7 @@ class EC_Flight_Bookings extends Basic {
 			if ((int)$psg->deleted === 1) {
 				if (!empty($psg->id)) $psg->mark_deleted($psg->id);
 				else continue;
-			}
-			elseif (!empty($psg->name)) {
+			} elseif (!empty($psg->name)) {
 				$psg->save();
 			}
 		}
@@ -494,7 +501,7 @@ class EC_Flight_Bookings extends Basic {
 			$booking = new EC_Flight_Bookings;
 			$booking->retrieve($this->id);
 			$isAllowedUser = isAllowedUser();
-			
+
 			$is_ticket_exported = $is_ticket_inbound_exported = false;
 			$is_ticket_exported_fully = $is_ticket_inbound_exported_fully = true;
 			for ($i = 0; $i < $row_count; $i++) {
@@ -502,54 +509,50 @@ class EC_Flight_Bookings extends Basic {
 				$psg_eticket_outbound = $_POST['psg_eticket_outbound'][$i] ?? '';
 				if (!empty($psg_eticket_outbound)) {
 					$is_ticket_exported = true;
-				}
-				else {
+				} else {
 					$is_ticket_exported_fully = false;
 				}
 
 				// Lượt về
-				if($booking->flight_type === '0') {
+				if ($booking->flight_type === '0') {
 					$psg_eticket_inbound = $_POST['psg_eticket_inbound'][$i] ?? '';
 					if (!empty($psg_eticket_inbound)) {
 						$is_ticket_inbound_exported = true;
-					}
-					else {
+					} else {
 						$is_ticket_inbound_exported_fully = false;
 					}
 				}
 			}
-			if($booking->flight_type === '1') {
+			if ($booking->flight_type === '1') {
 				$is_ticket_inbound_exported = false;
 				$is_ticket_inbound_exported_fully = false;
 			}
-			
+
 			// Cập nhật thông tin xuất vé lượt đi
 			$booking->is_ticket_exported = $is_ticket_exported;
-			if($is_ticket_exported) {
+			if ($is_ticket_exported) {
 				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("Y-m-d");
 				if ($isAllowedUser && isset($_POST['date_ticket_issue']) && !empty($_POST['date_ticket_issue'])) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
-			}
-			else {
+			} else {
 				$booking->date_ticket_issue = '';
 			}
-			
+
 			// Cập nhật thông tin xuất vé lượt về
 			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
 			if ($is_ticket_inbound_exported) {
 				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("Y-m-d");
 				if ($isAllowedUser && isset($_POST['date_ticket_inbound_issue']) && !empty($_POST['date_ticket_inbound_issue'])) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
-			}
-			else {
+			} else {
 				$booking->date_ticket_inbound_issue = '';
 			}
-			
+
 			// Cập nhật tình trạng
-			if(($booking->flight_type === '1' && $is_ticket_exported_fully)
+			if (($booking->flight_type === '1' && $is_ticket_exported_fully)
 				|| ($booking->flight_type === '0' && $is_ticket_exported_fully && $is_ticket_inbound_exported_fully)
 			) {
 				$booking->booking_status = '7';
 			}
-			
+
 			$booking->save2();
 		}
 	}
@@ -558,10 +561,11 @@ class EC_Flight_Bookings extends Basic {
 	 * Save when changing flight info such as: flight date, itinerary, passengers, baggages, ticket code, PNR
 	 * @return 
 	 */
-	public function saveChangeFlightTime() {
+	public function saveChangeFlightTime()
+	{
 		global $sugar_config;
 		$vat_rate = $sugar_config['flight_config']['vat_percentage'] ?? 0.08;
-		
+
 		// ======== THAY ĐỔI THÔNG TIN HÀNH KHÁCH =========
 		// Lấy STT của các lần thay đổi thông tin hành khách trước
 		$sql_pass_order = 'SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
@@ -636,8 +640,7 @@ class EC_Flight_Bookings extends Basic {
 
 					$pass_replace[$pass->id] = $pass_n->id;
 				}
-			}
-			else {
+			} else {
 				$birthday = '';
 				if (!empty($_POST['pass_birthday' . $i])) $birthday = $_POST['pass_birthday' . $i];
 
@@ -929,7 +932,8 @@ class EC_Flight_Bookings extends Basic {
 
 	// Tính số lượng vé của 1 booking
 	// Tổng sl vé trong booking - sl vé hoàn nếu có
-	function calculateBookingTicketQty($booking_id) {
+	function calculateBookingTicketQty($booking_id)
+	{
 		$sql = "SELECT  
 				total_qty
 				- IFNULL((
@@ -953,9 +957,10 @@ class EC_Flight_Bookings extends Basic {
 	 * @param string $created_by
 	 * @return bool
 	 */
-	public function isUseNewBaggage($date_entered, $created_by) {
+	public function isUseNewBaggage($date_entered, $created_by)
+	{
 		$date_entered = str_replace("/", "-", trim($date_entered));
-		if(strtotime($date_entered) > strtotime('2025-10-01') && in_array($created_by, $this->list_website_new_baggage)) return true;
+		if (strtotime($date_entered) > strtotime('2025-10-01') && in_array($created_by, $this->list_website_new_baggage)) return true;
 		return false;
 	}
 
@@ -966,7 +971,8 @@ class EC_Flight_Bookings extends Basic {
 	 * @param string $language
 	 * @return array [available, purchase]
 	 */
-	public function getBaggageInfoByData($bagData, $language = 'vi') {
+	public function getBaggageInfoByData($bagData, $language = 'vi')
+	{
 		try {
 			$airlineCode = $bagData['airlineCode'] ?? ''; // Using for get available baggage info in old data
 			$ticketClass = $bagData['ticketClass'] ?? ''; // Using for get available baggage info in old data
@@ -978,32 +984,31 @@ class EC_Flight_Bookings extends Basic {
 
 			$result = ['available' => '', 'purchase' => ''];
 
-			if(in_array($createdBy, $this->list_website_new_baggage)) $result['available'] = Baggage::renderAvailableBaggage($bagIndex, $language);
+			if (in_array($createdBy, $this->list_website_new_baggage)) $result['available'] = Baggage::renderAvailableBaggage($bagIndex, $language);
 			else {
 				$bags = generateLuggage($dateEntered, $airlineCode, $ticketClass, $passType, $bagIndex); // Array
-				if($bags && !empty($bags)) {
+				if ($bags && !empty($bags)) {
 					$bagString = is_numeric($bagIndex) ? $bags[(int)$bagIndex] : $bags[0]; // String
 
 					$bagWeight = 0;
-					if(is_string($bagString) && !empty($bagString)) {
+					if (is_string($bagString) && !empty($bagString)) {
 						preg_match('/(\d+)kg/isU', $bagString, $output);
 						$bagWeight = isset($output[1]) ? (int)$output[1] : 0;
 					}
 
-					if($bagWeight > 0) {
-						if($language == 'en') $result['available'] = $bagIndex > 1000 ? "Extra {$bagWeight}kg" : "{$bagWeight}kg available";
+					if ($bagWeight > 0) {
+						if ($language == 'en') $result['available'] = $bagIndex > 1000 ? "Extra {$bagWeight}kg" : "{$bagWeight}kg available";
 						else $result['available'] = substr_replace($bagString, '', strpos($bagString, '(') - 1);
 					}
 				}
 			}
 
-			if(!empty($bagPurchaseText)) {
+			if (!empty($bagPurchaseText)) {
 				$result['purchase'] = preg_replace('/\s*\([^)]*\)/', '', $bagPurchaseText);
 			}
 
 			return $result;
-		}
-		catch(Throwable $th) {
+		} catch (Throwable $th) {
 			return ['available' => '', 'purchase' => ''];
 		}
 	}
@@ -1017,7 +1022,8 @@ class EC_Flight_Bookings extends Basic {
 	 * 
 	 * @return string HTML
 	 */
-	public function generatePassengerBaggageInfo($passInfo, $orderNumber = 0, $returnType = 'HTML') {
+	public function generatePassengerBaggageInfo($passInfo, $orderNumber = 0, $returnType = 'HTML')
+	{
 		$date_entered = $passInfo['date_entered'] ?? date('Y-m-d');
 		$created_by   = $passInfo['createdBy'] ?? '';
 		// $bookingName  = $passInfo['bookingName'] ?? '';
@@ -1026,7 +1032,7 @@ class EC_Flight_Bookings extends Basic {
 		$airlineCodeInbound = $passInfo['airlineCodeInbound'] ?? '';
 		$ticketClassInbound = $passInfo['ticketClassInbound'] ?? '';
 
-		if($this->isUseNewBaggage($date_entered, $created_by)) {
+		if ($this->isUseNewBaggage($date_entered, $created_by)) {
 			$rowBagHTML = '';
 			foreach (['outbound', 'inbound'] as $roundName) {
 				$roundNameHTML = $roundName == "outbound" ? '<b class="color-primary mr-1">Lượt đi:</b>' : '<b class="color-red mr-1">Lượt về:</b>';
@@ -1073,8 +1079,7 @@ class EC_Flight_Bookings extends Basic {
 				</td>
 				<td colspan="10" class="text-start align-middle flex-wrap">' . $rowBagHTML . '</td>
 			</tr>';
-		}
-		else {
+		} else {
 			$luggage_price = '';
 
 			/***** Hành lý chiều đi *****/
@@ -1165,77 +1170,70 @@ class EC_Flight_Bookings extends Basic {
 	 * @param string $language vn, es
 	 * @return string
 	 */
-	public function generateCombinedPassengerBaggageInfo($depAvaiBagText, $depPurchaseBagText, $retAvaiBagText, $retPurchaseBagText, $language = 'vn') {
+	public function generateCombinedPassengerBaggageInfo($depAvaiBagText, $depPurchaseBagText, $retAvaiBagText, $retPurchaseBagText, $language = 'vn')
+	{
 		$isRoundtrip = false;
-		if((!empty($depAvaiBagText) || !empty($depPurchaseBagText)) && (!empty($retAvaiBagText) || !empty($retPurchaseBagText))) $isRoundtrip = true;
+		if ((!empty($depAvaiBagText) || !empty($depPurchaseBagText)) && (!empty($retAvaiBagText) || !empty($retPurchaseBagText))) $isRoundtrip = true;
 
 		// Departure
 		$baggageDescriptionDep = '';
-		if(!empty($depAvaiBagText) && !empty($depPurchaseBagText)) {
+		if (!empty($depAvaiBagText) && !empty($depPurchaseBagText)) {
 			$avaiBagDepParts = Baggage::parsePackage($depAvaiBagText); // Array
 			$purchasedBagDepParts = Baggage::parsePackage($depPurchaseBagText); // Array
 
 			// Conbine
-			if($avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight'])
+			if (
+				$avaiBagDepParts['weight'] === $purchasedBagDepParts['weight'] && !is_null($avaiBagDepParts['weight'])
 				&& $avaiBagDepParts['package'] > 0 && $purchasedBagDepParts['package'] > 0
 				&& stripos($depAvaiBagText, 't') === false
 			) {
 				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagDepParts['weight'] . 'kg';
-			}
-			elseif(is_null($avaiBagDepParts['package']) && is_null($purchasedBagDepParts['package'])) {
+			} elseif (is_null($avaiBagDepParts['package']) && is_null($purchasedBagDepParts['package'])) {
 				$baggageDescriptionDep .= ($avaiBagDepParts['weight'] + $purchasedBagDepParts['weight']) . 'kg';
-			}
-			elseif(is_null($avaiBagDepParts['weight']) && is_null($purchasedBagDepParts['weight'])) {
+			} elseif (is_null($avaiBagDepParts['weight']) && is_null($purchasedBagDepParts['weight'])) {
 				$baggageDescriptionDep .= ($avaiBagDepParts['package'] + $purchasedBagDepParts['package']) . ($language == 'en' ? ' packages' : ' kiện');
-			}
-			else {
+			} else {
 				$baggageDescriptionDep .= "$depAvaiBagText + $depPurchaseBagText";
 			}
-		}
-		elseif(!empty($depAvaiBagText)) $baggageDescriptionDep .= $depAvaiBagText;
-		elseif(!empty($depPurchaseBagText)) $baggageDescriptionDep .= $depPurchaseBagText;
-		if(!empty($baggageDescriptionDep) && $isRoundtrip) $baggageDescriptionDep .= ($language == 'en' ? ' (Departure)' : ' (Lượt đi)');
+		} elseif (!empty($depAvaiBagText)) $baggageDescriptionDep .= $depAvaiBagText;
+		elseif (!empty($depPurchaseBagText)) $baggageDescriptionDep .= $depPurchaseBagText;
+		if (!empty($baggageDescriptionDep) && $isRoundtrip) $baggageDescriptionDep .= ($language == 'en' ? ' (Departure)' : ' (Lượt đi)');
 
 		// Return
 		$baggageDescriptionRet = '';
-		if(!empty($retAvaiBagText) && !empty($retPurchaseBagText)) {
+		if (!empty($retAvaiBagText) && !empty($retPurchaseBagText)) {
 			$avaiBagRetParts = Baggage::parsePackage($retAvaiBagText); // Array
 			$purchasedBagRetParts = Baggage::parsePackage($retPurchaseBagText); // Array
 
 			// Conbine
-			if($avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight']) 
+			if (
+				$avaiBagRetParts['weight'] === $purchasedBagRetParts['weight'] && !is_null($avaiBagRetParts['weight'])
 				&& $avaiBagDepParts['package'] > 0 && $purchasedBagDepParts['package'] > 0
 				&& stripos($retAvaiBagText, 't') === false
 			) {
 				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiBagRetParts['weight'] . 'kg';
-			}
-			elseif(is_null($avaiBagRetParts['package']) && is_null($purchasedBagRetParts['package'])) {
+			} elseif (is_null($avaiBagRetParts['package']) && is_null($purchasedBagRetParts['package'])) {
 				$baggageDescriptionRet .= ($avaiBagRetParts['weight'] + $purchasedBagRetParts['weight']) . 'kg';
-			}
-			elseif(is_null($avaiBagRetParts['weight']) && is_null($purchasedBagRetParts['weight'])) {
+			} elseif (is_null($avaiBagRetParts['weight']) && is_null($purchasedBagRetParts['weight'])) {
 				$baggageDescriptionRet .= ($avaiBagRetParts['package'] + $purchasedBagRetParts['package']) . ($language == 'en' ? ' packages' : ' kiện');
-			}
-			else {
+			} else {
 				$baggageDescriptionRet = "$retAvaiBagText + $retPurchaseBagText";
 			}
-		}
-		elseif(!empty($retAvaiBagText)) $baggageDescriptionRet .= $retAvaiBagText;
-		elseif(!empty($retPurchaseBagText)) $baggageDescriptionRet .= $retPurchaseBagText;
-		if(!empty($baggageDescriptionRet) && $isRoundtrip) $baggageDescriptionRet .= ($language == 'en' ? ' (Return)' : ' (Lượt về)');
+		} elseif (!empty($retAvaiBagText)) $baggageDescriptionRet .= $retAvaiBagText;
+		elseif (!empty($retPurchaseBagText)) $baggageDescriptionRet .= $retPurchaseBagText;
+		if (!empty($baggageDescriptionRet) && $isRoundtrip) $baggageDescriptionRet .= ($language == 'en' ? ' (Return)' : ' (Lượt về)');
 
 
 		// Combine two way
 		if (!empty($baggageDescriptionDep) && !empty($baggageDescriptionRet)) {
-			if(stripos($baggageDescriptionDep, '+') !== false || stripos($baggageDescriptionRet, '+') !== false) {
+			if (stripos($baggageDescriptionDep, '+') !== false || stripos($baggageDescriptionRet, '+') !== false) {
 				return "{$baggageDescriptionDep}\n{$baggageDescriptionRet}";
-			}
-			else {
+			} else {
 				return "{$baggageDescriptionDep} - {$baggageDescriptionRet}";
 			}
-		}
-		else return trim("$baggageDescriptionDep $baggageDescriptionRet");
+		} else return trim("$baggageDescriptionDep $baggageDescriptionRet");
 	}
-	
+
 	/**
 	 * Generate options to buy extra baggage
 	 * 
@@ -1245,41 +1243,41 @@ class EC_Flight_Bookings extends Basic {
 	 * @param string $currentPrice Baggage purchase price
 	 * @return string HTML
 	 */
-	public function generateBaggageOptions($airlineCode, $ticketClass = '', $currentValue = '', $currentPrice = 0) {
+	public function generateBaggageOptions($airlineCode, $ticketClass = '', $currentValue = '', $currentPrice = 0)
+	{
 		$options = "<option value=''>Chọn hành lý</option>";
-		if(is_string($airlineCode) && !empty($airlineCode)) {
+		if (is_string($airlineCode) && !empty($airlineCode)) {
 			try {
 				$baggageData = [];
-				$cacheKey = "extra_baggage_options_".strtolower($airlineCode);
+				$cacheKey = "extra_baggage_options_" . strtolower($airlineCode);
 				$cacheTime = 3600;
 
 				// Get data in SESSION cache
-				$cacheKey = "extra_baggage_options_".strtolower($airlineCode);
-				if(isset($_SESSION) && isset($_SESSION[$cacheKey]) && !empty($_SESSION[$cacheKey])) {
+				$cacheKey = "extra_baggage_options_" . strtolower($airlineCode);
+				if (isset($_SESSION) && isset($_SESSION[$cacheKey]) && !empty($_SESSION[$cacheKey])) {
 					$sessionData = $_SESSION[$cacheKey];
-					if(is_array($sessionData) && !empty($sessionData)) {
+					if (is_array($sessionData) && !empty($sessionData)) {
 						$expiredAt = $sessionData['expiredAt']; // Timestamp
-						if(time() < $expiredAt) $baggageData = $sessionData['data'];
+						if (time() < $expiredAt) $baggageData = $sessionData['data'];
 					}
 				}
 
 				// Get data from API
-				if(!is_array($baggageData) || empty($baggageData)) {
+				if (!is_array($baggageData) || empty($baggageData)) {
 					$epFactory = new entryFactory();
-            		$fareSystem = $epFactory->create('entryFareSystemClass');
-					
+					$fareSystem = $epFactory->create('entryFareSystemClass');
+
 					$baggageResponse = $fareSystem->getBaggageOption(['airlineCode' => $airlineCode]);
 					$baggageResponse = json_decode($baggageResponse, true);
 
 					if (isset($baggageResponse['status']) && $baggageResponse['status'] == 1) {
 						$baggageData = $baggageResponse['data'] ?? [];
-						if(!empty($baggageData)) {
+						if (!empty($baggageData)) {
 							$_SESSION[$cacheKey] = [
 								'data' => $baggageData,
 								'expiredAt' => time() + $cacheTime
 							];
-						}
-						else {
+						} else {
 							$_SESSION[$cacheKey] = null;
 							unset($_SESSION[$cacheKey]);
 						}
@@ -1304,27 +1302,26 @@ class EC_Flight_Bookings extends Basic {
 							$foundMatch = true;
 						}
 
-						$options .= "<option value='". htmlspecialchars($saveValue) ."'
-							data-text='". htmlspecialchars($displayText) ."'
+						$options .= "<option value='" . htmlspecialchars($saveValue) . "'
+							data-text='" . htmlspecialchars($displayText) . "'
 							data-cost='{$cost}'
 							data-value='{$value}'
 							{$selected}
 						>
-							". htmlspecialchars($displayText) ."
+							" . htmlspecialchars($displayText) . "
 						</option>";
 					}
 				}
 				if (!empty($currentValue) && !$foundMatch) {
-					$options .= '<option value="'. htmlspecialchars($currentValue) .'"
-						data-text="'. htmlspecialchars($currentValue) .' (Tùy chỉnh)"
-						data-cost="'. $currentPrice .'"
-						data-value="'. $currentPrice .'" selected
+					$options .= '<option value="' . htmlspecialchars($currentValue) . '"
+						data-text="' . htmlspecialchars($currentValue) . ' (Tùy chỉnh)"
+						data-cost="' . $currentPrice . '"
+						data-value="' . $currentPrice . '" selected
 					>
-						'. htmlspecialchars($currentValue) . ' (Tùy chỉnh)
+						' . htmlspecialchars($currentValue) . ' (Tùy chỉnh)
 					</option>';
 				}
-			}
-			catch (Throwable $th) {
+			} catch (Throwable $th) {
 				$GLOBALS['log']->fatal("Error fetching baggage options: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
 			}
 		}
@@ -1332,13 +1329,14 @@ class EC_Flight_Bookings extends Basic {
 	}
 
 	/**
-     * Get list ticket number in booking by times
-     * 
-     * @param string $bookingId
+	 * Get list ticket number in booking by times
+	 * 
+	 * @param string $bookingId
 	 * @return array
-     */
-    public function getListTickets($bookingId) {
-		if(!is_string($bookingId) || empty($bookingId)) return [];
+	 */
+	public function getListTickets($bookingId)
+	{
+		if (!is_string($bookingId) || empty($bookingId)) return [];
 
 		$listTickets = [];
 
@@ -1353,9 +1351,9 @@ class EC_Flight_Bookings extends Basic {
 				WHERE booking_id = '{$bookingId}'
 					AND rv_status != '0'
 					AND deleted = 0");
-		while($rowPaymentReceipt = $this->db->fetchByAssoc($resPaymentReceipt)) $goWithArray[] = (int)$rowPaymentReceipt['go_with'];
-		
-        $sqltk = "SELECT p.id
+		while ($rowPaymentReceipt = $this->db->fetchByAssoc($resPaymentReceipt)) $goWithArray[] = (int)$rowPaymentReceipt['go_with'];
+
+		$sqltk = "SELECT p.id
 				,p.name
 				,IFNULL(p.add_type, 0) AS addType
 				,IFNULL(p.go_with, 0) AS goWith
@@ -1371,20 +1369,20 @@ class EC_Flight_Bookings extends Basic {
 				-- AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
 			ORDER BY p.date_entered";
 
-        $restk = $this->db->query($sqltk);
-        while ($row = $this->db->fetchByAssoc($restk)) {
+		$restk = $this->db->query($sqltk);
+		while ($row = $this->db->fetchByAssoc($restk)) {
 			$goWith = (int)($row['goWith'] ?? 0); // Changed times of passenger in booking
 			$ticketType = (int)($row['addType'] ?? 0);
 
 			// Only get list ticket code for next processing
-			if($goWith < $outputInvQty) continue;
+			if ($goWith < $outputInvQty) continue;
 
 			// Only get list ticket code in changed times which have receipt voucher
-			if($goWith > 0 && array_search($goWith, $goWithArray) === false) continue;
+			if ($goWith > 0 && array_search($goWith, $goWithArray) === false) continue;
 
 			// Flight ticket number
-			if($ticketType != 1) {
-				if(isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) {
+			if ($ticketType != 1) {
+				if (isset($row['ticketNumberOut']) && !empty($row['ticketNumberOut'])) {
 					$listTickets[$goWith][$row['ticketNumberOut']][] = [
 						'type' 			=> 'flight',
 						'direction' 	=> 0,
@@ -1392,7 +1390,7 @@ class EC_Flight_Bookings extends Basic {
 						'purchasePrice' => null,
 					];
 				}
-				if(isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) {
+				if (isset($row['ticketNumberIn']) && !empty($row['ticketNumberIn'])) {
 					$listTickets[$goWith][$row['ticketNumberIn']][] = [
 						'type' 			=> 'flight',
 						'direction' 	=> 1,
@@ -1403,9 +1401,9 @@ class EC_Flight_Bookings extends Basic {
 			}
 
 			// Baggage ticket number
-			if(isset($row['bagPriceOut']) && $row['bagPriceOut'] > 0) {
+			if (isset($row['bagPriceOut']) && $row['bagPriceOut'] > 0) {
 				$bagTicketNumberOut = $row['bagTicketNumberOut'] ?? '';
-				if(empty($bagTicketNumberOut)) $bagTicketNumberOut = $row['ticketNumberOut'] ?? 'BAGTICKETOUT';
+				if (empty($bagTicketNumberOut)) $bagTicketNumberOut = $row['ticketNumberOut'] ?? 'BAGTICKETOUT';
 
 				$listTickets[$goWith][$bagTicketNumberOut][] = [
 					'type' 			=> 'baggage',
@@ -1414,9 +1412,9 @@ class EC_Flight_Bookings extends Basic {
 					'purchasePrice' => $row['bagPriceOut'],
 				];
 			}
-			if(isset($row['bagPriceIn']) && $row['bagPriceIn'] > 0) {
+			if (isset($row['bagPriceIn']) && $row['bagPriceIn'] > 0) {
 				$bagTicketNumberIn = $row['bagTicketNumberIn'] ?? '';
-				if(empty($bagTicketNumberIn)) $bagTicketNumberIn = $row['ticketNumberIn'] ?? 'BAGTICKETIN';
+				if (empty($bagTicketNumberIn)) $bagTicketNumberIn = $row['ticketNumberIn'] ?? 'BAGTICKETIN';
 
 				$listTickets[$goWith][$bagTicketNumberIn][] = [
 					'type' 			=> 'baggage',
@@ -1425,14 +1423,386 @@ class EC_Flight_Bookings extends Basic {
 					'purchasePrice' => $row['bagPriceIn'],
 				];
 			}
-        }
+		}
 
-        return $listTickets;
-    }
+		return $listTickets;
+	}
+
+	public function getPassengerInfoMailConfirm($booking_id, $flight_type)
+	{
+		global $db, $app_list_strings;
+
+		$sql = "SELECT
+				p.type AS pax_type
+				,p.salutation AS pax_title
+				,p.name AS pax_name
+				,p.birthday AS pax_dob
+				,p.date_entered
+				,p.created_by
+				,(
+					SELECT i.airline_code
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id
+						AND i.deleted = 0
+						AND i.direction = 0
+						AND i.is_layover = 0
+					LIMIT 1
+				) AS aircode_out
+				,(
+					SELECT i.ticket_class
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id
+						AND i.deleted = 0
+						AND i.direction = 0
+						AND i.is_layover = 0
+					LIMIT 1
+				) AS ticket_class_out
+				,(
+					SELECT i.airline_code
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id
+						AND i.deleted = 0
+						AND i.direction = 1
+						AND i.is_layover = 0
+					LIMIT 1
+				) AS aircode_in
+				,(
+					SELECT i.ticket_class
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = p.booking_id 
+						AND i.deleted = 0
+						AND i.direction = 1
+						AND i.is_layover = 0
+					LIMIT 1
+				) AS ticket_class_in
+				,p.luggage_price
+				,p.luggage_price_inbound
+				,p.luggage_index_outbound
+				,p.luggage_index_inbound
+				,p.luggage_purchase_text
+				,p.luggage_purchase_text_inbound
+				,p.cic
+				,p.passport_number
+			FROM ec_booking_passengers p
+			WHERE p.booking_id = '$booking_id'
+				AND p.deleted = 0
+				AND add_type IS NULL
+			ORDER BY pax_type, p.date_entered
+		";
+		$res = $db->query($sql);
+
+		// Title
+		$html = '<tr>
+			<td style="width:10%; border:1px solid #e7e7e7; padding:5px;"></td>
+			<td style="width:25%; border:1px solid #e7e7e7; padding:5px; text-align:center;">Hành khách</td>
+			<td style="width:15%; border:1px solid #e7e7e7; padding:5px; text-align:center;">Ngày sinh</td>
+			<td style="width:10%; border:1px solid #e7e7e7; padding:5px; text-align:center;">CCCD/Passport</td>
+		';
+		if ((int)$flight_type === 0) {
+			$html .= '
+				<td style="width:20%; border:1px solid #e7e7e7; padding:5px; text-align:center;">HL ký gửi đi</td>
+				<td style="width:20%; border:1px solid #e7e7e7; padding:5px; text-align:center;">HL ký gửi về</td>
+			';
+		} else {
+			$html .= '<td style="width:40%; border:1px solid #e7e7e7; padding:5px; text-align:center;">HL ký gửi</td>';
+		}
+		$html .= '</tr>';
+
+		while ($row = $db->fetchByAssoc($res)) {
+			$cic_pass = !empty($row['cic']) ? $row['cic'] : $row['passport_number'];
+			$dob = '';
+			if (!is_null($dob) && $row['pax_dob'] != '' && $row['pax_dob'] != '0000-00-00') {
+				try {
+					$dob = new DateTime($row['pax_dob']);
+					$dob = date_format($dob, 'd/m/Y');
+				} catch (\Exception $ex) {
+					$dob = '';
+				}
+			}
+
+			// Baggage outbound
+			$bagOut = $this->getBaggageInfoByData([
+				"airlineCode" 	=> $row['aircode_out'],
+				"ticketClass" 	=> $row['ticket_class_out'],
+				"passType" 		=> $row["pax_type"],
+				"dateEntered" 	=> $row["date_entered"],
+				"createdBy" 	=> $row["created_by"],
+				"bagIndex" 		=> $row["luggage_index_outbound"] ?? $row["luggage_price"],
+				"bagPurchaseText" => $row["luggage_purchase_text"],
+			]);
+			$bagOutDescription = $this->generateCombinedPassengerBaggageInfo($bagOut['available'], $bagOut['purchase'], '', '');
+			$tdBaggage = '<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . trim($bagOutDescription) . '</td>';
+
+			// Baggage inbound
+			if ((int)$flight_type == 0) {
+				$bagIn = $this->getBaggageInfoByData([
+					"airlineCode" 	=> $row['aircode_in'],
+					"ticketClass" 	=> $row['ticket_class_in'],
+					"passType" 		=> $row["pax_type"],
+					"dateEntered" 	=> $row["date_entered"],
+					"createdBy" 	=> $row["created_by"],
+					"bagIndex" 		=> $row["luggage_index_inbound"] ?? $row["luggage_price_inbound"],
+					"bagPurchaseText" => $row["luggage_purchase_text_inbound"],
+				]);
+				$bagInDescription = $this->generateCombinedPassengerBaggageInfo($bagIn['available'], $bagIn['purchase'], '', '');
+				$tdBaggage .= '<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . trim($bagInDescription) . '</td>';
+			}
+
+			$html .= '<tr>
+				<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . $app_list_strings['passenger_type_list'][$row['pax_type']] . '</td>
+				<td style="border:1px solid #e7e7e7; padding:5px;"><label style="text-transform:uppercase;">' . $row['pax_name'] . '</label></td>
+				<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . $dob . '</td>
+				<td style="border:1px solid #e7e7e7; padding:5px; text-align:center;">' . $cic_pass . '</td>
+				' . $tdBaggage . '
+			</tr>';
+		}
+
+		return $html;
+	}
+
+	public function getRouteInfosMailConfirm($booking_id, $type = 'normal')
+	{
+		global $db;
+		$sql = "SELECT 
+					i.direction
+					,i.flight_number
+					,i.departure_date
+					,i.arrival_date
+					,(
+						CASE 
+							WHEN i.airline_code='VNA' THEN 'VN'
+							WHEN i.airline_code='VJA' THEN 'VJ'
+							WHEN i.airline_code='JET' THEN 'BL'
+							WHEN i.airline_code='VNP' THEN 'BL'
+							WHEN i.airline_code='AMK' THEN 'P8'
+							WHEN i.airline_code='BBA' THEN 'QH'
+							ELSE i.airline_code
+						END
+					) AS airline_code
+					,i.departure
+					,i.arrival
+					,i.ticket_class
+					,i.time_limit
+			FROM ec_booking_itineraries i
+			WHERE i.booking_id = '$booking_id' AND i.deleted = 0
+			ORDER BY i.direction, i.departure_date, i.date_entered";
+
+		$res = $db->query($sql);
+		$html = '';
+		$time_limit = '';
+		$airline_code = '';
+		$i = 0;
+
+		while ($row = $db->fetchByAssoc($res)) {
+			if ($row['airline_code'] == 'VN') $row['airline_code'] = 'VNA';
+			$airline    = myGetAirlineInfo2(trim($row['airline_code']), 'CODE');
+			$departure 	= myGetAirportInfo2(trim($row['departure']));
+			$arrival 	= myGetAirportInfo2(trim($row['arrival']));
+
+			if ((int)$row['direction'] === 0 && $i == 0) {
+				$time_limit 	= $row['time_limit'];
+				$airline_code 	= $row['airline_code'];
+			}
+
+			if ($type === 'normal') {
+				$html .= '
+					<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-5" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+						<tbody>
+							<tr>
+								<td>
+									<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #a9e0ff; color: #000000;width:100%;">
+										<tbody>
+											<tr>
+												<td class="column column-1" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; border: 0px; " width="33.333333333333336%">
+													<table border="0" cellpadding="0" cellspacing="0" class="text_block block-2" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
+														<tr>
+															<td class="pad">
+																<div style="font-family: sans-serif">
+																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+																		<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
+																			<span style="font-size: 32px;"><strong>' . $departure['data'][0]['code'] . '</strong></span>
+																		</p>
+																	</div>
+																</div>
+															</td>
+														</tr>
+													</table>
+													<table border="0" cellpadding="10" cellspacing="0" class="text_block block-3" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
+														<tr>
+															<td class="pad" style="padding: 0;">
+																<div style="font-family: sans-serif">
+																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+																		<p style=" margin: 0; text-align: center; mso-line-height-alt: 14.399999999999999px; ">
+																			<span style="font-size: 16px">' . $departure['data'][0]['name'] . '</span>
+																		</p>
+																	</div>
+																</div>
+															</td>
+														</tr>
+													</table>
+												</td>
+												<td class="column column-2" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; border: 0px; " width="33.333333333333336%">
+													<table border="0" cellpadding="0" cellspacing="0" class="image_block block-2" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; " width="100%">
+														<tr>
+															<td class="pad" style=" width: 100%; padding-right: 0px; padding-left: 0px; ">
+																<div align="center" class="alignment" style="line-height: 10px; font-size: 18px; color: #000; padding: 12px 0; font-weight: 600;">
+																	' . $row['flight_number'] . '
+																</div>
+															</td>
+														</tr>
+													</table>
+													<table border="0" cellpadding="0" cellspacing="0" class="text_block block-4" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
+														<tr>
+															<td class="pad">
+																<div style="font-family: sans-serif">
+																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; font-weight: 600; line-height: 1.5; ">
+																		<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
+																			<span style="font-size: 15px">' . date('d/m/Y H:i', strtotime($row['departure_date'])) . ' &rarr; ' . date('H:i', strtotime($row['arrival_date'])) . '</span>
+																		</p>
+																	</div>
+																</div>
+															</td>
+														</tr>
+													</table>
+												</td>
+												<td class="column column-3" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; border: 0px; " width="33.333333333333336%">
+													<table border="0" cellpadding="0" cellspacing="0" class="text_block block-2" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
+														<tr>
+															<td class="pad">
+																<div style="font-family: sans-serif">
+																<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+																	<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
+																		<span style="font-size: 32px;"><strong>' . $arrival['data'][0]['code'] . '</strong></span>
+																	</p>
+																</div>
+																</div>
+															</td>
+														</tr>
+													</table>
+													<table border="0" cellpadding="10" cellspacing="0" class="text_block block-3" role="presentation" style=" mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word; " width="100%">
+														<tr>
+															<td class="pad" style="padding: 0;">
+																<div style="font-family: sans-serif">
+																	<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+																		<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
+																			<span style="font-size: 16px">' . $arrival['data'][0]['name'] . '</span>
+																		</p>
+																	</div>
+																</div>
+															</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-7" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt" width="100%">
+						<tbody>
+							<tr>
+								<td>
+									<table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack" role="presentation" style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;background-color: #a9e0ff;color: #000000;width:100%;">
+										<tbody>
+											<tr>
+												<td class="column column-1" style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;font-weight: 400;text-align: left;border: 0px;" width="100%">
+													<table border="0" cellpadding="10" cellspacing="0" class="text_block block-1" role="presentation" style="mso-table-lspace: 0pt;mso-table-rspace: 0pt;word-break: break-word;" width="100%">
+														<tr>
+															<td class="pad" style="padding-top: 0px;">
+																<div style="font-family: sans-serif">
+																	<div class="" style="font-size: 12px;font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif;mso-line-height-alt: 14.399999999999999px;color: #000;line-height: 1.5;">
+																		<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
+																			<span style="font-size: 13px; font-weight: 600;">Hãng: ' . $airline['data'][0]['name'] . '</span>
+																		</p>
+																	</div>
+																</div>
+															</td>
+														</tr>
+													</table>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						</tbody>
+					</table>';
+			} else {
+				// Preview
+				$html .= '
+					<div class="row pb-3" style="background-color: #a9e0ff;">
+						<div class="col-4">
+							<div class="d-flex align-items-center flex-fill flex-column">
+								<div style="font-family: sans-serif">
+									<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+										<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
+											<span style="font-size: 32px;"><strong>' . $departure['data'][0]['code'] . '</strong></span>
+										</p>
+									</div>
+								</div>
+								<div style="font-family: sans-serif">
+									<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+										<p style=" margin: 0; text-align: center; mso-line-height-alt: 14.399999999999999px; ">
+											<span style="font-size: 16px">' . $departure['data'][0]['name'] . '</span>
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-4">
+							<div class="d-flex align-items-center flex-fill flex-column">
+								<div align="center" class="alignment" style="line-height: 10px; font-size: 18px; color: #000; padding: 12px 0; font-weight: 600;">
+									' . $row['flight_number'] . '
+								</div>
+								<div style="font-family: sans-serif">
+									<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; font-weight: 600; line-height: 1.5; ">
+										<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
+											<span style="font-size: 15px">' . date('d/m/Y H:i', strtotime($row['departure_date'])) . ' &rarr; ' . date('H:i', strtotime($row['arrival_date'])) . '</span>
+										</p>
+									</div>
+								</div>
+								<div style="font-family: sans-serif">
+									<div class="" style="font-size: 12px;font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif;mso-line-height-alt: 14.399999999999999px;color: #000;line-height: 1.5;">
+										<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
+											<span style="font-size: 13px; font-weight: 600;">Hãng: ' . $airline['data'][0]['name'] . '</span>
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-4">
+							<div class="d-flex align-items-center flex-fill flex-column">
+								<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+									<p style=" margin: 0; font-size: 14px; text-align: center; mso-line-height-alt: 16.8px; ">
+										<span style="font-size: 32px;"><strong>' . $arrival['data'][0]['code'] . '</strong></span>
+									</p>
+								</div>
+								<div style="font-family: sans-serif">
+									<div class="" style=" font-size: 12px; font-family: \'Helvetica Neue\',Helvetica,Arial,Verdana,sans-serif; mso-line-height-alt: 14.399999999999999px; color: #000; line-height: 1.5; ">
+										<p style="margin: 0;text-align: center;mso-line-height-alt: 14.399999999999999px;">
+											<span style="font-size: 16px">' . $arrival['data'][0]['name'] . '</span>
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				';
+			}
+
+			$i++;
+		}
+
+		return array('html' => $html, 'airline_code' => $airline_code, 'time_limit' => $time_limit);
+	}
+
 
 	/***********  OLD FUNCTIONS  ***********/
 
-	function saveLinePassengersOld() {
+	function saveLinePassengersOld()
+	{
 		global $app_list_strings;
 
 		$row_count = count($_POST['psg_id']);
@@ -1448,11 +1818,11 @@ class EC_Flight_Bookings extends Basic {
 			if (isset($_POST['psg_birthday'][$i]) && strtotime($_POST['psg_birthday'][$i]) !== false) {
 				$date_str = str_replace('/', '-', $_POST['psg_birthday'][$i]);
 				$psg->birthday = date('d-m-Y', strtotime($date_str));
-			} 
+			}
 
 			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
 			$psg->eticket_inbound 	= trim(stripslashes($_POST['psg_eticket_inbound'][$i]));
-			
+
 			$psg->eluggage_outbound = trim(stripslashes($_POST['psg_eluggage_outbound'][$i]));
 			$psg->eluggage_inbound 	= trim(stripslashes($_POST['psg_eluggage_inbound'][$i]));
 
@@ -1493,7 +1863,7 @@ class EC_Flight_Bookings extends Basic {
 			$psg->add_type 						= $_POST['psg_add_type'][$i] ?? null;
 			$psg->parent_detail_id 				= $_POST['psg_parent_detail_id'][$i] ?? '';
 			$psg->deleted 						= $_POST['psg_deleted'][$i] ?? 0;
-			
+
 			$psg->luggage_purchase_no_vat 		= unformat_number($_POST['psg_detail_lug_pur_no_vat'][$i]);
 			$psg->vat_luggage_purchase 			= unformat_number($_POST['psg_detail_lug_pur_vat'][$i]);
 			$psg->luggage_purchase_inbound_no_vat = unformat_number($_POST['psg_detail_lug_pur_ib_no_vat'][$i]);
@@ -1515,7 +1885,7 @@ class EC_Flight_Bookings extends Basic {
 			$booking = new EC_Flight_Bookings;
 			$booking->retrieve($this->id);
 			$isAllowedUser = isAllowedUser();
-			
+
 			$is_ticket_exported = $is_ticket_inbound_exported = false;
 			$is_ticket_exported_fully = $is_ticket_inbound_exported_fully = true;
 			for ($i = 0; $i < $row_count; $i++) {
@@ -1523,62 +1893,59 @@ class EC_Flight_Bookings extends Basic {
 				$psg_eticket_outbound = $_POST['psg_eticket_outbound'][$i] ?? '';
 				if (!empty($psg_eticket_outbound)) {
 					$is_ticket_exported = true;
-				}
-				else {
+				} else {
 					$is_ticket_exported_fully = false;
 				}
 
 				// Lượt về
-				if($booking->flight_type === '0') {
+				if ($booking->flight_type === '0') {
 					$psg_eticket_inbound = $_POST['psg_eticket_inbound'][$i] ?? '';
 					if (!empty($psg_eticket_inbound)) {
 						$is_ticket_inbound_exported = true;
-					}
-					else {
+					} else {
 						$is_ticket_inbound_exported_fully = false;
 					}
 				}
 			}
-			if($booking->flight_type === '1') {
+			if ($booking->flight_type === '1') {
 				$is_ticket_inbound_exported = false;
 				$is_ticket_inbound_exported_fully = false;
 			}
-			
+
 			// Cập nhật thông tin xuất vé lượt đi
 			$booking->is_ticket_exported = $is_ticket_exported;
-			if($is_ticket_exported) {
+			if ($is_ticket_exported) {
 				if (empty($booking->date_ticket_issue)) $booking->date_ticket_issue = date("Y-m-d");
 				if ($isAllowedUser && isset($_POST['date_ticket_issue']) && !empty($_POST['date_ticket_issue'])) $booking->date_ticket_issue = $_POST['date_ticket_issue'];
-			}
-			else {
+			} else {
 				$booking->date_ticket_issue = '';
 			}
-			
+
 			// Cập nhật thông tin xuất vé lượt về
 			$booking->is_ticket_inbound_exported = $is_ticket_inbound_exported;
 			if ($is_ticket_inbound_exported) {
 				if (empty($booking->date_ticket_inbound_issue)) $booking->date_ticket_inbound_issue = date("Y-m-d");
 				if ($isAllowedUser && isset($_POST['date_ticket_inbound_issue']) && !empty($_POST['date_ticket_inbound_issue'])) $booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
-			}
-			else {
+			} else {
 				$booking->date_ticket_inbound_issue = '';
 			}
-			
+
 			// Cập nhật tình trạng
-			if(($booking->flight_type === '1' && $is_ticket_exported_fully)
+			if (($booking->flight_type === '1' && $is_ticket_exported_fully)
 				|| ($booking->flight_type === '0' && $is_ticket_exported_fully && $is_ticket_inbound_exported_fully)
 			) {
 				$booking->booking_status = '7';
 			}
-			
+
 			$booking->save2();
 		}
 	}
 
 	// Lưu thay đổi Ngày bay / Hành trình / Thông tin hành khách / Hành lý / Số vé / Code vé
-	function saveChangeFlightTimeOld() {
+	function saveChangeFlightTimeOld()
+	{
 		global $current_user;
-		
+
 		// ======== THAY ĐỔI THÔNG TIN HÀNH KHÁCH =========
 		// lấy stt của các lần thay đổi thông tin hành khách trước
 		$sql_pass_order = 'SELECT MAX(IFNULL(go_with, 0)) FROM ec_booking_passengers WHERE booking_id = "' . $_POST['booking_id'] . '" AND deleted = 0';
@@ -1659,7 +2026,7 @@ class EC_Flight_Bookings extends Basic {
 				$birthday = '';
 				if (!empty($_POST['pass_birthday' . $i])) {
 					$birthday = $_POST['pass_birthday' . $i];
-				} 
+				}
 
 				$pass = new EC_Booking_Passengers;
 				$pass->retrieve($_POST['pass_id'][$i]);
@@ -1857,8 +2224,7 @@ class EC_Flight_Bookings extends Basic {
 					}
 				}
 			}
-		}
-		else { // nếu là sửa lại thông tin hành trình
+		} else { // nếu là sửa lại thông tin hành trình
 			$applied_pass_arr 		= explode(',', $_POST['applied_pass']);
 			$applied_pass_name_arr 	= explode(',', $_POST['applied_pass_name']);
 			$iti_id_arr 			= explode(',', $_POST['iti_id']);

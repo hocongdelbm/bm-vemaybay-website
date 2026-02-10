@@ -733,7 +733,7 @@ $dictionary['EC_Flight_Bookings'] = array(
             'length' => 36,
             'default' => '',
             'reportable' => false,
-            'audited' => true,
+            'audited' => false,
             'massupdate' => false,
             'comment' => 'The contact to which the case is associated'
         ),

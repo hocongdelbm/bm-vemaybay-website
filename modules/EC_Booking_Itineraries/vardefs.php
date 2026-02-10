@@ -334,7 +334,21 @@ $dictionary['EC_Booking_Itineraries'] = array(
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-        )
+        ),
+        'checkin_status' => array(
+            'require'    => false,
+            'name'       => 'checkin_status',
+            'vname'      => 'LBL_CHECKIN_STATUS',
+            'type'       => 'enum',
+            'options'    => 'booking_checkin_status_list',
+            'comments'   => 'Trạng thái checkin',
+            'len'        => 20,
+            'default'    => '0',
+            'massupdate' => 0,
+            'importable' => 1,
+            'reportable' => 1,
+            'audited'    => 1,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_iti_name', 'type' => 'index', 'fields' => array('name')),

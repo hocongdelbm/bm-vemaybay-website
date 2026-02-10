@@ -339,18 +339,34 @@ class Viewreport_sales_create extends SugarView
                             WHEN DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'   THEN 'daybefore_prev2'
                             ELSE 'unknown'
                         END AS period";
+		// $where_period = "AND (
+		//                     DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_current']['from']}' AND '{$ranges['today_current']['to']}'
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev1']['from']}'   AND '{$ranges['today_prev1']['to']}'
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev2']['from']}'   AND '{$ranges['today_prev2']['to']}'
+
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_current']['from']}' AND '{$ranges['yesterday_current']['to']}'
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev1']['from']}'   AND '{$ranges['yesterday_prev1']['to']}'
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev2']['from']}'   AND '{$ranges['yesterday_prev2']['to']}'
+
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_current']['from']}' AND '{$ranges['daybefore_current']['to']}'
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev1']['from']}'   AND '{$ranges['daybefore_prev1']['to']}'
+		//                     OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'
+		//                 )";
+
+		$from_date_sql =   date('Y-m-d', strtotime($from_date . ' -1 days'));
+
 		$where_period = "AND (
-                            DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_current']['from']}' AND '{$ranges['today_current']['to']}'
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev1']['from']}'   AND '{$ranges['today_prev1']['to']}'
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['today_prev2']['from']}'   AND '{$ranges['today_prev2']['to']}'
-
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_current']['from']}' AND '{$ranges['yesterday_current']['to']}'
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev1']['from']}'   AND '{$ranges['yesterday_prev1']['to']}'
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['yesterday_prev2']['from']}'   AND '{$ranges['yesterday_prev2']['to']}'
-
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_current']['from']}' AND '{$ranges['daybefore_current']['to']}'
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev1']['from']}'   AND '{$ranges['daybefore_prev1']['to']}'
-                            OR DATE(DATE_ADD(bk.date_entered_bk, INTERVAL 7 HOUR)) BETWEEN '{$ranges['daybefore_prev2']['from']}'   AND '{$ranges['daybefore_prev2']['to']}'
+                            bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['today_current']['from']) . " 17:00:00' AND '{$ranges['today_current']['to']} 16:59:59'
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['today_prev1']['from']) . " 17:00:00' AND '{$ranges['today_prev1']['to']} 16:59:59'
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['today_prev2']['from']) . " 17:00:00' AND '{$ranges['today_prev2']['to']} 16:59:59'
+							
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['yesterday_current']['from']) . " 17:00:00' AND '{$ranges['yesterday_current']['to']} 16:59:59'
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['yesterday_prev1']['from']) . " 17:00:00' AND '{$ranges['yesterday_prev1']['to']} 16:59:59'
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['yesterday_prev2']['from']) . " 17:00:00' AND '{$ranges['yesterday_prev2']['to']} 16:59:59'
+							
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['daybefore_current']['from']) . " 17:00:00' AND '{$ranges['daybefore_current']['to']} 16:59:59'
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['daybefore_prev1']['from']) . " 17:00:00' AND '{$ranges['daybefore_prev1']['to']} 16:59:59'
+                            OR bk.date_entered_bk BETWEEN '" . $this->toSqlDateMinusDays($ranges['daybefore_prev2']['from']) . " 17:00:00' AND '{$ranges['daybefore_prev2']['to']} 16:59:59'
                         )";
 
 		try {
@@ -655,7 +671,7 @@ class Viewreport_sales_create extends SugarView
 					total_profit DESC
             ";
 
-			// if($current_user->user_name == 'hungnh'){
+			// if ($current_user->user_name == 'hungnh') {
 			// 	pr($sql);
 			// }
 
@@ -951,5 +967,10 @@ class Viewreport_sales_create extends SugarView
 			error_log("Exception in genBKSale: " . $e->getMessage());
 			$smarty->assign('rpt_body_compare', '<div class="alert alert-danger">Lỗi: ' . htmlspecialchars($e->getMessage()) . '</div>');
 		}
+	}
+
+	function toSqlDateMinusDays(string $from_date, int $minus_days = 1): string
+	{
+		return date('Y-m-d', strtotime($from_date . " -{$minus_days} days"));
 	}
 }
