@@ -103,7 +103,13 @@ class NextCloudUpload
             // Sanitize document name to make it filesystem-safe
             $documentName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $bean->document_name);
             $revisionNumber = $revision->revision ?? '1';
-            $remoteFileName = $folderPath . '/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
+            $cleanDocumentName = trim($bean->document_name);
+            $cleanFileName = trim($revision->filename);
+            if ($cleanDocumentName === $cleanFileName) {
+                $remoteFileName = $folderPath . '/' . 'v' . $revisionNumber . '_' . $revision->filename;
+            } else {
+                $remoteFileName = $folderPath . '/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
+            }
 
             // Upload file lên NextCloud
             $uploadResult = json_decode($api->uploadFile($localFilePath, $remoteFileName), true);
