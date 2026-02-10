@@ -1471,10 +1471,10 @@ class Viewinputinvoice extends SugarView {
         // Lọc cột giá tiền, 
         // Đầu tiên, bỏ các dấu phân cách
         // Sau đó, giá < 1000 -> giá * 1000 
-        if ((int)$amount > 0) {
+        if ((int)$amount != 0) {
             $amount = str_replace(array('.', ','), '', $amount);
         }
-        if ((int)$amount < 1000) {
+        if ((int)$amount < 1000 && (int)$amount > 0) {
             $amount *= 1000;
         }
         return (int)$amount;
