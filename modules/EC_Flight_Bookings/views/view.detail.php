@@ -2093,16 +2093,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	 */
 	function populateLineRelateVoucher()
 	{
-		global $current_user, $db;
+		global $db;
 
 		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
 		$html .= '<thead>
 			<tr>
 				<th scope="col" width="5%">STT</th>
-				<th scope="col" width="15%">Ngày chứng từ</th>
-				<th scope="col" width="15%">Tên phiếu</th>
-				<th scope="col" width="15%">Tình trạng</th>
-				<th scope="col" width="15%">Số tiền</th>
+				<th scope="col" width="12%">Ngày chứng từ</th>
+				<th scope="col" width="12%">Loại phiếu</th>
+				<th scope="col" width="12%">Tên phiếu</th>
+				<th scope="col" width="12%">Tình trạng</th>
+				<th scope="col" width="12%">Số tiền</th>
 				<th scope="col">Ghi chú</th>
 			</tr>
 		</thead>';
@@ -2158,10 +2159,20 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		if ($count > 0) {
 			$i = 1;
 			while ($row = $db->fetchByAssoc($res)) {
+				$loai_phieu = '';
+				if($row['parent_type'] == 'EC_HoanVe'){
+					$loai_phieu = 'Phiếu hoàn';
+				} else if ($row['parent_type'] == 'EC_Receipt_Voucher'){
+					$loai_phieu = 'Phiếu thu';
+				}
+
 				$html .= '<tr>
 							<td data-label="STT" class="text-center">' . $i . '</td>
 							<td data-label="Ngày chứng từ" class="text-center">
 									' . date('d-m-Y', strtotime($row['ngaychungtu'])) . '
+							</td>
+							<td data-label="Loại phiếu" class="text-center">
+								' . $loai_phieu . '
 							</td>
 							<td data-label="Tên phiếu" class="text-center">
 								<a href="index.php?module=' . $row['parent_type'] . '&action=DetailView&record=' . $row['id'] . '" target="_blank">
