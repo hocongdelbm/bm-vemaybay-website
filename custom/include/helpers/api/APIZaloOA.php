@@ -11,12 +11,15 @@ class APIZaloOA {
     protected $code_verifier;
     protected $code_challenge;
 
-    public function __construct($oa_id = '') {
+    public function __construct($app_id = '', $oa_id = '') {
         global $sugar_config;
         $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
         $this->template_path    = "custom/json_files/zalo_oa/templates.json";
         $this->images_path      = "custom/themes/SuiteP/images/zalo_oa";
-        $this->oa_id            = is_string($oa_id) && !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['oa_id'] ?? '';
+        
+        $this->app_id = is_string($oa_id) && !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['oa_id'] ?? '';
+        $this->oa_id  = is_string($oa_id) && !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['oa_id'] ?? '';
+
         // App info
         $this->app_id           = $sugar_config['zalo_config']['app_id'] ?? '';
         $this->app_secret       = $sugar_config['zalo_config']['app_secret'] ?? '';
@@ -697,14 +700,6 @@ class APIZaloOA {
      * @return string json
      */
     public function send_zns($phone, $template_id, $template_data) {
-        return json_encode([
-            "error" => 1,
-            "httpCode" => 501,
-            "message" => "Unsupported feature",
-            "data" => null,
-            "description" => "Replaced by sendMessage() in class APIOMNI"
-        ]);
-        
         $url = "https://business.openapi.zalo.me/message/template";
         $header = [
             "Content-Type: application/json",
@@ -810,46 +805,134 @@ class APIZaloOA {
         }
     }
 
-    /** 
-     * Get error description when sending ZNS fail
+    /**
+     * Converts Zalo ZBS error codes to a single Vietnamese error string
      * 
-     * @param int $error_code
-     * @return string
+     * @param int|string $error_code The error code from Zalo API
+     * @return string Combined error message and handling instruction
      */
     public function get_error_description_zns($error_code) {
-        switch($error_code) {
-            case -108:
-                return "Số điện thoại không hợp lệ.";
+        switch ((int)$error_code) {
+            case 0:
+                return "Thành công: Gửi tin nhắn thành công.";
+            case -109:
+                return "ID Template không hợp lệ: Vui lòng kiểm tra lại ID của Template.";
             case -110:
-                return "Phiên bản Zalo app của người dùng quá cũ nên không được hỗ trợ";
+                return "Phiên bản Zalo không hỗ trợ: Người dùng cần cập nhật Zalo app phiên bản mới nhất.";
             case -111:
-                return "Mẫu ZNS không có dữ liệu";
-            case -114:
-            case -119:
-            case -139:
-            case -141:
-                return "Số điện thoại này không thể nhận tin. Người dùng không nhận được ZNS vì các lý do: Người dùng từ chối nhận ZNS từ OA, Trạng thái tài khoản, Tùy chọn nhận ZNS, Sử dụng Zalo phiên bản cũ, hoặc các lỗi nội bộ khác...";
-            case -115:
-            case -126:
-                return "Tài khoản ZNS không đủ số dư";
+                return "Dữ liệu Template trống: Template không có dữ liệu để gửi.";
+            case -1121:
+                return "Tham số quá dài: Dữ liệu tham số vượt quá giới hạn ký tự cho phép.";
+            case -1122:
+                return "Thiếu tham số: Dữ liệu truyền vào thiếu tham số bắt buộc trong Template.";
+            case -1123:
+                return "Lỗi QR code: Không thể tạo QR code, vui lòng kiểm tra lại dữ liệu đầu vào.";
+            case -1124:
+                return "Sai định dạng tham số: Kiểm tra lại format dữ liệu của các biến (ví dụ: ngày tháng, số tiền).";
+            case -113:
+                return "Nút bấm (Button) không hợp lệ.";
+            case -1131:
+                return "Link không đúng định dạng: Kiểm tra lại đường dẫn liên kết của các nút thao tác.";
             case -116:
+                return "Nội dung tham số không hợp lệ.";
+            case -117:
+                return "Không có quyền dùng Template: OA hoặc App chưa được cấp quyền cho Template này. Kiểm tra AppID/OAID/tempID.";
             case -121:
+                return "Nội dung trống: Template không có nội dung, vui lòng nhập nội dung mẫu.";
+            case -122:
+                return "Sai định dạng Body: Body request không đúng định dạng JSON.";
             case -130:
+                return "Vượt quá ký tự: Nội dung Template vượt quá giới hạn (tối đa 100k ký tự).";
             case -131:
-                return "Nội dung tin không hợp lệ";
+                return "Template chưa phê duyệt: Vui lòng chờ Zalo duyệt mẫu tin nhắn này trước khi gửi.";
+            case -132:
+                return "Tham số không hợp lệ.";
+            case -249:
+                return "Không hỗ trợ UID: Template cũ (trước 10/12/2025) hoặc loại OTP/Journey không hỗ trợ gửi qua UID. Hãy clone/tạo mới template.";
+            case -100:
+                return "Lỗi không xác định: Vui lòng thử lại sau.";
+            case -101:
+                return "Ứng dụng không hợp lệ: Kiểm tra lại ID ứng dụng tại Zalo for Developers.";
+            case -103:
+                return "Ứng dụng chưa kích hoạt: Truy cập Zalo for Developers để bật kích hoạt ứng dụng.";
+            case -104:
+                return "Secret key không hợp lệ: Kiểm tra lại Secret key trong thiết lập ứng dụng.";
+            case -106:
+                return "Phương thức không hỗ trợ: Đối chiếu phương thức gọi API với tài liệu Zalo.";
+            case -107:
+                return "ID thông báo không hợp lệ.";
+            case -108:
+                return "Số điện thoại không hợp lệ: Kiểm tra lại định dạng (ví dụ: 84xxxx hoặc 0xxxx).";
+            case -115:
+                return "Hết hạn mức: Tài khoản ZBS không đủ số dư, vui lòng nạp tiền tại ZBS Account.";
             case -118:
-                return "Số điện thoại không có Zalo";
-            case -133:
-                return "Không được phép gửi tin vào ban đêm (từ 22h-6h)";
+                return "Tài khoản không tồn tại: Người dùng chưa đăng ký Zalo hoặc tài khoản bị vô hiệu hóa.";
+            case -120:
+                return "OA không có quyền: Cần mua gói dịch vụ để sử dụng tính năng này.";
+            case -1202:
+                return "OA không có quyền sử dụng tài nguyên media (image/logo).";
+            case -124:
+                return "Access token không hợp lệ: Vui lòng làm mới (refresh) access token.";
+            case -1241:
+                return "appsecret_proof không hợp lệ: Kiểm tra lại mã hóa appsecret_proof.";
+            case -125:
+                return "ID Official Account không hợp lệ: Kiểm tra lại OA ID trong quản lý OA.";
+            case -126:
+                return "Ví development không đủ số dư: Vui lòng kiểm tra lại tài khoản thử nghiệm.";
+            case -127:
+                return "Lỗi gửi thử: Tin nhắn test chỉ có thể gửi cho quản trị viên.";
+            case -135:
+                return "OA chưa xác thực: Cần xác thực OA hoặc nâng cấp khỏi gói miễn phí để gửi qua SĐT.";
+            case -1351:
+                return "OA bị chặn: Hệ thống chặn gửi tin do phát hiện vi phạm chính sách.";
+            case -136:
+                return "Chưa kết nối ZBS Account: Cần liên kết App ID vào Zalo Cloud Account (ZCA).";
             case -137:
-                return "Thanh toán ZCA thất bại (ví không đủ số dư, ...)";
+                return "Thanh toán thất bại: Ví ZBS không đủ số dư để thực hiện giao dịch.";
+            case -138:
+                return "Ứng dụng chưa được cấp quyền: Kiểm tra xét duyệt API gửi tin SĐT tại trang Developer.";
+            case -1381:
+                return "Extension chưa có quyền: OA chưa cấp quyền sử dụng ZBS Account cho Extension.";
+            case -139:
+                return "Người dùng từ chối: Khách hàng đã tắt nhận loại tin nhắn SĐT này.";
+            case -140:
+                return "Không đủ điều kiện: Người dùng không nằm trong diện nhận tin theo chính sách Zalo.";
+            case -141:
+                return "Người dùng chặn OA: Khách hàng đã từ chối nhận tin SĐT từ Official Account này.";
+            case -142:
+                return "Thiếu RSA key: Vui lòng gọi API khởi tạo RSA key.";
+            case -143:
+                return "RSA key đã tồn tại: Vui lòng gọi API lấy RSA key hiện có.";
             case -144:
+                return "Vượt định mức ngày: OA đã gửi quá giới hạn tin nhắn SĐT cho phép trong ngày.";
+            case -1441:
+                return "Vượt định mức khuyến mãi: OA đã gửi vượt ngưỡng monthly promotion quota.";
+            case -145:
+                return "Loại tin nhắn không được phép: Nội dung (Tag) này không được hỗ trợ cho OA của bạn.";
             case -147:
-                return "OA đã vượt giới hạn gửi ZNS trong ngày";
-            case -146:
-                return "Mẫu tin này đã bị vô hiệu hóa do chất lượng gửi thấp";
+                return "Template vượt định mức: Mẫu tin nhắn này đã đạt giới hạn gửi trong ngày.";
+            case -1471:
+                return "Vượt giới hạn tháng: Đã gửi quá số lượng tin hậu mãi cho người dùng này trong tháng.";
+            case -1472:
+                return "Vượt giới hạn ngày: Đã gửi quá số lượng tin promotion cho người dùng này trong ngày.";
+            case -148:
+            case -149:
+            case -150:
+                return "Lỗi Journey Token: Token không tồn tại, không hợp lệ hoặc đã hết hạn.";
+            case -153:
+                return "Dữ liệu sai quy định: Kiểm tra lại cấu trúc JSON hoặc tham số truyền vào API.";
+            case -158:
+                return "File quá lớn: Dung lượng file vượt quá giới hạn cho phép.";
+            case -159:
+                return "Định dạng file không hỗ trợ.";
+            case -160:
+                return "Hết quota tạo Template: Đã vượt quá số lượng tạo/chỉnh sửa template trong ngày.";
+            case -161:
+                return "sending_mode sai: Giá trị chế độ gửi không hợp lệ.";
+            case -162:
+                return "Chế độ gửi không hỗ trợ: Tag 1, 2 không được dùng sending_mode = 3.";
             default:
-                return "Gửi tin nhắn thất bại";
+                return "Lỗi hệ thống ($error_code): Vui lòng kiểm tra lại cấu hình hoặc liên hệ hỗ trợ Zalo.";
         }
     }
 
