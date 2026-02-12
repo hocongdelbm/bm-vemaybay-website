@@ -11,7 +11,8 @@ $viewdefs['Documents'] =
           'hidden' =>
           array(
             0 => '<input type="hidden" name="old_id" value="{$fields.document_revision_id.value}">',
-            1 => '<input type="hidden" name="contract_id" value="{$smarty.request.contract_id}">',
+            1 => '<input type="hidden" name="document_revision_id" value="{$fields.document_revision_id.value}">',
+            2 => '<input type="hidden" name="contract_id" value="{$smarty.request.contract_id}">',
           ),
         ),
         'maxColumns' => '2',
@@ -33,7 +34,7 @@ $viewdefs['Documents'] =
 {sugar_getscript file="modules/Documents/documents.js"}
 {sugar_getscript file="modules/Documents/js/booking_popup.js"}
 {sugar_getscript file="modules/Documents/js/preview_handler.js"}
-
+{sugar_getscript file="modules/Documents/js/multiple_file_upload.js"}
 ',
         'useTabs' => false,
         'tabDefs' =>
@@ -52,10 +53,7 @@ $viewdefs['Documents'] =
           array(
             array(
               'name' => 'filename',
-              'displayParams' =>
-              array(
-                'onchangeSetFileNameTo' => 'document_name',
-              ),
+              'customCode' => '{$MULTIPLE_FILE_UPLOAD_HTML}',
             ),
             array(
               'name' => 'status_id',
@@ -67,8 +65,15 @@ $viewdefs['Documents'] =
             array(
               'name' => 'preview_image',
               'label' => 'LBL_PREVIEW_PHOTO',
-              'customCode' => '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd;">' .
-                '<img id="file-preview-image" src="{$PREVIEW_IMAGE_URL}" style="max-width:300px; max-height:300px; {if !$HAS_PREVIEW_IMAGE}display:none;{/if}"/>' .
+              'customCode' => '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd; display:flex; gap:10px; overflow-x:auto; align-items:center; min-height:100px;">' .
+                '<div id="file-preview-images" style="display:flex; gap:10px;">' .
+                  '{if $HAS_PREVIEW_IMAGE}' .
+                    '<div style="display:flex; flex-direction:column; align-items:center; gap:5px;">' .
+                      '<img src="{$PREVIEW_IMAGE_URL}" style="max-width:200px; max-height:200px; object-fit:contain; border:1px solid #ccc; border-radius:4px;"/>' .
+                      '<div style="font-size:12px; color:#666; max-width:200px; text-align:center; word-break:break-word; padding:2px 5px;">{$PREVIEW_FILENAME}</div>' .
+                    '</div>' .
+                  '{/if}' .
+                '</div>' .
                 '<div id="file-preview-text" style="color: #999; {if $HAS_PREVIEW_IMAGE}display:none;{/if}">Chưa chọn file</div>' .
                 '</div>',
             ),

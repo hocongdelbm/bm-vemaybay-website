@@ -176,17 +176,13 @@ class entryNextCloudPreviewClass extends entryClass
      */
     private function buildRemoteFilePath($document, $revision)
     {
-        // Build the remote file path using new naming convention: {document_name}_v{revision}.{filename}
-        $documentName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $document->document_name);
+        // ALWAYS use revision filename as base to ensure consistency
+        // When document is edited, document_name may change but filename stays the same
+        // This ensures we always point to the correct file on NextCloud
         $revisionNumber = $revision->revision ?? '1';
-        $cleanDocumentName = trim($document->document_name);
-        $cleanFileName = trim($revision->filename);
-        if ($cleanDocumentName === $cleanFileName) {
-             $remoteFilePath = '/bmvmb/modules/documents/' .'v' . $revisionNumber . '_' . $revision->filename;
-        } else {
-            $remoteFilePath = '/bmvmb/modules/documents/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
-        }
-
+        $remoteFilePath = '/bmvmb/modules/documents/' . 'v' . $revisionNumber . '_' . $revision->filename;
+        
+        $GLOBALS['log']->info("NextCloudPreview: Built remote path: {$remoteFilePath}");
         return $remoteFilePath;
     }
 

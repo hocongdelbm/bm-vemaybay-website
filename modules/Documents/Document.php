@@ -75,6 +75,112 @@ class Document extends File
 
     public function save($check_notify = false)
     {
+        // ====== XỬ LÝ UPLOAD NHIỀU FILE ======
+        // Chỉ xử lý khi chưa có flag bypass và có nhiều file
+        if (empty($this->_bypass_multiple_file_handling) && 
+            !empty($_FILES['uploadfiles']) && 
+            is_array($_FILES['uploadfiles']['name']) && 
+            count($_FILES['uploadfiles']['name']) > 1) {
+            
+            
+            $uploadedDocIds = [];
+            $fileCount = count($_FILES['uploadfiles']['name']);
+            
+            for ($i = 0; $i < $fileCount; $i++) {
+                // Bỏ qua nếu file rỗng
+                if (empty($_FILES['uploadfiles']['name'][$i]) || $_FILES['uploadfiles']['error'][$i] !== UPLOAD_ERR_OK) {
+                    continue;
+                }
+                
+                // Tạo Document mới cho mỗi file
+                $doc = BeanFactory::newBean('Documents');
+                $doc->_bypass_multiple_file_handling = true; // Đánh dấu để không loop lại
+                
+                // Copy các thuộc tính từ document hiện tại (form data)
+                $doc->assigned_user_id = $this->assigned_user_id ?? '';
+                $doc->category_id = $this->category_id ?? '';
+                $doc->subcategory_id = $this->subcategory_id ?? '';
+                $doc->status_id = $this->status_id ?? '';
+                $doc->active_date = $this->active_date ?? '';
+                $doc->exp_date = $this->exp_date ?? '';
+                $doc->description = $this->description ?? '';
+                $doc->template_type = $this->template_type ?? '';
+                $doc->is_template = $this->is_template ?? 0;
+                
+                // Copy booking relationship nếu có
+                if (!empty($_POST['booking_id'])) {
+                    $doc->booking_id = $_POST['booking_id'];
+                }
+                
+                // Set document_name theo tên file
+                $filename = $_FILES['uploadfiles']['name'][$i];
+                $doc->document_name = $filename; // Giữ nguyên tên file kèm extension
+                $doc->filename = $filename;
+                $doc->file_mime_type = $_FILES['uploadfiles']['type'][$i];
+                $doc->file_ext = pathinfo($filename, PATHINFO_EXTENSION);
+                
+                // Set doc_type
+                $doc->doc_type = 'Sugar';
+                $doc->revision = 1;
+                
+                // Tạo ID mới
+                $doc->id = create_guid();
+                $doc->new_with_id = true;
+                
+                // Tạo DocumentRevision
+                $revision = BeanFactory::newBean('DocumentRevisions');
+                $revision->in_workflow = true;
+                $revision->not_use_rel_in_req = true;
+                $revision->new_rel_id = $doc->id;
+                $revision->new_rel_relname = 'Documents';
+                $revision->change_log = translate('DEF_CREATE_LOG', 'Documents');
+                $revision->revision = 1;
+                $revision->document_id = $doc->id;
+                $revision->filename = $filename;
+                $revision->file_ext = $doc->file_ext;
+                $revision->file_mime_type = $doc->file_mime_type;
+                $revision->doc_type = 'Sugar';
+                $revision->id = create_guid();
+                $revision->new_with_id = true;
+                
+                // Di chuyển file upload vào vị trí đúng
+                $tmpName = $_FILES['uploadfiles']['tmp_name'][$i];
+                $uploadPath = "upload://{$revision->id}";
+                
+                if (move_uploaded_file($tmpName, $uploadPath)) {
+                    $GLOBALS['log']->info("File uploaded successfully: {$filename} -> {$uploadPath}");
+                    
+                    // Lưu revision
+                    $revision->save();
+                    
+                    // Cập nhật document với revision_id
+                    $doc->document_revision_id = $revision->id;
+                    
+                    // Lưu document - vì có flag _bypass nên sẽ chạy logic bình thường
+                    $doc->save($check_notify);
+                    
+                    $uploadedDocIds[] = $doc->id;
+                    
+                    $GLOBALS['log']->info("Document created: ID={$doc->id}, Name={$doc->document_name}");
+                } else {
+                    $GLOBALS['log']->error("Failed to move uploaded file: {$filename}");
+                }
+            }
+            
+            // Redirect về list view với thông báo
+            if (!empty($uploadedDocIds)) {
+                $GLOBALS['log']->info("Multiple upload completed: " . count($uploadedDocIds) . " documents created");
+                
+                // Set location header để redirect
+                header("Location: index.php?module=Documents&action=index&return_module=Documents&return_action=index");
+                sugar_cleanup(true);
+                exit();
+            }
+            
+            return $this->id;
+        }
+        
+        // ====== XỬ LÝ ĐƠN FILE (CODE GỐC) ======
         if (empty($this->doc_type)) {
             $this->doc_type = 'Sugar';
         }
@@ -123,9 +229,17 @@ class Document extends File
 
             $createRevision = false;
             //Move file saved during populatefrompost to match the revision id rather than document id
-            if (!empty($_FILES['filename_file'])) {
-                rename("upload://{$this->id}", "upload://{$Revision->id}");
-                $createRevision = true;
+            // Support cả uploadfile (custom) và filename_file (standard)
+            if (!empty($_FILES['uploadfile']['name']) || !empty($_FILES['filename_file'])) {
+                $fileFieldName = !empty($_FILES['uploadfile']['name']) ? 'uploadfile' : 'filename_file';
+                
+                if (file_exists("upload://{$this->id}")) {
+                    rename("upload://{$this->id}", "upload://{$Revision->id}");
+                    $createRevision = true;
+                    $GLOBALS['log']->info("[CREATE] File moved to revision ID: {$Revision->id} from field: {$fileFieldName}");
+                } else {
+                    $GLOBALS['log']->warn("[CREATE] File not found at upload://{$this->id}");
+                }
             } else {
                 if ($isDuplicate && (empty($this->doc_type) || $this->doc_type == 'Sugar')) {
                     // Looks like we need to duplicate a file, this is tricky
@@ -165,8 +279,39 @@ class Document extends File
                 $this->db->query($query);
             }
         } else {
-            // XỬ LÝ UPDATE - Khi edit document có sẵn
-            // No preview_image generation needed - removed for refactoring
+            // ====== XỬ LÝ UPDATE - Khi edit document có sẵn ======
+            // KHÔNG cho phép upload file mới khi edit (theo nghiệp vụ)
+            // Nếu muốn thay đổi file, cần tạo document mới
+            $GLOBALS['log']->info("[EDIT] Document update - file upload is disabled in edit mode");
+            
+            // Lưu lại document_revision_id trước khi gọi parent::save()
+            // Vì parent::save() có thể ghi đè giá trị này
+            $preserve_revision_id = null;
+            
+            if (!empty($_POST['document_revision_id'])) {
+                $preserve_revision_id = $_POST['document_revision_id'];
+                $this->document_revision_id = $preserve_revision_id;
+                $GLOBALS['log']->info("[EDIT] Preserving document_revision_id from POST: {$preserve_revision_id}");
+            } elseif (!empty($this->document_revision_id)) {
+                $preserve_revision_id = $this->document_revision_id;
+                $GLOBALS['log']->info("[EDIT] Preserving existing document_revision_id: {$preserve_revision_id}");
+            }
+            
+            // Gọi parent::save()
+            $result = parent::save($check_notify);
+            
+            // Restore document_revision_id sau khi save (nếu bị mất)
+            if (!empty($preserve_revision_id) && $this->document_revision_id != $preserve_revision_id) {
+                $GLOBALS['log']->info("[EDIT] Restoring document_revision_id after parent::save(): {$preserve_revision_id}");
+                $this->document_revision_id = $preserve_revision_id;
+                
+                // Update lại database
+                $query = "UPDATE documents SET document_revision_id = '{$preserve_revision_id}' WHERE id = '{$this->id}'";
+                $this->db->query($query);
+                $GLOBALS['log']->info("[EDIT] Updated document_revision_id in database");
+            }
+            
+            return $result;
         }
 
         return parent::save($check_notify);
