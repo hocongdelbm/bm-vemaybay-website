@@ -151,6 +151,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.0"></script>';
+			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>';
 
 		$js .= '<script>
 			var booking_status = "' . $this->bean->booking_status . '";
@@ -1388,13 +1390,32 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			);
 		} else
 			$this->ss->assign('BUTTON_AUTO_BOOK', '');
-
+		//PRINT_TICKET
+		$this->ss->assign(
+				'PRINT_TICKET',
+				'<div class="btn-group btnPrintEticket-selection">
+					<button type="button" class="btn btn-warning btnPrintEticket" data-bs-display="static" aria-expanded="false">
+						In vé
+					</button>
+				</div>'
+			);
+		//Send Ticket
+		$this->ss->assign(
+				'SEND_TICKET',
+				'<div class="btn-group btnSendEticket-selection">
+					<button type="button" class="btn btn-warning btnSendEticket" data-bs-display="static" aria-expanded="false">
+						Gửi vé
+					</button>
+				</div>'
+			);
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
 			$update_revenue = '<input id="update_revenue" class="btn btn-primary" type="button" value="Cập nhật DS">';
 		}
 		$this->ss->assign('UPDATE_REVENUE', $update_revenue);
+
+
 	}
 
 	// Display all itineraries
@@ -1496,7 +1517,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				$html .= '<td data-label="Autobook" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="Autobook" /></td>';
 				$check_ret = true;
 			} else
-				$html .= '<td data-label="" class="text-center"></td>';
+				$html .= '<td data-label="" class="text-center"><input type="checkbox" name="check-itinerary" class="check-itinerary" data-id="' . $row['id'] . '" title="" /></td>';
 
 			$flight_number = $row['flight_number'] ?? '';
 			$html .= '<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
@@ -1513,7 +1534,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 			if ($row['is_layover'] == 0 && $use_mail_eticket) {
 				// PRINT BUTTON
-				$print_ticket_btn = '<input type="button" ln="' . $i . '" name="btnPrintEticket" value="In vé" title="In vé" class="btn btn-primary-2" />';
+				// $print_ticket_btn = '<input type="button" ln="' . $i . '" name="btnPrintEticket-selection" value="In vé" title="In vé" class="btn btn-primary-2" />';
 
 				// SEND BUTTON
 				$send_ticket_btn = '<input type="button" ln="' . $i . '" name="btnSendEticket" value="Gửi vé" title="Gửi vé" class="btn btn-primary-2" />';
@@ -1567,8 +1588,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<input type="hidden" name="airline_code" value="' . $row['airline_code'] . '" />
 						<input type="hidden" name="ticket_type" value="' . $this->bean->ticket_type . '" />
 						<div class="action-button-ticket d-flex gap-2 align-items-center justify-content-center">
-							' . $print_ticket_btn . '
-							' . $send_ticket_btn . '
 							' . $sms_btn . '
 							' . $remind_btn . '
 						</div>
@@ -1802,7 +1821,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
 		$html .= '<thead>
 			<tr>
-				<th scope="col" width="2%"></th>
+				<th scope="col" width="2%"><input type="checkbox" id="select-all-passengers"/></th>
 				<th scope="col" width="3%">STT</th>
 				<th scope="col" width="7%">Loại</th>
 				<th scope="col" width="7%">Giới tính</th>
@@ -2360,10 +2379,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			</div>';
 		return $html;
 	}
-
+	
 	function populatePrintLanguage()
 	{
-		$html = '<div id="dlgChonNgonNgu" style="display:none;" title="Ngôn ngữ">
+		$html = '<div id="dlgSelectLanguage" style="display:none;" title="Ngôn ngữ">
 			<div class="d-flex flex-column align-items-center gap-3">
 				<div class="option-group d-flex gap-4">
 					<div class="form-group">
@@ -2374,15 +2393,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<label for="en" class="form-check-label">Tiếng Anh</label>
 						<input class="form-check-input" type="radio" name="ngonngu" id="en" value="en" style="vertical-align:middle; margin-top: 0;" /> 
 					</div>
-					<div class="form-group">
-						<label for="khuhoi">Khứ hồi</label>
-						<input class="form-check-input" style="vertical-align:middle; margin-top: 0;" ' . ($this->bean->flight_type == '0' ? 'checked="checked"' : '') . ' type="checkbox" name="khuhoi" id="khuhoi" value="' . ($this->bean->flight_type == '0' ? 1 : 0) . '" /> 
-					</div>
+					
 				</div>
 				<div class="option-passenger"></div>
 				<div class="form-group">
 					<input type="hidden" id="what_form" value="" />
-					<input type="button" class="btn btn-primary" id="btnChonNgonNgu" value="Tiếp tục" title="Tiếp tục" />
+					<input type="button" class="btn btn-primary" id="btnSelectLanguage" value="Tiếp tục" title="Tiếp tục" />
 				</div>
 			</div>
 		</div>';

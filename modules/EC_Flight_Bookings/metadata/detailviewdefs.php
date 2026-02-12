@@ -63,6 +63,12 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$VIEWED_BOOKING}',
                 ),
+                array(
+                    'customCode' => '{$PRINT_TICKET}',
+                ),
+                array(
+                    'customCode' => '{$SEND_TICKET}',
+                ),
             )
         ),
         'maxColumns' => '2',
