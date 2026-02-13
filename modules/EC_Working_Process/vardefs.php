@@ -253,6 +253,23 @@ $dictionary['EC_Working_Process'] = array(
             'disable_num_format' => '',
         ),
 
+        'checkin_journey' => array(
+            'required' => false,
+            'name' => 'checkin_journey',
+            'vname' => 'LBL_CHECKIN_JOURNEY',
+            'type' => 'int',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '11',
+            'disable_num_format' => '',
+        ),
+
         'recall' => array(
             'required' => false,
             'name' => 'recall',

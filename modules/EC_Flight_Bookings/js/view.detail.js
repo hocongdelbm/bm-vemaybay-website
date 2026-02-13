@@ -294,17 +294,23 @@ $(document).ready(function () {
 	});
 
 	// Change checkin status
-	$(document).on("change", "select#checkin_status_iti", function () {
+	$(document).on("change", "select.checkin_status_iti", function () {
 		if (!confirm('Thay đổi trạng thái checkin?')) return false;
 		else {
 			let status = $(this).find(":selected").val();
 			let journey_id = $(this).attr('iti_id');
+			let journey_name = $(this).attr('iti_name');
+			let booking_id = $(this).attr('booking_id');
+			let record_name = $(this).attr('record_name');
 
 			$.ajax({
 				url: "index.php?entryPoint=entryPointFlightBookings",
 				data: {
 					status: status,
 					journey_id: journey_id,
+					journey_name: journey_name,
+					booking_id: booking_id,
+					record_name: record_name,
 					for: "changeCheckinStatus",
 				},
 				type: "POST",

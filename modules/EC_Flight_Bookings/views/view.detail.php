@@ -181,7 +181,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// External file
 		$js = '
-			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.4"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>
@@ -1601,11 +1601,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				}
 
 				// SMS BUTTON
+				$journey_name = ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? ''));
 				$sms_depdate = date('d/m/Y H:i', strtotime($row['departure_date']));
 				$sms_btn = '<input type="button" name="btnSendSMS" value="SMS" title="Send SMS" class="btn btn-primary-2"
 					direction="' . $row['direction'] . '" 
 					flightno="' . $flight_number . '"
-					journey="' . ucfirst(myRemoveUnicodeChars($airport_list[$row['departure']] ?? '')) . ' - ' . ucfirst(myRemoveUnicodeChars($airport_list[$row['arrival']] ?? '')) . '"
+					journey="' . $journey_name . '"
 					date="' . explode(' ', $sms_depdate)[0] . '"
 					time="' . explode(' ', $sms_depdate)[1] . '"
 					applied_pass="' . ($row['direction'] == 0 ? $departure_applied_pass : $arrival_applied_pass) . '"
@@ -1614,7 +1615,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				// TT Checkin status
 				$checkin_status = '';
 				if ((int)$row['checkin_status'] !== 2 && in_array((int)$this->bean->booking_status, [7, 8])) {
-					$checkin_status = '<select class="select-box" id="checkin_status_iti" name="checkin_status_iti" iti_id="' . $row['id'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
+					$jour_name = $row['departure'] . '-' . $row['arrival'];
+					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $this->bean->name . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
 				}
 
 				$html .= '<td data-label="" class="text-center">
@@ -2060,9 +2062,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$i = 1;
 			while ($row = $db->fetchByAssoc($res)) {
 				$loai_phieu = '';
-				if($row['parent_type'] == 'EC_HoanVe'){
+				if ($row['parent_type'] == 'EC_HoanVe') {
 					$loai_phieu = 'Phiếu hoàn';
-				} else if ($row['parent_type'] == 'EC_Receipt_Voucher'){
+				} else if ($row['parent_type'] == 'EC_Receipt_Voucher') {
 					$loai_phieu = 'Phiếu thu';
 				}
 
