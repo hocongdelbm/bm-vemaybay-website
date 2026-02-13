@@ -185,8 +185,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.0"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.0"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0"></script>';
+			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.1"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0"></script>
+		';
 
 		$js .= '<script>
 			var booking_status = "' . $this->bean->booking_status . '";
