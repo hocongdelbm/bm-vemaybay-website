@@ -668,7 +668,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 							</div>
 							<div class="col-6 wrap-button">
 								<button type="button" id="confirm-send-zalo" class="btn btn-confirm me-2">Gửi</button>
-								<button type="button" id="cancel-send-zalo" class="btn btn-secondary" onclick="closeDialogZaloZNS()">Hủy</button>
+								<button type="button" id="cancel-send-zalo" class="btn btn-secondary" onclick="closeDialogZaloZBS()">Hủy</button>
 							</div>
 						</div>
 					</form>
