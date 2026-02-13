@@ -1,7 +1,6 @@
 <?php
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/APIZaloOA.php";
-require_once "custom/include/helpers/api/APIOMNI.php";
 
 /**
  * Class entryZaloOAClass
@@ -166,7 +165,7 @@ class entryZaloOAClass extends entryClass {
             ];
         }
 
-        $zalOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA($oa_id);
 
         // Prepare body request (data)
         if ($type == 'image') {
@@ -176,11 +175,11 @@ class entryZaloOAClass extends entryClass {
                 $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
     
                 // Check extension
-                if(!in_array($ext, $zalOA->get_file_extension('image'))) {
+                if(!in_array($ext, $zaloOA->get_file_extension('image'))) {
                     return [
                         "status" => 0,
                         "message" => "Không hỗ trợ định dạng $ext",
-                        "description" => "Chỉ hỗ trợ định dạng " . implode(',', $zalOA->get_file_extension('image')),
+                        "description" => "Chỉ hỗ trợ định dạng " . implode(',', $zaloOA->get_file_extension('image')),
                         "data" => null,
                     ];
                 }
@@ -203,7 +202,7 @@ class entryZaloOAClass extends entryClass {
                     ];
                 }
                 
-                $json_upload = $zalOA->upload($_FILES['image']['tmp_name'], $ext, $image_name);
+                $json_upload = $zaloOA->upload($_FILES['image']['tmp_name'], $ext, $image_name);
                 $arr_upload = json_decode($json_upload, true);
                 
                 if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
@@ -238,12 +237,12 @@ class entryZaloOAClass extends entryClass {
                 $ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
     
                 // Check extension
-                if(!in_array($ext, $zalOA->get_file_extension('file'))) {
+                if(!in_array($ext, $zaloOA->get_file_extension('file'))) {
                     return [
                         "status" => 0,
                         "message" => "Không hỗ trợ định dạng $ext",
                         "data" => null,
-                        "description" => "Các định dạng hỗ trợ: ". implode(', ', $zalOA->get_file_extension('file'))
+                        "description" => "Các định dạng hỗ trợ: ". implode(', ', $zaloOA->get_file_extension('file'))
                     ];
                 }
     
@@ -256,7 +255,7 @@ class entryZaloOAClass extends entryClass {
                     ];
                 }
                 
-                $json_upload = $zalOA->upload($_FILES["file"]["tmp_name"], $ext, $file_name);
+                $json_upload = $zaloOA->upload($_FILES["file"]["tmp_name"], $ext, $file_name);
                 $arr_upload = json_decode($json_upload, true);
                 
                 if(isset($arr_upload['error']) && $arr_upload['error'] == 0) {
@@ -281,105 +280,23 @@ class entryZaloOAClass extends entryClass {
             }
         }
         elseif ($type == 'request_user_info') {
-            $data['element'] = $zalOA->get_template($type);
+            $data['element'] = $zaloOA->get_template_handmade($type);
         }
 
         // Tin nhắn text reply
         if(isset($_POST['quote_message_id'])) $data['quote_message_id'] = $_POST['quote_message_id'];
 
         // Send
-        $json_message = $zalOA->send_consultation($type, $zalo_id, $data);
+        $json_message = $zaloOA->send_consultation_message($type, $zalo_id, $data);
         $arr_message = json_decode($json_message, true);
 
         if(isset($arr_message['error']) && $arr_message['error'] == 0) {
-            // Calculate cost
-            $cost = 0;
-            $quotaData = $arr_message['data']['quota'] ?? [];
-            if(!empty($quotaData)) {
-                try {
-                    global $db;
-
-                    switch ($quotaData['quota_type']) {
-                        case 'reply': // Tin gửi ra là tin trong khung 8 tin 48h
-                            // Get current quota user from db
-                            $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0") ?? '';
-                            if(!empty($quotaInfo)) $quotaInfo = json_decode(html_entity_decode($quotaInfo), true);
-                            else $quotaInfo = [];
-
-                            $quotaInfo['cs_reply'] = [
-                                'remain' => $quotaData['remain'],
-                                'total' => $quotaData['total']
-                            ];
-
-                            // Update new quota user to db
-                            $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
-                            $quotaInfo = json_encode($quotaInfo);
-                            $db->query("UPDATE ec_zalo_contacts
-                                SET quota_info = '{$quotaInfo}'
-                                    ,description = 'Cập nhật hạn ngạch qua API gửi tin tư vấn'
-                                    ,modified_user_id = '{$this->currentUser->id}'
-                                    ,date_modified = '$date_modified'
-                                WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0");
-                            break;
-
-                        case 'sub_quota': // Tin gửi ra là tin nằm trong hạn mức miễn phí theo gói
-                            // Get current quota oa from db
-                            $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo WHERE id = '{$oa_id}' AND deleted = 0") ?? '';
-                            $isUpdated = false;
-
-                            if(!empty($quotaInfo)) {
-                                $quotaInfo = json_decode(html_entity_decode($quotaInfo), true);
-                                foreach($quotaInfo as $qKey => $qValue) {
-                                    if($qValue['quota_type'] == 'sub_quota') {
-                                        $quotaInfo[$qKey]['remain'] = $quotaData['remain'];
-                                        $quotaInfo[$qKey]['total'] = $quotaData['total'];
-                                        $quotaInfo[$qKey]['valid_through'] = date('d-m-Y', strtotime(str_replace("/", "-", $quotaData['expired_date'])));
-                                        $isUpdated = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            else $quotaInfo = [];
-
-                            if(!$isUpdated) {
-                                $quotaInfo[] = [
-                                    "asset_id"      => "",
-                                    "product_type"  => "cs",
-                                    "quota_type"    => "sub_quota",
-                                    "valid_through" => date('d-m-Y', strtotime(str_replace("/", "-", $quotaData['expired_date']))),
-                                    "total"         => $quotaData['total'],
-                                    "remain"        => $quotaData['remain']
-                                ];
-                            }
-
-                            // Update new quota oa to db
-                            $quotaInfo = json_encode($quotaInfo);
-                            $db->query("UPDATE ec_zalo SET quota_info = '{$quotaInfo}' WHERE id = '{$oa_id}' AND deleted = 0");
-                            break;
-
-                        case 'purchase_quota': // Tin gửi ra là tin nằm trong hạn mức gói tính năng lẻ
-                            // // Cập nhật thông tin vào OA
-                            // "owner_type": "OA",
-                            // "owner_id": "4462152339089565647"
-                            break;
-
-                        case 'reward_quota': // Tin gửi ra là tin nằm trong hạn mức Redeem code
-                            // // Cập nhật thông tin vào OA
-                            // "owner_type": "OA",
-                            // "owner_id": "4462152339089565647"
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                catch(Throwable $th) {}
-            }
-            else $cost = 55;
-
             $zalomes = new EC_Zalo_Messages();
+            $cost = $zalomes->handle_quota_and_calculate_cost($arr_message['data'], $zalo_id, $oa_id);
+
             $zalomes->message_id        = $arr_message['data']['message_id'] ?? '';
             $zalomes->src               = 0;
-            $zalomes->from_id           = $zalOA->get_oa_id();
+            $zalomes->from_id           = $zaloOA->get_oa_id();
             $zalomes->to_id             = $zalo_id;
             $zalomes->timestamp         = round(microtime(true) * 1000); // Milliseconds
             $zalomes->type              = 'consultation';
@@ -399,12 +316,12 @@ class entryZaloOAClass extends entryClass {
     }
 
     /**
-     * Send ZNS
+     * Send ZBS template message (Previous is ZNS)
      * 
      * @param array $params
      * @return array
      */
-    public function sendZNS($params = []) {
+    public function sendTemplateMessage($params = []) {
         try {
             $phoneNumber   = $params["phoneNumber"] ?? "";
             $type          = $params["type"] ?? ""; // ZNS type
@@ -420,30 +337,82 @@ class entryZaloOAClass extends entryClass {
                 ];
             }
 
-            $zaloOA = new APIZaloOA();
-            $omni = new APIOMNI();
+            $app_id = "1450532072851803077";
+            $oa_id = $sugar_config['zalo_config']['oa_id_default'] ?? '';
+            $zaloOA = new APIZaloOA($app_id, $oa_id);
+            
+            $template_id    = $zaloOA->get_template_id($type);
+            $template_name  = $zaloOA->get_template_name($template_id);
+            
+            // Send by uid
+            if($zaloOA->check_template_can_send_by_uid($template_id)) {
+                $zaloContact = new EC_Zalo_Contacts();
+                $listUsers = $zaloContact->search_zalo_user_by_phone($phoneNumber, $zaloOA->get_oa_id());
 
-            $template_id    = $omni->getTemplateCode($type);
-            $template_name  = $omni->getTemplateName($template_id);
+                if(count($listUsers) == 1) {
+                    $uid  = $listUsers[0]['user_id'] ?? '';
+                    $json = $zaloOA->send_template_message_by_uid($uid, $template_id, $templateData);
+                    $arr  = json_decode($json, true);
+                    if(isset($arr['error']) && $arr['error'] == 1) {
+                        $zalomes = new EC_Zalo_Messages();
+                        $arr['data']['template_id'] = $template_id;
+                        $cost = $zalomes->handle_quota_and_calculate_cost($arr['data'], $uid, $zaloOA->get_oa_id());
 
-            $json = $omni->sendMessage($phoneNumber, $template_id, $templateData, true);
+                        $zalomes->message_id    = $arr['data']['message_id'] ?? '';
+                        $zalomes->src           = 0;
+                        $zalomes->from_id       = $zaloOA->get_oa_id();
+                        $zalomes->to_id         = $uid;
+                        $zalomes->timestamp     = $arr['sent_time'] ?? round(microtime(true) * 1000);
+                        $zalomes->type          = 'zbs';
+                        $zalomes->sub_type      = $type;
+                        $zalomes->description   = $template_name;
+                        $zalomes->template_id   = $template_id;
+                        $zalomes->data          = json_encode($templateData);
+                        $zalomes->response      = trim($json);
+                        $zalomes->booking_id    = $parentType == 'EC_Flight_Bookings' ? $parentId : "";
+                        $zalomes->cost          = $cost;
+                        $zalomes->assigned_user_id = $this->currentUser->id;
+
+                        // Save notes
+                        if($zalomes->save() || !empty($parentId)) {
+                            $n = new Note();
+                            $n->name        = "Gửi tin nhắn theo mẫu Zalo";
+                            $n->description = "Gửi Zalo ZBS $template_name đến $phoneNumber";
+                            $n->parent_type = $parentType;
+                            $n->parent_id   = $parentId;
+                            $n->assigned_user_id = $this->currentUser->id;
+                            $n->save();
+                        }
+                    }
+
+                    // Replace key error to status
+                    $arr['status'] = !$arr['error'];
+                    return $arr;
+                }
+            }
+
+            // Send by phone number
+            $json = $zaloOA->send_template_message_by_phone($phoneNumber, $template_id, $templateData, true);
             $arr = json_decode($json, true);
-
-            if(isset($arr['status']) && $arr['status'] == 1) {
+            if(isset($arr['error']) && $arr['error'] == 0) {
                 $templateData['template_id'] = $template_id;
 
                 // Save to zalo message
                 try {
-                    $msg_id     = $arr['data']['msg_id'] ?? ($arr['idOmniMess'] ?? '');
-                    $timestamp  = $arr['data']['sent_time'] ?? time();
+                    $msg_id     = $arr['data']['msg_id'] ?? '';
+                    $timestamp  = $arr['data']['sent_time'] ?? round(microtime(true) * 1000);
 
                     $zalomes = new EC_Zalo_Messages();
+
+                    $arr['data']['template_id'] = $template_id;
+                    $cost = $zalomes->handle_quota_and_calculate_cost($arr['data'], '', $zaloOA->get_oa_id());
+
                     $zalomes->message_id    = $msg_id;
                     $zalomes->src           = 0;
                     $zalomes->from_id       = $zaloOA->get_oa_id();
                     $zalomes->to_id         = $phoneNumber;
                     $zalomes->timestamp     = $timestamp;
-                    $zalomes->type          = 'zns';
+                    $zalomes->type          = 'zbs';
                     $zalomes->sub_type      = $type;
                     $zalomes->description   = $template_name;
                     $zalomes->template_id   = $template_id;
@@ -451,13 +420,12 @@ class entryZaloOAClass extends entryClass {
                     $zalomes->response      = trim($json);
                     $zalomes->booking_id    = $parentType == 'EC_Flight_Bookings' ? $parentId : "";
                     $zalomes->assigned_user_id = $this->currentUser->id;
-                    $zalomes->save();
 
                     // Save notes
-                    if(!empty($parentId)) {
+                    if($zalomes->save() || !empty($parentId)) {
                         $n = new Note();
-                        $n->name        = "Gửi Zalo ZNS";
-                        $n->description = "Gửi Zalo ZNS $template_name đến $phoneNumber";
+                        $n->name        = "Gửi tin nhắn theo mẫu Zalo";
+                        $n->description = "Gửi Zalo ZBS $template_name đến $phoneNumber";
                         $n->parent_type = $parentType;
                         $n->parent_id   = $parentId;
                         $n->assigned_user_id = $this->currentUser->id;
@@ -468,12 +436,12 @@ class entryZaloOAClass extends entryClass {
                     $exceptionMessage = "{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
                     if($this->notificationChannel == 'Mattermost') {
                         $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed");
+                        $message .= Mattermost::markdownHeading("[ERROR] ZBS message saved failed");
                         $message .= "\n$exceptionMessage\n\n$json";
                         Mattermost::sendMessage($this->mattermostConfig['channel_id_logs'] ?? '', $message);
                     }
                     else {
-                        $message = "<b>[ERROR] ZNS message saved failed</b>";
+                        $message = "<b>[ERROR] ZBS message saved failed</b>";
                         $message .= "\n$exceptionMessage\n<pre>$json</pre>";
                         $botToken   = $this->telegramConfig['bot_token'] ?? '';
                         $chatId     = $this->telegramConfig['chat_id'] ?? '';
@@ -485,7 +453,7 @@ class entryZaloOAClass extends entryClass {
                 $fullname   = trim("{$this->currentUser->last_name} {$this->currentUser->first_name}");
                 $botToken   = $this->telegramConfig['zalo']['bot_token'] ?? '';
                 $chatId     = $this->telegramConfig['zalo']['chat_id'] ?? '';
-                $message    = "<b>$fullname</b>: Gửi ZNS $template_name đến Zalo <b>$phoneNumber</b>";
+                $message    = "<b>$fullname</b>: Gửi mẫu tin $template_name đến Zalo <b>$phoneNumber</b>";
                 if(!empty($parentId) && $parentType == 'EC_Flight_Bookings') {
                     $bklink = "https://".$zaloOA->get_domain()."/index.php?module={$parentType}&action=DetailView&record={$parentId}";
                     $message .= " - <a href='{$bklink}'>Booking</a>";
@@ -493,9 +461,11 @@ class entryZaloOAClass extends entryClass {
                 Telegram::sendMessage($message, $botToken, $chatId);
             }
             else {
-                $arr["message"] = $omni->getErrorDescription($arr["code"] ?? "");
+                $arr["message"] = $zaloOA->get_error_description($arr["error"] ?? "");
             }
 
+            // Replace key error to status
+            $arr['status'] = !$arr['error'];
             return $arr;
         }
         catch(Throwable $th) {
