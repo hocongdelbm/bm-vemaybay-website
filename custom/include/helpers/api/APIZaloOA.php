@@ -170,7 +170,7 @@ class APIZaloOA {
             $expires_at_timestamp       = $this->get_timestamp() + $expires_in; // UTC timezones
             $this->app->access_token    = $arr['access_token'] ?? '';
             $this->app->refresh_token   = $arr['refresh_token'] ?? '';
-            $this->app->expires_at      = date('d-m-Y H:i:s', $expires_at_timestamp);
+            $this->app->expires_at      = date('Y-m-d H:i:s', $expires_at_timestamp);
             return $this->app->save();
         }
     }
