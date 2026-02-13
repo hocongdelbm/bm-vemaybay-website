@@ -62,8 +62,14 @@ class entryNextCloudPreviewClass extends entryClass
                     $document,
                     $revision
                 );
-                $this->outputDebugInfo($debugInfo);
-                return;
+                
+                // Check if output mode (default for HTTP requests)
+                $outputMode = $params['outputMode'] ?? true;
+                if ($outputMode) {
+                    $this->outputDebugInfo($debugInfo);
+                } else {
+                    return $debugInfo;
+                }
             }
 
             // Step 6: Fetch file from public URL
@@ -85,14 +91,28 @@ class entryNextCloudPreviewClass extends entryClass
                 'shareToken' => $shareInfo['shareToken']
             ];
 
-            // Output for HTTP requests
-            $downloadMode = $params['download'] ?? $_REQUEST['download'] ?? '';
-            $this->outputFile($result['fileData'], $result['contentType'], $revision, $downloadMode);
+            // Check if output mode (default for HTTP requests)
+            $outputMode = $params['outputMode'] ?? true;
+            if ($outputMode) {
+                // Output for HTTP requests
+                $downloadMode = $params['download'] ?? $_REQUEST['download'] ?? '';
+                $this->outputFile($result['fileData'], $result['contentType'], $revision, $downloadMode);
+            }
             
             return $result;
         } catch (Exception $e) {
             $GLOBALS['log']->error("NextCloudPreview: Exception - " . $e->getMessage());
-            $this->outputError('Internal server error', 500);
+            
+            // Check if output mode (default for HTTP requests)
+            $outputMode = $params['outputMode'] ?? true;
+            if ($outputMode) {
+                $this->outputError('Internal server error', 500);
+            } else {
+                return [
+                    'success' => false,
+                    'error' => $e->getMessage()
+                ];
+            }
         }
     }
 
@@ -156,17 +176,13 @@ class entryNextCloudPreviewClass extends entryClass
      */
     private function buildRemoteFilePath($document, $revision)
     {
-        // Build the remote file path using new naming convention: {document_name}_v{revision}.{filename}
-        $documentName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $document->document_name);
+        // ALWAYS use revision filename as base to ensure consistency
+        // When document is edited, document_name may change but filename stays the same
+        // This ensures we always point to the correct file on NextCloud
         $revisionNumber = $revision->revision ?? '1';
-        $cleanDocumentName = trim($document->document_name);
-        $cleanFileName = trim($revision->filename);
-        if ($cleanDocumentName === $cleanFileName) {
-             $remoteFilePath = '/bmvmb/modules/documents/' .'v' . $revisionNumber . '_' . $revision->filename;
-        } else {
-            $remoteFilePath = '/bmvmb/modules/documents/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
-        }
-
+        $remoteFilePath = '/bmvmb/modules/documents/' . 'v' . $revisionNumber . '_' . $revision->filename;
+        
+        $GLOBALS['log']->info("NextCloudPreview: Built remote path: {$remoteFilePath}");
         return $remoteFilePath;
     }
 
@@ -297,9 +313,6 @@ class entryNextCloudPreviewClass extends entryClass
         } else {
             header('Content-Disposition: inline; filename="' . $revision->filename . '"');
         }
-
-        header('Cache-Control: public, max-age=3600');
-        header('Pragma: cache');
 
         echo $fileData;
         exit;
