@@ -99,17 +99,13 @@ class NextCloudUpload
                     return; // Dừng nếu không tạo được folder
                 }
             }
-            // New naming convention: {document_name}_{revision}.{ext}
-            // Sanitize document name to make it filesystem-safe
-            $documentName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $bean->document_name);
+            // New naming convention: v{revision}_{filename}
+            // ALWAYS use this simple format for consistency
+            // This ensures that editing document_name won't break file access
             $revisionNumber = $revision->revision ?? '1';
-            $cleanDocumentName = trim($bean->document_name);
-            $cleanFileName = trim($revision->filename);
-            if ($cleanDocumentName === $cleanFileName) {
-                $remoteFileName = $folderPath . '/' . 'v' . $revisionNumber . '_' . $revision->filename;
-            } else {
-                $remoteFileName = $folderPath . '/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
-            }
+            $remoteFileName = $folderPath . '/' . 'v' . $revisionNumber . '_' . $revision->filename;
+            
+            $GLOBALS['log']->info("NextCloudUpload: Remote filename: {$remoteFileName}");
 
             // Upload file lên NextCloud
             $uploadResult = json_decode($api->uploadFile($localFilePath, $remoteFileName), true);
@@ -182,12 +178,11 @@ class NextCloudUpload
                 }
             }
 
-            // Move file to trash using new naming convention
-            if (!empty($revision->filename) && !empty($bean->document_name)) {
-                $documentName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $bean->document_name);
+            // Move file to trash using simple naming convention v{revision}_{filename}
+            if (!empty($revision->filename)) {
                 $revisionNumber = $revision->revision ?? '1';
-                $remoteFileName = 'bmvmb/modules/documents/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
-                $destinationPath = 'bmvmb/modules/documents/trash/' . $documentName . '_v' . $revisionNumber . '_' . $revision->filename;
+                $remoteFileName = 'bmvmb/modules/documents/v' . $revisionNumber . '_' . $revision->filename;
+                $destinationPath = 'bmvmb/modules/documents/trash/v' . $revisionNumber . '_' . $revision->filename;
 
                 $GLOBALS['log']->info("NextCloudUpload Delete: Moving document file {$remoteFileName} to {$destinationPath}");
 
