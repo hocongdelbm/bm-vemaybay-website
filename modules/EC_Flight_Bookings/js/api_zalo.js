@@ -7,7 +7,7 @@ $(document).ready(function () {
         return;
     });
 
-    // Get template ZNS
+    // Get template ZBS
     $('input[type=radio][name=zalo_type]').change(function () {
         $('input#phone_zalo').attr('readonly', false);
 
@@ -531,7 +531,7 @@ $(document).ready(function () {
             dataType: "json",
             data: JSON.stringify({
                 class: "entryZaloOAClass",
-                method: "sendZNS",
+                method: "sendTemplateMessage",
                 params: {
                     phoneNumber: phone,
                     type: znsType,
@@ -541,12 +541,12 @@ $(document).ready(function () {
                 }
             }),
             beforeSend: function() {
-                closeDialogZaloZNS();
+                closeDialogZaloZBS();
                 $('.container-waiting').show();
             },
             success: function (response) {
                 $('.container-waiting').hide();
-                if ('status' in response && response.status === 1) showModalNotify(1, "Đã gửi");
+                if ('status' in response && response.status) showModalNotify(1, "Đã gửi");
                 else showModalNotify(0, response.message || 'Thao tác không thành công')
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
@@ -564,7 +564,7 @@ $(document).ready(function () {
     });
 });
 
-function closeDialogZaloZNS() {
+function closeDialogZaloZBS() {
     // Reset
     $('#zalo-message').html('');
     $('input[name="zalo_type"]').prop('checked', false);

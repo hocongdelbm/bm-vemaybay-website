@@ -2793,8 +2793,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$sql = "SELECT zm.sub_type, COUNT(*) AS count
 			FROM ec_zalo_messages zm
 			WHERE zm.booking_id = '$bookingId'
-				AND zm.type = 'zns'
-				AND zm.to_id = '$phoneNumber'
+				AND (zm.type = 'zns' OR zm.type = 'zbs')
+				AND (zm.to_id = '$phoneNumber')
 				AND zm.deleted = 0
 			GROUP BY zm.sub_type";
 
