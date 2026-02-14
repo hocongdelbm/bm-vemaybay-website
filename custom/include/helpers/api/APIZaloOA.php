@@ -158,7 +158,7 @@ class APIZaloOA {
      * @return bool
      */
     protected function save_token($json, $is_error = false) {
-        if($is_error) {
+        if($is_error && !empty($this->app->id)) {
             $this->app->description = $json;
             return $this->app->save();
         }

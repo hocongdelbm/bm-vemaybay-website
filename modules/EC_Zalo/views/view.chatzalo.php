@@ -4,6 +4,10 @@ require_once("include/Sugar_Smarty.php");
 require_once("custom/include/helpers/api/APIZaloOA.php");
 
 class Viewchatzalo extends SugarView {
+    /**
+     * @var EC_Zalo
+     */
+    public $bean;
     private $zaloOA;
     private $entrypoint;
     private $websocket_url;

@@ -274,7 +274,7 @@ class EC_Zalo_Messages extends Basic {
         }
 
         if(empty($message_data)) {
-            $zaloOA = new APIZaloOA($oa_id);
+            $zaloOA = new APIZaloOA('', $oa_id);
             $json_messages = $zaloOA->get_messages($zalo_id, $offset + 1); // +1 for offset in get more message
             $arr_messages = json_decode($json_messages, true);
 
