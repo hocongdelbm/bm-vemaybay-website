@@ -8,7 +8,7 @@ class APIZaloOA {
     /**
      * @var EC_Zalo_Apps
      */
-    protected $app;
+    public $app;
     /**
      * @var EC_Zalo
      */
@@ -1108,7 +1108,7 @@ class APIZaloOA {
      * @param string $timezone
      * @return int
      */
-    public function get_timestamp($timezone = 'UTC') {
+    public function get_timestamp($timezone = 'Asia/Ho_Chi_Minh') {
         date_default_timezone_set($timezone);
         return time();
     }
