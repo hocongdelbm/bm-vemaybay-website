@@ -43,7 +43,7 @@ class entryZaloOAClass extends entryClass {
         if(in_array($value, ['L7D'])) $last_interaction_period = $value;
         elseif(!empty($value)) $tag_name = $value;
 
-        $zaloOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA('', $oa_id);
         $json = $zaloOA->get_list_user($offset, $count, $last_interaction_period, null, $tag_name);
         $arr  = json_decode($json, true);
 
@@ -165,7 +165,7 @@ class entryZaloOAClass extends entryClass {
             ];
         }
 
-        $zaloOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA('', $oa_id);
 
         // Prepare body request (data)
         if ($type == 'image') {

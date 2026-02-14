@@ -67,7 +67,7 @@ class EC_Zalo_Contacts extends Basic
         $zalo_id = $user_data['user_id'] ?? '';
         if(empty($zalo_id)) return false;
 
-        $zaloOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA('', $oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
 
         // $user_external_id = $user_data['user_external_id'] ?? '';
@@ -145,7 +145,7 @@ class EC_Zalo_Contacts extends Basic
     public function map_contact_zalo($contact_id, $zalo_id, $oa_id = '') {
         if(empty($contact_id) || empty($zalo_id)) return false;
 
-        $zaloOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA('', $oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
 
         $sql = "UPDATE ec_zalo_contacts
@@ -167,7 +167,7 @@ class EC_Zalo_Contacts extends Basic
     public function get_zalo_user_info($zalo_id, $oa_id = '') {
         if(!$zalo_id || strlen($zalo_id) < 15) return [];
 
-        $zaloOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA('', $oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
         $userData = [];
 
@@ -312,7 +312,7 @@ class EC_Zalo_Contacts extends Basic
     public function search_zalo_user_by_phone($search_value, $oa_id = '') {
         if(strlen($search_value) < 3) return [];
 
-        $zaloOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA('', $oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
         $listUserData = [];
 
@@ -389,7 +389,7 @@ class EC_Zalo_Contacts extends Basic
     public function search_zalo_user_by_alias($search_value, $oa_id = '') {
         if(strlen($search_value) < 4) return [];
 
-        $zaloOA = new APIZaloOA($oa_id);
+        $zaloOA = new APIZaloOA('', $oa_id);
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $zaloOA->get_oa_id();
         $listUserData = [];
 
