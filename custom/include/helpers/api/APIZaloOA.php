@@ -8,7 +8,7 @@ class APIZaloOA {
     /**
      * @var EC_Zalo_Apps
      */
-    protected $app;
+    public $app;
     /**
      * @var EC_Zalo
      */
