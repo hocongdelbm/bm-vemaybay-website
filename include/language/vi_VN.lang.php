@@ -846,7 +846,7 @@ $app_list_strings = array(
         'Active' => 'Đang hoạt động',
         'Draft' => 'Bản nháp',
         'FAQ' => 'Hỏi đáp',
-        'Expired' => 'hết hạn',
+        'Expired' => 'Hết hạn',
         'Under Review' => 'Đang xem xét',
         'Pending' => 'Trì hoãn',
     ),
