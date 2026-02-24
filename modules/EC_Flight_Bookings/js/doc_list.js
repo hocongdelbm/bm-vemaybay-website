@@ -64,7 +64,7 @@ function renderDocumentPopup(documents) {
     if (documents && documents.length > 0) {
         documents.forEach(function(doc) {
             // Use direct doc_url for download if available (already has /download), otherwise fallback to download.php
-            var downloadUrl = doc.doc_url || 'index.php?entryPoint=download&id=' + doc.id + '&type=Documents';
+            var downloadUrl = doc.doc_url + '/download';
             
             html += '<tr>' +
                     '<td><a href="index.php?module=Documents&action=DetailView&record=' + doc.id + '" target="_blank" style="color: #0a58ca; text-decoration: none;">' + doc.document_name + '</a></td>' +

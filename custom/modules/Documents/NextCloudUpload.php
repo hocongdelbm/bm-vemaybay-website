@@ -125,7 +125,6 @@ class NextCloudUpload
                 // Thêm /download vào cuối URL để có link download trực tiếp
                 // Link này có thể dùng trực tiếp cho preview ảnh và download
                 $publicShareUrl = $shareResult['data']['url'];
-                $publicDownloadUrl = rtrim($publicShareUrl, '/') . '/download';
                 
                 $GLOBALS['log']->info("NextCloudUpload: Public share URL: {$publicShareUrl}");
                 $GLOBALS['log']->info("NextCloudUpload: Public download URL: {$publicDownloadUrl}");
@@ -135,19 +134,19 @@ class NextCloudUpload
             }
             
             // Lưu URL download trực tiếp vào revision để tránh upload lại
-            $revision->doc_url = $publicDownloadUrl;
+            $revision->doc_url = $publicShareUrl;
             $revision->save();
 
             // Update document với link download trực tiếp (update trực tiếp vào DB để tránh trigger logic hook lại)
             $GLOBALS['db']->query("
                 UPDATE documents 
-                SET doc_url = " . $GLOBALS['db']->quoted($publicDownloadUrl) . ",
+                SET doc_url = " . $GLOBALS['db']->quoted($publicShareUrl) . ",
                     doc_type = 'NextCloud',
                     date_modified = NOW()
                 WHERE id = " . $GLOBALS['db']->quoted($bean->id) . "
             ");
             
-            $GLOBALS['log']->info("NextCloudUpload: Successfully saved public download URL to document and revision");
+            $GLOBALS['log']->info("NextCloudUpload: Successfully saved public share URL to document and revision");
 
             // Xóa file local sau khi upload thành công
             if (file_exists($localFilePath)) {

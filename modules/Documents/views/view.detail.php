@@ -80,7 +80,7 @@ class DocumentsViewDetail extends ViewDetail
         $filename_html = '';
         if (!empty($this->bean->filename)) {
             // Use direct public share download URL (already has /download)
-            $downloadUrl = !empty($this->bean->doc_url) ? $this->bean->doc_url : "";
+            $downloadUrl = !empty($this->bean->doc_url) ? $this->bean->doc_url . '/download' : "";
             
             if (!empty($downloadUrl)) {
                 $filename_html = '<a href="' . $downloadUrl . '" target="_blank" class="tabDetailViewDFLink">' . $this->bean->filename . '</a>';
@@ -98,7 +98,7 @@ class DocumentsViewDetail extends ViewDetail
         // Check if the file is an image based on MIME type
         if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
             // Use direct public share download URL (already has /download)
-            $previewUrl = !empty($revision->doc_url) ? $revision->doc_url : (!empty($this->bean->doc_url) ? $this->bean->doc_url : "");
+            $previewUrl = !empty($revision->doc_url) ? $revision->doc_url . '/preview' : (!empty($this->bean->doc_url) ? $this->bean->doc_url : "");
             
             if (!empty($previewUrl)) {
                 // Render HTML - Using direct public share URL with /download (works for both preview and download)
