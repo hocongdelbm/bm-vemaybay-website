@@ -63,14 +63,17 @@ function renderDocumentPopup(documents) {
     
     if (documents && documents.length > 0) {
         documents.forEach(function(doc) {
+            // Use direct doc_url for download if available (already has /download), otherwise fallback to download.php
+            var downloadUrl = doc.doc_url || 'index.php?entryPoint=download&id=' + doc.id + '&type=Documents';
+            
             html += '<tr>' +
                     '<td><a href="index.php?module=Documents&action=DetailView&record=' + doc.id + '" target="_blank" style="color: #0a58ca; text-decoration: none;">' + doc.document_name + '</a></td>' +
-                    '<td>' + (doc.preview_image !== "Không phải file ảnh" ? '<img src="' + doc.preview_image + '" alt="Preview" style="max-width: 100px; max-height: 100px;">' : doc.preview_image) + '</td>' +
+                    '<td>' + (doc.preview_image && doc.preview_image !== "Không phải file ảnh" && doc.preview_image !== "" ? '<img src="' + doc.preview_image + '" alt="Preview" style="max-width: 100px; max-height: 100px;">' : 'Không có preview') + '</td>' +
                     '<td>' + doc.category + '</td>' +
                     '<td>' + doc.date_entered + '</td>' +
                     '<td>' + doc.created_by_name + '</td>' +
                     '<td>' +
-                        '<a href="index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' + doc.id + '&download=yes" class="uiverse-btn" target="_blank" class="tabDetailViewDFLink" ><span class="box box-success">Tải</span></a>' +
+                        '<a href="' + downloadUrl + '" class="uiverse-btn" target="_blank" class="tabDetailViewDFLink"><span class="box box-success">Tải</span></a>' +
                     '</td>' +
                     '</tr>';
         });

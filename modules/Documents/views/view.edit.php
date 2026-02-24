@@ -155,7 +155,7 @@ class DocumentsViewEdit extends ViewEdit
             $this->ss->assign("BOOKING_BUTTON_AVAILABILITY", "button");
         }
 
-      
+
 
         //set parent information in the form.
         if (isset($_REQUEST['parent_id'])) {
@@ -195,14 +195,21 @@ class DocumentsViewEdit extends ViewEdit
         // Assign preview URL for EditView - check if file is an image
         if (!empty($this->bean->id) && !empty($this->bean->document_revision_id)) {
             $revision = BeanFactory::getBean('DocumentRevisions', $this->bean->document_revision_id);
-            
+
             // Only show preview if the file is an image
             if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
-                // Use NextCloudPreview proxy entry point for authenticated image fetching
-                $preview_url = "index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id={$this->bean->id}";
-                $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
-                $this->ss->assign("PREVIEW_FILENAME", $revision->filename);
-                $this->ss->assign("HAS_PREVIEW_IMAGE", true);
+                // Use direct public share download URL from doc_url (already has /download)
+                $preview_url = !empty($revision->doc_url) ? $revision->doc_url : (!empty($this->bean->doc_url) ? $this->bean->doc_url : "");
+
+                if (!empty($preview_url)) {
+                    $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
+                    $this->ss->assign("PREVIEW_FILENAME", $revision->filename);
+                    $this->ss->assign("HAS_PREVIEW_IMAGE", true);
+                } else {
+                    $this->ss->assign("PREVIEW_IMAGE_URL", "");
+                    $this->ss->assign("PREVIEW_FILENAME", "");
+                    $this->ss->assign("HAS_PREVIEW_IMAGE", false);
+                }
             } else {
                 $this->ss->assign("PREVIEW_IMAGE_URL", "");
                 $this->ss->assign("PREVIEW_FILENAME", "");
@@ -246,82 +253,15 @@ class DocumentsViewEdit extends ViewEdit
     {
         global $app_strings;
         $disabled = $this->ss->get_template_vars('UPLOAD_DISABLED');
+        $hasPreviewImage = $this->ss->get_template_vars('HAS_PREVIEW_IMAGE');
+        $previewImageUrl = $this->ss->get_template_vars('PREVIEW_IMAGE_URL');
+        $previewFilename = $this->ss->get_template_vars('PREVIEW_FILENAME');
+
         $disabledAttr = $disabled ? 'disabled="disabled"' : '';
-        $disabledClass = $disabled ? ' disabled' : '';
-        
-        $html = '<style>
-.filter-switch {
-  border: 2px solid #0a58ca;
-  border-radius: 25px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 40px;
-  width: 300px;
-  overflow: hidden;
-  margin-bottom: 15px;
-}
-.filter-switch.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.filter-switch input {
-  display: none;
-}
-.filter-switch label {
-  flex: 1;
-  text-align: center;
-  cursor: pointer;
-  border: none;
-  border-radius: 25px;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-  transition: all 0.5s;
-  font-weight: 500;
-  font-size: 14px;
-  padding: 10px 0;
-}
-.filter-switch.disabled label {
-  cursor: not-allowed;
-}
-.filter-switch .background {
-  position: absolute;
-  width: 49%;
-  height: 32px;
-  background-color: #0a58ca;
-  top: 3px;
-  left: 3px;
-  border-radius: 25px;
-  transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-#upload-multiple:checked ~ .background {
-  left: 50%;
-}
-#upload-single:checked + label[for="upload-single"] {
-  color: #ffffff;
-  font-weight: bold;
-}
-#upload-multiple:checked + label[for="upload-multiple"] {
-  color: #ffffff;
-  font-weight: bold;
-}
-#upload-single:not(:checked) + label[for="upload-single"],
-#upload-multiple:not(:checked) + label[for="upload-multiple"] {
-  color: #0a58ca;
-}
-</style>';
-        
-        $html .= '<div>';
-        $html .= "  <div class=\"filter-switch{$disabledClass}\">";
-        $html .= "    <input checked id=\"upload-single\" name=\"upload_mode\" value=\"single\" type=\"radio\" onchange=\"toggleUploadMode()\" {$disabledAttr} />";
-        $html .= '    <label class="option" for="upload-single">Upload 1 file</label>';
-        $html .= "    <input id=\"upload-multiple\" name=\"upload_mode\" value=\"multiple\" type=\"radio\" onchange=\"toggleUploadMode()\" {$disabledAttr} />";
-        $html .= '    <label class="option" for="upload-multiple">Upload nhiều files</label>';
-        $html .= '    <span class="background"></span>';
-        $html .= '  </div>';
+
+        $html = '<div>';
         $html .= '  <div id="single-upload-container">';
-        $html .= "    <input type=\"file\" name=\"filename_file\" id=\"filename_file\" onchange=\"handleSingleFileSelect(this)\" {$disabledAttr}>";
+        $html .= "    <input type=\"file\" name=\"filename_file\" id=\"filename_file\" multiple onchange=\"handleSingleFileSelect(this)\" {$disabledAttr}>";
         if ($disabled) {
             $html .= '<div style="color: #999; font-size: 12px; margin-top: 5px;">(Không thể thay đổi file khi edit)</div>';
         }
@@ -330,6 +270,20 @@ class DocumentsViewEdit extends ViewEdit
         $html .= "    <input type=\"file\" name=\"uploadfiles[]\" id=\"uploadfiles\" multiple onchange=\"handleMultipleFileSelect(this)\" {$disabledAttr}>";
         $html .= '    <div id="file-list" style="margin-top: 5px; font-size: 12px; color: #666;"></div>';
         $html .= '  </div>';
+        $html .= '</div>';
+
+        $html .= '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd; display:flex; gap:10px; overflow-x:auto; align-items:center; min-height:100px;">';
+        $html .= '  <div id="file-preview-images" style="display:flex; gap:10px;">';
+        if (!empty($hasPreviewImage)) {
+            $html .= '    <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">';
+            $html .= '      <img src="' . $previewImageUrl . '" style="max-width:200px; max-height:200px; object-fit:contain; border:1px solid #ccc; border-radius:4px;"/>';
+            $html .= '      <div style="font-size:12px; color:#666; max-width:200px; text-align:center; word-break:break-word; padding:2px 5px;">' . $previewFilename . '</div>';
+            $html .= '    </div>';
+        }
+        $html .= '  </div>';
+        $displayStyle = (!empty($hasPreviewImage)) ? 'display:none;' : '';
+        $html .= '  <div id="file-preview-text" style="color: #999; ' . $displayStyle . '">Chưa chọn file</div>';
+
         $html .= '</div>';
         return $html;
     }

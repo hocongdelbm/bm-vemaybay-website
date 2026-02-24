@@ -62,29 +62,17 @@ if (!isset($_REQUEST['isTempFile'])) {
         }
     }
 
-    //Kiểm tra nếu doc_url là NextCloud thì chuyển hướng qua entrypoint proxy
+    //Kiểm tra nếu doc_url có thì redirect trực tiếp (public share link already has /download)
     if (isset($focus->doc_url) && !empty($focus->doc_url)) {
-        // Custom: Intercept NextCloud/vnbackup URLs
-        if (strpos($focus->doc_url, 'vnbackup.com') !== false || strpos($focus->doc_url, 'remote.php/dav') !== false) {
-            $redirectUrl = 'index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' . $_REQUEST['id'] . '&download=yes'; // Force download
-            header('Location: ' . $redirectUrl);
-            sugar_die("Remote NextCloud file detected, redirecting to proxy.");
-        }
-        
+        // doc_url now contains direct public share download link - no proxy needed
         header('Location: ' . $focus->doc_url);
-        sugar_die("Remote file detected, location header sent.");
+        sugar_die("Remote file detected (public share), redirecting directly.");
     }
 
     if (isset($focusRevision) && isset($focusRevision->doc_url) && !empty($focusRevision->doc_url)) {
-         // Custom: Intercept NextCloud/vnbackup URLs
-         if (strpos($focusRevision->doc_url, 'vnbackup.com') !== false || strpos($focusRevision->doc_url, 'remote.php/dav') !== false) {
-            $redirectUrl = 'index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' . $_REQUEST['id'] . '&download=yes'; // Force download
-            header('Location: ' . $redirectUrl);
-            sugar_die("Remote NextCloud file detected, redirecting to proxy.");
-        }
-
+        // doc_url now contains direct public share download link - no proxy needed
         header('Location: ' . $focusRevision->doc_url);
-        sugar_die("Remote file detected, location header sent.");
+        sugar_die("Remote file detected (public share), redirecting directly.");
     }
 } // if
 
