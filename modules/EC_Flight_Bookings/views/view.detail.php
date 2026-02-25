@@ -1456,6 +1456,39 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				</div>'
 		);
 
+		// PRINT_TICKET_NEW - Nút in vé mới với popup chọn
+		$this->ss->assign(
+			'PRINT_TICKET_NEW',
+			'<div class="btn-group btnPrintEticketNew-selection">
+				<button type="button" class="btn btn-success btnPrintEticketNew" data-bs-display="static" aria-expanded="false">
+					✈ In vé mới
+				</button>
+			</div>
+			<div id="dlgPrintTicketNew" style="display:none;">
+				<div style="margin-bottom:14px;">
+					<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+						<strong style="font-size:14px;">✈ Hành trình</strong>
+						<label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="popup-select-all-iti" checked /> Chọn tất cả</label>
+					</div>
+					<div class="popup-itinerary-list" style="max-height:160px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:6px 10px; background:#fafafa;"></div>
+				</div>
+				<div style="margin-bottom:14px;">
+					<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+						<strong style="font-size:14px;">👤 Hành khách</strong>
+						<label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="popup-select-all-psg" checked /> Chọn tất cả</label>
+					</div>
+					<div class="popup-passenger-list" style="max-height:200px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:6px 10px; background:#fafafa;"></div>
+				</div>
+				<div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:10px;">
+					<label style="cursor:pointer;"><input type="radio" name="popup_ngonngu" value="vn" checked /> Tiếng Việt</label>
+					<label style="cursor:pointer;"><input type="radio" name="popup_ngonngu" value="en" /> English</label>
+				</div>
+				<div style="text-align:center;">
+					<button type="button" class="btn btn-success" id="btnSubmitPrintNew" style="padding:8px 28px; font-size:14px;">✈ In vé</button>
+				</div>
+			</div>'
+		);
+
 		// Cập nhật doanh số của booking trong table ec_revenue
 		$update_revenue = '';
 		if (is_admin($current_user) && $current_user->user_name == 'hungnh') {
