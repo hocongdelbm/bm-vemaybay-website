@@ -466,8 +466,13 @@ class Viewprinteticketnew extends SugarView
 			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
 			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
 
-			$depCityName = $depAirport['CityName'] ?? $depCode;
-			$arrCityName = $arrAirport['CityName'] ?? $arrCode;
+			// Use myGetAirportInfo2 to get proper localized city name
+			$depInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($depCode) : [];
+			$arrInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($arrCode) : [];
+
+			$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
+			$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
+			
 			$depAirportName = $depAirport['AirPortName'] ?? '';
 			$arrAirportName = $arrAirport['AirPortName'] ?? '';
 
