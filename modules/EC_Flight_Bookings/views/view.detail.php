@@ -1457,6 +1457,10 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		);
 
 		// PRINT_TICKET_NEW - Nút in vé mới với popup chọn
+		// Build resolved itinerary list (preferring rescheduled over originals) for the popup
+		$resolvedItineraries = $this->getResolvedItinerariesForPopup();
+		$itinerariesJson = htmlspecialchars(json_encode($resolvedItineraries), ENT_QUOTES, 'UTF-8');
+
 		$this->ss->assign(
 			'PRINT_TICKET_NEW',
 			'<div class="btn-group btnPrintEticketNew-selection">
@@ -1464,7 +1468,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					✈ In vé mới
 				</button>
 			</div>
-			<div id="dlgPrintTicketNew" style="display:none;">
+			<div id="dlgPrintTicketNew" style="display:none;" data-itineraries="' . $itinerariesJson . '" data-booking-id="' . $this->bean->id . '" data-booking="' . $this->bean->name . '" data-ticket-type="' . $this->bean->ticket_type . '">
 				<div style="margin-bottom:14px;">
 					<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
 						<strong style="font-size:14px;">✈ Hành trình</strong>
@@ -2258,6 +2262,88 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		if ($res > 0)
 			return true;
 		return false;
+	}
+
+	/**
+	 * Get resolved itineraries for the print ticket popup.
+	 * Prefers rescheduled (add_type=3, latest sabre_logs) over originals (add_type=0).
+	 */
+	function getResolvedItinerariesForPopup()
+	{
+		global $app_list_strings, $timedate;
+		$date_format = $timedate->get_date_format();
+		$bookingId = $this->bean->id;
+		$results = [];
+
+		// Check which directions have been rescheduled
+		$rescheduledDirections = [];
+		$sqlCheck = "SELECT DISTINCT direction FROM ec_booking_itineraries
+			WHERE booking_id = '$bookingId' AND add_type = 3 AND deleted = 0";
+		$resCheck = $this->bean->db->query($sqlCheck);
+		while ($row = $this->bean->db->fetchByAssoc($resCheck)) {
+			$rescheduledDirections[] = (int)$row['direction'];
+		}
+
+		$fields = "i.id, i.departure_date, i.flight_number, i.departure, i.arrival, i.airline_code, i.direction";
+
+		if (empty($rescheduledDirections)) {
+			// No rescheduled — just get originals
+			$sql = "SELECT MIN(i.id) AS id, i.departure_date, i.flight_number, i.departure, i.arrival, i.airline_code, i.direction
+				FROM ec_booking_itineraries i
+				WHERE i.booking_id = '$bookingId' AND i.deleted = 0 AND i.add_type = 0
+				GROUP BY i.direction, i.flight_number, i.departure_date
+				ORDER BY i.direction, i.departure_date";
+		} else {
+			$rescheduledDirList = implode(',', $rescheduledDirections);
+
+			// Original itineraries for directions NOT rescheduled
+			$sqlUnchanged = "SELECT $fields FROM ec_booking_itineraries i
+				WHERE i.booking_id = '$bookingId' AND i.deleted = 0 AND i.add_type = 0
+				AND i.direction NOT IN ($rescheduledDirList)";
+
+			// Latest rescheduled itineraries — GROUP BY to deduplicate per-passenger rows
+			$sqlRescheduled = "SELECT MIN(i.id) AS id, i.departure_date, i.flight_number, i.departure, i.arrival, i.airline_code, i.direction
+				FROM ec_booking_itineraries i
+				INNER JOIN (
+					SELECT direction, MAX(sabre_logs) AS max_logs
+					FROM ec_booking_itineraries
+					WHERE booking_id = '$bookingId' AND add_type = 3 AND deleted = 0
+					GROUP BY direction
+				) latest ON i.direction = latest.direction AND i.sabre_logs = latest.max_logs
+				WHERE i.booking_id = '$bookingId' AND i.add_type = 3 AND i.deleted = 0
+				GROUP BY i.direction, i.flight_number, i.departure_date";
+
+			$sql = "($sqlUnchanged) UNION ALL ($sqlRescheduled) ORDER BY direction, departure_date";
+		}
+
+		$res = $this->bean->db->query($sql);
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			$directionLabel = $app_list_strings['bk_direction_list'][(int)$row['direction']] ?? '';
+			$airlineCode = $row['airline_code'] ?? '';
+			// Map internal codes to display codes
+			if ($airlineCode == 'VNA') $airlineCode = 'VN';
+			elseif ($airlineCode == 'VJA') $airlineCode = 'VJ';
+			elseif ($airlineCode == 'VNP') $airlineCode = 'BL';
+			elseif ($airlineCode == 'BBA') $airlineCode = 'QH';
+			elseif ($airlineCode == 'VTA') $airlineCode = 'VU';
+
+			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
+			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
+
+			$results[] = [
+				'id' => $row['id'],
+				'direction' => (int)$row['direction'],
+				'directionLabel' => $directionLabel,
+				'airline' => $airlineCode,
+				'airlineName' => $airlineName,
+				'flightNo' => $row['flight_number'] ?? '',
+				'departure' => $row['departure'] ?? '',
+				'arrival' => $row['arrival'] ?? '',
+				'depDate' => !empty($row['departure_date']) ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '',
+			];
+		}
+
+		return $results;
 	}
 
 	function populateEditedInfo($type)

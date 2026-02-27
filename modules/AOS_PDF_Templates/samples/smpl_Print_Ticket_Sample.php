@@ -221,7 +221,7 @@ class smpl_Print_Ticket_Sample
                                                         Vui lòng có mặt tại sân bay trước giờ khởi hành <b>120 phút</b> (Lễ, Tết trước 150 - 180 phút), tránh việc đi trễ sẽ mất vé. Xin ghi nhớ: Đến sân bay cần phải làm thủ tục tại quầy.
                                                     </li>
                                                     <li>
-                                                        <b>Hành khách từ 14 tuổi trở lên phải có giấy tờ tùy thân: CCCD, CMND hoặc bằng lái xe, hộ chiếu còn hạn sử dụng.</b> Trường hợp không có các giấy tờ trên, đi bằng giấy xác nhận nhân thân, có dấu giáp lai của cơ quan Công An phường, xã. Hành khách dưới 14 tuổi đi bằng giấy khai sinh bản chính.
+                                                        <b>Hành khách từ 14 tuổi trở lên phải có giấy tờ tùy thân: CCCD, hộ chiếu còn hạn sử dụng.</b> Trường hợp không có các giấy tờ trên, đi bằng giấy xác nhận nhân thân, có dấu giáp lai của cơ quan Công An phường, xã. Hành khách dưới 14 tuổi đi bằng giấy khai sinh bản chính.
                                                     </li>
                                                     <li>
                                                         Giấy tờ tuỳ thân khi ra sân bay phải là bản chính.

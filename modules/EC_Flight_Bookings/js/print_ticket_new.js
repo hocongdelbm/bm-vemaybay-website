@@ -50,38 +50,37 @@ $(document).ready(function () {
             );
         }
 
-        // Populate itineraries from page
-        // Show only ORIGINAL rows (skip edited_iti_line = changed versions)
-        // PHP getItineraries() handles returning the latest version per direction
-        $('#itinerary_tbl tbody tr').each(function () {
-            var $row = $(this);
+        // Populate itineraries from data embedded by PHP
+        // This ensures rescheduled versions (add_type = 3) are preferred over originals
+        try {
+            var itinerariesData = $popup.attr('data-itineraries');
+            var bookingId = $popup.attr('data-booking-id') || '';
+            var booking = $popup.attr('data-booking') || '';
+            var ticketType = $popup.attr('data-ticket-type') || '';
+            
+            if (itinerariesData) {
+                var itineraries = JSON.parse(itinerariesData);
+                for (var i = 0; i < itineraries.length; i++) {
+                    var iti = itineraries[i];
+                    
+                    var airlineImg = '';
+                    if (iti.airline) {
+                        airlineImg = '<img style="width:45px" src="custom/themes/default/images/airline-icon-100x100/' + iti.airline + '.png" alt="' + iti.airline + '" border="0" />';
+                    }
+                    
+                    var label = '<strong>' + iti.directionLabel + '</strong> &nbsp; ' + airlineImg + ' <span style="font-weight: 500;">' + iti.flightNo + '</span> &nbsp; ' + iti.departure + ' → ' + iti.arrival + ' &nbsp; ' + iti.depDate;
 
-            // Skip edited itinerary rows (appended change versions)
-            if ($row.hasClass('edited_iti_line')) return;
-            // Skip header rows (no checkbox)
-            var itiId = $row.find('.check-itinerary').data('id');
-            if (!itiId) return;
-
-            var direction = $row.find('td[data-label="Chiều"]').text().trim();
-            var airline = $row.find('td[data-label="Mã hãng"] img').attr('alt') || '';
-            var flightNo = $row.find('td[data-label="Số hiệu"]').text().trim();
-            var departure = $row.find('td[data-label="Nơi đi"]').text().trim();
-            var arrival = $row.find('td[data-label="Nơi đến"]').text().trim();
-            var depDate = $row.find('td[data-label="Ngày giờ đi"]').text().trim();
-            var directionCode = $row.find('input[name="direction"]').val() || '';
-            var ticketType = $row.find('input[name="ticket_type"]').val() || '';
-            var bookingId = $row.find('input[name="booking_id"]').val() || '';
-            var booking = $row.find('input[name="booking"]').val() || '';
-
-            var label = '<strong>' + direction + '</strong> &nbsp; ' + airline + ' ' + flightNo + ' &nbsp; ' + departure + ' → ' + arrival + ' &nbsp; ' + depDate;
-
-            $itineraryList.append(
-                '<label style="display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; border-bottom:1px solid #f0f0f0;">' +
-                '<input type="checkbox" class="popup-check-iti" value="' + itiId + '" data-direction="' + directionCode + '" data-ticket-type="' + ticketType + '" data-booking-id="' + bookingId + '" data-booking="' + booking + '" checked style="width:16px;height:16px;cursor:pointer;" />' +
-                '<span>' + label + '</span>' +
-                '</label>'
-            );
-        });
+                    $itineraryList.append(
+                        '<label style="display:flex; align-items:center; gap:8px; padding:6px 0; cursor:pointer; border-bottom:1px solid #f0f0f0;">' +
+                        '<input type="checkbox" class="popup-check-iti" value="' + iti.id + '" data-direction="' + iti.direction + '" data-ticket-type="' + ticketType + '" data-booking-id="' + bookingId + '" data-booking="' + booking + '" checked style="width:16px;height:16px;cursor:pointer;" />' +
+                        '<span>' + label + '</span>' +
+                        '</label>'
+                    );
+                }
+            }
+        } catch (e) {
+            console.error('Lỗi parse data-itineraries:', e);
+        }
 
         // Open dialog
         $popup.dialog({

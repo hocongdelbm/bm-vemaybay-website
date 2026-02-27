@@ -14,6 +14,7 @@ class Viewprinteticketnew extends SugarView
 	public $ticketType;
 	public $passengerIds;
 	public $itineraryIds;
+	private $bookingBean = null;
 
 	function display()
 	{
@@ -120,9 +121,47 @@ class Viewprinteticketnew extends SugarView
 				WHERE booking_id = '$bookingId' AND add_type = 2 AND deleted = 0
 				AND parent_detail_id IS NOT NULL";
 
+		// Also collect IDs of add_type=2 records that are NOT the latest per parent_detail_id
+		// This handles cases where multiple renames point to the same parent_detail_id
+		$notLatestRenames = "SELECT p2.id FROM ec_booking_passengers p2
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) AS max_date
+					FROM ec_booking_passengers
+					WHERE booking_id = '$bookingId' AND add_type = 2 AND deleted = 0
+					AND parent_detail_id IS NOT NULL
+					GROUP BY parent_detail_id
+				) latest ON p2.parent_detail_id = latest.parent_detail_id
+				WHERE p2.booking_id = '$bookingId' AND p2.add_type = 2 AND p2.deleted = 0
+				AND p2.date_entered < latest.max_date";
+
 		// Original passengers not superseded by any rename
-		$sqlUnchanged = "SELECT $fields, NULL AS parent_detail_id
+		// LEFT JOIN add_type=1 records (luggage rows) to inherit baggage data.
+		// Also pull aircode/ticket_class from itineraries for old-style generateLuggage().
+		$sqlUnchanged = "SELECT
+				p.id, p.name, p.salutation, p.type,
+				p.pnr_outbound, p.pnr_inbound,
+				p.eticket_outbound, p.eticket_inbound,
+				COALESCE(NULLIF(p.luggage_index_outbound,''), bag.luggage_index_outbound) AS luggage_index_outbound,
+				COALESCE(NULLIF(p.luggage_index_inbound,''), bag.luggage_index_inbound) AS luggage_index_inbound,
+				COALESCE(NULLIF(p.luggage_purchase_text,''), bag.luggage_purchase_text) AS luggage_purchase_text,
+				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), bag.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
+				COALESCE(NULLIF(p.luggage_price, 0), bag.luggage_price) AS luggage_price,
+				COALESCE(NULLIF(p.luggage_price_inbound, 0), bag.luggage_price_inbound) AS luggage_price_inbound,
+				p.cic, p.passport_number, p.date_entered, NULL AS parent_detail_id,
+				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS ticket_class_outbound,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS aircode_inbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS ticket_class_inbound
 			FROM ec_booking_passengers p
+			LEFT JOIN (
+				SELECT parent_detail_id,
+					luggage_index_outbound, luggage_index_inbound,
+					luggage_purchase_text, luggage_purchase_text_inbound,
+					luggage_price, luggage_price_inbound
+				FROM ec_booking_passengers
+				WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+			) bag ON bag.parent_detail_id = p.id
 			WHERE p.booking_id = '$bookingId'
 				$idFilter
 				AND p.deleted = 0
@@ -130,6 +169,7 @@ class Viewprinteticketnew extends SugarView
 				AND p.id NOT IN ($supersededIds)";
 
 		// Final renamed version: add_type=2 whose own ID is NOT another's parent_detail_id
+		// AND is the latest record when multiple renames share the same parent_detail_id
 		// Use subquery to inherit baggage from original passenger when renamed has empty baggage
 		$sqlRenamed = "SELECT p.id, p.name, p.salutation, p.type,
 				p.pnr_outbound, p.pnr_inbound,
@@ -138,7 +178,14 @@ class Viewprinteticketnew extends SugarView
 				COALESCE(NULLIF(p.luggage_index_inbound,''), orig.luggage_index_inbound) AS luggage_index_inbound,
 				COALESCE(NULLIF(p.luggage_purchase_text,''), orig.luggage_purchase_text) AS luggage_purchase_text,
 				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), orig.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
-				p.cic, p.passport_number, p.date_entered, p.parent_detail_id
+				COALESCE(NULLIF(p.luggage_price, 0), orig.luggage_price) AS luggage_price,
+				COALESCE(NULLIF(p.luggage_price_inbound, 0), orig.luggage_price_inbound) AS luggage_price_inbound,
+				p.cic, p.passport_number, p.date_entered, p.parent_detail_id,
+				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS ticket_class_outbound,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS aircode_inbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS ticket_class_inbound
 			FROM ec_booking_passengers p
 			LEFT JOIN ec_booking_passengers orig ON orig.booking_id = p.booking_id
 				AND (orig.add_type IS NULL OR orig.add_type = 0)
@@ -148,12 +195,19 @@ class Viewprinteticketnew extends SugarView
 			WHERE p.booking_id = '$bookingId'
 				AND p.add_type = 2
 				AND p.deleted = 0
-				AND p.id NOT IN ($supersededIds)";
+				AND p.id NOT IN ($supersededIds)
+				AND p.id NOT IN ($notLatestRenames)";
 
 		$sql = "($sqlUnchanged) UNION ALL ($sqlRenamed) ORDER BY type, date_entered";
 
 		$res = $db->query($sql);
+		$seen = []; // Dedup safety net: track by name+pnr_outbound+type
 		while ($row = $db->fetchByAssoc($res)) {
+			// PHP-level deduplication: skip if same name+pnr+type already added
+			$dedupKey = strtoupper(trim($row['name'])) . '|' . trim($row['pnr_outbound'] ?? '') . '|' . $row['type'];
+			if (isset($seen[$dedupKey])) continue;
+			$seen[$dedupKey] = true;
+
 			$salutationText = '';
 			if ($this->lang == 'en') {
 				$salutationText = ($row['salutation'] == '0') ? 'Mr.' : 'Ms.';
@@ -181,12 +235,8 @@ class Viewprinteticketnew extends SugarView
 				$pnr = !empty($pnrOut) ? $pnrOut : $eticketOut;
 			}
 
-			// Baggage info — sum kg from available + purchased
-			$baggageOut = $this->sumBaggage($row['luggage_index_outbound'] ?? '', $row['luggage_purchase_text'] ?? '');
-			$baggageIn = '';
-			if ($this->isRoundTrip) {
-				$baggageIn = $this->sumBaggage($row['luggage_index_inbound'] ?? '', $row['luggage_purchase_text_inbound'] ?? '');
-			}
+			// Baggage info — mirror exact logic of old print ticket (isUseNewBaggage 2-branch)
+			$baggageDescription = $this->buildBaggageDescription($row);
 
 			$typeLabel = '';
 			if ($row['type'] == '0') $typeLabel = ($this->lang == 'en' ? 'Adult' : 'Người lớn');
@@ -201,8 +251,7 @@ class Viewprinteticketnew extends SugarView
 				'pnr' => strtoupper($pnr),
 				'eticket_outbound' => strtoupper($eticketOut),
 				'eticket_inbound' => strtoupper($eticketIn),
-				'baggage_outbound' => $baggageOut,
-				'baggage_inbound' => $baggageIn,
+				'baggage' => $baggageDescription,
 				'cic' => $row['cic'] ?? '',
 				'passport' => $row['passport_number'] ?? '',
 			];
@@ -212,43 +261,120 @@ class Viewprinteticketnew extends SugarView
 	}
 
 	/**
-	 * Sum available baggage + purchased baggage into total kg
-	 * e.g. available "23_1" (23kg) + purchased "20kg" = "43kg"
+	 * Build baggage description using the same 2-branch logic as the old print ticket.
+	 * Branch 1 (isUseNewBaggage=true): Baggage::renderAvailableBaggage() + generateCombinedPassengerBaggageInfo()
+	 * Branch 2 (isUseNewBaggage=false): Clean purchase_text directly + generateLuggage() for old-format index
 	 */
-	function sumBaggage($luggageIndex, $purchaseText)
+	function buildBaggageDescription($row)
 	{
-		$totalKg = 0;
-		$hasData = false;
+		$lang = $this->lang == 'en' ? 'en' : 'vn';
+		$khuhoi = $this->isRoundTrip;
 
-		// Available baggage (from luggage_index field)
-		if (!empty($luggageIndex) && class_exists('Baggage')) {
-			$rendered = Baggage::renderAvailableBaggage($luggageIndex);
-			$parsed = Baggage::parsePackage($rendered);
-			if (!empty($parsed['weight'])) {
-				$totalKg += $parsed['weight'];
-				$hasData = true;
-			} elseif (!empty($rendered)) {
-				// Fallback: if can't parse kg (e.g. "1 kiện"), return text as-is
-				if (empty($purchaseText)) return strip_tags($rendered);
-				return strip_tags($rendered . ' + ' . preg_replace('/\s*\([^)]*\)/', '', $purchaseText));
+		// Load booking bean once (cached)
+		if ($this->bookingBean === null) {
+			$this->bookingBean = new EC_Flight_Bookings();
+			$this->bookingBean->retrieve($this->bookingId);
+		}
+
+		// Use booking date_entered for isUseNewBaggage check (same as old ticket)
+		$dateEntered = $row['bk_date_entered'] ?? ($row['date_entered'] ?? '');
+		$baggageDescription = '';
+
+		if ($this->bookingBean->isUseNewBaggage($dateEntered, $this->bookingBean->created_by)) {
+			// New baggage format (after 2025-10-01 via website)
+			$availOut = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '') : '';
+			$availIn  = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_inbound']  ?? '') : '';
+
+			$purchOut = $this->cleanPurchaseText($row['luggage_purchase_text'] ?? '');
+			$purchIn  = $this->cleanPurchaseText($row['luggage_purchase_text_inbound'] ?? '');
+
+			if ($khuhoi)
+				$baggageDescription = $this->bookingBean->generateCombinedPassengerBaggageInfo($availOut, $purchOut, $availIn, $purchIn, $lang);
+			else
+				$baggageDescription = $this->bookingBean->generateCombinedPassengerBaggageInfo($availOut, $purchOut, '', '', $lang);
+		} else {
+			// Old baggage format
+			$purchOut = $this->cleanPurchaseText($row['luggage_purchase_text'] ?? '');
+			$purchIn  = $this->cleanPurchaseText($row['luggage_purchase_text_inbound'] ?? '');
+
+			// Step 1: Show purchase text
+			if (!empty($purchOut) || !empty($purchIn)) {
+				if ($khuhoi) {
+					if (!empty($purchOut))
+						$baggageDescription .= empty($baggageDescription) ? "$purchOut (Lượt đi)" : "\n$purchOut (Lượt đi)";
+					if (!empty($purchIn))
+						$baggageDescription .= empty($baggageDescription) ? "$purchIn (Lượt về)" : " - $purchIn (Lượt về)";
+				} else {
+					if (!empty($purchOut))
+						$baggageDescription .= empty($baggageDescription) ? $purchOut : "\n$purchOut";
+				}
+			}
+
+			// Step 2: Append generateLuggage() output (old index-based)
+			if (function_exists('generateLuggage') && $khuhoi) {
+				// Outbound
+				$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $row['luggage_index_outbound'] ?? null);
+				$luggagePriceOut = $row['luggage_price'] ?? 0;
+				if (!empty($row['luggage_index_outbound'])) $luggagePriceOut = $row['luggage_index_outbound'];
+				$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+				$bag_weight_out = 0;
+				if (!empty($bag_out2)) {
+					preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+					$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+				}
+				if ($bag_weight_out > 0) {
+					$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+					$baggageDescription .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
+				}
+
+				// Inbound
+				$bag_in = generateLuggage($dateEntered, $row['aircode_inbound'] ?? '', $row['ticket_class_inbound'] ?? '', $row['type'] ?? '', $row['luggage_index_inbound'] ?? null);
+				if (!empty($bag_in)) {
+					$luggagePriceIn = $row['luggage_price_inbound'] ?? 0;
+					if (!empty($row['luggage_index_inbound'])) $luggagePriceIn = $row['luggage_index_inbound'];
+					$bag_in2 = $bag_in[(int)$luggagePriceIn] ?? '';
+					$bag_weight_in = 0;
+					if (!empty($bag_in2)) {
+						preg_match('/(\d+)kg/isU', $bag_in2, $ib_output);
+						$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
+					}
+					if ($bag_weight_in > 0) {
+						$baggageDescription .= $bag_weight_out > 0 ? ' - ' : '';
+						$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
+						$baggageDescription .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
+					}
+				}
+			} elseif (function_exists('generateLuggage') && !$khuhoi) {
+				$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $row['luggage_index_outbound'] ?? null);
+				$luggagePriceOut = $row['luggage_price'] ?? 0;
+				if (!empty($row['luggage_index_outbound'])) $luggagePriceOut = $row['luggage_index_outbound'];
+				$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+				$bag_weight_out = 0;
+				if (!empty($bag_out2)) {
+					preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+					$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+				}
+				if ($bag_weight_out > 0) {
+					$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+				}
 			}
 		}
 
-		// Purchased baggage (from luggage_purchase_text field)
-		if (!empty($purchaseText)) {
-			$cleanText = preg_replace('/\s*\([^)]*\)/', '', $purchaseText);
-			$parsed = Baggage::parsePackage($cleanText);
-			if (!empty($parsed['weight'])) {
-				$totalKg += $parsed['weight'];
-				$hasData = true;
-			} elseif (!empty($cleanText)) {
-				// Fallback: can't parse, append text
-				if ($totalKg > 0) return $totalKg . 'kg + ' . strip_tags($cleanText);
-				return strip_tags($cleanText);
-			}
-		}
+		return $baggageDescription;
+	}
 
-		return $hasData ? $totalKg . 'kg' : '';
+	/**
+	 * Clean purchase text by removing anything from the first '(' onwards.
+	 * Handles nested parentheses like "1 kiện 23kg (0 VND) (Giá mua (VAT): ...)"
+	 */
+	function cleanPurchaseText($text)
+	{
+		$text = trim($text);
+		$pos  = strpos($text, '(');
+		if ($pos !== false) {
+			$text = trim(substr($text, 0, $pos));
+		}
+		return $text;
 	}
 
 	/**
@@ -294,6 +420,7 @@ class Viewprinteticketnew extends SugarView
 					$idFilter
 					AND i.deleted = 0
 					AND i.add_type = 0
+				GROUP BY i.direction, i.flight_number, i.departure_date
 				ORDER BY i.direction, i.departure_date";
 		} else {
 			$rescheduledDirList = implode(',', $rescheduledDirections);
@@ -307,8 +434,10 @@ class Viewprinteticketnew extends SugarView
 					AND i.add_type = 0
 					AND i.direction NOT IN ($rescheduledDirList)";
 
-			// Latest rescheduled itineraries (max sabre_logs per direction)
-			$sqlRescheduled = "SELECT $fields
+			// Latest rescheduled itineraries (max sabre_logs per direction),
+			// grouped to deduplicate when multiple passenger rows share same sabre_logs
+			$sqlRescheduled = "SELECT MIN(i.id) AS id, i.departure_date, i.arrival_date, i.flight_number,
+					i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction
 				FROM ec_booking_itineraries i
 				INNER JOIN (
 					SELECT direction, MAX(sabre_logs) AS max_logs
@@ -318,7 +447,8 @@ class Viewprinteticketnew extends SugarView
 				) latest ON i.direction = latest.direction AND i.sabre_logs = latest.max_logs
 				WHERE i.booking_id = '$bookingId'
 					AND i.add_type = 3
-					AND i.deleted = 0";
+					AND i.deleted = 0
+				GROUP BY i.direction, i.flight_number, i.departure_date";
 
 			$sql = "($sqlUnchanged) UNION ALL ($sqlRescheduled) ORDER BY direction, departure_date";
 		}
@@ -332,7 +462,9 @@ class Viewprinteticketnew extends SugarView
 			// Get airport names
 			$depAirport = Flight::getAirport($depCode);
 			$arrAirport = Flight::getAirport($arrCode);
-			$airline = Flight::getAirline($airlineCode);
+			
+			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
+			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
 
 			$depCityName = $depAirport['CityName'] ?? $depCode;
 			$arrCityName = $arrAirport['CityName'] ?? $arrCode;
@@ -346,7 +478,7 @@ class Viewprinteticketnew extends SugarView
 					? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi') 
 					: ($this->lang == 'en' ? 'Inbound' : 'Lượt về'),
 				'airline_code' => $airlineCode,
-				'airline' => $airline,
+				'airline' => $airlineName,
 				'flight_number' => $row['flight_number'] ?? '',
 				'ticket_class' => $row['ticket_class'] ?? '',
 				'dep_code' => $depCode,
