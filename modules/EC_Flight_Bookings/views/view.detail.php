@@ -1461,6 +1461,14 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		$resolvedItineraries = $this->getResolvedItinerariesForPopup();
 		$itinerariesJson = htmlspecialchars(json_encode($resolvedItineraries), ENT_QUOTES, 'UTF-8');
 
+		// Per-passenger itinerary changes detection
+		$hasPerPaxChanges = $this->hasPerPassengerItineraryChanges();
+		$perPaxDataAttr = '';
+		if ($hasPerPaxChanges) {
+			$perPaxItineraries = $this->getPerPassengerItinerariesForPopup();
+			$perPaxDataAttr = ' data-per-pax-itineraries="' . htmlspecialchars(json_encode($perPaxItineraries), ENT_QUOTES, 'UTF-8') . '"';
+		}
+
 		$this->ss->assign(
 			'PRINT_TICKET_NEW',
 			'<div class="btn-group btnPrintEticketNew-selection">
@@ -1468,20 +1476,24 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					✈ In vé mới
 				</button>
 			</div>
-			<div id="dlgPrintTicketNew" style="display:none;" data-itineraries="' . $itinerariesJson . '" data-booking-id="' . $this->bean->id . '" data-booking="' . $this->bean->name . '" data-ticket-type="' . $this->bean->ticket_type . '">
-				<div style="margin-bottom:14px;">
+			<div id="dlgPrintTicketNew" style="display:none;" data-itineraries="' . $itinerariesJson . '" data-booking-id="' . $this->bean->id . '" data-booking="' . $this->bean->name . '" data-ticket-type="' . $this->bean->ticket_type . '" data-has-per-pax-changes="' . ($hasPerPaxChanges ? '1' : '0') . '"' . $perPaxDataAttr . '>
+				<div class="popup-itinerary-section" style="margin-bottom:14px;">
 					<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
 						<strong style="font-size:14px;">✈ Hành trình</strong>
 						<label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="popup-select-all-iti" checked /> Chọn tất cả</label>
 					</div>
 					<div class="popup-itinerary-list" style="max-height:160px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:6px 10px; background:#fafafa;"></div>
 				</div>
-				<div style="margin-bottom:14px;">
+				<div class="popup-passenger-section" style="margin-bottom:14px;">
 					<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
 						<strong style="font-size:14px;">👤 Hành khách</strong>
 						<label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="popup-select-all-psg" checked /> Chọn tất cả</label>
 					</div>
-					<div class="popup-passenger-list" style="max-height:200px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:6px 10px; background:#fafafa;"></div>
+					<div class="popup-passenger-list" style="max-height:260px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:6px 10px; background:#fafafa;"></div>
+				</div>
+				<div class="popup-perpax-section" style="display:none; margin-bottom:14px;">
+					<strong style="font-size:14px; display:block; margin-bottom:8px;">👤 Hành khách & Hành trình</strong>
+					<div class="popup-perpax-list" style="max-height:480px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:8px 10px; background:#fafafa;"></div>
 				</div>
 				<div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:10px;">
 					<label style="cursor:pointer;"><input type="radio" name="popup_ngonngu" value="vn" checked /> Tiếng Việt</label>
@@ -2344,6 +2356,153 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Check if itinerary changes (add_type=3) are per-passenger (assigned_user_id differs).
+	 * Returns true when at least one add_type=3 record has a non-empty assigned_user_id
+	 * that matches an actual passenger ID (i.e. changes target specific passengers).
+	 */
+	function hasPerPassengerItineraryChanges()
+	{
+		$bookingId = $this->bean->id;
+		// Count distinct assigned_user_id values linked to actual passengers
+		$sql = "SELECT COUNT(DISTINCT i.assigned_user_id) AS cnt
+			FROM ec_booking_itineraries i
+			INNER JOIN ec_booking_passengers p ON p.id = i.assigned_user_id AND p.booking_id = i.booking_id AND p.deleted = 0
+			WHERE i.booking_id = '$bookingId' AND i.add_type = 3 AND i.deleted = 0
+			AND i.assigned_user_id IS NOT NULL AND i.assigned_user_id != ''";
+		$cnt = (int)$this->bean->db->getOne($sql);
+		return $cnt > 0;
+	}
+
+	/**
+	 * Get per-passenger itinerary data for the popup.
+	 * Returns an array of passengers, each with their resolved itineraries.
+	 * For each direction: use add_type=3 for that passenger if exists, else fallback to add_type=0.
+	 */
+	function getPerPassengerItinerariesForPopup()
+	{
+		global $app_list_strings, $timedate;
+		$date_format = $timedate->get_date_format();
+		$bookingId = $this->bean->id;
+		$results = [];
+
+		// Get active passengers (original not superseded + final renamed)
+		$supersededIds = "SELECT parent_detail_id FROM ec_booking_passengers
+			WHERE booking_id = '$bookingId' AND add_type = 2 AND deleted = 0
+			AND parent_detail_id IS NOT NULL";
+
+		$notLatestRenames = "SELECT p2.id FROM ec_booking_passengers p2
+			INNER JOIN (
+				SELECT parent_detail_id, MAX(date_entered) AS max_date
+				FROM ec_booking_passengers
+				WHERE booking_id = '$bookingId' AND add_type = 2 AND deleted = 0
+				AND parent_detail_id IS NOT NULL
+				GROUP BY parent_detail_id
+			) latest ON p2.parent_detail_id = latest.parent_detail_id
+			WHERE p2.booking_id = '$bookingId' AND p2.add_type = 2 AND p2.deleted = 0
+			AND p2.date_entered < latest.max_date";
+
+		$sqlPax = "SELECT p.id, p.name, p.salutation, p.type, p.pnr_outbound
+			FROM ec_booking_passengers p
+			WHERE p.booking_id = '$bookingId' AND p.deleted = 0
+				AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
+				AND p.id NOT IN ($supersededIds)
+			UNION
+			SELECT p.id, p.name, p.salutation, p.type, p.pnr_outbound
+			FROM ec_booking_passengers p
+			WHERE p.booking_id = '$bookingId' AND p.add_type = 2 AND p.deleted = 0
+				AND p.id NOT IN ($supersededIds)
+				AND p.id NOT IN ($notLatestRenames)
+			ORDER BY type, name";
+
+		$resPax = $this->bean->db->query($sqlPax);
+
+		// Get original itineraries (add_type=0) for fallback
+		$sqlOrig = "SELECT i.id, i.departure_date, i.flight_number, i.departure, i.arrival, i.airline_code, i.direction
+			FROM ec_booking_itineraries i
+			WHERE i.booking_id = '$bookingId' AND i.deleted = 0 AND i.add_type = 0
+			ORDER BY i.direction, i.departure_date";
+		$resOrig = $this->bean->db->query($sqlOrig);
+		$originalItineraries = [];
+		while ($rowOrig = $this->bean->db->fetchByAssoc($resOrig)) {
+			$dir = (int)$rowOrig['direction'];
+			if (!isset($originalItineraries[$dir])) $originalItineraries[$dir] = [];
+			$originalItineraries[$dir][] = $rowOrig;
+		}
+
+		// Get all directions
+		$allDirections = array_keys($originalItineraries);
+		sort($allDirections);
+
+		while ($pax = $this->bean->db->fetchByAssoc($resPax)) {
+			$paxId = $pax['id'];
+			$salutationText = $app_list_strings['passenger_salutation_list'][(int)$pax['salutation']] ?? '';
+
+			$paxItineraries = [];
+			foreach ($allDirections as $dir) {
+				// Try per-passenger change (add_type=3, assigned_user_id = this passenger)
+				$sqlChanged = "SELECT i.id, i.departure_date, i.flight_number, i.departure, i.arrival, i.airline_code, i.direction
+					FROM ec_booking_itineraries i
+					WHERE i.booking_id = '$bookingId'
+						AND i.direction = $dir
+						AND i.add_type = 3
+						AND i.assigned_user_id = '$paxId'
+						AND i.deleted = 0
+					ORDER BY i.sabre_logs DESC
+					LIMIT 1";
+				$resChanged = $this->bean->db->query($sqlChanged);
+				$rowChanged = $this->bean->db->fetchByAssoc($resChanged);
+
+				if ($rowChanged) {
+					$paxItineraries[] = $this->formatItineraryForPopup($rowChanged, $date_format);
+				} else {
+					// Fallback to original
+					if (isset($originalItineraries[$dir])) {
+						foreach ($originalItineraries[$dir] as $origRow) {
+							$paxItineraries[] = $this->formatItineraryForPopup($origRow, $date_format);
+						}
+					}
+				}
+			}
+
+			$results[] = [
+				'passengerId' => $paxId,
+				'passengerName' => trim($pax['name']),
+				'salutation' => $salutationText,
+				'type' => (int)$pax['type'],
+				'itineraries' => $paxItineraries,
+			];
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Format a single itinerary row for popup JSON (shared by multiple popup methods).
+	 */
+	function formatItineraryForPopup($row, $date_format)
+	{
+		global $app_list_strings;
+		$directionLabel = $app_list_strings['bk_direction_list'][(int)$row['direction']] ?? '';
+		$airlineCode = $row['airline_code'] ?? '';
+		if ($airlineCode == 'VNA') $airlineCode = 'VN';
+		elseif ($airlineCode == 'VJA') $airlineCode = 'VJ';
+		elseif ($airlineCode == 'VNP') $airlineCode = 'BL';
+		elseif ($airlineCode == 'BBA') $airlineCode = 'QH';
+		elseif ($airlineCode == 'VTA') $airlineCode = 'VU';
+
+		return [
+			'id' => $row['id'],
+			'direction' => (int)$row['direction'],
+			'directionLabel' => $directionLabel,
+			'airline' => $airlineCode,
+			'flightNo' => $row['flight_number'] ?? '',
+			'departure' => $row['departure'] ?? '',
+			'arrival' => $row['arrival'] ?? '',
+			'depDate' => !empty($row['departure_date']) ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '',
+		];
 	}
 
 	function populateEditedInfo($type)

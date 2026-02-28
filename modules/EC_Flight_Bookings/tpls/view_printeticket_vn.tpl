@@ -298,7 +298,6 @@
                                                                         quầy.
                                                                     </li>
                                                                     <li>
-<<<<<<< HEAD
                                                                         <b>Hành khách từ 14 tuổi trở lên phải có giấy tờ
                                                                             tùy thân: CCCD, hộ chiếu còn hạn sử dụng
                                                                             hoặc định danh mức độ 2 trên ứng dụng
@@ -307,9 +306,6 @@
                                                                         giáp lai của cơ quan Công An phường, xã. Hành
                                                                         khách dưới 14 tuổi đi bằng giấy khai sinh bản
                                                                         chính.
-=======
-                                                                        <b>Hành khách từ 14 tuổi trở lên phải có giấy tờ tùy thân: CCCD, hộ chiếu còn hạn sử dụng hoặc định danh mức độ 2 trên ứng dụng VNeID.</b> Trường hợp không có các giấy tờ trên, đi bằng giấy xác nhận nhân thân, có dấu giáp lai của cơ quan Công An phường, xã. Hành khách dưới 14 tuổi đi bằng giấy khai sinh bản chính.
->>>>>>> d24aeff4c6c0ab00e6184bc53c591a5cce4b4fbb
                                                                     </li>
                                                                     <li>
                                                                         Luôn mở điện thoại để nhận thông tin từ hãng

@@ -65,13 +65,37 @@ class Viewprinteticketnew extends SugarView
 		if (!empty($department_info['com_hotline1'])) $com_phone .= ' - ' . $department_info['com_hotline1'];
 		if (!empty($department_info['com_hotline2'])) $com_phone .= ' - ' . $department_info['com_hotline2'];
 
-		// Get data from DB
+		// Get passengers from DB
 		$passengers = $this->getPassengers();
-		$itineraries = $this->getItineraries();
 
-		// Build boarding pass data
-		$this->sugarSmarty->assign('PASSENGERS', $passengers);
-		$this->sugarSmarty->assign('ITINERARIES', $itineraries);
+		// Build passenger groups — each group shares the same itinerary set
+		// When itinerary changes exist (add_type=3), resolve per-passenger;
+		// different passengers may have different itineraries.
+		if ($this->hasItineraryChanges()) {
+			$groups = [];
+			foreach ($passengers as $pax) {
+				$paxItineraries = $this->getItinerariesForPassenger($pax['id']);
+				$sig = $this->itinerarySignature($paxItineraries);
+				if (!isset($groups[$sig])) {
+					$groups[$sig] = [
+						'itineraries' => $paxItineraries,
+						'passengers' => [],
+					];
+				}
+				$groups[$sig]['passengers'][] = $pax;
+			}
+			$passengerGroups = array_values($groups);
+		} else {
+			// No itinerary changes — single group with original itineraries
+			$itineraries = $this->getItineraries();
+			$passengerGroups = [[
+				'itineraries' => $itineraries,
+				'passengers' => $passengers,
+			]];
+		}
+
+		// Assign data to template
+		$this->sugarSmarty->assign('PASSENGER_GROUPS', $passengerGroups);
 		$this->sugarSmarty->assign('IS_ROUND_TRIP', $this->isRoundTrip);
 		$this->sugarSmarty->assign('LANG', $this->lang);
 		$this->sugarSmarty->assign('BOOKING_NUMBER', $this->bookingName);
@@ -198,7 +222,21 @@ class Viewprinteticketnew extends SugarView
 				AND p.id NOT IN ($supersededIds)
 				AND p.id NOT IN ($notLatestRenames)";
 
-		$sql = "($sqlUnchanged) UNION ALL ($sqlRenamed) ORDER BY type, date_entered";
+		if (!$this->allPassengers) {
+			// In case the frontend passes an ID which is a renamed record, or an original record that was renamed.
+			// Because we don't know if JS gave us the original ID or the latest ID,
+			// we just get the names of the requested passengers from the database,
+			// and then wrap the main query to filter by name.
+			$nameListSql = "SELECT name, type FROM ec_booking_passengers WHERE id IN ($idList) AND booking_id = '$bookingId'";
+			$sql = "SELECT * FROM ( ($sqlUnchanged) UNION ALL ($sqlRenamed) ) AS combined
+					WHERE EXISTS (
+						SELECT 1 FROM ($nameListSql) AS req
+						WHERE TRIM(req.name) = TRIM(combined.name) AND req.type = combined.type
+					)
+					ORDER BY type, date_entered";
+		} else {
+			$sql = "($sqlUnchanged) UNION ALL ($sqlRenamed) ORDER BY type, date_entered";
+		}
 
 		$res = $db->query($sql);
 		$seen = []; // Dedup safety net: track by name+pnr_outbound+type
@@ -442,7 +480,7 @@ class Viewprinteticketnew extends SugarView
 				INNER JOIN (
 					SELECT direction, MAX(sabre_logs) AS max_logs
 					FROM ec_booking_itineraries
-					WHERE booking_id = '$bookingId' AND add_type = 3 AND deleted = 0
+					WHERE booking_id = '$bookingId' $idFilter AND add_type = 3 AND deleted = 0
 					GROUP BY direction
 				) latest ON i.direction = latest.direction AND i.sabre_logs = latest.max_logs
 				WHERE i.booking_id = '$bookingId'
@@ -500,5 +538,164 @@ class Viewprinteticketnew extends SugarView
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Check if any itinerary changes (add_type=3) exist for this booking.
+	 */
+	function hasItineraryChanges()
+	{
+		global $db;
+		$bookingId = $db->quote($this->bookingId);
+		$sql = "SELECT COUNT(*) FROM ec_booking_itineraries
+			WHERE booking_id = '$bookingId' AND add_type = 3 AND deleted = 0";
+		return (int)$db->getOne($sql) > 0;
+	}
+
+	/**
+	 * Get the resolved itineraries for a specific passenger.
+	 * For each direction, find the latest add_type=3 record with assigned_user_id = passengerId.
+	 * If no such record exists, fall back to original (add_type=0).
+	 *
+	 * This handles per-passenger itinerary changes where only some passengers
+	 * have their itinerary changed while others keep the original.
+	 */
+	function getItinerariesForPassenger($passengerId)
+	{
+		global $db;
+		$results = [];
+		$bookingId = $db->quote($this->bookingId);
+		$passengerId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
+
+		$fields = "i.id, i.departure_date, i.arrival_date, i.flight_number,
+				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction";
+
+		// Build ID filter (skip if all itineraries requested)
+		$idFilter = '';
+		if (!$this->allItineraries) {
+			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idFilter = "AND i.id IN($idList)";
+		}
+
+		// Determine which directions exist in this booking (0=outbound, 1=inbound)
+		$sqlDirs = "SELECT DISTINCT direction FROM ec_booking_itineraries i
+			WHERE i.booking_id = '$bookingId'
+			$idFilter
+			AND i.add_type IN (0, 3) AND i.deleted = 0";
+		$resDirs = $db->query($sqlDirs);
+		$directions = [];
+		while ($rowDir = $db->fetchByAssoc($resDirs)) {
+			$directions[] = (int)$rowDir['direction'];
+		}
+		sort($directions);
+
+		foreach ($directions as $dir) {
+			// Find the latest sabre_logs for this passenger + direction
+			$sqlMaxLog = "SELECT MAX(sabre_logs) as max_logs FROM ec_booking_itineraries i
+				WHERE i.booking_id = '$bookingId'
+				$idFilter
+				AND i.direction = $dir
+				AND i.add_type = 3
+				AND i.assigned_user_id = '$passengerId'
+				AND i.deleted = 0";
+			$resMaxLog = $db->query($sqlMaxLog);
+			$rowMaxLog = $db->fetchByAssoc($resMaxLog);
+			$maxLog = $rowMaxLog ? $rowMaxLog['max_logs'] : null;
+
+			if ($maxLog !== null) {
+				// Fetch all segments for this latest change
+				$sqlChanged = "SELECT $fields FROM ec_booking_itineraries i
+					WHERE i.booking_id = '$bookingId'
+					$idFilter
+					AND i.direction = $dir
+					AND i.add_type = 3
+					AND i.assigned_user_id = '$passengerId'
+					AND i.sabre_logs = '$maxLog'
+					AND i.deleted = 0
+					ORDER BY i.departure_date";
+				$resChanged = $db->query($sqlChanged);
+				while ($rowChanged = $db->fetchByAssoc($resChanged)) {
+					$results[] = $this->formatItineraryRow($rowChanged);
+				}
+			} else {
+				// Fall back to original (add_type=0)
+				// there can be multiple ones!
+				$sqlOrig = "SELECT $fields FROM ec_booking_itineraries i
+					WHERE i.booking_id = '$bookingId'
+					$idFilter
+					AND i.direction = $dir
+					AND i.add_type = 0
+					AND i.deleted = 0
+					ORDER BY i.departure_date";
+				$resOrig = $db->query($sqlOrig);
+				while ($rowOrig = $db->fetchByAssoc($resOrig)) {
+					$results[] = $this->formatItineraryRow($rowOrig);
+				}
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Format a raw itinerary row from DB into the display array.
+	 * Extracted from getItineraries() to avoid duplication.
+	 */
+	function formatItineraryRow($row)
+	{
+		$depCode = $row['departure'] ?? '';
+		$arrCode = $row['arrival'] ?? '';
+		$airlineCode = $row['airline_code'] ?? '';
+
+		$depAirport = Flight::getAirport($depCode);
+		$arrAirport = Flight::getAirport($arrCode);
+
+		$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
+		$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
+
+		$depInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($depCode) : [];
+		$arrInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($arrCode) : [];
+
+		$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
+		$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
+
+		$depAirportName = $depAirport['AirPortName'] ?? '';
+		$arrAirportName = $arrAirport['AirPortName'] ?? '';
+
+		return [
+			'id' => $row['id'],
+			'direction' => (int)($row['direction'] ?? 0),
+			'direction_label' => ((int)$row['direction'] === 0)
+				? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi')
+				: ($this->lang == 'en' ? 'Inbound' : 'Lượt về'),
+			'airline_code' => $airlineCode,
+			'airline' => $airlineName,
+			'flight_number' => $row['flight_number'] ?? '',
+			'ticket_class' => $row['ticket_class'] ?? '',
+			'dep_code' => $depCode,
+			'arr_code' => $arrCode,
+			'dep_city' => $depCityName,
+			'arr_city' => $arrCityName,
+			'dep_airport' => $depAirportName,
+			'arr_airport' => $arrAirportName,
+			'dep_date' => date('d/m/Y', strtotime($row['departure_date'])),
+			'dep_time' => date('H:i', strtotime($row['departure_date'])),
+			'arr_date' => date('d/m/Y', strtotime($row['arrival_date'])),
+			'arr_time' => date('H:i', strtotime($row['arrival_date'])),
+		];
+	}
+
+	/**
+	 * Create a unique signature for an itinerary set to group passengers.
+	 * Passengers with the same signature share the same flights.
+	 */
+	function itinerarySignature($itineraries)
+	{
+		$parts = [];
+		foreach ($itineraries as $iti) {
+			$parts[] = $iti['direction'] . '|' . $iti['flight_number'] . '|' . $iti['dep_date'] . '|' . $iti['dep_time'];
+		}
+		sort($parts);
+		return implode('||', $parts);
 	}
 }

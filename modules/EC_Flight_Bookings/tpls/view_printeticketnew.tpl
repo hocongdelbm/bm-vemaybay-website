@@ -55,114 +55,121 @@
 			</div>
 		</div>
 
-		<!-- ITINERARIES -->
-		{foreach from=$ITINERARIES item=iti key=idx}
-			<div style="border-bottom: 1px dashed #000; padding: 0;">
+		{foreach from=$PASSENGER_GROUPS item=group key=gidx}
+			{if $gidx > 0}
+				<!-- Separator for multiple passenger groups -->
+				<div style="border-top: 3px double #000; margin-top: 15px;"></div>
+			{/if}
 
-				<!-- Direction label -->
-				<div
-					style="background: #f0f0f0; padding: 5px 20px; border-bottom: 1px solid #ccc; display: flex; align-items: center; justify-content: space-between;">
-					<span
-						style="font-weight: 700; font-size: 11px; text-transform: uppercase;">{$iti.direction_label}</span>
-					<span style="font-size: 11px; font-weight: 500;">{$iti.airline} &nbsp;&#8226;&nbsp;
-						{$iti.flight_number}</span>
-				</div>
+			<!-- ITINERARIES -->
+			{foreach from=$group.itineraries item=iti key=idx}
+				<div style="border-bottom: 1px dashed #000; padding: 0;">
 
-				<!-- Flight info -->
-				<div style="padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;">
-					<!-- Departure -->
-					<div style="text-align: center; flex: 1;">
-						<div style="font-size: 28px; font-weight: 800; letter-spacing: 2px;">{$iti.dep_code}</div>
-						<div style="font-size: 11px; color: #333; margin-top: 2px; font-weight: 500;">{$iti.dep_city}</div>
-						<div style="font-size: 9px; color: #666; margin-top: 1px;">{$iti.dep_airport}</div>
-						<div style="margin-top: 6px;">
-							<div style="font-size: 16px; font-weight: 700;">{$iti.dep_time}</div>
-							<div style="font-size: 10px; color: #555;">{$iti.dep_date}</div>
-						</div>
+					<!-- Direction label -->
+					<div
+						style="background: #f0f0f0; padding: 5px 20px; border-bottom: 1px solid #ccc; display: flex; align-items: center; justify-content: space-between;">
+						<span
+							style="font-weight: 700; font-size: 11px; text-transform: uppercase;">{$iti.direction_label}</span>
+						<span style="font-size: 11px; font-weight: 500;">{$iti.airline} &nbsp;&#8226;&nbsp;
+							{$iti.flight_number}</span>
 					</div>
 
-					<!-- Flight path -->
-					<div style="flex: 0.8; text-align: center; padding: 0 6px;">
-						<div
-							style="position: relative; height: 20px; display: flex; align-items: center; justify-content: center;">
-							<div style="position: absolute; left: 8%; right: 8%; height: 1px; background: #000; top: 50%;">
+					<!-- Flight info -->
+					<div style="padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;">
+						<!-- Departure -->
+						<div style="text-align: center; flex: 1;">
+							<div style="font-size: 28px; font-weight: 800; letter-spacing: 2px;">{$iti.dep_code}</div>
+							<div style="font-size: 11px; color: #333; margin-top: 2px; font-weight: 500;">{$iti.dep_city}</div>
+							<div style="font-size: 9px; color: #666; margin-top: 1px;">{$iti.dep_airport}</div>
+							<div style="margin-top: 6px;">
+								<div style="font-size: 16px; font-weight: 700;">{$iti.dep_time}</div>
+								<div style="font-size: 10px; color: #555;">{$iti.dep_date}</div>
 							</div>
+						</div>
+
+						<!-- Flight path -->
+						<div style="flex: 0.8; text-align: center; padding: 0 6px;">
 							<div
-								style="position: absolute; left: 8%; width: 6px; height: 6px; border-radius: 50%; background: #000; top: 50%; transform: translateY(-50%);">
+								style="position: relative; height: 20px; display: flex; align-items: center; justify-content: center;">
+								<div style="position: absolute; left: 8%; right: 8%; height: 1px; background: #000; top: 50%;">
+								</div>
+								<div
+									style="position: absolute; left: 8%; width: 6px; height: 6px; border-radius: 50%; background: #000; top: 50%; transform: translateY(-50%);">
+								</div>
+								<div
+									style="position: absolute; right: 8%; width: 0; height: 0; border-left: 8px solid #000; border-top: 5px solid transparent; border-bottom: 5px solid transparent; top: 50%; transform: translateY(-50%);">
+								</div>
 							</div>
-							<div
-								style="position: absolute; right: 8%; width: 0; height: 0; border-left: 8px solid #000; border-top: 5px solid transparent; border-bottom: 5px solid transparent; top: 50%; transform: translateY(-50%);">
+							<div style="font-size: 9px; color: #666; margin-top: 2px;">{$iti.airline_code} {$iti.flight_number}
 							</div>
 						</div>
-						<div style="font-size: 9px; color: #666; margin-top: 2px;">{$iti.airline_code} {$iti.flight_number}
-						</div>
-					</div>
 
-					<!-- Arrival -->
-					<div style="text-align: center; flex: 1;">
-						<div style="font-size: 28px; font-weight: 800; letter-spacing: 2px;">{$iti.arr_code}</div>
-						<div style="font-size: 11px; color: #333; margin-top: 2px; font-weight: 500;">{$iti.arr_city}</div>
-						<div style="font-size: 9px; color: #666; margin-top: 1px;">{$iti.arr_airport}</div>
-						<div style="margin-top: 6px;">
-							<div style="font-size: 16px; font-weight: 700;">{$iti.arr_time}</div>
-							<div style="font-size: 10px; color: #555;">{$iti.arr_date}</div>
+						<!-- Arrival -->
+						<div style="text-align: center; flex: 1;">
+							<div style="font-size: 28px; font-weight: 800; letter-spacing: 2px;">{$iti.arr_code}</div>
+							<div style="font-size: 11px; color: #333; margin-top: 2px; font-weight: 500;">{$iti.arr_city}</div>
+							<div style="font-size: 9px; color: #666; margin-top: 1px;">{$iti.arr_airport}</div>
+							<div style="margin-top: 6px;">
+								<div style="font-size: 16px; font-weight: 700;">{$iti.arr_time}</div>
+								<div style="font-size: 10px; color: #555;">{$iti.arr_date}</div>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		{/foreach}
+			{/foreach}
 
-		<!-- PASSENGERS TABLE -->
-		{if $PASSENGERS|@count > 0}
-			<div style="padding: 12px 20px 6px;">
-				<div
-					style="font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px;">
-					{if $LANG == 'en'}Passenger Information{else}Thông tin hành khách{/if}
-				</div>
+			<!-- PASSENGERS TABLE -->
+			{if $group.passengers|@count > 0}
+				<div style="padding: 12px 20px 6px;">
+					<div
+						style="font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px;">
+						{if $LANG == 'en'}Passenger Information{else}Thông tin hành khách{/if}
+					</div>
 
-				<table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-					<thead>
-						<tr>
-							<th
-								style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-								{if $LANG == 'en'}Passenger{else}Hành khách{/if}</th>
-							<th
-								style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-								{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}</th>
-							<th
-								style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-								{if $LANG == 'en'}Ticket No.{else}Số vé{/if}</th>
-							<th
-								style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-								{if $LANG == 'en'}Baggage{else}Hành lý{/if}</th>
-						</tr>
-					</thead>
-					<tbody>
-						{foreach from=$PASSENGERS item=pax key=pidx}
+					<table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+						<thead>
 							<tr>
-								<td style="padding: 5px 8px; border: 1px solid #000; font-weight: 500;">
-									{$pax.salutation} {$pax.name}
-									<span style="font-size: 9px; color: #555;">({$pax.type})</span>
-								</td>
-								<td
-									style="padding: 5px 8px; text-align: center; border: 1px solid #000; font-weight: 600; font-family: 'Courier New', monospace; letter-spacing: 1px;">
-									{$pax.pnr}</td>
-								<td
-									style="padding: 5px 8px; text-align: center; border: 1px solid #000; font-family: 'Courier New', monospace; font-size: 10px;">
-									{if $pax.eticket_outbound}{$pax.eticket_outbound}{/if}
-									{if $IS_ROUND_TRIP && $pax.eticket_inbound}
-										<br />{$pax.eticket_inbound}
-									{/if}
-								</td>
-								<td style="padding: 5px 8px; border: 1px solid #000; font-size: 10px;">
-									{if $pax.baggage}{$pax.baggage}{/if}
-								</td>
+								<th
+									style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+									{if $LANG == 'en'}Passenger{else}Hành khách{/if}</th>
+								<th
+									style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+									{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}</th>
+								<th
+									style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+									{if $LANG == 'en'}Ticket No.{else}Số vé{/if}</th>
+								<th
+									style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+									{if $LANG == 'en'}Baggage{else}Hành lý{/if}</th>
 							</tr>
-						{/foreach}
-					</tbody>
-				</table>
-			</div>
-		{/if}
+						</thead>
+						<tbody>
+							{foreach from=$group.passengers item=pax key=pidx}
+								<tr>
+									<td style="padding: 5px 8px; border: 1px solid #000; font-weight: 500;">
+										{$pax.salutation} {$pax.name}
+										<span style="font-size: 9px; color: #555;">({$pax.type})</span>
+									</td>
+									<td
+										style="padding: 5px 8px; text-align: center; border: 1px solid #000; font-weight: 600; font-family: 'Courier New', monospace; letter-spacing: 1px;">
+										{$pax.pnr}</td>
+									<td
+										style="padding: 5px 8px; text-align: center; border: 1px solid #000; font-family: 'Courier New', monospace; font-size: 10px;">
+										{if $pax.eticket_outbound}{$pax.eticket_outbound}{/if}
+										{if $IS_ROUND_TRIP && $pax.eticket_inbound}
+											<br />{$pax.eticket_inbound}
+										{/if}
+									</td>
+									<td style="padding: 5px 8px; border: 1px solid #000; font-size: 10px;">
+										{if $pax.baggage}{$pax.baggage}{/if}
+									</td>
+								</tr>
+							{/foreach}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		{/foreach}
 
 		<!-- NOTES SECTION -->
 		<div style="padding: 10px 20px 12px;">
