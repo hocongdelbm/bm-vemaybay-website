@@ -68,25 +68,6 @@ $(document).ready(function () {
                 timesChange: row.data('times-change') || 0
             };
 
-            // if (luggageRow.length > 0) {
-            //     var luggageData = {
-            //         outbound: '',
-            //         inbound: ''
-            //     };
-
-            //     var outboundLuggage = luggageRow.find('p:contains("Lượt đi:")').text();
-            //     if (outboundLuggage) {
-            //         luggageData.outbound = outboundLuggage.replace('Lượt đi:', '').trim();
-            //     }
-
-            //     var inboundLuggage = luggageRow.find('p:contains("Lượt về:")').text();
-            //     if (inboundLuggage) {
-            //         luggageData.inbound = inboundLuggage.replace('Lượt về:', '').trim();
-            //     }
-
-            //     rowData.luggage = luggageData;
-
-            // }
             if (luggageRow.length > 0) {
                 var luggageData = {
                     outbound: '',
@@ -95,36 +76,28 @@ $(document).ready(function () {
 
                 // Structure 1: <div class="luggage__outbound"> with <span> label
                 var outboundDiv = luggageRow.find('div.luggage__outbound');
-                // Structure 2: <p> with <b>Lượt đi:</b> label
-                var outboundP = luggageRow.find('p:has(b.color-primary)').filter(function () {
-                    return $(this).find('b').text().indexOf('Lượt đi') !== -1;
-                });
+                // Structure 2: <p> with <b>Lượt đi:</b> label (old code)
+                var outboundLuggage = luggageRow.find('p:contains("Lượt đi:")').text();
 
                 if (outboundDiv.length > 0) {
                     var outboundClone = outboundDiv.clone();
                     outboundClone.find('span').remove();
                     luggageData.outbound = outboundClone.text().replace(/^[\s:]+/, '').trim();
-                } else if (outboundP.length > 0) {
-                    var outboundClone2 = outboundP.clone();
-                    outboundClone2.find('b').remove();
-                    luggageData.outbound = outboundClone2.text().replace(/^[\s:]+/, '').trim();
+                } else if (outboundLuggage) {
+                    luggageData.outbound = outboundLuggage.replace('Lượt đi:', '').trim();
                 }
 
-                // Structure 1: <div class="luggage__inbound">
+                // Structure 1: <div class="luggage__inbound"> with <span> label
                 var inboundDiv = luggageRow.find('div.luggage__inbound');
-                // Structure 2: <p> with <b>Lượt về:</b> label
-                var inboundP = luggageRow.find('p:has(b.color-red)').filter(function () {
-                    return $(this).find('b').text().indexOf('Lượt về') !== -1;
-                });
+                // Structure 2: <p> with <b>Lượt về:</b> label (old code)
+                var inboundLuggage = luggageRow.find('p:contains("Lượt về:")').text();
 
                 if (inboundDiv.length > 0) {
                     var inboundClone = inboundDiv.clone();
                     inboundClone.find('span').remove();
                     luggageData.inbound = inboundClone.text().replace(/^[\s:]+/, '').trim();
-                } else if (inboundP.length > 0) {
-                    var inboundClone2 = inboundP.clone();
-                    inboundClone2.find('b').remove();
-                    luggageData.inbound = inboundClone2.text().replace(/^[\s:]+/, '').trim();
+                } else if (inboundLuggage) {
+                    luggageData.inbound = inboundLuggage.replace('Lượt về:', '').trim();
                 }
 
                 rowData.luggage = luggageData;
