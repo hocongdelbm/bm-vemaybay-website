@@ -111,9 +111,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$BOOKINGS}',
                 )
             ),
-            array (
-                'description',
-            ),
         )
     ),
 );
