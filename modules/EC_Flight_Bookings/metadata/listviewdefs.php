@@ -35,6 +35,7 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_TOTAL_QTY',
         'width' => '10%',
         'default' => true,
+        'align' => 'center'
     ),
     'EMAIL' => array(
         'label' => 'LBL_EMAIL',
@@ -50,10 +51,10 @@ $listViewDefs[$module_name] = array(
         'label' => 'LBL_TOTAL_AMOUNT',
         'width' => '10%',
         'default' => true,
+        'align' => 'right'
     ),
     'BOOKING_STATUS' => array(
         'default' => true,
-        'studio' => 'visible',
         'label' => 'LBL_BOOKING_STATUS',
         'width' => '8%',
     ),
@@ -61,6 +62,7 @@ $listViewDefs[$module_name] = array(
         'width' => '10%',
         'label' => 'LBL_RECALL_C',
         'default' => true,
+        'align' => 'center'
     ),
     'ASSIGNED_USER_NAME' => array(
         'width' => '9%',
