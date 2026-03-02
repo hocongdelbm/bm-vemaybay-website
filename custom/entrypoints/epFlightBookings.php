@@ -752,31 +752,50 @@ if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 // Nhắc nhở khách hàng lịch bay - button Remind
 if (isset($_POST['for']) && $_POST['for'] == 'changeCheckinStatus') {
 	$status     = isset($_POST['status']) ? (int)$_POST['status'] : 0;
-    $journey_id = isset($_POST['journey_id']) ? trim($_POST['journey_id']) : '';
+	$journey_id = isset($_POST['journey_id']) ? trim($_POST['journey_id']) : '';
+	$journey_name = isset($_POST['journey_name']) ? trim($_POST['journey_name']) : '';
+	$booking_id = isset($_POST['booking_id']) ? trim($_POST['booking_id']) : '';
+	$record_name = isset($_POST['record_name']) ? trim($_POST['record_name']) : '';
+	$module_name = 'EC_Flight_Bookings';
 
-	if ($journey_id === '') {
-		$GLOBALS['log']->fatal('changeCheckinStatus FAILED: missing journey_id | POST=' . json_encode($_POST));
+	if ($journey_id === '' && $booking_id === '') {
+		$GLOBALS['log']->fatal('changeCheckinStatus FAILED: missing journey_id or booking_id | POST=' . json_encode($_POST));
+
 		echo 0;
 		exit();
 	}
 
 	$journey_id = $db->quote($journey_id);
-	 $sql = "
+	$sql = "
         UPDATE ec_booking_itineraries
         SET checkin_status = {$status}
         WHERE id = '{$journey_id}'
     ";
-    $result = $db->query($sql);
+	$result = $db->query($sql);
 
-    if ($result) {
-        echo 1;
-    } else {
-        $GLOBALS['log']->fatal(
-            'changeCheckinStatus FAILED | SQL=' . $sql
-        );
-        echo 0;
-    }
-    exit;
+	if ($result) {
+		if ($status === 2) {
+			// Lưu KPI
+			$description = 'Đã Check in hành trình ' . $journey_name . ' (Checkin)';
+			myCreateWorkingProcess($module_name, $booking_id, $record_name, $description, $current_user->id, 'checkin_journey');
+
+			$note = new Note();
+			$note->id = '';
+			$note->name = $record_name ?? '';
+			$note->description = $description;
+			$note->parent_type = $module_name;
+			$note->parent_id = $booking_id;
+			$note->save();
+		}
+
+		echo 1;
+	} else {
+		$GLOBALS['log']->fatal(
+			'changeCheckinStatus FAILED | SQL=' . $sql
+		);
+		echo 0;
+	}
+	exit;
 }
 
 // Cập nhật doanh số booking
@@ -1381,8 +1400,9 @@ function populateEditedLineItineraries($booking_id)
 			}
 
 			// Checkin
-			if ((int)$row['checkin_status'] !== 2 && in_array((int)$row['booking_status'], [7, 8])){
-				$checkin_status = '<select class="select-box" id="checkin_status_iti" name="checkin_status_iti" iti_id="' . $row['id'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
+			if ((int)$row['checkin_status'] !== 2 && in_array((int)$row['booking_status'], [7, 8])) {
+				$jour_name = $row['departure'] . '-' . $row['arrival'];
+				$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $booking_id . '" record_name="' . $row['bk_name'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
 			}
 		}
 

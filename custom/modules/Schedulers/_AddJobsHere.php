@@ -54,7 +54,7 @@ function notifyCheckinJourney()
 			WHERE b.booking_status IN ('7','8')
 				AND i.deleted = 0
 				AND i.departure_date != ''
-				AND i.checkin_status = 0
+				AND i.checkin_status = 1
 				AND NOW() >= DATE_SUB(i.departure_date, INTERVAL 24 HOUR)
 				AND NOW() <= DATE_SUB(i.departure_date, INTERVAL 24 HOUR) + INTERVAL 1 MINUTE
 			ORDER BY i.departure_date ASC

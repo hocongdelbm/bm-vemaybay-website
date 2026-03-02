@@ -139,8 +139,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 		$html .= '<table class="table-details__booking table-total__kpi detail-data-list" cellpadding="0" cellspacing="0" border="0">
 		<thead><tr>
-			<th width="13%" align="center">Chứng từ</th>
-			<th width="23%" align="center">Ghi chú</th>
+			<th width="10%" align="center">Chứng từ</th>
+			<th width="20%" align="center">Ghi chú</th>
 			<th width="8%" align="center">Ngày</th>
 			<th width="4%" align="center"><span title="Called">CAL</span></th>
 			<th width="4%" align="center"><span title="Comepleted">COM</span></th>
@@ -150,6 +150,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			<th width="4%" align="center"><span title="Xuất hóa đơn đầu vào">HDV</span></th>
 			<th width="4%" align="center"><span title="Xuất hóa đơn đầu ra">HDR</span></th>
 			<th width="4%" align="center"><span title="Giao vé">GVE</span></th>
+			<th width="4%" align="center"><span title="Checkin">CKI</span></th>
 			<th width="4%" align="center"><span title="Đối chiếu công nợ">DCN</span></th>
 			<th width="4%" align="center"><span title="Tạo hoàn vé">THV</span></th>
 			<th width="4%" align="center"><span title="Lập phiếu chi">LPC</span></th>
@@ -176,6 +177,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 					  ,w.support
 					  ,(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
 					  ,w.ticket_delivery
+					  ,w.checkin_journey
 					  ,w.recall
 					  ,w.remind
 					  ,w.check_debt
@@ -204,6 +206,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		$ttl_inv_in_issued = 0;
 		$ttl_inv_issued = 0;
 		$ttl_delivery = 0;
+		$ttl_checkin = 0;
 		$ttl_recall = 0;
 		$ttl_bonus = 0;
 		$ttl_comdebt = 0;
@@ -218,7 +221,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		while ($row = $db->fetchByAssoc($res)) {
 
 			$ttl_row = $row['called'] + $row['completed'] + $row['paid'] + $row['recheck'] + $row['support']
-				+ $row['invoice_input_issued'] + $row['invoice_issued'] + $row['ticket_delivery'] + $row['recall'] + $row['remind']
+				+ $row['invoice_input_issued'] + $row['invoice_issued'] + $row['ticket_delivery'] + $row['checkin_journey'] + $row['recall'] + $row['remind']
 				+ $row['check_debt'] + $row['create_repaid'] + $row['create_payment'] +  $row['create_receipt'] + $row['create_transfer']
 				+ $row['manner'] + $row['effected'] + $row['awareness']
 				- $row['minus'];
@@ -246,6 +249,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 						<td align="center"><span title="Xuất hóa đơn đầu vào">' . ($row['invoice_input_issued'] != 0 ? $row['invoice_input_issued'] : '') . '</span></td>
 						<td align="center"><span title="Xuất hóa đơn đầu ra">' . ($row['invoice_issued'] != 0 ? $row['invoice_issued'] : '') . '</span></td>
 						<td align="center"><span title="Giao vé">' . ($row['ticket_delivery'] != 0 ? $row['ticket_delivery'] : '') . '</span></td>
+						<td align="center"><span title="Checkin">' . ($row['checkin_journey'] != 0 ? $row['checkin_journey'] : '') . '</span></td>
 						<td align="center"><span title="Đối chiếu công nợ">' . ($row['check_debt'] != 0 ? $row['check_debt'] : '') . '</span></td>
 						<td align="center"><span title="Tạo hoàn vé">' . ($row['create_repaid'] != 0 ? $row['create_repaid'] : '') . '</span></td>
 						<td align="center"><span title="Lập phiếu chi">' . ($row['create_payment'] != 0 ? $row['create_payment'] : '') . '</span></td>
@@ -271,6 +275,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			$ttl_inv_in_issued += (int)$row['invoice_input_issued'];
 			$ttl_inv_issued += (int)$row['invoice_issued'];
 			$ttl_delivery += (int)$row['ticket_delivery'];
+			$ttl_checkin += (int)$row['checkin_journey'];
 			$ttl_recall += (int)$recall;
 			$ttl_bonus += (int)$row['bonus'];
 
@@ -299,6 +304,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 			<td align="center"><span title="Xuất hóa đơn đầu vào">' . $ttl_inv_in_issued . '</span></td>
 			<td align="center"><span title="Xuất hóa đơn đầu ra">' . $ttl_inv_issued . '</span></td>
 			<td align="center"><span title="Giao vé">' . $ttl_delivery . '</span></td>
+			<td align="center"><span title="Checkin">' . $ttl_checkin . '</span></td>
 			<td align="center"><span title="Đối chiếu công nợ">' . $ttl_comdebt . '</span></td>
 			<td align="center"><span title="Tạo hoàn vé">' . $ttl_new_repaid . '</span></td>
 			<td align="center"><span title="Lập phiếu chi">' . $ttl_payment . '</span></td>
@@ -318,4 +324,5 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 	}
 
 	echo $html;
+	exit();
 }

@@ -14,7 +14,7 @@ if (ACLController::checkAccess('EC_Zalo_Apps', 'list', true)) {
     );
 }
 
-if (ACLController::checkAccess('EC_Zalo_Apps', 'edit', true)) {
+if (ACLController::checkAccess('EC_Zalo_Apps', 'edit', true) && is_admin($current_user)) {
     $module_menu[] = array(
         'index.php?module=EC_Zalo_Apps&action=EditView&return_module=EC_Zalo_Apps&return_action=DetailView',
         $mod_strings['LNK_NEW_RECORD'],

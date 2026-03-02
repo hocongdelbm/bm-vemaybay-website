@@ -1875,6 +1875,7 @@ $GLOBALS['app_list_strings']['employee_kpi_type_list'] = array(
   'invoice_issued' => 'Xuất hóa đơn đầu ra',
   'invoice_input_issued' => 'Xuất hóa đơn đầu vào',
   'ticket_delivery' => 'Giao vé',
+  'checkin_journey' => 'Checkin',
   'check_debt' => 'Đối chiếu công nợ',
   'create_repaid' => 'Tạo hoàn vé',
   'create_payment' => 'Lập phiếu chi',
