@@ -4043,3 +4043,86 @@ if (isset($_POST['for']) && $_POST['for'] == 'previewSendMail') {
 	echo $html;
 	exit();
 }
+
+
+/**
+ * Chi tiết hành trình
+ */
+if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
+	global $app_list_strings;
+
+	$from_date = isset($_POST['from_date']) && strtotime($_POST['from_date']) !== false ? date('Y-m-d', strtotime($_POST['from_date'])) : '';
+	$to_date = isset($_POST['to_date']) && strtotime($_POST['to_date']) !== false ? date('Y-m-d', strtotime($_POST['to_date'])) : '';
+
+	$departure = $_POST['departure'] ?? '';
+	$arrival = $_POST['arrival'] ?? '';
+
+	$user_list = get_user_array(true, 'Active', '', true);
+
+	$sql = "
+		SELECT
+			bk.id,
+			bk.name,
+			bk.booking_status,
+			bk.contact_name,
+			bk.date_entered,
+			bk.total_qty,
+			bk.created_by
+		FROM ec_flight_bookings bk
+		INNER JOIN ec_booking_itineraries i ON i.booking_id = bk.id
+			AND i.deleted = 0
+			AND i.departure = '{$departure}'
+			AND i.arrival = '{$arrival}'
+			AND i.direction = 0
+			AND i.add_type = 0
+		WHERE bk.date_entered BETWEEN '{$from_date}' AND '{$to_date} 17:59:59'
+		AND bk.deleted = 0
+		ORDER BY bk.created_by, bk.date_entered DESC
+	";
+	$res = $db->query($sql);
+
+	$html = '<table class="tbl-check-details-airport-analysis table-details__booking">
+				<thead>
+					<tr>
+						<th class="hide-mobile">STT</th>
+						<th>Booking</th>
+						<th class="hide-mobile">Tình trạng</th>
+						<th>Ngày đặt</th>
+						<th>Đặt bởi</th>
+						<th>Liên hệ</th>
+						<th>Số vé</th>
+					</tr>
+				</thead>
+				<tbody>';
+	$i = 1;
+	while ($row = $db->fetchByAssoc($res)) {
+		if ($row['booking_status'] == 2) { // CHỜ THANH TOÁN
+			$class_color = 'text-warning';
+		} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { // XÁC NHẬN
+			$class_color = 'text-success';
+		} elseif ($row['booking_status'] == 4) { // HỦY
+			$class_color = 'text-danger';
+		} elseif ($row['booking_status'] == 6) { // ĐÃ GỌI
+			$class_color = 'text-info';
+		} elseif ($row['booking_status'] == 8) { // HOÀN TẤT
+			$class_color = 'text-primary';
+		} else {
+			$class_color = 'text-dark';
+		}
+			
+		$html .= '<tr>
+					<td class=" hide-mobile fw-bold text-center">' . $i . '</td>
+					<td class=""><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
+					<td class=" hide-mobile text-center fw-bold '.$class_color.'">' . $app_list_strings['booking_status_list'][(int) $row['booking_status']] . '</td>
+					<td class=" text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+					<td class="">' . $user_list[$row['created_by']] . '</td>
+					<td class="">' . $row['contact_name'] . '</td>
+					<td class=" text-center fw-bold">' . $row['total_qty'] . '</td>
+				</tr>';
+		$i++;
+	}
+
+	$html .= '</tbody></table>';
+	echo $html;
+	exit();
+}

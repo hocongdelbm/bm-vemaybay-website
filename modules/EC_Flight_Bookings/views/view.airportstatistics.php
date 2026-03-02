@@ -168,17 +168,23 @@ class Viewairportstatistics extends SugarView
 
         $row_count  = $db->countRows($res);
         while ($row = $db->fetchByAssoc($res)) {
+            $departure = $row['departure'];
+            $arrival = $row['arrival'];
 
             $html .= '<tr class="main-line">
                 <td class="text-center fw-bold">' . ($i + 1) . '</td>
-                <td class="text-center fw-bold">' . $airport_arr[$row['departure']] . '</td>
-                <td class="text-center fw-bold">' . $airport_arr[$row['arrival']] . '</td>
-                <td class="text-center fw-bold">' . format_number($row['bk_qty']) . '</td>
+                <td class="text-center fw-bold">' . $airport_arr[$departure] . '</td>
+                <td class="text-center fw-bold">' . $airport_arr[$arrival] . '</td>
+                <td class="text-center fw-bold">
+                    <a href="#" class="text-primary text-decoration-underline" data-bs-toggle="modal" data-bs-target="#mainLineModal" data-fromdate="'.$from_date.'" data-todate="'.$to_date.'" data-departure="'.$departure.'" data-arrival="'.$arrival.'">
+                        ' . format_number($row['bk_qty']) . '
+                    </a>
+                </td>
                 <td class="text-center fw-bold">' . format_number($row['total_ticket']) . '</td>
                 <td class="text-center fw-bold"></td>
             </tr>';
 
-            $label_journey_arr[($i + 1)] = $row['departure'] . ' - ' . $row['arrival'];
+            $label_journey_arr[($i + 1)] = $departure . ' - ' . $arrival;
             $total_ticket_arr[($i + 1)]  = $row['total_ticket'];
             $total_qty_arr[($i + 1)]  = $row['bk_qty'];
 
@@ -190,7 +196,9 @@ class Viewairportstatistics extends SugarView
                     <td></td>
                     <td class="text-end">' . $airport_arr[$dt_val[0]] . '</td>
                     <td class="text-end">' . $airport_arr[$dt_val[1]] . '</td>
-                    <td class="text-center">' . format_number($dt_val[2]) . '</td>
+                    <td class="text-center">
+                        ' . format_number($dt_val[2]) . '
+                    </td>
                     <td class="text-center">' . format_number($dt_val[3]) . '</td>
                     <td class="text-center">' . $app_list_strings['aircode_list'][$dt_val[4]] . '</td>
                 </tr>';
