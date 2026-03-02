@@ -4075,7 +4075,7 @@ if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
 			AND i.arrival = '{$arrival}'
 			AND i.direction = 0
 			AND i.add_type = 0
-		WHERE bk.date_entered BETWEEN '{$from_date}' AND '{$to_date} 17:59:59'
+		WHERE DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$from_date}' AND '{$to_date}'
 		AND bk.deleted = 0
 		ORDER BY bk.created_by, bk.date_entered DESC
 	";
