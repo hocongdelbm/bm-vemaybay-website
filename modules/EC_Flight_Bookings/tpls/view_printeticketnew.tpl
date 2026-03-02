@@ -35,12 +35,12 @@
 
 		<!-- HEADER -->
 		<div
-			style="border-bottom: 2px solid #000; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
+			style="border-bottom: 2px solid #000; padding: 5px 15px; display: flex; align-items: center; justify-content: space-between;">
 			<div style="display: flex; align-items: center; gap: 12px;">
 				<img src="https://bm.vemaybay.website/include/images/mail/logo-tcb-blue.png" alt="logo"
 					style="height: 40px;" />
 				<div>
-					<div style="font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+					<div style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
 						{$COM_NAME}</div>
 					<div style="font-size: 10px; color: #333; margin-top: 1px;">{if $LANG == 'en'}Find flights your
 						way{else}Tìm chuyến bay theo cách của bạn
@@ -50,7 +50,7 @@
 			<div style="text-align: right;">
 				<div style="font-size: 9px; text-transform: uppercase; color: #555; letter-spacing: 1px;">
 					{if $LANG == 'en'}Booking{else}Mã đặt chỗ{/if}</div>
-				<div style="font-size: 20px; font-weight: 800; letter-spacing: 2px;">{$BOOKING_NUMBER}</div>
+				<div style="font-size: 13px; font-weight: 800; letter-spacing: 2px;">{$BOOKING_NUMBER}</div>
 				<div style="font-size: 9px; color: #555; margin-top: 2px;">Tel: {$COM_TOP_PHONE}</div>
 			</div>
 		</div>
@@ -59,6 +59,79 @@
 			{if $gidx > 0}
 				<!-- Separator for multiple passenger groups -->
 				<div style="border-top: 3px double #000; margin-top: 15px;"></div>
+			{/if}
+
+			<!-- PASSENGERS TABLE -->
+			{if $group.passengers|@count > 0}
+				{* Check if airline is Vietnam Airlines (VN/VNA) or Bamboo Airways (QH/BBA) - only these use e-ticket *}
+				{assign var="hasEticket" value=false}
+				{foreach from=$group.itineraries item=iti}
+					{if $iti.airline_code == 'VN' || $iti.airline_code == 'VNA' || $iti.airline_code == 'QH' || $iti.airline_code == 'BBA'}
+						{assign var="hasEticket" value=true}
+					{/if}
+				{/foreach}
+
+				<div style="border-bottom: 1px dashed #000;padding: 12px 20px;">
+					<div
+						style="font-size: 14px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px;">
+						{if $LANG == 'en'}Passenger Information{else}Thông tin hành khách{/if}
+					</div>
+
+					<table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+						<thead>
+							<tr>
+								<th
+									style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+									{if $LANG == 'en'}Passenger{else}Hành khách{/if}</th>
+								<th
+									style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+									{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}</th>
+								{if $hasEticket}
+									<th
+										style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+										{if $LANG == 'en'}Ticket No.{else}Số vé{/if}</th>
+								{/if}
+								<th
+									style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
+									{if $LANG == 'en'}Baggage{else}Hành lý{/if}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{foreach from=$group.passengers item=pax key=pidx}
+								<tr>
+									<td style="padding: 5px 8px; border: 1px solid #000; font-weight: 500;">
+										{$pax.salutation} {$pax.name}
+										<span style="font-size: 9px; color: #555;">({$pax.type})</span>
+									</td>
+									<td
+										style="padding: 5px 8px; text-align: center; border: 1px solid #000;">
+										{$pax.pnr}</td>
+									{if $hasEticket}
+										<td
+											style="padding: 5px 8px; text-align: center; border: 1px solid #000; letter-spacing: 1px;">
+											{if $pax.eticket_outbound}
+												{$pax.eticket_outbound}
+												{if $IS_ROUND_TRIP && $pax.eticket_inbound}
+													<br /><span style="font-size: 9px; color: #666;">(Lượt đi)</span>
+												{/if}
+											{/if}
+											{if $IS_ROUND_TRIP && $pax.eticket_inbound}
+												{if $pax.eticket_outbound}<br />{/if}
+												{$pax.eticket_inbound}
+												{if $pax.eticket_outbound}
+													<br /><span style="font-size: 9px; color: #666;">(Lượt về)</span>
+												{/if}
+											{/if}
+										</td>
+									{/if}
+									<td style="padding: 5px 8px; border: 1px solid #000;">
+										{if $pax.baggage}{$pax.baggage}{/if}
+									</td>
+								</tr>
+							{/foreach}
+						</tbody>
+					</table>
+				</div>
 			{/if}
 
 			<!-- ITINERARIES -->
@@ -78,8 +151,8 @@
 					<div style="padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;">
 						<!-- Departure -->
 						<div style="text-align: center; flex: 1;">
-							<div style="font-size: 28px; font-weight: 800; letter-spacing: 2px;">{$iti.dep_code}</div>
-							<div style="font-size: 11px; color: #333; margin-top: 2px; font-weight: 500;">{$iti.dep_city}</div>
+							<div style="font-size: 20px; font-weight: 800; letter-spacing: 2px;">{$iti.dep_code}</div>
+							<div style="font-size: 11px; color: #333; font-weight: 500;">{$iti.dep_city}</div>
 							<div style="font-size: 9px; color: #666; margin-top: 1px;">{$iti.dep_airport}</div>
 							<div style="margin-top: 6px;">
 								<div style="font-size: 16px; font-weight: 700;">{$iti.dep_time}</div>
@@ -106,8 +179,8 @@
 
 						<!-- Arrival -->
 						<div style="text-align: center; flex: 1;">
-							<div style="font-size: 28px; font-weight: 800; letter-spacing: 2px;">{$iti.arr_code}</div>
-							<div style="font-size: 11px; color: #333; margin-top: 2px; font-weight: 500;">{$iti.arr_city}</div>
+							<div style="font-size: 20px; font-weight: 800; letter-spacing: 2px;">{$iti.arr_code}</div>
+							<div style="font-size: 11px; color: #333; font-weight: 500;">{$iti.arr_city}</div>
 							<div style="font-size: 9px; color: #666; margin-top: 1px;">{$iti.arr_airport}</div>
 							<div style="margin-top: 6px;">
 								<div style="font-size: 16px; font-weight: 700;">{$iti.arr_time}</div>
@@ -118,57 +191,7 @@
 				</div>
 			{/foreach}
 
-			<!-- PASSENGERS TABLE -->
-			{if $group.passengers|@count > 0}
-				<div style="padding: 12px 20px 6px;">
-					<div
-						style="font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px;">
-						{if $LANG == 'en'}Passenger Information{else}Thông tin hành khách{/if}
-					</div>
 
-					<table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-						<thead>
-							<tr>
-								<th
-									style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-									{if $LANG == 'en'}Passenger{else}Hành khách{/if}</th>
-								<th
-									style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-									{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}</th>
-								<th
-									style="text-align: center; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-									{if $LANG == 'en'}Ticket No.{else}Số vé{/if}</th>
-								<th
-									style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 10px; text-transform: uppercase; background: #f0f0f0;">
-									{if $LANG == 'en'}Baggage{else}Hành lý{/if}</th>
-							</tr>
-						</thead>
-						<tbody>
-							{foreach from=$group.passengers item=pax key=pidx}
-								<tr>
-									<td style="padding: 5px 8px; border: 1px solid #000; font-weight: 500;">
-										{$pax.salutation} {$pax.name}
-										<span style="font-size: 9px; color: #555;">({$pax.type})</span>
-									</td>
-									<td
-										style="padding: 5px 8px; text-align: center; border: 1px solid #000; font-weight: 600; font-family: 'Courier New', monospace; letter-spacing: 1px;">
-										{$pax.pnr}</td>
-									<td
-										style="padding: 5px 8px; text-align: center; border: 1px solid #000; font-family: 'Courier New', monospace; font-size: 10px;">
-										{if $pax.eticket_outbound}{$pax.eticket_outbound}{/if}
-										{if $IS_ROUND_TRIP && $pax.eticket_inbound}
-											<br />{$pax.eticket_inbound}
-										{/if}
-									</td>
-									<td style="padding: 5px 8px; border: 1px solid #000; font-size: 10px;">
-										{if $pax.baggage}{$pax.baggage}{/if}
-									</td>
-								</tr>
-							{/foreach}
-						</tbody>
-					</table>
-				</div>
-			{/if}
 		{/foreach}
 
 		<!-- NOTES SECTION -->

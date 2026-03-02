@@ -242,7 +242,7 @@ class Viewprinteticketnew extends SugarView
 		$seen = []; // Dedup safety net: track by name+pnr_outbound+type
 		while ($row = $db->fetchByAssoc($res)) {
 			// PHP-level deduplication: skip if same name+pnr+type already added
-			$dedupKey = strtoupper(trim($row['name'])) . '|' . trim($row['pnr_outbound'] ?? '') . '|' . $row['type'];
+			$dedupKey = mb_strtoupper(trim($row['name']), 'UTF-8') . '|' . trim($row['pnr_outbound'] ?? '') . '|' . $row['type'];
 			if (isset($seen[$dedupKey])) continue;
 			$seen[$dedupKey] = true;
 
@@ -261,16 +261,18 @@ class Viewprinteticketnew extends SugarView
 			// Determine PNR display
 			$pnr = '';
 			if ($this->isRoundTrip) {
-				$pnrDisplay = !empty($pnrOut) ? $pnrOut : $eticketOut;
-				$pnrDisplay2 = !empty($pnrIn) ? $pnrIn : $eticketIn;
+				$pnrDisplay = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
+				$pnrDisplay2 = strtoupper(!empty($pnrIn) ? $pnrIn : $eticketIn);
 				if ($pnrDisplay === $pnrDisplay2) {
 					$pnr = $pnrDisplay;
 				} else {
+					$outbound_label = ($this->lang == 'en' ? 'Outbound' : 'Lượt đi');
+					$inbound_label = ($this->lang == 'en' ? 'Inbound' : 'Lượt về');
 					$pnr = $pnrDisplay;
-					if (!empty($pnrDisplay2)) $pnr .= ' / ' . $pnrDisplay2;
+					if (!empty($pnrDisplay2)) $pnr .= " ($outbound_label) / $pnrDisplay2 ($inbound_label)";
 				}
 			} else {
-				$pnr = !empty($pnrOut) ? $pnrOut : $eticketOut;
+				$pnr = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
 			}
 
 			// Baggage info — mirror exact logic of old print ticket (isUseNewBaggage 2-branch)
@@ -283,10 +285,10 @@ class Viewprinteticketnew extends SugarView
 
 			$results[] = [
 				'id' => $row['id'],
-				'name' => strtoupper(trim($row['name'])),
+				'name' => mb_strtoupper(trim($row['name']), 'UTF-8'),
 				'salutation' => $salutationText,
 				'type' => $typeLabel,
-				'pnr' => strtoupper($pnr),
+				'pnr' => $pnr,
 				'eticket_outbound' => strtoupper($eticketOut),
 				'eticket_inbound' => strtoupper($eticketIn),
 				'baggage' => $baggageDescription,
@@ -349,51 +351,90 @@ class Viewprinteticketnew extends SugarView
 			}
 
 			// Step 2: Append generateLuggage() output (old index-based)
+			// BUT: if luggage_index contains new format (x, _, T), use Baggage::renderAvailableBaggage() instead
 			if (function_exists('generateLuggage') && $khuhoi) {
 				// Outbound
-				$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $row['luggage_index_outbound'] ?? null);
-				$luggagePriceOut = $row['luggage_price'] ?? 0;
-				if (!empty($row['luggage_index_outbound'])) $luggagePriceOut = $row['luggage_index_outbound'];
-				$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
-				$bag_weight_out = 0;
-				if (!empty($bag_out2)) {
-					preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-					$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
-				}
-				if ($bag_weight_out > 0) {
-					$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
-					$baggageDescription .= $khuhoi ? ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)') : '';
+				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
+				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
+				
+				if ($hasNewFormatOut && class_exists('Baggage')) {
+					// Use new format parser
+					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
+					if (!empty($bagOut)) {
+						$baggageDescription .= empty($baggageDescription) ? $bagOut : "\n$bagOut";
+						$baggageDescription .= ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)');
+					}
+				} else {
+					// Use old generateLuggage logic
+					$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
+					$luggagePriceOut = $row['luggage_price'] ?? 0;
+					if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
+					$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+					$bag_weight_out = 0;
+					if (!empty($bag_out2)) {
+						preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+						$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+					}
+					if ($bag_weight_out > 0) {
+						$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+						$baggageDescription .= ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)');
+					}
 				}
 
 				// Inbound
-				$bag_in = generateLuggage($dateEntered, $row['aircode_inbound'] ?? '', $row['ticket_class_inbound'] ?? '', $row['type'] ?? '', $row['luggage_index_inbound'] ?? null);
-				if (!empty($bag_in)) {
-					$luggagePriceIn = $row['luggage_price_inbound'] ?? 0;
-					if (!empty($row['luggage_index_inbound'])) $luggagePriceIn = $row['luggage_index_inbound'];
-					$bag_in2 = $bag_in[(int)$luggagePriceIn] ?? '';
-					$bag_weight_in = 0;
-					if (!empty($bag_in2)) {
-						preg_match('/(\d+)kg/isU', $bag_in2, $ib_output);
-						$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
+				$luggage_idx_in = $row['luggage_index_inbound'] ?? '';
+				$hasNewFormatIn = preg_match('/[x_T]/i', $luggage_idx_in);
+				
+				if ($hasNewFormatIn && class_exists('Baggage')) {
+					// Use new format parser
+					$bagIn = Baggage::renderAvailableBaggage($luggage_idx_in, $lang);
+					if (!empty($bagIn)) {
+						$baggageDescription .= empty($baggageDescription) ? $bagIn : ' - ' . $bagIn;
+						$baggageDescription .= ' ' . ($lang == 'en' ? '(Inbound)' : '(Lượt về)');
 					}
-					if ($bag_weight_in > 0) {
-						$baggageDescription .= $bag_weight_out > 0 ? ' - ' : '';
-						$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
-						$baggageDescription .= $lang == 'en' ? ' (Inbound)' : ' (Lượt về)';
+				} else {
+					// Use old generateLuggage logic
+					$bag_in = generateLuggage($dateEntered, $row['aircode_inbound'] ?? '', $row['ticket_class_inbound'] ?? '', $row['type'] ?? '', $luggage_idx_in);
+					if (!empty($bag_in)) {
+						$luggagePriceIn = $row['luggage_price_inbound'] ?? 0;
+						if (!empty($luggage_idx_in) && is_numeric($luggage_idx_in)) $luggagePriceIn = $luggage_idx_in;
+						$bag_in2 = $bag_in[(int)$luggagePriceIn] ?? '';
+						$bag_weight_in = 0;
+						if (!empty($bag_in2)) {
+							preg_match('/(\d+)kg/isU', $bag_in2, $ib_output);
+							$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
+						}
+						if ($bag_weight_in > 0) {
+							$baggageDescription .= empty($baggageDescription) ? '' : ' - ';
+							$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
+							$baggageDescription .= ' ' . ($lang == 'en' ? '(Inbound)' : '(Lượt về)');
+						}
 					}
 				}
 			} elseif (function_exists('generateLuggage') && !$khuhoi) {
-				$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $row['luggage_index_outbound'] ?? null);
-				$luggagePriceOut = $row['luggage_price'] ?? 0;
-				if (!empty($row['luggage_index_outbound'])) $luggagePriceOut = $row['luggage_index_outbound'];
-				$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
-				$bag_weight_out = 0;
-				if (!empty($bag_out2)) {
-					preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-					$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
-				}
-				if ($bag_weight_out > 0) {
-					$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
+				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
+				
+				if ($hasNewFormatOut && class_exists('Baggage')) {
+					// Use new format parser
+					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
+					if (!empty($bagOut)) {
+						$baggageDescription .= empty($baggageDescription) ? $bagOut : "\n$bagOut";
+					}
+				} else {
+					// Use old generateLuggage logic
+					$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
+					$luggagePriceOut = $row['luggage_price'] ?? 0;
+					if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
+					$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+					$bag_weight_out = 0;
+					if (!empty($bag_out2)) {
+						preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+						$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+					}
+					if ($bag_weight_out > 0) {
+						$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+					}
 				}
 			}
 		}
