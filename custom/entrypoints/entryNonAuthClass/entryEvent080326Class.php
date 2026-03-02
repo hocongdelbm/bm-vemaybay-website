@@ -20,12 +20,19 @@ class entryEvent080326Class extends entryClass
         $end_date = '2026-03-08';
 
         $sql = "
-                SELECT id, name, phone, contact_name, date_entered
-                FROM ec_flight_bookings 
-                WHERE booking_status = 8 
-                AND deleted = 0
-                AND date_entered BETWEEN '" . $start_date . "' AND '" . $end_date . " 17:59:59'
-            ";
+            SELECT b.id, b.name, b.phone, b.contact_name, b.date_entered
+            FROM ec_flight_bookings b
+            WHERE b.booking_status = 8 
+            AND b.deleted = 0
+            AND b.date_entered BETWEEN '{$start_date}' AND '{$end_date} 17:59:59'
+            AND NOT EXISTS (
+                SELECT 1 
+                FROM ec_hoanve hv
+                WHERE hv.booking_id = b.id
+                AND hv.deleted = 0
+            )
+        ";
+        
         $result = $db->query($sql);
         $data = [];
         while ($row = $db->fetchByAssoc($result)) {
