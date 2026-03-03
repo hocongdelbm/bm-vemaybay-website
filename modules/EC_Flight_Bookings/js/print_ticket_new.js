@@ -23,7 +23,7 @@ $(document).ready(function () {
                 '<div style="margin-bottom:16px; padding:12px; background:#e3f2fd; border:2px solid #2196f3; border-radius:8px;">' +
                     '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#1976d2;">' +
                         '<input type="checkbox" id="popup-select-all-perpax" style="width:18px;height:18px;cursor:pointer;" />' +
-                        '<span>✅ Chọn tất cả hành khách (in tất cả theo nhóm hành trình)</span>' +
+                        '<span>Chọn tất cả hành khách (in tất cả theo nhóm hành trình)</span>' +
                     '</label>' +
                 '</div>'
             );
