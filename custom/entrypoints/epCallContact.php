@@ -280,7 +280,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                 echo json_encode([
                     "status"    => 0,
                     "errorCode" => 409,
-                    "message"   => "Cuộc gọi bị xung đột ID"
+                    "message"   => "Không tìm thấy cuộc gọi để cập nhật. Vui lòng đợi trong giây lát rồi thử lại!"
                 ], JSON_UNESCAPED_UNICODE);
                 exit;
             }

@@ -74,18 +74,33 @@ $(document).ready(function () {
                     inbound: ''
                 };
 
+                // Structure 1: <div class="luggage__outbound"> with <span> label
+                var outboundDiv = luggageRow.find('div.luggage__outbound');
+                // Structure 2: <p> with <b>Lượt đi:</b> label (old code)
                 var outboundLuggage = luggageRow.find('p:contains("Lượt đi:")').text();
-                if (outboundLuggage) {
+
+                if (outboundDiv.length > 0) {
+                    var outboundClone = outboundDiv.clone();
+                    outboundClone.find('span').remove();
+                    luggageData.outbound = outboundClone.text().replace(/^[\s:]+/, '').trim();
+                } else if (outboundLuggage) {
                     luggageData.outbound = outboundLuggage.replace('Lượt đi:', '').trim();
                 }
 
+                // Structure 1: <div class="luggage__inbound"> with <span> label
+                var inboundDiv = luggageRow.find('div.luggage__inbound');
+                // Structure 2: <p> with <b>Lượt về:</b> label (old code)
                 var inboundLuggage = luggageRow.find('p:contains("Lượt về:")').text();
-                if (inboundLuggage) {
+
+                if (inboundDiv.length > 0) {
+                    var inboundClone = inboundDiv.clone();
+                    inboundClone.find('span').remove();
+                    luggageData.inbound = inboundClone.text().replace(/^[\s:]+/, '').trim();
+                } else if (inboundLuggage) {
                     luggageData.inbound = inboundLuggage.replace('Lượt về:', '').trim();
                 }
 
                 rowData.luggage = luggageData;
-
             }
             selectedPassengers[passengerId] = rowData;
 
