@@ -70,6 +70,40 @@
 				});
 			}
 		}
+
+        // mainLineModal open
+        const mainLineModal = $('#mainLineModal');
+        mainLineModal.on('show.bs.modal', function (event) {
+            const button = $(event.relatedTarget); // element đã trigger modal
+            const departure = button.data('departure');
+            const arrival = button.data('arrival');
+            const from_date = button.data('fromdate');
+            const to_date = button.data('todate');
+
+            if(departure && arrival && from_date && to_date){ 
+                $.ajax({
+                    url: "index.php?entryPoint=entryPointFlightBookings",
+                    type: "POST",
+                    data: {
+                        departure: departure,
+                        arrival: arrival,
+                        from_date: from_date,
+                        to_date: to_date,
+                        for: 'getDetailsAirportStatistics',
+                    },
+                    beforeSend: function () {
+                       $("#mainLineModal").find('.modal-body').html('');
+                       $("#mainLineModalLabel").find('.journey').html('');
+                       $("#mainLineModalLabel").find('.date').html('');
+                    },
+                    success: function (response) {
+                        $("#mainLineModalLabel").find('.journey').html(departure + ' - ' + arrival);
+                        $("#mainLineModalLabel").find('.date').html('từ ngày ' + from_date + ' đến ngày ' + to_date);
+                        $("#mainLineModal").find('.modal-body').html(response);
+                    }
+                });
+            } 
+        });
 	});
 
     </script>
@@ -221,6 +255,23 @@
                         <tbody>
                             {$DATA}
                         </tbody>
+                        <footer>
+                            <tr>
+                                <td colspan="10">
+                                    <div class="modal fade" id="mainLineModal" tabindex="-1" aria-labelledby="mainLineModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog modal-xl modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h1 class="modal-title fs-5" id="mainLineModalLabel">Danh sách booking hành trình <span class="journey"></span> <span class="date"></span></h1>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </footer>
                     </table>
                 </div>
             </div>

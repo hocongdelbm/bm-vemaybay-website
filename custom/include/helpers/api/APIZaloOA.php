@@ -166,16 +166,17 @@ class APIZaloOA {
         if(is_string($json) && !empty($json)) {
             $arr = json_decode($json, true);
 
-            $expires_in                 = $arr['expires_in'] ?? 90000; // Seconds
-            $expires_at_timestamp       = $this->get_timestamp() + $expires_in; // UTC timezones
-            $this->app->access_token    = $arr['access_token'] ?? '';
-            $this->app->refresh_token   = $arr['refresh_token'] ?? '';
+            $expires_in = isset($arr['expires_in']) ? (int)$arr['expires_in'] : 90000; //Seconds
+            $expires_at_timestamp       = $this->get_timestamp('UTC') + $expires_in; // UTC timezones
+            $this->app->access_token    = $arr['access_token'] ?? $this->app->access_token;
+            if (!empty($arr['refresh_token'])) {
+                $this->app->refresh_token = $arr['refresh_token'];
+            }
             $this->app->expires_at      = date('Y-m-d H:i:s', $expires_at_timestamp);
+
             return $this->app->save();
         }
     }
-
-
 
     /****************  OA  ****************/
     /** 
