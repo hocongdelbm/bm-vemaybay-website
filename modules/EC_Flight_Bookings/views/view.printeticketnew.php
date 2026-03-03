@@ -1,386 +1,798 @@
 <?php
 require_once("include/Sugar_Smarty.php");
-class Viewprinteticketnew extends SugarView {
+if (file_exists("custom/include/utils/Flight.php")) require_once("custom/include/utils/Flight.php");
+if (file_exists("custom/include/utils/string.php")) require_once("custom/include/utils/string.php");
+if (file_exists("custom/include/utils/Baggage.php")) require_once("custom/include/utils/Baggage.php");
+
+class Viewprinteticketnew extends SugarView
+{
 	public $sugarSmarty;
 	public $lang;
 	public $isRoundTrip;
 	public $bookingId;
-	public $itineraryId; // Current itinerary ID
-	public $listPassengerId; // List selected passengers
+	public $bookingName;
+	public $ticketType;
+	public $passengerIds;
+	public $itineraryIds;
+	public $allPassengers;
+	public $allItineraries;
+	private $bookingBean = null;
 
-	function display() {
-		if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
-			$this->sugarSmarty = new Sugar_Smarty();
-			$this->lang = isset($_REQUEST['lang']) && !empty($_REQUEST['lang']) ? $_REQUEST['lang'] : 'vn'; // Default is VN;
-			$this->isRoundTrip = (isset($_REQUEST['khuhoi']) && !empty($_REQUEST['khuhoi'])) ? (int)$_REQUEST['khuhoi'] : 0;
-			$this->bookingId = $_REQUEST['booking_id'] ?? '';
-			$this->itineraryId = $_REQUEST['itinerary_id'] ?? '';
-			$this->listPassengerId = explode(',', (isset($_REQUEST['listPassengers']) && !empty($_REQUEST['listPassengers'])) ? $_REQUEST['listPassengers'] : []);
+	function display()
+	{
+		$this->sugarSmarty = new Sugar_Smarty();
+		$this->lang = isset($_REQUEST['lang']) && !empty($_REQUEST['lang']) ? $_REQUEST['lang'] : 'vn';
+		$this->isRoundTrip = (isset($_REQUEST['khuhoi']) && !empty($_REQUEST['khuhoi'])) ? (int)$_REQUEST['khuhoi'] : 0;
+		$this->bookingId = $_REQUEST['booking_id'] ?? '';
+		$this->bookingName = $_REQUEST['booking'] ?? '';
+		$this->ticketType = $_REQUEST['ticket_type'] ?? '1';
 
-			$this->populateContent();
-			$this->sugarSmarty->display("modules/EC_Flight_Bookings/tpls/view_printeticketnew.tpl");
+		// Parse comma-separated IDs from GET params ("All" = select all)
+		$this->passengerIds = [];
+		$this->allPassengers = false;
+		if (isset($_REQUEST['passengers']) && !empty($_REQUEST['passengers'])) {
+			if (strtolower($_REQUEST['passengers']) === 'all') {
+				$this->allPassengers = true;
+				$this->passengerIds = ['all']; // placeholder so empty check passes
+			} else {
+				$this->passengerIds = array_filter(explode(',', $_REQUEST['passengers']));
+			}
 		}
+		$this->itineraryIds = [];
+		$this->allItineraries = false;
+		if (isset($_REQUEST['itineraries']) && !empty($_REQUEST['itineraries'])) {
+			if (strtolower($_REQUEST['itineraries']) === 'all') {
+				$this->allItineraries = true;
+				$this->itineraryIds = ['all']; // placeholder so empty check passes
+			} else {
+				$this->itineraryIds = array_filter(explode(',', $_REQUEST['itineraries']));
+			}
+		}
+
+		if (empty($this->bookingId) || empty($this->passengerIds) || empty($this->itineraryIds)) {
+			echo '<h3 style="text-align:center; padding:40px;">Thiếu thông tin booking, hành khách hoặc hành trình.</h3>';
+			return;
+		}
+
+		$this->populateContent();
+		$this->sugarSmarty->display("modules/EC_Flight_Bookings/tpls/view_printeticketnew.tpl");
 	}
 
-	function populateContent() {
-		// Detect department id
-		$created_by = new User();
-		$created_by->retrieve($this->bean->created_by);
-		// $department_info = myGetDepartmentInfo("48840c01-3a4f-c430-f703-56f32c7cd8a4"); // travelpass $created_by->department_id
+	function populateContent()
+	{
+		// Department info
 		$department_info = myGetDepartmentInfo("f15f801d-a9bc-cc92-4152-655f5e89867f"); // MHV
 
-		$com_website = $department_info['com_website2'];
-		$com_phone 	 = $department_info['com_phone'];
+		$com_phone = $department_info['com_phone'];
 		if (!empty($department_info['com_hotline1'])) $com_phone .= ' - ' . $department_info['com_hotline1'];
 		if (!empty($department_info['com_hotline2'])) $com_phone .= ' - ' . $department_info['com_hotline2'];
 
-		// Lấy danh sách, số lượng, thông tin hành khách 
-		$passengersData = $this->getListPassengers();
-		$itinerariesData = $this->getListItineraries();
+		// Get passengers from DB
+		$passengers = $this->getPassengers();
 
-		$borderColor = '#dbdbdb';
-		$tbody = '';
-		foreach($itinerariesData as $round => $segments) {
-			$trHead = '';
-			if(count($itinerariesData) > 1) {
-				$trHead = '<tr>
-					<td colspan="4" style="padding:10px; border-top:2px solid; border-bottom:2px solid;">
-						<h5 style="font-weight:700; margin:0; padding:0">'. ($round == 0 ? 'Lượt đi' : 'Lượt về') .'</h5>
-					</td>
-				</tr>';
+		// Build passenger groups — each group shares the same itinerary set
+		// When itinerary changes exist (add_type=3), resolve per-passenger;
+		// different passengers may have different itineraries.
+		if ($this->hasItineraryChanges()) {
+			$groups = [];
+			foreach ($passengers as $pax) {
+				$paxItineraries = $this->getItinerariesForPassenger($pax['id']);
+				$sig = $this->itinerarySignature($paxItineraries);
+				if (!isset($groups[$sig])) {
+					$groups[$sig] = [
+						'itineraries' => $paxItineraries,
+						'passengers' => [],
+					];
+				}
+				$groups[$sig]['passengers'][] = $pax;
 			}
-
-			$trIti = '';
-			foreach($segments as $seg) {
-				$trIti .= '<tr>
-					<td width="10%" style="vertical-align:top; padding:10px">
-						<b style="line-height:1.5;">'. $seg['airline'] .'</b>
-					</td>
-					<td width="39%" style="vertical-align:top; text-align:right; padding:10px 16px 5px 10px">
-						<h5>'. $seg['depCode'] .' <b>'. $seg['depTime'] .'</b></h5>
-						<h6>'. $seg['depDate'] .'</b></h6>
-						<p style="line-height:1.5;">'. ($seg['depAirport']['CityName'] ?? 'Unknown') .', Sân bay '. ($seg['depAirport']['AirPortName'] ?? 'Unknown') .'</p>
-					</td>
-					<td><span style="display:inline-block; font-size:25px; transform:rotate(90deg);">&#128743;</span></td>
-					<td width="39%" style="vertical-align:top; text-align:left; padding:10px 10px 5px 16px">
-						<h5>'. $seg['desCode'] .' <b>'. $seg['desTime'] .'</b></h5>
-						<h6>'. $seg['desDate'] .'</b></h6>
-						<p style="line-height:1.5;">'. ($seg['desAirport']['CityName'] ?? 'Unknown') .', Sân bay '. ($seg['desAirport']['AirPortName'] ?? 'Unknown') .'</p>
-					</td>
-					<td width="10%"></td>
-				</tr>';
-			}
-
-			$trPass = '';
-			foreach($passengersData[$round] as $p) {
-				$salutation = $p['salutation'] == 0 ? 'Mr. ' : 'Ms. ';
-				$trPass .= '<tr style="border-bottom:1px solid; border-color:'.$borderColor.'">
-					<td style="vertical-align:top; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.'; ">
-						'. $salutation . $p['name'] .'
-					</td>
-					<td style="vertical-align:top; text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">'. $p['pnr'] .'</td>
-					<td style="vertical-align:top; text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">'. $p['ticketNo'] .'</td>
-					<td style="vertical-align:top; padding:10px 8px">
-						<p style="line-height:1.5;">'. Baggage::renderAvailableBaggage($p['bagIndex']) .'</p>
-						<p style="line-height:1.5;">'. $p['bagText'] .'</p>
-					</td>
-				</tr>';
-			}
-			$tablePassengers = '<tr>
-				<td colspan="4" style="padding: 30px 20px 30px">
-					<table>
-						<thead>
-							<tr style="border-bottom:1px solid; border-top:2px solid; border-color:'.$borderColor.';">
-								<th width="30%" style="padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">
-									HÀNH KHÁCH
-								</th>
-								<th width="15%" style="text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">
-									MÃ ĐẶT CHỖ
-								</th>
-								<th width="15%" style="text-align:center; padding:10px 8px; border-right:1px solid; border-color:'.$borderColor.';">
-									SỐ VÉ
-								</th>
-								<th style="padding:10px 8px;">
-									HÀNH LÝ / DỊCH VỤ
-								</th>
-							</tr>
-						</thead>
-						<tbody>'.$trPass .'</tbody>
-					</table>
-				</td>
-			</tr>';
-
-			$tbody .= $trHead . $trIti . $tablePassengers;
-
+			$passengerGroups = array_values($groups);
+		} else {
+			// No itinerary changes — single group with original itineraries
+			$itineraries = $this->getItineraries();
+			$passengerGroups = [[
+				'itineraries' => $itineraries,
+				'passengers' => $passengers,
+			]];
 		}
 
-		$this->sugarSmarty->assign('DATA', $tbody);
-
-
-		// if ($pass_inf['pass_cnt'] <= 1 && isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 3) {
-		// 	$is_change_inf = 1;
-		// 	$_REQUEST['add_type'] = 0;
-		// } else {
-		// 	$is_change_inf = 0;
-		// 	if(!isset($_REQUEST['add_type'])) {
-		// 		$_REQUEST['add_type'] = 0;
-		// 	}
-		// }
-		// $smartyobj->assign('ADD_TYPE', $_REQUEST['add_type']);
-
-
-		// // KHÔNG THAY ĐỔI HÀNH TRÌNH
-		// if ((isset($_REQUEST['add_type']) && $_REQUEST['add_type'] == 0) || !isset($_REQUEST['add_type'])) {
-		// 	$iti_inf = $this->listOfItineraries($_REQUEST['booking_id'], $khuhoi, $_REQUEST['wayflight'], $lang, $_REQUEST['itinerary_id'], $is_change_inf);
-		// 	if ($is_change_inf && $khuhoi) {
-		// 		if ($iti_inf['direction'] == 1) $fdirection = 0;
-		// 		else $fdirection = 1;
-
-		// 		$another_iti 	= $this->getAnotherIti($_REQUEST['booking_id'], $fdirection, $pass_inf['pass_id'], $pass_inf['edit_no']);
-				
-		// 		if(!empty($another_iti)){
-		// 			$airline 			= myGetAirlineInfo2(trim($another_iti['airline_code']), 'CODE');
-		// 			$departure 			= myGetAirportInfo2(trim($another_iti['departure']));
-		// 			$arrival 			= myGetAirportInfo2(trim($another_iti['arrival']));
-		// 			$departure_date 	= date('d/m/Y', strtotime($another_iti['departure_date'])) . ' <br /> ' . date('H:i', strtotime($another_iti['departure_date'])) .' - ' .date('H:i', strtotime($another_iti['arrival_date']));
-		// 			$airline 			= $airline['data'][0]['name'];
-		// 			$flight_number 	= $another_iti['flight_number'];
-		// 			$departure_inf 	= $departure['data'][0]['name'] . ' (' . $departure['data'][0]['code'] . ')';
-		// 			$arrival_inf 		= $arrival['data'][0]['name'] . ' (' . $arrival['data'][0]['code'] . ')';
-
-		// 			$html1 = '<tr class="no-change-iti">
-		// 						<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px; line-height: 20px;">' . $departure_date . '</td>
-		// 						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $airline . '</td>
-		// 						<td class="text-center" style="border:1px solid #ccc; padding: 10px 7px;">' . $flight_number . '</td>
-		// 						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $departure_inf . '</td>
-		// 						<td style="border:1px solid #ccc; padding: 10px 7px;">' . $arrival_inf . '</td>
-		// 					</tr>';
-		// 		} else {
-		// 			$html1 = '';
-		// 		}
-
-		// 		if ($fdirection == 0){
-		// 			$iti_html = $html1 . $iti_inf['html'];
-		// 		}
-		// 		else {
-		// 			$iti_html = $iti_inf['html'] . $html1;
-		// 		}
-		// 	} 
-		// 	else $iti_html = $iti_inf['html'];
-
-		// 	$smartyobj->assign('LIST_OF_ITINERARIES', $iti_html);
-		// }
-
-		$this->sugarSmarty->assign('BOOKING_NUMBER', $_REQUEST['booking']);
-		// $this->sugarSmarty->assign('LIST_OF_PASSENGER', $pass_inf['html']);
-		$this->sugarSmarty->assign('COM_NAME', $department_info['com_name']);
+		// Assign data to template
+		$this->sugarSmarty->assign('PASSENGER_GROUPS', $passengerGroups);
+		$this->sugarSmarty->assign('IS_ROUND_TRIP', $this->isRoundTrip);
+		$this->sugarSmarty->assign('LANG', $this->lang);
+		$this->sugarSmarty->assign('BOOKING_NUMBER', $this->bookingName);
+		$this->sugarSmarty->assign('COM_NAME', ($this->lang == 'en' ? removeAccents($department_info['com_name']) : $department_info['com_name']));
 		$this->sugarSmarty->assign('COM_TAXCODE', $department_info['com_taxcode']);
 		$this->sugarSmarty->assign('COM_ADDRESS', ($this->lang == 'en' ? $department_info['com_address2'] : $department_info['com_address']));
 		$this->sugarSmarty->assign('COM_TOP_PHONE', $department_info['com_phone']);
 		$this->sugarSmarty->assign('COM_PHONE', $com_phone);
-		$this->sugarSmarty->assign('COM_WEBSITE', $com_website);
+		$this->sugarSmarty->assign('COM_WEBSITE', $department_info['com_website2']);
 		$this->sugarSmarty->assign('COM_EMAIL', $department_info['com_email']);
 		$this->sugarSmarty->assign('IMAGE_URL_LARGE', $department_info['company_logo']);
-		$this->sugarSmarty->assign('MINUTE_BEFORE', $_REQUEST['ticket_type'] == '2' ? '120' : '120');
-		// 2: quốc tế là 180p
+		$this->sugarSmarty->assign('MINUTE_BEFORE', $this->ticketType == '2' ? '180' : '120');
 	}
 
 	/**
-	 * Get list passengers
-	 * 
-	 * @return array
+	 * Get passengers from DB by IDs
+	 * - Original passengers: add_type NOT IN (1,2), not in any rename chain
+	 * - Renamed passengers: add_type=2, final version only (ID not used as parent_detail_id by another)
+	 * Note: parent_detail_id chains (original→lần1→lần2), so we exclude
+	 *       any add_type=2 whose ID appears as another record's parent_detail_id
 	 */
-	function getListPassengers() {
+	function getPassengers()
+	{
 		global $db;
 		$results = [];
 
-		$iti = new EC_Booking_Itineraries;
-		$iti->retrieve($this->itineraryId);
+		if (empty($this->passengerIds)) return $results;
 
-		// Nếu là hành trình ban đầu
-		if (empty($iti->add_type)) {
-			$sql_con = "
-				AND p.id NOT IN (
-					SELECT assigned_user_id
-					FROM ec_booking_itineraries
-					WHERE booking_id = '$this->bookingId'
-						AND add_type IN (1, 3)
-						AND deleted = 0
-				) 
-				AND p.id NOT IN (
-					SELECT parent_detail_id
+		$bookingId = $db->quote($this->bookingId);
+
+		// Build ID filter (skip if all passengers requested)
+		$idFilter = '';
+		if (!$this->allPassengers) {
+			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->passengerIds)) . "'";
+			$idFilter = "AND p.id IN($idList)";
+		}
+
+		$fields = "p.id, p.name, p.salutation, p.type,
+				p.pnr_outbound, p.pnr_inbound,
+				p.eticket_outbound, p.eticket_inbound,
+				p.luggage_index_outbound, p.luggage_index_inbound,
+				p.luggage_purchase_text, p.luggage_purchase_text_inbound,
+				p.cic, p.passport_number, p.date_entered";
+
+		// Collect ALL IDs that appear as parent_detail_id (= have been superseded)
+		$supersededIds = "SELECT parent_detail_id FROM ec_booking_passengers
+				WHERE booking_id = '$bookingId' AND add_type = 2 AND deleted = 0
+				AND parent_detail_id IS NOT NULL";
+
+		// Also collect IDs of add_type=2 records that are NOT the latest per parent_detail_id
+		// This handles cases where multiple renames point to the same parent_detail_id
+		$notLatestRenames = "SELECT p2.id FROM ec_booking_passengers p2
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) AS max_date
 					FROM ec_booking_passengers
-					WHERE booking_id = '$this->bookingId'
-						AND add_type = 2
-						AND deleted = 0
-				)";
-		} 
-		// Là hành trình thay đổi
-		else {
-			$sql_con = "
-			AND p.id IN (
-				SELECT assigned_user_id FROM ec_booking_itineraries
-				WHERE booking_id = '$this->bookingId' AND add_type = 3 AND deleted = 0
-					AND sabre_logs = (
-						SELECT sabre_logs
-						FROM ec_booking_itineraries
-						WHERE id = '$this->itineraryId'
-					)
-			) 
-			AND p.id NOT IN (
-				SELECT assigned_user_id FROM ec_booking_itineraries
-				WHERE booking_id = '$this->bookingId' AND add_type = 3 AND deleted = 0
-					AND sabre_logs > (
-						SELECT sabre_logs
-						FROM ec_booking_itineraries
-						WHERE id = '$this->itineraryId'
-					)
-			)";
-		}
+					WHERE booking_id = '$bookingId' AND add_type = 2 AND deleted = 0
+					AND parent_detail_id IS NOT NULL
+					GROUP BY parent_detail_id
+				) latest ON p2.parent_detail_id = latest.parent_detail_id
+				WHERE p2.booking_id = '$bookingId' AND p2.add_type = 2 AND p2.deleted = 0
+				AND p2.date_entered < latest.max_date";
 
-		$sql = "SELECT p.id,
-				p.name,
-				p.salutation,
-				p.pnr_outbound,
-				p.pnr_inbound,
-				p.eticket_outbound,
-				p.eticket_inbound,
-
-				p.luggage_index_outbound,
-				p.luggage_index_inbound,
-				p.luggage_price,
-				p.luggage_price_inbound,
-				p.luggage_purchase_no_vat,
-				p.vat_luggage_purchase,
-				p.luggage_purchase,
-				p.luggage_purchase_text,
-				p.luggage_purchase_inbound_no_vat,
-				p.vat_luggage_purchase_inbound,
-				p.luggage_purchase_inbound,
-				p.luggage_purchase_text_inbound,
-				p.cic,
-				p.passport_number,
-				p.booking_id
-				-- (SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings WHERE id = p.booking_id) AS date_entered,
-				-- (SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id=p.booking_id AND i.direction='0' AND i.deleted=0 LIMIT 1) AS aircode_outbound,
-				-- (SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id=p.booking_id AND i.direction='0' AND i.deleted=0 LIMIT 1) AS ticket_class_outbound,
-				-- (SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id=p.booking_id AND i.direction='1' AND i.deleted=0 LIMIT 1) AS aircode_inbound,
-				-- (SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id=p.booking_id AND i.direction='1' AND i.deleted=0 LIMIT 1) AS ticket_class_inbound
+		// Original passengers not superseded by any rename
+		// LEFT JOIN add_type=1 records (luggage rows) to inherit baggage data.
+		// Also pull aircode/ticket_class from itineraries for old-style generateLuggage().
+		$sqlUnchanged = "SELECT
+				p.id, p.name, p.salutation, p.type,
+				p.pnr_outbound, p.pnr_inbound,
+				p.eticket_outbound, p.eticket_inbound,
+				COALESCE(NULLIF(p.luggage_index_outbound,''), bag.luggage_index_outbound) AS luggage_index_outbound,
+				COALESCE(NULLIF(p.luggage_index_inbound,''), bag.luggage_index_inbound) AS luggage_index_inbound,
+				COALESCE(NULLIF(p.luggage_purchase_text,''), bag.luggage_purchase_text) AS luggage_purchase_text,
+				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), bag.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
+				COALESCE(NULLIF(p.luggage_price, 0), bag.luggage_price) AS luggage_price,
+				COALESCE(NULLIF(p.luggage_price_inbound, 0), bag.luggage_price_inbound) AS luggage_price_inbound,
+				p.cic, p.passport_number, p.date_entered, NULL AS parent_detail_id,
+				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS ticket_class_outbound,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS aircode_inbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS ticket_class_inbound
 			FROM ec_booking_passengers p
-			WHERE p.booking_id = '$this->bookingId'
-				AND p.id IN('". implode("','", $this->listPassengerId) ."')
+			LEFT JOIN (
+				SELECT 
+					bag_inner.parent_detail_id,
+					MAX(NULLIF(bag_inner.luggage_index_outbound, '')) as luggage_index_outbound,
+					MAX(NULLIF(bag_inner.luggage_index_inbound, '')) as luggage_index_inbound,
+					MAX(NULLIF(bag_inner.luggage_purchase_text, '')) as luggage_purchase_text,
+					MAX(NULLIF(bag_inner.luggage_purchase_text_inbound, '')) as luggage_purchase_text_inbound,
+					MAX(bag_inner.luggage_price) as luggage_price,
+					MAX(bag_inner.luggage_price_inbound) as luggage_price_inbound
+				FROM ec_booking_passengers bag_inner
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) as max_date
+					FROM ec_booking_passengers
+					WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+					GROUP BY parent_detail_id
+				) bag_latest ON bag_inner.parent_detail_id = bag_latest.parent_detail_id 
+					AND bag_inner.date_entered = bag_latest.max_date
+				WHERE bag_inner.booking_id = '$bookingId' AND bag_inner.add_type = 1 AND bag_inner.deleted = 0
+				GROUP BY bag_inner.parent_detail_id
+			) bag ON bag.parent_detail_id = p.id
+			WHERE p.booking_id = '$bookingId'
+				$idFilter
 				AND p.deleted = 0
-				$sql_con
-			ORDER BY p.type, p.date_entered ";
+				AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
+				AND p.id NOT IN ($supersededIds)";
 
-		$res = $db->query($sql);
-		while ($row = $db->fetchByAssoc($res)) {
-			$passId 		= $row['id'] ?? '';
-			$passName 		= $row['name'] ?? '';
-			$passSalutation = $row['salutation'] ?? '';
-			$pnrOut 		= trim($row['pnr_outbound'] ?? '');
-			$ticketNoOut 	= trim($row['eticket_outbound'] ?? '');
-			$pnrIn 			= trim($row['pnr_inbound'] ?? '');
-			$ticketNoIn 	= trim($row['eticket_inbound'] ?? '');
-			
-			if(strlen($pnrOut) >= 6 || strlen($ticketNoOut) > 5) {
-				$results[0][$passId] = [
-					'name' 			=> $passName,
-					'salutation' 	=> $passSalutation,
-					'pnr' 			=> $pnrOut,
-					'ticketNo' 		=> $ticketNoOut,
-					'bagIndex' 		=> $row['luggage_index_outbound'] ?? '',
-					'bagText' 		=> $row['luggage_purchase_text'] ?? '',
-					'bagTicketNum' 	=> $row['eluggage_outbound'] ?? '',
-				];
-			}
+		// Final renamed version: add_type=2 whose own ID is NOT another's parent_detail_id
+		// AND is the latest record when multiple renames share the same parent_detail_id
+		// Use TWO LEFT JOINs for luggage: one for renamed pax luggage, one for original pax luggage
+		// Priority: renamed pax luggage > original pax luggage > original pax own fields
+		$sqlRenamed = "SELECT p.id, p.name, p.salutation, p.type,
+				p.pnr_outbound, p.pnr_inbound,
+				p.eticket_outbound, p.eticket_inbound,
+				COALESCE(NULLIF(p.luggage_index_outbound,''), NULLIF(bag_renamed.luggage_index_outbound,''), NULLIF(bag_orig.luggage_index_outbound,''), orig.luggage_index_outbound) AS luggage_index_outbound,
+				COALESCE(NULLIF(p.luggage_index_inbound,''), NULLIF(bag_renamed.luggage_index_inbound,''), NULLIF(bag_orig.luggage_index_inbound,''), orig.luggage_index_inbound) AS luggage_index_inbound,
+				COALESCE(NULLIF(p.luggage_purchase_text,''), NULLIF(bag_renamed.luggage_purchase_text,''), NULLIF(bag_orig.luggage_purchase_text,''), orig.luggage_purchase_text) AS luggage_purchase_text,
+				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), NULLIF(bag_renamed.luggage_purchase_text_inbound,''), NULLIF(bag_orig.luggage_purchase_text_inbound,''), orig.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
+				COALESCE(NULLIF(p.luggage_price, 0), NULLIF(bag_renamed.luggage_price, 0), NULLIF(bag_orig.luggage_price, 0), orig.luggage_price) AS luggage_price,
+				COALESCE(NULLIF(p.luggage_price_inbound, 0), NULLIF(bag_renamed.luggage_price_inbound, 0), NULLIF(bag_orig.luggage_price_inbound, 0), orig.luggage_price_inbound) AS luggage_price_inbound,
+				p.cic, p.passport_number, p.date_entered, p.parent_detail_id,
+				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS ticket_class_outbound,
+				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS aircode_inbound,
+				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS ticket_class_inbound
+			FROM ec_booking_passengers p
+			LEFT JOIN (
+				SELECT 
+					bag_inner.parent_detail_id,
+					MAX(NULLIF(bag_inner.luggage_index_outbound, '')) as luggage_index_outbound,
+					MAX(NULLIF(bag_inner.luggage_index_inbound, '')) as luggage_index_inbound,
+					MAX(NULLIF(bag_inner.luggage_purchase_text, '')) as luggage_purchase_text,
+					MAX(NULLIF(bag_inner.luggage_purchase_text_inbound, '')) as luggage_purchase_text_inbound,
+					MAX(bag_inner.luggage_price) as luggage_price,
+					MAX(bag_inner.luggage_price_inbound) as luggage_price_inbound
+				FROM ec_booking_passengers bag_inner
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) as max_date
+					FROM ec_booking_passengers
+					WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+					GROUP BY parent_detail_id
+				) bag_latest ON bag_inner.parent_detail_id = bag_latest.parent_detail_id 
+					AND bag_inner.date_entered = bag_latest.max_date
+				WHERE bag_inner.booking_id = '$bookingId' AND bag_inner.add_type = 1 AND bag_inner.deleted = 0
+				GROUP BY bag_inner.parent_detail_id
+			) bag_renamed ON bag_renamed.parent_detail_id = p.id
+			LEFT JOIN (
+				SELECT 
+					bag_inner.parent_detail_id,
+					MAX(NULLIF(bag_inner.luggage_index_outbound, '')) as luggage_index_outbound,
+					MAX(NULLIF(bag_inner.luggage_index_inbound, '')) as luggage_index_inbound,
+					MAX(NULLIF(bag_inner.luggage_purchase_text, '')) as luggage_purchase_text,
+					MAX(NULLIF(bag_inner.luggage_purchase_text_inbound, '')) as luggage_purchase_text_inbound,
+					MAX(bag_inner.luggage_price) as luggage_price,
+					MAX(bag_inner.luggage_price_inbound) as luggage_price_inbound
+				FROM ec_booking_passengers bag_inner
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) as max_date
+					FROM ec_booking_passengers
+					WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+					GROUP BY parent_detail_id
+				) bag_latest ON bag_inner.parent_detail_id = bag_latest.parent_detail_id 
+					AND bag_inner.date_entered = bag_latest.max_date
+				WHERE bag_inner.booking_id = '$bookingId' AND bag_inner.add_type = 1 AND bag_inner.deleted = 0
+				GROUP BY bag_inner.parent_detail_id
+			) bag_orig ON bag_orig.parent_detail_id = p.parent_detail_id
+			LEFT JOIN ec_booking_passengers orig ON orig.booking_id = p.booking_id
+				AND (orig.add_type IS NULL OR orig.add_type = 0)
+				AND orig.deleted = 0
+				AND orig.type = p.type
+				AND orig.id = p.parent_detail_id
+			WHERE p.booking_id = '$bookingId'
+				AND p.add_type = 2
+				AND p.deleted = 0
+				AND p.parent_detail_id IS NOT NULL
+				AND p.id NOT IN ($supersededIds)
+				AND p.id NOT IN ($notLatestRenames)";
 
-			if($this->isRoundTrip && (strlen($pnrIn) >= 6 || strlen($ticketNoIn) > 5)) {
-				$results[1][$passId] = [
-					'name' 			=> $passName,
-					'salutation' 	=> $passSalutation,
-					'pnr' 			=> $pnrIn,
-					'ticketNo' 		=> $ticketNoIn,
-					'bagIndex' 		=> $row['luggage_index_inbound'] ?? '',
-					'bagText' 		=> $row['luggage_purchase_text_inbound'] ?? '',
-					'bagTicketNum' 	=> $row['eluggage_inbound'] ?? '',
-				];
-			}
+		if (!$this->allPassengers) {
+			// In case the frontend passes an ID which is a renamed record, or an original record that was renamed.
+			// Because we don't know if JS gave us the original ID or the latest ID,
+			// we just get the names of the requested passengers from the database,
+			// and then wrap the main query to filter by name.
+			$nameListSql = "SELECT name, type FROM ec_booking_passengers WHERE id IN ($idList) AND booking_id = '$bookingId'";
+			$sql = "SELECT * FROM ( ($sqlUnchanged) UNION ALL ($sqlRenamed) ) AS combined
+					WHERE EXISTS (
+						SELECT 1 FROM ($nameListSql) AS req
+						WHERE TRIM(req.name) = TRIM(combined.name) AND req.type = combined.type
+					)
+					ORDER BY type, date_entered DESC";
+		} else {
+			$sql = "($sqlUnchanged) UNION ALL ($sqlRenamed) ORDER BY type, date_entered DESC";
 		}
 
-		return $results;
-	}
-
-	/**
-	 * Lấy danh sách hành trình bay
-	 * 
-	 * @param string $way_flight
-	 * @param object $is_change_inf
-	 * @return array
-	 */
-	public function getListItineraries($way_flight = '0', $is_change_inf = 0) {
-		global $db;
-		$results = [];
-
-		$sql = "SELECT 
-				i.id,
-				i.departure_date,
-				i.arrival_date,
-				i.flight_number,
-				i.ticket_class,
-				i.stops,
-				i.departure,
-				i.arrival,
-				i.airline_code,
-				i.direction
-			FROM ec_booking_itineraries i
-			WHERE i.booking_id = '$this->bookingId'
-				AND i.deleted = 0 
-				AND IF((i.sabre_logs = 0 or i.sabre_logs IS NULL), 0, i.sabre_logs) = (
-					SELECT IF((sabre_logs = 0 or sabre_logs IS NULL), 0, sabre_logs)
-					FROM ec_booking_itineraries
-					WHERE id = '$this->itineraryId'
-				)
-		";
-
-		if (!$this->isRoundTrip || $is_change_inf == 1) {
-			$sql .= " AND i.direction = '$way_flight' ";
-		}
-		$sql .= "
-			GROUP BY IF(sabre_logs = 0, i.id, i.direction) 
-			ORDER BY i.direction, i.departure_date, i.date_entered
-		";
-
 		$res = $db->query($sql);
+		$seen = []; // Dedup safety net: track by name+pnr_outbound+type
 		while ($row = $db->fetchByAssoc($res)) {
-			$direction = (int)($row['direction'] ?? 0);
-			$depCode = $row['departure'] ?? '';
-			$desCode = $row['arrival'] ?? '';
-			$depAirport = Flight::getAirport($depCode);
-			$desAirport = Flight::getAirport($desCode);
+			// PHP-level deduplication: skip if same name+pnr+type already added
+			$dedupKey = mb_strtoupper(trim($row['name']), 'UTF-8') . '|' . trim($row['pnr_outbound'] ?? '') . '|' . $row['type'];
+			if (isset($seen[$dedupKey])) continue;
+			$seen[$dedupKey] = true;
 
-			$depDate = date('d/m/Y', strtotime($row['departure_date']));
-			$depTime = date('H:i', strtotime($row['departure_date']));
-			$desDate = date('d/m/Y', strtotime($row['arrival_date']));
-			$desTime = date('H:i', strtotime($row['arrival_date']));
+			$salutationText = '';
+			if ($this->lang == 'en') {
+				$salutationText = ($row['salutation'] == '0') ? 'Mr.' : 'Ms.';
+			} else {
+				$salutationText = ($row['salutation'] == '0') ? 'Ông' : 'Bà';
+			}
 
-			$airlineCode = $row['airline_code'] ?? '';
-			$airline = Flight::getAirline($airlineCode);
+			$pnrOut = trim($row['pnr_outbound'] ?? '');
+			$pnrIn = trim($row['pnr_inbound'] ?? '');
+			$eticketOut = trim($row['eticket_outbound'] ?? '');
+			$eticketIn = trim($row['eticket_inbound'] ?? '');
 
-			$results[$direction][] = [
-				'depCode' => $depCode,
-				'desCode' => $desCode,
-				'depAirport' => $depAirport,
-				'desAirport' => $desAirport,
-				'depDate' => $depDate,
-				'depTime' => $depTime,
-				'desDate' => $desDate,
-				'desTime' => $desTime,
-				'airlineCode' => $airlineCode,
-				'airline' => $airline,
+			// Determine PNR display
+			$pnr = '';
+			if ($this->isRoundTrip) {
+				$pnrDisplay = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
+				$pnrDisplay2 = strtoupper(!empty($pnrIn) ? $pnrIn : $eticketIn);
+				if ($pnrDisplay === $pnrDisplay2) {
+					$pnr = $pnrDisplay;
+				} else {
+					$outbound_label = ($this->lang == 'en' ? 'Outbound' : 'Lượt đi');
+					$inbound_label = ($this->lang == 'en' ? 'Inbound' : 'Lượt về');
+					$pnr = $pnrDisplay;
+					if (!empty($pnrDisplay2)) $pnr .= " ($outbound_label) / $pnrDisplay2 ($inbound_label)";
+				}
+			} else {
+				$pnr = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
+			}
+
+			// Baggage info — mirror exact logic of old print ticket (isUseNewBaggage 2-branch)
+			$baggageDescription = $this->buildBaggageDescription($row);
+
+			$typeLabel = '';
+			if ($row['type'] == '0') $typeLabel = ($this->lang == 'en' ? 'Adult' : 'Người lớn');
+			elseif ($row['type'] == '1') $typeLabel = ($this->lang == 'en' ? 'Child' : 'Trẻ em');
+			elseif ($row['type'] == '2') $typeLabel = ($this->lang == 'en' ? 'Infant' : 'Em bé');
+
+			$results[] = [
+				'id' => $row['id'],
+				'name' => mb_strtoupper(trim($row['name']), 'UTF-8'),
+				'salutation' => $salutationText,
+				'type' => $typeLabel,
+				'pnr' => $pnr,
+				'eticket_outbound' => strtoupper($eticketOut),
+				'eticket_inbound' => strtoupper($eticketIn),
+				'baggage' => $baggageDescription,
+				'cic' => $row['cic'] ?? '',
+				'passport' => $row['passport_number'] ?? '',
 			];
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Build baggage description using the same 2-branch logic as the old print ticket.
+	 * Branch 1 (isUseNewBaggage=true): Baggage::renderAvailableBaggage() + generateCombinedPassengerBaggageInfo()
+	 * Branch 2 (isUseNewBaggage=false): Clean purchase_text directly + generateLuggage() for old-format index
+	 */
+	function buildBaggageDescription($row)
+	{
+		$lang = $this->lang == 'en' ? 'en' : 'vn';
+		$khuhoi = $this->isRoundTrip;
+
+		// Load booking bean once (cached)
+		if ($this->bookingBean === null) {
+			$this->bookingBean = new EC_Flight_Bookings();
+			$this->bookingBean->retrieve($this->bookingId);
+		}
+
+		// Use booking date_entered for isUseNewBaggage check (same as old ticket)
+		$dateEntered = $row['bk_date_entered'] ?? ($row['date_entered'] ?? '');
+		$baggageDescription = '';
+
+		if ($this->bookingBean->isUseNewBaggage($dateEntered, $this->bookingBean->created_by)) {
+			// New baggage format (after 2025-10-01 via website)
+			$availOut = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '') : '';
+			$availIn  = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_inbound']  ?? '') : '';
+
+			$purchOut = $this->cleanPurchaseText($row['luggage_purchase_text'] ?? '');
+			$purchIn  = $this->cleanPurchaseText($row['luggage_purchase_text_inbound'] ?? '');
+
+			if ($khuhoi)
+				$baggageDescription = $this->bookingBean->generateCombinedPassengerBaggageInfo($availOut, $purchOut, $availIn, $purchIn, $lang);
+			else
+				$baggageDescription = $this->bookingBean->generateCombinedPassengerBaggageInfo($availOut, $purchOut, '', '', $lang);
+		} else {
+			// Old baggage format
+			$purchOut = $this->cleanPurchaseText($row['luggage_purchase_text'] ?? '');
+			$purchIn  = $this->cleanPurchaseText($row['luggage_purchase_text_inbound'] ?? '');
+
+			// Step 1: Show purchase text
+			if (!empty($purchOut) || !empty($purchIn)) {
+				if ($khuhoi) {
+					if (!empty($purchOut))
+						$baggageDescription .= empty($baggageDescription) ? "$purchOut (Lượt đi)" : "\n$purchOut (Lượt đi)";
+					if (!empty($purchIn))
+						$baggageDescription .= empty($baggageDescription) ? "$purchIn (Lượt về)" : " - $purchIn (Lượt về)";
+				} else {
+					if (!empty($purchOut))
+						$baggageDescription .= empty($baggageDescription) ? $purchOut : "\n$purchOut";
+				}
+			}
+
+			// Step 2: Append generateLuggage() output (old index-based)
+			// BUT: if luggage_index contains new format (x, _, T), use Baggage::renderAvailableBaggage() instead
+			if (function_exists('generateLuggage') && $khuhoi) {
+				// Outbound
+				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
+				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
+				
+				if ($hasNewFormatOut && class_exists('Baggage')) {
+					// Use new format parser
+					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
+					if (!empty($bagOut)) {
+						$baggageDescription .= empty($baggageDescription) ? $bagOut : "\n$bagOut";
+						$baggageDescription .= ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)');
+					}
+				} else {
+					// Use old generateLuggage logic
+					$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
+					$luggagePriceOut = $row['luggage_price'] ?? 0;
+					if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
+					$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+					$bag_weight_out = 0;
+					if (!empty($bag_out2)) {
+						preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+						$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+					}
+					if ($bag_weight_out > 0) {
+						$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+						$baggageDescription .= ' ' . ($lang == 'en' ? '(Outbound)' : '(Lượt đi)');
+					}
+				}
+
+				// Inbound
+				$luggage_idx_in = $row['luggage_index_inbound'] ?? '';
+				$hasNewFormatIn = preg_match('/[x_T]/i', $luggage_idx_in);
+				
+				if ($hasNewFormatIn && class_exists('Baggage')) {
+					// Use new format parser
+					$bagIn = Baggage::renderAvailableBaggage($luggage_idx_in, $lang);
+					if (!empty($bagIn)) {
+						$baggageDescription .= empty($baggageDescription) ? $bagIn : ' - ' . $bagIn;
+						$baggageDescription .= ' ' . ($lang == 'en' ? '(Inbound)' : '(Lượt về)');
+					}
+				} else {
+					// Use old generateLuggage logic
+					$bag_in = generateLuggage($dateEntered, $row['aircode_inbound'] ?? '', $row['ticket_class_inbound'] ?? '', $row['type'] ?? '', $luggage_idx_in);
+					if (!empty($bag_in)) {
+						$luggagePriceIn = $row['luggage_price_inbound'] ?? 0;
+						if (!empty($luggage_idx_in) && is_numeric($luggage_idx_in)) $luggagePriceIn = $luggage_idx_in;
+						$bag_in2 = $bag_in[(int)$luggagePriceIn] ?? '';
+						$bag_weight_in = 0;
+						if (!empty($bag_in2)) {
+							preg_match('/(\d+)kg/isU', $bag_in2, $ib_output);
+							$bag_weight_in = isset($ib_output[1]) ? (int)$ib_output[1] : 0;
+						}
+						if ($bag_weight_in > 0) {
+							$baggageDescription .= empty($baggageDescription) ? '' : ' - ';
+							$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_in . 'kg' : substr_replace($bag_in2, '', strpos($bag_in2, '(') - 1);
+							$baggageDescription .= ' ' . ($lang == 'en' ? '(Inbound)' : '(Lượt về)');
+						}
+					}
+				}
+			} elseif (function_exists('generateLuggage') && !$khuhoi) {
+				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
+				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
+				
+				if ($hasNewFormatOut && class_exists('Baggage')) {
+					// Use new format parser
+					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
+					if (!empty($bagOut)) {
+						$baggageDescription .= empty($baggageDescription) ? $bagOut : "\n$bagOut";
+					}
+				} else {
+					// Use old generateLuggage logic
+					$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
+					$luggagePriceOut = $row['luggage_price'] ?? 0;
+					if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
+					$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+					$bag_weight_out = 0;
+					if (!empty($bag_out2)) {
+						preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+						$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+					}
+					if ($bag_weight_out > 0) {
+						$baggageDescription .= $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+					}
+				}
+			}
+		}
+
+		return $baggageDescription;
+	}
+
+	/**
+	 * Clean purchase text by removing anything from the first '(' onwards.
+	 * Handles nested parentheses like "1 kiện 23kg (0 VND) (Giá mua (VAT): ...)"
+	 */
+	function cleanPurchaseText($text)
+	{
+		$text = trim($text);
+		$pos  = strpos($text, '(');
+		if ($pos !== false) {
+			$text = trim(substr($text, 0, $pos));
+		}
+		return $text;
+	}
+
+	/**
+	 * Get itineraries from DB by IDs
+	 * - Original itineraries: add_type=0, no rescheduled version exists for that direction
+	 * - Rescheduled itineraries: add_type=3, latest by sabre_logs per direction
+	 * Note: parent_detail_id is NOT set for itinerary changes;
+	 *       changes are tracked by direction + sabre_logs
+	 */
+	function getItineraries()
+	{
+		global $db;
+		$results = [];
+
+		if (empty($this->itineraryIds)) return $results;
+
+		$bookingId = $db->quote($this->bookingId);
+
+		// Build ID filter (skip if all itineraries requested)
+		$idFilter = '';
+		if (!$this->allItineraries) {
+			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idFilter = "AND i.id IN($idList)";
+		}
+
+		$fields = "i.id, i.departure_date, i.arrival_date, i.flight_number,
+				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction";
+
+		// Check which directions have been rescheduled (have add_type=3 records)
+		$rescheduledDirections = [];
+		$sqlCheck = "SELECT DISTINCT direction FROM ec_booking_itineraries
+			WHERE booking_id = '$bookingId' AND add_type = 3 AND deleted = 0";
+		$resCheck = $db->query($sqlCheck);
+		while ($row = $db->fetchByAssoc($resCheck)) {
+			$rescheduledDirections[] = (int)$row['direction'];
+		}
+
+		if (empty($rescheduledDirections)) {
+			// No rescheduled itineraries — just get originals
+			$sql = "SELECT $fields
+				FROM ec_booking_itineraries i
+				WHERE i.booking_id = '$bookingId'
+					$idFilter
+					AND i.deleted = 0
+					AND i.add_type = 0
+				GROUP BY i.direction, i.flight_number, i.departure_date
+				ORDER BY i.direction, i.departure_date";
+		} else {
+			$rescheduledDirList = implode(',', $rescheduledDirections);
+
+			// Original itineraries for directions NOT rescheduled
+			$sqlUnchanged = "SELECT $fields
+				FROM ec_booking_itineraries i
+				WHERE i.booking_id = '$bookingId'
+					$idFilter
+					AND i.deleted = 0
+					AND i.add_type = 0
+					AND i.direction NOT IN ($rescheduledDirList)";
+
+			// Latest rescheduled itineraries (max sabre_logs per direction),
+			// grouped to deduplicate when multiple passenger rows share same sabre_logs
+			$sqlRescheduled = "SELECT MIN(i.id) AS id, i.departure_date, i.arrival_date, i.flight_number,
+					i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction
+				FROM ec_booking_itineraries i
+				INNER JOIN (
+					SELECT direction, MAX(sabre_logs) AS max_logs
+					FROM ec_booking_itineraries
+					WHERE booking_id = '$bookingId' $idFilter AND add_type = 3 AND deleted = 0
+					GROUP BY direction
+				) latest ON i.direction = latest.direction AND i.sabre_logs = latest.max_logs
+				WHERE i.booking_id = '$bookingId'
+					AND i.add_type = 3
+					AND i.deleted = 0
+				GROUP BY i.direction, i.flight_number, i.departure_date";
+
+			$sql = "($sqlUnchanged) UNION ALL ($sqlRescheduled) ORDER BY direction, departure_date";
+		}
+
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$depCode = $row['departure'] ?? '';
+			$arrCode = $row['arrival'] ?? '';
+			$airlineCode = $row['airline_code'] ?? '';
+
+			// Get airport names
+			$depAirport = Flight::getAirport($depCode);
+			$arrAirport = Flight::getAirport($arrCode);
+			
+			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
+			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
+
+			// Use myGetAirportInfo2 to get proper localized city name
+			$depInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($depCode) : [];
+			$arrInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($arrCode) : [];
+
+			$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
+			$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
+			
+			$depAirportName = $depAirport['AirPortName'] ?? '';
+			$arrAirportName = $arrAirport['AirPortName'] ?? '';
+
+			$results[] = [
+				'id' => $row['id'],
+				'direction' => (int)($row['direction'] ?? 0),
+				'direction_label' => ((int)$row['direction'] === 0) 
+					? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi') 
+					: ($this->lang == 'en' ? 'Inbound' : 'Lượt về'),
+				'airline_code' => $airlineCode,
+				'airline' => $airlineName,
+				'flight_number' => $row['flight_number'] ?? '',
+				'ticket_class' => $row['ticket_class'] ?? '',
+				'dep_code' => $depCode,
+				'arr_code' => $arrCode,
+				'dep_city' => $depCityName,
+				'arr_city' => $arrCityName,
+				'dep_airport' => $depAirportName,
+				'arr_airport' => $arrAirportName,
+				'dep_date' => date('d/m/Y', strtotime($row['departure_date'])),
+				'dep_time' => date('H:i', strtotime($row['departure_date'])),
+				'arr_date' => date('d/m/Y', strtotime($row['arrival_date'])),
+				'arr_time' => date('H:i', strtotime($row['arrival_date'])),
+			];
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Check if any itinerary changes (add_type=3) exist for this booking.
+	 */
+	function hasItineraryChanges()
+	{
+		global $db;
+		$bookingId = $db->quote($this->bookingId);
+		$sql = "SELECT COUNT(*) FROM ec_booking_itineraries
+			WHERE booking_id = '$bookingId' AND add_type = 3 AND deleted = 0";
+		return (int)$db->getOne($sql) > 0;
+	}
+
+	/**
+	 * Get the resolved itineraries for a specific passenger.
+	 * For each direction, find the latest add_type=3 record with assigned_user_id = passengerId.
+	 * If no such record exists, fall back to original (add_type=0).
+	 *
+	 * This handles per-passenger itinerary changes where only some passengers
+	 * have their itinerary changed while others keep the original.
+	 */
+	function getItinerariesForPassenger($passengerId)
+	{
+		global $db;
+		$results = [];
+		$bookingId = $db->quote($this->bookingId);
+		$passengerId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
+
+		$fields = "i.id, i.departure_date, i.arrival_date, i.flight_number,
+				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction";
+
+		// Build ID filter (skip if all itineraries requested)
+		$idFilter = '';
+		if (!$this->allItineraries) {
+			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idFilter = "AND i.id IN($idList)";
+		}
+
+		// Determine which directions exist in this booking (0=outbound, 1=inbound)
+		$sqlDirs = "SELECT DISTINCT direction FROM ec_booking_itineraries i
+			WHERE i.booking_id = '$bookingId'
+			$idFilter
+			AND i.add_type IN (0, 3) AND i.deleted = 0";
+		$resDirs = $db->query($sqlDirs);
+		$directions = [];
+		while ($rowDir = $db->fetchByAssoc($resDirs)) {
+			$directions[] = (int)$rowDir['direction'];
+		}
+		sort($directions);
+
+		foreach ($directions as $dir) {
+			// Find the latest sabre_logs for this passenger + direction
+			$sqlMaxLog = "SELECT MAX(sabre_logs) as max_logs FROM ec_booking_itineraries i
+				WHERE i.booking_id = '$bookingId'
+				$idFilter
+				AND i.direction = $dir
+				AND i.add_type = 3
+				AND i.assigned_user_id = '$passengerId'
+				AND i.deleted = 0";
+			$resMaxLog = $db->query($sqlMaxLog);
+			$rowMaxLog = $db->fetchByAssoc($resMaxLog);
+			$maxLog = $rowMaxLog ? $rowMaxLog['max_logs'] : null;
+
+			if ($maxLog !== null) {
+				// Fetch all segments for this latest change
+				$sqlChanged = "SELECT $fields FROM ec_booking_itineraries i
+					WHERE i.booking_id = '$bookingId'
+					$idFilter
+					AND i.direction = $dir
+					AND i.add_type = 3
+					AND i.assigned_user_id = '$passengerId'
+					AND i.sabre_logs = '$maxLog'
+					AND i.deleted = 0
+					ORDER BY i.departure_date";
+				$resChanged = $db->query($sqlChanged);
+				while ($rowChanged = $db->fetchByAssoc($resChanged)) {
+					$results[] = $this->formatItineraryRow($rowChanged);
+				}
+			} else {
+				// Fall back to original (add_type=0)
+				// there can be multiple ones!
+				$sqlOrig = "SELECT $fields FROM ec_booking_itineraries i
+					WHERE i.booking_id = '$bookingId'
+					$idFilter
+					AND i.direction = $dir
+					AND i.add_type = 0
+					AND i.deleted = 0
+					ORDER BY i.departure_date";
+				$resOrig = $db->query($sqlOrig);
+				while ($rowOrig = $db->fetchByAssoc($resOrig)) {
+					$results[] = $this->formatItineraryRow($rowOrig);
+				}
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Format a raw itinerary row from DB into the display array.
+	 * Extracted from getItineraries() to avoid duplication.
+	 */
+	function formatItineraryRow($row)
+	{
+		$depCode = $row['departure'] ?? '';
+		$arrCode = $row['arrival'] ?? '';
+		$airlineCode = $row['airline_code'] ?? '';
+
+		$depAirport = Flight::getAirport($depCode);
+		$arrAirport = Flight::getAirport($arrCode);
+
+		$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
+		$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
+
+		$depInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($depCode) : [];
+		$arrInfo = function_exists('myGetAirportInfo2') ? myGetAirportInfo2($arrCode) : [];
+
+		$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
+		$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
+
+		$depAirportName = $depAirport['AirPortName'] ?? '';
+		$arrAirportName = $arrAirport['AirPortName'] ?? '';
+
+		return [
+			'id' => $row['id'],
+			'direction' => (int)($row['direction'] ?? 0),
+			'direction_label' => ((int)$row['direction'] === 0)
+				? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi')
+				: ($this->lang == 'en' ? 'Inbound' : 'Lượt về'),
+			'airline_code' => $airlineCode,
+			'airline' => $airlineName,
+			'flight_number' => $row['flight_number'] ?? '',
+			'ticket_class' => $row['ticket_class'] ?? '',
+			'dep_code' => $depCode,
+			'arr_code' => $arrCode,
+			'dep_city' => $depCityName,
+			'arr_city' => $arrCityName,
+			'dep_airport' => $depAirportName,
+			'arr_airport' => $arrAirportName,
+			'dep_date' => date('d/m/Y', strtotime($row['departure_date'])),
+			'dep_time' => date('H:i', strtotime($row['departure_date'])),
+			'arr_date' => date('d/m/Y', strtotime($row['arrival_date'])),
+			'arr_time' => date('H:i', strtotime($row['arrival_date'])),
+		];
+	}
+
+	/**
+	 * Create a unique signature for an itinerary set to group passengers.
+	 * Passengers with the same signature share the same flights.
+	 */
+	function itinerarySignature($itineraries)
+	{
+		$parts = [];
+		foreach ($itineraries as $iti) {
+			$parts[] = $iti['direction'] . '|' . $iti['flight_number'] . '|' . $iti['dep_date'] . '|' . $iti['dep_time'];
+		}
+		sort($parts);
+		return implode('||', $parts);
 	}
 }

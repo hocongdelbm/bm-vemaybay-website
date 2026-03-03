@@ -80,7 +80,7 @@ class entryBookingClass extends entryClass
             }
             
             // Use direct public share URL from doc_url (already has /download)
-            $previewUrl = !empty($row['revision_doc_url']) ? $row['revision_doc_url'] : (!empty($row['doc_url']) ? $row['doc_url'] : "");
+            $previewUrl = !empty($row['revision_doc_url']) ? $row['revision_doc_url'] . '/preview' : (!empty($row['doc_url']) ? $row['doc_url'] . '/preview' : "");
             
             $documents[] = [
                 'id' => $row['id'],
@@ -91,7 +91,7 @@ class entryBookingClass extends entryClass
                         ->format('d/m/Y H:i'),
                 'created_by_name' => $row['created_by'] ?: 'N/A',
                 'preview_image' => $previewUrl,
-                'doc_url' => $previewUrl, // Add doc_url for direct download
+                'doc_url' => $row['doc_url'] ?? '', // Add doc_url for direct download
                 'revision_id' => $row['revision_id']
             ];
         }

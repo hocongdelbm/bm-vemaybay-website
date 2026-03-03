@@ -68,6 +68,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$SEND_TICKET}',
                 ),
+                array(
+                    'customCode' => '{$PRINT_TICKET_NEW}',
+                ),
             )
         ),
         'maxColumns' => '2',
@@ -87,6 +90,9 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
+            ),
+            array(
+                'file' => 'modules/EC_Flight_Bookings/js/print_ticket_new.js',
             ),
         ),
     ),

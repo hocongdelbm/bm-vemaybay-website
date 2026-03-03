@@ -453,6 +453,13 @@ function clearPreview() {
             return; // Let default paste behavior happen
         }
         
+        // Check if file upload is disabled (edit mode)
+        var fileInput = document.getElementById('filename_file');
+        if (fileInput && fileInput.disabled) {
+            console.log('Paste blocked: File upload is disabled in edit mode');
+            return; // Don't allow paste in edit mode
+        }
+        
         var items = e.clipboardData.items;
         var pastedFiles = [];
         
@@ -487,11 +494,14 @@ function clearPreview() {
         }, false);
     });
     
-    // Highlight drop zone when dragging over it
+    // Highlight drop zone when dragging over it (only if upload is enabled)
     ['dragenter', 'dragover'].forEach(function(eventName) {
         dropZone.addEventListener(eventName, function(e) {
-            dropZone.style.backgroundColor = '#e3f2fd';
-            dropZone.style.borderColor = '#2196F3';
+            var fileInput = document.getElementById('filename_file');
+            if (fileInput && !fileInput.disabled) {
+                dropZone.style.backgroundColor = '#e3f2fd';
+                dropZone.style.borderColor = '#2196F3';
+            }
         }, false);
     });
     
@@ -504,6 +514,13 @@ function clearPreview() {
     
     // Handle dropped files
     dropZone.addEventListener('drop', function(e) {
+        // Check if file upload is disabled (edit mode)
+        var fileInput = document.getElementById('filename_file');
+        if (fileInput && fileInput.disabled) {
+            console.log('Drop blocked: File upload is disabled in edit mode');
+            return; // Don't allow drop in edit mode
+        }
+        
         var files = e.dataTransfer.files;
         if (files.length > 0) {
             addFilesToStorage(Array.from(files));
@@ -521,6 +538,15 @@ function clearPreview() {
     var isDown = false;
     var startX;
     var scrollLeft;
+    
+    // Check if upload is disabled (edit mode)
+    var fileInput = document.getElementById('filename_file');
+    var isDisabled = fileInput && fileInput.disabled;
+    
+    // Don't enable drag scroll if upload is disabled
+    if (isDisabled) {
+        return;
+    }
     
     container.addEventListener('mousedown', function(e) {
         e.preventDefault(); // Prevent default drag behavior
@@ -549,7 +575,7 @@ function clearPreview() {
         container.scrollLeft = scrollLeft - walk;
     });
     
-    // Set initial cursor
+    // Set initial cursor (only if not disabled)
     container.style.cursor = 'grab';
 })();
 

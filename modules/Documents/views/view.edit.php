@@ -199,7 +199,7 @@ class DocumentsViewEdit extends ViewEdit
             // Only show preview if the file is an image
             if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
                 // Use direct public share download URL from doc_url (already has /download)
-                $preview_url = !empty($revision->doc_url) ? $revision->doc_url : (!empty($this->bean->doc_url) ? $this->bean->doc_url : "");
+                $preview_url = !empty($revision->doc_url) ? $revision->doc_url . '/preview' : (!empty($this->bean->doc_url) ? $this->bean->doc_url . '/preview' : "");
 
                 if (!empty($preview_url)) {
                     $this->ss->assign("PREVIEW_IMAGE_URL", $preview_url);
@@ -272,7 +272,10 @@ class DocumentsViewEdit extends ViewEdit
         $html .= '  </div>';
         $html .= '</div>';
 
-        $html .= '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd; display:flex; gap:10px; overflow-x:auto; align-items:center; min-height:100px;">';
+        // Add different style for disabled/edit mode
+        $cursorStyle = $disabled ? 'not-allowed' : 'default';
+        $bgColor = $disabled ? '#f5f5f5' : '#ffffff';
+        $html .= '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd; display:flex; gap:10px; overflow-x:auto; align-items:center; min-height:100px; cursor:' . $cursorStyle . '; background-color:' . $bgColor . ';">';
         $html .= '  <div id="file-preview-images" style="display:flex; gap:10px;">';
         if (!empty($hasPreviewImage)) {
             $html .= '    <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">';
@@ -282,7 +285,8 @@ class DocumentsViewEdit extends ViewEdit
         }
         $html .= '  </div>';
         $displayStyle = (!empty($hasPreviewImage)) ? 'display:none;' : '';
-        $html .= '  <div id="file-preview-text" style="color: #999; ' . $displayStyle . '">Chưa chọn file</div>';
+        $previewText = $disabled ? 'Preview file hiện tại (không thể kéo thả hoặc paste file mới)' : 'Chưa chọn file';
+        $html .= '  <div id="file-preview-text" style="color: #999; ' . $displayStyle . '">' . $previewText . '</div>';
 
         $html .= '</div>';
         return $html;
