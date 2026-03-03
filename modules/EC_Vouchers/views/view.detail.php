@@ -39,7 +39,10 @@ class EC_VouchersViewDetail extends ViewDetail {
 		$this->ss->assign('MAX_DISCOUNT_FIELD', $max_discount);
 
 		// Thời hạn
-		$duration = 'Từ ' . date('d-m-Y H:i', strtotime($this->bean->start_time)). ' đến ' . date('d-m-Y H:i', strtotime($this->bean->end_time));
+		// $duration = 'Từ ' . date('d-m-Y H:i', strtotime($this->bean->start_time)). ' đến ' . date('d-m-Y H:i', strtotime($this->bean->end_time));
+		$start = strtotime($this->bean->start_time) - 7 * 3600;
+		$end   = strtotime($this->bean->end_time) - 7 * 3600;
+		$duration = 'Từ ' . date('d-m-Y H:i', $start) . ' đến ' . date('d-m-Y H:i', $end);
 		$this->ss->assign('DURATION_FIELD', $duration);
 
 		// Điều kiện sử dụng voucher
@@ -67,6 +70,12 @@ class EC_VouchersViewDetail extends ViewDetail {
 		if(empty($condition)) return '';
 
 		$html = '<ul class="condition-list">';
+		if(isset($condition['for_phone_value']) && !empty($condition['for_phone_value'])) {
+			$html .= '<li>
+				Áp dụng cho SĐT <b>'. $condition['for_phone_value'] .'</b>
+			</li>';
+		}
+
 		if(isset($condition['min_order_value']) && $condition['min_order_value'] > 0) {
 			$html .= '<li>
 				Đơn tối thiểu <b>'. format_number($condition['min_order_value']) .' VND</b>

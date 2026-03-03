@@ -7,10 +7,10 @@ $hook_array    = array();
 
 // position, file, function 
 $hook_array['after_login']         = array(); 
-$hook_array['after_login'][]       = array(1, 'SugarFeed old feed entry remover', 'modules/SugarFeed/SugarFeedFlush.php','SugarFeedFlush', 'flushStaleEntries'); 
+// $hook_array['after_login'][]       = array(1, 'SugarFeed old feed entry remover', 'modules/SugarFeed/SugarFeedFlush.php','SugarFeedFlush', 'flushStaleEntries'); 
 
-$hook_array['after_login'][]       = array(2, 'Redirect login', 'custom/modules/Users/UsersLogicHook.php','UsersLogicHook', 'RedirectUser');
 $hook_array['after_login'][]       = array(1, 'after_login', 'custom/modules/EC_LoginAudit/EC_LoginAuditLogicHook.php','loginActions', 'updateLoginAudit'); 
+$hook_array['after_login'][]       = array(2, 'Redirect login', 'custom/modules/Users/UsersLogicHook.php','UsersLogicHook', 'RedirectUser');
 
 $hook_array['login_failed']        = array(); 
 $hook_array['login_failed'][]      = array(1, 'login_failed', 'custom/modules/EC_LoginAudit/EC_LoginAuditLogicHook.php','loginActions', 'updateLoginAudit');

@@ -38,7 +38,10 @@ $viewdefs[$module_name]['EditView'] = array(
                     'label' => 'LBL_NAME',
                     'customCode' => '{$NAME_BOOKING}',
                 ),
-                array(),
+                array(
+                    'name' => 'is_prior',
+                    'label' => 'LBL_IS_PRIOR',
+                ),
             ),
             array(
                 array(

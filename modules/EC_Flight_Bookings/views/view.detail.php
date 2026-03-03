@@ -181,12 +181,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 
 		// External file
 		$js = '
-			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.9.6"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.6"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=2.1"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.3.2"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.1"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.0.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.0.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.0.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.0.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.0.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0.2"></script>
 		';
 
 		$js .= '<script>
@@ -1599,7 +1599,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				$img_style = 'style="width:55px"';
 			}
 
-			$img_src = $row['is_layover'] ? '' : '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . $airline_code_logo . '.png" alt="' . $airline_code . '" border="0" />';
+			$img_src = !$row['is_layover'] && !empty($airline_code_logo) ? '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . $airline_code_logo . '.png" alt="' . $airline_code . '" border="0" />' : '';
+		
 			if ($this->bean->ticket_type == '2')
 				$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
 			$html .= '<tr class="' . $even_or_odd . '">';
