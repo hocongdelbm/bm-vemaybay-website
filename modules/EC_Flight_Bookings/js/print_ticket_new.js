@@ -18,6 +18,16 @@ $(document).ready(function () {
             var $perpaxList = $popup.find('.popup-perpax-list');
             $perpaxList.empty();
 
+            // Add "Select All" checkbox at the top
+            $perpaxList.append(
+                '<div style="margin-bottom:16px; padding:12px; background:#e3f2fd; border:2px solid #2196f3; border-radius:8px;">' +
+                    '<label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#1976d2;">' +
+                        '<input type="checkbox" id="popup-select-all-perpax" style="width:18px;height:18px;cursor:pointer;" />' +
+                        '<span>✅ Chọn tất cả hành khách (in tất cả theo nhóm hành trình)</span>' +
+                    '</label>' +
+                '</div>'
+            );
+
             try {
                 var perPaxData = JSON.parse($popup.attr('data-per-pax-itineraries') || '[]');
 
@@ -175,6 +185,30 @@ $(document).ready(function () {
         $(this).closest('.popup-perpax-block').find('.popup-perpax-iti-check').prop('checked', true);
     });
 
+    // Select all per-passenger: disable radios and itinerary checkboxes
+    $(document).on('change', '#popup-select-all-perpax', function () {
+        var isChecked = $(this).is(':checked');
+        
+        if (isChecked) {
+            // Disable all radios and itinerary checkboxes
+            $('.popup-perpax-radio').prop('disabled', true).prop('checked', false);
+            $('.popup-perpax-iti-check').prop('disabled', true).prop('checked', false);
+            
+            // Visual feedback - grey out blocks
+            $('.popup-perpax-block').css('opacity', '0.5');
+        } else {
+            // Re-enable radios and itinerary checkboxes
+            $('.popup-perpax-radio').prop('disabled', false);
+            $('.popup-perpax-iti-check').prop('disabled', false);
+            
+            // Restore visual
+            $('.popup-perpax-block').css('opacity', '1');
+            
+            // Auto-select first passenger
+            $('.popup-perpax-radio').first().prop('checked', true).trigger('change');
+        }
+    });
+
     // Submit → open GET URL in new tab
     $(document).on('click', '#btnSubmitPrintNew', function () {
         var $popup = $('#dlgPrintTicketNew');
@@ -186,15 +220,24 @@ $(document).ready(function () {
         var ticketType = $popup.attr('data-ticket-type') || '';
 
         if (hasPerPaxChanges) {
-            // Collect from per-passenger layout (radio)
-            var $selectedPax = $('.popup-perpax-radio:checked');
-            if ($selectedPax.length > 0) {
-                passengers.push($selectedPax.val());
-                
-                // Only collect itineraries belonging to the selected passenger block
-                $selectedPax.closest('.popup-perpax-block').find('.popup-perpax-iti-check:checked').each(function () {
-                    itineraries.push($(this).val());
-                });
+            // Check if "Select All" is enabled
+            var isSelectAllPerpax = $('#popup-select-all-perpax').is(':checked');
+            
+            if (isSelectAllPerpax) {
+                // Send "All" for both passengers and itineraries
+                passengers = ['All'];
+                itineraries = ['All'];
+            } else {
+                // Collect from per-passenger layout (radio)
+                var $selectedPax = $('.popup-perpax-radio:checked');
+                if ($selectedPax.length > 0) {
+                    passengers.push($selectedPax.val());
+                    
+                    // Only collect itineraries belonging to the selected passenger block
+                    $selectedPax.closest('.popup-perpax-block').find('.popup-perpax-iti-check:checked').each(function () {
+                        itineraries.push($(this).val());
+                    });
+                }
             }
         } else {
             // Collect from flat layout
@@ -221,10 +264,17 @@ $(document).ready(function () {
         // Determine round trip from selected itineraries
         var directions = [];
         if (hasPerPaxChanges) {
-            $('.popup-perpax-radio:checked').closest('.popup-perpax-block').find('.popup-perpax-iti-check:checked').each(function () {
-                var d = $(this).data('direction');
-                if (d !== undefined && d !== '') directions.push(String(d));
-            });
+            if ($('#popup-select-all-perpax').is(':checked')) {
+                $('.popup-perpax-iti-check').each(function () {
+                    var d = $(this).data('direction');
+                    if (d !== undefined && d !== '') directions.push(String(d));
+                });
+            } else {
+                $('.popup-perpax-radio:checked').closest('.popup-perpax-block').find('.popup-perpax-iti-check:checked').each(function () {
+                    var d = $(this).data('direction');
+                    if (d !== undefined && d !== '') directions.push(String(d));
+                });
+            }
         } else {
             $('.popup-check-iti:checked').each(function () {
                 var d = $(this).data('direction');
@@ -243,11 +293,18 @@ $(document).ready(function () {
             }
         }
 
-        // Check if "All" is selected (only applies to flat layout as radio is single selection)
+        // Check if "All" is selected
         var passengersParam = passengers.join(',');
         var itinerariesParam = uniqueItineraries.join(',');
 
-        if (!hasPerPaxChanges) {
+        if (hasPerPaxChanges) {
+            // Per-passenger layout: check if "Select All" checkbox is ticked
+            if ($('#popup-select-all-perpax').is(':checked')) {
+                passengersParam = 'All';
+                itinerariesParam = 'All';
+            }
+        } else {
+            // Flat layout: check if all items are selected
             var totalPsg = $('.popup-check-psg').length;
             var totalIti = $('.popup-check-iti').length;
             if (passengers.length === totalPsg) passengersParam = 'All';

@@ -14,6 +14,8 @@ class Viewprinteticketnew extends SugarView
 	public $ticketType;
 	public $passengerIds;
 	public $itineraryIds;
+	public $allPassengers;
+	public $allItineraries;
 	private $bookingBean = null;
 
 	function display()
@@ -179,12 +181,24 @@ class Viewprinteticketnew extends SugarView
 				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS ticket_class_inbound
 			FROM ec_booking_passengers p
 			LEFT JOIN (
-				SELECT parent_detail_id,
-					luggage_index_outbound, luggage_index_inbound,
-					luggage_purchase_text, luggage_purchase_text_inbound,
-					luggage_price, luggage_price_inbound
-				FROM ec_booking_passengers
-				WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+				SELECT 
+					bag_inner.parent_detail_id,
+					MAX(NULLIF(bag_inner.luggage_index_outbound, '')) as luggage_index_outbound,
+					MAX(NULLIF(bag_inner.luggage_index_inbound, '')) as luggage_index_inbound,
+					MAX(NULLIF(bag_inner.luggage_purchase_text, '')) as luggage_purchase_text,
+					MAX(NULLIF(bag_inner.luggage_purchase_text_inbound, '')) as luggage_purchase_text_inbound,
+					MAX(bag_inner.luggage_price) as luggage_price,
+					MAX(bag_inner.luggage_price_inbound) as luggage_price_inbound
+				FROM ec_booking_passengers bag_inner
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) as max_date
+					FROM ec_booking_passengers
+					WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+					GROUP BY parent_detail_id
+				) bag_latest ON bag_inner.parent_detail_id = bag_latest.parent_detail_id 
+					AND bag_inner.date_entered = bag_latest.max_date
+				WHERE bag_inner.booking_id = '$bookingId' AND bag_inner.add_type = 1 AND bag_inner.deleted = 0
+				GROUP BY bag_inner.parent_detail_id
 			) bag ON bag.parent_detail_id = p.id
 			WHERE p.booking_id = '$bookingId'
 				$idFilter
@@ -194,16 +208,17 @@ class Viewprinteticketnew extends SugarView
 
 		// Final renamed version: add_type=2 whose own ID is NOT another's parent_detail_id
 		// AND is the latest record when multiple renames share the same parent_detail_id
-		// Use subquery to inherit baggage from original passenger when renamed has empty baggage
+		// Use TWO LEFT JOINs for luggage: one for renamed pax luggage, one for original pax luggage
+		// Priority: renamed pax luggage > original pax luggage > original pax own fields
 		$sqlRenamed = "SELECT p.id, p.name, p.salutation, p.type,
 				p.pnr_outbound, p.pnr_inbound,
 				p.eticket_outbound, p.eticket_inbound,
-				COALESCE(NULLIF(p.luggage_index_outbound,''), orig.luggage_index_outbound) AS luggage_index_outbound,
-				COALESCE(NULLIF(p.luggage_index_inbound,''), orig.luggage_index_inbound) AS luggage_index_inbound,
-				COALESCE(NULLIF(p.luggage_purchase_text,''), orig.luggage_purchase_text) AS luggage_purchase_text,
-				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), orig.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
-				COALESCE(NULLIF(p.luggage_price, 0), orig.luggage_price) AS luggage_price,
-				COALESCE(NULLIF(p.luggage_price_inbound, 0), orig.luggage_price_inbound) AS luggage_price_inbound,
+				COALESCE(NULLIF(p.luggage_index_outbound,''), NULLIF(bag_renamed.luggage_index_outbound,''), NULLIF(bag_orig.luggage_index_outbound,''), orig.luggage_index_outbound) AS luggage_index_outbound,
+				COALESCE(NULLIF(p.luggage_index_inbound,''), NULLIF(bag_renamed.luggage_index_inbound,''), NULLIF(bag_orig.luggage_index_inbound,''), orig.luggage_index_inbound) AS luggage_index_inbound,
+				COALESCE(NULLIF(p.luggage_purchase_text,''), NULLIF(bag_renamed.luggage_purchase_text,''), NULLIF(bag_orig.luggage_purchase_text,''), orig.luggage_purchase_text) AS luggage_purchase_text,
+				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), NULLIF(bag_renamed.luggage_purchase_text_inbound,''), NULLIF(bag_orig.luggage_purchase_text_inbound,''), orig.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
+				COALESCE(NULLIF(p.luggage_price, 0), NULLIF(bag_renamed.luggage_price, 0), NULLIF(bag_orig.luggage_price, 0), orig.luggage_price) AS luggage_price,
+				COALESCE(NULLIF(p.luggage_price_inbound, 0), NULLIF(bag_renamed.luggage_price_inbound, 0), NULLIF(bag_orig.luggage_price_inbound, 0), orig.luggage_price_inbound) AS luggage_price_inbound,
 				p.cic, p.passport_number, p.date_entered, p.parent_detail_id,
 				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
@@ -211,14 +226,55 @@ class Viewprinteticketnew extends SugarView
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS aircode_inbound,
 				(SELECT i.ticket_class FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '1' AND i.deleted = 0 LIMIT 1) AS ticket_class_inbound
 			FROM ec_booking_passengers p
+			LEFT JOIN (
+				SELECT 
+					bag_inner.parent_detail_id,
+					MAX(NULLIF(bag_inner.luggage_index_outbound, '')) as luggage_index_outbound,
+					MAX(NULLIF(bag_inner.luggage_index_inbound, '')) as luggage_index_inbound,
+					MAX(NULLIF(bag_inner.luggage_purchase_text, '')) as luggage_purchase_text,
+					MAX(NULLIF(bag_inner.luggage_purchase_text_inbound, '')) as luggage_purchase_text_inbound,
+					MAX(bag_inner.luggage_price) as luggage_price,
+					MAX(bag_inner.luggage_price_inbound) as luggage_price_inbound
+				FROM ec_booking_passengers bag_inner
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) as max_date
+					FROM ec_booking_passengers
+					WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+					GROUP BY parent_detail_id
+				) bag_latest ON bag_inner.parent_detail_id = bag_latest.parent_detail_id 
+					AND bag_inner.date_entered = bag_latest.max_date
+				WHERE bag_inner.booking_id = '$bookingId' AND bag_inner.add_type = 1 AND bag_inner.deleted = 0
+				GROUP BY bag_inner.parent_detail_id
+			) bag_renamed ON bag_renamed.parent_detail_id = p.id
+			LEFT JOIN (
+				SELECT 
+					bag_inner.parent_detail_id,
+					MAX(NULLIF(bag_inner.luggage_index_outbound, '')) as luggage_index_outbound,
+					MAX(NULLIF(bag_inner.luggage_index_inbound, '')) as luggage_index_inbound,
+					MAX(NULLIF(bag_inner.luggage_purchase_text, '')) as luggage_purchase_text,
+					MAX(NULLIF(bag_inner.luggage_purchase_text_inbound, '')) as luggage_purchase_text_inbound,
+					MAX(bag_inner.luggage_price) as luggage_price,
+					MAX(bag_inner.luggage_price_inbound) as luggage_price_inbound
+				FROM ec_booking_passengers bag_inner
+				INNER JOIN (
+					SELECT parent_detail_id, MAX(date_entered) as max_date
+					FROM ec_booking_passengers
+					WHERE booking_id = '$bookingId' AND add_type = 1 AND deleted = 0
+					GROUP BY parent_detail_id
+				) bag_latest ON bag_inner.parent_detail_id = bag_latest.parent_detail_id 
+					AND bag_inner.date_entered = bag_latest.max_date
+				WHERE bag_inner.booking_id = '$bookingId' AND bag_inner.add_type = 1 AND bag_inner.deleted = 0
+				GROUP BY bag_inner.parent_detail_id
+			) bag_orig ON bag_orig.parent_detail_id = p.parent_detail_id
 			LEFT JOIN ec_booking_passengers orig ON orig.booking_id = p.booking_id
 				AND (orig.add_type IS NULL OR orig.add_type = 0)
 				AND orig.deleted = 0
 				AND orig.type = p.type
-				AND orig.id IN ($supersededIds)
+				AND orig.id = p.parent_detail_id
 			WHERE p.booking_id = '$bookingId'
 				AND p.add_type = 2
 				AND p.deleted = 0
+				AND p.parent_detail_id IS NOT NULL
 				AND p.id NOT IN ($supersededIds)
 				AND p.id NOT IN ($notLatestRenames)";
 
@@ -233,9 +289,9 @@ class Viewprinteticketnew extends SugarView
 						SELECT 1 FROM ($nameListSql) AS req
 						WHERE TRIM(req.name) = TRIM(combined.name) AND req.type = combined.type
 					)
-					ORDER BY type, date_entered";
+					ORDER BY type, date_entered DESC";
 		} else {
-			$sql = "($sqlUnchanged) UNION ALL ($sqlRenamed) ORDER BY type, date_entered";
+			$sql = "($sqlUnchanged) UNION ALL ($sqlRenamed) ORDER BY type, date_entered DESC";
 		}
 
 		$res = $db->query($sql);
