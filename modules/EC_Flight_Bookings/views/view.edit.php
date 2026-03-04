@@ -31,11 +31,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 	function display() {
 		global $current_user;
 
-		$app = new EC_Zalo_Apps();
-		$app->expires_at = date('Y-m-d H:i:s', $this->get_timestamp('UTC'));
-		$app->save();
-		die();
-
 		$status_arr = ['1', '6', '2', '3']; // allow edit
 		$status__com_arr = ['7', '8']; // allow edit admin và QL chỉnh (Admin edit all)
 
