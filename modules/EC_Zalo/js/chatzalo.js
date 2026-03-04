@@ -9,6 +9,7 @@ const URL_CHAT_WEBSOCKET = $(`input[name="websocket_url"]`).val();
 const IMAGE_EXTENSION = $(`input[name="image_extension"]`).val().split(",");
 const FILE_EXTENSION = $(`input[name="file_extension"]`).val().split(",");
 // const LIMIT_MESSAGE = parseInt($(`input[name="limit_message"]`).val() ?? 0);
+var oa_sub_quota = parseInt($(`input[name="oa_sub_quota"]`).val() ?? 0);
 var zsocket;
 var count_connect_error = 0;
 
@@ -40,49 +41,40 @@ $(document).ready(function () {
                 $.ajax({
                     url: URL,
                     type: "POST",
-                    data: {
-                        action: "get_list_user",
-                        offset: 0,
-                        value: value
-                    },
-                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: JSON.stringify({
+                        class: "entryZaloOAClass",
+                        method: "getListUser",
+                        params: {
+                            oa_id: OA_ID,
+                            offset: 0,
+                            value: value
+                        }
+                    }),
                     beforeSend: function() {
                         loadingSkeleton('list_user', 9);
                     },
-                    success: function (response) { // json
+                    success: function (response) {
                         removeLoadingSkeleton();
 
-                        if(response.length > 0) {
-                            let obj = JSON.parse(response);
+                        if(response?.status && response.status == 1) {
+                            for (const [key, row_data] of Object.entries(response.data)) {
+                                let message_info = row_data.message_info;
+                                let user_info = row_data.user_info;
 
-                            if(obj.error == 0) {
-                                for (const [key, row_data] of Object.entries(obj.data)) {
-                                    let message_info = row_data.message_info;
-                                    let user_info = row_data.user_info;
-    
-                                    let html = create_li_chat(message_info, user_info);
-                                    $('#list_mess_main').append(html);
-                                };
-                                $('input[name="offset_list_user"]').val(50);
-                            }
+                                let html = create_li_chat(message_info, user_info);
+                                $('#list_mess_main').append(html);
+                            };
+                            $('input[name="offset_list_user"]').val(50);
                         }
                         else {
                             $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
                         }
-
-                        // if(response.length > 0) {
-                        //     $('#list_mess_main').html(response);
-                        //     $('input[name="offset_list_user"]').val(50);
-                        // }
-                        // else {
-                        //     $('#list_mess_main').html('<center><i>Không tìm thấy kết quả</i></center>');
-                        // }
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         removeLoadingSkeleton();
-                        console.error(XMLHttpRequest);
-                        console.error("Status: " + textStatus);
-                        console.error("Error: " + errorThrown);
+                        console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
                     }
                 });
             }
@@ -112,41 +104,42 @@ $(document).ready(function () {
                     $.ajax({
                         url: URL,
                         type: "POST",
-                        data: {
-                            action: "get_list_user",
-                            value: type_load,
-                            offset: offset
-                        },
+                        contentType: "application/json",
+                        dataType: "json",
+                        data: JSON.stringify({
+                            class: "entryZaloOAClass",
+                            method: "getListUser",
+                            params: {
+                                oa_id: OA_ID,
+                                offset: offset,
+                                value: type_load,
+                            }
+                        }),
                         beforeSend: function() {
                             loadingSkeleton('list_user', 6);
                             $(`input[name="is_loading_list_user"]`).val(1);
                         },
-                        success: function (response) { // json
+                        success: function (response) {
                             removeLoadingSkeleton();
                             $(`input[name="is_loading_list_user"]`).val(0);
-
-                            if(response.length > 0) {
-                                let obj = JSON.parse(response);
-                                if(obj.error == 0) {
-                                    for (const [key, row_data] of Object.entries(obj.data)) {
-                                        let message_info = row_data.message_info;
-                                        let user_info = row_data.user_info;
-            
-                                        let html = create_li_chat(message_info, user_info);
-                                        $('#list_mess_main').append(html);
-                                    };
-                                    offset += 50;
-                                    $('input[name="offset_list_user"]').val(offset);
-                                }
-                                else $('input[name="offset_list_user"]').val(-1);
+                           
+                            if(response?.status && response.status == 1) {
+                                for (const [key, row_data] of Object.entries(response.data)) {
+                                    let message_info = row_data.message_info;
+                                    let user_info = row_data.user_info;
+        
+                                    let html = create_li_chat(message_info, user_info);
+                                    $('#list_mess_main').append(html);
+                                };
+                                offset += 50;
+                                $('input[name="offset_list_user"]').val(offset);
                             }
+                            else $('input[name="offset_list_user"]').val(-1);
                         },
                         error: function (XMLHttpRequest, textStatus, errorThrown) {
                             removeLoadingSkeleton();
                             $(`input[name="is_loading_list_user"]`).val(0);
-                            console.error(XMLHttpRequest);
-                            console.error("Status: " + textStatus);
-                            console.error("Error: " + errorThrown);
+                            console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
                         }
                     });   
                 }
@@ -158,9 +151,12 @@ $(document).ready(function () {
     $(document).on("click", "li.item_mess", function() {
         let zalo_id = $(this).attr('id').replace("li", "");
 
-        if (zalo_id) {
-            let user_info = $(`input#user_data_${zalo_id}`).val();
-            let is_get_user_info = user_info.length > 10 ? 0 : 1;
+        if (zalo_id && zalo_id.length > 10) {
+            let user_info_encoded = $(`input#user_data_${zalo_id}`).val();
+            let is_get_user_info = user_info_encoded.length > 10 ? 0 : 1;
+            user_info = JSON.parse(decodeURIComponent(atob(user_info_encoded)));
+            let zalo_phone = (user_info?.shared_info && user_info.shared_info?.phone) ? user_info.shared_info.phone : '';
+            const limit_message = parseInt($(`input[name="limit_message"]`).val());
 
             // Hide
             $('#chat_welcome').hide();
@@ -179,54 +175,52 @@ $(document).ready(function () {
             $.ajax({
                 url: URL,
                 type: "POST",
-                data: {
-                    action: "get_messages",
-                    oa_id: OA_ID,
-                    zalo_id: zalo_id,
-                    is_get_user_info: is_get_user_info,
-                    user_info: user_info
-                },
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    class: "entryZaloOAClass",
+                    method: "getMessages",
+                    params: {
+                        oa_id: OA_ID,
+                        zalo_id: zalo_id,
+                        zalo_phone: zalo_phone,
+                        is_get_user_info: is_get_user_info,
+                        limit_message: limit_message
+                    }
+                }),
                 beforeSend: function() {
                     $('.container-waiting').show();
                 },
                 success: function (response) {
                     $('.container-waiting').hide();
-                    data = JSON.parse(response); // Object
 
                     /************  1. User  ************/
                     let data_user = {};
                     if(is_get_user_info === 0) {
-                        data_user['data'] = JSON.parse(decodeURIComponent(atob(user_info)));
+                        data_user.data = user_info;
                     }
                     else {
-                        data_user = data['user_info'];
-                        if(data_user['error'] !== 0) {
+                        data_user = response.user_info;
+                        if(!(data_user?.status) || data_user.status == 0) {
                             showModalNotify('warning', 'Người dùng không thể tương tác');
                             return false;
                         }
                     }
 
                     /**********  2. Messages  **********/
-                    let data_message = data['messages_info'];
-                    if (data_message['error'] !== 0) {
-                        showModalNotify('warning', 'Người dùng không thể tương tác');
-                        return false;
-                    }
+                    let data_message = response.messages_info;
 
                     // Show
                     $(`#zalochat_main`).show();
                     $(`#zalochat_profile`).show();
-                    $(`input[name="offset_load_more_message"]`).val(data_message['offset']);
+                    $(`input[name="offset_load_more_message"]`).val(data_message.offset);
 
-                    create_chat_box(data_user['data'], data_message['data']);
+                    create_chat_box(data_user.data, data_message.data);
 
-                    /**********  3. Quota  **********/
-                    if(data['quota_info']) {
-                        let data_quota = data['quota_info'];
-                        let cs = data['quota_info']['cs_reply']['remain'];
-                        let oa_cs = data['quota_info']['oa_cs'] ? data['quota_info']['oa_cs'] : 0;
-                        handleQuotaUser(cs, data_quota['last_interaction'], oa_cs);
-                    }
+                    /**********  3. Quota user  **********/
+                    const [day, month, year, hour, minute, second] = data_user.data.user_last_interaction_date.match(/\d+/g);
+                    const datetemp = new Date(year, month - 1, day, hour, minute, second);
+                    handleQuotaUser(data_user.data.quota, datetemp.getTime());
                   
                     // Reset
                     $(`#liuserinfo${zalo_id}`).text('');
@@ -234,9 +228,7 @@ $(document).ready(function () {
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
                     $('.container-waiting').hide();
                     showModalNotify('error', 'Kết nối thất bại, vui lòng thử lại sau');
-                    console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
-                    console.error("Error: " + errorThrown);
+                    console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
                 }
             });
         }
@@ -246,32 +238,39 @@ $(document).ready(function () {
     $('.section-post').scroll(function() {
         if($(this).scrollTop() == 0) {
             let zalo_id = $('#content_chat').attr('zalo_id');
+            let zalo_phone = $('#profile_mobile').attr('data');
             let offset = parseInt($(`input[name="offset_load_more_message"]`).val());
+            const limit_message = parseInt($(`input[name="limit_message"]`).val());
 
-            if(zalo_id && offset > 0 && $(`._section-mt`)[0]) {
+            if(zalo_id && zalo_id.length > 10 && offset > 0 && $(`._section-mt`)[0]) {
                 $.ajax({
                     url: URL,
                     type: "POST",
-                    data: {
-                        action: "get_messages",
-                        oa_id: OA_ID,
-                        zalo_id: zalo_id,
-                        offset: offset,
-                        is_get_user_info: 0
-                    },
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: JSON.stringify({
+                        class: "entryZaloOAClass",
+                        method: "getMessages",
+                        params: {
+                            oa_id: OA_ID,
+                            zalo_id: zalo_id,
+                            zalo_phone: zalo_phone,
+                            offset: offset,
+                            is_get_user_info: 0,
+                            limit_message: limit_message
+                        }
+                    }),
                     beforeSend: function() {
                         $('.loader_messages').show();
                     },
                     success: function (response) {
-                        data = JSON.parse(response); // Object
-    
-                        let data_message = data['messages_info'];
-                        if (data_message['error'] !== 0) {
+                        let data_message = response.messages_info;
+                        if (!(data_message?.status) || data_message.status == 0) {
                             showModalNotify('error', 'Lỗi lấy dữ liệu');
                             return false;
                         }
 
-                        $(`input[name="offset_load_more_message"]`).val(data_message['offset']);
+                        $(`input[name="offset_load_more_message"]`).val(data_message.offset);
                         let last_timestamp = parseInt($(`#section-message__details .section-item`).first().attr('timestamp'));
                         
                         // Display
@@ -280,7 +279,7 @@ $(document).ready(function () {
                         container.scrollTop = container.scrollHeight;
                         let html_old = $(`#section-message__details`).html();
                         let timeline = getTimeline(last_timestamp);
-                        let html_new = create_chat_box(null, data_message['data'], true) + timeline + html_old;
+                        let html_new = create_chat_box(null, data_message.data, true) + timeline + html_old;
                         $(`#section-message__details`).html(html_new);
 
                         // Scroll to message element first
@@ -288,9 +287,7 @@ $(document).ready(function () {
                     },
                     error: function (XMLHttpRequest, textStatus, errorThrown) {
                         $('.loader_messages').hide();
-                        console.error(XMLHttpRequest);
-                        console.error("Status: " + textStatus);
-                        console.error("Error: " + errorThrown);
+                        console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
                     }
                 });
             }
@@ -332,11 +329,17 @@ $(document).ready(function () {
     $('#btn_request_user_info').click(function () {
         let zalo_id = $(`#content_chat`).attr(`zalo_id`);
         let formData = new FormData();
-        formData.append('action', 'send_message');
-        formData.append('oa_id', OA_ID);
-        formData.append('zalo_id', zalo_id);
-        formData.append('type', 'request_user_info');
-
+        // formData.append('action', 'send_message');
+        // formData.append('oa_id', OA_ID);
+        // formData.append('zalo_id', zalo_id);
+        // formData.append('type', 'request_user_info');
+        formData.append('class', 'entryZaloOAClass');
+        formData.append('method', 'sendMessage');
+        formData.append('params', JSON.stringify({
+            'oa_id': OA_ID,
+            'zalo_id': zalo_id,
+            'type': 'request_user_info',
+        }));
         send_message(formData);
     });
 
@@ -531,7 +534,7 @@ $(document).ready(function () {
             $('#voiceip-info-zaloid').html(zalo_id);
             $('#voiceip-info-zaloid').attr('href', `https://zalo.me/${zalo_id}`);
             $('#voiceip-info-zaloid').closest('p').find('span').html('Zalo ID: ');
-            $('#voiceip-info-phone').html(formatPhoneNumber(phone));
+            $('#voiceip-info-phone').html(phone);
             $('#voiceip-info-name').html(name);
             display_avatar_zalo(avatar);
             
@@ -789,45 +792,44 @@ $(document).ready(function () {
         if (e.key === 'Enter' || e.keyCode === 13) {
             let search_value = $(this).val().trim();
 
-            if(!search_value || search_value.length == 0) return false;
+            if(!search_value || search_value.length < 3) return false;
 
             $.ajax({
                 url: URL,
                 type: "POST",
-                data: {
-                    action: "search_contact",
-                    search_value: search_value
-                },
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    class: "entryZaloOAClass",
+                    method: "searchZaloContact",
+                    params: {
+                        oa_id: OA_ID,
+                        search_value: search_value
+                    }
+                }),
                 beforeSend: function() {
                     $('#list_mess_main').hide();
                     $('#list_mess_search').html('<div class="loader_list_user mt-3"></div>').show();
                 },
-                success: function (response) { // HTML
+                success: function (response) {
                     $('#loader_list_user').remove();
 
-                    if (response && response.length > 0) {
-                        let obj = JSON.parse(response);
-                        if(obj['error'] === 0) {
-                            let html = '';
-                            $.each(obj['data'], function(index, item) {
-                                html += create_li_chat(item.message_info, item.user_info);
-                            });
-                            if(html.length > 0) $('#list_mess_search').html(html);
-                            else $('#list_mess_search').html(`<li class="no-results-found">Không tìm thấy kết quả vui lòng tìm kiếm với từ khóa khác</li>`);
-                        }
-                        else {
-                            $('#list_mess_search').html(`<li class="no-results-found">${obj['message']}</li>`);
-                        }
+                    if(response?.status && response.status == 1) {
+                        let html = '';
+                        $.each(response.data, function(index, item) {
+                            html += create_li_chat(item.message_info, item.user_info);
+                        });
+                        if(html.length > 0) $('#list_mess_search').html(html);
+                        else $('#list_mess_search').html(`<li class="no-results-found">Không tìm thấy kết quả vui lòng tìm kiếm với từ khóa khác</li>`);
                     }
                     else {
-                        $('#list_mess_search').html(`<li class="no-results-found">Xảy ra lỗi trong quá trình tìm kiếm</li>`);
+                        $('#list_mess_search').html(`<li class="no-results-found">${obj['message']}</li>`);
                     }
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {
                     $('#loader_list_user').remove();
                     showModalNotify('error', 'Vui lòng thử lại');
-                    console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
+                    console.error(XMLHttpRequest, `Status: ${textStatus}`);
                 }
             });
         }
@@ -854,17 +856,15 @@ $(document).ready(function () {
 
     // Enlarge image
     $(document).on("click", ".message-image", function() {
-        console.warn("Click");
-        $('#dialogImage').attr('src', $(this).attr('src'));
-        $('#imageDialog').fadeIn(200);
-    });
-    $('#closeDialog').on('click', function () {
-        $('#imageDialog').fadeOut(200);
-    });
-    $('#imageDialog').on('click', function (e) {
-        if (e.target.id === 'imageDialog') {
-            $('#imageDialog').fadeOut(200);
-        }
+        const viewer = new Viewer(this, {
+            toolbar: true, // Hiển thị thanh công cụ zoom
+            movable: true, // Cho phép kéo ảnh
+            zoomable: true, // Cho phép zoom
+            scalable: true, // Cho phép scale
+            // fullscreen: true, // Cho phép fullscreen
+            navbar: false, // Ẩn thanh thumbnail
+        });
+        viewer.show();
     });
 });
 
@@ -877,14 +877,23 @@ $(document).ready(function () {
  */
 function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
     if(type == 'default') {
+        const limit_chat_box = parseInt($(`input[name="limit_chat_box"]`).val());
+        
         $.ajax({
             url: URL,
             type: "POST",
-            data: {
-                action: "get_recent_messages", 
-                timestamp: timestamp,
-                current_list_user: current_list_user
-            },
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({
+                class: "entryZaloOAClass",
+                method: "getListRecentMessages",
+                params: {
+                    oa_id: OA_ID,
+                    timestamp: timestamp,
+                    current_list_user: current_list_user,
+                    limit_record: limit_chat_box
+                }
+            }),
             beforeSend: function() {
                 loadingSkeleton('list_user', 9);
                 $(`input[name="is_loading_list_user"]`).val(1);
@@ -893,24 +902,21 @@ function getListUser(type = 'default', timestamp = 0, current_list_user = '') {
                 removeLoadingSkeleton();
                 $(`input[name="is_loading_list_user"]`).val(0);
 
-                if(response.length > 0) {
-                    let obj = JSON.parse(response);
-                    obj.data.forEach(row_data => {
+                if(response?.data) {
+                    response.data.forEach(row_data => {
                         let message_info = row_data.message_info;
                         let user_info = row_data.user_info;
 
                         let html = create_li_chat(message_info, user_info);
                         $('#list_mess_main').append(html);
                     });
-                    $('input[name="last_timestamp"]').val(obj.last_timestamp);
+                    $('input[name="last_timestamp"]').val(response.last_timestamp);
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 removeLoadingSkeleton();
                 $(`input[name="is_loading_list_user"]`).val(0);
-                console.error(XMLHttpRequest);
-                console.error("Status: " + textStatus);
-                console.error("Error: " + errorThrown);
+                console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
             }
         });
     }
@@ -939,7 +945,7 @@ function connectWebSocket() {
         let timestamp       = data['timestamp'] ?? 0;
         let type            = data['type'] ?? '';
         // let message         = data['message'] ?? '';
-        if(sender_id == '7658987821159451152' || recipient_id == '7658987821159451152') console.log('ZALO_SOCKET: ', e.data); // For test
+        if(sender_id == '7658987821159451152' || recipient_id == '7658987821159451152') console.log('ZALO_SOCKET Event debug: ', e.data); // For debug
 
         /**********  OA EVENT CUSTOM **********/
         if(event == 'oa_typing') {
@@ -1008,7 +1014,7 @@ function connectWebSocket() {
                 $(`#li${sender_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
 
                 // Update quota user
-                handleQuotaUser(8, timestamp);
+                handleQuotaUser(data['quota_user'] || {}, timestamp);
 
                 // Check if the user has been to the bottom
                 if (scrollPosition + clientHeight >= scrollHeight - 200) scroll_messages_bottom();
@@ -1079,93 +1085,6 @@ function connectWebSocket() {
                 create_li_chat_new(recipient_id, data);
             }
         }
-        // else if(OA_EVENT_LIST.includes(event)) {
-        //     let src = 0;
-        //     let type = event.replace("oa_send_", "");
-        //     let message = data['message']['text'] ? data['message']['text'] : '';
-        //     let quote_id = data['message']['quote_msg_id'] ? data['message']['quote_msg_id'] : '';
-        //     let current_user_id_chat = $('#content_chat').attr('zalo_id');
-
-        //     // The event belongs to the user who is texting
-        //     if(recipient_id === current_user_id_chat) {
-        //         let previous_sender_id = $('#section-message__details .section-item:last').attr('sender_id');
-        //         let previous_timestamp = $('#section-message__details .section-item:last').attr('timestamp');
-        //         let previous_assign_user_id = $('#section-message__details .section-item:last').attr('assign_user_id');
-
-        //         // Basic field
-        //         let obj = {
-        //             'src' : src,
-        //             'time' : timestamp,
-        //             'type' : type,
-        //             'message' : message,
-        //             'message_id' : mid,
-        //             'quote_id' : quote_id,
-        //             'from_id' : OA_ID,
-        //             'from_avatar' : OA_AVATAR,
-        //             'previous_sender_id' : previous_sender_id,
-        //             'previous_timestamp' : previous_timestamp,
-        //             'previous_assign_user_id' : previous_assign_user_id,
-        //         };
-
-        //         // Add additional fields 
-        //         let attachments = data['message']['attachments'] ? data['message']['attachments'] : null;
-        //         if(attachments) {
-        //             if(type == 'image' || type == 'photo' || type == 'gif' || type == 'sticker') {
-        //                 obj['url'] = attachments[0]['payload']['url'];
-        //             }
-        //             else if(type == 'file') {
-        //                 obj['file'] = attachments[0]['payload'];
-        //             }
-        //             else if(type == 'list') {
-        //                 obj['links'] = [];
-        //                 $.each(attachments , function(index, att) {
-        //                     let url = att.payload.url;
-        //                     let title = att.payload.title;
-        //                     let thumb = att.payload.thumbnail;
-        //                     let description = att.payload.description;
-        //                     obj['links'].push({'url':url, 'title':title, 'thumb':thumb, 'description':description});
-        //                 });
-        //                 obj.type = 'links';
-        //             }
-        //         }
-
-        //         let row = create_chat_row(obj, 'new');
-        //         $(`#section-message__details`).append(row);
-        //         $(`#section-message__details .section-item:last .snippet .borHak`).show();
-
-        //         let message_format = create_li_chat(obj, {}, true);
-        //         $(`#li${recipient_id} .lastest_message`).html(message_format);
-        //         $(`#li${recipient_id} .mess_time`).text(formatTimestampZalo(timestamp, '', 'H:i'));
-
-        //         scroll_messages_bottom();
-        //     }
-        //     // The event belongs to the user currently on the list
-        //     else if($(`#li${recipient_id}`).length) {
-        //         let recipient = $(`#li${recipient_id}`);
-
-        //         let messageObj = {
-        //             src : src,
-        //             type : type,
-        //             time : timestamp,
-        //             message : message,
-        //         }
-
-        //         let userObj = {
-        //             id : recipient_id,
-        //             name : recipient.find('.mess_name').text(),
-        //             avatar : recipient.find('.avatar-user-list').attr('src')
-        //         }
-
-        //         let li = create_li_chat(messageObj, userObj);
-        //         recipient.remove();
-        //         $('#list_mess_main').prepend(li);
-        //     }
-        //     // The event belongs to the new user
-        //     else {
-        //         if($('input[name="user_type_list"]').val() !== 'default') return false;
-        //         create_li_chat_new(src, type, message, timestamp, recipient_id);
-        //     }
-        // }
     };
 
     zsocket.onerror = function(error) {
@@ -1866,27 +1785,28 @@ function create_li_chat(message_data, user_data, return_only_content = false) {
  * @returns 
  */
 function create_li_chat_new(zalo_id, message_data) {
-    if(zalo_id) {
+    if(zalo_id && zalo_id.length > 10) {
         $.ajax({
             url: URL,
             type: "POST",
-            data: {
-                action  : "get_user_info",
-                oa_id   : OA_ID,
-                zalo_id : zalo_id
-            },
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({
+                class: "entryZaloOAClass",
+                method: "getUserInfo",
+                params: {
+                    oa_id: OA_ID,
+                    zalo_id: zalo_id
+                }
+            }),
             success: function (response) {
-                obj = JSON.parse(response); // Object
-    
-                if (obj['error'] == 0) {
-                    let li = create_li_chat(message_data, obj['data']);
+                if (response && response?.status && response.status == 1) {
+                    let li = create_li_chat(message_data, response.data);
                     $('#list_mess_main').prepend(li);
                 }
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                console.error(XMLHttpRequest);
-                console.error("Status: " + textStatus);
-                console.error("Error: " + errorThrown);
+                console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
             }
         });
     }
@@ -1903,32 +1823,46 @@ function generate_form_data() {
     let input_image = $('input[name=image_upload]');
     let input_file = $('input[name=file_upload]');
 
-    let formData = new FormData();
-    formData.append('action', 'send_message');
-    formData.append('oa_id', OA_ID);
-    formData.append('zalo_id', zalo_id);
-    formData.append('text', text);
+    // let formData = new FormData();
+    // formData.append('action', 'send_message');
+    // formData.append('oa_id', OA_ID);
+    // formData.append('zalo_id', zalo_id);
+    // formData.append('text', text);
+
+    let params = {};
+    params.oa_id = OA_ID;
+    params.zalo_id = zalo_id;
+    params.text = text;
 
     /*****  2. Type message  *****/
     let type = 'text'; // Default
     // Tin nhắn trả lời (Quote)
     if($('input[name="quote_message_id"]').length) {
-        formData.append('quote_message_id', $('input[name="quote_message_id"]').val());
+        // formData.append('quote_message_id', $('input[name="quote_message_id"]').val());
+        params.quote_message_id = $('input[name="quote_message_id"]').val();
     }
     else if(input_image[0].files.length > 0) {
         type = 'image';
         let image = input_image[0].files[0];
         let url   = $('#preview_image_upload').attr('src')
-        formData.append('image', image);
-        formData.append('url', url);
+        // formData.append('image', image);
+        // formData.append('url', url);
+        params.image = image;
+        params.url = url;
     }
     else if(input_file[0].files.length > 0) {
         type = 'file';
         let file = input_file[0].files[0];
-        formData.append('file', file);
+        // formData.append('file', file);
+        params.file = file;
     }
-    formData.append('type', type);
+    // formData.append('type', type);
+    params.type = type;
 
+    let formData = new FormData();
+    formData.append('class', 'entryZaloOAClass');
+    formData.append('method', 'sendMessage');
+    formData.append('params', JSON.stringify(params));
     return formData;
 }
 
@@ -1942,9 +1876,12 @@ function send_message(data) {
         $.ajax({
             url: URL,
             type: "POST",
-            data: data,
-            contentType: false,
-            processData: false,
+            // contentType: "application/json",
+            // data: JSON.stringify(data),
+            data: data,               // send the FormData directly
+            processData: false,       // prevent jQuery from turning it into a query string
+            contentType: false, 
+            dataType: "json",
             beforeSend: function() {
                 $('.loader_send_message').remove();
                 $('#section-message__details').append('<div class="loader_send_message"></div>');
@@ -1952,33 +1889,22 @@ function send_message(data) {
             },
             success: function (response) {
                 $('.loader_send_message').remove();
-                res = JSON.parse(response); // Object
     
-                if (res['error'] !== 0) {
-                    let m = res['message'] ? res['message'] : 'Thao tác thất bại';
-                    let d = res['description'] ? res['description'] : '';
+                if(!('status' in response) || response.status == 0) {
+                    let m = response.message || 'Thao tác thất bại';
+                    let d = response.description || '';
                     showModalNotify('error', m, d);
                     return false;
                 }
 
                 // Update quota user
-                if(res['data']['quota']) {
-                    let quota = res['data']['quota'];
-                    if(quota['quota_type'] == 'reply') {
-                        handleQuotaUser(quota['remain'], '', 0);
-                    }
-                    else if(quota['quota_type'] == 'sub_quota') {
-                        handleQuotaUser(0, '', quota['remain']);
-                    }
-                }
-                else handleQuotaUser(0, '', 0);
+                if('quota' in response.data && response.data.quota) handleQuotaUser(response.data.quota);
+                else handleQuotaUser(null);
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 $('.loader_send_message').remove();
                 showModalNotify('error', 'Thao tác thất bại, vui lòng thử lại');
-                console.error(XMLHttpRequest);
-                console.error("Status: " + textStatus);
-                console.error("Error: " + errorThrown);
+                console.error(XMLHttpRequest, `Status: ${textStatus}`, `Error: ${errorThrown}`);
             }
         });
     }
@@ -1986,39 +1912,74 @@ function send_message(data) {
 
 /**
  * Handle HTML quota for user in chat box and related events
+ * Làm lại hàm này với 2 action
  * 
- * @param {int} cs
- * @param {string} last_interaction
- * @param {int} oa_cs
+ * @param {object} quota
+ * @param {number} last_interaction Timestamp milliseconds
  * @returns
  */
-function handleQuotaUser(cs, last_interaction, oa_cs = 0) {
+function handleQuotaUser(quota, last_interaction = null) {
     let quota_html = '';
-    let time_check_day = (last_interaction && last_interaction.length > 0) ? ~~((Date.now() - parseInt(last_interaction)) / 1000 / 3600 / 24) : 0;
+    let time_check_day = (last_interaction && last_interaction > 0) ? ~~((Date.now() - parseInt(last_interaction)) / 1000 / 3600 / 24) : 0;
 
-    if(time_check_day > 6) {
-        quota_html = `<div class="noti-mess-feedback noti_grey">
-            <span>Không thể gửi tin. Người dùng đã hết tương tác với OA trong vòng 7 ngày gần nhất</span>
-        </div>`;
-        disable_send_message();
+    // Thông tin quota từ user
+    if(last_interaction !== null) {
+        if(time_check_day > 7) {
+            quota_html = `<div class="noti-mess-feedback noti_grey">
+                <span>Không thể trò chuyện. Người dùng đã hết tương tác với OA trong vòng 7 ngày gần nhất</span>
+            </div>`;
+            disable_send_message();
+        }
+        else {
+            if(quota?.cs_reply && quota.cs_reply.remain > 0) {
+                quota_html = `<div class="noti-mess-feedback noti_green">
+                    <span>Còn ${quota.cs_reply.remain}/${quota.cs_reply.total} tin nhắn miễn phí với người dùng trong 48h</span>
+                </div>`;
+                enable_send_message();
+            }
+            // Xét quota OA
+            else if (oa_sub_quota > 0) {
+                oa_sub_quota -= 1;
+                quota_html = `<div class="noti-mess-feedback noti_blue">
+                    <span>Tin nhắn tiếp theo được miễn phí (Đặc quyền OA Premium)</span>
+                </div>`;
+                enable_send_message();
+            }
+            else {
+                quota_html = `<div class="noti-mess-feedback noti_yellow">
+                    <span>Mỗi tin nhắn tiếp theo sẽ tốn 55đ/tin</span>
+                </div>`;
+                enable_send_message();
+            }
+        }
     }
-    else if(cs > 0) {
-        enable_send_message();
-        quota_html = `<div class="noti-mess-feedback noti_green">
-            <span>Tin nhắn tiếp theo được miễn phí</span>
-        </div>`;
-    }
-    else if(oa_cs > 0) {
-        enable_send_message();
-        quota_html = `<div class="noti-mess-feedback noti_blue">
-            <span>Tin nhắn tiếp theo được miễn phí (Đặc quyền của OA Premium)</span>
-        </div>`;
-    }
+    // Thông tin quota từ action gửi tin
     else {
-        enable_send_message();
-        quota_html = `<div class="noti-mess-feedback noti_yellow">
-            <span>Mỗi tin nhắn tiếp theo sẽ tốn 55đ/tin</span>
-        </div>`;
+        if(quota !== null && quota?.quota_type && quota.quota_type == 'reply') {
+            quota_html = `<div class="noti-mess-feedback noti_green">
+                <span>Còn ${quota.remain}/${quota.total} tin nhắn miễn phí với người dùng trong 48h</span>
+            </div>`;
+            enable_send_message();
+        }
+        else if(quota !== null && quota?.quota_type && quota.quota_type == 'sub_quota') {
+            quota_html = `<div class="noti-mess-feedback noti_blue">
+                <span>Tin nhắn tiếp theo được miễn phí (Đặc quyền OA Premium)</span>
+            </div>`;
+            enable_send_message();
+        }
+        else if (oa_sub_quota > 0) {
+            oa_sub_quota -= 1;
+            quota_html = `<div class="noti-mess-feedback noti_blue">
+                <span>Tin nhắn tiếp theo được miễn phí (Đặc quyền OA Premium)</span>
+            </div>`;
+            enable_send_message();
+        }
+        else if(quota === null) {
+            quota_html = `<div class="noti-mess-feedback noti_yellow">
+                <span>Mỗi tin nhắn tiếp theo sẽ tốn 55đ/tin</span>
+            </div>`;
+            enable_send_message();
+        }
     }
 
     $('#quota_content').html(quota_html);

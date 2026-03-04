@@ -318,42 +318,46 @@ class Viewstatistics extends SugarView
                     'name' => 'Trần Minh Tuấn',
                     'agent' => '104',
                ),
-               '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => array(
-                    'name' => 'Trần Như Điền',
-                    'agent' => '105',
-               ),
-               '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => array(
-                    'name' => 'Trương Mỹ Nhân',
-                    'agent' => '106',
-               ),
-               'ebc40fa1-8878-1a86-000d-5b6949a87e11' => array(
-                    'name' => 'Lê Tín Nghĩa',
-                    'agent' => '107',
-               ),
-               'cb0ad38e-3524-deea-220f-62f20cec08d5' => array(
-                    'name' => 'Nguyễn Duy Đăng',
+               // '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => array(
+               //      'name' => 'Trần Như Điền',
+               //      'agent' => '105',
+               // ),
+               // '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => array(
+               //      'name' => 'Trương Mỹ Nhân',
+               //      'agent' => '106',
+               // ),
+               // 'ebc40fa1-8878-1a86-000d-5b6949a87e11' => array(
+               //      'name' => 'Lê Tín Nghĩa',
+               //      'agent' => '107',
+               // ),
+               // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => array(
+               //      'name' => 'Nguyễn Duy Đăng',
+               //      'agent' => '108',
+               // ),
+               'f299609a-28c0-c30e-d661-68ccb9aec236' => array(
+                    'name' => 'Nguyễn Thị Kiều Loan',
                     'agent' => '108',
                ),
-               '37cd4853-721c-9808-af64-5600c8835d03' => array(
-                    'name' => 'Đỗ Thị Kim Ngân',
-                    'agent' => '120',
-               ),
-               'b4ff32c8-8a1e-0648-b20d-63437ab44554' => array(
-                    'name' => 'Nguyễn Trang Đài',
-                    'agent' => '121',
-               ),
+               // '37cd4853-721c-9808-af64-5600c8835d03' => array(
+               //      'name' => 'Đỗ Thị Kim Ngân',
+               //      'agent' => '120',
+               // ),
+               // 'b4ff32c8-8a1e-0648-b20d-63437ab44554' => array(
+               //      'name' => 'Nguyễn Trang Đài',
+               //      'agent' => '121',
+               // ),
                'd61ac0c1-91b3-0dc8-049a-518b21d2deb9' => array(
                     'name' => 'Chung Thanh Nhân',
                     'agent' => '122',
                ),
-               '9f381038-99c2-7515-938f-558939fee19a' => array(
-                    'name' => 'Thiều Tuấn Anh',
-                    'agent' => '201',
-               ),
-               'd14007fa-aaed-cac7-9a00-62cfccf58d5a' => array(
-                    'name' => 'Nghiêm Xuân Đức',
-                    'agent' => '202',
-               ),
+               // '9f381038-99c2-7515-938f-558939fee19a' => array(
+               //      'name' => 'Thiều Tuấn Anh',
+               //      'agent' => '201',
+               // ),
+               // 'd14007fa-aaed-cac7-9a00-62cfccf58d5a' => array(
+               //      'name' => 'Nghiêm Xuân Đức',
+               //      'agent' => '202',
+               // ),
                '61b537e5-6bc5-77e5-1102-5ff3dc1e40ee' => array(
                     'name' => 'Phạm Chiến Thắng',
                     'agent' => '203',
@@ -373,6 +377,14 @@ class Viewstatistics extends SugarView
                '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => array(
                     'name' => 'Nguyễn Lộc Danh',
                     'agent' => '109',
+               ),
+               // '2037c237-a846-7dc4-0b76-68c7699f5a03' => array(
+               //      'name' => 'Trịnh Thị Kim Ly',
+               //      'agent' => '108',
+               // ),
+               'e692a4e4-b402-4ffa-ce78-68c904aa4086' => array(
+                    'name' => 'Mai Thị Anh Đào',
+                    'agent' => '105',
                ),
                'empty' => array(
                     'name' => 'Không xác định',
@@ -695,8 +707,8 @@ class Viewstatistics extends SugarView
                                                                       <input type="hidden" id="reviewEmp_fromdate_' . $user_id . '" value="' . date('d-m-Y', strtotime($from_date)) . '">
                                                                  </div>
                                                             </div>';
-                                                  if (strtotime($from_date) != strtotime($to_date)) {
-                                                       $html .= '<div class="mb-3 text-start fw-semibold row">
+                         if (strtotime($from_date) != strtotime($to_date)) {
+                              $html .= '<div class="mb-3 text-start fw-semibold row">
                                                                       <label for="reviewEmp_todate_' . $user_id . '" class="col-sm-5 form-label text-nowrap">Đến ngày:</label>
                                                                       <div class="col-sm-7">
                                                                            <span class="text-nowrap fw-semibold">' . date('d-m-Y', strtotime($to_date)) . '</span>
@@ -704,8 +716,8 @@ class Viewstatistics extends SugarView
                                                                       </div>
                                                                  </div>
                                                                  ';
-                                                  }
-                                                  $html .= '<div class="mb-3 text-start fw-semibold row">
+                         }
+                         $html .= '<div class="mb-3 text-start fw-semibold row">
                                                                  <label for="reviewEmp_name_' . $user_id . '" class="col-sm-5 form-label text-nowrap">Nhân viên:</label>
                                                                  <div class="col-sm-7">
                                                                       <span class="text-nowrap fw-semibold">' . $user['name'] . '</span>
@@ -741,8 +753,8 @@ class Viewstatistics extends SugarView
                                                                  </div>
                                                             </div>';
 
-                                                            if ((int)($outbound_noanswer_under_15) > 0) {
-                                                            $html .= '<div class="mb-3 text-start fw-semibold row">
+                         if ((int)($outbound_noanswer_under_15) > 0) {
+                              $html .= '<div class="mb-3 text-start fw-semibold row">
                                                                            <label for="reviewEmp_outbound_noanswer_under_15_' . $user_id . '" class="col-sm-5 form-label text-nowrap">Đổ chuông ngắn:</label>
                                                                            <div class="col-sm-7">
                                                                                 <span class="text-nowrap fw-semibold">' . $outbound_noanswer_under_15 . '</span>
@@ -753,22 +765,22 @@ class Viewstatistics extends SugarView
                                                                            <label class="col-sm-5 form-label text-nowrap">D/s đổ chuông ngắn:</label>
                                                                            <div class="col-sm-7">
                                                                                 <div class="overflow-auto p-2 border rounded" style="max-height: 150px;">';
-                                                                                     $html .= '<ul>';
-                                                                                     if (count($list_call_noanswer_under_15) > 0) {
-                                                                                          foreach ($list_call_noanswer_under_15 as $call) {
-                                                                                               $html .= '<li><a href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $call['id_call'] . '" target="_blank">' . $call['code_calls'] . '</a></li>';
-                                                                                          }
-                                                                                     } else {
-                                                                                          $html .= '<li>Không có cuộc gọi nào</li>';
-                                                                                     }
-                                                                                     $html .= '</ul>
+                              $html .= '<ul>';
+                              if (count($list_call_noanswer_under_15) > 0) {
+                                   foreach ($list_call_noanswer_under_15 as $call) {
+                                        $html .= '<li><a href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $call['id_call'] . '" target="_blank">' . $call['code_calls'] . '</a></li>';
+                                   }
+                              } else {
+                                   $html .= '<li>Không có cuộc gọi nào</li>';
+                              }
+                              $html .= '</ul>
                                                                                 </div>
                                                                            </div>
                                                                       </div>';
-                                                            }
+                         }
 
-                                                            if ((int)($outbound_noanswer_unconnected) > 0) {
-                                                            $html .= '<div class="mb-3 text-start fw-semibold row">
+                         if ((int)($outbound_noanswer_unconnected) > 0) {
+                              $html .= '<div class="mb-3 text-start fw-semibold row">
                                                                            <label for="reviewEmp_outbound_noanswer_unconnected_' . $user_id . '" class="col-sm-5 form-label text-nowrap">Không liên lạc:</label>
                                                                            <div class="col-sm-7">
                                                                                 <span class="text-nowrap fw-semibold">' . $outbound_noanswer_unconnected . '</span>
@@ -779,17 +791,17 @@ class Viewstatistics extends SugarView
                                                                            <label class="col-sm-5 form-label text-nowrap">D/s không liên lạc:</label>
                                                                            <div class="col-sm-7">
                                                                                 <div class="overflow-auto p-2 border rounded" style="max-height: 150px;">';
-                                                                                     $html .= '<ul>';
-                                                                                     foreach ($list_call_noanswer_unconnected as $call) {
-                                                                                          $html .= '<li><a href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $call['id_call'] . '" target="_blank">' . $call['code_calls'] . '</a></li>';
-                                                                                     }
-                                                                                     $html .= '</ul>
+                              $html .= '<ul>';
+                              foreach ($list_call_noanswer_unconnected as $call) {
+                                   $html .= '<li><a href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $call['id_call'] . '" target="_blank">' . $call['code_calls'] . '</a></li>';
+                              }
+                              $html .= '</ul>
                                                                                 </div>
                                                                            </div>
                                                                       </div>';
-                                                            }
-                                                            if ((int)($outbound_noanswer_no_note) > 0) {
-                                                            $html .= '<div class="mb-3 text-start fw-semibold row">
+                         }
+                         if ((int)($outbound_noanswer_no_note) > 0) {
+                              $html .= '<div class="mb-3 text-start fw-semibold row">
                                                                            <label for="reviewEmp_outbound_noanswer_nonote_' . $user_id . '" class="col-sm-5 form-label text-nowrap">Không ghi chú / phân loại:</label>
                                                                            <div class="col-sm-7">
                                                                                 <span class="text-nowrap fw-semibold">' . $outbound_noanswer_no_note . '</span>
@@ -800,17 +812,17 @@ class Viewstatistics extends SugarView
                                                                            <label class="col-sm-5 form-label text-nowrap">D/s không ghi chú / phân loại:</label>
                                                                            <div class="col-sm-7">
                                                                                 <div class="overflow-auto p-2 border rounded" style="max-height: 150px;">';
-                                                                                     $html .= '<ul>';
-                                                                                     foreach ($list_call_noanswer_no_note as $call) {
-                                                                                          $html .= '<li><a href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $call['id_call'] . '" target="_blank">' . $call['code_calls'] . '</a></li>';
-                                                                                     }
-                                                                                     $html .= '</ul>
+                              $html .= '<ul>';
+                              foreach ($list_call_noanswer_no_note as $call) {
+                                   $html .= '<li><a href="index.php?module=Calls&return_module=Calls&action=DetailView&record=' . $call['id_call'] . '" target="_blank">' . $call['code_calls'] . '</a></li>';
+                              }
+                              $html .= '</ul>
                                                                                 </div>
                                                                            </div>
                                                                       </div>';
-                                                            }
+                         }
 
-                                                  $html .= '<div class="mb-3 text-start fw-semibold row">
+                         $html .= '<div class="mb-3 text-start fw-semibold row">
                                                                  <label class="col-sm-5 form-label text-nowrap">Tỉ lệ nghe máy:</label>
                                                                  <div class="col-sm-7">
                                                                       <span class="text-nowrap fw-semibold">

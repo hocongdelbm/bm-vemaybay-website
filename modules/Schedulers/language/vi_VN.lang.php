@@ -1,11 +1,10 @@
 <?php
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-if (!defined('sugarEntry') || !sugarEntry) {
-    die('Not A Valid Entry Point');
-}
+global $sugar_config;
 
-$mod_strings = array(
-// OOTB Scheduler Job Names:
+$mod_strings = [
+    // OOTB Scheduler Job Names:
     'LBL_OOTB_WORKFLOW' => 'Quy trình tác vụ Workflow',
     'LBL_OOTB_REPORTS' => 'Chạy các hoạt động lập lịch trình báo cáo',
     'LBL_OOTB_IE' => 'Kiểm tra hộp thư đến',
@@ -20,7 +19,7 @@ $mod_strings = array(
     'LBL_OOTB_GOOGLE_CAL_SYNC' => 'Đồng bộ Lịch Google',
     'LBL_UPDATE_TRACKER_SESSIONS' => 'Update tracker_sessions Table',
 
-// List Labels
+    // List Labels
     'LBL_LIST_JOB_INTERVAL' => 'Khoảng thời gian:',
     'LBL_LIST_LIST_ORDER' => 'Lịch biểu:',
     'LBL_LIST_NAME' => 'Lịch biểu:',
@@ -30,7 +29,7 @@ $mod_strings = array(
     'LBL_LIST_TITLE' => 'Danh sách lịch biểu:',
     'LBL_LIST_EXECUTE_TIME'  => 'Will Run At:',
 
-// human readable:
+    // human readable:
     'LBL_SUN' => 'Chủ Nhật',
     'LBL_MON' => 'Thứ Hai',
     'LBL_TUE' => 'Thứ Ba',
@@ -50,7 +49,7 @@ $mod_strings = array(
     'LBL_OFTEN' => 'Càng thường xuyên càng tốt.',
     'LBL_MIN_MARK' => 'đánh dấu phút',
 
-// crontabs
+    // crontabs
     'LBL_MINS' => 'minute',
     'LBL_HOURS' => 'hour',
     'LBL_DAY_OF_MONTH' => 'day (month)',
@@ -58,7 +57,7 @@ $mod_strings = array(
     'LBL_DAY_OF_WEEK' => 'day (week)',
     'LBL_CRONTAB_EXAMPLES' => 'Ở trên sử dụng ký hiệu chuẩn crontab.',
 
-// Labels
+    // Labels
     'LBL_ALWAYS' => 'Luôn luôn',
     'LBL_CATCH_UP' => 'Thực hiện lại nếu thất bại',
     'LBL_CATCH_UP_WARNING' => 'Bỏ chọn nếu công việc này có thể mất nhiều thời gian để chạy.',
@@ -87,12 +86,12 @@ $mod_strings = array(
     'LBL_TOGGLE_ADV' => 'Hiển thị tùy chọn nâng cao',
     'LBL_TOGGLE_BASIC' => 'Hiển thị tùy chọn cơ bản',
 
-// Links
+    // Links
     'LNK_LIST_SCHEDULER' => 'D/s Lịch biểu',
     'LNK_NEW_SCHEDULER' => 'Tạo lịch biểu',
     'LNK_LIST_SCHEDULED' => 'Scheduled Jobs',
 
-// Messages
+    // Messages
     'ERR_CRON_SYNTAX' => 'Cú pháp Cron Không hợp lệ',
     'NTC_LIST_ORDER' => 'Cài đặt bộ lịch trình này sẽ xuất hiện trong danh sách Lịch thả xuống',
     'LBL_CRON_INSTRUCTIONS_WINDOWS' => 'Để thiết lập lịch Windows',
@@ -103,11 +102,11 @@ $mod_strings = array(
     'LBL_CRON_WINDOWS_DESC' => 'Để chạy Lich MavietCrm, tạo một tập tin thực thi để chạy bằng cách sử dụng tác vụ Lịch Windows. Tập tin thực thi nên bao gồm các lệnh sau đây: ',
     'LBL_NO_PHP_CLI' => 'If your host does not have the PHP binary available, you can use wget or curl to launch your Jobs.<br>for wget: <b>*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;wget --quiet --non-verbose ' . $sugar_config['site_url'] . '/cron.php > /dev/null 2>&1</b><br>for curl: <b>*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;curl --silent ' . $sugar_config['site_url'] . '/cron.php > /dev/null 2>&1',
 
-// Subpanels
+    // Subpanels
     'LBL_JOBS_SUBPANEL_TITLE' => 'Nhật ký công việc',
     'LBL_EXECUTE_TIME' => 'Thời gian thực hiện',
 
-//jobstrings
+    //jobstrings
     'LBL_REFRESHJOBS' => 'Làm mới công việc',
     'LBL_POLLMONITOREDINBOXES' => 'Kiểm tra Tài khoản thư đến',
     'LBL_PERFORMFULLFTSINDEX' => 'Hệ thống chỉ sô tìm kiếm văn bản đầy đủ',
@@ -135,32 +134,27 @@ $mod_strings = array(
     'LBL_UPDATEWORKINGDAYS' => 'Cập nhật số ngày công trong bảng lương',
     'LBL_UPDATEMISSINGEFFORTS' => 'Cập nhật cột nỗ lực còn thiếu của tháng trước',
     'LBL_LOCKSALARYATENDMONTH' => 'Tự động duyệt bảng lương cuối tháng',
-
     'LBL_KETCHUYENCONGNOPHAITHU' => 'Kết chuyển công nợ phải thu',
     'LBL_KETCHUYENCONGNOPHAITRA' => 'Kết chuyển công nợ phải trả',
     'LBL_UPDATEONLINEREPORT' => 'Cập nhật danh sách Online hằng ngày',
     // 'LBL_CHECKONLINEUSER' => 'Kiểm tra người dùng còn Online',
     'LBL_CHECKSTATUSONLINEUSER' => 'Kiểm tra người dùng còn Online hay không',
     'LBL_REASSIGNBOOKING' => 'Tiếp tục giao những booking chưa giao cho booker',
-    'LBL_CALCULATECASHFLOW' => 'Tính toán báo cáo dòng tiền hằng ngày', // ducpham
-
+    'LBL_CALCULATECASHFLOW' => 'Tính toán báo cáo dòng tiền hằng ngày',
     'LBL_TUDONGTAOBANG' => 'Tự động tạo bảng',
     'LBL_KETCHUYENTIENMATSCK' => 'Kết chuyển tiền mặt SCK',
     'LBL_KETCHUYENTIENGUINGANHANGSCK' => 'Kết chuyển tiền gửi ngân hàng SCK',
     'LBL_LOOPCHECKIFBOOKINGOVER24H' => 'Loop check booking > 24h',
-
     'LBL_TESTCRON' => 'Test cron',
-    
     'LBL_CHECKBOOKINGHANDLE' => 'Kiểm tra booking được giao đã được xử lý hay chưa',
-    
     // Voucher checkExpirationDateVoucher
     'LBL_CHECKEXPIRATIONDATEVOUCHER' => 'Kiểm tra hạn sử dụng của voucher',
-
     // REPORT PROFIT
     'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
-
     // AUTOCALL
     'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
-);
+    'LBL_SENDPROMOTIONMESSAGEZALO' => 'Gửi tin nhắn khuyến mãi Zalo đồng loạt',
 
-global $sugar_config;
+    'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
+    'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',
+];

@@ -356,4 +356,16 @@ class Note extends File
 
         return false;
     }
+    
+    /**
+     * Check text has money
+     * 
+     * @param string $text
+     * @return bool
+     * @author DucPham
+     */
+    public function hasMoney(string $text): bool {
+        $moneyRegex = '/\b(\d{1,3}([.,]\d{3})+|\d{6,})(\s?(₫|VND|USD|\$))?\b/u';
+        return preg_match($moneyRegex, $text);
+    }
 }

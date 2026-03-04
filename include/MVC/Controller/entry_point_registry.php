@@ -5,7 +5,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 $entry_point_registry = array(
     'emailImage'                            => array('file' => 'modules/EmailMan/EmailImage.php', 'auth' => false),
-    'download'                              => array('file' => 'download.php', 'auth' => true),
+    'download'                              => array('file' => 'custom/download.php', 'auth' => true), //custom
     'export'                                => array('file' => 'export.php', 'auth' => true),
     'export_dataset'                        => array('file' => 'export_dataset.php', 'auth' => true),
     'Changenewpassword'                     => array('file' => 'modules/Users/Changenewpassword.php', 'auth' => false),
@@ -70,8 +70,8 @@ $entry_point_registry = array(
     'entryPointFlightBookings'      => ['file' => 'custom/entrypoints/epFlightBookings.php', 'auth' => true],
     
     // Custom by DucPham
-	'entryPointAPIVietjet'      => ['file' => 'custom/entrypoints/epAPIVietjet.php', 'auth' => true],
-	'entryPointAutoBook'        => ['file' => 'custom/entrypoints/epAutoBook.php', 'auth' => true],
+	// 'entryPointAPIVietjet'      => ['file' => 'custom/entrypoints/epAPIVietjet.php', 'auth' => true],
+	// 'entryPointAutoBook'        => ['file' => 'custom/entrypoints/epAutoBook.php', 'auth' => true],
 	'entryPointSaveNote'        => ['file' => 'custom/entrypoints/epSaveNote.php', 'auth' => true],
     'entryPointCallContact'     => ['file' => 'custom/entrypoints/epCallContact.php', 'auth' => true],
     'entryPointWinInvoice'      => ['file' => 'custom/entrypoints/epWinInvoice.php', 'auth' => true],
@@ -80,8 +80,6 @@ $entry_point_registry = array(
     'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),
     'entryPointZaloAuthCallback'    => array('file' => 'custom/entrypoints/epZaloAuthCallback.php', 'auth' => false),
 	'entryPointZaloWebhook'         => array('file' => 'custom/entrypoints/epZaloWebhook.php', 'auth' => false),
-	'entryPointAddressHandling'     => array('file' => 'custom/entrypoints/epAddressHandling.php', 'auth' => true),
-	'entryPointUpdateFareSystem'    => array('file' => 'custom/entrypoints/epUpdateFareSystem.php', 'auth' => true),
     // Voucher
     'entryPointVoucher' => array('file' => 'custom/entrypoints/epVoucher.php', 'auth' => true),
 
@@ -125,12 +123,14 @@ $entry_point_registry = array(
     'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
 
     // TEST
-    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => false),
+    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => true),
 
     // CUSTOM BY DATLNT
     'entryPointSummarySite' => ['file' => 'custom/entrypoints/ep_Summary_sites.php', 'auth' => true],
 
     // New version
     'entryPointGeneralNA' => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
+    'entryPointGeneral' => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryTelegramWebhook' => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
+
 );

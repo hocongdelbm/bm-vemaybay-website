@@ -49,39 +49,30 @@ $viewdefs['Contacts'] = array(
 						'label' => 'LBL_PHONE_MOBILE',
 					)
 				),
-
-				array(
-					array(
-						'name' => 'zalo_id',
-						'label' => 'LBL_ZALO_ID',
-					),
-					array(
-						'name' => 'birthdate',
-						'label' => 'LBL_BIRTHDATE',
-					),
-				),
-
-				// array(
-				// 	array(
-				// 		'name' => 'assigned_user_name',
-				// 		'label' => 'LBL_ASSIGNED_TO_NAME',
-				// 	),
-				// ),
-
-				array(
-					array(
-						'name' => 'description',
-						'label' => 'LBL_DESCRIPTION',
-					),
-					array()
-				),
-
 				array(
 					array(
 						'name' => 'email1',
 						'studio' => 'false',
 						'label' => 'LBL_EMAIL_ADDRESS',
 					),
+				),
+				array(
+					array(
+						'name' => 'lead_source',
+						'comment' => 'How did the contact come about',
+						'label' => 'LBL_LEAD_SOURCE',
+					),
+					array(
+						'name' => 'birthdate',
+						'label' => 'LBL_BIRTHDATE',
+					),
+				),
+				array(
+					array(
+						'name' => 'description',
+						'label' => 'LBL_DESCRIPTION',
+					),
+					array()
 				),
 			),
 

@@ -26,18 +26,25 @@ custom/configs/*
 !/upload/index.html
 /upload_backup/
 
-# Ignore in zalo
-modules/EC_Zalo/images/
-modules/EC_Zalo/json/
+# Zalo websocket logs
 modules/EC_Zalo/nohup.out
 
 secure_sessions/*
 !secure_sessions/logs
 
+# Images
+custom/themes/default/images/zalo_oa/*
+!custom/themes/default/images/zalo_oa/.gitkeep
+
 # JSON config
-custom/json_files/*.json
-custom/json_files/event_02_09_2025/*.json
-custom/json_files/event_02_09_2025/users/*.json
+custom/json_files/**/*.json
+custom/jssip_webrtc/blacklist.json
+
+custom/templates_export/*
+!custom/templates_export/.gitkeep
 
 # Ignore vendor
 vendor
+
+# Ignore local system
+.vscode

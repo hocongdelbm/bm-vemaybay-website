@@ -54,7 +54,6 @@ $popupMeta = array(
             'width' => '10%',
             'name' => 'phone',
         ),
-
         'email' => array(
             'type' => 'varchar',
             'label' => 'LBL_EMAIL',
@@ -92,7 +91,6 @@ $popupMeta = array(
             'width' => '10%',
             'name' => 'departure_date',
         ),
-        
         'ip_address' => array(
             'type' => 'varchar',
             'label' => 'LBL_IP_ADDRESS',
@@ -113,8 +111,6 @@ $popupMeta = array(
             'width' => '10%',
             'name' => 'assigned_user_name',
         ),
-        
-        
         'created_by_name' => array(
             'type' => 'relate',
             'link' => 'created_by_link',

@@ -41,4 +41,5 @@ $mod_strings = array (
   'LBL_EC_FLIGHT_BOOKINGS_SUBPANEL_TITLE' => 'Booking',
 
   'LBL_RECALL_C'   => 'Recall',
+  'LBL_IV_IDENTITY_NUMBER' => 'CCCD/Passport',
 );

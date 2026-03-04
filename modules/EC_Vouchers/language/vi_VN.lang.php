@@ -39,6 +39,7 @@ $mod_strings = array (
   'LBL_NEW_FORM_TITLE' => 'Mới Vouchers',
 
   // Custom
+  'LBL_EVENT' => 'Sự kiện',
   'LBL_TYPE' => 'Loại',
   'LBL_CAMPAIGN_ID' => 'ID chiến dịch',
   'LBL_CAMPAIGN_NAME' => 'Tên chiến dịch',

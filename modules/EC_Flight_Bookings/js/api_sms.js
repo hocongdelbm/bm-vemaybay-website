@@ -226,105 +226,150 @@ function render_template(type) {
 }
 
 function get_template(carrier, type, data) {
+    // https://docs.google.com/document/d/15n0D1daW5Pnvz0Zz8nb6gA_iYawvVfp4-NB4A1Qa5ro
     if(carrier == 'mobifone') {
         if(type == 'send_sms_journey') {
-            // Cam on ban dat ve tren .{0,40}. Booking .{0,80}. Hanh trinh .{0,90}Vui long kiem tra ky cang thong tin tren
+            // Cam on ban dat ve tren [20 kí tự]. Booking [74 kí tự] ngay [10 kí tự] luc [5 kí tự]. HK [150 kí tự]. Vui long kiem tra ky cang thong tin tren
     
-            let html_source         = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="40" style="width:132px;" />`;
-            let html_booking        = `<input type="text" class="box-input text-center" name="params_content_sms_booking" value="${data.booking}" maxlength="12" style="width:120px;" />`;
-            let html_passenger      = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" maxlength="62" style="width:514px;" />`;
-            let html_journey        = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="64" style="width:210px;" />`;
-            let html_date           = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
-            let html_time           = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
+            let html_source    = `<input type="text" name="params_content_sms_source" value="${data.source}" class="box-input text-center" maxlength="20" size="15" />`;
+            let html_booking   = `<input type="text" name="params_content_sms_booking" value="${data.booking}" class="box-input text-center" maxlength="14" size="12" />`;
+            let html_journey   = `<input type="text" name="params_content_sms_journey" value="${data.journey}" class="box-input text-center" maxlength="60" size="30" />`;
+            let html_passenger = `<input type="text" name="params_content_sms_passenger" value="${data.passenger}" class="box-input text-start" maxlength="150" size="60" />`;
+            let html_date      = `<input type="text" name="params_content_sms_date" value="${data.date}" class="box-input text-center" maxlength="10" size="8" />`;
+            let html_time      = `<input type="text" name="params_content_sms_time" value="${data.time}" class="box-input text-center" maxlength="5" size="4" />`;
     
-            return `Cam on ban dat ve tren ${html_source}. Booking ${html_booking}, HK ${html_passenger}. Hanh trinh ${html_journey} ngay ${html_date} luc ${html_time}. Vui long kiem tra ky cang thong tin tren`;
+            return `Cam on ban dat ve tren ${html_source}. Booking ${html_booking} ${html_journey} ngay ${html_date} luc ${html_time}. HK ${html_passenger}. Vui long kiem tra ky cang thong tin tren`;
         }
     
         if(type == 'send_sms_code') {
-            // .{0,40} gui ban code ve:.{0,30}Chuyen bay .{0,90}Vui long den san bay truoc .{0,10} phut
+            // [20 kí tự] gui ban code ve: [8 kí tự]. Chuyen bay [90 kí tự] ngay [10 kí tự] luc [5 kí tự]. Vui long den san bay truoc [3 kí tự] phut
     
-            let html_source     = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="40" style="width:132px;" />`;
-            let html_code       = `<input type="text" class="box-input text-center" name="params_content_sms_code" value="" maxlength="28" style="width:82px;" />`;
-            let html_flightno   = `<input type="text" class="box-input text-center" name="params_content_sms_flightno" value="${data.flightno}" maxlength="7" style="width:75px;" />`;
-            let html_journey    = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="54" style="width:210px;" />`;
-            let html_date       = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
-            let html_time       = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
-            let html_minute     = `<input type="text" class="box-input text-center" name="params_content_sms_minute" value="90" maxlength="8" style="width:42px;" />`;
+            let html_source     = `<input type="text" name="params_content_sms_source" value="${data.source}" class="box-input text-center" maxlength="20" size="15" />`;
+            let html_code       = `<input type="text" name="params_content_sms_code" value="" class="box-input text-center" maxlength="8" size="6" />`;
+            let html_flightno   = `<input type="text" name="params_content_sms_flightno" value="${data.flightno}" class="box-input text-center" maxlength="7" size="4" />`;
+            let html_journey    = `<input type="text" name="params_content_sms_journey" value="${data.journey}" class="box-input text-center" maxlength="82" size="32" />`;
+            let html_date       = `<input type="text" name="params_content_sms_date" value="${data.date}" class="box-input text-center" maxlength="10" size="8" />`;
+            let html_time       = `<input type="text" name="params_content_sms_time" value="${data.time}" class="box-input text-center" maxlength="5" size="4" />`;
+            let html_minute     = `<input type="text" name="params_content_sms_minute" value="90" class="box-input text-center" maxlength="3" size="2" />`;
     
-            return `${html_source} gui ban code ve: ${html_code}. Chuyen bay ${html_flightno}, ${html_journey} ngay ${html_date} luc ${html_time}. Vui long den san bay truoc ${html_minute} phut`;
+            return `${html_source} gui ban code ve: ${html_code}. Chuyen bay ${html_flightno} ${html_journey} ngay ${html_date} luc ${html_time}. Vui long den san bay truoc ${html_minute} phut`;
         }
 
         if(type == 'send_sms_call') {
-            let html_source = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="Timchuyenbay.com" maxlength="30" style="width:140px;" />`;
-            let html_phone = `<input type="text" class="box-input text-center" name="params_content_sms_phone" value="1900636060" maxlength="20" style="width:110px;" />`;
+            // Quý khách vừa nhận cuộc gọi từ [30 kí tự] kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7: [12 kí tự]
 
-            return `Quý khách vừa nhận cuộc gọi từ ${html_source} kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7 : ${html_phone}`;
+            let html_source = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="Timchuyenbay.com" maxlength="30" size="15" />`;
+            let html_phone = `<input type="text" class="box-input text-center" name="params_content_sms_phone" value="1900636060" maxlength="12" size="6" />`;
+
+            return `Quý khách vừa nhận cuộc gọi từ ${html_source} kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7: ${html_phone}`;
         }
     }
     else if(carrier == 'vinaphone') {
         if(type == 'send_sms_journey') {
-            // Cam on ban dat ve tren{A,35}. Booking {A,65}. Hanh trinh{A,75}. Vui long kiem tra ky cang thong tin tren
+            // Cam on ban dat ve tren [20 kí tự]. Booking [74 kí tự] ngay [10 kí tự] luc [5 kí tự]. HK [150 kí tự]. Vui long kiem tra ky cang thong tin tren
     
-            let html_source         = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="35" style="width:132px;" />`;
-            let html_booking        = `<input type="text" class="box-input text-center" name="params_content_sms_booking" value="${data.booking}" maxlength="12" style="width:120px;" />`;
-            let html_passenger      = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" maxlength="48" style="width:514px;" />`;
-            let html_journey        = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="48" style="width:210px;" />`;
-            let html_date           = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
-            let html_time           = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
+            let html_source    = `<input type="text" name="params_content_sms_source" value="${data.source}" class="box-input text-center" maxlength="20" size="15" />`;
+            let html_booking   = `<input type="text" name="params_content_sms_booking" value="${data.booking}" class="box-input text-center" maxlength="14" size="12" />`;
+            let html_journey   = `<input type="text" name="params_content_sms_journey" value="${data.journey}" class="box-input text-center" maxlength="60" size="30" />`;
+            let html_passenger = `<input type="text" name="params_content_sms_passenger" value="${data.passenger}" class="box-input text-start" maxlength="150" size="60" />`;
+            let html_date      = `<input type="text" name="params_content_sms_date" value="${data.date}" class="box-input text-center" maxlength="10" size="8" />`;
+            let html_time      = `<input type="text" name="params_content_sms_time" value="${data.time}" class="box-input text-center" maxlength="5" size="4" />`;
     
-            return `Hanh trinh:\\nCam on ban dat ve tren ${html_source}. Booking ${html_booking}, HK ${html_passenger}. Hanh trinh ${html_journey} ngay ${html_date} luc ${html_time}. Vui long kiem tra ky cang thong tin tren`;
+            return `Cam on ban dat ve tren ${html_source}. Booking ${html_booking} ${html_journey} ngay ${html_date} luc ${html_time}. HK ${html_passenger}. Vui long kiem tra ky cang thong tin tren`;
         }
     
         if(type == 'send_sms_code') {
-            // .{0,40} gui ban code ve:.{0,30}Chuyen bay .{0,90}Vui long den san bay truoc .{0,10} phut
+            // [20 kí tự] gui ban code ve: [8 kí tự]. Chuyen bay [90 kí tự] ngay [10 kí tự] luc [5 kí tự]. Vui long den san bay truoc [3 kí tự] phut
     
-            let html_source     = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="“Tim chuyen bay”" readonly style="width:132px;" />`;
-            let html_code       = `<input type="text" class="box-input text-center" name="params_content_sms_code" value="" maxlength="25" style="width:82px;" />`;
-            let html_flightno   = `<input type="text" class="box-input text-center" name="params_content_sms_flightno" value="${data.flightno}" maxlength="7" style="width:75px;" />`;
-            let html_journey    = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="64" style="width:210px;" />`;
-            let html_date       = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
-            let html_time       = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
-            let html_minute     = `<input type="text" class="box-input text-center" name="params_content_sms_minute" value="90" maxlength="8" style="width:42px;" />`;
+            let html_source     = `<input type="text" name="params_content_sms_source" value="${data.source}" class="box-input text-center" maxlength="20" size="15" />`;
+            let html_code       = `<input type="text" name="params_content_sms_code" value="" class="box-input text-center" maxlength="8" size="6" />`;
+            let html_flightno   = `<input type="text" name="params_content_sms_flightno" value="${data.flightno}" class="box-input text-center" maxlength="7" size="4" />`;
+            let html_journey    = `<input type="text" name="params_content_sms_journey" value="${data.journey}" class="box-input text-center" maxlength="82" size="32" />`;
+            let html_date       = `<input type="text" name="params_content_sms_date" value="${data.date}" class="box-input text-center" maxlength="10" size="8" />`;
+            let html_time       = `<input type="text" name="params_content_sms_time" value="${data.time}" class="box-input text-center" maxlength="5" size="4" />`;
+            let html_minute     = `<input type="text" name="params_content_sms_minute" value="90" class="box-input text-center" maxlength="3" size="2" />`;
     
-            return `Code ve:\\n${html_source} gui ban code ve ${html_code}. Chuyen bay ${html_flightno}, ${html_journey} ngay ${html_date} luc ${html_time}. Vui long den san bay truoc ${html_minute} phut`;
+            return `${html_source} gui ban code ve: ${html_code}. Chuyen bay ${html_flightno} ${html_journey} ngay ${html_date} luc ${html_time}. Vui long den san bay truoc ${html_minute} phut`;
         }
 
         if(type == 'send_sms_call') {
-            let html_phone = `<input type="text" class="box-input text-center" name="params_content_sms_phone" value="1900636060" maxlength="15" style="width:110px;" />`;
+            // Quý khách vừa nhận cuộc gọi từ [30 kí tự] kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7: [12 kí tự]
 
-            return `Quý khách vừa nhận cuộc gọi từ Timchuyenbay.com kênh đặt vé máy bay trực tuyến.\\nLiên hệ đặt vé 24/7: ${html_phone}`;
+            let html_source = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="Timchuyenbay.com" maxlength="30" size="15" />`;
+            let html_phone = `<input type="text" class="box-input text-center" name="params_content_sms_phone" value="1900636060" maxlength="12" size="6" />`;
+
+            return `Quý khách vừa nhận cuộc gọi từ ${html_source} kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7: ${html_phone}`;
         }
+        
+        // if(type == 'send_sms_journey') {
+        //     // Cam on ban dat ve tren{A,35}. Booking {A,65}. Hanh trinh{A,75}. Vui long kiem tra ky cang thong tin tren
+    
+        //     let html_source         = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="35" style="width:132px;" />`;
+        //     let html_booking        = `<input type="text" class="box-input text-center" name="params_content_sms_booking" value="${data.booking}" maxlength="12" style="width:120px;" />`;
+        //     let html_passenger      = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" maxlength="48" style="width:514px;" />`;
+        //     let html_journey        = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="48" style="width:210px;" />`;
+        //     let html_date           = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
+        //     let html_time           = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
+    
+        //     return `Hanh trinh:\\nCam on ban dat ve tren ${html_source}. Booking ${html_booking}, HK ${html_passenger}. Hanh trinh ${html_journey} ngay ${html_date} luc ${html_time}. Vui long kiem tra ky cang thong tin tren`;
+        // }
+    
+        // if(type == 'send_sms_code') {
+        //     // .{0,40} gui ban code ve:.{0,30}Chuyen bay .{0,90}Vui long den san bay truoc .{0,10} phut
+    
+        //     let html_source     = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="“Tim chuyen bay”" readonly style="width:132px;" />`;
+        //     let html_code       = `<input type="text" class="box-input text-center" name="params_content_sms_code" value="" maxlength="25" style="width:82px;" />`;
+        //     let html_flightno   = `<input type="text" class="box-input text-center" name="params_content_sms_flightno" value="${data.flightno}" maxlength="7" style="width:75px;" />`;
+        //     let html_journey    = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="64" style="width:210px;" />`;
+        //     let html_date       = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
+        //     let html_time       = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
+        //     let html_minute     = `<input type="text" class="box-input text-center" name="params_content_sms_minute" value="90" maxlength="8" style="width:42px;" />`;
+    
+        //     return `Code ve:\\n${html_source} gui ban code ve ${html_code}. Chuyen bay ${html_flightno}, ${html_journey} ngay ${html_date} luc ${html_time}. Vui long den san bay truoc ${html_minute} phut`;
+        // }
+
+        // if(type == 'send_sms_call') {
+        //     let html_phone = `<input type="text" class="box-input text-center" name="params_content_sms_phone" value="1900636060" maxlength="15" style="width:110px;" />`;
+
+        //     return `Quý khách vừa nhận cuộc gọi từ Timchuyenbay.com kênh đặt vé máy bay trực tuyến.\\nLiên hệ đặt vé 24/7: ${html_phone}`;
+        // }
     }
     // Viettel and others carrier
     else {
         if(type == 'send_sms_journey') {
-            let html_source     = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="40" style="width:132px;" />`;
-            let html_booking    = `<input type="text" class="box-input text-center" name="params_content_sms_booking" value="${data.booking}" maxlength="12" style="width:120px;" />`;
-            let html_passenger  = `<input type="text" class="box-input text-start" name="params_content_sms_passenger" value="${data.passenger}" style="width:514px;" />`;
-            let html_journey    = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="64" style="width:210px;" />`;
-            let html_date       = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
-            let html_time       = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
+            // Cam on ban dat ve tren [20 kí tự]. Booking [74 kí tự] ngay [10 kí tự] luc [5 kí tự]. HK [150 kí tự]. Vui long kiem tra ky cang thong tin tren
     
-            return `Cam on ban dat ve tren ${html_source}. Booking ${html_booking}, HK ${html_passenger}. Hanh trinh ${html_journey} ngay ${html_date} luc ${html_time}. Vui long kiem tra ky cang thong tin tren`;
+            let html_source    = `<input type="text" name="params_content_sms_source" value="${data.source}" class="box-input text-center" maxlength="20" size="15" />`;
+            let html_booking   = `<input type="text" name="params_content_sms_booking" value="${data.booking}" class="box-input text-center" maxlength="14" size="12" />`;
+            let html_journey   = `<input type="text" name="params_content_sms_journey" value="${data.journey}" class="box-input text-center" maxlength="60" size="30" />`;
+            let html_passenger = `<input type="text" name="params_content_sms_passenger" value="${data.passenger}" class="box-input text-start" maxlength="150" size="60" />`;
+            let html_date      = `<input type="text" name="params_content_sms_date" value="${data.date}" class="box-input text-center" maxlength="10" size="8" />`;
+            let html_time      = `<input type="text" name="params_content_sms_time" value="${data.time}" class="box-input text-center" maxlength="5" size="4" />`;
+    
+            return `Cam on ban dat ve tren ${html_source}. Booking ${html_booking} ${html_journey} ngay ${html_date} luc ${html_time}. HK ${html_passenger}. Vui long kiem tra ky cang thong tin tren`;
         }
     
         if(type == 'send_sms_code') {
-            let html_source     = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="${data.source}" maxlength="40" style="width:132px;" />`;
-            let html_code       = `<input type="text" class="box-input text-center" name="params_content_sms_code" value="" maxlength="28" style="width:82px;" />`;
-            let html_flightno   = `<input type="text" class="box-input text-center" name="params_content_sms_flightno" value="${data.flightno}" maxlength="8" style="width:75px;" />`;
-            let html_journey    = `<input type="text" class="box-input text-center" name="params_content_sms_journey" value="${data.journey}" maxlength="64" style="width:210px;" />`;
-            let html_date       = `<input type="text" class="box-input text-center" name="params_content_sms_date" value="${data.date}" maxlength="10" style="width:90px;" />`;
-            let html_time       = `<input type="text" class="box-input text-center" name="params_content_sms_time" value="${data.time}" maxlength="5" style="width:56px;" />`;
-            let html_minute     = `<input type="text" class="box-input text-center" name="params_content_sms_minute" value="90" maxlength="8" style="width:42px;" />`;
+            // [20 kí tự] gui ban code ve: [8 kí tự]. Chuyen bay [90 kí tự] ngay [10 kí tự] luc [5 kí tự]. Vui long den san bay truoc [3 kí tự] phut
     
-            return `${html_source} gui ban code ve: ${html_code}. Chuyen bay ${html_flightno}, ${html_journey} ngay ${html_date} luc ${html_time}. Vui long den san bay truoc ${html_minute} phut`;
+            let html_source     = `<input type="text" name="params_content_sms_source" value="${data.source}" class="box-input text-center" maxlength="20" size="15" />`;
+            let html_code       = `<input type="text" name="params_content_sms_code" value="" class="box-input text-center" maxlength="8" size="6" />`;
+            let html_flightno   = `<input type="text" name="params_content_sms_flightno" value="${data.flightno}" class="box-input text-center" maxlength="7" size="4" />`;
+            let html_journey    = `<input type="text" name="params_content_sms_journey" value="${data.journey}" class="box-input text-center" maxlength="82" size="32" />`;
+            let html_date       = `<input type="text" name="params_content_sms_date" value="${data.date}" class="box-input text-center" maxlength="10" size="8" />`;
+            let html_time       = `<input type="text" name="params_content_sms_time" value="${data.time}" class="box-input text-center" maxlength="5" size="4" />`;
+            let html_minute     = `<input type="text" name="params_content_sms_minute" value="90" class="box-input text-center" maxlength="3" size="2" />`;
+    
+            return `${html_source} gui ban code ve: ${html_code}. Chuyen bay ${html_flightno} ${html_journey} ngay ${html_date} luc ${html_time}. Vui long den san bay truoc ${html_minute} phut`;
         }
 
         if(type == 'send_sms_call') {
-            let html_source = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="Timchuyenbay.com" maxlength="30" style="width:140px;" />`;
-            let html_phone = `<input type="text" class="box-input text-center" name="params_content_sms_phone" value="1900636060" maxlength="20" style="width:110px;" />`;
+            // Quý khách vừa nhận cuộc gọi từ [30 kí tự] kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7: [12 kí tự]
 
-            return `Quý khách vừa nhận cuộc gọi từ ${html_source} kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7 : ${html_phone}`;
+            let html_source = `<input type="text" class="box-input text-center" name="params_content_sms_source" value="Timchuyenbay.com" maxlength="30" size="15" />`;
+            let html_phone = `<input type="text" class="box-input text-center" name="params_content_sms_phone" value="1900636060" maxlength="12" size="6" />`;
+
+            return `Quý khách vừa nhận cuộc gọi từ ${html_source} kênh đặt vé máy bay trực tuyến. Liên hệ đặt vé 24/7: ${html_phone}`;
         }
     }
 

@@ -5,26 +5,21 @@ $dictionary['EC_Receipt_Voucher'] = array(
     'audited' => true,
     'inline_edit' => true,
     'duplicate_merge' => true,
-    'fields' => 
-    array(
-        'receipt_type' =>
-        array(
-            'required' => true,
+    'fields' =>  array(
+        'receipt_type' => array(
             'name' => 'receipt_type',
             'vname' => 'LBL_RECEIPT_TYPE',
             'type' => 'enum',
-            'massupdate' => 0,
+            'len' => 20,
+            'options' => 'receipt_type_list',
             'default' => 'cash',
-            'comments' => '',
-            'help' => '',
+            'required' => true,
+            'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 100,
-            'options' => 'receipt_type_list',
-            'studio' => 'visible',
             'dependency' => false,
         ),
         'tknganhang_id' =>
@@ -98,38 +93,21 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'studio' => 'visible',
         ),
-        'rv_number' =>
-        array(
-            'required' => false,
-            'name' => 'rv_number',
-            'vname' => 'LBL_RV_NUMBER',
-            'type' => 'varchar',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '100',
-        ),
-        'amount' =>
-        array(
-            'required' => true,
+
+        'amount' => array(
             'name' => 'amount',
             'vname' => 'LBL_AMOUNT',
             'type' => 'currency',
+            'len' => 26,
+            'required' => 1,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
+            'importable' => 1,
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
         ),
+
         'account_id_c' =>
         array(
             'required' => false,
@@ -169,21 +147,18 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        'guest_name' =>
-        array(
-            'required' => false,
+        'guest_name' => array(
             'name' => 'guest_name',
             'vname' => 'LBL_GUEST_NAME',
             'type' => 'varchar',
+            'len' => 80,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => '255',
         ),
         'guest_phone' =>
         array(
@@ -201,8 +176,8 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
-        'amount_type' =>
-        array(
+
+        'amount_type' => array(
             'required' => false,
             'name' => 'amount_type',
             'vname' => 'LBL_AMOUNT_TYPE',
@@ -216,11 +191,12 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 100,
+            'len' => 4,
             'options' => 'loaitien_list',
             'studio' => 'visible',
             'dependency' => false,
         ),
+
         'guest_address' =>
         array(
             'required' => false,
@@ -237,82 +213,65 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'studio' => 'visible',
         ),
-        'loai_thu' =>
-        array(
-            'required' => '0',
+
+        'loai_thu' => array(
             'name' => 'loai_thu',
             'vname' => 'LBL_LOAI_THU',
             'type' => 'enum',
-            'massupdate' => '0',
+            'len' => 4,
             'default' => '1',
-            'comments' => '',
-            'help' => '',
+            'required' => 1,
+            'massupdate' => 1,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 100,
             'options' => 'loai_thu_list',
-            'studio' => 'visible',
             'dependency' => false,
         ),
-        'booking_id' =>
-        array(
-            'required' => false,
+
+        'booking_id' => array(
             'name' => 'booking_id',
-            'vname' => '',
+            'vname' => 'LBL_BOOKING',
             'type' => 'id',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'len' => 36,
+            'required' => 0,
+            'audited' => 1,
+            'massupdate' => 1,
+            'importable' => 1,
+            'reportable' => 0,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 36,
         ),
-        'booking_name' =>
-        array(
-            'required' => false,
-            'source' => 'non-db',
+        'booking_name' => array(
             'name' => 'booking_name',
-            'vname' => 'LBL_BOOKING_NAME',
+            'vname' => 'LBL_BOOKING',
             'type' => 'relate',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '255',
+            'source' => 'non-db',
+            'len' => 32,
             'id_name' => 'booking_id',
             'ext2' => 'EC_Flight_Bookings',
             'module' => 'EC_Flight_Bookings',
             'rname' => 'name',
             'quicksearch' => 'enabled',
-            'studio' => 'visible',
+            'massupdate' => 1,
         ),
-        'rv_status' =>
-        array(
-            'required' => false,
+
+        'rv_status' => array(
             'name' => 'rv_status',
             'vname' => 'LBL_RV_STATUS',
             'type' => 'enum',
-            'massupdate' => 0,
+            'options' => 'receipt_voucher_status_list',
+            'len' => 4,
             'default' => '0',
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'required' => 0,
+            'massupdate' => 0,
+            'importable' => 1,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 100,
-            'options' => 'receipt_voucher_status_list',
             'studio' => 'visible',
             'dependency' => false,
         ),
@@ -398,24 +357,8 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'audited' => 1,
             'reportable' => 0,
         ),
-        'bought_amount' =>
-        array(
-            'required' => false,
-            'name' => 'bought_amount',
-            'vname' => 'LBL_BOUGHT_AMOUNT',
-            'type' => 'currency',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 26,
-        ),
-        'aircode' =>
-        array(
+
+        'aircode' => array(
             'required' => false,
             'name' => 'aircode',
             'vname' => 'LBL_AIRCODE',
@@ -433,6 +376,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'studio' => 'visible',
             'dependency' => false,
         ),
+
         'supplier_id' =>
         array(
             'required' => false,
@@ -550,47 +494,13 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        'bought_amount2' =>
-        array(
-            'required' => false,
-            'name' => 'bought_amount2',
-            'vname' => 'LBL_BOUGHT_AMOUNT2',
-            'type' => 'currency',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 26,
-        ),
-        'bought_amount3' =>
-        array(
-            'required' => false,
-            'name' => 'bought_amount3',
-            'vname' => 'LBL_BOUGHT_AMOUNT3',
-            'type' => 'currency',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 26,
-        ),
-        'agent_id' =>
-        array(
+
+        'agent_id' => array(
             'required' => false,
             'name' => 'agent_id',
             'vname' => '',
             'type' => 'id',
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
@@ -598,8 +508,7 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'len' => 36,
         ),
-        'agent' =>
-        array(
+        'agent' => array(
             'required' => false,
             'source' => 'non-db',
             'name' => 'agent',
@@ -621,26 +530,24 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
-        'location' =>
-        array(
+
+        'location' => array(
             'required' => false,
             'name' => 'location',
             'vname' => 'LBL_LOCATION',
-            'type' => 'enum',
+            'type' => 'varchar',
             'massupdate' => 0,
             'default' => '',
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '0',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 100,
-            'options' => 'location_list',
+            'len' => 8,
             'studio' => 'visible',
             'dependency' => false,
         ),
+        
         'com_location_id' =>
         array(
             'required' => false,
@@ -680,6 +587,115 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'quicksearch' => 'enabled',
             'studio' => 'visible',
         ),
+
+        'employee_id' =>
+        array(
+            'required' => false,
+            'name' => 'employee_id',
+            'vname' => '',
+            'type' => 'id',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => 36,
+        ),
+        'employee_name' =>
+        array(
+            'required' => false,
+            'source' => 'non-db',
+            'name' => 'employee_name',
+            'vname' => 'LBL_EMPLOYEE_NAME',
+            'type' => 'relate',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '0',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '255',
+            'id_name' => 'employee_id',
+            'ext2' => 'Users',
+            'module' => 'Users',
+            'rname' => 'name',
+            'quicksearch' => 'enabled',
+            'studio' => 'visible',
+        ),
+        
+        // công nợ
+        'is_debt' =>
+        array(
+            'required' => false,
+            'name' => 'is_debt',
+            'vname' => 'LBL_IS_DEBT',
+            'type' => 'bool',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => '',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '1',
+            'default' => '0',
+        ),
+
+        'bought_amount' =>
+        array(
+            'required' => false,
+            'name' => 'bought_amount',
+            'vname' => 'LBL_BOUGHT_AMOUNT',
+            'type' => 'currency',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => 26,
+        ),
+        'bought_amount2' =>
+        array(
+            'required' => false,
+            'name' => 'bought_amount2',
+            'vname' => 'LBL_BOUGHT_AMOUNT2',
+            'type' => 'currency',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => 26,
+        ),
+        'bought_amount3' =>
+        array(
+            'required' => false,
+            'name' => 'bought_amount3',
+            'vname' => 'LBL_BOUGHT_AMOUNT3',
+            'type' => 'currency',
+            'massupdate' => 0,
+            'comments' => '',
+            'help' => '',
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => 26,
+        ),
+
         'sell_amount' =>
         array(
             'required' => false,
@@ -728,233 +744,92 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'reportable' => 0,
             'len' => 26,
         ),
-        'employee_id' =>
-        array(
-            'required' => false,
-            'name' => 'employee_id',
-            'vname' => '',
-            'type' => 'id',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => 0,
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 36,
-        ),
-        'employee_name' =>
-        array(
-            'required' => false,
-            'source' => 'non-db',
-            'name' => 'employee_name',
-            'vname' => 'LBL_EMPLOYEE_NAME',
-            'type' => 'relate',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '255',
-            'id_name' => 'employee_id',
-            'ext2' => 'Users',
-            'module' => 'Users',
-            'rname' => 'name',
-            'quicksearch' => 'enabled',
-            'studio' => 'visible',
-        ),
-        // công nợ
-        'is_debt' =>
-        array(
-            'required' => false,
-            'name' => 'is_debt',
-            'vname' => 'LBL_IS_DEBT',
-            'type' => 'bool',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '1',
-            'default' => '0',
-        ),
+
         // giá mua chưa VAT 1
-        'bought_amount_no_vat' =>
-        array(
-            'required' => false,
+        'bought_amount_no_vat' => array(
             'name' => 'bought_amount_no_vat',
             'vname' => 'LBL_BOUGHT_AMOUNT_NO_VAT',
             'type' => 'currency',
+            'len' => 10,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
         ),
         // giá mua chưa VAT 2
-        'bought_amount_no_vat2' =>
-        array(
-            'required' => false,
+        'bought_amount_no_vat2' => array(
             'name' => 'bought_amount_no_vat2',
             'vname' => 'LBL_BOUGHT_AMOUNT_NO_VAT2',
             'type' => 'currency',
+            'len' => 10,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
         ),
         // giá mua chưa VAT 3
-        'bought_amount_no_vat3' =>
-        array(
-            'required' => false,
+        'bought_amount_no_vat3' => array(
             'name' => 'bought_amount_no_vat3',
             'vname' => 'LBL_BOUGHT_AMOUNT_NO_VAT3',
             'type' => 'currency',
+            'len' => 10,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
         ),
+
         // vat giá mua
-        'vat_bought_amount' =>
-        array(
-            'required' => false,
+        'vat_bought_amount' => array(
             'name' => 'vat_bought_amount',
             'vname' => 'LBL_VAT_BOUGHT_AMOUNT',
             'type' => 'currency',
+            'len' => 10,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'importable' => 1,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
         ),
         // vat giá mua 2
-        'vat_bought_amount2' =>
-        array(
-            'required' => false,
+        'vat_bought_amount2' => array(
             'name' => 'vat_bought_amount2',
             'vname' => 'LBL_VAT_BOUGHT_AMOUNT2',
             'type' => 'currency',
+            'len' => 10,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'importable' => 1,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
         ),
         // vat giá mua 3
-        'vat_bought_amount3' =>
-        array(
-            'required' => false,
+        'vat_bought_amount3' => array(
             'name' => 'vat_bought_amount3',
             'vname' => 'LBL_VAT_BOUGHT_AMOUNT3',
             'type' => 'currency',
+            'len' => 10,
+            'required' => 0,
             'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
+            'importable' => 1,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            'len' => 26,
         ),
-        // số vé
-        'ticket_number' =>
-        array(
-            'required' => false,
-            'name' => 'ticket_number',
-            'vname' => 'LBL_TICKET_NUMBER',
-            'type' => 'varchar',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 100,
-        ),
-        // số vé 2
-        'ticket_number2' =>
-        array(
-            'required' => false,
-            'name' => 'ticket_number2',
-            'vname' => 'LBL_TICKET_NUMBER2',
-            'type' => 'varchar',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 100,
-        ),
-        // số vé 3
-        'ticket_number3' =>
-        array(
-            'required' => false,
-            'name' => 'ticket_number3',
-            'vname' => 'LBL_TICKET_NUMBER3',
-            'type' => 'varchar',
-            'massupdate' => 0,
-            'comments' => '',
-            'help' => '',
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => '0',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => 100,
-        ),
-        // 'is_sent_tele' =>
-        // array(
-        //     'required' => false,
-        //     'name' => 'is_sent_tele',
-        //     'vname' => 'LBL_IS_SENT_TELE',
-        //     'type' => 'bool',
-        //     'massupdate' => 0,
-        //     'comments' => '',
-        //     'help' => '',
-        //     'importable' => 'true',
-        //     'duplicate_merge' => 'disabled',
-        //     'duplicate_merge_dom_value' => '',
-        //     'audited' => 0,
-        //     'reportable' => 0,
-        //     'len' => '1',
-        //     'default' => '0',
-        // ),
 
         // Custom user - giao thực phẩm (sữa)
         'delivery_man_id' => array(
@@ -983,24 +858,35 @@ $dictionary['EC_Receipt_Voucher'] = array(
             'audited' => 1,
         ),
 
+        'go_with' => array(
+            'name' => 'go_with',
+            'vname' => 'LBL_GO_WITH',
+            'type' => 'int',
+            'dbtype' => 'tinyint',
+            'default' => 0,
+            'comment' => 'Show sorted changes history in booking',
+            'required' => 0,
+            'audited' => 1,
+            'massupdate' => 0,
+            'importable' => 1,
+            'reportable' => 0,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'disable_num_format' => '',
+        ),
     ),
-    'indices' =>
-    array(
-        0 => array('name' => 'idx_rv_name', 'type' => 'index', 'fields' => array('name')),
-        1 => array('name' => 'idx_rv_del', 'type' => 'index', 'fields' => array('deleted')),
-        2 => array('name' => 'idx_rv_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
-        3 => array('name' => 'idx_rv_booking', 'type' => 'index', 'fields' => array('booking_id')),
-        4 => array('name' => 'idx_rv_tknganhang', 'type' => 'index', 'fields' => array('tknganhang_id')),
-        5 => array('name' => 'idx_rv_customer', 'type' => 'index', 'fields' => array('account_id_c')),
-        6 => array('name' => 'idx_rv_rtype', 'type' => 'index', 'fields' => array('receipt_type')),
-        7 => array('name' => 'idx_rv_status', 'type' => 'index', 'fields' => array('rv_status')),
-        8 => array('name' => 'idx_rv_loaithu', 'type' => 'index', 'fields' => array('loai_thu')),
-        9 => array('name' => 'idx_rv_airc', 'type' => 'index', 'fields' => array('aircode')),
-        10 => array('name' => 'idx_rv_su2', 'type' => 'index', 'fields' => array('supplier2_id')),
-        11 => array('name' => 'idx_rv_su3', 'type' => 'index', 'fields' => array('supplier3_id')),
-        12 => array('name' => 'idx_rv_agent', 'type' => 'index', 'fields' => array('agent_id')),
-        13 => array('name' => 'idx_rv_location', 'type' => 'index', 'fields' => array('location')),
-        14 => array('name' => 'idx_rv_comlocation', 'type' => 'index', 'fields' => array('com_location_id')),
+    'indices' => array(
+        array('name' => 'idx_rv_name', 'type' => 'index', 'fields' => array('name')),
+        array('name' => 'idx_rv_booking', 'type' => 'index', 'fields' => array('booking_id')),
+        array('name' => 'idx_rv_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
+        array('name' => 'idx_rv_tknganhang', 'type' => 'index', 'fields' => array('tknganhang_id')),
+        array('name' => 'idx_rv_customer', 'type' => 'index', 'fields' => array('account_id_c')),
+        array('name' => 'idx_rv_su', 'type' => 'index', 'fields' => array('supplier_id')),
+        array('name' => 'idx_rv_su2', 'type' => 'index', 'fields' => array('supplier2_id')),
+        array('name' => 'idx_rv_su3', 'type' => 'index', 'fields' => array('supplier3_id')),
+        array('name' => 'idx_rv_loaithu', 'type' => 'index', 'fields' => array('loai_thu')),
+        array('name' => 'idx_rv_agent', 'type' => 'index', 'fields' => array('agent_id')),
+        array('name' => 'idx_rv_comlocation', 'type' => 'index', 'fields' => array('com_location_id')),
     ),
     'relationships' => array(
         'receiptvoucher_booking' =>
@@ -1038,6 +924,6 @@ $dictionary['EC_Receipt_Voucher'] = array(
     'unified_search' => true,
 );
 if (!class_exists('VardefManager')) {
-        require_once('include/SugarObjects/VardefManager.php');
+    require_once('include/SugarObjects/VardefManager.php');
 }
 VardefManager::createVardef('EC_Receipt_Voucher', 'EC_Receipt_Voucher', array('basic','assignable','security_groups'));

@@ -1,4 +1,6 @@
 $(document).ready(function () {
+	const formDetailView = $('#formDetailView');
+	const bookingId = formDetailView.find('input[name="record"]').val();
 
 	// Hover button RECALL
 	$(document).on('mouseenter', '.btn-calling--wrap', function () {
@@ -116,7 +118,6 @@ $(document).ready(function () {
 
 	// Lấy tên các hành khách được chọn
 	$(document).on('change', '#applied_passenger', function () {
-
 		var passengers = $('#applied_passenger').val();
 
 		if (passengers == null || passengers.length == 0) {
@@ -237,6 +238,34 @@ $(document).ready(function () {
 		else return true;
 	});
 
+	$(document).on('click', '#update_revenue', function () {
+		if (!confirm('Bạn có chắc chắn muốn cập nhật doanh số cho booking này?')) return false;
+		else {
+			let booking_id = $("input[name='booking_id']").val();
+
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					booking_id: booking_id,
+					for: "updateRevenueBooking",
+				},
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					if (response == 1) {
+						let text_warning = 'Cập nhật doanh số thành công.';
+						showModalNotify(1, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					} else {
+						let text_warning = 'Cập nhật thất bại. Vui lòng liên hệ IT để được hỗ trợ.';
+						showModalNotify(0, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					}
+				}
+			});
+		};
+	});
+
 	$(document).on('click', '#confirm-remind', function () {
 		let journey_id = $(this).attr('iti_id');
 		let booking_id = $(this).attr('booking_id');
@@ -264,11 +293,78 @@ $(document).ready(function () {
 		});
 	});
 
+	// Change checkin status
+	$(document).on("change", "select.checkin_status_iti", function () {
+		if (!confirm('Thay đổi trạng thái checkin?')) return false;
+		else {
+			let status = $(this).find(":selected").val();
+			let journey_id = $(this).attr('iti_id');
+			let journey_name = $(this).attr('iti_name');
+			let booking_id = $(this).attr('booking_id');
+			let record_name = $(this).attr('record_name');
+
+			$.ajax({
+				url: "index.php?entryPoint=entryPointFlightBookings",
+				data: {
+					status: status,
+					journey_id: journey_id,
+					journey_name: journey_name,
+					booking_id: booking_id,
+					record_name: record_name,
+					for: "changeCheckinStatus",
+				},
+				type: "POST",
+				cache: false,
+				success: function (response) {
+					if (response == 1) {
+						setTimeout(() => {
+							location.reload();
+						}, 150);
+					} else {
+						let text_warning = 'Lỗi khi thực hiện thay đổi trạng thái checkin. Vui lòng liên hệ IT để được hỗ trợ.';
+						showModalNotify(0, text_warning);
+						$('.modal-overlay, .btn-modal-close').addClass('reload');
+					}
+				}
+			});
+		};
+		
+	});
 
 	// Open form send mail
 	$('#btnSendMail').on('click', function () {
 		$('#frmContinueSendMail').css('display', 'block');
 		$(this).hide();
+	});
+
+	// Preview form send mail
+	$('#btnPreviewSendMail').on('click', function () {
+		$("#dialog_mail_confirm_preview").dialog({
+			title: "Xác nhận thông tin",
+			width: 700,
+			modal: true,
+			resizable: false,
+			position: {
+				my: "center top",
+				at: "center top+50",
+				of: window
+			}
+		});
+		
+		$.ajax({
+			url: "index.php?entryPoint=entryPointFlightBookings",
+			type: "POST",
+			data: {
+				"booking_id": $(this).attr('booking_id'),
+				"for": "previewSendMail",
+			},
+			beforeSend: function () {
+				$("#dialog_mail_confirm_preview").html('');
+			},
+			success: function (response) {
+				$("#dialog_mail_confirm_preview").html(response);
+			}
+		});
 	});
 
 	// Close form send mail
@@ -580,6 +676,10 @@ $(document).ready(function () {
 		let booking_status = $('#note-booking-status').val();
 		let description = $('#note-description').val().trim();
 		let username = $('#note-username').val();
+		let contact_name = $('#note-contact-name').val();
+		let total_amount = $('#note-total-amount').val();
+		let total_qty = $('#note-total-qty').val();
+		let customer_source = $('#note-customer-source').val();
 		let send_loading = '<div class="lds-ring-notes"><div></div><div></div><div></div><div></div></div>';
 
 		let dt = new Date();
@@ -606,11 +706,15 @@ $(document).ready(function () {
 			url: "index.php?entryPoint=entryPointSaveNote",
 			type: "POST",
 			data: {
+				type: "ADD",
 				name: name,
 				parent_id: parent_id,
 				description: description,
 				booking_status: booking_status,
-				type: "ADD"
+				contact_name: contact_name,
+				total_amount: total_amount,
+				total_qty: total_qty,
+				customer_source: customer_source
 			},
 			success: function (res) {
 				if (res == 1) {
@@ -621,7 +725,6 @@ $(document).ready(function () {
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
 				let text_warning = 'ERROR: Vui lòng liên hệ bộ phận IT!';
 				showToastWarning(text_warning);
-
 				console.error("Status: " + textStatus);
 				console.error("Error: " + errorThrown);
 			}
@@ -730,8 +833,14 @@ $(document).ready(function () {
 		}
 
 		if (booking_status == '8' && frmSaveWorkingProcess == 'frmCompleted') {
+			let complete_ok = parseInt($(`#${frmSaveWorkingProcess} input:hidden[name="complete_ok"]`).val());
+			if(!complete_ok) {
+				showModalNotify(2, "Vui lòng điền đầy đủ giá bán hành lý trước khi hoàn tất");
+				return;
+			}
 			$(this).submit();
-		} else {
+		}
+		else {
 			if (!$(this).hasClass("error")) {
 				$('#dlgWorkingProcessNote').dialog({
 					modal: true,
@@ -950,7 +1059,6 @@ $(document).ready(function () {
 	});
 	// End add luggage
 
-
 	// Begin change name
 	$("#change_name_btn").click(function () {
 		$.ajax({
@@ -989,7 +1097,7 @@ $(document).ready(function () {
 			data: "for=changeFlightTime&id=" + $("form[name='DetailView']>input[name='record']").val(),
 			beforeSend: function () {
 				$("body").css({ "cursor": "wait" });
-				$("#line_itineraries_area").html("Loading, Please wait ... ");
+				$("#line_itineraries_area").html("<center><i>Vui lòng chờ trong giây lát...</i></center>");
 			},
 			success: function (response) {
 				$("#line_itineraries_area").html(response);
@@ -1016,12 +1124,25 @@ $(document).ready(function () {
 		});
 	});
 
-	$("#tbl_change_flight_time").on("submit", function (event) {
+	$(document).on('change', 'select[name="pass_luggage_ob[]"], select[name="pass_luggage_ib[]"]', function () {
+		let name  = $(this).attr('name'); // name="pass_luggage_ob[]" or "...ib[]"
+		let index = $(`select[name="${name}"]`).index(this);
+		// let value = $(this).val(); // selected option value
+		let dataCost  = $(this).find(':selected').data('cost'); // get data-cost
+		// let dataText  = $(this).find(':selected').data('text'); // get data-text
+		// let dataValue = $(this).find(':selected').data('value'); // get data-value
 
-		if (!checkLineItems(3)) {
-			return false;
+		// Update luggage_price[] at same index
+		if(name == 'pass_luggage_ob[]') {
+			$('input[name="pass_luggage_price[]"]').eq(index).val(formatNumber(dataCost));
 		}
+		else if(name == 'pass_luggage_ib[]') {
+			$('input[name="pass_luggage_price_inbound[]"]').eq(index).val(formatNumber(dataCost));
+		}
+	});
 
+	$("#tbl_change_flight_time").on("submit", function (event) {
+		if (!checkLineItems(3)) return false;
 		return true;
 	});
 	// End change flight time
@@ -1178,7 +1299,6 @@ $(document).ready(function () {
 		$('#new_payment_amount').val('');
 	});
 
-
 	// GET THÔNG TIN BANK - SEND CUSTOMER
 	$('#get_bank').on('click', function () {
 		let booking_id = $(this).attr('booking_id');
@@ -1322,6 +1442,48 @@ $(document).ready(function () {
 					console.error("Error: " + errorThrown);
 					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
 				}
+			});
+		}
+	});
+
+	// Change customer source
+	$('input[name="customer_source"]').click(function() {
+		let customer_source = $(this).val();
+		if(customer_source && customer_source.length > 0) {
+			$.ajax({
+				url: "index.php?entryPoint=entryPointGeneral",
+				type: "POST",
+				contentType: "application/json", 
+				dataType: "json",  
+				data: JSON.stringify({
+					class: "entryBookingClass",
+					method: "updateFields",
+					params: {
+						bookingId: bookingId,
+						fields: {customer_source: customer_source}
+					}
+				}),
+				beforeSend: function () {
+					$('.container-waiting').show();
+				},
+				success: function (res) {
+					if('status' in res && res.status === 1) {
+						$('input[type="checkbox"][name="customer_source"]').prop('checked', false);
+						$(`input#customer_source_${customer_source}`).prop('checked', true);
+					}
+					else {
+						$(`input#customer_source_${customer_source}`).prop('checked', false);
+					}
+				},
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
+					$(`input#customer_source_${customer_source}`).prop('checked', false);
+					console.error("Status: " + textStatus);
+					console.error("Error: " + errorThrown);
+					showModalNotify(0, "Lỗi! Liên hệ IT để được hỗ trợ.");
+				},
+				complete: function() {
+					$('.container-waiting').hide();
+				},
 			});
 		}
 	});
@@ -1725,6 +1887,12 @@ function getPassengerLine(booking_id, pass_id = '', type = '') {
 				$(".pass_birthday").eq(index).attr("name", "pass_birthday" + index);
 				$(".pass_order").eq(index).text("Hành khách " + (index + 1) + ":");
 				addToValidate('tbl_change_flight_time', 'pass_birthday' + index, 'date', false, 'Ngày phải nhập theo cú pháp: 01-01-2022');
+			});
+
+			// Active select2
+			$('.table-change-passengers select.box-select2').select2();
+			$('.table-change-passengers select.box-select2-non-search').select2({
+				minimumResultsForSearch: Infinity
 			});
 		}
 	});

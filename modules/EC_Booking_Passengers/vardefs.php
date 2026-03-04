@@ -41,6 +41,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'vname' => '',
             'type' => 'id',
             'len' => 36,
+            'default' => '',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
@@ -79,25 +80,13 @@ $dictionary['EC_Booking_Passengers'] = array(
             'dependency' => false,
         ),
 
+        // Số vé
         'eticket_outbound' => array(
             'required' => false,
             'name' => 'eticket_outbound',
             'vname' => 'LBL_ETICKET_OUTBOUND',
             'type' => 'varchar',
-            'massupdate' => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '25',
-        ),
-        'eluggage_outbound' => array(
-            'required' => false,
-            'name' => 'eluggage_outbound',
-            'vname' => 'LBL_ELUGGAGE_OUTBOUND',
-            'type' => 'varchar',
-            'comment' => 'Số vé hành lý, Hãng BBA và VNA có số vé hành lý riêng',
+            'default' => '',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
@@ -111,6 +100,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'name' => 'eticket_inbound',
             'vname' => 'LBL_ETICKET_INBOUND',
             'type' => 'varchar',
+            'default' => '',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
@@ -118,6 +108,23 @@ $dictionary['EC_Booking_Passengers'] = array(
             'audited' => 1,
             'reportable' => 0,
             'len' => '25',
+        ),
+
+        // Số vé hành lý
+        'eluggage_outbound' => array(
+            'required' => false,
+            'name' => 'eluggage_outbound',
+            'vname' => 'LBL_ELUGGAGE_OUTBOUND',
+            'type' => 'varchar',
+            'comment' => 'Số vé hành lý, Hãng BBA và VNA có số vé hành lý riêng',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'audited' => 1,
+            'reportable' => 0,
+            'len' => '25',
+            'default' => '',
         ),
         'eluggage_inbound' => array(
             'required' => false,
@@ -132,12 +139,16 @@ $dictionary['EC_Booking_Passengers'] = array(
             'audited' => 1,
             'reportable' => 0,
             'len' => '25',
+            'default' => '',
         ),
+
+        // PNR (Mã đặt chỗ)
         'pnr_outbound' => array(
             'required' => false,
             'name' => 'pnr_outbound',
             'vname' => 'LBL_PNR_OUTBOUND',
             'type' => 'varchar',
+            'default' => '',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
@@ -146,12 +157,12 @@ $dictionary['EC_Booking_Passengers'] = array(
             'reportable' => 0,
             'len' => '25',
         ),
-
         'pnr_inbound' => array(
             'required' => false,
             'name' => 'pnr_inbound',
             'vname' => 'LBL_PNR_INBOUND',
             'type' => 'varchar',
+            'default' => '',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
@@ -161,6 +172,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'len' => '25',
         ),
 
+        // Tổng giá bán hành lý từng lượt
         'luggage_price' => array(
             'required' => false,
             'name' => 'luggage_price',
@@ -195,6 +207,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'name' => 'supplier_id',
             'vname' => '',
             'type' => 'id',
+            'default' => '',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
@@ -228,6 +241,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'name' => 'supplier_inbound_id',
             'vname' => '',
             'type' => 'id',
+            'default' => '',
             'massupdate' => 0,
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
@@ -263,29 +277,31 @@ $dictionary['EC_Booking_Passengers'] = array(
             'type' => 'enum',
             'options' => 'bk_direction_list',
             'len' => 2,
+            'default' => '',
             'massupdate' => 0,
-            'importable' => 'true',
+            'importable' => 1,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
             'audited' => 1,
             'reportable' => 0,
             'studio' => 'visible',
             'dependency' => false,
-            'default' => '',
         ),
 
         'go_with' => array(
-            'required' => false,
             'name' => 'go_with',
             'vname' => 'LBL_GO_WITH',
             'type' => 'int',
+            'dbtype' => 'tinyint',
+            'default' => 0,
+            'comment' => 'Show sorted changes history',
+            'required' => 0,
+            'audited' => 1,
             'massupdate' => 0,
-            'importable' => 'true',
+            'importable' => 1,
+            'reportable' => 0,
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
-            'audited' => 1,
-            'reportable' => 0,
-            'len' => '11',
             'disable_num_format' => '',
         ),
 
@@ -335,19 +351,19 @@ $dictionary['EC_Booking_Passengers'] = array(
             'disable_num_format' => '',
         ),
 
-        // Phân biệt dòng chi tiết được booker đổi tên hay thêm hành lý
+        // Phân biệt dòng chi tiết được booker đổi thông tin (=2) hay thêm hành lý (=1)
         'add_type' => array(
             'required' => false,
             'name' => 'add_type',
             'vname' => 'LBL_ADD_TYPE',
             'type' => 'int',
+            'dbtype' => 'tinyint',
             'massupdate' => 0,
-            'importable' => 'true',
-            'duplicate_merge' => 'disabled',
-            'duplicate_merge_dom_value' => ' ',
+            'importable' => 1,
             'audited' => 1,
             'reportable' => 0,
-            'len' => '2',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
             'disable_num_format' => '',
         ),
 
@@ -490,7 +506,7 @@ $dictionary['EC_Booking_Passengers'] = array(
         /**
          * Index hành lý từng lượt (Thông tin trường này được lưu từ website)
          * Cũ: Index dùng cho hãng VJ
-         * Mới: Dùng để lưu số kg sẵn có của các hãng. VD: 14_1 (1 kiện 14kg), 14_2 (2 kiện 14kg, tổng 28kg)
+         * Mới: Dùng để lưu hành lý ký gửi có sẵn của các hãng. VD: 1x14 (1 kiện 14kg), 2x14 (2 kiện 14kg, tổng 28kg)
          * Updated at 25/07/2025 by DucPham
          */
         'luggage_index_outbound' => array(
@@ -526,6 +542,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'vname' => 'LBL_CIC',
             'type' => 'varchar',
             'len' => 16,
+            'default' => '',
             'required' => false,
             'massupdate' => 0,
             'importable' => 1,
@@ -540,6 +557,7 @@ $dictionary['EC_Booking_Passengers'] = array(
             'vname' => 'LBL_PASSPORT_NUMBER',
             'type' => 'varchar',
             'len' => 10,
+            'default' => '',
             'required' => false,
             'massupdate' => 0,
             'importable' => 1,
@@ -558,6 +576,10 @@ $dictionary['EC_Booking_Passengers'] = array(
         array('name' => 'idx_psg_pnrin', 'type' => 'index', 'fields' => array('pnr_inbound')),
         array('name' => 'idx_psg_suin', 'type' => 'index', 'fields' => array('supplier_id')),
         array('name' => 'idx_psg_suout', 'type' => 'index', 'fields' => array('supplier_inbound_id')),
+        array('name' => 'idx_psg_eticket_bag_out', 'type' => 'index', 'fields' => array('eluggage_outbound')),
+        array('name' => 'idx_psg_eticket_bag_in', 'type' => 'index', 'fields' => array('eluggage_inbound')),
+        array('name' => 'idx_psg_cic', 'type' => 'index', 'fields' => array('cic')),
+        array('name' => 'idx_psg_passport_number', 'type' => 'index', 'fields' => array('passport_number')),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

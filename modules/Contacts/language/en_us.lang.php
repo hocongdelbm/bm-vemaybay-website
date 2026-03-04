@@ -179,9 +179,9 @@ $mod_strings = array(
     'LBL_PROJECT_CONTACTS_1_FROM_PROJECT_TITLE' => 'Project Contacts from Project Title',
 
     'LBL_PANEL_ADDRESS' => 'Address',
-    'LBL_ZALO_ID' => 'Zalo ID',
     'LBL_LIST_ASSIGNED_USER' => 'Assigned user',
     'LBL_PHONE_MOBILE' => 'Phone',
     'LBL_POINTS' => 'Cumulative points',
     'LNK_POINTS_LOG' => 'Points log',
+    'LBL_INFO_ZALO' => 'Zalo Information',
 );

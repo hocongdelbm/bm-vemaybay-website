@@ -18,12 +18,11 @@ class EC_Payment_VoucherViewDetail extends ViewDetail {
 	}
 	
 	function populateCustomButtons(){
-		global $mod_strings, $app_strings, $app_list_strings, $current_user, $timedate;
-		$date_format = $timedate->get_date_format(); //d-m-Y
+		global $app_list_strings, $current_user, $timedate;
+		$date_format = $timedate->get_date_format();
 
 		// ngày hạch toán
-		// $this->bean->ngayhachtoan = (isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan)) ? date($date_format.' H:i', strtotime($this->bean->ngayhachtoan)+7*3600) : date($date_format.' H:i');
-		$this->bean->ngayhachtoan = date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) - 7*3600);
+		$this->bean->ngayhachtoan = date("$date_format H:i", strtotime($this->bean->ngayhachtoan) - 7*3600);
 		
 		// in phiếu
 		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true)){
@@ -85,10 +84,8 @@ class EC_Payment_VoucherViewDetail extends ViewDetail {
 			</form>';
 		} 
 
+		// Nút Đã chi
 		if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->pv_status == '2' && ACLController::checkAccess('Bugs', 'edit', true) && isAllowedUser()){
-			// đã chi
-			// <input type="hidden" name="ngayhachtoan" value="'.date($date_format.' H:i').'" />
-
 			$pv_status = '</form>
 			<form action="index.php" method="post" name="frmPaid" id="frmPaid">
 				<input type="hidden" name="module" value="EC_Payment_Voucher" />
@@ -96,11 +93,11 @@ class EC_Payment_VoucherViewDetail extends ViewDetail {
 				<input type="hidden" name="record" value="'.$this->bean->id.'" />
 				<input type="hidden" name="return_module" value="EC_Payment_Voucher" />
 				<input type="hidden" name="return_action" value="DetailView" />
-				<input type="hidden" name="return_id" value="'.$this->bean->id.'" />
+				<input type="hidden" name="return_id" value="'. $this->bean->id .'" />
 				<input type="hidden" name="pv_status" value="3" />
-				<input type="hidden" name="hoanve_id" value="'.$this->bean->hoanve_id.'" />
-				<input type="hidden" name="phieuthu_id" value="'.$this->bean->phieuthu_id.'" />
-				<input type="hidden" name="ngayhachtoan" value="'.date($date_format.' H:i', strtotime(date('d-m-Y H:i'))+7*3600).'" /> 
+				<input type="hidden" name="hoanve_id" value="'. $this->bean->hoanve_id .'" />
+				<input type="hidden" name="phieuthu_id" value="'. $this->bean->phieuthu_id .'" />
+				<input type="hidden" name="ngayhachtoan" value="'. date("$date_format H:i") .'" /> 
 				<input type="submit" class="btn btn-success fw-semibold" name="btnPaid" id="btnPaid" value="Đã chi" title="Đã chi" />
 			</form>';
 		}

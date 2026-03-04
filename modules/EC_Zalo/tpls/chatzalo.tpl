@@ -1,4 +1,5 @@
-<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.css">
+<link type="text/css" rel="stylesheet" href="modules/EC_Zalo/css/chatzalo.css?v=3.6">
 
 <div class="wrap-content wrap-content-chat">
     <div class="content-page zalochat-page">
@@ -323,15 +324,11 @@
     </div>
 </div>
 
-<div class="image-dialog" id="imageDialog">
-    <span class="close" id="closeDialog">&times;</span>
-    <img class="dialog-content" id="dialogImage" />
-</div>
-
 {$ICON_TEMPLATE}
 <input type="hidden" name="oa_id" value="{$OA_ID}" readonly />
 <input type="hidden" name="oa_name" value="{$OA_NAME}" readonly />
 <input type="hidden" name="oa_avatar" value="{$OA_AVATAR}" readonly />
+<input type="hidden" name="oa_sub_quota" value="{$OA_SUB_QUOTA}" readonly />
 <input type="hidden" name="admin_id" value="{$ADMIN_ID}" readonly />
 <input type="hidden" name="admin_name" value="{$ADMIN_NAME}" readonly />
 <input type="hidden" name="default_avatar" value="{$DEFAULT_AVATAR}" readonly />
@@ -342,7 +339,10 @@
 <input type="hidden" name="is_loading_list_user" value="0" readonly />
 <input type="hidden" name="last_timestamp" value="0" readonly />
 <input type="hidden" name="limit_message" value="{$LIMIT_MESSAGE}" readonly />
+<input type="hidden" name="limit_chat_box" value="{$LIMIT_CHAT_BOX}" readonly />
+
 <input type="hidden" name="image_extension" value="{$IMAGE_EXTENSION}" readonly />
 <input type="hidden" name="file_extension" value="{$FILE_EXTENSION}" readonly />
 
-<script src="modules/EC_Zalo/js/chatzalo.js?v=3.5"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.11.6/viewer.min.js"></script>
+<script src="modules/EC_Zalo/js/chatzalo.js?v=4.1"></script>

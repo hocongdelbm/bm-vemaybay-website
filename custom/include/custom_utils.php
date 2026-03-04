@@ -1,8 +1,4 @@
 <?php
-
-use PhpOffice\PhpSpreadsheet\Shared\OLE\PPS;
-use Symfony\Component\Validator\Constraints\Length;
-
 /**
  * Get new report terms
  * @param string $selectedValue
@@ -312,6 +308,7 @@ function myGetMinuteList($minute = '')
 
 /**
  * Kiểm tra 1 trường có tồn tại
+ * 
  * @param string $module tên phân hệ
  * @param string $field tên trường cần kiểm tra
  * @param string $field_value giá trị của trường cần kiểm tra
@@ -331,13 +328,11 @@ function myCheckValueExist($module, $fields = array(), $field_value = array(), $
             $i++;
         }
     }
-    $sql = "
-        SELECT COUNT(id) FROM " . strtolower($module) . "
-        WHERE id <> '" . $id . "' AND deleted = 0" . $field_con;
+
+    $sql = "SELECT COUNT(id) FROM ". strtolower($module) ." WHERE id <> '$id' AND deleted = 0 " . $field_con;
     $rowcount = $db->getOne($sql);
 
-    if ($rowcount > 0)
-        return true;
+    if ($rowcount > 0) return true;
     return false;
 }
 
@@ -640,8 +635,26 @@ function myRecheckFlight($aircode, $pnr, $fullName, $flightNo, $timeout = 30, $u
     return $result;
 }
 
-function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array')
+// Get airline info
+function myGetAirlineInfo($airline_code, $search_by = 'FULL', $case_sensitive = 1, $format = 'array')
 {
+    $api_key = 'N830B51ZEA3Gzc6343R9T6Wn24C8iiBU51t2ppeJ';
+    $url = 'http://api.vemaybaynamphuong.com/index.php/apiv1/api/airline_search/format/json/term/' . $airline_code . '/case_sensitive/' . $case_sensitive . '/search_by/' . $search_by;
+
+    $curl_handle = curl_init();
+    curl_setopt($curl_handle, CURLOPT_URL, $url);
+    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array('X-API-KEY: ' . $api_key));
+    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl_handle, CURLOPT_FOLLOWLOCATION, 0);
+    $data = curl_exec($curl_handle);
+    curl_close($curl_handle);
+    $result = '';
+    if ($format == 'array') $result = json_decode($data, true);
+    else if ($format == 'json') $result = $data;
+    return $result;
+}
+
+function myGetAirlineInfo2($airline_code, $search_by, $case_sensitive = 1, $format = 'array') {
     $search_by_allow = array('CODE', 'NAME', 'FULL');
     $search_by = $search_by && in_array($search_by, $search_by_allow) ? $search_by : 'FULL';
     $case_sensitive = $case_sensitive ? $case_sensitive : 0; // default is case insensitive
@@ -815,7 +828,7 @@ function my_get_number_separators($reset_sep = false)
 function myGetDepartmentInfo($department_id)
 {
     global $db;
-    $info = array();
+    $info = [];
     if ($department_id) {
         $sql = "SELECT sg.id,
                     sg.name,
@@ -858,8 +871,7 @@ function myGetDepartmentInfo($department_id)
                     sg.code_book,
                     sg.com_email_bcc
                 FROM securitygroups sg
-                WHERE sg.deleted = 0
-                AND sg.id = '" . $department_id . "' ";
+                WHERE sg.id = '$department_id' AND sg.deleted = 0";
         $res = $db->query($sql);
         $info = $db->fetchByAssoc($res);
     }
@@ -871,13 +883,11 @@ function myGetWorkingProcessCount($parent_type, $parent_id, $field = '')
 {
     global $db;
     $recheck_count = 0;
-    $sql = "SELECT SUM(IFNULL(" . $field . ",0)) 
-				FROM ec_working_process 
-				WHERE deleted=0 
-				AND parent_type='" . $parent_type . "' 
-				AND parent_id='" . $parent_id . "' ";
+    $sql = "SELECT SUM(IFNULL($field, 0)) 
+            FROM ec_working_process 
+            WHERE parent_id = '$parent_id' AND parent_type = '$parent_type' AND deleted = 0";
     if ($field != '') {
-        $sql .= " AND " . $field . " IS NOT NULL ";
+        $sql .= " AND $field IS NOT NULL ";
     }
     $recheck_count += $db->getOne($sql);
     return $recheck_count;
@@ -896,24 +906,19 @@ function isWorkingProcessExisting($parent_type, $parent_id, $field = '')
 }
 
 // Remove working process exist
-function myRemoveWorkingProcess($parent_type, $parent_id, $field = '')
-{
+function myRemoveWorkingProcess($parent_type, $parent_id, $field = '') {
     global $db;
     $sql = "UPDATE ec_working_process
 			SET deleted = 1
-			WHERE parent_id = '" . $parent_id . "'
-				AND parent_type = '" . $parent_type . "'
-				AND deleted = 0";
-    if ($field != '') {
-        $sql .= " AND " . $field . " IS NOT NULL ";
+			WHERE parent_id = '{$parent_id}' AND parent_type = '{$parent_type}' AND deleted = 0";
+    if (!empty($field)) {
+        $sql .= " AND {$field} IS NOT NULL ";
     }
-    $db->query($sql);
+    return $db->query($sql);
 }
 
 // Create working process
-function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field)
-{
-    global $sugar_config, $current_user;
+function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $description, $assigned_user_id, $field) {
     if (!empty($field)) {
         $work = new EC_Working_Process();
         $work->id = '';
@@ -923,48 +928,16 @@ function myCreateWorkingProcess($parent_type, $parent_id, $parent_name, $descrip
         $work->description = trim($description);
         $work->assigned_user_id = $assigned_user_id;
         $work->$field = 1;
-        $work->save();
-        
-        if(empty($work->id)) {
-            // // SEND TELE WARNING SAVE KPI FAILED
-            // $messages = "- Domain: <b>" . $sugar_config['host_name'] . "</b>\n" .
-            // "- User: <b>" . $current_user->user_name . "</b>\n" .
-            // "<pre>[WARNING]: myCreateWorkingProcess FAILED ".$description.".</pre>";
-            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            // sendTelegramWarningSystem(
-            //     json_encode(array(
-            //         'text' => $content,
-            //         'parse_mode' => 'HTML',
-            //         'reply_markup' => array(
-            //             'inline_keyboard' => array(
-            //                 array(
-            //                     array(
-            //                         'text' => 'Redirect url',
-            //                         'url' => 'https://' . $sugar_config['host_name'] . '/index.php?module='.$parent_name.'&action=DetailView&record=' . $parent_id,
-            //                     ),
-            //                 ),
-            //             ),
-            //         ),
-            //     ), JSON_UNESCAPED_UNICODE),
-            // );
-
-            $link = Mattermost::markdownLink("https://" . $sugar_config['host_name'] . "/index.php?module=$parent_name&action=DetailView&record=$parent_id", "Redirect url");
-            $message = Mattermost::$line_separation;
-            $message .= Mattermost::markdownHeading("[WARNING]: Function myCreateWorkingProcess() failed");
-            $message .= "\n- Domain: **" . $sugar_config['host_name'] . "**";
-            $message .= "\n- User: **$current_user->user_name**";
-            $message .= "\n- Description: **$description**";
-            $message .= "\n$link";
-            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-        }
+        return $work->save();
     }
+    return false;
 }
 
 // Get total record of module by day
 function myGetTotalRecordByDay($module, $str = '0', $len = 4)
 {
-    global $db;
     date_default_timezone_set('Asia/Ho_Chi_Minh');
+    global $db;
     $total = 0;
     $date_entered = date('Y-m-d H:i:s', strtotime(date('Y-m-d 16:59:59')) - 86400); // giờ sugarcrm lệch 7h so với giờ server
     $sql = "SELECT COUNT(id) + 1 FROM " . strtolower($module) . " WHERE date_entered > '" . $date_entered . "' ";
@@ -1645,7 +1618,7 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         $booking_date = date('d-m-Y');
     }
 
-    $arr_replace = array(
+    $arr_replace = [
         'VNA' => 'vietnamair',
         'VNP' => 'pacificair',
         'VJA' => 'vietjet',
@@ -1659,32 +1632,32 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         'BL' => 'pacificair',
         'JQ' => 'jetstar',
         '3K' => 'jetstar',
-    );
+    ];
 
     // Phân loại theo hãng bay
     if ($airline == 'VNA' || $airline == 'VN') {
         // array các hạng vé A / P / G
-        $arrayClassEconomy = array('Economy (EP)-A', 'Economy (EP)-P', 'Economy (EP)-G', 'A', 'P', 'G');
+        $arrayClassEconomy = ['Economy (EP)-A', 'Economy (EP)-P', 'Economy (EP)-G', 'A', 'P', 'G'];
         // array các hạng vé Business
-        $arrayClassBusiness = array('Business (BF)-C', 'Business (BF)-J', 'Business (BC)-D', 'C', 'J', 'D');
+        $arrayClassBusiness = ['Business (BF)-C', 'Business (BF)-J', 'Business (BC)-D', 'C', 'J', 'D'];
 
         // Trẻ sơ sinh
         if ($pass_type == 2) {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
             // Hạng vé A / P / G của trẻ sơ sinh không có hành lý xách tay
-            if (in_array($ticket_class, $arrayClassEconomy)) {
+            if (stripos($ticket_class, "Eco Super Lite") !== false || in_array($ticket_class, $arrayClassEconomy)) {
                 unset($luggage_arr[0]);
             }
         }
         // Hạng vé Business
-        else if (in_array($ticket_class, $arrayClassBusiness)) {
+        elseif (in_array($ticket_class, $arrayClassBusiness)) {
             $pass_ticket_class = '_business';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
         }
         // Hạng vé A / P / G thì hành lý như bên dưới
-        else if (in_array($ticket_class, $arrayClassEconomy)) {
-            $luggage_arr = array(
+        elseif (stripos($ticket_class, "Eco Super Lite") !== false || in_array($ticket_class, $arrayClassEconomy)) {
+            $luggage_arr = [
                 '1' => 'Không có hành lý ký gửi ',
                 '0' => '1 kiện 23kg (0 VND/Khách)',
                 '2' => '1 kiện 32kg (0 VND/khách)',
@@ -1697,13 +1670,14 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
                 '220000'    => '1 kiện 10kg (220.000 VND/ Khách)',
                 '440000'    => '2 kiện 10kg (440.000 VND/ Khách)',
                 '660000'    => '3 kiện 10kg (660.000 VND/ Khách)'
-            );
+            ];
         }
         // Từ ngày 14-12-2022, đổi giá hành lý mới cho 1 / 2 / 3 kiện 10kg
         else if (strtotime($booking_date) >= strtotime('2022-12-14 00:00:00')) {
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . '_luggage_price_list2'];
         }
-    } else if ($airline == 'VJA' || $airline == 'VJ') {
+    }
+    else if ($airline == 'VJA' || $airline == 'VJ') {
         // Sau ngày 21-11-2022 đổi sang hành lý mới
         if (strtotime($booking_date) >= strtotime('2022-11-21 00:00:00')) {
             if ($is_new_edited || !is_null($luggage_index)) {
@@ -1719,7 +1693,8 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
                 $luggage_price = $luggage_index;
             }
         }
-    } else if ($airline == 'BBA' || $airline == 'QH') {
+    }
+    else if ($airline == 'BBA' || $airline == 'QH') {
         if ($pass_type == '2') {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
@@ -1729,12 +1704,14 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
             if (empty($luggage_list)) $luggage_list = array();
             $luggage_arr = $luggage_list + $app_list_strings['bambooair_advanced_luggage_price_list'];
         }
-    } else if ($airline == 'VNP' || $airline == 'BL') {
+    }
+    else if ($airline == 'VNP' || $airline == 'BL') {
         if ($pass_type == '2') {
             $pass_ticket_class = '_infant';
             $luggage_arr = $app_list_strings[$arr_replace[$airline] . $pass_ticket_class . '_luggage_price_list'];
         }
-    } else if ($airline == 'VTA' || $airline == 'VU') {
+    }
+    else if ($airline == 'VTA' || $airline == 'VU') {
         // Từ ngày 06-01-2023 thì lấy thông tin hành lý mới lần 2
         if (strtotime($booking_date) >= strtotime('2023-01-06')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list2'];
@@ -1743,7 +1720,8 @@ function generateLuggage($booking_date, $airline, $ticket_class, $pass_type, $lu
         else if (strtotime($booking_date) >= strtotime('2022-08-11')) {
             $luggage_arr = $app_list_strings['new_' . $arr_replace[$airline] . '_luggage_price_list1'];
         }
-    } else {
+    }
+    else {
         // INTER
         $luggage_arr = $app_list_strings['inter_luggage_price_list'];
     }
@@ -1857,6 +1835,16 @@ function isManagerUser($user_id)
 
     if ($is_manager) return 1;
     return 0;
+}
+
+// Là nhân viên có role Telesale
+function isTelesaleUser($user_id)
+{
+    global $db;
+
+    $sql = 'SELECT COUNT(id) FROM acl_roles_users WHERE user_id = "' . $user_id . '" AND role_id = "34beb2a2-5ee7-f001-2496-68ca264d1d3f" AND deleted = 0';
+    $is_telesale = $db->getOne($sql);
+    return ($is_telesale) ? 1 : 0;
 }
 
 
@@ -2132,13 +2120,12 @@ function global_test_input($data)
 }
 
 
-function custom_get_sip_number($key = '')
-{
+function custom_get_sip_number($key = '') {
     $arr = [
         /************************  IT  ************************/
+        '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
         'dedf3602-b1ec-97da-abbe-6656e656f5eb' => ['user' => '001', 'password' => '0Cm1Wc$bQd%ZTK5tnGGZ'], // Admin
         '168889bb-54c2-59c7-8b3f-649102530d3c' => ['user' => '010', 'password' => 'JgXTH7xYX?A4qLzK%vAD'], // Admin
-        '1' => ['user' => '012', 'password' => 'QAnTigDjZ8WSw%4finb1'], // Admin
         '622ecf27-f729-7187-7e27-6520e0dab882' => ['user' => '222', 'password' => '246357@89'], // Admin
 
         /************************  BOOKER  ************************/
@@ -2151,13 +2138,24 @@ function custom_get_sip_number($key = '')
         // Trần Minh Tuấn
         'da25400e-a030-389c-4228-5c233d8cd04e' => ['user' => '104', 'password' => 'L6U%a9^%Ggzkb9u4ryIx'],
         // Trần Như Điền
-        '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+        // '7c20e013-b0d6-e1f3-b113-53deed58f0a2' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+
+        // Mai Thị Anh Đào
+        'e692a4e4-b402-4ffa-ce78-68c904aa4086' => ['user' => '105', 'password' => '1uQH?M6tD6GgrXW3*IA^'],
+
         // Trương Mỹ Nhân
         '9a9ba7fd-bb1a-e132-b5fc-5bee7dcada12' => ['user' => '106', 'password' => 'ct0*LiQHAo1B5?s.C$Zq'],
         // Lê Tín Nghĩa
         'ebc40fa1-8878-1a86-000d-5b6949a87e11' => ['user' => '107', 'password' => 'C1UtQnCWTpUmH8C5?9wE'],
         // Nguyễn Duy Đăng
-        'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        // 'cb0ad38e-3524-deea-220f-62f20cec08d5' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+
+        // Trịnh Thị Kim Ly
+        // '2037c237-a846-7dc4-0b76-68c7699f5a03' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+
+        // Nguyễn Thị Kim Loan
+        'f299609a-28c0-c30e-d661-68ccb9aec236' => ['user' => '108', 'password' => 'bxzL$q.R?m^q1$eVju%n'],
+        
         // Nguyễn Lộc Danh
         '4ef24994-3d8e-ff0d-2784-599d0b3e56e1' => ['user' => '109', 'password' => 'rRTMeTJDrHJG7skLtnzd'],
         // Đỗ Nhật
@@ -2213,10 +2211,11 @@ function getNameGroupCalls($sip = "")
     $name = array();
 
     $arr_group = array(
-        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '105', '106', '107', '108', '109', '201'),
+        '<span class="badge bg-primary">Booker</span>' => array('101', '102', '103', '104', '106', '107', '109', '201'),
         '<span class="badge bg-warning text-dark">Kế toán</span>' => array('120', '121', '122', '123', '124', '125'),
         '<span class="badge bg-danger">Laptop</span>' => array('201', '202', '203'),
         '<span class="badge bg-dark">IT</span>' => array('010', '012', '130'),
+        '<span class="badge bg-info">Telesale</span>' => array('108', '105'),
     );
 
     foreach ($arr_group as $name_group => $arr_sip) {
@@ -2367,7 +2366,7 @@ function get_server_name($created_by = '')
     if (!in_array($created_by, $arr)) return 'timchuyenbay.com';
 
     // Query từ db - another
-    $sql = 'SELECT last_name FROM users WHERE id ="' . $created_by . '" AND deleted = 0 LIMIT 1';
+    $sql = "SELECT last_name FROM users WHERE id = '$created_by' AND deleted = 0 LIMIT 1";
     $res = $db->query($sql);
 
     while ($row = $db->fetchByAssoc($res)) {
@@ -2379,8 +2378,7 @@ function get_server_name($created_by = '')
 // Function to get the client ip address
 function get_ip_address_from_client()
 {
-    $white_list_ip = array('127.0.0.1', '::1');
-
+    $white_list_ip = ['127.0.0.1', '::1'];
     $ipaddress = '';
     if (getenv('HTTP_CLIENT_IP'))
         $ipaddress = getenv('HTTP_CLIENT_IP');
@@ -2396,11 +2394,9 @@ function get_ip_address_from_client()
         $ipaddress = getenv('REMOTE_ADDR');
     else
         $ipaddress = 'UNKNOWN';
-
     if (in_array($_SERVER['REMOTE_ADDR'], $white_list_ip)) {
-        $ipaddress  = '127.0.0.1';
+        $ipaddress = '127.0.0.1';
     }
-
     return $ipaddress;
 }
 
@@ -2424,17 +2420,23 @@ function get_payment_link()
 {
     $length = 10;
     $characters = 'qwertyuiopasdfghjklzxcvbnm0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@!';
-
     $charactersLength = strlen($characters);
     $randomString = '';
-
     for ($i = 0; $i < $length; $i++) {
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
-
     $randomString = $randomString . substr(time(), 4);
-
     return $randomString;
+}
+
+function update_field_booking($id, $field, $value, $datatype = 'string') {
+	if(is_null($id) || is_null($field) || is_null($value) || empty($id) || empty($field) || empty($value)) return false;
+	global $db;
+	$value_format = $datatype == 'string' ? "'$value'" : $value;
+	$sql = "UPDATE ec_flight_bookings
+			SET $field = $value_format
+			WHERE id = '$id' AND deleted = 0";
+	$db->query($sql);
 }
 
 require_once 'custom/include/utils/address.php';
@@ -2447,3 +2449,12 @@ require_once 'custom/include/utils/string.php';
 require_once 'custom/include/utils/Flight.php';
 require_once 'custom/include/utils/FareClass.php';
 require_once 'custom/include/utils/Baggage.php';
+require_once 'custom/include/utils/printSendTicket.php';
+// Init helpers
+foreach (glob("custom/include/helpers/*Helper.php") as $file) {
+    if (is_file($file)) require_once $file;
+}
+foreach (glob("custom/include/helpers/cache/*Helper.php") as $file) {
+    if (is_file($file)) require_once $file;
+}
+require_once 'custom/entrypoints/entryFactory.php'; // Init entry

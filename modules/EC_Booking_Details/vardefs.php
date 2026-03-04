@@ -13,7 +13,6 @@ $dictionary['EC_Booking_Details'] = array(
             'options'   => 'passenger_type_list',
             'len'       => 1,
             'default'   => '0',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -29,7 +28,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'int',
             'len'       => 11,
             'default'   => 0,
-            
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -44,7 +42,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-            
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -58,7 +55,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'id',
             'len'       => 36,
             'default'   => '',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
@@ -77,13 +73,12 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-            
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            
+
         ),
 
         'total_price' => array(
@@ -98,7 +93,7 @@ $dictionary['EC_Booking_Details'] = array(
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-            
+
         ),
 
         'booking_id' => array(
@@ -107,7 +102,7 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'id',
             'len'       => 36,
             'default'   => '',
-           
+
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
@@ -146,7 +141,6 @@ $dictionary['EC_Booking_Details'] = array(
             'options'   => 'bk_direction_list',
             'len'       => 1,
             'default'   => '0', // Lượt đi
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
@@ -162,7 +156,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-            
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -176,7 +169,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-            
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -190,7 +182,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -204,7 +195,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -218,13 +208,11 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
             'audited' => 1,
             'reportable' => 0,
-
         ),
 
         'total_bought_price' => array(
@@ -233,7 +221,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-            
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -247,7 +234,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -260,7 +246,6 @@ $dictionary['EC_Booking_Details'] = array(
             'vname'     => 'LBL_IS_ACTIVE',
             'type'      => 'bool',
             'default'   => 1,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -274,7 +259,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'id',
             'len'       => 36,
             'default'   => '',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => 0,
@@ -286,7 +270,6 @@ $dictionary['EC_Booking_Details'] = array(
             'name'      => 'supplier',
             'vname'     => 'LBL_SUPPLIER',
             'type'      => 'relate',
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => '',
@@ -306,7 +289,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -321,7 +303,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -336,7 +317,6 @@ $dictionary['EC_Booking_Details'] = array(
             'type'      => 'currency',
             'len'       => 26,
             'default'   => 0,
-
             'importable' => 'true',
             'duplicate_merge' => 'disabled',
             'duplicate_merge_dom_value' => ' ',
@@ -352,7 +332,7 @@ $dictionary['EC_Booking_Details'] = array(
         array('name' => 'idx_bkd_psgtype', 'type' => 'index', 'fields' => array('passenger_type')),
         // array('name' => 'idx_bkd_del', 'type' => 'index', 'fields' => array('deleted')),
     ),
-    'relationships' => array (),
+    'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,
 );
@@ -360,4 +340,4 @@ $dictionary['EC_Booking_Details'] = array(
 if (!class_exists('VardefManager')) {
     require_once('include/SugarObjects/VardefManager.php');
 }
-VardefManager::createVardef('EC_Booking_Details', 'EC_Booking_Details', array('basic','assignable','security_groups'));
+VardefManager::createVardef('EC_Booking_Details', 'EC_Booking_Details', array('basic', 'assignable', 'security_groups'));

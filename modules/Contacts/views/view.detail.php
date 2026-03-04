@@ -11,14 +11,14 @@ class ContactsViewDetail extends ViewDetail
      * We are overridding the display method to manipulate the portal information.
      * If portal is not enabled then don't show the portal fields.
      */
-    public function display()
-    {
+    public function display() {
         global $sugar_config;
 
         // Create and update contact
         createContactsForBooking($this->bean->phone_mobile);
 
         $this->populateCustomButtons();
+        $this->populateLineZalo();
         $this->populateLinePoints();
         $this->populateLineCalls();
 
@@ -35,28 +35,15 @@ class ContactsViewDetail extends ViewDetail
             $this->ss->assign("PORTAL_ENABLED", true);
         }
 
+        $this->getStyles();
         parent::display();
-
-        // If user shares phone number, update the phone number to contact
-        // if(!empty($this->bean->zalo_id) && empty($this->bean->phone_mobile)) {
-        //     require_once('modules/EC_SMS_Logs/Zalo.php');
-        //     $objZalo = new Zalo();
-        //     $json = $objZalo->get_user_info($this->bean->zalo_id);
-        //     $arr = json_decode($json, true);
-
-        //     if(isset($arr['error']) && $arr['error'] == 0) {
-        //         // Update phone
-        //         if(isset($arr['data']['shared_info']) && isset($arr['data']['shared_info']['phone']) && !empty($arr['data']['shared_info']['phone'])) {
-        //             $this->bean->phone_mobile = '0' . substr($arr['data']['shared_info']['phone'], 2);
-        //             $this->bean->save();
-        //             header("Refresh:0");
-        //         }
-        //     }
-        // }
     }
 
-    function populateCustomButtons()
-    {
+    private function getStyles() {
+        echo "<link rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0'>";
+    }
+
+    private function populateCustomButtons() {
         // global $app_list_strings, $current_user, $timedate;
         // $date_format = $timedate->get_date_format();
         $contact_button      = '<a target="_blank" class="btn btn-info btn-view-detail" data-bs-toggle="modal" data-bs-target="#modalHistoryContactBookings" class="contact_name" data-id="' . $this->bean->id . '"><span>Booking</span></a>';
@@ -76,8 +63,7 @@ class ContactsViewDetail extends ViewDetail
         $this->ss->assign('DETAIL_BOOKING', $contact_button . $modal_history_bookings);
     }
 
-    public function populateLinePoints()
-    {
+    private function populateLinePoints() {
         global $timedate;
         $html = $tbody = '';
 
@@ -189,7 +175,7 @@ class ContactsViewDetail extends ViewDetail
         $this->ss->assign('INFO_POINTS', $html);
     }
 
-    public function populateLineCalls(){
+    private function populateLineCalls() {
         $html = '<table class="table table-hover m-0">
                 <thead>
                     <tr>
@@ -260,11 +246,76 @@ class ContactsViewDetail extends ViewDetail
         $this->ss->assign('INFO_CALLS', $html);
     }
 
-    public function isRefund($record_id)
-    {
+    private function populateLineZalo() {
+        $zaloContact = new EC_Zalo_Contacts();
+        $tbody = "";
+
+        $sql = "SELECT id
+                ,name
+                ,zalo_id
+                ,oa_id
+                ,alias
+                ,avatar
+                ,birth_date
+                ,last_interaction
+                ,is_follower
+                ,tags
+                ,province_city
+                ,ward_commune
+                ,address
+            FROM ec_zalo_contacts
+            WHERE contact_id = '{$this->bean->id}' AND status = '' AND deleted = 0";
+        $res = $this->bean->db->query($sql);
+        while($row = $this->bean->db->fetchByAssoc($res)) {
+            $is_follower_html = $row['is_follower'] ? '<span class="text-primary">Đã quan tâm</span>' : '<span>Chưa quan tâm</span>';
+            $last_interaction = !empty($row['last_interaction']) ? date('d-m-Y H:i', strtotime($row['last_interaction'])) : '';
+
+            $is_call = $zaloContact->check_zalo_contact_action_by_data('call', $row['last_interaction'], $row['is_follower']);
+            $is_send_consultation = $zaloContact->check_zalo_contact_action_by_data('send_consultation', $row['last_interaction'], $row['is_follower']);
+
+            $action_html = '';
+            if($is_call) $action_html .= "<h6><span class='badge rounded-pill bg-primary'>Có thể gọi</span></h6>";
+            else $action_html .= "<h6><span class='badge rounded-pill bg-light text-dark fw-normal'><s>Có thể gọi</s></span></h6>";
+            if($is_send_consultation) $action_html .= "<h6><span class='badge rounded-pill bg-primary'>Có thể chat</span></h6>";
+            else $action_html .= "<h6><span class='badge rounded-pill bg-light text-dark fw-normal'><s>Có thể chat</s></span></h6>";
+
+            $tbody .= "<tr>
+                <td>
+                    <div class='d-flex align-items-center gap-2'>
+                        <img src='{$row['avatar']}' alt='Avatar'
+                            style='width:50px; height:50px; border-radius:50%;'    
+                        />
+                        <a href='#'>{$row['alias']}</a>
+                    </div>
+                </td>
+                <td>{$is_follower_html}</td>
+                <td>{$row['tags']}</td>
+                <td>{$row['address']} {$row['ward_commune']} {$row['province_city']}</td>
+                <td>{$action_html}</td>
+                <td>{$last_interaction}</td>
+            </tr>";
+        }
+
+        if(empty($tbody)) $tbody = "<tr><td colspan='6'><i>Chưa có thông tin</i></td></tr>";
+        $this->ss->assign("INFO_ZALO", "<table class='table table-hover m-0'>
+            <thead>
+                <tr>
+                    <th width='30%'></th>
+                    <th width='10%'>Trạng thái</th>
+                    <th>Thẻ</th>
+                    <th width='30%'>Địa chỉ</th>
+                    <th>Hành động</th>
+                    <th width='12%'>Tương tác cuối</th>
+                </tr>
+            </thead>
+            <tbody class='border-bottom-none'>{$tbody}</tbody>
+        </table>");
+    }
+
+    public function isRefund($record_id) {
         return $this->bean->db->getOne("SELECT COUNT(pl.id)
             FROM ec_contact_points_log pl
-            WHERE pl.parent_id = '$record_id'
+            WHERE pl.parent_id = '{$record_id}'
                 AND pl.parent_type = 'EC_Contact_Points_Log'
                 AND pl.up > 0
                 AND pl.down = 0

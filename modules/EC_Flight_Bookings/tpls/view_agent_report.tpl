@@ -1,6 +1,12 @@
 {literal}
     <script>
         $(document).ready(function () {
+            $('#date_select').on('change', function () {
+				var reportTermList = $('#date_select :selected');
+				$('#from_date').val(reportTermList.data('fromdate'));
+				$('#to_date').val(reportTermList.data('todate'));
+			});
+
             $('#checkall').change(function () {
                 var is_check_all = $(this).is(':checked');
                 if (is_check_all) {
@@ -86,6 +92,8 @@
     <input type="hidden" name="print" value="true"/>
 
     <div class="action--wrap flex-wrap d-flex gap-2 align-items-center">
+        <select class="box-select" id="date_select" name="date_select">{$DATE_SELECT_OPTIONS}</select>
+
         <div class="from-to-date--wrap d-inline-flex gap-2 align-items-center">
             <div class="d-flex gap-2 align-items-center date_trigger--wrap fdate_trigger--wrap">
                 <span class="text-label">Từ ngày: </span>    

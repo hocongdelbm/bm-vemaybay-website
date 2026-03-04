@@ -33,7 +33,18 @@ class EC_Booking_Details extends Basic {
     public $total_price;
     public $booking_id;
     public $booking;
-	
+    public $airport_fee;
+    public $admin_fee;
+    public $service_fee;
+    public $total_bought_price;
+    public $supplier_discount;
+    public $fee_bought;
+    public $supplier_id;
+    public $direction;
+    public $is_active;
+    public $vat_admin;
+    public $admin_fee_no_vat;
+
     public function bean_implements($interface)
     {
         switch($interface)
@@ -41,7 +52,6 @@ class EC_Booking_Details extends Basic {
             case 'ACL':
                 return true;
         }
-
         return false;
     }
 }

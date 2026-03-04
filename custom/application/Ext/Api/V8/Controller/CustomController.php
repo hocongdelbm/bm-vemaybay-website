@@ -17,71 +17,107 @@ class CustomController extends BaseController
     public function save_booking(Request $request, Response $response, array $args)
     {
         try {
-            global $sugar_config;
-            $params  = (array)$request->getParsedBody();
+            global $db, $sugar_config;
+            $params = (array) $request->getParsedBody();
             $user_id = $params['user_id'];
             $request_ip = $request->getServerParam('REMOTE_ADDR');
 
             // Validate here
-            if (strlen($user_id) != 36) return $response->withJson(['error' => true, 'message' => "Invalid user id"], 400);
-            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
+            if (strlen($user_id) != 36)
+                return $response->withJson(['error' => true, 'message' => "Invalid user id"], 400);
+            if (!in_array($request_ip, $sugar_config['ip_whitelist']))
+                return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
 
             // Save booking
             $booking = BeanFactory::newBean("EC_Flight_Bookings");
-            foreach ($params['ec_flight_bookings'] as $key => $value) {
-                $booking->$key = $value;
-            }
-            $booking->update_modified_by    = false;
-            $booking->set_created_by        = false;
-            $booking->created_by            = $user_id;
-            $booking->modified_user_id      = $user_id;
-
-            // Save nganluong
-            if (!isset($params['ec_flight_bookings']['nganluong_code']) || empty($params['ec_flight_bookings']['nganluong_code'])) {
-                $booking->nganluong_code     = get_payment_link();
-                $booking->nganluong_datepaid = date('Y-m-d H:i:s');
-            }
-            $booking->save();
-
-            // Save journeys
-            foreach ($params['ec_booking_itineraries'] as $i) {
-                $itinerary = BeanFactory::newBean("EC_Booking_Itineraries");
-                foreach ($i as $key => $value) {
-                    $itinerary->$key = $value;
-                    $itinerary->booking_id = $booking->id;
-                    $itinerary->update_modified_by  = false;
-                    $itinerary->set_created_by      = false;
-                    $itinerary->created_by          = $user_id;
-                    $itinerary->modified_user_id    = $user_id;
-                    $itinerary->save();
+            if (isset($params['ec_flight_bookings']) && !empty($params['ec_flight_bookings'])) {
+                foreach ($params['ec_flight_bookings'] as $key => $value) {
+                    $booking->$key = $value;
                 }
             }
 
+            $booking->update_modified_by = false;
+            $booking->set_created_by = false;
+            $booking->created_by = $user_id;
+            $booking->modified_user_id = $user_id;
+
+            // Save nganluong
+            if (!isset($params['ec_flight_bookings']['nganluong_code']) || empty($params['ec_flight_bookings']['nganluong_code'])) {
+                $booking->nganluong_code = get_payment_link();
+                $booking->nganluong_datepaid = date('Y-m-d H:i:s');
+            }
+
+            /**
+             * Map calls and booking telesale - get lastest call telesale of phone
+             * Loại trừ các booking tham khảo, booking TEST
+             */
+            if (!empty($booking->phone) && !empty($booking->contact_name) && !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)) {
+                $call = BeanFactory::newBean("Calls");
+                $call_id = $call->getTelesaleCalls($booking->phone, date('Y-m-d H:i:s'));
+                if (!empty($call_id)) {
+                    $booking->telesale_call_id = $call_id;
+                    $booking->is_telesale = 1;
+                }
+            }
+
+            // Đánh dấu booking tham khảo
+            if (strtoupper(trim($booking->contact_name)) === 'THAM KHAO') {
+                $booking->is_reference = 1;
+            }
+
+            $booking->save();
+            $booking_id = $booking->id;
+
+            // Save journeys
+            if (isset($params['ec_booking_itineraries']) && !empty($params['ec_booking_itineraries'])) {
+                foreach ($params['ec_booking_itineraries'] as $i) {
+                    $itinerary = BeanFactory::newBean("EC_Booking_Itineraries");
+                    foreach ($i as $key => $value) {
+                        $itinerary->$key = $value;
+                        $itinerary->booking_id = $booking->id;
+                        $itinerary->update_modified_by = false;
+                        $itinerary->set_created_by = false;
+                        $itinerary->created_by = $user_id;
+                        $itinerary->modified_user_id = $user_id;
+                        $itinerary->save();
+                    }
+                }
+            }
+
+            // ===== ĐÁNH DẤU VÉ CẬN =====
+            if (!empty($booking_id)) {
+                updateIsPriorForBooking($booking_id);
+            }
+
             // Save passengers
-            foreach ($params['ec_booking_passengers'] as $p) {
-                $pass = BeanFactory::newBean("EC_Booking_Passengers");
-                foreach ($p as $key => $value) {
-                    $pass->$key = $value;
-                    $pass->booking_id = $booking->id;
-                    $pass->update_modified_by   = false;
-                    $pass->set_created_by       = false;
-                    $pass->created_by           = $user_id;
-                    $pass->modified_user_id     = $user_id;
-                    $pass->save();
+            if (isset($params['ec_booking_passengers']) && !empty($params['ec_booking_passengers'])) {
+                foreach ($params['ec_booking_passengers'] as $p) {
+                    $pass = BeanFactory::newBean("EC_Booking_Passengers");
+                    foreach ($p as $key => $value) {
+                        $pass->$key = $value;
+                        $pass->booking_id = $booking->id;
+                        $pass->update_modified_by = false;
+                        $pass->set_created_by = false;
+                        $pass->created_by = $user_id;
+                        $pass->modified_user_id = $user_id;
+                        $pass->save();
+                    }
                 }
             }
 
             // Save details
-            foreach ($params['ec_booking_details'] as $d) {
-                $detail = BeanFactory::newBean("EC_Booking_Details");
-                foreach ($d as $key => $value) {
-                    $detail->$key = $value;
-                    $detail->booking_id = $booking->id;
-                    $detail->update_modified_by = false;
-                    $detail->set_created_by     = false;
-                    $detail->created_by         = $user_id;
-                    $detail->modified_user_id   = $user_id;
-                    $detail->save();
+            if (isset($params['ec_booking_details']) && !empty($params['ec_booking_details'])) {
+                foreach ($params['ec_booking_details'] as $d) {
+                    $detail = BeanFactory::newBean("EC_Booking_Details");
+                    foreach ($d as $key => $value) {
+                        $detail->$key = $value;
+                        $detail->booking_id = $booking->id;
+                        $detail->update_modified_by = false;
+                        $detail->set_created_by = false;
+                        $detail->created_by = $user_id;
+                        $detail->modified_user_id = $user_id;
+                        $detail->save();
+                    }
                 }
             }
 
@@ -90,7 +126,8 @@ class CustomController extends BaseController
                 foreach ($params['ec_vouchers'] as $type => $arr) {
                     $voucher_id = isset($arr['voucher_id']) ? $arr['voucher_id'] : '';
                     $discount_amount = isset($arr['discount_amount']) ? $arr['discount_amount'] : 0;
-                    if (empty($voucher_id) || $discount_amount < 1) continue;
+                    if (empty($voucher_id) || $discount_amount < 1)
+                        continue;
 
                     // Save relationship booking & voucher
                     $booking->load_relationship('vouchers');
@@ -113,11 +150,11 @@ class CustomController extends BaseController
 
             // Return
             $data = [
-                'booking_id'        => $booking->id,
-                'booking_name'      => $booking->name,
-                'subtotal_amount'   => $booking->subtotal_amount,
-                'luggage_fee'       => $booking->luggage_fee,
-                'total_amount'      => $booking->total_amount
+                'booking_id' => $booking_id,
+                'booking_name' => $booking->name,
+                'subtotal_amount' => $booking->subtotal_amount,
+                'luggage_fee' => $booking->luggage_fee,
+                'total_amount' => $booking->total_amount
             ];
 
             return $response->withJson([
@@ -136,31 +173,31 @@ class CustomController extends BaseController
     /************  CALL  ************/
     public function save_call(Request $request, Response $response, array $args)
     {
-        $params = (array)$request->getParsedBody();
+        $params = (array) $request->getParsedBody();
 
-        $call_id        = isset($params['call_id']) ? global_test_input($params['call_id']) : '';
+        $call_id = isset($params['call_id']) ? global_test_input($params['call_id']) : '';
         $call_direction = isset($params['call_direction']) ? global_test_input($params['call_direction']) : '';
 
         $arr_whitelist = ['0898888280', '0348650381'];
 
         // Xử lý cuộc gọi đến thiếu số 0
         if (isset($params['call_from']) && $call_direction == 'inbound' && strlen($params['call_from']) < 10 && substr($params['call_from'], 0, 1) != 0) {
-            $call_from      = '0' . trim($params['call_from']);
+            $call_from = '0' . trim($params['call_from']);
         } else {
-            $call_from      = isset($params['call_from']) ? trim($params['call_from']) : '';
+            $call_from = isset($params['call_from']) ? trim($params['call_from']) : '';
         }
 
-        $call_to        = isset($params['call_to']) ? trim($params['call_to']) : '';
-        $call_start     = isset($params['call_start']) ? global_test_input($params['call_start']) : '';
-        $call_duration  = isset($params['call_duration']) ? global_test_input($params['call_duration']) : 0;
-        $call_end       = isset($params['call_end']) ? global_test_input($params['call_end']) : '';
-        $call_talk      = isset($params['call_talk']) ? global_test_input($params['call_talk']) : 0;
-        $call_wait      = isset($params['call_wait']) ? global_test_input($params['call_wait']) : 0;
-        $call_answer    = isset($params['call_answer']) ? global_test_input($params['call_answer']) : 0;
-        $record_file    = isset($params['record_file']) ? global_test_input($params['record_file']) : '';
-        $other_caller   = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
-        $call_mos       = isset($params['call_mos']) ? global_test_input($params['call_mos']) : null;
-        $dialed         = isset($params['dialed']) ? global_test_input($params['dialed']) : '';
+        $call_to = isset($params['call_to']) ? trim($params['call_to']) : '';
+        $call_start = isset($params['call_start']) ? global_test_input($params['call_start']) : '';
+        $call_duration = isset($params['call_duration']) ? global_test_input($params['call_duration']) : 0;
+        $call_end = isset($params['call_end']) ? global_test_input($params['call_end']) : '';
+        $call_talk = isset($params['call_talk']) ? global_test_input($params['call_talk']) : 0;
+        $call_wait = isset($params['call_wait']) ? global_test_input($params['call_wait']) : 0;
+        $call_answer = isset($params['call_answer']) ? global_test_input($params['call_answer']) : 0;
+        $record_file = isset($params['record_file']) ? global_test_input($params['record_file']) : '';
+        $other_caller = isset($params['other_caller']) ? global_test_input($params['other_caller']) : '';
+        $call_mos = isset($params['call_mos']) ? global_test_input($params['call_mos']) : null;
+        $dialed = isset($params['dialed']) ? global_test_input($params['dialed']) : '';
 
         if (empty($call_id)) {
             // Lưu log
@@ -200,12 +237,12 @@ class CustomController extends BaseController
 
         $call = BeanFactory::newBean("Calls");
         if (!empty($row['id'])) { // Cập nhật thông tin liên hệ cho Call
-            $call->parent_type  = 'Contacts';
-            $call->parent_id    = $row['id'];
+            $call->parent_type = 'Contacts';
+            $call->parent_id = $row['id'];
         }
-        $call->call_id   = $call_id;
+        $call->call_id = $call_id;
         $call->call_from = $call_from;
-        $call->call_to   = $call_to;
+        $call->call_to = $call_to;
         $call->call_type = strlen($number) < 15 ? 'phone' : 'zalo';
         $call->type_call_sources = 'called';
 
@@ -243,7 +280,7 @@ class CustomController extends BaseController
                     $call->direction = 'spam';
 
                     // Update số đó vào file JSON
-                    if(!in_array(trim($call_from), $arr_whitelist)){
+                    if (!in_array(trim($call_from), $arr_whitelist)) {
                         add_blacklist_phone($call_from);
                     }
                 } else {
@@ -257,25 +294,32 @@ class CustomController extends BaseController
         }
 
         // Bổ sung assigned_user_id cho cuộc gọi đi / nội bộ
-        if ($call_direction == 'outbound' || $call_direction == 'internal') {
+        if (in_array($call->direction, array('outbound', 'internal'))) {
             $call->assigned_user_id = custom_get_sip_number($call_from);
+        } else if (in_array($call->direction, array('inbound'))) {
+            if (trim($dialed)) {
+                $user_id = custom_get_sip_number(trim($dialed));
+                if (!empty($user_id)) {
+                    $call->assigned_user_id = $user_id;
+                }
+            }
         }
 
-        $call->date_start   = date('d-m-Y H:i:s', strtotime($call_start));
-        $call->date_end     = $call_end ? date('d-m-Y H:i:s', strtotime($call_end)) : date('d-m-Y H:i:s', strtotime($call_start) + (int)$call_duration);
-        $call->status       = 'new';
-        $call->log          = json_encode($params);
-        $call->record_file  = $record_file;
+        $call->date_start = date('d-m-Y H:i:s', strtotime($call_start));
+        $call->date_end = $call_end ? date('d-m-Y H:i:s', strtotime($call_end)) : date('d-m-Y H:i:s', strtotime($call_start) + (int) $call_duration);
+        $call->status = 'new';
+        $call->log = json_encode($params);
+        $call->record_file = $record_file;
         $call->other_caller = $other_caller;
-        $call->call_mos     = $call_mos;
-        $call->call_duration = (int)$call_duration;
-        $call->call_wait    = (int)calculateWaitTime($params);
-        $call->call_talk    = (int)$call_talk;
-        $call->is_success   = ((int)$call_talk > 0) ? 1 : 0;
+        $call->call_mos = $call_mos;
+        $call->call_duration = (int) $call_duration;
+        $call->call_wait = (int) calculateWaitTime($params);
+        $call->call_talk = (int) $call_talk;
+        $call->is_success = ((int) $call_talk > 0) ? 1 : 0;
 
         if ($call_direction == 'inbound' || $call_direction != 'outbound') {
             $info_phone = getInfoCallSource($call_to);
-            $site       = isset($info_phone['website']) && !empty($info_phone['website']) ? $info_phone['website'] : 'giaonhanh.com.vn';
+            $site = isset($info_phone['website']) && !empty($info_phone['website']) ? $info_phone['website'] : 'giaonhanh.com.vn';
             $call->call_sources = $site;
         }
         $call->hangup_cause = $call->determineHangupCause($params);
@@ -289,8 +333,10 @@ class CustomController extends BaseController
                     $oa_id = $sugar_config['zalo_config']['oa_id'] ?? '';
 
                     $src = '';
-                    if (strlen($call->call_to) > strlen($oa_id) && strpos($call->call_to, $oa_id) === 0) $src = 1;
-                    else $src = 0;
+                    if (strlen($call->call_to) > strlen($oa_id) && strpos($call->call_to, $oa_id) === 0)
+                        $src = 1;
+                    else
+                        $src = 0;
 
                     $assigned_user_id = '';
                     if ($src == 0 && !empty($call->call_from) && strlen($call->call_from) < 5) {
@@ -301,17 +347,17 @@ class CustomController extends BaseController
 
                     $zalomes = BeanFactory::newBean("EC_Zalo_Messages");
                     $zalomes->id = '';
-                    $zalomes->message_id  = $call->id;
-                    $zalomes->src         = $src;
-                    $zalomes->from_id     = $src == 0 ? $oa_id : $call->call_from;
-                    $zalomes->to_id       = $src == 1 ? $oa_id : $call->call_to;
+                    $zalomes->message_id = $call->id;
+                    $zalomes->src = $src;
+                    $zalomes->from_id = $src == 0 ? $oa_id : $call->call_from;
+                    $zalomes->to_id = $src == 1 ? $oa_id : $call->call_to;
                     $zalomes->timestamp = round(microtime(true) * 1000); // Milliseconds
-                    $zalomes->type      = 'call';
-                    $zalomes->sub_type  = $call->direction;
-                    $zalomes->data      = json_encode([
-                        'record_file'   => $call->record_file,
-                        'duration'      => $call->call_duration,
-                        'routing'       => $src == 1 ? substr($call->call_to, -3) : $call->call_from
+                    $zalomes->type = 'call';
+                    $zalomes->sub_type = $call->direction;
+                    $zalomes->data = json_encode([
+                        'record_file' => $call->record_file,
+                        'duration' => $call->call_duration,
+                        'routing' => $src == 1 ? substr($call->call_to, -3) : $call->call_from
                     ]);
                     $zalomes->response = $call->log;
                     $zalomes->assigned_user_id = $assigned_user_id;
@@ -350,7 +396,7 @@ class CustomController extends BaseController
     public function get_info_voucher(Request $request, Response $response, array $args)
     {
         global $sugar_config;
-        $params = (array)$request->getParsedBody();
+        $params = (array) $request->getParsedBody();
         $request_ip = $request->getServerParam('REMOTE_ADDR');
         $voucher_code = isset($params['voucher_code']) ? global_test_input($params['voucher_code']) : '';
 
@@ -361,7 +407,7 @@ class CustomController extends BaseController
             ], 403);
         if (strlen($voucher_code) < 9 || strlen($voucher_code) > 20)
             return $response->withJson([
-                'error'   => 1,
+                'error' => 1,
                 'message' => "Invalid voucher code $voucher_code"
             ], 400);
 
@@ -410,157 +456,21 @@ class CustomController extends BaseController
     /**
      * Send ZNS from website
      */
-    public function send_zns(Request $request, Response $response, array $args) {
-        try {
-            global $sugar_config;
-            $params         = (array)$request->getParsedBody();
-            $phone          = isset($params['phone']) ? $params['phone'] : "";
-            $type_zns       = isset($params['type_zns']) ? $params['type_zns'] : "";
-            $template_data  = isset($params['template_data']) ? $params['template_data'] : []; // array
-            $request_ip     = $request->getServerParam('REMOTE_ADDR');
-
-            if(!in_array($request_ip, $sugar_config['ip_whitelist'])) return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
-            if(date('H') + 7 > 21 || date('H') + 7 < 6) {
-                return $response->withJson([
-                    "error" => true,
-                    "message" => "ZNS chỉ được gửi trong khoảng thời gian từ 6h đến 22h mỗi ngày"
-                ], 400);
-            }
-            if(empty($phone) || empty($type_zns) || empty($template_data)) {
-                return $response->withJson([
-                    "error" => true,
-                    "message" => "Dữ liệu cung cấp không hợp lệ",
-                    "data" => [
-                        "phone" => $phone,
-                        "type_zns" => $type_zns,
-                        "template_data" => $template_data
-                    ]
-                ], 400);
-            }
-
-            require_once("modules/EC_Zalo/Zalo.php");
-            require_once("modules/EC_Zalo/OMNI.php");
-            $Zalo = new \Zalo();
-            $Omni = new \OMNI();
-            $template_id = $template_name = '';
-            // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
-            //     $template_id = $Zalo->get_template_id_zns($type_zns);
-            //     $template_name = $Zalo->get_template_name_zns($template_id);
-            //     $json = $Zalo->send_zns($phone, $template_id, json_encode($template_data));
-            // }
-            // else {
-                $template_id = $Omni->getTemplateCode($type_zns);
-                $template_name = $Omni->getTemplateName($template_id);
-                $json = $Omni->sendMessage($phone, $template_id, $template_data);
-            // }
-
-            $arr  = json_decode($json, true);
-            $category = (in_array($template_id, ['347078', '347088', '345209', '288276', '288279', '346656']) ? 'transaction' : 'customer_care');
-            $template_data['template_id'] = $template_id;
-
-            // if((isset($arr['error']) && $arr['error'] == 0) || (isset($arr['status']) && $arr['status'] == 1)) {
-            if(isset($arr['status']) && $arr['status'] == 1) {
-                $m = BeanFactory::newBean("EC_Messages");
-                $m->send_from       = $Zalo->get_oa_id();
-                $m->send_to         = $phone;
-                $m->content         = $template_name;
-                $m->type            = 'zalo_zns';
-                $m->category        = $category;
-                $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
-                $m->data            = json_encode($template_data);
-                $m->response        = $json;
-                $m->status          = 'done';
-                $m->cost            = 220;
-                $m->save();
-
-                try {
-                    $msg_id = $arr['data']['msg_id'] ?? '';
-                    $timestamp = $arr['data']['sent_time'] ?? 0;
-
-                    $zalomes = BeanFactory::newBean("EC_Zalo_Messages");
-                    $zalomes->id            = '';
-                    $zalomes->message_id    = $msg_id;
-                    $zalomes->src           = 0;
-                    $zalomes->from_id       = $Zalo->get_oa_id();
-                    $zalomes->to_id         = $phone;
-                    $zalomes->timestamp     = $timestamp;
-                    $zalomes->type          = 'zns';
-                    $zalomes->sub_type      = $type_zns;
-                    $zalomes->description   = $template_name;
-                    $zalomes->template_id   = $template_id;
-                    $zalomes->data          = json_encode($template_data);
-                    $zalomes->response      = trim($json);
-                    $zalomes->save();
-                }
-                catch(Throwable $th) {
-                    // $message = Mattermost::$line_separation;
-                    // $message .= Mattermost::markdownHeading("[ERROR] ZNS message saved failed\n");
-                    // $message .= "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\n\n$json";
-                    // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-
-                    $message = "<b>[ERROR] ZNS message saved failed</b>";
-                    $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}\n<pre>$json</pre>";
-                    $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                    $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                    $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                }
-                
-                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', "**Hệ thống**: Gửi $template_name đến Zalo **$phone**");
-                
-                $botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
-                $chatId = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
-                Telegram::sendMessage("<b>Hệ thống</b>: Gửi $template_name đến Zalo <b>$phone</b>", $botToken, $chatId);
-
-                return $response->withJson([
-                    "error"   => false,
-                    "message" => "Success",
-                    "data"    => $arr
-                ]);
-            }
-            else {
-                // $error_code = isset($arr['error']) ? $arr['error'] : '';
-                // if(empty($error_code)) $error_code = isset($arr['code']) ? $arr['code'] : '';
-                $error_code = isset($arr['code']) ? $arr['code'] : '';
-                
-                // if(in_array($type_zns, ['journey-one-way', 'journey-round-trip', 'payment'])) {
-                //     $message = $Zalo->get_error_description_zns($error_code);
-                // }
-                // else {
-                    $message = $Omni->getErrorDescription($error_code);
-                // }
-
-                $m = BeanFactory::newBean("EC_Messages");
-                $m->send_from       = $Zalo->get_oa_id();
-                $m->send_to         = $phone;
-                $m->content         = $template_name;
-                $m->type            = 'zalo_zns';
-                $m->category        = $category;
-                $m->send_time       = date("Y-m-d H:i:s", strtotime('-7 hours')); // Lưu xuống db giảm 7 tiếng
-                $m->data            = json_encode($template_data);
-                $m->response        = $json;
-                $m->status          = 'fail';
-                $m->description     = $message;
-                $m->save();
-
-                return $response->withJson(["error" => true, "message" => $message, "data" => $arr]);
-            }
-        }
-        catch(Throwable $th) {
-            return $response->withJson([
-                "error" => true,
-                "message" => $th->getMessage()
-            ], 500);
-        }
+    public function send_zns(Request $request, Response $response, array $args)
+    {
+        return $response->withJson([
+            "error" => true,
+            "message" => "Tính năng ngừng hoạt động",
+        ], 404);
     }
 
     // API TEST SAVE CONTACT - APPS SCRIPT
     public function save_contacts(Request $request, Response $response, array $args)
     {
-        $contacts = (array)$request->getParsedBody() ?? [];
+        $contacts = (array) $request->getParsedBody() ?? [];
         $request_ip = $request->getServerParam('REMOTE_ADDR');
 
-        if(is_array($contacts) && count($contacts) > 0) {
+        if (is_array($contacts) && count($contacts) > 0) {
             foreach ($contacts as $contactData) {
                 $contact = BeanFactory::newBean('Contacts');
                 foreach ($contactData as $key => $value) {
@@ -572,7 +482,7 @@ class CustomController extends BaseController
                     }
                 }
                 $contact_id = $contact->save();
-    
+
                 if (!$contact_id) {
                     // $messages = "- SAVE CONTACT - APPS SCRIPT - ERROR:\n" .
                     //     "<pre>[ERROR]: Lưu thông tin liên hệ Apps script thất bại! " . json_encode($contactData) . "</pre>";
@@ -591,7 +501,7 @@ class CustomController extends BaseController
                     // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                 }
             }
-        } 
+        }
 
         return $response->withJson([
             'error' => 0,
@@ -599,5 +509,45 @@ class CustomController extends BaseController
             'data' => $contacts,
             'ip' => $request_ip,
         ], 200);
+    }
+
+    // Save voucher in APP
+    public function save_voucher(Request $request, Response $response, array $args)
+    {
+        try {
+            global $db, $sugar_config;
+            $params = (array) $request->getParsedBody();
+
+            $booking_id = $params['booking_id'];
+            $voucher_id = $params['voucher_id'];
+            $discount_amount = $params['discount_amount'];
+            $request_ip = $request->getServerParam('REMOTE_ADDR');
+
+            if (!in_array($request_ip, $sugar_config['ip_whitelist'])) {
+                return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
+            }
+
+            $booking = BeanFactory::getBean("EC_Flight_Bookings", $booking_id);
+            if (!$booking) {
+                return $response->withJson(['error' => true, 'message' => "Booking not found"], 404);
+            }
+
+            $booking->load_relationship('vouchers');
+            $booking->vouchers->add($voucher_id);
+
+            $id = create_guid();
+            $sql = "INSERT INTO bookings_vouchers (id, booking_id, voucher_id, discount_amount, deleted, date_modified) 
+                VALUES ('{$id}', '{$booking_id}', '{$voucher_id}', {$discount_amount}, 0, NOW())
+                ON DUPLICATE KEY UPDATE discount_amount = {$discount_amount}, date_modified = NOW()";
+            $db->query($sql);
+
+            return $response->withJson([
+                'error' => false,
+                'message' => "Voucher saved successfully",
+                'data' => ['booking_id' => $booking_id, 'voucher_id' => $voucher_id]
+            ], 201);
+        } catch (Throwable $e) {
+            return $response->withJson(['error' => true, 'message' => $e->getMessage()], 500);
+        }
     }
 }

@@ -1,10 +1,12 @@
 <?php
-if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once("include/Sugar_Smarty.php");
 date_default_timezone_set("Asia/Ho_Chi_Minh");
 
-class Viewemployeekpi extends SugarView {
-	function display() {
+class Viewemployeekpi extends SugarView
+{
+	function display()
+	{
 		if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) {
 			$smartyCont = new Sugar_Smarty();
 			$this->populateContent($smartyCont);
@@ -15,7 +17,8 @@ class Viewemployeekpi extends SugarView {
 		}
 	}
 
-	function populateContent($smartyobj) {
+	function populateContent($smartyobj)
+	{
 		global $db, $current_user, $app_list_strings;
 
 		$sql_search = "";
@@ -103,7 +106,7 @@ class Viewemployeekpi extends SugarView {
 		if (
 			is_admin($current_user)
 			|| ($current_user->title == 'QuanLy'
-			|| $_POST['report_type'] == 'all')
+				|| $_POST['report_type'] == 'all')
 		) {
 			/**
 			 * completed: số lượng booking hoàn tất
@@ -111,6 +114,7 @@ class Viewemployeekpi extends SugarView {
 			 * recheck: Recheck booking
 			 * invoice_issued: Xuất hóa đơn đầu ra * 3
 			 * ticket_delivery: Giao vé / giao thực phẩm
+			 * checkin_journey: Checkin hành trình
 			 * Recall: Recall cuộc gọi / Remind (cuộc gọi hoàn tất, có thoại và mô tả)
 			 * check_debt: Kiểm tra, đối chiếu công nợ
 			 * support: Hỗ trợ khách hàng (Delay, zalo)
@@ -133,6 +137,7 @@ class Viewemployeekpi extends SugarView {
 						,SUM(IFNULL(w.support,0)) AS support
 						,SUM(IFNULL(w.invoice_issued,0) * 3) AS invoice_issued
 						,SUM(IFNULL(w.ticket_delivery,0)) AS ticket_delivery
+						,SUM(IFNULL(w.checkin_journey,0)) AS checkin_journey
 						,SUM(IFNULL(w.recall,0)) AS recall
 						,SUM(IFNULL(w.remind,0)) AS remind
 						,SUM(IFNULL(w.check_debt,0)) AS check_debt
@@ -154,6 +159,7 @@ class Viewemployeekpi extends SugarView {
 							+ IFNULL(w.support,0) 
 							+ (IFNULL(w.invoice_issued,0) * 3) 
 							+ IFNULL(w.ticket_delivery,0) 
+							+ IFNULL(w.checkin_journey,0) 
 							+ IFNULL(w.recall,0)  
 							+ IFNULL(w.remind,0)  
 							+ IFNULL(w.check_debt,0) 
@@ -169,17 +175,17 @@ class Viewemployeekpi extends SugarView {
 							-- - IFNULL(w.minus, 0)
 						  ) AS total_kpi
 					FROM ec_working_process w
-					INNER JOIN users u ON w.assigned_user_id = u.id
+					INNER JOIN users u ON w.assigned_user_id = u.id AND u.deleted = 0
 					AND u.is_admin = 0 AND u.title <> 'QuanLy' 
-					AND u.start_working_date IS NOT NULL
+					-- AND u.start_working_date IS NOT NULL
 					WHERE w.deleted = 0
 					" . $sql_search2 . "
 					GROUP BY w.assigned_user_id
 					ORDER BY total_kpi DESC ";
 
-			if($GLOBALS['current_user']->user_name == 'hungnh'){
-				// pr($sql);
-			}
+			// if($GLOBALS['current_user']->user_name == 'hungnh'){
+			// pr($sql);
+			// }
 
 			$res = $db->query($sql);
 			$i = 0;
@@ -193,6 +199,7 @@ class Viewemployeekpi extends SugarView {
 			$ttl_inv_in_issued = 0;
 			$ttl_inv_issued = 0;
 			$ttl_delivery = 0;
+			$ttl_checkin = 0;
 			$ttl_recall = 0;
 			// $ttl_bonus = 0;
 			$ttl_comdebt = 0;
@@ -222,6 +229,7 @@ class Viewemployeekpi extends SugarView {
 							<td align="center"><span title="Xuất hóa đơn đầu vào">' . ($row['invoice_input_issued'] != 0 ? $row['invoice_input_issued'] : '') . '</span></td>
 							<td align="center"><span title="Xuất hóa đơn đầu ra">' . ($row['invoice_issued'] != 0 ? $row['invoice_issued'] : '') . '</span></td>
 							<td align="center"><span title="Giao vé">' . ($row['ticket_delivery'] != 0 ? $row['ticket_delivery'] : '') . '</span></td>
+							<td align="center"><span title="Checkin">' . ($row['checkin_journey'] != 0 ? $row['checkin_journey'] : '') . '</span></td>
 							<td align="center"><span title="Đối chiếu công nợ">' . ($row['check_debt'] != 0 ? $row['check_debt'] : '') . '</span></td>
 							<td align="center"><span title="Lập phiếu hoàn vé">' . ($row['create_repaid'] != 0 ? $row['create_repaid'] : '') . '</span></td>
 							<td align="center"><span title="Lập phiếu chi">' . ($row['create_payment'] != 0 ? $row['create_payment'] : '') . '</span></td>
@@ -229,17 +237,8 @@ class Viewemployeekpi extends SugarView {
 							<td align="center"><span title="Lập phiếu điều chuyển tiền">' . ($row['create_transfer'] != 0 ? $row['create_transfer'] : '') . '</span></td>
 							<td align="center"><span title="Hỗ trợ khác">' . ($row['support'] != 0 ? $row['support'] : '') . '</span></td>
 						';
-						// if ($from_date_value == $to_date_value) {
-						// 	$html .= '<td align="center"><span title="Chuyên môn"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="manner" id="manner' . ($i + 1) . '">' . $row['manner'] . '</a></span></td>
-						// 		<td align="center"><span title="Hiệu quả"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="effected" id="effected' . ($i + 1) . '">' . ($row['effected'] + $row['ticket_delivery']) . '</a></span></td>
-						// 		<td align="center"><span title="Ý thức"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="awareness" id="awareness' . ($i + 1) . '">' . $row['awareness'] . '</a></span></td>';
-						// 	$html .= '<td align="center"><span title="Bị trừ"><a class="showdt cursor-pointer" employee="' . $row['assigned_user_id'] . '" type="minus" id="minus' . ($i + 1) . '">' . format_number($row['minus']) . '</a></span></td>';
-						// } else {
-						// 	$html .= '<td align="center"><span>' . $row['manner'] . '</span></td><td align="center"><span>' . $row['effected'] . '</span></td><td align="center"><span>' . $row['awareness'] . '</span></td>';
-						// 	$html .= '<td align="center"><span>' . format_number($row['minus']) . '</span></td>';
-						// }
 
-						$html .= '<td align="center"><span title="Tổng cộng">' . ($row['total_kpi'] != 0 ? $row['total_kpi'] : '') . '</span></td></tr>';
+				$html .= '<td align="center"><span title="Tổng cộng">' . ($row['total_kpi'] != 0 ? $row['total_kpi'] : '') . '</span></td></tr>';
 
 				$i++;
 				$ttl_called += (int)$row['called'];
@@ -249,6 +248,7 @@ class Viewemployeekpi extends SugarView {
 				$ttl_inv_in_issued += (int)$row['invoice_input_issued'];
 				$ttl_inv_issued += (int)$row['invoice_issued'];
 				$ttl_delivery += (int)$row['ticket_delivery'];
+				$ttl_checkin += (int)$row['checkin_journey'];
 				$ttl_recall += (int)($row['recall'] + $row['remind']);
 				// $ttl_bonus += $row['bonus'];
 				$ttl_comdebt += (int)$row['check_debt'];
@@ -275,6 +275,7 @@ class Viewemployeekpi extends SugarView {
 			$smartyobj->assign('TTL_INV_IN_ISSUED', $ttl_inv_in_issued);
 			$smartyobj->assign('TTL_INV_ISSUED', $ttl_inv_issued);
 			$smartyobj->assign('TTL_DELIVERY', $ttl_delivery);
+			$smartyobj->assign('TTL_CHECKIN', $ttl_checkin);
 			$smartyobj->assign('TTL_RECALL', $ttl_recall);
 			// $smartyobj->assign('TTL_BONUS', $ttl_bonus);
 			$smartyobj->assign('TTL_COMDEBT', $ttl_comdebt);
@@ -285,8 +286,7 @@ class Viewemployeekpi extends SugarView {
 			$smartyobj->assign('TTL_TRANSFER', $ttl_transfer);
 			$smartyobj->assign('TTL_SUPPORT', $ttl_support);
 			$smartyobj->assign('TTL_FINAL', $ttl_final);
-		} 
-		else if ($_POST['report_type'] == 'owner') {
+		} else if ($_POST['report_type'] == 'owner') {
 			// main query		
 			$sql = "SELECT SUM(IFNULL(t.booking_count,0)) AS booking_count
 						  ,SUM(IFNULL(t.ticket_count,0)) AS ticket_count 
@@ -332,6 +332,7 @@ class Viewemployeekpi extends SugarView {
 								+ IFNULL(w.recheck,0) 
 								+ (IFNULL(w.invoice_issued,0) * 3) 
 								+ IFNULL(w.ticket_delivery,0) 
+								+ IFNULL(w.checkin_journey,0) 
 								+ IFNULL(w.recall,0) 
 								+ IFNULL(w.remind,0) 
 								+ IFNULL(w.bonus,0) 
@@ -357,7 +358,6 @@ class Viewemployeekpi extends SugarView {
 			$smartyobj->assign('PERCENT_ACHIEVED', format_number($percent_achieved));
 			$smartyobj->assign('TOTAL_BONUS', format_number($row['total_bonus']));
 			$smartyobj->assign('TOTAL_KPI', format_number($row['total_kpi']));
-
 		}
 
 		$smartyobj->assign('EMPLOYEE_KPI_TYPE_LIST', get_select_options_with_id($app_list_strings['employee_kpi_type_list'], ''));

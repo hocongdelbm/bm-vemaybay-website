@@ -59,9 +59,10 @@ $viewdefs['Documents'] =
             0 =>
             array(
               'name' => 'filename',
+              'customCode' => '{$CUSTOM_FILENAME}',
               'displayParams' =>
               array(
-                'link' => 'filename',
+                'link' => true,
                 'id' => 'document_revision_id',
               ),
             ),
@@ -107,6 +108,21 @@ $viewdefs['Documents'] =
             0 => 'category_id',
             1 => 'subcategory_id',
           ),
+
+          5 => 
+            array(
+              0 => 
+              array(
+                'name' => 'preview_image',
+                'label' => 'LBL_PREVIEW_PHOTO',
+                'customCode' => '{$PREVIEW_IMAGE_HTML}',
+              ),
+              1 => array(
+                'name' => 'booking_name',
+                'label' => 'LBL_BOOKING_NAME',
+              ),
+            ),
+
           6 =>
           array(
             0 => 'related_doc_name',

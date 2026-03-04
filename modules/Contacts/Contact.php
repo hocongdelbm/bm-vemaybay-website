@@ -105,6 +105,10 @@ class Contact extends Person implements EmailInterface
     public $zalo_is_follower;
     public $zalo_tags;
 
+    public $is_uncomfortable;
+    public $is_ctv;
+    public $is_compare_price;
+
     // This is used to retrieve related fields from form posts.
     public $additional_column_fields = array(
         'bug_id',

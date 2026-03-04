@@ -1,6 +1,5 @@
 <?php
 require_once('include/upload_file.php');
-require_once('modules/EC_Zalo/Zalo.php');
 
 require 'vendor/autoload.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -64,18 +63,18 @@ class EC_SMS_Logs extends Basic
 		}
 
         if($this->type == 'send_zalo_broadcast') {
-            $Zalo = new Zalo();
-            $post_id = isset($_POST['field-zalo-broadcast-post']) ? $_POST['field-zalo-broadcast-post'] : '';
+            // $Zalo = new Zalo();
+            // $post_id = isset($_POST['field-zalo-broadcast-post']) ? $_POST['field-zalo-broadcast-post'] : '';
 
-            $this->data = json_encode([
-                'post'      => $post_id,
-                'gender'    => isset($_POST['field-zalo-broadcast-gender']) ? $_POST['field-zalo-broadcast-gender'] : '0',
-                'ages'      => isset($_POST['field-zalo-broadcast-ages']) ? implode(",", $_POST['field-zalo-broadcast-ages']) : '',
-                'locations' => isset($_POST['field-zalo-broadcast-locations']) ? implode(",", $_POST['field-zalo-broadcast-locations']) : '',
-                'cities'    => isset($_POST['field-zalo-broadcast-cities']) ? implode(",", $_POST['field-zalo-broadcast-cities']) : '',
-                'platform'  => isset($_POST['field-zalo-broadcast-platform']) ? implode(",", $_POST['field-zalo-broadcast-platform']) : '',
-            ]);
-            $this->content = $Zalo->get_link_post($post_id);
+            // $this->data = json_encode([
+            //     'post'      => $post_id,
+            //     'gender'    => isset($_POST['field-zalo-broadcast-gender']) ? $_POST['field-zalo-broadcast-gender'] : '0',
+            //     'ages'      => isset($_POST['field-zalo-broadcast-ages']) ? implode(",", $_POST['field-zalo-broadcast-ages']) : '',
+            //     'locations' => isset($_POST['field-zalo-broadcast-locations']) ? implode(",", $_POST['field-zalo-broadcast-locations']) : '',
+            //     'cities'    => isset($_POST['field-zalo-broadcast-cities']) ? implode(",", $_POST['field-zalo-broadcast-cities']) : '',
+            //     'platform'  => isset($_POST['field-zalo-broadcast-platform']) ? implode(",", $_POST['field-zalo-broadcast-platform']) : '',
+            // ]);
+            // $this->content = $Zalo->get_link_post($post_id);
         }
         elseif($this->type == 'send_sms_list_static' || $this->type == 'send_sms_list_dynamic'){
             if(isset($_POST['file']) && empty($_POST['file'])){

@@ -40,4 +40,55 @@ class Flight {
         }
         return [];
     }
+
+    /**
+     * Get nice duration from duration
+     * 
+     * @param int $duration_seconds
+     * @return string
+     */
+    public static function getNiceDuration($duration_seconds) {
+        $nice_duration = '';
+        $days = floor($duration_seconds / 86400);
+        $duration_seconds -= $days * 86400;
+        $hours = floor($duration_seconds / 3600);
+        $duration_seconds -= $hours * 3600;
+        $minutes = floor($duration_seconds / 60);
+        $seconds = $duration_seconds - $minutes * 60;
+
+        if ($days > 0) {
+            $nice_duration .= (int)$days . 'd';
+        }
+        if ($hours > 0) {
+            $nice_duration .= ' ' . (int)$hours . 'h';
+        }
+        if ($minutes > 0) {
+            $nice_duration .= ' ' . (int)$minutes . 'm';
+        }
+        if ($seconds > 0) {
+            $nice_duration .= ' ' . $seconds . 's';
+        }
+
+        return trim($nice_duration);
+    }
+
+    /**
+     * Check location code is international
+     * 
+     * @param string $code
+     * @return true
+     */
+    public static function isDomesticLocation($code) {
+        return isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code]);
+    }
+
+    /**
+     * Check location code is international
+     * 
+     * @param string $code
+     * @return true
+     */
+    public static function isInterLocation($code) {
+        return !isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code]);
+    }
 }

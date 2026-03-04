@@ -118,8 +118,8 @@ $viewdefs['Contacts'] = array(
 				),
 				array(
 					array(
-						'name' => 'birthdate',
-						'label' => 'LBL_BIRTHDATE',
+						'name' => 'lead_source',
+						'label' => 'LBL_LEAD_SOURCE',
 					),
 					array(
 						'name' => 'email1',
@@ -130,8 +130,8 @@ $viewdefs['Contacts'] = array(
 				),
 				array(
 					array(
-						'name' => 'zalo_id',
-						'label' => 'LBL_ZALO_ID',
+						'name' => 'birthdate',
+						'label' => 'LBL_BIRTHDATE',
 					),
 					array(
 						'name' => 'points',
@@ -180,6 +180,27 @@ $viewdefs['Contacts'] = array(
 					),
 				)
 			),
+
+			'LBL_INFO_ZALO' => array(
+				array(
+					array(
+						'name' => 'line_items',
+						'label' => 'LBL_LINE_ITEMS',
+						'customCode' => '{$INFO_ZALO}',
+					),
+				),
+			),
+
+			'LBL_INFO_CALLS' => array(
+				array(
+					array(
+						'name' => 'line_items',
+						'label' => 'LBL_LINE_ITEMS',
+						'customCode' => '{$INFO_CALLS}',
+					),
+				),
+			),
+
 			'LBL_INFO_POINTS' => array(
 				array(
 					array(
@@ -189,15 +210,6 @@ $viewdefs['Contacts'] = array(
 					),
 				),
 			),
-			'LBL_INFO_CALLS' => array(
-				array(
-					array(
-						'name' => 'line_items',
-						'label' => 'LBL_LINE_ITEMS',
-						'customCode' => '{$INFO_CALLS}',
-					),
-				),
-			)
 			// 'LBL_PANEL_ADVANCED' => array(
 			// 	array(
 			// 		array(

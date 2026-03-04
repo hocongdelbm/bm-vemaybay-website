@@ -1,11 +1,8 @@
-/* ----------------------------------------------------------------- */
-/* --------------------------  RESET CSS  -------------------------- */
-/* ----------------------------------------------------------------- */
+/* -------------  RESET CSS  ------------- */
 a {
   text-decoration: none;
   color: var(--text-primary-color);
 }
-
 a:focus {
   outline: none;
   text-decoration: none;
@@ -212,21 +209,15 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
   height: 8px;
   background-color: #dceefc;
 }
-
-select::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #aab7cf;
-}
+select::-webkit-scrollbar {width: 6px;}
+::-webkit-scrollbar-thumb {background-color: #aab7cf;}
 
 .select2-results__options::-webkit-scrollbar {
-  width: 7px;
+  width: 6px;
 }
 
 #sidebar::-webkit-scrollbar {
@@ -241,9 +232,7 @@ select::-webkit-scrollbar {
   border-radius: 20px;
 }
 
-/* ---------------------------------------------------------------- */
 /* ---------------------------  NAVBAR  --------------------------- */
-/* ---------------------------------------------------------------- */
 .navbar {
   font-family: "ubuntu-light", sans-serif;
   background: var(--white-color);
@@ -2592,19 +2581,6 @@ table.table-config__setup input,
   cursor: auto;
 }
 
-#iv_account_name,
-#company_name,
-#tax_code,
-table.table-request-invoice input,
-table.table-request-invoice textarea {
-  text-transform: uppercase;
-}
-
-#company_address,
-table.table-request-invoice textarea[name="company_address"] {
-  text-transform: capitalize;
-}
-
 .buttons-editview input {
   width: unset !important;
 }
@@ -3146,9 +3122,7 @@ select#iv_payment_method {
   padding: 0;
 }
 
-.detail-view #recheck_status,
-.detail-view #assigned_user_name,
-.detail-view #is_paid {
+.detail-view #assigned_user_name {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3633,7 +3607,7 @@ table.table-responsive.table-geocoded thead tr th {
   padding: 12px 8px;
 }
 
-formHeader h3Row table.table-responsive thead tr th a {
+.formHeader.h3Row table.table-responsive thead tr th a {
   font-size: 13px;
   color: var(--white-color);
   line-height: 20px;
@@ -3641,21 +3615,9 @@ formHeader h3Row table.table-responsive thead tr th a {
   text-transform: capitalize;
 }
 
-table.table-responsive>tbody>tr {
-  border: 1px solid var(--border-color);
-}
-
-table.table-responsive>tbody>tr:hover td {
-  background: #efefef;
-}
-
-table.table-responsive>tbody>tr:hover td input[type="checkbox"]:before {
-  border-color: #cccccc;
-}
-
-table.table-responsive>tbody>tr:hover input:checked[type="checkbox"]:before {
-  border-color: var(--primary-color);
-}
+table.table-responsive>tbody>tr {border: 1px solid var(--border-color);}
+table.table-responsive>tbody>tr:hover td input[type="checkbox"]:before {border-color: #cccccc;}
+table.table-responsive>tbody>tr:hover input:checked[type="checkbox"]:before {border-color: var(--primary-color);}
 
 table.table-responsive>tbody>tr>td {
   padding: 5px;
@@ -3917,32 +3879,22 @@ table.themeSettings tbody tr.yui-dt-odd {
   }
 }
 
-/* ----------------------------------------------------------- */
 /* -------------------------  MODAL  ------------------------- */
-/* ----------------------------------------------------------- */
 #modal-confirm .modal-dialog {
   top: 50%;
   transform: translate(0%, -50%);
 }
-
-.modal .modal-content {
-  border: none;
-}
-
-.modal .modal-header {
-  background: var(--primary-color);
-}
-
-.modal .modal-header h2.modal-title {
+.modal .modal-content {border: none;}
+.modal .modal-header {background: var(--primary-color);}
+.modal .modal-header .modal-title {
   color: var(--white-color);
-  font-size: 1rem !important;
   text-transform: uppercase;
 }
-
+.modal .modal-header h2.modal-title {
+  font-size: 1rem !important;
+}
 .modal .modal-header h4 {
   font-size: 18px;
-  color: var(--white-color);
-  text-transform: uppercase;
   letter-spacing: 2px;
 }
 
@@ -4006,7 +3958,7 @@ button.remove_employees,
 }
 
 table.table-invoice input {
-  width: unset !important;
+  width: unset;
 }
 
 #search_form select {
@@ -5487,7 +5439,7 @@ table#booking_qty tbody tr.footer-tr td {
 }
 
 .bg-yellow {
-  background-color: #fff2cc !important;
+  background-color: #fff5d9 !important;
 }
 
 .loading {

@@ -35,6 +35,7 @@ class EC_Payment_Voucher extends Basic
 	public $receipent_address;
 	public $ec_payment_types_id_c;
 	public $payment_type;
+	public $ngayhachtoan;
 
 	public $com_location_id;
 	public $employee_id;
@@ -66,13 +67,12 @@ class EC_Payment_Voucher extends Basic
 		if (empty($this->id)) {
 			// PC-230916-0001
 			$number = 0;
-			$number = $this->db->getOne("SELECT COUNT(id) + 1 FROM ec_payment_voucher WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'");
+			$number = (string) $this->db->getOne("SELECT COUNT(id) + 1 FROM ec_payment_voucher WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . date('Y-m-d') . "'");
 			$this->name = 'PC-' . date('ymd') . '-' . str_pad($number, 4, 0, STR_PAD_LEFT);
 			$is_tele = 1;
 		}
 
 		if (isset($_POST['ngayhachtoan']) && !empty($_POST['ngayhachtoan'])) {
-			// $this->ngayhachtoan = date('d-m-Y H:i', strtotime($_POST['ngayhachtoan']) - 7 * 3600);
 			$this->ngayhachtoan = date('Y-m-d H:i:s', strtotime($_POST['ngayhachtoan']));
 		}
 

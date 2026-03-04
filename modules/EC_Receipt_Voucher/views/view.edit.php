@@ -68,10 +68,10 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		</span>';
 		$this->ss->assign('AMOUNT_TYPE', $amount_type);
 
-		// NGAY HACH TOAN
-		// $this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan) ? date($date_format.' H:i', strtotime($this->bean->ngayhachtoan)+7*3600) : date($date_format.' H:i');
-		$this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan) ? date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) - 7*3600) : date($date_format.' H:i', strtotime(date('d-m-Y H:i'))+7*3600);
-
+		// NGAY HACH TOAN (Giờ lưu dưới DB là giờ VietNam)
+		$this->bean->ngayhachtoan = isset($this->bean->ngayhachtoan) && !empty($this->bean->ngayhachtoan) 
+			? date("$date_format H:i", strtotime($this->bean->ngayhachtoan) - 7*3600)
+			: date("$date_format H:i");
 
 		// TAI KHOAN NGAN HANG
 		$display = (isset($_POST['receipt_type']) && $_POST['receipt_type'] == 'credit_transfer') || $this->bean->receipt_type ==  'credit_transfer' ? '' : 'display:none';
@@ -93,30 +93,31 @@ class EC_Receipt_VoucherViewEdit extends ViewEdit {
 		
 
 		// LOAI THU
+		$loaithu_arr = ['4', '5', '10', '11', '12', '13', '14', '16', '27'];
 		$loaithu = '<style>
 			.ui-autocomplete-loading {
 				background: white url(custom/jqueryui/css/ui-lightness/images/ui-anim_basic_16x16.gif) right center no-repeat;
 			} 
 		</style>';
 		$loaithu .= '<div class="d-flex gap-2 flex-column">
-		<div class="loai_thu--wrap d-inline-flex gap-2 align-items-center">
-		<select id="loai_thu" name="loai_thu" tabindex="106" class="box-select">'.get_select_options_with_id($app_list_strings['loai_thu_list'], (int)$this->bean->loai_thu).'</select>';
+			<div class="loai_thu--wrap d-inline-flex gap-2 align-items-center">
+			<select id="loai_thu" name="loai_thu" tabindex="106" class="box-select">
+				'.get_select_options_with_id($app_list_strings['loai_thu_list'], (int)($_POST['loai_thu'] ?? $this->bean->loai_thu)).'
+			</select>';
 
 		$loaithu .= '<div id="span_customer" class="flex-fill">
-					<div class="d-flex gap-1">
-						<input type="text" class="flex-fill" name="customer" id="customer" tbl="accounts" fld=\'{"id":"account_id_c", "name":"customer"}\' tabindex="106" size="20" autocomplete="off" value="'.(isset($_POST['customer']) ? $_POST['customer'] : $this->bean->customer).'" />
-						<input type="hidden" name="account_id_c" id="account_id_c" value="'.(isset($_POST['account_id_c']) ? $_POST['account_id_c'] : $this->bean->account_id_c).'" />
-						<button type="button" name="btnSelectAccount" id="btnSelectAccount" tabindex="0" title="Chọn" class="px-1 btn btn-primary" value="Chọn">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
-						</button>
-						<button type="button" name="btnClearAccount" id="btnClearAccount" tabindex="0" title="Xóa" class="px-1 btn btn-secondary" value="Xóa">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-						</button>
-					</div>
+				<div class="d-flex gap-1">
+					<input type="text" class="flex-fill" name="customer" id="customer" tbl="accounts" fld=\'{"id":"account_id_c", "name":"customer"}\' tabindex="106" size="20" autocomplete="off" value="'.(isset($_POST['customer']) ? $_POST['customer'] : $this->bean->customer).'" />
+					<input type="hidden" name="account_id_c" id="account_id_c" value="'.(isset($_POST['account_id_c']) ? $_POST['account_id_c'] : $this->bean->account_id_c).'" />
+					<button type="button" name="btnSelectAccount" id="btnSelectAccount" tabindex="0" title="Chọn" class="px-1 btn btn-primary" value="Chọn">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
+					</button>
+					<button type="button" name="btnClearAccount" id="btnClearAccount" tabindex="0" title="Xóa" class="px-1 btn btn-secondary" value="Xóa">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+					</button>
 				</div>
-			</div>';
-
-        	$loaithu_arr = array('4', '5', '10', '11', '12', '13', '14', '16');
+			</div>
+		</div>';
 		$loaithu .= '<span id="span_supplier" '.(in_array($this->bean->loai_thu, $loaithu_arr) ? '' : 'style="display:none;"').'>
 		<table border="0" width="100%" cellpadding="0" cellspacing="0" style="line-height:20px;">';
 		$loaithu .= '<tr>

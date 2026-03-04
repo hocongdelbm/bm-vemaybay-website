@@ -40,6 +40,9 @@ class EC_Booking_Itineraries extends Basic {
     public $add_type;
     public $direction;
     public $sabre_logs;
+    public $time_limit;
+    public $is_layover;
+    public $parent_detail_id;
 	
     public function bean_implements($interface)
     {

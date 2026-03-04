@@ -1,5 +1,5 @@
 <?php
-if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once("include/Sugar_Smarty.php");
 date_default_timezone_set("Asia/Ho_Chi_Minh");
 
@@ -11,7 +11,8 @@ class Viewticketreport extends SugarView
     function __construct()
     {
         global $current_user;
-        if (is_admin($current_user) || (ACLController::checkAccess('EC_Payment_Voucher', 'edit', true))
+        if (
+            is_admin($current_user) || (ACLController::checkAccess('EC_Payment_Voucher', 'edit', true))
         ) {
             $this->_is_allow_recheck = true;
         }
@@ -19,6 +20,13 @@ class Viewticketreport extends SugarView
 
     function display()
     {
+        global $current_user;
+
+        // if ($current_user->user_name != 'hungnh') {
+        //     echo '<p class="alert alert-danger">Hệ thống đang bảo trì. Vui lòng quay lại sau!</p>';
+        //     exit;
+        // }
+
         if (ACLController::checkAccess('EC_Flight_Bookings', 'edit', true)) {
             $smartyCont = new Sugar_Smarty();
             $this->populateContent($smartyCont);
@@ -53,42 +61,42 @@ class Viewticketreport extends SugarView
         }
 
         switch (ceil(date('n') / 3)) {
-			case 1:
-				$quater_fromdate = '01-01-' . date('Y');
-				$quater_todate = '31-03-' . date('Y');
-				break;
-			case 2:
-				$quater_fromdate = '01-04-' . date('Y');
-				$quater_todate = '30-06-' . date('Y');
-				break;
-			case 3:
-				$quater_fromdate = '01-07-' . date('Y');
-				$quater_todate = '30-09-' . date('Y');
-				break;
-			case 4:
-				$quater_fromdate = '01-10-' . date('Y');
-				$quater_todate = '31-12-' . date('Y');
-				break;
-			default:
-				break;
-		}
+            case 1:
+                $quater_fromdate = '01-01-' . date('Y');
+                $quater_todate = '31-03-' . date('Y');
+                break;
+            case 2:
+                $quater_fromdate = '01-04-' . date('Y');
+                $quater_todate = '30-06-' . date('Y');
+                break;
+            case 3:
+                $quater_fromdate = '01-07-' . date('Y');
+                $quater_todate = '30-09-' . date('Y');
+                break;
+            case 4:
+                $quater_fromdate = '01-10-' . date('Y');
+                $quater_todate = '31-12-' . date('Y');
+                break;
+            default:
+                break;
+        }
 
         $arr_date = array(
-		    '<option value="" fromdate="" todate="">---Trống---</option>',
-			'<option value="this_month" fromdate="' . date('d-m-Y', strtotime('first day of this month')) . '" todate="' . date('d-m-Y', strtotime('last day of this month')) . '">Tháng này</option>',
-			'<option value="previous_month" fromdate="' . date('d-m-Y', strtotime('first day of last month')) . '" todate="' . date('d-m-Y', strtotime('last day of last month')) . '">Tháng trước</option>',
-			'<option value="quater_this_month" fromdate="' . $quater_fromdate . '" todate="' . $quater_todate . '">Quý này</option>',
-			'<option value="quater_previous_month" fromdate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))) . '" todate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))) . '">Quý trước</option>',
+            '<option value="" fromdate="" todate="">---Trống---</option>',
+            '<option value="this_month" fromdate="' . date('d-m-Y', strtotime('first day of this month')) . '" todate="' . date('d-m-Y', strtotime('last day of this month')) . '">Tháng này</option>',
+            '<option value="previous_month" fromdate="' . date('d-m-Y', strtotime('first day of last month')) . '" todate="' . date('d-m-Y', strtotime('last day of last month')) . '">Tháng trước</option>',
+            '<option value="quater_this_month" fromdate="' . $quater_fromdate . '" todate="' . $quater_todate . '">Quý này</option>',
+            '<option value="quater_previous_month" fromdate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))) . '" todate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))) . '">Quý trước</option>',
             '<option value="this_year" fromdate="' . date('01-01-Y') . '" todate="' . date('31-12-Y') . '">Năm nay</option>',
             '<option value="previous_year" fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>',
-		);
-		$smartyobj->assign('DATE_OPTION', implode('', $arr_date));
+        );
+        $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
 
         // RADIO
         $smartyobj->assign('YESTERDAY_FROMDATE', date('d-m-Y', strtotime('-1 day')));
         $smartyobj->assign('YESTERDAY_TODATE', date('d-m-Y', strtotime('-1 day')));
         $smartyobj->assign('DAYBEFORE_FROMDATE', date('d-m-Y', strtotime('-2 days')));
-		$smartyobj->assign('DAYBEFORE_TODATE', date('d-m-Y', strtotime('-2 days')));
+        $smartyobj->assign('DAYBEFORE_TODATE', date('d-m-Y', strtotime('-2 days')));
         $smartyobj->assign('CURRENT_WEEK_FROMDATE', date('d-m-Y', strtotime('monday this week')));
         $smartyobj->assign('CURRENT_WEEK_TODATE', date('d-m-Y', strtotime('sunday this week')));
         $smartyobj->assign('CURRENT_FROMDATE', date('d-m-Y', strtotime('first day of this month')));
@@ -96,7 +104,7 @@ class Viewticketreport extends SugarView
         $smartyobj->assign('PREVIOUS_FROMDATE', date('d-m-Y', strtotime('first day of last month')));
         $smartyobj->assign('PREVIOUS_TODATE', date('t-m-Y', strtotime('last day of last month')));
         $smartyobj->assign('PREVIOUS_WEEK_FROMDATE', date('d-m-Y', strtotime('monday previous week')));
-		$smartyobj->assign('PREVIOUS_WEEK_TODATE', date('d-m-Y', strtotime('sunday previous week')));
+        $smartyobj->assign('PREVIOUS_WEEK_TODATE', date('d-m-Y', strtotime('sunday previous week')));
 
         switch (ceil(date('n') / 3)) {
             case 1:
@@ -136,8 +144,8 @@ class Viewticketreport extends SugarView
             WHERE 
                 user_id = "' . $current_user->id . '"
                 AND role_id IN (
-                    "'.$GLOBALS['app_list_strings']['roles_users']['QUANLY'].'",
-                    "'.$GLOBALS['app_list_strings']['roles_users']['KETOAN'].'"
+                    "' . $GLOBALS['app_list_strings']['roles_users']['QUANLY'] . '",
+                    "' . $GLOBALS['app_list_strings']['roles_users']['KETOAN'] . '"
                 )
                 AND deleted = 0';
 
@@ -197,6 +205,8 @@ class Viewticketreport extends SugarView
             '0' => 'Tất cả',
             '1' => 'Chưa thu',
             '2' => 'Chưa thu đủ',
+            '3' => 'Booking telesale',
+            '4' => 'Booking ctv',
         );
 
         $smartyobj->assign('PAYMENT_STT', get_select_options_with_id($payment_status, (int)$payment_stt));
@@ -219,22 +229,33 @@ class Viewticketreport extends SugarView
     function itineraryQuery($sql_search, $sql_role)
     {
         global $db;
-        $sql = "SELECT (SELECT CONCAT(departure,'-',arrival) FROM ec_booking_itineraries WHERE booking_id = bk.id AND direction = bkd.direction LIMIT 0,1) AS itinerary_code
-					  ,(SELECT CONCAT(cti1.name,' - ',cti2.name) 
-					  	FROM ec_booking_itineraries iti 
-						LEFT JOIN ec_flight_cities cti1 ON iti.departure = cti1.code AND cti1.deleted = 0
-						LEFT JOIN ec_flight_cities cti2 ON iti.arrival = cti2.code AND cti2.deleted = 0
-						WHERE iti.booking_id = bk.id AND iti.direction = bkd.direction LIMIT 0,1) AS itinerary_name
-					  ,SUM(bkd.quantity) AS total_quantity
-					  ,SUM(bkd.total_price) AS subtotal_amount
-				FROM ec_booking_details bkd
-				LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id
-				WHERE 
-                    ( bk.booking_status = '7' OR bk.booking_status = '8' )
-                    AND bk.deleted = 0 AND bkd.deleted = 0
-                    " . $sql_search . $sql_role . "
-				GROUP BY itinerary_code
-				ORDER BY total_quantity DESC ";
+        $sql = "
+            SELECT 
+                (
+                    SELECT CONCAT(departure,'-',arrival) 
+                    FROM ec_booking_itineraries 
+                    WHERE booking_id = bk.id AND direction = bkd.direction 
+                    LIMIT 0, 1
+                ) AS itinerary_code
+                ,(
+                    SELECT CONCAT(cti1.name, ' - ', cti2.name) 
+                    FROM ec_booking_itineraries iti 
+                    LEFT JOIN ec_flight_cities cti1 ON iti.departure = cti1.code AND cti1.deleted = 0
+                    LEFT JOIN ec_flight_cities cti2 ON iti.arrival = cti2.code AND cti2.deleted = 0
+                    WHERE iti.booking_id = bk.id AND iti.direction = bkd.direction 
+                    LIMIT 0, 1
+                ) AS itinerary_name
+                , SUM(bkd.quantity) AS total_quantity
+                , SUM(bkd.total_price) AS subtotal_amount
+            FROM ec_booking_details bkd
+            LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id
+            WHERE 
+                ( bk.booking_status = '7' OR bk.booking_status = '8' )
+                AND bk.deleted = 0 AND bkd.deleted = 0
+                " . $sql_search . $sql_role . "
+            GROUP BY itinerary_code
+            ORDER BY total_quantity DESC 
+        ";
         $res = $db->query($sql);
         $res2 = $db->query($sql); // dùng cho tính toán phần trăm
 
@@ -262,7 +283,13 @@ class Viewticketreport extends SugarView
             $pixel = (int)($percent * 120 / 100);
             $div_percent = '<div style="width:' . $pixel . 'px; height:10px; background:#09F">&nbsp;</div>';
 
-            $html .= '<td class="text-end"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="90%">' . $div_percent . '</td><td align="right">' . round($percent, 1) . '%</td></tr></table></td>';
+            $html .= '
+                <td class="text-end">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr><td width="90%">' . $div_percent . '</td><td align="right">' . round($percent, 1) . '%</td></tr>
+                    </table>
+                </td>
+            ';
             $html .= '<td class="text-center">&nbsp;</td>';
 
             $html .= '</tr>';
@@ -272,14 +299,16 @@ class Viewticketreport extends SugarView
             $i++;
         }
 
-        $html .= '<tr>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">' . format_number($total_quantity) . '</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF; font-weight:bold">' . format_number($subtotal_amount) . '</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-            <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
-        </tr>';
+        $html .= '
+            <tr>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">' . format_number($total_quantity) . '</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF; font-weight:bold">' . format_number($subtotal_amount) . '</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+                <td style="padding:6px 10px;background:url(custom/themes/Sugar/images/salesstatistics/grad-11-blocksubhead.gif) repeat-x scroll center bottom #FFFFFF;">&nbsp;</td>
+            </tr>
+        ';
 
         return $html;
     }
@@ -463,7 +492,7 @@ class Viewticketreport extends SugarView
     {
         global $db, $app_list_strings, $current_user;
         $user_list = get_user_array(true, '', '', true);
-        
+
         // set view_percent = 100 để ai cũng có thể xem được
         $current_user->view_percent = 100;
 
@@ -495,9 +524,11 @@ class Viewticketreport extends SugarView
                         ,(SUM(IFNULL(bkd.total_bought_price,0)) 
 							+
 							IFNULL((
-								SELECT IF(bk.flight_type='0', SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0) + IF(px.luggage_price_inbound>0, IFNULL(px.luggage_purchase_inbound,0), 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
+								SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
 								FROM ec_booking_passengers px
-								WHERE px.booking_id=bk.id AND px.deleted=0 AND px.add_type IS NULL
+								WHERE px.booking_id = bk.id 
+                                AND px.deleted = 0 
+                                AND (px.add_type IS NULL OR px.add_type = '')
 							),0)) AS total_bought_price";
 
         if (isset($current_user->view_percent) && $current_user->view_percent < 100) {
@@ -510,13 +541,14 @@ class Viewticketreport extends SugarView
                         IFNULL((
                             SELECT IF(bk.flight_type='0', SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0) + IF(px.luggage_price_inbound>0, IFNULL(px.luggage_purchase_inbound,0), 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
                             FROM ec_booking_passengers px
-                            WHERE px.booking_id=bk.id AND px.deleted=0 AND px.add_type IS NULL
+                            WHERE px.booking_id=bk.id AND px.deleted=0  AND (px.add_type IS NULL OR px.add_type = '')
                         ),0)
                     ) / 100
                 ) AS total_bought_price ";
         }
 
         $sql_having = '';
+
         // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
         if ($condition_arr['payment_stt'] == 1) {
             // Chưa thu
@@ -524,6 +556,11 @@ class Viewticketreport extends SugarView
         } else if ($condition_arr['payment_stt'] == 2) {
             // Chưa thu đủ
             $sql_having = ' HAVING receipt_amount < subtotal_amount AND receipt_amount > 0';
+        } else if ($condition_arr['payment_stt'] == 3) {
+            // Booking telesale
+            $sql_having = ' HAVING is_telesale = 1';
+        } else if ($condition_arr['payment_stt'] == 4) {
+            $sql_having = ' HAVING is_ctv = 1';
         }
 
         $sql = "
@@ -562,15 +599,22 @@ class Viewticketreport extends SugarView
                     GROUP BY r.booking_id
                 ), 0) AS receipt_amount
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
-                ,(SELECT amount FROM ec_payment_voucher WHERE booking_id=bkd.booking_id AND pv_status='3' AND ec_payment_types_id_c='3f9f8060-1866-2b2e-8322-52e36b8f58d5' AND deleted=0 LIMIT 1) AS discount_amt
                 ,bk.phone AS contact_mobile
-                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y') AS bk_date_entered
+                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
                 ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS bk_date_ticket_issue
                 ,(SELECT IF(u.title NOT LIKE '%bot%', 1, 0) FROM users u WHERE u.id=bk.created_by) AS not_from_web
+                ,(
+                    SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR)
+                    FROM ec_working_process
+                    WHERE deleted = 0 AND paid = 1
+                    AND parent_id = bk.id
+                ) AS paid_time
+                , bk.is_telesale as is_telesale
+                , bk.is_ctv as is_ctv
             FROM ec_booking_details bkd 
             LEFT JOIN ec_flight_bookings bk ON bkd.booking_id=bk.id AND bk.deleted=0 
             WHERE 
-                bk.booking_status IN ('7', '8')
+                bk.booking_status IN ('3', '7', '8')
                 " . $sql_search . $sql_role . " 
                 AND bkd.deleted=0 
             GROUP BY bk.id" . $sql_having;
@@ -613,11 +657,13 @@ class Viewticketreport extends SugarView
                     ,'' AS country
                     ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
                     ,DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS date_ticket_issue
-                    ,0 AS discount_amt
                     ,p.guest_phone AS contact_mobile
                     ,'' AS bk_date_entered
                     ,'' AS bk_date_ticket_issue
                     ,0 AS not_from_web
+                    ,'' AS paid_time
+                    , 0 as is_telesale
+                    , 0 as is_ctv
                 FROM ec_receipt_voucher p
                 WHERE 
                     p.loai_thu IN (" . $this->_loai_thu_str . ") 
@@ -630,7 +676,8 @@ class Viewticketreport extends SugarView
                 
                 -- hoan ve
                 UNION
-                SELECT hv_t.parent_id, hv_t.parent_name, hv_t.parent_type
+                SELECT 
+                    hv_t.parent_id, hv_t.parent_name, hv_t.parent_type
                     , hv_t.airline_outbound, hv_t.airline_inbound
                     , SUM(hv_t.total_quantity) AS total_quantity
                     , 0 AS total_points_amount
@@ -642,10 +689,14 @@ class Viewticketreport extends SugarView
                     , hv_t.ticket_class_outbound, hv_t.ticket_class_inbound
                     , hv_t.is_ticket_exported, hv_t.is_agent, hv_t.user_id, hv_t.user_name
                     , hv_t.recheck_status, hv_t.country, hv_t.receipt_amount
-                    , hv_t.date_ticket_issue, hv_t.discount_amt, hv_t.contact_mobile
+                    , hv_t.date_ticket_issue
+                    , hv_t.contact_mobile
                     , '' AS bk_date_entered
                     , '' AS bk_date_ticket_issue
                     , 0 AS not_from_web
+                    , '' AS paid_time
+                    , 0 as is_telesale
+                    , 0 as is_ctv
                 FROM 
                 (
                     SELECT 
@@ -656,8 +707,8 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_inbound
                         , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
                         , 0 AS total_points_amount
-                        ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS subtotal_amount
-                        ,IF( SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS total_bought_price
+                        , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS subtotal_amount
+                        , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS total_bought_price
                         ,'' AS flight_type
                         ,'' AS ticket_type
                         ,'' AS booking_description
@@ -677,7 +728,6 @@ class Viewticketreport extends SugarView
                         , '' AS country
                         , 0 AS receipt_amount
                         ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
-                        ,0 AS discount_amt
                         ,'' AS contact_mobile
                     FROM ec_hoanve p
                     INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
@@ -689,7 +739,6 @@ class Viewticketreport extends SugarView
                     GROUP BY p.id
 
                     -- hoan ve > 0
-
                     UNION
                     SELECT 
                         p.id AS parent_id
@@ -699,8 +748,8 @@ class Viewticketreport extends SugarView
                         ,'' AS airline_inbound
                         , 0 AS total_quantity
                         , 0 AS total_points_amount
-                        , SUM(IFNULL(p.tongtienhang,0))  AS subtotal_amount
-                        , SUM(IFNULL(p.tongtienkhach,0)) AS total_bought_price
+                        , - SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
+                        , - SUM(IFNULL(p.tongtienhang,0))  AS total_bought_price
                         ,'' AS flight_type
                         ,'' AS ticket_type
                         ,'' AS booking_description
@@ -720,7 +769,6 @@ class Viewticketreport extends SugarView
                         , '' AS country
                         , 0 AS receipt_amount
                         ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS date_ticket_issue
-                        ,0 AS discount_amt
                         ,'' AS contact_mobile
                     FROM ec_hoanve p
                     INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id
@@ -739,34 +787,40 @@ class Viewticketreport extends SugarView
             ";
         }
 
-        // if ($GLOBALS['current_user']->user_name == 'hungnh') {
-        //     pr($sql);
+        // if($GLOBALS['current_user']->user_name == 'hungnh'){
+        // pr($sql);
         // }
 
         $res    = $db->query($sql);
         $i      = 0;
 
-        $total_quantity     = 0;
-        $subtotal_amount    = 0;
-        $total_bought_price = 0;
-        $total_profit       = 0;
-        $total_receipt      = 0;
+        $total_quantity      = 0;
+        $subtotal_amount     = 0;
+        $total_bought_price  = 0;
+        $total_profit        = 0;
+        $total_receipt       = 0;
         $total_points_amount = 0;
 
         $html = $xls = '';
         while ($row = $db->fetchByAssoc($res)) {
 
-            $profit_amount = $row['subtotal_amount'] - $row['total_bought_price'] - $row['discount_amt'];
+            $profit_amount = $row['subtotal_amount'] - $row['total_bought_price'];
 
-            if ($row['total_bought_price'] > $row['subtotal_amount'] && $row['parent_type']){
+            if ($row['total_bought_price'] > $row['subtotal_amount'] && $row['parent_type']) {
                 $bg_class = 'error1';
-            } elseif ($row['receipt_amount'] < $row['subtotal_amount'] && $row['parent_type'] == 'EC_Flight_Bookings'){
+            } elseif ($row['receipt_amount'] < $row['subtotal_amount'] && $row['parent_type'] == 'EC_Flight_Bookings') {
                 $bg_class = 'error2';
-            } elseif ($row['subtotal_amount'] < $row['receipt_amount']){
+            } elseif ($row['subtotal_amount'] < $row['receipt_amount']) {
                 $bg_class = 'sales_smaller_receipt';
-            } elseif ($row['total_bought_price'] == $row['subtotal_amount']){
+            } elseif ($row['total_bought_price'] == $row['subtotal_amount']) {
                 $bg_class = 'equal';
             } else $bg_class = 'normal';
+
+            // thời điểm khách thanh toán
+            $paid_time_timestp = strtotime($row['paid_time']);
+            if ($paid_time_timestp !== false) {
+                $paid_time = date('d-m-Y', $paid_time_timestp) . '<br>' . date('H:i', $paid_time_timestp);
+            } else $paid_time = '';
 
             $html .= '<tr class="' . $bg_class . '" >';
 
@@ -786,7 +840,7 @@ class Viewticketreport extends SugarView
                     <td class="text-start booking_description hide-mobile">' . $row['booking_description'] . ($row['not_from_web'] ? (!empty($row['booking_description']) ? '<br>' : '') . '<b>(Tạo bởi booker)</b>' : '') . '</td>
                     <td class="text-end hide-mobile">' . format_number($row['subtotal_amount']) . '</td>
                     <td class="text-end total_bought_price hide-mobile">' . format_number($row['total_bought_price']) . '</td>
-                    <td class="text-end">' . format_number($profit_amount) . ' '.((int)$row['total_points_amount'] > 0 ? '<span class="total_points_amount fw-semibold text-dark"> / '.format_number($row['total_points_amount']).'</span>' : '').'</label></td>';
+                    <td class="text-end">' . format_number($profit_amount) . ' ' . ((int)$row['total_points_amount'] > 0 ? '<span class="total_points_amount fw-semibold text-dark"> / ' . format_number($row['total_points_amount']) . '</span>' : '') . '</label></td>';
 
             // $html .= '<td class="text-center hide-mobile">' . ($row['country'] == "VN" ? "" : $row['country']) . '</label></td>';
 
@@ -804,9 +858,10 @@ class Viewticketreport extends SugarView
             // $html .= '<td class="text-center"><a href="index.php?module=EC_Flight_Bookings&action=ticketreport&from_date=' . $post_fdate . '&to_date=' . $post_tdate . '&uid=' . $row['user_id'] . '" target="_bank" title="Xem chi tiết nhân viên ' . $user_list[$row['user_id']] . '">' . $user_list[$row['user_id']] . '</a></td>';
             $user_id_detail = isset($row['user_id']) ? $row['user_id'] : 0;
             $html .= '<td class="text-start row-employees"><a href="index.php?module=Employees&return_module=Employees&action=DetailView&record=' . $user_id_detail . '" target="_bank" title="Xem chi tiết nhân viên ' . $user_list[$row['user_id']] . '">' . $user_list[$row['user_id']] . '</a></td>';
+            $html .= '<td class="text-center hide-mobile">' . $paid_time . '</td>';
 
             // $html .= '<td class="text-center">' . $this->getRecheckInfo($row['parent_id']) . '<div class="rc-message"></div></td>';
-            $html .= '<td class="text-center bk_date_entered hide-mobile">' . $row['bk_date_entered'] . '</td>';
+            $html .= '<td class="text-center bk_date_entered hide-mobile">' . str_replace(' ', '<br>', $row['bk_date_entered']) . '</td>';
             $html .= '<td class="text-center bk_date_ticket_issue hide-mobile">' . $row['bk_date_ticket_issue'] . '</td>';
 
             $html .= '</tr>';
@@ -879,6 +934,7 @@ class Viewticketreport extends SugarView
             <td class="text-center fw-semibold color-red total_profit">' . format_number($total_profit) . ' / ' . format_number($total_points_amount) . '</td>
             <td class="text-center fw-semibold color-red total_receipt hide-mobile">' . format_number($total_receipt) . '</td>
             <td class="employees">&nbsp;</td>
+            <td class="date_issue hide-mobile">&nbsp;</td>
             <td class="date_created hide-mobile">&nbsp;</td>
             <td class="date_issue hide-mobile">&nbsp;</td>
         </tr>';

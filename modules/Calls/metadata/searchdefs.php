@@ -92,19 +92,19 @@ $searchdefs['Calls'] = array(
 				'default' => true,
 				'name' => 'date_start',
 			),
+			'date_end' => array(
+				'type' => 'datetime',
+				'label' => 'LBL_DATE_END',
+				'width' => '10%',
+				'default' => true,
+				'name' => 'date_end',
+			),
 			'other_caller' => array(
 				'name' => 'other_caller',
 				'label' => 'LBL_OTHER_CALLER',
 				'default' => true,
 				'width' => '10%',
 			),
-			// 'date_end' => array(
-			// 	'type' => 'datetime',
-			// 	'label' => 'LBL_DATE_END',
-			// 	'width' => '10%',
-			// 	'default' => true,
-			// 	'name' => 'date_end',
-			// ),
 			'call_id' => array(
 				'name' => 'call_id',
 				'label' => 'LBL_CALL_ID',
@@ -139,6 +139,12 @@ $searchdefs['Calls'] = array(
 			'direction' => array(
 				'name' => 'direction',
 				'label' => 'LBL_DIRECTION',
+				'default' => true,
+				'width' => '10%',
+			),
+			'call_reason' => array(
+				'name' => 'call_reason',
+				'label' => 'LBL_CALL_REASON',
 				'default' => true,
 				'width' => '10%',
 			),

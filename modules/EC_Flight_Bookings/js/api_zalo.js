@@ -1,5 +1,4 @@
-const url_zalo_zns = "index.php?entryPoint=entrypointZaloOA";
-const dia_chi_vp_1 = "252/12 Nguyễn Thượng Hiền, Phường 1, Q. Gò Vấp, TP. HCM";
+const dia_chi_vp_1 = "252/12 Nguyễn Thượng Hiền, Phường Hạnh Thông, Gò Vấp, TP.HCM";
 
 $(document).ready(function () {
     $("#send-zalo").click(function () {
@@ -8,21 +7,21 @@ $(document).ready(function () {
         return;
     });
 
-    // Get template
+    // Get template ZBS
     $('input[type=radio][name=zalo_type]').change(function () {
-        $('#phone_zalo').attr('readonly', false);
+        $('input#phone_zalo').attr('readonly', false);
 
-        let direction = $('input[name=flight_type_zalo]').val();
-        let passenger = $('input[name=passenger_zalo]').val();
-        let luggage = $('input[name=luggage_zalo]').val();
-        let booking = $('#name b').html();
-        let contact_name = $('#contact_name .contact_name').attr('data');
-        let phone = $('#phone_zalo').val();
-        let total_amount = $('#total_amount').text().replace(/,/g, '').trim();
+        let zaloPhone   = $('input#phone_zalo').val();
+        let zaloContact = $('input[name="zalo_contact"]').val();
+        let passenger   = $('input[name="zalo_passenger"]').val();
+        let baggage     = $('input[name="zalo_baggage"]').val();
+        let booking     = $('input[name="zalo_booking_name"]').val();
+        let direction   = $('input[name="zalo_flight_type"]').val();
+        let totalAmount = $('#total_amount').text().replace(/,/g, '').trim();
         let html = '';
 
         // Thông tin hành trình
-        let journeys = JSON.parse($("#journeys_zalo").val().replace(/'/g, '"'));
+        let journeys = JSON.parse(decodeURIComponent(atob($("input#zalo_journeys").val())));
         let journey_id_dep = '', journey_id_ret = '';
         $.each(journeys, function (key, valueObj) {
             if (valueObj['type'] == 'dep') journey_id_dep = key;
@@ -31,71 +30,70 @@ $(document).ready(function () {
 
         if (this.value == 'journey') {
             let openning_paragraph = `
-                <p style="font-weight:400;">Cảm ơn <input type="text" name="zalo_field_lien_he" id="zalo_field_lien_he" class="zalo_field" value="${contact_name}" /> đã đặt booking <b>${booking}</b> trên Tìm Chuyến Bay Travelpass.</p>
+                <p style="font-weight:400; margin-bottom:5px;">Cảm ơn <input type="text" name="zalo_field_lien_he" id="zalo_field_lien_he" class="zalo_field" value="${zaloContact}" /> đã đặt booking <b>${booking}</b> trên Tìm Chuyến Bay Travelpass.</p>
                 <p style="font-weight:400;">Thông tin hành trình bao gồm: </p>
                 <input type="hidden" name="zalo_field_booking" id="zalo_field_booking" class="zalo_field" value="${booking}" maxlength="30" />`;
-            let concluding_paragraph = `
-                <div class="notify-check">
-                    <p>Vui lòng kiểm tra thông tin kỹ càng, đảm bảo chính xác trên hệ thống.</p>
-                    <p>Quý khách nhấn nút quan tâm để cập nhật thông tin hành trình.</p>
-                </div>`;
+            let concluding_paragraph = `<div class="notify-check">
+                <p>Vui lòng kiểm tra thông tin kỹ càng, đảm bảo chính xác trên hệ thống.</p>
+                <p class="mt-1">Quý khách nhấn nút quan tâm để cập nhật thông tin hành trình.</p>
+            </div>`;
 
             // Một chiều
             if (direction == '1') {
                 let data = journeys[journey_id_dep];
 
                 html = `${openning_paragraph}
-                    <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="journey-one-way" />
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item" fieldname="noi_di">
+                    <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="journey-one-way" />
+                    <ul class="list-group list-group-flush mt-1">
+                        <li class="list-group-item p-1" fieldname="noi_di">
                             <div class="row">
                                 <div class="col-3">Nơi đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data['dep_name']}" />
+                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data?.dep_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" fieldname="noi_den">
+                        <li class="list-group-item p-1" fieldname="noi_den">
                             <div class="row">
                                 <div class="col-3">Nơi đến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data['arv_name']}" />
+                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" fieldname="ngay_gio_di">
+                        <li class="list-group-item p-1" fieldname="ngay_gio_di">
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" fieldname="hang_hang_khong">
+                        <li class="list-group-item p-1" fieldname="hang_hang_khong">
                             <div class="row">
                                 <div class="col-3">Hãng hàng không</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data['airline']}" />
+                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data?.airline ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" fieldname="ma_chuyen">
+                        <li class="list-group-item p-1" fieldname="ma_chuyen">
                             <div class="row">
                                 <div class="col-3">Mã chuyến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data['flightno']}" />
+                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data?.flightno ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" fieldname="hang_ve">
+                        <li class="list-group-item p-1" fieldname="hang_ve">
                             <div class="row">
                                 <div class="col-3">Hạng vé</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data['class']}" />
+                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data?.class ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" fieldname="hanh_khach">
+                        <li class="list-group-item p-1" fieldname="hanh_khach">
                             <div class="row">
                                 <div class="col-3">Hành khách</div>
                                 <div class="col-9">
@@ -103,12 +101,12 @@ $(document).ready(function () {
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item" fieldname="hanh_ly">
+                        <li class="list-group-item p-1" fieldname="hanh_ly">
                             <div class="row">
                                 <div class="col-3">Hành lý</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${luggage}" maxlength="100" />
-                                    <p style="font-size:13px; color:grey; font-style:italic">Booker nên bổ sung thêm tổng số kg để khách yên tâm. <br />VD: 2 kiện (tổng 30kg)</p>
+                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${baggage}" maxlength="100" />
+                                    <p style="font-size:13px; color:grey; font-style:italic">Booker nên kiểm tra lại thông tin hành lý.</p>
                                 </div>
                             </div>
                         </li>
@@ -120,58 +118,61 @@ $(document).ready(function () {
                 let data_dep = journeys[journey_id_dep];
                 let data_ret = journeys[journey_id_ret];
 
+                let chuyen_bay_di = data_dep?.airline ? data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class'] : '';
+                let chuyen_bay_ve = data_ret?.airline ? data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class'] : '';
+
                 html = `${openning_paragraph}
-                    <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="journey-round-trip" />
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
+                    <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="journey-round-trip" />
+                    <ul class="list-group list-group-flush mt-1">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chiều đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep['dep_name'] + ' - ' + data_dep['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep?.dep_name ?? ''} - ${data_dep?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chuyến bay đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${chuyen_bay_di}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chiều về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret['dep_name'] + ' - ' + data_ret['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret?.dep_name ?? ''} - ${data_ret?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Ngày giờ về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chuyến bay về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${chuyen_bay_ve}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hành khách</div>
                                 <div class="col-9">
@@ -179,12 +180,12 @@ $(document).ready(function () {
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hành lý</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${luggage}" maxlength="100" />
-                                    <p style="font-size:13px; color:grey; font-style:italic">Booker nên bổ sung thêm tổng số kg để khách yên tâm. <br />VD: 2 kiện đi (tổng 30kg), 3 kiện về (tổng 40kg)</p>
+                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${baggage}" maxlength="100" />
+                                    <p style="font-size:13px; color:grey; font-style:italic">Booker nên kiểm tra lại thông tin hành lý.</p>
                                 </div>
                             </div>
                         </li>
@@ -194,18 +195,18 @@ $(document).ready(function () {
         }
         else if (this.value == 'payment') {
             let openning_paragraph = `
-                <p style="font-weight:400;">Tìm Chuyến Bay xin chào, Quý khách <input type="text" name="zalo_field_ten_hk" id="zalo_field_ten_hk" class="zalo_field" value="${contact_name}" maxlength="30" /> có booking <b>${booking}</b> cần thanh toán trước <input type="text" name="zalo_field_han_giu_cho" id="zalo_field_han_giu_cho" class="zalo_field" placeholder="15:00 20/10/2023" style="width:125px; padding:0 7px;" maxlength="30" />.</p>
-                <p style="font-weight:400;">Quý khách có thể chọn những phương thức thanh toán sau:</p>
+                <p style="font-weight:400;">Tìm Chuyến Bay xin chào, Quý khách <input type="text" name="zalo_field_ten_hk" id="zalo_field_ten_hk" class="zalo_field" value="${zaloContact}" maxlength="30" /> có booking có mã <b>${booking}</b> cần thanh toán trước <input type="text" name="zalo_field_han_giu_cho" id="zalo_field_han_giu_cho" class="zalo_field" placeholder="15:00 20/10/2023" style="width:125px; padding:0 7px;" maxlength="30" />.</p>
+                <p style="font-weight:400;">Quý khách có thể chọn những phương thức thanh toán sau.</p>
                 <input type="hidden" name="zalo_field_booking" id="zalo_field_booking" class="zalo_field" value="${booking}" />
                 <input type="hidden" name="zalo_field_dia_chi_vp_1" id="zalo_field_dia_chi_vp_1" class="zalo_field" value="${dia_chi_vp_1}" />`;
 
             html = `${openning_paragraph}
-                <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item" style="padding: 5px 15px;">1. Thanh toán online trên website chúng tôi. Nhân viên tư vấn sẽ hỗ trợ</li>
-                    <li class="list-group-item" style="padding: 5px 15px;">2. Chuyển khoản qua ngân hàng cùng hệ thống.
+                <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />
+                <ul class="list-group list-group-flush mt-1">
+                    <li class="list-group-item p-1" style="padding: 5px 15px;">1. Thanh toán online trên website chúng tôi. Nhân viên tư vấn sẽ hỗ trợ</li>
+                    <li class="list-group-item p-1" style="padding: 5px 15px;">2. Chuyển khoản qua ngân hàng cùng hệ thống. Đây là hình thức tối ưu nhất vì không mất phí thanh toán. Quý khách chuyển vào tài khoản ngân hàng sau:
                         <div style="padding: 4px 15px; font-weight:400">
-                            <p>Đây là hình thức tối ưu nhất vì không mất phí thanh toán. Quý khách chuyển vào tài khoản ngân hàng sau:</p>
+                            <p>Quý khách ghé văn phòng hoặc giao vé tận nơi (có phí). Địa chỉ: <b>${dia_chi_vp_1}</b></p>
                             <div class="payment_tag">
                                 <div class="heading p-2">
                                     <div class="heading_icon">
@@ -231,19 +232,15 @@ $(document).ready(function () {
                                     </div>
                                     <div class="r4">
                                         <span class="col-4">Số tiền (VND)</span>
-                                        <input type="number" name="zalo_field_transfer_amount" id="zalo_field_transfer_amount" class="zalo_field" value="${total_amount}" maxlength="12" />
+                                        <input type="number" name="zalo_field_transfer_amount" id="zalo_field_transfer_amount" class="zalo_field" value="${totalAmount}" maxlength="12" />
                                     </div>
                                     <div class="r5">
                                         <span class="col-4">Nội dung</span>
-                                        <input type="text" name="zalo_field_transfer_note" id="zalo_field_transfer_note" class="zalo_field" value="Thanh toan ${phone}" maxlength=90 />
+                                        <input type="text" name="zalo_field_transfer_note" id="zalo_field_transfer_note" class="zalo_field" value="Thanh toan ${zaloPhone}" maxlength=90 />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </li>
-                    <li class="list-group-item" style="padding: 5px 15px;">
-                        Quý khách ghé văn phòng hoặc giao vé tận nơi (có phí).
-                        <p>Địa chỉ: ${dia_chi_vp_1}</p>
                     </li>
                 </ul>`;
         }
@@ -251,62 +248,62 @@ $(document).ready(function () {
             if (direction == '1') {
                 let data = journeys[journey_id_dep];
                 let openning_paragraph = `
-                    <p style="font-weight:400;">Cảm ơn <input type="text" name="zalo_field_lien_he" id="zalo_field_lien_he" class="zalo_field" value="${contact_name}" />, Tìm chuyến bay Travelpass gửi bạn code vé <input type="text" name="zalo_field_code_pnr" id="zalo_field_code_pnr" class="zalo_field" value="" style="width:100px; padding:0 7px;"/>.</p>
+                    <p style="font-weight:400;">Cảm ơn <input type="text" name="zalo_field_lien_he" id="zalo_field_lien_he" class="zalo_field" value="${zaloContact}" />, Tìm chuyến bay Travelpass gửi bạn code vé <input type="text" name="zalo_field_code_pnr" id="zalo_field_code_pnr" class="zalo_field" value="" style="width:100px; padding:0 7px;"/>.</p>
                     <p style="font-weight:400;">Thông tin hành trình bao gồm:</p>
                 `;
 
                 html = `${openning_paragraph}
-                    <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="code-one-way" />
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
+                    <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="code-one-way" />
+                    <ul class="list-group list-group-flush mt-1">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Nơi đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data['dep_name']}" />
+                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data?.dep_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Nơi đến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data['arv_name']}" />
+                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hãng hàng không</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data['airline']}" />
+                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data?.airline ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Mã chuyến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data['flightno']}" />
+                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data?.flightno ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hạng vé</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data['class']}" />
+                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data?.class ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hành khách</div>
                                 <div class="col-9">
@@ -314,11 +311,11 @@ $(document).ready(function () {
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hành lý</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${luggage}" maxlength="30"/>
+                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${baggage}" maxlength="30"/>
                                 </div>
                             </div>
                         </li>
@@ -328,62 +325,64 @@ $(document).ready(function () {
                 let data_dep = journeys[journey_id_dep];
                 let data_ret = journeys[journey_id_ret];
                 let openning_paragraph = `
-                    <p style="font-weight:400;">Cảm ơn <input type="text" name="zalo_field_lien_he" id="zalo_field_lien_he" class="zalo_field" value="${contact_name}" />, Tìm chuyến bay Travelpass gửi bạn code vé khứ hồi <input type="text" name="zalo_field_code_pnr" id="zalo_field_code_pnr" class="zalo_field" value="" style="width:100px; padding:0 7px;"/>.</p>
+                    <p style="font-weight:400;">Cảm ơn <input type="text" name="zalo_field_lien_he" id="zalo_field_lien_he" class="zalo_field" value="${zaloContact}" />, Tìm chuyến bay Travelpass gửi bạn code vé khứ hồi <input type="text" name="zalo_field_code_pnr" id="zalo_field_code_pnr" class="zalo_field" value="" style="width:100px; padding:0 7px;"/>.</p>
                     <p style="font-weight:400;">Thông tin hành trình bao gồm:</p>
                 `;
+                let chuyen_bay_di = data_dep?.airline ? data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class'] : '';
+                let chuyen_bay_ve = data_ret?.airline ? data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class'] : '';
 
                 html = `${openning_paragraph}
-                    <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="code-round-trip" />
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
+                    <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="code-round-trip" />
+                    <ul class="list-group list-group-flush mt-1">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chiều đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep['dep_name'] + ' - ' + data_dep['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep?.dep_name ?? ''} - ${data_dep?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chuyến bay đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${chuyen_bay_di}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chiều về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret['dep_name'] + ' - ' + data_ret['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret?.dep_name ?? ''} - ${data_ret?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Ngày giờ về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Chuyến bay về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${chuyen_bay_ve}" />
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hành khách</div>
                                 <div class="col-9">
@@ -391,11 +390,11 @@ $(document).ready(function () {
                                 </div>
                             </div>
                         </li>
-                        <li class="list-group-item">
+                        <li class="list-group-item p-1">
                             <div class="row">
                                 <div class="col-3">Hành lý</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${luggage}" maxlength="30"/>
+                                    <input type="text" name="zalo_field_hanh_ly" id="zalo_field_hanh_ly" class="zalo_field" value="${baggage}" maxlength="30"/>
                                 </div>
                             </div>
                         </li>
@@ -408,18 +407,18 @@ $(document).ready(function () {
             else if(direction == '0') data = journeys[journey_id_ret];
 
             html = `
-                <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
-                <p>Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${contact_name}" maxlength="30" style="width:250px" />,</p>
-                <p style="font-weight:400">Cảm ơn <span id="full_name_copy">${contact_name}</span> đã sử dụng dịch vụ của Tìm Chuyến Bay.</p>
-                <p style="font-weight:400">Mã hành trình <input type="text" name="zalo_field_flight_no" id="zalo_field_flight_no" class="zalo_field" value="${data['flightno']}" style="width:80px" />, ngày giờ bay <input type="text" name="zalo_field_datetime" id="zalo_field_datetime" class="zalo_field" value="${data['datetime']}" style="width:160px" />.</p>
+                <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />
+                <p>Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${zaloContact}" maxlength="30" style="width:250px" />,</p>
+                <p style="font-weight:400">Cảm ơn <span id="full_name_copy">${zaloContact}</span> đã sử dụng dịch vụ của Tìm Chuyến Bay.</p>
+                <p style="font-weight:400">Mã hành trình <input type="text" name="zalo_field_flight_no" id="zalo_field_flight_no" class="zalo_field" value="${data?.flightno ?? ''}" style="width:80px" />, ngày giờ bay <input type="text" name="zalo_field_datetime" id="zalo_field_datetime" class="zalo_field" value="${data?.datetime ?? ''}" style="width:160px" />.</p>
                 <p style="font-weight:400">Quý khách nhấn nút quan tâm để cấp nhật thông tin đặt vé mới nhất mỗi ngày.</p>`;
         }
         else if (this.value == 'delay') {
             html = `
-                <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
-                <p style="font-weight:400">Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${contact_name}" maxlength="30" style="width:250px" />, vì lý do khai thác nên chuyến bay có sự thay đổi:</p>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
+                <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />
+                <p style="font-weight:400">Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${zaloContact}" maxlength="30" style="width:250px" />, vì lý do khai thác nên chuyến bay có sự thay đổi:</p>
+                <ul class="list-group list-group-flush mt-1">
+                    <li class="list-group-item p-1">
                         <div class="row">
                             <div class="col-3">Code vé</div>
                             <div class="col-9">
@@ -427,7 +426,7 @@ $(document).ready(function () {
                             </div>
                         </div>
                     </li>
-                    <li class="list-group-item">
+                    <li class="list-group-item p-1">
                         <div class="row">
                             <div class="col-3">Hành trình</div>
                             <div class="col-9">
@@ -439,7 +438,7 @@ $(document).ready(function () {
                             </div>
                         </div>
                     </li>
-                    <li class="list-group-item">
+                    <li class="list-group-item p-1">
                         <div class="row">
                             <div class="col-3">Chuyển sang</div>
                             <div class="col-9">
@@ -453,13 +452,13 @@ $(document).ready(function () {
         }
         else if (this.value == 'remind-flight') {
             html = `
-                <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
+                <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />
                 <p style="font-weight:400">
-                    Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${contact_name}" maxlength="30" style="width:250px" />,
+                    Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${zaloContact}" maxlength="30" style="width:250px" />,
                     quý khách nên có mặt ở sân bay trước 90 phút.
                 </p>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
+                <ul class="list-group list-group-flush mt-1">
+                    <li class="list-group-item p-1">
                         <div class="row">
                             <div class="col-3">Code vé</div>
                             <div class="col-9">
@@ -467,7 +466,7 @@ $(document).ready(function () {
                             </div>
                         </div>
                     </li>
-                    <li class="list-group-item">
+                    <li class="list-group-item p-1">
                         <div class="row">
                             <div class="col-3">Mã chuyến</div>
                             <div class="col-9">
@@ -475,7 +474,7 @@ $(document).ready(function () {
                             </div>
                         </div>
                     </li>
-                    <li class="list-group-item">
+                    <li class="list-group-item p-1">
                         <div class="row">
                             <div class="col-3">Hành trình</div>
                             <div class="col-9">
@@ -483,7 +482,7 @@ $(document).ready(function () {
                             </div>
                         </div>
                     </li>
-                    <li class="list-group-item">
+                    <li class="list-group-item p-1">
                         <div class="row">
                             <div class="col-3">Ngày giờ bay</div>
                             <div class="col-9">
@@ -495,209 +494,73 @@ $(document).ready(function () {
                 <p style="font-weight:400">Vui lòng theo dõi bảng điện tử và lưu ý cổng ra máy bay.<br />Quý khách nhấn nút quan tâm để cập nhật thông tin hành trình mới nhất.</p>
             `;
         }
-        // else if (this.value == 'promotion') {
-        //     $('#phone_zalo').attr('readonly', true);
-
-        //     html = `
-        //         <input type="hidden" name="zalo_type_zns" id="zalo_type_zns" value="${this.value}" />
-        //         <div class="d-flex align-items-center gap-2">
-        //             <select name="template_choose" id="template_choose">
-        //                 <option value="">Chọn mẫu</option>
-        //                 <option value="voucher_83">Voucher khuyến mãi 8/3</option>
-        //                 <option value="voucher_30">Voucher bạn mới</option>
-        //                 <option value="voucher_50">Voucher thành viên</option>
-        //                 <option value="voucher_100">Voucher năm mới</option>
-        //                 <option value="voucher_300">Voucher tháng 3</option>
-        //             </select>
-        //             <!-- <p id="template_desc"></p> -->
-        //         </div>
-        //         <div id="template_promotion"></div>
-        //     `;
-        // }
 
         $('#zalo-message').html(html);
     });
 
-    // Get template PROMOTION
-    $(document).on('change', '#template_choose', function() {
-        let value_template = $(this).val();
-        $('.template_promotion').hide();
-        $('#template_promotion').html(templatePromotion(value_template));
-    });
-
     // Send API
     $('#confirm-send-zalo').click(function (e) {
-        let type_zns        = $('input[name=zalo_type_zns]').val();
-        let phone           = $('input[name=phone_zalo]').val();
-        let parent_id       = $('input#parent_id_zalo').val();
-        let template_data   = {};
+        let phone = $('input#phone_zalo').val();
+        let bookingId = $('input[name="zalo_booking_id"]').val();
+        let znsType = $('input[name="zalo_zns_type"]').val();
+        let templateData = {};
 
-        if(type_zns == 'promotion'){
-            let zalo_id         = $('input[name=zalo_id]').val();
-            let banner_pro      = 'https://bm.vemaybay.website/' + $('.template_promotion--banner img').attr('src');
-            let header_pro      = $('.template_promotion--header h3').text();
-            let text_pro        = $('.template_promotion--text').html();
-            let template_type   = $('#template_choose').val();
-                
-            let table_pro = {};
-            $("input:hidden[name='sms_deleted[]'][value='0']").each(function (i, obj) {
-                let stt_sms     = $(this).attr('id').substring(11);
-                var this_key    = $("input#key_sms"+stt_sms).val();
-                let this_value  = $("input#value_sms"+stt_sms).val();
+        // Validate
+        let error = false;
+        $('.zalo_field').each(function (i, obj) {
+            let id = $(this).attr('id');
+            let name = id.replaceAll("zalo_field_", "");
+            let value = $(this).val();
+            if ((value === undefined || value.length == 0) && name != "hanh_ly") {
+                $('#' + id).css("border-color", "red");
 
-                if(this_key && this_value){
-                    table_pro[this_key] = this_value;
-                }
-            })
+                if (znsType == "payment") alert('Vui lòng nhập thông tin hạn giữ chỗ');
+                else if (znsType == "code-one-way" || znsType == "code-round-trip") alert('Vui lòng nhập thông tin code vé');
+                else alert('Vui lòng nhập đầy đủ thông tin');
 
-            let button_pro = [];
-            $("input:hidden[name='sms_button_deleted[]'][value='0']").each(function (i, obj) {
-                let stt_button      = $(this).attr('id').substring(18);
-
-                let type_button     = $("input#sms_button_" + stt_button).val();
-                let title_button    = $("input#sms_button_" + stt_button).attr('title');
-                let payload_button  = $("input#sms_button_" + stt_button).attr('data-payload');
-                // let image_icon_button  = $("#image_icon_" + stt_button).find('img').attr('src');
-                let image_icon_button  = '';
-
-                if(title_button && type_button && payload_button){
-                    button_pro.push({
-                        'title': title_button,
-                        'image_icon': image_icon_button,
-                        'type': type_button,
-                        'payload': payload_button
-                    });
-                }
-            })
-
-            $.ajax({
-                url: url_zalo_zns,
-                type: "POST",
-                data: {
-                    action : "send_promotion",
-                    zalo_id : zalo_id,
-                    banner : banner_pro,
-                    header : header_pro,
-                    text : text_pro,
-                    table : table_pro,
-                    buttons : button_pro,
-                    phone : phone,
-                    parent_id : parent_id,
-                    template_type : template_type,
-                },
-                beforeSend: function() {
-                    closeDialogZaloZNS();
-                    $('.container-waiting').show();
-                },
-                success: function (response) {
-                    $('.container-waiting').hide();
-    
-                    let res_data = JSON.parse(response);
-                    if (res_data['error'] === 0) showModalNotify(1, res_data['message']);
-                    else showModalNotify(0, res_data['message']);
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    $('.container-waiting').hide();
-                    showModalNotify(0, 'ERROR (' + errorThrown + '): Vui lòng liên hệ bộ phận IT')
-                    console.error(XMLHttpRequest);
-                }
-            });
-        } else {
-            // Validate
-            let error = false;
-            $('.zalo_field').each(function (i, obj) {
-                let id = $(this).attr('id');
-                let name = id.replaceAll("zalo_field_", "");
-                let value = $(this).val();
-                if ((value === undefined || value.length == 0) && name != "hanh_ly") {
-                    $('#' + id).css("border-color", "red");
-    
-                    if (type_zns == "payment") alert('Vui lòng nhập thông tin hạn giữ chỗ');
-                    else if (type_zns == "code-one-way" || type_zns == "code-round-trip") alert('Vui lòng nhập thông tin code vé');
-                    else alert('Vui lòng nhập đầy đủ thông tin');
-    
-                    error = true;
-                    return;
-                }
-    
-                template_data[name] = value;
-            });
-            if (error) {
-                e.preventDefault();
+                error = true;
                 return;
             }
-    
-            $.ajax({
-                url: url_zalo_zns,
-                type: "POST",
-                data: {
-                    action : "send_zns",
-                    phone : phone,
-                    type_zns : type_zns,
-                    parent_id : parent_id,
-                    template_data : JSON.stringify(template_data)
-                },
-                beforeSend: function() {
-                    closeDialogZaloZNS();
-                    $('.container-waiting').show();
-                },
-                success: function (response) {
-                    $('.container-waiting').hide();
-    
-                    let res_data = JSON.parse(response);
-                    if (res_data['error'] === 0) showModalNotify(1, res_data['message']);
-                    else {
-                        const msg = getZaloErrorMessage(res_data);
-                        showModalNotify(0, msg)
-                        // showModalNotify(0, res_data['message']);
-                    } 
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    $('.container-waiting').hide();
-                    showModalNotify(0, 'ERROR (' + errorThrown + '): Vui lòng liên hệ IT')
-                    console.error(XMLHttpRequest);
+
+            templateData[name] = value;
+        });
+        if (error) {
+            e.preventDefault();
+            return;
+        }
+
+        $.ajax({
+            url: "index.php?entryPoint=entryPointGeneral",
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({
+                class: "entryZaloOAClass",
+                method: "sendTemplateMessage",
+                params: {
+                    phoneNumber: phone,
+                    type: znsType,
+                    parentId: bookingId,
+                    parentType: "EC_Flight_Bookings",
+                    templateData: templateData
                 }
-            });
-        }
+            }),
+            beforeSend: function() {
+                closeDialogZaloZBS();
+                $('.container-waiting').show();
+            },
+            success: function (response) {
+                $('.container-waiting').hide();
+                if ('status' in response && response.status) showModalNotify(1, "Đã gửi");
+                else showModalNotify(0, response.message || 'Thao tác không thành công')
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                $('.container-waiting').hide();
+                showModalNotify(0, 'ERROR (' + errorThrown + '): Vui lòng liên hệ IT để được hỗ trợ')
+                console.error(XMLHttpRequest);
+            }
+        });
     });
-
-    // ADD ROW SMS
-    $(document).on("click","#btnAddRow_sms",function() {
-		let ln = parseInt($('#sms_row_count').val());
-		let ln_current = parseInt($('#sms_row_current').val());
-
-        if(ln_current < 5){
-            $('#last-row').before(insertRowSMS(ln));
-
-            ln++;
-            ln_current++;
-            $('#sms_row_count').val(ln);
-            $('#sms_row_current').val(ln_current);
-        } else {
-            alert('Tối đa 5 dòng');
-        }
-    })
-
-    // ADD ROW button
-    $(document).on("change","#type_button",function() {
-        let ln              = parseInt($('#button__count').val());
-		let ln_current      = parseInt($('#button__current').val());
-		let value_button    = $(this).val();
-		let type_button     = $('option:selected', this).attr('type-button');
-
-        if(value_button.length == 0) return false;
-
-        if(ln_current < 4){
-            $("#list__button").append(insertButton(ln, value_button, type_button));
-
-            ln++;
-            ln_current++;
-            $('#button__count').val(ln);
-            $('#button__current').val(ln_current);
-        } else {
-            alert('Tối đa 4 nút');
-        }
-    })
 
     // Change the fullname
     $('#zalo_field_full_name').on('input', function () {
@@ -706,273 +569,12 @@ $(document).ready(function () {
     });
 });
 
-function getZaloErrorMessage(response) {
-    const errorMap = {
-        [-100]: 'Unknown error: Xảy ra lỗi không xác định, vui lòng thử lại sau',
-        [-101]: 'Appllication invalid: Ứng dụng gửi ZNS không hợp lệ. Kiểm tra lại ID ứng dụng của bạn.',
-        [-102]: 'Application not existed: Ứng dụng gửi ZNS không tồn tại. Kiểm tra lại ID ứng dụng của bạn.',
-        [-103]: 'Application not activated: Ứng dụng chưa được kích hoạt. Vui lòng liên hệ Admin để kích hoạt ứng dụng của bạn.',
-        [-104]: 'App secret key invalid: Secret key của ứng dụng không hợp lệ.',
-        [-105]: 'Application not link to any OA: Ứng dụng gửi ZNS chưa đươc liên kết với OA nào.',
-        [-106]: 'Method unsupported: Phương thức không được hỗ trợ.',
-        [-107]: 'Message ID invalid: ID thông báo không hợp lệ.',
-        [-108]: 'Phone number invalid: Số điện thoại không hợp lệ.',
-        [-109]: 'Template ID invalid: ID mẫu ZNS không hợp lệ.',
-        [-1091]: 'Can not edit this type of template: Template không có trạng thái Reject hoặc Template được tạo từ Admin tool.',
-        [-110]: 'Zalo version unsupported: Phiên bản Zalo app không được hỗ trợ. Người dùng cần cập nhật phiên bản mới nhất.',
-        [-111]: 'Template data empty: Mẫu ZNS không có dữ liệu.',
-        [-112]: 'Template data type is not define: Dữ liệu mẫu ZNS không hợp lệ. Data type chưa được định nghĩa. Sử dụng các loại data type được định nghĩa.',
-        [-1121]: 'Parameter_name data breaks max length: Dữ liệu tham số vượt quá giới hạn ký tự.',
-        [-1122]: 'Template data is missing a parameter parameter_name: Dữ liệu mẫu ZNS thiếu tham số.',
-        [-1123]: 'QR code cannot be generated: Không thể tạo QR code, vui lòng kiểm tra lại.',
-        [-1124]: 'Parameter_name has invalid format: Dữ liệu tham số không đúng format.',
-        [-113]: 'Button invalid: Button không hợp lệ.',
-        [-1131]: 'Invalid button content format: Đường dẫn liên kết không đúng định dạng.',
-        [-114]: 'Người dùng không nhận được ZNS vì các lý do: Trạng thái tài khoản, Tùy chọn nhận ZNS, Sử dụng Zalo phiên bản cũ, hoặc các lỗi nội bộ khác.',
-        [-115]: 'Out of quota: Tài khoản ZNS không đủ số dư.',
-        [-116]: 'Text invalid: Nội dung tham số không hợp lệ.',
-        [-117]: 'OA hoặc ứng dụng gửi ZNS chưa được cấp quyền sử dụng mẫu ZNS này.',
-        [-118]: 'Tài khoản Zalo không tồn tại hoặc đã bị vô hiệu hoá.',
-        [-119]: 'Tài khoản không thể nhận ZNS.',
-        [-120]: 'OA chưa được cấp quyền sử dụng tính năng này.',
-        [-1201]: 'OA chưa có quyền tạo template tag 3.',
-        [-1202]: 'OA không có quyền sử dụng media resources (image/logo).',
-        [-121]: 'Mẫu ZNS không có nội dung.',
-        [-122]: 'Body request không đúng định dạng JSON.',
-        [-123]: 'Giải mã nội dung thông báo RSA thất bại.',
-        [-124]: 'Mã truy cập không hợp lệ.',
-        [-1241]: 'Appsecret_proof không hợp lệ.',
-        [-125]: 'ID Official Account không hợp lệ.',
-        [-126]: 'Ví (development mode) không đủ số dư.',
-        [-127]: 'Template test chỉ có thể được gửi cho quản trị viên.',
-        [-128]: 'Mã encoding key không tồn tại.',
-        [-129]: 'Không thể tạo RSA key, vui lòng thử lại sau.',
-        [-130]: 'Nội dung mẫu ZNS vượt quá giới hạn kí tự. Lượng ký tự vượt quá 100k',
-        [-131]: 'Mẫu ZNS chưa được phê duyệt.',
-        [-132]: 'Parameter invalid: Tham số không hợp lệ.',
-        [-133]: 'Mẫu ZNS này không được phép gửi vào ban đêm (từ 22h-6h).',
-        [-1351]: 'OA không có quyền gửi ZNS (Hệ thống chặn do phát hiện vi phạm).',
-        [-136]: 'Cần kết nối với ZCA để sử dụng tính năng này.',
-        [-137]: 'Thanh toán ZCA thất bại (ví không đủ số dư, ...)',
-        [-138]: 'Ứng dụng gửi ZNS chưa có quyền sử dụng tính năng này.',
-        [-1381]: 'OA chưa cấp quyền cho Extension về quyền sử dụng ZCA của OA.',
-        [-139]: 'Người dùng từ chối nhận loại ZNS này.',
-        [-140]: 'Người dùng không đủ điều kiện để nhận loại ZNS này dựa trên chính sách gửi tin hiện tại.',
-        [-141]: 'Người dùng từ chối nhận ZNS từ Official Account.',
-        [-142]: 'RSA key không tồn tại, vui lòng gọi API tạo RSA key.',
-        [-143]: 'RSA key đã tồn tại, vui lòng gọi API lấy RSA key.',
-        [-144]: 'OA đã vượt giới hạn gửi ZNS trong ngày.',
-        [-1441]: 'OA request gửi vượt ngưỡng monthly promotion quota.',
-        [-145]: 'OA không được phép gửi loại nội dung ZNS này.',
-        [-146]: 'Mẫu ZNS này đã bị vô hiệu hoá do chất lượng gửi thấp.',
-        [-147]: 'Mẫu ZNS đã vượt giới hạn gửi trong ngày.',
-        [-1471]: 'OA đã vượt giới hạn gửi tin ZNS hậu mãi cho người dùng này trong tháng.',
-        [-148]: 'Không tìm thấy ZNS journey token.',
-        [-149]: 'ZNS journey token không hợp lệ.',
-        [-1491]: 'ZNS journey token type không tương thích với template.',
-        [-150]: 'ZNS journey token đã hết hạn.',
-        [-151]: 'Không phải mẫu ZNS E2EE.',
-        [-152]: 'Lấy E2EE key thất bại.',
-        [-153]: 'Dữ liệu truyền vào sai quy định.',
-        [-158]: 'Dung lượng file vượt qua dung lượng cho phép.',
-        [-159]: 'Định dạng file upload không được cho phép.',
-        [-160]: 'Số lượng tạo/edit template hoặc upload attachment vượt quá daily quota.',
-        [-161]: 'sending_mode truyền sai giá trị cho phép.',
-        [-162]: 'Chế độ Gửi vượt hạn mức (sending_mode = 3) không hỗ trợ để gửi tin tag 1, 2.',
-    };
-
-    const topError = response?.error;
-    const topMessage = response?.message;
-    const innerError = response?.data?.error;
-    const innerMessage = response?.data?.message;
-
-    if (topError === 0) return 'Gửi tin nhắn thành công.';
-
-    let detail = errorMap[innerError] || innerMessage || 'Lỗi không xác định';
-    return `${topMessage || 'Thao tác thất bại'} (${innerError}): ${detail}`;
-}
-
-
-function insertRowSMS(ln){
-	let html = '';
-
-    html = `<tr id="sms_line_${ln}">
-                <td class="text-start"><input autocomplete="off" type="text" name="key_sms[]" id="key_sms${ln}" class="key_input box-input" title="key" maxlength="25" /></td>
-                <td class="text-start"><input autocomplete="off" type="text" name="value_sms[]" id="value_sms${ln}" class="value_input box-input" title="value" maxlength="100" /></td>
-                <td class="text-center">
-                    <button class="button-search-in-edit remove_sms" title="Xóa sms" type="button" onclick="markSMSDeleted(${ln})">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ec2029" class="bi bi-dash-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"></path></svg>
-                    </button>
-                    <input type="hidden" value="0" name="sms_deleted[]" id="sms_deleted${ln}" />
-                </td>
-            </tr>`;
-
-	return html;
-}
-
-function insertButton(ln, value_button, type_button){
-	let html = '';
-	let title_button = '';
-	let payload_button = '';
-	let image_icon_button = '';
-
-    if(value_button == 'url_tcb'){
-        title_button = 'Đặt vé ngay';
-        payload_button = 'https://timchuyenbay.com';
-    }
-    else if(value_button == 'phone_callnow'){
-        title_button = 'Hotline';
-        payload_button = '1900636060';
-    }
-    else if(value_button == 'show_consultant'){
-        title_button = 'Tư vấn';
-        payload_button = 'Tôi cần hỗ trợ. Có ai có thể chat ngay bây giờ không?';
-    } 
-    // } else if(value_button == 'oa.query.hide'){
-    //     title_button = 'Ẩn';
-    //     payload_button = 'Cần hỗ trợ hide';
-
-    html = `<div id="button_wrap_${ln}" class="mt-2 position-relative">
-                <div class="sms_button--wrap">
-                    <div class="sms_button--header">
-                        <div class="image_icon" id="image_icon_${ln}">
-                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 100 100" fill="#0068ff" width="22" height="22"><path d="M42.6494141,19.424408V13.105072c0-0.8286133,0.6713867-1.5,1.5-1.5s1.5,0.6713867,1.5,1.5v6.3193359  c0,0.8286133-0.6713867,1.5-1.5,1.5S42.6494141,20.2530212,42.6494141,19.424408z M52.2167969,23.7779236  c0.2050781,0.0957031,0.4208984,0.1411133,0.6328125,0.1411133c0.5644531,0,1.1054688-0.3208008,1.3603516-0.8666992  l2.6708984-5.7270508c0.3505859-0.7504883,0.0253906-1.6430664-0.7255859-1.9931641  c-0.7529297-0.3515625-1.6435547-0.0253906-1.9931641,0.7255859l-2.6708984,5.7270508  C51.140625,22.5352478,51.4658203,23.4278259,52.2167969,23.7779236z M34.0893555,23.0523376  c0.2543945,0.5458984,0.7954102,0.8666992,1.3603516,0.8666992c0.2124023,0,0.4277344-0.0454102,0.6328125-0.1411133  c0.7509766-0.3500977,1.0756836-1.2426758,0.7255859-1.9931641l-2.6708984-5.7270508  c-0.3500977-0.7509766-1.2416992-1.0742188-1.9931641-0.7255859c-0.7509766,0.3500977-1.0756836,1.2426758-0.7255859,1.9931641  L34.0893555,23.0523376z M70.9586792,49.7137756c-2.6220703-0.25-4.828125,1.8046875-4.828125,4.3754883v-1.8432617  c0-2.2963867-1.6787109-4.3466797-3.9645996-4.5649414c-2.6220703-0.25-4.8276367,1.8051758-4.8276367,4.3754883v-1.8432617  c0-2.2963867-1.6789551-4.3466797-3.9648438-4.5644531c-2.6218262-0.2495117-4.8271484,1.8051758-4.8276367,4.375v-18.043457  c0-2.2963867-1.6787109-4.3466797-3.9643555-4.5649414c-2.6220703-0.25-4.828125,1.8051758-4.828125,4.3754883v31.7626953  l-7.0732422-5.8632813c-1.7912598-1.4848633-4.4665527-1.5473633-6.1601563,0.0478516  c-1.9377441,1.8251953-1.8996582,4.8393555-0.0297852,6.6181641L40.437439,79.3075256  c0.4179688,0.4482422,0.7272949,0.9863281,0.9042969,1.5727539l1.409668,4.6704102  c0.5097656,1.6884766,2.0654297,2.8442383,3.8293457,2.8442383h20.8613281c1.9987793,0,3.6906738-1.4750977,3.9626465-3.4550781  l3.4995117-25.4487305c0.012207-0.090332,0.0185547-0.1816406,0.0185547-0.2724609v-4.940918  C74.9227905,51.981842,73.2440796,49.9320374,70.9586792,49.7137756z"></path></svg>
-                        </div>
-                        <span>${title_button}</span>
-                    </div>
-                    <div class="sms_button--footer">
-                        <div class="chevron_icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <input type="hidden" value="${type_button}" title="${title_button}" data-payload="${payload_button}" class="btn btn-secondary w-auto" name="button_sms[]" id="sms_button_${ln}" />
-                </div>
-                <div class="remove_button">
-                    <button class="button-search-in-edit w-10" title="Xóa button" type="button" onclick="markButtonDeleted(${ln})">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ec2029" class="bi bi-dash-circle" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"></path><path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"></path></svg>
-                    </button>
-                    <input type="hidden" value="0" name="sms_button_deleted[]" id="sms_button_deleted${ln}" />
-                </div>
-            </div>
-            `;
-
-	return html;
-}
-
-function markSMSDeleted(ln){
-	$('#sms_line_' + ln).hide();
-	$('#sms_deleted' + ln).val(1);
-
-	let arr = document.getElementsByName('sms_deleted[]');
-	let tongsd = 0;
-    for(let i = 0; i < arr.length; i++){
-		if(arr[i].value == '0'){
-			tongsd++;
-		}
-	}
-	$('#sms_row_current').val(tongsd);
-}
-
-function markButtonDeleted(ln){
-	$('#button_wrap_' + ln).hide();
-	$('#sms_button_deleted' + ln).val(1);
-
-    let arr = document.getElementsByName('sms_button_deleted[]');
-	let tongsd = 0;
-    for(let i = 0; i < arr.length; i++){
-		if(arr[i].value == '0'){
-			tongsd++;
-		}
-	}
-	$('#button__current').val(tongsd);
-}
-
-function closeDialogZaloZNS() {
+function closeDialogZaloZBS() {
     // Reset
     $('#zalo-message').html('');
     $('input[name="zalo_type"]').prop('checked', false);
 
     document.getElementById("dialog-send-zalo").close();
-}
-
-function templatePromotion(index_template){
-    let html = '', image = '', title = '', content = '';
-
-    if(index_template == 'voucher_83') {
-        image = 'include/images/templates/vouchers-8-3.jpg';
-        title = '💝 ƯU ĐÃI KHỦNG 8/3 - NHẬN NGAY VOUCHER 83K 💝';
-        content = 'Mừng ngày Quốc tế Phụ nữ, đặt vé máy bay nhận ngay VOUCHER 83K tại Vietjet (.net). Ngày 8/3 là dịp lý tưởng để bạn bày tỏ và thể hiện tình cảm dành cho người phụ nữ bên cạnh mình. Một chuyến du lịch xa thực sự sẽ là món quà vô cùng ý nghĩa trong dịp này.'
-    }
-    else if(index_template == 'voucher_30') {
-        image = 'include/images/templates/vouchers-new.jpg';
-        title = '⚡️CHÀO MỪNG KHÁCH HÀNG MỚI';
-        content = 'Chỉ cần bấm quan tâm OA, nhận ngay voucher giảm giá 30K trực tiếp trên đơn. Chỉ thêm 2 lần đặt vé thành công nữa bạn sẽ trở thành thành viên của TCB với nhiều ưu đãi hấp dẫn.'
-    }
-    else if(index_template == 'voucher_50') {
-        image = 'include/images/templates/vouchers-50.jpg';
-        title = '⚡️ƯU ĐÃI HẤP DẪN DÀNH CHO THÀNH VIÊN CỦA TÌM CHUYẾN BAY';
-        content = 'Bạn đã mua vé nhưng chưa trở thành thành viên của TCB? Nhấn quan tâm OA ngay để nhận voucher 50K cho lần đặt booking tiếp theo. Bạn sẽ nhận được quà tặng hấp dẫn khi đặt 5 booking trong tháng.'
-    }
-    else if(index_template == 'voucher_100') {
-        image = 'include/images/templates/vouchers-2024.jpg';
-        title = '⚡️ƯU ĐÃI CHÀO MỪNG NĂM MỚI 2024';
-        content = 'Giảm giá dành cho khách hàng cũ đặt lại đơn đầu tiên trong năm 2024. Giảm trực tiếp 100K trên đơn cho hành trình bay khứ hồi. Đặc biệt, quan tâm OA để trở thành thành viên của TCB và nhận ưu đãi giảm giá 30K cho những lần đặt tiếp theo.'
-    }
-    else if(index_template == 'voucher_300') {
-        image = 'include/images/templates/vouchers-3.jpg';
-        title = '⚡️CHÀO THÁNG 3 - BAY THẢ GA KHÔNG LO VỀ GIÁ';
-        content = 'Giảm giá trực tiếp trên đơn khi đặt nhóm từ 4 hành khách trở lên, thực hiện hành trình bay khứ hồi hoặc 8 khách cho hành trình bay 1 chiều. Đặc biệt khi đặt nhóm từ 10 khách sẽ được tặng 1 gói ký gửi 20KG miễn phí – Không quy đổi sang hình thức khác. Freeship vé khu vực nội thành HCM.';
-    }
-    else return '';
-
-    html = `
-            <div id="template_promotion_${index_template}" class="template_promotion template_promotion_${index_template} table-view table-promotion__sms mt-3" >
-                <div class="template_promotion--banner">
-                    <img src="${image}" alt="voucher" />
-                </div>
-                <div class="template_promotion--header px-2">
-                    <h3>${title}</h3>
-                </div>
-                <div class="template_promotion--text my-2 px-2">${content}</div>  
-                <div class="template_promotion--tablecontent">
-                    <table class="tbl_zalosms table-details__booking">
-                        <thead>
-                            <tr>
-                                <th>Tên</th>
-                                <th>Giá trị</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr id="last-row" class="footer-tr">
-                                <td colspan="4" class="text-start">
-                                    <input type="button" class="btn btn-primary" id="btnAddRow_sms" value="Thêm dòng" title="Thêm dòng" />
-                                    <input type="hidden" id="sms_row_count" value="0" />
-                                    <input type="hidden" id="sms_row_current" value="0" />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="template_promotion--button">
-                    <div id="tbl_button_option_${index_template}" class="tbl_button_option table-details__booking">
-                        <select name="type_button[]" id="type_button" class="m-2">
-                            <option value="">---Thêm nút---</option>
-                            <option value="url_tcb" type-button="oa.open.url">Đặt vé ngay (timchuyenbay.com)</option>
-                            <option value="show_consultant" type-button="oa.query.show">Cần tư vấn</option>
-                            <option value="phone_callnow" type-button="oa.open.phone">Hotline</option>
-                        </select>
-                        <input type="hidden" id="button__count" value="0" />
-                        <input type="hidden" id="button__current" value="0" />
-                        <div id="list__button"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-    return html;
 }
 
 function get_info_itinerary(dir = 0) {

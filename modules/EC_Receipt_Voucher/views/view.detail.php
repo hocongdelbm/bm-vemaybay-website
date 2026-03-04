@@ -11,7 +11,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 	}
 	
 	function displayJS(){
-		global $app_list_strings, $current_user;
+		global $current_user;
 		$js = '<script>
 			var rv_status = "'.$this->bean->rv_status.'";
 			var amount_type = "'.$this->bean->amount_type.'";
@@ -22,7 +22,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 	}
 	
 	function populateCustomFields(){
-		global $app_list_strings, $current_user;
+		global $app_list_strings;
 
 		// Amount
 		$amount = '<span>'.format_number($this->bean->amount).'
@@ -30,7 +30,7 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 		</span>';
 		$this->ss->assign('AMOUNT', $amount);
 
-        	$loaithu_arr = array('4', '5', '10', '11', '12', '13', '14', '16');
+        	$loaithu_arr = array('4', '5', '10', '11', '12', '13', '14', '16', '27');
 		$loai_thu = '<label>'.$app_list_strings['loai_thu_list'][(int)$this->bean->loai_thu].'</label>';
 		if(($this->bean->loai_thu == 4 || $this->bean->loai_thu == 5) && ($this->bean->is_debt || !empty($this->bean->customer))) {
 			$loai_thu .= '&nbsp;-&nbsp;Đối tượng:&nbsp;<label>' . $this->bean->customer . '</label>';
@@ -101,9 +101,8 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 		global $app_list_strings, $current_user, $timedate;
 		$date_format = $timedate->get_date_format();
 		
-		// Ngày hạch toán
-		// $this->bean->ngayhachtoan = date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) + 7*3600);
-		$this->bean->ngayhachtoan = date($date_format.' H:i', strtotime($this->bean->ngayhachtoan) - 7*3600);
+		// Ngày hạch toán (Giờ lưu dưới DB là giờ VietNam)
+		$this->bean->ngayhachtoan = date("$date_format H:i", strtotime($this->bean->ngayhachtoan) - 7*3600);
 		
 		// Nút in phiếu
 		// $current_user->department_id
@@ -131,7 +130,6 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 				|| $current_user->id == 'd61ac0c1-91b3-0dc8-049a-518b21d2deb9' // Chung Thanh Nhân - nhanchung
 			)
 		) {
-			// <input type="hidden" name="ngayhachtoan" value="'.date($date_format.' H:i', strtotime(date('d-m-Y H:i'))+7*3600).'" /> 
 			$change_status = '</form>
 			<form action="index.php" name="frmChangeStatus" id="frmChangeStatus" method="post">
 				<input type="hidden" name="module" value="EC_Receipt_Voucher" />
@@ -141,14 +139,13 @@ class EC_Receipt_VoucherViewDetail extends ViewDetail {
 				<input type="hidden" name="return_action" value="DetailView" />
 				<input type="hidden" name="return_id" value="'.$this->bean->id.'" />
 				<input type="hidden" name="rv_status" value="1" />
-				<input type="hidden" name="ngayhachtoan" value="'.date($date_format.' H:i', strtotime(date('d-m-Y H:i'))+7*3600).'" /> 
-				<input type="hidden" name="booking_id" value="'.$this->bean->booking_id.'" />
-				<input type="hidden" name="booking_name" value="'.$this->bean->booking_name.'" />
+				<input type="hidden" name="ngayhachtoan" value="'. date("$date_format H:i") .'" /> 
+				<input type="hidden" name="booking_id" value="'. $this->bean->booking_id .'" />
+				<input type="hidden" name="booking_name" value="'. $this->bean->booking_name .'" />
 				<input type="submit" class="btn btn-success" name="btnChangeStatus" value="Đã thu" title="Đã thu" />
 			</form>';
 			$this->ss->assign('CHANGE_STATUS', $change_status);
-		} 
-		// else if($this->bean->rv_status == '1' && !$this->isSalesInvoiceExist($this->bean->id) && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
+		}
 		else if($this->bean->rv_status == '1' && ACLController::checkAccess('EC_HoaDonBan', 'edit', true)) {
 			$bk = new EC_Flight_Bookings();
 			$bk->retrieve($this->bean->booking_id);

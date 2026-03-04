@@ -72,6 +72,7 @@
 					<td class="value">
 						<select name="website" id="website" class="form-select">
 							<option value="timchuyenbay.com">timchuyenbay.com</option>
+							<option value="app.vemaybay.website">app.vemaybay.website</option>
 						</select>
 					</td>
 				</tr>
@@ -122,6 +123,12 @@
 					<td class="value">
 						<div class="list_condition">
 							<div class="condition">
+								<div class="condition-name">Cho SĐT:</div>
+								<div class="condition-value">
+									<input type="text" name="for_phone_value" class="box-input allow-number-only" value="" />
+								</div>
+							</div>
+							<div class="condition">
 								<div class="condition-name">Đơn tối thiểu:</div>
 								<div class="condition-value">
 									<input type="text" name="min_order_value" class="box-input allow-number-only" value="0" />
@@ -140,7 +147,7 @@
   									<label class="form-check-label" for="flight_type_domestic">Nội địa</label>
 									<input type="radio" class="form-check-input" id="flight_type_international" name="flight_type" value="international">
   									<label class="form-check-label" for="flight_type_international">Quốc tế</label>
-									<input type="radio" class="form-check-input" id="flight_type_all" name="flight_type" value="">
+									<input type="radio" class="form-check-input" id="flight_type_all" name="flight_type" value="" checked>
   									<label class="form-check-label" for="flight_type_all">Tất cả</label>
 								</div>
 							</div>
@@ -151,7 +158,7 @@
   									<label class="form-check-label" for="ticket_type_one_way">Một chiều</label>
 									<input type="radio" class="form-check-input" id="ticket_type_round_trip" name="ticket_type" value="2">
   									<label class="form-check-label" for="ticket_type_round_trip">Khứ hồi</label>
-									<input type="radio" class="form-check-input" id="ticket_type_all" name="ticket_type" value="">
+									<input type="radio" class="form-check-input" id="ticket_type_all" name="ticket_type" value="" checked>
   									<label class="form-check-label" for="ticket_type_all">Tất cả</label>
 								</div>
 							</div>

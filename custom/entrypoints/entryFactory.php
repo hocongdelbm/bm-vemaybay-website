@@ -1,18 +1,13 @@
 <?php
 try {
-    $entry_class_dir = (isset($entryAuth) && $entryAuth === false) ? 'custom/entrypoints/entryNonAuthClass/' : 'custom/entrypoints/entryAuthClass/';
-    // require_once $entry_class_dir . "entryClass.php";
-    foreach (glob("$entry_class_dir*.php") as $filename) {
-        if(preg_match('/^entry.+Class\.php$/', str_replace($entry_class_dir, '', $filename))) require_once $filename;
+    foreach(['custom/entrypoints/entryNonAuthClass/', 'custom/entrypoints/entryAuthClass/'] as $entry_class_dir) {
+        foreach (glob("$entry_class_dir*.php") as $filename) {
+            if(preg_match('/^entry.+Class\.php$/', str_replace($entry_class_dir, '', $filename))) require_once $filename;
+        }
     }
 }
 catch (Throwable $th) {
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Throwable: {$th->getMessage()} on line {$th->getLine()} at {$th->getFile()}"
-    ]);
-    exit();
+    $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
 }
 
 class entryFactory {

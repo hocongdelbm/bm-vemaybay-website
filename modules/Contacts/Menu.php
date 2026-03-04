@@ -3,7 +3,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-global $mod_strings, $app_strings, $sugar_config, $current_user;
+global $mod_strings;
 if (ACLController::checkAccess('Contacts', 'edit', true)) {
     $module_menu[] = array("index.php?module=Contacts&action=EditView&return_module=Contacts&return_action=index", $mod_strings['LNK_NEW_CONTACT'], "Create", 'Contacts');
 }

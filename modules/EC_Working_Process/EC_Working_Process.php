@@ -42,6 +42,7 @@ class EC_Working_Process extends Basic {
     public $awareness;
     public $minus;
     public $ticket_delivery;
+    public $checkin_journey;
 	
     public function bean_implements($interface)
     {

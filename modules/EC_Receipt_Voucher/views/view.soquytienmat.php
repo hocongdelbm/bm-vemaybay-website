@@ -78,12 +78,12 @@ class Viewsoquytienmat extends SugarView
 		global $db, $app_list_strings;
 
 		// For opening amount
-		$sql_search = " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
-						AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) < '" . date('Y-m-d', strtotime($post_fdate)) . "' ";
+		$sql_search = " AND DATE(p.ngayhachtoan) >= '" . date('Y-01-01', strtotime($post_fdate)) . "'
+						AND DATE(p.ngayhachtoan) < '" . date('Y-m-d', strtotime($post_fdate)) . "' ";
 
 		// For voucher list
-		$sql_search2 = " AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
-							AND DATE(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR)) <= '" . date('Y-m-d', strtotime($post_tdate)) . "' ";
+		$sql_search2 = " AND DATE(p.ngayhachtoan) >= '" . date('Y-m-d', strtotime($post_fdate)) . "'
+							AND DATE(p.ngayhachtoan) <= '" . date('Y-m-d', strtotime($post_tdate)) . "' ";
 
 		$sql_search3 = '';
 		if (isset($location_id) && !empty($location_id)) {
@@ -174,7 +174,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- RECEIPT VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -192,7 +192,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- PAYMENT VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -210,7 +210,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- FROM TRANSFER VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,
@@ -228,7 +228,7 @@ class Viewsoquytienmat extends SugarView
 
 			-- TO TRANSFER VOUCHER
 			SELECT p.date_entered,
-				DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR) AS posted_date,
+				p.ngayhachtoan AS posted_date,
 				p.ngaychungtu AS voucher_date,
 				p.name AS voucher_name,
 				p.description,

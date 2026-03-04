@@ -63,7 +63,7 @@ $mod_strings = array(
     'LBL_INVALID_EMAIL' => 'Email không tồn tại',
     'LBL_INVITEE' => 'Báo cáo trực tiếp',
     'LBL_LAST_NAME' => 'Họ tên',
-    'LBL_LEAD_SOURCE' => 'Nguồn đầu mối',
+    'LBL_LEAD_SOURCE' => 'Nguồn liên hệ',
     'LBL_LIST_ACCEPT_STATUS' => 'Trạng thái chấp thuận',
     'LBL_LIST_ACCOUNT_NAME' => 'Tên tài khoản',
     'LBL_LIST_CONTACT_NAME' => 'Tên liên lạc',
@@ -186,8 +186,6 @@ $mod_strings = array(
     'LBL_NO_INTERACTION' => 'Bạn vẫn chưa tương tác với liên hệ này.',
 
     'LBL_PANEL_ADDRESS' => 'Thông tin địa chỉ',
-    'LBL_ZALO_ID' => 'Zalo ID',
-    'LBL_TELEGRAM_ID' => 'Telegram ID',
     'LBL_LIST_ASSIGNED_USER' => 'Người tạo',
     'LBL_PHONE_MOBILE' => 'Điện thoại',
     'LBL_EMAIL' => 'Email',
@@ -197,4 +195,9 @@ $mod_strings = array(
     'LNK_POINTS_LOG' => 'Quá trình tích điểm',
     'LBL_INFO_POINTS' => 'Quá trình tích điểm',
     'LBL_INFO_CALLS' => 'Lịch sử cuộc gọi',
+    'LBL_INFO_ZALO' => 'Thông tin Zalo',
+
+    'LBL_IS_UNCOMFORTABLE' => 'Khách khó chịu',
+    'LBL_IS_CTV' => 'Là CTV?',
+    'LBL_IS_COMPARE_PRICE' => 'Khách so sánh giá',
 );

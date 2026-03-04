@@ -1,17 +1,34 @@
+const ENTRYPOINT = "index.php?entryPoint=entryPointGeneral";
+
 $(document).ready(function () {
-    // những input chỉ cho nhập số và format currency
     $(".allow_number_only").number(true, 0, dec_sep, num_grp_sep);
+    $('.decimal-only').on('input', function () {
+        let value = $(this).val();
+        // Remove invalid characters except digits, dot, comma, minus
+        value = value.replace(/[^0-9.,-]/g, '');
+        $(this).val(value);
+    });
 
     // Default current date
     if($('input[name="accounting_date"]').val().length < 10) $('input[name="accounting_date"]').val(getCurrentDate());
     if($('input[name="invoice_date"]').val().length < 10) $('input[name="invoice_date"]').val(getCurrentDate());
 
-    $("#supplier").change(function () {
-        $("#ticket_code").val($(this).children("option:selected").attr("data-ticket-code"));
-        $("#pass_qty").val($(this).children("option:selected").attr("data-pass-qty"));
-        $("#itinerary").val($(this).children("option:selected").attr("data-itinerary"));
-        $("#ticket_price").val($(this).children("option:selected").attr("data-ticket-price"));
-        $("#supplier_name").val($(this).children("option:selected").text());
+    $('#import-tab').click(function() {
+        $('#supplier').trigger('change');
+    });
+    $('#supplier').change(function () {
+        let optionSelected = $(this).children('option:selected');
+
+        $('#col_ticket_code').val(optionSelected.attr('data-col-ticket-code'));
+        $('#col_pass_qty').val(optionSelected.attr('data-col-pass-qty'));
+        $('#col_ticket_price').val(optionSelected.attr('data-col-ticket-price'));
+        $('#col_vat').val(optionSelected.attr('data-col-vat'));
+        $('#col_authorized_collection').val(optionSelected.attr('data-col-authorized-collection'));
+        $('#col_other_charge').val(optionSelected.attr('data-col-other-charge'));
+        $('#col_total').val(optionSelected.attr('data-col-total'));
+        $('#col_itinerary').val(optionSelected.attr('data-col-itinerary'));
+
+        $('#supplier_name').val(optionSelected.text().trim());
     });
 
     $("#import_invoice_frm").submit(function () {
@@ -26,10 +43,11 @@ $(document).ready(function () {
         $("#noti_line").text("Hệ thống đang xử lý dữ liệu. Vui lòng chờ trong giây lát...");
     });
 
-    // xoá hoá đơn bắt buộc phải nhập số hoá đơn, ký hiệu hoá đơn
+    // Xoá hoá đơn bắt buộc phải nhập số hoá đơn, ký hiệu hoá đơn
     $("#remove_frm").submit(function () {
         addToValidate('remove_frm', 'rm_invoice_number', 'varchar', true, 'Không được để trống');
         addToValidate('remove_frm', 'rm_invoice_serial', 'varchar', true, 'Không được để trống');
+        addToValidate('remove_frm', 'rm_supplier', 'varchar', true, 'Không được để trống');
         if (!check_form('remove_frm')) {
             return false;
         }
@@ -103,7 +121,7 @@ $(document).ready(function () {
                 "call_back_function": "set_inv_return",
                 "form_name": "implement_invoice_frm",
                 "field_to_name_array": {
-                    "id": "im_ticket_code_id",
+                    "id": "im_ticket_id",
                     "name": "im_ticket_code"
                 }
             }, "single", true);
@@ -226,7 +244,8 @@ $(document).ready(function () {
         step: 1,
         weekNumbers: false
     });
-
+    
+    // Duplicate feature
     $('i.icon-duplicate').on('click', function () {
         var base64Data = $(this).attr('form-data');
         var jsonStr = atob(base64Data);
@@ -350,27 +369,25 @@ $(document).ready(function () {
 
         formData.set('for', 'duplicateInvoice');
 
-        // Optionally, collect as JSON (if you want to send as JSON)
-        // var formData = {};
-        // $('#dynamic-form').find('input, select').each(function() {
-        //   formData[this.name] = $(this).val();
-        // });
-
         $.ajax({
-            url: 'index.php?entryPoint=entryPointEC_HoaDonBan',
-            type: 'POST',
-            data: formData,
-            processData: false, // don't let jQuery process the data
-            contentType: false, // let the browser set it (multipart/form-data)
+            url: ENTRYPOINT,
+            type: "POST",
+            contentType: "application/json",
+            dataType: "json",
+            cache: false,
+            data: JSON.stringify({
+                class: "entryInputInvoiceClass",
+                method: "duplicateTicket",
+                params: Object.fromEntries(formData.entries())
+            }),
             beforeSend: function() {
                 $('.container-waiting').show();
             },
             success: function(response) {
                 $('.container-waiting').hide();
-                let obj = JSON.parse(response);
                 $('#modal-duplicate-input-invoice').hide();
-                if(obj.error == 0) showModalNotify(1, 'Thêm thành công');
-                else showModalNotify(0, obj.message ?? 'Thao tác thất bại');
+                if('status' in response && response.status == 1) showModalNotify(1, response.message || 'Thao tác thành công');
+                else showModalNotify(0, response.message || 'Thao tác thất bại');
             },
             error: function(xhr, status, error) {
                 $('.container-waiting').hide();
@@ -379,7 +396,6 @@ $(document).ready(function () {
             }
         });
     });
-
     $(document).on('input', '#modal-duplicate-input-invoice input.money', function () {
         if($(this).attr('id') == 'cost_no_vat') {
             let cost_no_vat = unformatNumber($('#modal-duplicate-input-invoice input#cost_no_vat').val());
@@ -397,25 +413,82 @@ $(document).ready(function () {
         let format_value = formatNumber(unformatNumber($(this).val()));
         $(this).val(format_value);
     });
+
+    // Remove feature
+    $('i.icon-remove').on('click', function () {
+        const recordId = $(this).attr('record-id');
+        const recordName = $(this).attr('record-name');
+        
+        if(recordId && recordId.length > 0) {
+            if(confirm(`Xác nhận xóa hóa đơn đầu vào ${recordName}`)) {
+                $.ajax({
+                    url: ENTRYPOINT,
+                    type: "POST",
+                    contentType: "application/json",
+                    dataType: "json",
+                    cache: false,
+                    data: JSON.stringify({
+                        class: "entryInputInvoiceClass",
+                        method: "removeTicket",
+                        params: {
+                            ticketId: recordId,
+                        }
+                    }),
+                    beforeSend: function() {
+                        $('.container-waiting').show();
+                    },
+                    success: function(response) {
+                        if('status' in response && response.status == 1) {
+                            showModalNotify(1, response.message || 'Thao tác thành công');
+                            $(`#record-${recordId}`).remove();
+                        }
+                        else showModalNotify('warning', response.message || 'Thao tác thất bại');
+                    },
+                    error: function(xhr, status, error) {
+                        showModalNotify(0, error);
+                    },
+                    complete: function () {
+                        $('.container-waiting').hide();
+                    }
+                });
+            }
+        }
+    });
+
+    $(document).on('input', '#im_ticketing_fee, #im_ticketing_fee_vat_percent', function () {
+        let fee     = unformatNumber($('#im_ticketing_fee').val());
+        let percent = $('#im_ticketing_fee_vat_percent').val();
+        let vat     = fee * percent;
+        $('#im_ticketing_fee').val(formatNumber(fee));
+        $('#im_ticketing_fee_vat').val(formatNumber(vat));
+        $('#im_ticketing_fee_no_vat').val(formatNumber(fee - vat));
+    });
 });
 
 function calculateTicketPrice(is_cal_vat = 0) {
+    let qty = unformatNumber($("#im_qty").val());
+    let authorized = unformatNumber($("#im_authorized").val());
 
-    var qty = unformatNumber($("#im_qty").val());
-    var cost = unformatNumber($("#im_cost").val());
-    var authorized = unformatNumber($("#im_authorized").val());
+    let cost = $("#im_cost").val();
+    if (cost.includes('-')) {
+        cost = cost.replace(/-/g, '');
+        cost = '-' + cost;
+    }
+    cost = unformatNumber(cost);
 
-    if (is_cal_vat) {
-        var vat = Math.round(cost * 0.08);
-    } else var vat = unformatNumber($("#im_vat").val());
+    let vat = 0;
+    let vat_per = parseFloat($("#im_vat_percent").val());
+    if (is_cal_vat) vat = Math.round(cost * vat_per);
+    else vat = unformatNumber($("#im_vat").val());
 
+    $("#im_cost").val(formatNumber(cost));
     $("#im_vat").val(formatNumber(vat));
     $("#im_cost_vat").val(formatNumber(cost + vat));
     $("#im_total").val(formatNumber(cost + vat + authorized));
 }
 
 function check_import_form() {
-    // tất cả các trường đều phải nhập
+    // Tất cả các trường đều phải nhập
     addToValidate('implement_invoice_frm', 'im_invoice_date', 'date', true, 'Ngày phải nhập theo cú pháp: 28-02-2022');
     addToValidate('implement_invoice_frm', 'im_accounting_date', 'date', true, 'Ngày phải nhập theo cú pháp: 28-02-2022');
     addToValidate('implement_invoice_frm', 'im_invoice_number', 'varchar', true, 'Không được để trống');
@@ -430,7 +503,6 @@ function check_import_form() {
         return false;
     } else {
         // kiểm tra hành trình
-        var ticket_type = $("#im_ticket_type").val();
         var flight_type = $("#im_flight_type").val();
         var iti = $("#im_iti").val();
         if (typeof iti != 'undefined' && iti != '') {
@@ -460,34 +532,45 @@ function set_inv_return(popupReplyData) {
     }
 
     $.ajax({
-        url: "index.php?entryPoint=entryPointEC_HoaDonBan",
+        url: ENTRYPOINT,
         type: "POST",
-        data: {
-            ticket_code: $("#im_ticket_code_id").val(),
-            for: "getTicketCodeInf",
-        },
-        success: function (response) {
-            var result = JSON.parse(response);
-            $("#im_invoice_date").val(result.invoice_date);
-            $("#im_invoice_number").val(result.invoice_number);
-            $("#im_invoice_serial").val(result.invoice_serial);
-            $("#im_iti").val(result.invoice_iti);
-            $("#im_booking").val(result.invoice_booking);
-            $("#im_booking_id").val(result.invoice_booking_id);
-            $("#im_supplier").val(result.invoice_supplier);
-            $("#im_qty").val(result.invoice_qty);
-            $("#im_cost").val(result.invoice_cost);
-            $("#im_vat").val(result.invoice_vat);
-            $("#im_cost_vat").val(result.invoice_cost_vat);
-            $("#im_authorized").val(result.invoice_authorized);
-            $("#im_total").val(result.invoice_total);
-            $("#im_accounting_date").val(result.invoice_accounting_date);
-            // xác định là 1 chiều hay 2 chiều
-            if (result.invoice_iti.split("-").length == 2) {
-                $("#im_flight_type").val(0);
-            } else {
-                $("#im_flight_type").val(1);
+        contentType: "application/json",
+        dataType: 'json',
+        cache: false,
+        data: JSON.stringify({
+            class: "entryInputInvoiceClass",
+            method: "getTicketNumberInfoById",
+            params: {
+                ticketId: $("#im_ticket_id").val().trim(),
             }
+        }),
+        success: function (response) {
+            if(response.status != 1) {
+                showToastWarning('Không tìm thấy dữ liệu số vé');
+                return;
+            }
+
+            let result = response.data ?? {};
+            
+            $("#im_invoice_date").val(result.inv_date);
+            $("#im_invoice_number").val(result.inv_number);
+            $("#im_invoice_serial").val(result.inv_serial);
+            $("#im_iti").val(result.inv_iti);
+            $("#im_booking").val(result.inv_booking);
+            $("#im_booking_id").val(result.inv_booking_id);
+            $("#im_supplier").val(result.inv_supplier);
+            $("#im_qty").val(result.inv_qty);
+            $("#im_accounting_date").val(result.inv_accounting_date);
+            $("#im_ticket_type").val(result.inv_ticket_type)
+            $("#im_vat_percent").val(result.inv_vat_percent);
+            $("#im_vat").val(formatNumber(result.inv_vat));
+            $("#im_cost").val(formatNumber(result.inv_cost));
+            $("#im_cost_vat").val(formatNumber(result.inv_cost_vat));
+            $("#im_authorized").val(formatNumber(result.inv_authorized));
+            $("#im_total").val(formatNumber(result.inv_total));
+            // Xác định là 1 chiều hay 2 chiều
+            if (result.inv_iti.split("-").length == 2) $("#im_flight_type").val(0);
+            else $("#im_flight_type").val(1);
         }
     });
 }

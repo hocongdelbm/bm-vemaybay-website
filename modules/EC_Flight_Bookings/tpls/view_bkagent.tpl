@@ -114,9 +114,12 @@
     <table id="bkagent_tbl" class="list-data table-details__booking mt-3" cellpadding="0" cellspacing="0" border="0">
         <thead>
             <th width="5%">STT</th>
-            <th width="25%">Hãng</th>
-            <th width="20%">SL vé</th>
-            <th width="50%">Ghi chú</th>
+            <th>Hãng</th>
+            <th width="10%">SL BK</th>
+            <th width="10%">SL vé</th>
+            <th width="18%">Tổng giá bán</th>
+            <th width="18%">Tổng giá mua</th>
+            <th width="18%">Tổng doanh số</th>
         </thead>
         <tbody>
             {$AGENT_LIST_TBL}
@@ -134,7 +137,6 @@
             <th width="20%">Hãng bay</th>
             <th width="15%">Chiều bay</th>
             <th width="10%">SL vé</th>
-            <th width="20%">Ghi chú</th>
         </thead>
         <tbody>
             {$BOOKING_LIST_TBL}

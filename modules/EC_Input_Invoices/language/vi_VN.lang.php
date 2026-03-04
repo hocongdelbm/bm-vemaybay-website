@@ -43,4 +43,5 @@ $mod_strings = array(
     'LBL_INIT_QTY' => 'Đầu kỳ',
     'LBL_TICKET_CODE' => 'Code vé',
     'LBL_ACCOUNTING_DATE' => 'Ngày hạch toán',
+    'LBL_TICKET_TYPE' => 'Loại vé',
 );

@@ -1,5 +1,5 @@
 <?php
-// created: 2025-03-24 01:56:27
+// created: 2025-10-29 04:57:45
 $GLOBALS['tabStructure'] = array (
   'LBL_GROUPTAB3_1684394664' => 
   array (
@@ -8,12 +8,12 @@ $GLOBALS['tabStructure'] = array (
     array (
       0 => 'EC_Flight_Bookings',
       1 => 'Calls',
-      2 => 'EC_Vouchers',
+      2 => 'EC_HoanVe',
       3 => 'EC_Zalo',
       4 => 'EC_Messages',
       5 => 'Emails',
-      6 => 'EC_HoanVe',
-      7 => 'InboundEmail',
+      6 => 'InboundEmail',
+      7 => 'EC_Vouchers',
       8 => 'Accounts',
     ),
   ),
@@ -24,6 +24,7 @@ $GLOBALS['tabStructure'] = array (
     array (
       0 => 'EC_TongHop',
       1 => 'Contacts',
+      2 => 'EC_Zalo_Contacts',
     ),
   ),
   'LBL_GROUPTAB2_1684121222' => 
@@ -44,11 +45,11 @@ $GLOBALS['tabStructure'] = array (
     array (
       0 => 'EC_Receipt_Voucher',
       1 => 'EC_Payment_Voucher',
-      2 => 'EC_ChuyenTienNoiBo',
-      3 => 'EC_Bank_Account',
-      4 => 'EC_Banks',
-      5 => 'EC_Payment_Types',
-      6 => 'EC_HoaDonBan',
+      2 => 'EC_Payment_Types',
+      3 => 'EC_HoaDonBan',
+      4 => 'EC_ChuyenTienNoiBo',
+      5 => 'EC_Bank_Account',
+      6 => 'EC_Banks',
     ),
   ),
   'LBL_GROUPTAB3_1684124846' => 
@@ -57,11 +58,10 @@ $GLOBALS['tabStructure'] = array (
     'modules' => 
     array (
       0 => 'EC_Location',
-      1 => 'EC_LoginAudit',
-      2 => 'AOK_KnowledgeBase',
-      3 => 'Documents',
-      4 => 'Bugs',
-      5 => 'EC_Outbound_Phone',
+      1 => 'AOK_KnowledgeBase',
+      2 => 'Documents',
+      3 => 'Bugs',
+      4 => 'EC_LoginAudit',
     ),
   ),
 );

@@ -1,0 +1,23 @@
+.list-view-rounded-corners table.table-responsive>tbody>tr>td {
+  vertical-align: baseline;
+  padding: 7px 5px;
+}
+
+.loader-signing {
+  width: fit-content;
+  display: inline;
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 1px;
+  clip-path: inset(0 3ch 0 0);
+  animation: l4 1s steps(4) infinite;
+}
+.loader-signing:before {
+  content: "...";
+}
+@keyframes l4 {to{clip-path: inset(0 -1ch 0 0)}}
+
+.txt-signing-pending {color:#555555;}
+.txt-signing-failed {color:red;}
+.txt-signing-success {color:var(--primary-color);}
+.txt-signing-success::before {content: "✔ ";}

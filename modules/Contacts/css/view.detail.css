@@ -1,0 +1,5 @@
+.panel-body[data-id="LBL_INFO_ZALO"] .detail-view-field, 
+.panel-body[data-id="LBL_INFO_CALLS"] .detail-view-field, 
+.panel-body[data-id="LBL_INFO_POINTS"] .detail-view-field {
+    border-bottom: none;
+}

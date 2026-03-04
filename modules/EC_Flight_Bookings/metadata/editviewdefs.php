@@ -27,21 +27,21 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
             ),
-            // array(
-            //     'file' => 'modules/EC_Flight_Bookings/js/view.edit.js',
-            // ),
         ),
     ),
 
     'panels' => array(
-        'default' => array(
+        'LBL_BOOKINGS_PANEL' => array(
             array(
                 array(
                     'name' => 'name',
                     'label' => 'LBL_NAME',
                     'customCode' => '{$NAME_BOOKING}',
                 ),
-                array(),
+                array(
+                    'name' => 'is_prior',
+                    'label' => 'LBL_IS_PRIOR',
+                ),
             ),
             array(
                 array(
@@ -251,6 +251,15 @@ $viewdefs[$module_name]['EditView'] = array(
             array(
                 array(),
                 array(
+                    'name' => 'iv_identity_number',
+                    'label' => 'LBL_IV_IDENTITY_NUMBER',
+                    'customCode' => '{$CUS_IV_IDENTITY_NUMBER}',
+                ),
+            ),
+
+            array(
+                array(),
+                array(
                     'name' => 'company_address',
                     'studio' => 'visible',
                     'label' => 'LBL_COMPANY_ADDRESS',
@@ -270,23 +279,23 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
             ),
 
-            array(
-                array(),
-                array(
-                    'name' => 'iv_name_banks',
-                    'label' => 'LBL_IV_NAME_BANKS',
-                    'customCode' => '{$CUS_IV_NAME_BANK}',
-                ),
-            ),
+            // array(
+            //     array(),
+            //     array(
+            //         'name' => 'iv_name_banks',
+            //         'label' => 'LBL_IV_NAME_BANKS',
+            //         'customCode' => '{$CUS_IV_NAME_BANK}',
+            //     ),
+            // ),
 
-            array(
-                array(),
-                array(
-                    'name' => 'iv_bank_account',
-                    'label' => 'LBL_IV_BANK_ACCOUNT',
-                    'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
-                ),
-            ),
+            // array(
+            //     array(),
+            //     array(
+            //         'name' => 'iv_bank_account',
+            //         'label' => 'LBL_IV_BANK_ACCOUNT',
+            //         'customCode' => '{$CUS_IV_BANK_ACCOUNT}',
+            //     ),
+            // ),
         ),
     ),
 );

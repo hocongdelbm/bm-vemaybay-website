@@ -20,7 +20,7 @@ $viewdefs[$module_name]['EditView'] = array(
                 'file' => 'custom/jqueryui/plugins/fromPopupReturn.js',
             ),
             array(
-                'file' => 'modules/EC_Receipt_Voucher/js/EC_Receipt_Voucher.js',
+                'file' => 'modules/EC_Receipt_Voucher/js/view.edit.js',
             ),
         ),
     ),
@@ -37,7 +37,6 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
                 array(
                     'name' => 'amount_type',
-                    'studio' => 'visible',
                     'label' => 'LBL_AMOUNT_TYPE',
                     'customCode' => '{$AMOUNT_TYPE}',
                 ),
@@ -117,6 +116,17 @@ $viewdefs[$module_name]['EditView'] = array(
             ),
             array(
                 array(
+                    'name' => 'go_with',
+                    'label' => 'LBL_GO_WITH',
+                ),
+                array(
+                    'name' => 'delivery_man',
+                    'studio' => 'visible',
+                    'label' => 'LBL_DELIVERY_MAN',
+                ),
+            ),
+            array(
+                array(
                     'name' => 'assigned_user_name',
                     'label' => 'LBL_ASSIGNED_TO_NAME',
                 ),
@@ -126,37 +136,6 @@ $viewdefs[$module_name]['EditView'] = array(
                     'customCode' => '{$EMPLOYEE_NAME}',
                 ),
             ),
-            array(
-                array(
-                    'name' => 'delivery_man',
-                    'studio' => 'visible',
-                    'label' => 'LBL_DELIVERY_MAN',
-                ),
-                array()
-            )
-
-            // array(
-            //     array(
-            //         'name' => 'is_margin',
-            //         'label' => 'LBL_IS_MARGIN',
-            //     ),
-            //     array(
-            //         'name' => 'customer',
-            //         'studio' => 'visible',
-            //         'label' => 'LBL_CUSTOMER',
-            //     ),
-            // ),
-            // array (
-            //     array (
-            //       'name' => 'amount_converted',
-            //       'label' => 'LBL_AMOUNT_CONVERTED',
-            //     ),
-            //     array (
-            //       'name' => 'exchange_rate',
-            //       'label' => 'LBL_EXCHANGE_RATE',
-            //     ),
-            // ),
         ),
     ),
-
 );
