@@ -1,4 +1,4 @@
-name: SuiteCRM Production Deploy
+name: SuiteCRM Prod CI/CD
 
 on:
   workflow_run:
