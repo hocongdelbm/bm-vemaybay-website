@@ -2407,21 +2407,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		return $html;
 	}
 
-<<<<<<< HEAD
-	function populatePrintLanguage() {
-		if(in_array($this->bean->created_by, $this->bean->list_website_new_baggage)) {
-			$checkboxNewVersion = '<div class="form-group">
-				<label for="new_version">Phiên bản mới</label>
-				<input type="checkbox" name="new_version" id="new_version" class="form-check-input" style="vertical-align:middle; margin-top:0;" value="1" /> 
-			</div>';
-		}
-
-		$html = '<div id="dlgChonNgonNgu" style="display:none;" title="Ngôn ngữ">
-=======
 	function populatePrintLanguage()
 	{
 		$html = '<div id="dlgSelectLanguage" style="display:none;" title="Ngôn ngữ">
->>>>>>> main
 			<div class="d-flex flex-column align-items-center gap-3">
 				<div class="option-group d-flex gap-4">
 					<div class="form-group">
@@ -2432,15 +2420,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<label for="en" class="form-check-label">Tiếng Anh</label>
 						<input class="form-check-input" type="radio" name="ngonngu" id="en" value="en" style="vertical-align:middle; margin-top: 0;" /> 
 					</div>
-<<<<<<< HEAD
-					<div class="form-group">
-						<label for="khuhoi">Khứ hồi</label>
-						<input class="form-check-input" style="vertical-align:middle; margin-top: 0;" ' . ($this->bean->flight_type == '0' ? 'checked="checked"' : '') . ' type="checkbox" name="khuhoi" id="khuhoi" value="' . ($this->bean->flight_type == '0' ? 1 : 0) . '" /> 
-					</div>
-					'.$checkboxNewVersion.'
-=======
 					
->>>>>>> main
 				</div>
 				<div class="option-passenger"></div>
 				<div class="form-group">

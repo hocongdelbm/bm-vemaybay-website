@@ -373,18 +373,10 @@ class Viewprinteticket extends SugarView
 
 		$iti = new EC_Booking_Itineraries;
 		$iti->retrieve($iti_id);
-<<<<<<< HEAD
-		$airline 		= myGetAirlineInfo2(trim($iti->airline_code), 'CODE');
-		$departure 		= myGetAirportInfo2(trim($iti->departure));
-		$arrival 		= myGetAirportInfo2(trim($iti->arrival));
-		$pass_id 		= '';
-
-=======
 		$airline = myGetAirlineInfo2(trim($iti->airline_code), 'CODE');
 		$departure = myGetAirportInfo2(trim($iti->departure));
 		$arrival = myGetAirportInfo2(trim($iti->arrival));
 		$pass_id = '';
->>>>>>> main
 
 		// Lấy thông tin của 1 chiều đang có
 		// Lượt đi
