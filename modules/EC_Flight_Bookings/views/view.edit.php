@@ -17,8 +17,24 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		parent::__construct();
 	}
 
+	/**
+     * Get timestamp
+     * 
+     * @param string $timezone
+     * @return int
+     */
+    public function get_timestamp($timezone = 'Asia/Ho_Chi_Minh') {
+        date_default_timezone_set($timezone);
+        return time();
+    }
+
 	function display() {
 		global $current_user;
+
+		$app = new EC_Zalo_Apps();
+		$app->expires_at = date('Y-m-d H:i:s', $this->get_timestamp('UTC'));
+		$app->save();
+		die();
 
 		$status_arr = ['1', '6', '2', '3']; // allow edit
 		$status__com_arr = ['7', '8']; // allow edit admin và QL chỉnh (Admin edit all)
@@ -958,10 +974,12 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			</td>';
 
 			// CCCD/Passport
+			$id_number_value = trim($row['passport_number'] ?? '');
+			if(empty($id_number_value)) $id_number_value = trim($row['cic'] ?? '');
 			$html .= '<td data-label="CCCD/Passport">
 				<input type="text" name="psg_id_number[]"
 					id="psg_id_number' . $i . '"
-					value="' . ($row['passport_number'] ?? $row['cic'] ?? '') . '"
+					value="' . $id_number_value . '"
 					class="text-start"
 					maxlength="16"
 					style="padding-left:8px !important; letter-spacing:1px;"

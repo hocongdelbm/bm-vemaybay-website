@@ -1926,7 +1926,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$even_or_odd = ($i % 2 > 0) ? 'even' : 'odd';
 
 			$hide_cic = ($this->bean->ticket_type == 2 || $row['type'] == 2 || empty($row['cic'])) ? ' style="display:none" ' : '';
-			$hide_passport = (empty($row['passport_number'])) ? ' style="display:none" ' : '';
+			$hide_passport = empty($row['passport_number']) ? ' style="display:none" ' : '';
 			if (!empty($row['passport_number']) && empty($row['cic']) && $this->bean->ticket_type == 1 && $row['type'] != 2)
 				$hide_cic = ' style="display:none" ';
 

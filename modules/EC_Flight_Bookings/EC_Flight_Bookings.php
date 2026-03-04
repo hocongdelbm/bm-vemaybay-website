@@ -441,10 +441,8 @@ class EC_Flight_Bookings extends Basic
 			$psg->type 		 	= $_POST['psg_traveller_type'][$i];
 			$psg->salutation 	= $_POST['psg_salutation'][$i];
 			$psg->name 		 	= strtoupper(myRemoveUnicodeChars(trim(stripslashes($_POST['psg_full_name'][$i]))));
-			if (isset($_POST['psg_birthday'][$i]) && strtotime($_POST['psg_birthday'][$i]) !== false) {
-				$date_str = str_replace('/', '-', $_POST['psg_birthday'][$i]);
-				$psg->birthday = date('d-m-Y', strtotime($date_str));
-			}
+			$birthday 			= str_replace('/', '-', $_POST['psg_birthday'][$i] ?? '');
+			$psg->birthday 		= strtotime($birthday) !== false ? date('d-m-Y', strtotime($birthday)) : '';
 			$psg->pnr_outbound 		= trim(stripslashes($_POST['psg_pnr_outbound'][$i]));
 			$psg->pnr_inbound 		= trim(stripslashes($_POST['psg_pnr_inbound'][$i]));
 			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
@@ -1815,10 +1813,8 @@ class EC_Flight_Bookings extends Basic
 			$psg->salutation 	= $_POST['psg_salutation'][$i];
 			$psg->name 		 	= strtoupper(myRemoveUnicodeChars(trim(stripslashes($_POST['psg_full_name'][$i]))));
 
-			if (isset($_POST['psg_birthday'][$i]) && strtotime($_POST['psg_birthday'][$i]) !== false) {
-				$date_str = str_replace('/', '-', $_POST['psg_birthday'][$i]);
-				$psg->birthday = date('d-m-Y', strtotime($date_str));
-			}
+			$birthday = str_replace('/', '-', $_POST['psg_birthday'][$i] ?? '');
+			$psg->birthday = strtotime($birthday) !== false ? date('d-m-Y', strtotime($birthday)) : '';
 
 			$psg->eticket_outbound 	= trim(stripslashes($_POST['psg_eticket_outbound'][$i]));
 			$psg->eticket_inbound 	= trim(stripslashes($_POST['psg_eticket_inbound'][$i]));
