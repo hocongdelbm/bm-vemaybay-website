@@ -17,17 +17,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		parent::__construct();
 	}
 
-	/**
-     * Get timestamp
-     * 
-     * @param string $timezone
-     * @return int
-     */
-    public function get_timestamp($timezone = 'Asia/Ho_Chi_Minh') {
-        date_default_timezone_set($timezone);
-        return time();
-    }
-
 	function display() {
 		global $current_user;
 

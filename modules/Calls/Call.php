@@ -115,6 +115,10 @@ class Call extends SugarBean
         }
     }
 
+    public function save2($check_notify = false) { 
+        return parent::save();
+    }
+
     /**
      * Disable edit if call is recurring and source is not Sugar. It should be edited only from Outlook.
      * @param $view string
