@@ -67,12 +67,12 @@ $viewdefs['Documents'] =
               'label' => 'LBL_PREVIEW_PHOTO',
               'customCode' => '<div id="file-preview-container" style="margin-top:10px; padding:10px; border:1px solid #ddd; display:flex; gap:10px; overflow-x:auto; align-items:center; min-height:100px;">' .
                 '<div id="file-preview-images" style="display:flex; gap:10px;">' .
-                  '{if $HAS_PREVIEW_IMAGE}' .
-                    '<div style="display:flex; flex-direction:column; align-items:center; gap:5px;">' .
-                      '<img src="{$PREVIEW_IMAGE_URL}" style="max-width:200px; max-height:200px; object-fit:contain; border:1px solid #ccc; border-radius:4px;"/>' .
-                      '<div style="font-size:12px; color:#666; max-width:200px; text-align:center; word-break:break-word; padding:2px 5px;">{$PREVIEW_FILENAME}</div>' .
-                    '</div>' .
-                  '{/if}' .
+                '{if $HAS_PREVIEW_IMAGE}' .
+                '<div style="display:flex; flex-direction:column; align-items:center; gap:5px;">' .
+                '<img src="{$PREVIEW_IMAGE_URL}" style="max-width:200px; max-height:200px; object-fit:contain; border:1px solid #ccc; border-radius:4px;"/>' .
+                '<div style="font-size:12px; color:#666; max-width:200px; text-align:center; word-break:break-word; padding:2px 5px;">{$PREVIEW_FILENAME}</div>' .
+                '</div>' .
+                '{/if}' .
                 '</div>' .
                 '<div id="file-preview-text" style="color: #999; {if $HAS_PREVIEW_IMAGE}display:none;{/if}">Chưa chọn file</div>' .
                 '</div>',
@@ -80,6 +80,9 @@ $viewdefs['Documents'] =
             1 =>
             array(
               'name' => 'description',
+              'displayParams' => array(
+                'rows' => 4,
+              ),
             ),
           ),
           array(
