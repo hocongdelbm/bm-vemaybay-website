@@ -7,7 +7,7 @@ on:
       - completed
     branches: 
       - main
-
+      
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -25,11 +25,7 @@ jobs:
         key: ${{ secrets.BAK01_SSH_PRIVATE_KEY }}   
         port: ${{ secrets.BAK01_SSH_PORT }}
         script: |
-          echo "=== Bắt đầu deploy ==="
-
-          cd /home/bak_vmbwsite/public_html
+          cd ${{ secrets.BAK01_SERVER_PATH }}
           git fetch origin
           git checkout main
           git pull origin main
-
-          echo "=== Deploy hoàn tất! ==="

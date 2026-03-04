@@ -81,6 +81,7 @@ class Viewairportstatistics extends SugarView
             '<option value="this_year" fromdate="' . date('01-01-Y') . '" todate="' . date('31-12-Y') . '">Năm nay</option>',
             '<option value="previous_year" fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>',
             '<option value="previous_2year" fromdate="' . date('01-01-Y', strtotime('-2 year')) . '" todate="' . date('31-12-Y', strtotime('-2 year')) . '">2 Năm trước</option>',
+            '<option value="previous_3year" fromdate="' . date('01-01-Y', strtotime('-3 year')) . '" todate="' . date('31-12-Y', strtotime('-3 year')) . '">3 Năm trước</option>',
         );
         // $smartyobj->assign('TEST_DATE', date('d-m-Y H:i:s'));
         $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
@@ -112,7 +113,6 @@ class Viewairportstatistics extends SugarView
                 WHERE ct.deleted = 0
                 GROUP BY hv.id
             ) AS t';
-
         $res_return = $this->bean->db->query($sql_return);
         $return_inf = $this->bean->db->fetchByAssoc($res_return);
 
