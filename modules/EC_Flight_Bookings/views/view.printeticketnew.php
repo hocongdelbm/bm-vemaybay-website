@@ -536,7 +536,7 @@ class Viewprinteticketnew extends SugarView
 		}
 
 		$fields = "i.id, i.departure_date, i.arrival_date, i.flight_number,
-				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction";
+				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction, i.transit_order";
 
 		// Check which directions have been rescheduled (have add_type=3 records)
 		$rescheduledDirections = [];
@@ -555,8 +555,8 @@ class Viewprinteticketnew extends SugarView
 					$idFilter
 					AND i.deleted = 0
 					AND i.add_type = 0
-				GROUP BY i.direction, i.flight_number, i.departure_date
-				ORDER BY i.direction, i.departure_date";
+				GROUP BY i.direction, i.transit_order, i.flight_number, i.departure_date
+				ORDER BY i.direction, i.transit_order ASC, i.departure_date ASC";
 		} else {
 			$rescheduledDirList = implode(',', $rescheduledDirections);
 
@@ -572,7 +572,7 @@ class Viewprinteticketnew extends SugarView
 			// Latest rescheduled itineraries (max sabre_logs per direction),
 			// grouped to deduplicate when multiple passenger rows share same sabre_logs
 			$sqlRescheduled = "SELECT MIN(i.id) AS id, i.departure_date, i.arrival_date, i.flight_number,
-					i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction
+					i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction, i.transit_order
 				FROM ec_booking_itineraries i
 				INNER JOIN (
 					SELECT direction, MAX(sabre_logs) AS max_logs
@@ -583,9 +583,9 @@ class Viewprinteticketnew extends SugarView
 				WHERE i.booking_id = '$bookingId'
 					AND i.add_type = 3
 					AND i.deleted = 0
-				GROUP BY i.direction, i.flight_number, i.departure_date";
+				GROUP BY i.direction, i.transit_order, i.flight_number, i.departure_date";
 
-			$sql = "($sqlUnchanged) UNION ALL ($sqlRescheduled) ORDER BY direction, departure_date";
+			$sql = "($sqlUnchanged) UNION ALL ($sqlRescheduled) ORDER BY direction, transit_order ASC, departure_date ASC";
 		}
 
 		$res = $db->query($sql);
@@ -665,7 +665,7 @@ class Viewprinteticketnew extends SugarView
 		$passengerId = preg_replace('/[^a-zA-Z0-9\-]/', '', $passengerId);
 
 		$fields = "i.id, i.departure_date, i.arrival_date, i.flight_number,
-				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction";
+				i.ticket_class, i.departure, i.arrival, i.airline_code, i.direction, i.transit_order";
 
 		// Build ID filter (skip if all itineraries requested)
 		$idFilter = '';
@@ -709,7 +709,7 @@ class Viewprinteticketnew extends SugarView
 					AND i.assigned_user_id = '$passengerId'
 					AND i.sabre_logs = '$maxLog'
 					AND i.deleted = 0
-					ORDER BY i.departure_date";
+					ORDER BY i.transit_order ASC, i.departure_date ASC";
 				$resChanged = $db->query($sqlChanged);
 				while ($rowChanged = $db->fetchByAssoc($resChanged)) {
 					$results[] = $this->formatItineraryRow($rowChanged);
@@ -723,7 +723,7 @@ class Viewprinteticketnew extends SugarView
 					AND i.direction = $dir
 					AND i.add_type = 0
 					AND i.deleted = 0
-					ORDER BY i.departure_date";
+					ORDER BY i.transit_order ASC, i.departure_date ASC";
 				$resOrig = $db->query($sqlOrig);
 				while ($rowOrig = $db->fetchByAssoc($resOrig)) {
 					$results[] = $this->formatItineraryRow($rowOrig);
