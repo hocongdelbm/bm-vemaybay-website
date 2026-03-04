@@ -97,50 +97,54 @@ function agent_change_status($agent, $status) {
     global $db, $sugar_config;
     $domain = $sugar_config['postgreconfig']['domain_name'] ?? '';
 
-    // 0: Offline
-    // 1: Online
-    // 2: Busy
-    $array_admin = [
-        '168889bb-54c2-59c7-8b3f-649102530d3c', //hungnh
-        '622ecf27-f729-7187-7e27-6520e0dab882', //quangnd
-        '1', //DucPham
-    ];
-
     if (empty($agent) || empty($status) || empty($domain)) {
         return json_encode(['error' => 1, 'httpcode' => 400, 'message' => 'Agent status bad request']);
     }
 
-    $agent_domain  = $agent . '@' . $domain;
     $token  = 'sdjfhsgaksuegrqw38463784672793746rwadjksfgha3e467dhcauw4y5t783yr';
-    $body_request = [
-        'agent' => $agent_domain,
-        'status' => $status,
-        'token' => $token,
-    ];
+    $url   = "https://{$domain}/agent_status/change_status_v1.php";
 
     try {
-        $curl = curl_init();
+        $curl = curl_init($url);
+
         if ($curl === false) {
             return json_encode(['error' => 1, 'httpcode' => 500, 'message' => 'cURL Failed to initialize']);
         }
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL             => "https://$domain/agent_status/change_status.php",
+            // CURLOPT_URL             => "https://$domain/agent_status/change_status.php",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT        => 0,
+            CURLOPT_TIMEOUT        => 3,
+            CURLOPT_CONNECTTIMEOUT => 2,
             CURLOPT_CUSTOMREQUEST   => 'POST',
-            CURLOPT_POSTFIELDS      => $body_request,
+            CURLOPT_POSTFIELDS     => [
+                'agent'  => "{$agent}@{$domain}",
+                'status' => $status,
+                'token'  => $token,
+            ],
         ));
 
-        $json = curl_exec($curl);
-        $httpcode   = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $json  = curl_exec($curl);
+        $httpcode  = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($curl);
         curl_close($curl);
-        $arr = json_decode($json, true);
 
+        if ($json === false || $httpcode !== 200) {
+            $GLOBALS['log']->fatal("Agent status CURL error: " . $curlError);
+            return false;
+        }
+
+        $arr = json_decode($json, true);
+        if (empty($arr['success']['code']) || $arr['success']['code'] != 200) {
+            return false;
+        }
+        
         if ($httpcode == 200 && $arr['success']['code'] == 200) {
+            $agent  = $db->quote($agent);
+            $status = $db->quote($status);
             $sql_as = 'UPDATE users
                        SET agent_status = "' . $status . '"
                        WHERE td_sip = "' . $agent . '"
@@ -170,6 +174,12 @@ function agent_change_status($agent, $status) {
                     if ($result_sql_online) {
                         $busy           = ($status == 'Available') ? 0 : 1;
                         $time_current   = date('Y-m-d H:i:s', strtotime('+7 hour'));
+                        $array_admin = [
+                            '168889bb-54c2-59c7-8b3f-649102530d3c',
+                            '622ecf27-f729-7187-7e27-6520e0dab882',
+                            '1',
+                        ];
+                        
                         if (!in_array($sip_number, $array_admin)) {
                             content_log($sip_number, $time_current, $busy);
                         }
@@ -178,6 +188,7 @@ function agent_change_status($agent, $status) {
             }
         }
     } catch (Exception $e) {
+        $GLOBALS['log']->fatal("agent_change_status error: " . $e->getMessage());
         return json_encode(['error' => 1, 'httpcode' => 500, 'message' => $e->getCode() . ': ' . $e->getMessage()]);
     }
 }
@@ -304,7 +315,8 @@ function getCallSource($call_to)
     return $call_sources;
 }
 
-function getInfoCallSource($call_to){
+function getInfoCallSource($call_to)
+{
     $result = [
         'phone' => $call_to ?? '',
         'format_phone' => '',
@@ -541,7 +553,8 @@ function get_log_call($call_id, $uuid = '')
     }
 }
 
-function update_log_autocall(){
+function update_log_autocall()
+{
     global $db;
 
     $sql = "SELECT log
@@ -558,15 +571,15 @@ function update_log_autocall(){
     if ($total_autocall > 0) {
         while ($row = $db->fetchByAssoc($res)) {
             $log_call = json_decode(html_entity_decode($row['log']), true);
-            if(isset($log_call['call_id']) && !empty($log_call['call_id'])){
+            if (isset($log_call['call_id']) && !empty($log_call['call_id'])) {
                 $full_log_json = get_log_call($log_call['call_id'], $log_call['uuid']);
                 $full_log = json_decode(html_entity_decode($full_log_json), true);
 
-                if(isset($full_log['error']) && (int)$full_log['error'] === 0 && isset($full_log['data']) && !empty($full_log['data'])){
+                if (isset($full_log['error']) && (int)$full_log['error'] === 0 && isset($full_log['data']) && !empty($full_log['data'])) {
                     $log = $full_log['data'];
                     $call_id        = isset($log['call_id']) && !empty($log['call_id']) ? global_test_input($log['call_id']) : '';
                     $direction      = isset($log['call_direction']) && !empty($log['call_direction']) ? global_test_input($log['call_direction']) : '';
-                    $direction      = strtolower($direction) === 'local' ? 'internal' :$direction;
+                    $direction      = strtolower($direction) === 'local' ? 'internal' : $direction;
                     $record_file    = isset($log['record_file']) && !empty($log['record_file']) ? global_test_input($log['record_file']) : '';
                     $hangup_cause   = isset($log['hangup_cause']) && !empty($log['hangup_cause']) ? global_test_input($log['hangup_cause']) : '';
                     $call_talk      = isset($log['call_talk']) && !empty($log['call_talk']) ? global_test_input($log['call_talk']) : 0;
@@ -583,7 +596,7 @@ function update_log_autocall(){
                     $call_wait      = (int)calculateWaitTime($log);
                     $hangup_cause   = (new Call())->determineHangupCause($log);
 
-                    if(!empty($call_id)){
+                    if (!empty($call_id)) {
                         $sql_update = "UPDATE calls
                                         SET date_start = '$call_start',
                                             date_end = '$call_end',
@@ -632,15 +645,14 @@ function update_log_autocall(){
                             $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
                             $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
                             Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                        }
-                        else {
+                        } else {
                             $index++;
                         }
                     }
                 }
             }
         }
-    } 
+    }
 
     return ((int)$index === (int)$total_autocall) ? true : false;
 }
@@ -698,9 +710,12 @@ function seconds_to_ngay_hms($sec)
     $sign = ($sec < 0) ? '-' : '';
     $s = (int) round(abs($sec));
 
-    $days = intdiv($s, 86400);   $s -= $days * 86400;
-    $hrs  = intdiv($s, 3600);    $s -= $hrs * 3600;
-    $min  = intdiv($s, 60);      $s -= $min * 60;
+    $days = intdiv($s, 86400);
+    $s -= $days * 86400;
+    $hrs  = intdiv($s, 3600);
+    $s -= $hrs * 3600;
+    $min  = intdiv($s, 60);
+    $s -= $min * 60;
     $sec  = $s;
 
     return $sign . $days . ' ngày ' . sprintf('%02d:%02d:%02d', $hrs, $min, $sec);

@@ -274,7 +274,7 @@ class EC_Zalo_Messages extends Basic {
         }
 
         if(empty($message_data)) {
-            $zaloOA = new APIZaloOA($oa_id);
+            $zaloOA = new APIZaloOA('', $oa_id);
             $json_messages = $zaloOA->get_messages($zalo_id, $offset + 1); // +1 for offset in get more message
             $arr_messages = json_decode($json_messages, true);
 
@@ -481,234 +481,136 @@ class EC_Zalo_Messages extends Basic {
     }
 
     /**
-     * Send happy birthday message
+     * Handle cost and quota after sending message
      * 
-     * @param string $zalo_id
-     * @param string $oa_id
-     * @return array
+     * @param array $data data from response
+     * @return int Cost
      */
-    public function send_happy_birthday_message($zalo_id = '', $oa_id = '') {
-        $zaloOA = new APIZaloOA($oa_id);
-        $banner = $zaloOA->get_images_path() . "/banners/happy_birthday.png";
-        $header = "Chúc mừng sinh nhật quý khách hàng 🎉";
-        $text = "Chúc Bạn luôn vui vẻ và hạnh phúc. Nhân dịp đặc biệt này, Tìm Chuyến Bay xin gửi tặng Bạn voucher 50k như một món quà nhỏ.❤️❤️";
-        $table = [
-            [
-                "key" => "Voucher",
-                "value" => "Giảm 50.000đ"
-            ],
-            [
-                "key" => "Điều kiện",
-                "value" => "Giảm trực tiếp cho vé khứ hồi"
-            ],
-            [
-                "key" => "Hạn sử dụng",
-                "value" => "Đến hết ". date('d/m/Y', strtotime('+30 days'))
-            ]
-        ];
-        $buttons = [
-            [
-                "title"=> "Tham khảo chương trình",
-                "type"=> "oa.open.url",
-                "payload"=> [
-                    "url"=> "https://timchuyenbay.vn"
-                ],
-                "image_icon"=> ""
-            ],
-            [
-                "title"=> "Đặt vé ngay",
-                "type"=> "oa.open.url",
-                "payload"=> [
-                    "url"=> "https://timchuyenbay.vn"
-                ],
-                "image_icon"=> ""
-            ]
-        ];
+    public function handle_quota_and_calculate_cost($data, $zalo_id = '', $oa_id = '') {
+        // Calculate cost
+        $cost = 0;
+        $quotaData = $data['quota'] ?? [];
+        if(!empty($quotaData)) {
+            try {
+                global $db, $current_user;
 
-        $results = [];
-        if(!empty($zalo_id)) {
-            $response = $zaloOA->send_promotion($zalo_id, $banner, $header, $text, $table, $buttons);
-            $res = json_decode($response, true);
-            if(isset($res['error']) && $res['error'] == 0) {
-                $results[$zalo_id] = 1;
+                switch ($quotaData['quota_type']) {
+                    case 'reply': // Tin gửi ra là tin trong khung 48h (Có thể gửi tin Tư vấn miễn phí không giới hạn trong khung 48h)
+                        break;
+                    
+                    case 'welcome_msg': // Tin gửi đến User Quan tâm (khi chưa có tương tác)
+                        // Get user's current quota from db
+                        $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0") ?? '';
+                        if(!empty($quotaInfo)) $quotaInfo = json_decode(html_entity_decode($quotaInfo), true);
+                        else $quotaInfo = [];
 
-                // Update quota to user
-                
-            }
-        }
-        else {
-            $zaloContact = new EC_Zalo_Contacts();
-            $listUser = $zaloContact->get_users_with_birthday();
-            foreach($listUser as $u) {
-                if($zaloContact->check_zalo_contact_action_by_data('send_promotion', $u['last_interaction'], $u['is_follower'])) {
-                    $response = $zaloOA->send_promotion($u['zalo_id'], $banner, $header, $text, $table, $buttons);
-                    $res = json_decode($response, true);
-                    if(isset($res['error']) && $res['error'] == 0) {
-                        $results[$zalo_id] = 1;
+                        $quotaInfo['welcome_msg'] = [
+                            "remain" => (int)$quotaData['remain'],
+                            "total"  => (int)$quotaData['total'],
+                        ];
 
-                        // Update quota to user
+                        // Update new quota user to db
+                        $date_modified = date('Y-m-d H:i:s', time() - 7*60*60);
+                        $quotaInfo = json_encode($quotaInfo);
+                        $db->query("UPDATE ec_zalo_contacts
+                            SET quota_info = '{$quotaInfo}'
+                                ,description = 'Cập nhật hạn ngạch qua API gửi tin tư vấn (welcome_msg)'
+                                ,modified_user_id = '{$current_user->id}'
+                                ,date_modified = '$date_modified'
+                            WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0");
 
-                    }
+                        break;
+
+                    case 'sub_quota': // Tin gửi ra là tin nằm trong hạn mức miễn phí theo gói
+                        // Get oa's current quota from db
+                        $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo WHERE id = '{$oa_id}' AND deleted = 0") ?? '';
+                        $isUpdated = false;
+
+                        if(!empty($quotaInfo)) {
+                            $quotaInfo = json_decode(html_entity_decode($quotaInfo), true);
+                            foreach($quotaInfo as $qKey => $qValue) {
+                                if($qValue['quota_type'] == 'sub_quota') {
+                                    $quotaInfo[$qKey]['remain'] = $quotaData['remain'];
+                                    $quotaInfo[$qKey]['total'] = $quotaData['total'];
+                                    $quotaInfo[$qKey]['valid_through'] = date('d-m-Y', strtotime(str_replace("/", "-", $quotaData['expired_date'])));
+                                    $isUpdated = true;
+                                    break;
+                                }
+                            }
+                        }
+                        else $quotaInfo = [];
+
+                        // Init as new quota type
+                        if(!$isUpdated) {
+                            $quotaInfo[] = [
+                                "quota_type"    => "sub_quota",
+                                "remain"        => $quotaData['remain'],
+                                "total"         => $quotaData['total'],
+                                "valid_through" => date('d-m-Y', strtotime(str_replace("/", "-", $quotaData['expired_date']))),
+                            ];
+                        }
+
+                        // Update new oa's quota to db
+                        $quotaInfo = json_encode($quotaInfo);
+                        $db->query("UPDATE ec_zalo SET quota_info = '{$quotaInfo}' WHERE id = '{$oa_id}' AND deleted = 0");
+                        break;
+
+                    case 'purchase_quota': // Tin gửi ra là tin nằm trong hạn mức gói tính năng lẻ
+                        // // Cập nhật thông tin vào OA
+                        // "owner_type": "OA",
+                        // "owner_id": "4462152339089565647"
+                        break;
+
+                    case 'reward_quota': // Tin gửi ra là tin nằm trong hạn mức Redeem code
+                        // // Cập nhật thông tin vào OA
+                        // "owner_type": "OA",
+                        // "owner_id": "4462152339089565647"
+                        break;
+                    case 'zbs';
+                        if(isset($data['sending_mode']) && $data['sending_mode'] == "1") {
+                            // Get oa's current quota from db
+                            $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo WHERE id = '{$oa_id}' AND deleted = 0") ?? '';
+                            $isUpdated = false;
+
+                            if(!empty($quotaInfo)) {
+                                $quotaInfo = json_decode(html_entity_decode($quotaInfo), true);
+                                foreach($quotaInfo as $qKey => $qValue) {
+                                    if($qValue['quota_type'] == 'zbs') {
+                                        $quotaInfo[$qKey]['remaining_quota'] = $quotaData['remainingQuota'];
+                                        $quotaInfo[$qKey]['daily_quota'] = $quotaData['dailyQuota'];
+                                        $isUpdated = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            else $quotaInfo = [];
+
+                            // Init as new quota type
+                            if(!$isUpdated) {
+                                $quotaInfo[] = [
+                                    "quota_type"       => 'zbs',
+                                    "daily_quota"      => $quotaData['dailyQuota'],
+                                    "remaining_quota"  => $quotaData['remainingQuota']
+                                ];
+                            }
+
+                            // Update new oa's quota to db
+                            $quotaInfo = json_encode($quotaInfo);
+                            $db->query("UPDATE ec_zalo SET quota_info = '{$quotaInfo}' WHERE id = '{$oa_id}' AND deleted = 0");
+
+                            $zaloOA = new APIZaloOA();
+                            $cost = $zaloOA->get_cost_by_template($data['template_id'] ?? "", "phone_number");
+                            break;
+                        }
+                    default:
+                        $cost = 55;
+                        break;
                 }
             }
+            catch(Throwable $th) {}
         }
-        return $results;
-    }
+        else $cost = 55;
 
-    /**
-     * Send promotion message
-     * 
-     * @param string $zalo_id
-     * @param string $oa_id
-     * @param string $sub_type Custom type
-     * @param string $banner_link
-     * @param string $header
-     * @param string $text
-     * @param array $table
-     * @param string $text2
-     * @param array $buttons
-     * @return bool
-     */
-    public function send_promotion_message($zalo_id, $oa_id, $sub_type, $banner_link, $header, $text, $table = [], $text2 = "", $buttons = []) {
-        if(empty($zalo_id)) return false;
-
-        $zaloOA = new APIZaloOA($oa_id);
-
-        $requestBody = [
-            "recipient" => [
-                "user_id" => $zalo_id
-            ],
-            "message" => [
-                "attachment" => [
-                    "type" => "template",
-                    "payload" => [
-                        "template_type" => "promotion", // Type
-                        "language" => "VI",
-                        "elements" => [
-                            [
-                                "type" => "banner",
-                                "image_url" => $banner_link
-                            ],
-                            [
-                                "type" => "header",
-                                "content" => $header,
-                                "align" => ""
-                            ],
-                            [
-                                "type" => "text",
-                                "content" => $text,
-                                "align" => ""
-                            ],
-                        ],
-                    ]
-                ]
-            ]
-        ];
-        if(!empty($table)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "table",
-                "content" => $table
-            ];
-        }
-        if(!empty($text2)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "text",
-                "align" => "center",
-                "content" => $text2
-            ];
-        }
-        if(!empty($buttons)) $requestBody["message"]["attachment"]["payload"]["buttons"] = $buttons;
-
-        $response = $zaloOA->send_promotion($requestBody);
-        $res = json_decode($response, true);
-        if(isset($res['error']) && $res['error'] == 0) {
-            $zaloMessage = new EC_Zalo_Messages();
-            $zaloMessage->message_id = $res['data']['message_id'] ?? '';
-            $zaloMessage->src = 0;
-            $zaloMessage->from_id = $zaloOA->get_oa_id();
-            $zaloMessage->to_id = $zalo_id;
-            $zaloMessage->timestamp = round(microtime(true) * 1000);
-            $zaloMessage->type = 'promotion';
-            $zaloMessage->sub_type = $sub_type;
-            $zaloMessage->cost = 0;
-            $zaloMessage->data = json_encode($requestBody, JSON_UNESCAPED_UNICODE);
-            $zaloMessage->response = $response;
-
-            if($zaloMessage->save()) {
-                // Save quota zalo
-
-                // Save quota user
-                $zaloContact = new EC_Zalo_Contacts();
-                $zaloContact->update_promotion_quota($zalo_id, $zaloOA->get_oa_id());
-            }
-            
-            return true;
-        }
-        else {
-            EC_Zalo::handle_error_oa_api($res['error'] ?? null, $res['message'] ?? '', $zalo_id, $zaloOA->get_oa_id());
-            return false;
-        }
-    }
-
-    /**
-     * Send transaction message
-
-     * @param string $zalo_id
-     * @param string $oa_id
-     * @param string $type https://developers.zalo.me/docs/official-account/tin-nhan/tin-giao-dich/gui-tin-giao-dich
-     * @param string $header
-     * @param string $text
-     * @param array $table
-     * @param string $text2
-     * @param array $buttons
-     * @return array
-     */
-    public function send_transaction_message($zalo_id, $oa_id, $type, $header, $text, $table = [], $text2 = [], $buttons = []) {}
-
-    public function get_transaction_message_banner($type, $oa_id = '') {
-        $zaloOA = new APIZaloOA($oa_id);
-        $banner_link = "https://{$zaloOA->get_domain()}/{$zaloOA->get_images_path()}/banners/";
-        switch ($type) {
-            case 'transaction_reward': // Tích điểm
-                $banner_link .= "banner_points.jpg";
-                break;
-            case 'transaction_billing': // Hóa đơn
-                $banner_link .= "";
-                break;
-            case 'transaction_order': // Đơn hàng	
-                $banner_link .= "";
-                break;
-            case 'transaction_contract': // Hợp đồng
-                $banner_link .= "";
-                break;
-            case 'transaction_booking': // Lịch hẹn
-                $banner_link .= "";
-                break;
-            case 'transaction_membership': // Thành viên
-                $banner_link .= "";
-                break;
-            case 'transaction_event': // Sự kiện
-                $banner_link .= "";
-                break;
-            case 'transaction_transaction': // Giao dịch
-                $banner_link .= "";
-                break;
-            case 'transaction_account': // Tài khoản
-                $banner_link .= "";
-                break;
-            case 'transaction_internal': // Nội bộ
-                $banner_link .= "";
-                break;
-            case 'transaction_partnership': // 	Đối tác
-                $banner_link .= "";
-                break;
-            case 'transaction_rating': // Đánh giá
-                $banner_link .= "";
-                break;
-            default:
-                $banner_link = '';
-                break;
-        }
-        return $banner_link;
+        return $cost;
     }
 }

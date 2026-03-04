@@ -231,12 +231,14 @@ class Viewreport_sales_revenue extends SugarView
                         <td class="text-end total_bought_price hide-mobile">' . format_number($row['total_bought_price']) . '</td>
                         <td class="text-end">' . format_number($profit_amount) . ' ' . ((int)$row['total_points_amount'] > 0 ? '<span class="total_points_amount fw-semibold text-dark"> / ' . format_number($row['total_points_amount']) . '</span>' : '') . '</label></td>';
 
+                $date_ticket_issue = '';
                 if ($row['parent_type'] == 'EC_Flight_Bookings') {
                     $html .= '<td class="text-end hide-mobile">
                                 <a title="Click vào để xem chi tiết phiếu thu" href="index.php?action=index&module=EC_Receipt_Voucher&query=true&clear_query=true&searchFormTab=basic_search&booking_name_basic=' . $row['parent_name'] . '" target="_blank">
                                     ' . format_number($row['receipt_amount']) . '
                                 </a>
                             </td>';
+                    $date_ticket_issue = date('d-m-Y', strtotime($row['date_ticket_issue']));
                 } else if ($row['parent_type'] == 'EC_HoanVe') {
                     $html .= '<td class="text-end hide-mobile">' . format_number($row['subtotal_amount']) . '</td>';
                 } else {
@@ -248,7 +250,7 @@ class Viewreport_sales_revenue extends SugarView
                 $html .= '<td class="text-start row-employees"><a href="index.php?module=Employees&return_module=Employees&action=DetailView&record=' . $user_id_detail . '" target="_bank" title="Xem chi tiết nhân viên ' . $user_list[$row['user_id']] . '">' . $user_list[$row['user_id']] . '</a></td>';
                 $html .= '<td class="text-center hide-mobile">' . $paid_time . '</td>';
                 $html .= '<td class="text-center bk_date_entered hide-mobile">' . str_replace(' ', '<br>', $row['bk_date_entered']) . '</td>';
-                $html .= '<td class="text-center bk_date_ticket_issue hide-mobile">' . $row['bk_date_ticket_issue'] . '</td>';
+                $html .= '<td class="text-center bk_date_ticket_issue hide-mobile">' . $date_ticket_issue . '</td>';
                 $html .= '</tr>';
 
                 $total_quantity += (int)$row['total_quantity'];

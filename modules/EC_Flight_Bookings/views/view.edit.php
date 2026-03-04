@@ -94,7 +94,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			</script>';
 		}
 
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.4"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.5"></script>';
 		echo $js;
 	}
 
@@ -958,10 +958,12 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			</td>';
 
 			// CCCD/Passport
+			$id_number_value = trim($row['passport_number'] ?? '');
+			if(empty($id_number_value)) $id_number_value = trim($row['cic'] ?? '');
 			$html .= '<td data-label="CCCD/Passport">
 				<input type="text" name="psg_id_number[]"
 					id="psg_id_number' . $i . '"
-					value="' . ($row['passport_number'] ?? $row['cic'] ?? '') . '"
+					value="' . $id_number_value . '"
 					class="text-start"
 					maxlength="16"
 					style="padding-left:8px !important; letter-spacing:1px;"

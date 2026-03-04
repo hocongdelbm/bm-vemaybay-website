@@ -100,7 +100,7 @@
                                                                         Vui lòng có mặt tại sân bay trước giờ khởi hành <b>{$MINUTE_BEFORE} phút</b> (Lễ, Tết trước 150 - 180 phút), tránh việc đi trễ sẽ mất vé. Xin ghi nhớ: Đến sân bay cần phải làm thủ tục tại quầy.
                                                                     </li>
                                                                     <li>
-                                                                        <b>Hành khách từ 14 tuổi trở lên phải có giấy tờ tùy thân: CCCD, bằng lái xe, hộ chiếu còn hạn sử dụng hoặc định danh mức độ 2 trên ứng dụng VNeID.</b> Trường hợp không có các giấy tờ trên, đi bằng giấy xác nhận nhân thân, có dấu giáp lai của cơ quan Công An phường, xã. Hành khách dưới 14 tuổi đi bằng giấy khai sinh bản chính.
+                                                                        <b>Hành khách từ 14 tuổi trở lên phải có giấy tờ tùy thân: CCCD, hộ chiếu còn hạn sử dụng hoặc định danh mức độ 2 trên ứng dụng VNeID.</b> Trường hợp không có các giấy tờ trên, đi bằng giấy xác nhận nhân thân, có dấu giáp lai của cơ quan Công An phường, xã. Hành khách dưới 14 tuổi đi bằng giấy khai sinh bản chính.
                                                                     </li>
                                                                     <li>
                                                                         Luôn mở điện thoại để nhận thông tin từ hãng hoặc nhân viên hỗ trợ. <b>Quý khách cần đảm bảo thông tin chính xác</b> so với giấy tờ tùy thân. Sử dụng số điện thoại chính và gmail để liên lạc.

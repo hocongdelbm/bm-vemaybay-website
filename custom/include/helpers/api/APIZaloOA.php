@@ -5,27 +5,39 @@ class APIZaloOA {
     private $template_path;
     private $images_path;
     protected $domain;
-    protected $oa_id;
-    protected $app_id;
-    protected $app_secret;
-    protected $code_verifier;
-    protected $code_challenge;
+    /**
+     * @var EC_Zalo_Apps
+     */
+    public $app;
+    /**
+     * @var EC_Zalo
+     */
+    protected $oa;
 
-    public function __construct($oa_id = '') {
+    public function __construct($app_id = '', $oa_id = '') {
         global $sugar_config;
         $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
         $this->template_path    = "custom/json_files/zalo_oa/templates.json";
         $this->images_path      = "custom/themes/SuiteP/images/zalo_oa";
-        $this->oa_id            = is_string($oa_id) && !empty($oa_id) ? $oa_id : $sugar_config['zalo_config']['oa_id'] ?? '';
+
+        if(!is_string($app_id) || empty($app_id)) $app_id = $sugar_config['zalo_config']['app_id_default'] ?? '';
+        if(!is_string($oa_id) || empty($oa_id)) $oa_id = $sugar_config['zalo_config']['oa_id_default'] ?? '';
+        
         // App info
-        $this->app_id           = $sugar_config['zalo_config']['app_id'] ?? '';
-        $this->app_secret       = $sugar_config['zalo_config']['app_secret'] ?? '';
-        $this->code_verifier    = $sugar_config['zalo_config']['code_verifier'] ?? '';
-        $this->code_challenge   = $sugar_config['zalo_config']['code_challenge'] ?? '';
+        if(!empty($app_id)) {
+            $this->app = new EC_Zalo_Apps();
+            $this->app->retrieve($app_id);
+        }
+
+        // OA info
+        if(!empty($oa_id)) {
+            $this->oa = new EC_Zalo();
+            $this->oa->retrieve($oa_id);
+        }
     }
 
-    public function get_oa_id() {return $this->oa_id;}
-    public function get_app_id() {return $this->app_id;}
+    public function get_oa_id() {return $this->oa->id;}
+    public function get_app_id() {return $this->app->id;}
     public function get_images_path() {return $this->images_path;}
     public function get_domain() {return $this->domain;}
 
@@ -38,7 +50,7 @@ class APIZaloOA {
      */
     public function get_link_integrate() {
         $entrypoint = "https://{$this->domain}/index.php?entryPoint=entryPointZaloAuthCallback";
-        return "https://oauth.zaloapp.com/v4/oa/permission?app_id={$this->app_id}&redirect_uri=".urlencode($entrypoint);
+        return "https://oauth.zaloapp.com/v4/oa/permission?app_id={$this->app->id}&redirect_uri=".urlencode($entrypoint);
     }
 
     /** 
@@ -73,13 +85,13 @@ class APIZaloOA {
         $url = "https://oauth.zaloapp.com/v4/oa/access_token";
         $header = [
             "Content-Type: application/x-www-form-urlencoded",
-            "secret_key: {$this->app_secret}"
+            "secret_key: {$this->app->secret_key}"
         ];
         $requestBody = http_build_query([
             "code"          => $code,
-            "app_id"        => $this->app_id,
+            "app_id"        => $this->app->id,
             "grant_type"    => "authorization_code",
-            "code_verifier" => $this->code_verifier,
+            "code_verifier" => $this->app->code_verifier,
         ]);
 
         $json = $this->send_request("POST", $url, $requestBody, $header);
@@ -101,10 +113,10 @@ class APIZaloOA {
         $url = "https://oauth.zaloapp.com/v4/oa/access_token";
         $header = [
             "Content-Type: application/x-www-form-urlencoded",
-            "secret_key: {$this->app_secret}"
+            "secret_key: {$this->app->secret_key}"
         ];
         $requestBody = http_build_query([
-            "app_id"        => $this->app_id,
+            "app_id"        => $this->app->id,
             "grant_type"    => "refresh_token",
             "refresh_token" => $refresh_token
         ]);
@@ -129,30 +141,11 @@ class APIZaloOA {
      * @return string
      */
     public function get_token($type = "access") {
-        global $db;
-
-        $arr = [];
-
-        // Use cache
-        if(isset($_SESSION) && isset($_SESSION['api_oauth_info']) && !empty($_SESSION['api_oauth_info'])) {
-            $arr = $_SESSION['api_oauth_info'];
-        }
-        // Use query
+        if($type == 'refresh') return $this->app->refresh_token;
+        elseif($type == 'access' && strtotime($this->app->expires_at) > $this->get_timestamp()) return $this->app->access_token;
         else {
-            $api_oauth_info = $db->getOne("SELECT api_oauth_info FROM ec_zalo WHERE id = '{$this->oa_id}' AND deleted = 0");
-            $arr = json_decode(html_entity_decode($api_oauth_info), true);   
-        }
-
-        $refresh_token = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
-        $access_token = isset($arr['access_token']) ? $arr['access_token'] : '';
-        $expires_at = isset($arr['expires_at']) ? $arr['expires_at'] : 0;
-
-        if($type == 'refresh') return $refresh_token;
-        elseif($type == 'access' && $expires_at > time()) return $access_token;
-        else {
-            $json = $this->get_new_token($refresh_token);
-            $arr2 = json_decode($json, true);
-            return isset($arr2['access_token']) ? $arr2['access_token'] : '';
+            $this->get_new_token($this->app->refresh_token);
+            return $this->app->access_token;
         }
         return '';
     }
@@ -161,39 +154,29 @@ class APIZaloOA {
      * Save token returned from api
      * 
      * @param string $json
+     * @param bool $is_error
      * @return bool
      */
-    protected function save_token($json, $raw = false) {
-        global $db;
-
-        if($raw) {
-            $query = "UPDATE ec_zalo SET api_oauth_info = '{$json}' WHERE id = '{$this->oa_id}' AND deleted = 0";
-            if(isset($_SESSION) && isset($_SESSION['api_oauth_info'])) unset($_SESSION['api_oauth_info']);
-            return $db->query($query);
+    protected function save_token($json, $is_error = false) {
+        if($is_error && !empty($this->app->id)) {
+            $this->app->description = $json;
+            return $this->app->save();
         }
 
-        if(!$json || empty($json)) {
-            if(isset($_SESSION) && isset($_SESSION['api_oauth_info'])) unset($_SESSION['api_oauth_info']);
-            return false;
+        if(is_string($json) && !empty($json)) {
+            $arr = json_decode($json, true);
+
+            $expires_in = isset($arr['expires_in']) ? (int)$arr['expires_in'] : 90000; //Seconds
+            $expires_at_timestamp       = $this->get_timestamp('UTC') + $expires_in; // UTC timezones
+            $this->app->access_token    = $arr['access_token'] ?? $this->app->access_token;
+            if (!empty($arr['refresh_token'])) {
+                $this->app->refresh_token = $arr['refresh_token'];
+            }
+            $this->app->expires_at      = date('Y-m-d H:i:s', $expires_at_timestamp);
+
+            return $this->app->save();
         }
-
-        $arr = json_decode($json, true);
-        $api_oauth_info = [];
-        $api_oauth_info['access_token'] = isset($arr['access_token']) ? $arr['access_token'] : '';
-        $api_oauth_info['refresh_token'] = isset($arr['refresh_token']) ? $arr['refresh_token'] : '';
-        $api_oauth_info['expires_in'] = isset($arr['expires_in']) ? $arr['expires_in'] : 90000; // Default 25h
-        $api_oauth_info['expires_at'] = time() + $api_oauth_info['expires_in'];
-        $api_oauth_info['expires_at_format'] = date('d-m-Y H:i:s', time() + $api_oauth_info['expires_in']);
-
-        // Save cache
-        if(isset($_SESSION)) $_SESSION['api_oauth_info'] = $api_oauth_info;
-
-        // Save database
-        $query = "UPDATE ec_zalo SET api_oauth_info = '".json_encode($api_oauth_info)."' WHERE id = '{$this->oa_id}' AND deleted = 0";
-        return $db->query($query);
     }
-
-
 
     /****************  OA  ****************/
     /** 
@@ -477,7 +460,7 @@ class APIZaloOA {
      * @return string url
      */
     public function get_chat_link($zalo_id) {
-        return "https://oa.zalo.me/chatv2?uid={$zalo_id}&oaid={$this->oa_id}&src=share";
+        return "https://oa.zalo.me/chatv2?uid={$zalo_id}&oaid={$this->oa->id}&src=share";
     }
 
     /** 
@@ -488,7 +471,7 @@ class APIZaloOA {
      * @param array $data
      * @return string json
      */
-    public function send_consultation($type, $zalo_id, $data = []) {
+    public function send_consultation_message($type, $zalo_id, $data = []) {
         $url = "https://openapi.zalo.me/v3.0/oa/message/cs";
         $header = [
             "Content-Type: application/json",
@@ -576,154 +559,78 @@ class APIZaloOA {
 
         return $this->send_request("POST", $url, $requestBody, $header, $curlOptions);
     }
-    
+
+
+
+    /***************  ZBS  ***************/
     /** 
-     * Send transaction message
+     * Send ZBS template message by phone
      * 
-     * @param string $zalo_id
-     * @param string $type transaction_reward, transaction_order, transaction_billing,...
-     * @param array $data
+     * @param string $phone
+     * @param string $template_id
+     * @param string|array $template_data json|array
+     * @param bool $is_hashphone
+     * @param bool $is_dev_mode
      * @return string json
      */
-    public function send_transaction($zalo_id, $type, $header, $text, $table = [], $text2 = [], $buttons = []) {
-        $url = "https://openapi.zalo.me/v3.0/oa/message/transaction";
+    public function send_template_message_by_phone($phone, $template_id, $template_data, $is_hashphone = false, $is_dev_mode = false) {
+        $url = "https://business.openapi.zalo.me/message/template";
+        if($is_hashphone) $url = "https://business.openapi.zalo.me/message/template/hashphone";
+
         $header = [
             "Content-Type: application/json",
             "access_token: ". $this->get_token()
         ];
+
+        $requestBody = [
+            'template_id'   => $template_id,
+            'template_data' => is_array($template_data) ? $template_data : json_decode($template_data, true),
+            'tracking_id'   => $phone . time()
+        ];
+
+        $format_phone = $this->format_zalo_phone($phone);
+        if($is_hashphone) $requestBody['hash_phone'] = hash('sha256', $format_phone);
+        else $requestBody['phone'] = $format_phone;
+
+        if($is_dev_mode) $requestBody['mode'] = 'development';
+    
         $curlOptions = [
             CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
             CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
         ];
-
-        // Request body
-        $banner_link = '';
-        switch ($type) {
-            case 'transaction_reward':
-                $banner_link = "https://$this->domain/modules/EC_Zalo/images/banner_points.jpg";
-                break;
-            default:
-                $banner_link = '';
-                break;
-        } 
-
-        $requestBody = [
-            "recipient" => [
-                "user_id" => $zalo_id
-            ],
-            "message" => [
-                "attachment" => [
-                    "type" => "template",
-                    "payload" => [
-                        "template_type" => $type, // Type
-                        "language" => "VI",
-                        "elements" => [
-                            [
-                                "type" => "banner",
-                                "image_url" => $banner_link
-                            ],
-                            [
-                                "type" => "header",
-                                "content" => $header,
-                                "align" => ""
-                            ],
-                            [
-                                "type" => "text",
-                                "content" => $text,
-                                "align" => ""
-                            ],
-                        ],
-                    ]
-                ]
-            ]
-        ];
-        if(!empty($table)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "table",
-                "content" => $table
-            ];
-        }
-        if(!empty($text2)) {
-            $requestBody["message"]["attachment"]["payload"]["elements"][] = [
-                "type" => "text",
-                "align" => "center",
-                "content" => $text2
-            ];
-        }
-        if(!empty($buttons)) $requestBody["message"]["attachment"]["payload"]["buttons"] = $buttons;
 
         return $this->send_request("POST", $url, json_encode($requestBody), $header, $curlOptions);
     }
 
     /** 
-     * Send promotion message
+     * Send ZBS template message by zalo_id
      * 
      * @param string $zalo_id
-     * @return string json
-     */
-    public function send_promotion($request_body) {
-        $hour = date('H');
-        if($hour < 6 || $hour > 21) {
-            return json_encode([
-                "error" => 1,
-                "httpCode" => 403,
-                "message" => "Promotional message are only sent within 6h - 22h",
-                "data" => null
-            ]);
-        }
-
-        $url = "https://openapi.zalo.me/v3.0/oa/message/promotion";
-        $header = [
-            "Content-Type: application/json",
-            "access_token: ". $this->get_token()
-        ];
-        $curlOptions = [
-            CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
-            CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
-        ];
-        return $this->send_request("POST", $url, json_encode($request_body), $header, $curlOptions);
-    }
-
-
-
-    /***************  ZNS  ***************/
-    /** 
-     * Send ZNS message
-     * Replaced by sendMessage() in class APIOMNI
-     * 
-     * @param string $phone
      * @param string $template_id
      * @param string|array $template_data json|array
      * @return string json
      */
-    public function send_zns($phone, $template_id, $template_data) {
-        return json_encode([
-            "error" => 1,
-            "httpCode" => 501,
-            "message" => "Unsupported feature",
-            "data" => null,
-            "description" => "Replaced by sendMessage() in class APIOMNI"
-        ]);
-        
-        $url = "https://business.openapi.zalo.me/message/template";
+    public function send_template_message_by_uid($zalo_id, $template_id, $template_data) {
+        $url = "https://openapi.zalo.me/v3.0/oa/message/template";
+
         $header = [
             "Content-Type: application/json",
             "access_token: ". $this->get_token()
         ];
 
-        $requestBody = json_encode([
-            'phone'         => $this->format_phone_number($phone, 'zalo'),
+        $requestBody = [
+            'user_id'       => $zalo_id,
             'template_id'   => $template_id,
             'template_data' => is_array($template_data) ? $template_data : json_decode($template_data, true),
-            'tracking_id'   => $phone . time()
-        ]);
+            'tracking_id'   => $zalo_id . time()
+        ];
 
         $curlOptions = [
             CURLOPT_SSL_VERIFYHOST => $this->domain == 'localhost' ? 0 : 2,
             CURLOPT_SSL_VERIFYPEER => $this->domain == 'localhost' ? 0 : 1,
         ];
 
-        return $this->send_request("POST", $url, $requestBody, $header, $curlOptions);
+        return $this->send_request("POST", $url, json_encode($requestBody), $header, $curlOptions);
     }
 
     /** 
@@ -732,42 +639,59 @@ class APIZaloOA {
      * @param string $type
      * @return string
      */
-    public function get_template_id_zns($type) {
-        return "";
+    public function get_template_id($type) {
         switch ($type) {
             case 'journey-one-way':
-                return "347078"; // Hành trình một chiều
-                break;
+                return "466986"; // Hành trình một chiều
             case 'journey-round-trip':
-                return "347088"; // Hành trình khứ hồi
-                break;
+                return "466988"; // Hành trình khứ hồi
             case 'payment':
-                return "345209"; // Thông tin thanh toán
-                break;
+                return "466992"; // Thông tin thanh toán
             case 'code-one-way':
-                return "288276"; // Code vé một chiều
-                break;
+                return "466996"; // Code vé một chiều
             case 'code-round-trip':
-                return "288279"; // Code vé khứ hồi
-                break;
+                return "466998"; // Code vé khứ hồi
             case 'after-call-sale': 
-                return "346699"; // CSKH sau khi gọi
-                break;
+                return "467009"; // CSKH sau khi gọi
             case 'delay':
-                return "346656"; // Thông báo delay
-                break;
+                return "467001"; // Thông báo delay
             case 'remind-flight':
-                return "346651"; // Nhắc nhở giờ bay
-                break;
+                return "467004"; // Nhắc nhở giờ bay
             case 'points':
-                return "411270"; // Thông báo tích điểm
-                break;
+                return "467010"; // Thông báo tích điểm
             case 'share-phone':
-                return "433046"; // Gửi thông tin chương trình chia sẻ SĐT
-                break;
+                return "467011"; // Gửi thông tin chương trình chia sẻ SĐT
+            case 'otp':
+                return "518686"; // Gửi OTP qua SĐT
             default:
                 return "";
         }
+
+        // // Old
+        // switch ($type) {
+        //     case 'journey-one-way':
+        //         return "347078"; // Hành trình một chiều
+        //     case 'journey-round-trip':
+        //         return "347088"; // Hành trình khứ hồi
+        //     case 'payment':
+        //         return "345209"; // Thông tin thanh toán
+        //     case 'code-one-way':
+        //         return "288276"; // Code vé một chiều
+        //     case 'code-round-trip':
+        //         return "288279"; // Code vé khứ hồi
+        //     case 'delay':
+        //         return "346656"; // Thông báo delay
+        //     case 'remind-flight':
+        //         return "346651"; // Nhắc nhở giờ bay
+        //     case 'points':
+        //         return "411270"; // Thông báo tích điểm
+        //     case 'share-phone':
+        //         return "433046"; // Gửi thông tin chương trình chia sẻ SĐT
+        //     case 'after-call-sale': 
+        //         return "346699"; // CSKH sau khi gọi
+        //     default:
+        //         return "";
+        // }
     }
 
     /** 
@@ -776,80 +700,226 @@ class APIZaloOA {
      * @param string $template_id
      * @return string
      */
-    public function get_template_name_zns($template_id = null) {
-        return "";
+    public function get_template_name($template_id = null) {
         switch ($template_id) {
-            case '347078':
-            case '347088':
+            case '466986':
+            case '466988':
                 return "Thông tin hành trình";
-                break;
-            case '345209':
+            case '466992':
                 return "Thông tin thanh toán";
-                break;
-            case '288276':
-            case '288279':
+            case '466996':
+            case '466998':
                 return "Thông tin code vé";
-                break;
-            case '346656':
+            case '467001':
                 return "Thông báo delay";
-                break;
-            case '346651':
+            case '467004':
                 return "Nhắc nhở giờ bay";
-                break;
-            case '346699':
+            case '467009':
                 return "Chăm sóc khách hàng (Call sale)";
-                break;
-            case '411270':
+            case '467010':
                 return "Thông báo tích điểm";
-                break;
-            case '433046':
+            case '467011':
                 return "Gửi thông tin chương trình chia sẻ SĐT";
-                break;
+            case '518686':
+                return "Gửi OTP";
             default:
                 return "";
         }
+        
+        // // Old
+        // switch ($template_id) {
+        //     case '347078':
+        //     case '347088':
+        //         return "Thông tin hành trình";
+        //         break;
+        //     case '345209':
+        //         return "Thông tin thanh toán";
+        //         break;
+        //     case '288276':
+        //     case '288279':
+        //         return "Thông tin code vé";
+        //         break;
+        //     case '346656':
+        //         return "Thông báo delay";
+        //         break;
+        //     case '346651':
+        //         return "Nhắc nhở giờ bay";
+        //         break;
+        //     case '346699':
+        //         return "Chăm sóc khách hàng (Call sale)";
+        //         break;
+        //     case '411270':
+        //         return "Thông báo tích điểm";
+        //         break;
+        //     case '433046':
+        //         return "Gửi thông tin chương trình chia sẻ SĐT";
+        //         break;
+        //     default:
+        //         return "";
+        // }
     }
 
-    /** 
-     * Get error description when sending ZNS fail
+    /**
+     * Get cost to send template message
      * 
-     * @param int $error_code
-     * @return string
+     * @param string $template_id
+     * @param string $send_by "phone_number" or "uid"
+     * @return int
      */
-    public function get_error_description_zns($error_code) {
-        switch($error_code) {
-            case -108:
-                return "Số điện thoại không hợp lệ.";
+    public function get_cost_by_template($template_id, $send_by) {
+        $arr = [
+            "466992" => [
+                "phone_number" => 300,
+                "uid" => 0,
+            ],
+            "518686" => [
+                "phone_number" => 300,
+                "uid" => 210,
+            ],
+        ];
+        return $arr[(string)$template_id][$send_by] ?? 200;
+    }
+
+    /**
+     * Check template id that can send by uid in new rule (Declared after 10/12/2025)
+     */
+    public function check_template_can_send_by_uid($template_id) {
+        return !in_array($template_id, [
+            "466986", "466988", "466992", "466996", "466998", "467009", "467001", "467004", "467010", "467011",
+            "347078", "347088", "345209", "288276", "288279", "346656", "346651", "411270", "433046", "346699",
+            // OPT
+            "518686", "518205",
+        ]);
+    }
+
+    /**
+     * Converts Zalo ZBS error codes to a single Vietnamese error string
+     * 
+     * @param int|string $error_code The error code from Zalo API
+     * @return string Combined error message and handling instruction
+     */
+    public function get_error_description($error_code) {
+        switch ((int)$error_code) {
+            case 0:
+                return "Thành công: Gửi tin nhắn thành công.";
+            case -109:
+                return "ID Template không hợp lệ: Vui lòng kiểm tra lại ID của Template.";
             case -110:
-                return "Phiên bản Zalo app của người dùng quá cũ nên không được hỗ trợ";
+                return "Phiên bản Zalo không hỗ trợ: Người dùng cần cập nhật Zalo app phiên bản mới nhất.";
             case -111:
-                return "Mẫu ZNS không có dữ liệu";
-            case -114:
-            case -119:
-            case -139:
-            case -141:
-                return "Số điện thoại này không thể nhận tin. Người dùng không nhận được ZNS vì các lý do: Người dùng từ chối nhận ZNS từ OA, Trạng thái tài khoản, Tùy chọn nhận ZNS, Sử dụng Zalo phiên bản cũ, hoặc các lỗi nội bộ khác...";
-            case -115:
-            case -126:
-                return "Tài khoản ZNS không đủ số dư";
+                return "Dữ liệu Template trống: Template không có dữ liệu để gửi.";
+            case -1121:
+                return "Tham số quá dài: Dữ liệu tham số vượt quá giới hạn ký tự cho phép.";
+            case -1122:
+                return "Thiếu tham số: Dữ liệu truyền vào thiếu tham số bắt buộc trong Template.";
+            case -1123:
+                return "Lỗi QR code: Không thể tạo QR code, vui lòng kiểm tra lại dữ liệu đầu vào.";
+            case -1124:
+                return "Sai định dạng tham số: Kiểm tra lại format dữ liệu của các biến (ví dụ: ngày tháng, số tiền).";
+            case -113:
+                return "Nút bấm (Button) không hợp lệ.";
+            case -1131:
+                return "Link không đúng định dạng: Kiểm tra lại đường dẫn liên kết của các nút thao tác.";
             case -116:
+                return "Nội dung tham số không hợp lệ.";
+            case -117:
+                return "Không có quyền dùng Template: OA hoặc App chưa được cấp quyền cho Template này. Kiểm tra AppID/OAID/tempID.";
             case -121:
+                return "Nội dung trống: Template không có nội dung, vui lòng nhập nội dung mẫu.";
+            case -122:
+                return "Sai định dạng Body: Body request không đúng định dạng JSON.";
             case -130:
+                return "Vượt quá ký tự: Nội dung Template vượt quá giới hạn (tối đa 100k ký tự).";
             case -131:
-                return "Nội dung tin không hợp lệ";
+                return "Template chưa phê duyệt: Vui lòng chờ Zalo duyệt mẫu tin nhắn này trước khi gửi.";
+            case -132:
+                return "Tham số không hợp lệ.";
+            case -249:
+                return "Không hỗ trợ UID: Template cũ (trước 10/12/2025) hoặc loại OTP/Journey không hỗ trợ gửi qua UID. Hãy clone/tạo mới template.";
+            case -100:
+                return "Lỗi không xác định: Vui lòng thử lại sau.";
+            case -101:
+                return "Ứng dụng không hợp lệ: Kiểm tra lại ID ứng dụng tại Zalo for Developers.";
+            case -103:
+                return "Ứng dụng chưa kích hoạt: Truy cập Zalo for Developers để bật kích hoạt ứng dụng.";
+            case -104:
+                return "Secret key không hợp lệ: Kiểm tra lại Secret key trong thiết lập ứng dụng.";
+            case -106:
+                return "Phương thức không hỗ trợ: Đối chiếu phương thức gọi API với tài liệu Zalo.";
+            case -107:
+                return "ID thông báo không hợp lệ.";
+            case -108:
+                return "Số điện thoại không hợp lệ: Kiểm tra lại định dạng (ví dụ: 84xxxx hoặc 0xxxx).";
+            case -115:
+                return "Hết hạn mức: Tài khoản ZBS không đủ số dư, vui lòng nạp tiền tại ZBS Account.";
             case -118:
-                return "Số điện thoại không có Zalo";
-            case -133:
-                return "Không được phép gửi tin vào ban đêm (từ 22h-6h)";
+                return "Tài khoản không tồn tại: Người dùng chưa đăng ký Zalo hoặc tài khoản bị vô hiệu hóa.";
+            case -120:
+                return "OA không có quyền: Cần mua gói dịch vụ để sử dụng tính năng này.";
+            case -1202:
+                return "OA không có quyền sử dụng tài nguyên media (image/logo).";
+            case -124:
+                return "Access token không hợp lệ: Vui lòng làm mới (refresh) access token.";
+            case -1241:
+                return "appsecret_proof không hợp lệ: Kiểm tra lại mã hóa appsecret_proof.";
+            case -125:
+                return "ID Official Account không hợp lệ: Kiểm tra lại OA ID trong quản lý OA.";
+            case -126:
+                return "Ví development không đủ số dư: Vui lòng kiểm tra lại tài khoản thử nghiệm.";
+            case -127:
+                return "Lỗi gửi thử: Tin nhắn test chỉ có thể gửi cho quản trị viên.";
+            case -135:
+                return "OA chưa xác thực: Cần xác thực OA hoặc nâng cấp khỏi gói miễn phí để gửi qua SĐT.";
+            case -1351:
+                return "OA bị chặn: Hệ thống chặn gửi tin do phát hiện vi phạm chính sách.";
+            case -136:
+                return "Chưa kết nối ZBS Account: Cần liên kết App ID vào Zalo Cloud Account (ZCA).";
             case -137:
-                return "Thanh toán ZCA thất bại (ví không đủ số dư, ...)";
+                return "Thanh toán thất bại: Ví ZBS không đủ số dư để thực hiện giao dịch.";
+            case -138:
+                return "Ứng dụng chưa được cấp quyền: Kiểm tra xét duyệt API gửi tin SĐT tại trang Developer.";
+            case -1381:
+                return "Extension chưa có quyền: OA chưa cấp quyền sử dụng ZBS Account cho Extension.";
+            case -139:
+                return "Người dùng từ chối: Khách hàng đã tắt nhận loại tin nhắn SĐT này.";
+            case -140:
+                return "Không đủ điều kiện: Người dùng không nằm trong diện nhận tin theo chính sách Zalo.";
+            case -141:
+                return "Người dùng chặn OA: Khách hàng đã từ chối nhận tin SĐT từ Official Account này.";
+            case -142:
+                return "Thiếu RSA key: Vui lòng gọi API khởi tạo RSA key.";
+            case -143:
+                return "RSA key đã tồn tại: Vui lòng gọi API lấy RSA key hiện có.";
             case -144:
+                return "Vượt định mức ngày: OA đã gửi quá giới hạn tin nhắn SĐT cho phép trong ngày.";
+            case -1441:
+                return "Vượt định mức khuyến mãi: OA đã gửi vượt ngưỡng monthly promotion quota.";
+            case -145:
+                return "Loại tin nhắn không được phép: Nội dung (Tag) này không được hỗ trợ cho OA của bạn.";
             case -147:
-                return "OA đã vượt giới hạn gửi ZNS trong ngày";
-            case -146:
-                return "Mẫu tin này đã bị vô hiệu hóa do chất lượng gửi thấp";
+                return "Template vượt định mức: Mẫu tin nhắn này đã đạt giới hạn gửi trong ngày.";
+            case -1471:
+                return "Vượt giới hạn tháng: Đã gửi quá số lượng tin hậu mãi cho người dùng này trong tháng.";
+            case -1472:
+                return "Vượt giới hạn ngày: Đã gửi quá số lượng tin promotion cho người dùng này trong ngày.";
+            case -148:
+            case -149:
+            case -150:
+                return "Lỗi Journey Token: Token không tồn tại, không hợp lệ hoặc đã hết hạn.";
+            case -153:
+                return "Dữ liệu sai quy định: Kiểm tra lại cấu trúc JSON hoặc tham số truyền vào API.";
+            case -158:
+                return "File quá lớn: Dung lượng file vượt quá giới hạn cho phép.";
+            case -159:
+                return "Định dạng file không hỗ trợ.";
+            case -160:
+                return "Hết quota tạo Template: Đã vượt quá số lượng tạo/chỉnh sửa template trong ngày.";
+            case -161:
+                return "sending_mode sai: Giá trị chế độ gửi không hợp lệ.";
+            case -162:
+                return "Chế độ gửi không hỗ trợ: Tag 1, 2 không được dùng sending_mode = 3.";
             default:
-                return "Gửi tin nhắn thất bại";
+                return "Lỗi hệ thống ($error_code): Vui lòng kiểm tra lại cấu hình hoặc liên hệ hỗ trợ Zalo.";
         }
     }
 
@@ -898,13 +968,13 @@ class APIZaloOA {
 
     /***************  TEMPLATES  ***************/
     /** 
-     * Get template zalo message
+     * Get zalo message templates that is declared by file in system 
      * 
      * @param string $name
      * @param string $return_type
      * @return mixed
      */
-    public function get_template($name, $return_type = 'array') {
+    public function get_template_handmade($name, $return_type = 'array') {
         $result = [];
 
         if(file_exists($this->template_path)) {
@@ -1016,22 +1086,13 @@ class APIZaloOA {
         return '';
     }
 
-    public function format_phone_number($phone, $type = '') {
+    public function format_zalo_phone($phone) {
         $phone_format = trim($phone);
-    
-        if($type == 'zalo') {
-            $phone_format = str_replace(' ', '', $phone_format);
-            $phone_format = preg_replace('/^\+84/', 0, $phone_format);
-            $phone_format = preg_replace('/^84/', 0, $phone_format);
-            $phone_format = preg_replace('/^00/', 0, $phone_format);
-            $phone_format = preg_replace('/^0/', '84', $phone_format);
-        }
-        else {
-            $phone_format = str_replace(' ', '', $phone_format);
-            $phone_format = str_replace('+', '', trim($phone_format));
-            $phone_format = str_replace('84', '0', $phone);
-        }
-    
+        $phone_format = str_replace(' ', '', $phone_format);
+        $phone_format = preg_replace('/^\+84/', 0, $phone_format);
+        $phone_format = preg_replace('/^84/', 0, $phone_format);
+        $phone_format = preg_replace('/^00/', 0, $phone_format);
+        $phone_format = preg_replace('/^0/', '84', $phone_format);
         return $phone_format;
     }
 
@@ -1040,5 +1101,16 @@ class APIZaloOA {
         if(substr($zalo_phone, 0, 2) == 84) return trim('0' . substr($zalo_phone, 2));
         elseif(substr($zalo_phone, 0, 3) == "+84") return trim('0' . substr($zalo_phone, 3));
         return trim($zalo_phone);
+    }
+
+    /**
+     * Get timestamp
+     * 
+     * @param string $timezone
+     * @return int
+     */
+    public function get_timestamp($timezone = 'Asia/Ho_Chi_Minh') {
+        date_default_timezone_set($timezone);
+        return time();
     }
 }

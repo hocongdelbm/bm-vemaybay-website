@@ -12,15 +12,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $data = json_decode($response, true);
 
     $timestamp  = $data['timestamp'];
-    $app_id     = $sugar_config['zalo_config']['app_id'] ? $sugar_config['zalo_config']['app_id'] : '';
-    $oa_secret  = $sugar_config['zalo_config']['oa_secret'] ? $sugar_config['zalo_config']['oa_secret'] : '';
-    $mac        = "mac=".hash('sha256', $app_id.$response.$timestamp.$oa_secret);
-    $h_mac      = isset($headers['X-Zevent-Signature']) ? $headers['X-Zevent-Signature'] : '';
+    $app_id     = $data['app_id'] ?? $sugar_config['zalo_config']['app_id_default'] ?? '';
+
+    if(!empty($app_id)) {
+        $zaloApp = new EC_Zalo_Apps();
+        $zaloApp->retrieve($app_id);
+    }
+
+    if(!empty($zaloApp->oa_id)) {
+        $zaloOA = new EC_Zalo();
+        $zaloOA->retrieve($zaloApp->oa_id);
+    }
+
+    $mac   = "mac=".hash('sha256', $app_id.$response.$timestamp.$zaloOA->secret_key);
+    $h_mac = $headers['X-Zevent-Signature'] ?? '';
    
     if($mac === $h_mac) {
         global $db;
-        $zaloOA = new APIZaloOA();
-        $event = isset($data['event_name']) ? $data['event_name'] : '';
+        $zaloOA = new APIZaloOA($zaloApp->id, $zaloOA->id);
+        $event = $data['event_name'] ?? '';
 
         try {
             $list_consultation_events = [

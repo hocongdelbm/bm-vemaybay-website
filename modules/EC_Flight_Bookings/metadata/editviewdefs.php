@@ -31,14 +31,17 @@ $viewdefs[$module_name]['EditView'] = array(
     ),
 
     'panels' => array(
-        'default' => array(
+        'LBL_BOOKINGS_PANEL' => array(
             array(
                 array(
                     'name' => 'name',
                     'label' => 'LBL_NAME',
                     'customCode' => '{$NAME_BOOKING}',
                 ),
-                array(),
+                array(
+                    'name' => 'is_prior',
+                    'label' => 'LBL_IS_PRIOR',
+                ),
             ),
             array(
                 array(

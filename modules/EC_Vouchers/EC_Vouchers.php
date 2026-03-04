@@ -38,7 +38,7 @@ class EC_Vouchers extends Basic {
 	public $contact_id;
 	public $is_hidden;
 
-	public $condition_apply = ['min_order_value', 'number_of_tickets', 'flight_type', 'ticket_type', 'journey'];
+	public $condition_apply = ['for_phone_value', 'min_order_value', 'number_of_tickets', 'flight_type', 'ticket_type', 'journey'];
 	public $condition_included = ['max_discount'];
 	
 

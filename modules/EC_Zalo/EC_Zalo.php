@@ -224,6 +224,7 @@ class EC_Zalo extends Basic {
                     $message  = "[INFO] Unprocessed cases in ".__FUNCTION__."()";
                     $message .= "\n{$error_code}: {$error_description}";
                     if(!empty($zalo_id)) $message .= "\nZalo Id: {$zalo_id}";
+                    if(!empty($oa_id)) $message .= "\nOA Id: {$oa_id}";
                     Telegram::sendMessage($message, $botToken, $chatId, $threadId);
                     break;
             }

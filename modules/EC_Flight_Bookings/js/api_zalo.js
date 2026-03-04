@@ -7,7 +7,7 @@ $(document).ready(function () {
         return;
     });
 
-    // Get template ZNS
+    // Get template ZBS
     $('input[type=radio][name=zalo_type]').change(function () {
         $('input#phone_zalo').attr('readonly', false);
 
@@ -49,7 +49,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Nơi đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data['dep_name']}" />
+                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data?.dep_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -57,7 +57,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Nơi đến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data['arv_name']}" />
+                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -65,7 +65,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -73,7 +73,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Hãng hàng không</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data['airline']}" />
+                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data?.airline ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -81,7 +81,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Mã chuyến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data['flightno']}" />
+                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data?.flightno ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -89,7 +89,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Hạng vé</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data['class']}" />
+                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data?.class ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -118,6 +118,9 @@ $(document).ready(function () {
                 let data_dep = journeys[journey_id_dep];
                 let data_ret = journeys[journey_id_ret];
 
+                let chuyen_bay_di = data_dep?.airline ? data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class'] : '';
+                let chuyen_bay_ve = data_ret?.airline ? data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class'] : '';
+
                 html = `${openning_paragraph}
                     <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="journey-round-trip" />
                     <ul class="list-group list-group-flush mt-1">
@@ -125,7 +128,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chiều đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep['dep_name'] + ' - ' + data_dep['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep?.dep_name ?? ''} - ${data_dep?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -133,7 +136,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -141,7 +144,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chuyến bay đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${chuyen_bay_di}" />
                                 </div>
                             </div>
                         </li>
@@ -149,7 +152,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chiều về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret['dep_name'] + ' - ' + data_ret['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret?.dep_name ?? ''} - ${data_ret?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -157,7 +160,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Ngày giờ về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -165,7 +168,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chuyến bay về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${chuyen_bay_ve}" />
                                 </div>
                             </div>
                         </li>
@@ -256,7 +259,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Nơi đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data['dep_name']}" />
+                                    <input type="text" name="zalo_field_noi_di" id="zalo_field_noi_di" class="zalo_field" value="${data?.dep_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -264,7 +267,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Nơi đến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data['arv_name']}" />
+                                    <input type="text" name="zalo_field_noi_den" id="zalo_field_noi_den" class="zalo_field" value="${data?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -272,7 +275,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -280,7 +283,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Hãng hàng không</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data['airline']}" />
+                                    <input type="text" name="zalo_field_hang_hang_khong" id="zalo_field_hang_hang_khong" class="zalo_field" value="${data?.airline ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -288,7 +291,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Mã chuyến</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data['flightno']}" />
+                                    <input type="text" name="zalo_field_ma_chuyen" id="zalo_field_ma_chuyen" class="zalo_field" value="${data?.flightno ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -296,7 +299,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Hạng vé</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data['class']}" />
+                                    <input type="text" name="zalo_field_hang_ve" id="zalo_field_hang_ve" class="zalo_field" value="${data?.class ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -325,6 +328,8 @@ $(document).ready(function () {
                     <p style="font-weight:400;">Cảm ơn <input type="text" name="zalo_field_lien_he" id="zalo_field_lien_he" class="zalo_field" value="${zaloContact}" />, Tìm chuyến bay Travelpass gửi bạn code vé khứ hồi <input type="text" name="zalo_field_code_pnr" id="zalo_field_code_pnr" class="zalo_field" value="" style="width:100px; padding:0 7px;"/>.</p>
                     <p style="font-weight:400;">Thông tin hành trình bao gồm:</p>
                 `;
+                let chuyen_bay_di = data_dep?.airline ? data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class'] : '';
+                let chuyen_bay_ve = data_ret?.airline ? data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class'] : '';
 
                 html = `${openning_paragraph}
                     <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="code-round-trip" />
@@ -333,7 +338,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chiều đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep['dep_name'] + ' - ' + data_dep['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_di" id="zalo_field_chieu_di" class="zalo_field" value="${data_dep?.dep_name ?? ''} - ${data_dep?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -341,7 +346,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Ngày giờ đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_di" id="zalo_field_ngay_gio_di" class="zalo_field" value="${data_dep?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -349,7 +354,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chuyến bay đi</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${data_dep['airline'] + ' (' + data_dep['flightno'] + ') - ' + data_dep['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_di" id="zalo_field_chuyen_bay_di" class="zalo_field" value="${chuyen_bay_di}" />
                                 </div>
                             </div>
                         </li>
@@ -357,7 +362,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chiều về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret['dep_name'] + ' - ' + data_ret['arv_name']}" />
+                                    <input type="text" name="zalo_field_chieu_ve" id="zalo_field_chieu_ve" class="zalo_field" value="${data_ret?.dep_name ?? ''} - ${data_ret?.arv_name ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -365,7 +370,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Ngày giờ về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret['datetime']}" />
+                                    <input type="text" name="zalo_field_ngay_gio_ve" id="zalo_field_ngay_gio_ve" class="zalo_field" value="${data_ret?.datetime ?? ''}" />
                                 </div>
                             </div>
                         </li>
@@ -373,7 +378,7 @@ $(document).ready(function () {
                             <div class="row">
                                 <div class="col-3">Chuyến bay về</div>
                                 <div class="col-9">
-                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${data_ret['airline'] + ' (' + data_ret['flightno'] + ') - ' + data_ret['class']}" />
+                                    <input type="text" name="zalo_field_chuyen_bay_ve" id="zalo_field_chuyen_bay_ve" class="zalo_field" value="${chuyen_bay_ve}" />
                                 </div>
                             </div>
                         </li>
@@ -405,7 +410,7 @@ $(document).ready(function () {
                 <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />
                 <p>Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${zaloContact}" maxlength="30" style="width:250px" />,</p>
                 <p style="font-weight:400">Cảm ơn <span id="full_name_copy">${zaloContact}</span> đã sử dụng dịch vụ của Tìm Chuyến Bay.</p>
-                <p style="font-weight:400">Mã hành trình <input type="text" name="zalo_field_flight_no" id="zalo_field_flight_no" class="zalo_field" value="${data['flightno']}" style="width:80px" />, ngày giờ bay <input type="text" name="zalo_field_datetime" id="zalo_field_datetime" class="zalo_field" value="${data['datetime']}" style="width:160px" />.</p>
+                <p style="font-weight:400">Mã hành trình <input type="text" name="zalo_field_flight_no" id="zalo_field_flight_no" class="zalo_field" value="${data?.flightno ?? ''}" style="width:80px" />, ngày giờ bay <input type="text" name="zalo_field_datetime" id="zalo_field_datetime" class="zalo_field" value="${data?.datetime ?? ''}" style="width:160px" />.</p>
                 <p style="font-weight:400">Quý khách nhấn nút quan tâm để cấp nhật thông tin đặt vé mới nhất mỗi ngày.</p>`;
         }
         else if (this.value == 'delay') {
@@ -531,7 +536,7 @@ $(document).ready(function () {
             dataType: "json",
             data: JSON.stringify({
                 class: "entryZaloOAClass",
-                method: "sendZNS",
+                method: "sendTemplateMessage",
                 params: {
                     phoneNumber: phone,
                     type: znsType,
@@ -541,17 +546,17 @@ $(document).ready(function () {
                 }
             }),
             beforeSend: function() {
-                closeDialogZaloZNS();
+                closeDialogZaloZBS();
                 $('.container-waiting').show();
             },
             success: function (response) {
                 $('.container-waiting').hide();
-                if ('status' in response && response.status === 1) showModalNotify(1, "Đã gửi");
+                if ('status' in response && response.status) showModalNotify(1, "Đã gửi");
                 else showModalNotify(0, response.message || 'Thao tác không thành công')
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
                 $('.container-waiting').hide();
-                showModalNotify(0, 'ERROR (' + errorThrown + '): Vui lòng liên hệ IT')
+                showModalNotify(0, 'ERROR (' + errorThrown + '): Vui lòng liên hệ IT để được hỗ trợ')
                 console.error(XMLHttpRequest);
             }
         });
@@ -564,7 +569,7 @@ $(document).ready(function () {
     });
 });
 
-function closeDialogZaloZNS() {
+function closeDialogZaloZBS() {
     // Reset
     $('#zalo-message').html('');
     $('input[name="zalo_type"]').prop('checked', false);

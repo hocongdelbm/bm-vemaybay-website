@@ -232,6 +232,11 @@ $dictionary['EC_Revenue'] = array(
             'audited' => 1,
         ),
     ),
+    'indices' => array(
+        array('name' => 'idx_rv_bkid', 'type' => 'index', 'fields' => array('booking_id')),
+        array('name' => 'idx_rv_assign', 'type' => 'index', 'fields' => array('assigned_user_id')),
+        array('name' => 'idx_rv_date_ticket_issue', 'type' => 'index', 'fields' => array('date_ticket_issue')),
+    ),
     'relationships' => array(),
     'optimistic_locking' => true,
     'unified_search' => true,

@@ -227,7 +227,7 @@ $app_list_strings['c_booking_status_list'] = array(
   0 => '',
   1 => 'Mới tạo',
   6 => 'Đã gọi',
-  2 => 'Chờ TT',
+  2 => 'Đã liên hệ',
   3 => 'Xác nhận',
   7 => 'Xuất vé',
   4 => 'Hủy',
@@ -559,7 +559,7 @@ $GLOBALS['app_list_strings']['location_list'] = array(
 $GLOBALS['app_list_strings']['booking_status_list'] = array(
   1 => 'Mới tạo',
   6 => 'Đã gọi',
-  2 => 'Chờ TT',
+  2 => 'Đã liên hệ',
   3 => 'Xác nhận',
   7 => 'Xuất vé',
   4 => 'Hủy',
@@ -1875,6 +1875,7 @@ $GLOBALS['app_list_strings']['employee_kpi_type_list'] = array(
   'invoice_issued' => 'Xuất hóa đơn đầu ra',
   'invoice_input_issued' => 'Xuất hóa đơn đầu vào',
   'ticket_delivery' => 'Giao vé',
+  'checkin_journey' => 'Checkin',
   'check_debt' => 'Đối chiếu công nợ',
   'create_repaid' => 'Tạo hoàn vé',
   'create_payment' => 'Lập phiếu chi',
@@ -2666,4 +2667,10 @@ $app_list_strings['booking_customer_source_list'] = [
   'new'    => 'Mới',
   'agent'  => 'Đại lý CTV',
   'care'   => 'Chăm sóc KH',
+];
+
+$app_list_strings['booking_checkin_status_list'] = [
+  0    => '',
+  1  => 'Cần checkin',
+  2  => 'Đã checkin',
 ];

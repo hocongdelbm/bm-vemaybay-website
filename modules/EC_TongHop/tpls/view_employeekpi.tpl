@@ -444,16 +444,13 @@
 			<th width="5%" align="center"><span title="Hóa đơn đầu vào">HDV</span></th>
 			<th width="5%" align="center"><span title="Hóa đơn đầu ra">HDR</span></th>
 			<th width="5%" align="center"><span title="Giao vé">GVE</span></th>
+			<th width="5%" align="center"><span title="Checkin">CKI</span></th>
 			<th width="5%" align="center"><span title="Đối chiếu công nợ">DCN</span></th>
 			<th width="5%" align="center"><span title="Tạo phiếu hoàn vé">THV</span></th>
 			<th width="5%" align="center"><span title="Lập phiếu chi">LPC</span></th>
 			<th width="5%" align="center"><span title="Lập phiếu thu">LPT</span></th>
 			<th width="5%" align="center"><span title="Lập phiếu điều chuyển tiền">DCT</span></th>
 			<th width="5%" align="center"><span title="Hỗ trợ khác">SDL</span></th>
-			<!-- <th width="5%" align="center"><span title="Chuyên môn">Chuyên môn</span></th>
-			<th width="5%" align="center"><span title="Hiệu quả">Hiệu quả</span></th>
-			<th width="5%" align="center"><span title="Ý thức">Ý thức</span></th>
-			<th width="5%" align="center"><span title="Bị trừ">Bị trừ</span></th> -->
 			<th align="center"><span title="Tổng cộng">Tổng cộng</span></th>
 		</tr>
 	</thead>
@@ -468,16 +465,13 @@
 		<td align="center"><span title="Hóa đơn đầu vào">{$TTL_INV_IN_ISSUED}</span></td>
 		<td align="center"><span title="Hóa đơn đầu ra">{$TTL_INV_ISSUED}</span></td>
 		<td align="center"><span title="Giao vé">{$TTL_DELIVERY}</span></td>
+		<td align="center"><span title="Checkin">{$TTL_CHECKIN}</span></td>
 		<td align="center"><span title="Đối chiếu công nợ">{$TTL_COMDEBT}</span></td>
 		<td align="center"><span title="Lập phiếu hoàn vé">{$TTL_NEW_REPAID}</span></td>
 		<td align="center"><span title="Lập phiếu chi">{$TTL_PAYMENT}</span></td>
 		<td align="center"><span title="Lập phiếu thu">{$TTL_RECEIPT}</span></td>
 		<td align="center"><span title="Lập phiếu điều chuyển tiền">{$TTL_TRANSFER}</span></td>
 		<td align="center"><span title="Hỗ trợ khác">{$TTL_SUPPORT}</span></td>
-		<!-- <td align="center"><span title="Chuyên môn">{$TTL_MANNER}</span></td>
-		<td align="center"><span title="Hiệu quả">{$TTL_EFFECTED}</span></td>
-		<td align="center"><span title="Ý thức">{$TTL_AWARENESS}</span></td>
-		<td align="center"><span title="Bị trừ">{$TTL_MINUS}</span></td> -->
 		<td align="center"><span title="Tổng cộng">{$TTL_FINAL}</span></td>
 	</tr>
 </table>
@@ -525,7 +519,7 @@
 		</tr>
 		<tr class="footer-tr">
 			<td>{$BOOKING_COUNT}</td>
-			<td>{$TICKET_COUNT}<!--<a class="view-detail" load_type="total_ticket" load_name="số lượng vé đã xuất" href="#" title="Xem chi tiết"></a>--></td>
+			<td>{$TICKET_COUNT}</td>
 			<td>{$TICKET_TARGET}</td>
 			<td>{$PERCENT_ACHIEVED}</td>
 			<td>{$TOTAL_BONUS}<a class="view-detail" load_type="total_bonus" load_name="bonus" href="#" title="Xem chi tiết"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
@@ -566,6 +560,9 @@
 	<ul class="kpi-notes flex-fill">
 		<li>
 			<strong>GVE</strong>: <span>Giao vé / giao thực phẩm</span>
+		</li>
+		<li>
+			<strong>CKI</strong>: <span>Checkin hành trình</span>
 		</li>
 		<li>
 			<strong>DCN</strong>: <span>Đối chiếu công nợ</span>

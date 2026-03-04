@@ -76,6 +76,34 @@ $dictionary['Document'] = array(
             'docUrl' => 'doc_url',
             'docId' => 'doc_id',
         ),
+        // Link to Booking - Van Dahy
+        'booking_id' => array(
+            'required' => false,
+            'name' => 'booking_id',
+            'vname' => 'LBL_BOOKING_ID',
+            'type' => 'id',
+            'len' => 36,
+            'default' => '',
+            'massupdate' => 0,
+            'importable' => 'true',
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => 0,
+            'audited' => 0,
+            'reportable' => 0,
+        ),
+        'booking_name' => array(
+            'required' => '0',
+            'source' => 'non-db',
+            'name' => 'booking_name',
+            'vname' => 'LBL_BOOKING_NAME',
+            'type' => 'relate',
+            'id_name' => 'booking_id',
+            'ext2' => 'EC_Flight_Bookings',
+            'module' => 'EC_Flight_Bookings',
+            'rname' => 'name',
+            'quicksearch' => 'enabled',
+            'studio' => 'visible',
+        ),
 
         'active_date' =>
         array(
@@ -407,6 +435,7 @@ $dictionary['Document'] = array(
     ),
     'indices' => array(
         array('name' => 'idx_doc_cat', 'type' => 'index', 'fields' => array('category_id', 'subcategory_id')),
+        array('name' => 'idx_fbk_id', 'type' => 'index', 'fields' => array('booking_id', 'deleted')),
     ),
     'relationships' => array(
         'document_revisions' => array(

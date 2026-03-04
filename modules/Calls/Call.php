@@ -115,6 +115,10 @@ class Call extends SugarBean
         }
     }
 
+    public function save2($check_notify = false) { 
+        return parent::save();
+    }
+
     /**
      * Disable edit if call is recurring and source is not Sugar. It should be edited only from Outlook.
      * @param $view string
@@ -162,10 +166,10 @@ class Call extends SugarBean
         // custom subject - Mã cuộc gọi
         $is_tele = 0;
         if (empty($this->name)) {
-            $date = date('ymd', strtotime('+7 hours', strtotime(date('d-m-Y H:i:s'))));
-            $sql_date = date('Y-m-d', strtotime('+7 hours', strtotime(date('d-m-Y H:i:s'))));
+            $date = date('ymd', strtotime(date('d-m-Y H:i:s')));
+            $sql_date = date('Y-m-d', strtotime(date('d-m-Y H:i:s')));
 
-            $total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM calls WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') = '" . $sql_date . "'");
+            $total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM calls WHERE DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '" . $sql_date . "'");
             $this->name = 'CALL-' . $date . '-' . $total_row;
 
             $is_tele = 1;

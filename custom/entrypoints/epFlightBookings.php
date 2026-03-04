@@ -749,6 +749,55 @@ if (isset($_POST['for']) && $_POST['for'] == 'remindFlightSchedules') {
 	}
 }
 
+// Nhắc nhở khách hàng lịch bay - button Remind
+if (isset($_POST['for']) && $_POST['for'] == 'changeCheckinStatus') {
+	$status     = isset($_POST['status']) ? (int)$_POST['status'] : 0;
+	$journey_id = isset($_POST['journey_id']) ? trim($_POST['journey_id']) : '';
+	$journey_name = isset($_POST['journey_name']) ? trim($_POST['journey_name']) : '';
+	$booking_id = isset($_POST['booking_id']) ? trim($_POST['booking_id']) : '';
+	$record_name = isset($_POST['record_name']) ? trim($_POST['record_name']) : '';
+	$module_name = 'EC_Flight_Bookings';
+
+	if ($journey_id === '' && $booking_id === '') {
+		$GLOBALS['log']->fatal('changeCheckinStatus FAILED: missing journey_id or booking_id | POST=' . json_encode($_POST));
+
+		echo 0;
+		exit();
+	}
+
+	$journey_id = $db->quote($journey_id);
+	$sql = "
+        UPDATE ec_booking_itineraries
+        SET checkin_status = {$status}
+        WHERE id = '{$journey_id}'
+    ";
+	$result = $db->query($sql);
+
+	if ($result) {
+		if ($status === 2) {
+			// Lưu KPI
+			$description = 'Đã Check in hành trình ' . $journey_name . ' (Checkin)';
+			myCreateWorkingProcess($module_name, $booking_id, $record_name, $description, $current_user->id, 'checkin_journey');
+
+			$note = new Note();
+			$note->id = '';
+			$note->name = $record_name ?? '';
+			$note->description = $description;
+			$note->parent_type = $module_name;
+			$note->parent_id = $booking_id;
+			$note->save();
+		}
+
+		echo 1;
+	} else {
+		$GLOBALS['log']->fatal(
+			'changeCheckinStatus FAILED | SQL=' . $sql
+		);
+		echo 0;
+	}
+	exit;
+}
+
 // Cập nhật doanh số booking
 if (isset($_POST['for']) && $_POST['for'] == 'updateRevenueBooking') {
 	$booking_id = (isset($_POST["booking_id"]) && !empty($_POST["booking_id"])) ? $_POST["booking_id"] : null;
@@ -1225,9 +1274,11 @@ function populateEditedLineItineraries($booking_id)
 				,iti.time_limit
 				,iti.is_layover
 				,iti.is_remind
+				,iti.checkin_status
 				,bk.ticket_type
 				,bk.phone as bk_phone
 				,bk.name as bk_name
+				,bk.booking_status as booking_status
 				,GROUP_CONCAT(TRIM(iti.name)) AS pass_name
 				,GROUP_CONCAT(
 					IF(iti.assigned_user_id IN (
@@ -1322,23 +1373,14 @@ function populateEditedLineItineraries($booking_id)
 			<td data-label="Ngày giờ đi" class="text-center">' . (trim($row['departure_date']) != '' ? date($date_format . ' H:i', strtotime($row['departure_date'])) : '') . '</td>
 			<td data-label="Ngày giờ đến" class="text-center">' . (trim($row['arrival_date']) != '' ? date($date_format . ' H:i', strtotime($row['arrival_date'])) : '') . '</td>';
 
-		// Nút in vé
-		$print_ticket_btn = $send_ticket_btn = $remind_btn = '';
+		// Nút nhắc lịch bay - checkin
+		$remind_btn = '';
+		$checkin_status = '';
+
 		if ($print_iti != $row['sabre_logs']) {
 			$print_iti = $row['sabre_logs'];
-			$print_ticket_btn = '<input type="hidden" name="add_type" value="3">
-				<input type="button" name="btnPrintEticket" value="In vé" title="In vé"
-					class="btn btn-primary-2 fw-semibold flex-fill"
-					ln="' . $j . '"
-					data-times-change="' . $print_iti . '"
-				/>
-			';
-			$send_ticket_btn = '<input type="button" name="btnSendEticket" value="Gửi vé" title="Gửi vé"
-				class="btn btn-primary-2 fw-semibold flex-fill"
-				ln="' . $j . '"
-				data-times-change="' . $print_iti . '"
-			/>';
 
+			// remind
 			if ($row['is_remind'] == 0) {
 				// $remind_btn .= '<input type="button" class="btn btn-primary-2 btn-remind btn-voiceip-calling" iti_id="' . $row['id'] . '" booking_id="'.$booking_id.'" booking_name="' . $row['bk_name'] . '" phone="' . $row['bk_phone'] . '" name="btnRemind" id="btnRemind" value="Remind" title="Send Remind" />';
 
@@ -1355,6 +1397,12 @@ function populateEditedLineItineraries($booking_id)
 						</li>
 					</ul>
 				</div>';
+			}
+
+			// Checkin
+			if ((int)$row['checkin_status'] !== 2 && in_array((int)$row['booking_status'], [7, 8])) {
+				$jour_name = $row['departure'] . '-' . $row['arrival'];
+				$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $booking_id . '" record_name="' . $row['bk_name'] . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
 			}
 		}
 
@@ -1387,6 +1435,7 @@ function populateEditedLineItineraries($booking_id)
 						style="max-width:30%"
 					/>
 					' . $remind_btn . '
+					' . $checkin_status . '
 				</div>
 			</form>
 		</td>';
@@ -3895,5 +3944,185 @@ if (isset($_POST['for']) && $_POST['for'] == 'refund_points') {
 	}
 
 	echo json_encode(['error' => 1, 'message' => 'Failed']);
+	exit();
+}
+
+
+/**
+ * Preview send mail
+ */
+if (isset($_POST['for']) && $_POST['for'] == 'previewSendMail') {
+	$booking_id = $_POST['booking_id'] ?? '';
+	$bk = BeanFactory::getBean('EC_Flight_Bookings', $booking_id);
+
+	$contact_name 		= ucwords(myRemoveUnicodeChars($bk->contact_name));
+	$bk_name 			= ucwords(myRemoveUnicodeChars($bk->name));
+	$bk_status 			= $app_list_strings['booking_status_list'][$bk->booking_status];
+	$trip_type 			= $app_list_strings['bk_flight_type_list'][$bk->flight_type];
+	$payment_type 		= $app_list_strings['booking_payment_type_list'][$bk->payment_type];
+	$total_amount		= format_number($bk->total_amount) . ' VND';
+
+	$html = '';
+
+	// Block infor booking
+	$html = '<div class="container text-dark">
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Mã đơn hàng</span>
+					</div>
+					<div class="col-8">
+						<span class="text-danger fw-semibold">' . $bk_name . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Loại vé</span>
+					</div>
+					<div class="col-8">
+						<span class="text-dark fw-semibold">' . $trip_type . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Hình thức thanh toán</span>
+					</div>
+					<div class="col-8">
+						<span class="text-dark fw-semibold">' . $payment_type . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Tổng số tiền</span>
+					</div>
+					<div class="col-8">
+						<span class="text-danger fw-semibold">' . $total_amount . '</span>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-4">
+						<span>Số điện thoại</span>
+					</div>
+					<div class="col-8">
+						<span class="text-dark fw-semibold">' . $bk->phone . '</span>
+					</div>
+				</div>
+			</div>
+		';
+
+	// Block infor Passenger Mail Confirm
+	$pas_info = $bk->getPassengerInfoMailConfirm($booking_id, $bk->flight_type);
+	$html .= '<div class="container text-dark">
+				<div class="row mb-3">
+					<div class="col-12">
+						<table align="center" border="0" cellpadding="0" cellspacing="0">
+							<tbody>
+								' . $pas_info . '
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="row mb-3">
+					<div class="col-12">
+						<img src="themes/SuiteP/images/modules/ec_flight_booking/row-dash.png" class="w-100">
+					</div>
+				</div>
+			</div>
+		';
+
+	// Block infor Route Mail Confirm
+	$route_infos = $bk->getRouteInfosMailConfirm($booking_id, 'preview');
+	$html .= '<div class="container text-dark">
+				<div class="row mb-3">
+					<div class="col-12">
+						' . $route_infos['html'] . '
+					</div>
+				</div>
+			</div>
+		';
+
+	echo $html;
+	exit();
+}
+
+
+/**
+ * Chi tiết hành trình
+ */
+if (isset($_POST['for']) && $_POST['for'] == 'getDetailsAirportStatistics') {
+	global $app_list_strings;
+
+	$from_date = isset($_POST['from_date']) && strtotime($_POST['from_date']) !== false ? date('Y-m-d', strtotime($_POST['from_date'])) : '';
+	$to_date = isset($_POST['to_date']) && strtotime($_POST['to_date']) !== false ? date('Y-m-d', strtotime($_POST['to_date'])) : '';
+
+	$departure = $_POST['departure'] ?? '';
+	$arrival = $_POST['arrival'] ?? '';
+
+	$user_list = get_user_array(true, 'Active', '', true);
+
+	$sql = "
+		SELECT
+			bk.id,
+			bk.name,
+			bk.booking_status,
+			bk.contact_name,
+			bk.date_entered,
+			bk.total_qty,
+			bk.created_by
+		FROM ec_flight_bookings bk
+		INNER JOIN ec_booking_itineraries i ON i.booking_id = bk.id
+			AND i.deleted = 0
+			AND i.departure = '{$departure}'
+			AND i.arrival = '{$arrival}'
+			AND i.direction = 0
+			AND i.add_type = 0
+		WHERE DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%Y-%m-%d') BETWEEN '{$from_date}' AND '{$to_date}'
+		AND bk.deleted = 0
+		ORDER BY bk.created_by, bk.date_entered DESC
+	";
+	$res = $db->query($sql);
+
+	$html = '<table class="tbl-check-details-airport-analysis table-details__booking">
+				<thead>
+					<tr>
+						<th class="hide-mobile">STT</th>
+						<th>Booking</th>
+						<th class="hide-mobile">Tình trạng</th>
+						<th>Ngày đặt</th>
+						<th>Đặt bởi</th>
+						<th>Liên hệ</th>
+						<th>Số vé</th>
+					</tr>
+				</thead>
+				<tbody>';
+	$i = 1;
+	while ($row = $db->fetchByAssoc($res)) {
+		if ($row['booking_status'] == 2) { // CHỜ THANH TOÁN
+			$class_color = 'text-warning';
+		} elseif ($row['booking_status'] == 3 || $row['booking_status'] == 7) { // XÁC NHẬN
+			$class_color = 'text-success';
+		} elseif ($row['booking_status'] == 4) { // HỦY
+			$class_color = 'text-danger';
+		} elseif ($row['booking_status'] == 6) { // ĐÃ GỌI
+			$class_color = 'text-info';
+		} elseif ($row['booking_status'] == 8) { // HOÀN TẤT
+			$class_color = 'text-primary';
+		} else {
+			$class_color = 'text-dark';
+		}
+			
+		$html .= '<tr>
+					<td class=" hide-mobile fw-bold text-center">' . $i . '</td>
+					<td class=""><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['id'] . '" target="_blank">' . $row['name'] . '</a></td>
+					<td class=" hide-mobile text-center fw-bold '.$class_color.'">' . $app_list_strings['booking_status_list'][(int) $row['booking_status']] . '</td>
+					<td class=" text-center">' . date('H:i d-m-Y', strtotime('+7 hours', strtotime($row['date_entered']))) . '</td>
+					<td class="">' . $user_list[$row['created_by']] . '</td>
+					<td class="">' . $row['contact_name'] . '</td>
+					<td class=" text-center fw-bold">' . $row['total_qty'] . '</td>
+				</tr>';
+		$i++;
+	}
+
+	$html .= '</tbody></table>';
+	echo $html;
 	exit();
 }
