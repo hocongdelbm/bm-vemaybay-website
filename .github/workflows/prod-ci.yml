@@ -23,6 +23,7 @@ jobs:
         host: ${{ secrets.BAK01_SERVER_IP }}     
         username: ${{ secrets.BAK01_USER }} 
         key: ${{ secrets.BAK01_SSH_PRIVATE_KEY }}   
+        port: ${{ secrets.BAK01_SSH_PORT }}
         script: |
           echo "=== Bắt đầu deploy ==="
 

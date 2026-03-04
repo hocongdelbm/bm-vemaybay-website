@@ -80,6 +80,7 @@ class Viewairportstatistics extends SugarView
             '<option value="quater_previous_month" fromdate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_fromdate))) . '" todate="' . date('d-m-Y', strtotime('-3 months', strtotime($quater_todate))) . '">Quý trước</option>',
             '<option value="this_year" fromdate="' . date('01-01-Y') . '" todate="' . date('31-12-Y') . '">Năm nay</option>',
             '<option value="previous_year" fromdate="' . date('01-01-Y', strtotime('-1 year')) . '" todate="' . date('31-12-Y', strtotime('-1 year')) . '">Năm trước</option>',
+            '<option value="previous_2year" fromdate="' . date('01-01-Y', strtotime('-2 year')) . '" todate="' . date('31-12-Y', strtotime('-2 year')) . '">2 Năm trước</option>',
         );
         // $smartyobj->assign('TEST_DATE', date('d-m-Y H:i:s'));
         $smartyobj->assign('DATE_OPTION', implode('', $arr_date));
