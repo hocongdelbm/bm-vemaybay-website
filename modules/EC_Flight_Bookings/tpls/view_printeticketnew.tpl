@@ -39,8 +39,7 @@
 		<div style="max-width: 900px; margin: 0 auto; border: 1px solid #000;">
 
 			<!-- HEADER -->
-			<div
-				style="border-bottom: 1px solid #000; padding: 5px 15px; display: flex; align-items: center; justify-content: space-between;">
+			<div style="padding: 5px 15px; display: flex; align-items: center; justify-content: space-between;">
 				<div style="display: flex; align-items: center; gap: 12px;">
 					<img src="https://bm.vemaybay.website/include/images/mail/logo-tcb-blue.png" alt="logo"
 						style="height: 40px;" />
@@ -57,7 +56,7 @@
 				</div>
 				<div style="text-align: right; line-height: 1.2;">
 					<div style="font-size: 11px; text-transform: uppercase; color: #555; letter-spacing: 1px;">
-						{if $LANG == 'en'}Booking{else}Mã đặt chỗ{/if}</div>
+						{if $LANG == 'en'}Booking{else}Mã đơn hàng{/if}</div>
 					<div style="font-size: 14px; font-weight: 800; letter-spacing: 2px;">{$BOOKING_NUMBER}</div>
 					<div style="font-size: 11px; color: #555; margin-top: 2px;">Tel: {$COM_TOP_PHONE}</div>
 				</div>
@@ -67,15 +66,14 @@
 
 			<!-- ITINERARIES -->
 			{foreach from=$group.itineraries item=iti key=idx}
-				<div style="border-bottom: 1px dashed #000; padding: 0;">
+				<div style=" padding: 0;">
 
 					<!-- Direction label -->
 					<div
 						style="background: #f0f0f0; padding: 5px 20px; border-bottom: 1px solid #ccc; display: flex; align-items: center; justify-content: space-between;">
 						<span
 							style="font-weight: 700; font-size: 12px; text-transform: uppercase;">{$iti.direction_label}</span>
-						<span style="font-size: 12px; font-weight: 500;">{$iti.airline} &nbsp;&#8226;&nbsp;
-							{$iti.flight_number}</span>
+						<span style="font-size: 12px; font-weight: 500;">{$iti.airline}</span>
 					</div>
 
 					<!-- Flight info -->
@@ -93,6 +91,9 @@
 
 						<!-- Flight path -->
 						<div style="flex: 1; text-align: center; padding: 0 6px;">
+							<div style="font-size: 11px; font-weight: 600; color: #555;">
+								{$iti.flight_number}
+							</div>
 							<div
 								style="position: relative; height: 20px; display: flex; align-items: center; justify-content: center;">
 								<div style="position: absolute; left: 8%; right: 8%; height: 1px; background: #000; top: 50%;">
@@ -130,11 +131,7 @@
 					{/if}
 				{/foreach}
 
-				<div style="border-bottom: 1px solid #000;padding: 8px 20px;">
-					<div
-						style="font-size: 14px; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; padding-bottom: 4px;">
-						{if $LANG == 'en'}Passenger Information{else}Thông tin hành khách{/if}
-					</div>
+				<div style="border-block: 1px dashed #000;padding: 12px;">
 
 					<table style="width: 100%; border-collapse: collapse; font-size: 12px;">
 						<thead>
@@ -152,7 +149,7 @@
 								{/if}
 								<th
 									style="text-align: left; padding: 6px 8px; border: 1px solid #000; font-weight: 700; font-size: 12px; text-transform: uppercase; background: #f0f0f0;">
-									{if $LANG == 'en'}Baggage{else}Hành lý{/if}</th>
+									{if $LANG == 'en'}Baggage{else}Hành lý ký gửi{/if}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -241,7 +238,7 @@
 			</div>
 
 			<!-- FOOTER -->
-			<div style="border-top: 1px solid #000; padding: 8px 20px; text-align: center;">
+			<div style="padding: 8px 20px; text-align: center;">
 				<div style="font-size: 11px; line-height: 1.5; color: #333;">
 					<strong>{$COM_NAME}</strong> &nbsp;|&nbsp; {$COM_ADDRESS}
 					<br />
