@@ -40,3 +40,4 @@
 
 
 $action_view_map['extdoc']='extdoc';
+$action_view_map['migrate']='migrate';

@@ -76,11 +76,17 @@ class DocumentsViewDetail extends ViewDetail
     {
         global $sugar_config;
 
-        // Custom filename display with download link via proxy
+        // Custom filename display with direct download link from doc_url
         $filename_html = '';
         if (!empty($this->bean->filename)) {
-            $downloadUrl = "index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id={$this->bean->id}&download=yes";
-            $filename_html = '<a href="' . $downloadUrl . '" target="_blank" class="tabDetailViewDFLink">' . $this->bean->filename . '</a>';
+            // Use direct public share download URL (already has /download)
+            $downloadUrl = !empty($this->bean->doc_url) ? $this->bean->doc_url . '/download' : "";
+            
+            if (!empty($downloadUrl)) {
+                $filename_html = '<a href="' . $downloadUrl . '" target="_blank" class="tabDetailViewDFLink">' . $this->bean->filename . '</a>';
+            } else {
+                $filename_html = '<span class="tabDetailViewDFLink">' . $this->bean->filename . '</span>';
+            }
         }
         $this->ss->assign('CUSTOM_FILENAME', $filename_html);
 
@@ -91,15 +97,20 @@ class DocumentsViewDetail extends ViewDetail
         
         // Check if the file is an image based on MIME type
         if (!empty($revision->id) && !empty($revision->file_mime_type) && strpos($revision->file_mime_type, 'image/') === 0) {
-            // This is an image file - display it via proxy
-            $previewUrl = 'index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=' . $this->bean->id;
-            // Render HTML - Using proxy URL to display the main file as image
-            $preview_html = '<div class="preview-photo-container">
-                <img id="previewImage" src="' . $previewUrl . '"
-                    style="max-width: 70%; max-height: 300px; object-fit: contain; cursor: zoom-in;"
-                    alt="Preview Photo"
-                    onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh (Lỗi kết nối)</div>\';">
-            </div>';
+            // Use direct public share download URL (already has /download)
+            $previewUrl = !empty($revision->doc_url) ? $revision->doc_url . '/preview' : (!empty($this->bean->doc_url) ? $this->bean->doc_url : "");
+            
+            if (!empty($previewUrl)) {
+                // Render HTML - Using direct public share URL with /download (works for both preview and download)
+                $preview_html = '<div class="preview-photo-container">
+                    <img id="previewImage" src="' . $previewUrl . '"
+                        style="max-width: 70%; max-height: 300px; object-fit: contain; cursor: zoom-in;"
+                        alt="Preview Photo"
+                        onerror="this.parentElement.innerHTML=\'<div class=\\\'no-preview-photo\\\' style=\\\'color:#999;\\\'>Không thể tải ảnh (Lỗi kết nối)</div>\';">
+                </div>';
+            } else {
+                $preview_html = '<div class="no-preview-photo" style="color:#999;">Chưa có link download công khai</div>';
+            }
         } else {
             // Not an image or no revision found - show placeholder
             $preview_html = '<div class="no-preview-photo" style="color:#999;">File không phải là hình ảnh</div>';

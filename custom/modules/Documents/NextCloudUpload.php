@@ -115,21 +115,38 @@ class NextCloudUpload
                 return;
             }
 
-            // Lấy endpoint từ config để tạo URL công khai
-            $endpoint = rtrim($sugar_config['next-cloud']['endpoint'], '/') . '/' . $sugar_config['next-cloud']['user'];
-            $publicUrl = $endpoint . '/' . rawurlencode($remoteFileName);
-            // $publicUrl = $sugar_config['site_url'] . '/index.php?entryPoint=NextCloudPreview&id=' . $bean->id;
-            // Lưu URL vào revision trước để tránh upload lại
-            $revision->doc_url = $publicUrl;
+            // Tạo public share link để lấy URL công khai
+            $GLOBALS['log']->info("NextCloudUpload: Creating public share for {$remoteFileName}");
+            $shareResp = $api->createShare($remoteFileName);
+            $shareResult = json_decode($shareResp, true);
+            
+            // Check for successful share creation - API returns status:1 on success
+            if (isset($shareResult['status']) && $shareResult['status'] == 1 && isset($shareResult['data']['url'])) {
+                // Thêm /download vào cuối URL để có link download trực tiếp
+                // Link này có thể dùng trực tiếp cho preview ảnh và download
+                $publicShareUrl = $shareResult['data']['url'];
+                
+                $GLOBALS['log']->info("NextCloudUpload: Public share URL: {$publicShareUrl}");
+                $GLOBALS['log']->info("NextCloudUpload: Public download URL: {$publicDownloadUrl}");
+            } else {
+                $GLOBALS['log']->error("NextCloudUpload: Failed to create share for file {$remoteFileName} - " . json_encode($shareResult));
+                return;
+            }
+            
+            // Lưu URL download trực tiếp vào revision để tránh upload lại
+            $revision->doc_url = $publicShareUrl;
             $revision->save();
 
-            // Update document trực tiếp vào DB để tránh trigger logic hook lại
+            // Update document với link download trực tiếp (update trực tiếp vào DB để tránh trigger logic hook lại)
             $GLOBALS['db']->query("
                 UPDATE documents 
-                SET doc_url = " . $GLOBALS['db']->quoted($publicUrl) . ",
+                SET doc_url = " . $GLOBALS['db']->quoted($publicShareUrl) . ",
+                    doc_type = 'NextCloud',
                     date_modified = NOW()
                 WHERE id = " . $GLOBALS['db']->quoted($bean->id) . "
             ");
+            
+            $GLOBALS['log']->info("NextCloudUpload: Successfully saved public share URL to document and revision");
 
             // Xóa file local sau khi upload thành công
             if (file_exists($localFilePath)) {
