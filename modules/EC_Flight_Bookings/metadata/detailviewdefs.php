@@ -63,13 +63,13 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$VIEWED_BOOKING}',
                 ),
                 array(
+                    'customCode' => '{$PRINT_TICKET_NEW}',
+                ),
+                array(
                     'customCode' => '{$PRINT_TICKET}',
                 ),
                 array(
                     'customCode' => '{$SEND_TICKET}',
-                ),
-                array(
-                    'customCode' => '{$PRINT_TICKET_NEW}',
                 ),
             )
         ),

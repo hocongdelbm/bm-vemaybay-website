@@ -288,8 +288,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			WHERE n.parent_id = '{$this->bean->id}'
 				AND n.parent_type = 'EC_Flight_Bookings' 
 				AND n.deleted = 0
-			ORDER BY n.date_entered
-		";
+			ORDER BY n.date_entered";
 
 		$res = $this->bean->db->query($sql);
 		$user_list = get_user_array(true, 'Active', '', true);
@@ -353,62 +352,63 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						</div>';
 		}
 
-		$html = '
-			<div class="menu-control__tablet-wrap" id="line-notes">
-				<input type="checkbox" id="slide-menu" />
-				<label for="slide-menu" class="header-slide-menu__btn btn btn-primary" id="btn-open-mobile-menu">
-					<svg width="18px" height="18px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#fff" style="margin-bottom:1px"><path d="M8 10h8M8 14h4M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5L2.5 21.5l4.5-.838A9.955 9.955 0 0012 22z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-					<span>Diễn giải</span> 
-				</label>
-				<div class="mobile-menu">
-					<div class="mobile-menu__top">
-						<h3 class="title">Diễn giải</h3>
-						<label for="slide-menu" class="wrap-cancel">
-							<svg aria-hidden="true" height="24px" viewBox="0 0 24 24" width="24px"><g stroke="var(--text-primary-color)" stroke-linecap="round" stroke-width="2"><line x1="6" x2="18" y1="6" y2="18"></line><line x1="6" x2="18" y1="18" y2="6"></line></g></svg>
-						</label>
+		$html = '<div class="menu-control__tablet-wrap" id="line-notes">
+			<input type="checkbox" id="slide-menu" />
+			<label for="slide-menu" class="header-slide-menu__btn btn btn-primary" id="btn-open-mobile-menu">
+				<svg width="18px" height="18px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#fff" style="vertical-align:sub;margin-right:2px">
+					<path d="M8 10h8M8 14h4M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5L2.5 21.5l4.5-.838A9.955 9.955 0 0012 22z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+				</svg>
+				<span>Diễn giải</span> 
+			</label>
+			<div class="mobile-menu">
+				<div class="mobile-menu__top">
+					<h3 class="title">Diễn giải</h3>
+					<label for="slide-menu" class="wrap-cancel">
+						<svg aria-hidden="true" height="24px" viewBox="0 0 24 24" width="24px"><g stroke="var(--text-primary-color)" stroke-linecap="round" stroke-width="2"><line x1="6" x2="18" y1="6" y2="18"></line><line x1="6" x2="18" y1="18" y2="6"></line></g></svg>
+					</label>
+				</div>
+				<div class="mobile-menu-wrapper">
+					<div class="message_list">
+						' . $row_content . '
 					</div>
-					<div class="mobile-menu-wrapper">
-						<div class="message_list">
-							' . $row_content . '
-						</div>
-						<div class="">
-							<div class="wrap-input">
-								<div class="wrap-text">
-									<textarea rows="1" class="box-input input-note-description" id="note-description" placeholder="Thêm diễn giải..."></textarea>
-								</div>
-								<div class="wrap-icon">
-									<input type="hidden" name="note-username" id="note-username" value="' . $note_username . '" />
-									<input type="hidden" name="note-name" id="note-name" value="' . $this->bean->name . '" />
-									<input type="hidden" name="note-parent-id" id="note-parent-id" value="' . $this->bean->id . '" />
-									<input type="hidden" name="note-booking-status" id="note-booking-status" value="' . $this->bean->booking_status . '" />
-									<input type="hidden" name="note-contact-name" id="note-contact-name" value="' . $this->bean->contact_name . '" />
-									<input type="hidden" name="note-total-amount" id="note-total-amount" value="' . $this->bean->total_amount . '" />
-									<input type="hidden" name="note-total-qty" id="note-total-qty" value="' . $this->bean->total_qty . '" />
-									<svg xmlns="http://www.w3.org/2000/svg" id="icon-send-notes" width="20" height="20" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
-										<path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
-									</svg>
-								</div>
+					<div class="">
+						<div class="wrap-input">
+							<div class="wrap-text">
+								<textarea rows="1" class="box-input input-note-description" id="note-description" placeholder="Thêm diễn giải..."></textarea>
+							</div>
+							<div class="wrap-icon">
+								<input type="hidden" name="note-username" id="note-username" value="' . $note_username . '" />
+								<input type="hidden" name="note-name" id="note-name" value="' . $this->bean->name . '" />
+								<input type="hidden" name="note-parent-id" id="note-parent-id" value="' . $this->bean->id . '" />
+								<input type="hidden" name="note-booking-status" id="note-booking-status" value="' . $this->bean->booking_status . '" />
+								<input type="hidden" name="note-contact-name" id="note-contact-name" value="' . $this->bean->contact_name . '" />
+								<input type="hidden" name="note-total-amount" id="note-total-amount" value="' . $this->bean->total_amount . '" />
+								<input type="hidden" name="note-total-qty" id="note-total-qty" value="' . $this->bean->total_qty . '" />
+								<svg xmlns="http://www.w3.org/2000/svg" id="icon-send-notes" width="20" height="20" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+									<path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+								</svg>
 							</div>
 						</div>
 					</div>
 				</div>
-	  		</div>';
+			</div>
+		</div>';
 
 		$html .= '<div id="confirm_delete_message_dialog">
-					<div class="content_message_delete">Bạn muốn xóa diễn giải này?</div>
-					<div class="action_message_delete d-flex align-items-center justify-content-center gap-2">
-						<a class="btn btn-danger cursor-pointer" data-toggle="tooltip" data-placement="top" title="Xác nhận" id="confirm_delete_message" value="default">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
-								<path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
-							</svg>
-						</a>
-						<a class="btn btn-secondary cursor-pointer" data-toggle="tooltip" data-placement="top" title="Hủy" id="cancel_delete_message" value="cancel">
-							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
-								<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-							</svg>
-						</a>
-					</div>
-				</div>';
+			<div class="content_message_delete">Bạn muốn xóa diễn giải này?</div>
+			<div class="action_message_delete d-flex align-items-center justify-content-center gap-2">
+				<a class="btn btn-danger cursor-pointer" data-toggle="tooltip" data-placement="top" title="Xác nhận" id="confirm_delete_message" value="default">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+						<path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z"/>
+					</svg>
+				</a>
+				<a class="btn btn-secondary cursor-pointer" data-toggle="tooltip" data-placement="top" title="Hủy" id="cancel_delete_message" value="cancel">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+						<path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+					</svg>
+				</a>
+			</div>
+		</div>';
 
 		$this->ss->assign('BUTTON_LINE_NOTES', $html);
 	}
@@ -1435,25 +1435,30 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					<ul class="dropdown-menu dropdown-menu-lg-end">' . $agencyOptions . '</ul>
 				</div>'
 			);
-		} else
+		} else {
 			$this->ss->assign('BUTTON_AUTO_BOOK', '');
-		//PRINT_TICKET
-		$this->ss->assign(
-			'PRINT_TICKET',
+		}
+
+		// Print ticket button (old)
+		$this->ss->assign('PRINT_TICKET',
 			'<div class="btn-group btnPrintEticket-selection">
-					<button type="button" class="btn btn-warning btnPrintEticket" data-bs-display="static" aria-expanded="false">
-						In vé
-					</button>
-				</div>'
+				<button type="button" class="btn btn-secondary btnPrintEticket" data-bs-display="static" aria-expanded="false">In vé</button>
+			</div>'
 		);
-		//Send Ticket
-		$this->ss->assign(
-			'SEND_TICKET',
+
+		// Send ticket button
+		$this->ss->assign('SEND_TICKET',
 			'<div class="btn-group btnSendEticket-selection">
-					<button type="button" class="btn btn-warning btnSendEticket" data-bs-display="static" aria-expanded="false">
-						Gửi vé
-					</button>
-				</div>'
+				<button type="button" class="btn btn-primary btnSendEticket" data-bs-display="static" aria-expanded="false">
+					<svg width="18px" height="18px" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" color="#fff" style="vertical-align:sub;margin-right:2px;">
+						<path d="M9 9L13.5 12L18 9" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						<path d="M3 13.5H5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						<path d="M1 10.5H5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						<path d="M5 7.5V7C5 5.89543 5.89543 5 7 5H20C21.1046 5 22 5.89543 22 7V17C22 18.1046 21.1046 19 20 19H7C5.89543 19 5 18.1046 5 17V16.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"></path>
+					</svg>
+					Gửi vé
+				</button>
+			</div>'
 		);
 
 		// PRINT_TICKET_NEW - Nút in vé mới với popup chọn
@@ -1468,25 +1473,39 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			$perPaxItineraries = $this->getPerPassengerItinerariesForPopup();
 			$perPaxDataAttr = ' data-per-pax-itineraries="' . htmlspecialchars(json_encode($perPaxItineraries), ENT_QUOTES, 'UTF-8') . '"';
 		}
-
-		$this->ss->assign(
-			'PRINT_TICKET_NEW',
+		$this->ss->assign('PRINT_TICKET_NEW',
 			'<div class="btn-group btnPrintEticketNew-selection">
-				<button type="button" class="btn btn-success btnPrintEticketNew" data-bs-display="static" aria-expanded="false">
-					✈ In vé mới
+				<button type="button" class="btn btn-primary btnPrintEticketNew" data-bs-display="static" aria-expanded="false">
+					<svg width="17px" height="17px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#fff" style="vertical-align:sub;margin-right:2px;">
+						<path d="M17 13.01L17.01 12.9989" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						<path d="M7 17H17M6 10V3.6C6 3.26863 6.26863 3 6.6 3H17.4C17.7314 3 18 3.26863 18 3.6V10M21 20.4V14C21 11.7909 19.2091 10 17 10H7C4.79086 10 3 11.7909 3 14V20.4C3 20.7314 3.26863 21 3.6 21H20.4C20.7314 21 21 20.7314 21 20.4Z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					</svg>
+					In vé mới
 				</button>
 			</div>
 			<div id="dlgPrintTicketNew" style="display:none;" data-itineraries="' . $itinerariesJson . '" data-booking-id="' . $this->bean->id . '" data-booking="' . $this->bean->name . '" data-ticket-type="' . $this->bean->ticket_type . '" data-has-per-pax-changes="' . ($hasPerPaxChanges ? '1' : '0') . '"' . $perPaxDataAttr . '>
 				<div class="popup-itinerary-section" style="margin-bottom:14px;">
 					<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-						<strong style="font-size:14px;">✈ Hành trình</strong>
+						<strong style="font-size:14px;">
+							<svg width="16px" height="16px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000" style="vertical-align:sub;margin-right:2px;">
+								<path d="M20 10C20 14.4183 12 22 12 22C12 22 4 14.4183 4 10C4 5.58172 7.58172 2 12 2C16.4183 2 20 5.58172 20 10Z" stroke="#000000" stroke-width="1.5"></path><path d="M12 11C12.5523 11 13 10.5523 13 10C13 9.44772 12.5523 9 12 9C11.4477 9 11 9.44772 11 10C11 10.5523 11.4477 11 12 11Z" fill="#000000" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
+							Hành trình
+						</strong>
 						<label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="popup-select-all-iti" checked /> Chọn tất cả</label>
 					</div>
 					<div class="popup-itinerary-list" style="max-height:160px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:6px 10px; background:#fafafa;"></div>
 				</div>
 				<div class="popup-passenger-section" style="margin-bottom:14px;">
 					<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-						<strong style="font-size:14px;">👤 Hành khách</strong>
+						<strong style="font-size:14px;">
+							<svg width="17px" height="17px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000" style="vertical-align:sub;margin-right:2px;">
+								<path d="M1 20V19C1 15.134 4.13401 12 8 12V12C11.866 12 15 15.134 15 19V20" stroke="#000000" stroke-width="1.5" stroke-linecap="round"></path>
+								<path d="M13 14V14C13 11.2386 15.2386 9 18 9V9C20.7614 9 23 11.2386 23 14V14.5" stroke="#000000" stroke-width="1.5" stroke-linecap="round"></path>
+								<path d="M8 12C10.2091 12 12 10.2091 12 8C12 5.79086 10.2091 4 8 4C5.79086 4 4 5.79086 4 8C4 10.2091 5.79086 12 8 12Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 9C19.6569 9 21 7.65685 21 6C21 4.34315 19.6569 3 18 3C16.3431 3 15 4.34315 15 6C15 7.65685 16.3431 9 18 9Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg> 
+							Hành khách
+						</strong>
 						<label style="font-size:12px; cursor:pointer;"><input type="checkbox" id="popup-select-all-psg" checked /> Chọn tất cả</label>
 					</div>
 					<div class="popup-passenger-list" style="max-height:260px; overflow-y:auto; border:1px solid #e0e0e0; border-radius:6px; padding:6px 10px; background:#fafafa;"></div>
@@ -1500,7 +1519,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					<label style="cursor:pointer;"><input type="radio" name="popup_ngonngu" value="en" /> English</label>
 				</div>
 				<div style="text-align:center;">
-					<button type="button" class="btn btn-success" id="btnSubmitPrintNew" style="padding:8px 28px; font-size:14px;">✈ In vé</button>
+					<button type="button" class="btn btn-primary" id="btnSubmitPrintNew" style="padding:8px 28px; font-size:14px;">In</button>
 				</div>
 			</div>'
 		);
