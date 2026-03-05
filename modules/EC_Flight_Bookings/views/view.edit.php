@@ -897,7 +897,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			WHERE p.booking_id = '{$this->bean->id}'
 				AND p.booking_id IS NOT NULL
 				AND p.booking_id != ''
-				AND add_type != 1  AND add_type != 2
+				AND (p.add_type NOT IN (1, 2) OR p.add_type IS NULL)
 				AND p.deleted = 0
 			ORDER BY p.type, p.date_entered";
 
