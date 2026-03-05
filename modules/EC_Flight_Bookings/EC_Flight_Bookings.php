@@ -485,6 +485,9 @@ class EC_Flight_Bookings extends Basic
 			// Available baggage
 			$psg->luggage_index_outbound = trim($_POST['psg_luggage_index_outbound'][$i] ?? '');
 			$psg->luggage_index_inbound = trim($_POST['psg_luggage_index_inbound'][$i] ?? '');
+			// Hand baggage
+			$psg->hand_baggage_outbound = trim($_POST['psg_hand_baggage_outbound'][$i] ?? '');
+			$psg->hand_baggage_inbound = trim($_POST['psg_hand_baggage_inbound'][$i] ?? '');
 
 			if ((int)$psg->deleted === 1) {
 				if (!empty($psg->id)) $psg->mark_deleted($psg->id);
