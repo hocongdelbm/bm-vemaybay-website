@@ -3,8 +3,11 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
 require_once('modules/EC_Messages/SMS.php');
 
-class EC_Flight_BookingsViewDetail extends ViewDetail
-{
+class EC_Flight_BookingsViewDetail extends ViewDetail {
+	/**
+	 * @var EC_Flight_Bookings
+	 */
+	public $bean;
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
 	private $_outbound_ticket_class = '';
@@ -12,8 +15,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	private $_is_had_rv = 0;
 	private $editing_rights = false;
 
-	function display()
-	{
+	function display() {
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
@@ -1926,8 +1928,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 	 * 
 	 * @return string HTML
 	 */
-	function populateLinePassengers()
-	{
+	public function populateLinePassengers() {
 		global $app_list_strings, $timedate;
 		$date_format = $timedate->get_date_format();
 
@@ -1972,6 +1973,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				,p.vat_luggage_purchase_inbound
 				,p.luggage_purchase_inbound
 				,p.luggage_purchase_text_inbound
+				,p.hand_baggage_outbound
+				,p.hand_baggage_inbound
 				,p.supplier_id
 				,IF(p.supplier_id IS NOT NULL, (SELECT a.name FROM accounts a WHERE a.id=p.supplier_id AND a.deleted=0 LIMIT 1), '') AS supplier
 				,p.supplier_inbound_id

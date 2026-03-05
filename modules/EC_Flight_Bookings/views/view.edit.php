@@ -3,8 +3,11 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
 
-class EC_Flight_BookingsViewEdit extends ViewEdit
-{
+class EC_Flight_BookingsViewEdit extends ViewEdit {
+	/**
+	 * @var EC_Flight_Bookings
+	 */
+	public $bean;
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
 	private $_outbound_ticket_class = '';
@@ -856,8 +859,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 	/**
 	 * Render passengers info as HTML
 	 */
-	public function populateLinePassengers()
-	{
+	public function populateLinePassengers() {
 		global $app_list_strings, $timedate, $current_user;
 		$date_format = $timedate->get_date_format();
 		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
@@ -887,13 +889,15 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				p.luggage_purchase_text_inbound,
 				p.luggage_index_outbound,
 				p.luggage_index_inbound,
+				p.hand_baggage_outbound,
+				p.hand_baggage_inbound,
 				p.cic,
 				p.passport_number
 			FROM ec_booking_passengers p
 			WHERE p.booking_id = '{$this->bean->id}'
 				AND p.booking_id IS NOT NULL
 				AND p.booking_id != ''
-				AND add_type IS NULL
+				AND add_type != 1  AND add_type != 2
 				AND p.deleted = 0
 			ORDER BY p.type, p.date_entered";
 
@@ -1001,6 +1005,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				$inputNameSellingPrice = "psg_luggage_price$suffix"; // Giá bán
 				$inputNameAvaiBagIndex = "psg_luggage_index_$roundName";
 
+				$inputNameHandBagIndex = "psg_hand_baggage_$roundName";
+
 				// Value
 				$bagText = $row["luggage_purchase_text$suffix"] ?? '';
 				$bagPrice = $row["luggage_purchase$suffix"] ?? 0;
@@ -1009,6 +1015,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 				$bagTicketNum = $row["eluggage_$roundName"] ?? '';
 				$bagSellingPrice = $row["luggage_price$suffix"] ?? 0;
 				$avaiBag = $row["luggage_index_$roundName"] ?? '';
+				$handBag = $row["hand_baggage_$roundName"] ?? '';
 
 				// Label
 				$suffix_text = $roundName == "outbound" ? "lượt đi" : "lượt về";
@@ -1018,6 +1025,22 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 
 				$html .= '<tr id="psg_baggage_line_' . $roundName . '_' . $i . '">
 					<td data-label="' . $roundName . ' baggage information" class="row_psg_price" colspan="10">
+						<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
+							<span class="text-label" style="width:155px;">Hành lý xách tay ' . $suffix_text . ':</span>
+							<div>
+								<input type="text" name="' . $inputNameHandBagIndex . '[]"
+									id="' . ($inputNameHandBagIndex . $i) . '"
+									value="' . $handBag . '"
+									style="width:80px" maxlength="6" size="6"
+								/> 
+								<button type="button" title="Hướng dẫn nhập liệu" style="border:none; background:none; padding:0;"
+									data-bs-toggle="popover"
+									data-bs-html="true"
+									data-bs-content="Nhập <b>1x23</b> = 1 kiện x 23kg<br>Nhập <b>1T23</b> = 1 kiện tổng 23kg<br>Nhập <b>5</b> trở xuống = 5 kiện<br>Nhập <b>6</b> trở lên = 6kg">
+									<svg width="18px" height="18px" stroke-width="2.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#a1a1a1"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M9 9C9 5.49997 14.5 5.5 14.5 9C14.5 11.5 12 10.9999 12 13.9999" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 18.01L12.01 17.9989" stroke="#a1a1a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+								</button>
+							</div>
+						</div>
 						<div class="psg_price-wrap d-flex gap-3 align-items-center mb-1">
 							<span class="text-label" style="width:155px;">Hành lý có sẵn ' . $suffix_text . ':</span>
 							<div>
