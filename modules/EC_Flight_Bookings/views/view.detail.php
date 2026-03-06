@@ -1480,7 +1480,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 						<path d="M17 13.01L17.01 12.9989" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
 						<path d="M7 17H17M6 10V3.6C6 3.26863 6.26863 3 6.6 3H17.4C17.7314 3 18 3.26863 18 3.6V10M21 20.4V14C21 11.7909 19.2091 10 17 10H7C4.79086 10 3 11.7909 3 14V20.4C3 20.7314 3.26863 21 3.6 21H20.4C20.7314 21 21 20.7314 21 20.4Z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
 					</svg>
-					In vé mới
+					In & Gửi vé
 				</button>
 			</div>
 			<div id="dlgPrintTicketNew" style="display:none;" data-itineraries="' . $itinerariesJson . '" data-booking-id="' . $this->bean->id . '" data-booking="' . $this->bean->name . '" data-ticket-type="' . $this->bean->ticket_type . '" data-has-per-pax-changes="' . ($hasPerPaxChanges ? '1' : '0') . '"' . $perPaxDataAttr . '>
@@ -1519,7 +1519,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 					<label style="cursor:pointer;"><input type="radio" name="popup_ngonngu" value="en" /> English</label>
 				</div>
 				<div style="text-align:center;">
-					<button type="button" class="btn btn-primary" id="btnSubmitPrintNew" style="padding:8px 28px; font-size:14px;">In</button>
+					<button type="button" class="btn btn-primary" id="btnSubmitPrintNew" style="padding:8px 28px; font-size:14px;">In vé</button>
+					<button type="button" class="btn btn-primary" id="btnSubmitSendNew" style="padding:8px 28px; font-size:14px;">Gửi vé</button>
 				</div>
 			</div>'
 		);

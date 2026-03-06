@@ -28,6 +28,9 @@ class EC_Flight_BookingsController extends SugarController
             case "sendeticket":
                 $this->action = "sendeticket";
                 break;
+            case "sendeticketnew":
+                $this->action = "sendeticketnew";
+                break;
             case "sendconfirm":
                 $this->action = "sendconfirm";
                 break;
@@ -97,7 +100,9 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "ListView";
         if ($this->return_action == "printeticket")
             $this->action = "printeticket";
-         if ($this->return_action == "printeticketnew")
+        if ($this->return_action == "sendeticketnew")
+            $this->action = "sendeticketnew";
+        if ($this->return_action == "printeticketnew")
             $this->action = "printeticketnew";
         if ($this->return_action == "sendeticket")
             $this->action = "sendeticket";
