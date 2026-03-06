@@ -140,6 +140,7 @@ class Viewprinteticketnew extends SugarView
 				p.eticket_outbound, p.eticket_inbound,
 				p.luggage_index_outbound, p.luggage_index_inbound,
 				p.luggage_purchase_text, p.luggage_purchase_text_inbound,
+				p.hand_baggage_outbound, p.hand_baggage_inbound,
 				p.cic, p.passport_number, p.date_entered";
 
 		// Collect ALL IDs that appear as parent_detail_id (= have been superseded)
@@ -173,6 +174,7 @@ class Viewprinteticketnew extends SugarView
 				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), bag.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
 				COALESCE(NULLIF(p.luggage_price, 0), bag.luggage_price) AS luggage_price,
 				COALESCE(NULLIF(p.luggage_price_inbound, 0), bag.luggage_price_inbound) AS luggage_price_inbound,
+				p.hand_baggage_outbound, p.hand_baggage_inbound,
 				p.cic, p.passport_number, p.date_entered, NULL AS parent_detail_id,
 				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
@@ -219,6 +221,8 @@ class Viewprinteticketnew extends SugarView
 				COALESCE(NULLIF(p.luggage_purchase_text_inbound,''), NULLIF(bag_renamed.luggage_purchase_text_inbound,''), NULLIF(bag_orig.luggage_purchase_text_inbound,''), orig.luggage_purchase_text_inbound) AS luggage_purchase_text_inbound,
 				COALESCE(NULLIF(p.luggage_price, 0), NULLIF(bag_renamed.luggage_price, 0), NULLIF(bag_orig.luggage_price, 0), orig.luggage_price) AS luggage_price,
 				COALESCE(NULLIF(p.luggage_price_inbound, 0), NULLIF(bag_renamed.luggage_price_inbound, 0), NULLIF(bag_orig.luggage_price_inbound, 0), orig.luggage_price_inbound) AS luggage_price_inbound,
+				COALESCE(NULLIF(p.hand_baggage_outbound,''), orig.hand_baggage_outbound) AS hand_baggage_outbound,
+				COALESCE(NULLIF(p.hand_baggage_inbound,''), orig.hand_baggage_inbound) AS hand_baggage_inbound,
 				p.cic, p.passport_number, p.date_entered, p.parent_detail_id,
 				(SELECT DATE_ADD(fb.date_entered, INTERVAL 7 HOUR) FROM ec_flight_bookings fb WHERE fb.id = p.booking_id LIMIT 1) AS bk_date_entered,
 				(SELECT i.airline_code FROM ec_booking_itineraries i WHERE i.booking_id = p.booking_id AND i.direction = '0' AND i.deleted = 0 LIMIT 1) AS aircode_outbound,
@@ -527,28 +531,39 @@ class Viewprinteticketnew extends SugarView
 			'baggage_inbound' => '',
 		];
 
-		// Parse purchase text to separate hand baggage vs checked baggage
+		// 1) Direct hand_baggage columns from DB (new format: e.g. "1x7")
+		$dbHandOut = trim($row['hand_baggage_outbound'] ?? '');
+		$dbHandIn  = trim($row['hand_baggage_inbound'] ?? '');
+
+		if (!empty($dbHandOut) && class_exists('Baggage')) {
+			$result['hand_baggage_outbound'] = Baggage::renderAvailableBaggage($dbHandOut, $lang);
+		}
+		if (!empty($dbHandIn) && class_exists('Baggage')) {
+			$result['hand_baggage_inbound'] = Baggage::renderAvailableBaggage($dbHandIn, $lang);
+		}
+
+		// 2) Parse purchase text to separate hand baggage vs checked baggage
 		$purchOutRaw = trim($row['luggage_purchase_text'] ?? '');
 		$purchInRaw = trim($row['luggage_purchase_text_inbound'] ?? '');
 		$purchOut = $this->cleanPurchaseText($purchOutRaw);
 		$purchIn = $this->cleanPurchaseText($purchInRaw);
 
 		// Detect hand baggage: contains "xách tay" or "carry" (case-insensitive)
-		$isHandOut = !empty($purchOut) && (stripos($purchOut, 'xách tay') !== false || stripos($purchOut, 'xach tay') !== false || stripos($purchOut, 'carry') !== false);
-		$isHandIn = !empty($purchIn) && (stripos($purchIn, 'xách tay') !== false || stripos($purchIn, 'xach tay') !== false || stripos($purchIn, 'carry') !== false);
+		$isHandOut = !empty($result['hand_baggage_outbound']) || (!empty($purchOut) && (stripos($purchOut, 'xách tay') !== false || stripos($purchOut, 'xach tay') !== false || stripos($purchOut, 'carry') !== false));
+		$isHandIn = !empty($result['hand_baggage_inbound']) || (!empty($purchIn) && (stripos($purchIn, 'xách tay') !== false || stripos($purchIn, 'xach tay') !== false || stripos($purchIn, 'carry') !== false));
 
-		if ($isHandOut) {
+		if ($isHandOut && empty($result['hand_baggage_outbound']) && !empty($purchOut)) {
 			// Strip "xách tay"/"carry-on" text since template already prefixes with label
 			$cleanHand = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $purchOut);
 			$result['hand_baggage_outbound'] = trim($cleanHand);
-		} elseif (!empty($purchOut)) {
+		} elseif (!$isHandOut && !empty($purchOut)) {
 			$result['baggage_outbound'] = $purchOut;
 		}
 
-		if ($isHandIn) {
+		if ($isHandIn && empty($result['hand_baggage_inbound']) && !empty($purchIn)) {
 			$cleanHand = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $purchIn);
 			$result['hand_baggage_inbound'] = trim($cleanHand);
-		} elseif (!empty($purchIn)) {
+		} elseif (!$isHandIn && !empty($purchIn)) {
 			$result['baggage_inbound'] = $purchIn;
 		}
 

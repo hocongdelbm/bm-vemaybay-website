@@ -16,7 +16,7 @@
 		Arial,
 		sans-serif;
 		background: #fff;
-		color: #000;
+		color: #333333;
 		padding: 0;
 		font-size: 12px;
 		-webkit-print-color-adjust: exact;
@@ -30,12 +30,12 @@
 		font-family: 'Inter',
 		Arial,
 		sans-serif !important;
-		color: #000 !important;
+		color: #333333 !important;
 		{rdelim}
 	</style>
 </head>
 
-<body style="margin:0; padding:0; font-size:12px; color:#000; background:#fff;">
+<body style="margin:0; padding:0; font-size:12px; color:#8c8c8c; background:#fff;">
 
 	{foreach from=$PASSENGER_GROUPS item=group key=gidx}
 		{if $gidx > 0}
@@ -49,7 +49,7 @@
 
 					<!-- MAIN CONTAINER -->
 					<table width="900" cellpadding="0" cellspacing="0" border="0"
-						style="max-width:900px; background:#fff; border:1px solid #000; font-family:'Inter',Arial,sans-serif; color:#000;">
+						style="max-width:900px; background:#fff; border:1px solid #8c8c8c; font-family:'Inter',Arial,sans-serif; color:#333333;">
 
 						<!-- ===== HEADER ===== -->
 						<tr>
@@ -175,7 +175,7 @@
 							<!-- Passengers header -->
 							<tr>
 								<td
-									style="background:#f0f0f0; padding:5px 12px; font-weight:700; font-size:12px; text-transform:uppercase; border-top:1px solid #000;">
+									style="background:#f0f0f0; padding:5px 12px; font-weight:700; font-size:12px; text-transform:uppercase; border-top:1px solid #8c8c8c;">
 									{if $LANG == 'en'}Passengers{else}Hành khách{/if}
 								</td>
 							</tr>
@@ -193,9 +193,17 @@
 										</div>
 										<!-- Key-value rows -->
 										<table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
+											{assign var="hasCheckedBg" value=false}
+											{if $pax.baggage_outbound || $pax.baggage_inbound || $pax.baggage}
+												{assign var="hasCheckedBg" value=true}
+											{/if}
 											{assign var="outboundBaggage" value=""}
 											{if $pax.hand_baggage_outbound}
-												{assign var="outboundBaggage" value="Xách tay: "|cat:$pax.hand_baggage_outbound}
+												{if $hasCheckedBg}
+													{assign var="outboundBaggage" value="Xách tay: "|cat:$pax.hand_baggage_outbound}
+												{else}
+													{assign var="outboundBaggage" value=$pax.hand_baggage_outbound}
+												{/if}
 											{/if}
 											{if $pax.baggage_outbound}
 												{if $outboundBaggage != ""}{assign var="outboundBaggage" value=$outboundBaggage|cat:", "}{/if}
@@ -207,7 +215,11 @@
 
 											{assign var="inboundBaggage" value=""}
 											{if $pax.hand_baggage_inbound}
-												{assign var="inboundBaggage" value="Xách tay: "|cat:$pax.hand_baggage_inbound}
+												{if $hasCheckedBg}
+													{assign var="inboundBaggage" value="Xách tay: "|cat:$pax.hand_baggage_inbound}
+												{else}
+													{assign var="inboundBaggage" value=$pax.hand_baggage_inbound}
+												{/if}
 											{/if}
 											{if $pax.baggage_inbound}
 												{if $inboundBaggage != ""}{assign var="inboundBaggage" value=$inboundBaggage|cat:", "}{/if}
@@ -271,7 +283,7 @@
 												{/if}
 												<tr>
 													<td
-														style="color:#555; font-size:14px; padding:3px 0; width: 35%; {if $IS_ROUND_TRIP} padding-left:10px;{/if}">
+														style="color:#555; font-size:14px; font-weight:600; padding:3px 0; width: 35%; {if $IS_ROUND_TRIP} padding-left:10px;{/if}">
 														{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}
 													</td>
 													<td style="font-weight:700; font-size:14px; padding:3px 0; width: 35%;">{$pax.pnr}
@@ -280,7 +292,11 @@
 												{if $outboundBaggage || $inboundBaggage}
 													<tr>
 														<td style="color:#555; padding:3px 0;{if $IS_ROUND_TRIP} padding-left:10px;{/if}">
-															{if $LANG == 'en'}Baggage{else}Hành lý{/if}
+															{if !$hasCheckedBg && ($pax.hand_baggage_outbound || $pax.hand_baggage_inbound)}
+																{if $LANG == 'en'}Carry-on{else}Xách tay{/if}
+															{else}
+																{if $LANG == 'en'}Baggage{else}Hành lý{/if}
+															{/if}
 														</td>
 														<td style="padding:3px 0;">
 															{if $outboundBaggage == $inboundBaggage}
@@ -347,15 +363,12 @@
 
 												<!-- Outbound -->
 												<tr>
-													<td width="35%" style="color:#555; padding:3px 0; font-weight:600;">
-														{if $LANG == 'en'}Outbound{else}Lượt đi{/if}
-													</td>
-													<td style="padding:3px 0;"></td>
-												</tr>
-												<tr>
 													<td
 														style="color:#555; font-size:14px; padding:3px 0; padding-left:10px; width: 35%;">
-														{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}
+														{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if} <span
+															style="font-size:11px; font-style:italic;">{if $LANG == 'en'}(Outbound)
+															{else}(Lượt
+															đi){/if}</span>
 													</td>
 													<td style="font-weight:700; font-size:14px; padding:3px 0; width: 35%;">
 														{$displayPnrOut}</td>
@@ -363,128 +376,139 @@
 												{if $pax.hand_baggage_outbound}
 													<tr>
 														<td style="color:#555; padding:3px 0; padding-left:10px;">
-															{if $LANG == 'en'}Carry-on{else}Xách tay{/if}
-														</td>
-														<td style="padding:3px 0;">{$pax.hand_baggage_outbound}</td>
-													</tr>
-												{/if}
-												{if $pax.baggage_outbound}
-													<tr>
-														<td style="color:#555; padding:3px 0; padding-left:10px;">
-															{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}
-														</td>
-														<td style="padding:3px 0;">{$pax.baggage_outbound}</td>
-													</tr>
-												{/if}
-
-												<!-- Inbound -->
-												{if $IS_ROUND_TRIP}
-													<tr>
-														<td style="color:#555; padding:5px 0 3px 0; font-weight:600;">
-															{if $LANG == 'en'}Inbound{else}Lượt về{/if}
-														</td>
-														<td style="padding:5px 0 3px 0;"></td>
-													</tr>
-													<tr>
-														<td style="color:#555; font-size:14px; padding:3px 0; padding-left:10px;">
-															{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}
-														</td>
-														<td style="font-weight:700; font-size:14px; padding:3px 0;">{$displayPnrIn}</td>
-													</tr>
-													{if $pax.hand_baggage_inbound}
-														<tr>
-															<td style="color:#555; padding:3px 0; padding-left:10px;">
-																{if $LANG == 'en'}Carry-on{else}Xách tay{/if}
-															</td>
-															<td style="padding:3px 0;">{$pax.hand_baggage_inbound}</td>
-														</tr>
-													{/if}
-													{if $pax.baggage_inbound}
-														<tr>
-															<td style="color:#555; padding:3px 0; padding-left:10px;">
-																{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}
-															</td>
-															<td style="padding:3px 0;">{$pax.baggage_inbound}</td>
-														</tr>
-													{/if}
-												{/if}
+															{if $LANG == 'en'}Carry-on{else}Xách tay{/if}{if $IS_ROUND_TRIP} <span
+																style="font-size:11px; font-style:italic;">{if $LANG == 'en'}(Outbound)
+																{else}(Lượt
+																đi){/if}</span>
+														{/if}
+													</td>
+													<td style="padding:3px 0;">{$pax.hand_baggage_outbound}</td>
+												</tr>
 											{/if}
-										</table>
-									</td>
-								</tr>
-							{/foreach}
-						{/if}
+											{if $pax.baggage_outbound}
+												<tr>
+													<td style="color:#555; padding:3px 0; padding-left:10px;">
+														{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}{if $IS_ROUND_TRIP} <span
+															style="font-size:11px; font-style:italic;">{if $LANG == 'en'}(Outbound)
+															{else}(Lượt
+															đi){/if}</span>
+													{/if}
+												</td>
+												<td style="padding:3px 0;">{$pax.baggage_outbound}</td>
+											</tr>
+										{/if}
 
-						<!-- ===== NOTES ===== -->
-						<tr>
-							<td style="padding:8px 12px; border-top:1px dashed #000;">
-								<div style="font-weight:700; font-size:13px; margin-bottom:6px; text-transform:uppercase;">
-									{if $LANG == 'en'}Important Notes{else}Lưu ý quan trọng{/if}
-								</div>
-								<ul
-									style="margin:0; padding-left:18px; font-size:12px; line-height:1.6; color:#000; list-style-type:disc;">
-									{if $LANG == 'en'}
-										<li style="margin-bottom:4px;">Please verify all information carefully before heading to
-											the airport. Original identification documents are required.</li>
-										<li style="margin-bottom:4px;">Please arrive at the airport at least
-											<strong>{$MINUTE_BEFORE} minutes</strong> before departure (during holidays 150-180
-											minutes).
-										</li>
-										<li style="margin-bottom:4px;"><strong>Passengers aged 14+ must carry valid ID: National
-												ID, valid passport, or Level 2 VNeID.</strong> Under 14: original birth
-											certificate.</li>
-										<li style="margin-bottom:4px;">Keep your phone on to receive updates from the airline or
-											support staff.</li>
-										<li style="margin-bottom:4px;">Promotional tickets are non-refundable and
-											non-changeable. Any errors may result in ticket loss or change fees.</li>
-										<li style="margin-bottom:4px;"><strong>Round-trip:</strong> If you skip the outbound
-											flight, <strong>notify us before the first flight date</strong> to use the return.
-										</li>
-									{else}
-										<li style="margin-bottom:4px;">Quý khách cần kiểm tra thông tin kỹ càng trước khi ra sân
-											bay. Giấy tờ tùy thân phải là bản chính.</li>
-										<li style="margin-bottom:4px;">Có mặt tại sân bay trước giờ khởi hành
-											<strong>{$MINUTE_BEFORE} phút</strong> (Lễ, Tết trước 150-180 phút).
-										</li>
-										<li style="margin-bottom:4px;"><strong>Hành khách từ 14 tuổi trở lên phải có CCCD, hộ
-												chiếu còn hạn hoặc VNeID mức độ 2.</strong> Dưới 14 tuổi: giấy khai sinh bản
-											chính.</li>
-										<li style="margin-bottom:4px;">Luôn mở điện thoại để nhận thông tin từ hãng hoặc nhân
-											viên hỗ trợ.</li>
-										<li style="margin-bottom:4px;">Vé khuyến mãi không hoàn đổi. Mọi sai sót đều dẫn đến mất
-											vé hoặc phí đổi.</li>
-										<li style="margin-bottom:4px;"><strong>Vé khứ hồi:</strong> Không bay chặng đi
-											<strong>phải thông báo trước ngày bay đầu tiên</strong> để sử dụng chặng về.
-										</li>
+										<!-- Inbound -->
+										{if $IS_ROUND_TRIP}
+											<tr>
+												<td style="color:#555; font-size:14px; padding:3px 0; padding-left:10px;">
+													{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if} <span
+														style="font-size:11px; font-style:italic;">{if $LANG == 'en'}(Inbound)
+														{else}(Lượt
+														về){/if}</span>
+												</td>
+												<td style="font-weight:700; font-size:14px; padding:3px 0;">{$displayPnrIn}</td>
+											</tr>
+											{if $pax.hand_baggage_inbound}
+												<tr>
+													<td style="color:#555; padding:3px 0; padding-left:10px;">
+														{if $LANG == 'en'}Carry-on{else}Xách tay{/if} <span
+															style="font-size:11px; font-style:italic;">{if $LANG == 'en'}(Inbound)
+															{else}(Lượt
+															về){/if}</span>
+													</td>
+													<td style="padding:3px 0;">{$pax.hand_baggage_inbound}</td>
+												</tr>
+											{/if}
+											{if $pax.baggage_inbound}
+												<tr>
+													<td style="color:#555; padding:3px 0; padding-left:10px;">
+														{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if} <span
+															style="font-size:11px; font-style:italic;">{if $LANG == 'en'}(Inbound)
+															{else}(Lượt
+															về){/if}</span>
+													</td>
+													<td style="padding:3px 0;">{$pax.baggage_inbound}</td>
+												</tr>
+											{/if}
+										{/if}
 									{/if}
-								</ul>
+								</table>
 							</td>
 						</tr>
+					{/foreach}
+					{/if}
 
-						<!-- ===== FOOTER ===== -->
-						<tr>
-							<td style="padding:6px 12px; text-align:center; border-top:1px solid #ddd;">
-								<div style="font-size:10px; line-height:1.6; color:#333;">
-									<strong>{$COM_NAME}</strong>
-									<br />
-									{$COM_ADDRESS}
-									<br />
-									MST: {$COM_TAXCODE}
-									<br />
-									Tel: {$COM_PHONE}
-									<br />
-									Email: {$COM_EMAIL}
-								</div>
-							</td>
-						</tr>
+					<!-- ===== NOTES ===== -->
+					<tr>
+						<td style="padding:8px 12px; border-top:1px dashed #333333;">
+							<div style="font-weight:700; font-size:13px; margin-bottom:6px; text-transform:uppercase;">
+								{if $LANG == 'en'}Important Notes{else}Lưu ý quan trọng{/if}
+							</div>
+							<ul
+								style="margin:0; padding-left:18px; font-size:12px; line-height:1.6; color:#333333; list-style-type:disc;">
+								{if $LANG == 'en'}
+									<li style="margin-bottom:4px;">Please verify all information carefully before heading to
+										the airport. Original identification documents are required.</li>
+									<li style="margin-bottom:4px;">Please arrive at the airport at least
+										<strong>{$MINUTE_BEFORE} minutes</strong> before departure (during holidays 150-180
+										minutes).
+									</li>
+									<li style="margin-bottom:4px;"><strong>Passengers aged 14+ must carry valid ID: National
+											ID, valid passport, or Level 2 VNeID.</strong> Under 14: original birth
+										certificate.</li>
+									<li style="margin-bottom:4px;">Keep your phone on to receive updates from the airline or
+										support staff.</li>
+									<li style="margin-bottom:4px;">Promotional tickets are non-refundable and
+										non-changeable. Any errors may result in ticket loss or change fees.</li>
+									<li style="margin-bottom:4px;"><strong>Round-trip:</strong> If you skip the outbound
+										flight, <strong>notify us before the first flight date</strong> to use the return.
+									</li>
+								{else}
+									<li style="margin-bottom:4px;">Quý khách cần kiểm tra thông tin kỹ càng trước khi ra sân
+										bay. Giấy tờ tùy thân phải là bản chính.</li>
+									<li style="margin-bottom:4px;">Có mặt tại sân bay trước giờ khởi hành
+										<strong>{$MINUTE_BEFORE} phút</strong> (Lễ, Tết trước 150-180 phút).
+									</li>
+									<li style="margin-bottom:4px;"><strong>Hành khách từ 14 tuổi trở lên phải có CCCD, hộ
+											chiếu còn hạn hoặc VNeID mức độ 2.</strong> Dưới 14 tuổi: giấy khai sinh bản
+										chính.</li>
+									<li style="margin-bottom:4px;">Luôn mở điện thoại để nhận thông tin từ hãng hoặc nhân
+										viên hỗ trợ.</li>
+									<li style="margin-bottom:4px;">Vé khuyến mãi không hoàn đổi. Mọi sai sót đều dẫn đến mất
+										vé hoặc phí đổi.</li>
+									<li style="margin-bottom:4px;"><strong>Vé khứ hồi:</strong> Không bay chặng đi
+										<strong>phải thông báo trước ngày bay đầu tiên</strong> để sử dụng chặng về.
+									</li>
+								{/if}
+							</ul>
+						</td>
+					</tr>
 
-					</table>
-					<!-- END MAIN CONTAINER -->
+					<!-- ===== FOOTER ===== -->
+					<tr>
+						<td style="padding:6px 12px; text-align:center; border-top:1px solid #ddd;">
+							<div style="font-size:10px; line-height:1.6; color:#333;">
+								<strong>{$COM_NAME}</strong>
+								<br />
+								{$COM_ADDRESS}
+								<br />
+								MST: {$COM_TAXCODE}
+								<br />
+								Tel: {$COM_PHONE}
+								<br />
+								Email: {$COM_EMAIL}
+							</div>
+						</td>
+					</tr>
 
-				</td>
-			</tr>
-		</table>
-		<!-- END OUTER WRAPPER -->
+				</table>
+				<!-- END MAIN CONTAINER -->
+
+			</td>
+		</tr>
+	</table>
+	<!-- END OUTER WRAPPER -->
 
 	{/foreach}
 
