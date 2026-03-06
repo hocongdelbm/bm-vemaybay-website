@@ -1451,13 +1451,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		// Send ticket button
 		$this->ss->assign('SEND_TICKET',
 			'<div class="btn-group btnSendEticket-selection">
-				<button type="button" class="btn btn-primary btnSendEticket" data-bs-display="static" aria-expanded="false">
-					<svg width="18px" height="18px" viewBox="0 0 24 24" stroke-width="1.5" fill="none" xmlns="http://www.w3.org/2000/svg" color="#fff" style="vertical-align:sub;margin-right:2px;">
-						<path d="M9 9L13.5 12L18 9" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-						<path d="M3 13.5H5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-						<path d="M1 10.5H5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-						<path d="M5 7.5V7C5 5.89543 5.89543 5 7 5H20C21.1046 5 22 5.89543 22 7V17C22 18.1046 21.1046 19 20 19H7C5.89543 19 5 18.1046 5 17V16.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"></path>
-					</svg>
+				<button type="button" class="btn btn-secondary btnSendEticket" data-bs-display="static" aria-expanded="false">
 					Gửi vé
 				</button>
 			</div>'
@@ -1477,13 +1471,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 		$this->ss->assign('PRINT_TICKET_NEW',
 			'<div class="btn-group btnPrintEticketNew-selection">
-				<button type="button" class="btn btn-primary btnPrintEticketNew" data-bs-display="static" aria-expanded="false">
-					<svg width="17px" height="17px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#fff" style="vertical-align:sub;margin-right:2px;">
-						<path d="M17 13.01L17.01 12.9989" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-						<path d="M7 17H17M6 10V3.6C6 3.26863 6.26863 3 6.6 3H17.4C17.7314 3 18 3.26863 18 3.6V10M21 20.4V14C21 11.7909 19.2091 10 17 10H7C4.79086 10 3 11.7909 3 14V20.4C3 20.7314 3.26863 21 3.6 21H20.4C20.7314 21 21 20.7314 21 20.4Z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-					</svg>
-					In & Gửi vé
-				</button>
+				<button type="button" class="btn btn-primary btnPrintEticketNew" data-bs-display="static" aria-expanded="false">In & Gửi vé</button>
 			</div>
 			<div id="dlgPrintTicketNew" style="display:none;" data-itineraries="' . $itinerariesJson . '" data-booking-id="' . $this->bean->id . '" data-booking="' . $this->bean->name . '" data-ticket-type="' . $this->bean->ticket_type . '" data-has-per-pax-changes="' . ($hasPerPaxChanges ? '1' : '0') . '"' . $perPaxDataAttr . '>
 				<div class="popup-itinerary-section" style="margin-bottom:14px;">
