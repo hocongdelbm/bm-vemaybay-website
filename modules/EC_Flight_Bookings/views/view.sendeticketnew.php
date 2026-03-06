@@ -75,8 +75,8 @@ class Viewsendeticketnew extends SugarView
 		// Get booking info
 		$booking_number = $_REQUEST['booking'] ?? '';
 		$contact_name = (!empty($_REQUEST['contact_name']) ? $_REQUEST['contact_name'] : null) ?? $bean->contact_name;
-		// $contact_email = (!empty($_REQUEST['contact_email']) ? $_REQUEST['contact_email'] : null) ?? $bean->email;
-		$contact_email = "dahyvan@giaonhanh.net"; //test
+		$contact_email = (!empty($_REQUEST['contact_email']) ? $_REQUEST['contact_email'] : null) ?? $bean->email;
+		// $contact_email = "dahyvan@giaonhanh.net"; //test
 
 		// Get department info
 		$created_by = new User();

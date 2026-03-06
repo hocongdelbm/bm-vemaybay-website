@@ -566,6 +566,42 @@ $dictionary['EC_Booking_Passengers'] = array(
             'audited' => 1,
             'reportable' => 0,
         ),
+
+        /**
+         * Hành lý xách tay lượt đi
+         * VD: 1x7 (1 kiện 7kg), 2x14 (2 kiện 14kg, tổng 28kg)
+         * Updated at 05/03/2026 by DucPham
+         */
+        'hand_baggage_outbound' => array(
+            'name' => 'hand_baggage_outbound',
+            'vname' => 'LBL_HAND_BAGGAGE_OUTBOUND',
+            'type' => 'varchar',
+            'len' => 6,
+            'default' => '',
+            'required' => false,
+            'audited' => 1,
+            'importable' => 1,
+            'reportable' => 0,
+            'massupdate' => 0,
+        ),
+
+        /**
+         * Hành lý xách tay lượt về
+         * VD: 1x7 (1 kiện 7kg), 2x14 (2 kiện 14kg, tổng 28kg)
+         * Updated at 05/03/2026 by DucPham
+         */
+        'hand_baggage_inbound' => array(
+            'name' => 'hand_baggage_inbound',
+            'vname' => 'LBL_HAND_BAGGAGE_INBOUND',
+            'type' => 'varchar',
+            'len' => 6,
+            'default' => '',
+            'required' => false,
+            'audited' => 1,
+            'importable' => 1,
+            'reportable' => 0,
+            'massupdate' => 0,
+        ),
     ),
     'indices' => array(
         array('name' => 'idx_psg_name', 'type' => 'index', 'fields' => array('name')),
