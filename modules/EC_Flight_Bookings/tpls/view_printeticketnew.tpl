@@ -13,6 +13,11 @@
 		* {ldelim} margin: 0; padding: 0; box-sizing: border-box; {rdelim}
 		body {ldelim}
 		font-family: 'Inter',
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Helvetica,
 		Arial,
 		sans-serif;
 		background: #fff;
@@ -28,6 +33,11 @@
 		{rdelim}
 		table tr td, table tr th {ldelim}
 		font-family: 'Inter',
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Helvetica,
 		Arial,
 		sans-serif !important;
 		color: #333333 !important;
@@ -47,9 +57,15 @@
 			<tr>
 				<td align="center">
 
+					<!-- EMAIL ONLY TITLE -->
+					<div class="no-print"
+						style="margin-bottom: 12px; font-size: 24px; font-weight: 800; text-transform: uppercase; color: #333333;">
+						{if $LANG == 'en'}E-ticket{else}Vé điện tử{/if}
+					</div>
+
 					<!-- MAIN CONTAINER -->
 					<table width="900" cellpadding="0" cellspacing="0" border="0"
-						style="max-width:900px; background:#fff; border:1px solid #8c8c8c; font-family:'Inter',Arial,sans-serif; color:#333333;">
+						style="max-width:900px; background:#fff; border:1px solid #8c8c8c; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color:#333333;">
 
 						<!-- ===== HEADER ===== -->
 						<tr>
@@ -275,7 +291,7 @@
 												<!-- ROUND_TRIP COMBINED OR ONE-WAY -->
 												{if $IS_ROUND_TRIP}
 													<tr>
-														<td width="35%" style="color:#555; padding:3px 0; font-weight:600;">
+														<td style="width: 160px; color:#555; padding:3px 0; font-weight:600;">
 															{if $LANG == 'en'}Round-trip{else}Khứ hồi{/if}
 														</td>
 														<td style="padding:3px 0;"></td>
@@ -283,10 +299,10 @@
 												{/if}
 												<tr>
 													<td
-														style="color:#555; font-size:14px; font-weight:600; padding:3px 0; width: 35%; {if $IS_ROUND_TRIP} padding-left:10px;{/if}">
+														style="width: 160px; color:#555; font-size:14px; font-weight:600; padding:3px 0; {if $IS_ROUND_TRIP} padding-left:10px;{/if}">
 														{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}
 													</td>
-													<td style="font-weight:700; font-size:14px; padding:3px 0; width: 35%;">{$pax.pnr}
+													<td style="font-weight:700; font-size:14px; padding:3px 0;">{$pax.pnr}
 													</td>
 												</tr>
 												{if $outboundBaggage || $inboundBaggage}
@@ -364,13 +380,13 @@
 												<!-- Outbound -->
 												<tr>
 													<td
-														style="color:#555; font-size:14px; padding:3px 0; padding-left:10px; width: 35%;">
+														style="width: 160px; color:#555; font-size:14px; padding:3px 0; padding-left:10px;">
 														{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if} <span
 															style="font-size:11px; font-style:italic;">{if $LANG == 'en'}(Outbound)
 															{else}(Lượt
 															đi){/if}</span>
 													</td>
-													<td style="font-weight:700; font-size:14px; padding:3px 0; width: 35%;">
+													<td style="font-weight:700; font-size:14px; padding:3px 0;">
 														{$displayPnrOut}</td>
 												</tr>
 												{if $pax.hand_baggage_outbound}
