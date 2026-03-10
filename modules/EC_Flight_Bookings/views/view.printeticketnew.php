@@ -300,6 +300,23 @@ class Viewprinteticketnew extends SugarView
 
 		$res = $db->query($sql);
 		$seen = []; // Dedup safety net: track by name+pnr_outbound+type
+
+		// Determine which directions are selected based on itineraryIds
+		$selectedDir = 0;
+		if (!$this->isRoundTrip && !$this->allItineraries && !empty($this->itineraryIds)) {
+			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$bookingId = $db->quote($this->bookingId);
+			$sqlDir = "SELECT DISTINCT direction FROM ec_booking_itineraries WHERE id IN ($idList) AND booking_id = '$bookingId'";
+			$resDir = $db->query($sqlDir);
+			$dirs = [];
+			while($rDir = $db->fetchByAssoc($resDir)) {
+				$dirs[] = (int)$rDir['direction'];
+			}
+			if (count($dirs) === 1 && $dirs[0] === 1) {
+				$selectedDir = 1;
+			}
+		}
+
 		while ($row = $db->fetchByAssoc($res)) {
 			// PHP-level deduplication: skip if same name+pnr+type already added
 			$dedupKey = mb_strtoupper(trim($row['name']), 'UTF-8') . '|' . trim($row['pnr_outbound'] ?? '') . '|' . $row['type'];
@@ -331,13 +348,46 @@ class Viewprinteticketnew extends SugarView
 					$pnr = $pnrDisplay;
 					if (!empty($pnrDisplay2)) $pnr .= " ($outbound_label) / $pnrDisplay2 ($inbound_label)";
 				}
+				
+				// Hide passenger if they have KHONG BAY on BOTH legs in round-trip view
+				$ob_kb = (str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnrDisplay, 'UTF-8')) === 'KHONG BAY');
+				$ib_kb = (str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnrDisplay2, 'UTF-8')) === 'KHONG BAY');
+				if ($ob_kb && $ib_kb) {
+					continue;
+				}
 			} else {
-				$pnr = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
+				if ($selectedDir == 1) {
+					$pnr = strtoupper(!empty($pnrIn) ? $pnrIn : $eticketIn);
+				} else {
+					$pnr = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
+				}
+				
+				// Hide passenger if they have KHONG BAY on this specific leg
+				$pnr_check = str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnr, 'UTF-8'));
+				if ($pnr_check === 'KHONG BAY') {
+					continue;
+				}
+			}
+
+			// Prepare row for baggage parsing if printing only inbound
+			$rowForBaggage = $row;
+			if (!$this->isRoundTrip && $selectedDir == 1) {
+				$rowForBaggage['luggage_index_outbound'] = $rowForBaggage['luggage_index_inbound'] ?? '';
+				$rowForBaggage['luggage_purchase_text'] = $rowForBaggage['luggage_purchase_text_inbound'] ?? '';
+				$rowForBaggage['hand_baggage_outbound'] = $rowForBaggage['hand_baggage_inbound'] ?? '';
+				$rowForBaggage['luggage_price'] = $rowForBaggage['luggage_price_inbound'] ?? 0;
+				$rowForBaggage['aircode_outbound'] = $rowForBaggage['aircode_inbound'] ?? '';
+				$rowForBaggage['ticket_class_outbound'] = $rowForBaggage['ticket_class_inbound'] ?? '';
 			}
 
 			// Baggage info — mirror exact logic of old print ticket (isUseNewBaggage 2-branch)
-			$baggageDescription = $this->buildBaggageDescription($row);
-			$baggageDetails = $this->buildBaggageDetails($row);
+			$baggageDescription = $this->buildBaggageDescription($rowForBaggage);
+			$baggageDetails = $this->buildBaggageDetails($rowForBaggage);
+
+			if (!$this->isRoundTrip) {
+				$baggageDetails['hand_baggage_inbound'] = '';
+				$baggageDetails['baggage_inbound'] = '';
+			}
 
 			$typeLabel = '';
 			if ($row['type'] == '0') $typeLabel = ($this->lang == 'en' ? 'Adult' : 'Người lớn');

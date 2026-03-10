@@ -213,6 +213,11 @@
 											{if $pax.baggage_outbound || $pax.baggage_inbound || $pax.baggage}
 												{assign var="hasCheckedBg" value=true}
 											{/if}
+											{assign var="hasHandBg" value=false}
+											{if $pax.hand_baggage_outbound || $pax.hand_baggage_inbound}
+												{assign var="hasHandBg" value=true}
+											{/if}
+
 											{assign var="outboundBaggage" value=""}
 											{if $pax.hand_baggage_outbound}
 												{if $hasCheckedBg}
@@ -223,10 +228,18 @@
 											{/if}
 											{if $pax.baggage_outbound}
 												{if $outboundBaggage != ""}{assign var="outboundBaggage" value=$outboundBaggage|cat:", "}{/if}
-												{assign var="outboundBaggage" value=$outboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage_outbound}
+												{if $hasHandBg}
+													{assign var="outboundBaggage" value=$outboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage_outbound}
+												{else}
+													{assign var="outboundBaggage" value=$outboundBaggage|cat:$pax.baggage_outbound}
+												{/if}
 											{elseif $pax.baggage && !$IS_ROUND_TRIP}
 												{if $outboundBaggage != ""}{assign var="outboundBaggage" value=$outboundBaggage|cat:", "}{/if}
-												{assign var="outboundBaggage" value=$outboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage}
+												{if $hasHandBg}
+													{assign var="outboundBaggage" value=$outboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage}
+												{else}
+													{assign var="outboundBaggage" value=$outboundBaggage|cat:$pax.baggage}
+												{/if}
 											{/if}
 
 											{assign var="inboundBaggage" value=""}
@@ -239,10 +252,18 @@
 											{/if}
 											{if $pax.baggage_inbound}
 												{if $inboundBaggage != ""}{assign var="inboundBaggage" value=$inboundBaggage|cat:", "}{/if}
-												{assign var="inboundBaggage" value=$inboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage_inbound}
+												{if $hasHandBg}
+													{assign var="inboundBaggage" value=$inboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage_inbound}
+												{else}
+													{assign var="inboundBaggage" value=$inboundBaggage|cat:$pax.baggage_inbound}
+												{/if}
 											{elseif $pax.baggage && $IS_ROUND_TRIP}
 												{if $inboundBaggage != ""}{assign var="inboundBaggage" value=$inboundBaggage|cat:", "}{/if}
-												{assign var="inboundBaggage" value=$inboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage}
+												{if $hasHandBg}
+													{assign var="inboundBaggage" value=$inboundBaggage|cat:"Ký gửi: "|cat:$pax.baggage}
+												{else}
+													{assign var="inboundBaggage" value=$inboundBaggage|cat:$pax.baggage}
+												{/if}
 											{/if}
 
 											{assign var="isCombined" value=false}
@@ -308,8 +329,10 @@
 												{if $outboundBaggage || $inboundBaggage}
 													<tr>
 														<td style="color:#555; padding:3px 0;{if $IS_ROUND_TRIP} padding-left:10px;{/if}">
-															{if !$hasCheckedBg && ($pax.hand_baggage_outbound || $pax.hand_baggage_inbound)}
+															{if !$hasCheckedBg && $hasHandBg}
 																{if $LANG == 'en'}Carry-on{else}Xách tay{/if}
+															{elseif $hasCheckedBg && !$hasHandBg}
+																{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}
 															{else}
 																{if $LANG == 'en'}Baggage{else}Hành lý{/if}
 															{/if}
