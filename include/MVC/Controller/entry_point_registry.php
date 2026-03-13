@@ -133,4 +133,7 @@ $entry_point_registry = array(
     'entryPointGeneral' => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryTelegramWebhook' => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
 
+    // Misa Callback
+    'entryPointMisaCallback' => ['file' => 'custom/entrypoints/entryMisaCallback.php', 'auth' => false],
+
 );
