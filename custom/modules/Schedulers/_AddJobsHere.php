@@ -23,7 +23,7 @@ $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu g�
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
-$job_strings[] = 'sendPromotionMessageZalo'; // Gửi tin nhắn khuyến mãi ZALO đồng loạt
+$job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Gửi tin tự động về giá vé rẻ qua ZBS template Zalo
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 
@@ -2311,28 +2311,115 @@ function calculateCashFlow()
 	return true;
 }
 
-function sendPromotionMessageZalo()
-{
-	$entry = new entryFactory();
-	$obj  = $entry->create('entryZaloMessageClass');
-	$json = $obj->sendTicketPricesLunarNewYear2026(['number' => 250]);
-	$arr  = json_decode($json, true);
-	if (isset($arr['status']) && $arr['status'] == 1) {
-		global $sugar_config;
-		preg_match_all('/\d+/', $arr['message'] ?? '', $matches);
-		$count = (int)($matches[0][0] ?? 0);
-		if ($count > 0) {
-			$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
-			$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
-			Telegram::sendMessage("⚙️ Hệ thống đã gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> đến {$count} người dùng quan tâm", $botToken, $chatId);
-		}
-	} else {
-		$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
-		$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
-		$message  = "🔴 Hệ thống gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> chưa thành công";
-		if (isset($arr['message']) && !empty($arr['message'])) $message .= "\n<i>" . $arr['message'] . "</i>";
-		Telegram::sendMessage($message, $botToken, $chatId);
-	}
+/**
+ * Gửi tin nhắn tự động về giá vé rẻ qua ZBS template Zalo
+ */
+function sendAutoCheapPriceMessageZalo() {
+	global $db, $timedate;
+	$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+	$vietnameseTime 	= (strtotime($utcDate) + 7*3600) * 1000;
+	$date 				= date('Y-m-d', strtotime($utcDate));
+	$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcDate));
+	$dayBeforeYesterday = date('Y-m-d', strtotime('-2 day', $utcDate));
 
-	return true;
+	/**
+	 * Lấy những booking tham khảo hôm qua
+	 * Chưa gửi ZBS giá rẻ trong 4 tiếng hiện tại
+	 * Chưa đạt mốc gửi ZBS giá rẻ 2 lần trong ngày hiện tại
+	 * Chưa có phản hồi từ khách
+	 */
+	$sql = "SELECT bk.id AS booking_id
+			,bk.name AS booking_name
+			,bk.phone
+			,iti.departure AS dep_code
+			,iti.arrival AS des_code
+			,iti.departure_date
+			,(
+				SELECT GROUP_CONCAT(CONCAT(zm.date_entered, ',', zm.timestamp) SEPARATOR ';')
+				FROM ec_zalo_messages zm
+				WHERE zm.to_id = bk.phone
+					AND zm.type = 'zbs'
+					AND zm.message_type = 'cheap-flight'
+					AND zm.date_entered BETWEEN '$yesterday 17:00:00' AND '$date 16:59:59'
+					AND zm.deleted = 0
+				ORDER BY zm.date_entered DESC
+			) AS list_message
+		FROM ec_flight_bookings bk
+			LEFT JOIN ec_booking_itineraries iti ON iti.booking_id = bk.id AND iti.direction = '0' AND iti.deleted = 0
+		WHERE UPPER(bk.contact_name) = 'THAM KHAO'
+			AND bk.total_amount = 0
+			AND bk.date_entered BETWEEN '$dayBeforeYesterday 17:00:00' AND '$yesterday 16:59:59'
+			AND bk.booking_status NOT IN ('3', '4', '7', '8')
+			AND bk.deleted = 0
+			AND NOT EXISTS (
+				SELECT 1
+				FROM ec_zalo_messages zm
+				WHERE zm.to_id = bk.phone
+					AND zm.type = 'zbs'
+					AND zm.message_type = 'cheap-flight'
+					AND zm.timestamp > $vietnameseTime - 4*3600*1000
+					AND zm.deleted = 0
+			)";
+		
+	$res = $db->query($sql);
+	while ($row = $db->fetchByAssoc($res)) {
+		$phone = $row['phone'];
+		$list_message = explode(';', $row['list_message']);
+
+		if(count($list_message) >= 2) continue;
+
+		$is_send = true;
+		if(count($list_message) > 0) {
+			$first_element_message = explode(',', $list_message[0]);
+			$first_element_message_datetime  = $first_element_message[0];
+			$first_element_message_timestamp = $first_element_message[1];
+
+			$sql2 = "SELECT COUNT(*)
+				FROM ec_zalo_messages zm
+					LEFT JOIN ec_zalo_contacts zc ON zc.zalo_id = zm.from_id AND zc.deleted = 0
+					LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
+				WHERE c.mobile_phone = '{$phone}'
+					AND zm.type = 'consultation'
+					AND zm.date_entered >= '$first_element_message_datetime'
+					AND zm.deleted = 0";
+
+			$count_reply = $db->getOne($sql2) ?? 0;
+			if($count_reply > 0) $is_send = false;
+		}
+		
+		$count_success = 0;
+		if($is_send) {
+			$booking_id = $row['booking_id'];
+			$booking_name = $row['booking_name'];
+			$dep_code = $row['dep_code'];
+			$des_code = $row['des_code'];
+			$departure_date = $row['departure_date'];
+			
+			$depInfo = Flight::getAirport($dep_code);
+			$desInfo = Flight::getAirport($des_code);
+			// Get cheap price (cache)
+
+			// Send ZBS
+			$entry = new entryFactory();
+			$obj  = $entry->create('entryZaloOAClass');
+
+			$res = $obj->sendTemplateMessage([
+				"phoneNumber" => $phone,
+				"type" => "cheap-flight",
+				"parentId" => $booking_id,
+				"parentType" => "EC_Flight_Bookings",
+				"templateData" => [
+					"customer_name" => "bạn",
+					"code" => $booking_name,
+					"ticket_price" => "VND",
+					"city_pair" => "{$depInfo['CityName']} ($dep_code) đi {$desInfo['CityName']} ($des_code)",
+					"list_departure_date" => "",
+				],
+			]);
+
+			if (isset($arr['status']) && $arr['status'] == 1) $count_success++;
+		}
+
+		// Send info to notification channel
+	}
 }

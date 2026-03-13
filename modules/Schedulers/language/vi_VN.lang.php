@@ -153,7 +153,7 @@ $mod_strings = [
     'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
     // AUTOCALL
     'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
-    'LBL_SENDPROMOTIONMESSAGEZALO' => 'Gửi tin nhắn khuyến mãi Zalo đồng loạt',
+    'LBL_SENDAUTOCHEAPPRICEMESSAGEZALO' => 'Gửi tin tự động về giá vé rẻ qua ZBS template Zalo',
 
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',

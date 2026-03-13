@@ -495,9 +495,6 @@ class EC_Zalo_Messages extends Basic {
                 global $db, $current_user;
 
                 switch ($quotaData['quota_type']) {
-                    case 'reply': // Tin gửi ra là tin trong khung 48h (Có thể gửi tin Tư vấn miễn phí không giới hạn trong khung 48h)
-                        break;
-                    
                     case 'welcome_msg': // Tin gửi đến User Quan tâm (khi chưa có tương tác)
                         // Get user's current quota from db
                         $quotaInfo = $db->getOne("SELECT IFNULL(quota_info, '') FROM ec_zalo_contacts WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0") ?? '';

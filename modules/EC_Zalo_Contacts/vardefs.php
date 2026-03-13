@@ -84,6 +84,7 @@ $dictionary['EC_Zalo_Contacts'] = array(
             'type' => 'datetime',
             'audited' => 1,
             'massupdate' => 0,
+            'comments'   => 'Last interaction is UTC timezone',
         ),
 
         'is_follower' => array(

@@ -661,37 +661,13 @@ class APIZaloOA {
                 return "467010"; // Thông báo tích điểm
             case 'share-phone':
                 return "467011"; // Gửi thông tin chương trình chia sẻ SĐT
+            case 'cheap-flight':
+                return "549919"; // Gửi vé giá rẻ booking tham khảo (CSKH)
             case 'otp':
                 return "518686"; // Gửi OTP qua SĐT
             default:
                 return "";
         }
-
-        // // Old
-        // switch ($type) {
-        //     case 'journey-one-way':
-        //         return "347078"; // Hành trình một chiều
-        //     case 'journey-round-trip':
-        //         return "347088"; // Hành trình khứ hồi
-        //     case 'payment':
-        //         return "345209"; // Thông tin thanh toán
-        //     case 'code-one-way':
-        //         return "288276"; // Code vé một chiều
-        //     case 'code-round-trip':
-        //         return "288279"; // Code vé khứ hồi
-        //     case 'delay':
-        //         return "346656"; // Thông báo delay
-        //     case 'remind-flight':
-        //         return "346651"; // Nhắc nhở giờ bay
-        //     case 'points':
-        //         return "411270"; // Thông báo tích điểm
-        //     case 'share-phone':
-        //         return "433046"; // Gửi thông tin chương trình chia sẻ SĐT
-        //     case 'after-call-sale': 
-        //         return "346699"; // CSKH sau khi gọi
-        //     default:
-        //         return "";
-        // }
     }
 
     /** 
@@ -722,41 +698,11 @@ class APIZaloOA {
                 return "Gửi thông tin chương trình chia sẻ SĐT";
             case '518686':
                 return "Gửi OTP";
+            case '549919':
+                return "Gửi vé giá rẻ booking tham khảo (CSKH)";
             default:
                 return "";
         }
-        
-        // // Old
-        // switch ($template_id) {
-        //     case '347078':
-        //     case '347088':
-        //         return "Thông tin hành trình";
-        //         break;
-        //     case '345209':
-        //         return "Thông tin thanh toán";
-        //         break;
-        //     case '288276':
-        //     case '288279':
-        //         return "Thông tin code vé";
-        //         break;
-        //     case '346656':
-        //         return "Thông báo delay";
-        //         break;
-        //     case '346651':
-        //         return "Nhắc nhở giờ bay";
-        //         break;
-        //     case '346699':
-        //         return "Chăm sóc khách hàng (Call sale)";
-        //         break;
-        //     case '411270':
-        //         return "Thông báo tích điểm";
-        //         break;
-        //     case '433046':
-        //         return "Gửi thông tin chương trình chia sẻ SĐT";
-        //         break;
-        //     default:
-        //         return "";
-        // }
     }
 
     /**
@@ -775,6 +721,10 @@ class APIZaloOA {
             "518686" => [
                 "phone_number" => 300,
                 "uid" => 210,
+            ],
+            "549919" => [
+                "phone_number" => 200,
+                "uid" => 140,
             ],
         ];
         return $arr[(string)$template_id][$send_by] ?? 200;
