@@ -8,19 +8,18 @@ require_once "custom/entrypoints/entryClass.php";
  */
 class entryFareSystemClass extends entryClass
 {
-    private $enpoint;
+    private $endpoint;
     private $key;
 
     public function __construct()
     {
         parent::__construct();
         global $sugar_config;
-        $this->enpoint = $sugar_config['api_autobook']['Endpoint'];
+        $this->endpoint = $sugar_config['api_autobook']['Endpoint'];
         $this->key = $sugar_config['api_autobook']['SearchKey'];
     }
 
-    public function searchFlightBM($params = [])
-    {
+    public function searchFlightBM($params = []) {
         // Lấy parameters từ request
         $airlineCode = isset($params['airlineCode']) ? trim($params['airlineCode']) : '';
         $depCode = isset($params['depCode']) ? strtoupper(trim($params['depCode'])) : '';
@@ -55,7 +54,7 @@ class entryFareSystemClass extends entryClass
 
         // Khởi tạo CURL
         $curl = curl_init();
-        $url = $this->enpoint . '/getFlights';
+        $url = $this->endpoint . '/getFlights';
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => 1,
@@ -105,7 +104,7 @@ class entryFareSystemClass extends entryClass
         $curl = curl_init();
 
         // URL endpoint cho update
-        $updateUrl = $this->enpoint . '/updateFlight';
+        $updateUrl = $this->endpoint . '/updateFlight';
 
         curl_setopt_array($curl, [
             CURLOPT_URL => $updateUrl,
@@ -158,7 +157,7 @@ class entryFareSystemClass extends entryClass
         $curl = curl_init();
 
         // URL endpoint cho update
-        $updateAllUrl = $this->enpoint . '/massUpdateFlight';
+        $updateAllUrl = $this->endpoint . '/massUpdateFlight';
 
         curl_setopt_array($curl, [
             CURLOPT_URL => $updateAllUrl,
@@ -198,7 +197,7 @@ class entryFareSystemClass extends entryClass
 
         $curl = curl_init();
         curl_setopt_array($curl, [
-            CURLOPT_URL => "{$this->enpoint}/service/getOptionBaggage",
+            CURLOPT_URL => "{$this->endpoint}/service/getOptionBaggage",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => 'GET',
             CURLOPT_POSTFIELDS => json_encode($patchData),
@@ -216,6 +215,62 @@ class entryFareSystemClass extends entryClass
         $error = curl_error($curl);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
+
+        return $response;
+    }
+
+    /**
+     * Get min price in month
+     * 
+     * @param array [depCode, desCode, month, year]
+     * @return string JSON
+     * @author DucPham
+     */
+    public function getMinPriceInMonth($params = []) {
+        // Lấy parameters từ request
+        $depCode = $params['depCode'] ?? '';
+        $desCode = $params['desCode'] ?? '';
+        $month   = $params['month'] ?? null;
+        $year    = $params['year'] ?? date('Y');
+        
+        $reqBody = [
+            "depCode" => $depCode,
+            "desCode" => $desCode,
+            "month" => $month,
+            "year" => $year,
+        ];
+
+        // Khởi tạo CURL
+        $curl = curl_init();
+        $url = "{$this->endpoint}/cheapPrice/getMinPriceMonth";
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_CUSTOMREQUEST => 'GET',
+            CURLOPT_POSTFIELDS => json_encode($reqBody),
+            CURLOPT_HTTPHEADER => [
+                'API-Key: ' . $this->key,
+                'Content-Type: application/json'
+            ],
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_CONNECTTIMEOUT => 10,
+        ]);
+
+        $response = curl_exec($curl);
+        $error    = curl_error($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        // ✅ Handle errors before returning
+        if ($error || $response === false) {
+            return json_encode(['error' => true, 'message' => $error ?: 'cURL failed']);
+        }
+
+        if ($httpCode !== 200) {
+            return json_encode(['error' => true, 'message' => "HTTP $httpCode"]);
+        }
 
         return $response;
     }
