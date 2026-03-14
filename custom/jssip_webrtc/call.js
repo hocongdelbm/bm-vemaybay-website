@@ -534,11 +534,8 @@ $(document).ready(function () {
                         phone = (data.phone && data.phone.length > 0) ? data.phone : phone;
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
-                        let info_booking = data.info_booking;
-                        let info_refund_ticket = data.info_refund_ticket;
-                        let info_call = data.info_call;
-                        let activity_contact = info_booking + info_refund_ticket + info_call;
-
+                        let activity_contact = (data?.info_booking || '') + (data?.info_refund_ticket || '') + (data?.info_call || '');
+                        
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);
 
@@ -925,10 +922,8 @@ $(document).ready(function () {
                         let is_uncomfortable = data.is_uncomfortable ? data.is_uncomfortable : false;
                         let is_ctv = data.is_ctv ? data.is_ctv : false;
                         let is_compare_price = data.is_compare_price ? data.is_compare_price : false;
-                        let info_booking = data.info_booking;
-                        let info_refund_ticket = data.info_refund_ticket;
-                        let info_call = data.info_call;
-                        let activity_contact = info_booking + info_refund_ticket + info_call;
+
+                        let activity_contact = (data?.info_booking || '') + (data?.info_refund_ticket || '') + (data?.info_call || '');
 
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);
@@ -1172,10 +1167,7 @@ if ('serviceWorker' in navigator) {
                         let email = data.email;
                         let avatar = data.avatar ? data.avatar.replace(/\\/g, "") : "";
 
-                        let info_booking = data.info_booking;
-                        let info_refund_ticket = data.info_refund_ticket;
-                        let info_call = data.info_call;
-                        let activity_contact = info_booking + info_refund_ticket + info_call;
+                        let activity_contact = (data?.info_booking || '') + (data?.info_refund_ticket || '') + (data?.info_call || '');
 
                         $('#popup-inforbooking').html(activity_contact);
                         $('input[name="voiceip-contact-id"]').val(contact_id);

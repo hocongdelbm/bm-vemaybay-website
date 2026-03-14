@@ -57,11 +57,9 @@ $app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
 $app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
 $app_list_strings['moduleList']['EC_TaiKhoan']            = 'Tài khoản kế toán';
-$app_list_strings['moduleList']['EC_NhomTaiKhoan']        = 'Nhóm tài khoản';
 $app_list_strings['moduleList']['EC_ChiTietTaiKhoan']     = 'Nhập số dư ban đầu';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
-$app_list_strings['moduleList']['EC_Customer']            = 'Khách hàng';
 $app_list_strings['moduleList']['EC_HoanVe']              = 'Hoàn vé';
 $app_list_strings['moduleList']['EC_ChiTietHoanVe']       = 'Chi tiết Hoàn vé';
 $app_list_strings['moduleList']['EC_Flight_Bookings']     = 'Booking';
@@ -170,26 +168,6 @@ $app_strings['LBL_GANTT_BUTTON_LABEL']                  = 'Xem biểu đồ Gant
 $app_strings['LBL_DETAIL_BUTTON_LABEL']                 = 'Xem chi tiết';
 $app_strings['LBL_CREATE_PROJECT']                      = 'Tạo dự án';
 
-$GLOBALS['app_list_strings']['world_region_list'] = array(
-  0 => 'Đông Nam Á',
-  1 => 'Đông Bắc Á',
-  2 => 'Châu Âu',
-  3 => 'Châu Mỹ',
-  4 => 'Châu Úc',
-  5 => 'Châu Phi',
-);
-
-// TRONG MODULE EC_CUSTOMER
-$GLOBALS['app_list_strings']['customer_type_list'] = array(
-  'NEW' => 'Mới',
-  'VIP' => 'VIP',
-  'RETURN' => 'Trở lại',
-  'LOYAL' => 'Thân thiết',
-  'DANGER' => 'Lý thông gấu',
-  'WARNING' => 'Lý thông me',
-  'IGNORE' => 'Linh tinh',
-);
-
 $GLOBALS['app_list_strings']['lead_source_dom'] = array(
   '' => '',
   'Cold Call' => 'Cuộc gọi hoàn hảo',
@@ -222,22 +200,6 @@ $GLOBALS['app_list_strings']['gender_list'] = array(
   0 => 'Nam',
   1 => 'Nữ',
 );
-$app_list_strings['c_booking_status_list'] = array(
-  0 => '',
-  1 => 'Mới tạo',
-  6 => 'Đã gọi',
-  2 => 'Đã liên hệ',
-  3 => 'Xác nhận',
-  7 => 'Xuất vé',
-  4 => 'Hủy',
-  8 => 'Hoàn tất',
-);
-
-$GLOBALS['app_list_strings']['vmb_gender_list'] = array(
-  'm' => 'Nam',
-  'f' => 'Nữ',
-  'u' => 'Không xác định',
-);
 
 $GLOBALS['app_list_strings']['passenger_type_list'] = array(
   0 => 'Người lớn',
@@ -252,13 +214,6 @@ $GLOBALS['app_list_strings']['payment_method_list'] = array(
   3 => 'Hoàn trả',
   4 => 'Cà thẻ',
   5 => 'Trực tuyến'
-);
-
-$GLOBALS['app_list_strings']['payment_status_list'] = array(
-  0 => 'Invalid payment',
-  1 => 'Canceled payment',
-  2 => 'Approved',
-  3 => 'Pending',
 );
 
 $GLOBALS['app_list_strings']['bk_flight_type_list'] = array(
@@ -282,13 +237,6 @@ $GLOBALS['app_list_strings']['booking_ticket_type_list'] = array(
   1 => 'Nội địa',
   2 => 'Quốc tế',
   // 3 => 'Vé Tết',
-);
-
-$GLOBALS['app_list_strings']['debt_status_list'] = array(
-  'New' => 'Mới khởi tạo',
-  'Processing' => 'Đang chi / thu',
-  'Completed' => 'Hoàn tất',
-  'Timeout' => 'Quá hạn',
 );
 
 $GLOBALS['app_list_strings']['tinhchat_list'] = array(
@@ -372,10 +320,6 @@ $GLOBALS['app_list_strings']['passenger_salutation_list'] = array(
   0 => 'Nam',
   1 => 'Nữ',
 );
-$GLOBALS['app_list_strings']['booking_salutation_list'] = array(
-  0 => 'Nam',
-  1 => 'Nữ',
-);
 
 $GLOBALS['app_list_strings']['debt_type_list'] = array(
   'Buy' => 'Mua',
@@ -403,11 +347,6 @@ $GLOBALS['app_list_strings']['tinhtranghoanvecolor_list'] = array(
   0 => '#F95100',
   1 => '#00ac47',
   2 => '#000000',
-);
-
-$GLOBALS['app_list_strings']['compare_debt_excel_list'] = array(
-  'LLD' => 'B|C|D|E|F|G|L|5|950',
-  'HNH' => 'B|D||C|S|||13|20',
 );
 
 $GLOBALS['app_list_strings']['hinhthucthanhtoan_list'] = array(
@@ -469,17 +408,6 @@ $GLOBALS['app_list_strings']['discount_percent_list'] = array(
   10 => '10%',
 );
 
-$GLOBALS['app_list_strings']['sabre_config_list'] = array(
-  'LVQ.LVQ4AFD' => '004121',
-  'LVQ.LVQ4AF6' => '004115',
-  'FDI.FDI4A93' => '004895',
-  'FDI.FDI4A92' => '004894',
-  '004121' => 'LVQ.LVQ4AFD',
-  '004115' => 'LVQ.LVQ4AF6',
-  '004895' => 'FDI.FDI4A93',
-  '004894' => 'FDI.FDI4A92',
-);
-
 $GLOBALS['app_list_strings']['account_type_dom'] = array(
   'Supplier' => 'Nhà cung cấp',
   'Customer' => 'Khách hàng',
@@ -539,12 +467,6 @@ $GLOBALS['app_list_strings']['message_status'] = [
   'fail' => 'Thất bại'
 ];
 
-
-$GLOBALS['app_list_strings']['user_title_allow_full_report'] = array(
-  'admin' => 'Administrator',
-  'ketoan' => 'Accountant',
-  'quanly' => 'Manager',
-);
 
 $GLOBALS['app_list_strings']['location_list'] = array(
   '' => '',
@@ -2061,11 +1983,6 @@ $GLOBALS['app_list_strings']['loaihoadon_list'] = array(
   1 => 'Hoá đơn dịch vụ',
 );
 
-$GLOBALS['app_list_strings']['completed_bk_type_list'] = array(
-  'EXP_BK' => 'Booking dùng tính điểm kinh nghiệm',
-  'EFFORT_BK' => 'Booking dùng để tính nỗ lực',
-);
-
 $GLOBALS['app_list_strings']['online_stt_list'] = array(
   0 => 'Offline',
   1 => 'Online',
@@ -2087,26 +2004,6 @@ $GLOBALS['app_list_strings']['call_type_list'] = array(
   'phone' => 'Di động',
   'zalo' => 'Zalo',
 );
-
-// $GLOBALS['app_list_strings']['call_reason_list'] = array(
-//   'in_journey' => 'Khách hỏi hành trình (Gọi đến)',
-//   'in_ticket_hunt' => 'Nhu cầu săn vé máy bay (Gọi đến)',
-//   'in_group_booking' => 'Đặt vé đoàn nhiều người (Gọi đến)',
-//   'in_complaint_delay' => 'Phàn nàn sự cố delay (Gọi đến)',
-//   'in_invoice_contact' => 'Liên hệ kế toán hóa đơn (Gọi đến)',
-//   'in_mistake' => 'Nhầm lẫn, Lý Thông linh tinh (Gọi đến)',
-//   'in_no_need' => 'Khách chưa có nhu cầu (Gọi đến)',
-//   'in_other' => 'Khác (Gọi đến)',
-//   'horizontal' => '---------------------------------------',
-//   'out_no_need' => 'Khách chưa có nhu cầu (Gọi đi)',
-//   'out_question_ticket' => 'Khách hỏi vé (Gọi đi)',
-//   'out_interest' => 'Đang quan tâm sơ bộ (Gọi đi)',
-//   'out_no_response' => 'Không nghe máy (Gọi đi)',
-//   'out_no_uncomfortable' => 'Khách khó chịu, không hài lòng, cảm thấy phiền... (Gọi đi)',
-//   'out_no_subscriber_unreachable' => 'Số thuê bao, không liên lạc được. (Gọi đi)',
-//   'out_remind' => 'Nhắc ngày bay (Gọi đi)',
-//   'out_other' => 'Khác (Gọi đi)',
-// );
 
 $GLOBALS['app_list_strings']['call_reason_list'] = array(
   'in_price' => 'Hỏi giá vé máy bay (Gọi đến)',
@@ -2564,8 +2461,6 @@ $GLOBALS['app_list_strings']['roles_users'] = array(
   'HCNS' => '1ebc8c04-0961-d25f-ecb5-64a3e497dac5',
 );
 
-
-$app_strings['LBL_GROUPTAB4_1701142222'] = 'Nhóm mới';
 
 $app_strings['LBL_GROUPTAB4_1701142454'] = 'Activity';
 

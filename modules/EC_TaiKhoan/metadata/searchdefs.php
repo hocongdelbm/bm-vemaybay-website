@@ -34,13 +34,6 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'name' => 'taikhoantonghop',
             ),
-            'nhomtaikhoan' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_NHOMTAIKHOAN',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'nhomtaikhoan',
-            ),
             'current_user_only' => array(
                 'name' => 'current_user_only',
                 'label' => 'LBL_CURRENT_USER_FILTER',

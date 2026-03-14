@@ -169,9 +169,6 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				// Cập nhật giao cho khi bấm Đã gọi lần đầu
 				if($booking_status == '6') update_field_booking($record, 'assigned_user_id', $current_user->id);
 
-				// UPDATE booking_status - ec_customer
-				UpdateInforBookingOfCustomer($record);
-
 				// Add attribute for notes
 				$note->working_process_id = $work->id;
 
