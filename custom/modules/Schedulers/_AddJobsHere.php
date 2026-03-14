@@ -2381,6 +2381,7 @@ function sendAutoCheapPriceMessageZalo() {
 
 		// Cache vars
 		$listFlightSearch = [];
+		$listSentFailedPhone = [];
 		$listSentPhone = [];
 			
 		$res = $db->query($sql);
@@ -2388,7 +2389,7 @@ function sendAutoCheapPriceMessageZalo() {
 			$phone = $row['phone'] ?? '';
 			$list_message = !empty($row['list_message']) ? explode(';', $row['list_message']) : [];
 
-			if(empty($phone) || in_array($phone, $listSentPhone)) continue;
+			if(empty($phone) || in_array($phone, $listSentPhone) || in_array($phone, $listSentFailedPhone)) continue;
 			if(count($list_message) >= 2) continue;
 
 			$is_send = true;
@@ -2480,6 +2481,7 @@ function sendAutoCheapPriceMessageZalo() {
 						$sendResult = $entryOA->sendTemplateMessage($params);
 			
 						if (isset($sendResult['status']) && $sendResult['status'] == 1) $listSentPhone[] = $phone;
+						else $listSentFailedPhone[] = $phone;
 
 						$GLOBALS['log']->fatal("Check sent auto message Zalo ZBS (cheap-price): " .
 							json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
