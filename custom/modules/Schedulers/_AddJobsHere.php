@@ -2347,7 +2347,7 @@ function sendAutoCheapPriceMessageZalo() {
 					FROM ec_zalo_messages zm
 					WHERE zm.to_id = bk.phone
 						AND zm.type = 'zbs'
-						AND zm.message_type = 'cheap-flight'
+						AND zm.sub_type = 'cheap-flight'
 						AND zm.date_entered BETWEEN '$yesterday 17:00:00' AND '$date 16:59:59'
 						AND zm.deleted = 0
 					ORDER BY zm.date_entered DESC
@@ -2374,7 +2374,7 @@ function sendAutoCheapPriceMessageZalo() {
 					FROM ec_zalo_messages zm
 					WHERE zm.to_id = bk.phone
 						AND zm.type = 'zbs'
-						AND zm.message_type = 'cheap-flight'
+						AND zm.sub_type = 'cheap-flight'
 						AND zm.timestamp > $vietnameseTime - 4*3600*1000
 						AND zm.deleted = 0
 				)";
