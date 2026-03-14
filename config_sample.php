@@ -497,7 +497,6 @@ $sugar_config = array(
     17 => 'EC_Vouchers',
     18 => 'EC_Request_Flight',
     19 => 'EC_Payment_Types',
-    20 => 'EC_Customer',
     21 => 'Employees',
     22 => 'EC_ChiTietHoaDon',
     23 => 'EC_HoaDonBan',

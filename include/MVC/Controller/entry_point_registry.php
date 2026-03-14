@@ -88,7 +88,6 @@ $entry_point_registry = array(
 	'entryPointEC_Payment_Voucher'          => array('file' => 'custom/entrypoints/epEC_Payment_Voucher.php', 'auth' => true),
     'entryPointEC_HoaDonBan'                => array('file' => 'custom/entrypoints/epEC_HoaDonBan.php', 'auth' => true),
 
-    'entryPointMyCheckContactInfo'          => array('file' => 'custom/entrypoints/epCheckContactInfo.php', 'auth' => true),
     'entryPointCheckCallsHistory'           => array('file' => 'custom/entrypoints/epCheckCallsHistory.php', 'auth' => true),
     'entryPointStatisticsCall'              => array('file' => 'custom/entrypoints/epStatisticsCall.php', 'auth' => true),
     

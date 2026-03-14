@@ -921,37 +921,6 @@ $(document).ready(function () {
 	});
 	// End open working process popup
 
-	// Begin check contact info
-	$('#btnCheckContactInfo').click(function () {
-		$('#CheckContactInfoDialog').dialog({
-			minHeight: 200,
-			width: 1000,
-			modal: true,
-			resizable: false,
-		});
-	});
-
-	$('#CheckContactInfoDialog').on('dialogopen', function (event, ui) {
-		var ct_name = $('#btnCheckContactInfo').attr('ct_name');
-		var ct_mobile = $('#btnCheckContactInfo').attr('ct_mobile');
-		var ct_email = $('#btnCheckContactInfo').attr('ct_email');
-		var ct_id_booking = $('#btnCheckContactInfo').attr('ct_id_booking');
-
-		if (ct_name != '' && (ct_mobile != '' || ct_email != '')) {
-			$.ajax({
-				cache: false,
-				type: 'post',
-				data: 'ct_name=' + ct_name + '&ct_mobile=' + ct_mobile + '&ct_email=' + ct_email + '&ct_id_booking=' + ct_id_booking,
-				async: false,
-				url: 'index.php?entryPoint=entryPointMyCheckContactInfo',
-				success: function (output) {
-					$('#CheckContactInfoDialog').html(output);
-				}
-			});
-		}
-	});
-	// End check contact info
-
 	// Begin edit booking detail
 	$("#edit_bkg_btn").on("click", function () {
 		$.ajax({
