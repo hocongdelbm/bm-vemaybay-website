@@ -491,7 +491,6 @@ $sugar_config = array(
     9 => 'EC_LeaveAbsenceTypes',
     10 => 'EC_LeaveAbsences',
     11 => 'EC_WorkingOverTimes',
-    12 => 'EC_Targets',
     13 => 'SecurityGroups',
     14 => 'EC_LyDoThangThua',
     15 => 'EC_Location',

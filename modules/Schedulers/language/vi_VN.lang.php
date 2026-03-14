@@ -129,7 +129,6 @@ $mod_strings = [
     'LBL_SCHEDULER_TIMES' => 'Thời gian biểu',
     'LBL_SYNCGOOGLECALENDAR' => 'Đồng bộ Lịch Google',
     'LBL_CREATEMONTHSALARY' => 'Tạo bảng lương đầu tháng',
-    'LBL_UPDATESALES' => 'Cập nhật cột doanh số trong bảng lương',
     'LBL_UPDATEEFFORTS' => 'Cập nhật cột nỗ lực trong bảng lương',
     'LBL_UPDATEWORKINGDAYS' => 'Cập nhật số ngày công trong bảng lương',
     'LBL_UPDATEMISSINGEFFORTS' => 'Cập nhật cột nỗ lực còn thiếu của tháng trước',
