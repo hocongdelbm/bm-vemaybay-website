@@ -28,7 +28,6 @@ class EC_TaiKhoan extends Basic {
     public $sotaikhoan;
     public $tentienganh;
     public $taikhoantonghop;
-    public $nhomtaikhoan;
     public $tinhchat;
     public $loaidoituong;
     public $taphopchiphi;

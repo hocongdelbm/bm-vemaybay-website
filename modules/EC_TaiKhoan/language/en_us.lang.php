@@ -42,7 +42,6 @@ $mod_strings = array (
   'LBL_SOTAIKHOAN' => 'Số tài khoản',
   'LBL_TENTIENGANH' => 'Tên tiếng Anh',
   'LBL_TAIKHOANTONGHOP' => 'Tài khoản tổng hợp',
-  'LBL_NHOMTAIKHOAN' => 'Nhóm tài khoản',
   'LBL_TINHCHAT' => 'Tính chất',
   'LBL_IS_CHITIETTHEO' => 'Chi tiết theo',
   'LBL_IS_DOITUONG' => 'Đối tượng',

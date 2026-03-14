@@ -40,17 +40,9 @@ $viewdefs[$module_name]['DetailView'] = array(
 
             array(
                 array(
-                    'name' => 'nhomtaikhoan',
-                    'label' => 'LBL_NHOMTAIKHOAN',
-                ),
-                array(
                     'name' => 'tinhchat',
-                    'studio' => 'visible',
                     'label' => 'LBL_TINHCHAT',
                 ),
-            ),
-
-            array(
                 'description',
             ),
 

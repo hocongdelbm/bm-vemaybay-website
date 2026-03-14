@@ -27,11 +27,6 @@ class EC_TaiKhoanViewEdit extends ViewEdit{
 		$taikhoan .= '<input type="hidden" name="cap" id="cap" value="'.($this->bean->cap != '' ? $this->bean->cap : 0).'" />';
 		$this->ss->assign('TaiKhoanTongHop', $taikhoan);
 		
-		// Danh sách nhóm tài khoản
-		$ntk = new EC_NhomTaiKhoan();
-		$nhomtk = '<select class="box-select" id="nhomtaikhoan" name="nhomtaikhoan" tabindex="104" >'.$ntk->listOfNhomTaiKhoan($this->bean->nhomtaikhoan).'</select>';
-		$this->ss->assign('NhomTaiKhoan', $nhomtk);
-		
 		// Danh sách đối tượng
 		$doituong = '<input type="checkbox" id="doituong" name="doituong" value="'.$this->bean->doituong.'" title="" tabindex="107" '.($this->bean->doituong == 1 ? 'checked="checked"' : '').' />&nbsp;<select '.($this->bean->doituong == 0 ? 'style="display:none"' : '').' id="loaidoituong" name="loaidoituong" tabindex="107" >'.get_select_options_with_id($app_list_strings['loaidoituong_list'], $this->bean->loaidoituong).'</select>';
 		$this->ss->assign('DoiTuong', $doituong);
