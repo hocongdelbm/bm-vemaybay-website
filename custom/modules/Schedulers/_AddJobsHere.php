@@ -2449,12 +2449,22 @@ function sendAutoCheapPriceMessageZalo() {
 					if (count($cheapestDays) > 1) {
 						$input = DateTime::createFromFormat('Y-m-d', $departure_date);
 
-						usort($cheapestDays, function ($a, $b) use ($input) {
-							$dateA = DateTime::createFromFormat('d-m', $a['date'])->setDate((int)$input->format('Y'), ...explode('-', $a['date']));
-							$dateB = DateTime::createFromFormat('d-m', $b['date'])->setDate((int)$input->format('Y'), ...explode('-', $b['date']));
+						if ($input !== false) {
+							usort($cheapestDays, function ($a, $b) use ($input) {
+								$partsA = explode('-', $a['date']); // ['14', '3']
+								$partsB = explode('-', $b['date']); // ['15', '3']
 
-							return abs($input->diff($dateA)->days) <=> abs($input->diff($dateB)->days);
-						});
+								$dateA = DateTime::createFromFormat('d-n', $a['date']); // 'n' = month without leading zero
+								$dateB = DateTime::createFromFormat('d-n', $b['date']);
+
+								if ($dateA === false || $dateB === false) return 0;
+
+								$dateA->setDate((int)$input->format('Y'), (int)$partsA[1], (int)$partsA[0]);
+								$dateB->setDate((int)$input->format('Y'), (int)$partsB[1], (int)$partsB[0]);
+
+								return abs($input->diff($dateA)->days) <=> abs($input->diff($dateB)->days);
+							});
+						}
 
 						$cheapestDays = array_slice(array_values($cheapestDays), 0, 6);
 					}
