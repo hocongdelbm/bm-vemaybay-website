@@ -485,7 +485,6 @@ $sugar_config = array(
     3 => 'EC_Payment_Voucher',
     4 => 'EC_ChuyenTienNoiBo',
     5 => 'Users',
-    6 => 'EC_LoaiChungTu',
     7 => 'EC_Bank_Account',
     8 => 'EC_Banks',
     9 => 'EC_LeaveAbsenceTypes',
