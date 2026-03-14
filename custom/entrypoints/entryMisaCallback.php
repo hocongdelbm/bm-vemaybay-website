@@ -6,20 +6,20 @@
 
 header('Content-Type: application/json');
 
-// Chỉ nhận POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    logInfo("Method Not Allowed: " . $_SERVER['REQUEST_METHOD']);
-
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error_message' => 'Method Not Allowed']);
-    exit;
-}
-
 // ============================================================
 // 1. Đọc raw body từ MISA gửi lên
 // ============================================================
 $rawBody = file_get_contents('php://input');
 $payload = json_decode($rawBody, true);
+
+if ((string)$_SERVER['REQUEST_METHOD'] !== 'POST') {
+    logInfo("Method Not Allowed AMIS: " . $_SERVER['REQUEST_METHOD']);
+    logInfo("Log not POST: ", $payload);
+
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error_message' => 'Method Not Allowed']);
+    exit;
+}
 
 if (!$payload) {
     logError($payload);
