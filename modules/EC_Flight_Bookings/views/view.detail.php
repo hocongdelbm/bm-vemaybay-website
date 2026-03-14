@@ -1402,9 +1402,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$this->ss->assign('CHANGE_FLIGHT_TIME', $change_flight_time);
 		}
 
-		// Nút chia doanh số
-		$this->ss->assign('SHARE_PROFIT', $this->createShareProfitBtn());
-
 		// Auto book
 		if (in_array($this->bean->booking_status, [1, 2, 3, 6])) {
 			// if (in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
@@ -2782,52 +2779,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			FROM acl_roles_users 
 			WHERE user_id = "' . $current_user->id . '" AND role_id = "554c808f-9f0b-cc0f-9b77-623e724d7516" AND deleted = 0';
 		return $this->bean->db->getOne($sql);
-	}
-
-	// Tạo nút chia DS
-	function createShareProfitBtn()
-	{
-		$bk_assigned_user = new User;
-		$bk_assigned_user->retrieve($this->bean->assigned_user_id);
-		$assigned_user_fname = replaceAllSpacesToSingleSpace($bk_assigned_user->last_name . ' ' . $bk_assigned_user->first_name);
-
-		$html = '
-			<input type="button" class="btn btn-primary" id="share_profit_btn" value="Chia DS" bk="' . $this->bean->id . '">
-			</form><form id="share_profit_frm" method="post" type="post" action="index.php" style="display: none; background-color: white; font-family: Arial;">
-				<input type="hidden" name="module" value="EC_Completed_Bookings">
-				<input type="hidden" name="action" value="Save">
-				<input type="hidden" name="booking" value="' . $this->bean->id . '">
-				<input type="hidden" name="bk_status" value="' . $this->bean->booking_status . '">
-				<input type="hidden" name="for" value="updateShareProfit">
-				<div class="detail view">
-					<h2>' . $this->bean->name . ' - Tổng DS: <span id="bk_ttl_amt" style="color: red; font-weight: bold;"></span></h2>
-					<div class="label">Giao cho: ' . $assigned_user_fname . '</div>
-					<table id="share_profit_tbl" class="table-details__booking mt-2" cellpadding="0" cellspacing="0">
-						<thead>
-							<tr>
-								<th width="7%">STT</th>
-								<th width="60%">Booker</th>
-								<th width="26%" class="text-end">Số tiền</th>
-								<th width="7%" class="text-center"></th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-						<tfoot>
-							<tr>
-								<td colspan="4">
-									<div class="d-flex align-items-center gap-2 mt-2">
-										<input type="button" id="add_shareprofit_line" value="Thêm dòng" class="btn btn-primary">
-										<input type="submit" value="Lưu" class="btn btn-primary save-popup-dialog">
-										<input type="hidden" id="shareprofit_cnt">
-									</div>
-								</td>
-							</tr>
-						</tfoot>
-					</table>
-				</div>
-			</form>';
-
-		return $html;
 	}
 
 	/**

@@ -65,7 +65,6 @@ $app_list_strings['moduleList']['EC_Customer']            = 'Khách hàng';
 $app_list_strings['moduleList']['EC_HoanVe']              = 'Hoàn vé';
 $app_list_strings['moduleList']['EC_ChiTietHoanVe']       = 'Chi tiết Hoàn vé';
 $app_list_strings['moduleList']['EC_Flight_Bookings']     = 'Booking';
-$app_list_strings['moduleList']['EC_Completed_Bookings']  = 'Completed_Bookings';
 $app_list_strings['moduleList']['EC_Booking_Details']     = 'Booking_Details';
 $app_list_strings['moduleList']['EC_Booking_Itineraries'] = 'Booking_Itineraries';
 $app_list_strings['moduleList']['EC_Booking_Passengers']  = 'Booking_Passengers';
