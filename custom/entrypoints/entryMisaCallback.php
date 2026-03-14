@@ -139,8 +139,13 @@ function handleGenericResult(string $orgCompanyCode, int $dataType, ?array $data
 // Các hàm xử lý Lưu log
 // ============================================================
 
-function writeLog(string $filepath, string $line): void
+function writeLog(string $filename, string $line): void
 {
+    $curYear = date('Y');
+    $curMonth = date('m');
+    $path = 'secure_sessions/misa_logs';
+    $filepath = "$path/$curYear/$curMonth/" . $filename;
+
     $dir = dirname($filepath);
     if (!is_dir($dir)) {
         mkdir($dir, 0755, true);
@@ -154,7 +159,7 @@ function logInfo(string $message, ?array $context = null): void
     if ($context) {
         $line .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE);
     }
-    writeLog('secure_sessions/misa_logs/amis_callback.log', $line);
+    writeLog('amis_callback.log', $line);
 }
 
 function logError(array $payload): void
@@ -166,5 +171,5 @@ function logError(array $payload): void
     $raw      = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
     $line = date('Y-m-d H:i:s') . " [ERROR] org=$org dataType=$dataType code=$code msg=$msg raw=$raw";
-    writeLog('secure_sessions/misa_logs/amis_callback_error.log', $line);
+    writeLog('amis_callback_error.log', $line);
 }

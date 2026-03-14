@@ -102,7 +102,7 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getAccountInf') {
 
 // Lấy thông tin công ty dựa vào mã số thuế
 if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getConpanyInfo') {
-    require_once('modules/EC_HoaDonBan/WinInvoice.php');
+    require_once("custom/include/helpers/api/WinInvoice.php");
     $tax_code = $_REQUEST['mst'];
     $inv = new WinInvoice();
     echo $inv->get_company_info($tax_code);
