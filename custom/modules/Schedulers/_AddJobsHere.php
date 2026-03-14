@@ -2110,7 +2110,7 @@ function sendAutoCheapPriceMessageZalo() {
 							"templateData" => [
 								"customer_name" => "bạn",
 								"code" => $booking_name,
-								"ticket_price" => format_number($minPrice) . " VND",
+								"ticket_price" => $minPrice,
 								"city_pair" => trim("{$depInfo['CityName']} ($dep_code) đi {$desInfo['CityName']} ($des_code)"),
 								"list_departure_date" => $listDate,
 							],
