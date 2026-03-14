@@ -184,7 +184,6 @@ class EC_Flight_Bookings extends Basic
 			$this->is_paid = $_POST['is_paid'];
 		}
 
-		// HÀNH TRÌNH TRONG BẢNG EC_CUSTOMER
 		if (strpos($this->city, '-')) {
 			$airport_arr = array_merge($app_list_strings['domestic_airport_list'], $app_list_strings['southeast_asia_airport_list'], $app_list_strings['northeast_asia_airport_list'], $app_list_strings['europe_airport_list'], $app_list_strings['americas_airport_list'], $app_list_strings['australia_airport_list'], $app_list_strings['africa_airport_list']);
 			$this->city = $airport_arr[substr($this->city, 0, 3)];

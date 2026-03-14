@@ -47,18 +47,9 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'nhomtaikhoan',
-                    'label' => 'LBL_NHOMTAIKHOAN',
-                    'customCode' => '{$NhomTaiKhoan}',
-                ),
-                array(
                     'name' => 'tinhchat',
-                    'studio' => 'visible',
                     'label' => 'LBL_TINHCHAT',
                 ),
-            ),
-
-            array(
                 array(
                     'name' => 'description',
                     'comment' => 'Full text of the note',
