@@ -1173,65 +1173,6 @@ $(document).ready(function () {
 		$("body").css({ "cursor": "default" });
 	});
 
-	// Nút chia doanh số
-	$("#share_profit_btn").on("click", function () {
-		$("#share_profit_frm").dialog({
-			title: "Thông tin chia doanh số",
-			width: 400,
-			modal: true,
-			resizable: false,
-		});
-
-		$.ajax({
-			url: "index.php?entryPoint=entryPointFlightBookings",
-			type: "POST",
-			data: {
-				"bk": $(this).attr("bk"),
-				"for": "getShareProfit",
-			},
-			beforeSend: function () {
-				$("#bk_ttl_amt").text("");
-			},
-			success: function (response) {
-				res = JSON.parse(response);
-				// $(".share_profit_loading").remove();
-				$("#bk_ttl_amt").text(res.profit);
-				$("#share_profit_tbl>tbody").html(res.html);
-				$("#shareprofit_cnt").val(res.line_cnt);
-			}
-		});
-	});
-
-	$(document).on("click", "#add_shareprofit_line", function () {
-		var ln = $("#shareprofit_cnt").val();
-		$("#share_profit_tbl>tbody>tr").last().before(
-			`<tr class='profit_ln'>
-				<td id='share_profit_no${ln}' class="fw-bold text-center align-center"></td>
-				<td>
-					<div class="d-flex align-items-center gap-2">
-						<input class="box-input" type='text' name='share_profit_user[]' id='share_profit_user${ln}' size='20' autocomplete='off'>
-						<input type='button' class='btn btn-primary' value='Chọn' onclick='open_popup(&quot;Users&quot;, 600, 400, &quot;&quot;, true, false, {&quot;call_back_function&quot;:&quot;set_return&quot;,&quot;form_name&quot;:&quot;share_profit_frm&quot;,&quot;field_to_name_array&quot;:{&quot;id&quot:&quot;share_profit_user_id${ln}&quot;,&quot;user_name&quot;:&quot;share_profit_user${ln}&quot;}},&quot;single&quot;, true);' style='vertical-align: baseline;'>
-						<input type='hidden' name='share_profit_userid[]' id='share_profit_user_id${ln}'>
-					</div>
-				</td>
-				<td>
-					<input class="box-input text-end w-100" type='text' name='share_profit_amt[]' id='share_profit_amt${ln}' oninput='this.value = formatNumber(unformatNumber(this.value)); calculateTotalShareProfit();'>
-				</td>
-				<td class="text-center">
-					<svg xmlns="http://www.w3.org/2000/svg" class="cursor-pointer" onclick="markShareProfitDelete(${ln});" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-					<input type='hidden' name='share_profit_delete[]' id='share_profit_delete${ln}' value='0'>
-					<input type='hidden' name='share_profit_id[]'>
-				</td>
-			</tr>`);
-
-		markOrderProfitLine();
-		$("#shareprofit_cnt").val(parseInt(ln) + 1);
-	});
-
-	$("#share_profit_frm").submit(function () {
-		return checkShareProfit();
-	});
-
 	// Change booking status
 	$(document).on("change", "select#booking_status", function () {
 		let status = $(this).find(":selected").val();
@@ -1888,46 +1829,6 @@ function getPassengerLine(booking_id, pass_id = '', type = '') {
 		}
 	});
 }
-
-function markOrderProfitLine() {
-	var i = 0;
-	$(".profit_ln").each(function (ind) {
-		if ($("#share_profit_delete" + (ind + 1)).val() == 0) {
-			$("#share_profit_no" + (ind + 1)).text(i + 1);
-			i++;
-		}
-	});
-}
-
-function calculateTotalShareProfit() {
-	var share_profit = 0;
-	$(".profit_ln").each(function (ind) {
-		if ($("#share_profit_delete" + (ind + 1)).val() == 0) {
-			share_profit += parseInt(unformatNumber($("#share_profit_amt" + (ind + 1)).val()));
-		}
-	});
-	$("#ttl_share_profit").text(formatNumber(share_profit));
-	return share_profit;
-}
-
-function markShareProfitDelete(ln) {
-	$("#share_profit_delete" + ln).val(1);
-	$("#share_profit_delete" + ln).parent().parent().hide();
-	markOrderProfitLine();
-	calculateTotalShareProfit();
-}
-
-function checkShareProfit() {
-	var total_profit = unformatNumber($("#bk_ttl_amt").text());
-	var share_profit = calculateTotalShareProfit();
-	if (share_profit > total_profit) {
-		let text_warning = 'Không thể chia doanh số cao hơn doanh số tổng!';
-		showToastWarning(text_warning);
-		return false;
-	}
-	return true;
-}
-
 
 // BUTTON "CHỈNH SỬA CHI TIẾT BOOKING"
 function calculateLineEditDetails(ln, is_cal_admin = 0, is_cal_tax = 0) {

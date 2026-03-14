@@ -64,12 +64,6 @@ class EC_Flight_BookingsViewList extends ViewList {
 	}
 
 	function display() {
-		// global $current_user;
-
-		// if(isset($current_user->view_percent) && $current_user->view_percent < 100){
-		// 	header('Location: index.php?module=EC_Flight_Bookings&action=currentsales');
-		// }
-
 		$this->lv->quickViewLinks = false;
 		$this->displayCSS();
 		$this->displayJS();

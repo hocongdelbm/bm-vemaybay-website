@@ -2,7 +2,7 @@
 global $db, $current_user;
 
 // Lấy số vé trong bảng hoá đơn đầu vào
-if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getInputInvoice') {
+if (isset($_REQUEST['for']) && $_REQUEST['for'] == 'getInputInvoice') {
     global $app_list_strings;
 
     $sql = 'SELECT b.name AS booking
@@ -30,7 +30,7 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getInputInvoice') {
 
     $result_arr = [];
     $res = $db->query($sql);
-    while($row = $db->fetchByAssoc($res)) {
+    while ($row = $db->fetchByAssoc($res)) {
         // $buyerInfo = json_decode(html_entity_decode($row['shipping_address']), true);
 
         if ($row['qty'] - $row['used_qty'] > 0) {
@@ -48,7 +48,7 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getInputInvoice') {
             'label'             => $row['name'],
             'ticket_code'       => $row['ticket_code'],
             'supplier'          => $app_list_strings['supplier_invoice_list'][$row['supplier']],
-            'iti'               => (empty($row['itinerary'])?'&nbsp;':$row['itinerary']),
+            'iti'               => (empty($row['itinerary']) ? '&nbsp;' : $row['itinerary']),
             // 'total'             => format_number($row['total'] * $row['qty']), // Tổng giá bán
             'total'             => format_number($row['total']), // Tổng giá bán
             'authorized_fee'    => format_number($row['authorized_fee'] / $row['qty']), // Phí thu hộ (sân bay + admin)
@@ -66,12 +66,12 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getInputInvoice') {
             // ]
         ];
     }
-    
+
     echo json_encode($result_arr);
 }
 
 // Lấy thông tin khách hàng
-if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getAccountInf') {
+if (isset($_REQUEST['for']) && $_REQUEST['for'] == 'getAccountInf') {
     $sql = 'SELECT a.id, a.name, a.ticker_symbol, a.sic_code, a.shipping_address_street, email.email_address
         FROM accounts a
         LEFT JOIN email_addr_bean_rel rel 
@@ -88,7 +88,7 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getAccountInf') {
     $res = $db->query($sql);
     $result_arr = [];
 
-    while($row = $db->fetchByAssoc($res)) {
+    while ($row = $db->fetchByAssoc($res)) {
         $result_arr[] = [
             'label'             => $row['name'],
             'ticker_symbol'     => $row['ticker_symbol'],
@@ -101,7 +101,7 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getAccountInf') {
 }
 
 // Lấy thông tin công ty dựa vào mã số thuế
-if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getConpanyInfo') {
+if (isset($_REQUEST['for']) && $_REQUEST['for'] == 'getConpanyInfo') {
     require_once("custom/include/helpers/api/WinInvoice.php");
     $tax_code = $_REQUEST['mst'];
     $inv = new WinInvoice();
@@ -110,7 +110,7 @@ if(isset($_REQUEST['for']) && $_REQUEST['for'] == 'getConpanyInfo') {
 }
 
 // Lấy thông tin số vé 
-if(isset($_POST['for']) && $_POST['for'] == 'getTicketCodeInf') {
+if (isset($_POST['for']) && $_POST['for'] == 'getTicketCodeInf') {
     $input_inv = new EC_Input_Invoices;
     $input_inv->retrieve($_POST['ticket_code']);
     echo json_encode([
@@ -132,10 +132,10 @@ if(isset($_POST['for']) && $_POST['for'] == 'getTicketCodeInf') {
 }
 
 // Lấy thông tin sl tồn hiện tại của số vé
-if(isset($_POST['for']) && $_POST['for'] == 'getMaxQty') {
+if (isset($_POST['for']) && $_POST['for'] == 'getMaxQty') {
     $ticket_num_arr = explode(",", $_POST['ticket_num']);
 
-    if(isset($_POST['invoice']) && !empty($_POST['invoice'])) {
+    if (isset($_POST['invoice']) && !empty($_POST['invoice'])) {
         $exist_invoice = ' AND parent_id <> "' . $_POST['invoice'] . '"';
     }
 
@@ -154,7 +154,7 @@ if(isset($_POST['for']) && $_POST['for'] == 'getMaxQty') {
 
     $res = $db->query($sql);
     $ticket_num_leftqty = array();
-    while($row = $db->fetchByAssoc($res)) {
+    while ($row = $db->fetchByAssoc($res)) {
         $ticket_num_leftqty[$row['id']] = $row['qty'] - $row['used_qty'];
     }
 
@@ -162,10 +162,10 @@ if(isset($_POST['for']) && $_POST['for'] == 'getMaxQty') {
 }
 
 // Hủy hóa đơn
-if(isset($_POST['for']) && $_POST['for'] == 'reasonCancelInvoice') {
+if (isset($_POST['for']) && $_POST['for'] == 'reasonCancelInvoice') {
     // Lấy note hiện tại của HD đó
-    if(!empty($_POST['hd_record'])) {
-        if(trim($_POST['company_unit']) == 'MHV'){
+    if (!empty($_POST['hd_record'])) {
+        if (trim($_POST['company_unit']) == 'MHV') {
             require_once("custom/include/helpers/api/WinInvoice.php");
             $winInv = new WinInvoice();
             $params = [
@@ -182,18 +182,18 @@ if(isset($_POST['for']) && $_POST['for'] == 'reasonCancelInvoice') {
         $db->query($sql_detail);
 
         $sql = 'UPDATE ec_hoadonban 
-            SET tinhtrang = -1, description = "'.test_input($_POST['description']).'"
+            SET tinhtrang = -1, description = "' . test_input($_POST['description']) . '"
             WHERE id = "' . test_input($_POST['hd_record']) . '"';
         $db->query($sql);
         echo 1;
-    } 
-    else {
+    } else {
         echo 0;
     }
     exit();
 }
 
-function test_input($data) {
+function test_input($data)
+{
     $data = trim($data);
     $data = stripslashes($data);
     $data = htmlspecialchars($data);
