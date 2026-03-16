@@ -1949,7 +1949,7 @@ function sendAutoCheapPriceMessageZalo() {
 		$vietnameseTime 	= ($utcTimestamp + 7*3600) * 1000;
 		$date 				= date('Y-m-d', $utcTimestamp);
 		$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
-		$dayBeforeYesterday = date('Y-m-d', strtotime('-2 day', $utcTimestamp));
+		$fromDateQuery 		= date('Y-m-d', strtotime('-3 day', $utcTimestamp));
 
 		// Init entry
 		$entry = new entryFactory();
@@ -1970,7 +1970,7 @@ function sendAutoCheapPriceMessageZalo() {
 				,iti.arrival AS des_code
 				,iti.departure_date
 				,(
-					SELECT GROUP_CONCAT(CONCAT(zm.date_entered, ',', zm.timestamp) SEPARATOR ';')
+					SELECT GROUP_CONCAT(CONCAT(zm.date_entered, '|', zm.timestamp, '|', zm.data) SEPARATOR ';')
 					FROM ec_zalo_messages zm
 					WHERE zm.to_id = bk.phone
 						AND zm.type = 'zbs'
@@ -1983,7 +1983,8 @@ function sendAutoCheapPriceMessageZalo() {
 				LEFT JOIN ec_booking_itineraries iti ON iti.booking_id = bk.id AND iti.direction = '0' AND iti.deleted = 0
 			WHERE UPPER(bk.contact_name) = 'THAM KHAO'
 				AND bk.total_amount = 0
-				AND bk.date_entered BETWEEN '$dayBeforeYesterday 17:00:00' AND '$yesterday 16:59:59'
+				AND bk.date_entered BETWEEN '$fromDateQuery 17:00:00' AND '$yesterday 16:59:59'
+				AND bk.phone IS NOT NULL AND bk.phone != ''
 				AND bk.booking_status NOT IN ('1', '3', '4', '7', '8')
 				AND bk.deleted = 0
 				AND NOT EXISTS (
@@ -2021,7 +2022,7 @@ function sendAutoCheapPriceMessageZalo() {
 
 			$is_send = true;
 			if(count($list_message) > 0) {
-				$first_element_message = explode(',', $list_message[0]);
+				$first_element_message = explode('|', $list_message[0]);
 				$first_element_message_datetime  = $first_element_message[0];
 				// $first_element_message_timestamp = $first_element_message[1];
 
@@ -2047,8 +2048,14 @@ function sendAutoCheapPriceMessageZalo() {
 
 				if (empty($departure_date) || empty($dep_code) || empty($des_code) || empty($booking_name)) continue;
 
-				$departure_month = date('m', strtotime($departure_date));
-				$departure_year = date('Y', strtotime($departure_date));
+				$departure_timestamp = strtotime($departure_date);
+				$departure_day = date('d', $departure_timestamp);
+				// If departure day is greater than 20, then set departure month to next month
+				if((int)$departure_day > 20) {
+					$departure_timestamp = strtotime('+1 month', $departure_timestamp);
+				}
+				$departure_month = date('m', $departure_timestamp);
+				$departure_year  = date('Y', $departure_timestamp);
 				
 				$depInfo = Flight::getAirport($dep_code);
 				$desInfo = Flight::getAirport($des_code);
@@ -2072,6 +2079,7 @@ function sendAutoCheapPriceMessageZalo() {
 
 				if(is_array($priceData) && !empty($priceData)) {
 					$minPrice = min(array_column($priceData, 'price'));
+					
 					$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
 					if (count($cheapestDays) > 1) {
 						$input = DateTime::createFromFormat('Y-m-d', $departure_date);
@@ -2101,7 +2109,21 @@ function sendAutoCheapPriceMessageZalo() {
 						return str_pad($day, 2, '0', STR_PAD_LEFT) . '/' . str_pad($month, 2, '0', STR_PAD_LEFT);
 					}, $cheapestDays));
 
-					if($minPrice > 0 && !empty($listDate)) {
+					// Check if the latest message is the same price, then discount 10-20k
+					$message_latest = $list_message[0] ?? [];
+					if(!empty($message_latest)) {
+						$data_latest = explode('|', $message_latest);
+						$data_latest = json_decode(html_entity_decode($data_latest[2] ?? ''), true) ?? [];
+						if(isset($data_latest['ticket_price']) && (int)$data_latest['ticket_price'] == $minPrice && $minPrice > 0) {
+							$values = [9000, 10000, 12000, 16000, 18000, 20000];
+							$minPrice -= $values[array_rand($values)]; // Discount 10-20k
+							if($minPrice <= 0) $minPrice = abs($minPrice);
+						}
+					}
+
+					if($minPrice == 0) $minPrice = 8000;
+
+					if(!empty($listDate)) {
 						$params = [
 							"phoneNumber" => $phone,
 							"type" => "cheap-flight",
@@ -2118,19 +2140,22 @@ function sendAutoCheapPriceMessageZalo() {
 						$sendResult = $entryOA->sendTemplateMessage($params);
 			
 						if (isset($sendResult['status']) && $sendResult['status'] == 1) $listSentPhone[] = $phone;
-						else $listSentFailedPhone[] = $phone;
-
-						$GLOBALS['log']->fatal("Check sent auto message Zalo ZBS (cheap-price): " .
-							json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
-						);
+						else {
+							$GLOBALS['log']->fatal("Check sent auto message Zalo ZBS (cheap-price): " .
+								json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+							);
+							$listSentFailedPhone[] = $phone;
+						}
 					}
 				}
 			}
 		}
 			
 		// Send info to notification channel
-		if(count($listSentPhone) > 0) {
-			$message = "[INFO] 📲 Đã gửi tin CSKH Zalo (Booking tham khảo) cho " . count($listSentPhone) . " số";
+		$countListSentPhone = count($listSentPhone);
+		if($countListSentPhone > 0) {
+			$countTotalPhone = $countListSentPhone + count($listSentFailedPhone);
+			$message = "[INFO] 📲 Đã gửi tin CSKH Zalo (Booking tham khảo) cho {$countListSentPhone}/{$countTotalPhone} số";
 			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
 			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
 			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';

@@ -573,7 +573,7 @@ class APIZaloOA {
      * @param bool $is_dev_mode
      * @return string json
      */
-    public function send_template_message_by_phone($phone, $template_id, $template_data, $is_hashphone = false, $is_dev_mode = false) {
+    public function send_template_message_by_phone($phone, $template_id, $template_data, $is_hashphone = true, $is_dev_mode = false) {
         $url = "https://business.openapi.zalo.me/message/template";
         if($is_hashphone) $url = "https://business.openapi.zalo.me/message/template/hashphone";
 
