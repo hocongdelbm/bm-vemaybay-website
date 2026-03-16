@@ -88,7 +88,6 @@ $entry_point_registry = array(
 	'entryPointEC_Payment_Voucher'          => array('file' => 'custom/entrypoints/epEC_Payment_Voucher.php', 'auth' => true),
     'entryPointEC_HoaDonBan'                => array('file' => 'custom/entrypoints/epEC_HoaDonBan.php', 'auth' => true),
 
-    'entryPointMyCheckContactInfo'          => array('file' => 'custom/entrypoints/epCheckContactInfo.php', 'auth' => true),
     'entryPointCheckCallsHistory'           => array('file' => 'custom/entrypoints/epCheckCallsHistory.php', 'auth' => true),
     'entryPointStatisticsCall'              => array('file' => 'custom/entrypoints/epStatisticsCall.php', 'auth' => true),
     
@@ -122,9 +121,6 @@ $entry_point_registry = array(
     // AUTOCALL
     'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
 
-    // TEST
-    'entryPointTest'         => array('file' => 'custom/entrypoints/epTest.php', 'auth' => true),
-
     // CUSTOM BY DATLNT
     'entryPointSummarySite' => ['file' => 'custom/entrypoints/ep_Summary_sites.php', 'auth' => true],
 
@@ -132,5 +128,8 @@ $entry_point_registry = array(
     'entryPointGeneralNA' => ['file' => 'custom/entrypoints/entryGeneralNonAuth.php', 'auth' => false],
     'entryPointGeneral' => ['file' => 'custom/entrypoints/entryGeneral.php', 'auth' => true],
     'entryTelegramWebhook' => ['file' => 'custom/entrypoints/entryTelegramWebhook.php', 'auth' => false],
+
+    // Misa Callback
+    'entryPointMisaCallback' => ['file' => 'custom/entrypoints/entryMisaCallback.php', 'auth' => false],
 
 );

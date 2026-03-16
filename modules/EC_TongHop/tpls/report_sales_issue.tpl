@@ -193,6 +193,8 @@
 
 {if $DATA2 != ''}
 <h1 class="title my-3">Booking chưa xuất vé</h1>
+<p class="alert alert-info text-dark fw-semibold">Lưu ý: Booking ở tình trạng <span class="fw-semibold" style="color:#26A86A">Xác nhận</span> hoặc <span class="fw-semibold" style="color:#CF822E">Xuất vé</span> <strong>CHƯA</strong> được ghi nhận doanh số theo ngày xuất vé. Vui lòng hoàn tất booking!</p>
+
 <div class="box-section">
     <table id="tbl-chuaxuatve" class="table-chuaxuatve table-details__booking" border="0" cellpadding="0" cellspacing="0">
         <thead>

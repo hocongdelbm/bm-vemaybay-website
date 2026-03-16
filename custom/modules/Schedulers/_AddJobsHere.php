@@ -8,7 +8,6 @@ $job_strings[] = 'KetChuyenCongNoPhaiThu'; // kết chuyển công nợ phải t
 $job_strings[] = 'KetChuyenCongNoPhaiTra'; // kết chuyển công nợ phải trả vào đầu mỗi năm
 
 $job_strings[] = 'createMonthSalary'; // Đầu mỗi tháng tạo 1 bảng lương
-$job_strings[] = 'updateSales'; // cập nhật thưởng doanh số trong bảng lương
 $job_strings[] = 'updateEfforts'; // cập nhật nỗ lực trong bảng lương
 $job_strings[] = 'lockSalaryAtEndMonth'; // khoá bảng lương vào cuối mỗi tháng 
 $job_strings[] = 'updateWorkingDays'; // cập nhật ngày công trong bảng lương
@@ -23,7 +22,7 @@ $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu g�
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
-$job_strings[] = 'sendPromotionMessageZalo'; // Gửi tin nhắn khuyến mãi ZALO đồng loạt
+$job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Gửi tin tự động về giá vé rẻ qua ZBS template Zalo
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 
@@ -1074,378 +1073,6 @@ function createMonthSalary()
 	return true;
 }
 
-/* Cập nhật thưởng doanh số nhân viên
- * Chỉ có khi doanh số công ty trong tháng > 80% của target
- */
-function updateSales()
-{
-	global $db;
-
-	$from_date 	= date('Y-m-01');
-	$to_date 		= date('Y-m-d', strtotime('-1 day'));
-
-	if (date('j') == 1) {
-		$from_date = date('Y-m-01', strtotime('-1 month'));
-		$to_date = date('Y-m-t', strtotime('-1 month'));
-	}
-
-	// lấy target của công ty trong tháng
-	$sql_target_com = '
-		SELECT target_month' . date('n', strtotime($from_date)) . ' 
-		FROM ec_targets 
-		WHERE deleted = 0 AND status = 2 
-		AND year = "' . date('Y', strtotime($from_date)) . '" 
-		AND target_type = 0';
-
-	$target_month = (int)$db->getOne($sql_target_com);
-
-	// tổng doanh số công ty
-	$sql_total_sales = '
-		SELECT (SUM(t.doanhso) 
-				- SUM(t.luggage_purchase_price))  AS doanhso 
-		FROM (
-			SELECT 	bk.assigned_user_id AS user_id,
-				bk.id, bk.id AS voucher_id,
-				COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
-				SUM( dt.quantity ) AS total_qty,
-				SUM( bk.total_amount ) / COUNT( dt.id ) - SUM(
-				IFNULL( dt.total_bought_price, 0 )) - IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE deleted=0 AND booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5"), 0) AS doanhso,
-				(
-					SELECT SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
-					FROM ec_booking_passengers 
-					WHERE deleted = 0 
-					AND booking_id = bk.id 
-					AND add_type IS NULL
-				) AS luggage_purchase_price 
-			FROM
-				ec_flight_bookings bk
-				LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id 
-				AND dt.deleted = 0 
-			WHERE
-				bk.deleted = 0 
-				AND bk.booking_status = 8 
-				AND bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY
-				bk.assigned_user_id,
-				bk.id 
-
-			-- hoanve
-			UNION
-			SELECT
-				bk.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				- COUNT( cthv.id ) AS total_qty,
-				IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-			GROUP BY hv.id
-
-			-- hoanve > 0
-			UNION
-			SELECT
-				hv.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( cthv.phidichvu, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY hv.id
-			HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
-
-			-- phieu thu hanh ly, doi ngay bay, doi ten
-			UNION
-			SELECT
-				t.assigned_user_id AS user_id,
-				bk.id, t.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
-				- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_receipt_voucher t
-				LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				t.deleted = 0 
-				AND t.rv_status = 1 
-				AND t.loai_thu IN ( 4, 5 ) 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY t.id
-		) AS t';
-	$total_sales = $db->getOne($sql_total_sales);
-
-	if (!empty($target_month) && $total_sales > 0.8 * $target_month) {
-		// mức thưởng doanh số
-		$sql_rate_bonus = '
-			SELECT * FROM ec_commission 
-			WHERE deleted = 0 AND DATE_FORMAT(date_entered, "%Y-%m-%d") = ( 
-				SELECT DATE_FORMAT(date_entered, "%Y-%m-%d") FROM ec_commission 
-				WHERE deleted = 0 AND CONCAT(year, "-", month, "-01") <= "' . date('Y-n-01') . '"
-				ORDER BY date_entered DESC
-				LIMIT 1
-			)';
-		$res_rate_bonus = $db->query($sql_rate_bonus);
-		$m = 0;
-		while ($row_rate_bonus = $db->fetchByAssoc($res_rate_bonus)) {
-			$rate['from_value'][] = $row_rate_bonus['from_value'];
-			$rate['to_value'][] = $row_rate_bonus['to_value'];
-			$rate['percentage'][] = $row_rate_bonus['percentage'];
-			// lấy doanh số tối thiểu
-			if ($m == 0) {
-				$min_rate = $row_rate_bonus['from_value'];
-			}
-			$m++;
-		}
-	}
-	// ds thưởng = tổng doanh số - doanh số của những booking cú đêm
-	// nếu ds công ty đạt 100% thì xét thưởng
-	// nếu ds công ty từ 80% mà không đạt ds tối thiểu thì trừ lương
-	$sql = '
-		SELECT 
-			  t.user_id, CONCAT(u.last_name, " ", IFNULL( u.first_name, "" )) AS full_name
-			, u.title AS user_title
-			, SUM(t.total_bk) AS total_bk
-			, SUM(t.total_qty) AS ticket_qty
-			, (SUM(t.doanhso) - SUM(t.luggage_purchase_price) - s.profit_overnight)  AS doanhso 
-		FROM (
-			SELECT 	
-				bk.assigned_user_id AS user_id,
-				bk.id, bk.id AS voucher_id,
-				COUNT( bk.id ) / COUNT( dt.id ) AS total_bk,
-				SUM( dt.quantity ) AS total_qty,
-				SUM( bk.total_amount ) / COUNT( dt.id ) - SUM(
-				IFNULL( dt.total_bought_price, 0 )) - IFNULL((SELECT SUM(amount) FROM ec_payment_voucher WHERE deleted=0 AND booking_id=bk.id AND pv_status="3" AND ec_payment_types_id_c="3f9f8060-1866-2b2e-8322-52e36b8f58d5"), 0) AS doanhso,
-				(
-					SELECT SUM(IF(luggage_price > 0, IFNULL( luggage_purchase, 0 ), 0) + IF(luggage_price_inbound > 0, IFNULL( luggage_purchase_inbound, 0 ), 0)) 
-					FROM ec_booking_passengers 
-					WHERE
-						deleted = 0 
-						AND booking_id = bk.id 
-						AND add_type IS NULL
-				) AS luggage_purchase_price 
-			FROM
-				ec_flight_bookings bk
-				LEFT JOIN ec_booking_details dt ON dt.booking_id = bk.id 
-				AND dt.deleted = 0 
-			WHERE
-				bk.deleted = 0 
-				AND bk.booking_status = 8 
-				AND bk.date_ticket_issue >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND bk.date_ticket_issue <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY
-				bk.id 
-
-			-- hoanve
-			UNION
-			SELECT
-				bk.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				- COUNT( cthv.id ) AS total_qty,
-				IF(SUM(IFNULL( cthv.phidichvu, 0 )) > 0, 0, SUM(IFNULL( cthv.phidichvu, 0 ))) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '"
-			GROUP BY hv.id
-
-			-- hoanve > 0
-			UNION
-			SELECT
-				hv.assigned_user_id AS user_id,
-				bk.id, hv.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( cthv.phidichvu, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_chitiethoanve cthv
-				LEFT JOIN ec_hoanve hv ON hv.id = cthv.hoanve_id 
-				AND hv.deleted = 0
-				LEFT JOIN ec_flight_bookings bk ON bk.id = hv.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				cthv.deleted = 0 
-				AND hv.tinhtrang = 1 
-				AND hv.ngayhachtoan >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND hv.ngayhachtoan <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY hv.id
-			HAVING SUM(IFNULL( cthv.phidichvu, 0 )) > 0
-
-			-- phieu thu hanh ly, doi ngay bay, doi ten
-			UNION
-			SELECT
-				t.assigned_user_id AS user_id,
-				bk.id, t.id AS voucher_id,
-				0 AS total_bk,
-				0 AS total_qty,
-				SUM(IFNULL( t.sell_amount, 0 ) + IFNULL( t.sell_amount2, 0 ) + IFNULL( t.sell_amount3, 0 )) 
-				- SUM(IFNULL( t.bought_amount, 0 ) + IFNULL( t.bought_amount2, 0 ) + IFNULL( t.bought_amount3, 0 )) AS doanhso,
-				0 AS luggage_purchase_price 
-			FROM
-				ec_receipt_voucher t
-				LEFT JOIN ec_flight_bookings bk ON bk.id = t.booking_id 
-				AND bk.deleted = 0 
-			WHERE
-				t.deleted = 0 
-				AND t.rv_status IN ( 1, 2 )
-				AND t.loai_thu IN ( 4, 5 )
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") >= "' . date('Y-m-d', strtotime($from_date)) . '" 
-				AND DATE_FORMAT(DATE_ADD(t.ngayhachtoan, INTERVAL 7 HOUR), "%Y-%m-%d") <= "' . date('Y-m-d', strtotime($to_date)) . '" 
-			GROUP BY t.id
-		) AS t
-		LEFT JOIN users u ON u.id = t.user_id
-		LEFT JOIN ec_employee_salary s ON s.assigned_user_id = t.user_id
-		AND s.month = ' . date('n', strtotime($from_date)) . ' 
-		AND s.year = ' . date('Y', strtotime($from_date)) . ' AND s.deleted = 0
-		GROUP BY t.user_id
-		ORDER BY doanhso DESC';
-
-	$res = $db->query($sql);
-	$bonus_indirect = 0;
-	$not_enough = 0;
-	while ($row = $db->fetchByAssoc($res)) {
-		$bonus = $backup_fund = 0;
-		// nếu ds công ty đạt 100% thì xét thưởng
-		if (!empty($target_month) && $total_sales >= $target_month) {
-			// đối với booker
-			if (trim($row['user_title']) == 'Booker') {
-				// trên mức doanh số tối thiểu
-				if ($row['doanhso'] > $min_rate) {
-					for ($i = 0; $i < count($rate['from_value']); $i++) {
-						if ($row['doanhso'] > $rate['from_value'][$i] && $row['doanhso'] <= $rate['to_value'][$i]) {
-							// doanh số cho booker là 90% bonus
-							$bonus = 0.8 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-
-							// doanh số cho khối gián tiếp là 30% bonus
-							$bonus_indirect += 0.3 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-
-							// chia cho quỹ dự phòng
-							$backup_fund = 0.1 * ($row['doanhso'] - $rate['from_value'][0]) * $rate['percentage'][$i] / 100;
-						}
-					}
-
-					// cập nhật thưởng doanh số cho từng người
-					$sql2 = '
-						UPDATE ec_employee_salary 
-						SET sales = ' . $bonus . '
-						  , backup_fund = ' . $backup_fund . '
-						WHERE deleted = 0
-						AND assigned_user_id = "' . $row['user_id'] . '" 
-						AND month = "' . date('n', strtotime($from_date)) . '" 
-						AND year = "' . date('Y', strtotime($from_date)) . '"
-						AND is_approved = 0';
-					$db->query($sql2);
-				} else { // dưới mức ds tối thiểu trừ thu nhập
-					// kiểm tra nếu có rồi thì xoá
-					$sql_d = '
-						DELETE FROM ec_salary_details 
-						WHERE deleted = 0 AND type = "minus" 
-						AND assigned_user_id = "' . $row['user_id'] . '"
-						AND voucher_date = "' . $from_date . '"
-						AND reason = "KhongDatDSToiThieu"';
-					$db->query($sql_d);
-					if ($row['doanhso'] > 0) {
-						$sql_s = '
-							SELECT basic_salary, efficient_wage 
-							FROM ec_employee_salary
-							WHERE deleted = 0
-							AND assigned_user_id = "' . $row['user_id'] . '"
-							AND month = "' . date('n', strtotime($from_date)) . '" 
-							AND year = "' . date('Y', strtotime($from_date)) . '"';
-						$res_s = $db->query($sql_s);
-						$row_s = $db->fetchByAssoc($res_s);
-						$minus_tn = new EC_Salary_Details;
-						$minus_tn->name = $row['full_name'];
-						$minus_tn->description = 'Không đạt doanh số tối thiểu: ' . $min_rate;
-						$minus_tn->assigned_user_id = $row['user_id'];
-						$minus_tn->reason = 'KhongDatDSToiThieu';
-						$minus_tn->minus_amount = ($row_s['basic_salary'] + $row_s['efficient_wage']) - round(($row_s['basic_salary'] + $row_s['efficient_wage']) * $row['doanhso'] / $min_rate);
-						$minus_tn->type = 'minus';
-						$minus_tn->voucher_date = date('d-m-Y', strtotime($from_date));
-						$minus_tn->save();
-					}
-				}
-			}
-		} else {
-			$not_enough = 1;
-			break;
-		}
-	}
-
-	if ($bonus_indirect > 0) {
-		$sql3 = '
-			SELECT COUNT(*) FROM users 
-			WHERE deleted = 0 AND title IN (
-			"KeToan", "Leader"
-			) AND status = "Active" 
-			AND start_working_date IS NOT NULL
-			AND employee_type <> 3';
-		$indirect_ppl = $db->getOne($sql3);
-
-		($indirect_ppl == 0) ? $indirect_ppl = 1 : $indirect_ppl;
-
-		$sql_udt = '
-			UPDATE ec_employee_salary s 
-			INNER JOIN users u ON u.id = s.assigned_user_id
-			SET s.sales = ' . round($bonus_indirect / $indirect_ppl) . '
-			WHERE s.deleted = 0 AND u.deleted = 0 AND u.title IN (
-				"Leader", "KeToan"
-			) AND s.month = "' . date('m', strtotime($from_date)) . '" 
-			AND s.year = "' . date('Y', strtotime($from_date)) . '" 
-			AND u.status = "Active"
-			AND u.start_working_date IS NOT NULL
-			AND u.employee_type <> 3
-			AND s.is_approved = 0
-			AND s.deleted = 0';
-		$db->query($sql_udt);
-	}
-
-	// nếu ds công ty không đạt 100% thì không có thưởng
-	if ($not_enough) {
-		$sql2 = '
-			UPDATE ec_employee_salary SET sales = 0 WHERE deleted = 0 
-			AND month = "' . date('m', strtotime($from_date)) . '" 
-			AND year = "' . date('Y', strtotime($from_date)) . '"';
-		$db->query($sql2);
-	}
-
-	return true;
-}
-
 /* 
 	* ----------------------------------------------
 	* ----------------------------------------------
@@ -2311,28 +1938,227 @@ function calculateCashFlow()
 	return true;
 }
 
-function sendPromotionMessageZalo()
-{
-	$entry = new entryFactory();
-	$obj  = $entry->create('entryZaloMessageClass');
-	$json = $obj->sendTicketPricesLunarNewYear2026(['number' => 250]);
-	$arr  = json_decode($json, true);
-	if (isset($arr['status']) && $arr['status'] == 1) {
-		global $sugar_config;
-		preg_match_all('/\d+/', $arr['message'] ?? '', $matches);
-		$count = (int)($matches[0][0] ?? 0);
-		if ($count > 0) {
-			$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
-			$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
-			Telegram::sendMessage("⚙️ Hệ thống đã gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> đến {$count} người dùng quan tâm", $botToken, $chatId);
-		}
-	} else {
-		$botToken = $sugar_config['telegram']['zalo']['bot_token'] ?? '';
-		$chatId   = $sugar_config['telegram']['zalo']['chat_id'] ?? '';
-		$message  = "🔴 Hệ thống gửi tin truyền thông <b>Giá vé máy bay Tết 2026</b> chưa thành công";
-		if (isset($arr['message']) && !empty($arr['message'])) $message .= "\n<i>" . $arr['message'] . "</i>";
-		Telegram::sendMessage($message, $botToken, $chatId);
-	}
+/**
+ * Gửi tin nhắn tự động về giá vé rẻ qua ZBS template Zalo
+ */
+function sendAutoCheapPriceMessageZalo() {
+	global $db, $timedate, $sugar_config;
+	try {
+		$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+		$utcTimestamp       = strtotime($utcDate);
+		$vietnameseTime 	= ($utcTimestamp + 7*3600) * 1000;
+		$date 				= date('Y-m-d', $utcTimestamp);
+		$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
+		$dayBeforeYesterday = date('Y-m-d', strtotime('-2 day', $utcTimestamp));
 
-	return true;
+		// Init entry
+		$entry = new entryFactory();
+		$entryOA = $entry->create('entryZaloOAClass');
+		$entryFS = $entry->create('entryFareSystemClass');
+
+		/**
+		 * Lấy những booking tham khảo hôm qua
+		 * Chưa xắt được tiền của khách
+		 * Chưa gửi ZBS giá rẻ trong 4 tiếng hiện tại
+		 * Chưa đạt mốc gửi ZBS giá rẻ 2 lần trong ngày hiện tại
+		 * Chưa có phản hồi của khách từ sau tin ZBS gần nhất
+		 */
+		$sql = "SELECT bk.id AS booking_id
+				,bk.name AS booking_name
+				,bk.phone
+				,iti.departure AS dep_code
+				,iti.arrival AS des_code
+				,iti.departure_date
+				,(
+					SELECT GROUP_CONCAT(CONCAT(zm.date_entered, ',', zm.timestamp) SEPARATOR ';')
+					FROM ec_zalo_messages zm
+					WHERE zm.to_id = bk.phone
+						AND zm.type = 'zbs'
+						AND zm.sub_type = 'cheap-flight'
+						AND zm.date_entered BETWEEN '$yesterday 17:00:00' AND '$date 16:59:59'
+						AND zm.deleted = 0
+					ORDER BY zm.date_entered DESC
+				) AS list_message
+			FROM ec_flight_bookings bk
+				LEFT JOIN ec_booking_itineraries iti ON iti.booking_id = bk.id AND iti.direction = '0' AND iti.deleted = 0
+			WHERE UPPER(bk.contact_name) = 'THAM KHAO'
+				AND bk.total_amount = 0
+				AND bk.date_entered BETWEEN '$dayBeforeYesterday 17:00:00' AND '$yesterday 16:59:59'
+				AND bk.booking_status NOT IN ('1', '3', '4', '7', '8')
+				AND bk.deleted = 0
+				AND NOT EXISTS (
+					SELECT 1
+					FROM ec_flight_bookings bk2
+					WHERE bk2.phone = bk.phone
+						AND bk2.id != bk.id
+						AND bk2.date_entered > bk.date_entered
+						AND bk2.booking_status IN ('3', '7', '8')
+						AND bk2.total_amount > 0
+						AND bk2.deleted = 0
+				)
+				AND NOT EXISTS (
+					SELECT 1
+					FROM ec_zalo_messages zm
+					WHERE zm.to_id = bk.phone
+						AND zm.type = 'zbs'
+						AND zm.sub_type = 'cheap-flight'
+						AND zm.timestamp > $vietnameseTime - 4*3600*1000
+						AND zm.deleted = 0
+				)";
+
+		// Cache vars
+		$listFlightSearch = [];
+		$listSentFailedPhone = [];
+		$listSentPhone = [];
+			
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$phone = $row['phone'] ?? '';
+			$list_message = !empty($row['list_message']) ? explode(';', $row['list_message']) : [];
+
+			if(empty($phone) || in_array($phone, $listSentPhone) || in_array($phone, $listSentFailedPhone)) continue;
+			if(count($list_message) >= 2) continue;
+
+			$is_send = true;
+			if(count($list_message) > 0) {
+				$first_element_message = explode(',', $list_message[0]);
+				$first_element_message_datetime  = $first_element_message[0];
+				// $first_element_message_timestamp = $first_element_message[1];
+
+				$sql2 = "SELECT COUNT(*)
+					FROM ec_zalo_messages zm
+						LEFT JOIN ec_zalo_contacts zc ON zc.zalo_id = zm.from_id AND zc.deleted = 0
+						LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
+					WHERE c.mobile_phone = '{$phone}'
+						AND zm.type = 'consultation'
+						AND zm.date_entered >= '$first_element_message_datetime'
+						AND zm.deleted = 0";
+
+				$count_reply = $db->getOne($sql2) ?? 0;
+				if($count_reply > 0) $is_send = false;
+			}
+			
+			if($is_send) {
+				$booking_id = $row['booking_id'];
+				$booking_name = $row['booking_name'] ?? '';
+				$dep_code = $row['dep_code'] ?? '';
+				$des_code = $row['des_code'] ?? '';
+				$departure_date = $row['departure_date'] ?? '';
+
+				if (empty($departure_date) || empty($dep_code) || empty($des_code) || empty($booking_name)) continue;
+
+				$departure_month = date('m', strtotime($departure_date));
+				$departure_year = date('Y', strtotime($departure_date));
+				
+				$depInfo = Flight::getAirport($dep_code);
+				$desInfo = Flight::getAirport($des_code);
+
+				// Get cheap price (cache)
+				$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
+				if(!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
+					$temp = $entryFS->getMinPriceInMonth([
+						"depCode" => $dep_code,
+						"desCode" => $des_code,
+						"month" => $departure_month,
+						"year" => $departure_year,
+					]);
+					$priceData = json_decode($temp, true);
+					$priceData = $priceData['data']['prices'] ?? [];
+					$listFlightSearch[$cacheKey] = $priceData;
+				}
+				else {
+					$priceData = $listFlightSearch[$cacheKey];
+				}
+
+				if(is_array($priceData) && !empty($priceData)) {
+					$minPrice = min(array_column($priceData, 'price'));
+					$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
+					if (count($cheapestDays) > 1) {
+						$input = DateTime::createFromFormat('Y-m-d', $departure_date);
+
+						if ($input !== false) {
+							usort($cheapestDays, function ($a, $b) use ($input) {
+								$partsA = explode('-', $a['date']); // ['14', '3']
+								$partsB = explode('-', $b['date']); // ['15', '3']
+
+								$dateA = DateTime::createFromFormat('d-n', $a['date']); // 'n' = month without leading zero
+								$dateB = DateTime::createFromFormat('d-n', $b['date']);
+
+								if ($dateA === false || $dateB === false) return 0;
+
+								$dateA->setDate((int)$input->format('Y'), (int)$partsA[1], (int)$partsA[0]);
+								$dateB->setDate((int)$input->format('Y'), (int)$partsB[1], (int)$partsB[0]);
+
+								return abs($input->diff($dateA)->days) <=> abs($input->diff($dateB)->days);
+							});
+						}
+
+						$cheapestDays = array_slice(array_values($cheapestDays), 0, 6);
+					}
+
+					$listDate = implode(', ', array_map(function ($item) {
+						[$day, $month] = explode('-', $item['date']);
+						return str_pad($day, 2, '0', STR_PAD_LEFT) . '/' . str_pad($month, 2, '0', STR_PAD_LEFT);
+					}, $cheapestDays));
+
+					if($minPrice > 0 && !empty($listDate)) {
+						$params = [
+							"phoneNumber" => $phone,
+							"type" => "cheap-flight",
+							"parentId" => $booking_id,
+							"parentType" => "EC_Flight_Bookings",
+							"templateData" => [
+								"customer_name" => "bạn",
+								"code" => $booking_name,
+								"ticket_price" => $minPrice,
+								"city_pair" => trim("{$depInfo['CityName']} ($dep_code) đi {$desInfo['CityName']} ($des_code)"),
+								"list_departure_date" => $listDate,
+							],
+						];
+						$sendResult = $entryOA->sendTemplateMessage($params);
+			
+						if (isset($sendResult['status']) && $sendResult['status'] == 1) $listSentPhone[] = $phone;
+						else $listSentFailedPhone[] = $phone;
+
+						$GLOBALS['log']->fatal("Check sent auto message Zalo ZBS (cheap-price): " .
+							json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+						);
+					}
+				}
+			}
+		}
+			
+		// Send info to notification channel
+		if(count($listSentPhone) > 0) {
+			$message = "[INFO] 📲 Đã gửi tin CSKH Zalo (Booking tham khảo) cho " . count($listSentPhone) . " số";
+			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+		}
+		else {
+			$message = "[INFO] Please check suitecrm log";
+			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+		}
+	}
+	catch(Throwable $th) {
+		$exceptionMessage = "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		if($sugar_config['notification_channel'] == 'Mattermost') {
+			$message = Mattermost::$line_separation;
+			$message .= Mattermost::markdownHeading("[ERROR] Auto send ZBS cheap price failed");
+			$message .= "\n$exceptionMessage\n";
+			Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs']  ?? '', $message);
+		}
+		else {
+			$message = "<b>[ERROR] Auto send ZBS cheap price failed</b>";
+			$message .= "\n$exceptionMessage";
+			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
+			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
+			$threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
+			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+		}
+	}
 }

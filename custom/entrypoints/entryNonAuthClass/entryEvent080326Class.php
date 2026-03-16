@@ -17,7 +17,7 @@ class entryEvent080326Class extends entryClass
         global $db;
 
         $start_date = '2026-03-01';
-        $end_date = '2026-03-08';
+        $end_date = '2026-03-07';
 
         $sql = "
             SELECT b.id, b.name, b.phone, b.contact_name, b.date_entered

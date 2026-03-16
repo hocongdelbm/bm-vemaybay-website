@@ -9,7 +9,7 @@ class entryZaloOAClass extends entryClass {
     /**
      * Get zalo user info
      * 
-     * @param array $params
+     * @param array $params ['oa_id', 'zalo_id']
      * @return array
      */
     public function getUserInfo($params = []) {

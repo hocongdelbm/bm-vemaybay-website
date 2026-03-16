@@ -41,5 +41,8 @@ $mod_strings = array (
   'LBL_REFRESH_TOKEN' => 'Refresh token',
   'LBL_EXPIRES_AT' => 'Expires at',
   'LBL_OA_ID' => 'OA id',
-  'LBL_OA_NAME' => 'OA name',
+  'LBL_OA_NAME' => 'OA',
+  'LBL_SECRET_KEY' => 'Secret key',
+  'LBL_CODE_VERIFIER' => 'Code verifier',
+  'LBL_CODE_CHALLENGE' => 'Code challenge',
 );

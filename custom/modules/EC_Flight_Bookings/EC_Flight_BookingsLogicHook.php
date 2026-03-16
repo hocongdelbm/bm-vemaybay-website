@@ -53,9 +53,6 @@ class EC_Flight_BookingsLogicHook
 			// delete working process
 			myRemoveWorkingProcess($focus->module_dir, $focus->id);
 		}
-
-		// Xoá khỏi bảng completed booking
-		$this->clearCompletedBK($focus->id);
 	}
 
 	function checkBeforeSave($focus, $event, $arguments)
@@ -230,17 +227,6 @@ class EC_Flight_BookingsLogicHook
 			// $alert 		= new Alert();
 			// $alertId 	= $alert->autoCreateAlert('EC_Flight_Bookings', $list_user, $alertData);
 		}
-	}
-
-	function clearCompletedBK($booking_id)
-	{
-		global $db;
-		$sql2 = '
-			UPDATE ec_completed_bookings
-			SET deleted = 1
-			WHERE ec_flight_bookings_id_c = "' . $booking_id . '"
-		';
-		$db->query($sql2);
 	}
 
 	// Booking mới tạo thì tự động giao cho theo công thức

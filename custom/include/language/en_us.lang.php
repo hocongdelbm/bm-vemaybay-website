@@ -83,23 +83,6 @@ $GLOBALS['app_list_strings']['booking_ticket_type_list'] = array(
   3 => 'Vé Tết',
 );
 
-$GLOBALS['app_list_strings']['vmb_gender_list'] = array(
-  '' => '',
-  'm' => 'Male',
-  'f' => 'Female',
-  'u' => 'Not specified',
-);
-
-$GLOBALS['app_list_strings']['world_region_list'] = array(
-  '' => '',
-  0 => 'South East Asia',
-  1 => 'North East Asia',
-  2 => 'Europe',
-  3 => 'America',
-  4 => 'Australia',
-  5 => 'Africa',
-);
-
 $GLOBALS['app_list_strings']['bk_holding_status_list'] = array(
   '' => '',
   0 => 'Đã giữ chỗ OK',
@@ -126,14 +109,6 @@ $GLOBALS['app_list_strings']['payment_method_list'] = array(
   '' => '',
 );
 
-$GLOBALS['app_list_strings']['payment_status_list'] = array(
-  0 => 'Invalid payment',
-  1 => 'Canceled payment',
-  2 => 'Approved',
-  3 => 'Pending',
-  '' => '',
-);
-
 $GLOBALS['app_list_strings']['bk_flight_type_list'] = array(
   0 => 'One way',
   1 => 'Round trip',
@@ -149,12 +124,6 @@ $GLOBALS['app_list_strings']['request_type_list'] = array(
   1 => 'Yêu cầu từ trang liên hệ',
   3 => 'Yêu cầu đặt vé',
   4 => 'Góp ý website',
-);
-$GLOBALS['app_list_strings']['debt_status_list'] = array(
-  'New' => 'Mới khởi tạo',
-  'Processing' => 'Đang chi / thu',
-  'Completed' => 'Hoàn tất',
-  'Timeout' => 'Quá hạn',
 );
 
 $GLOBALS['app_list_strings']['tinhchat_list'] = array(
@@ -244,11 +213,6 @@ $GLOBALS['app_list_strings']['debt_type_list'] = array(
   'Return' => 'Hoàn vé',
 );
 
-$GLOBALS['app_list_strings']['booking_salutation_list'] = array(
-  0 => 'Ông',
-  1 => 'Bà',
-);
-
 $GLOBALS['app_list_strings']['tinhtranghoanve_list'] = array(
   0 => 'Đang hoàn',
   1 => 'Đã hoàn',
@@ -259,11 +223,6 @@ $GLOBALS['app_list_strings']['tinhtranghoanvecolor_list'] = array(
   0 => '#F95100',
   1 => '#000000',
   2 => '#000000',
-);
-
-$GLOBALS['app_list_strings']['compare_debt_excel_list'] = array(
-  'LLD' => 'B|C|D|E|F|G|L|5|950',
-  'HNH' => 'B|D||C|S|||13|20',
 );
 
 $GLOBALS['app_list_strings']['hinhthucthanhtoan_list'] = array(
@@ -324,17 +283,6 @@ $GLOBALS['app_list_strings']['discount_percent_list'] = array(
   10 => '10',
 );
 
-$GLOBALS['app_list_strings']['sabre_config_list'] = array(
-  'LVQ.LVQ4AFD' => '004121',
-  'LVQ.LVQ4AF6' => '004115',
-  'FDI.FDI4A93' => '004895',
-  'FDI.FDI4A92' => '004894',
-  '004121' => 'LVQ.LVQ4AFD',
-  '004115' => 'LVQ.LVQ4AF6',
-  '004895' => 'FDI.FDI4A93',
-  '004894' => 'FDI.FDI4A92',
-);
-
 $GLOBALS['app_list_strings']['account_type_dom'] = array(
   '' => '',
   'Customer' => 'Customer',
@@ -371,12 +319,6 @@ $GLOBALS['app_list_strings']['system_config_list'] = array(
   'telegram_bot_id' => 'bot916597623',
   'telegram_api_key' => 'AAEgekbD24bXgcMchGvvy13Aq1vubVrjh24',
   'telegram_chat_id' => '-343974810',
-);
-
-$GLOBALS['app_list_strings']['user_title_allow_full_report'] = array(
-  'admin' => 'Administrator',
-  'ketoan' => 'Accountant',
-  'quanly' => 'Manager',
 );
 
 $GLOBALS['app_list_strings']['location_list'] = array(
@@ -778,11 +720,6 @@ $GLOBALS['app_list_strings']['aircode_list'] = array(
   'AMK' => 'Air Mekong (AMK)',
 );
 
-$GLOBALS['app_list_strings']['completed_bk_type_list'] = array(
-  'EXP_BK' => 'Booking dùng tính điểm kinh nghiệm',
-  'EFFORT_BK' => 'Booking dùng để tính nỗ lực',
-);
-
 $GLOBALS['app_list_strings']['online_stt_list'] = array(
   0 => 'Offline',
   1 => 'Online',
@@ -1054,26 +991,6 @@ $GLOBALS['app_list_strings']['new_vietravelair_luggage_price_list2'] = array(
   400000 => 'Thêm 35kg hành lý (400.000 VND/Khách)',
   460000 => 'Thêm 40kg hành lý (460.000 VND/Khách)',
 );
-
-$app_strings['LBL_GROUPTAB3_1683858045'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB4_1683858045'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB3_1683858085'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB4_1683858085'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB1_1684119491'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB2_1684119540'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB3_1684119559'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB3_1684119585'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB3_1684119902'] = 'Nhóm mới';
-
-$app_strings['LBL_GROUPTAB1_1684121154'] = 'Nhóm mới';
 
 $app_list_strings['booking_status_list']=array (
   1 => 'InCompleted',

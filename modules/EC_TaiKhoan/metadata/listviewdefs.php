@@ -30,12 +30,6 @@ $listViewDefs[$module_name] = array(
         'width' => '10%',
         'default' => true,
     ),
-    'NHOMTAIKHOAN' => array(
-        'type' => 'varchar',
-        'label' => 'LBL_NHOMTAIKHOAN',
-        'width' => '10%',
-        'default' => true,
-    ),
     'TINHCHAT' => array(
         'type' => 'enum',
         'default' => true,

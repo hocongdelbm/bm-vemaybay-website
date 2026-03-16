@@ -63,6 +63,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$VIEWED_BOOKING}',
                 ),
                 array(
+                    'customCode' => '{$PRINT_TICKET_NEW}',
+                ),
+                array(
                     'customCode' => '{$PRINT_TICKET}',
                 ),
                 array(
@@ -87,6 +90,9 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
             array(
                 'file' => 'themes/SuiteP/js/reset.js',
+            ),
+            array(
+                'file' => 'modules/EC_Flight_Bookings/js/print_ticket_new.js',
             ),
         ),
     ),

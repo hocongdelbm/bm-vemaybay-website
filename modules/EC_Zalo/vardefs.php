@@ -91,15 +91,6 @@ $dictionary['EC_Zalo'] = array(
             'required' => false,
             'audited' => 1,
         ),
-        // 'api_oauth_info' => array(
-        //     'name' => 'api_oauth_info',
-        //     'vname' => 'LBL_API_OAUTH_INFO',
-        //     'type' => 'varchar',
-        //     'len' => 1024,
-        //     'comment' => 'Contain json string for OA API Oauth',
-        //     'required' => 0,
-        //     'audited' => 1,
-        // ),
         'quota_info' => array(
             'name' => 'quota_info',
             'vname' => 'LBL_QUOTA_INFO',

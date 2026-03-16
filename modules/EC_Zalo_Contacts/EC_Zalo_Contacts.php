@@ -64,6 +64,11 @@ class EC_Zalo_Contacts extends Basic
     public function custom_save($user_data, $oa_id = '', $description = '') {
         global $current_user;
 
+        // These properties depend on SuiteCRM version
+        $dateFormat = $current_user->date_format ?? 'd-m-Y';
+        $timeFormat = $current_user->time_format ?? 'H:i';
+        $timezone   = $current_user->timezone ?? 'Asia/Ho_Chi_Minh';
+
         $zalo_id = $user_data['user_id'] ?? '';
         if(empty($zalo_id)) return false;
 
@@ -81,7 +86,7 @@ class EC_Zalo_Contacts extends Basic
         $user_alias = $user_data['user_alias'] ?? '';
 
         // Last interaction
-        $last_interaction = $this->format_datetime($user_data['user_last_interaction_date'] ?? '', 'Y-m-d H:i:s');
+        $last_interaction = $this->format_datetime($user_data['user_last_interaction_date'] ?? '', "$dateFormat $timeFormat");
 
         // Phone
         $phone = $zaloOA->get_phone_by_alias($user_alias);
@@ -121,7 +126,7 @@ class EC_Zalo_Contacts extends Basic
         $zaloContact->name              = $user_data['display_name'] ?? '';
         $zaloContact->alias             = $user_alias;
         $zaloContact->avatar            = $user_data['avatar'] ?? '';
-        $zaloContact->last_interaction  = $last_interaction;
+        $zaloContact->last_interaction  = $last_interaction; // Save to DB is UTC timezone
         $zaloContact->is_follower       = (int)$user_data['user_is_follower'];
         $zaloContact->birth_date        = $shared_user_dob;
         $zaloContact->tags              = $tag_names;
@@ -280,9 +285,6 @@ class EC_Zalo_Contacts extends Basic
                 if($timestamp > 0) {
                     $last_interaction = date("Y-m-d H:i:s", $timestamp / 1000);
                 }
-                if(isset($arr_quota['data']['cs_reply']) && !empty($arr_quota['data']['cs_reply'])) {
-                    $quota_info['cs_reply'] = $arr_quota['data']['cs_reply'];
-                }
                 if(isset($arr_quota['data']['promotion']) && !empty($arr_quota['data']['promotion'])) {
                     $quota_info['promotion'] = $arr_quota['data']['promotion'];
                 }
@@ -294,7 +296,7 @@ class EC_Zalo_Contacts extends Basic
                         WHERE zalo_id = '{$zalo_id}' AND oa_id = '{$oa_id}' AND deleted = 0");
                 }
 
-                $userData['user_last_interaction_date'] =  $this->format_datetime($last_interaction);
+                $userData['user_last_interaction_date'] = $this->format_datetime($last_interaction);
                 $userData['quota'] = $quota_info;
             }
         }
@@ -679,13 +681,6 @@ class EC_Zalo_Contacts extends Basic
             $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
             Telegram::sendMessage("<b>[ERROR] Throwable in ".__FUNCTION__."()</b>\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}", $botToken, $chatId, $threadId);
         }
-    }
-
-    /**
-     * Init consultation quota for user
-     */
-    public function init_consultation_quota() {
-        return ["remain" => 8, "total" => 8];
     }
 	
     /**

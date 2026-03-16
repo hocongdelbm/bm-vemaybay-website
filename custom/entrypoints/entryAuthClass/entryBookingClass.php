@@ -60,9 +60,12 @@ class entryBookingClass extends entryClass
                 d.date_entered,
                 d.document_revision_id as revision_id,
                 d.category_id,
+                d.doc_url as doc_url,
+                dr.doc_url as revision_doc_url,
                 u.user_name as created_by
         FROM documents d
         LEFT JOIN users u ON d.created_by = u.id
+        LEFT JOIN document_revisions dr ON d.document_revision_id = dr.id
         WHERE d.booking_id = '" . $db->quote($booking_id) . "'
         AND d.deleted = 0
         ORDER BY d.date_entered DESC";
@@ -75,6 +78,10 @@ class entryBookingClass extends entryClass
             if (!empty($row['category_id']) && isset($app_list_strings['document_category_dom'][$row['category_id']])) {
                 $category = $app_list_strings['document_category_dom'][$row['category_id']];
             }
+            
+            // Use direct public share URL from doc_url (already has /download)
+            $previewUrl = !empty($row['revision_doc_url']) ? $row['revision_doc_url'] . '/preview' : (!empty($row['doc_url']) ? $row['doc_url'] . '/preview' : "");
+            
             $documents[] = [
                 'id' => $row['id'],
                 'document_name' => $row['document_name'],
@@ -83,7 +90,8 @@ class entryBookingClass extends entryClass
                         ->setTimezone(new DateTimeZone('Asia/Ho_Chi_Minh'))
                         ->format('d/m/Y H:i'),
                 'created_by_name' => $row['created_by'] ?: 'N/A',
-                'preview_image' => "index.php?entryPoint=entryPointGeneral&class=entryNextCloudPreviewClass&method=getPublicLinkOCS&id=" . $row['id'],
+                'preview_image' => $previewUrl,
+                'doc_url' => $row['doc_url'] ?? '', // Add doc_url for direct download
                 'revision_id' => $row['revision_id']
             ];
         }

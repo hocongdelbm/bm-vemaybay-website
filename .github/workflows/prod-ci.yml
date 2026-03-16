@@ -1,0 +1,31 @@
+name: SuiteCRM Prod CI/CD - BAK01
+
+on:
+  workflow_run:
+    workflows: ["SuiteCRM Dev CI/CD"]
+    types:
+      - completed
+    branches: 
+      - main
+      
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Debug
+      run: echo "Workflow triggered!"
+
+    - name: Deploy to Production via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.BAK01_SERVER_IP }}     
+        username: ${{ secrets.BAK01_USER }} 
+        key: ${{ secrets.BAK01_SSH_PRIVATE_KEY }}   
+        port: ${{ secrets.BAK01_SSH_PORT }}
+        script: |
+          cd ${{ secrets.BAK01_SERVER_PATH }}
+          git fetch origin
+          git checkout main
+          git pull origin main

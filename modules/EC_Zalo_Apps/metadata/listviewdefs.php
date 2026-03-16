@@ -5,17 +5,33 @@ if (!defined('sugarEntry') || !sugarEntry) {
 
 $module_name = 'EC_Zalo_Apps';
 $listViewDefs[$module_name] = array(
-    'NAME' => array(
-        'width' => '32',
-        'label' => 'LBL_NAME',
+    'ID' => array(
+        'width' => '10',
+        'label' => 'LBL_ID',
         'default' => true,
         'link' => true
     ),
-    'ASSIGNED_USER_NAME' => array(
+    'NAME' => array(
+        'width' => '16',
+        'label' => 'LBL_NAME',
+        'default' => true,
+        'link' => false,
+    ),
+    'OA_NAME' => array(
+        'width' => '16',
+        'label' => 'LBL_OA_NAME',
+        'default' => true,
+        'link' => true,
+    ),
+    'DESCRIPTION' => array(
+        'label' => 'LBL_DESCRIPTION',
+        'default' => true,
+    ),
+    'CREATE_BY_NAME' => array(
         'width' => '9',
-        'label' => 'LBL_ASSIGNED_TO_NAME',
+        'label' => 'LBL_CREATED_USER',
         'module' => 'Employees',
-        'id' => 'ASSIGNED_USER_ID',
+        'id' => 'CREATED_BY',
         'default' => true
     ),
 );

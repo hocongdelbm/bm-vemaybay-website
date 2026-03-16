@@ -1,7 +1,9 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-$mod_strings = array(
+global $sugar_config;
+
+$mod_strings = [
     // OOTB Scheduler Job Names:
     'LBL_OOTB_WORKFLOW' => 'Process Workflow Tasks',
     'LBL_OOTB_REPORTS' => 'Run Report Generation Scheduled Tasks',
@@ -121,6 +123,4 @@ $mod_strings = array(
 
     'LBL_SCHEDULER_TIMES' => 'Scheduler Times',
     'LBL_SYNCGOOGLECALENDAR' => 'Sync Google Calendars',
-);
-
-global $sugar_config;
+];

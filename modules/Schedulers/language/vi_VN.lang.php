@@ -129,7 +129,6 @@ $mod_strings = [
     'LBL_SCHEDULER_TIMES' => 'Thời gian biểu',
     'LBL_SYNCGOOGLECALENDAR' => 'Đồng bộ Lịch Google',
     'LBL_CREATEMONTHSALARY' => 'Tạo bảng lương đầu tháng',
-    'LBL_UPDATESALES' => 'Cập nhật cột doanh số trong bảng lương',
     'LBL_UPDATEEFFORTS' => 'Cập nhật cột nỗ lực trong bảng lương',
     'LBL_UPDATEWORKINGDAYS' => 'Cập nhật số ngày công trong bảng lương',
     'LBL_UPDATEMISSINGEFFORTS' => 'Cập nhật cột nỗ lực còn thiếu của tháng trước',
@@ -153,7 +152,7 @@ $mod_strings = [
     'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
     // AUTOCALL
     'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
-    'LBL_SENDPROMOTIONMESSAGEZALO' => 'Gửi tin nhắn khuyến mãi Zalo đồng loạt',
+    'LBL_SENDAUTOCHEAPPRICEMESSAGEZALO' => 'Gửi tin tự động về giá vé rẻ qua ZBS template Zalo',
 
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',

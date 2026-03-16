@@ -54,22 +54,6 @@ $dictionary['EC_TaiKhoan'] = array(
           'reportable' => 0,
           'len' => '10',
         ),
-        'nhomtaikhoan' =>
-        array(
-          'required' => '1',
-          'name' => 'nhomtaikhoan',
-          'vname' => 'LBL_NHOMTAIKHOAN',
-          'type' => 'varchar',
-          'massupdate' => 0,
-          'comments' => '',
-          'help' => '',
-          'importable' => 'true',
-          'duplicate_merge' => 'disabled',
-          'duplicate_merge_dom_value' => '',
-          'audited' => 1,
-          'reportable' => 0,
-          'len' => '10',
-        ),
         'tinhchat' =>
         array(
           'required' => '1',
