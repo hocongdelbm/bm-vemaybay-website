@@ -1178,10 +1178,10 @@ function markDetailRowDeleted(ln) {
 }
 
 function markPassengerRowDeleted2(ln) {
+	$(`#psg_deleted${ln}`).val(1);
 	$(`#psg_line_${ln}`).hide();
 	$(`#psg_baggage_line_outbound_${ln}`).hide();
 	$(`#psg_baggage_line_inbound_${ln}`).hide();
-	$(`#psg_deleted${ln}`).val(1);
 
 	var luggage_fee = unformatNumber($('#luggage_fee').val());
 	var luggage_price_outbound = unformatNumber($(`#psg_luggage_purchase${ln}`).val());
