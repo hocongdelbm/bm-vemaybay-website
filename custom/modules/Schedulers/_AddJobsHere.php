@@ -2155,14 +2155,13 @@ function sendAutoCheapPriceMessageZalo() {
 		$countListSentPhone = count($listSentPhone);
 		if($countListSentPhone > 0) {
 			$countTotalPhone = $countListSentPhone + count($listSentFailedPhone);
-			$message = "[INFO] 📲 Đã gửi tin CSKH Zalo (Booking tham khảo) cho {$countListSentPhone}/{$countTotalPhone} số";
-			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+			$message 	= "<b>⚙️Auto:</b> Đã gửi tin CSKH Zalo (Booking tham khảo) cho {$countListSentPhone}/{$countTotalPhone} số";
+			$botToken 	= $sugar_config['telegram']['zalo']['bot_token'] ?? '';
+			$chatId 	= $sugar_config['telegram']['zalo']['chat_id'] ?? '';
+			Telegram::sendMessage($message, $botToken, $chatId);
 		}
 		else {
-			$message = "[INFO] Please check suitecrm log";
+			$message = "[INFO] Please check suitecrm log <code>_AddJobsHere.php -> sendAutoCheapPriceMessageZalo()</code>";
 			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
 			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
 			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
