@@ -563,7 +563,7 @@ class EC_Zalo_Contacts extends Basic
     /**
      * Check zalo contact action
      * 
-     * @param string $act call, send_consultation, send_transaction, send_promotion
+     * @param string $act call, send_consultation, send_promotion
      * @param string $zalo_id
      * @param string $oa_id
      * 
@@ -596,7 +596,7 @@ class EC_Zalo_Contacts extends Basic
     /**
      * Check zalo contact action by available data
      * 
-     * @param string $act call, send_consultation, send_transaction, send_promotion
+     * @param string $act call, send_consultation, send_promotion
      * @param string $last_interaction Y-m-d H:i:s (Asia/Ho_Chi_Minh)
      * @param int $is_follower
      * 
@@ -612,7 +612,6 @@ class EC_Zalo_Contacts extends Basic
 
         if($act === 'call') return $day <= 30;
         elseif($act === 'send_consultation') return $day <= 7;
-        elseif($act === 'send_transaction') return $day <= 365;
         elseif($act === 'send_promotion') return $is_follower;
         return false;
     }

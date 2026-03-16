@@ -1,4 +1,7 @@
 <?php
+
+use PhpParser\Node\Stmt\Catch_;
+
 if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
 
@@ -427,6 +430,50 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                             // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
                         }
                     } 
+                }
+            }
+
+            /**********  3. Send ZBS message (after-call-sale)  **********/
+            if(!empty($booking_id)) {
+                try {
+                    /**
+                     * @var EC_Flight_Bookings $booking
+                     */
+                    $booking = new EC_Flight_Bookings();
+                    $booking->retrieve($booking_id);
+                    if(!empty($booking->id) && strtoupper(trim($booking->contact_name)) == 'THAM KHAO' && $booking->total_amount == 0) {
+                        $sqlItineraries = "SELECT departure AS dep_code, arrival AS des_code, departure_date
+                            FROM ec_booking_itineraries 
+                            WHERE booking_id = '{$booking_id}'
+                                AND direction = '0'
+                                AND deleted = 0";
+                        $resItineraries = $db->query($sqlItineraries);
+                        $rowItineraries = $db->fetchByAssoc($resItineraries);
+                            
+                        $dep_code = $rowItineraries['dep_code'] ?? '';
+                        $des_code = $rowItineraries['des_code'] ?? '';
+                        $departure_date = $rowItineraries['departure_date'] ?? '';
+
+                        if(!empty($dep_code) && !empty($des_code) && !empty($departure_date) && strtotime($departure_date) !== false) {
+                            $entry = new entryFactory();
+                            $entryOA = $entry->create('entryZaloOAClass');
+                            $params = [
+                                "phoneNumber" => $booking->phone,
+                                "type" => "after-call-sale",
+                                "parentId" => $booking_id,
+                                "parentType" => "EC_Flight_Bookings",
+                                "templateData" => [
+                                   "full_name" => "quý khách",
+                                   "flight_no" => "{$dep_code}-{$des_code}",
+                                   "datetime" => date('d/m/Y', strtotime($departure_date)),
+                                ],
+                            ];
+                            $entryOA->sendTemplateMessage($params);
+                        }
+                    }
+                }
+                catch(Throwable $th) {
+                    $GLOBALS['log']->fatal("Send ZBS message (after-call-sale) failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
                 }
             }
             

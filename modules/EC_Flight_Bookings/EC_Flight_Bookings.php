@@ -61,6 +61,9 @@ class EC_Flight_Bookings extends Basic
 	public $date_ticket_issue;
 	public $date_ticket_inbound_issue;
 	public $nganluong_info;
+	public $nganluong_code;
+	public $nganluong_datepaid;
+
 	public $ghichuthangthua;
 	public $delivery_man_id;
 	public $delivery_man;
