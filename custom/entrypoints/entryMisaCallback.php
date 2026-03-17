@@ -3,7 +3,6 @@
 // ============================================================
 // AMIS Kế toán - Callback Endpoint
 // ============================================================
-
 header('Content-Type: application/json');
 
 // ============================================================
@@ -43,14 +42,14 @@ $dataToVerify      = $payload['data'] ?? '';
 
 // MISA ký data bằng HMAC-SHA256 với key là app_id
 $expectedSignature = hash_hmac('sha256', $dataToVerify, APP_ID);
-// if (!hash_equals($expectedSignature, $receivedSignature)) {
-//     $payload['APP_ID_CONFIG'] = $APP_ID;
-//     logError($payload);
+if (!hash_equals($expectedSignature, $receivedSignature)) {
+    $payload['APP_ID_CONFIG'] = $APP_ID;
+    logError($payload);
 
-//     http_response_code(401);
-//     echo json_encode(['success' => false, 'error_message' => 'Invalid signature']);
-//     exit;
-// }
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error_message' => 'Invalid signature']);
+    exit;
+}
 
 // ============================================================
 // 3. Kiểm tra kết quả xử lý từ AMIS

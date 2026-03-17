@@ -74,7 +74,6 @@ $entry_point_registry = array(
 	// 'entryPointAutoBook'        => ['file' => 'custom/entrypoints/epAutoBook.php', 'auth' => true],
 	'entryPointSaveNote'        => ['file' => 'custom/entrypoints/epSaveNote.php', 'auth' => true],
     'entryPointCallContact'     => ['file' => 'custom/entrypoints/epCallContact.php', 'auth' => true],
-    'entryPointWinInvoice'      => ['file' => 'custom/entrypoints/epWinInvoice.php', 'auth' => true],
     'entryPointSMS'             => ['file' => 'custom/entrypoints/epSMS.php', 'auth' => true],
     'entryPointSaveResultSMS'   => ['file' => 'custom/entrypoints/epSaveResultSMS.php', 'auth' => false],
     'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),

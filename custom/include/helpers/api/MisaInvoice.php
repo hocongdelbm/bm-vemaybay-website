@@ -2,7 +2,7 @@
 
 class MisaInvoice
 {
-    private string $ENDPOINT   = 'https://actapp.misa.vn';
+    private string $BASE_URL;
     private string $APP_ID;
     private string $ACCESS_CODE;
     private string $ORG_COMPANY_CODE;
@@ -12,10 +12,12 @@ class MisaInvoice
     public function __construct()
     {
         global $sugar_config;
-        $this->APP_ID           = $sugar_config['misa']['app_id']           ?? '';
-        $this->ACCESS_CODE      = $sugar_config['misa']['access_code']      ?? '';
-        $this->ORG_COMPANY_CODE = $sugar_config['misa']['org_company_code'] ?? '';
-        $this->TOKEN_CACHE_FILE = 'json_files/misa/access_token.json';
+
+        $this->BASE_URL             = $sugar_config['misa']['base_url']         ?? '';
+        $this->APP_ID               = $sugar_config['misa']['app_id']           ?? '';
+        $this->ACCESS_CODE          = $sugar_config['misa']['access_code']      ?? '';
+        $this->ORG_COMPANY_CODE     = $sugar_config['misa']['company_code']     ?? '';
+        $this->TOKEN_CACHE_FILE     = 'custom/json_files/misa/access_token.json';
     }
 
     // ============================================================
@@ -47,8 +49,7 @@ class MisaInvoice
         int    $dataType,
         int    $skip         = 0,
         int    $take         = 1000,
-        ?string $lastSyncTime = null,
-        ?string $branchId     = null
+        ?string $lastSyncTime = null
     ): string {
         $token = $this->getAccessToken();
         if (!$token) {
@@ -61,7 +62,7 @@ class MisaInvoice
             'take'           => $take,
             'app_id'         => $this->APP_ID,
             'last_sync_time' => $lastSyncTime,
-            'branch_id'      => $branchId,
+            'branch_id'      => $this->getBranchId(),
         ];
 
         return $this->sendRequest(
@@ -72,6 +73,212 @@ class MisaInvoice
         );
     }
 
+    /**
+     * Lấy branch_id của tổng công ty (organization_unit_type_id = 1)
+     *
+     * @return string|null branch_id hoặc null nếu thất bại
+     */
+    public function getBranchId(): ?string
+    {
+        // Lấy branch từ config
+        global $sugar_config;
+        if ($sugar_config['misa']['branch_id']) {
+            return $sugar_config['misa']['branch_id'];
+        }
+
+        $raw = $this->getDictionary(6);
+        $arr = json_decode($raw, true);
+
+        if (empty($arr) || ($arr['error'] ?? 1) !== 0) {
+            LoggerHelper::error('MISA getBranchId: getDictionary(6) thất bại', $arr ?? []);
+            return null;
+        }
+
+        // Data là JSON string — decode thêm 1 lần
+        $data = $arr['data'] ?? [];
+        if (is_string($data)) {
+            $data = json_decode($data, true) ?? [];
+        }
+
+        if (empty($data)) {
+            LoggerHelper::error('MISA getBranchId: data rỗng');
+            return null;
+        }
+
+        // Ưu tiên lấy tổng công ty (type_id = 1)
+        // Nếu không tìm thấy thì lấy phần tử đầu tiên
+        foreach ($data as $unit) {
+            if (($unit['organization_unit_type_id'] ?? 0) === 1) {
+                return $unit['branch_id'];
+            }
+        }
+
+        // Fallback: lấy branch_id đầu tiên
+        return $data[0]['branch_id'] ?? null;
+    }
+
+    /**
+     * Tạo yêu cầu sinh chứng từ Bán hàng/Bán dịch vụ (sa_voucher)
+     * Kết quả thực tế trả về qua Callback URL (bất đồng bộ)
+     *
+     * @param array $voucher  Thông tin chứng từ
+     * @param array $details  Danh sách chi tiết hàng hóa/dịch vụ
+     * @param array $saInvoice Thông tin hóa đơn
+     *
+     * @return string JSON {error, httpCode, message, data}
+     */
+    public function save(array $voucher, array $details, array  $saInvoice): string
+    {
+        $token = $this->getAccessToken();
+        if (!$token) {
+            return $this->returnError(401, 'Không thể lấy access token từ AMIS Kế toán');
+        }
+
+        if (empty($voucher['org_refid'])) {
+            return $this->returnError(400, 'Thiếu ID chứng từ (org_refid)');
+        }
+        if (empty($details)) {
+            return $this->returnError(400, 'Danh sách chi tiết không được rỗng');
+        }
+        if (empty($saInvoice)) {
+            return $this->returnError(400, 'Thiếu thông tin hóa đơn (sa_invoice)');
+        }
+
+        // ============================================================
+        // 1. THÔNG TIN CHỨNG TỪ (sa_voucher)
+        // ============================================================
+        $now = date('Y-m-d H:i:s.') . substr(microtime(), 2, 3);
+
+        $voucherData = [
+            'voucher_type'              => $voucher['voucher_type']          ?? 13,
+            'reftype'                   => $voucher['reftype']               ?? 3530, //Bán hàng hóa, dịch vụ trong nước chưa thu tiền
+            'org_refid'                 => $voucher['org_refid'],
+            'org_refno'                 => $voucher['org_refno']             ?? '',
+            'inv_refid'                 => $voucher['inv_refid']             ?? $voucher['org_refid'],
+            'branch_id'                 => $voucher['branch_id']             ?? $this->getBranchId(),
+            'account_object_code'       => $voucher['account_object_code']   ?? '',
+            'account_object_name'       => $voucher['account_object_name']   ?? '',
+            'account_object_address'    => $voucher['account_object_address'] ?? '',
+            'journal_memo'              => $voucher['journal_memo']          ?? '', //Diễn giải
+            'exchange_rate'             => $voucher['exchange_rate']         ?? 1,
+            'discount_type'             => $voucher['discount_type']         ?? 0,
+            'discount_rate_voucher'     => $voucher['discount_rate_voucher'] ?? 0,
+            'posted_date'               => $voucher['posted_date']           ?? $now,
+            'refdate'                   => $voucher['refdate']               ?? $now,
+            'due_day'                   => $voucher['due_day']               ?? '0',
+            'due_date'                  => $voucher['due_date']              ?? $now,
+            'include_invoice'           => 1, // bắt buộc vì luôn có sa_invoice
+        ];
+
+        // ============================================================
+        // 2. CHI TIẾT HÀNG HÓA/DỊCH VỤ
+        // ============================================================
+        $detailData = [];
+        foreach ($details as $idx => $item) {
+            $detailData[] = [
+                'sort_order'                 => $idx,
+                'inventory_item_code'        => $item['inventory_item_code']        ?? '',
+                'inventory_item_name'        => $item['inventory_item_name']        ?? '',
+                'inventory_item_description' => $item['inventory_item_description'] ?? '',
+                'description'                => $item['description']                ?? '',
+                'stock_code'                 => $item['stock_code']                 ?? '',
+                'stock_name'                 => $item['stock_name']                 ?? '',
+                'unit_name'                  => $item['unit_name']                  ?? '',
+                'quantity'                   => $item['quantity'],
+                'unit_price'                 => $item['unit_price'],
+                'amount_oc'                  => $item['amount_oc'],
+                'amount'                     => $item['amount'],
+                'vat_rate'                   => $item['vat_rate'],
+                'vat_amount_oc'              => $item['vat_amount_oc'],
+                'vat_amount'                 => $item['vat_amount'],
+                'vat_account'                => $item['vat_account']                ?? '',
+                'exchange_rate_operator'     => $item['exchange_rate_operator']     ?? '*',
+                'is_description'             => $item['is_description']             ?? false,
+                'account_object_code'        => $item['account_object_code']        ?? '',
+                'account_object_name'        => $item['account_object_name']        ?? '',
+                'organization_unit_code'     => $item['organization_unit_code']     ?? '',
+                'organization_unit_name'     => $item['organization_unit_name']     ?? '',
+                'project_work_code'          => $item['project_work_code']          ?? null,
+                'project_work_name'          => $item['project_work_name']          ?? null,
+            ];
+        }
+        $voucherData['detail'] = $detailData;
+
+        // ============================================================
+        // 3. THÔNG TIN HÓA ĐƠN (sa_invoice)
+        // ============================================================
+        $voucherData['sa_invoice'] = [
+            'voucher_type'         => 11,
+            'is_get_new_id'        => true,
+            'is_allow_group'       => false,
+            'org_reftype'          => 0,
+            'act_voucher_type'     => 0,
+            'refdate'              => $voucherData['refdate'],
+            'is_posted_finance'    => false,
+            'is_posted_management' => false,
+            'auto_refno'           => false,
+            'state'                => 0,
+
+            // Thông tin từ caller
+            'account_object_code'  => $saInvoice['account_object_code']  ?? $voucherData['account_object_code'],
+            'account_object_name'  => $saInvoice['account_object_name']  ?? $voucherData['account_object_name'],
+            'account_object_tax_code' => $saInvoice['account_object_tax_code'] ?? '',
+            'currency_id'          => $saInvoice['currency_id']          ?? 'VND',
+            'exchange_rate'        => $saInvoice['exchange_rate']         ?? 1,
+            'inv_series'           => $saInvoice['inv_series']            ?? '',
+            'payment_method'       => $saInvoice['payment_method']        ?? 'TM/CK',
+            'total_sale_amount_oc' => $saInvoice['total_sale_amount_oc']  ?? 0,
+            'total_sale_amount'    => $saInvoice['total_sale_amount']     ?? 0,
+            'total_vat_amount_oc'  => $saInvoice['total_vat_amount_oc']   ?? 0,
+            'total_vat_amount'     => $saInvoice['total_vat_amount']      ?? 0,
+            'total_amount_oc'      => $saInvoice['total_amount_oc']       ?? 0,
+            'total_amount'         => $saInvoice['total_amount']          ?? 0,
+        ];
+
+        $body = [
+            'org_company_code' => $this->ORG_COMPANY_CODE,
+            'app_id'           => $this->APP_ID,
+            'voucher'          => [$voucherData],
+        ];
+
+        // pr($body);
+
+        // return $this->sendRequest('POST', '/apir/sync/actopen/save', $body, $token);
+    }
+
+    /**
+     * Xóa đề nghị sinh chứng từ
+     * Chỉ xóa được chứng từ chưa được kế toán sinh thành CT chính thức
+     *
+     * @param string $orgRefId    ID chứng từ gốc từ hệ thống (org_refid khi save)
+     * @param int    $voucherType Loại chứng từ (mặc định 13 = Bán hàng/dịch vụ)
+     *
+     * @return string JSON {error, httpCode, message, data}
+     */
+    public function delete(string $orgRefId, int $voucherType = 13): string
+    {
+        $token = $this->getAccessToken();
+        if (!$token) {
+            return $this->returnError(401, 'Không thể lấy access token từ AMIS Kế toán');
+        }
+
+        if (empty($orgRefId)) {
+            return $this->returnError(400, 'Thiếu org_refid');
+        }
+
+        $body = [
+            'app_id'           => $this->APP_ID,
+            'org_company_code' => $this->ORG_COMPANY_CODE,
+            'voucher'          => [
+                [
+                    'voucher_type' => $voucherType,
+                    'org_refid'    => $orgRefId,
+                ],
+            ],
+        ];
+
+        return $this->sendRequest('DELETE', '/apir/sync/actopen/delete', $body, $token);
+    }
 
     // ============================================================
     // TOKEN MANAGEMENT
@@ -87,6 +294,7 @@ class MisaInvoice
     {
         // 1. Thử đọc từ cache trước
         $cached = $this->readTokenCache();
+
         if ($cached) {
             return $cached;
         }
@@ -112,55 +320,38 @@ class MisaInvoice
         $arr = json_decode($raw, true);
 
         if (empty($arr) || ($arr['error'] ?? 1) !== 0) {
+            LoggerHelper::error('MISA connect: gọi API thất bại', $arr ?? []);
             return null;
         }
 
         $data = $arr['data'] ?? [];
 
-        // Data từ MISA trả về dạng JSON string lồng bên trong
+        // MISA trả Data là JSON string — decode thêm 1 lần
         if (is_string($data)) {
             $data = json_decode($data, true) ?? [];
         }
 
-        // MISA có thể trả về nhiều token object liên tiếp trong 1 chuỗi JSON
-        // Lấy token đầu tiên có expired_time_ticks
-        $token       = null;
-        $expiredTicks = null;
+        $access_token = $data['access_token']       ?? null;
+        $expiredTicks = $data['expired_time_ticks']  ?? null;
+        $expiredTime  = $data['expired_time']        ?? null;
 
-        if (isset($data['access_token'])) {
-            // Trường hợp data là 1 object đơn
-            $token        = $data['access_token'];
-            $expiredTicks = $data['expired_time_ticks'] ?? null;
-        } elseif (is_array($data)) {
-            // Trường hợp data là array các object
-            foreach ($data as $item) {
-                if (!empty($item['access_token']) && !empty($item['expired_time_ticks'])) {
-                    $token        = $item['access_token'];
-                    $expiredTicks = $item['expired_time_ticks'];
-                    break;
-                }
-            }
-        }
-
-        if (!$token) {
+        if (!$access_token) {
+            LoggerHelper::error('MISA connect: không parse được access_token', $data);
             return null;
         }
 
-        // Tính thời gian hết hạn Unix timestamp từ .NET Ticks
-        // .NET Ticks: số 100-nanosecond intervals từ 0001-01-01
-        // Unix epoch bắt đầu từ 1970-01-01 = 621355968000000000 ticks
-        $expiredAt = null;
+        // Ưu tiên: ticks → expired_time ISO string → fallback 12h
         if ($expiredTicks) {
-            $unixTicks   = $expiredTicks - 621355968000000000;
-            $expiredAt   = intval($unixTicks / 10000000); // chuyển sang Unix timestamp (giây)
+            $expiredAt = intval(($expiredTicks - 621355968000000000) / 10000000);
+        } elseif ($expiredTime) {
+            $expiredAt = strtotime($expiredTime) ?: time() + (12 * 3600);
         } else {
-            // Fallback: token có hiệu lực 12h theo tài liệu MISA
             $expiredAt = time() + (12 * 3600);
         }
 
-        $this->writeTokenCache($token, $expiredAt);
+        $this->writeTokenCache($access_token, $expiredAt);
 
-        return $token;
+        return $access_token;
     }
 
 
@@ -181,7 +372,7 @@ class MisaInvoice
         $raw  = file_get_contents($this->TOKEN_CACHE_FILE);
         $data = json_decode($raw, true);
 
-        if (empty($data['token']) || empty($data['expired_at'])) {
+        if (empty($data['access_token']) || empty($data['expired_at'])) {
             return null;
         }
 
@@ -190,7 +381,7 @@ class MisaInvoice
             return null;
         }
 
-        return $data['token'];
+        return $data['access_token'];
     }
 
     /**
@@ -206,7 +397,7 @@ class MisaInvoice
         file_put_contents(
             $this->TOKEN_CACHE_FILE,
             json_encode([
-                'token'      => $token,
+                'access_token'      => $token,
                 'expired_at' => $expiredAt,
             ]),
             LOCK_EX // tránh ghi đè đồng thời
@@ -234,7 +425,7 @@ class MisaInvoice
         array   $body   = [],
         ?string $token  = null
     ): string {
-        $url     = $this->ENDPOINT . $path;
+        $url     = $this->BASE_URL . $path;
         $headers = ['Content-Type: application/json'];
 
         if ($token) {
@@ -304,17 +495,14 @@ class MisaInvoice
             $logId = LoggerHelper::error("MISA $method $url $msg");
             return $this->returnError($httpCode ?? 0, 'Đã có lỗi xảy ra', "Mã lỗi: $logId");
         } finally {
-            if (isset($curl) && is_resource($curl)) {
-                curl_close($curl);
-            }
+            if (isset($curl) && is_resource($curl)) curl_close($curl);
         }
     }
 
 
     // ============================================================
-    // RESPONSE HELPERS  (giống WinInvoice)
+    // RESPONSE HELPERS 
     // ============================================================
-
     /**
      * @return string JSON {error:1, httpCode, message, data, description?}
      */
@@ -333,8 +521,8 @@ class MisaInvoice
     }
 
     /**
-     * Kiểm tra response có thành công không.
-     *
+     * Check response from request
+     * 
      * @param string $raw JSON string
      * @return bool
      */

@@ -1,24 +1,27 @@
 <?php
-if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.detail.php');
 require_once('custom/include/helpers/api/WinInvoice.php');
+require_once('custom/include/helpers/api/MisaInvoice.php');
 
-class EC_HoaDonBanViewDetail extends ViewDetail {
-	function display() {
+class EC_HoaDonBanViewDetail extends ViewDetail
+{
+	function display()
+	{
 		$this->getStyles();
 		$this->populateLineItems();
 
 		// Cập nhật thông tin hóa đơn mới nhất từ hệ thống Wininvoice 
-		if($this->bean->tinhtrang == '2' && $this->bean->company_unit == 'MHV' && (!$this->bean->sohoadon || empty($this->bean->sohoadon))) {
+		if ($this->bean->tinhtrang == '2' && $this->bean->company_unit == 'MHV' && (!$this->bean->sohoadon || empty($this->bean->sohoadon))) {
 			$winInv = new WinInvoice();
 			$json = $winInv->get($this->bean->name);
 
-			if($winInv->checkResponse($json)) {
+			if ($winInv->checkResponse($json)) {
 				$arr = json_decode($json, true);
-				
+
 				$hoadonban = new EC_HoaDonBan();
 				$hoadonban->retrieve($this->bean->id);
-				if(isset($arr['data'][0]['invNumber']) && $arr['data'][0]['invNumber'] != "0000000") {
+				if (isset($arr['data'][0]['invNumber']) && $arr['data'][0]['invNumber'] != "0000000") {
 					$hoadonban->sohoadon   = $arr['data'][0]['invNumber'];
 					$hoadonban->ngayhoadon = $arr['data'][0]['invDate'];
 					$hoadonban->kyhieuhd   = $arr['data'][0]['invSerial'];
@@ -27,26 +30,119 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				$hoadonban->invoice_data = $json;
 				$hoadonban->save();
 			}
-        }
+		}
+
+		$misa = new MisaInvoice();
+		$branch_id = $misa->getBranchId();
+
+		// $result = $misa->save(
+		// 	// 1. THÔNG TIN CHỨNG TỪ
+		// 	[
+		// 		'org_refid'              => '4c5cdf97-4194-488d-9591-c1ea711882e5', // UUID duy nhất từ hệ thống bạn
+		// 		'org_refno'              => 'XBH-2026-001',                         // Số chứng từ gốc
+		// 		'inv_refid'              => '4c5cdf97-4194-488d-9591-c1ea711882e5',
+		// 		'in_outward_refid'       => '4c5cdf97-4194-488d-9591-c1ea711882e5',
+		// 		'branch_id'              => $$branch_id, 
+		// 		'account_object_code'    => 'KH00001',
+		// 		'account_object_name'    => 'CÔNG TY TNHH THƯƠNG MẠI ABC',
+		// 		'account_object_address' => 'Số 1, Đường ABC, Quận 1, TP.HCM',
+		// 		'journal_memo'           => 'Bán hàng cho CÔNG TY TNHH THƯƠNG MẠI ABC',
+		// 		'is_sale_with_outward'   => true,
+		// 		'refdate'                => '2026-03-16 08:00:00.000',
+		// 		'posted_date'            => '2026-03-16 08:00:00.000',
+		// 		'due_day'                => '30',
+		// 		'due_date'               => '2026-04-15 08:00:00.000',
+		// 	],
+		// 	// 2. CHI TIẾT HÀNG HÓA
+		// 	[
+		// 		[
+		// 			'inventory_item_code' => 'VT00001',
+		// 			'inventory_item_name' => 'Khóa A105 - Khóa hệ bảng trượt SS03',
+		// 			'description'         => 'Khóa A105 - Khóa hệ bảng trượt SS03',
+		// 			'stock_code'          => 'KHO01',
+		// 			'stock_name'          => 'Kho Hưng Yên',
+		// 			'unit_name'           => 'Cái',
+		// 			'quantity'            => '9.0',
+		// 			'unit_price'          => '500000.0',
+		// 			'amount_oc'           => '4500000.0000',
+		// 			'amount'              => '4500000.0000',
+		// 			'vat_rate'            => '10.0',
+		// 			'vat_amount_oc'       => '450000.0000',
+		// 			'vat_amount'          => '450000.0000',
+		// 			'account_object_code' => 'KH00001',
+		// 			'account_object_name' => 'CÔNG TY TNHH THƯƠNG MẠI ABC',
+		// 			'organization_unit_code' => 'B2BHN',
+		// 			'organization_unit_name' => 'PHÒNG B2B HN',
+		// 		],
+		// 		[
+		// 			'inventory_item_code' => 'VT00002',
+		// 			'inventory_item_name' => 'Bản lề inox 304',
+		// 			'description'         => 'Bản lề inox 304',
+		// 			'stock_code'          => 'KHO01',
+		// 			'stock_name'          => 'Kho Hưng Yên',
+		// 			'unit_name'           => 'Bộ',
+		// 			'quantity'            => '5.0',
+		// 			'unit_price'          => '200000.0',
+		// 			'amount_oc'           => '1000000.0000',
+		// 			'amount'              => '1000000.0000',
+		// 			'vat_rate'            => '10.0',
+		// 			'vat_amount_oc'       => '100000.0000',
+		// 			'vat_amount'          => '100000.0000',
+		// 			'account_object_code' => 'KH00001',
+		// 			'account_object_name' => 'CÔNG TY TNHH THƯƠNG MẠI ABC',
+		// 			'organization_unit_code' => 'B2BHN',
+		// 			'organization_unit_name' => 'PHÒNG B2B HN',
+		// 		],
+		// 	],
+		// 	// 3. THÔNG TIN HÓA ĐƠN
+		// 	[
+		// 		'account_object_tax_code' => '0123456789',
+		// 		'currency_id'             => 'VND',
+		// 		'exchange_rate'           => 1,
+		// 		'inv_series'              => 'C26MHV',    // Ký hiệu hóa đơn
+		// 		'payment_method'          => 'TM/CK',
+		// 		'total_sale_amount_oc'    => 5500000,     // Tổng tiền hàng chưa VAT
+		// 		'total_sale_amount'       => 5500000,
+		// 		'total_vat_amount_oc'     => 550000,      // Tổng VAT
+		// 		'total_vat_amount'        => 550000,
+		// 		'total_amount_oc'         => 6050000,     // Tổng cộng (hàng + VAT)
+		// 		'total_amount'            => 6050000,
+		// 	]
+		// );
+
+		// Kiểm tra kết quả
+		// if ($misa->checkResponse($result)) {
+		// 	// AMIS đã nhận yêu cầu — chứng từ đang được xử lý bất đồng bộ
+		// 	// Kết quả thực tế (thành công/thất bại) sẽ trả về qua Callback URL
+		// 	echo 'Đã gửi yêu cầu tạo chứng từ thành công';
+		// } else {
+		// 	$err = json_decode($result, true);
+		// 	echo 'Lỗi: ' . $err['message'];
+		// }
+
 		parent::display();
 		$this->getScripts();
 	}
 
-	private function getStyles() {
+	private function getStyles()
+	{
 		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.detail.css?v=1.0.0' />";
 	}
 
-	private function getScripts() {
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.6'></script>";
+	private function getScripts()
+	{
+		// echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=1.0.6'></script>";
+		echo "<script src='modules/{$this->bean->module_dir}/js/view.detail.js?v=" . time() . "'></script>";
 	}
-	
-	public function populateLineItems() {
-		if($this->bean->company_unit == 'MHV') {
-			$custom_sohoadon = '<span>'.(int)$this->bean->sohoadon.'</span>';
+
+	public function populateLineItems()
+	{
+		if ($this->bean->company_unit == 'MHV') {
+			$custom_sohoadon = '<span>' . (int)$this->bean->sohoadon . '</span>';
 		} else {
-			$custom_sohoadon = '<span>'.$this->bean->sohoadon.'</span>';
+			$custom_sohoadon = '<span>' . $this->bean->sohoadon . '</span>';
 		}
-		if($this->bean->is_signed == 1) {
+		if ($this->bean->is_signed == 1) {
 			$custom_sohoadon .= '<span class="text-success fw-semibold" style="float:right;">
 				<svg width="18px" height="18px" stroke-width="1.75" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor" style="padding-bottom:2px;">
 					<path d="M7 12.5L10 15.5L17 8.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -58,16 +154,16 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 
 		// CCCD/Passport
 		$id_number = $this->bean->citizen_id ?? '';
-		if($this->bean->passport_number && !empty($this->bean->passport_number)) {
-			if(!empty($id_number)) $id_number .= " - {$this->bean->passport_number}";
+		if ($this->bean->passport_number && !empty($this->bean->passport_number)) {
+			if (!empty($id_number)) $id_number .= " - {$this->bean->passport_number}";
 			else $id_number .= $this->bean->passport_number;
 		}
-		$this->ss->assign('CUSTOM_ID_NUMBER', '<span class="sugar_field" id="identity_number">'.$id_number.'</span>');
+		$this->ss->assign('CUSTOM_ID_NUMBER', '<span class="sugar_field" id="identity_number">' . $id_number . '</span>');
 
 		$html = '<div>
 			<table class="table-details__booking" cellpadding="0" cellspacing="0" border="0">';
-		
-		if($this->bean->loaihoadon == 0) {
+
+		if ($this->bean->loaihoadon == 0) {
 			$html .= '<thead>
 				<tr>
 					<th width="3%" align="center">STT</th>
@@ -82,8 +178,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				</tr>
 			</thead>';
 			$colspan = 3;
-		} 
-		else if($this->bean->loaihoadon == 1) {
+		} else if ($this->bean->loaihoadon == 1) {
 			$html .= '<thead>
 				<tr>
 					<th width="5%" class="text-center"><span>STT</span></td>
@@ -97,7 +192,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			</thead>';
 			$colspan = 2;
 		}
-		
+
 		$deleted = $this->bean->tinhtrang != '-1' ? 0 : 1;
 		$sql = "SELECT c.*
 				,in_iv.ticket_code
@@ -109,7 +204,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				AND c.parent_type = 'EC_HoaDonBan'
 				AND c.deleted = $deleted
 			ORDER BY order_by_no";
-			
+
 		$res = $this->bean->db->query($sql);
 		$i = $tonggiaban = $tongthue = $tongthuho = $phisanbay = $phikhac = $tongdv = 0;
 		$array_item = [
@@ -118,41 +213,40 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			'invVatAmount' 	=> '', // Tổng tiền thuế
 			'invTotalAmount' 	=> '' // Tổng cộng
 		];
-		while($row = $this->bean->db->fetchByAssoc($res)) {
-			if($this->bean->loaihoadon == 0) {
+		while ($row = $this->bean->db->fetchByAssoc($res)) {
+			if ($this->bean->loaihoadon == 0) {
 				$receipt = '';
-				if(!empty($row['receipt_voucher_id'])) {
-					$receipt = '<br /><a href="index.php?module=EC_Receipt_Voucher&action=DetailView&record='.$row['receipt_voucher_id'].'" target="_blank">'.$row['receipt_voucher_name'].'</a>';
+				if (!empty($row['receipt_voucher_id'])) {
+					$receipt = '<br /><a href="index.php?module=EC_Receipt_Voucher&action=DetailView&record=' . $row['receipt_voucher_id'] . '" target="_blank">' . $row['receipt_voucher_name'] . '</a>';
 				}
 
 				$bk = new EC_Flight_Bookings;
 				$bk->retrieve($row['booking_id']);
-				if($bk->name != $row['booking']) $error_txt = '<br><font color="red">(Chưa khớp thông tin bk)</font>';
+				if ($bk->name != $row['booking']) $error_txt = '<br><font color="red">(Chưa khớp thông tin bk)</font>';
 				else $error_txt = '';
 
 				$html .= '<tr>
 					<td class="text-center">' . (++$i) . '</td>
 					<td class="text-start">
-						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record='.$row['booking_id'].'" target="_blank">'.$row['booking'].'</a>
-						'.$error_txt.$receipt.'
+						<a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $row['booking_id'] . '" target="_blank">' . $row['booking'] . '</a>
+						' . $error_txt . $receipt . '
 					</td>
 					<td class="text-start">' . $row['name'] . '</td>
 					<td class="text-end">' . format_number($row['soluong']) . '</td>
 					<td class="text-end">' . format_number($row['dongia']) . '</td>
 					<td class="text-end">' . format_number($row['phidv']) . '</td>
 					<td class="text-end">' . format_number($row['tienthue']) . '</td>
-					<td class="text-end">' . format_number($row['thanhtien'] - $row['phithuho']*$row['soluong']) . '</td>
+					<td class="text-end">' . format_number($row['thanhtien'] - $row['phithuho'] * $row['soluong']) . '</td>
 					<td class="text-end text-muted">' . format_number($row['phithuho']) . '</td>
 				</tr>';
-			}
-			else if($this->bean->loaihoadon == 1) {
+			} else if ($this->bean->loaihoadon == 1) {
 				$html .= '<tr>
 					<td class="text-center">' . (++$i) . '</td>
 					<td class="text-start">' . $row['name'] . '</td>
 					<td class="text-end">' . format_number($row['soluong']) . '</td>
 					<td class="text-end">' . format_number($row['dongia']) . '</td>
 					<td class="text-end">' . format_number($row['tienthue']) . '</td>
-					<td class="text-end">' . format_number($row['thanhtien'] - $row['phithuho']*$row['soluong']) . '</td>
+					<td class="text-end">' . format_number($row['thanhtien'] - $row['phithuho'] * $row['soluong']) . '</td>
 					<td class="text-end text-muted">' . format_number($row['phithuho']) . '</td>
 				</tr>';
 			}
@@ -175,26 +269,26 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				// 'itemVatRate' 	 	=> round($row['tienthue'] / $row['dongia'], 2) * 100,
 				'itemVatRate' 	 	=> $row['thuesuat'] * 100,
 				'itemVatAmnt' 	 	=> $row['tienthue'],
-				'itemAmountNoVat' 	=> $row['thanhtien'] - $row['phithuho']*$row['soluong'] - $row['tienthue'],
+				'itemAmountNoVat' 	=> $row['thanhtien'] - $row['phithuho'] * $row['soluong'] - $row['tienthue'],
 			];
 		}
 
 		// Tách và hiển thị phí thu hộ (Phí khác hoặc Phí sân bay)
 		$extra_qty = 0;
-		if($this->bean->loaihoadon == 0 && $tongthuho > 0) {
+		if ($this->bean->loaihoadon == 0 && $tongthuho > 0) {
 			$phisanbay = $tongthuho - $phikhac;
 
-			if($phisanbay > 0 ) {
+			if ($phisanbay > 0) {
 				$extra_qty++;
 				$html .= '<tr>
 					<td class="text-center">' . (++$i) . '</td>
 					<td class="text-start"><b>Phí sân bay</b></td>
 					<td class="text-start"></td>
 					<td class="text-end">1</td>
-					<td class="text-end">'.format_number($phisanbay).'</td>
+					<td class="text-end">' . format_number($phisanbay) . '</td>
 					<td class="text-end">X</td>
 					<td class="text-end">X</td>
-					<td class="text-end">'.format_number($phisanbay).'</td>
+					<td class="text-end">' . format_number($phisanbay) . '</td>
 					<td class="text-end">X</td>
 				</tr>';
 
@@ -213,17 +307,17 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				];
 			}
 
-			if($phikhac > 0 ) {
+			if ($phikhac > 0) {
 				$extra_qty++;
 				$html .= '<tr>
 					<td class="text-center">' . (++$i) . '</td>
 					<td class="text-start"><b>Phí khác</b></td>
 					<td class="text-start"></td>
 					<td class="text-end">1</td>
-					<td class="text-end">'.format_number($phikhac).'</td>
+					<td class="text-end">' . format_number($phikhac) . '</td>
 					<td class="text-end">X</td>
 					<td class="text-end">X</td>
-					<td class="text-end">'.format_number($phikhac).'</td>
+					<td class="text-end">' . format_number($phikhac) . '</td>
 					<td class="text-end">X</td>
 				</tr>';
 
@@ -239,17 +333,16 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 					'itemAmountNoVat' 	=> $phikhac,
 				];
 			}
-		}
-		elseif($this->bean->loaihoadon == 1 && $tongthuho > 0) {
+		} elseif ($this->bean->loaihoadon == 1 && $tongthuho > 0) {
 			$extra_qty++;
 			$html .= '<tr>
 				<td class="text-center">' . (++$i) . '</td>
 				<td class="text-start"><b>Phí khác</b></td>
 				<td class="text-start"></td>
 				<td class="text-end">1</td>
-				<td class="text-end">'.format_number($tongthuho).'</td>
+				<td class="text-end">' . format_number($tongthuho) . '</td>
 				<td class="text-end">X</td>
-				<td class="text-end">'.format_number($tongthuho).'</td>
+				<td class="text-end">' . format_number($tongthuho) . '</td>
 				<td class="text-end"></td>
 			</tr>';
 
@@ -266,7 +359,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			];
 		}
 
-		$tonggiaban += $tongthuho;	  
+		$tonggiaban += $tongthuho;
 		$html .= '
 			<tr class="footer-tr">
 				<td class="text-start" colspan="' . $colspan . '">Số dòng = ' . $i . '</td>
@@ -277,7 +370,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				<td class="text-end">' . format_number($this->bean->tongthanhtoan) . '</td>
 				<td class="text-end text-muted">' . format_number($tongthuho) . '</td>
 			</tr>';
-				  
+
 		$html .= '</table>
 			<p style="font-style:italic; font-weight:500; color:red; margin-top:5px">
 				Lưu ý: cột <b>Thu hộ</b> đã được tách riêng thành các loại phí, không tính vào cột <b>Thành tiền</b> của mỗi sản phẩm
@@ -292,8 +385,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		$this->populateCustomButtons($array_item);
 	}
 
-	public function populateCustomButtons($array_item_invoice) {
-		// global $current_user;
+	public function populateCustomButtons($array_item_invoice)
+	{
+		global $current_user;
+
 		/**
 		 * 0 : Mới tạo
 		 * 1 : Đã ghi (Ghi trên hệ thống Invoice nhưng chưa ký số)
@@ -302,75 +397,75 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		 */
 
 		// MINH HỒNG VÕ
-		if($this->bean->company_unit == 'MHV') {
+		if ($this->bean->company_unit == 'MHV') {
 			// Ghi/Cập nhật hóa đơn
-			if($this->bean->tinhtrang == '0' || $this->bean->tinhtrang == '1') {
+			if ($this->bean->tinhtrang == '0' || $this->bean->tinhtrang == '1') {
 				$text = $text_button = '';
-				if($this->bean->tinhtrang == '0') {
+				if ($this->bean->tinhtrang == '0') {
 					$text = 'Tiến hành <b>tạo</b> hóa đơn tương ứng (chưa kí) trên hệ thống WinInvoice';
 					$text_button = 'Ghi hóa đơn';
-				}
-				else {
+				} else {
 					$text = 'Tiến hành <b>cập nhật</b> thông tin trên vào hóa đơn tương ứng (chưa kí) trên hệ thống WinInvoice';
 					$text_button = 'Cập nhật hóa đơn';
 				}
 
 				$tr = $input = '';
-				foreach($array_item_invoice['items'] as $index => $item) {
+				foreach ($array_item_invoice['items'] as $index => $item) {
 					$tr .= '<tr>
-						<td>'.($index + 1).'</td>
-						<td>'.$item['itemName'].'</td>
-						<td class="text-center">'.$item['itemUnit'].'</td>
-						<td class="text-end">'.$item['itemQuantity'].'</td>
-						<td class="text-end">'.format_number($item['itemPrice']).'</td>
-						<td class="text-end">'.format_number($item['itemAmountNoVat']).'</td>
-						<td class="text-end">'.($item['itemVatRate'] < 0 ? 'X' : ($item['itemVatRate'] . '%')).'</td>
-						<td class="text-end">'.format_number($item['itemVatAmnt']).'</td>
+						<td class="text-center">' . ($index + 1) . '</td>
+						<td>' . $item['itemName'] . '</td>
+						<td class="text-center">' . $item['itemUnit'] . '</td>
+						<td class="text-end">' . $item['itemQuantity'] . '</td>
+						<td class="text-end">' . format_number($item['itemPrice']) . '</td>
+						<td class="text-end">' . format_number($item['itemAmountNoVat']) . '</td>
+						<td class="text-end">' . ($item['itemVatRate'] < 0 ? 'X' : ($item['itemVatRate'] . '%')) . '</td>
+						<td class="text-end">' . format_number($item['itemVatAmnt']) . '</td>
 					</tr>';
 
 					$input .= '
-						<input type="hidden" name="itemCode[]" value="'.$item['itemCode'].'" />
-						<input type="hidden" name="itemName[]" value="'.$item['itemName'].'" />
-						<input type="hidden" name="itemUnit[]" value="'.$item['itemUnit'].'" />
-						<input type="hidden" name="itemQuantity[]" value="'.$item['itemQuantity'].'" />
-						<input type="hidden" name="itemPrice[]" value="'.$item['itemPrice'].'" />
-						<input type="hidden" name="itemVatRate[]" value="'.$item['itemVatRate'].'" />
-						<input type="hidden" name="itemVatAmnt[]" value="'.$item['itemVatAmnt'].'" />
-						<input type="hidden" name="itemAmountNoVat[]" value="'.$item['itemAmountNoVat'].'" />
+						<input type="hidden" name="itemCode[]" value="' . $item['itemCode'] . '" />
+						<input type="hidden" name="itemName[]" value="' . $item['itemName'] . '" />
+						<input type="hidden" name="itemUnit[]" value="' . $item['itemUnit'] . '" />
+						<input type="hidden" name="itemQuantity[]" value="' . $item['itemQuantity'] . '" />
+						<input type="hidden" name="itemPrice[]" value="' . $item['itemPrice'] . '" />
+						<input type="hidden" name="itemVatRate[]" value="' . $item['itemVatRate'] . '" />
+						<input type="hidden" name="itemVatAmnt[]" value="' . $item['itemVatAmnt'] . '" />
+						<input type="hidden" name="itemAmountNoVat[]" value="' . $item['itemAmountNoVat'] . '" />
 					';
 				}
 
 				$arr_ngayhoadon = explode('-', $this->bean->ngayhoadon);
 				$identity_number = $this->bean->citizen_id ?? '';
-				if(empty($identity_number)) $identity_number = $this->bean->passport_number ?? '';
-				$create_invoice_button = '
-					<button type="button" name="btnCreateInvoice" id="btnCreateInvoice" class="btn btn-warning" onclick="showDialog(\'dialog-create-invoice\')">'.$text_button.'</button>
+				if (empty($identity_number)) $identity_number = $this->bean->passport_number ?? '';
+
+				$create_invoice_btn_win = '
+					<button type="button" name="btnCreateInvoice" id="btnCreateInvoice" class="btn btn-warning" onclick="showDialog(\'dialog-create-invoice\')">' . $text_button . ' Win</button>
 					<dialog id="dialog-create-invoice" class="dialog-create-invoice">
 						<form method="dialog" name="form-create-invoice">
 							<div class="card">
 								<div class="card-header">
 									<p class="title">Thông tin hóa đơn</p>
-									<p class="invDate p-0"><i>Ngày '.$arr_ngayhoadon[0].' tháng '.$arr_ngayhoadon[1].' năm '.$arr_ngayhoadon[2].'</i></p>
-									<span class="invRef"><i>Số chứng từ: <b>'.$this->bean->name.'</b></i></span>
+									<p class="invDate p-0"><i>Ngày ' . $arr_ngayhoadon[0] . ' tháng ' . $arr_ngayhoadon[1] . ' năm ' . $arr_ngayhoadon[2] . '</i></p>
+									<span class="invRef"><i>Số chứng từ: <b>' . $this->bean->name . '</b></i></span>
 								</div>
 								<div class="card-body">
-									<p>Loại khách hàng <i>(Customer type)</i>: <b>'.($this->bean->loaikh == '1' ? 'Cá nhân' : 'Công ty/Tổ chức').'</b></p>
-									<p>Họ tên người mua hàng <i>(Buyer)</i>: <b>'.$this->bean->lienhe.'</b></p>
-									<p>Căn cước công dân <i>(ID)</i>: <b>'.$identity_number.'</b></p>
-									<p>Tên đơn vị <i>(Company\'s name)</i>: <b>'.$this->bean->tencongty.'</b></p>
-									<p>Mã số thuế <i>(Tax code)</i>: <b>'.$this->bean->masothue.'</b></p>
-									<p>Địa chỉ <i>(Address)</i>: <b>'.$this->bean->diachi.'</b></p>
-									<p>Hình thức thanh toán <i>(Payment method)</i>: <b>'.$this->bean->hinhthuctt.'</b></p>
+									<p>Loại khách hàng <i>(Customer type)</i>: <b>' . ($this->bean->loaikh == '1' ? 'Cá nhân' : 'Công ty/Tổ chức') . '</b></p>
+									<p>Họ tên người mua hàng <i>(Buyer)</i>: <b>' . $this->bean->lienhe . '</b></p>
+									<p>Căn cước công dân <i>(ID)</i>: <b>' . $identity_number . '</b></p>
+									<p>Tên đơn vị <i>(Company\'s name)</i>: <b>' . $this->bean->tencongty . '</b></p>
+									<p>Mã số thuế <i>(Tax code)</i>: <b>' . $this->bean->masothue . '</b></p>
+									<p>Địa chỉ <i>(Address)</i>: <b>' . $this->bean->diachi . '</b></p>
+									<p>Hình thức thanh toán <i>(Payment method)</i>: <b>' . $this->bean->hinhthuctt . '</b></p>
 									<div class="d-flex gap-4">
 										<div class="flex-fill">
 											<span>Ngân hàng <i>(Bank)</i>: </span>
-											<b>'.$this->bean->nganhang.'</b>
-											<input type="hidden" name="buyerBank" value="'.$this->bean->nganhang.'" />
+											<b>' . $this->bean->nganhang . '</b>
+											<input type="hidden" name="buyerBank" value="' . $this->bean->nganhang . '" />
 										</div>
 										<div class="flex-fill">
 											<span>Số tài khoản <i>(Bank account)</i>: </span>
-											<b>'.$this->bean->sotaikhoan.'</b>
-											<input type="hidden" name="buyerAcc" value="'.$this->bean->sotaikhoan.'" />
+											<b>' . $this->bean->sotaikhoan . '</b>
+											<input type="hidden" name="buyerAcc" value="' . $this->bean->sotaikhoan . '" />
 										</div>
 									</div>
 
@@ -388,16 +483,16 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 											</tr>
 										</thead>
 										<tbody>
-											'.$tr.'
+											' . $tr . '
 											<tr>
 												<td colspan="5"><b>TỔNG HỢP</b></td>
-												<td class="text-end"><b>'.format_number($array_item_invoice['invSubTotal']).'</b></td>
+												<td class="text-end"><b>' . format_number($array_item_invoice['invSubTotal']) . '</b></td>
 												<td></td>
-												<td class="text-end"><b>'.format_number($array_item_invoice['invVatAmount']).'</b></td>
+												<td class="text-end"><b>' . format_number($array_item_invoice['invVatAmount']) . '</b></td>
 											</tr>
 											<tr>
 												<td colspan="5"><b>TỔNG CỘNG</b></td>
-												<td class="text-end"><b>'.format_number($array_item_invoice['invTotalAmount']).'</b></td>
+												<td class="text-end"><b>' . format_number($array_item_invoice['invTotalAmount']) . '</b></td>
 												<td colspan="2"></td>
 											</tr>
 										</tbody>
@@ -405,47 +500,149 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 								</div>
 							</div>
 
-							<p class="text-confirm">'.$text.'</p>
+							<p class="text-confirm">' . $text . '</p>
 							<div class="d-flex gap-2 justify-content-end mt-1">
 								<input type="button" class="btn btn-primary" name="btn-confirm-create-invoice" id="btn-confirm-create-invoice" value="Xác nhận" title="Xác nhận" />
 								<input type="button" class="btn btn-secondary" name="btn-cancel-create-invoice" value="Hủy" title="Hủy" onclick="closeDialog(\'dialog-create-invoice\')" />
-								<input type="hidden" name="invID" value="'.$this->bean->id.'" />
-								<input type="hidden" name="invRef" value="'.$this->bean->name.'" />
-								<input type="hidden" name="invSerial" value="'.$this->bean->kyhieuhd.'" />
-								<input type="hidden" name="invDate" value="'.$this->bean->ngayhoadon.'" />
-								<input type="hidden" name="invRefDate" value="'.$this->bean->ngayhoadon.'" />
-								<input type="hidden" name="invPayment" value="'.$this->bean->hinhthuctt.'" />
-								<input type="hidden" name="invCustomer" value="'.$this->bean->loaikh.'" />
+								<input type="hidden" name="invID" value="' . $this->bean->id . '" />
+								<input type="hidden" name="invRef" value="' . $this->bean->name . '" />
+								<input type="hidden" name="invSerial" value="' . $this->bean->kyhieuhd . '" />
+								<input type="hidden" name="invDate" value="' . $this->bean->ngayhoadon . '" />
+								<input type="hidden" name="invRefDate" value="' . $this->bean->ngayhoadon . '" />
+								<input type="hidden" name="invPayment" value="' . $this->bean->hinhthuctt . '" />
+								<input type="hidden" name="invCustomer" value="' . $this->bean->loaikh . '" />
 
-								<input type="hidden" name="buyerName" value="'.$this->bean->lienhe.'" />
-								<input type="hidden" name="buyerCompany" value="'.$this->bean->tencongty.'" />
-								<input type="hidden" name="buyerEmail" value="'.$this->bean->email.'" />
-								<input type="hidden" name="buyerTax" value="'.$this->bean->masothue.'" />
-								<input type="hidden" name="buyerAddress" value="'.$this->bean->diachi.'" />
-								<input type="hidden" name="buyerCitizenIDNumber" value="'.($this->bean->citizen_id ?? '').'" />
-								<input type="hidden" name="buyerPassportNumber" value="'.($this->bean->passport_number ?? '').'" />
-								'.$input.'
-								<input type="hidden" name="invSubTotal" value="'.$array_item_invoice['invSubTotal'].'" />
-								<input type="hidden" name="invVatAmount" value="'.$array_item_invoice['invVatAmount'].'" />
-								<input type="hidden" name="invTotalAmount" value="'.$array_item_invoice['invTotalAmount'].'" />
+								<input type="hidden" name="buyerName" value="' . $this->bean->lienhe . '" />
+								<input type="hidden" name="buyerCompany" value="' . $this->bean->tencongty . '" />
+								<input type="hidden" name="buyerEmail" value="' . $this->bean->email . '" />
+								<input type="hidden" name="buyerTax" value="' . $this->bean->masothue . '" />
+								<input type="hidden" name="buyerAddress" value="' . $this->bean->diachi . '" />
+								<input type="hidden" name="buyerCitizenIDNumber" value="' . ($this->bean->citizen_id ?? '') . '" />
+								<input type="hidden" name="buyerPassportNumber" value="' . ($this->bean->passport_number ?? '') . '" />
+								' . $input . '
+								<input type="hidden" name="invSubTotal" value="' . $array_item_invoice['invSubTotal'] . '" />
+								<input type="hidden" name="invVatAmount" value="' . $array_item_invoice['invVatAmount'] . '" />
+								<input type="hidden" name="invTotalAmount" value="' . $array_item_invoice['invTotalAmount'] . '" />
 							</div>
 						</form>
 					</dialog>
 				';
-				$this->ss->assign('HANDLE', $create_invoice_button);
+
+				/**
+				 * =================================================
+				 * KHU VỰC DÀNH CHO MISA
+				 * =================================================
+				 */
+				$create_invoice_btn_misa = '';
+				if($current_user->user_name == 'hungnh'){
+					$create_invoice_btn_misa = '
+					<button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#staticModalCreateMisaInvoice">
+						' . $text_button . ' Misa
+					</button>
+					<div class="modal fade" id="staticModalCreateMisaInvoice" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticModalCreateMisaInvoiceLabel" style="display: none;" aria-hidden="true">
+						<div class="modal-dialog modal-lg">
+							<div class="modal-content">
+								<div class="modal-body">
+									<div class="card">
+										<div class="card-header text-center p-2">
+											<p class="card-title text-center text-danger fw-semibold text-uppercase">Thông tin hóa đơn</p>
+											<p class="invDate small p-0"><i>Ngày ' . $arr_ngayhoadon[0] . ' tháng ' . $arr_ngayhoadon[1] . ' năm ' . $arr_ngayhoadon[2] . '</i></p>
+											<span class="invRef small"><i>Số chứng từ: <b>' . $this->bean->name . '</b></i></span>
+										</div>
+										<div class="card-body p-2">
+											<p>Loại khách hàng <i>(Customer type)</i>: <b>' . ($this->bean->loaikh == '1' ? 'Cá nhân' : 'Công ty/Tổ chức') . '</b></p>
+											<p>Họ tên người mua hàng <i>(Buyer)</i>: <b>' . $this->bean->lienhe . '</b></p>
+											<p>Căn cước công dân <i>(ID)</i>: <b>' . $identity_number . '</b></p>
+											<p>Tên đơn vị <i>(Company\'s name)</i>: <b>' . $this->bean->tencongty . '</b></p>
+											<p>Mã số thuế <i>(Tax code)</i>: <b>' . $this->bean->masothue . '</b></p>
+											<p>Địa chỉ <i>(Address)</i>: <b>' . $this->bean->diachi . '</b></p>
+											<p>Hình thức thanh toán <i>(Payment method)</i>: <b>' . $this->bean->hinhthuctt . '</b></p>
+											<div class="d-flex gap-4">
+												<div class="flex-fill">
+													<span>Ngân hàng <i>(Bank)</i>: </span>
+													<b>' . $this->bean->nganhang . '</b>
+													<input type="hidden" name="buyerBank" value="' . $this->bean->nganhang . '" />
+												</div>
+												<div class="flex-fill">
+													<span>Số tài khoản <i>(Bank account)</i>: </span>
+													<b>' . $this->bean->sotaikhoan . '</b>
+													<input type="hidden" name="buyerAcc" value="' . $this->bean->sotaikhoan . '" />
+												</div>
+											</div>
+	
+											<table class="table table-bordered table-hover items-detail">
+												<thead>
+													<tr>
+														<th>#</th>
+														<th>Tên hàng hóa, dịch vụ</th>
+														<th>Đơn vị</th>
+														<th>Số lượng</th>
+														<th>Đơn giá</th>
+														<th>Thành tiền</th>
+														<th>Thuế VAT</th>
+														<th>Tiền thuế VAT</th>
+													</tr>
+												</thead>
+												<tbody>
+													' . $tr . '
+													<tr>
+														<td colspan="5"><b>TỔNG HỢP</b></td>
+														<td class="text-end"><b>' . format_number($array_item_invoice['invSubTotal']) . '</b></td>
+														<td></td>
+														<td class="text-end"><b>' . format_number($array_item_invoice['invVatAmount']) . '</b></td>
+													</tr>
+													<tr>
+														<td colspan="5"><b>TỔNG CỘNG</b></td>
+														<td class="text-end"><b>' . format_number($array_item_invoice['invTotalAmount']) . '</b></td>
+														<td colspan="2"></td>
+													</tr>
+												</tbody>
+											</table>
+	
+											<p class="text-confirm text-danger fw-semibold">Chú ý: Tạo chứng từ bán hàng đồng thời tạo kèm hóa đơn!</p>
+											<div class="d-flex gap-2 justify-content-end mt-1">
+												' . $input . '
+												<input type="hidden" name="invCustomer" value="' . $this->bean->loaikh . '" />
+												<input type="hidden" name="misa_invID"           value="' . $this->bean->id . '" />
+												<input type="hidden" name="misa_orgRefNo"        value="' . $this->bean->name . '" />
+												<input type="hidden" name="misa_invSerial"       value="' . $this->bean->kyhieuhd . '" />
+												<input type="hidden" name="misa_refdate"         value="' . $this->bean->ngayhoadon . '" />
+												<input type="hidden" name="misa_buyerName"       value="' . $this->bean->lienhe . '" />
+												<input type="hidden" name="misa_buyerCompany"    value="' . $this->bean->tencongty . '" />
+												<input type="hidden" name="misa_buyerEmail"      value="' . $this->bean->email . '" />
+												<input type="hidden" name="misa_buyerTax"        value="' . $this->bean->masothue . '" />
+												<input type="hidden" name="misa_buyerAddress"    value="' . $this->bean->diachi . '" />
+												<input type="hidden" name="misa_paymentMethod"   value="' . $this->bean->hinhthuctt . '" />
+												<input type="hidden" name="misa_invSubTotal"     value="' . $array_item_invoice['invSubTotal'] . '" />
+												<input type="hidden" name="misa_invVatAmount"    value="' . $array_item_invoice['invVatAmount'] . '" />
+												<input type="hidden" name="misa_invTotalAmount"  value="' . $array_item_invoice['invTotalAmount'] . '" />
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-primary" id="btn-confirm-create-misa-invoice">Xác nhận</button>
+									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+								</div>
+							</div>
+						</div>
+					</div>';
+				}
+
+				$this->ss->assign('HANDLE', $create_invoice_btn_win . $create_invoice_btn_misa);
 			}
 
 			// Bỏ ghi (Xóa hóa đơn nháp)
-			if($this->bean->tinhtrang == '1') {
+			if ($this->bean->tinhtrang == '1') {
 				$remove_invoice_button = '
 					<button type="button" name="btnRemoveInvoice" id="btnRemoveInvoice" class="btn btn-warning" onclick="showDialog(\'dialog-remove-invoice\')">Bỏ ghi sổ</button>
 					<dialog id="dialog-remove-invoice" class="dialog-remove-invoice pt-3 pb-3 ps-4 pe-4">
 						<form method="dialog" name="form-remove-invoice">
-							<h5 style="font-size:1.2rem">Tiến hành bỏ ghi sổ hóa đơn <b>'.$this->bean->name.'</b></h4> 
+							<h5 style="font-size:1.2rem">Tiến hành bỏ ghi sổ hóa đơn <b>' . $this->bean->name . '</b></h4> 
 							<div class="d-flex gap-2 justify-content-end mt-3">
 								<input type="button" class="btn btn-primary" name="btn-confirm-remove-invoice" id="btn-confirm-remove-invoice" value="Xác nhận" title="Xác nhận"
-									data-inv-ref="'.$this->bean->name.'" 
-									data-inv-serial="'.$this->bean->kyhieuhd.'" 
+									data-inv-ref="' . $this->bean->name . '" 
+									data-inv-serial="' . $this->bean->kyhieuhd . '" 
 									/>
 								<input type="button" class="btn btn-secondary" name="btn-cancel-remove-invoice" value="Hủy" title="Hủy" onclick="closeDialog(\'dialog-remove-invoice\')" />
 							</div>
@@ -456,7 +653,7 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			}
 
 			// Ký số hóa đơn
-			if($this->bean->tinhtrang == '1') {
+			if ($this->bean->tinhtrang == '1') {
 				$winInv = new WinInvoice();
 				$resLink = $winInv->get_link([
 					'invRef' => $this->bean->name,
@@ -464,15 +661,15 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 				]);
 				$arrLink = json_decode($resLink, true);
 
-				$view_invoice_button = '<a class="btn btn-secondary" href="https://timchuyenbay.com/tra-cuu?invRef='.$this->bean->name.'" target="_blank">Xem hóa đơn</a>';
+				$view_invoice_button = '<a class="btn btn-secondary" href="https://timchuyenbay.com/tra-cuu?invRef=' . $this->bean->name . '" target="_blank">Xem hóa đơn</a>';
 				$sign_invoice_button = '
 					<button type="button" name="btnSignInvoice" id="btnSignInvoice" class="btn btn-success" onclick="showDialog(\'dialog-sign-invoice\')">Ký hóa đơn</button>
 					<dialog id="dialog-sign-invoice" class="dialog-sign-invoice pt-3 pb-3 ps-4 pe-4">
 						<form method="dialog" name="form-sign-invoice">
-							<h5>Tiến hành ký số hóa đơn <b>'.$this->bean->name.'</b></h4> 
+							<h5>Tiến hành ký số hóa đơn <b>' . $this->bean->name . '</b></h4> 
 							<p style="font-size:14px; color:red;">
 								Vui lòng kiểm tra kỹ lại thông tin 
-								<a href="'. ($arrLink['data']['link'] ?? '#') .'" style="text-decoration:underline; " target="_blank">xem tại đây</a>
+								<a href="' . ($arrLink['data']['link'] ?? '#') . '" style="text-decoration:underline; " target="_blank">xem tại đây</a>
 								trước khi thực hiện
 							</p>
 							<div class="d-flex gap-2 justify-content-end mt-3">
@@ -486,47 +683,47 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			}
 
 			// Xem hóa đơn
-			if($this->bean->tinhtrang == '1' || $this->bean->tinhtrang == '2') {
-				$view_invoice_button = '<a class="btn btn-secondary" href="https://timchuyenbay.com/tra-cuu?invRef='.$this->bean->name.'" target="_blank">Xem hóa đơn</a>';
+			if ($this->bean->tinhtrang == '1' || $this->bean->tinhtrang == '2') {
+				$view_invoice_button = '<a class="btn btn-secondary" href="https://timchuyenbay.com/tra-cuu?invRef=' . $this->bean->name . '" target="_blank">Xem hóa đơn</a>';
 				$this->ss->assign('VIEW', $view_invoice_button);
 			}
 		}
 
 		// Chuyển trạng thái Đã ký
 		$sign_tp = '';
-		if($this->bean->tinhtrang == '0' || $this->bean->tinhtrang == '1') {
+		if ($this->bean->tinhtrang == '0' || $this->bean->tinhtrang == '1') {
 			$sign_tp .= '</form>
 			<form action="index.php" name="frmSignTP" id="frmSignTP" method="post">
 				<input type="hidden" name="module" value="EC_HoaDonBan" />
 				<input type="hidden" name="action" value="Save" />
-				<input type="hidden" name="record" value="'.$this->bean->id.'" />
+				<input type="hidden" name="record" value="' . $this->bean->id . '" />
 				<input type="hidden" name="return_module" value="EC_HoaDonBan" />
 				<input type="hidden" name="return_action" value="DetailView" />
-				<input type="hidden" name="return_id" value="'.$this->bean->id.'" />
+				<input type="hidden" name="return_id" value="' . $this->bean->id . '" />
 				<input type="hidden" name="tinhtrang" value="2" />
 				<input type="hidden" name="is_signed" value="1" />
-				<input type="hidden" name="sohoadon" value="'.$this->bean->sohoadon.'" />
+				<input type="hidden" name="sohoadon" value="' . $this->bean->sohoadon . '" />
 				<input type="submit" class="btn btn-success" name="btnSignTp" value="Đã kí" title="Đã kí" />
 			</form>';
 		}
 		$this->ss->assign('SIGNTP', $sign_tp);
-		
+
 		// Hủy hóa đơn
-		if($this->bean->tinhtrang != '-1') {
+		if ($this->bean->tinhtrang != '-1') {
 			$cancel_invoice_button = '
 				<input type="button" name="btnCancelInvoice" id="btnCancelInvoice" class="btn btn-danger" value="Hủy hóa đơn" title="Hủy hóa đơn" />
 			</form>
 			<form class="frmCancelInvoice" action="index.php" method="post" name="frmCancelInvoice" id="frmCancelInvoice">
-				<input type="hidden" name="record_name" value="'. $this->bean->name .'" />
-				<input type="hidden" name="record_serial" value="'.$this->bean->kyhieuhd.'" />
-				<input type="hidden" name="is_signed" value="'.$this->bean->is_signed.'" />
-				<input type="hidden" name="company_unit" value="'.$this->bean->company_unit.'" />
+				<input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+				<input type="hidden" name="record_serial" value="' . $this->bean->kyhieuhd . '" />
+				<input type="hidden" name="is_signed" value="' . $this->bean->is_signed . '" />
+				<input type="hidden" name="company_unit" value="' . $this->bean->company_unit . '" />
 
 				<div id="dlgCancelInvoice" style="display:none;" title="Hủy hóa đơn">
 					<table cellpadding="0" cellspacing="0" border="0">
 						<tr>
 							<td style="text-align:left; vertical-align:top;">
-								<textarea id="txtCancelInvoice" name="txtCancelInvoice" rows="10" style="font-size:13px">'.$this->bean->description.'</textarea>
+								<textarea id="txtCancelInvoice" name="txtCancelInvoice" rows="10" style="font-size:13px">' . $this->bean->description . '</textarea>
 							</td>
 						</tr>
 						<tr>
@@ -543,8 +740,9 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 			$this->ss->assign('HUYHOADON', $cancel_invoice_button);
 		}
 	}
-	
-	public function getItemName($code) {
+
+	public function getItemName($code)
+	{
 		$arr = [
 			'VMB_QN' => 'Vé máy bay',
 			'VMB_QT' => 'Vé máy bay Quốc tế',
@@ -565,9 +763,10 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 	 * @param string $code : Số vé hoặc PNR
 	 * @return array
 	 */
-	public function separateCollectionFees($amount, $booking_id, $code) {
+	public function separateCollectionFees($amount, $booking_id, $code)
+	{
 		$result = array('airport_fee' => 0, 'other_fee' => 0);
-		if(empty($amount) || empty($code) || empty($booking_id) || $amount == 0) return $result;
+		if (empty($amount) || empty($code) || empty($booking_id) || $amount == 0) return $result;
 		$result['airport_fee'] = $amount;
 
 		// PN, TH, HNH
@@ -576,53 +775,52 @@ class EC_HoaDonBanViewDetail extends ViewDetail {
 		// Kiểm tra code vé là chiều đi hay chiều về
 		$sql1 = 'SELECT eticket_outbound, eticket_inbound, pnr_outbound, pnr_inbound 
 				FROM ec_booking_passengers
-				WHERE booking_id = "'.$booking_id.'" AND deleted = 0';
+				WHERE booking_id = "' . $booking_id . '" AND deleted = 0';
 		$res1 = $this->bean->db->query($sql1);
 		$direction = null;
 		$is_round_trip = false;
-		while($row = $this->bean->db->fetchByAssoc($res1)) {
-			if($row['eticket_outbound'] == $code || $row['pnr_outbound'] == $code) $direction = '0'; // Lượt đi
-			elseif($row['eticket_inbound'] == $code || $row['pnr_inbound'] == $code) $direction = '1'; // Lượt về
+		while ($row = $this->bean->db->fetchByAssoc($res1)) {
+			if ($row['eticket_outbound'] == $code || $row['pnr_outbound'] == $code) $direction = '0'; // Lượt đi
+			elseif ($row['eticket_inbound'] == $code || $row['pnr_inbound'] == $code) $direction = '1'; // Lượt về
 
 			// Kiểm tra code vé khứ hồi
-			if(($row['eticket_outbound'] == $code || $row['pnr_outbound'] == $code) && ($row['eticket_inbound'] == $code || $row['pnr_inbound'] == $code))
+			if (($row['eticket_outbound'] == $code || $row['pnr_outbound'] == $code) && ($row['eticket_inbound'] == $code || $row['pnr_inbound'] == $code))
 				$is_round_trip = true;
 		}
 
 		// Lấy phí admin chiều tương ứng với code vé
-		if(!is_null($direction)) {
+		if (!is_null($direction)) {
 			$objBooking = new EC_Flight_Bookings();
 			$objBooking->retrieve($booking_id);
 
 			$other_fee = 0;
-			if(($direction == '0' && ($objBooking->airline == 'VNA' || $objBooking->airline == 'VNP'))
+			if (($direction == '0' && ($objBooking->airline == 'VNA' || $objBooking->airline == 'VNP'))
 				|| ($direction == '1' && ($objBooking->airline_inbound == 'VNA' || $objBooking->airline_inbound == 'VNP'))
 			) {
 				$sql2 = 'SELECT DISTINCT admin_fee
 						FROM ec_booking_details
-						WHERE booking_id = "'.$booking_id.'" 
-							AND direction = "'.$direction.'"
-							AND supplier_id IN'.$supplier_id.'
+						WHERE booking_id = "' . $booking_id . '" 
+							AND direction = "' . $direction . '"
+							AND supplier_id IN' . $supplier_id . '
 							AND vat_admin = 0 AND admin_fee > 0
 							AND deleted = 0';
 
 				$res2 = $this->bean->db->query($sql2);
-				while($row = $this->bean->db->fetchByAssoc($res2)) {
+				while ($row = $this->bean->db->fetchByAssoc($res2)) {
 					$other_fee = $row['admin_fee'];
 				}
 			}
 
-			if($is_round_trip) $other_fee *= 2;
-			if($amount <= $other_fee) {
+			if ($is_round_trip) $other_fee *= 2;
+			if ($amount <= $other_fee) {
 				$result['other_fee'] = $amount;
 				$result['airport_fee'] = 0;
-			}
-			else {
+			} else {
 				$result['other_fee'] = $other_fee;
 				$result['airport_fee'] = $amount - $other_fee;
 			}
 		}
-		
+
 		return $result;
 	}
 }

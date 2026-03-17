@@ -74,6 +74,13 @@ $admin_option_defs['Administration']['configphp_settings'] = [
     './index.php?module=Configurator&action=EditView',
     'system-settings'
 ];
+$admin_option_defs['Administration']['configmore_settings'] = [
+    'Password',
+    'LBL_MANAGE_CONFIG_TITLE',
+    'LBL_MANAGE_CONFIG',
+    './index.php?module=Administration&action=MoreSettings',
+    'system-settings'
+];
 // $admin_option_defs['Administration']['currencies_management'] = [
 //     'Currencies',
 //     'LBL_MANAGE_CURRENCIES',

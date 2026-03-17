@@ -1,7 +1,7 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-// global $mod_strings, $app_strings, $sugar_config;
+global $current_user;
 
 $editing_rights = ACLController::checkAccess('EC_Input_Invoices', 'edit', true);
 if ($editing_rights) $module_menu[] = ["index.php?module=EC_HoaDonBan&action=inputinvoice&return_module=EC_Input_Invoices&return_action=DetailView", "D/s HĐ đầu vào", 'EC_HoaDonBan', 'EC_HoaDonBan'];
@@ -14,3 +14,7 @@ if ($editing_rights) $module_menu[] = ["index.php?module=EC_HoaDonBan&action=sig
 if ($editing_rights) $module_menu[] = ["index.php?module=EC_HoaDonBan&action=EditView&return_module=EC_HoaDonBan&return_action=DetailView", "Tạo HĐ đầu ra", 'CreateEC_HoaDonBan', 'EC_HoaDonBan'];
 if ($editing_rights) $module_menu[] = ["index.php?module=EC_HoaDonBan&action=invoicereport&return_module=EC_HoaDonBan&return_action=DetailView", "Tồn kho tổng hợp", 'EC_HoaDonBan', 'EC_HoaDonBan'];
 if ($editing_rights) $module_menu[] = ["index.php?module=EC_HoaDonBan&action=ioinvoice&return_module=EC_HoaDonBan&return_action=DetailView", "Mua vào - bán ra", 'EC_HoaDonBan', 'EC_HoaDonBan'];
+
+if(in_array($current_user->user_name, ['hungnh', 'admin'])){
+    $module_menu[] = ["index.php?module=EC_HoaDonBan&action=misa_callback_log&return_module=EC_HoaDonBan&return_action=DetailView", "Log Callback Misa", 'EC_HoaDonBan', 'EC_HoaDonBan'];
+}
