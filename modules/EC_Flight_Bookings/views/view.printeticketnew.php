@@ -593,99 +593,112 @@ class Viewprinteticketnew extends SugarView
 		}
 
 		// 2) Parse purchase text to separate hand baggage vs checked baggage
+		$processPurchaseText = function($rawText, &$handRef, &$bagRef) {
+			$lines = explode("\n", $rawText);
+			foreach ($lines as $line) {
+				$line = trim($line);
+				if (empty($line)) continue;
+				$posPrice = stripos($line, 'Giá bán');
+				if ($posPrice !== false) $line = substr($line, 0, $posPrice);
+				$posOldPrice = stripos($line, 'Giá:');
+				if ($posOldPrice !== false) $line = substr($line, 0, $posOldPrice);
+				$pos = strpos($line, '(');
+				if ($pos !== false) $line = substr($line, 0, $pos);
+				$cleanLine = trim($line, " \t\n\r\0\x0B-:");
+				// remove 'hành lý' string to clean up '20kg hành lý' into '20kg'
+				$cleanLine = str_ireplace('hành lý', '', $cleanLine);
+				$cleanLine = trim($cleanLine);
+				
+				if (empty($cleanLine)) continue;
+				
+				if (stripos($cleanLine, 'xách tay') !== false || stripos($cleanLine, 'xach tay') !== false || stripos($cleanLine, 'carry') !== false) {
+					$val = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $cleanLine);
+					$val = trim($val);
+					// Only use purchase text carry-on if DB hasn't provided it (like '1x7')
+					if (empty($handRef)) {
+						$handRef = $val;
+					}
+				} else {
+					$val = trim($cleanLine);
+					if (empty($bagRef)) {
+						$bagRef = $val;
+					} else {
+						// Avoid concatenating exact duplicates
+						if (stripos($bagRef, $val) === false && stripos($val, $bagRef) === false) {
+							$bagRef .= ' + ' . $val;
+						}
+					}
+				}
+			}
+		};
+
 		$purchOutRaw = trim($row['luggage_purchase_text'] ?? '');
 		$purchInRaw = trim($row['luggage_purchase_text_inbound'] ?? '');
-		$purchOut = $this->cleanPurchaseText($purchOutRaw);
-		$purchIn = $this->cleanPurchaseText($purchInRaw);
 
-		// Detect hand baggage: contains "xách tay" or "carry" (case-insensitive)
-		$isHandOut = !empty($result['hand_baggage_outbound']) || (!empty($purchOut) && (stripos($purchOut, 'xách tay') !== false || stripos($purchOut, 'xach tay') !== false || stripos($purchOut, 'carry') !== false));
-		$isHandIn = !empty($result['hand_baggage_inbound']) || (!empty($purchIn) && (stripos($purchIn, 'xách tay') !== false || stripos($purchIn, 'xach tay') !== false || stripos($purchIn, 'carry') !== false));
-
-		if ($isHandOut && empty($result['hand_baggage_outbound']) && !empty($purchOut)) {
-			// Strip "xách tay"/"carry-on" text since template already prefixes with label
-			$cleanHand = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $purchOut);
-			$result['hand_baggage_outbound'] = trim($cleanHand);
-		} elseif (!$isHandOut && !empty($purchOut)) {
-			$result['baggage_outbound'] = $purchOut;
-		}
-
-		if ($isHandIn && empty($result['hand_baggage_inbound']) && !empty($purchIn)) {
-			$cleanHand = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $purchIn);
-			$result['hand_baggage_inbound'] = trim($cleanHand);
-		} elseif (!$isHandIn && !empty($purchIn)) {
-			$result['baggage_inbound'] = $purchIn;
-		}
+		$processPurchaseText($purchOutRaw, $result['hand_baggage_outbound'], $result['baggage_outbound']);
+		$processPurchaseText($purchInRaw, $result['hand_baggage_inbound'], $result['baggage_inbound']);
 
 		// Available checked baggage from luggage_index
 		if ($this->bookingBean->isUseNewBaggage($dateEntered, $this->bookingBean->created_by)) {
 			$availOut = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '', $lang) : '';
 			$availIn  = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_inbound']  ?? '', $lang) : '';
 
-			// If purchase text was NOT hand baggage, combine with available baggage
-			// Skip if hand baggage was already detected from purchase text (same physical baggage)
-			if (!$isHandOut) {
-				if (!empty($availOut) && !empty($result['baggage_outbound'])) {
-					// Both available + purchased checked: combine via parsePackage
-					$avaiParts = Baggage::parsePackage($availOut);
-					$purchParts = Baggage::parsePackage($result['baggage_outbound']);
-					if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
-						&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
-						$result['baggage_outbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
-					} else {
-						$result['baggage_outbound'] = $availOut . ' + ' . $result['baggage_outbound'];
-					}
-				} elseif (!empty($availOut) && empty($result['baggage_outbound'])) {
-					$result['baggage_outbound'] = $availOut;
+			// Combine available baggage with parsed purchase text checked baggage
+			if (!empty($availOut) && !empty($result['baggage_outbound'])) {
+				// Both available + purchased checked: combine via parsePackage
+				$avaiParts = Baggage::parsePackage($availOut);
+				$purchParts = Baggage::parsePackage($result['baggage_outbound']);
+				if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
+					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
+					$result['baggage_outbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
+				} else {
+					$result['baggage_outbound'] = $availOut . ' + ' . $result['baggage_outbound'];
 				}
+			} elseif (!empty($availOut) && empty($result['baggage_outbound'])) {
+				$result['baggage_outbound'] = $availOut;
 			}
 
-			if (!$isHandIn) {
-				if (!empty($availIn) && !empty($result['baggage_inbound'])) {
-					$avaiParts = Baggage::parsePackage($availIn);
-					$purchParts = Baggage::parsePackage($result['baggage_inbound']);
-					if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
-						&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
-						$result['baggage_inbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
-					} else {
-						$result['baggage_inbound'] = $availIn . ' + ' . $result['baggage_inbound'];
-					}
-				} elseif (!empty($availIn) && empty($result['baggage_inbound'])) {
-					$result['baggage_inbound'] = $availIn;
+			if (!empty($availIn) && !empty($result['baggage_inbound'])) {
+				$avaiParts = Baggage::parsePackage($availIn);
+				$purchParts = Baggage::parsePackage($result['baggage_inbound']);
+				if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
+					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
+					$result['baggage_inbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
+				} else {
+					$result['baggage_inbound'] = $availIn . ' + ' . $result['baggage_inbound'];
 				}
+			} elseif (!empty($availIn) && empty($result['baggage_inbound'])) {
+				$result['baggage_inbound'] = $availIn;
 			}
 		} else {
 			// Old baggage format: use generateLuggage for index-based baggage
-			// Skip direction if hand baggage was already detected from purchase text (same physical baggage)
 			if (function_exists('generateLuggage')) {
-				if (!$isHandOut) {
-					$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
-					$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
+				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
+				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
 
-					if ($hasNewFormatOut && class_exists('Baggage')) {
-						$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
-						if (!empty($bagOut)) {
-							if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = $bagOut;
-							else $result['baggage_outbound'] .= ' + ' . $bagOut;
-						}
-					} else {
-						$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
-						$luggagePriceOut = $row['luggage_price'] ?? 0;
-						if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
-						$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
-						if (!empty($bag_out2)) {
-							preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-							$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
-							if ($bag_weight_out > 0) {
-								$cleaned = $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
-								if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = trim($cleaned);
-								else $result['baggage_outbound'] .= ' + ' . trim($cleaned);
-							}
+				if ($hasNewFormatOut && class_exists('Baggage')) {
+					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
+					if (!empty($bagOut)) {
+						if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = $bagOut;
+						else $result['baggage_outbound'] .= ' + ' . $bagOut;
+					}
+				} else {
+					$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
+					$luggagePriceOut = $row['luggage_price'] ?? 0;
+					if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
+					$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+					if (!empty($bag_out2)) {
+						preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+						$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+						if ($bag_weight_out > 0) {
+							$cleaned = $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+							if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = trim($cleaned);
+							else $result['baggage_outbound'] .= ' + ' . trim($cleaned);
 						}
 					}
 				}
 
-				if ($khuhoi && !$isHandIn) {
+				if ($khuhoi) {
 					$luggage_idx_in = $row['luggage_index_inbound'] ?? '';
 					$hasNewFormatIn = preg_match('/[x_T]/i', $luggage_idx_in);
 
