@@ -29,6 +29,9 @@ class CustomController extends BaseController
                 return $response->withJson(['error' => true, 'message' => "Access $request_ip is not allowed"], 403);
 
             // Save booking
+            /**
+             * @var EC_Flight_Bookings $booking
+             */
             $booking = BeanFactory::newBean("EC_Flight_Bookings");
             if (isset($params['ec_flight_bookings']) && !empty($params['ec_flight_bookings'])) {
                 foreach ($params['ec_flight_bookings'] as $key => $value) {
@@ -52,6 +55,9 @@ class CustomController extends BaseController
              * Loại trừ các booking tham khảo, booking TEST
              */
             if (!empty($booking->phone) && !empty($booking->contact_name) && !in_array(strtoupper(trim($booking->contact_name)), $booking->contact_name_ignore)) {
+                /**
+                 * @var Calls $call
+                 */
                 $call = BeanFactory::newBean("Calls");
                 $call_id = $call->getTelesaleCalls($booking->phone, date('Y-m-d H:i:s'));
                 if (!empty($call_id)) {
@@ -71,6 +77,9 @@ class CustomController extends BaseController
             // Save journeys
             if (isset($params['ec_booking_itineraries']) && !empty($params['ec_booking_itineraries'])) {
                 foreach ($params['ec_booking_itineraries'] as $i) {
+                    /**
+                     * @var EC_Booking_Itineraries $itinerary
+                     */
                     $itinerary = BeanFactory::newBean("EC_Booking_Itineraries");
                     foreach ($i as $key => $value) {
                         $itinerary->$key = $value;
@@ -92,6 +101,9 @@ class CustomController extends BaseController
             // Save passengers
             if (isset($params['ec_booking_passengers']) && !empty($params['ec_booking_passengers'])) {
                 foreach ($params['ec_booking_passengers'] as $p) {
+                    /**
+                     * @var EC_Booking_Passengers $pass
+                     */
                     $pass = BeanFactory::newBean("EC_Booking_Passengers");
                     foreach ($p as $key => $value) {
                         $pass->$key = $value;
@@ -108,6 +120,9 @@ class CustomController extends BaseController
             // Save details
             if (isset($params['ec_booking_details']) && !empty($params['ec_booking_details'])) {
                 foreach ($params['ec_booking_details'] as $d) {
+                    /**
+                     * @var EC_Booking_Details $detail
+                     */
                     $detail = BeanFactory::newBean("EC_Booking_Details");
                     foreach ($d as $key => $value) {
                         $detail->$key = $value;
@@ -162,10 +177,12 @@ class CustomController extends BaseController
                 'message' => "Success",
                 'data' => $data,
             ], 201);
-        } catch (Throwable $e) {
+        }
+        catch (Throwable $th) {
+            $GLOBALS['log']->fatal("Save booking failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return $response->withJson([
                 'error' => true,
-                'message' => $e->getMessage(),
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
@@ -215,26 +232,28 @@ class CustomController extends BaseController
             exit();
         }
 
+        global $db;
         $platform = 'switchboard';
-        $where = '';
         $number = $call_direction == 'inbound' ? $call_from : $call_to;
         if (strlen($number) < 15) {
-            $where = 'phone_mobile = "' . $number . '"';
-        } else {
+            $contact_query = "SELECT id FROM contacts WHERE phone_mobile = '$number' AND deleted = 0 LIMIT 1";
+        }
+        else {
             $platform = 'zalo';
-            $where = 'zalo_id = "' . $number . '"';
+            $contact_query = "SELECT c.id
+                FROM ec_zalo_contacts zc
+                    LEFT JOIN contacts c ON c.id = zc.contact_id AND c.deleted = 0
+                WHERE zc.zalo_id = '$number' AND zc.deleted = 0
+                LIMIT 1";
         }
 
         // Get contact info
-        global $db;
-        $sql = '
-            SELECT id
-            FROM contacts
-            WHERE ' . $where . ' AND deleted = 0
-            LIMIT 1';
-        $res = $db->query($sql);
+        $res = $db->query($contact_query);
         $row = $db->fetchByAssoc($res);
 
+        /**
+         * @var Calls $call
+         */
         $call = BeanFactory::newBean("Calls");
         if (!empty($row['id'])) { // Cập nhật thông tin liên hệ cho Call
             $call->parent_type = 'Contacts';
@@ -345,6 +364,9 @@ class CustomController extends BaseController
                         $assigned_user_id = $db->getOne("SELECT id FROM users WHERE td_sip = '$dialed' AND deleted = 0");
                     }
 
+                    /**
+                     * @var EC_Zalo_Messages $zalomes
+                     */
                     $zalomes = BeanFactory::newBean("EC_Zalo_Messages");
                     $zalomes->id = '';
                     $zalomes->message_id = $call->id;
@@ -363,12 +385,8 @@ class CustomController extends BaseController
                     $zalomes->assigned_user_id = $assigned_user_id;
                     $zalomes->save();
                 }
-            } catch (Exception $e) {
-                return json_encode([
-                    'error' => false,
-                    'code' => 200,
-                    'message' => "Success",
-                ]);
+            } catch (Throwable $th) {
+                $GLOBALS['log']->fatal("Save Zalo message with type call failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             }
 
             return json_encode([
@@ -527,6 +545,9 @@ class CustomController extends BaseController
                 return $response->withJson(['error' => true, 'message' => "Access denied"], 403);
             }
 
+            /**
+             * @var EC_Flight_Bookings $booking
+             */
             $booking = BeanFactory::getBean("EC_Flight_Bookings", $booking_id);
             if (!$booking) {
                 return $response->withJson(['error' => true, 'message' => "Booking not found"], 404);

@@ -183,9 +183,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// External file
 		$js = '
-			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.0.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/view.detail.js?v=1.0.3"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/autobook.js?v=1.0.2"></script>
-			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.0.2"></script>
+			<script src="modules/' . $this->bean->module_dir . '/js/api_zalo.js?v=1.0.3"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/api_sms.js?v=1.0.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/doc_list.js?v=1.0.2"></script>
 			<script src="modules/' . $this->bean->module_dir . '/js/print_ticket.js?v=1.0.2"></script>
@@ -590,7 +590,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		// PHONE
 		$journeys_info 	= $this->getJourneysByBooking($this->bean->id);
 		$pass_and_bag 	= $this->getPassengerAndBaggage($this->bean->id);
-		$zns_history 	= $this->getHistoryZNS($this->bean->phone, $this->bean->id);
+		$zbs_history 	= $this->getHistoryZBS($this->bean->phone, $this->bean->id);
 		$contact_phone = '<div class="wrap-phone d-flex align-items-center justify-content-between">
 			<a href="tel:' . $this->bean->phone . '">' . $this->bean->phone . '</a>
 			<div class="d-flex align-items-center gap-2">
@@ -625,37 +625,31 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 								<div>
 									<input type="radio" class="form-check-input" id="type_journey" name="zalo_type" value="journey">
 									<label for="type_journey" class="form-check-label">Tin nhắn hành trình
-										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['journey'] . ' tin">(' . $zns_history['journey'] . ')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['journey'] . ' tin">(' . $zbs_history['journey'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_payment" name="zalo_type" value="payment">
 									<label for="type_payment" class="form-check-label">Tin nhắn thanh toán
-										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['payment'] . ' tin">(' . $zns_history['payment'] . ')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['payment'] . ' tin">(' . $zbs_history['payment'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_code" name="zalo_type" value="code">
 									<label for="type_code" class="form-check-label">Tin nhắn code vé
-										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['code'] . ' tin">(' . $zns_history['code'] . ')</span>
-									</label>
-								</div>
-								<div>
-									<input type="radio" class="form-check-input" id="type_after-call-sale" name="zalo_type" value="after-call-sale">
-									<label for="type_after-call-sale" class="form-check-label">Tin CSKH - Call sale
-										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['callsale'] . ' tin">(' . $zns_history['callsale'] . ')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['code'] . ' tin">(' . $zbs_history['code'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_remind-flight" name="zalo_type" value="remind-flight">
 									<label for="type_remind-flight" class="form-check-label">Nhắc nhở giờ bay
-										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['remind'] . ' tin">(' . $zns_history['remind'] . ')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['remind'] . ' tin">(' . $zbs_history['remind'] . ')</span>
 									</label>
 								</div>
 								<div>
 									<input type="radio" class="form-check-input" id="type_delay" name="zalo_type" value="delay">
 									<label for="type_delay" class="form-check-label">Thông báo delay
-										<span class="me-2 text-danger" title="Đã gửi ' . $zns_history['delay'] . ' tin">(' . $zns_history['delay'] . ')</span>
+										<span class="me-2 text-danger" title="Đã gửi ' . $zbs_history['delay'] . ' tin">(' . $zbs_history['delay'] . ')</span>
 									</label>
 								</div>
 							</div>	
@@ -1402,9 +1396,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$this->ss->assign('CHANGE_FLIGHT_TIME', $change_flight_time);
 		}
 
-		// Nút chia doanh số
-		$this->ss->assign('SHARE_PROFIT', $this->createShareProfitBtn());
-
 		// Auto book
 		if (in_array($this->bean->booking_status, [1, 2, 3, 6])) {
 			// if (in_array($this->bean->booking_status, [1, 2, 3, 6]) && !$this->bean->is_hold && !$this->bean->holding_status) {
@@ -1675,7 +1666,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 				// TT Checkin status
 				$checkin_status = '';
-				if ((int)$row['checkin_status'] !== 2 && in_array((int)$this->bean->booking_status, [7, 8])) {
+				if ((int)$row['checkin_status'] !== 2 && in_array((int)$this->bean->booking_status, [3, 7, 8])) {
 					$jour_name = $row['departure'] . '-' . $row['arrival'];
 					$checkin_status = '<select class="select-box checkin_status_iti" iti_id="' . $row['id'] . '" iti_name="' . $jour_name . '" booking_id="' . $this->bean->id . '" record_name="' . $this->bean->name . '">' . get_select_options_with_id($app_list_strings['booking_checkin_status_list'], (int)$row['checkin_status']) . '</select>';
 				}
@@ -2784,52 +2775,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		return $this->bean->db->getOne($sql);
 	}
 
-	// Tạo nút chia DS
-	function createShareProfitBtn()
-	{
-		$bk_assigned_user = new User;
-		$bk_assigned_user->retrieve($this->bean->assigned_user_id);
-		$assigned_user_fname = replaceAllSpacesToSingleSpace($bk_assigned_user->last_name . ' ' . $bk_assigned_user->first_name);
-
-		$html = '
-			<input type="button" class="btn btn-primary" id="share_profit_btn" value="Chia DS" bk="' . $this->bean->id . '">
-			</form><form id="share_profit_frm" method="post" type="post" action="index.php" style="display: none; background-color: white; font-family: Arial;">
-				<input type="hidden" name="module" value="EC_Completed_Bookings">
-				<input type="hidden" name="action" value="Save">
-				<input type="hidden" name="booking" value="' . $this->bean->id . '">
-				<input type="hidden" name="bk_status" value="' . $this->bean->booking_status . '">
-				<input type="hidden" name="for" value="updateShareProfit">
-				<div class="detail view">
-					<h2>' . $this->bean->name . ' - Tổng DS: <span id="bk_ttl_amt" style="color: red; font-weight: bold;"></span></h2>
-					<div class="label">Giao cho: ' . $assigned_user_fname . '</div>
-					<table id="share_profit_tbl" class="table-details__booking mt-2" cellpadding="0" cellspacing="0">
-						<thead>
-							<tr>
-								<th width="7%">STT</th>
-								<th width="60%">Booker</th>
-								<th width="26%" class="text-end">Số tiền</th>
-								<th width="7%" class="text-center"></th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-						<tfoot>
-							<tr>
-								<td colspan="4">
-									<div class="d-flex align-items-center gap-2 mt-2">
-										<input type="button" id="add_shareprofit_line" value="Thêm dòng" class="btn btn-primary">
-										<input type="submit" value="Lưu" class="btn btn-primary save-popup-dialog">
-										<input type="hidden" id="shareprofit_cnt">
-									</div>
-								</td>
-							</tr>
-						</tfoot>
-					</table>
-				</div>
-			</form>';
-
-		return $html;
-	}
-
 	/**
 	 * Tạo modal confirm action
 	 * 
@@ -3051,8 +2996,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			<div style="font-weight:normal">
 				<p><b>Zalo ID: </b>' . $data['id'] . $follow . '</p>
 				<p><b>Số điện thoại: </b>' . $data['phone'] . '</p>
-				<!-- <p><b>Hạn mức tin tư vấn: </b>Còn ' . $data['cs_reply'] . ' tin miễn phí</p> -->
-				<!-- <p><b>Hạn mức tin khuyến mãi: </b>Còn ' . $data['promotion']['daily'] . ' tin trong ngày (' . $data['promotion']['monthly'] . ' trong tháng)</p> -->
 				<p><b>Tương tác lần cuối: </b> ' . $data['last_interaction'] . '</p>
 			</div>
 		</div>';
@@ -3061,13 +3004,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	/**
-	 * Get history sending ZNS
+	 * Get history sending ZBS messages
 	 * 
 	 * @param string $phoneNumber
 	 * @param string $bookingId
 	 * @return array
 	 */
-	public function getHistoryZNS($phoneNumber, $bookingId)
+	public function getHistoryZBS($phoneNumber, $bookingId)
 	{
 		$result = [
 			'journey' => 0,

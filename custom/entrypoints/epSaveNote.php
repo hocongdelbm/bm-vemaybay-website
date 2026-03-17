@@ -93,9 +93,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // UPDATE booking_status - EC_customer
-        UpdateInforBookingOfCustomer($booking_id);
-
         echo $count;
         exit();
     }

@@ -16,12 +16,6 @@ class EC_TongHopController extends SugarController
                case "index":
                     $this->action = "report_sales_create";
                     break;
-               case "bookingqtyreport":
-                    $this->action = "bookingqtyreport";
-                    break;
-               case "currentsales":
-                    $this->action = "currentsales";
-                    break;
                case "report_sales_issue":
                     $this->action = "report_sales_issue";
                     break;
@@ -30,9 +24,6 @@ class EC_TongHopController extends SugarController
                     break;
                case "report_sales_revenue":
                     $this->action = "report_sales_revenue";
-                    break;
-               case "ticketreport":
-                    $this->action = "ticketreport";
                     break;
                case "addbonus":
                     $this->action = "addbonus";
@@ -52,14 +43,8 @@ class EC_TongHopController extends SugarController
                case "iplist":
                     $this->action = "iplist";
                     break;
-               case "test":
-                    $this->action = "test";
-                    break;
                case "analytics":
                     $this->action = "analytics";
-                    break;
-               case "businessreport":
-                    $this->action = "businessreport";
                     break;
                case "report_sales_weekly":
                     $this->action = "report_sales_weekly";
@@ -71,7 +56,7 @@ class EC_TongHopController extends SugarController
                     $this->action = "bkreport_telesale";
                     break;
                default:
-                    $this->action = "bookingqtyreport";
+                    $this->action = "report_sales_create";
                     break;
           }
 
@@ -83,18 +68,12 @@ class EC_TongHopController extends SugarController
                $this->action = "DetailView";
           if ($this->return_action == "index")
                $this->action = "report_sales_create";
-          if ($this->return_action == "bookingqtyreport")
-               $this->action = "bookingqtyreport";
-          if ($this->return_action == "currentsales")
-               $this->action = "currentsales";
           if ($this->return_action == "report_sales_issue")
                $this->action = "report_sales_issue";
           if ($this->return_action == "report_sales_create")
                $this->action = "report_sales_create";
           if ($this->return_action == "report_sales_revenue")
                $this->action = "report_sales_revenue";
-          if ($this->return_action == "ticketreport")
-               $this->action = "ticketreport";
           if ($this->return_action == "addbonus")
                $this->action = "addbonus";
           if ($this->return_action == "employeekpi")
@@ -107,8 +86,6 @@ class EC_TongHopController extends SugarController
                $this->action = "cashflow";
           if ($this->return_action == "report_sales_weekly")
                $this->action = "report_sales_weekly";
-          if ($this->return_action == "businessreport")
-               $this->action = "businessreport";
           if ($this->return_action == "summaryview")
                $this->action = "summaryview";
           if ($this->return_action == "bkreport_telesale")

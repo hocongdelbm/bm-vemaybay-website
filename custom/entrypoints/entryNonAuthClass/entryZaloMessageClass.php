@@ -2,7 +2,6 @@
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once 'custom/entrypoints/entryClass.php';
 require_once 'custom/include/helpers/api/APIZaloOA.php';
-require_once 'custom/include/helpers/api/APIOMNI.php';
 
 /**
  * Class entryZaloMessageClass
