@@ -328,6 +328,8 @@ class entryZaloOAClass extends entryClass {
             $parentId      = $params["parentId"] ?? "";
             $parentType    = $params["parentType"] ?? "";
             $templateData  = $params['templateData'] ?? [];
+            $dev           = (int)($params['dev'] ?? 0);
+            $auto          = (int)($params['auto'] ?? 0);
 
             if(empty($phoneNumber) || empty($type) || empty($templateData)) {
                 return [
@@ -392,7 +394,7 @@ class entryZaloOAClass extends entryClass {
             }
 
             // Send by phone number
-            $json = $zaloOA->send_template_message_by_phone($phoneNumber, $template_id, $templateData, true);
+            $json = $zaloOA->send_template_message_by_phone($phoneNumber, $template_id, $templateData, true, $dev);
             $arr = json_decode($json, true);
             if(isset($arr['error']) && $arr['error'] == 0) {
                 $templateData['template_id'] = $template_id;
@@ -455,7 +457,7 @@ class entryZaloOAClass extends entryClass {
                     $botToken   = $this->telegramConfig['zalo']['bot_token'] ?? '';
                     $chatId     = $this->telegramConfig['zalo']['chat_id'] ?? '';
                     $message    = "<b>$fullname</b> gửi mẫu tin $template_name đến Zalo <b>$phoneNumber</b>";
-                    if($type == 'after-call-sale') $message = "<b>⚙️Auto:</b> $message";
+                    if($type == 'after-call-sale' && $auto) $message = "<b>⚙️Auto:</b> $message";
                     if(!empty($parentId) && $parentType == 'EC_Flight_Bookings') {
                         $bklink = "https://".$zaloOA->get_domain()."/index.php?module={$parentType}&action=DetailView&record={$parentId}";
                         $message .= " - <a href='{$bklink}'>Booking</a>";

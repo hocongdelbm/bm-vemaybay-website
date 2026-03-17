@@ -114,9 +114,13 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
             $call_status    = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
 
-            $is_uncomfortable     = isset($_POST['is_uncomfortable']) ? $_POST['is_uncomfortable'] : false;
-            $is_ctv     = isset($_POST['is_ctv']) ? $_POST['is_ctv'] : false;
-            $is_compare_price     = isset($_POST['is_compare_price']) ? $_POST['is_compare_price'] : false;
+            $is_uncomfortable   = isset($_POST['is_uncomfortable']) ? $_POST['is_uncomfortable'] : false;
+            $is_ctv             = isset($_POST['is_ctv']) ? $_POST['is_ctv'] : false;
+            $is_compare_price   = isset($_POST['is_compare_price']) ? $_POST['is_compare_price'] : false;
+
+            $is_send_zbs_after_call = (int)($_POST['is_send_zbs_after_cal'] ?? 0);
+            $data_zbs_after_call_code = global_test_input($_POST['data_zbs_after_call_code'] ?? '');
+            $data_zbs_after_call_datetime = global_test_input($_POST['data_zbs_after_call_datetime'] ?? '');
 
             // Validate
             if (empty($call_id) || empty($note)) {
@@ -434,8 +438,42 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             /**********  3. Send ZBS message (after-call-sale)  **********/
-            if(!empty($booking_id)) {
-                try {
+            try {
+                $zbs_template_message_params = [];
+                if($is_send_zbs_after_call) {
+                    if(!empty($data_zbs_after_call_code) && !empty($data_zbs_after_call_datetime)) {
+                        if(!empty($phone)) {
+                            $zbs_template_message_params = [
+                                "phoneNumber" => $phone,
+                                "type" => "after-call-sale",
+                                "parentId" => $booking_id,
+                                "parentType" => !empty($booking_id) ? "EC_Flight_Bookings" : "",
+                                "templateData" => [
+                                    "full_name" => "quý khách",
+                                    "flight_no" => $data_zbs_after_call_code,
+                                    "datetime" => $data_zbs_after_call_datetime,
+                                ],
+                            ];
+                        }
+                        else if(!empty($zalo_id)) {
+                            $zalo_info = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, '', true);
+                            if(isset($zalo_info['shared_info']['phone']) && !empty($zalo_info['shared_info']['phone'])) {
+                                $zbs_template_message_params = [
+                                    "phoneNumber" => $zalo_info['shared_info']['phone'],
+                                    "type" => "after-call-sale",
+                                    "parentId" => $booking_id,
+                                    "parentType" => !empty($booking_id) ? "EC_Flight_Bookings" : "",
+                                    "templateData" => [
+                                        "full_name" => "quý khách",
+                                        "flight_no" => $data_zbs_after_call_code,
+                                        "datetime" => $data_zbs_after_call_datetime,
+                                    ],
+                                ];
+                            }
+                        }
+                    }
+                }
+                else if(!empty($booking_id)) {
                     /**
                      * @var EC_Flight_Bookings $booking
                      */
@@ -455,26 +493,29 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         $departure_date = $rowItineraries['departure_date'] ?? '';
 
                         if(!empty($dep_code) && !empty($des_code) && !empty($departure_date) && strtotime($departure_date) !== false) {
-                            $entry = new entryFactory();
-                            $entryOA = $entry->create('entryZaloOAClass');
-                            $params = [
-                                "phoneNumber" => $booking->phone,
+                            $zbs_template_message_params = [
+                                "phoneNumber" => !empty($phone) ? $phone : $booking->phone,
                                 "type" => "after-call-sale",
                                 "parentId" => $booking_id,
                                 "parentType" => "EC_Flight_Bookings",
                                 "templateData" => [
-                                   "full_name" => "quý khách",
-                                   "flight_no" => "{$dep_code}-{$des_code}",
-                                   "datetime" => date('d/m/Y', strtotime($departure_date)),
+                                    "full_name" => "quý khách",
+                                    "flight_no" => "{$dep_code}-{$des_code}",
+                                    "datetime" => date('d/m/Y', strtotime($departure_date)),
                                 ],
+                                "auto" => 1
                             ];
-                            $entryOA->sendTemplateMessage($params);
                         }
                     }
                 }
-                catch(Throwable $th) {
-                    $GLOBALS['log']->fatal("Send ZBS message (after-call-sale) failed: {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+                if(is_array($zbs_template_message_params) && !empty($zbs_template_message_params)) {
+                    $entry = new entryFactory();
+                    $entryOA = $entry->create('entryZaloOAClass');
+                    $entryOA->sendTemplateMessage($zbs_template_message_params);
                 }
+            }
+            catch(Throwable $th) {
+                $GLOBALS['log']->fatal("Error happen when sending ZBS message (after-call-sale): {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             }
             
             echo json_encode(["status" => 1, "message" => "Success"]);

@@ -717,8 +717,34 @@ $(document).ready(function () {
 
         // Validate email
         if (email.length > 0 && !regEmailNew.test(email)) {
-            alert('Email không hợp lệ');
+            showToastWarning('Email không hợp lệ');
             return false;
+        }
+
+        // ZBS (Zalo template message)
+        const checkboxZBS = document.getElementById('switchCheckSendZBS');
+        const codeZBS = document.getElementById('ZBSAfterCallDataCode').value.trim();
+        const datetimeZBS = document.getElementById('ZBSAfterCallDataDatetime').value.trim();
+        if (checkboxZBS.checked) {
+            const regexCode = /^[A-Za-z0-9]{2}/;
+            const regexDate = /^(0[1-9]|[12][0-9]|3[01])[\/-](0[1-9]|1[0-2])[\/-]\d{4}$/;
+            const regexDateTime = /^(0[1-9]|[12][0-9]|3[01])[\/-](0[1-9]|1[0-2])[\/-]\d{4} (0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+
+            if (!codeZBS || !datetimeZBS) {
+                showToastWarning('Vui lòng điền đẩy đủ thông tin gửi Zalo');
+                $(this).css("pointer-events", "");
+                return false;
+            }
+            if (codeZBS.length < 5 || !regexCode.test(codeZBS)) {
+                showToastWarning('Thông tin hành trình không hợp lệ');
+                $(this).css("pointer-events", "");
+                return false;
+            }
+            if (!regexDateTime.test(datetimeZBS) && !regexDate.test(datetimeZBS)) {
+                showToastWarning('Thông tin ngày giờ bay không hợp lệ');
+                $(this).css("pointer-events", "");
+                return false;
+            }
         }
 
         $.ajax({
@@ -740,7 +766,10 @@ $(document).ready(function () {
                 booking_id: booking_id,
                 booking_name: booking_name,
                 type_call_booking: type_call_booking,
-                journey_id: journey_id
+                journey_id: journey_id,
+                is_send_zbs_after_cal: checkboxZBS.checked ? 1 : 0,
+                data_zbs_after_call_code :codeZBS,
+                data_zbs_after_call_datetime :datetimeZBS,
             },
             dataType: 'json',
             cache: false,
