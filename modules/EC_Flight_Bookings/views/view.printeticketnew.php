@@ -16,6 +16,7 @@ class Viewprinteticketnew extends SugarView
 	public $itineraryIds;
 	public $allPassengers;
 	public $allItineraries;
+	public $isPrintTicketMode = true;
 	private $bookingBean = null;
 
 	function display()
@@ -26,6 +27,7 @@ class Viewprinteticketnew extends SugarView
 		$this->bookingId = $_REQUEST['booking_id'] ?? '';
 		$this->bookingName = $_REQUEST['booking'] ?? '';
 		$this->ticketType = $_REQUEST['ticket_type'] ?? '1';
+		$this->isPrintTicketMode = true;
 
 		// Parse comma-separated IDs from GET params ("All" = select all)
 		$this->passengerIds = [];
@@ -98,6 +100,7 @@ class Viewprinteticketnew extends SugarView
 
 		// Assign data to template
 		$this->sugarSmarty->assign('PASSENGER_GROUPS', $passengerGroups);
+		$this->sugarSmarty->assign('IS_PRINT_TICKET_MODE', (bool)$this->isPrintTicketMode);
 		$this->sugarSmarty->assign('IS_ROUND_TRIP', $this->isRoundTrip);
 		$this->sugarSmarty->assign('LANG', $this->lang);
 		$this->sugarSmarty->assign('BOOKING_NUMBER', $this->bookingName);

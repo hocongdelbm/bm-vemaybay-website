@@ -94,6 +94,7 @@ class Viewsendeticketnew extends SugarView
 		$printView->bookingId = $bean->id;
 		$printView->bookingName = $booking_number;
 		$printView->ticketType = $_REQUEST['ticket_type'] ?? '1';
+		$printView->isPrintTicketMode = false;
 
 		// Parse comma-separated IDs from POST form 
 		$printView->allPassengers = false;
