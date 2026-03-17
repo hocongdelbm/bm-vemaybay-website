@@ -31,6 +31,7 @@
 		body {ldelim} padding: 0; {rdelim}
 		.no-print {ldelim} display: none !important; {rdelim}
 		{rdelim}
+		
 		table tr td, table tr th {ldelim}
 		font-family: 'Inter',
 		-apple-system,
@@ -376,10 +377,70 @@
 													{/if}
 												{/if}
 
+													{assign var="cleanPnrOutTmp" value=$displayPnrOut|replace:'Ô':'O'|replace:'Õ':'O'|replace:'Ỏ':'O'|replace:'Ó':'O'|replace:'Ọ':'O'|replace:'ô':'o'|replace:'õ':'o'|replace:'ỏ':'o'|replace:'ó':'o'|replace:'ọ':'o'|lower|trim}
+													{assign var="cleanPnrInTmp" value=$displayPnrIn|replace:'Ô':'O'|replace:'Õ':'O'|replace:'Ỏ':'O'|replace:'Ó':'O'|replace:'Ọ':'O'|replace:'ô':'o'|replace:'õ':'o'|replace:'ỏ':'o'|replace:'ó':'o'|replace:'ọ':'o'|lower|trim}
+
+													{if $IS_PRINT_TICKET_MODE}
+													<tr>
+														<td colspan="2" style="padding:0;">
+															<table width="100%" cellpadding="0" cellspacing="0" border="0">
+																<tr>
+																	<td width="50%" valign="top" style="padding:0 12px 0 10px; border-right:1px dashed #ddd;">
+																		{if $cleanPnrOutTmp != 'khong bay'}
+																			<div style="font-size:11px; font-style:italic; color:#666; margin-bottom:3px;">{if $LANG == 'en'}Outbound{else}Lượt đi{/if}</div>
+																			<table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
+																				<tr>
+																					<td style="width:130px; color:#555; font-size:13px; padding:3px 0;">{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}</td>
+																					<td style="font-weight:700; font-size:13px; padding:3px 0;">{$displayPnrOut}</td>
+																				</tr>
+																				{if $pax.hand_baggage_outbound}
+																					<tr>
+																						<td style="color:#555; padding:3px 0;">{if $LANG == 'en'}Carry-on{else}Xách tay{/if}</td>
+																						<td style="padding:3px 0;">{$pax.hand_baggage_outbound}</td>
+																					</tr>
+																				{/if}
+																				{if $pax.baggage_outbound}
+																					<tr>
+																						<td style="color:#555; padding:3px 0;">{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}</td>
+																						<td style="padding:3px 0;">{$pax.baggage_outbound}</td>
+																					</tr>
+																				{/if}
+																			</table>
+																		{/if}
+																	</td>
+																	<td width="50%" valign="top" style="padding:0 0 0 12px;">
+																		{if $cleanPnrInTmp != 'khong bay'}
+																			<div style="font-size:11px; font-style:italic; color:#666; margin-bottom:3px;">{if $LANG == 'en'}Inbound{else}Lượt về{/if}</div>
+																			<table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:12px;">
+																				<tr>
+																					<td style="width:130px; color:#555; font-size:13px; padding:3px 0;">{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if}</td>
+																					<td style="font-weight:700; font-size:13px; padding:3px 0;">{$displayPnrIn}</td>
+																				</tr>
+																				{if $pax.hand_baggage_inbound}
+																					<tr>
+																						<td style="color:#555; padding:3px 0;">{if $LANG == 'en'}Carry-on{else}Xách tay{/if}</td>
+																						<td style="padding:3px 0;">{$pax.hand_baggage_inbound}</td>
+																					</tr>
+																				{/if}
+																				{if $pax.baggage_inbound}
+																					<tr>
+																						<td style="color:#555; padding:3px 0;">{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}</td>
+																						<td style="padding:3px 0;">{$pax.baggage_inbound}</td>
+																					</tr>
+																				{/if}
+																			</table>
+																		{/if}
+																	</td>
+																</tr>
+															</table>
+														</td>
+													</tr>
+													{/if}
+
 												<!-- Outbound -->
-												{assign var="cleanPnrOutTmp" value=$displayPnrOut|replace:'Ô':'O'|replace:'Õ':'O'|replace:'Ỏ':'O'|replace:'Ó':'O'|replace:'Ọ':'O'|replace:'ô':'o'|replace:'õ':'o'|replace:'ỏ':'o'|replace:'ó':'o'|replace:'ọ':'o'|lower|trim}
+												{if !$IS_PRINT_TICKET_MODE}
 												{if $cleanPnrOutTmp != 'khong bay'}
-												<tr>
+													<tr>
 													<td
 														style="width: 160px; color:#555; font-size:14px; padding:3px 0; padding-left:10px;">
 														{if $LANG == 'en'}PNR{else}Mã đặt chỗ{/if} <span
@@ -418,7 +479,6 @@
 
 										<!-- Inbound -->
 										{if $IS_ROUND_TRIP}
-											{assign var="cleanPnrInTmp" value=$displayPnrIn|replace:'Ô':'O'|replace:'Õ':'O'|replace:'Ỏ':'O'|replace:'Ó':'O'|replace:'Ọ':'O'|replace:'ô':'o'|replace:'õ':'o'|replace:'ỏ':'o'|replace:'ó':'o'|replace:'ọ':'o'|lower|trim}
 											{if $cleanPnrInTmp != 'khong bay'}
 											<tr>
 												<td style="width: 160px; color:#555; font-size:14px; padding:3px 0; padding-left:10px;">
@@ -452,6 +512,7 @@
 													<td style="padding:3px 0;">{$pax.baggage_inbound}</td>
 												</tr>
 											{/if}
+										{/if}
 										{/if}
 									{/if}
 								</table>
