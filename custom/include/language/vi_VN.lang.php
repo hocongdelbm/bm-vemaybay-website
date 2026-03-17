@@ -1972,9 +1972,9 @@ $GLOBALS['app_list_strings']['supplier_invoice_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['company_unit_invoice_list'] = array(
+  '' => '',
   'MHV' => 'Minh Hồng Võ',
   'TRAVELPASS' => 'Travelpass',
-  '' => '',
   // 'EMPTY' => 'Trống',
 );
 
@@ -1988,7 +1988,6 @@ $GLOBALS['app_list_strings']['online_stt_list'] = array(
   1 => 'Online',
   2 => 'Busy',
 );
-
 
 /*==================== MODULE CALLS ====================*/
 $GLOBALS['app_list_strings']['calls_direction_list'] = array(

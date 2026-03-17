@@ -52,6 +52,8 @@ class MisaInvoice
         ?string $lastSyncTime = null
     ): string {
         $token = $this->getAccessToken();
+        pr($token);
+
         if (!$token) {
             return $this->returnError(401, 'Không thể lấy access token từ AMIS Kế toán');
         }
@@ -127,7 +129,7 @@ class MisaInvoice
      *
      * @return string JSON {error, httpCode, message, data}
      */
-    public function save(array $voucher, array $details, array  $saInvoice): string
+    public function save(array $voucher, array $details, array $saInvoice): string
     {
         $token = $this->getAccessToken();
         if (!$token) {
@@ -243,6 +245,8 @@ class MisaInvoice
 
         // pr($body);
 
+        return json_encode($body);
+
         // return $this->sendRequest('POST', '/apir/sync/actopen/save', $body, $token);
     }
 
@@ -300,7 +304,9 @@ class MisaInvoice
         }
 
         // 2. Cache miss / hết hạn → gọi API lấy token mới
-        return $this->connect();
+        return {};
+
+        // return $this->connect();
     }
 
     /**

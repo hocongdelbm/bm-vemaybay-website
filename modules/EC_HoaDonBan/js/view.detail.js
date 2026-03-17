@@ -111,8 +111,8 @@ $(document).ready(function () {
 		// ============================================================
 		// 1. Thu thập dữ liệu — dùng prefix misa_ tránh trùng WinInvoice
 		// ============================================================
-		var invID = $('input[name="misa_invID"]').val();
-		var orgRefNo = $('input[name="misa_orgRefNo"]').val();
+		const invID = $('input[name="misa_invID"]').val();
+		const orgRefNo = $('input[name="misa_orgRefNo"]').val();
 		var invSerial = $('input[name="misa_invSerial"]').val();
 		var refdate = $('input[name="misa_refdate"]').val();
 		var paymentMethod = $('input[name="misa_paymentMethod"]').val();
@@ -227,7 +227,6 @@ $(document).ready(function () {
 				class: ENTRYCLASS,
 				method: 'setMisa',
 				params: {
-					recordId: invID,
 					voucher: voucher,
 					details: details,
 					saInvoice: saInvoice,
