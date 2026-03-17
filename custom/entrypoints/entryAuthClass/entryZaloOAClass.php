@@ -450,15 +450,18 @@ class entryZaloOAClass extends entryClass {
                     }
                 }
                 
-                $fullname   = trim("{$this->currentUser->last_name} {$this->currentUser->first_name}");
-                $botToken   = $this->telegramConfig['zalo']['bot_token'] ?? '';
-                $chatId     = $this->telegramConfig['zalo']['chat_id'] ?? '';
-                $message    = "<b>$fullname</b>: Gửi mẫu tin $template_name đến Zalo <b>$phoneNumber</b>";
-                if(!empty($parentId) && $parentType == 'EC_Flight_Bookings') {
-                    $bklink = "https://".$zaloOA->get_domain()."/index.php?module={$parentType}&action=DetailView&record={$parentId}";
-                    $message .= " - <a href='{$bklink}'>Booking</a>";
+                if($type != 'cheap-flight') {
+                    $fullname   = trim("{$this->currentUser->last_name} {$this->currentUser->first_name}");
+                    $botToken   = $this->telegramConfig['zalo']['bot_token'] ?? '';
+                    $chatId     = $this->telegramConfig['zalo']['chat_id'] ?? '';
+                    $message    = "<b>$fullname</b> gửi mẫu tin $template_name đến Zalo <b>$phoneNumber</b>";
+                    if($type == 'after-call-sale') $message = "<b>⚙️Auto:</b> $message";
+                    if(!empty($parentId) && $parentType == 'EC_Flight_Bookings') {
+                        $bklink = "https://".$zaloOA->get_domain()."/index.php?module={$parentType}&action=DetailView&record={$parentId}";
+                        $message .= " - <a href='{$bklink}'>Booking</a>";
+                    }
+                    Telegram::sendMessage($message, $botToken, $chatId);
                 }
-                Telegram::sendMessage($message, $botToken, $chatId);
             }
             else {
                 $arr["message"] = $zaloOA->get_error_description($arr["error"] ?? "");

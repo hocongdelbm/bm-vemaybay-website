@@ -61,6 +61,9 @@ class EC_Flight_Bookings extends Basic
 	public $date_ticket_issue;
 	public $date_ticket_inbound_issue;
 	public $nganluong_info;
+	public $nganluong_code;
+	public $nganluong_datepaid;
+
 	public $ghichuthangthua;
 	public $delivery_man_id;
 	public $delivery_man;
@@ -335,6 +338,8 @@ class EC_Flight_Bookings extends Basic
 
 	private function _postSave(string $recordId): void
 	{
+		global $current_user;
+
 		// Lưu thông tin hoá đơn
 		$this->saveInvoiceInf($_POST, $this->id);
 
@@ -364,6 +369,10 @@ class EC_Flight_Bookings extends Basic
 				$this->saveLinePassengersOld();
 			}
 		}
+		// if($current_user->user_name == 'hungnh'){
+		// 	pr(count($_POST, COUNT_RECURSIVE));
+		// 	die;
+		// }
 
 		// Change flight time
 		if (isset($_POST['save_change_flight'])) {
@@ -677,8 +686,10 @@ class EC_Flight_Bookings extends Basic
 	 */
 	private function saveLinePassengers(): void
 	{
-		$rows = $_POST['psg_id'] ?? [];
+		global $current_user;
 
+		$rows = $_POST['psg_id'] ?? [];
+		
 		foreach (array_keys($rows) as $i) {
 			$data = $this->_extractPassengerRow($i);
 			$this->_savePassengerRow($data);
@@ -1297,7 +1308,7 @@ class EC_Flight_Bookings extends Basic
 	public function saveInvoiceInf($post_fields, $booking_id)
 	{
 		if (isset($post_fields['action']) && $post_fields['action'] == 'Save') {
-			if (isset($post_fields['iv_account_name'])) {
+			if (isset($post_fields['iv_account_name']) || isset($post_fields['company_name'])) {
 				$invoice_inf = [
 					'iv_account_name' => $post_fields['iv_account_name'],
 					'iv_email' => $post_fields['iv_email'],
