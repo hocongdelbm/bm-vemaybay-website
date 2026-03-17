@@ -328,6 +328,7 @@ class entryZaloOAClass extends entryClass {
             $parentId      = $params["parentId"] ?? "";
             $parentType    = $params["parentType"] ?? "";
             $templateData  = $params['templateData'] ?? [];
+            $dev           = (int)($params['dev'] ?? 0);
             $auto          = (int)($params['auto'] ?? 0);
 
             if(empty($phoneNumber) || empty($type) || empty($templateData)) {
@@ -393,7 +394,7 @@ class entryZaloOAClass extends entryClass {
             }
 
             // Send by phone number
-            $json = $zaloOA->send_template_message_by_phone($phoneNumber, $template_id, $templateData, true);
+            $json = $zaloOA->send_template_message_by_phone($phoneNumber, $template_id, $templateData, true, $dev);
             $arr = json_decode($json, true);
             if(isset($arr['error']) && $arr['error'] == 0) {
                 $templateData['template_id'] = $template_id;
