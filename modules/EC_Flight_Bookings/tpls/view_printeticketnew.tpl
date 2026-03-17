@@ -272,20 +272,6 @@
 												{if $pax.pnr_inbound}
 													{assign var="actualPnrInbound" value=$pax.pnr_inbound}
 												{/if}
-
-												{assign var="actualEticketInbound" value=$pax.eticket_outbound}
-												{if $pax.eticket_inbound}
-													{assign var="actualEticketInbound" value=$pax.eticket_inbound}
-												{/if}
-
-												{assign var="baggageMatches" value=false}
-												{if $outboundBaggage == $inboundBaggage || (!$outboundBaggage && $inboundBaggage) || ($outboundBaggage && !$inboundBaggage)}
-													{assign var="baggageMatches" value=true}
-												{/if}
-
-												{if $pax.pnr == $actualPnrInbound && (!$hasEticket || $pax.eticket_outbound == $actualEticketInbound) && $baggageMatches}
-													{assign var="isCombined" value=true}
-												{/if}
 											{else}
 												{assign var="isCombined" value=true}
 											{/if}
@@ -326,30 +312,20 @@
 													<td style="font-weight:700; font-size:14px; padding:3px 0;">{$pax.pnr}
 													</td>
 												</tr>
-												{if $outboundBaggage || $inboundBaggage}
+												{if $pax.hand_baggage_outbound}
 													<tr>
 														<td style="color:#555; padding:3px 0;{if $IS_ROUND_TRIP} padding-left:10px;{/if}">
-															{if !$hasCheckedBg && $hasHandBg}
-																{if $LANG == 'en'}Carry-on{else}Xách tay{/if}
-															{elseif $hasCheckedBg && !$hasHandBg}
-																{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}
-															{else}
-																{if $LANG == 'en'}Baggage{else}Hành lý{/if}
-															{/if}
+															{if $LANG == 'en'}Carry-on{else}Xách tay{/if}
 														</td>
-														<td style="padding:3px 0;">
-															{if $outboundBaggage == $inboundBaggage}
-																{$outboundBaggage}
-															{elseif $outboundBaggage && !$inboundBaggage}
-																{$outboundBaggage}
-															{elseif !$outboundBaggage && $inboundBaggage}
-																{$inboundBaggage}
-															{else}
-																<div style="margin-bottom:2px;">{if $LANG == 'en'}Outbound{else}Lượt đi{/if}:
-																	{$outboundBaggage}</div>
-																<div>{if $LANG == 'en'}Inbound{else}Lượt về{/if}: {$inboundBaggage}</div>
-															{/if}
+														<td style="padding:3px 0;">{$pax.hand_baggage_outbound}</td>
+													</tr>
+												{/if}
+												{if $pax.baggage_outbound}
+													<tr>
+														<td style="color:#555; padding:3px 0;{if $IS_ROUND_TRIP} padding-left:10px;{/if}">
+															{if $LANG == 'en'}Checked baggage{else}Ký gửi{/if}
 														</td>
+														<td style="padding:3px 0;">{$pax.baggage_outbound}</td>
 													</tr>
 												{/if}
 											{else}
