@@ -16,8 +16,7 @@ class entryZaloOAClass extends entryClass {
         $oa_id = $params["oa_id"] ?? "";
         $zalo_id = $params["zalo_id"] ?? "";
 
-        $zaloContact = new EC_Zalo_Contacts();
-        $user_data = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+        $user_data = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, $oa_id);
 
         return [
             "status" => !empty($user_data) ? 1 : 0,
@@ -53,11 +52,10 @@ class entryZaloOAClass extends entryClass {
             }
 
             $results = [];
-            $zaloContact = new EC_Zalo_Contacts();
             $zaloMessage = new EC_Zalo_Messages();
             foreach($arr['data']['users'] as $u) {
                 $zalo_id = $u['user_id'];
-                $user_info = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+                $user_info = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, $oa_id);
 
                 if(!empty($user_info)) {
                     $lastest_message  = $zaloMessage->get_lastest_message_user($oa_id, $zalo_id);
@@ -348,8 +346,7 @@ class entryZaloOAClass extends entryClass {
             
             // Send by uid
             if($zaloOA->check_template_can_send_by_uid($template_id)) {
-                $zaloContact = new EC_Zalo_Contacts();
-                $listUsers = $zaloContact->search_zalo_user_by_phone($phoneNumber, $zaloOA->get_oa_id());
+                $listUsers = EC_Zalo_Contacts_Helper::search_zalo_user_by_phone($phoneNumber, $zaloOA->get_oa_id());
 
                 if(count($listUsers) == 1) {
                     $uid  = $listUsers[0]['user_id'] ?? '';
@@ -501,7 +498,6 @@ class entryZaloOAClass extends entryClass {
             ];
         }
 
-        $zaloContact = new EC_Zalo_Contacts();
         $zaloMessage = new EC_Zalo_Messages();
         $listUserData = [];
 
@@ -510,17 +506,17 @@ class entryZaloOAClass extends entryClass {
             parse_str(parse_url($search_value, PHP_URL_QUERY), $query);
             $zalo_id = $query['uid'] ?? '';
             if(!empty($zalo_id)) {
-                $user_info = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+                $user_info = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, $oa_id);
                 if(is_array($user_info) && !empty($user_info)) $listUserData[] = $user_info;
             }
         }
         // Search by phone
         elseif(is_numeric($search_value)) {
-            $listUserData = $zaloContact->search_zalo_user_by_phone($search_value);
+            $listUserData = EC_Zalo_Contacts_Helper::search_zalo_user_by_phone($search_value);
         }
         // Search by alias
         else {
-            $listUserData = $zaloContact->search_zalo_user_by_alias($search_value);
+            $listUserData = EC_Zalo_Contacts_Helper::search_zalo_user_by_alias($search_value);
         }
 
         $results = [];

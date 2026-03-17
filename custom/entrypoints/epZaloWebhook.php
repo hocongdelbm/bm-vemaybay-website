@@ -159,11 +159,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $quota_user = $quota_oa = [];
                         $last_interaction = date("$dateFormat $timeFormat", (int)($timestamp / 1000) - 7*3600);
                         $date_modified = date("$dateFormat $timeFormat", time() - 7*3600);
-                        $zaloContact = new EC_Zalo_Contacts();
 
                         // Send from user to OA
                         if($zalomes->src == 1) {
-                            $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_id);
+                            $zaloUserInfo = EC_Zalo_Contacts_Helper::get_zalo_user_info($sender_id, $recipient_id);
 
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 $sqlUpdate = "UPDATE ec_zalo_contacts 
@@ -179,7 +178,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         // Quota oa (Only update when not send by API)
                         else if($zalomes->src == 0 && !empty($admin_id)) {
                             // Get user quota info
-                            $zaloUserInfo = $zaloContact->get_zalo_user_info($recipient_id, $sender_id);
+                            $zaloUserInfo = EC_Zalo_Contacts_Helper::get_zalo_user_info($recipient_id, $sender_id);
 
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 if(!isset($zaloUserInfo['user_last_interaction_date']) 
@@ -320,8 +319,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         if(empty($zalo_contact_id)) {
                             $user_info = json_decode($zaloOA->get_user($zalo_user_id), true);
                             if(isset($user_info['error']) && $user_info['error'] == 0) {
-                                $zaloContact = new EC_Zalo_Contacts();
-                                $zaloContact->custom_save($user_info['data'], $zaloOA->get_oa_id(), 'Liên hệ tạo qua widget tương tác');
+                                EC_Zalo_Contacts_Helper::custom_save($user_info['data'], $zaloOA->get_oa_id(), 'Liên hệ tạo qua widget tương tác');
                             }
                         }
                         elseif(empty($contact_id_by_zalo) && !empty($contact_id_by_phone)) {
@@ -350,8 +348,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     if(!empty($zalo_user_id)) {
                         if($follower == 1) {
                             // Get user info
-                            $zaloContact = new EC_Zalo_Contacts();
-                            $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_i);
+                            $zaloUserInfo = EC_Zalo_Contacts_Helper::get_zalo_user_info($sender_id, $recipient_id);
 
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 $db->query(
