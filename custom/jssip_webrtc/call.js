@@ -726,9 +726,9 @@ $(document).ready(function () {
         const codeZBS = document.getElementById('ZBSAfterCallDataCode').value.trim();
         const datetimeZBS = document.getElementById('ZBSAfterCallDataDatetime').value.trim();
         if (checkboxZBS.checked) {
-            const regexCode = /^[A-Za-z0-9]+$/;
-            const regexDate = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
-            const regexDateTime = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4} (0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
+            const regexCode = /^[A-Za-z0-9]{2}/;
+            const regexDate = /^(0[1-9]|[12][0-9]|3[01])[\/-](0[1-9]|1[0-2])[\/-]\d{4}$/;
+            const regexDateTime = /^(0[1-9]|[12][0-9]|3[01])[\/-](0[1-9]|1[0-2])[\/-]\d{4} (0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/;
 
             if (!codeZBS || !datetimeZBS) {
                 showToastWarning('Vui lòng điền đẩy đủ thông tin gửi Zalo');

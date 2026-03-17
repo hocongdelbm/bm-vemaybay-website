@@ -503,6 +503,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                                     "flight_no" => "{$dep_code}-{$des_code}",
                                     "datetime" => date('d/m/Y', strtotime($departure_date)),
                                 ],
+                                "auto" => 1
                             ];
                         }
                     }

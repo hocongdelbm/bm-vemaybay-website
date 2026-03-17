@@ -1256,7 +1256,7 @@ EOHTML;
                                         </style>
                                         <div class="form-check form-switch" style="width:fit-content">
                                             <input type="checkbox" name="voiceip-is-send-zbs-after-call" id="switchCheckSendZBS" class="form-check-input" role="switch" />
-                                            <label class="form-check-label" for="switchCheckSendZBS" style="color:#2c44e9">Gửi CSKH Zalo</label>
+                                            <label id="labelSwitchCheckSendZBS" class="form-check-label" for="switchCheckSendZBS" style="line-height:1.8">Gửi CSKH Zalo</label>
                                         </div>
                                         <div class="flex-between p-2 mx-2 d-none" id="zbsFields" style="background:#eef0fb;border-radius:3px;">
                                             <div class="d-flex flex-column">
@@ -1272,8 +1272,10 @@ EOHTML;
                                             document.addEventListener("DOMContentLoaded", function () {
                                                 const checkbox = document.getElementById("switchCheckSendZBS");
                                                 const zbsFields = document.getElementById("zbsFields");
+                                                const checkboxLabel = document.getElementById("labelSwitchCheckSendZBS");
                                                 if (!checkbox || !zbsFields) return;
                                                 function toggleZBS() {
+                                                    checkboxLabel.style.color = checkbox.checked ? "#2c44e9" : "inherit";
                                                     zbsFields.classList.toggle("d-none", !checkbox.checked);
                                                 }
                                                 checkbox.addEventListener("change", toggleZBS);
