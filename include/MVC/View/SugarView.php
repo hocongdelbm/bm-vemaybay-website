@@ -1248,6 +1248,40 @@ EOHTML;
                                             <label for="is_compare_price">So sánh giá</label>
                                         </div>
                                     </div>
+
+                                    <div class="voiceip-more my-2 rounded text-nowrap">
+                                        <style>
+                                            .form-switch .form-check-input::before {display:none;}
+                                            #zbsFields {transition:all 0.3s ease;}
+                                        </style>
+                                        <div class="form-check form-switch" style="width:fit-content">
+                                            <input type="checkbox" name="voiceip-is-send-zbs-after-call" id="switchCheckSendZBS" class="form-check-input" role="switch" />
+                                            <label class="form-check-label" for="switchCheckSendZBS" style="color:#2c44e9">Gửi CSKH Zalo</label>
+                                        </div>
+                                        <div class="flex-between p-2 mx-2 d-none" id="zbsFields" style="background:#eef0fb;border-radius:3px;">
+                                            <div class="d-flex flex-column">
+                                                <label class="text-start" for="ZBSAfterCallDataCode">Mã hành trình<span style="color:red">*</span></label>
+                                                <input type="text" name="voiceip-zbs-after-call-data-code" id="ZBSAfterCallDataCode" class="box-input" placeholder="SGN-HAN" minlength="4" maxlength="10" size="10" style="border:none; border-radius:0; border-bottom:1px solid #c6c8d2;background:transparent;"/>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <label class="text-start" for="ZBSAfterCallDataDatetime">Ngày giờ bay<span style="color:red">*</span></label>
+                                                <input type="text" name="voiceip-zbs-after-call-data-datetime" id="ZBSAfterCallDataDatetime" class="box-input" placeholder="dd/mm/yyyy" minlength="10" maxlength="20" size="14" style="border:none; border-radius:0; border-bottom:1px solid #c6c8d2;background:transparent;"/>
+                                            </div>
+                                        </div>
+                                        <script>
+                                            document.addEventListener("DOMContentLoaded", function () {
+                                                const checkbox = document.getElementById("switchCheckSendZBS");
+                                                const zbsFields = document.getElementById("zbsFields");
+                                                if (!checkbox || !zbsFields) return;
+                                                function toggleZBS() {
+                                                    zbsFields.classList.toggle("d-none", !checkbox.checked);
+                                                }
+                                                checkbox.addEventListener("change", toggleZBS);
+                                                toggleZBS();
+                                            });
+                                        </script>
+                                    </div>
+                                
                                     <div class="text-start voiceip-more text-nowrap">
                                         <p id="notes-uncomfortable" class="text-danger fw-semibold"></p>
                                     </div>
