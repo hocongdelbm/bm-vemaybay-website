@@ -10,10 +10,17 @@ header('Content-Type: application/json');
 // ============================================================
 $rawBody = file_get_contents('php://input');
 $payload = json_decode($rawBody, true);
+$ip      = get_ip_address_from_client();
 
 if ((string)$_SERVER['REQUEST_METHOD'] !== 'POST') {
-    logInfo("Method Not Allowed AMIS: " . $_SERVER['REQUEST_METHOD']);
-    logInfo("Log not POST: ", $payload);
+    $requestContext = [
+        'method'       => $_SERVER['REQUEST_METHOD'],
+        'ip'           => $ip,
+        'URL' => $_SERVER['REQUEST_URI'] ?? '',
+        'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        'body'         => $payload ?? $rawBody, 
+    ];
+    logInfo("Method Not Allowed AMIS", $requestContext);
 
     http_response_code(405);
     echo json_encode(['success' => false, 'error_message' => 'Method Not Allowed']);

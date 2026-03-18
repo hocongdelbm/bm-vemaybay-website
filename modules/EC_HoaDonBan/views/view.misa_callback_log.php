@@ -61,11 +61,16 @@ class Viewmisa_callback_log extends SugarView
         // ============================================================
         // Đọc nội dung file log
         // ============================================================
+        $dateTime = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        $date = $dateTime->format('Y-m-d');
+
         $logFile    = sprintf('%s/%d/%02d/amis_callback.log', $baseDir, $selectedYear, $selectedMonth);
         $errorFile  = sprintf('%s/%d/%02d/amis_callback_error.log', $baseDir, $selectedYear, $selectedMonth);
+        $requestFile  = sprintf('%s/%d/%02d/'.$date.'.log', $baseDir, $selectedYear, $selectedMonth);
 
         $logLines   = $this->readLogFile($logFile);
         $errorLines = $this->readLogFile($errorFile);
+        $requestLines = $this->readLogFile($requestFile);
 
         // ============================================================
         // Assign Smarty
@@ -74,13 +79,19 @@ class Viewmisa_callback_log extends SugarView
         $smarty->assign('selectedMonth',   $selectedMonth);
         $smarty->assign('availableYears',  $availableYears);
         $smarty->assign('availableMonths', $availableMonths);
+        $smarty->assign('months',          $this->getMonthLabels());
+
         $smarty->assign('logLines',        $logLines);
         $smarty->assign('errorLines',      $errorLines);
+        $smarty->assign('requestLines',    $requestLines);
+
         $smarty->assign('logFile',         $logFile);
         $smarty->assign('errorFile',       $errorFile);
+        $smarty->assign('requestFile',     $requestFile);
+
         $smarty->assign('hasLog',          !empty($logLines));
         $smarty->assign('hasError',        !empty($errorLines));
-        $smarty->assign('months',          $this->getMonthLabels());
+        $smarty->assign('hasRequest',      !empty($requestLines));
     }
 
     /**

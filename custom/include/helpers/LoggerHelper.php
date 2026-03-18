@@ -1,6 +1,12 @@
 <?php
-class LoggerHelper {
+class LoggerHelper
+{
     protected static $logPath = "secure_sessions/request_logs";
+
+    public static function setLogPath($path)
+    {
+        self::$logPath = rtrim($path, '/');
+    }
 
     /**
      * Log a message with a given level.
@@ -23,8 +29,8 @@ class LoggerHelper {
 
             // Convert context array to string for logging
             $contextString = '';
-            if(is_array($context) || is_object($context)) $contextString = json_encode($context);
-            elseif(is_string($context)) $contextString = $context;
+            if (is_array($context) || is_object($context)) $contextString = json_encode($context);
+            elseif (is_string($context)) $contextString = $context;
 
             $logLine = trim("[{$date} {$time}][$logId] {$level} {$message}");
             if ($contextString !== '') $logLine .= " {$contextString}";
@@ -32,16 +38,16 @@ class LoggerHelper {
 
             $curYear = date('Y');
             $curMonth = date('m');
+
             $path = self::$logPath . "/{$curYear}/$curMonth";
             $logFile = "$path/{$date}.log";
             if (!is_dir($path)) {
                 mkdir($path, 0744, true);
             }
 
-            if(file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX)) return $logId;
+            if (file_put_contents($logFile, $logLine, FILE_APPEND | LOCK_EX)) return $logId;
             return null;
-        }
-        catch(Throwable $th) {
+        } catch (Throwable $th) {
             $GLOBALS['log']->fatal("[{$logId}] {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             return $logId;
         }
@@ -53,7 +59,8 @@ class LoggerHelper {
      * @return string
      * @author DucPham
      */
-    public static function generateLogId() {
+    public static function generateLogId()
+    {
         return "LOG" . round(microtime(true) * 1000) . bin2hex(random_bytes(6));
     }
 

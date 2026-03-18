@@ -12,6 +12,7 @@ class MisaInvoice
     public function __construct()
     {
         global $sugar_config;
+        LoggerHelper::setLogPath('secure_sessions/misa_logs');
 
         $this->BASE_URL             = $sugar_config['misa']['base_url']         ?? '';
         $this->APP_ID               = $sugar_config['misa']['app_id']           ?? '';
@@ -52,7 +53,6 @@ class MisaInvoice
         ?string $lastSyncTime = null
     ): string {
         $token = $this->getAccessToken();
-        pr($token);
 
         if (!$token) {
             return $this->returnError(401, 'Không thể lấy access token từ AMIS Kế toán');
@@ -64,7 +64,7 @@ class MisaInvoice
             'take'           => $take,
             'app_id'         => $this->APP_ID,
             'last_sync_time' => $lastSyncTime,
-            'branch_id'      => $this->getBranchId(),
+            // 'branch_id'      => $this->getBranchId(),
         ];
 
         return $this->sendRequest(
@@ -152,24 +152,21 @@ class MisaInvoice
         $now = date('Y-m-d H:i:s.') . substr(microtime(), 2, 3);
 
         $voucherData = [
-            'voucher_type'              => $voucher['voucher_type']          ?? 13,
-            'reftype'                   => $voucher['reftype']               ?? 3530, //Bán hàng hóa, dịch vụ trong nước chưa thu tiền
-            'org_refid'                 => $voucher['org_refid'],
-            'org_refno'                 => $voucher['org_refno']             ?? '',
-            'inv_refid'                 => $voucher['inv_refid']             ?? $voucher['org_refid'],
-            'branch_id'                 => $voucher['branch_id']             ?? $this->getBranchId(),
-            'account_object_code'       => $voucher['account_object_code']   ?? '',
-            'account_object_name'       => $voucher['account_object_name']   ?? '',
-            'account_object_address'    => $voucher['account_object_address'] ?? '',
-            'journal_memo'              => $voucher['journal_memo']          ?? '', //Diễn giải
-            'exchange_rate'             => $voucher['exchange_rate']         ?? 1,
-            'discount_type'             => $voucher['discount_type']         ?? 0,
-            'discount_rate_voucher'     => $voucher['discount_rate_voucher'] ?? 0,
+            'voucher_type'              => $voucher['voucher_type']          ?? 13, // (Bắt buộc)
+            'reftype'                   => $voucher['reftype']               ?? 3530, // Bán hàng hóa, dịch vụ trong nước chưa thu tiền (Bắt buộc)
+            'org_refid'                 => $voucher['org_refid'], // ID của chứng từ dữ liệu gốc (Bắt buộc)
+            'org_refno'                 => $voucher['org_refno']             ?? '', // Số chứng từ gốc (Bắt buộc)
+            'branch_id'                 => $voucher['branch_id']             ?? $this->getBranchId(), // ID chi nhánh (Bắt buộc)
+            'account_object_code'       => $voucher['account_object_code']   ?? '', // Mã khách hàng
+            'account_object_name'       => $voucher['account_object_name']   ?? '', // Tên khách hàng
+            'account_object_address'    => $voucher['account_object_address'] ?? '', // Địa chỉ khách hàng
             'posted_date'               => $voucher['posted_date']           ?? $now,
             'refdate'                   => $voucher['refdate']               ?? $now,
             'due_day'                   => $voucher['due_day']               ?? '0',
             'due_date'                  => $voucher['due_date']              ?? $now,
-            'include_invoice'           => 1, // bắt buộc vì luôn có sa_invoice
+            'include_invoice'           => 1, // (0: không kèm, 1: Nhận kèm HĐ, 2: Không có hóa đơn)
+            'inv_date'                  => $voucher['inv_date'], // Ngày hóa đơn
+            'is_sale_with_outward'      => false, // Bán hàng kiêm phiếu xuất kho
         ];
 
         // ============================================================
@@ -183,25 +180,16 @@ class MisaInvoice
                 'inventory_item_name'        => $item['inventory_item_name']        ?? '',
                 'inventory_item_description' => $item['inventory_item_description'] ?? '',
                 'description'                => $item['description']                ?? '',
-                'stock_code'                 => $item['stock_code']                 ?? '',
-                'stock_name'                 => $item['stock_name']                 ?? '',
                 'unit_name'                  => $item['unit_name']                  ?? '',
                 'quantity'                   => $item['quantity'],
                 'unit_price'                 => $item['unit_price'],
-                'amount_oc'                  => $item['amount_oc'],
                 'amount'                     => $item['amount'],
                 'vat_rate'                   => $item['vat_rate'],
-                'vat_amount_oc'              => $item['vat_amount_oc'],
                 'vat_amount'                 => $item['vat_amount'],
                 'vat_account'                => $item['vat_account']                ?? '',
-                'exchange_rate_operator'     => $item['exchange_rate_operator']     ?? '*',
                 'is_description'             => $item['is_description']             ?? false,
                 'account_object_code'        => $item['account_object_code']        ?? '',
                 'account_object_name'        => $item['account_object_name']        ?? '',
-                'organization_unit_code'     => $item['organization_unit_code']     ?? '',
-                'organization_unit_name'     => $item['organization_unit_name']     ?? '',
-                'project_work_code'          => $item['project_work_code']          ?? null,
-                'project_work_name'          => $item['project_work_name']          ?? null,
             ];
         }
         $voucherData['detail'] = $detailData;
@@ -211,29 +199,28 @@ class MisaInvoice
         // ============================================================
         $voucherData['sa_invoice'] = [
             'voucher_type'         => 11,
-            'is_get_new_id'        => true,
-            'is_allow_group'       => false,
             'org_reftype'          => 0,
             'act_voucher_type'     => 0,
             'refdate'              => $voucherData['refdate'],
-            'is_posted_finance'    => false,
-            'is_posted_management' => false,
-            'auto_refno'           => false,
-            'state'                => 0,
+            'inv_date'             => $voucherData['inv_date'], // Ngày hóa đơn
+            // 'branch_id'            => $voucherData['branch_id'],
 
             // Thông tin từ caller
+            'discount_type'        => 2,
+            'is_posted'            => true, //trạng thái đã hạch toán
+            'reftype'               => 3560,
             'account_object_code'  => $saInvoice['account_object_code']  ?? $voucherData['account_object_code'],
             'account_object_name'  => $saInvoice['account_object_name']  ?? $voucherData['account_object_name'],
-            'account_object_tax_code' => $saInvoice['account_object_tax_code'] ?? '',
+            'account_object_tax_code' => $saInvoice['account_object_tax_code'] ?? $voucherData['account_object_tax_code'],
+            'account_object_address'  => $saInvoice['account_object_address']  ?? $voucherData['account_object_address'],
             'currency_id'          => $saInvoice['currency_id']          ?? 'VND',
+            'buyer'                => '',
             'exchange_rate'        => $saInvoice['exchange_rate']         ?? 1,
-            'inv_series'           => $saInvoice['inv_series']            ?? '',
+            'inv_no'               => $saInvoice['inv_no']                ?? '', // Số hóa đơn
+            'inv_series'           => $saInvoice['inv_series']            ?? '', // Ký hiệu hóa đơn
             'payment_method'       => $saInvoice['payment_method']        ?? 'TM/CK',
-            'total_sale_amount_oc' => $saInvoice['total_sale_amount_oc']  ?? 0,
             'total_sale_amount'    => $saInvoice['total_sale_amount']     ?? 0,
-            'total_vat_amount_oc'  => $saInvoice['total_vat_amount_oc']   ?? 0,
             'total_vat_amount'     => $saInvoice['total_vat_amount']      ?? 0,
-            'total_amount_oc'      => $saInvoice['total_amount_oc']       ?? 0,
             'total_amount'         => $saInvoice['total_amount']          ?? 0,
         ];
 
@@ -243,7 +230,7 @@ class MisaInvoice
             'voucher'          => [$voucherData],
         ];
 
-        // pr($body);
+        pr($body);
 
         return json_encode($body);
 
@@ -304,9 +291,7 @@ class MisaInvoice
         }
 
         // 2. Cache miss / hết hạn → gọi API lấy token mới
-        return {};
-
-        // return $this->connect();
+        return $this->connect();
     }
 
     /**
@@ -316,6 +301,18 @@ class MisaInvoice
      */
     private function connect(): ?string
     {
+        // VALIDATE 
+        $missingFields = array_filter([
+            'app_id'           => $this->APP_ID,
+            'access_code'      => $this->ACCESS_CODE,
+            'org_company_code' => $this->ORG_COMPANY_CODE,
+        ], fn($v) => empty($v));
+
+        if (!empty($missingFields)) {
+            LoggerHelper::error('MISA connect: thiếu config ' . implode(', ', array_keys($missingFields)));
+            return null;
+        }
+
         $body = [
             'app_id'           => $this->APP_ID,
             'access_code'      => $this->ACCESS_CODE,

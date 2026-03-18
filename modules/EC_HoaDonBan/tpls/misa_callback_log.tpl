@@ -188,9 +188,11 @@
         <button class="misa-tab-btn error-tab" onclick="switchTab('error', this)">
             Error log <span class="tab-count">{$errorLines|@count}</span>
         </button>
+        <button class="misa-tab-btn request-tab" onclick="switchTab('request', this)">
+            Request log <span class="tab-count">{$requestLines|@count}</span>
+        </button>
     </div>
 
-    {* ===== TAB INFO ===== *}
     <div id="tab-info" class="misa-tab-panel active">
         <div class="misa-log-toolbar">
             <div class="misa-search-wrap">
@@ -220,7 +222,6 @@
         <div class="misa-filepath">{$logFile}</div>
     </div>
 
-    {* ===== TAB ERROR ===== *}
     <div id="tab-error" class="misa-tab-panel">
         <div class="misa-log-toolbar">
             <div class="misa-search-wrap">
@@ -248,6 +249,34 @@
             {/if}
         </div>
         <div class="misa-filepath">{$errorFile}</div>
+    </div>
+
+    <div id="tab-request" class="misa-tab-panel">
+        <div class="misa-log-toolbar">
+            <div class="misa-search-wrap">
+                <input type="text" id="searchRequest" placeholder="Tìm kiếm trong request log..." oninput="filterLog('request')">
+            </div>
+            <div class="misa-toolbar-right">
+                <button class="misa-btn-sm" onclick="clearSearch('request')">Xóa filter</button>
+                <button class="misa-btn-sm" onclick="scrollBot('log-body-request')">Cuối trang</button>
+            </div>
+        </div>
+        <div class="misa-log-body" id="log-body-request">
+            {if $hasRequest}
+                {foreach from=$requestLines item=line name=lp}
+                    <div class="misa-log-line line-request log-row-request">
+                        <span class="log-num">{$smarty.foreach.lp.iteration}</span>
+                        <span class="log-ts d-none">{$line|substr:0:19}</span>
+                        <span class="log-content">{$line|escape}</span>
+                    </div>
+                {/foreach}
+            {else}
+                <div class="misa-empty text-dark text-center p-3">
+                    <p>Không có lỗi nào trong <strong>{$months[$selectedMonth]} {$selectedYear}</strong></p>
+                </div>
+            {/if}
+        </div>
+        <div class="misa-filepath">{$requestFile}</div>
     </div>
 </div>
 
