@@ -2186,3 +2186,11 @@ function sendAutoCheapPriceMessageZalo() {
 		}
 	}
 }
+
+// /**
+//  * Tự động gửi tin tư vấn Zalo để duy trì tương tác
+//  */
+// function maintainZaloChat() {
+// 	$list_users_7 = EC_Zalo_Contacts_Helper::get_list_zalo_user_by_last_interaction_day(7);
+// 	$list_users_2 = EC_Zalo_Contacts_Helper::get_list_zalo_user_by_last_interaction_day(2);
+// }

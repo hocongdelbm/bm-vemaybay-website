@@ -114,7 +114,6 @@ class EC_Zalo_Messages extends Basic {
     public function get_list_recent_messages($oa_id, $last_timestamp = 0, $current_list_user = [], $limit_record = 15) {
         $results = ['data' => []];
         $list_zalo_id = ['interaction' => [], 'no_interaction' => []];
-        $zaloContact = new EC_Zalo_Contacts();
 
         $where_clause = '';
         if($last_timestamp > 0) $where_clause = "AND zm.timestamp < $last_timestamp AND zm.deleted = 0";
@@ -158,7 +157,7 @@ class EC_Zalo_Messages extends Basic {
             }
 
             // Get zalo user info
-            $user_info = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+            $user_info = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, $oa_id);
             if(empty($user_info)) {
                 $list_zalo_id['no_interaction'][] = $zalo_id;
                 continue;
@@ -190,13 +189,11 @@ class EC_Zalo_Messages extends Basic {
      * @param int $limit_message
      */
     public function get_messages($oa_id, $zalo_id, $zalo_phone = '', $offset = 0, $is_get_user_info = 0, $limit_message = 10) {
-        $zaloContact = new EC_Zalo_Contacts();
-
         $result = [];
 
         // User info
         if($is_get_user_info == 1) {
-            $user_data = $zaloContact->get_zalo_user_info($zalo_id, $oa_id);
+            $user_data = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, $oa_id);
             $result['user_info']['data'] = $user_data;
             $result['user_info']['status'] = !empty($user_data) ? 1 : 0;
         }

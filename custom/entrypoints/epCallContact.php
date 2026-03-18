@@ -78,12 +78,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         // Kiểm tra tương tác Zalo
-        $data['is_call_zalo'] = false;
-        try {
-            $zaloContact = new EC_Zalo_Contacts();
-            $data['is_call_zalo'] = !empty($data['zalo_id']) ? $zaloContact->check_zalo_contact_action('call', $data['zalo_id']) : false;
-        }
-        catch(Throwable $th) {}
+        $data['is_call_zalo'] = !empty($data['zalo_id']) ? EC_Zalo_Contacts_Helper::check_zalo_contact_action('call', $data['zalo_id']) : false;
 
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;
@@ -237,13 +232,10 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             // Map contact and zalo
-            try {
-                if(!empty($zalo_id) && is_string($con->id)) {
-                    $zaloContact = new EC_Zalo_Contacts();
-                    $zaloContact->map_contact_zalo($con->id, $zalo_id);
-                }
+            if(!empty($zalo_id) && is_string($con->id)) {
+                $zaloContact = new EC_Zalo_Contacts();
+                EC_Zalo_Contacts_Helper::map_contact_zalo($con->id, $zalo_id);
             }
-            catch(Throwable $th) {}
 
             // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
             $currentDate = date('Y-m-d H:i:s', strtotime('+7 hour'));
