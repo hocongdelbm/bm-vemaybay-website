@@ -82,13 +82,13 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'width' => '10%',
             ),
-            // 'company_unit' => array(
-            //     'name' => 'company_unit',
-            //     'type' => 'enum',
-            //     'label' => 'LBL_COMPANY_UNIT',
-            //     'default' => true,
-            //     'width' => '10%',
-            // ),
+            'company_unit' => array(
+                'name' => 'company_unit',
+                'type' => 'enum',
+                'label' => 'LBL_COMPANY_UNIT',
+                'default' => true,
+                'width' => '10%',
+            ),
         ),
         'advanced_search' => array(
             'name' => array(

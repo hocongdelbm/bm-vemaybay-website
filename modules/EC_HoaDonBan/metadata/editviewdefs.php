@@ -133,7 +133,15 @@ $viewdefs[$module_name]['EditView'] = array(
                 ),
             ),
         ),
-        
+        // 'LBL_LINEITEM_MISA_PANEL' => array(
+        //     array(
+        //         array(
+        //             'name' => 'line_details',
+        //             'label' => 'LBL_LINE_MISA_ITEMS',
+        //             'customCode' => '{$LINE_MISA_ITEMS}',
+        //         ),
+        //     ),
+        // ),
         'LBL_LINEITEM_PANEL' => array(
             array(
                 array(

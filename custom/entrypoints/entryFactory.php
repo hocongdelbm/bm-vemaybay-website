@@ -7,7 +7,13 @@ try {
     }
 }
 catch (Throwable $th) {
-    $GLOBALS['log']->fatal("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+    $msg = "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+    
+    if (isset($GLOBALS['log']) && is_object($GLOBALS['log'])) {
+        $GLOBALS['log']->fatal($msg);
+    } else {
+        error_log($msg);
+    }
 }
 
 class entryFactory {
