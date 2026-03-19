@@ -167,7 +167,7 @@ class entryZaloOAClass extends entryClass {
 
         // Prepare body request (data)
         if ($type == 'image') {
-            // Upload
+            // Send by uploading image
             if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
                 $image_name = $_FILES['image']['name']; // name.ext
                 $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
@@ -209,6 +209,10 @@ class entryZaloOAClass extends entryClass {
                         "media_type" => $ext == 'gif' ? 'gif' : 'image',
                         "attachment_id" => $attachment_id
                     ];
+                    if($ext == 'gif') {
+                        $data['element']['width'] = $params['width'] ?? 0;
+                        $data['element']['height'] = $params['height'] ?? 0;
+                    }
                 }
                 else {
                     return [
@@ -217,6 +221,18 @@ class entryZaloOAClass extends entryClass {
                         "data" => null,
                         "description" => $arr_upload,
                     ];
+                }
+            }
+            // Send by url image
+            else if (isset($params['url']) && filter_var($params['url'], FILTER_VALIDATE_URL)) {
+                $ext = pathinfo(parse_url($params['url'], PHP_URL_PATH), PATHINFO_EXTENSION);
+                $data['element'] = [
+                    "media_type" => $ext == 'gif' ? 'gif' : 'image',
+                    "url" => $params['url']
+                ];
+                if($ext == 'gif') {
+                    $data['element']['width'] = $params['width'] ?? 0;
+                    $data['element']['height'] = $params['height'] ?? 0;
                 }
             }
             else {

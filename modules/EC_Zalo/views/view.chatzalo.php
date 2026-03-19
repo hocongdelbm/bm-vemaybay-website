@@ -1,5 +1,4 @@
 <?php
-date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once("include/Sugar_Smarty.php");
 require_once("custom/include/helpers/api/APIZaloOA.php");
 
@@ -21,21 +20,21 @@ class Viewchatzalo extends SugarView {
         $this->zaloOA = new APIZaloOA();
         $this->entrypoint = 'index.php?entryPoint=entryPointGeneral';
         $this->websocket_url = $_SERVER['SERVER_NAME'] != 'localhost' ? 'wss://'.$_SERVER['SERVER_NAME'].'/chatz/' : 'ws://localhost:8080';
-        $this->default_avatar = 'modules/EC_Zalo/images/private/avatar_default.jpg';
+        $this->default_avatar = 'themes/SuiteP/images/zalo_messages/avatar-default.jpg';
         $this->limit_chat_box = 15;
         $this->limit_message = 10;
         $this->image_file = [
-            'excel' => 'modules/EC_Zalo/images/private/files/file_excel.jpg',
-            'word' => 'modules/EC_Zalo/images/private/files/file_word.jpg',
-            'powerpoint' => 'modules/EC_Zalo/images/private/files/file_powerpoint.jpg',
-            'pdf' => 'modules/EC_Zalo/images/private/files/file_pdf.jpg',
-            'txt' => 'modules/EC_Zalo/images/private/files/file_txt.jpg',
-            'html' => 'modules/EC_Zalo/images/private/files/file_html.jpg',
-            'xml' => 'modules/EC_Zalo/images/private/files/file_xml.jpg',
-            'zip' => 'modules/EC_Zalo/images/private/files/file_zip.jpg',
-            'rar' => 'modules/EC_Zalo/images/private/files/file_rar.jpg',
-            'image' => 'modules/EC_Zalo/images/private/files/file_image.jpg',
-            'default' => 'modules/EC_Zalo/images/private/files/file_default.jpg'
+            'excel' => 'themes/SuiteP/images/zalo_messages/file-excel.jpg',
+            'word' => 'themes/SuiteP/images/zalo_messages/file-word.jpg',
+            'powerpoint' => 'themes/SuiteP/images/zalo_messages/file-powerpoint.jpg',
+            'pdf' => 'themes/SuiteP/images/zalo_messages/file-pdf.jpg',
+            'txt' => 'themes/SuiteP/images/zalo_messages/file-txt.jpg',
+            'html' => 'themes/SuiteP/images/zalo_messages/file-html.jpg',
+            'xml' => 'themes/SuiteP/images/zalo_messages/file-xml.jpg',
+            'zip' => 'themes/SuiteP/images/zalo_messages/file-zip.jpg',
+            'rar' => 'themes/SuiteP/images/zalo_messages/file-rar.jpg',
+            'image' => 'themes/SuiteP/images/zalo_messages/file-image.jpg',
+            'default' => 'themes/SuiteP/images/zalo_messages/file-default.jpg'
         ];
     }
     

@@ -17,8 +17,8 @@ class APIZaloOA {
     public function __construct($app_id = '', $oa_id = '') {
         global $sugar_config;
         $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
-        $this->template_path    = "custom/json_files/zalo_oa/templates.json";
-        $this->images_path      = "custom/themes/SuiteP/images/zalo_oa";
+        $this->template_path    = "custom/json_files/zalo_messages/templates.json";
+        $this->images_path      = "themes/SuiteP/images/zalo_messages";
 
         if(!is_string($app_id) || empty($app_id)) $app_id = $sugar_config['zalo_config']['app_id_default'] ?? '';
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $sugar_config['zalo_config']['oa_id_default'] ?? '';
