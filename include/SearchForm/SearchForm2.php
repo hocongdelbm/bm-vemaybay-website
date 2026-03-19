@@ -114,7 +114,7 @@ class SearchForm
                 'key' => $this->module . '|basic_search',
                 'name' => 'basic',
                 'displayDiv' => '');
-        } else $this->th->ss->assign('hideBasic', 'd-none');
+        } 
 
         if ($this->showAdvanced) {
             $this->nbTabs++;

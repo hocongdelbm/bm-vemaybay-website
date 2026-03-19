@@ -19,7 +19,7 @@
 
 <ul class="nav nav-tabs-advanced admin_tabs-list" id="myTab" role="tablist">
     {if !$searchFormInPopup}
-    <li class="admin_tabs-item {$hideBasic}" role="presentation">
+    <li class="admin_tabs-item d-none" role="presentation">
         <a id="basic_search_link" href="javascript:void(0)" accesskey="{$APP.LBL_ADV_SEARCH_LNK_KEY}">{$APP.LNK_BASIC_FILTER}</a>
     </li>
     {/if}
