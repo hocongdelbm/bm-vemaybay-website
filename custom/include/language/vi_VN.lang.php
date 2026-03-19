@@ -2571,26 +2571,26 @@ $app_list_strings['booking_checkin_status_list'] = [
 
 // Danh sách TK Công nợ
 $app_list_strings['debit_account_list'] = [
-  '131'  => 'Phải thu của khách hàng',
-  '1361' => 'Vốn kinh doanh ở đơn vị trực thuộc',
-  '1368' => 'Phải thu nội bộ khác',
-  '1388' => 'Phải thu khác',
-  '3361' => 'Phải trả nội bộ về vốn kinh doanh',
-  '3368' => 'Phải trả nội bộ khác',
-  '3388' => 'Phải trả, phải nộp khác',
-  '6421' => 'Chi phí bán hàng',
+  '131'  => '131 - Phải thu của khách hàng',
+  '1361' => '1361 - Vốn kinh doanh ở đơn vị trực thuộc',
+  '1368' => '1368 - Phải thu nội bộ khác',
+  '1388' => '1388 - Phải thu khác',
+  '3361' => '3361 - Phải trả nội bộ về vốn kinh doanh',
+  '3368' => '3368 - Phải trả nội bộ khác',
+  '3388' => '3388 - Phải trả, phải nộp khác',
+  '6421' => '6421 - Chi phí bán hàng',
 ];
 
 // Danh sách TK doanh thu - TK có
 $app_list_strings['credit_account_list'] = [
-  '1388' => 'Phải thu khác',
-  '3339' => 'Phí, lệ phí và các khoản phải nộp khác',
-  '3387' => 'Doanh thu chưa thực hiện',
-  '5111' => 'Doanh thu bán hàng hóa',
-  '5112' => 'Doanh thu bán thành phẩm',
-  '5113' => 'Doanh thu cung cấp dịch vụ',
-  '5118' => 'Doanh thu khác',
-  '711'  => 'Thu nhập khác',
+  '1388' => '1388 - Phải thu khác',
+  '3339' => '3339 - Phí, lệ phí và các khoản phải nộp khác',
+  '3387' => '3387 - Doanh thu chưa thực hiện',
+  '5111' => '5111 - Doanh thu bán hàng hóa',
+  '5112' => '5112 - Doanh thu bán thành phẩm',
+  '5113' => '5113 - Doanh thu cung cấp dịch vụ',
+  '5118' => '5118 - Doanh thu khác',
+  '711'  => '711 - Thu nhập khác',
 ];
 
 $app_list_strings['product_code_list'] = [

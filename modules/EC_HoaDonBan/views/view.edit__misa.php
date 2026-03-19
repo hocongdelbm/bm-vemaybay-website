@@ -1,6 +1,5 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once('include/MVC/View/views/view.edit.php');
 
 class EC_HoaDonBanViewEdit extends ViewEdit
 {
@@ -12,10 +11,8 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 	public function display()
 	{
 		$this->getStyles();
-
 		$this->populateLineItemsWin();
 		$this->populateLineItemsMisa();
-
 		parent::display();
 		$this->getScripts();
 	}
@@ -23,103 +20,108 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 	private function getStyles()
 	{
 		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.edit.css?v=1.0.1'>";
+		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.edit_misa.css?v=" . time() . "'>";
 	}
 
 	private function getScripts()
 	{
-		echo "<script src='modules/{$this->bean->module_dir}/js/view.edit.js?v=1.0.7'></script>";
+		// echo "<script src='modules/{$this->bean->module_dir}/js/view.edit.js?v=1.0.7'></script>";
 		echo "<script src='modules/{$this->bean->module_dir}/js/view.edit_misa.js?v=" . time() . "'></script>";
 	}
 
-	protected function populateLineItemsMisa(): void
+	protected function populateLineItemsMisa()
 	{
-		// ── Query chi tiết ───────────────────────────────────────
+		global $db, $app_list_strings, $locale;
+
+		$hoadon_id = $db->quote($this->bean->id);
 		$sql = '
-        SELECT
-            ct.*,
-            (SELECT qty FROM ec_input_invoices WHERE id = ct.ticket_number_id) AS max_qty,
-            in_iv.ticket_code,
-            IFNULL(re.name, "") AS receipt_voucher_name
-        FROM ec_chitiethoadon ct
-            LEFT JOIN ec_input_invoices in_iv ON in_iv.id = ct.ticket_number_id
-            LEFT JOIN ec_receipt_voucher re   ON re.id    = ct.receipt_voucher_id
-        WHERE ct.parent_id = "' . $this->bean->id . '"
-          AND ct.deleted   = 0
-        ORDER BY ct.order_by_no
-    ';
+			SELECT
+				ct.*,
+				(SELECT qty FROM ec_input_invoices WHERE id = ct.ticket_number_id) AS max_qty,
+				in_iv.ticket_code,
+				IFNULL(re.name, "") AS receipt_voucher_name
+			FROM ec_chitiethoadon ct
+				LEFT JOIN ec_input_invoices in_iv ON in_iv.id = ct.ticket_number_id
+				LEFT JOIN ec_receipt_voucher re   ON re.id    = ct.receipt_voucher_id
+			WHERE ct.parent_id = "' . $hoadon_id . '"
+			AND ct.deleted   = 0
+			ORDER BY ct.order_by_no
+		';
 
-		$res       = $this->bean->db->query($sql);
-		$row_count = $this->bean->db->countRows($res);
-
+		$res       = $db->query($sql);
+		$row_count_misa = $db->countRows($res);
 		$rows = [];
-		while ($row = $this->bean->db->fetchByAssoc($res)) {
+		while ($row = $db->fetchByAssoc($res)) {
 			$rows[] = $row;
 		}
 
-		// ── Thead ────────────────────────────────────────────────
-		$html = '
-    <table class="table-details__booking" cellpadding="0" cellspacing="0" border="0">
-        <thead>
-            <tr>
-                <th width="10%" class="col-ma-hang">Mã hàng</th>
-                <th width="20%" class="col-ten-hang text-start">Tên hàng</th>
-                <th width="5%"  class="col-tk-cn">TK công nợ</th>
-                <th width="5%"  class="col-tk-dt">TK doanh thu</th>
-                <th width="5%"  class="col-dvt">ĐVT</th>
-                <th width="5%"  class="col-soluong">Số lượng</th>
-                <th width="10%" class="col-dongia">Đơn giá</th>
-                <th width="10%" class="col-thanhtien">Thành tiền</th>
-                <th width="10%" class="col-ptvat">% Thuế GTGT</th>
-                <th width="10%" class="col-tienvat">Tiền thuế</th>
-                <th width="3%"  class="col-action"></th>
-            </tr>
-        </thead>
-
-        <tbody id="tbodyLineItems">';
-
-		// ── Tbody ────────────────────────────────────────────────
+		$html = '<div class="misa-form-wrap">
+				<table class="table-details__booking" cellpadding="0" cellspacing="0" border="0">
+					<thead>
+						<tr>
+							<th width="10%" class="col-ma-hang">Mã hàng</th>
+							<th width="10%" class="col-ma-hang">Booking</th>
+							<th width="20%" class="col-ten-hang text-start">Tên hàng</th>
+							<th width="5%"  class="col-tk-cn">TK công nợ</th>
+							<th width="5%"  class="col-tk-dt">TK doanh thu</th>
+							<th width="5%"  class="col-dvt">ĐVT</th>
+							<th width="5%"  class="col-soluong">Số lượng</th>
+							<th width="10%" class="col-dongia">Đơn giá</th>
+							<th width="10%" class="col-thanhtien">Thành tiền</th>
+							<th width="10%" class="col-ptvat">% Thuế GTGT</th>
+							<th width="10%" class="col-tienvat">Tiền thuế</th>
+							<th width="3%"  class="col-action"></th>
+						</tr>
+					</thead>
+					<tbody id="tbodyLineItems">';
 		foreach ($rows as $i => $row) {
 			$html .= $this->renderLineRow($i + 1, $row);
 		}
 
-		$html .= '</tbody>';
-
-		// ── Tfoot ────────────────────────────────────────────────
-		$html .= '
-        <tfoot>
-            <tr class="footer-tr misa-table__total-row">
-                <td colspan="5">
-                    <input type="hidden" id="row_count" name="row_count" value="' . $row_count . '" />
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-primary" id="btnAddRowMisa">
-                            Thêm dòng
-                        </button>
-                        <span>
-                            Số dòng = <label id="lbl_row_count" class="text-label">' . $row_count . '</label>
-                        </span>
-                    </div>
-                </td>
-                <td class="misa-table__total-qty text-end"  id="totalQty"></td>
-                <td></td>
-                <td class="misa-table__total-money text-end" id="totalTienHang">0</td>
-                <td></td>
-                <td class="misa-table__total-money text-end" id="totalTienThue">0</td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>';
+		$sep = my_get_number_separators();
+		$html .= '</tbody>
+				<tfoot>
+					<tr class="footer-tr misa-table__total-row">
+						<td colspan="5">
+							<input type="hidden" id="grp_seperator" name="grp_seperator" value="' . $sep[0] . '" />
+							<input type="hidden" id="dec_seperator" name="dec_seperator" value="' . $sep[1] . '" />
+							<input type="hidden" id="sig_digits" name="sig_digits" value="' . $locale->getPrecision() . '" />
+							<input type="hidden" id="row_count_misa" name="row_count_misa" value="' . $row_count_misa . '" />
+							<template id="invoice_mahang_list">
+                                ' . get_select_options_with_id($app_list_strings['invoice_mahang_list'], '') . '
+                            </template>
+							<template id="credit_account_list">
+                                ' . get_select_options_with_id($app_list_strings['credit_account_list'], 5111) . '
+                            </template>
+							<template id="debit_account_list">
+                                ' . get_select_options_with_id($app_list_strings['debit_account_list'], 131) . '
+                            </template>
+							<template id="invoice_percent_vat_list">
+                                ' . get_select_options_with_id($app_list_strings['invoice_percent_vat_list'], '0') . '
+                            </template>
+							<div class="d-flex align-items-center gap-2">
+								<button type="button" class="btn btn-primary" id="btnAddRowMisa">Thêm dòng</button>
+								<span>
+									Số dòng = <label id="lbl_row_count_misa" class="text-label">' . $row_count_misa . '</label>
+								</span>
+							</div>
+						</td>
+						<td class="misa-table__total-qty text-end"  id="totalQty"></td>
+						<td></td>
+						<td class="misa-table__total-money text-end" id="totalTienHang">0</td>
+						<td></td>
+						<td class="misa-table__total-money text-end" id="totalTienThue">0</td>
+						<td></td>
+					</tr>
+				</tfoot>
+			</table></div>';
 
 		$this->ss->assign('LINE_MISA_ITEMS', $html);
 	}
 
-
 	// ── Helper: render 1 dòng <tr> ───────────────────────────────
 	private function renderLineRow(int $stt, array $row): string
 	{
-		$esc = function ($v): string {
-			return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
-		};
-
 		$vatOptions = '';
 		foreach (['', '0', '5', '8', '10', 'KT'] as $rate) {
 			$label    = $rate === '' ? '' : ($rate === 'KT' ? 'KT' : $rate . '%');
@@ -128,57 +130,51 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 		}
 
 		return '
-    <tr class="misa-table__row" data-row="' . $stt . '">
-        <td class="col-ma-hang">
-            <input type="hidden" name="line_id[' . $stt . ']"  value="' . $esc($row['id']) . '" />
-            <input type="text"   name="ma_hang[' . $stt . ']" class="misa-cell-input js-ma-hang" value="' . $esc($row['ma_hang']) . '" autocomplete="off" />
-        </td>
-
-        <td class="col-ten-hang">
-            <input type="text" name="ten_hang[' . $stt . ']" class="misa-cell-input" value="' . $esc($row['ten_hang']) . '" />
-        </td>
-
-        <td class="col-tk-cn">
-            <input type="text" name="tk_cong_no[' . $stt . ']" class="misa-cell-input text-center" value="' . $esc($row['tk_cong_no']) . '" />
-        </td>
-
-        <td class="col-tk-dt">
-            <input type="text" name="tk_doanh_thu[' . $stt . ']" class="misa-cell-input text-center" value="' . $esc($row['tk_doanh_thu']) . '" />
-        </td>
-
-        <td class="col-dvt">
-            <input type="text" name="dvt[' . $stt . ']" class="misa-cell-input text-center" value="' . $esc($row['don_vi_tinh']) . '" />
-        </td>
-
-        <td class="col-soluong">
-            <input type="text" name="so_luong[' . $stt . ']" class="misa-cell-input text-end js-qty" value="' . $esc($row['so_luong']) . '" />
-        </td>
-
-        <td class="col-dongia">
-            <input type="text" name="don_gia[' . $stt . ']" class="misa-cell-input text-end js-price" value="' . $esc($row['don_gia']) . '" />
-        </td>
-
-        <td class="col-thanhtien">
-            <input type="text" name="thanh_tien[' . $stt . ']" class="misa-cell-input text-end js-subtotal" value="' . $esc($row['thanh_tien']) . '" readonly />
-        </td>
-
-        <td class="col-ptvat">
-            <select name="ptram_vat[' . $stt . ']" class="misa-cell-select js-vat-rate">
-                ' . $vatOptions . '
-            </select>
-        </td>
-
-        <td class="col-tienvat">
-            <input type="text"    name="tien_thue[' . $stt . ']" class="misa-cell-input text-end js-vat-amount" value="' . $esc($row['tien_thue_vat']) . '" readonly />
-        </td>
-
-        <td class="col-action text-center">
-            <button type="button" class="btn btn-sm btn-outline-danger js-delete-row" title="Xóa dòng">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#333"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-            </button>
-        </td>
-    </tr>';
+			<tr class="misa-table__row" data-row="' . $stt . '">
+				<td class="col-ma-hang">
+					<input type="hidden" name="ct_linemisa_id[' . $stt . ']"  value="' . $row['id'] . '" />
+					<select name="ma_hang[' . $stt . ']" class="js-ma-hang" value="' . $row['ma_hang'] . '" >' . get_select_options_with_id($GLOBALS['app_list_strings']['invoice_mahang_list'], $row['ma_hang']) . '</select>
+				</td>
+				<td class="col-booking">
+					
+				</td>
+				<td class="col-ten-hang">
+					<input type="text" name="ten_hang[' . $stt . ']" class="misa-cell-input" value="' . $row['ten_hang'] . '" />
+				</td>
+				<td class="col-tk-cn">
+					<input type="text" name="tk_cong_no[' . $stt . ']" class="misa-cell-input text-center" value="' . $row['tk_cong_no'] . '" />
+				</td>
+				<td class="col-tk-dt">
+					<input type="text" name="tk_doanh_thu[' . $stt . ']" class="misa-cell-input text-center" value="' . $row['tk_doanh_thu'] . '" />
+				</td>
+				<td class="col-dvt">
+					<input type="text" name="dvt[' . $stt . ']" class="misa-cell-input text-center" value="' . $row['don_vi_tinh'] . '" />
+				</td>
+				<td class="col-soluong">
+					<input type="text" name="so_luong[' . $stt . ']" class="misa-cell-input text-end js-qty" value="' . $row['so_luong'] . '" />
+				</td>
+				<td class="col-dongia">
+					<input type="text" name="don_gia[' . $stt . ']" class="misa-cell-input text-end js-price" value="' . $row['don_gia'] . '" />
+				</td>
+				<td class="col-thanhtien">
+					<input type="text" name="thanh_tien[' . $stt . ']" class="misa-cell-input text-end js-subtotal" value="' . $row['thanh_tien'] . '" readonly />
+				</td>
+				<td class="col-ptvat">
+					<select name="ptram_vat[' . $stt . ']" class="js-vat-rate">
+						' . $vatOptions . '
+					</select>
+				</td>
+				<td class="col-tienvat">
+					<input type="text"    name="tien_thue[' . $stt . ']" class="misa-cell-input text-end js-vat-amount" value="' . $row['tien_thue_vat'] . '" readonly />
+				</td>
+				<td class="col-action text-center">
+					<button type="button" class="btn btn-sm btn-outline-danger js-delete-row" title="Xóa dòng">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#333"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
+					</button>
+				</td>
+			</tr>';
 	}
+
 
 	protected function populateLineItemsWin()
 	{
@@ -218,57 +214,6 @@ class EC_HoaDonBanViewEdit extends ViewEdit
 		// Các dòng chi tiết
 		$i = $total_price = $total_vat = $total_authorized = $total_service = $total_giamua = 0;
 		if (isset($_POST['create_invoice']) && !empty($_POST['booking_id'])) {
-			// $i = 0;
-			// $html .= '<tr id="ct_line_' . $i . '">';
-			// $html .= "
-			// 	<td>
-			// 		<input style='text-align:left;' class='ac_booking' ln='" . $i . "' type='text' name='ct_booking[]' id='ct_booking" . $i . "' value='" . $_POST['booking'] . "' maxlength='255' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id" . $i . "\",\"name\":\"ct_booking" . $i . "\"}'/>
-			// 		<input type='hidden' name='ct_booking_id[]' id='ct_booking_id" . $i . "' value='" . $_POST['booking_id'] . "' />
-			// 	</td>
-			// ";
-
-			// $html .= '
-			// 	<td>
-			// 		<div class="d-flex align-items-center gap-1">
-			// 			<input class="ac_ticket_number text-start" ln="' . $i . '" type="text" name="ct_ticket_number[]" id="ct_ticket_number' . $i . '" maxlength="255" size="30" autocomplete="off" />
-			// 			<input type="hidden" name="ct_ticket_number_id[]" id="ct_ticket_number_id' . $i . '" value="" />
-			// 			<button title="Tìm" class="button-pick" type="button" onclick="openTicketNumberPopup(' . $i . ')">
-			// 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
-			// 			</button>
-			// 		</div>
-			// 	</td>
-			// ';
-
-			// $html .= '
-			// 	<td>
-			// 		<div class="d-flex align-items-center gap-1">
-			// 			<input class="ac_ticket_code text-start" ln="' . $i . '" type="text" name="ct_ticket_code[]" id="ct_ticket_code' . $i . '" maxlength="255" size="30" autocomplete="off" />
-			// 			<button title="Tìm" class="button-pick" type="button" onclick="openTicketNumberPopup(' . $i . ')">
-			// 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path><path d="M11.412 8.586c.379.38.588.882.588 1.414h2a3.977 3.977 0 0 0-1.174-2.828c-1.514-1.512-4.139-1.512-5.652 0l1.412 1.416c.76-.758 2.07-.756 2.826-.002z"></path></svg>
-			// 			</button>
-			// 		</div>
-			// 	</td>
-			// ';
-
-			// $html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal(' . $i . ')" value="1" type="text" name="ct_qty[]" id="ct_qty' . $i . '" size="5" maxlength="20" max_qty=""/></td>';
-
-			// $html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal(' . $i . ')" value="" type="text" name="ct_price[]" id="ct_price' . $i . '" size="14" maxlength="20" /></td>';
-
-			// $html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal(' . $i . ')" value="" type="text" name="ct_vat[]" id="ct_vat' . $i . '" size="14" maxlength="20" /></td>';
-
-			// $html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal(' . $i . ')" value="" type="text" name="ct_authorized[]" id="ct_authorized' . $i . '" size="14" maxlength="20" /></td>';
-
-			// $html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotalReturn(' . $i . ')" value="" type="text" name="ct_total[]" id="ct_total' . $i . '" size="14" maxlength="20" /></td>';
-
-			// $html .= '<td class="text-center">
-			// 			<button title="Xóa" class="button-remove-in-edit" type="button" onclick="markRowDeleted(' . $i . ')"> 
-			// 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
-			// 			</button>
-			// 			<input type="hidden" value="0" name="ct_deleted[]" id="ct_deleted' . $i . '" />
-			// 			<input type="hidden" name="ct_detail_id[]" id="ct_detail_id' . $i . '" value="" />
-			// 		</td>';
-
-			// $html .= '</tr>';
 			$row_count = 0;
 		} else {
 			$sql = '

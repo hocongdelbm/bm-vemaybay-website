@@ -7229,16 +7229,6 @@ input[type=reset]:focus {
      font-size: 13px
 }
 
-input[type=text],
-input[type=number],
-input[type=password],
-input[type=email],
-input:not([type]) {
-     line-height: 20px;
-     min-height: 28px;
-     outline: none;
-}
-
 select:focus {
      border-color: #A5E8D6;
      border-style: solid;
