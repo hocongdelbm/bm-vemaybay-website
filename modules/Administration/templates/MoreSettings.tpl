@@ -13,7 +13,7 @@
 	</div>
 
     <!-- Misa -->
-    <div class="panel panel-default panel-password-misa" id="misa_setting_table">
+    <div class="panel panel-default mb-3 panel-password-misa" id="misa_setting_table">
 		<div class="panel-heading px-3 py-1">
 			<h5 class="text-white m-0 text-uppercase fs-6">Quản lý cấu hình Misa</h5>
 		</div>
@@ -88,7 +88,7 @@
 	</div>
 
 	<!-- PBX -->
-    <div class="panel panel-default panel-password-pbx" id="pbx_setting_table">
+    <div class="panel panel-default mb-3 panel-password-pbx" id="pbx_setting_table">
 		<div class="panel-heading px-3 py-1">
 			<h5 class="text-white m-0 text-uppercase fs-6">{$MOD.LBL_MANAGE_PBX_APP}</h5>
 		</div>
@@ -159,7 +159,7 @@
 	</div>
 
 	<!-- VNBackup -->
-    <div class="panel panel-default panel-password-vnbackup" id="vnbackup_setting_table">
+    <div class="panel panel-default mb-3 panel-password-vnbackup" id="vnbackup_setting_table">
 		<div class="panel-heading px-3 py-1">
 			<h5 class="text-white m-0 text-uppercase fs-6">Quản lý cấu hình VNBackup</h5>
 		</div>

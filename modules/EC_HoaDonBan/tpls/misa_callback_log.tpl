@@ -103,7 +103,6 @@
     border-radius: 5px;
     width: 240px;
 }
-.misa-toolbar-right { display: flex; gap: 6px; }
 .misa-btn-sm {
     padding: 4px 12px;
     font-size: 12px;

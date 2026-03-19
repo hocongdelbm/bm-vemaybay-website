@@ -74,9 +74,11 @@ $data = json_decode($rawData, true);
 // ============================================================
 // 4. Xử lý theo data_type
 // data_type phổ biến:
-//   1  = Kết quả tạo/đồng bộ danh mục
-//   6  = Kết quả đồng bộ chứng từ (phiếu xuất kho, hóa đơn...)
-//   Xem đầy đủ tại: Danh sách các loại kết quả trả về
+    // 1: Hàm cất
+    // 2: Hàm xóa
+    // 3: Hàm sửa
+    // 6: Đồng bộ phiếu xuất kho
+    // 7: Hàm sinh danh mục
 // ============================================================
 
 if ($success) {

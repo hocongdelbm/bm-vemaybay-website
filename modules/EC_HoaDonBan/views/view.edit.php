@@ -2,39 +2,45 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 
-class EC_HoaDonBanViewEdit extends ViewEdit {
-	public function __construct() {
+class EC_HoaDonBanViewEdit extends ViewEdit
+{
+	public function __construct()
+	{
 		parent::__construct();
 	}
 
-	public function display() {
+	public function display()
+	{
 		$this->getStyles();
-		$this->populateLineItems();
+		$this->populateLineItemsWin();
 		parent::display();
 		$this->getScripts();
 	}
 
-	private function getStyles() {
+	private function getStyles()
+	{
 		echo "<link type='text/css' rel='stylesheet' href='modules/{$this->bean->module_dir}/css/view.edit.css?v=1.0.1'>";
 	}
 
-	private function getScripts() {
+	private function getScripts()
+	{
 		echo "<script src='modules/{$this->bean->module_dir}/js/view.edit.js?v=1.0.7'></script>";
 	}
 
-	protected function populateLineItems() {
+	protected function populateLineItemsWin()
+	{
 		global $locale;
 
 		// CCCD/Passport
 		$id_number = $this->bean->citizen_id ?? '';
-		if(empty($id_number)) $id_number = $this->bean->passport_number ?? '';
-		if(empty($id_number)) $id_number = $_REQUEST['identity_number'] ?? '';
-		$this->ss->assign('CUSTOM_ID_NUMBER', '<input type="text" name="identity_number" value="'.$id_number.'" id="identity_number" maxlength="20" />');
+		if (empty($id_number)) $id_number = $this->bean->passport_number ?? '';
+		if (empty($id_number)) $id_number = $_REQUEST['identity_number'] ?? '';
+		$this->ss->assign('CUSTOM_ID_NUMBER', '<input type="text" name="identity_number" value="' . $id_number . '" id="identity_number" maxlength="20" />');
 
 		// MST
 		$mst_value = $this->bean->masothue ?? ($_REQUEST['masothue'] ?? '');
 		$custom_mst = '<div class="wrap-masothue">
-			<input type="text" name="masothue" id="masothue" size="30" minlength="10" maxlength="15" value="'.$mst_value.'">
+			<input type="text" name="masothue" id="masothue" size="30" minlength="10" maxlength="15" value="' . $mst_value . '">
 			<span class="mst-active">
 				<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#28a745" stroke-width="1.5">
 					<path fill-rule="evenodd" clip-rule="evenodd" d="M12 1.25C6.06294 1.25 1.25 6.06294 1.25 12C1.25 17.9371 6.06294 22.75 12 22.75C17.9371 22.75 22.75 17.9371 22.75 12C22.75 6.06294 17.9371 1.25 12 1.25ZM7.53044 11.9697C7.23755 11.6768 6.76268 11.6768 6.46978 11.9697C6.17689 12.2626 6.17689 12.7374 6.46978 13.0303L9.46978 16.0303C9.76268 16.3232 10.2376 16.3232 10.5304 16.0303L17.5304 9.03033C17.8233 8.73744 17.8233 8.26256 17.5304 7.96967C17.2375 7.67678 16.7627 7.67678 16.4698 7.96967L10.0001 14.4393L7.53044 11.9697Z" fill="#28a745"></path>
@@ -111,8 +117,7 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 
 			// $html .= '</tr>';
 			$row_count = 0;
-		}
-		else {
+		} else {
 			$sql = '
 				SELECT ct.*
 					,(SELECT qty FROM ec_input_invoices WHERE id = ct.ticket_number_id) AS max_qty
@@ -133,16 +138,16 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 
 				if ($this->bean->loaihoadon == 0) {
 					$html .= '<td>
-						<select name="ct_code[]" id="ct_code'.$i.'">'
-							.get_select_options_with_id($GLOBALS['app_list_strings']['invoice_mahang_list'], $row['mahang']).
+						<select name="ct_code[]" id="ct_code' . $i . '">'
+						. get_select_options_with_id($GLOBALS['app_list_strings']['invoice_mahang_list'], $row['mahang']) .
 						'</select>
 					</td>';
 
 					$input_type_receipt = !empty($row['receipt_voucher_name']) ? 'text' : 'hidden';
 					$html .= "<td>
-						<input type='text' name='ct_booking[]' id='ct_booking$i' ln='$i' class='ac_booking' value='". $row['booking'] ."' maxlength='32' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id$i\",\"name\":\"ct_booking$i\"}' style='text-align:left' />
-						<input type='hidden' name='ct_booking_id[]' id='ct_booking_id$i' value='". $row['booking_id'] ."' />
-						<input type='$input_type_receipt' name='ct_receipt_voucher[]' class='input-receipt-voucher' value='". $row['receipt_voucher_name'] ."' placeholder='Mã phiếu thu' style='border:1px solid #c2c2c2 !important; border-radius:4px; margin-top:5px; padding-left:5px !important;' />
+						<input type='text' name='ct_booking[]' id='ct_booking$i' ln='$i' class='ac_booking' value='" . $row['booking'] . "' maxlength='32' size='30' autocomplete='off' fld='{\"id\":\"ct_booking_id$i\",\"name\":\"ct_booking$i\"}' style='text-align:left' />
+						<input type='hidden' name='ct_booking_id[]' id='ct_booking_id$i' value='" . $row['booking_id'] . "' />
+						<input type='$input_type_receipt' name='ct_receipt_voucher[]' class='input-receipt-voucher' value='" . $row['receipt_voucher_name'] . "' placeholder='Mã phiếu thu' style='border:1px solid #c2c2c2 !important; border-radius:4px; margin-top:5px; padding-left:5px !important;' />
 					</td>";
 
 					$html .= '
@@ -167,8 +172,7 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 					// 		</div>
 					// 	</td>
 					// ';
-				}
-				else if ($this->bean->loaihoadon == 1) {
+				} else if ($this->bean->loaihoadon == 1) {
 					$html .= '
 						<td>
 							<input class="text-start" ln="' . $i . '" type="text" name="ct_name[]" id="ct_name' . $i . '" value="' . $row['name'] . '" maxlength="255" size="30" autocomplete="off" />
@@ -177,38 +181,38 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 				}
 
 				// Số lượng
-				$html .= '<td class="text-center"><input class="allow-number-only text-center" onblur="calculateLineTotal('.$i.')" value="' . format_number($row['soluong']) . '" type="text" name="ct_qty[]" id="ct_qty' . $i . '" max_qty="' . format_number($row['max_qty']) . '"/></td>';
+				$html .= '<td class="text-center"><input class="allow-number-only text-center" onblur="calculateLineTotal(' . $i . ')" value="' . format_number($row['soluong']) . '" type="text" name="ct_qty[]" id="ct_qty' . $i . '" max_qty="' . format_number($row['max_qty']) . '"/></td>';
 
 				// Giá mua
-				$html .= '<td class="text-end"><input class="allow-number-only text-end" onblur="calculateLineTotal('.$i.')" value="' . format_number($row['giamua']) . '" type="text" name="ct_purchase_price[]" id="ct_purchase_price'.$i.'" /></td>';
+				$html .= '<td class="text-end"><input class="allow-number-only text-end" onblur="calculateLineTotal(' . $i . ')" value="' . format_number($row['giamua']) . '" type="text" name="ct_purchase_price[]" id="ct_purchase_price' . $i . '" /></td>';
 
 				// Thu hộ
-				$html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal('.$i.')" value="' . format_number($row['phithuho']) . '" type="text" name="ct_authorized[]" id="ct_authorized'.$i.'" /></td>';
+				$html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal(' . $i . ')" value="' . format_number($row['phithuho']) . '" type="text" name="ct_authorized[]" id="ct_authorized' . $i . '" /></td>';
 
 				// Phí sân bay
-				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['phisanbay']) . '" type="text" name="ct_airport_fee[]" id="ct_airport_fee'.$i.'" /></td>';
+				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['phisanbay']) . '" type="text" name="ct_airport_fee[]" id="ct_airport_fee' . $i . '" /></td>';
 
 				// Phí khác
-				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['phikhac']) . '" type="text" name="ct_other_fee[]" id="ct_other_fee'.$i.'" /></td>';
+				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['phikhac']) . '" type="text" name="ct_other_fee[]" id="ct_other_fee' . $i . '" /></td>';
 
 				// Phí DV
-				$html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal('.$i.')" value="' . format_number($row['phidv']) . '" type="text" name="ct_service[]" id="ct_service'.$i.'" /></td>';
+				$html .= '<td><input class="allow-number-only text-end" onblur="calculateLineTotal(' . $i . ')" value="' . format_number($row['phidv']) . '" type="text" name="ct_service[]" id="ct_service' . $i . '" /></td>';
 
 				// Thuế suất
 				$html .= '<td>
-					<select name="ct_percent_vat[]" id="ct_percent_vat'.$i.'" onchange="calculateLineTotal('.$i.')">
-						'.get_select_options_with_id($GLOBALS['app_list_strings']['invoice_percent_vat_list'], $row['thuesuat']).'
+					<select name="ct_percent_vat[]" id="ct_percent_vat' . $i . '" onchange="calculateLineTotal(' . $i . ')">
+						' . get_select_options_with_id($GLOBALS['app_list_strings']['invoice_percent_vat_list'], $row['thuesuat']) . '
 					</select>
 				</td>';
-				
+
 				// Giá bán
-				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['dongia']) . '" type="text" name="ct_price[]" id="ct_price'.$i.'" readonly /></td>';
+				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['dongia']) . '" type="text" name="ct_price[]" id="ct_price' . $i . '" readonly /></td>';
 
 				// VAT
-				$html .= '<td><input class="allow-number-only text-end" onblur="calculateChangeVAT('.$i.')" value="' . format_number($row['tienthue']) . '" type="text" name="ct_vat[]" id="ct_vat'.$i.'" /></td>';
+				$html .= '<td><input class="allow-number-only text-end" onblur="calculateChangeVAT(' . $i . ')" value="' . format_number($row['tienthue']) . '" type="text" name="ct_vat[]" id="ct_vat' . $i . '" /></td>';
 
 				// Thành tiền
-				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['thanhtien']) . '" type="text" name="ct_total[]" id="ct_total'.$i.'" readonly /></td>';
+				$html .= '<td><input class="allow-number-only text-end" value="' . format_number($row['thanhtien']) . '" type="text" name="ct_total[]" id="ct_total' . $i . '" readonly /></td>';
 
 				$html .= '<td class="text-center">
 							<button title="Xóa" class="button-remove-in-edit" type="button" onclick="markRowDeleted(' . $i . ')">
@@ -217,12 +221,12 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 							<input type="hidden" value="0" name="ct_deleted[]" id="ct_deleted' . $i . '" />
 							<input type="hidden" name="ct_detail_id[]" id="ct_detail_id' . $i . '" value="' . $detail_id . '" />
 						</td>';
-						
+
 				$html .= '</tr>';
 
 				$i++;
 				$total_price += $row['dongia'] * $row['soluong'];
-				$total_vat += $row['tienthue'] ;
+				$total_vat += $row['tienthue'];
 				$total_service += $row['phidv'] * $row['soluong'];
 				$total_authorized += $row['phithuho'] * $row['soluong'];
 				$total_giamua += $row['giamua'] * $row['soluong'];
@@ -309,7 +313,7 @@ class EC_HoaDonBanViewEdit extends ViewEdit {
 				</table>
 			</div>
 		';
-		
+
 		$this->ss->assign('LINE_ITEMS', $html);
 	}
 }
