@@ -17,7 +17,7 @@ class Viewupdateflight extends SugarView {
     }
     function displayScript() {
 		$script = '';
-		$script .= '<script src="modules/'.$this->bean->module_dir.'/js/updateflight.js?v=1.0.2"></script>';
+		$script .= '<script src="modules/'.$this->bean->module_dir.'/js/updateflight.js?v=1.0.3"></script>';
         echo $script;
     }
 }
