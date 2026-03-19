@@ -174,6 +174,8 @@ $mod_strings = array(
     'LBL_CONFIGURE_GROUP_TABS' => 'Cấu hình mô-đun bộ lọc trình đơn',
     'LBL_CONFIGURE_SETTINGS_TITLE' => 'Thiết lập hệ thống',
     'LBL_CONFIGURE_SETTINGS' => 'Cấu hình cài đặt toàn bộ hệ thống',
+    'LBL_MANAGE_CONFIG_TITLE'                     => 'Thiết lập cấu hình tài khoản',
+    'LBL_MANAGE_CONFIG'                           => 'Cấu hình cài đặt tài khoản (ZaloOA, PBX, Misa, VNBackup,...)',
     'LBL_CONFIGURE_TABS_AND_SUBPANELS' => 'Mô-đun hiển thị và Tệp phụ',
     'LBL_COULD_NOT_CONNECT' => 'Lỗi: Không thể kết nối tới hệ phục vụ SuiteCRM.
 	Vui lòng kiểm tra giá trị của bạn cài đặt Proxy trong bảng quản trị <a href="index.php?module=Configurator&action=EditView">Hệ thống cài đặt</a>. Cuối cùng đã cố gắng kết nối @ ',
@@ -972,4 +974,12 @@ $mod_strings = array(
 
     // Ajax Submit
     'LBL_AJAX_SUBMIT_FAIL' => 'Lỗi đã xảy ra trong khi lưu các thiết lập.',
+
+    // PBX
+    'LBL_MANAGE_PBX_APP' => 'Quản lý ứng dụng PBX',
+    'LBL_PBX_IP' => 'Địa chỉ IP PBX',
+    'LBL_PBX_IP_OLD' => 'IP PBX khác',
+    'LBL_PBX_DOMAIN_NAME' => 'Tên miền PBX',
+    'LBL_PBX_PORT' => 'Port PBX WSS',
+    'LBL_PBX_TOKEN_API' => 'Token API',
 );

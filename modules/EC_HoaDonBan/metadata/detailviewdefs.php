@@ -29,7 +29,7 @@ $viewdefs[$module_name]['DetailView'] = array(
 
     'panels' =>
     array(
-        'default' =>
+        'LBL_INVOICE_PANEL' =>
         array(
             array(
                 array(
@@ -136,6 +136,16 @@ $viewdefs[$module_name]['DetailView'] = array(
                 ),
             ),
         ),
+
+        // 'LBL_LINEITEM_MISA_PANEL' => array(
+        //     array(
+        //         array(
+        //             'name' => 'line_details',
+        //             'label' => 'LBL_LINE_MISA_ITEMS',
+        //             'customCode' => '{$LINE_MISA_ITEMS}',
+        //         ),
+        //     ),
+        // ),
 
         'LBL_LINEITEM_PANEL' => array(
             array(
