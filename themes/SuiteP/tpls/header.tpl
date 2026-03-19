@@ -48,15 +48,6 @@
     <div class="modal-overlay"></div>
 </div>
 
-<div class="lunnar-newyear d-none">
-    <div style="z-index: 100;" class="position-fixed top-0 left-0 hoa-dao">
-        <img src="themes/SuiteP/images/hoa-dao.png" alt="" width="100" height="100">
-    </div>
-    <div style="z-index: 100;" class="position-fixed bottom-0 right-0 hoa-mai">
-        <img src="themes/SuiteP/images/hoa-mai.png" alt="" width="100" height="100">
-    </div>
-</div>
-
 {if $AUTHENTICATED}
     <div id="ajaxHeader">
         {include file="themes/SuiteP/tpls/_headerModuleList.tpl"}
