@@ -7,6 +7,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
     
+    <script type="text/javascript" src='themes/SuiteP/js/gb_preload.js?v={$JS_VERSION}'></script>
+
     <!-- Bootstrap -->
     <!-- <link href="themes/SuiteP/css/normalize.css" rel="stylesheet" type="text/css"/>
     <link href='themes/SuiteP/css/fonts.css' rel='stylesheet' type='text/css'>

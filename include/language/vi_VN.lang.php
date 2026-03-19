@@ -1781,9 +1781,9 @@ $app_strings = array(
     'LBL_VIEW_IMAGE' => 'xem',
 
     'LNK_ABOUT' => 'Về',
-    'LNK_ADVANCED_FILTER' => 'Lọc nâng cao',
+    'LNK_ADVANCED_FILTER' => 'Bộ lọc',
     'LNK_BASIC_FILTER' => 'Lọc nhanh',
-    'LBL_ADVANCED_SEARCH' => 'Lọc nâng cao',
+    'LBL_ADVANCED_SEARCH' => 'Bộ lọc',
     'LBL_QUICK_FILTER' => 'Lọc nhanh',
     'LBL_BASIC_FILTER' => 'Lọc cơ bản',
     'LBL_QUICK' => 'Nhanh chóng',
