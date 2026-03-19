@@ -302,6 +302,7 @@
                     <th align="center" width="8%" class="hide-mobile">TĐ Khách TT</th>
                     <th align="center" width="8%" class="hide-mobile">Ngày tạo</th>
                     <th align="center" class="hide-mobile">Ngày xuất vé</th>
+                    <th align="center" class="hide-mobile">Nơi đặt</th>
                 </tr>
             </thead>
             <tbody>

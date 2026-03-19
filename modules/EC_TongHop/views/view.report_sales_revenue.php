@@ -251,6 +251,7 @@ class Viewreport_sales_revenue extends SugarView
                 $html .= '<td class="text-center hide-mobile">' . $paid_time . '</td>';
                 $html .= '<td class="text-center bk_date_entered hide-mobile">' . str_replace(' ', '<br>', $row['bk_date_entered']) . '</td>';
                 $html .= '<td class="text-center bk_date_ticket_issue hide-mobile">' . $date_ticket_issue . '</td>';
+                $html .= '<td class="text-center bk_country hide-mobile">' . ($row['country'] ?? ''). '</td>';
                 $html .= '</tr>';
 
                 $total_quantity += (int)$row['total_quantity'];
@@ -290,6 +291,7 @@ class Viewreport_sales_revenue extends SugarView
             <td class="date_issue hide-mobile">&nbsp;</td>
             <td class="date_created hide-mobile">&nbsp;</td>
             <td class="date_issue hide-mobile">&nbsp;</td>
+            <td class="country hide-mobile"></td>
         </tr>';
 
         $arr['html'] = $html;
