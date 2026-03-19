@@ -22,7 +22,7 @@ if(!isTelesaleUser($current_user->id)) {
 	if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu[] = array("index.php?module=EC_Flight_Bookings&action=recheckbk&return_module=EC_Flight_Bookings&return_action=recheckbk", "Recheck xuất vé", "double-check", 'EC_Flight_Bookings');
 }
 
-if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true)) $module_menu[] = array("index.php?module=EC_Flight_Bookings&action=recoveryorder&return_module=EC_Flight_Bookings&return_action=recoveryorder", "Phục hồi booking","recovery-order-16", 'EC_Flight_Bookings');
+// if(ACLController::checkAccess('EC_Payment_Voucher', 'edit', true)) $module_menu[] = array("index.php?module=EC_Flight_Bookings&action=recoveryorder&return_module=EC_Flight_Bookings&return_action=recoveryorder", "Phục hồi booking","recovery-order-16", 'EC_Flight_Bookings');
 
 
 if (ACLController::checkAccess('EC_Flight_Bookings', 'list', true)) $module_menu[] 	= array("index.php?module=EC_Flight_Bookings&action=assignbk&return_module=EC_Flight_Bookings&return_action=assignbk", "Danh sách online", "justice-scale", 'EC_Flight_Bookings');

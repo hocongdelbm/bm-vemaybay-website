@@ -2,8 +2,8 @@
 global $app_list_strings, $current_user;
 $module_name = 'EC_Flight_Bookings';
 $booking_stt_list = $app_list_strings['booking_status_list'];
-if(isManagerUser($current_user->id)) {
-    $booking_stt_list[100] = 'Thay đổi giao cho'; 
+if (isManagerUser($current_user->id)) {
+    $booking_stt_list[100] = 'Thay đổi giao cho';
 }
 $searchdefs[$module_name] = array(
     'layout' => array(
@@ -12,49 +12,6 @@ $searchdefs[$module_name] = array(
                 'name' => 'name',
                 'default' => true,
                 'width' => '10%',
-            ),
-            'contact_name' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_CONTACT_NAME',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'contact_name',
-            ),
-            'phone' => array(
-                'type' => 'phone',
-                'label' => 'LBL_PHONE',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'phone',
-            ),
-            'email' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_EMAIL',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'email',
-            ),
-            'total_amount' => array(
-                'type' => 'currency',
-                'label' => 'LBL_TOTAL_AMOUNT',
-                'currency_format' => true,
-                'width' => '10%',
-                'default' => true,
-                'name' => 'total_amount',
-            ),
-            'pnr_outbound_search' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_PNR_OUTBOUND_SEARCH',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'pnr_outbound_search',
-            ),
-            'pnr_inbound_search' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_PNR_INBOUND_SEARCH',
-                'width' => '10%',
-                'default' => true,
-                'name' => 'pnr_inbound_search',
             ),
             'date_entered' => array(
                 'type' => 'datetime',
@@ -108,21 +65,6 @@ $searchdefs[$module_name] = array(
                 'name' => 'itinerary_search',
             ),
 
-            // 'passenger_search' => array(
-            //     'type' => 'varchar',
-            //     'label' => 'LBL_PASSENGER_SEARCH',
-            //     'width' => '10%',
-            //     'default' => true,
-            //     'name' => 'passenger_search',
-            // ),
-            // 'airline_code_search' => array(
-            //     'type' => 'varchar',
-            //     'label' => 'LBL_AIRLINE_CODE_SEARCH',
-            //     'width' => '10%',
-            //     'default' => true,
-            //     'name' => 'airline_code_search',
-            // ),
-            
             'passenger_search' => array(
                 'type' => 'varchar',
                 'label' => 'LBL_PASSENGER_SEARCH',
@@ -212,15 +154,6 @@ $searchdefs[$module_name] = array(
                 'enable_range_search' => true,
                 'options' => 'date_range_search_dom',
             ),
-            // 'order_date' =>
-            // array(
-            //   'type' => 'datetime',
-            //   'label' => 'LBL_ORDER_DATE',
-            //   'width' => '10%',    
-            //   'default' => true,
-            //   'name' => 'order_date',
-            // ),
-            
             'assigned_user_name' => array(
                 'link' => 'assigned_user_link',
                 'type' => 'relate',
@@ -242,7 +175,7 @@ $searchdefs[$module_name] = array(
                 'label' => 'LBL_CURRENT_USER_FILTER',
                 'type' => 'bool'
             ),
-            
+
             'payment_type' => array(
                 'type' => 'enum',
                 'studio' => 'visible',
@@ -290,13 +223,6 @@ $searchdefs[$module_name] = array(
                 'default' => true,
                 'name' => 'is_ctv',
             ),
-
-            // 'favorites_only' => 
-            // array(
-            //   'name' => 'favorites_only', 
-            //   'label' => 'LBL_FAVORITES_FILTER', 
-            //   'type' => 'bool',
-            // ),
         ),
     ),
     'templateMeta' => array(

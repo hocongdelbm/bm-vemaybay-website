@@ -71,7 +71,6 @@ class entryOutputInvoiceClass extends entryClass {
     }
 
     public function setMisa($params = []) {
-        pr($params);
         $voucher = $params['voucher'] ?? [];
         $details   = $params['details'] ?? [];
         $saInvoice    = $params['saInvoice'] ?? [];

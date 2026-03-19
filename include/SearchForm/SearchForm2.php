@@ -33,7 +33,10 @@ class SearchForm
     //show the advanced tab
     public $showAdvanced = true;
     //show the basic tab
-    public $showBasic = true;
+    
+    // public $showBasic = true;
+    public $showBasic = false;
+
     //array of custom tab to show declare in searchdefs (no custom tab if false)
     public $showCustom = false;
     // nb of tab to show
@@ -111,7 +114,8 @@ class SearchForm
                 'key' => $this->module . '|basic_search',
                 'name' => 'basic',
                 'displayDiv' => '');
-        }
+        } else $this->th->ss->assign('hideBasic', 'd-none');
+
         if ($this->showAdvanced) {
             $this->nbTabs++;
             $this->tabs[] = array('title' => $GLOBALS['app_strings']['LNK_ADVANCED_FILTER'],

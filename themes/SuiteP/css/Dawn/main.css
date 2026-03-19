@@ -3,6 +3,7 @@ a {
   text-decoration: none;
   color: var(--text-primary-color);
 }
+
 a:focus {
   outline: none;
   text-decoration: none;
@@ -213,8 +214,14 @@ body {
   height: 8px;
   background-color: #dceefc;
 }
-select::-webkit-scrollbar {width: 6px;}
-::-webkit-scrollbar-thumb {background-color: #aab7cf;}
+
+select::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #aab7cf;
+}
 
 .select2-results__options::-webkit-scrollbar {
   width: 6px;
@@ -2191,11 +2198,6 @@ h3.sub-title-welcome {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.moduleTitle span.utils,
-.moduleTitle>h2>img {
-  display: none;
-}
-
 .moduleTitle h2 span.pointer {
   font-size: 32px;
   padding: 0 8px;
@@ -3615,9 +3617,17 @@ table.table-responsive.table-geocoded thead tr th {
   text-transform: capitalize;
 }
 
-table.table-responsive>tbody>tr {border: 1px solid var(--border-color);}
-table.table-responsive>tbody>tr:hover td input[type="checkbox"]:before {border-color: #cccccc;}
-table.table-responsive>tbody>tr:hover input:checked[type="checkbox"]:before {border-color: var(--primary-color);}
+table.table-responsive>tbody>tr {
+  border: 1px solid var(--border-color);
+}
+
+table.table-responsive>tbody>tr:hover td input[type="checkbox"]:before {
+  border-color: #cccccc;
+}
+
+table.table-responsive>tbody>tr:hover input:checked[type="checkbox"]:before {
+  border-color: var(--primary-color);
+}
 
 table.table-responsive>tbody>tr>td {
   padding: 5px;
@@ -3884,15 +3894,24 @@ table.themeSettings tbody tr.yui-dt-odd {
   top: 50%;
   transform: translate(0%, -50%);
 }
-.modal .modal-content {border: none;}
-.modal .modal-header {background: var(--primary-color);}
+
+.modal .modal-content {
+  border: none;
+}
+
+.modal .modal-header {
+  background: var(--primary-color);
+}
+
 .modal .modal-header .modal-title {
   color: var(--white-color);
   text-transform: uppercase;
 }
+
 .modal .modal-header h2.modal-title {
   font-size: 1rem !important;
 }
+
 .modal .modal-header h4 {
   font-size: 18px;
   letter-spacing: 2px;
@@ -3934,6 +3953,16 @@ button.remove_employees,
 
 #columnsFilterList .chooserList.hidden-list>li {
   background-color: var(--hidden-color);
+}
+
+
+/* SEARCH FORM */
+#search_form {
+  display: none;
+}
+
+.search-open #search_form {
+  display: block;
 }
 
 #search_form label {
@@ -4981,7 +5010,9 @@ body.modal-active {
   transform: translate(-50%, -50%);
 }
 
-#modal-container .modal-main .modal-body .description {word-break: break-word;}
+#modal-container .modal-main .modal-body .description {
+  word-break: break-word;
+}
 
 #modal-container .modal-main.modal-success .modal-footer .btn-modal-close,
 #modal-container .modal-main.modal-success .icon-box {
@@ -5724,7 +5755,7 @@ table.table-details__booking tbody td {
 }
 
 #pagecontent[data-module="Calls"][data-current-user="ngocthu"] .list-view-rounded-corners table.list.view.table-responsive #actionLinkTop .sugar_action_button ul.subnav #delete_listview_top,
-#pagecontent[data-module="Calls"][data-current-user="ngocthu"] .list-view-rounded-corners table.list.view.table-responsive #actionLinkBottom .sugar_action_button ul.subnav #delete_listview_bottom{
+#pagecontent[data-module="Calls"][data-current-user="ngocthu"] .list-view-rounded-corners table.list.view.table-responsive #actionLinkBottom .sugar_action_button ul.subnav #delete_listview_bottom {
   display: none;
 }
 

@@ -756,7 +756,7 @@ $mod_strings = array(
     'LBL_SELECT_MODULES_TITLE' => 'Kéo và thả để chọn mô-đun và thay đổi thứ tự hiển thị. Thực hiện một tìm kiếm để áp dụng các thay đổi.',
     'LBL_LANGUAGE_PACKS' => 'Gói ngôn ngữ' /*for 508 compliance fix*/,
     'LBL_PATCH_UPGRADES' => 'Nâng cấp bản vá lỗi' /*for 508 compliance fix*/,
-    'LBL_ADVANCED_SEARCH' => 'Bộ lọc nâng cao' /*for 508 compliance fix*/,
+    'LBL_ADVANCED_SEARCH' => 'Bộ lọc' /*for 508 compliance fix*/,
     'LBL_BASIC_SEARCH' => 'Lọc nhanh' /*for 508 compliance fix*/,
     'LBL_PROCESSING' => 'Đang xử lý' /*for 508 compliance fix*/,
 

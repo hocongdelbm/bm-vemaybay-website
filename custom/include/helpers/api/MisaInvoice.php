@@ -232,11 +232,7 @@ class MisaInvoice
             'voucher'          => [$voucherData],
         ];
 
-        pr($body);
-
-        return json_encode($body);
-
-        // return $this->sendRequest('POST', '/apir/sync/actopen/save', $body, $token);
+        return $this->sendRequest('POST', '/apir/sync/actopen/save', $body, $token);
     }
 
     /**

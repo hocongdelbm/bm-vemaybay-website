@@ -356,6 +356,7 @@ class SugarView
         $ss->assign("MODULE_NAME", $this->module);
         $ss->assign("langHeader", get_language_header());
         $ss->assign("BROWSER_TITLE", $this->getBrowserTitle());
+        $ss->assign("JS_VERSION", time());
 
         // AGENT STATUS - HAIHUGN
         if (isset($current_user->agent_status) && !empty($current_user->agent_status)) {
@@ -1699,7 +1700,7 @@ EOHTML;
     ) {
         global $sugar_version, $sugar_flavor, $server_unique_key, $current_language, $action;
 
-        $theTitle = "<div class='moduleTitle moduleTitle-sugarview__in-includes'>\n";
+        $theTitle = "<div class='moduleTitle moduleTitle-sugarview__in-includes d-flex align-items-center justify-content-between'>\n";
 
         $module = preg_replace("/ /", "", $this->module);
 
@@ -1722,52 +1723,12 @@ EOHTML;
             }
         }
 
-        // if (!empty($paramString)) {
-        //     $theTitle .= "<h2 class='module-title-text'> $paramString </h2>";
-
-        //     if ($this->type == "detail") {
-        //         $theTitle .= "<div class='favorite' record_id='" .
-        //             $this->bean->id .
-        //             "' module='" .
-        //             $this->bean->module_dir .
-        //             "'><div class='favorite_icon_outline'>" .
-        //             "<span class='suitepicon suitepicon-favorite-star-outline'></span></div>
-        //                                             <div class='favorite_icon_fill' 'title=\"' . translate('LBL_DASHLET_EDIT', 'Home') . '\" border=\"0\"  align=\"absmiddle\"'>" .
-
-        //             "<span class='suitepicon suitepicon-favorite-star'></span></div></div>";
-        //     }
-        // }
         if (!empty($paramString)) {
             $theTitle .= "<h2 class='module-title-text'> $paramString </h2>";
         }
 
-        // bug 56131 - restore conditional so that link doesn't appear where it shouldn't
-        if ($show_help || $this->type == 'list') {
-            $theTitle .= "<span class='utils'>";
-            // $createImageURL = SugarThemeRegistry::current()->getImageURL('create-record.gif');
-            $createImageURL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
-                            </svg>';
-            if ($this->type == 'list') {
-                $theTitle .= '<a href="#" class="btn btn-success showsearch"><span class=" glyphicon glyphicon-search" aria-hidden="true"></span></a>';
-            }
-            $url = ajaxLink("index.php?module=$module&action=EditView&return_module=$module&return_action=DetailView");
-            if ($show_help) {
-                $theTitle .= <<<EOHTML
-&nbsp;
-<a id="create_image" href="{$url}" class="utilsLink">
-$createImageURL
-<a id="create_link" href="{$url}" class="utilsLink">
-{$GLOBALS['app_strings']['LNK_CREATE']}
-</a>
-EOHTML;
-            }
-            $theTitle .= "</span>";
-        }
-
-        // Custom icon filter - listview
-        if ($this->action == "ListView") {
-            $theTitle .= '<svg id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block" viewBox="0 0 16 16"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path></svg>';
+        if (strpos($this->type, 'list') !== false) {
+            $theTitle .= '<div id="filter_report" class="flex-start cursor-pointer"><span class="filter_report small fw-semibold">Bộ lọc</span><svg width="32" height="32" fill="currentColor" class="bi bi-filter" viewBox="0 0 16 16"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path></svg></div>';
         }
 
         $theTitle .= "</div>\n";
