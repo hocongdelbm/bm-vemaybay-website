@@ -153,6 +153,11 @@ function getAirlineInfo(airlineCode) {
             color: '#f59e0b',
             name: 'Vietravel Airlines',
             logo: 'https://gmi.vietjet.net/images/img/Images-brand/VU.png'
+        },
+        '9G': {
+            color: '#000000',
+            name: '9G',
+            logo: 'https://gmi.vietjet.net/images/img/Images-brand/9G.png'
         }
     };
 
@@ -186,22 +191,23 @@ function renderFlightItem(flight, index) {
                 <div class="airline-logo">
                     <img src="${airlineInfo.logo}" alt="${airlineInfo.name}">
                 </div>
-                
                 <div class="flight-times">
                     <div class="time-info">
                         <span class="time">${flight.depTime} - ${flight.arvTime}</span>
                     </div>
                     <div class="airline-name">${flight.details[0].carrier}</div>
                 </div>
-                
                 <div class="flight-route">
                     <div class="route-code">${flight.dep}-${flight.des}</div>
                     <div class="duration">${flight.nDuration}</div>
                 </div>
-
                 <div class="flight_code">
                     <div class="flight-number">${flight.flightNo}</div>
-                    <a class="flight-details">Chi tiết chuyến bay</a>
+                    <a class="flight-details d-none">Chi tiết chuyến bay</a>
+                </div>
+                <div class="source">
+                    <div style="font-size:.85rem;font-weight:500;">Nguồn</div>
+                    <div style="font-size:.85rem;">${flight.source || ''}</div>
                 </div>
             </div>
 
