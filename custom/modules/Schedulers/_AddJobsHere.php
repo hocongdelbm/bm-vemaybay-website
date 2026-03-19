@@ -2141,7 +2141,7 @@ function sendAutoCheapPriceMessageZalo() {
 			
 						if (isset($sendResult['status']) && $sendResult['status'] == 1) $listSentPhone[] = $phone;
 						else {
-							$GLOBALS['log']->fatal("Check sent auto message Zalo ZBS (cheap-price): " .
+							$GLOBALS['log']->fatal("Send auto message Zalo ZBS (cheap-price) failed: " .
 								json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
 							);
 							$listSentFailedPhone[] = $phone;
@@ -2187,10 +2187,182 @@ function sendAutoCheapPriceMessageZalo() {
 	}
 }
 
-// /**
-//  * Tự động gửi tin tư vấn Zalo để duy trì tương tác
-//  */
-// function maintainZaloChat() {
-// 	$list_users_7 = EC_Zalo_Contacts_Helper::get_list_zalo_user_by_last_interaction_day(7);
-// 	$list_users_2 = EC_Zalo_Contacts_Helper::get_list_zalo_user_by_last_interaction_day(2);
-// }
+/**
+ * Tự động gửi tin tư vấn Zalo để duy trì tương tác
+ */
+function maintainZaloChat() {
+	global $db, $timedate, $sugar_config;
+
+	$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+	$utc_timestamp = strtotime($utcDate);
+	$vn_timestamp = $utc_timestamp + 7*3600;
+
+	$within24 = date('Y-m-d H:i:s', strtotime('-24 hour', $utc_timestamp));
+	$within48 = date('Y-m-d H:i:s', strtotime('-48 hour', $utc_timestamp));
+	$within6days = date('Y-m-d H:i:s', strtotime('-6 days', $utc_timestamp));
+	$within7days = date('Y-m-d H:i:s', strtotime('-7 days', $utc_timestamp));
+	$six_hours_in_seconds = 6*3600;
+	$twelve_hours_in_seconds = 12*3600;
+
+	// Data to get cheap price
+	$departure_timestamp = $vn_timestamp;
+	$departure_day = date('d', $departure_timestamp);
+	// If departure day is greater than 20, then set departure month to next month
+	if((int)$departure_day > 20) {
+		$departure_timestamp = strtotime('+1 month', $departure_timestamp);
+	}
+	$departure_month = date('m', $departure_timestamp);
+	$departure_year  = date('Y', $departure_timestamp);
+
+	// Init entry
+	$entry = new entryFactory();
+	$entryOA = $entry->create('entryZaloOAClass');
+	$entryFS = $entry->create('entryFareSystemClass');
+	
+	/**
+	 * Lấy zalo user tương tác từ 24-48 giờ trước
+	 * Gửi thông tin giá rẻ của các hành trình phổ biến (SGN-HAN, SGN-DAD, SGN-PQC, SGN-CXR, SGN-HUI)
+	 */
+	$sql = "SELECT zc.zalo_id
+                ,zc.oa_id
+                ,zc.id AS user_external_id
+                ,zc.contact_id
+				,c.mobile_phone AS phone_number
+                ,zc.name AS display_name
+                ,zc.alias AS user_alias
+                ,zc.last_interaction
+                ,zc.is_follower
+                ,zc.tags
+                ,province_city
+                ,zc.status
+				,(
+					SELECT CONCAT(zm.type, '|', zm.timestamp)
+					FROM ec_zalo_messages zm
+					WHERE (zm.to_id = zc.zalo_id OR zm.to_id = c.mobile_phone)
+						AND zm.src = 0
+						AND zm.deleted = 0
+					ORDER BY zm.timestamp DESC
+					LIMIT 1
+				) AS latest_message
+				,(
+					SELECT CONCAT(bk.name, '|', bk.date_entered)
+					FROM ec_flight_bookings bk
+					WHERE bk.phone = c.mobile_phone
+						AND bk.booking_status NOT IN ('3', '7', '8')
+						AND bk.deleted = 0
+					ORDER BY bk.date_entered DESC
+					LIMIT 1
+				) AS latest_completed_booking
+            FROM ec_zalo_contacts zc
+				LEFT JOIN contacts c on c.id = zc.contact_id AND c.deleted = 0
+            WHERE (zc.last_interaction BETWEEN '$within24' AND '$within48' 
+				OR zc.last_interaction BETWEEN '$within6days' AND '$within7days'
+				)
+                AND zc.deleted = 0";
+
+	$listSentId = [];
+	$listSentFailedId = [];
+	$listFlightSearch = [];
+	$listImages = [
+		"" => "https://bm.vemaybay.website/include/images/templates/banner_request_user_info.png",
+	];
+
+	$res = $db->query($sql);
+	while ($row = $db->fetchByAssoc($res)) {
+		$last_interaction_timestamp = !is_null($row['last_interaction']) && !empty($row['last_interaction']) ? strtotime($row['last_interaction']) : 0;
+		$latest_message = !is_null($row['latest_message']) && !empty($row['latest_message']) ? explode('|', $row['latest_message']) : [];
+		$latest_completed_booking = !is_null($row['latest_completed_booking']) && !empty($row['latest_completed_booking']) ? explode('|', $row['latest_completed_booking']) : [];
+
+		$is_send = true;
+		// Chỉ gửi nếu user chưa chốt đơn trong 12h từ tương tác cuối
+		if(!empty($latest_completed_booking)) {
+			if(abs($last_interaction_timestamp - strtotime($latest_completed_booking[1])) < $twelve_hours_in_seconds) $is_send = false;
+		}
+		// Chỉ gửi nếu OA chưa có tương tác trong 6h gần nhất
+		if(!empty($latest_message)) {
+			$latest_message_timestamp = (int)(($latest_message[2] ?? 0) / 1000);
+			if($latest_message_timestamp > 0 && $vn_timestamp - $latest_message_timestamp < $six_hours_in_seconds) $is_send = false;
+		}
+
+		if($is_send) {
+			if(!in_array($row['zalo_id'], $listSentId) && !in_array($row['zalo_id'], $listSentFailedId)) {
+				// Get cheap price (cache)
+				$dep_code = 'SGN';
+				$des_code = ['HAN', 'HPH', 'DAD', 'PQC', 'CXR', 'HUI'];
+				$des_code = $des_code[array_rand($des_code)];
+				
+				$depInfo = Flight::getAirport($dep_code);
+				$desInfo = Flight::getAirport($des_code);
+				$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
+				if(!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
+					$temp = $entryFS->getMinPriceInMonth([
+						"depCode" => $dep_code,
+						"desCode" => $des_code,
+						"month" => $departure_month,
+						"year" => $departure_year,
+					]);
+					$priceData = json_decode($temp, true);
+					$priceData = $priceData['data']['prices'] ?? [];
+					$listFlightSearch[$cacheKey] = $priceData;
+				}
+				else {
+					$priceData = $listFlightSearch[$cacheKey];
+				}
+
+				if(is_array($priceData) && !empty($priceData)) {
+					$minPrice = min(array_column($priceData, 'price'));
+					
+					$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
+					if (count($cheapestDays) > 1) {
+						$input = DateTime::createFromFormat('Y-m-d', date('Y-m-d', $vn_timestamp));
+
+						if ($input !== false) {
+							usort($cheapestDays, function ($a, $b) use ($input) {
+								$partsA = explode('-', $a['date']); // ['14', '3']
+								$partsB = explode('-', $b['date']); // ['15', '3']
+
+								$dateA = DateTime::createFromFormat('d-n', $a['date']); // 'n' = month without leading zero
+								$dateB = DateTime::createFromFormat('d-n', $b['date']);
+
+								if ($dateA === false || $dateB === false) return 0;
+
+								$dateA->setDate((int)$input->format('Y'), (int)$partsA[1], (int)$partsA[0]);
+								$dateB->setDate((int)$input->format('Y'), (int)$partsB[1], (int)$partsB[0]);
+
+								return abs($input->diff($dateA)->days) <=> abs($input->diff($dateB)->days);
+							});
+						}
+
+						$cheapestDays = array_slice(array_values($cheapestDays), 0, 6);
+					}
+
+					$listDate = implode(', ', array_map(function ($item) {
+						[$day, $month] = explode('-', $item['date']);
+						return str_pad($day, 2, '0', STR_PAD_LEFT) . '/' . str_pad($month, 2, '0', STR_PAD_LEFT);
+					}, $cheapestDays));
+
+					if($minPrice > 0 && !empty($listDate)) {
+						$text = "";
+
+						$params = [
+							'zalo_id' => $row['zalo_id'],
+							'oa_id' => $row['oa_id'],
+							'type' => 'image',
+							'url' => '',
+							'text' => '',
+						];
+						$sendResult = $entryOA->sendMessage($params);
+		
+						if (isset($sendResult['status']) && $sendResult['status'] == 1) $listSentId[] = $row['zalo_id'];
+						else {
+							$GLOBALS['log']->fatal("Send message to maintain zalo chat failed: " .
+								json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+							);
+							$listSentFailedId[] = $row['zalo_id'];
+						}
+					}
+				}
+			}
+		}
+	}
+}

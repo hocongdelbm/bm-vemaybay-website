@@ -134,7 +134,9 @@ class Viewprinteticketnew extends SugarView
 		// Build ID filter (skip if all passengers requested)
 		$idFilter = '';
 		if (!$this->allPassengers) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->passengerIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->passengerIds)) . "'";
 			$idFilter = "AND p.id IN($idList)";
 		}
 
@@ -307,12 +309,14 @@ class Viewprinteticketnew extends SugarView
 		// Determine which directions are selected based on itineraryIds
 		$selectedDir = 0;
 		if (!$this->isRoundTrip && !$this->allItineraries && !empty($this->itineraryIds)) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->itineraryIds)) . "'";
 			$bookingId = $db->quote($this->bookingId);
 			$sqlDir = "SELECT DISTINCT direction FROM ec_booking_itineraries WHERE id IN ($idList) AND booking_id = '$bookingId'";
 			$resDir = $db->query($sqlDir);
 			$dirs = [];
-			while($rDir = $db->fetchByAssoc($resDir)) {
+			while ($rDir = $db->fetchByAssoc($resDir)) {
 				$dirs[] = (int)$rDir['direction'];
 			}
 			if (count($dirs) === 1 && $dirs[0] === 1) {
@@ -351,7 +355,7 @@ class Viewprinteticketnew extends SugarView
 					$pnr = $pnrDisplay;
 					if (!empty($pnrDisplay2)) $pnr .= " ($outbound_label) / $pnrDisplay2 ($inbound_label)";
 				}
-				
+
 				// Hide passenger if they have KHONG BAY on BOTH legs in round-trip view
 				$ob_kb = (str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnrDisplay, 'UTF-8')) === 'KHONG BAY');
 				$ib_kb = (str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnrDisplay2, 'UTF-8')) === 'KHONG BAY');
@@ -364,7 +368,7 @@ class Viewprinteticketnew extends SugarView
 				} else {
 					$pnr = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
 				}
-				
+
 				// Hide passenger if they have KHONG BAY on this specific leg
 				$pnr_check = str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnr, 'UTF-8'));
 				if ($pnr_check === 'KHONG BAY') {
@@ -475,7 +479,7 @@ class Viewprinteticketnew extends SugarView
 				// Outbound
 				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
 				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
-				
+
 				if ($hasNewFormatOut && class_exists('Baggage')) {
 					// Use new format parser
 					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
@@ -503,7 +507,7 @@ class Viewprinteticketnew extends SugarView
 				// Inbound
 				$luggage_idx_in = $row['luggage_index_inbound'] ?? '';
 				$hasNewFormatIn = preg_match('/[x_T]/i', $luggage_idx_in);
-				
+
 				if ($hasNewFormatIn && class_exists('Baggage')) {
 					// Use new format parser
 					$bagIn = Baggage::renderAvailableBaggage($luggage_idx_in, $lang);
@@ -533,7 +537,7 @@ class Viewprinteticketnew extends SugarView
 			} elseif (function_exists('generateLuggage') && !$khuhoi) {
 				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
 				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
-				
+
 				if ($hasNewFormatOut && class_exists('Baggage')) {
 					// Use new format parser
 					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
@@ -596,7 +600,7 @@ class Viewprinteticketnew extends SugarView
 		}
 
 		// 2) Parse purchase text to separate hand baggage vs checked baggage
-		$processPurchaseText = function($rawText, &$handRef, &$bagRef) {
+		$processPurchaseText = function ($rawText, &$handRef, &$bagRef) {
 			$lines = explode("\n", $rawText);
 			foreach ($lines as $line) {
 				$line = trim($line);
@@ -611,9 +615,9 @@ class Viewprinteticketnew extends SugarView
 				// remove 'hành lý' string to clean up '20kg hành lý' into '20kg'
 				$cleanLine = str_ireplace('hành lý', '', $cleanLine);
 				$cleanLine = trim($cleanLine);
-				
+
 				if (empty($cleanLine)) continue;
-				
+
 				if (stripos($cleanLine, 'xách tay') !== false || stripos($cleanLine, 'xach tay') !== false || stripos($cleanLine, 'carry') !== false) {
 					$val = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $cleanLine);
 					$val = trim($val);
@@ -651,8 +655,10 @@ class Viewprinteticketnew extends SugarView
 				// Both available + purchased checked: combine via parsePackage
 				$avaiParts = Baggage::parsePackage($availOut);
 				$purchParts = Baggage::parsePackage($result['baggage_outbound']);
-				if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
-					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
+				if (
+					$avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
+					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0
+				) {
 					$result['baggage_outbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
 				} else {
 					$result['baggage_outbound'] = $availOut . ' + ' . $result['baggage_outbound'];
@@ -664,8 +670,10 @@ class Viewprinteticketnew extends SugarView
 			if (!empty($availIn) && !empty($result['baggage_inbound'])) {
 				$avaiParts = Baggage::parsePackage($availIn);
 				$purchParts = Baggage::parsePackage($result['baggage_inbound']);
-				if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
-					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
+				if (
+					$avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
+					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0
+				) {
 					$result['baggage_inbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
 				} else {
 					$result['baggage_inbound'] = $availIn . ' + ' . $result['baggage_inbound'];
@@ -784,7 +792,9 @@ class Viewprinteticketnew extends SugarView
 		// Build ID filter (skip if all itineraries requested)
 		$idFilter = '';
 		if (!$this->allItineraries) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->itineraryIds)) . "'";
 			$idFilter = "AND i.id IN($idList)";
 		}
 
@@ -850,7 +860,7 @@ class Viewprinteticketnew extends SugarView
 			// Get airport names
 			$depAirport = Flight::getAirport($depCode);
 			$arrAirport = Flight::getAirport($arrCode);
-			
+
 			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
 			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
 
@@ -860,15 +870,15 @@ class Viewprinteticketnew extends SugarView
 
 			$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
 			$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
-			
+
 			$depAirportName = $depAirport['AirPortName'] ?? '';
 			$arrAirportName = $arrAirport['AirPortName'] ?? '';
 
 			$results[] = [
 				'id' => $row['id'],
 				'direction' => (int)($row['direction'] ?? 0),
-				'direction_label' => ((int)$row['direction'] === 0) 
-					? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi') 
+				'direction_label' => ((int)$row['direction'] === 0)
+					? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi')
 					: ($this->lang == 'en' ? 'Inbound' : 'Lượt về'),
 				'airline_code' => $airlineCode,
 				'airline' => $airlineName,
@@ -885,6 +895,14 @@ class Viewprinteticketnew extends SugarView
 				'arr_date' => date('d/m/Y', strtotime($row['arrival_date'])),
 				'arr_time' => date('H:i', strtotime($row['arrival_date'])),
 			];
+		}
+
+		$uniqueDirections = array_unique(array_column($results, 'direction'));
+		if (count($uniqueDirections) === 1) { //nếu 1 chiều đi thì đổi label thành "Hành trình" hoặc "Journey"
+			foreach ($results as &$item) {
+				$item['direction_label'] = ($this->lang == 'en') ? 'Journey' : 'Hành trình';
+			}
+			unset($item);
 		}
 
 		return $results;
@@ -923,7 +941,9 @@ class Viewprinteticketnew extends SugarView
 		// Build ID filter (skip if all itineraries requested)
 		$idFilter = '';
 		if (!$this->allItineraries) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->itineraryIds)) . "'";
 			$idFilter = "AND i.id IN($idList)";
 		}
 
