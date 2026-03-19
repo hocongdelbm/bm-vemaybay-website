@@ -34,8 +34,7 @@ class SearchForm
     public $showAdvanced = true;
     //show the basic tab
     
-    // public $showBasic = true;
-    public $showBasic = false;
+    public $showBasic = true;
 
     //array of custom tab to show declare in searchdefs (no custom tab if false)
     public $showCustom = false;
@@ -262,7 +261,8 @@ class SearchForm
 
 
         $searchFormInPopup = !in_array($this->module, isset($sugar_config['enable_legacy_search']) ? $sugar_config['enable_legacy_search'] : array());
-        $this->th->ss->assign('searchFormInPopup', $searchFormInPopup);
+        // $this->th->ss->assign('searchFormInPopup', $searchFormInPopup);
+        $this->th->ss->assign('searchFormInPopup', false);
 
         if (isset($this->th)) {
             $moduleDir = null;

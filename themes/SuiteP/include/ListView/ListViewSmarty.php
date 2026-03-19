@@ -211,7 +211,8 @@ class ListViewSmarty extends ListViewDisplay
         }
 
         $module = isset($_REQUEST['module']) ? $_REQUEST['module'] : null;
-        $this->ss->assign('showFilterIcon', !in_array($module, isset($sugar_config['enable_legacy_search']) ? $sugar_config['enable_legacy_search'] : array()));
+        // $this->ss->assign('showFilterIcon', !in_array($module, isset($sugar_config['enable_legacy_search']) ? $sugar_config['enable_legacy_search'] : array()));
+        $this->ss->assign('showFilterIcon', false);
     }
 
     /**
