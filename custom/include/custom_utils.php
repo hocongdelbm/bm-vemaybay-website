@@ -2283,3 +2283,5 @@ foreach (glob("custom/include/helpers/modules/*Helper.php") as $file) {
     if (is_file($file)) require_once $file;
 }
 require_once 'custom/entrypoints/entryFactory.php'; // Init entry
+
+require_once 'custom/services/NotificationChannels/autoload.php';
