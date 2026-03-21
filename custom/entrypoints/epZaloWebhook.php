@@ -157,8 +157,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     // Update quota, last interaction
                     try {
                         $quota_user = $quota_oa = [];
-                        $last_interaction = date("$dateFormat $timeFormat", (int)($timestamp / 1000) - 7*3600);
-                        $date_modified = date("$dateFormat $timeFormat", time() - 7*3600);
+                        // Database format
+                        $last_interaction = date("Y-m-d H:i:s", (int)($timestamp / 1000) - 7*3600);
+                        $date_modified = date("Y-m-d H:i:s", time() - 7*3600);
 
                         // Send from user to OA
                         if($zalomes->src == 1) {
@@ -214,20 +215,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                     catch(Exception $e) {
-                        if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
-                            $message = Mattermost::$line_separation;
-                            $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-                        }
-                        else {
-                            $message = "<b>[WARNING]</b> Webhook Zalo";
-                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                        }
+                        $m = "Webhook Zalo";
+                        $m .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
+                        if(isset($response) && !empty($response)) $m .= "\n<pre>$response</pre>";
+                        NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
                     }
                     
                     // Send data to chat
@@ -263,20 +254,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $client->close();
                 }
                 catch(Exception $e) {
-                    if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
-                        $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-                    }
-                    else {
-                        $message = "<b>[WARNING]</b> Webhook Zalo";
-                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
-                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                    }
+                    $m = "Webhook Zalo";
+                    $m .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
+                    if(isset($response) && !empty($response)) $m .= "\n<pre>$response</pre>";
+                    NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
                 }
                 finally {
                     header("HTTP/1.1 200 OK");
