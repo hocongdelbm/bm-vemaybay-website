@@ -328,7 +328,7 @@ $GLOBALS['app_list_strings']['debt_type_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['aircode_list'] = array(
-  ''    => 'Tất cả',
+  ''    => '',
   'VJA' => 'Vietjet Air (VJA)',
   'VNA' => 'Vietnam Airlines (VNA)',
   'VNP' => 'Pacific Airlines (VNP)',
