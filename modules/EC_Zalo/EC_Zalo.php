@@ -217,26 +217,18 @@ class EC_Zalo extends Basic {
                     }
                     break;
                 default:
-                    global $sugar_config;
-                    $botToken = $sugar_config['telegram']['bot_token'] ?? '';
-                    $chatId   = $sugar_config['telegram']['chat_id'] ?? '';
-                    $threadId = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                    $message  = "[INFO] Unprocessed cases in ".__FUNCTION__."()";
+                    $message  = "Unprocessed cases in ".__FUNCTION__."()";
                     $message .= "\n{$error_code}: {$error_description}";
                     if(!empty($zalo_id)) $message .= "\nZalo Id: {$zalo_id}";
                     if(!empty($oa_id)) $message .= "\nOA Id: {$oa_id}";
-                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                    NotificationService::sendWarningMessage($message, 'default', ['threadKey' => 'logs']);
                     break;
             }
         }
         catch(Throwable $th) {
-            global $sugar_config;
-            $botToken = $sugar_config['telegram']['bot_token'] ?? '';
-            $chatId   = $sugar_config['telegram']['chat_id'] ?? '';
-            $threadId = $sugar_config['telegram']['thread_id_logs'] ?? '';
-            $message  = "<b>[ERROR] Throwable in ".__FUNCTION__."()</b>";
+            $message  = "Throwable in ".__FUNCTION__."()";
             $message .= "\n{$th->getMessage()} on line {$th->getLine()}";
-            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+            NotificationService::sendErrorMessage($message, 'default', ['threadKey' => 'logs']);
         }
     }
 

@@ -448,34 +448,20 @@ class entryZaloOAClass extends entryClass {
                     }
                 }
                 catch(Exception $e) {
-                    $exceptionMessage = "{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
-                    if($this->notificationChannel == 'Mattermost') {
-                        $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[ERROR] ZBS message saved failed");
-                        $message .= "\n$exceptionMessage\n\n$json";
-                        Mattermost::sendMessage($this->mattermostConfig['channel_id_logs'] ?? '', $message);
-                    }
-                    else {
-                        $message = "<b>[ERROR] ZBS message saved failed</b>";
-                        $message .= "\n$exceptionMessage\n<pre>$json</pre>";
-                        $botToken   = $this->telegramConfig['bot_token'] ?? '';
-                        $chatId     = $this->telegramConfig['chat_id'] ?? '';
-                        $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                    }
+                    $m = "ZBS message saved failed";
+                    $m .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
+                    NotificationService::sendErrorMessage($m, 'default', ['threadKey' => 'logs']);
                 }
                 
                 if($type != 'cheap-flight') {
                     $fullname   = trim("{$this->currentUser->last_name} {$this->currentUser->first_name}");
-                    $botToken   = $this->telegramConfig['zalo']['bot_token'] ?? '';
-                    $chatId     = $this->telegramConfig['zalo']['chat_id'] ?? '';
                     $message    = "<b>$fullname</b> gửi mẫu tin $template_name đến Zalo <b>$phoneNumber</b>";
                     if($type == 'after-call-sale' && $auto) $message = "<b>⚙️Auto:</b> $message";
                     if(!empty($parentId) && $parentType == 'EC_Flight_Bookings') {
                         $bklink = "https://".$zaloOA->get_domain()."/index.php?module={$parentType}&action=DetailView&record={$parentId}";
                         $message .= " - <a href='{$bklink}'>Booking</a>";
                     }
-                    Telegram::sendMessage($message, $botToken, $chatId);
+                    NotificationService::sendMessage($message, 'zalo');
                 }
             }
             else {

@@ -158,8 +158,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     try {
                         $quota_user = $quota_oa = [];
                         // Database format
-                        $last_interaction = date("Y-m-d H:i:s", (int)($timestamp / 1000) - 7*3600);
-                        $date_modified = date("Y-m-d H:i:s", time() - 7*3600);
+                        $last_interaction = date($datetimeDbFormat, (int)($timestamp / 1000) - 7*3600);
+                        $date_modified = date($datetimeDbFormat, time() - 7*3600);
 
                         // Send from user to OA
                         if($zalomes->src == 1) {
@@ -305,11 +305,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                         elseif(empty($contact_id_by_zalo) && !empty($contact_id_by_phone)) {
                             if($db->query("UPDATE ec_zalo_contacts SET contact_id = '{$contact_id_by_phone}' WHERE id = '{$zalo_contact_id}' AND deleted = 0")) {
-                                $message    = "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                NotificationService::sendErrorMessage(
+                                    "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id",
+                                    "default",
+                                    ['threadKey' => 'system_noti']
+                                );
                             }
                         }
                     }

@@ -98,14 +98,9 @@ function notifyCheckinJourney()
 					Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
 				}
 			} catch (Throwable $th) {
-				$message = "<b>[ERROR] Send info Checkin Failed</b>";
+				$message = "Send info checkin failed";
 				$message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-
-				if ($notification_channel == 'TELEGRAM') {
-					$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-					$chatId     = $sugar_config['telegram']['checkin']['chat_id'] ?? '';
-					Telegram::sendMessage($message, $botToken, $chatId);
-				}
+				NotificationService::sendErrorMessage($message, 'checkin');
 			}
 		}
 	}
@@ -1795,10 +1790,8 @@ function checkBookingHandle()
 		// 	$GLOBALS['log']->error('Telegram sent message failed.');
 		// }
 
-		global $sugar_config;
 		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
-		// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-		$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
+		NotificationService::sendWarningMessage($message, 'cty');
 
 		if (!$res || !isset($res['id']) || is_null($res['id'])) {
 			$GLOBALS['log']->error('Telegram sent message failed.');
@@ -1826,10 +1819,8 @@ function checkBookingHandle()
 			// 	$GLOBALS['log']->error('Telegram sent message failed.');
 			// }
 
-			global $sugar_config;
 			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
-			// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-			$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
+			NotificationService::sendMessage($message, 'cty');
 			if (!$res || !isset($res['id']) || is_null($res['id'])) {
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
@@ -1920,8 +1911,7 @@ function reAssignBooking()
 				// }
 
 				$message = 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
-				// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-				$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
+				NotificationService::sendMessage($message, 'cty');
 				if (!$res || !isset($res['id']) || is_null($res['id'])) {
 					$GLOBALS['log']->error('Telegram sent message failed.');
 				}
@@ -2222,7 +2212,7 @@ function maintainZaloChat() {
 				,zc.oa_id
 				,zc.id AS user_external_id
 				,zc.contact_id
-				,c.mobile_phone AS phone_number
+				,c.phone_mobile AS phone_number
 				,zc.name AS display_name
 				,zc.alias AS user_alias
 				,zc.last_interaction
@@ -2233,7 +2223,7 @@ function maintainZaloChat() {
 				,(
 					SELECT CONCAT(zm.type, '|', zm.timestamp)
 					FROM ec_zalo_messages zm
-					WHERE (zm.to_id = zc.zalo_id OR zm.to_id = c.mobile_phone)
+					WHERE (zm.to_id = zc.zalo_id OR zm.to_id = c.phone_mobile)
 						AND zm.src = 0
 						AND zm.deleted = 0
 					ORDER BY zm.timestamp DESC
@@ -2242,7 +2232,7 @@ function maintainZaloChat() {
 				,(
 					SELECT CONCAT(bk.name, '|', bk.date_entered)
 					FROM ec_flight_bookings bk
-					WHERE bk.phone = c.mobile_phone
+					WHERE bk.phone = c.phone_mobile
 						AND bk.booking_status NOT IN ('3', '7', '8')
 						AND bk.deleted = 0
 					ORDER BY bk.date_entered DESC
@@ -2250,8 +2240,8 @@ function maintainZaloChat() {
 				) AS latest_completed_booking
 			FROM ec_zalo_contacts zc
 				LEFT JOIN contacts c on c.id = zc.contact_id AND c.deleted = 0
-			WHERE (zc.last_interaction BETWEEN '$within24' AND '$within48' 
-					OR zc.last_interaction BETWEEN '$within6days' AND '$within7days')
+			WHERE (zc.last_interaction BETWEEN '$within48' AND '$within24'
+					OR zc.last_interaction BETWEEN '$within7days' AND '$within6days')
 				AND zc.deleted = 0";
 
 		$sentMap = [];
