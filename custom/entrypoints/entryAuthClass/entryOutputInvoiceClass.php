@@ -1,7 +1,6 @@
 <?php
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/WinInvoice.php";
-require_once "custom/include/helpers/api/MisaInvoice.php";
 
 /**
  * Class entryOutputInvoiceClass
@@ -69,31 +68,6 @@ class entryOutputInvoiceClass extends entryClass {
             "data" => null
         ];
     }
-
-    public function setMisa($params = []) {
-        $voucher = $params['voucher'] ?? [];
-        $details   = $params['details'] ?? [];
-        $saInvoice    = $params['saInvoice'] ?? [];
-
-        if (!empty($voucher) && !empty($details) && !empty($saInvoice)) {
-            $MisaInv = new MisaInvoice();
-    
-            $responseSetMisa = $MisaInv->save($voucher, $details, $saInvoice);
-            return [
-                "status" => 0,
-                "message" => "Thao tác chưa thành công",
-                "data" => null,
-                "description" => json_decode($responseSetMisa, true)
-            ];
-        }
-
-        return [
-            "status" => 0,
-            "message" => "Hóa đơn thiếu thông tin. Vui lòng kiểm tra lại",
-            "data" => null
-        ];
-    }
-
 
     /**
      * Sign invoice

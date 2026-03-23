@@ -9,20 +9,8 @@
     
     <script type="text/javascript" src='themes/SuiteP/js/gb_preload.js?v={$JS_VERSION}'></script>
 
-    <!-- Bootstrap -->
-    <!-- <link href="themes/SuiteP/css/normalize.css" rel="stylesheet" type="text/css"/>
-    <link href='themes/SuiteP/css/fonts.css' rel='stylesheet' type='text/css'>
-    <link href="themes/SuiteP/css/footable.core.css" rel="stylesheet" type="text/css"/> -->
-
     <title>{if $BROWSER_TITLE}{$BROWSER_TITLE}{else}{$APP.LBL_BROWSER_TITLE}{/if}</title>
 
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!-- [if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif] -->
-    
     {$SUGAR_JS}
     {literal}
     <script type="text/javascript">
@@ -37,10 +25,11 @@
     {/literal}
     {$SUGAR_CSS}
 
+    <script type="text/javascript" src='themes/SuiteP/libs/js/select2.min.js'></script>
+    <link rel="stylesheet" type="text/css" href="themes/SuiteP/libs/css/select2.min.css">
+
     <link rel="stylesheet" type="text/css" href="themes/SuiteP/css/colourSelector.php">
-    <!-- <script type="text/javascript" src='{sugar_getjspath file="themes/SuiteP/js/jscolor.js"}'></script> -->
     <script type="text/javascript" src='{sugar_getjspath file="cache/include/javascript/sugar_field_grp.js"}'></script>
-    <!-- <script type="text/javascript" src='{sugar_getjspath file="vendor/tinymce/tinymce/tinymce.min.js"}'></script> -->
 
     <!-- JQUERY-UI -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />

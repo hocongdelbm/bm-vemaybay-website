@@ -3965,6 +3965,10 @@ button.remove_employees,
   display: block;
 }
 
+.search-open #search_form select {
+  visibility: hidden;
+}
+
 #search_form label {
   font-size: 13px;
   line-height: 20px;
@@ -3978,12 +3982,16 @@ button.remove_employees,
   max-width: unset !important;
 }
 
-#search_form input:not(.btn-clear):not(.btn-search):not([type="checkbox"]):not([type="radio"]) {
+#search_form input:not(.btn-clear):not(.btn-search):not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]):not([type="search"]) {
   border: 1px solid var(--border-color);
   border-radius: 5px;
-  padding: 5px 8px;
+  padding: 6px 8px;
   outline: none;
   width: 100%;
+}
+
+#search_form .select2-container {
+  width: 100% !important;
 }
 
 table.table-invoice input {
@@ -3997,11 +4005,6 @@ table.table-invoice input {
   padding: 5px 8px;
   outline: none;
   font-size: 13px;
-}
-
-#search_form input:focus,
-#search_form select:focus {
-  border: 1px solid var(--border-focus-color);
 }
 
 #search_form input[type="checkbox"] {
