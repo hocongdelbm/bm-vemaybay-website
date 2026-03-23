@@ -202,14 +202,12 @@ $(document).ready(function () {
 		type: "POST",
 		data: {
 			id: $("form[name='DetailView']>input[name='record']").val(),
-			pass_qty: $("#total_pass_qty").val(),
 			for: "showChangedPassenger"
 		},
 		success: function (response) {
 			if (response != '') {
-				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax").append(response);
+				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax tbody").append(response);
 			} else {
-				// $("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax").append("<tr class='edited_pass_line'><td colspan='10' style='border: 1px solid #ccc; padding: 5px 3px;'>Chưa có hành khách nào đổi thông tin.</td></tr>");
 				$("div[data-id='LBL_LINEPASSENGERS_PANEL'] table#tbl_pax #no-change__edit-pass").append("Chưa có hành khách nào thay đổi thông tin.");
 			}
 		}

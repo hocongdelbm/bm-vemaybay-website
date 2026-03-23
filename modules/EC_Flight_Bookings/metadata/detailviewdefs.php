@@ -217,7 +217,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'name' => 'assigned_user_name',
                     'label' => 'LBL_ASSIGNED_TO_NAME',
-                    'customCode' => '{$CUSTOM_ASSIGNED_TO_NAME}',
                 ),
             ),
             array(
@@ -360,7 +359,11 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
 
             array(
-                array(),
+                array(
+                    'name' => 'total_profit',
+                    'label' => 'LBL_TOTAL_PROFIT',
+                    'customCode' => '{$TOTAL_PROFIT}',
+                ),
                 array(
                     'name' => 'iv_identity_number',
                     'label' => 'LBL_IV_IDENTITY_NUMBER',

@@ -175,6 +175,7 @@ $mod_strings = array(
   'LBL_ARRIVAL' => 'Nơi đến',
   'LBL_ARRIVAL_DATE' => 'Ngày giờ đến',
   'LBL_TOTAL_PRICE' => 'Tổng tiền',
+  'LBL_TOTAL_PROFIT' => 'Doanh số',
   'LBL_ADD_LINE' => 'Thêm',
   'LBL_REMOVE_LINE' => 'Xóa',
   'LBL_TRAVELLER_TYPE' => 'Loại hành khách',
