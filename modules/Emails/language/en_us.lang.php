@@ -65,7 +65,6 @@ $mod_strings = array(
     'ERR_ARCHIVE_EMAIL' => 'Error: Select emails to archive.',
     'ERR_DELETE_RECORD' => 'Error: You must specify a record number to delete the account.',
     'LBL_ACCOUNTS_SUBPANEL_TITLE' => 'Accounts',
-    'LBL_ADD_DASHLETS' => 'Add SuiteCRM Dashlets',
     'LBL_ADD_DOCUMENT' => 'Add Documents',
     'LBL_ADD_ENTRIES' => 'Add Entries',
     'LBL_ADD_FILE' => 'Add Files',

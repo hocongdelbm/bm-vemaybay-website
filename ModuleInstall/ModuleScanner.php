@@ -54,7 +54,6 @@ class ModuleScanner
         'install_images' => 'image_dir',
         'install_menus' => 'menu',
         'install_userpage' => 'user_page',
-        'install_dashlets' => 'dashlets',
         'install_administration' => 'administration',
         'install_connectors' => 'connectors',
         'install_vardefs' => 'vardefs',

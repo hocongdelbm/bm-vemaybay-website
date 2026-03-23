@@ -305,27 +305,6 @@ class StudioModule
             );
         }
 
-        if ($this->isValidDashletModule($this->module)) {
-            $dashlets = array();
-            $dashlets [] = array(
-                'name' => translate('LBL_DASHLETLISTVIEW'),
-                'type' => 'dashlet',
-                'action' => 'module=ModuleBuilder&action=editLayout&view=dashlet&view_module=' . $this->module
-            );
-            $dashlets [] = array(
-                'name' => translate('LBL_DASHLETSEARCHVIEW'),
-                'type' => 'dashletsearch',
-                'action' => 'module=ModuleBuilder&action=editLayout&view=dashletsearch&view_module=' . $this->module
-            );
-            $layouts [translate('LBL_DASHLET')] = array(
-                'name' => translate('LBL_DASHLET'),
-                'type' => 'Folder',
-                'children' => $dashlets,
-                'imageTitle' => 'Dashlet',
-                'action' => 'module=ModuleBuilder&action=wizard&view=dashlet&view_module=' . $this->module
-            );
-        }
-
         //For popup tree node
         $popups = array();
         $popups [] = array(
@@ -364,25 +343,6 @@ class StudioModule
         }
 
         return $layouts;
-    }
-
-    /**
-     * @param string $moduleName
-     * @return bool
-     */
-    public function isValidDashletModule($moduleName)
-    {
-        $fileName = "My{$moduleName}Dashlet";
-        $customFileName = "{$moduleName}Dashlet";
-        if (file_exists("modules/{$moduleName}/Dashlets/{$fileName}/{$fileName}.php")
-            || file_exists("custom/modules/{$moduleName}/Dashlets/{$fileName}/{$fileName}.php")
-            || file_exists("modules/{$moduleName}/Dashlets/{$customFileName}/{$customFileName}.php")
-            || file_exists("custom/modules/{$moduleName}/Dashlets/{$customFileName}/{$customFileName}.php")
-        ) {
-            return true;
-        }
-
-        return false;
     }
 
 
@@ -600,7 +560,6 @@ class StudioModule
         $sources[] = array('type' => MB_BASICSEARCH);
         $sources[] = array('type' => MB_ADVANCEDSEARCH);
         $sources[] = array('type' => MB_DASHLET);
-        $sources[] = array('type' => MB_DASHLETSEARCH);
         $sources[] = array('type' => MB_POPUPLIST);
         $sources[] = array('type' => MB_QUICKCREATE);
 

@@ -1923,34 +1923,6 @@ $app_strings = array(
     'LBL_ALT_ADDRESS' => 'Địa chỉ khác:',
     'ERR_SMARTY_UNEQUAL_RELATED_FIELD_PARAMETERS' => 'Lỗi: Có một số đối số không đồng đều cho các phần tử \'key\' và \'copy\' trong mảng Params hiển thị.',
 
-    /* MySugar Framework (for Home and Dashboard) */
-    'LBL_DASHLET_CONFIGURE_GENERAL' => 'Tổng quan',
-    'LBL_DASHLET_CONFIGURE_FILTERS' => 'Lọc',
-    'LBL_DASHLET_CONFIGURE_MY_ITEMS_ONLY' => 'Chỉ dữ liệu của tôi',
-    'LBL_DASHLET_CONFIGURE_TITLE' => 'Tiêu đề',
-    'LBL_DASHLET_CONFIGURE_DISPLAY_ROWS' => 'Các dòng hiển thị',
-
-    // MySugar status strings
-    'LBL_MAX_DASHLETS_REACHED' => 'Bạn đã đạt đến số tối đa SuiteCRM Dashlets quản trị của bạn đã thiết lập. Hãy loại bỏ SuiteCRM Dashlet để thêm nhiều hơn nữa.',
-    'LBL_ADDING_DASHLET' => 'Thêm SuiteCRM Dashlet...',
-    'LBL_ADDED_DASHLET' => 'SuiteCRM Dashlet thêm',
-    'LBL_REMOVE_DASHLET_CONFIRM' => 'Bạn có chắc bạn muốn loại bỏ này SuiteCRM Dashlet?',
-    'LBL_REMOVING_DASHLET' => 'Loại bỏ các SuiteCRM Dashlet...',
-    'LBL_REMOVED_DASHLET' => 'SuiteCRM Dashlet removed',
-
-    // MySugar Menu Options
-
-    'LBL_LOADING_PAGE' => 'Đang tải trang, xin chờ...',
-
-    'LBL_RELOAD_PAGE' => 'Xin vui lòng <a href="javascript: window.location.reload()"> tải lại cửa sổ</a> để sử dụng này SuiteCRM Dashlet.',
-    'LBL_ADD_DASHLETS' => 'Thêm Dashlets',
-    'LBL_CLOSE_DASHLETS' => 'Đóng',
-    'LBL_OPTIONS' => 'Tùy chọn',
-    'LBL_1_COLUMN' => '1 cột',
-    'LBL_2_COLUMN' => '2 cột',
-    'LBL_3_COLUMN' => '3 cột',
-    'LBL_PAGE_NAME' => 'tên trang',
-
     'LBL_SEARCH_RESULTS' => 'Kết quả tìm kiếm',
     'LBL_SEARCH_MODULES' => 'Mô-đun',
     'LBL_SEARCH_TOOLS' => 'Công cụ',

@@ -311,7 +311,6 @@ $sugar_config = array(
       'suffix' => '%m_%d_%y',
     ),
   ),
-  'max_dashlets_homepage' => '15',
   'name_formats' =>
   array(
     's l f' => 's l f',

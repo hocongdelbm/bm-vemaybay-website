@@ -408,7 +408,6 @@ $mod_strings = array(
     'LBL_ERROR_SELECT_MODULE' => 'Xin chọn 1 module liên quan đến',
     'ERR_ARCHIVE_EMAIL' => 'Lõi : chọn email để soạn.',
     'LBL_ACCOUNTS_SUBPANEL_TITLE' => 'Tài khoản',
-    'LBL_ADD_DASHLETS' => 'Thêm SuiteCRM Dashlets',
     'LBL_ADD_DOCUMENT' => 'Thêm tài liệu',
     'LBL_ADD_ENTRIES' => 'Thêm bài viết',
     'LBL_ADD_FILE' => 'Thêm file',

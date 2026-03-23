@@ -1956,7 +1956,6 @@ class ListView
 
     public function getArrowImageSize()
     {
-        // jbasicChartDashletsExpColust get the non-sort image's size.. the up and down have be the same.
         $image = SugarThemeRegistry::current()->getImageURL("arrow.gif", false);
 
         $cache_key = 'arrow_size.'.$image;

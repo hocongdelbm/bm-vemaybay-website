@@ -202,8 +202,6 @@ function make_sugar_config(&$sugar_config)
         'import_max_execution_time' => empty($import_max_execution_time) ? 3600 : $import_max_execution_time,
         'lock_homepage' => false,
         'lock_subpanels' => false,
-        'max_dashlets_homepage' => 15,
-        'dashlet_display_row_options' => array('1', '3', '5', '10'),
         'default_max_tabs' => empty($max_tabs) ? 10 : $max_tabs,
         'default_subpanel_tabs' => empty($subpanel_tabs) ? true : $subpanel_tabs,
         'default_subpanel_links' => empty($subpanel_links) ? false : $subpanel_links,
@@ -480,9 +478,7 @@ function get_sugar_config_defaults(): array
         'lead_conv_activity_opt' => 'donothing',
         'lock_homepage' => false,
         'lock_subpanels' => false,
-        'max_dashlets_homepage' => '15',
         'default_max_tabs' => 10,
-        'dashlet_display_row_options' => ['1', '3', '5', '10'],
         'default_subpanel_tabs' => true,
         'default_subpanel_links' => false,
         'default_swap_last_viewed' => false,
@@ -4812,32 +4808,6 @@ function getStudioIcon($iconFileName = '', $altFileName = '', $width = '48', $he
     }
 
     return SugarThemeRegistry::current()->getImage($iconName, "align=\"$align\" border=\"0\"", $width, $height);
-}
-
-/**
- * Function to grab the correct icon image for Dashlets Dialog.
- *
- * @param string $filename Location of the icon file
- * @param string $module   Name of the module to fall back onto if file does not exist
- * @param string $width    Width of image
- * @param string $height   Height of image
- * @param string $align    Alignment of image
- * @param string $alt      Alt tag of image
- *
- * @return string $string <img> tag with corresponding image
- */
-function get_dashlets_dialog_icon($module = '', $width = '32', $height = '32', $align = 'absmiddle', $alt = '')
-{
-    global $app_strings, $theme;
-    $iconName = _getIcon($module . '_32');
-    if (empty($iconName)) {
-        $iconName = _getIcon($module);
-    }
-    if (empty($iconName)) {
-        return $app_strings['LBL_NO_IMAGE'];
-    }
-
-    return $iconName;
 }
 
 // works nicely to change UTF8 strings that are html entities - good for PDF conversions

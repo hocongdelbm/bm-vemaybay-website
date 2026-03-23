@@ -62,10 +62,6 @@ if (DBManagerFactory::getInstance()->supports('fulltext')) {
 	<td> <?php echo $mod_strings['LBL_REBUILD_SCHEDULERS_DESC_SHORT'] ; ?> </td>
 </tr>
 <tr>
-    <td scope="row"><?php echo SugarThemeRegistry::current()->getImage('Rebuild', 'align="absmiddle" border="0"', null, null, '.gif', $mod_strings['LBL_REBUILD_DASHLETS_TITLE']); ?>&nbsp;<a href="./index.php?module=Administration&action=RebuildDashlets"><?php echo $mod_strings['LBL_REBUILD_DASHLETS_TITLE']; ?></a></td>
-    <td> <?php echo $mod_strings['LBL_REBUILD_DASHLETS_DESC_SHORT'] ; ?> </td>
-</tr>
-<tr>
     <td scope="row"><?php echo SugarThemeRegistry::current()->getImage('Rebuild', 'align="absmiddle" border="0"', null, null, '.gif', $mod_strings['LBL_REBUILD_JAVASCRIPT_LANG_TITLE']); ?>&nbsp;<a href="./index.php?module=Administration&action=RebuildJSLang"><?php echo $mod_strings['LBL_REBUILD_JAVASCRIPT_LANG_TITLE']; ?></a></td>
     <td> <?php echo $mod_strings['LBL_REBUILD_JAVASCRIPT_LANG_DESC_SHORT'] ; ?> </td>
 </tr>

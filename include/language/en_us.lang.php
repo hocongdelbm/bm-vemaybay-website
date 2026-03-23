@@ -1878,34 +1878,6 @@ $app_strings = array(
     'LBL_ALT_ADDRESS' => 'Other Address:',
     'ERR_SMARTY_UNEQUAL_RELATED_FIELD_PARAMETERS' => 'Error: There are an unequal number of arguments for the \'key\' and \'copy\' elements in the displayParams array.',
 
-    /* MySugar Framework (for Home and Dashboard) */
-    'LBL_DASHLET_CONFIGURE_GENERAL' => 'General',
-    'LBL_DASHLET_CONFIGURE_FILTERS' => 'Filters',
-    'LBL_DASHLET_CONFIGURE_MY_ITEMS_ONLY' => 'Only My Items',
-    'LBL_DASHLET_CONFIGURE_TITLE' => 'Title',
-    'LBL_DASHLET_CONFIGURE_DISPLAY_ROWS' => 'Display Rows',
-
-    // MySugar status strings
-    'LBL_MAX_DASHLETS_REACHED' => 'You have reached the maximum number of SuiteCRM Dashlets your administrator has set. Please remove a SuiteCRM Dashlet to add more.',
-    'LBL_ADDING_DASHLET' => 'Adding SuiteCRM Dashlet...',
-    'LBL_ADDED_DASHLET' => 'SuiteCRM Dashlet Added',
-    'LBL_REMOVE_DASHLET_CONFIRM' => 'Are you sure you want to remove this SuiteCRM Dashlet?',
-    'LBL_REMOVING_DASHLET' => 'Removing SuiteCRM Dashlet...',
-    'LBL_REMOVED_DASHLET' => 'SuiteCRM Dashlet Removed',
-
-    // MySugar Menu Options
-
-    'LBL_LOADING_PAGE' => 'Loading page, please wait...',
-
-    'LBL_RELOAD_PAGE' => 'Please <a href="javascript: window.location.reload()">reload the window</a> to use this SuiteCRM Dashlet.',
-    'LBL_ADD_DASHLETS' => 'Add Dashlets',
-    'LBL_CLOSE_DASHLETS' => 'Close',
-    'LBL_OPTIONS' => 'Options',
-    'LBL_1_COLUMN' => '1 Column',
-    'LBL_2_COLUMN' => '2 Column',
-    'LBL_3_COLUMN' => '3 Column',
-    'LBL_PAGE_NAME' => 'Page Name',
-
     'LBL_SEARCH_RESULTS' => 'Search Results',
     'LBL_SEARCH_MODULES' => 'Modules',
     'LBL_SEARCH_TOOLS' => 'Tools',

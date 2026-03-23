@@ -27,7 +27,6 @@ $checkbox_values=array(
                             'clearJsFiles',
                             'clearVardefs',
                             'clearJsLangFiles',
-                            'clearDashlets',
                             'clearSugarFeedCache',
                             'clearThemeCache',
                             'rebuildAuditTables',

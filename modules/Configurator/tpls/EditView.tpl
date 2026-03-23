@@ -53,9 +53,8 @@
 				</td>
 			</tr>
 			<tr>
-				<td  scope="row" nowrap>{$MOD.MAX_DASHLETS}: </td>
+				<td  scope="row" nowrap></td>
 				<td>
-					<input type='text' class="box-input" size='4' name='max_dashlets_homepage' value='{$config.max_dashlets_homepage}'>
 				</td>
 				<td  scope="row" nowrap>{$MOD.LBL_USE_REAL_NAMES}: &nbsp;{sugar_help text=$MOD.LBL_USE_REAL_NAMES_DESC}</td>
 				{if !empty($config.use_real_names)}

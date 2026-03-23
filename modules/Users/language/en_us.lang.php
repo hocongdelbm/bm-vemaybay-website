@@ -401,7 +401,6 @@ $mod_strings = array(
     'LBL_ERROR_SELECT_MODULE' => 'Please select a module for the Related to field',
     'ERR_ARCHIVE_EMAIL' => 'Error: Select emails to archive.',
     'LBL_ACCOUNTS_SUBPANEL_TITLE' => 'Accounts',
-    'LBL_ADD_DASHLETS' => 'Add SuiteCRM Dashlets',
     'LBL_ADD_DOCUMENT' => 'Add Documents',
     'LBL_ADD_ENTRIES' => 'Add Entries',
     'LBL_ADD_FILE' => 'Add Files',

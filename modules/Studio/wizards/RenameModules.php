@@ -363,7 +363,7 @@ class RenameModules
         $this->changedModules = $this->getChangedModules();
 
         //Change module, appStrings, subpanels, and related links.
-        $this->changeAppStringEntries()->changeAllModuleModStrings()->renameAllRelatedLinks()->renameAllSubpanels()->renameAllDashlets();
+        $this->changeAppStringEntries()->changeAllModuleModStrings()->renameAllRelatedLinks()->renameAllSubpanels();
 
         foreach (self::$labelMap as $module=>$labelsArr) {
             $this->renameCertainModuleModStrings($module, $labelsArr);
@@ -580,62 +580,6 @@ class RenameModules
         //remove lanugage cache files
         LanguageManager::clearLanguageCache();
     }
-
-    /**
-     * Rename all module strings within the application for dashlets.
-     *
-     * @return RenameModules
-     */
-    private function renameAllDashlets()
-    {
-        //Load the Dashlet metadata so we know what needs to be changed
-        if (!is_file(sugar_cached('dashlets/dashlets.php'))) {
-            require_once('include/Dashlets/DashletCacheBuilder.php');
-            $dc = new DashletCacheBuilder();
-            $dc->buildCache();
-        }
-
-        include(sugar_cached('dashlets/dashlets.php'));
-
-        foreach ($this->changedModules as $moduleName => $replacementLabels) {
-            $this->changeModuleDashletStrings($moduleName, $replacementLabels, $dashletsFiles);
-        }
-
-        return $this;
-    }
-
-    /*
-     * Rename the title value for all dashlets associated with a particular module
-     *
-     */
-    private function changeModuleDashletStrings($moduleName, $replacementLabels, $dashletsFiles)
-    {
-        $GLOBALS['log']->debug("Beginning to change module dashlet labels for: $moduleName ");
-        $replacementStrings = array();
-
-        foreach ($dashletsFiles as $dashletName => $dashletData) {
-            if (isset($dashletData['module']) && $dashletData['module'] == $moduleName && file_exists($dashletData['meta'])) {
-                require($dashletData['meta']);
-                $dashletTitle = $dashletMeta[$dashletName]['title'];
-                $currentModuleStrings = return_module_language($this->selectedLanguage, $moduleName);
-                $modStringKey = array_search($dashletTitle, $currentModuleStrings);
-                if ($modStringKey !== false) {
-                    $replacedString = str_replace(html_entity_decode_utf8($replacementLabels['prev_plural'], ENT_QUOTES), $replacementLabels['plural'], $dashletTitle);
-                    if ($replacedString == $dashletTitle) {
-                        $replacedString = str_replace(html_entity_decode_utf8($replacementLabels['prev_singular'], ENT_QUOTES), $replacementLabels['singular'], $replacedString);
-                    }
-                    $replacementStrings[$modStringKey] = $replacedString;
-                }
-            }
-        }
-
-        //Now we can write out the replaced language strings for each module
-        if (count($replacementStrings) > 0) {
-            $GLOBALS['log']->debug("Writing out labels for dashlet changes for module $moduleName, labels: " . var_export($replacementStrings, true));
-            ParserLabel::addLabels($this->selectedLanguage, $replacementStrings, $moduleName);
-        }
-    }
-
 
     /**
      * Rename all module strings within the application.

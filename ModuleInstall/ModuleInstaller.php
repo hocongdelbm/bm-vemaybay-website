@@ -125,7 +125,6 @@ class ModuleInstaller
             'install_extensions',
             'install_images',
             'install_dcactions',
-            'install_dashlets',
             'install_connectors',
             'install_layoutfields',
             'install_relationships',
@@ -193,7 +192,6 @@ class ModuleInstaller
             $selectedActions = array(
             'clearTpls',
             'clearJsFiles',
-            'clearDashlets',
             'clearVardefs',
             'clearJsLangFiles',
             'rebuildAuditTables',
@@ -781,38 +779,6 @@ class ModuleInstaller
             }
         }
         $this->rebuild_extensions();
-    }
-
-    public function install_dashlets()
-    {
-        if (isset($this->installdefs['dashlets'])) {
-            foreach ($this->installdefs['dashlets'] as $cp) {
-                $this->log(translate('LBL_MI_IN_DASHLETS') . $cp['name']);
-                $cp['from'] = str_replace('<basepath>', $this->base_dir, $cp['from']);
-                $path = 'custom/modules/Home/Dashlets/' . $cp['name'] . '/';
-                $GLOBALS['log']->debug("Installing Dashlet " . $cp['name'] . "..." . $cp['from']);
-                if (!file_exists($path)) {
-                    mkdir_recursive($path, true);
-                }
-                copy_recursive($cp['from'], $path);
-            }
-            include('modules/Administration/RebuildDashlets.php');
-        }
-    }
-
-    public function uninstall_dashlets()
-    {
-        if (isset($this->installdefs['dashlets'])) {
-            foreach ($this->installdefs['dashlets'] as $cp) {
-                $this->log(translate('LBL_MI_UN_DASHLETS') . $cp['name']);
-                $path = 'custom/modules/Home/Dashlets/' . $cp['name'];
-                $GLOBALS['log']->debug('Unlink ' .$path);
-                if (file_exists($path)) {
-                    rmdir_recursive($path);
-                }
-            }
-            include('modules/Administration/RebuildDashlets.php');
-        }
     }
 
 
@@ -1648,7 +1614,6 @@ class ModuleInstaller
             'uninstall_relationships',
             'uninstall_copy',
             'uninstall_dcactions',
-            'uninstall_dashlets',
             'uninstall_connectors',
             'uninstall_layoutfields',
             'uninstall_extensions',
@@ -2234,7 +2199,6 @@ class ModuleInstaller
         $current_step = 0;
         $tasks = array(
                                 'enable_copy',
-                                'enable_dashlets',
                                 'enable_relationships',
                                 'enable_extensions',
                                 'enable_global_search',
@@ -2303,7 +2267,6 @@ class ModuleInstaller
         $this->base_dir = $base_dir;
         $tasks = array(
                             'disable_copy',
-                            'disable_dashlets',
                             'disable_relationships',
                             'disable_extensions',
                             'disable_global_search',
@@ -2435,38 +2398,6 @@ class ModuleInstaller
             $this->rebuild_tabledictionary();
             $this->rebuild_vardefs();
             $this->rebuild_layoutdefs();
-        }
-    }
-
-    public function enable_dashlets()
-    {
-        if (isset($this->installdefs['dashlets'])) {
-            foreach ($this->installdefs['dashlets'] as $cp) {
-                $cp['from'] = str_replace('<basepath>', $this->base_dir, $cp['from']);
-                $path = 'custom/modules/Home/Dashlets/' . $cp['name'] . '/';
-                $disabled_path = 'custom/modules/Home/'.DISABLED_PATH.'Dashlets/' . $cp['name'];
-                $GLOBALS['log']->debug("Enabling Dashlet " . $cp['name'] . "..." . $cp['from']);
-                if (file_exists($disabled_path)) {
-                    rename($disabled_path, $path);
-                }
-            }
-            include('modules/Administration/RebuildDashlets.php');
-        }
-    }
-
-    public function disable_dashlets()
-    {
-        if (isset($this->installdefs['dashlets'])) {
-            foreach ($this->installdefs['dashlets'] as $cp) {
-                $path = 'custom/modules/Home/Dashlets/' . $cp['name'];
-                $disabled_path = 'custom/modules/Home/'.DISABLED_PATH.'Dashlets/' . $cp['name'];
-                $GLOBALS['log']->debug('Disabling ' .$path);
-                if (file_exists($path)) {
-                    mkdir_recursive('custom/modules/Home/'.DISABLED_PATH.'Dashlets/', true);
-                    rename($path, $disabled_path);
-                }
-            }
-            include('modules/Administration/RebuildDashlets.php');
         }
     }
 

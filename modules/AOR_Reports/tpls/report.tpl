@@ -112,5 +112,3 @@
             </div>
         </div>
     </div>
-
-<script src="modules/AOR_Reports/Dashlets/AORReportsDashlet/AORReportsDashlet.js"></script>
