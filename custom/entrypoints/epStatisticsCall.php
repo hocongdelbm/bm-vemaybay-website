@@ -332,7 +332,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
           $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
           $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-          $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
+          $threadId   = $sugar_config['telegram']['thread_id_system'] ?? '';
           Telegram::sendMessageData(json_encode(['text' => $content, 'parse_mode' => 'HTML'], JSON_UNESCAPED_UNICODE), $botToken, $chatId, $threadId);
 
           echo json_encode($result);

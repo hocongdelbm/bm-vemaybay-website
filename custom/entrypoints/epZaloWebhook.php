@@ -306,8 +306,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             if($db->query("UPDATE ec_zalo_contacts SET contact_id = '{$contact_id_by_phone}' WHERE id = '{$zalo_contact_id}' AND deleted = 0")) {
                                 NotificationService::sendErrorMessage(
                                     "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id",
-                                    "default",
-                                    ['threadKey' => 'system_noti']
+                                    "",
+                                    ['threadKey' => 'system']
                                 );
                             }
                         }

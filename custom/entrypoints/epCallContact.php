@@ -163,7 +163,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         $cont .= "\nZalo ID: <b>$zalo_id</b>";
                         $cont .= "\n<i>From epCallContact update_call()</i>";
                         $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
-                        NotificationService::sendWarningMessage($cont, '', ['threadKey' => 'system_noti']);
+                        NotificationService::sendWarningMessage($cont, '', ['threadKey' => 'system']);
                     }
                 }
             }

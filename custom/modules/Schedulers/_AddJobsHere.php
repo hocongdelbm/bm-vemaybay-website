@@ -24,6 +24,7 @@ $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
 $job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
 $job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Tự động gửi tin về giá vé rẻ qua ZBS template Zalo
 $job_strings[] = 'maintainZaloChat'; // Tự động gửi tin tư vấn Zalo để duy trì tương tác
+$job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của liên hệ qua booking hằng năm
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 
@@ -2150,13 +2151,13 @@ function sendAutoCheapPriceMessageZalo() {
 		}
 		else {
 			$m = "Please check suitecrm log <code>_AddJobsHere.php -> ".__FUNCTION__."()</code>";
-			NotificationService::sendWarningMessage($m, "default", ['threadKey' => 'logs']);
+			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
 	}
 	catch(Throwable $th) {
 		$m = "Cronjob ".__FUNCTION__."() failed";
 		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-		NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
 	}
 }
 
@@ -2373,12 +2374,57 @@ function maintainZaloChat() {
 		}
 		else {
 			$m = "Please check suitecrm log <code>_AddJobsHere.php -> ".__FUNCTION__."()</code>";
-			NotificationService::sendWarningMessage($m, "default", ['threadKey' => 'logs']);
+			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
 	}
 	catch(Throwable $th) {
 		$m = "Cronjob ".__FUNCTION__."() failed";
 		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-		NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
+	}
+}
+
+/**
+ * Reset lại điểm tích lũy của liên hệ qua booking hằng năm
+ */
+function resetRewardPoints() {
+	global $db;
+
+	$sql = "SELECT c.id
+		,c.phone_mobile AS phone_number
+		,c.points
+		FROM contacts c
+		WHERE c.points > 0 AND c.deleted = 0";
+
+	try {
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			// Record point log
+			$point_log = new EC_Contact_Points_Log();
+			$point_log->id = '';
+			$point_log->name = 'Hệ thống reset điểm';
+			$point_log->description = 'Đặt lại điểm hằng năm';
+			$point_log->contact_id = $row['id'];
+			$point_log->contact_phone = $row['phone_number'];
+			$point_log->up = 0;
+			$point_log->down = $row['points'];
+			$point_log->current_point = 0;
+			$point_log->parent_type = '';
+			$point_log->parent_id = '';
+			$point_log->save();
+		}
+
+		$updatesql = "UPDATE contacts SET points = 0 WHERE points > 0";
+		if($db->query($updatesql)) {
+			NotificationService::sendMessage("✅ <b>Hệ thống đã reset điểm tích lũy của liên hệ hằng năm</b>", "", ['threadKey' => 'system']);
+		}
+		else {
+			NotificationService::sendErrorMessage("Reset điểm tích lũy của liên hệ hằng năm chưa thành công", "", ['threadKey' => 'logs']);
+		}
+	}
+	catch(Throwable $th) {
+		$m = "Cronjob ".__FUNCTION__."() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
 	}
 }

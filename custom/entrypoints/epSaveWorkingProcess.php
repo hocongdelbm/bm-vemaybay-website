@@ -241,7 +241,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$content .= "\nSĐT: <b>$con_phone</b>";
 										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
 										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
-										NotificationService::sendMessage($content, '', ['threadKey' => 'system_noti']);
+										NotificationService::sendMessage($content, '', ['threadKey' => 'system']);
 									}
 									else {
 										$content = "Failed to send point-accumulation ZBS message";
