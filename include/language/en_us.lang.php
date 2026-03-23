@@ -2126,10 +2126,6 @@ $app_strings = array(
     'ERR_FACTOR_TPL_INVALID' => 'Factor Authentication message is invalid, please contact to your administrator.',
     'LBL_SUBTHEMES' => 'Style',
     'LBL_SUBTHEME_OPTIONS_DAWN' => 'Dawn',
-    'LBL_SUBTHEME_OPTIONS_DAY' => 'Day',
-    'LBL_SUBTHEME_OPTIONS_DUSK' => 'Dusk',
-    'LBL_SUBTHEME_OPTIONS_NIGHT' => 'Night',
-    'LBL_SUBTHEME_OPTIONS_NOON' => 'Noon',
 
     'LBL_CONFIRM_DISREGARD_DRAFT_TITLE' => 'Disregard draft',
     'LBL_CONFIRM_DISREGARD_DRAFT_BODY' => 'This operation will delete this email, do you want to continue?',

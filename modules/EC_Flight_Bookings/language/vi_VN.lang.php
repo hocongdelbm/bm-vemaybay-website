@@ -115,7 +115,6 @@ $mod_strings = array(
   'LBL_DATE_TICKET_INBOUND_ISSUE' => 'Ngày xuất vé lượt về',
   'LBL_LINE_PASSENGERS_LUGGAGE_EXTRA' => 'Hành lý',
   'LBL_LINE_PASSENGERS_NAME_EXTRA' => 'Đổi tên liên hệ',
-  'LBL_LINE_ITINERARY_EXTRA' => 'Đổi ngày bay',
   'LBL_DEPARTURE_DATE' => 'Ngày giờ bay',
 
   'LBL_ASSIGNED_TO_2ND_ID' => 'Người duyệt',

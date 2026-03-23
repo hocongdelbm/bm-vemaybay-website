@@ -22,7 +22,6 @@
   /* DISPLAY NONE */
   .check_infor_customer,
   .pagination-notes,
-  .header-navbar__bottom,
   #sidebar-horizontal,
   #buttontoggle {
     display: none !important;
@@ -54,12 +53,6 @@
   .navbar-menu-wrapper {
     padding: 0;
     gap: 10px;
-  }
-
-  /* ------------- MENU -------------- */
-  .header-navbar__top {
-    justify-content: space-between;
-    gap: 1rem;
   }
 
   .sidebar {
@@ -300,21 +293,6 @@
     display: none !important;
   }
 }
-
-/*
-
-
-@media (min-width: 992px) and (max-width: 1199px) {
-     .hidden-md {
-          display: none !important;
-     }
-} 
-
-@media (min-width: 1200px) {
-     .hidden-lg {
-          display: none !important;
-     }
-} */
 
 @media screen and (max-width: 575px) {
   .hidden-xs {

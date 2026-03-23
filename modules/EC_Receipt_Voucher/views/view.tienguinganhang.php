@@ -273,7 +273,7 @@ class Viewtienguinganhang extends SugarView {
 			  
 				<tr>
 					<td colspan="2">
-						<table id="table-details" width="100%" border="0" cellspacing="0" cellpadding="0">
+						<table id="table-details" class="table-details__booking" width="100%" border="0" cellspacing="0" cellpadding="0">
 							<tr>
 							<td rowspan="2"><div align="center"><strong>Ngày, tháng<br /> ghi sổ</strong></div></td>
 							<td rowspan="2"><div align="center"><strong>Ngày, tháng<br /> chứng từ</strong></div></td>

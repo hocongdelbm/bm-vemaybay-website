@@ -55,6 +55,7 @@ class EC_Flight_Bookings extends Basic
 	public $shipping_address;
 	public $agent_id;
 	public $agent_name;
+	public $subtotal_amount;
 	public $total_bought_amount;
 	public $total_bought_price;
 	public $invoice_require;
@@ -73,7 +74,9 @@ class EC_Flight_Bookings extends Basic
 	public $account_id;
 	public $account_name;
 	public $discount_percent;
-
+	
+	public $is_agent;
+	public $customer_source;
 	public $is_prior;
 	public $is_reference;
 	public $is_ctv;
