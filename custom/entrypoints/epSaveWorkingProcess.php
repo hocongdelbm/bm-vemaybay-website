@@ -226,10 +226,10 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										"parentId" => $record,
 										"parentType" => "EC_Flight_Bookings",
 										"templateData" => [
-											"point" => $point,
 											"name" => "bạn",
 											"booking" => $record_name,
-											"total_point" => $total_point
+											"point" => (string)$point,
+											"total_point" => (string)$total_point
 										],
 									];
 									$sendResult = $entryOA->sendTemplateMessage($params);
