@@ -902,17 +902,19 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
 
     // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
     if (isset($condition_arr['payment_stt'])) {
-        if ($condition_arr['payment_stt'] == 1) {
+        if ((int)$condition_arr['payment_stt'] === 1) {
             // Chưa thu
             $sql_having = ' HAVING receipt_amount = 0';
-        } else if ($condition_arr['payment_stt'] == 2) {
+        } else if ((int)$condition_arr['payment_stt'] === 2) {
             // Chưa thu đủ
             $sql_having = ' HAVING receipt_amount < subtotal_amount AND receipt_amount > 0';
-        } else if ($condition_arr['payment_stt'] == 3) {
+        } else if ((int)$condition_arr['payment_stt'] === 3) {
             // Booking telesale
             $sql_having = ' HAVING is_telesale = 1';
-        } else if ($condition_arr['payment_stt'] == 4) {
+        } else if ((int)$condition_arr['payment_stt'] === 4) {
             $sql_having = ' HAVING is_ctv = 1';
+        } else if((int)$condition_arr['payment_stt'] === 5) {
+            $sql_having = ' HAVING is_reference = 1';
         }
     }
 
@@ -995,6 +997,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
             ) AS paid_time
             , bk.is_telesale as is_telesale
             , bk.is_ctv as is_ctv
+            , bk.is_reference as is_reference
             , bk.phone as contact_mobile
             , bk.country
         FROM ec_booking_details bkd 
@@ -1036,6 +1039,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                 , '' AS paid_time
                 , 0 as is_telesale
                 , 0 as is_ctv
+                , 0 as is_reference
                 , '' as contact_mobile
                 , '' AS country
             FROM ec_receipt_voucher p
@@ -1071,6 +1075,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                 , '' AS paid_time
                 , 0 as is_telesale
                 , 0 as is_ctv
+                , 0 as is_reference
                 , '' as contact_mobile
                 , '' AS country
             FROM 

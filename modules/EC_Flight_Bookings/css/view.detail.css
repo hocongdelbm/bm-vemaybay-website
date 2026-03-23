@@ -14,8 +14,6 @@
     align-items: center;
     gap: 8px;
 }
-.detail-view #recheck_status input,
-.detail-view #is_paid input {width:fit-content!important;}
 
 /* NGAN LUONG CODE */
 .nganluong__wrap {

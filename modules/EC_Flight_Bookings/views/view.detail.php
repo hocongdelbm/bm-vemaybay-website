@@ -421,7 +421,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
         // Nguồn khách hàng
         $customer_source = '<div class="d-flex align-items-center flex-nowrap gap-3">';
         foreach ($app_list_strings['booking_customer_source_list'] as $value => $label) {
-            $checked = $value == $this->bean->customer_source ? 'checked="checked"' : '';
+            $checked = $value == $this->bean->customer_source ? 'checked' : '';
             $customer_source .= '<div class="item" style="font-size:13px;">
 				<input type="checkbox" name="customer_source" id="customer_source_' . $value . '" value="' . $value . '" ' . $checked . ' /> ' . $label . '
 			</div>';
@@ -436,7 +436,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
             $call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0");
             $list_bookmark .= '<div class="item">
 				<label for="checkIsTelesale">Là BK Telesale</label>
-				<input type="checkbox" name="is_telesale" id="checkIsTelesale" checked="checked" disabled />
+				<input type="checkbox" name="is_telesale" id="checkIsTelesale" checked disabled />
 				<br />
 				<a href="index.php?module=Calls&action=DetailView&record=' . $this->bean->telesale_call_id . '" target="_blank">' . $call_name . '</a>
 			</div>';
@@ -457,9 +457,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
         if ($this->bean->is_ctv) {
             $list_bookmark .= '<div class="item">
 				<label for="checkIsCTV" >Là CTV</label>
-				<input type="checkbox" name="is_ctv" id="checkIsCTV" checked="checked" disabled />
+				<input type="checkbox" name="is_ctv" id="checkIsCTV" checked disabled />
 			</div>';
-        } else if ($this->bean->booking_status == '8') {
+        } else if ((int)$this->bean->booking_status === 8) {
             $list_bookmark .= '<div class="item">
 				</form><form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
 					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -477,7 +477,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
         if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
             $list_bookmark .= '<div class="item">
 				<label for="is_agent">Là đại lý</label>
-				<input type="checkbox" name="is_agent" id="check_is_agent" checked="checked" disabled />
+				<input type="checkbox" name="is_agent" id="check_is_agent" checked disabled />
 				<br />
 				<a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
 					' . $this->bean->agent_name . '
@@ -766,7 +766,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 		  <input type="hidden" name="is_invoice_export" value="1" />
 		  <span class="w-50">Hóa đơn đầu ra: </span>
 		  <span class="d-flex align-items-center gap-2 flex-fill">
-		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked="checked"' : '') . ' />
+		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked' : '') . ' />
 		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
 		  </span>
 		</form>';
@@ -783,7 +783,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 			<input type="hidden" name="is_invoice_input_export" value="' . ($this->bean->is_invoice_input_export ? 0 : 1) . '" />
 			<span class="w-50">Hóa đơn đầu vào: </span>
 			<span class="d-flex align-items-center gap-2 flex-fill">
-			<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_input_export ? 'checked="checked"' : '') . ' />
+			<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_input_export ? 'checked' : '') . ' />
 			' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceInputExport" class="btn btn-primary-2 cursor-pointer" id="btnCheckInvoiceInputExport" value="' . $is_invoice_input_export_title . '" title="' . $is_invoice_input_export_title . '" />' : '') . '
 			</span>
 		</form>';
@@ -2138,7 +2138,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
             if ($i % 2 != 0) {
                 $html .= '<tr>';
             }
-            $checked = ($row['id'] == $select || $i == 1) ? 'checked="checked"' : '';
+            $checked = ($row['id'] == $select || $i == 1) ? 'checked' : '';
             $html .= '<td width="50%"><label for="rad-' . $row['id'] . '"><input ' . $checked . ' type="radio" name="radWinLoseReason" txt="' . $row['name'] . '" id="rad-' . $row['id'] . '" value="' . $row['id'] . '"><span class="label_WinLoseReason"> ' . $row['name'] . '</span></label></td>';
             if ($i % 2 == 0) {
                 $html .= '</tr>';
@@ -2632,7 +2632,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail
 				<div class="option-group d-flex gap-4">
 					<div class="form-group">
 						<label for="vn" class="form-check-label">Tiếng Việt</label>
-						<input class="form-check-input" type="radio" name="ngonngu" id="vn" value="vn" style="vertical-align:middle; margin-top: 0;" checked="checked" /> 
+						<input class="form-check-input" type="radio" name="ngonngu" id="vn" value="vn" style="vertical-align:middle; margin-top: 0;" checked /> 
 					</div>
 					<div class="form-group">
 						<label for="en" class="form-check-label">Tiếng Anh</label>

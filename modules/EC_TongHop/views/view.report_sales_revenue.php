@@ -164,6 +164,7 @@ class Viewreport_sales_revenue extends SugarView
             '2' => 'Chưa thu đủ',
             '3' => 'Booking telesale',
             '4' => 'Booking ctv',
+            '5' => 'Booking tham khảo',
         );
 
         $smartyobj->assign('PAYMENT_STT', get_select_options_with_id($payment_status, (int)$payment_stt));

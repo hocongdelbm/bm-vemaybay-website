@@ -2289,6 +2289,10 @@ table.table-config__setup input,
   cursor: pointer;
 }
 
+.panel input[type="checkbox"]:disabled {
+  cursor: auto;
+}
+
 .setup-system-wrap input[type="checkbox"] {
   appearance: auto;
 }
@@ -4669,8 +4673,7 @@ table#booking_qty tbody tr.footer-tr td {
   font-size: 14px;
 }
 
-.function-wrap,
-.box-color__sales {
+.function-wrap {
   display: flex;
   align-items: center;
   gap: 15px;
