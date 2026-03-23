@@ -16,9 +16,9 @@ class UsersHelper
             $temp_result = array();
             // Including deleted users for now.
             if (empty($status)) {
-                $query = 'SELECT id, last_name, user_name FROM users WHERE 1=1';
+                $query = 'SELECT id, last_name, first_name, user_name FROM users WHERE 1=1';
             } else {
-                $query = "SELECT id, last_name, user_name from users WHERE status='$status'";
+                $query = "SELECT id, last_name, first_name, user_name from users WHERE status='$status'";
             }
 
             /* BEGIN - SECURITY GROUPS */
@@ -65,7 +65,7 @@ class UsersHelper
 
             // Get the id and the name.
             while ($row = $db->fetchByAssoc($result)) {
-                $temp_result[$row['id']] = $locale->getLocaleFormattedName('', $row['last_name']) . ' (' . $row['user_name'] . ')';
+                $temp_result[$row['id']] = $locale->getLocaleFormattedName($row['first_name'], $row['last_name']) . ' (' . $row['user_name'] . ')';
             }
 
             $user_array = $temp_result;
