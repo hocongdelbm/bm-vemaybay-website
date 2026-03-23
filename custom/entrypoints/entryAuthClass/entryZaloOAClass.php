@@ -52,13 +52,12 @@ class entryZaloOAClass extends entryClass {
             }
 
             $results = [];
-            $zaloMessage = new EC_Zalo_Messages();
             foreach($arr['data']['users'] as $u) {
                 $zalo_id = $u['user_id'];
                 $user_info = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, $oa_id);
 
                 if(!empty($user_info)) {
-                    $lastest_message  = $zaloMessage->get_lastest_message_user($oa_id, $zalo_id);
+                    $lastest_message  = EC_Zalo_Messages_Helper::get_lastest_message_user($oa_id, $zalo_id);
                     $last_interaction = $user_info['user_last_interaction_date']; // d-m-Y H:i:s
 
                     if($value == 'L7D') {
@@ -119,8 +118,7 @@ class entryZaloOAClass extends entryClass {
         $limit_record = $params['limit_record'];
         $current_list_user = isset($params['current_list_user']) && !empty($params['current_list_user']) ? array_unique(explode(',', $params['current_list_user'])) : []; // array
 
-        $zaloMessage = new EC_Zalo_Messages();
-        $results = $zaloMessage->get_list_recent_messages($oa_id, $timestamp, $current_list_user, $limit_record);
+        $results = EC_Zalo_Messages_Helper::get_list_recent_messages($oa_id, $timestamp, $current_list_user, $limit_record);
         $results['status'] == isset($results['data']) && !empty($results['data']) ? 1 : 0;
         return $results;
     }
@@ -139,8 +137,7 @@ class entryZaloOAClass extends entryClass {
         $is_get_user_info = (int)($params['is_get_user_info'] ?? 1);
         $limit_message = $params['limit_message'];
 
-        $zaloMessage = new EC_Zalo_Messages();
-        return $zaloMessage->get_messages($oa_id, $zalo_id , $zalo_phone, $offset, $is_get_user_info, $limit_message);
+        return EC_Zalo_Messages_Helper::get_messages($oa_id, $zalo_id , $zalo_phone, $offset, $is_get_user_info, $limit_message);
     }
 
     /**
@@ -305,9 +302,9 @@ class entryZaloOAClass extends entryClass {
         $arr_message = json_decode($json_message, true);
 
         if(isset($arr_message['error']) && $arr_message['error'] == 0) {
+            $cost = EC_Zalo_Messages_Helper::handle_quota_and_calculate_cost($arr_message['data'], $zalo_id, $oa_id);
+            
             $zalomes = new EC_Zalo_Messages();
-            $cost = $zalomes->handle_quota_and_calculate_cost($arr_message['data'], $zalo_id, $oa_id);
-
             $zalomes->message_id        = $arr_message['data']['message_id'] ?? '';
             $zalomes->src               = 0;
             $zalomes->from_id           = $zaloOA->get_oa_id();
@@ -321,6 +318,9 @@ class entryZaloOAClass extends entryClass {
             $zalomes->response          = trim($json_message);
             $zalomes->assigned_user_id  = $this->currentUser->id;
             $zalomes->save();
+        }
+        else {
+            EC_Zalo_Helper::handle_error_oa_api($arr_message['error'], '', $zalo_id, $oa_id);
         }
 
         // Replace key error to status
@@ -369,10 +369,10 @@ class entryZaloOAClass extends entryClass {
                     $json = $zaloOA->send_template_message_by_uid($uid, $template_id, $templateData);
                     $arr  = json_decode($json, true);
                     if(isset($arr['error']) && $arr['error'] == 1) {
-                        $zalomes = new EC_Zalo_Messages();
                         $arr['data']['template_id'] = $template_id;
-                        $cost = $zalomes->handle_quota_and_calculate_cost($arr['data'], $uid, $zaloOA->get_oa_id());
-
+                        $cost = EC_Zalo_Messages_Helper::handle_quota_and_calculate_cost($arr['data'], $uid, $zaloOA->get_oa_id());
+                        
+                        $zalomes = new EC_Zalo_Messages();
                         $zalomes->message_id    = $arr['data']['message_id'] ?? '';
                         $zalomes->src           = 0;
                         $zalomes->from_id       = $zaloOA->get_oa_id();
@@ -417,11 +417,10 @@ class entryZaloOAClass extends entryClass {
                     $msg_id     = $arr['data']['msg_id'] ?? '';
                     $timestamp  = $arr['data']['sent_time'] ?? round(microtime(true) * 1000);
 
-                    $zalomes = new EC_Zalo_Messages();
-
                     $arr['data']['template_id'] = $template_id;
-                    $cost = $zalomes->handle_quota_and_calculate_cost($arr['data'], '', $zaloOA->get_oa_id());
-
+                    $cost = EC_Zalo_Messages_Helper::handle_quota_and_calculate_cost($arr['data'], '', $zaloOA->get_oa_id());
+                    
+                    $zalomes = new EC_Zalo_Messages();
                     $zalomes->message_id    = $msg_id;
                     $zalomes->src           = 0;
                     $zalomes->from_id       = $zaloOA->get_oa_id();
@@ -500,7 +499,6 @@ class entryZaloOAClass extends entryClass {
             ];
         }
 
-        $zaloMessage = new EC_Zalo_Messages();
         $listUserData = [];
 
         // Search by chat link
@@ -525,7 +523,7 @@ class entryZaloOAClass extends entryClass {
         if(!empty($listUserData)) {
             foreach ($listUserData as $key => $userData) {
                 // Message info
-                $lastest_message = $zaloMessage->get_lastest_message_user($oa_id, $userData['user_id']);
+                $lastest_message = EC_Zalo_Messages_Helper::get_lastest_message_user($oa_id, $userData['user_id']);
                 if(empty($lastest_message)) {
                     $lastest_message['message_type'] = 'custom';
                     $lastest_message['type'] = 'custom';

@@ -1,10 +1,6 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
-// $GLOBALS['current_user']->retrieve($_SESSION['authenticated_user_id']);
-// $GLOBALS['current_language'] = $_SESSION['authenticated_user_language'];
-// $app_strings = return_application_language($GLOBALS['current_language']);
-// $mod_strings = return_module_language($GLOBALS['current_language'], 'ACL');
 global $db, $current_user, $sugar_config;
 
 if (!empty($_SESSION['authenticated_user_id'])) {
@@ -30,7 +26,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 
 		// Kiểm tra đối với trường hợp booking đã gọi, chỉ tính 1 lần
 		if ($booking_status == '6') {
-			$sql_exist = "SELECT IF(id IS NOT NULL, 1, 0) 
+			$sql_exist = "SELECT IF(id IS NOT NULL, 1, 0)
 						FROM ec_working_process
 						WHERE parent_id = '$record' AND deleted = 0 AND called > 0";
 
@@ -44,7 +40,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 		// Kiểm tra đối với trường hợp booking đã thanh toán, chỉ tính 1 lần
 		if (!is_null($is_paid) && $is_paid != 0) {
 			// Kiểm tra đã tồn tại
-			$sql_exist = "SELECT IF(id IS NOT NULL, 1, 0) 
+			$sql_exist = "SELECT IF(id IS NOT NULL, 1, 0)
 						FROM ec_working_process 
 						WHERE parent_id = '$record' AND paid > 0 AND deleted = 0";
 

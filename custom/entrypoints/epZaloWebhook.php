@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $msg_id         = $data['message']['msg_id'] ?? '';
                     $quote_id       = $data['message']['quote_msg_id'] ?? '';
                     $msg            = $data['message']['text'] ?? '';
-                    $msg_type       = $zalomes->map_sub_type($event);
+                    $msg_type       = EC_Zalo_Messages_Helper::map_sub_type($event);
 
                     // Handle attachments
                     $url = $thumbnail = $description = '';
@@ -246,8 +246,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         'quota_user'            => $quota_user
                     ];
                     if($zalomes->quote_message_id && !empty($zalomes->quote_message_id)) {
-                        $zaloMessage = new EC_Zalo_Messages();
-                        $data_chat['quote_data'] = $zaloMessage->get_quote_message_data($zalomes->quote_message_id);
+                        $data_chat['quote_data'] = EC_Zalo_Messages_Helper::get_quote_message_data($zalomes->quote_message_id);
                     }
                     $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
                     $client->send(json_encode($data_chat));

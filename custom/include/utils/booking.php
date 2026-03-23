@@ -23,16 +23,10 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         $contact->description = 'Liên hệ mới tạo từ booking';
         $contact_id = $contact->save();
         if (empty($contact_id)) {
-            // $message = Mattermost::$line_separation;
-            // $message .= "Tạo liên hệ mới thất bại với số điện thoại: **$phoneNumber**";
-            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-
-            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-            $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-            Telegram::sendMessage("<b>Tạo liên hệ mới thất bại với SĐT: $phoneNumber</b>", $botToken, $chatId, $threadId);
+            NotificationService::sendWarningMessage("Tạo liên hệ mới thất bại với SĐT: $phoneNumber", "", ["threadKey" => "system_noti"]);
         }
-    } else {
+    }
+    else {
         $contact->retrieve($contact_id);
 
         if (empty($contact->last_name) || stripos($contact->last_name, "Khách") !== false || stripos($contact->last_name, "Khach") !== false || stripos($contact->last_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $contact->last_name)) {

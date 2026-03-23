@@ -330,37 +330,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     "<pre>[INFO]: " . proposeCallImprovementStrategy($asr) . "</pre>";
           $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-          // $result = sendTeleConfirmCallSales(
-          //      json_encode(array(
-          //           'text' => $content,
-          //           'parse_mode' => 'HTML'
-          //      ), JSON_UNESCAPED_UNICODE) 
-          // );
-
           $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
           $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
           $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
           Telegram::sendMessageData(json_encode(['text' => $content, 'parse_mode' => 'HTML'], JSON_UNESCAPED_UNICODE), $botToken, $chatId, $threadId);
-          
-          // try {
-          //      global $sugar_config;
-          //      $message = Mattermost::$line_separation;
-          //      $message .= Mattermost::markdownHeading("Kết quả Call sales");
-          //      $message .= "\n- Nhân viên: **$full_name**";
-          //      $message .= "\n- Ngày: **$mess_date**";
-          //      $message .= "\n- Cuộc gọi đi: **$emp_outbound**";
-          //      $message .= "\n- Nghe máy: **$emp_outbound_answer**";
-          //      $message .= "\n- Tỉ lệ nghe máy: **$asr% **";
-          //      $message .= "\n- Thời gian nghe máy trung bình: **$avg_talks**";
-          //      $message .= "\n- Không nghe máy (>15s): **$emp_noanswer_up_15**";
-          //      $message .= "\n- Đổ chuông ngắn: **$emp_noanswer_under_15**";
-          //      $message .= "\n- Số không liên lạc: **$emp_noanswer_unconnected**";
-          //      $message .= ((int)$emp_noanswer_nonote > 0) ? "\n- Không ghi chú/phân loại: **$emp_noanswer_nonote**" : "";
-          //      $message .= "\n- Khách hỏi vé: **$emp_question_ticket** \n";
-          //      $message .= Mattermost::markdownQuote(proposeCallImprovementStrategy($asr));
-          //      Mattermost::sendMessage($sugar_config['mattermost']['channel_id_activity'] ?? '', $message);
-          // }
-          // catch(Throwable $th) {}
 
           echo json_encode($result);
           exit();

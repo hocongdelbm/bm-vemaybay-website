@@ -340,17 +340,9 @@ class Call extends SugarBean
                         $chatId = $sugar_config['telegram']['cty']['chat_id'] ?? '';
                         Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
                     }
-                } catch (Throwable $th) {
-                    $notification_channel = strtoupper($sugar_config['notification_channel'] ?? 'TELEGRAM');
-                    $message = "<b>[ERROR] Send info call failed</b>";
-                    $message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-
-                    if ($notification_channel == 'TELEGRAM') {
-                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                    }
+                }
+                catch (Throwable $th) {
+                    $GLOBALS['log']->fatal("Send info call failed {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
                 }
             }
         }

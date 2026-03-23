@@ -4,6 +4,8 @@ class NotificationService {
     private static array $channels = []; // Cache changes from single to array
 
     public static function getChannel(string $profile = 'default'): NotificationChannelInterface {
+        if(!$profile || empty($profile)) $profile = 'default';
+
         // Profile-aware cache key
         if (isset(self::$channels[$profile])) return self::$channels[$profile];
 

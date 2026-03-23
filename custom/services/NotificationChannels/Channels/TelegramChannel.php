@@ -9,7 +9,7 @@ class TelegramChannel implements NotificationChannelInterface {
         global $sugar_config;
         $profile_config     = $sugar_config['telegram'][$profile] ?? $sugar_config['telegram']['default'] ?? [];
         $this->parseMode    = $sugar_config['telegram']['parse_mode'] ?? 'HTML';
-        $this->botToken     = $profile_config['bot_token'] ?? '';
+        $this->botToken     = $profile_config['bot_token'] ?? $sugar_config['telegram']['default']['bot_token'];
         $this->chatId       = $profile_config['chat_id'] ?? '';
         $this->threadIds    = $profile_config['thread_ids'] ?? [];
     }

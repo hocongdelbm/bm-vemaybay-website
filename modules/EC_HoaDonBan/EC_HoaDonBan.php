@@ -449,13 +449,7 @@ class EC_HoaDonBan extends Basic
 					}
 					sleep(1);
 				} catch (Exception $e) {
-					global $sugar_config;
-					$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-					$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-					$threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-					$m = "<b>[ERROR] Exception when create auto output invoice</b>";
-					$m .= "\n{$e->getMessage()} on line {$e->getLine()} with booking id $bookingId";
-					Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+					$GLOBALS['log']->fatal("Exception when creating auto output invoice with booking id $bookingId {$e->getMessage()} on line {$e->getLine()}");
 					return false;
 				}
 			}

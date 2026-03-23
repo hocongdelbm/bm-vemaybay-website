@@ -43,12 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $m .= " - <b>$c</b>";
                 }
 
-                if($channel == 'Mattermost') {}
-                else {
-                    $botToken = $sugar_config['telegram']['bot_token'] ?? '';
-                    $chatId   = $sugar_config['telegram']['thongbao']['chat_id'];
-                    Telegram::sendMessage($m, $botToken, $chatId);
-                }
+                NotificationService::sendMessage($m, 'thongbao');
             }
             echo 1;
         }

@@ -209,21 +209,15 @@ class entryOutputInvoiceClass extends entryClass {
                                         WHERE id IN ($listBookingId) AND deleted = 0");
                                 }
                                 else {
-                                    $botToken   = $this->telegramConfig['bot_token'] ?? '';
-                                    $chatId     = $this->telegramConfig['chat_id'] ?? '';
-                                    $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-                                    $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
+                                    $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";
                                     $message .= "\n<pre>$sql</pre>";
-                                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                    NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                                 }
                             }
                             catch(Throwable $th) {
-                                $botToken   = $this->telegramConfig['bot_token'] ?? '';
-                                $chatId     = $this->telegramConfig['chat_id'] ?? '';
-                                $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-                                $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
+                                $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";
                                 $message .= "\nException error {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                             }
                         }
                         else {
