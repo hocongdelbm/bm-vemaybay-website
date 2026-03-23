@@ -249,7 +249,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										$content .= "\nPhone: <b>$con_phone</b>";
 										$content .= "\nExtra points: <b>$point</b>";
 										$content .= "\nTotal points: <b>$total_point</b>";
-										$content .= "\n<pre>$json</pre>";
+										$content .= "\n<pre>". json_encode($sendResult) ."</pre>";
 										NotificationService::sendWarningMessage($content, '', ['threadKey' => 'logs']);
 									}
 								}
