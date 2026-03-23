@@ -452,7 +452,7 @@ $GLOBALS['app_list_strings']['message_type_list'] = [
   'sms' => 'Gửi SMS',
   'sms_campaign_static' => 'Gửi chiến dịch SMS',
   'sms_campaign_dynamic' => 'Gửi chiến dịch SMS (Tùy biến)',
-  'zalo_zns' => 'Gửi ZNS',
+  'zalo_zns' => 'Gửi ZBS',
   'zalo_promotion' => 'Gửi khuyến mãi Zalo',
   'zalo_broadcast' => 'Gửi Broadcast Zalo',
 ];

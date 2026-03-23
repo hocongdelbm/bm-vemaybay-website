@@ -338,7 +338,7 @@ class entryZaloOAClass extends entryClass {
     public function sendTemplateMessage($params = []) {
         try {
             $phoneNumber   = $params["phoneNumber"] ?? "";
-            $type          = $params["type"] ?? ""; // ZNS type
+            $type          = $params["type"] ?? ""; // ZBS type
             $parentId      = $params["parentId"] ?? "";
             $parentType    = $params["parentType"] ?? "";
             $templateData  = $params['templateData'] ?? [];
