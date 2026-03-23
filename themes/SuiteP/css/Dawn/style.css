@@ -1,3 +1,22 @@
+@charset "UTF-8";
+
+/* INIT */
+@import url("../../../../../themes/SuiteP/css/Dawn/init/variables.css");
+@import url("../../../../../themes/SuiteP/css/Dawn/init/keyframes.css");
+@import url("../../../../../themes/SuiteP/css/Dawn/init/reset.css");
+
+/* COMPOENTS */
+@import url("../../../../../themes/SuiteP/css/Dawn/components/notify.css");
+@import url("../../../../../themes/SuiteP/css/Dawn/components/modal.css");
+@import url("../../../../../themes/SuiteP/css/Dawn/components/spinner.css");
+
+/* LAYOUT */
+@import url("../../../../../themes/SuiteP/css/Dawn/layout/header.css");
+@import url("../../../../../themes/SuiteP/css/Dawn/layout/sidebar.css");
+
+/* VIEWS */
+@import url("../../../../../themes/SuiteP/css/Dawn/views/view.search.css");
+
 @font-face {
      font-family: "Glyphicons Halflings";
      src: url("../../../../../themes/SuiteP/fonts/glyphicons-halflings-regular.eot");
@@ -1546,6 +1565,7 @@ fieldset[disabled] .navbar-inverse .btn-link:focus {
      border-radius: 0.25em;
      color: var(--text-primary-2-color);
 }
+
 .label:empty {
      display: none
 }
@@ -1567,12 +1587,14 @@ fieldset[disabled] .navbar-inverse .btn-link:focus {
 .jumbotron .h1 {
      color: inherit
 }
+
 .jumbotron p {
      margin-bottom: 15px;
      font-size: 21px;
      font-weight: 200
 }
-.jumbotron > hr {
+
+.jumbotron>hr {
      border-top-color: #d5d5d5
 }
 
@@ -1966,6 +1988,7 @@ button.list-group-item-danger.active:focus {
      -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05)
 }
+
 .well blockquote {
      border-color: #ddd;
      border-color: rgba(0, 0, 0, 0.15)
@@ -7227,16 +7250,6 @@ input[type=reset]:focus {
 .yui-layout-hd input[type=submit],
 .yui-layout-hd input[type=button] {
      font-size: 13px
-}
-
-input[type=text],
-input[type=number],
-input[type=password],
-input[type=email],
-input:not([type]) {
-     line-height: 20px;
-     min-height: 28px;
-     outline: none;
 }
 
 select:focus {

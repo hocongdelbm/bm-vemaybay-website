@@ -1,0 +1,183 @@
+body.modal-active {
+    overflow: hidden;
+}
+
+#modal-container {
+    position: fixed;
+    display: table;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    transform: scale(0);
+    z-index: 105;
+}
+
+#modal-container.active {
+    transform: scaleY(0.01) scaleX(0);
+    animation: unfoldIn 1s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+#modal-container.active .modal-main {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 100;
+    transform: scale(0);
+    animation: zoomIn 0.5s 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+#modal-container.active.out {
+    transform: scale(1);
+    animation: unfoldOut 1s 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+#modal-container.active.out .modal-main {
+    animation: zoomOut 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+#modal-container .modal-overlay {
+    display: table-cell;
+    background: rgba(0, 0, 0, 0.75);
+    text-align: center;
+    vertical-align: middle;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+#modal-container .modal-main {
+    background: var(--white-color);
+    min-width: 300px;
+    max-width: 500px;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+#modal-container .modal-main .modal-title {
+    text-align: center;
+    font-size: 24px;
+    line-height: 30px;
+    margin: 30px 0 -15px;
+    text-transform: uppercase;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--text-primary-color);
+    font-weight: 560;
+    letter-spacing: 2px;
+}
+
+#modal-container .modal-main p.modal-text {
+    font-size: 16px;
+    color: var(--text-color);
+    /* padding: 2rem 1rem 1rem; */
+    padding: 1.75rem 0 0.25rem 0;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#modal-container .modal-main .icon-box {
+    color: var(--white-color);
+    position: absolute;
+    margin: 0 auto;
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    z-index: 1;
+    padding: 15px;
+    text-align: center;
+}
+
+#modal-container .icon-box svg {
+    width: 50px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#modal-container .modal-main .modal-body .description {
+    word-break: break-word;
+}
+
+#modal-container .modal-main.modal-success .modal-footer .btn-modal-close,
+#modal-container .modal-main.modal-success .icon-box {
+    background: #82ce34;
+}
+
+#modal-container .modal-main.modal-error .modal-footer .btn-modal-close,
+#modal-container .modal-main.modal-error .icon-box {
+    background: #ef513a;
+}
+
+#modal-container .modal-main.modal-warning .modal-footer .btn-modal-close,
+#modal-container .modal-main.modal-warning .icon-box {
+    background: #ffc107;
+}
+
+#modal-container .modal-main .modal-footer {
+    border: none;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 13px;
+    padding: 0.5rem 1rem;
+}
+
+#modal-container .modal-main .modal-footer .btn-modal-close {
+    color: var(--white-color);
+    border-radius: 4px;
+    text-decoration: none;
+    border: none;
+    min-height: 40px;
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#modal-confirm .modal-dialog {
+    top: 50%;
+    transform: translate(0%, -50%);
+}
+
+.modal .modal-content {
+    border: none;
+}
+
+.modal .modal-header {
+    background: var(--primary-color);
+}
+
+.modal .modal-header .modal-title {
+    color: var(--white-color);
+    text-transform: uppercase;
+}
+
+.modal .modal-header h2.modal-title {
+    font-size: 1rem !important;
+}
+
+.modal .modal-header h4 {
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+
+.modal .modal-header svg {
+  fill: var(--white-color);
+}
+
+.modal-body#columnsFilterList h3 {
+  font-size: 20px;
+  text-transform: uppercase;
+  color: var(--text-primary-color);
+}

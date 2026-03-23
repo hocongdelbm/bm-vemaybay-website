@@ -597,54 +597,33 @@ function update_log_autocall()
                     $hangup_cause   = (new Call())->determineHangupCause($log);
 
                     if (!empty($call_id)) {
-                        $sql_update = "UPDATE calls
-                                        SET date_start = '$call_start',
-                                            date_end = '$call_end',
-                                            call_wait = $call_wait,
-                                            status = '$status',
-                                            direction = '$direction',
-                                            call_mos = '$call_mos',
-                                            call_duration = $call_duration,
-                                            call_talk = $call_talk,
-                                            is_success = $is_success,
-                                            call_reason = '$call_reason',
-                                            hangup_cause = '$hangup_cause',
-                                            record_file = '$record_file',
-                                            log = '" . json_encode(array_merge($log_call, $log)) . "'
-                                        WHERE call_id = '$call_id'
-                                        AND deleted = 0";
+                        $sql_update = 
+                            "UPDATE calls
+                            SET date_start = '$call_start',
+                                date_end = '$call_end',
+                                call_wait = $call_wait,
+                                status = '$status',
+                                direction = '$direction',
+                                call_mos = '$call_mos',
+                                call_duration = $call_duration,
+                                call_talk = $call_talk,
+                                is_success = $is_success,
+                                call_reason = '$call_reason',
+                                hangup_cause = '$hangup_cause',
+                                record_file = '$record_file',
+                                log = '" . json_encode(array_merge($log_call, $log)) . "'
+                            WHERE call_id = '$call_id'
+                            AND deleted = 0";
 
                         $result_sql = $db->query($sql_update);
                         if (!$result_sql) {
                             $mess_log = '[' . date('Y-m-d H:i:s', strtotime('+7 hour')) . ']: CẬP NHẬT LOG AUTOCALL THẤT BẠI ' . $sql_update;
                             save_log_call($mess_log);
-
-                            // // notify telegram
-                            // $messages = "- Call_ID: <b>" . $call_id . "</b>\n" .
-                            //         "<pre>[ERROR]: UPDATED AUTOCALL FAILED! ".$sql_update."</pre>";
-                            // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                            // $result = sendTelegramWarningSystem(
-                            //     json_encode(array(
-                            //         'text' => $content,
-                            //         'parse_mode' => 'HTML',
-                            //     ), JSON_UNESCAPED_UNICODE),
-                            // );
-
-                            // // Notify Mattermost
-                            // $message = Mattermost::$line_separation;
-                            // $message .= Mattermost::markdownHeading("[ERROR] Updated autocall failed");
-                            // $message .= "\n- Call ID: **$call_id**";
-                            // $message .= "\n- SQL query: **$sql_update**";
-                            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-
-                            // Notify Telegram
-                            $message = "<b>[ERROR] Updated autocall failed</b>";
+                            
+                            $message = "Updated autocall failed";
                             $message .= "\nCall ID: <b>$call_id</b>";
                             $message .= "\n<pre>$sql_update</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                            NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                         } else {
                             $index++;
                         }

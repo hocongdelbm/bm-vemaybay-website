@@ -33,7 +33,9 @@ class SearchForm
     //show the advanced tab
     public $showAdvanced = true;
     //show the basic tab
+    
     public $showBasic = true;
+
     //array of custom tab to show declare in searchdefs (no custom tab if false)
     public $showCustom = false;
     // nb of tab to show
@@ -111,7 +113,8 @@ class SearchForm
                 'key' => $this->module . '|basic_search',
                 'name' => 'basic',
                 'displayDiv' => '');
-        }
+        } 
+
         if ($this->showAdvanced) {
             $this->nbTabs++;
             $this->tabs[] = array('title' => $GLOBALS['app_strings']['LNK_ADVANCED_FILTER'],
@@ -258,7 +261,8 @@ class SearchForm
 
 
         $searchFormInPopup = !in_array($this->module, isset($sugar_config['enable_legacy_search']) ? $sugar_config['enable_legacy_search'] : array());
-        $this->th->ss->assign('searchFormInPopup', $searchFormInPopup);
+        // $this->th->ss->assign('searchFormInPopup', $searchFormInPopup);
+        $this->th->ss->assign('searchFormInPopup', false);
 
         if (isset($this->th)) {
             $moduleDir = null;

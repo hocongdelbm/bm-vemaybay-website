@@ -2,9 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 
 class APIZaloOA {
-    private $template_path;
-    private $images_path;
-    protected $domain;
     /**
      * @var EC_Zalo_Apps
      */
@@ -13,12 +10,125 @@ class APIZaloOA {
      * @var EC_Zalo
      */
     protected $oa;
+    protected $domain;
+    protected const TEMPLATE_PATH = "custom/json_files/zalo_messages/templates.json";
+    protected const ERROR_MAP = [
+        0 => "Thành công: Gửi yêu cầu thành công.",
+        // RATE LIMIT
+        -32 => "Vượt giới hạn API: Giảm tần suất request.",
+        // TEMPLATE / CONTENT
+        -109 => "ID Template không hợp lệ.",
+        -110 => "Zalo phiên bản cũ: Yêu cầu user cập nhật app.",
+        -111 => "Template trống: Không có dữ liệu gửi.",
+        -1121 => "Tham số quá dài.",
+        -1122 => "Thiếu tham số bắt buộc.",
+        -1123 => "Lỗi QR code.",
+        -1124 => "Sai định dạng tham số.",
+        -113 => "Button không hợp lệ.",
+        -1131 => "Link không đúng định dạng.",
+        -116 => "Nội dung tham số không hợp lệ.",
+        -117 => "Không có quyền dùng Template.",
+        -121 => "Template không có nội dung.",
+        -122 => "Sai định dạng JSON.",
+        -130 => "Vượt giới hạn ký tự (max 100k).",
+        -131 => "Template chưa được duyệt.",
+        -132 => "Tham số không hợp lệ.",
+        -147 => "Template vượt giới hạn gửi trong ngày.",
+        -1471 => "Vượt giới hạn gửi tháng (user).",
+        -1472 => "Vượt giới hạn gửi ngày (promotion).",
+        // ATTACHMENT / FILE
+        -100 => "Tệp đính kèm hết hạn, tải lên lại để lấy ID mới.",
+        -158 => "File quá lớn.",
+        -159 => "Định dạng file không hỗ trợ.",
+        // REQUEST / DATA
+        -153 => "Dữ liệu request sai cấu trúc hoặc không hợp lệ.",
+        -210 => "Tham số vượt giới hạn cho phép.",
+        -201 => "Tham số không hợp lệ.",
+        // SYSTEM / UNKNOWN
+        -200 => "Gửi tin nhắn thất bại.",
+        // APP / AUTH
+        -101 => "Ứng dụng không hợp lệ.",
+        -103 => "Ứng dụng chưa kích hoạt.",
+        -104 => "Secret key không hợp lệ.",
+        -106 => "Phương thức API không hỗ trợ.",
+        -124 => "Access token không hợp lệ hoặc hết hạn.",
+        -1241 => "appsecret_proof không hợp lệ.",
+        -216 => "Access token không hợp lệ hoặc hết hạn.",
+        -220 => "Access token đã hết hạn hoặc bị thu hồi.",
+        -219 => "Ứng dụng đã bị vô hiệu hóa hoặc gỡ bỏ.",
+        -209 => "API chưa được kích hoạt.",
+        -212 => "Ứng dụng chưa đăng ký API.",
+        -223 => "OA chưa cấp quyền cho API hoặc vượt quota nội dung.",
+        -242 => "appsecret_proof cung cấp trong tham số API không hợp lệ.",
+        // OA / ACCOUNT
+        -120 => "OA chưa có quyền sử dụng tính năng.",
+        -1202 => "OA không có quyền dùng media.",
+        -125 => "OA ID không hợp lệ.",
+        -204 => "OA đã bị vô hiệu hóa hoặc bị xóa.",
+        -205 => "OA không tồn tại.",
+        -221 => "OA chưa xác thực.",
+        -224 => "OA chưa nâng cấp gói dịch vụ.",
+        -135 => "OA chưa xác thực (gửi qua SĐT).",
+        -1351 => "OA bị chặn do vi phạm chính sách.",
+        -136 => "Chưa kết nối Zalo Cloud Account.",
+        -138 => "Ứng dụng chưa được cấp quyền API.",
+        -1381 => "Extension chưa có quyền.",
+        -235 => "API không hỗ trợ loại OA này.",
+        // USER
+        -108 => "Số điện thoại không hợp lệ.",
+        -118 => "Tài khoản người dùng không tồn tại.",
+        -139 => "Người dùng từ chối nhận tin.",
+        -140 => "Người dùng không đủ điều kiện nhận tin.",
+        -141 => "Người dùng đã chặn OA.",
+        -213 => "Người dùng chưa quan tâm OA.",
+        -217 => "Người dùng đã chặn lời mời.",
+        -218 => "Vượt giới hạn gửi tới user.",
+        -227 => "User bị khóa hoặc không hoạt động >45 ngày.",
+        -230 => "User không tương tác trong 7 ngày.",
+        -232 => "User chưa tương tác hoặc đã hết hạn tương tác.",
+        -244 => "User hạn chế nhận loại tin nhắn này.",
+        // QUOTA / BILLING
+        -115 => "Tài khoản không đủ số dư.",
+        -126 => "Ví development không đủ tiền.",
+        -137 => "Thanh toán thất bại.",
+        -144 => "Vượt quota gửi ngày.",
+        -1441 => "Vượt quota promotion tháng.",
+        -211 => "Vượt quota sử dụng.",
+        -320 => "Chưa kết nối Zalo Cloud Account.",
+        -321 => "Zalo Cloud Account không đủ tiền.",
+        // MESSAGE / POLICY
+        -145 => "Loại tin nhắn không được phép.",
+        -233 => "Loại tin nhắn không hợp lệ.",
+        -234 => "Không được gửi tin từ 22h - 6h.",
+        -248 => "Vi phạm chính sách nền tảng.",
+        -249 => "Template không hỗ trợ gửi qua UID.",
+        // JOURNEY / TOKEN
+        -148 => "Journey token không hợp lệ hoặc hết hạn.",
+        -149 => "Journey token không hợp lệ hoặc hết hạn.",
+        -150 => "Journey token không hợp lệ hoặc hết hạn.",
+        // GROUP / ASSET
+        -237 => "Nhóm chat đã hết hạn.",
+        -238 => "asset_id không hợp lệ hoặc đã dùng.",
+        -241 => "asset_id miễn phí đã được sử dụng.",
+        -403 => "OA không thuộc nhóm chat này.",
+        // API VERSION
+        -240 => "API V2 đã ngừng: Hãy dùng API V3.",
+        // FORM
+        -1340 => "Không tìm thấy Form.",
+        -1341 => "OA không có quyền truy cập Form.",
+        // OTHER
+        -107 => "ID thông báo không hợp lệ.",
+        -127 => "Tin test chỉ gửi cho admin.",
+        -142 => "Thiếu RSA key.",
+        -143 => "RSA key đã tồn tại.",
+        -160 => "Vượt quota tạo Template.",
+        -161 => "sending_mode không hợp lệ.",
+        -162 => "sending_mode không được hỗ trợ.",
+    ];
 
     public function __construct($app_id = '', $oa_id = '') {
         global $sugar_config;
-        $this->domain           = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
-        $this->template_path    = "custom/json_files/zalo_messages/templates.json";
-        $this->images_path      = "themes/SuiteP/images/zalo_messages";
+        $this->domain = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
 
         if(!is_string($app_id) || empty($app_id)) $app_id = $sugar_config['zalo_config']['app_id_default'] ?? '';
         if(!is_string($oa_id) || empty($oa_id)) $oa_id = $sugar_config['zalo_config']['oa_id_default'] ?? '';
@@ -38,7 +148,6 @@ class APIZaloOA {
 
     public function get_oa_id() {return $this->oa->id;}
     public function get_app_id() {return $this->app->id;}
-    public function get_images_path() {return $this->images_path;}
     public function get_domain() {return $this->domain;}
 
 
@@ -749,128 +858,8 @@ class APIZaloOA {
      * @return string Combined error message and handling instruction
      */
     public function get_error_description($error_code) {
-        switch ((int)$error_code) {
-            case 0:
-                return "Thành công: Gửi tin nhắn thành công.";
-            case -109:
-                return "ID Template không hợp lệ: Vui lòng kiểm tra lại ID của Template.";
-            case -110:
-                return "Phiên bản Zalo không hỗ trợ: Người dùng cần cập nhật Zalo app phiên bản mới nhất.";
-            case -111:
-                return "Dữ liệu Template trống: Template không có dữ liệu để gửi.";
-            case -1121:
-                return "Tham số quá dài: Dữ liệu tham số vượt quá giới hạn ký tự cho phép.";
-            case -1122:
-                return "Thiếu tham số: Dữ liệu truyền vào thiếu tham số bắt buộc trong Template.";
-            case -1123:
-                return "Lỗi QR code: Không thể tạo QR code, vui lòng kiểm tra lại dữ liệu đầu vào.";
-            case -1124:
-                return "Sai định dạng tham số: Kiểm tra lại format dữ liệu của các biến (ví dụ: ngày tháng, số tiền).";
-            case -113:
-                return "Nút bấm (Button) không hợp lệ.";
-            case -1131:
-                return "Link không đúng định dạng: Kiểm tra lại đường dẫn liên kết của các nút thao tác.";
-            case -116:
-                return "Nội dung tham số không hợp lệ.";
-            case -117:
-                return "Không có quyền dùng Template: OA hoặc App chưa được cấp quyền cho Template này. Kiểm tra AppID/OAID/tempID.";
-            case -121:
-                return "Nội dung trống: Template không có nội dung, vui lòng nhập nội dung mẫu.";
-            case -122:
-                return "Sai định dạng Body: Body request không đúng định dạng JSON.";
-            case -130:
-                return "Vượt quá ký tự: Nội dung Template vượt quá giới hạn (tối đa 100k ký tự).";
-            case -131:
-                return "Template chưa phê duyệt: Vui lòng chờ Zalo duyệt mẫu tin nhắn này trước khi gửi.";
-            case -132:
-                return "Tham số không hợp lệ.";
-            case -249:
-                return "Không hỗ trợ UID: Template cũ (trước 10/12/2025) hoặc loại OTP/Journey không hỗ trợ gửi qua UID. Hãy clone/tạo mới template.";
-            case -100:
-                return "Lỗi không xác định: Vui lòng thử lại sau.";
-            case -101:
-                return "Ứng dụng không hợp lệ: Kiểm tra lại ID ứng dụng tại Zalo for Developers.";
-            case -103:
-                return "Ứng dụng chưa kích hoạt: Truy cập Zalo for Developers để bật kích hoạt ứng dụng.";
-            case -104:
-                return "Secret key không hợp lệ: Kiểm tra lại Secret key trong thiết lập ứng dụng.";
-            case -106:
-                return "Phương thức không hỗ trợ: Đối chiếu phương thức gọi API với tài liệu Zalo.";
-            case -107:
-                return "ID thông báo không hợp lệ.";
-            case -108:
-                return "Số điện thoại không hợp lệ: Kiểm tra lại định dạng (ví dụ: 84xxxx hoặc 0xxxx).";
-            case -115:
-                return "Hết hạn mức: Tài khoản ZBS không đủ số dư, vui lòng nạp tiền tại ZBS Account.";
-            case -118:
-                return "Tài khoản không tồn tại: Người dùng chưa đăng ký Zalo hoặc tài khoản bị vô hiệu hóa.";
-            case -120:
-                return "OA không có quyền: Cần mua gói dịch vụ để sử dụng tính năng này.";
-            case -1202:
-                return "OA không có quyền sử dụng tài nguyên media (image/logo).";
-            case -124:
-                return "Access token không hợp lệ: Vui lòng làm mới (refresh) access token.";
-            case -1241:
-                return "appsecret_proof không hợp lệ: Kiểm tra lại mã hóa appsecret_proof.";
-            case -125:
-                return "ID Official Account không hợp lệ: Kiểm tra lại OA ID trong quản lý OA.";
-            case -126:
-                return "Ví development không đủ số dư: Vui lòng kiểm tra lại tài khoản thử nghiệm.";
-            case -127:
-                return "Lỗi gửi thử: Tin nhắn test chỉ có thể gửi cho quản trị viên.";
-            case -135:
-                return "OA chưa xác thực: Cần xác thực OA hoặc nâng cấp khỏi gói miễn phí để gửi qua SĐT.";
-            case -1351:
-                return "OA bị chặn: Hệ thống chặn gửi tin do phát hiện vi phạm chính sách.";
-            case -136:
-                return "Chưa kết nối ZBS Account: Cần liên kết App ID vào Zalo Cloud Account (ZCA).";
-            case -137:
-                return "Thanh toán thất bại: Ví ZBS không đủ số dư để thực hiện giao dịch.";
-            case -138:
-                return "Ứng dụng chưa được cấp quyền: Kiểm tra xét duyệt API gửi tin SĐT tại trang Developer.";
-            case -1381:
-                return "Extension chưa có quyền: OA chưa cấp quyền sử dụng ZBS Account cho Extension.";
-            case -139:
-                return "Người dùng từ chối: Khách hàng đã tắt nhận loại tin nhắn SĐT này.";
-            case -140:
-                return "Không đủ điều kiện: Người dùng không nằm trong diện nhận tin theo chính sách Zalo.";
-            case -141:
-                return "Người dùng chặn OA: Khách hàng đã từ chối nhận tin SĐT từ Official Account này.";
-            case -142:
-                return "Thiếu RSA key: Vui lòng gọi API khởi tạo RSA key.";
-            case -143:
-                return "RSA key đã tồn tại: Vui lòng gọi API lấy RSA key hiện có.";
-            case -144:
-                return "Vượt định mức ngày: OA đã gửi quá giới hạn tin nhắn SĐT cho phép trong ngày.";
-            case -1441:
-                return "Vượt định mức khuyến mãi: OA đã gửi vượt ngưỡng monthly promotion quota.";
-            case -145:
-                return "Loại tin nhắn không được phép: Nội dung (Tag) này không được hỗ trợ cho OA của bạn.";
-            case -147:
-                return "Template vượt định mức: Mẫu tin nhắn này đã đạt giới hạn gửi trong ngày.";
-            case -1471:
-                return "Vượt giới hạn tháng: Đã gửi quá số lượng tin hậu mãi cho người dùng này trong tháng.";
-            case -1472:
-                return "Vượt giới hạn ngày: Đã gửi quá số lượng tin promotion cho người dùng này trong ngày.";
-            case -148:
-            case -149:
-            case -150:
-                return "Lỗi Journey Token: Token không tồn tại, không hợp lệ hoặc đã hết hạn.";
-            case -153:
-                return "Dữ liệu sai quy định: Kiểm tra lại cấu trúc JSON hoặc tham số truyền vào API.";
-            case -158:
-                return "File quá lớn: Dung lượng file vượt quá giới hạn cho phép.";
-            case -159:
-                return "Định dạng file không hỗ trợ.";
-            case -160:
-                return "Hết quota tạo Template: Đã vượt quá số lượng tạo/chỉnh sửa template trong ngày.";
-            case -161:
-                return "sending_mode sai: Giá trị chế độ gửi không hợp lệ.";
-            case -162:
-                return "Chế độ gửi không hỗ trợ: Tag 1, 2 không được dùng sending_mode = 3.";
-            default:
-                return "Lỗi hệ thống ($error_code): Vui lòng kiểm tra lại cấu hình hoặc liên hệ hỗ trợ Zalo.";
-        }
+        $error_code = (int)($error_code);
+        return self::ERROR_MAP[$error_code] ?? "Lỗi hệ thống ($error_code), vui lòng kiểm tra lại.";
     }
 
 
@@ -927,8 +916,8 @@ class APIZaloOA {
     public function get_template_handmade($name, $return_type = 'array') {
         $result = [];
 
-        if(file_exists($this->template_path)) {
-            $json = file_get_contents($this->template_path);
+        if(file_exists(self::TEMPLATE_PATH)) {
+            $json = file_get_contents(self::TEMPLATE_PATH);
             $arr  = json_decode($json, true);
 
             if($arr && isset($arr[$name])) {

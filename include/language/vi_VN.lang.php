@@ -1781,9 +1781,9 @@ $app_strings = array(
     'LBL_VIEW_IMAGE' => 'xem',
 
     'LNK_ABOUT' => 'Về',
-    'LNK_ADVANCED_FILTER' => 'Lọc nâng cao',
+    'LNK_ADVANCED_FILTER' => 'Bộ lọc',
     'LNK_BASIC_FILTER' => 'Lọc nhanh',
-    'LBL_ADVANCED_SEARCH' => 'Lọc nâng cao',
+    'LBL_ADVANCED_SEARCH' => 'Bộ lọc',
     'LBL_QUICK_FILTER' => 'Lọc nhanh',
     'LBL_BASIC_FILTER' => 'Lọc cơ bản',
     'LBL_QUICK' => 'Nhanh chóng',
@@ -2182,10 +2182,6 @@ $app_strings = array(
     'ERR_FACTOR_TPL_INVALID' => 'Thông điệp xác thực yếu tố là không hợp lệ, vui lòng liên hệ với người quản trị.',
     'LBL_SUBTHEMES' => 'Kiểu',
     'LBL_SUBTHEME_OPTIONS_DAWN' => 'Bình minh',
-    'LBL_SUBTHEME_OPTIONS_DAY' => 'Ngày',
-    'LBL_SUBTHEME_OPTIONS_DUSK' => 'Chạng vạng',
-    'LBL_SUBTHEME_OPTIONS_NIGHT' => 'Đêm',
-    'LBL_SUBTHEME_OPTIONS_NOON' => 'Trưa',
 
     'LBL_CONFIRM_DISREGARD_DRAFT_TITLE' => 'Bỏ qua bản dự thảo',
     'LBL_CONFIRM_DISREGARD_DRAFT_BODY' => 'Thao tác này sẽ xóa email này, bạn có muốn tiếp tục?',

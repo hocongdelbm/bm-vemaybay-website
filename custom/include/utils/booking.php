@@ -23,16 +23,10 @@ function createContactsForBooking($phoneNumber, $contactName = '')
         $contact->description = 'Liên hệ mới tạo từ booking';
         $contact_id = $contact->save();
         if (empty($contact_id)) {
-            // $message = Mattermost::$line_separation;
-            // $message .= "Tạo liên hệ mới thất bại với số điện thoại: **$phoneNumber**";
-            // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-
-            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-            $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-            Telegram::sendMessage("<b>Tạo liên hệ mới thất bại với SĐT: $phoneNumber</b>", $botToken, $chatId, $threadId);
+            NotificationService::sendWarningMessage("Tạo liên hệ mới thất bại với SĐT: $phoneNumber", "", ["threadKey" => "system"]);
         }
-    } else {
+    }
+    else {
         $contact->retrieve($contact_id);
 
         if (empty($contact->last_name) || stripos($contact->last_name, "Khách") !== false || stripos($contact->last_name, "Khach") !== false || stripos($contact->last_name, "Tele") !== false || preg_match('/^[0-9 ]*$/', $contact->last_name)) {
@@ -902,17 +896,19 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
 
     // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
     if (isset($condition_arr['payment_stt'])) {
-        if ($condition_arr['payment_stt'] == 1) {
+        if ((int)$condition_arr['payment_stt'] === 1) {
             // Chưa thu
             $sql_having = ' HAVING receipt_amount = 0';
-        } else if ($condition_arr['payment_stt'] == 2) {
+        } else if ((int)$condition_arr['payment_stt'] === 2) {
             // Chưa thu đủ
             $sql_having = ' HAVING receipt_amount < subtotal_amount AND receipt_amount > 0';
-        } else if ($condition_arr['payment_stt'] == 3) {
+        } else if ((int)$condition_arr['payment_stt'] === 3) {
             // Booking telesale
             $sql_having = ' HAVING is_telesale = 1';
-        } else if ($condition_arr['payment_stt'] == 4) {
+        } else if ((int)$condition_arr['payment_stt'] === 4) {
             $sql_having = ' HAVING is_ctv = 1';
+        } else if((int)$condition_arr['payment_stt'] === 5) {
+            $sql_having = ' HAVING is_reference = 1';
         }
     }
 
@@ -928,219 +924,225 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
         $where_ticket_type .= " AND bk.ticket_type = '{$condition_arr['ticket_type']}' ";
     }
 
-    $sql = "SELECT 
-                bk.id AS parent_id
-                , bk.id AS booking_id
-                , bk.name AS booking_name
-                , bk.name AS parent_name
-                , 'EC_Flight_Bookings' AS parent_type
-                , SUM(bkd.quantity) AS total_quantity
-                , bk.total_amount AS subtotal_amount 
-                , (
-                    IFNULL((
-                        SELECT SUM(IFNULL(pc1.down * 1000, 0))
-                        FROM ec_contact_points_log pc1
-                        WHERE pc1.parent_type = 'EC_Flight_Bookings' 
-                            AND pc1.parent_id = bk.id 
-                            AND pc1.deleted = 0
-                    ), 0)
-                    -  
-                    IFNULL((
-                        SELECT SUM(IFNULL(pc2.up * 1000, 0))
-                        FROM ec_contact_points_log pc2
-                        WHERE pc2.parent_type = 'EC_Contact_Points_Log' 
-                            AND pc2.parent_id IN (
-                                SELECT pc_inner.id
-                                FROM ec_contact_points_log pc_inner
-                                WHERE pc_inner.parent_type = 'EC_Flight_Bookings' 
-                                    AND pc_inner.parent_id = bk.id 
-                                    AND pc_inner.deleted = 0
-                            )
-                            AND pc2.deleted = 0
-                    ), 0)
-                ) AS total_points_amount
-                , (SUM(IFNULL(bkd.total_bought_price,0)) 
-                +
+    $sql = 
+        "SELECT 
+            bk.id AS parent_id
+            , bk.id AS booking_id
+            , bk.name AS booking_name
+            , bk.name AS parent_name
+            , 'EC_Flight_Bookings' AS parent_type
+            , SUM(bkd.quantity) AS total_quantity
+            , bk.total_amount AS subtotal_amount 
+            , (
                 IFNULL((
-                    SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
-                    FROM ec_booking_passengers px
-                    WHERE px.booking_id = bk.id 
-                    AND px.deleted = 0 
-                    AND (px.add_type IS NULL OR px.add_type = '')
-                ),0)) AS total_bought_price
-                , bk.flight_type
-                , bk.ticket_type
-                , bk.description AS booking_description
-                , bk.booking_status AS parent_status
-                , bk.assigned_user_id AS user_id
-                , IFNULL((
-                    SELECT SUM(IFNULL(r.amount_converted,0))
-                    FROM ec_receipt_voucher r
-                    WHERE 
-                        r.booking_id = bk.id
-                        AND r.rv_status='1'
-                        AND r.loai_thu='1'
-                        AND r.deleted=0
-                    GROUP BY r.booking_id
-                ), 0) AS receipt_amount
-                ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
-                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
-                ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y') AS voucher_date
-                ,(
-                    SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR)
-                    FROM ec_working_process
-                    WHERE deleted = 0 AND paid = 1
-                    AND parent_id = bk.id
-                ) AS paid_time
-                , bk.is_telesale as is_telesale
-                , bk.is_ctv as is_ctv
-                , bk.phone as contact_mobile
-            FROM ec_booking_details bkd 
-            LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted=0 
-            WHERE bk.booking_status IN ('3', '7', '8')
-                AND bk.date_ticket_issue BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                $where_bk_fields
-                $where_ticket_type
-                $sql_role
-                AND bkd.deleted = 0 
-            GROUP BY bk.id
-            $sql_having";
+                    SELECT SUM(IFNULL(pc1.down * 1000, 0))
+                    FROM ec_contact_points_log pc1
+                    WHERE pc1.parent_type = 'EC_Flight_Bookings' 
+                        AND pc1.parent_id = bk.id 
+                        AND pc1.deleted = 0
+                ), 0)
+                -  
+                IFNULL((
+                    SELECT SUM(IFNULL(pc2.up * 1000, 0))
+                    FROM ec_contact_points_log pc2
+                    WHERE pc2.parent_type = 'EC_Contact_Points_Log' 
+                        AND pc2.parent_id IN (
+                            SELECT pc_inner.id
+                            FROM ec_contact_points_log pc_inner
+                            WHERE pc_inner.parent_type = 'EC_Flight_Bookings' 
+                                AND pc_inner.parent_id = bk.id 
+                                AND pc_inner.deleted = 0
+                        )
+                        AND pc2.deleted = 0
+                ), 0)
+            ) AS total_points_amount
+            , (SUM(IFNULL(bkd.total_bought_price,0)) 
+            +
+            IFNULL((
+                SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
+                FROM ec_booking_passengers px
+                WHERE px.booking_id = bk.id 
+                AND px.deleted = 0 
+                AND (px.add_type IS NULL OR px.add_type = '')
+            ),0)) AS total_bought_price
+            , bk.flight_type
+            , bk.ticket_type
+            , bk.description AS booking_description
+            , bk.booking_status AS parent_status
+            , bk.assigned_user_id AS user_id
+            , IFNULL((
+                SELECT SUM(IFNULL(r.amount_converted,0))
+                FROM ec_receipt_voucher r
+                WHERE 
+                    r.booking_id = bk.id
+                    AND r.rv_status='1'
+                    AND r.loai_thu='1'
+                    AND r.deleted=0
+                GROUP BY r.booking_id
+            ), 0) AS receipt_amount
+            ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
+            ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y %H:%i') AS bk_date_entered
+            ,DATE_FORMAT(DATE_ADD(bk.date_entered, INTERVAL 7 HOUR), '%d-%m-%Y') AS voucher_date
+            ,(
+                SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR)
+                FROM ec_working_process
+                WHERE deleted = 0 AND paid = 1
+                AND parent_id = bk.id
+            ) AS paid_time
+            , bk.is_telesale as is_telesale
+            , bk.is_ctv as is_ctv
+            , bk.is_reference as is_reference
+            , bk.phone as contact_mobile
+            , bk.country
+        FROM ec_booking_details bkd 
+        LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted=0 
+        WHERE bk.booking_status IN ('3', '7', '8')
+            AND bk.date_ticket_issue BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+            $where_bk_fields
+            $where_ticket_type
+            $sql_role
+            AND bkd.deleted = 0 
+        GROUP BY bk.id
+        $sql_having";
 
     if (empty($condition_arr['payment_stt'])) {
         $sql .= " UNION
-                    SELECT 
-                        p.id AS parent_id
-                        , p.booking_id AS booking_id
-                        , bk.name AS booking_name
-                        , p.name AS parent_name
-                        , 'EC_Receipt_Voucher' AS parent_type
-                        , 0 AS total_quantity
-                        , SUM(IF(p.rv_status IN (1, 2), p.amount, 0))  AS subtotal_amount
-                        , 0 AS total_points_amount
-                        , SUM(
-                            IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount, 0), 0) 
-                            + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount2, 0), 0) 
-                            + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount3, 0), 0)
-                        ) AS total_bought_price
-                        ,'' AS flight_type
-                        ,'' AS ticket_type
-                        ,'' AS booking_description
-                        ,p.rv_status AS parent_status
-                        , p.assigned_user_id AS user_id
-                        ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
-                        , '' AS date_ticket_issue
-                        , '' AS bk_date_entered
-                        , DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS voucher_date
-                        , '' AS paid_time
-                        , 0 as is_telesale
-                        , 0 as is_ctv
-                        , '' as contact_mobile
-                    FROM ec_receipt_voucher p
-                    LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
-                    WHERE 
-                        p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
-                        AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                        AND p.deleted = 0
-                        " . str_replace('bk.', 'p.', $sql_role) . "
-                        AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
-                    GROUP BY p.id
+            SELECT 
+                p.id AS parent_id
+                , p.booking_id AS booking_id
+                , bk.name AS booking_name
+                , p.name AS parent_name
+                , 'EC_Receipt_Voucher' AS parent_type
+                , 0 AS total_quantity
+                , SUM(IF(p.rv_status IN (1, 2), p.amount, 0))  AS subtotal_amount
+                , 0 AS total_points_amount
+                , SUM(
+                    IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount, 0), 0) 
+                    + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount2, 0), 0) 
+                    + IF(p.rv_status IN (1, 2), IFNULL(p.bought_amount3, 0), 0)
+                ) AS total_bought_price
+                ,'' AS flight_type
+                ,'' AS ticket_type
+                ,'' AS booking_description
+                ,p.rv_status AS parent_status
+                , p.assigned_user_id AS user_id
+                ,SUM(IF(p.rv_status IN (1, 2), p.amount, 0)) AS receipt_amount
+                , '' AS date_ticket_issue
+                , '' AS bk_date_entered
+                , DATE_FORMAT(DATE_ADD(p.ngayhachtoan, INTERVAL 7 HOUR), '%d-%m-%Y') AS voucher_date
+                , '' AS paid_time
+                , 0 as is_telesale
+                , 0 as is_ctv
+                , 0 as is_reference
+                , '' as contact_mobile
+                , '' AS country
+            FROM ec_receipt_voucher p
+            LEFT JOIN ec_flight_bookings bk ON bk.id = p.booking_id AND bk.deleted = 0
+            WHERE 
+                p.loai_thu IN ('4', '5', '10', '11', '12', '13', '14', '16') 
+                AND DATE(p.ngayhachtoan) BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                AND p.deleted = 0
+                " . str_replace('bk.', 'p.', $sql_role) . "
+                AND IF(p.loai_thu = 10, IF(p.bought_amount IS NULL OR p.bought_amount = 0, 0, 1), 1) = 1
+            GROUP BY p.id
 
-                    UNION
-                    SELECT 
-                        hv_t.parent_id
-                        , hv_t.booking_id AS booking_id
-                        , hv_t.booking_name AS booking_name
-                        , hv_t.parent_name
-                        , hv_t.parent_type
-                        , SUM(hv_t.total_quantity) AS total_quantity
-                        , SUM(hv_t.subtotal_amount) AS subtotal_amount
-                        , 0 AS total_points_amount
-                        , SUM(hv_t.total_bought_price) AS total_bought_price
-                        , hv_t.flight_type
-                        , hv_t.ticket_type
-                        , hv_t.booking_description
-                        , hv_t.parent_status
-                        , hv_t.user_id
-                        , hv_t.receipt_amount
-                        , hv_t.date_ticket_issue
-                        , '' AS bk_date_entered
-                        , hv_t.voucher_date AS voucher_date
-                        , '' AS paid_time
-                        , 0 as is_telesale
-                        , 0 as is_ctv
-                        , '' as contact_mobile
-                    FROM 
-                    (
-                        -- hoan ve < 0
-                        SELECT 
-                            p.id AS parent_id
-                            , p.booking_id AS booking_id
-                            , bk.name AS booking_name
-                            , p.name AS parent_name
-                            , 'EC_HoanVe' AS parent_type
-                            , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
-                            , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS subtotal_amount
-                            , 0 AS total_points_amount
-                            , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS total_bought_price
-                            ,'' AS flight_type
-                            ,'' AS ticket_type
-                            ,'' AS booking_description
-                            , p.tinhtrang AS parent_status
-                            , bk.assigned_user_id AS user_id
-                            , 0 AS receipt_amount
-                            ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
-                            ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
-                        FROM ec_hoanve p
-                            INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
-                        WHERE p.deleted=0
-                            AND p.tinhtrang='1'
-                            AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                            " . $sql_role . "
-                        GROUP BY p.id
+            UNION
+            SELECT 
+                hv_t.parent_id
+                , hv_t.booking_id AS booking_id
+                , hv_t.booking_name AS booking_name
+                , hv_t.parent_name
+                , hv_t.parent_type
+                , SUM(hv_t.total_quantity) AS total_quantity
+                , SUM(hv_t.subtotal_amount) AS subtotal_amount
+                , 0 AS total_points_amount
+                , SUM(hv_t.total_bought_price) AS total_bought_price
+                , hv_t.flight_type
+                , hv_t.ticket_type
+                , hv_t.booking_description
+                , hv_t.parent_status
+                , hv_t.user_id
+                , hv_t.receipt_amount
+                , hv_t.date_ticket_issue
+                , '' AS bk_date_entered
+                , hv_t.voucher_date AS voucher_date
+                , '' AS paid_time
+                , 0 as is_telesale
+                , 0 as is_ctv
+                , 0 as is_reference
+                , '' as contact_mobile
+                , '' AS country
+            FROM 
+            (
+                -- hoan ve < 0
+                SELECT 
+                    p.id AS parent_id
+                    , p.booking_id AS booking_id
+                    , bk.name AS booking_name
+                    , p.name AS parent_name
+                    , 'EC_HoanVe' AS parent_type
+                    , -(SELECT COUNT(id) FROM ec_chitiethoanve WHERE deleted = 0 AND hoanve_id = p.id) AS total_quantity
+                    , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienkhach,0)), 0) AS subtotal_amount
+                    , 0 AS total_points_amount
+                    , - IF(SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) <= 0, SUM(IFNULL(p.tongtienhang,0)), 0)  AS total_bought_price
+                    ,'' AS flight_type
+                    ,'' AS ticket_type
+                    ,'' AS booking_description
+                    , p.tinhtrang AS parent_status
+                    , bk.assigned_user_id AS user_id
+                    , 0 AS receipt_amount
+                    ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
+                    ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
+                FROM ec_hoanve p
+                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
+                WHERE p.deleted=0
+                    AND p.tinhtrang='1'
+                    AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    " . $sql_role . "
+                GROUP BY p.id
 
-                        -- hoan ve > 0
-                        UNION
-                        SELECT 
-                            p.id AS parent_id
-                            , p.booking_id AS booking_id
-                            , bk.name AS booking_name
-                            , p.name AS parent_name
-                            , 'EC_HoanVe' AS parent_type
-                            , 0 AS total_quantity
-                            , - SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
-                            , 0 AS total_points_amount
-                            , - SUM(IFNULL(p.tongtienhang,0))  AS total_bought_price
-                            , '' AS flight_type
-                            , '' AS ticket_type
-                            , '' AS booking_description
-                            , p.tinhtrang AS parent_status
-                            , bk.assigned_user_id AS user_id
-                            , 0 AS receipt_amount
-                            ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
-                            ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
-                        FROM ec_hoanve p
-                            INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
-                        WHERE p.deleted=0
-                            AND p.tinhtrang='1' 
-                            AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
-                            " . str_replace('bk', 'p', $sql_role) . "
-                        GROUP BY p.id
-                        HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
-                    ) AS hv_t
-                    GROUP BY hv_t.parent_id
-                    ORDER BY total_quantity DESC 
-                ";
+                -- hoan ve > 0
+                UNION
+                SELECT 
+                    p.id AS parent_id
+                    , p.booking_id AS booking_id
+                    , bk.name AS booking_name
+                    , p.name AS parent_name
+                    , 'EC_HoanVe' AS parent_type
+                    , 0 AS total_quantity
+                    , - SUM(IFNULL(p.tongtienkhach,0)) AS subtotal_amount
+                    , 0 AS total_points_amount
+                    , - SUM(IFNULL(p.tongtienhang,0))  AS total_bought_price
+                    , '' AS flight_type
+                    , '' AS ticket_type
+                    , '' AS booking_description
+                    , p.tinhtrang AS parent_status
+                    , bk.assigned_user_id AS user_id
+                    , 0 AS receipt_amount
+                    ,DATE_FORMAT(bk.date_ticket_issue, '%d-%m-%Y') AS date_ticket_issue
+                    ,DATE_FORMAT(p.ngayhachtoan, '%d-%m-%Y') AS voucher_date
+                FROM ec_hoanve p
+                    INNER JOIN ec_flight_bookings bk ON bk.deleted = 0 AND bk.id = p.booking_id $where_bk_fields
+                WHERE p.deleted=0
+                    AND p.tinhtrang='1' 
+                    AND p.ngayhachtoan BETWEEN '" . date('Y-m-d', strtotime($from_date)) . "' AND '" . date('Y-m-d', strtotime($to_date)) . "'
+                    " . str_replace('bk', 'p', $sql_role) . "
+                GROUP BY p.id
+                HAVING SUM(IFNULL(p.tongtienhang,0)) - SUM(IFNULL(p.tongtienkhach,0)) > 0
+            ) AS hv_t
+            GROUP BY hv_t.parent_id
+            ORDER BY total_quantity DESC ";
     }
 
-    $result = array(
+    $result = [
         'from_date' => $from_date,
         'to_date' => $to_date,
         'count' => 0,
         'total_profit' => 0,
         'total_revenue' => 0,
         'total_bought' => 0,
-        'details' => array()
-    );
+        'details' => []
+    ];
 
     // if ($GLOBALS['current_user']->user_name == 'hungnh') {
     //     pr($sql);

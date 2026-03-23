@@ -960,31 +960,18 @@ class entryAutoBookPhuongNamClass extends entryClass {
                     try {
                         $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
                         $linkBooking = "https://{$this->domain}/index.php?module=EC_Flight_Bookings&action=DetailView&record=$bookingId";
+                        $link = "<a href=\"".$linkBooking."\">$pnr</a>";
 
-                        if($this->notificationChannel == 'Mattermost') {
-                            $link = Mattermost::markdownLink($linkBooking, $pnr);
-                            
-                            $m = "Giữ chỗ $systemName: $link bởi **$fullname**";
-                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] == true) $m = "**Xuất vé cận $systemName: $pnr bởi $fullname**";
-                            if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n- Transaction ID: " . $f["TransactionId"];
-                            $m .= "\nNCC: **{$this->supplierName}**";
+                        $m = "Giữ chỗ $systemName: $link bởi <b>$fullname</b>";
+                        if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] === true) $m = "<b>💰 Xuất vé cận $systemName: $link bởi $fullname</b>";
+                        if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
+                        $m .= "\nNCC: <b>{$this->supplierName}</b>";
 
-                            Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
-                        }
-                        else {
-                            $link = "<a href=\"".$linkBooking."\">$pnr</a>";
-
-                            $m = "Giữ chỗ $systemName: $link bởi <b>$fullname</b>";
-                            if(isset($requestBody['IsIssueTicket']) && $requestBody['IsIssueTicket'] === true) $m = "<b>💰 Xuất vé cận $systemName: $link bởi $fullname</b>";
-                            if(isset($f["TransactionId"]) && !empty($f["TransactionId"])) $m .= "\n<i>Transaction ID: ". ($f["TransactionId"]) ."</i>";
-                            $m .= "\nNCC: <b>{$this->supplierName}</b>";
-
-                            $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
-                            $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
-                            Telegram::sendMessage($m, $botToken, $chatId);
-                        }
+                        NotificationService::sendMessage($m, 'autobook');
                     }
-                    catch(Throwable $th) {}
+                    catch(Throwable $th) {
+                        $GLOBALS['log']->warning("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+                    }
 
                     if($bookingType == 'roundtrip') {
                         // Update PNR
@@ -1156,21 +1143,14 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
                 $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
 
-                if($this->notificationChannel == 'Mattermost') {
-                    $m = "**Xuất vé $systemName: $bookingCode bởi $fullname**";
-                    $m .= "\n- NCC: **{$this->supplierName}**";
-                    Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
-                }
-                else {
-                    $m = "<b>💰 Xuất vé $systemName: $bookingCode bởi $fullname</b>";
-                    $m .= "\nNCC: <b>{$this->supplierName}</b>";
-                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
-                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
-                    Telegram::sendMessage($m, $botToken, $chatId);
-                }
+                $m = "<b>💰 Xuất vé $systemName: $bookingCode bởi $fullname</b>";
+                $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                NotificationService::sendMessage($m, 'autobook');
             }
         }
-        catch(Throwable $th) {}
+        catch(Throwable $th) {
+            $GLOBALS['log']->warning("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+        }
 
         return $responseArr;
     }
@@ -1257,21 +1237,14 @@ class entryAutoBookPhuongNamClass extends entryClass {
                 $fullname = trim($this->currentUser->last_name.' '.$this->currentUser->first_name);
                 $systemName = $this->mappingSystemCodeName[$systemCode] ?? $systemCode;
 
-                if($this->notificationChannel == 'Mattermost') {
-                    $m = "**Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname**";
-                    $m .= "\n- NCC: **{$this->supplierName}**";
-                    Mattermost::sendMessage($this->mattermostConfig['channel_id_api_phuong_nam'] ?? '', $m);
-                }
-                else {
-                    $m = "<b>Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname</b>";
-                    $m .= "\nNCC: <b>{$this->supplierName}</b>";
-                    $botToken   = $this->telegramConfig['autobook']['bot_token'] ?? '';
-                    $chatId     = $this->telegramConfig['autobook']['chat_id'] ?? '';
-                    Telegram::sendMessage($m, $botToken, $chatId);
-                }
+                $m = "<b>Hủy giữ chỗ $bookingCode ($systemName) bởi $fullname</b>";
+                $m .= "\nNCC: <b>{$this->supplierName}</b>";
+                NotificationService::sendMessage($m, 'autobook');
             }
         }
-        catch(Throwable $th) {}
+        catch(Throwable $th) {
+            $GLOBALS['log']->warning("{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
+        }
 
         return $responseArr;
     }

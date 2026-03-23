@@ -18,7 +18,7 @@ class entryZaloMessageClass extends entryClass {
      */
     public function sendZNS($params = []) {
         try {
-            $type = $params["type"] ?? ""; // ZNS type
+            $type = $params["type"] ?? ""; // ZBS type
             
             if(!in_array($type, ['otp', 'share-phone'])) {
                 return [

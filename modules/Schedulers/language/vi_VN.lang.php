@@ -153,6 +153,8 @@ $mod_strings = [
     // AUTOCALL
     'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
     'LBL_SENDAUTOCHEAPPRICEMESSAGEZALO' => 'Gửi tin tự động về giá vé rẻ qua ZBS template Zalo',
+    'LBL_MAINTAINZALOCHAT' => 'Tự động gửi tin tư vấn Zalo để duy trì tương tác',
+    'LBL_RESETREWARDPOINTS' => 'Reset lại điểm tích lũy của liên hệ qua booking hằng năm',
 
     'LBL_SAVEREVENUEBOOKINGJOB' => 'Cập nhật doanh số booking Revenue',
     'LBL_NOTIFYCHECKINJOURNEY' => 'Thông báo hành trình cần checkin',

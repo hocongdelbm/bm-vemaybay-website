@@ -1,7 +1,6 @@
 <?php
 require_once "custom/entrypoints/entryClass.php";
 require_once "custom/include/helpers/api/WinInvoice.php";
-require_once "custom/include/helpers/api/MisaInvoice.php";
 
 /**
  * Class entryOutputInvoiceClass
@@ -69,32 +68,6 @@ class entryOutputInvoiceClass extends entryClass {
             "data" => null
         ];
     }
-
-    public function setMisa($params = []) {
-        pr($params);
-        $voucher = $params['voucher'] ?? [];
-        $details   = $params['details'] ?? [];
-        $saInvoice    = $params['saInvoice'] ?? [];
-
-        if (!empty($voucher) && !empty($details) && !empty($saInvoice)) {
-            $MisaInv = new MisaInvoice();
-    
-            $responseSetMisa = $MisaInv->save($voucher, $details, $saInvoice);
-            return [
-                "status" => 0,
-                "message" => "Thao tác chưa thành công",
-                "data" => null,
-                "description" => json_decode($responseSetMisa, true)
-            ];
-        }
-
-        return [
-            "status" => 0,
-            "message" => "Hóa đơn thiếu thông tin. Vui lòng kiểm tra lại",
-            "data" => null
-        ];
-    }
-
 
     /**
      * Sign invoice
@@ -210,21 +183,15 @@ class entryOutputInvoiceClass extends entryClass {
                                         WHERE id IN ($listBookingId) AND deleted = 0");
                                 }
                                 else {
-                                    $botToken   = $this->telegramConfig['bot_token'] ?? '';
-                                    $chatId     = $this->telegramConfig['chat_id'] ?? '';
-                                    $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-                                    $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
+                                    $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";
                                     $message .= "\n<pre>$sql</pre>";
-                                    Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                    NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                                 }
                             }
                             catch(Throwable $th) {
-                                $botToken   = $this->telegramConfig['bot_token'] ?? '';
-                                $chatId     = $this->telegramConfig['chat_id'] ?? '';
-                                $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-                                $message = "<b>[ERROR] SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)</b>";
+                                $message = "SAVE WORKING PROCESS & NOTE FOR KPI FAIL (SIGN INVOICE)";
                                 $message .= "\nException error {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                NotificationService::sendErrorMessage($message, '', ['threadKey' => 'logs']);
                             }
                         }
                         else {

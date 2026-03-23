@@ -1,12 +1,9 @@
 <?php
 if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
-require_once('include/MVC/View/views/view.detail.php');
 require_once('modules/EC_Messages/SMS.php');
 
-class EC_Flight_BookingsViewDetail extends ViewDetail {
-	/**
-	 * @var EC_Flight_Bookings
-	 */
+class EC_Flight_BookingsViewDetail extends ViewDetail
+{
 	public $bean;
 	private $_outbound_airline = '';
 	private $_inbound_airline = '';
@@ -15,16 +12,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	private $_is_had_rv = 0;
 	private $editing_rights = false;
 
-	function display() {
+	function display()
+	{
 		global $current_user;
 		$deparment_info = myGetDepartmentInfo($current_user->department_id);
 		$this->editing_rights = ACLController::checkAccess('EC_Flight_Bookings', 'edit', true);
-
-		// Create and update contact
-		// createContactsForBooking($this->bean->phone);
-		// if (strlen($this->bean->journey) < 7) {
-		// 	fillJourneyForBooking($this->bean->id);
-		// } 
 
 		$this->displayCSS();
 		$this->populateCustomButtons($deparment_info);
@@ -37,10 +29,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$html = $this->populateLineItineraries($deparment_info);
 		$this->ss->assign('LINE_ITINERARIES', $html);
 
-		// Thông tin hành trình sau khi đổi ngày bay
-		// $html = $this->populateLineItineraries($deparment_info);
-		// $this->ss->assign('LINE_ITINERARY_EXTRA', $this->populateEditedInfo(3));
-
 		// Thông tin hành khách ban đầu (Chưa đổi)
 		$this->ss->assign('LINE_PASSENGERS', $this->populateLinePassengers());
 
@@ -50,8 +38,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->createModal(); // Modal for confirm action
 
 		if ($current_user->user_name == 'hungnh') {
-			pr(calculateBKAmt($this->bean->id));
-
 			// Cập nhật doanh số theo ngày
 			// $this->saveRevenueBookingJob();
 
@@ -237,10 +223,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		';
 	}
 
-
-
 	// Line Note Message - Made by: DucPham at 28/09/2022
-	function populateLineNotesMessage()
+	private function populateLineNotesMessage()
 	{
 		global $current_user;
 		$actions_kpi = [];
@@ -433,7 +417,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		// Nguồn khách hàng
 		$customer_source = '<div class="d-flex align-items-center flex-nowrap gap-3">';
 		foreach ($app_list_strings['booking_customer_source_list'] as $value => $label) {
-			$checked = $value == $this->bean->customer_source ? 'checked="checked"' : '';
+			$checked = $value == $this->bean->customer_source ? 'checked' : '';
 			$customer_source .= '<div class="item" style="font-size:13px;">
 				<input type="checkbox" name="customer_source" id="customer_source_' . $value . '" value="' . $value . '" ' . $checked . ' /> ' . $label . '
 			</div>';
@@ -448,7 +432,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$call_name = $this->bean->db->getOne("SELECT name FROM calls WHERE id = '{$this->bean->telesale_call_id}' AND deleted = 0");
 			$list_bookmark .= '<div class="item">
 				<label for="checkIsTelesale">Là BK Telesale</label>
-				<input type="checkbox" name="is_telesale" id="checkIsTelesale" checked="checked" disabled />
+				<input type="checkbox" name="is_telesale" id="checkIsTelesale" checked disabled />
 				<br />
 				<a href="index.php?module=Calls&action=DetailView&record=' . $this->bean->telesale_call_id . '" target="_blank">' . $call_name . '</a>
 			</div>';
@@ -465,13 +449,14 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				</form>
 			</div>';
 		}
+
 		// CTV
 		if ($this->bean->is_ctv) {
 			$list_bookmark .= '<div class="item">
 				<label for="checkIsCTV" >Là CTV</label>
-				<input type="checkbox" name="is_ctv" id="checkIsCTV" checked="checked" disabled />
+				<input type="checkbox" name="is_ctv" id="checkIsCTV" checked disabled />
 			</div>';
-		} else if ($this->bean->booking_status == '8') {
+		} else if ((int)$this->bean->booking_status === 8) {
 			$list_bookmark .= '<div class="item">
 				</form><form name="frmCheckIsCTV" id="frmCheckIsCTV" action="index.php" method="post">
 					<input type="hidden" name="module" value="' . $this->bean->module_dir . '" />
@@ -489,7 +474,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		if ($this->bean->is_agent && !empty($this->bean->agent_id)) {
 			$list_bookmark .= '<div class="item">
 				<label for="is_agent">Là đại lý</label>
-				<input type="checkbox" name="is_agent" id="check_is_agent" checked="checked" disabled />
+				<input type="checkbox" name="is_agent" id="check_is_agent" checked disabled />
 				<br />
 				<a href="index.php?module=Accounts&action=DetailView&record=' . $this->bean->agent_id . '" target="_blank">
 					' . $this->bean->agent_name . '
@@ -514,10 +499,13 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		// Hệ thống đánh dấu
 		$list_bookmark_system = '<div class="d-flex align-items-center gap-3">';
 		$list_bookmark_system .= '<div class="item">
-			<input type="checkbox" id="is_prior" ' . ($this->bean->is_prior ? 'checked="checked"' : '') . ' disabled /> Vé cận
+			<input type="checkbox" id="is_prior" ' . ($this->bean->is_prior ? 'checked' : '') . ' disabled /> Vé cận
 		</div>';
 		$list_bookmark_system .= '<div class="item">
-			<input type="checkbox" id="is_mail_confirm" ' . ($this->bean->is_mail_confirm ? 'checked="checked"' : '') . ' disabled /> Gửi mail xác nhận
+			<input type="checkbox" id="is_mail_confirm" ' . ($this->bean->is_mail_confirm ? 'checked' : '') . ' disabled /> Gửi mail xác nhận
+		</div>';
+		$list_bookmark_system .= '<div class="item">
+			<input type="checkbox" id="is_reference" ' . ($this->bean->is_reference ? 'checked' : '') . ' disabled /> BK tham khảo
 		</div>';
 		$list_bookmark_system .= '</div>';
 		$this->ss->assign('CUSTOM_BOOKMARK_SYSTEM', $list_bookmark_system);
@@ -526,11 +514,11 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$is_ticket_exported = '<span class="is_ticket_exported d-flex align-items-center">
 			<span class="w-50 d-flex gap-2 align-items-center is_ticket_exported--wrap">
 				<span>Lượt đi: </span>
-				<input disabled type="checkbox" id="is_ticket_exported" ' . ($this->bean->is_ticket_exported ? 'checked="checked"' : '') . ' />
+				<input disabled type="checkbox" id="is_ticket_exported" ' . ($this->bean->is_ticket_exported ? 'checked' : '') . ' />
 			</span>
 			<span class="flex-fill d-flex gap-2 align-items-center is_ticket_inbound_exported--wrap">
 				<span>Lượt về: </span>
-				<input disabled type="checkbox" id="is_ticket_inbound_exported" ' . ($this->bean->is_ticket_inbound_exported ? 'checked="checked"' : '') . ' />
+				<input disabled type="checkbox" id="is_ticket_inbound_exported" ' . ($this->bean->is_ticket_inbound_exported ? 'checked' : '') . ' />
 			</span>
 		</span>';
 		$is_exported = $is_ticket_exported;
@@ -588,9 +576,9 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$this->ss->assign('CONTACT_NAME', $contact_assign . $modal_history_bookings);
 
 		// PHONE
-		$journeys_info 	= $this->getJourneysByBooking($this->bean->id);
-		$pass_and_bag 	= $this->getPassengerAndBaggage($this->bean->id);
-		$zbs_history 	= $this->getHistoryZBS($this->bean->phone, $this->bean->id);
+		$journeys_info     = $this->getJourneysByBooking($this->bean->id);
+		$pass_and_bag     = $this->getPassengerAndBaggage($this->bean->id);
+		$zbs_history     = $this->getHistoryZBS($this->bean->phone, $this->bean->id);
 		$contact_phone = '<div class="wrap-phone d-flex align-items-center justify-content-between">
 			<a href="tel:' . $this->bean->phone . '">' . $this->bean->phone . '</a>
 			<div class="d-flex align-items-center gap-2">
@@ -609,7 +597,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					<svg height="26" viewBox="0 0 460.1 436.6" width="32" xmlns="http://www.w3.org/2000/svg"><style>.st0{fill:#fdfefe}.st1{fill:#0180c7}.st2{fill:#0172b1}.st3{fill:none;stroke:#0180c7;stroke-width:2.5;stroke-miterlimit:10}</style><title/><path class="st0" d="M82.6 380.9c-1.8-.8-3.1-1.7-1-3.5 1.3-1 2.7-1.9 4.1-2.8 13.1-8.5 25.4-17.8 33.5-31.5 6.8-11.4 5.7-18.1-2.8-26.5C69 269.2 48.2 212.5 58.6 145.5 64.5 107.7 81.8 75 107 46.6c15.2-17.2 33.3-31.1 53.1-42.7 1.2-.7 2.9-.9 3.1-2.7-.4-1-1.1-.7-1.7-.7-33.7 0-67.4-.7-101 .2C28.3 1.7.5 26.6.6 62.3c.2 104.3 0 208.6 0 313 0 32.4 24.7 59.5 57 60.7 27.3 1.1 54.6.2 82 .1 2 .1 4 .2 6 .2H290c36 0 72 .2 108 0 33.4 0 60.5-27 60.5-60.3v-.6-58.5c0-1.4.5-2.9-.4-4.4-1.8.1-2.5 1.6-3.5 2.6-19.4 19.5-42.3 35.2-67.4 46.3-61.5 27.1-124.1 29-187.6 7.2-5.5-2-11.5-2.2-17.2-.8-8.4 2.1-16.7 4.6-25 7.1-24.4 7.6-49.3 11-74.8 6zm72.5-168.5c1.7-2.2 2.6-3.5 3.6-4.8 13.1-16.6 26.2-33.2 39.3-49.9 3.8-4.8 7.6-9.7 10-15.5 2.8-6.6-.2-12.8-7-15.2-3-.9-6.2-1.3-9.4-1.1-17.8-.1-35.7-.1-53.5 0-2.5 0-5 .3-7.4.9-5.6 1.4-9 7.1-7.6 12.8 1 3.8 4 6.8 7.8 7.7 2.4.6 4.9.9 7.4.8 10.8.1 21.7 0 32.5.1 1.2 0 2.7-.8 3.6 1-.9 1.2-1.8 2.4-2.7 3.5-15.5 19.6-30.9 39.3-46.4 58.9-3.8 4.9-5.8 10.3-3 16.3s8.5 7.1 14.3 7.5c4.6.3 9.3.1 14 .1 16.2 0 32.3.1 48.5-.1 8.6-.1 13.2-5.3 12.3-13.3-.7-6.3-5-9.6-13-9.7-14.1-.1-28.2 0-43.3 0zm116-52.6c-12.5-10.9-26.3-11.6-39.8-3.6-16.4 9.6-22.4 25.3-20.4 43.5 1.9 17 9.3 30.9 27.1 36.6 11.1 3.6 21.4 2.3 30.5-5.1 2.4-1.9 3.1-1.5 4.8.6 3.3 4.2 9 5.8 14 3.9 5-1.5 8.3-6.1 8.3-11.3.1-20 .2-40 0-60-.1-8-7.6-13.1-15.4-11.5-4.3.9-6.7 3.8-9.1 6.9zm69.3 37.1c-.4 25 20.3 43.9 46.3 41.3 23.9-2.4 39.4-20.3 38.6-45.6-.8-25-19.4-42.1-44.9-41.3-23.9.7-40.8 19.9-40 45.6zm-8.8-19.9c0-15.7.1-31.3 0-47 0-8-5.1-13-12.7-12.9-7.4.1-12.3 5.1-12.4 12.8-.1 4.7 0 9.3 0 14v79.5c0 6.2 3.8 11.6 8.8 12.9 6.9 1.9 14-2.2 15.8-9.1.3-1.2.5-2.4.4-3.7.2-15.5.1-31 .1-46.5z"/><path class="st1" d="M139.5 436.2c-27.3 0-54.7.9-82-.1-32.3-1.3-57-28.4-57-60.7 0-104.3.2-208.6 0-313C.5 26.7 28.4 1.8 60.5.9c33.6-.9 67.3-.2 101-.2.6 0 1.4-.3 1.7.7-.2 1.8-2 2-3.1 2.7-19.8 11.6-37.9 25.5-53.1 42.7-25.1 28.4-42.5 61-48.4 98.9-10.4 66.9 10.5 123.7 57.8 171.1 8.4 8.5 9.5 15.1 2.8 26.5-8.1 13.7-20.4 23-33.5 31.5-1.4.8-2.8 1.8-4.2 2.7-2.1 1.8-.8 2.7 1 3.5.4.9.9 1.7 1.5 2.5 11.5 10.2 22.4 21.1 33.7 31.5 5.3 4.9 10.6 10 15.7 15.1 2.1 1.9 5.6 2.5 6.1 6.1z"/><path class="st2" d="M139.5 436.2c-.5-3.5-4-4.1-6.1-6.2-5.1-5.2-10.4-10.2-15.7-15.1-11.3-10.4-22.2-21.3-33.7-31.5-.6-.8-1.1-1.6-1.5-2.5 25.5 5 50.4 1.6 74.9-5.9 8.3-2.5 16.6-5 25-7.1 5.7-1.5 11.7-1.2 17.2.8 63.4 21.8 126 19.8 187.6-7.2 25.1-11.1 48-26.7 67.4-46.2 1-1 1.7-2.5 3.5-2.6.9 1.4.4 2.9.4 4.4v58.5c.2 33.4-26.6 60.6-60 60.9h-.5c-36 .2-72 0-108 0H145.5c-2-.2-4-.3-6-.3z"/><path class="st1" d="M155.1 212.4c15.1 0 29.3-.1 43.4 0 7.9.1 12.2 3.4 13 9.7.9 7.9-3.7 13.2-12.3 13.3-16.2.2-32.3.1-48.5.1-4.7 0-9.3.2-14-.1-5.8-.3-11.5-1.5-14.3-7.5s-.8-11.4 3-16.3c15.4-19.6 30.9-39.3 46.4-58.9.9-1.2 1.8-2.4 2.7-3.5-1-1.7-2.4-.9-3.6-1-10.8-.1-21.7 0-32.5-.1-2.5 0-5-.3-7.4-.8-5.7-1.3-9.2-7-7.9-12.6.9-3.8 3.9-6.9 7.7-7.8 2.4-.6 4.9-.9 7.4-.9 17.8-.1 35.7-.1 53.5 0 3.2-.1 6.3.3 9.4 1.1 6.8 2.3 9.7 8.6 7 15.2-2.4 5.7-6.2 10.6-10 15.5-13.1 16.7-26.2 33.3-39.3 49.8-1.1 1.3-2.1 2.6-3.7 4.8z"/><path class="st1" d="M271.1 159.8c2.4-3.1 4.9-6 9-6.8 7.9-1.6 15.3 3.5 15.4 11.5.3 20 .2 40 0 60 0 5.2-3.4 9.8-8.3 11.3-5 1.9-10.7.4-14-3.9-1.7-2.1-2.4-2.5-4.8-.6-9.1 7.4-19.4 8.7-30.5 5.1-17.8-5.8-25.1-19.7-27.1-36.6-2.1-18.3 4-33.9 20.4-43.5 13.6-8.1 27.4-7.4 39.9 3.5zm-35.4 36.5c.2 4.4 1.6 8.6 4.2 12.1 5.4 7.2 15.7 8.7 23 3.3 1.2-.9 2.3-2 3.3-3.3 5.6-7.6 5.6-20.1 0-27.7-2.8-3.9-7.2-6.2-11.9-6.3-11-.7-18.7 7.8-18.6 21.9zM340.4 196.9c-.8-25.7 16.1-44.9 40.1-45.6 25.5-.8 44.1 16.3 44.9 41.3.8 25.3-14.7 43.2-38.6 45.6-26.1 2.6-46.8-16.3-46.4-41.3zm25.1-2.4c-.2 5 1.3 9.9 4.3 14 5.5 7.2 15.8 8.6 23 3 1.1-.8 2-1.8 2.9-2.8 5.8-7.6 5.8-20.4.1-28-2.8-3.8-7.2-6.2-11.9-6.3-10.8-.6-18.4 7.6-18.4 20.1zM331.6 177c0 15.5.1 31 0 46.5.1 7.1-5.5 13-12.6 13.2-1.2 0-2.5-.1-3.7-.4-5-1.3-8.8-6.6-8.8-12.9v-79.5c0-4.7-.1-9.3 0-14 .1-7.7 5-12.7 12.4-12.7 7.6-.1 12.7 4.9 12.7 12.9.1 15.6 0 31.3 0 46.9z"/><path class="st0" d="M235.7 196.3c-.1-14.1 7.6-22.6 18.5-22 4.7.2 9.1 2.5 11.9 6.4 5.6 7.5 5.6 20.1 0 27.7-5.4 7.2-15.7 8.7-23 3.3-1.2-.9-2.3-2-3.3-3.3-2.5-3.5-3.9-7.7-4.1-12.1zM365.5 194.5c0-12.4 7.6-20.7 18.4-20.1 4.7.1 9.1 2.5 11.9 6.3 5.7 7.6 5.7 20.5-.1 28-5.6 7.1-16 8.3-23.1 2.7-1.1-.8-2-1.8-2.8-2.9-3-4.1-4.4-9-4.3-14z"/><path class="st3" d="M66 1h328.1c35.9 0 65 29.1 65 65v303c0 35.9-29.1 65-65 65H66c-35.9 0-65-29.1-65-65V66C1 30.1 30.1 1 66 1z"/></svg>
 				</button>
 				<dialog id="dialog-send-zalo" class="dialog-confirm-send-zalo">
-					<h2 class="title mb-1">Gửi tin nhắn ZNS Zalo OA</h2>
+					<h2 class="title mb-1">Gửi tin nhắn theo mẫu Zalo OA</h2>
 					<h6 class="title-zalo-oa-name mb-2">Travelpass tìm chuyến bay<h6>
 					<form method="dialog">
 						<input type="hidden" name="zalo_flight_type" id="zalo_flight_type" value="' . $this->bean->flight_type . '" />
@@ -761,20 +749,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			<input type="hidden" name="booking_status" value="' . $this->bean->booking_status . '" />
 			<input type="submit" class="btn btn-primary-2 cursor-pointer" name="btnSupportCustomer" id="btnSupportCustomer" value="Hỗ trợ KH (' . $support_count . ')" title="Hỗ trợ KH (' . $support_count . ')" />
 		</form>';
-		/*if(is_admin($current_user)){
-			// bonus
-			$total_bonus = myGetWorkingProcessCount($this->bean->module_dir, $this->bean->id, 'bonus');
-			$bonus = '</form>
-			<form class="frmBookingStatus" action="index.php" method="post" name="frmBonus" id="frmBonus">
-			  <input type="hidden" name="module" value="'.$this->bean->module_dir.'" />
-			  <input type="hidden" name="action" value="Save" />
-			  <input type="hidden" name="record" value="'.$this->bean->id.'" />
-			  <input type="hidden" name="record_name" value="'.$this->bean->name.'" />
-			  <input type="hidden" name="booking_status" value="'.$this->bean->booking_status.'" />
-			  <input type="hidden" name="bonus" value="'.$total_bonus.'" />
-			  <input type="submit" name="btnBonus" id="btnBonus" value="Bonus ('.$total_bonus.')" title="Bonus ('.$total_bonus.')" />
-			</form>';
-		}*/
 		$this->ss->assign('RECHECK_STATUS', $recheck_status . $recall_status . $check_debt . $support);
 
 		// Is invoice export
@@ -789,7 +763,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		  <input type="hidden" name="is_invoice_export" value="1" />
 		  <span class="w-50">Hóa đơn đầu ra: </span>
 		  <span class="d-flex align-items-center gap-2 flex-fill">
-		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked="checked"' : '') . ' />
+		  	<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_export ? 'checked' : '') . ' />
 		  	' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceExport" id="btnCheckInvoiceExport" class="btn btn-primary-2 cursor-pointer" value="' . $is_invoice_export_title . '" title="' . $is_invoice_export_title . '" />' : '') . '
 		  </span>
 		</form>';
@@ -806,7 +780,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			<input type="hidden" name="is_invoice_input_export" value="' . ($this->bean->is_invoice_input_export ? 0 : 1) . '" />
 			<span class="w-50">Hóa đơn đầu vào: </span>
 			<span class="d-flex align-items-center gap-2 flex-fill">
-			<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_input_export ? 'checked="checked"' : '') . ' />
+			<input type="checkbox" disabled="disabled" ' . ($this->bean->is_invoice_input_export ? 'checked' : '') . ' />
 			' . ((ACLController::checkAccess('EC_Payment_Voucher', 'edit', true) && $this->bean->booking_status == '8') ? '<input type="submit" name="btnCheckInvoiceInputExport" class="btn btn-primary-2 cursor-pointer" id="btnCheckInvoiceInputExport" value="' . $is_invoice_input_export_title . '" title="' . $is_invoice_input_export_title . '" />' : '') . '
 			</span>
 		</form>';
@@ -935,22 +909,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 		$this->ss->assign('CUSTOM_NGANLUONG_CODE', $nganluong_code);
 
-		// Assigned to name (giao cho)
-		// $assigned_user_name_list = get_user_array(true, 'Active', '', true);
-		// $assigned_user_name = $assigned_user_name_list[$this->bean->assigned_user_id];
-		if ($GLOBALS['current_user']->id == 1) { // Only show with user has id = 1
-			$assigned_user_name = '
-				<input type="button" class="btn btn-primary-2" id="reassigned_user_btn" value="Sửa giao cho">
-				<form style="display:none;" id="reassigned_user_frm">
-					<input type="hidden" name="module" value="' . $this->bean->module_dir . '">
-					<input type="hidden" name="action" value="Save">
-					<input type="hidden" name="assigned_user_id" value="' . ($this->bean->assigned_user_id ?? '') . '">
-					<input type="text" name="assigned_user_name" value="' . ($this->bean->assigned_user_name ?? '') . '">
-				</form>
-			';
-		}
-		$this->ss->assign('CUSTOM_ASSIGNED_TO_NAME', $this->bean->assigned_user_name ?? '');
-
 		// Giảm giá
 		$discount_html = '<span class="discount_value">' . format_number($this->bean->discount_amount) . '</span>';
 		// Giảm giá voucher
@@ -1020,13 +978,118 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			}
 		}
 		$this->ss->assign('CUS_DISCOUNT_AMOUNT', $discount_html);
+
+		// Doanh số
+		$bk_amt = calculateBKAmt($this->bean->id);
+		$total_profit = format_number($bk_amt['total_profit'] ?? 0);
+		if (is_admin($current_user)) {
+			$total_profit .= '<button class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#profitBookingModal">Chi tiết D/số</button>
+							<div class="modal fade" id="profitBookingModal" tabindex="-1" aria-labelledby="profitBookingModalLabel" aria-hidden="true">
+								<div class="modal-dialog modal-dialog-centered">
+									<div class="modal-content">
+										<div class="modal-body">
+											<h3 class="sub-title text-center">Chi tiết doanh số booking <span>' . $this->bean->name . '</span></h3>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold">Tổng tiền BK:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_booking'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold" title="Giá bán Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền phiếu thu:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_receipt'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold" title="Tiền giảm giá sử dụng điểm tích lũy">Tiền sử dụng điểm:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_points'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold" title="Khoản tiền hãng hoàn lại khi hoàn vé">Tiền hãng hoàn:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_amount_brand_refunded'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold">Tổng tiền bán:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_amount'] ?? 0) . '</p>
+												</div>
+											</div>
+											<hr>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold">Tổng tiền mua BK:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_booking'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold" title="Số tiền phải hoàn trả cho khách hàng">Tiền hoàn khách:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold" title="Khách sử dụng điểm tích lũy để giảm giá cho BK. Sau đó đổi ý không dùng nữa!">Tiền sử dụng điểm hoàn lại:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_pass_refunded'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold" title="Giá mua Đổi giờ bay, hành trình, tên khách, phí mua hành lý, mua ghế">Tổng tiền mua phiếu thu:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end">' . format_number($bk_amt['total_purchase_receipt'] ?? 0) . '</p>
+												</div>
+											</div>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-semibold" title="">Tổng tiền mua:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-semibold text-end text-danger">' . format_number($bk_amt['total_purchase'] ?? 0) . '</p>
+												</div>
+											</div>
+											<hr>
+											<div class="row">
+												<div class="col-6">
+													<span class="form-label fw-bold" title="">Tổng doanh số:</span>
+												</div>
+												<div class="col-6">
+													<p class="form-label fw-bold text-end text-danger">' . format_number($bk_amt['total_profit'] ?? 0) . '</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>';
+		}
+		$this->ss->assign('TOTAL_PROFIT', $total_profit);
 	}
 
-	function populateCustomButtons($deparment_info)
+	private function populateCustomButtons($deparment_info)
 	{
-		global $app_list_strings, $current_user, $timedate;
-		$date_format = $timedate->get_date_format();
-
+		global $app_list_strings, $current_user;
 		$use_mail_confirm = is_admin($current_user) ? 1 : $deparment_info['use_mail_confirm'];
 
 		// Cancelled booking button - hủy
@@ -1135,32 +1198,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<input type="submit" class="btn btn-success save-popup-dialog" name="btnCompleted" id="btnCompleted" value="' . $app_list_strings['booking_status_list']['8'] . '" title="' . $app_list_strings['booking_status_list']['8'] . '" />
 			</form>';
 		}
-		// // Confirmed button --> Change to btnCheckIsPaid 
-		// else if ($this->bean->booking_status == '2' && $this->editing_rights) {
-		// 	// $status_button = '</form>
-		// 	// <form class="frmBookingStatus" action="index.php" method="post" name="frmConfirmed" id="frmConfirmed">
-		// 	//   <input type="hidden" name="module" value="EC_Flight_Bookings" />
-		// 	//   <input type="hidden" name="action" value="Save" />
-		// 	//   <input type="hidden" name="record" value="'.$this->bean->id.'" />
-		// 	//   <input type="hidden" name="record_name" value="'.$this->bean->name.'" />
-		// 	//   <input type="hidden" name="booking_status" value="3" />
-		// 	//   <input type="submit" name="btnConfirmed" id="btnConfirmed" value="'.$app_list_strings['booking_status_list']['3'].'" title="'.$app_list_strings['booking_status_list']['3'].'" />
-		// 	// </form>';
-		// }
-		// // Ticket exported button
-		// else if ($this->bean->booking_status == '3' && $this->editing_rights) {
-		// 	// $status_button = '</form>
-		// 	// <form action="index.php" method="post" name="frmTicketExported" id="frmTicketExported">
-		// 	//   <input type="hidden" name="module" value="EC_Flight_Bookings" />
-		// 	//   <input type="hidden" name="action" value="Save" />
-		// 	//   <input type="hidden" name="record" value="'.$this->bean->id.'" />
-		// 	//   <input type="hidden" name="booking_status" value="7" />
-		// 	//   <input type="hidden" name="flight_type" value="'.$this->bean->flight_type.'" />
-		// 	//   <input type="hidden" name="date_ticket_issue" value="'.date($date_format, strtotime(isset($this->bean->date_ticket_issue) && !empty($this->bean->date_ticket_issue) ? $this->bean->date_ticket_issue : date('Y-m-d'))).'" />
-		// 	//   <input type="hidden" name="is_ticket_exported" id="is_ticket_exported" value="'.(isset($this->bean->is_ticket_exported) ? $this->bean->is_ticket_exported : 1).'" />
-		// 	//   <input type="submit" name="btnTicketExported" id="btnTicketExported" value="'.$app_list_strings['booking_status_list']['7'].'" title="'.$app_list_strings['booking_status_list']['7'].'" />
-		// 	// </form>';
-		// }
 		$this->ss->assign('STATUS_BUTTON', $status_button);
 		$this->ss->assign('CALLS_BUTTON', $calls_button);
 
@@ -1220,7 +1257,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		// Những nhân viên đã xem booking
-		// if (isAllowedUser()) {
 		if (is_admin($current_user) && $current_user->title != 'QuanLy') {
 			$viewed = '</form>
 			<form action="index.php" method="post" name="frmViewedBooking" id="frmViewedBooking" class="d-flex align-items-center gap-2">
@@ -1233,7 +1269,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			</form>';
 			$this->ss->assign('VIEWED_BOOKING', $viewed);
 		}
-
 
 		$common_style = 'display: inline-flex; align-items: center; justify-content: center; height: 34px; padding: 0 12px; vertical-align: middle; gap: 6px;';
 		//Thêm style flex để căn chỉnh
@@ -1295,6 +1330,21 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$this->ss->assign('CREATE_RV', $create_rv);
 		}
 
+		// Mark as preference button
+		$mask_as_refer = '';
+		if (!$this->bean->is_reference) {
+			$mask_as_refer = '</form>
+                                    <form action="index.php" method="post" name="frmMarkAdPreferance" id="frmMarkAdPreferance">
+                                        <input type="hidden" name="module" value="' . $this->bean->object_name . '" />
+                                        <input type="hidden" name="action" value="Save" />
+                                        <input type="hidden" name="record" value="' . $this->bean->id . '" />
+                                          <input type="hidden" name="record_name" value="' . $this->bean->name . '" />
+                                        <input type="hidden" name="is_reference" value="1" />
+                                        <input type="submit" name="btnMarkAsPreference" id="btnMarkAsPreference" class="btn btn-primary" value="Đánh dấu BK tham khảo" title="Đánh dấu BK tham khảo" onclick="return confirm(\'Bạn có chắc chắn muốn đánh dấu đây là BK tham khảo?\');"/>									
+                                    </form>';
+		}
+		$this->ss->assign('MARK_AS_REFERENCE', $mask_as_refer);
+
 		// Ticket return button
 		if (
 			($this->bean->booking_status == '7' || $this->bean->booking_status == '8')
@@ -1353,23 +1403,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 		// Booking ở trạng thái "xuất vé" hoặc "hoàn tất
 		if ($this->bean->booking_status == '7' || $this->bean->booking_status == '8') {
-			// // Add luggage
-			// $add_luggage = '
-			// <input id="add_luggage_btn" type="button" value="Hành lý">
-			// </form><form id="add_luggage" method="post" style="display:none; background-color:#fff;">
-			// 	<input type="hidden" id="bkg_no_luggage" name="record" value="' . $this->bean->id . '">
-			// 	<input type="hidden" name="module" value="EC_Flight_Bookings">
-			// 	<input type="hidden" name="createRV" value="1">
-			// 	<input type="hidden" name="action" value="Save">
-			// 	<input type="hidden" id="flight_type" value="' . $this->bean->flight_type . '">
-			// 	<input type="hidden" id="airline_out" value="' . $this->bean->airline . '">
-			// 	<input type="hidden" id="airline_in" value="' . $this->bean->airline_inbound . '">
-			// 	<div class="detail view" id="line_passengers_luggage_area">
-			// 	</div>
-			// 	<input id="add_luggage_btn" class="btn btn-primary mt-2" type="submit" value="Lưu">
-			// </form>';
-			// $this->ss->assign('ADD_LUGGAGE', $add_luggage);
-
 			// Change name - Đổi tên hành khách
 			$change_name = '
 			<input id="change_name_btn" type="button" value="Hành khách / Hành lý / Code vé">
@@ -1433,14 +1466,16 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		// Print ticket button (old)
-		$this->ss->assign('PRINT_TICKET',
+		$this->ss->assign(
+			'PRINT_TICKET',
 			'<div class="btn-group btnPrintEticket-selection">
 				<button type="button" class="btn btn-secondary btnPrintEticket" data-bs-display="static" aria-expanded="false">In vé</button>
 			</div>'
 		);
 
 		// Send ticket button
-		$this->ss->assign('SEND_TICKET',
+		$this->ss->assign(
+			'SEND_TICKET',
 			'<div class="btn-group btnSendEticket-selection">
 				<button type="button" class="btn btn-secondary btnSendEticket" data-bs-display="static" aria-expanded="false">
 					Gửi vé
@@ -1460,7 +1495,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$perPaxItineraries = $this->getPerPassengerItinerariesForPopup();
 			$perPaxDataAttr = ' data-per-pax-itineraries="' . htmlspecialchars(json_encode($perPaxItineraries), ENT_QUOTES, 'UTF-8') . '"';
 		}
-		$this->ss->assign('PRINT_TICKET_NEW',
+		$this->ss->assign(
+			'PRINT_TICKET_NEW',
 			'<div class="btn-group btnPrintEticketNew-selection">
 				<button type="button" class="btn btn-primary btnPrintEticketNew" data-bs-display="static" aria-expanded="false">In & Gửi vé</button>
 			</div>
@@ -1515,7 +1551,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	// Display all itineraries
-	function populateLineItineraries($deparment_info)
+	private function populateLineItineraries($deparment_info)
 	{
 		global $app_list_strings, $timedate, $current_user;
 		$date_format = $timedate->get_date_format();
@@ -1523,7 +1559,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		$use_mail_eticket = is_admin($current_user) ? 1 : $deparment_info['use_mail_eticket'];
 
 		$html = '';
-		$html .= '<table id="itinerary_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking"> 
+		$html .= '<table id="itinerary_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-itinerary table-details__booking"> 
 					<thead>
 						<tr>
 							<th scope="col" width="3%"></th> 
@@ -1601,7 +1637,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			}
 
 			$img_src = !$row['is_layover'] && !empty($airline_code_logo) ? '<img ' . $img_style . ' src="custom/themes/default/images/airline-icon-100x100/' . $airline_code_logo . '.png" alt="' . $airline_code . '" border="0" />' : '';
-		
+
 			if ($this->bean->ticket_type == '2')
 				$img_src .= '<br />(<b>' . $row['airline_code'] . '</b>)';
 			$html .= '<tr class="' . $even_or_odd . '">';
@@ -1738,7 +1774,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	// Direction (0: lượt đi ; 1: lượt về)	
-	function getAppliedPassengerIti($booking_id, $direction)
+	private function getAppliedPassengerIti($booking_id, $direction)
 	{
 		$sql_pass = "SELECT GROUP_CONCAT(id) AS applied_pass
 			FROM ec_booking_passengers 
@@ -1770,12 +1806,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	/**
 	 * Render table ticket details
 	 */
-	function populateLineDetails()
+	private function populateLineDetails()
 	{
-		global $app_list_strings, $locale, $current_user;
+		global $app_list_strings, $locale;
 
 		$html = '';
-		$html .= '<table id="line_details_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">
+		$html .= '<table id="line_details_tbl" border="0" cellpadding="0" cellspacing="0" class="table-config table-line-details table-details__booking">
 					<thead>
 						<tr>
 							<th scope="col" width="3%"></th> 
@@ -1908,26 +1944,27 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	 * 
 	 * @return string HTML
 	 */
-	public function populateLinePassengers() {
+	public function populateLinePassengers()
+	{
 		global $app_list_strings, $timedate;
 		$date_format = $timedate->get_date_format();
 
-		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
-		$html .= '<thead>
-			<tr>
-				<th scope="col" width="2%"><input type="checkbox" id="select-all-passengers"/></th>
-				<th scope="col" width="3%">STT</th>
-				<th scope="col" width="7%">Loại</th>
-				<th scope="col" width="7%">Giới tính</th>
-				<th scope="col" width="16%">Họ tên</th>
-				<th scope="col" width="8%">Ngày sinh</th>
-				<th scope="col" width="12%">CCCD/Passport</th>
-				<th scope="col" width="10%">Số vé đi</th>
-				<th scope="col" width="10%">Số vé về</th>
-				<th scope="col" width="7%">PNR đi</th>
-				<th scope="col" width="7%">PNR về</th>
-			</tr>
-		</thead>';
+		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-pax table-details__booking">
+				<thead>
+					<tr>
+						<th scope="col" width="2%"><input type="checkbox" id="select-all-passengers"/></th>
+						<th scope="col" width="3%">STT</th>
+						<th scope="col" width="7%">Loại</th>
+						<th scope="col" width="7%">Giới tính</th>
+						<th scope="col" width="16%">Họ tên</th>
+						<th scope="col" width="8%">Ngày sinh</th>
+						<th scope="col" width="12%">CCCD/Passport</th>
+						<th scope="col" width="10%">Số vé đi</th>
+						<th scope="col" width="10%">Số vé về</th>
+						<th scope="col" width="7%">PNR đi</th>
+						<th scope="col" width="7%">PNR về</th>
+					</tr>
+				</thead><tbody>';
 
 		$sql = "SELECT p.id
 				,p.name
@@ -1983,47 +2020,47 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 			// Line 1
 			$html .= '<tr class="psg-line ' . $even_or_odd . '" data-id="' . $row['id'] . '">
-				<td data-label="Autobook" class="text-center">
-					<input type="checkbox" name="check-passenger" class="check-passenger" data-id="' . $row['id'] . '" data-type="' . $row['type'] . '" title="Autobook" />
-				</td>
-				<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
-				<td data-label="Loại HK" class="passenger_type text-center" data="' . $row['type'] . '" class="text-center">' . $app_list_strings['passenger_type_list'][(int) $row['type']] . '</td>
-				<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int) $row['salutation']] . '</td>
-				<td data-label="Họ tên" class="passenger_name text-start">
-					<p class="fullname">' . $row['name'] . '</p>
-				</td>
-				<td data-label="Ngày sinh" class="passenger_birthdate text-center">
-					<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>
-				</td>
-				<td data-label="Giấy tờ" class="passenger_id text-center">
-					<p class="cic text-nowrap" data="' . $row['cic'] . '" ' . $hide_cic . ' title="CCCD">
-						<span style="letter-spacing:0.65px">' . $row['cic'] . '</span>
-					</p>
-					<p class="passport text-nowrap" data="' . $row['passport_number'] . '" ' . $hide_passport . ' title="Passport">
-						<span style="letter-spacing:0.65px">' . $row['passport_number'] . '</span>
-					</p>
-				</td>
-				<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
-					' . strtoupper($row['eticket_outbound']) . '
-					<input type="hidden" name="eticket_outbound[]" id="eticket_outbound' . $i . '" value="' . strtoupper($row['eticket_outbound']) . '"  />
-				</td>
-				<td data-label="Số vé về" class="text-center" class="eticket_inbound" content="' . strtoupper($row['eticket_inbound']) . '" row_no="' . $row['id'] . '">
-					' . strtoupper($row['eticket_inbound']) . '
-					<input type="hidden" name="eticket_inbound[]" id="eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '"  />
-				</td>
-				<td data-label="PNR đi" class="text-center">
-					' . strtoupper($row['pnr_outbound']) . '
-					<input type="hidden" name="pnr_outbound[]" id="pnr_outbound' . $i . '" value="' . strtoupper($row['pnr_outbound']) . '"  />
-				</td>
-				<td data-label="PNR về" class="text-center">
-					' . strtoupper($row['pnr_inbound']) . '
-					<input type="hidden" name="pnr_inbound[]" id="pnr_inbound' . $i . '" value="' . strtoupper($row['pnr_inbound']) . '"  />
-				</td>
-			</tr>';
+						<td data-label="Autobook" class="text-center">
+							<input type="checkbox" name="check-passenger" class="check-passenger" data-id="' . $row['id'] . '" data-type="' . $row['type'] . '" title="Autobook" />
+						</td>
+						<td data-label="STT" class="text-center fw-semibold">' . ($i + 1) . '</td>
+						<td data-label="Loại HK" class="passenger_type text-center" data="' . $row['type'] . '" class="text-center">' . $app_list_strings['passenger_type_list'][(int) $row['type']] . '</td>
+						<td data-label="Danh xưng" class="passenger_salutation text-center" data="' . $row['salutation'] . '" class="text-center">' . $app_list_strings['passenger_salutation_list'][(int) $row['salutation']] . '</td>
+						<td data-label="Họ tên" class="passenger_name text-start">
+							<p class="fullname">' . $row['name'] . '</p>
+						</td>
+						<td data-label="Ngày sinh" class="passenger_birthdate text-center">
+							<p class="birthdate">' . (isset($row['birthday']) && !empty($row['birthday']) && $row['birthday'] != '0000-00-00' ? date($date_format, strtotime($row['birthday'])) : '') . '</p>
+						</td>
+						<td data-label="Giấy tờ" class="passenger_id text-center">
+							<p class="cic text-nowrap" data="' . $row['cic'] . '" ' . $hide_cic . ' title="CCCD">
+								<span style="letter-spacing:0.65px">' . $row['cic'] . '</span>
+							</p>
+							<p class="passport text-nowrap" data="' . $row['passport_number'] . '" ' . $hide_passport . ' title="Passport">
+								<span style="letter-spacing:0.65px">' . $row['passport_number'] . '</span>
+							</p>
+						</td>
+						<td data-label="Số vé đi" class="text-center" class="eticket_outbound" content="' . strtoupper($row['eticket_outbound']) . '" row_no="' . $row['id'] . '">
+							' . strtoupper($row['eticket_outbound']) . '
+							<input type="hidden" name="eticket_outbound[]" id="eticket_outbound' . $i . '" value="' . strtoupper($row['eticket_outbound']) . '"  />
+						</td>
+						<td data-label="Số vé về" class="text-center" class="eticket_inbound" content="' . strtoupper($row['eticket_inbound']) . '" row_no="' . $row['id'] . '">
+							' . strtoupper($row['eticket_inbound']) . '
+							<input type="hidden" name="eticket_inbound[]" id="eticket_inbound' . $i . '" value="' . strtoupper($row['eticket_inbound']) . '"  />
+						</td>
+						<td data-label="PNR đi" class="text-center">
+							' . strtoupper($row['pnr_outbound']) . '
+							<input type="hidden" name="pnr_outbound[]" id="pnr_outbound' . $i . '" value="' . strtoupper($row['pnr_outbound']) . '"  />
+						</td>
+						<td data-label="PNR về" class="text-center">
+							' . strtoupper($row['pnr_inbound']) . '
+							<input type="hidden" name="pnr_inbound[]" id="pnr_inbound' . $i . '" value="' . strtoupper($row['pnr_inbound']) . '"  />
+						</td>
+					</tr>';
 
 			// Line 2 (Baggage)
-			$row['bookingName'] 		= $this->bean->name ?? '';
-			$row['createdBy'] 			= $this->bean->created_by ?? '';
+			$row['bookingName']         = $this->bean->name ?? '';
+			$row['createdBy']             = $this->bean->created_by ?? '';
 			$row['airlineCodeOutbound'] = $this->_outbound_airline ?? '';
 			$row['ticketClassOutbound'] = $this->_outbound_ticket_class ?? '';
 			$row['airlineCodeInbound']  = $this->_inbound_airline ?? '';
@@ -2033,11 +2070,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$i++;
 		}
 
-		$html .= '<input type="hidden" id="total_pass_qty" value="' . $i . '">';
-
-		/* CHANGE PASSENGER INFO */
-		// $html .= $this->populateEditedInfo(2);
-		$html .= '</table>';
+		$html .= '</tbody>
+			</table>';
 
 		return $html;
 	}
@@ -2046,22 +2080,22 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	 * Render table default receipt voucher
 	 * @return string HTML
 	 */
-	function populateLineRelateVoucher()
+	private function populateLineRelateVoucher()
 	{
 		global $db;
 
-		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">';
-		$html .= '<thead>
-			<tr>
-				<th scope="col" width="5%">STT</th>
-				<th scope="col" width="12%">Ngày chứng từ</th>
-				<th scope="col" width="12%">Loại phiếu</th>
-				<th scope="col" width="12%">Tên phiếu</th>
-				<th scope="col" width="12%">Tình trạng</th>
-				<th scope="col" width="12%">Số tiền</th>
-				<th scope="col">Ghi chú</th>
-			</tr>
-		</thead>';
+		$html = '<table id="tbl_pax" border="0" cellpadding="0" cellspacing="0" class="table-config table-details__booking">
+                    <thead>
+                        <tr>
+                            <th scope="col" width="5%">STT</th>
+                            <th scope="col" width="12%">Ngày chứng từ</th>
+                            <th scope="col" width="12%">Loại phiếu</th>
+                            <th scope="col" width="12%">Tên phiếu</th>
+                            <th scope="col" width="12%">Tình trạng</th>
+                            <th scope="col" width="12%">Số tiền</th>
+                            <th scope="col">Ghi chú</th>
+                        </tr>
+                    </thead>';
 
 		$sql = "SELECT id, name, rv_status, amount, description, ngaychungtu, guest_name, loai_thu
 				FROM ec_receipt_voucher
@@ -2103,10 +2137,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 					AND deleted = 0
 				)
 				ORDER BY ngaychungtu DESC";
-
-		// if ($current_user->user_name == 'hungnh') {
-		// 	pr($sql);
-		// }
 
 		$res = $db->query($sql);
 		$count = $db->countRows($res);
@@ -2152,34 +2182,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		return $html;
 	}
 
-
-	function getOldPassName($booking_id, $detail_id, $date_entered)
-	{
-		$sql = "SELECT name
-				FROM ec_booking_passengers 
-				WHERE booking_id = '$booking_id'
-					AND parent_detail_id = '$detail_id'
-					AND add_type = 2
-					AND date_entered < '" . date('Y-m-d H:i:s', strtotime($date_entered)) . "'
-				ORDER BY date_entered DESC
-				LIMIT 1";
-		$res = $this->bean->db->query($sql);
-
-		// if ($this->bean->db->getRowCount($res) == 0) {
-		if ($this->bean->db->countRows($res) == 0) {
-			$sql = "SELECT name 
-				FROM ec_booking_passengers 
-				WHERE id = '$detail_id'
-					AND booking_id = '$booking_id'
-					AND add_type IS NULL
-					AND deleted = 0";
-			$res = $this->bean->db->query($sql);
-		}
-		$row = $this->bean->db->fetchByAssoc($res);
-		return $row['name'];
-	}
-
-	function getWinLoseReasonRadio($select, $reason_type)
+	private function getWinLoseReasonRadio($select, $reason_type)
 	{
 		$sql = "SELECT id, name
                 FROM ec_lydothangthua
@@ -2193,7 +2196,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			if ($i % 2 != 0) {
 				$html .= '<tr>';
 			}
-			$checked = ($row['id'] == $select || $i == 1) ? 'checked="checked"' : '';
+			$checked = ($row['id'] == $select || $i == 1) ? 'checked' : '';
 			$html .= '<td width="50%"><label for="rad-' . $row['id'] . '"><input ' . $checked . ' type="radio" name="radWinLoseReason" txt="' . $row['name'] . '" id="rad-' . $row['id'] . '" value="' . $row['id'] . '"><span class="label_WinLoseReason"> ' . $row['name'] . '</span></label></td>';
 			if ($i % 2 == 0) {
 				$html .= '</tr>';
@@ -2202,38 +2205,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		return $html;
-	}
-
-	function getTimePoint($module, $field_name, $record_id)
-	{
-		$sql_point = 'SELECT DATE_ADD(MAX(date_created), INTERVAL 7 HOUR) AS point, created_by, after_value_string FROM ' . $module . ' WHERE parent_id = "' . $record_id . '" AND field_name = "' . $field_name . '" GROUP BY after_value_string ORDER BY date_created DESC ';
-		$res_point = $this->bean->db->query($sql_point);
-		$i = 0;
-		while ($row_point = $this->bean->db->fetchByAssoc($res_point)) {
-			if (!empty($row_point['point'])) {
-				$time_point = date('d-m-Y H:i', strtotime($row_point['point']));
-			}
-
-			$arr[$i]['booking_status'] = $row_point['after_value_string'];
-			$arr[$i]['time_point'] = $time_point;
-			$arr[$i]['user_id'] = $row_point['created_by'];
-			$i++;
-		}
-
-		return $arr;
-	}
-
-	function convertToHourAndMinute($seconds)
-	{
-		$hours = floor($seconds / 3600);
-		$minutes = ($seconds / 60) % 60;
-		if ($hours >= 1) {
-			$time = $hours . 'h ';
-		}
-		if (($minutes) >= 1) {
-			$time .= $minutes . 'm';
-		}
-		return $time;
 	}
 
 	/**
@@ -2268,7 +2239,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		return $results;
 	}
 
-	function checkIsPaidNote($booking_id)
+	public function checkIsPaidNote($booking_id)
 	{
 		$sql = "SELECT COUNT(id) 
 				FROM ec_working_process
@@ -2283,7 +2254,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	 * Get resolved itineraries for the print ticket popup.
 	 * Prefers rescheduled (add_type=3, latest sabre_logs) over originals (add_type=0).
 	 */
-	function getResolvedItinerariesForPopup()
+	public function getResolvedItinerariesForPopup()
 	{
 		global $app_list_strings, $timedate;
 		$date_format = $timedate->get_date_format();
@@ -2524,13 +2495,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 
 	function populateSMSTemplate()
 	{
-		// $map_name_source = [
-		// 	'dc22131a-795a-6cd3-2caa-52d40d3b5622' => 'Vietjetnet',
-		// 	'940beedb-4f03-0e00-1a16-5456ebc43fc0' => 'Vemaybay5scom',
-		// 	'557d4a5b-27ce-5cb1-4531-5800ab9ed31d' => '“Tìm chuyến bay”'
-		// ];
-		// $source = isset($map_name_source[$this->bean->created_by]) ? $map_name_source[$this->bean->created_by] : '“Tìm chuyến bay”';
-
 		$source = 'Tim chuyen bay';
 		$html = '
 			<div id="dialog_send_sms" class="dialog-confirm" title="Gửi SMS" style="display:none; border-radius:0">
@@ -2694,7 +2658,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				<div class="option-group d-flex gap-4">
 					<div class="form-group">
 						<label for="vn" class="form-check-label">Tiếng Việt</label>
-						<input class="form-check-input" type="radio" name="ngonngu" id="vn" value="vn" style="vertical-align:middle; margin-top: 0;" checked="checked" /> 
+						<input class="form-check-input" type="radio" name="ngonngu" id="vn" value="vn" style="vertical-align:middle; margin-top: 0;" checked /> 
 					</div>
 					<div class="form-group">
 						<label for="en" class="form-check-label">Tiếng Anh</label>
@@ -2745,7 +2709,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	// Hiện thông tin hoá đơn
 	function populateInvoiceInf()
 	{
-		$iv_account_name = $iv_email = $iv_identity_number = $iv_payment_method = $iv_bank_account = $iv_name_banks = '';
+		$iv_account_name = $iv_email = $iv_identity_number = $iv_payment_method = '';
 
 		if (!empty($this->bean->shipping_address)) {
 			$invoice_arr = json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);
@@ -2753,16 +2717,12 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 			$iv_email = $invoice_arr['iv_email'] ?? '';
 			$iv_identity_number = $invoice_arr['iv_identity_number'] ?? '';
 			$iv_payment_method = $invoice_arr['iv_payment_method'] ?? '';
-			$iv_bank_account = $invoice_arr['iv_bank_account'] ?? '';
-			$iv_name_banks = $invoice_arr['iv_name_banks'] ?? '';
 		}
 
 		$this->ss->assign('CUS_IV_ACCOUNT_NAME', $iv_account_name);
 		$this->ss->assign('CUS_IV_EMAIL', $iv_email);
 		$this->ss->assign('CUS_IV_IDENTITY_NUMBER', $iv_identity_number);
 		$this->ss->assign('CUS_IV_PAYMENT_METHOD', $iv_payment_method);
-		// $this->ss->assign('CUS_IV_BANK_ACCOUNT', $iv_bank_account);
-		// $this->ss->assign('CUS_IV_NAME_BANK', $iv_name_banks);
 	}
 
 	// Kiểm tra booker có quyền quản lý booking -> cho thay đổi trạng thái
@@ -2799,7 +2759,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	/**
-	 * Get journeys by booking id (Using for ZNS)
+	 * Get journeys by booking id (Using for ZBS)
 	 * 
 	 * @param string $bookingId
 	 * @return array
@@ -2813,11 +2773,8 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 				iti.id,
 				iti.departure,
 				iti.arrival,
-				-- DATE_ADD(iti.departure_date, INTERVAL 7 HOUR) AS departure_date,
-				-- DATE_ADD(iti.arrival_date, INTERVAL 7 HOUR) AS arrival_date,
 				iti.departure_date AS departure_date,
 				iti.arrival_date AS arrival_date,
-				-- iti.base_price,
 				iti.direction,
 				iti.airline_code,
 				iti.flight_number,
@@ -2842,8 +2799,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 						'date' => $departure_date[0],
 						'time' => substr($departure_date[1], 0, -3),
 						'flightno' => $row['flight_number'],
-						// 'price'		=> (int) $row['base_price'],
-						// 'price_format' => format_number($row['base_price']),
 						'dep_name' => myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' => myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
 						'airline' => myGetAirlineInfo2($this->bean->airline, 'CODE')['data'][0]['name'] ?? '',
@@ -2869,8 +2824,6 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 						'date' => $return_date[0],
 						'time' => substr($return_date[1], 0, -3),
 						'flightno' => $row['flight_number'],
-						// 'price'		=> (int) $row['base_price'],
-						// 'price_format' => format_number($row['base_price']),
 						'dep_name' => myGetAirportInfo2($row['departure'])['data'][0]['name'] . ' (' . $row['departure'] . ')',
 						'arv_name' => myGetAirportInfo2($row['arrival'])['data'][0]['name'] . ' (' . $row['arrival'] . ')',
 						'airline' => myGetAirlineInfo2($this->bean->airline_inbound, 'CODE')['data'][0]['name'] ?? '',
@@ -2890,7 +2843,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	/**
-	 * Get the number of passenger and baggage info to send ZNS
+	 * Get the number of passenger and baggage info to send ZBS
 	 * 
 	 * @param string $booking_id
 	 * @return array [passenger, baggage]
@@ -2975,14 +2928,14 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 	}
 
 	// Get zalo id
-	function getZaloID($phone)
+	public function getZaloID($phone)
 	{
 		if (is_null($phone) || empty($phone))
 			return '';
 		return $this->bean->db->getOne("SELECT zalo_id FROM contacts WHERE phone_mobile = '$phone' AND deleted = 0 ORDER BY date_entered LIMIT 1") ?? '';
 	}
 
-	function htmlZaloInfo($data)
+	public function htmlZaloInfo($data)
 	{
 		if (is_null($data) || empty($data))
 			return '<p class="text-secondary" style="text-align:center; font-style:italic">Chưa có thông tin Zalo</p>';
@@ -3050,7 +3003,7 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		return $result;
 	}
 
-	function generateDialogGetQRCode($amount, $phone)
+	public function generateDialogGetQRCode($amount, $phone)
 	{
 		$addInfo = urlencode("Thanh toan $phone");
 
@@ -3076,17 +3029,17 @@ class EC_Flight_BookingsViewDetail extends ViewDetail {
 		}
 
 		return '<dialog id="dialog_qr_code" class="dialog_qr_code">
-			<h3 class="title">QR thanh toán booking</h3>
-			<select id="select_bank_get_qr_code" class="select_bank">' . $options . '</select>
-			<img id="img_qr_code" class="img_qr_code" src="" />
-			<div class="wrap-redo flex-center p-3" style="display:none;">
-				<input type="text" name="new_payment_amount" id="new_payment_amount" placeholder="Nhập số tiền" />
-				<button class="btn btn-primary" id="btnRenderQRCode">Tạo lại mã</button>
-			</div>
-			<div class="flex-center">
-				<button class="btn btn-secondary" onclick="closeDialog(\'dialog_qr_code\')">Đóng</button>
-				<button class="btn btn-primary" style="display: none;" id="copyQRCodeImage">Sao chép QR</button>
-			</div>
-		</dialog';
+					<h3 class="title">QR thanh toán booking</h3>
+					<select id="select_bank_get_qr_code" class="select_bank">' . $options . '</select>
+					<img id="img_qr_code" class="img_qr_code" src="" />
+					<div class="wrap-redo flex-center p-3" style="display:none;">
+						<input type="text" name="new_payment_amount" id="new_payment_amount" placeholder="Nhập số tiền" />
+						<button class="btn btn-primary" id="btnRenderQRCode">Tạo lại mã</button>
+					</div>
+					<div class="flex-center">
+						<button class="btn btn-secondary" onclick="closeDialog(\'dialog_qr_code\')">Đóng</button>
+						<button class="btn btn-primary" style="display: none;" id="copyQRCodeImage">Sao chép QR</button>
+					</div>
+				</dialog';
 	}
 }

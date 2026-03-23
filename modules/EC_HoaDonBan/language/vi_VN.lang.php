@@ -31,7 +31,6 @@ $mod_strings = array(
   'LBL_PANEL1' => ' ',
   'LBL_INVOICE_PANEL' => 'Thông tin hoá đơn',
   'LBL_LINEITEM_PANEL' => 'Chi tiết hoá đơn',
-  'LBL_LINEITEM_MISA_PANEL' => 'Chi tiết hoá đơn (Misa)',
   'LBL_LINE_ITEMS' => 'Chi tiết',
   'LBL_ASSIGNED_TO_NAME' => 'Giao cho',
   'LBL_DOITUONG' => 'Đối tượng',

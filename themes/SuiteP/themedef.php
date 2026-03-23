@@ -16,7 +16,6 @@ $themedef = array(
     'classic' => true,
     'configurable' => true,
     'config_options' => array(
-
         'display_sidebar' => array(
             'vname' => 'LBL_DISPLAY_SIDEBAR',
             'type' => 'bool',
@@ -35,10 +34,6 @@ if (!empty($app_strings['LBL_SUBTHEMES'])) {
     $themedef['config_options']['sub_themes']['options'] = array(
         $app_strings['LBL_SUBTHEMES'] => array(
             'Dawn'  => $app_strings['LBL_SUBTHEME_OPTIONS_DAWN'],
-            'Day'   => $app_strings['LBL_SUBTHEME_OPTIONS_DAY'],
-            'Dusk'  => $app_strings['LBL_SUBTHEME_OPTIONS_DUSK'],
-            'Night' => $app_strings['LBL_SUBTHEME_OPTIONS_NIGHT'],
-            'Noon' => $app_strings['LBL_SUBTHEME_OPTIONS_NOON'],
         ),
     );
     $themedef['config_options']['sub_themes']['default'] = 'Dawn';

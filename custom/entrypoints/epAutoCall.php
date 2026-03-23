@@ -1,9 +1,7 @@
 <?php
-global $db, $sugar_config;
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    global $db, $sugar_config;
     $TOKEN      = 'ASJHDGAJHSDGASJHDGJAHSGDJHASGDJHASSADGJHASGDHAJSDJHYJSDVFJHSDFGBASJH';
-
     $JSON_DATA  = file_get_contents('php://input');
     $params     = json_decode(html_entity_decode($JSON_DATA), true);
     $token      = isset($params['token']) ? global_test_input($params['token']) : '';
@@ -26,31 +24,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $result = '';
 
             if($is_take_care){
-                // $messages = "- SĐT: <b>" . $call_to . "</b>\n" .
-                //             "<pre>[INFO]: Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại! ".json_encode($params)."</pre>";
-                // $content = html_entity_decode($messages, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-    
-                // $result = sendTelegramWarningSystem(
-                //     json_encode(array(
-                //         'text' => $content,
-                //         'parse_mode' => 'HTML',
-                //     ), JSON_UNESCAPED_UNICODE),
-                // );
-
-                global $sugar_config;
-                
-                // $message = Mattermost::$line_separation;
-                // $message .= Mattermost::markdownHeading("[INFO] Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại!\n");
-                // $message .= "SĐT: **$call_to**\n\n";
-                // $message .= json_encode($params);
-                // Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-
                 $message = "<b>Khách hàng đang quan tâm dịch vụ. Vui lòng liên hệ lại!</b>";
                 $message .= "\nSĐT: <b>$call_to</b>";
                 $message .= "\n<pre>".json_encode($params)."</pre>";
-                $botToken   = $sugar_config['telegram']['cty']['bot_token'] ?? '';
-				$chatId     = $sugar_config['telegram']['cty']['chat_id'] ?? '';
-				Telegram::sendMessage($message, $botToken, $chatId);
+                NotificationService::sendMessage($message, 'cty');
             }
 
             // if (!empty($uuid) || !empty($call_id)) {

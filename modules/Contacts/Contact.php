@@ -98,12 +98,6 @@ class Contact extends Person implements EmailInterface
     public $importable = true;
 
     public $points;
-    public $zalo_id;
-    public $zalo_last_interaction;
-    public $zalo_name;
-    public $zalo_avatar;
-    public $zalo_is_follower;
-    public $zalo_tags;
 
     public $is_uncomfortable;
     public $is_ctv;

@@ -9,6 +9,7 @@
                     <option value="VN">VN</option>
                     <option value="QH">QH</option>
                     <option value="VU">VU</option>
+                    <option value="9G">9G</option>
                 </select>
             </div>
 

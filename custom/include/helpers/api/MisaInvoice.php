@@ -53,6 +53,8 @@ class MisaInvoice
         ?string $lastSyncTime = null
     ): string {
         $token = $this->getAccessToken();
+        // pr($token);
+        // die;
 
         if (!$token) {
             return $this->returnError(401, 'Không thể lấy access token từ AMIS Kế toán');
@@ -230,11 +232,7 @@ class MisaInvoice
             'voucher'          => [$voucherData],
         ];
 
-        pr($body);
-
-        return json_encode($body);
-
-        // return $this->sendRequest('POST', '/apir/sync/actopen/save', $body, $token);
+        return $this->sendRequest('POST', '/apir/sync/actopen/save', $body, $token);
     }
 
     /**

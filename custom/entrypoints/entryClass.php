@@ -50,18 +50,8 @@ abstract class entryClass {
      * @return void
      */
     public function sendSQLErrorNotification($sqlQuery) {
-        if($this->notificationChannel == 'Mattermost') {
-            $m = "**RUN QUERY FAIL IN AUTH ENTRYPOINT**";
-            $m .= "`$sqlQuery`";
-            Mattermost::sendMessage($this->mattermostConfig['channel_id_logs'] ?? '', $m);
-        }
-        else {
-            $m = "<b>[ERROR] RUN QUERY FAIL IN AUTH ENTRYPOINT</b>";
-            $m .= "\n<pre>$sqlQuery</pre>";
-            $botToken   = $this->telegramConfig['bot_token'] ?? '';
-            $chatId     = $this->telegramConfig['chat_id'] ?? '';
-            $threadId   = $this->telegramConfig['thread_id_logs'] ?? '';
-            Telegram::sendMessage($m, $botToken, $chatId, $threadId);
-        }
+        $m = "Run query fail in auth entrypoint";
+        $m .= "\n<pre>$sqlQuery</pre>";
+        NotificationService::sendErrorMessage($m, "default", ["threadKey" => 'logs']);
     }
 }

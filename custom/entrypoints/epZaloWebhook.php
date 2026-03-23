@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $msg_id         = $data['message']['msg_id'] ?? '';
                     $quote_id       = $data['message']['quote_msg_id'] ?? '';
                     $msg            = $data['message']['text'] ?? '';
-                    $msg_type       = $zalomes->map_sub_type($event);
+                    $msg_type       = EC_Zalo_Messages_Helper::map_sub_type($event);
 
                     // Handle attachments
                     $url = $thumbnail = $description = '';
@@ -157,8 +157,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     // Update quota, last interaction
                     try {
                         $quota_user = $quota_oa = [];
-                        $last_interaction = date("$dateFormat $timeFormat", (int)($timestamp / 1000) - 7*3600);
-                        $date_modified = date("$dateFormat $timeFormat", time() - 7*3600);
+                        // Database format
+                        $last_interaction = date($datetimeDbFormat, (int)($timestamp / 1000) - 7*3600);
+                        $date_modified = date($datetimeDbFormat, time() - 7*3600);
 
                         // Send from user to OA
                         if($zalomes->src == 1) {
@@ -214,20 +215,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                     catch(Exception $e) {
-                        if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
-                            $message = Mattermost::$line_separation;
-                            $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-                        }
-                        else {
-                            $message = "<b>[WARNING]</b> Webhook Zalo";
-                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                        }
+                        $m = "Webhook Zalo";
+                        $m .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
+                        if(isset($response) && !empty($response)) $m .= "\n<pre>$response</pre>";
+                        NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
                     }
                     
                     // Send data to chat
@@ -255,28 +246,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         'quota_user'            => $quota_user
                     ];
                     if($zalomes->quote_message_id && !empty($zalomes->quote_message_id)) {
-                        $zaloMessage = new EC_Zalo_Messages();
-                        $data_chat['quote_data'] = $zaloMessage->get_quote_message_data($zalomes->quote_message_id);
+                        $data_chat['quote_data'] = EC_Zalo_Messages_Helper::get_quote_message_data($zalomes->quote_message_id);
                     }
                     $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
                     $client->send(json_encode($data_chat));
                     $client->close();
                 }
                 catch(Exception $e) {
-                    if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
-                        $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-                    }
-                    else {
-                        $message = "<b>[WARNING]</b> Webhook Zalo";
-                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
-                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                    }
+                    $m = "Webhook Zalo";
+                    $m .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
+                    if(isset($response) && !empty($response)) $m .= "\n<pre>$response</pre>";
+                    NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
                 }
                 finally {
                     header("HTTP/1.1 200 OK");
@@ -324,11 +304,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                         elseif(empty($contact_id_by_zalo) && !empty($contact_id_by_phone)) {
                             if($db->query("UPDATE ec_zalo_contacts SET contact_id = '{$contact_id_by_phone}' WHERE id = '{$zalo_contact_id}' AND deleted = 0")) {
-                                $message    = "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                NotificationService::sendErrorMessage(
+                                    "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id",
+                                    "",
+                                    ['threadKey' => 'system']
+                                );
                             }
                         }
                     }

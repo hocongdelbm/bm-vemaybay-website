@@ -21,8 +21,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		parent::__construct();
 	}
 
-	function display()
-	{
+	function display() {
 		global $current_user;
 
 		$status_arr = ['1', '6', '2', '3']; // allow edit
@@ -99,7 +98,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 			</script>';
 		}
 
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.7"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.8"></script>';
 		echo $js;
 	}
 
@@ -248,12 +247,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit
 		if (isManagerUser($current_user->id)) {
 			$user = new User;
 			$user->retrieve($this->bean->assigned_user_id);
-			// $assigned_user = '
-			// 	<input type="text" name="assigned_user_name" class="sqsEnabled yui-ac-input" id="assigned_user_name" value="' . $user->user_name . '" autocomplete="off">
-			// 	<input type="hidden" name="assigned_user_id" id="assigned_user_id" value="' . $this->bean->assigned_user_id . '">
-			// 	<input type="button" class="btn btn-primary" name="btn_assigned_user_name" id="btn_assigned_user_name"  title="Chọn [Alt+T]" accesskey="T" class="button" value="Chọn" onclick="open_popup(&quot;Users&quot;, 600, 400, &quot;&quot;, true, false, {&quot;call_back_function&quot;:&quot;set_return&quot;,&quot;form_name&quot;:&quot;EditView&quot;,&quot;field_to_name_array&quot;:{&quot;id&quot;:&quot;assigned_user_id&quot;,&quot;user_name&quot;:&quot;assigned_user_name&quot;}}, &quot;single&quot;, true);">
-			// 	<input type="button" class="btn btn-outline-danger" name="btn_clr_assigned_user_name" id="btn_clr_assigned_user_name" tabindex="112" title="Xóa trắng [Alt+C]" accesskey="C" class="button" onclick="this.form.assigned_user_name.value = \'\'; this.form.assigned_user_id.value = \'\';" value="Xóa">
-			// ';
 			$assigned_user = '
 				<input type="text" name="assigned_user_name" class="sqsEnabled yui-ac-input" id="assigned_user_name" value="' . $user->user_name . '" autocomplete="off">
 				<input type="hidden" name="assigned_user_id" id="assigned_user_id" value="' . $this->bean->assigned_user_id . '">
