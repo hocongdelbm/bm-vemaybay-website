@@ -24,6 +24,9 @@ $viewdefs[$module_name]['DetailView'] = array(
                     'customCode' => '{$CREATE_RV}',
                 ),
                 array(
+                    'customCode' => '{$MARK_AS_REFERENCE}',
+                ),
+                array(
                     'customCode' => '{$TICKET_RETURN}',
                 ),
                 array(
@@ -32,9 +35,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$CREATE_INVOICE}',
                 ),
-                // array(
-                //     'customCode' => '{$SYNC_PNR}',
-                // ),
                 // Thay đổi code vé / PNR / nhà cung cấp
                 array(
                     'customCode' => '{$EDIT_BKG_DETAIL}',
@@ -46,10 +46,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'customCode' => '{$BUTTON_AUTO_BOOK}',
                 ),
-                // Chia doanh số
-                // array(
-                //     'customCode' => '{$SHARE_PROFIT}',
-                // ),
                 array(
                     'customCode' => '{$BUTTON_LINE_NOTES}',
                 ),
@@ -221,7 +217,6 @@ $viewdefs[$module_name]['DetailView'] = array(
                 array(
                     'name' => 'assigned_user_name',
                     'label' => 'LBL_ASSIGNED_TO_NAME',
-                    'customCode' => '{$CUSTOM_ASSIGNED_TO_NAME}',
                 ),
             ),
             array(
@@ -364,7 +359,11 @@ $viewdefs[$module_name]['DetailView'] = array(
             ),
 
             array(
-                array(),
+                array(
+                    'name' => 'total_profit',
+                    'label' => 'LBL_TOTAL_PROFIT',
+                    'customCode' => '{$TOTAL_PROFIT}',
+                ),
                 array(
                     'name' => 'iv_identity_number',
                     'label' => 'LBL_IV_IDENTITY_NUMBER',

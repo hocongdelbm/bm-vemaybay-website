@@ -154,31 +154,57 @@ $searchdefs[$module_name] = array(
                 'enable_range_search' => true,
                 'options' => 'date_range_search_dom',
             ),
-            'assigned_user_name' => array(
-                'link' => 'assigned_user_link',
-                'type' => 'relate',
-                'label' => 'LBL_ASSIGNED_TO_NAME',
-                'width' => '10%',
+            // 'assigned_user_name' => array(
+            //     'link' => 'assigned_user_link',
+            //     'type' => 'relate',
+            //     'label' => 'LBL_ASSIGNED_TO_NAME',
+            //     'width' => '10%',
+            //     'default' => true,
+            //     'name' => 'assigned_user_name',
+            // ),
+            'assigned_user_id' =>
+            array(
+                'name' => 'assigned_user_id',
+                'type' => 'enum',
+                'label' => 'LBL_ASSIGNED_TO',
+                'function' =>
+                array(
+                    'name' => 'UsersHelper::get_user_array_search',
+                    'params' =>
+                    array(
+                        0 => false,
+                    ),
+                ),
                 'default' => true,
-                'name' => 'assigned_user_name',
+                'width' => '10%',
             ),
-            'created_by_name' => array(
-                'type' => 'relate',
-                'link' => 'created_by_link',
+            'created_by' =>
+            array(
+                'name' => 'created_by',
+                'type' => 'enum',
                 'label' => 'LBL_CREATED',
-                'width' => '10%',
+                'function' =>
+                array(
+                    'name' => 'UsersHelper::get_user_array_search',
+                    'params' =>
+                    array(
+                        0 => false,
+                    ),
+                ),
                 'default' => true,
-                'name' => 'created_by_name',
+                'width' => '10%',
             ),
-            'current_user_only' => array(
-                'name' => 'current_user_only',
-                'label' => 'LBL_CURRENT_USER_FILTER',
-                'type' => 'bool'
-            ),
+            // 'created_by_name' => array(
+            //     'type' => 'relate',
+            //     'link' => 'created_by_link',
+            //     'label' => 'LBL_CREATED',
+            //     'width' => '10%',
+            //     'default' => true,
+            //     'name' => 'created_by_name',
+            // ),
 
             'payment_type' => array(
                 'type' => 'enum',
-                'studio' => 'visible',
                 'label' => 'LBL_PAYMENT_TYPE',
                 'width' => '10%',
                 'default' => true,
@@ -187,7 +213,6 @@ $searchdefs[$module_name] = array(
             'booking_status' => array(
                 'type' => 'enum',
                 'default' => true,
-                'studio' => 'visible',
                 'label' => 'LBL_BOOKING_STATUS',
                 'width' => '10%',
                 'name' => 'booking_status',
@@ -196,19 +221,25 @@ $searchdefs[$module_name] = array(
             'ticket_type' => array(
                 'type' => 'enum',
                 'default' => true,
-                'studio' => 'visible',
                 'label' => 'LBL_TICKET_TYPE',
                 'width' => '10%',
                 'name' => 'ticket_type',
             ),
-
-            'ip_address' => array(
-                'type' => 'varchar',
-                'label' => 'LBL_IP_ADDRESS',
-                'width' => '10%',
+            'customer_source' => array(
+                'type' => 'enum',
                 'default' => true,
-                'name' => 'ip_address',
+                'label' => 'LBL_CUSTOMER_SOURCE',
+                'width' => '10%',
+                'name' => 'customer_source',
             ),
+
+            // 'ip_address' => array(
+            //     'type' => 'varchar',
+            //     'label' => 'LBL_IP_ADDRESS',
+            //     'width' => '10%',
+            //     'default' => true,
+            //     'name' => 'ip_address',
+            // ),
             'is_telesale' => array(
                 'type' => 'bool',
                 'label' => 'LBL_IS_TELESALE',
@@ -222,6 +253,25 @@ $searchdefs[$module_name] = array(
                 'width' => '10%',
                 'default' => true,
                 'name' => 'is_ctv',
+            ),
+            'is_prior' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_PRIOR',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_prior',
+            ),
+            'is_reference' => array(
+                'type' => 'bool',
+                'label' => 'LBL_IS_REFERENCE',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'is_reference',
+            ),
+            'current_user_only' => array(
+                'name' => 'current_user_only',
+                'label' => 'LBL_CURRENT_USER_FILTER',
+                'type' => 'bool'
             ),
         ),
     ),

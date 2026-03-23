@@ -195,22 +195,22 @@
                 <input type="radio" value="previous_week" id="previous_week" class="rd_time form-check-input" name="optionRadio" fromdate="{$PREVIOUS_WEEK_FROMDATE}" todate="{$PREVIOUS_WEEK_TODATE}"> 
                 <label class="cursor-pointer" for="previous_week">Tuần trước</label> 
 
-                <div class="d-flex align-items-center gap-2">
-                    <label for="payment_stt" class="text-label">Tình trạng thu:</label>
-                    <select class="box-select" id="payment_stt" name="payment_stt">{$PAYMENT_STT}</select>
+                <div class="function-wrap box-select__search">
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="payment_stt" class="text-label">Tình trạng thu:</label>
+                        <select class="box-select" id="payment_stt" name="payment_stt">{$PAYMENT_STT}</select>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="customer_source" class="text-label">Nguồn KH:</label>
+                        <select class="box-select" id="customer_source" name="customer_source">{$CUSTOMER_SOURCE_OPTS}</select>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="ticket_type" class="text-label">Loại vé:</label>
+                        <select class="box-select" id="ticket_type" name="ticket_type">{$TICKET_TYPE_OPTS}</select>
+                    </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-2">
-                    <label for="customer_source" class="text-label">Nguồn KH:</label>
-                    <select class="box-select" id="customer_source" name="customer_source">{$CUSTOMER_SOURCE_OPTS}</select>
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                    <label for="ticket_type" class="text-label">Loại vé:</label>
-                    <select class="box-select" id="ticket_type" name="ticket_type">{$TICKET_TYPE_OPTS}</select>
-                </div>
-
-                <div class="box-color__sales my-3">
+                <div class="function-wrap box-color__sales">
                     <div class="color-block__wrap">
                         <div class="d-flex align-items-center gap-2">
                             <span class="color-block sales_smaller_receipt"></span>
@@ -253,7 +253,7 @@
                     </div>
                 </div>
     
-                <div class="button-action--wrap my-3">
+                <div class="function-wrap button-action--wrap">
                     <input type="submit" id="btnSearch" value="Tìm kiếm" name="btnSearch" class="btn btn-primary" title="Tìm kiếm"/>
                     <input type="submit" id="btnClear" value="Reset" name="btnClear" class="btn btn-secondary" title="Reset" />
                     {if $IS_ALLOW_RECHECK}
@@ -264,7 +264,7 @@
             </div>
         </form>
 
-        <table id="table_total_ticket__report" class="table-details__booking table_total_ticket__report">
+        <table id="table_total_ticket__report" class="table-details__booking table_total_ticket__report mt-3">
             <thead>
                 <tr>
                     <th>SL vé</th>
