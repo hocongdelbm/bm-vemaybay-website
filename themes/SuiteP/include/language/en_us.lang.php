@@ -35,7 +35,6 @@ $app_list_strings = array(
         'Schedulers' => 'Schedulers',
         'Documents' => 'Documents',
         'DocumentRevisions' => 'Document Revisions',
-        'Connectors' => 'Connectors',
         'Roles' => 'Roles',
         'Notifications' => 'Notifications',
         'Sync' => 'Sync',
@@ -948,7 +947,6 @@ $app_strings = array(
     'LBL_ID_FF_INVALID' => 'Make Invalid',
     'LBL_ADD' => 'Add' /*for 508 compliance fix*/,
     'LBL_COMPANY_LOGO' => 'Company logo' /*for 508 compliance fix*/,
-    'LBL_CONNECTORS_POPUPS' => 'Connectors Popups',
     'LBL_CLOSEINLINE' => 'Close',
     'LBL_VIEWINLINE' => 'View',
     'LBL_INFOINLINE' => 'Info',
@@ -2709,7 +2707,6 @@ $app_list_strings['token_status'] = array(
 
 $app_list_strings ['emailTemplates_type_list'] = array(
     '' => '',
-    'campaign' => 'Campaign',
     'email' => 'Email',
     'event' => 'Event',
 );
@@ -2721,7 +2718,6 @@ $app_list_strings ['emailTemplates_type_list_campaigns'] = array(
 
 $app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
     '' => '',
-    'campaign' => 'Campaign',
     'email' => 'Email',
     'event' => 'Event',
     'system' => 'System',

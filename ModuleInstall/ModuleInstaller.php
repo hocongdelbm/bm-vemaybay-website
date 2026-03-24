@@ -125,7 +125,6 @@ class ModuleInstaller
             'install_extensions',
             'install_images',
             'install_dcactions',
-            'install_connectors',
             'install_layoutfields',
             'install_relationships',
             'enable_manifest_logichooks',
@@ -824,52 +823,6 @@ class ModuleInstaller
                 }
             }
             $this->rebuild_dashletcontainers();
-        }
-    }
-
-    public function install_connectors()
-    {
-        if (isset($this->installdefs['connectors'])) {
-            foreach ($this->installdefs['connectors'] as $cp) {
-                $this->log(translate('LBL_MI_IN_CONNECTORS') . $cp['name']);
-                $dir = str_replace('_', '/', $cp['name']);
-                $cp['connector'] = str_replace('<basepath>', $this->base_dir, $cp['connector']);
-                $source_path = 'custom/modules/Connectors/connectors/sources/' . $dir. '/';
-                $GLOBALS['log']->debug("Installing Connector " . $cp['name'] . "..." . $cp['connector']);
-                if (!file_exists($source_path)) {
-                    mkdir_recursive($source_path, true);
-                }
-                copy_recursive($cp['connector'], $source_path);
-
-                //Install optional formatter code if it is specified
-                if (!empty($cp['formatter'])) {
-                    $cp['formatter'] = str_replace('<basepath>', $this->base_dir, $cp['formatter']);
-                    $formatter_path = 'custom/modules/Connectors/connectors/formatters/' . $dir. '/';
-                    if (!file_exists($formatter_path)) {
-                        mkdir_recursive($formatter_path, true);
-                    }
-                    copy_recursive($cp['formatter'], $formatter_path);
-                }
-            }
-            require_once('include/connectors/utils/ConnectorUtils.php');
-            ConnectorUtils::installSource($cp['name']);
-        }
-    }
-    public function uninstall_connectors()
-    {
-        if (isset($this->installdefs['connectors'])) {
-            foreach ($this->installdefs['connectors'] as $cp) {
-                $this->log(translate('LBL_MI_UN_CONNECTORS') . $cp['name']);
-                $dir = str_replace('_', '/', $cp['name']);
-                $source_path = 'custom/modules/Connectors/connectors/sources/' . $dir;
-                $formatter_path = 'custom/modules/Connectors/connectors/formatters/' . $dir;
-                $GLOBALS['log']->debug('Unlink ' .$source_path);
-                rmdir_recursive($source_path);
-                rmdir_recursive($formatter_path);
-            }
-            require_once('include/connectors/utils/ConnectorUtils.php');
-            //ConnectorUtils::getConnectors(true);
-            ConnectorUtils::uninstallSource($cp['name']);
         }
     }
 
@@ -1614,7 +1567,6 @@ class ModuleInstaller
             'uninstall_relationships',
             'uninstall_copy',
             'uninstall_dcactions',
-            'uninstall_connectors',
             'uninstall_layoutfields',
             'uninstall_extensions',
             'uninstall_global_search',

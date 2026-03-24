@@ -152,11 +152,6 @@ class SearchMerge extends ListViewMerge
      */
     public function merge($module, $original_file, $new_file, $custom_file=false, $save=true)
     {
-        //Bug 37207
-        if ($module == 'Connectors') {
-            return false;
-        }
-        
         $this->clear();
         $this->log("\n\n". 'Starting a merge in ' . get_class($this));
         $this->log('merging the following files');

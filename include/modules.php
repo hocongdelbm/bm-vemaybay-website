@@ -123,7 +123,6 @@ $beanList['Tasks'] = 'Task';
 $beanList['Users'] = 'User';
 $beanList['Currencies'] = 'Currency';
 $beanList['Trackers'] = 'Tracker';
-$beanList['Connectors'] = 'Connectors';
 $beanList['Import_1'] = 'ImportMap';
 $beanList['Import_2'] = 'UsersLastImport';
 $beanList['Versions'] = 'Version';
@@ -225,7 +224,6 @@ $modInvisList = [
     'Administration',
     'Currencies',
     'CustomFields',
-    'Connectors',
     'Dropdown',
     'Dynamic',
     'DynamicFields',
@@ -238,7 +236,6 @@ $modInvisList = [
     'FieldsMetaData',
     'UpgradeWizard',
     'Trackers',
-    'Connectors',
     'Employees',
     'Calendar',
     'Releases',
@@ -299,7 +296,6 @@ $modInvisList[] = 'SavedSearch';
 // deferred
 //$modInvisList[] = 'Queues';
 $modInvisList[] = 'Studio';
-$modInvisList[] = 'Connectors';
 
 $report_include_modules = [];
 $report_include_modules['Currencies'] = 'Currency';

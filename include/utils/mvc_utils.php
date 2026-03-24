@@ -91,7 +91,6 @@ function ajaxBannedModules()
         'Users',
         'Currencies',
         'Trackers',
-        'Connectors',
         'Import_1',
         'Import_2',
         'Versions',
