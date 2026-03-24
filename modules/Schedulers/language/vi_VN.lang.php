@@ -115,7 +115,6 @@ $mod_strings = [
     'LBL_POLLMONITOREDINBOXESFORBOUNCEDCAMPAIGNEMAILS' => 'Chạy quy trình hàng đêm gửi email chiến dịch',
     'LBL_PRUNEDATABASE' => 'Lượt bớt cơ sở dữ liệu vào ngày đầu tiên của tháng',
     'LBL_TRIMTRACKER' => 'Lượt bớt bảng theo dõi',
-    'LBL_TRIMSUGARFEEDS' => 'Lượt bớt các Bảng trường SuiteCRM',
     'LBL_SENDEMAILREMINDERS' => 'Chạy Email nhắc nhở gửi',
     'LBL_CLEANJOBQUEUE' => 'Dọn dẹp công việc đang đợi',
     'LBL_REMOVEDOCUMENTSFROMFS' => 'Loại bỏ các tài liệu từ hệ thống tập tin',

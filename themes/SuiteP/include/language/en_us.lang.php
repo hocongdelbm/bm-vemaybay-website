@@ -55,7 +55,6 @@ $app_list_strings = array(
         'TrackerQueries' => 'Tracker Queries',
         'FAQ' => 'FAQ',
         'Newsletters' => 'Newsletters',
-        'SugarFeed' => 'SuiteCRM Feed',
         'SugarFavorites' => 'SuiteCRM Favorites',
 
         'OAuthKeys' => 'OAuth Consumer Keys',

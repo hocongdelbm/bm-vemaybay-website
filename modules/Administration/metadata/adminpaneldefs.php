@@ -143,14 +143,6 @@ $admin_group_header[] = ['LBL_ADMINISTRATION_HOME_TITLE', '', false, $admin_opti
 
 //Module Settings
 $admin_option_defs = [];
-$admin_option_defs['Administration']['feed_settings'] = [
-    'icon_SugarFeed',
-    'LBL_SUITEFEED_SETTINGS',
-    'LBL_SUITEFEED_SETTINGS_DESC',
-    './index.php?module=SugarFeed&action=AdminSettings',
-    'activity-streams'
-];
-
 $admin_option_defs['Administration']['aop'] = [
     'AOP',
     'LBL_AOP_SETTINGS',

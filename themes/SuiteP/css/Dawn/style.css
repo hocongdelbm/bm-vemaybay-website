@@ -2293,11 +2293,6 @@ button.list-group-item-danger.active:focus {
      content: ""
 }
 
-.suitepicon-action-alerts-small:before,
-.suitepicon-module-sugarfeed:before{
-     content: ""
-}
-
 .suitepicon-action-alerts:before {
      content: ""
 }

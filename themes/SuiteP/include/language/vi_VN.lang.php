@@ -56,7 +56,6 @@ $app_list_strings = array(
         'TrackerQueries' => 'Theo dõi truy vấn',
         'FAQ' => 'Hỏi đáp',
         'Newsletters' => 'Tin mới',
-        'SugarFeed' => 'Nguồn cấp dữ liệu SuiteCRM',
         'SugarFavorites' => 'Đánh dấu SuiteCRM vào mục yêu thích',
 
         'OAuthKeys' => 'Bảo Mật ',

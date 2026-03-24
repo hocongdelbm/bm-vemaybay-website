@@ -58,18 +58,6 @@ class CmisRuntimeException extends Exception
 
 class CMISRepositoryWrapper
 {
-    // Handles --
-    //   Workspace -- but only endpoints with a single repo
-    //   Entry -- but only for objects
-    //   Feeds -- but only for non-hierarchical feeds
-    // Does not handle --
-    //   -- Hierarchical Feeds
-    //   -- Types
-    //   -- Others?
-    // Only Handles Basic Auth
-    // Very Little Error Checking
-    // Does not work against pre CMIS 1.0 Repos
-
     public $url;
     public $username;
     public $password;

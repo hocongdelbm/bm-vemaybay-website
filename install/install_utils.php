@@ -2275,21 +2275,6 @@ function addDefaultRoles($defaultRoles = array())
     }
 }
 
-/**
- * Fully enable SugarFeeds, enabling the user feed and all available modules that have SugarFeed data.
- */
-function enableSugarFeeds()
-{
-    $admin = BeanFactory::newBean('Administration');
-    $admin->saveSetting('sugarfeed', 'enabled', '1');
-
-    foreach (SugarFeed::getAllFeedModules() as $module) {
-        SugarFeed::activateModuleFeed($module);
-    }
-
-    check_logic_hook_file('Users', 'after_login', array(1, 'SugarFeed old feed entry remover', 'modules/SugarFeed/SugarFeedFlush.php', 'SugarFeedFlush', 'flushStaleEntries'));
-}
-
 function create_writable_dir($dirname)
 {
     if ((is_dir($dirname)) || @sugar_mkdir($dirname, 0755)) {

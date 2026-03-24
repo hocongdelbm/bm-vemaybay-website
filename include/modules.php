@@ -293,10 +293,6 @@ $report_include_modules['ProductTypes'] = 'ProductType';
 
 $report_include_modules['Trackers'] = 'Tracker';
 
-$beanList['SugarFeed'] = 'SugarFeed';
-$beanFiles['SugarFeed'] = 'modules/SugarFeed/SugarFeed.php';
-$modInvisList[] = 'SugarFeed';
-
 // This is the mapping for modules that appear under a different module's tab
 // Be sure to also add the modules to $modInvisList, otherwise their tab will still appear
 $GLOBALS['moduleTabMap'] = [
@@ -306,7 +302,6 @@ $GLOBALS['moduleTabMap'] = [
     'Configurator' => 'Administration',
     'Studio' => 'Administration',
     'Currencies' => 'Administration',
-    'SugarFeed' => 'Administration',
     'DocumentRevisions' => 'Documents',
     'EmailMarketing' => 'Campaigns',
 ];

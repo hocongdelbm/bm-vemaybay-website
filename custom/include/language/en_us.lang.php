@@ -34,7 +34,6 @@ $app_list_strings['moduleList'] = array(
   'TrackerQueries' => 'Tracker Queries',
   'FAQ' => 'FAQ',
   'Newsletters' => 'Newsletters',
-  'SugarFeed' => 'Sugar Feed',
   'Library' => 'Library',
   'EmailAddresses' => 'Email Address',
   'KBDocuments' => 'Knowledge Base',

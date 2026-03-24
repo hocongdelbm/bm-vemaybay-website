@@ -372,12 +372,6 @@ installerHook('post_createDefaultSchedulers');
 
 echo $mod_strings['LBL_PERFORM_DONE'];
 
-
-
-// Enable Sugar Feeds and add all feeds by default
-installLog("Enable SugarFeeds");
-enableSugarFeeds();
-
 ///////////////////////////////////////////////////////////////////////////
 ////    FINALIZE LANG PACK INSTALL
 if (isset($_SESSION['INSTALLED_LANG_PACKS']) && is_array($_SESSION['INSTALLED_LANG_PACKS']) && !empty($_SESSION['INSTALLED_LANG_PACKS'])) {

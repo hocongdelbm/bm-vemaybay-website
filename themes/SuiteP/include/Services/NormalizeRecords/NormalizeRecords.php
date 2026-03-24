@@ -628,7 +628,6 @@ class NormalizeRecords extends BatchJob
             'UserPreferences',
             'SavedSearch',
             'Studio',
-            'SugarFeed',
             'EAPM',
             'OAuthKeys',
             'OAuthTokens',
