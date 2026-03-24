@@ -200,8 +200,6 @@ $modInvisList = [
     'Schedulers',
     'Schedulers_jobs',
     'EmailMan',
-    'Prospects',
-    'ProspectLists',
     'Groups',
     'InboundEmail',
     'ACLActions',
@@ -240,8 +238,6 @@ $modInvisList[] = 'Studio';
 
 $report_include_modules = [];
 $report_include_modules['Currencies'] = 'Currency';
-//add prospects
-$report_include_modules['Prospects'] = 'Prospect';
 $report_include_modules['DocumentRevisions'] = 'DocumentRevision';
 $report_include_modules['ProductCategories'] = 'ProductCategory';
 $report_include_modules['ProductTypes'] = 'ProductType';

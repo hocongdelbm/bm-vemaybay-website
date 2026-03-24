@@ -45,7 +45,6 @@ $app_list_strings = array(
         'ACLRoles' => 'Vai trò',
         'InboundEmail' => 'Hộp thư đến',
         'Releases' => 'Phát hành',
-        'Prospects' => 'Mục tiêu',
         'Queues' => 'Hàng đợi',
         'EmailMarketing' => 'Email quảng bá',
         'EmailTemplates' => 'Email - mẫu',
@@ -354,11 +353,7 @@ $app_list_strings = array(
         'Cases' => 'Kịch bản',
         'Leads' => 'Đối tác tiềm năng',
         'Contacts' => 'Liên hệ', // cn (11/22/2005) added to support Emails
-
         'Bugs' => 'Phát sinh',
-
-        'Prospects' => 'Mục tiêu',
-
         'Tasks' => 'Công việc',
 
         'AOS_Contracts' => 'Hợp đồng',
@@ -375,15 +370,11 @@ $app_list_strings = array(
         'Campaigns' => 'Chiến dịch kinh doanh',
         'Tasks' => 'Công việc',
         'Emails' => 'Email',
-
         'Bugs' => 'Phát sinh',
-        'Prospects' => 'Mục tiêu',
         'Cases' => 'Kịch bản',
         'Leads' => 'Đầu mối',
-
         'Meetings' => 'Hội họp',
         'Calls' => 'Cuộc gọi',
-
         'AOS_Contracts' => 'Hợp đồng',
         'AOS_Invoices' => 'Hoá đơn',
         'AOS_Quotes' => 'Báo giá',
@@ -400,8 +391,6 @@ $app_list_strings = array(
         'Cases' => 'Kịch bản',
         'Leads' => 'Đầu mối',
 
-        'Prospects' => 'Mục tiêu',
-        
         'AOS_Contracts' => 'Hợp đồng',
         'AOS_Invoices' => 'Hoá đơn',
         'AOS_Quotes' => 'Báo giá',
@@ -819,7 +808,6 @@ $app_list_strings = array(
     'campainglog_target_type_dom' => array(
         'Contacts' => 'Liên hệ',
         'Users' => 'Người dùng',
-        'Prospects' => 'Mục tiêu',
         'Leads' => 'Đầu mối',
         'Accounts' => 'Khách hàng',
     ),
@@ -1472,7 +1460,6 @@ $app_strings = array(
     'LBL_PRIMARY_ADDRESS_STREET' => 'Địa chỉ:',
     'LBL_PRIMARY_ADDRESS' => 'Địa chỉ chính:',
 
-    'LBL_PROSPECTS' => 'Triển vọng',
     'LBL_PRODUCTS' => 'Sản phẩm',
     'LBL_QUOTES' => 'Báo giá',
 
@@ -3044,7 +3031,6 @@ $app_list_strings['map_module_type_list']['Cases'] = 'Kịch bản';
 $app_list_strings['map_module_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_module_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_module_type_list']['Opportunities'] = 'Cơ hội';
-$app_list_strings['map_module_type_list']['Prospects'] = 'Đối tượng';
 
 $app_list_strings['map_relate_type_list']['Accounts'] = 'Tài khoản';
 $app_list_strings['map_relate_type_list']['Contacts'] = 'Liên hệ';
@@ -3052,7 +3038,6 @@ $app_list_strings['map_relate_type_list']['Cases'] = 'Kịch bản';
 $app_list_strings['map_relate_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_relate_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_relate_type_list']['Opportunities'] = 'Cơ hội';
-$app_list_strings['map_relate_type_list']['Prospects'] = 'Mục tiêu';
 
 $app_list_strings['marker_image_list']['accident'] = 'Tai nạn';
 $app_list_strings['marker_image_list']['administration'] = 'Quản trị viên';

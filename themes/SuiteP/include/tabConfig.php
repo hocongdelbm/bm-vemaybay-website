@@ -24,8 +24,6 @@ $GLOBALS['tabStructure'] = array(
             "Accounts",
             "Contacts",
             "Leads",
-            "Prospects",
-            "ProspectLists",
         )
     ),
     "LBL_TABGROUP_SUPPORT" => array(

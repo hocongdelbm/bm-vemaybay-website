@@ -44,7 +44,6 @@ $app_list_strings = array(
         'ACLRoles' => 'Vai trò',
         'InboundEmail' => 'Inbound Email Accounts',
         'Releases' => 'Phát hành',
-        'Prospects' => 'Mục tiêu',
         'Queues' => 'Hàng đợi',
         'EmailMarketing' => 'Email quảng bá',
         'EmailTemplates' => 'Email - mẫu',
@@ -390,7 +389,6 @@ $app_list_strings = array(
         'Contacts' => 'Liên hệ', // cn (11/22/2005) added to support Emails
 
         'Bugs' => 'Phát sinh',
-        'Prospects' => 'Mục tiêu',
 
         'Tasks' => 'Công việc',
 
@@ -429,8 +427,6 @@ $app_list_strings = array(
         'Bugs' => 'Phát sinh',
         'Cases' => 'Kịch bản',
         'Leads' => 'Đầu mối',
-
-        'Prospects' => 'Mục tiêu',
 
         'AOS_Contracts' => 'Hợp đồng',
         'AOS_Invoices' => 'Hoá đơn',
@@ -865,7 +861,6 @@ $app_list_strings = array(
     'campainglog_target_type_dom' => array(
         'Contacts' => 'Liên hệ',
         'Users' => 'Người dùng',
-        'Prospects' => 'Mục tiêu',
         'Leads' => 'Đầu mối',
         'Accounts' => 'Khách hàng',
     ),
@@ -1522,7 +1517,6 @@ $app_strings = array(
     'LBL_PRIMARY_ADDRESS_STREET' => 'Địa chỉ:',
     'LBL_PRIMARY_ADDRESS' => 'Địa chỉ chính:',
 
-    'LBL_PROSPECTS' => 'Triển vọng',
     'LBL_PRODUCTS' => 'Sản phẩm',
     'LBL_QUOTES' => 'Báo giá',
 

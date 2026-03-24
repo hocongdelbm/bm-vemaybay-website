@@ -44,7 +44,6 @@ $app_list_strings = array(
         'ACLRoles' => 'Roles',
         'InboundEmail' => 'Inbound Email',
         'Releases' => 'Releases',
-        'Prospects' => 'Targets',
         'Queues' => 'Queues',
         'EmailMarketing' => 'Email Marketing',
         'EmailTemplates' => 'Email - Templates',
@@ -86,7 +85,6 @@ $app_list_strings = array(
         'Feeds' => 'RSS',
         'iFrames' => 'My Sites',
         'TimePeriods' => 'Time Period',
-        'Prospects' => 'Target',
         'Documents' => 'Document',
         'Sync' => 'Sync',
         'Users' => 'User',
@@ -352,7 +350,6 @@ $app_list_strings = array(
         'Leads' => 'Lead',
         'Contacts' => 'Contact', // cn (11/22/2005) added to support Emails
         'Bugs' => 'Bug',
-        'Prospects' => 'Target',
         'Tasks' => 'Task',
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
@@ -369,7 +366,6 @@ $app_list_strings = array(
         'Emails' => 'Email',
 
         'Bugs' => 'Bug',
-        'Prospects' => 'Target',
         'Cases' => 'Case',
         'Leads' => 'Lead',
 
@@ -391,7 +387,6 @@ $app_list_strings = array(
         'Bugs' => 'Bug',
         'Cases' => 'Case',
         'Leads' => 'Lead',
-        'Prospects' => 'Target',
 
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
@@ -786,15 +781,6 @@ $app_list_strings = array(
 
 
 //prospect list type dom
-    'prospect_list_type_dom' => array(
-        'default' => 'Default',
-        'seed' => 'Seed',
-        'exempt_domain' => 'Suppression List - By Domain',
-        'exempt_address' => 'Suppression List - By Email Address',
-        'exempt' => 'Suppression List - By Id',
-        'test' => 'Test',
-    ),
-
     'email_settings_num_dom' => array(
         '10' => '10',
         '20' => '20',
@@ -806,27 +792,6 @@ $app_list_strings = array(
         'inactive' => 'Inactive',
     ),
 
-    'campainglog_activity_type_dom' => array(
-        '' => '',
-        'targeted' => 'Message Sent/Attempted',
-        'send error' => 'Bounced Messages,Other',
-        'invalid email' => 'Bounced Messages,Invalid Email',
-        'link' => 'Click-thru Link',
-        'viewed' => 'Viewed Message',
-        'removed' => 'Opted Out',
-        'lead' => 'Leads Created',
-        'contact' => 'Contacts Created',
-        'blocked' => 'Suppressed by address or domain',
-        'Survey' => 'Survey answered',
-    ),
-
-    'campainglog_target_type_dom' => array(
-        'Contacts' => 'Contacts',
-        'Users' => 'Users',
-        'Prospects' => 'Targets',
-        'Leads' => 'Leads',
-        'Accounts' => 'Accounts',
-    ),
     'merge_operators_dom' => array(
         'like' => 'Contains',
         'exact' => 'Exactly',
@@ -1482,7 +1447,6 @@ $app_strings = array(
     'LBL_PRIMARY_ADDRESS_STREET' => 'Primary Address Street:',
     'LBL_PRIMARY_ADDRESS' => 'Primary Address:',
 
-    'LBL_PROSPECTS' => 'Prospects',
     'LBL_PRODUCTS' => 'Products',
     'LBL_QUOTES' => 'Quotes',
 
@@ -1994,7 +1958,7 @@ $app_strings = array(
     'LBL_SUITE_DESC3' => 'SuiteCRM is a trademark of SalesAgility Ltd. All other company and product names may be trademarks of the respective companies with which they are associated.',
     'LBL_GENERATE_PASSWORD_BUTTON_TITLE' => 'Reset Password',
     'LBL_SEND_CONFIRM_OPT_IN_EMAIL' => 'Send Confirm Opt In Email',
-    'LBL_CONFIRM_OPT_IN_ONLY_FOR_PERSON' => 'Confirm Opt In Email sending only for Accounts/Contacts/Leads/Prospects',
+    'LBL_CONFIRM_OPT_IN_ONLY_FOR_PERSON' => 'Confirm Opt In Email sending only for Accounts/Contacts/Leads',
     'LBL_CONFIRM_OPT_IN_IS_DISABLED' => 'Confirm Opt In Email sending is disabled, enable Confirm Opt In option in Email Settings or contact your Administrator.',
     'LBL_CONTACT_HAS_NO_PRIMARY_EMAIL' => 'Confirm Opt In Email sending is not possible because the Contact has not Primary Email Address',
     'LBL_CONFIRM_EMAIL_SENDING_FAILED' => 'Confirm Opt In Email sending failed',

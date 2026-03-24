@@ -19,7 +19,6 @@ class IconRepository
         'Employees' => 'users',
         'SurveyQuestionResponses' =>  'survey-responses',
         'SurveyResponses' => 'survey-responses',
-        'Prospects' => 'targets'
     ];
 
     /**

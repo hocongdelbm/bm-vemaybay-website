@@ -127,9 +127,6 @@ class SugarWidgetSubPanelTopButton extends SugarWidget
         $formValues['return_id'] = $defines['focus']->id;
         $formValues['return_relationship'] = $relationship_name;
         switch (strtolower($currentModule)) {
-            case 'prospects':
-                $name = $defines['focus']->account_name ;
-                break ;
             case 'documents':
                 $name = $defines['focus']->document_name ;
                 break ;

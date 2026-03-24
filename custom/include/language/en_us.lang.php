@@ -23,7 +23,6 @@ $app_list_strings['moduleList'] = array(
   'Sync' => 'Sync',
   'Users' => 'Users',
   'Releases' => 'Releases',
-  'Prospects' => 'Targets',
   'Queues' => 'Queues',
   'EmailMarketing' => 'Email Marketing',
   'EmailTemplates' => 'Email Templates',

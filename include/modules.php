@@ -79,8 +79,6 @@ $moduleList[] = 'InboundEmail';
 $moduleList[] = 'OutboundEmailAccounts';
 
 $moduleList[] = 'Campaigns';
-$moduleList[] = 'Prospects';
-$moduleList[] = 'ProspectLists';
 
 $moduleList[] = 'Documents';
 $moduleList[] = 'Cases';
@@ -98,12 +96,7 @@ $beanList['ACLActions'] = 'ACLAction';
 $beanList['Leads'] = 'Lead';
 $beanList['Cases'] = 'aCase';
 $beanList['Bugs'] = 'Bug';
-$beanList['ProspectLists'] = 'ProspectList';
-$beanList['Prospects'] = 'Prospect';
-$beanList['Campaigns'] = 'Campaign';
 $beanList['EmailMarketing'] = 'EmailMarketing';
-$beanList['CampaignLog'] = 'CampaignLog';
-$beanList['CampaignTrackers'] = 'CampaignTracker';
 $beanList['Releases'] = 'Release';
 $beanList['Groups'] = 'Group';
 $beanList['EmailMan'] = 'EmailMan';
@@ -164,10 +157,6 @@ $beanFiles['Lead'] = 'modules/Leads/Lead.php';
 $beanFiles['aCase'] = 'modules/Cases/Case.php';
 $beanFiles['Bug'] = 'modules/Bugs/Bug.php';
 $beanFiles['Group'] = 'modules/Groups/Group.php';
-$beanFiles['CampaignLog'] = 'modules/CampaignLog/CampaignLog.php';
-$beanFiles['Campaign'] = 'modules/Campaigns/Campaign.php';
-$beanFiles['ProspectList'] = 'modules/ProspectLists/ProspectList.php';
-$beanFiles['Prospect'] = 'modules/Prospects/Prospect.php';
 
 $beanFiles['EmailMarketing'] = 'modules/EmailMarketing/EmailMarketing.php';
 $beanFiles['CampaignTracker'] = 'modules/CampaignTrackers/CampaignTracker.php';
@@ -259,8 +248,6 @@ $modInvisList = [
     'CampaignTrackers',
     'CampaignLog',
     // 'EmailMan',
-    'Prospects',
-    'ProspectLists',
     'Groups',
     // 'InboundEmail',
     'ACLActions',
@@ -299,8 +286,6 @@ $modInvisList[] = 'Studio';
 
 $report_include_modules = [];
 $report_include_modules['Currencies'] = 'Currency';
-//add prospects
-$report_include_modules['Prospects'] = 'Prospect';
 $report_include_modules['DocumentRevisions'] = 'DocumentRevision';
 $report_include_modules['ProductCategories'] = 'ProductCategory';
 $report_include_modules['ProductTypes'] = 'ProductType';
