@@ -2428,3 +2428,27 @@ function resetRewardPoints() {
 		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
 	}
 }
+
+/**
+ * Xem đánh giá chất lượng gửi ZBS
+ */
+function reviewQualitySendingZBS() {
+	require_once "custom/include/helpers/api/APIZaloOA.php";
+
+	$app_id = "1450532072851803077";
+	$zaloOA = new APIZaloOA($app_id, $oa_id);
+	$json = $zaloOA->get_quality_template_message_by_phone();
+	$arr = json_decode($json, true);
+	if(isset($arr['error']) && $arr['error'] == 0) {
+		$oaCurrentQuality = $arr['data']['oaCurrentQuality'] ?? '';
+		$oa7dayQuality = $arr['data']['oa7dayQuality'] ?? '';
+
+		if(!empty($oaCurrentQuality)) {
+			
+		}
+
+		if(!empty($oa7dayQuality)) {
+			
+		}
+	}
+}

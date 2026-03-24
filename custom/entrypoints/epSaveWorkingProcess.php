@@ -217,41 +217,39 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 								$point_log->save();
 								
 								// Send point info to customer via Zalo
-								if(5 < date('H') && date('H') < 22) {
-									$entry = new entryFactory();
-									$entryOA = $entry->create('entryZaloOAClass');
-									$params = [
-										"phoneNumber" => $phone,
-										"type" => "points",
-										"parentId" => $record,
-										"parentType" => "EC_Flight_Bookings",
-										"templateData" => [
-											"name" => "bạn",
-											"booking" => $record_name,
-											"point" => (string)$point,
-											"total_point" => (string)$total_point
-										],
-									];
-									$sendResult = $entryOA->sendTemplateMessage($params);
+								$entry = new entryFactory();
+								$entryOA = $entry->create('entryZaloOAClass');
+								$params = [
+									"phoneNumber" => $con_phone,
+									"type" => "points",
+									"parentId" => $record,
+									"parentType" => "EC_Flight_Bookings",
+									"templateData" => [
+										"name" => "bạn",
+										"booking" => $record_name,
+										"point" => (string)$point,
+										"total_point" => (string)$total_point
+									],
+								];
+								$sendResult = $entryOA->sendTemplateMessage($params);
 
-									if (isset($sendResult['status']) && $sendResult['status'] == 1) {
-										$content = "<b>⭐️ TIN NHẮN TÍCH ĐIỂM</b>";
-										$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua <b>ZNS</b>";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nSĐT: <b>$con_phone</b>";
-										$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
-										$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
-										NotificationService::sendMessage($content, '', ['threadKey' => 'system']);
-									}
-									else {
-										$content = "Failed to send point-accumulation ZBS message";
-										$content .= "\nBooking: <b>$record_name</b>";
-										$content .= "\nPhone: <b>$con_phone</b>";
-										$content .= "\nExtra points: <b>$point</b>";
-										$content .= "\nTotal points: <b>$total_point</b>";
-										$content .= "\n<pre>". json_encode($sendResult) ."</pre>";
-										NotificationService::sendWarningMessage($content, '', ['threadKey' => 'logs']);
-									}
+								if (isset($sendResult['status']) && $sendResult['status'] == 1) {
+									$content = "<b>⭐️ TIN NHẮN TÍCH ĐIỂM</b>";
+									$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua <b>ZNS</b>";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nSĐT: <b>$con_phone</b>";
+									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
+									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
+									NotificationService::sendMessage($content, '', ['threadKey' => 'system']);
+								}
+								else {
+									$content = "Failed to send point-accumulation ZBS message";
+									$content .= "\nBooking: <b>$record_name</b>";
+									$content .= "\nPhone: <b>$con_phone</b>";
+									$content .= "\nExtra points: <b>$point</b>";
+									$content .= "\nTotal points: <b>$total_point</b>";
+									$content .= "\n<pre>". json_encode($sendResult) ."</pre>";
+									NotificationService::sendWarningMessage($content, '', ['threadKey' => 'logs']);
 								}
 							}
 						}

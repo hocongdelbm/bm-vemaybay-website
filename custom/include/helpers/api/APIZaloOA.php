@@ -742,6 +742,21 @@ class APIZaloOA {
         return $this->send_request("POST", $url, json_encode($requestBody), $header, $curlOptions);
     }
 
+    /**
+     * Get quality of ZBS by phone
+     * @return string json
+     */
+    public function get_quality_template_message_by_phone() {
+        $url = "https://business.openapi.zalo.me/quality";
+
+        $header = [
+            "Content-Type: application/json",
+            "access_token: ". $this->get_token()
+        ];
+
+        return $this->send_request("GET", $url, '', $header);
+    }
+
     /** 
      * Send template id
      * 
