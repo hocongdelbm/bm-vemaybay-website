@@ -385,14 +385,6 @@ $dictionary['Contact'] = array(
             'comment' => 'Synch to outlook?  (Meta-Data only)',
             'studio' => 'true',
         ),
-        'fp_events_contacts' => array(
-            'name' => 'fp_events_contacts',
-            'type' => 'link',
-            'relationship' => 'fp_events_contacts',
-            'source' => 'non-db',
-            'vname' => 'LBL_FP_EVENTS_CONTACTS_FROM_FP_EVENTS_TITLE',
-        ),
-
         'aos_quotes' => array(
             'name' => 'aos_quotes',
             'vname' => 'LBL_AOS_QUOTES',
@@ -420,92 +412,6 @@ $dictionary['Contact'] = array(
             'bean_name' => 'AOS_Contracts',
             'source' => 'non-db',
         ),
-
-        'e_invite_status_fields' => array(
-            'name' => 'e_invite_status_fields',
-            'rname' => 'id',
-            'relationship_fields' => array(
-                'id' => 'event_invite_id',
-                'invite_status' => 'event_status_name',
-            ),
-            'vname' => 'LBL_CONT_INVITE_STATUS',
-            'type' => 'relate',
-            'link' => 'fp_events_contacts',
-            'link_type' => 'relationship_info',
-            'join_link_name' => 'fp_events_contacts',
-            'source' => 'non-db',
-            'importable' => 'false',
-            'duplicate_merge' => 'disabled',
-            'studio' => false,
-        ),
-
-        'event_status_name' => array(
-            'massupdate' => false,
-            'name' => 'event_status_name',
-            'type' => 'enum',
-            'studio' => 'false',
-            'source' => 'non-db',
-            'vname' => 'LBL_LIST_INVITE_STATUS_EVENT',
-            'options' => 'fp_event_invite_status_dom',
-            'importable' => 'false',
-        ),
-
-        'event_invite_id' => array(
-            'name' => 'event_invite_id',
-            'type' => 'varchar',
-            'source' => 'non-db',
-            'vname' => 'LBL_LIST_INVITE_STATUS',
-            'studio' => array(
-                'listview' => false,
-            ),
-        ),
-
-        'e_accept_status_fields' => array(
-            'name' => 'e_accept_status_fields',
-            'rname' => 'id',
-            'relationship_fields' => array(
-                'id' => 'event_status_id',
-                'accept_status' => 'event_accept_status',
-            ),
-            'vname' => 'LBL_CONT_ACCEPT_STATUS',
-            'type' => 'relate',
-            'link' => 'fp_events_contacts',
-            'link_type' => 'relationship_info',
-            'join_link_name' => 'fp_events_contacts',
-            'source' => 'non-db',
-            'importable' => 'false',
-            'duplicate_merge' => 'disabled',
-            'studio' => false,
-        ),
-
-        'event_accept_status' => array(
-            'massupdate' => false,
-            'name' => 'event_accept_status',
-            'type' => 'enum',
-            'studio' => 'false',
-            'source' => 'non-db',
-            'vname' => 'LBL_LIST_ACCEPT_STATUS_EVENT',
-            'options' => 'fp_event_status_dom',
-            'importable' => 'false',
-        ),
-        'event_status_id' => array(
-            'name' => 'event_status_id',
-            'type' => 'varchar',
-            'source' => 'non-db',
-            'vname' => 'LBL_LIST_ACCEPT_STATUS',
-            'studio' => array(
-                'listview' => false,
-            ),
-        ),
-        'project_contacts_1' => array(
-            'name' => 'project_contacts_1',
-            'type' => 'link',
-            'relationship' => 'project_contacts_1',
-            'source' => 'non-db',
-            'module' => 'Project',
-            'bean_name' => 'Project',
-            'vname' => 'LBL_PROJECT_CONTACTS_1_FROM_PROJECT_TITLE',
-        ),
         'aop_case_updates' => array(
             'name' => 'aop_case_updates',
             'type' => 'link',
@@ -514,119 +420,23 @@ $dictionary['Contact'] = array(
             'id_name' => 'contact_id',
             'vname' => 'LBL_AOP_CASE_UPDATES',
         ),
-
-        // 'joomla_account_id' => array(
-        //     'name' => 'joomla_account_id',
-        //     'vname' => 'LBL_JOOMLA_ACCOUNT_ID',
-        //     'type' => 'varchar',
-        //     'len' => '255',
-        //     'importable' => 'false',
-        //     'studio' => 'true',
-        // ),
-        // 'portal_account_disabled' => array(
-        //     'name' => 'portal_account_disabled',
-        //     'vname' => 'LBL_PORTAL_ACCOUNT_DISABLED',
-        //     'type' => 'bool',
-        //     'importable' => 'false',
-        //     'studio' => 'false',
-        // ),
-        // 'joomla_account_access' => array(
-        //     'name' => 'joomla_account_access',
-        //     'vname' => 'LBL_JOOMLA_ACCOUNT_ACCESS',
-        //     'type' => 'varchar',
-        //     'source' => 'non-db',
-        //     'len' => '255',
-        //     'importable' => 'false',
-        //     'studio' => 'false',
-        // ),
-        // 'portal_user_type' => array(
-        //     'name' => 'portal_user_type',
-        //     'vname' => 'LBL_PORTAL_USER_TYPE',
-        //     'type' => 'enum',
-        //     'options' => 'contact_portal_user_type_dom',
-        //     'len' => '100',
-        //     'default' => 'Single',
-        // ),
-
-        /********************  CUSTOM  ********************/
-        // 'zalo_id' => array(
-        //     'name'       => 'zalo_id',
-        //     'vname'      => 'LBL_ZALO_ID',
-        //     'type'       => 'varchar',
-        //     'len'        => 25,
-        //     'default'    => '',
-        //     'importable' => true,
-        //     'audited'    => true,
-        // ),
-        // 'zalo_last_interaction' => array(
-        //     'name'      => 'zalo_last_interaction',
-        //     'vname'     => 'LBL_ZALO_LAST_INTERACTION',
-        //     'type'      => 'datetime',
-        //     'len'       => 20,
-        //     'default'   => '',
-        // ),
-        // 'zalo_name' => array(
-        //     'name'       => 'zalo_name',
-        //     'vname'      => 'LBL_ZALO_NAME',
-        //     'type'       => 'varchar',
-        //     'len'        => 250,
-        //     'default'    => '',
-        //     'importable' => true,
-        //     'audited'    => true,
-        // ),
-        // 'zalo_avatar' => array(
-        //     'name'       => 'zalo_avatar',
-        //     'vname'      => 'LBL_ZALO_AVATAR',
-        //     'type'       => 'varchar',
-        //     'len'        => 128,
-        //     'default'    => '',
-        //     'importable' => true,
-        //     'audited'    => true,
-        // ),
-        // 'zalo_is_follower' => array(
-        //     'name'       => 'zalo_is_follower',
-        //     'vname'      => 'LBL_ZALO_IS_FOLLOWER',
-        //     'type'       => 'bool',
-        //     'default'    => 0,
-        //     'importable' => true,
-        //     'audited'    => true,
-        // ),
-        // 'zalo_tags' => array(
-        //     'name'       => 'zalo_tags',
-        //     'vname'      => 'LBL_ZALO_TAGS',
-        //     'type'       => 'varchar',
-        //     'len'        => 128,
-        //     'default'    => '',
-        //     'importable' => true,
-        //     'audited'    => true,
-        // ),
-        // 'zalo_quota' => array(
-        //     'name'       => 'zalo_quota',
-        //     'vname'      => 'LBL_ZALO_QUOTE',
-        //     'type'       => 'varchar',
-        //     'len'        => 255,
-        //     'default'    => '',
-        //     'importable' => true,
-        //     'audited'    => true,
-        // ),
-
         'contact_type' => array(
             'name' => 'contact_type',
-			'vname' => 'LBL_CONTACT_TYPE',
-			'type' => 'enum',
-			'options' => 'contact_type_list',
+            'vname' => 'LBL_CONTACT_TYPE',
+            'type' => 'enum',
+            'options' => 'contact_type_list',
             'default' => 'NEW_CUSTOMER',
-			'len' => 24,
-			'required' => 0,
-			'massupdate' => 1,
-			'importable' => 1,
+            'len' => 24,
+            'required' => 0,
+            'massupdate' => 1,
+            'importable' => 1,
             'audited' => 1,
-			'reportable' => 0,
-			'duplicate_merge' => 'disabled',
-			'duplicate_merge_dom_value' => ' ',
-			'studio' => 'visible',
-			'dependency' => false,
-		),
+            'reportable' => 0,
+            'duplicate_merge' => 'disabled',
+            'duplicate_merge_dom_value' => ' ',
+            'studio' => 'visible',
+            'dependency' => false,
+        ),
         'points' => array(
             'name'       => 'points',
             'vname'      => 'LBL_POINTS',
@@ -670,7 +480,6 @@ $dictionary['Contact'] = array(
     ),
     'indices' => array(
         array('name' => 'idx_cont_phone', 'type' => 'index', 'fields' => array('phone_mobile')),
-        // array('name' => 'idx_cont_zaloid', 'type' => 'index', 'fields' => array('zalo_id')),
     ),
     'relationships' => array(
         'contact_direct_reports' => array(
@@ -801,5 +610,8 @@ $dictionary['Contact'] = array(
 );
 
 VardefManager::createVardef('Contacts', 'Contact', array(
-    'default', 'assignable', 'security_groups', 'person'
+    'default',
+    'assignable',
+    'security_groups',
+    'person'
 ));

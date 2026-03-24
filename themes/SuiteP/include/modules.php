@@ -299,13 +299,6 @@ $beanFiles['Reminder_Invitee'] = 'modules/Reminders_Invitees/Reminder_Invitee.ph
 $modInvisList[] = 'Reminders_Invitees';
 $modules_exempt_from_availability_check['Reminders_Invitees'] = 'Reminder_Invitee';
 
-$beanList['FP_events'] = 'FP_events';
-$beanFiles['FP_events'] = 'modules/FP_events/FP_events.php';
-$moduleList[] = 'FP_events';
-$beanList['FP_Event_Locations'] = 'FP_Event_Locations';
-$beanFiles['FP_Event_Locations'] = 'modules/FP_Event_Locations/FP_Event_Locations.php';
-$moduleList[] = 'FP_Event_Locations';
-
 $beanList['AOD_IndexEvent'] = 'AOD_IndexEvent';
 $beanFiles['AOD_IndexEvent'] = 'modules/AOD_IndexEvent/AOD_IndexEvent.php';
 $modules_exempt_from_availability_check['AOD_IndexEvent'] = 'AOD_IndexEvent';

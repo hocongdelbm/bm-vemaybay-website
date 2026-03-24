@@ -2680,18 +2680,6 @@ $app_list_strings['aok_status_list']['In_Review'] = 'Đang xem xét';
 $app_list_strings['aok_status_list']['published_private'] = 'Riêng tư';
 $app_list_strings['aok_status_list']['published_public'] = 'Công khai';
 
-$app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
-
-//events
-$app_list_strings['fp_event_invite_status_dom']['Invited'] = 'Mời';
-$app_list_strings['fp_event_invite_status_dom']['Not Invited'] = 'Không được mời';
-$app_list_strings['fp_event_invite_status_dom']['Attended'] = 'Tham dự';
-$app_list_strings['fp_event_invite_status_dom']['Not Attended'] = 'Không tham dự';
-$app_list_strings['fp_event_status_dom']['Accepted'] = 'Được chấp nhận';
-$app_list_strings['fp_event_status_dom']['Declined'] = 'Đã từ chối';
-$app_list_strings['fp_event_status_dom']['No Response'] = 'Không có phản ứng';
-
 $app_strings['LBL_STATUS_EVENT'] = 'Tình trạng lời mời';
 $app_strings['LBL_ACCEPT_STATUS'] = 'trạng thái đồng ý';
 $app_strings['LBL_LISTVIEW_OPTION_CURRENT'] = 'chọn trang này';

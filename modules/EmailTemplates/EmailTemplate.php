@@ -203,8 +203,6 @@ class EmailTemplate extends SugarBean
         $account = BeanFactory::newBean('Accounts');
         $lead = BeanFactory::newBean('Leads');
         $prospect = BeanFactory::newBean('Prospects');
-        $event = BeanFactory::newBean('FP_events');
-
 
         $loopControl = array(
             'Contacts' => array(
@@ -218,16 +216,12 @@ class EmailTemplate extends SugarBean
             'Users' => array(
                 'Users' => $current_user,
             ),
-            'Events' => array(
-                'Events' => $event,
-            ),
         );
 
         $prefixes = array(
             'Contacts' => 'contact_',
             'Accounts' => 'account_',
             'Users' => 'contact_user_',
-            'Events' => 'event_',
         );
 
         $collection = array();

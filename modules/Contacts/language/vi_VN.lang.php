@@ -154,8 +154,6 @@ $mod_strings = array(
     // SNIP
     'LBL_USER_SYNC' => 'Đồng bộ người dùng',
 
-    'LBL_FP_EVENTS_CONTACTS_FROM_FP_EVENTS_TITLE' => 'Sự kiện',
-
     'LBL_AOP_CASE_UPDATES' => 'Cập nhật Vụ việc',
     'LBL_CREATE_PORTAL_USER' => 'Tạo cổng thông tin người dùng',
     'LBL_ENABLE_PORTAL_USER' => 'Cho phép người sử dụng cổng thông tin',

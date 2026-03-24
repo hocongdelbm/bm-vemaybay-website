@@ -113,14 +113,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'FP_Event_Locations' => 
-  array (
-    'visible' => false,
-  ),
-  'FP_events' => 
-  array (
-    'visible' => false,
-  ),
   'Tasks' => 
   array (
     'visible' => false,

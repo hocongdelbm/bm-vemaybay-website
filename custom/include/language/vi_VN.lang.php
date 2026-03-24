@@ -97,8 +97,7 @@ $app_list_strings['moduleList']['AOP_Case_Updates'] = 'Cập nhật trường h�
 // knowledge base
 $app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
 $app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
+
 // ExternalOauth
 $app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
 $app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
@@ -106,8 +105,6 @@ $app_list_strings['moduleList']['EAPM'] = 'External Account Password Management'
 
 $app_strings['LBL_LOGIN_AS'] = "Login as ";
 $app_strings['LBL_LOGOUT_AS'] = "Logout as ";
-
-
 
 $app_list_strings['receipt_type_list']['cash']            = 'Tiền mặt';
 $app_list_strings['receipt_type_list']['credit_transfer'] = 'Chuyển khoản';

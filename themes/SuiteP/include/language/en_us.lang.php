@@ -2726,18 +2726,6 @@ $app_list_strings['aok_status_list']['In_Review'] = 'In Review';
 $app_list_strings['aok_status_list']['published_private'] = 'Private';
 $app_list_strings['aok_status_list']['published_public'] = 'Public';
 
-$app_list_strings['moduleList']['FP_events'] = 'Events';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Locations';
-
-//events
-$app_list_strings['fp_event_invite_status_dom']['Invited'] = 'Invited';
-$app_list_strings['fp_event_invite_status_dom']['Not Invited'] = 'Not Invited';
-$app_list_strings['fp_event_invite_status_dom']['Attended'] = 'Attended';
-$app_list_strings['fp_event_invite_status_dom']['Not Attended'] = 'Not Attended';
-$app_list_strings['fp_event_status_dom']['Accepted'] = 'Accepted';
-$app_list_strings['fp_event_status_dom']['Declined'] = 'Declined';
-$app_list_strings['fp_event_status_dom']['No Response'] = 'No Response';
-
 $app_strings['LBL_STATUS_EVENT'] = 'Invite Status';
 $app_strings['LBL_ACCEPT_STATUS'] = 'Accept Status';
 $app_strings['LBL_LISTVIEW_OPTION_CURRENT'] = 'Select This Page';

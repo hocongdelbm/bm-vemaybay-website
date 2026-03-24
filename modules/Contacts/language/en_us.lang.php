@@ -152,8 +152,6 @@ $mod_strings = array(
     // SNIP
     'LBL_USER_SYNC' => 'User Sync',
 
-    'LBL_FP_EVENTS_CONTACTS_FROM_FP_EVENTS_TITLE' => 'Events',
-
     'LBL_AOP_CASE_UPDATES' => 'Case Updates',
     'LBL_CREATE_PORTAL_USER' => 'Create Portal User',
     'LBL_ENABLE_PORTAL_USER' => 'Enable Portal User',
