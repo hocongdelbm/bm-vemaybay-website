@@ -72,7 +72,7 @@ $listViewDefs[$module_name] = array(
     'IP_ADDRESS' => array(
         'width' => '10%',
         'label' => 'LBL_IP_ADDRESS',
-        'default' => false,
+        'default' => true,
     ),
     'DATE_ENTERED' => array(
         'label' => 'LBL_DATE_ENTERED',
