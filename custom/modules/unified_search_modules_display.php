@@ -73,14 +73,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'AOR_Reports' => 
-  array (
-    'visible' => false,
-  ),
-  'AOR_Scheduled_Reports' => 
-  array (
-    'visible' => false,
-  ),
   'AOS_Contracts' => 
   array (
     'visible' => false,

@@ -341,7 +341,6 @@ $sugar_config = array(
     'special_query_limit' => 50000,
     'special_query_modules' =>
     array(
-      0 => 'AOR_Reports',
       1 => 'Export',
       2 => 'Import',
       3 => 'Administration',

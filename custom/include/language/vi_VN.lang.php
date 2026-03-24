@@ -73,12 +73,7 @@ $app_list_strings['moduleList']['EC_Location']            = 'Địa điểm';
 $app_list_strings['moduleList']['EC_LoginAudit']          = 'Login Audit';
 $app_list_strings['moduleList']['EC_Contact_Points_Log']  = 'Quá trình tích điểm';
 $app_list_strings['moduleList']['EC_Zalo_Contacts']       = 'Liên hệ Zalo';
-// AOR
-$app_list_strings['moduleList']['AOR_Reports'] = 'Báo cáo';
-$app_list_strings['moduleList']['AOR_Conditions'] = 'Báo cáo điều kiện';
-$app_list_strings['moduleList']['AOR_Charts'] = 'Biểu đồ báo cáo';
-$app_list_strings['moduleList']['AOR_Fields'] = 'Báo cáo lĩnh vực';
-$app_list_strings['moduleList']['AOR_Scheduled_Reports'] = 'Theo lịch trình báo cáo';
+
 // AOW PR 5775
 $app_list_strings['moduleList']['AOW_WorkFlow'] = 'Quy trình công việc';
 $app_list_strings['moduleList']['AOW_Conditions'] = 'Quy trình làm việc điều kiện';

@@ -142,7 +142,7 @@ function make_sugar_config(&$sugar_config)
         'portal_view' => 'single_user',
         'resource_management' => array(
             'special_query_limit' => 50000,
-            'special_query_modules' => array('AOR_Reports', 'Export', 'Import', 'Administration', 'Sync'),
+            'special_query_modules' => array('Export', 'Import', 'Administration', 'Sync'),
             'default_limit' => 1000,
         ),
         'require_accounts' => empty($requireAccounts) ? true : $requireAccounts,
@@ -404,7 +404,7 @@ function get_sugar_config_defaults(): array
         ],
         'resource_management' => [
             'special_query_limit' => 50000,
-            'special_query_modules' => ['AOR_Reports', 'Export', 'Import', 'Administration', 'Sync'],
+            'special_query_modules' => ['Export', 'Import', 'Administration', 'Sync'],
             'default_limit' => 1000,
         ],
         'require_accounts' => true,

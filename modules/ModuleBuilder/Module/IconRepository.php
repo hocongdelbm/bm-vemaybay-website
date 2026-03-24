@@ -14,7 +14,6 @@ class IconRepository
      */
     private static $iconNames = [
         AOS_Contracts::class => 'aos-contracts-signature',
-        AOR_Scheduled_Reports::class => 'aor-reports',
         'EmailTemplates' => 'emails',
         'Employees' => 'users',
     ];

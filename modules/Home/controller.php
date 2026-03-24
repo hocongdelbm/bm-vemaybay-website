@@ -8,11 +8,6 @@ include_once("include/InlineEditing/InlineEditing.php");
 
 class HomeController extends SugarController
 {
-
-    function action_baocaongay() {
-		$this->view = 'baocaongay';
-	}
-    
     public function action_getEditFieldHTML()
     {
         if ($_REQUEST['field'] && $_REQUEST['id'] && $_REQUEST['current_module']) {
@@ -72,17 +67,17 @@ class HomeController extends SugarController
                         }
                     }
                 }
-                $validate_array = array('type' => $fielddef['type'], 'required' => $fielddef['required'],'label' => $fielddef['label']);
+                $validate_array = array('type' => $fielddef['type'], 'required' => $fielddef['required'], 'label' => $fielddef['label']);
 
                 echo json_encode($validate_array);
             }
         }
     }
-    
+
     public function action_getRelateFieldJS()
     {
         global $beanFiles, $beanList;
-        
+
         $fieldlist = array();
         $view = "EditView";
 

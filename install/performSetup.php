@@ -460,7 +460,6 @@ $enabled_tabs[] = 'FP_Event_Locations';
 $enabled_tabs[] = 'AOS_Products';
 $enabled_tabs[] = 'AOS_Product_Categories';
 $enabled_tabs[] = 'AOS_PDF_Templates';
-$enabled_tabs[] = 'AOR_Reports';
 $enabled_tabs[] = 'AOK_KnowledgeBase';
 $enabled_tabs[] = 'AOK_Knowledge_Base_Categories';
 $enabled_tabs[] = 'EmailTemplates';

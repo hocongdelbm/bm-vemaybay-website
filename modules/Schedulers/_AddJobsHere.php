@@ -37,7 +37,6 @@ $job_strings = array(
     6 => 'pollMonitoredInboxesAOP',
     7 => 'aodIndexUnindexed',
     8 => 'aodOptimiseIndex',
-    9 => 'aorRunScheduledReports',
     10 => 'processAOW_Workflow',
     12 => 'sendEmailReminders',
     14 => 'cleanJobQueue',
@@ -726,115 +725,11 @@ function performLuceneIndexing()
     return $total;
 }
 
-function aorRunScheduledReports()
-{
-    require_once 'include/SugarQueue/SugarJobQueue.php';
-    $db = DBManagerFactory::getInstance();
-    $date = new DateTime();//Ensure we check all schedules at the same instant
-    foreach (BeanFactory::getBean('AOR_Scheduled_Reports')->get_full_list() as $scheduledReport) {
-        if ($scheduledReport->status != 'active') {
-            continue;
-        }
-        try {
-            $shouldRun = $scheduledReport->shouldRun($date);
-        } catch (Exception $ex) {
-            LoggerManager::getLogger()->warn('aorRunScheduledReports: id: ' . $scheduledReport->id . ' got exception. code: ' . $ex->getCode() . ', message: ' . $ex->getMessage());
-            $shouldRun = false;
-        }
-        if ($shouldRun) {
-            if (empty($scheduledReport->aor_report_id)) {
-                continue;
-            }
-            $queued = $db->fetchOne("SELECT count(*) cnt FROM job_queue WHERE data=".$db->quoted($scheduledReport->id)." and deleted=0 and status = 'running' and execute_time >= " . $db->quoted(date("Y-m-d H:i:s", strtotime("-2 hours"))));
-            if(!empty($queued) && $queued['cnt'] > 0) {
-                LoggerManager::getLogger()->warn('aorRunScheduledReports: id: ' . $scheduledReport->id . ' is already running. Postpone creating new job.');
-                continue;
-            }
-            $job = BeanFactory::newBean('SchedulersJobs');
-            $job->name = "Scheduled report - {$scheduledReport->name} on {$date->format('c')}";
-            $job->data = $scheduledReport->id;
-            $job->target = "class::AORScheduledReportJob";
-            $job->assigned_user_id = 1;
-            $jq = new SugarJobQueue();
-            $jq->submitJob($job);
-        }
-    }
-    return true;
-}
-
 function processAOW_Workflow()
 {
     require_once('modules/AOW_WorkFlow/AOW_WorkFlow.php');
     $workflow = BeanFactory::newBean('AOW_WorkFlow');
     return $workflow->run_flows();
-}
-
-class AORScheduledReportJob implements RunnableSchedulerJob
-{
-    public function setJob(SchedulersJob $job)
-    {
-        $this->job = $job;
-    }
-
-    public function run($data)
-    {
-        global $timedate;
-
-        $bean = BeanFactory::getBean('AOR_Scheduled_Reports', $data);
-        $report = $bean->get_linked_beans('aor_report', 'AOR_Reports');
-        if ($report) {
-            $report = $report[0];
-        } else {
-            return false;
-        }
-        $html = "<h1>{$report->name}</h1>" . $report->build_group_report();
-        $html .= <<<EOF
-        <style>
-        h1{
-            color: black;
-        }
-        .list
-        {
-            font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;font-size: 12px;
-            background: #fff;margin: 45px;width: 480px;border-collapse: collapse;text-align: left;
-        }
-        .list th
-        {
-            font-size: 14px;
-            font-weight: normal;
-            color: black;
-            padding: 10px 8px;
-            border-bottom: 2px solid black;
-        }
-        .list td
-        {
-            padding: 9px 8px 0px 8px;
-        }
-        </style>
-EOF;
-        $emailObj = BeanFactory::newBean('Emails');
-        $defaults = $emailObj->getSystemDefaultEmail();
-        $mail = new SugarPHPMailer();
-
-        $mail->setMailerForSystem();
-        $mail->IsHTML(true);
-        $mail->From = $defaults['email'];
-        isValidEmailAddress($mail->From);
-        $mail->FromName = $defaults['name'];
-        $mail->Subject = from_html($bean->name);
-        $mail->Body = $html;
-        $mail->prepForOutbound();
-        $success = true;
-        $emails = $bean->get_email_recipients();
-        foreach ($emails as $email_address) {
-            $mail->ClearAddresses();
-            $mail->AddAddress($email_address);
-            $success = $mail->Send() && $success;
-        }
-        $bean->last_run = $timedate->getNow()->asDb(false);
-        $bean->save();
-        return true;
-    }
 }
 
 function runElasticSearchIndexerScheduler($data)
