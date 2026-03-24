@@ -170,7 +170,9 @@ class Call extends SugarBean
             $sql_date = date('Y-m-d', strtotime(date('d-m-Y H:i:s')));
 
             $total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM calls WHERE DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '" . $sql_date . "'");
-            $this->name = 'CALL-' . $date . '-' . $total_row;
+            $number = sprintf('%02d', $total_row); // 01, 02, ..., 10
+
+            $this->name = 'CALL-' . $date . '-' . $number;
 
             $is_tele = 1;
         }
