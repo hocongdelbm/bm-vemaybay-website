@@ -98,7 +98,6 @@ $GLOBALS['tabStructure'] = array(
             "Home",
             "Emails",
             "Documents",
-            "Project",
         )
     ),
 );

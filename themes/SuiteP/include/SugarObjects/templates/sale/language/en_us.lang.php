@@ -65,7 +65,6 @@ $mod_strings = array(
     'LBL_TYPE' => 'Type:',
     'LBL_CAMPAIGN' => 'Campaign:',
     'LBL_LEADS_SUBPANEL_TITLE' => 'Leads',
-    'LBL_PROJECTS_SUBPANEL_TITLE' => 'Projects',
     'LBL_NEXT_STEP' => 'Next Step:',
     'LBL_LEAD_SOURCE' => 'Lead Source:',
     'LBL_SALES_STAGE' => 'Sales Stage:',

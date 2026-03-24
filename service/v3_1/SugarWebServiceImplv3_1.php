@@ -868,7 +868,6 @@ class SugarWebServiceImplv3_1 extends SugarWebServiceImplv3
                 'UNIFIED_SEARCH'
             )))));
             foreach ($modules_to_search as $name => $beanName) {
-                $where_clauses_array = array();
                 $unifiedSearchFields = array();
                 foreach ($unified_search_modules[$name]['fields'] as $field => $def) {
                     $unifiedSearchFields[$name] [$field] = $def;

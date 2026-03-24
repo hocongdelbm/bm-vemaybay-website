@@ -308,9 +308,7 @@ $mod_strings = array(
     'LBL_TEST_SETTINGS' => 'Kiểm tra tùy chỉnh ',
     'LBL_TEST_SUCCESSFUL' => 'Đã kết nối thành công.',
     'LBL_TOGGLE_ADV' => 'Hiển thị nâng cao',
-// END INBOUND EMAIL STRINGS
     'LBL_LDAP_EXTENSION_ERROR' => 'LDAP lỗi: Phần mở rộng không nạp',
-// PROJECT RESOURCES STRINGS
     'LBL_RESOURCE_NAME' => 'Tên',
     'LBL_SMTP_SERVER_HELP' => 'Máy chủ Email SMTP này có thể được sử dụng cho các thư gửi đi. Cung cấp một tên đăng nhập và mật khẩu cho tài khoản email của bạn để sử dụng máy chủ Email.',
     'LBL_MISSING_DEFAULT_OUTBOUND_SMTP_SETTINGS' => 'Quản trị viên chưa cấu hình mặc định tài khoản thư đi. Không thể gửi email thử nghiệm.',

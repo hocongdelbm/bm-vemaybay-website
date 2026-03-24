@@ -65,7 +65,6 @@ $mod_strings = array(
     'LBL_TYPE' => 'Loại:',
     'LBL_CAMPAIGN' => 'Chiến dịch:',
     'LBL_LEADS_SUBPANEL_TITLE' => 'Đầu mối',
-    'LBL_PROJECTS_SUBPANEL_TITLE' => 'Dự án',
     'LBL_NEXT_STEP' => 'Bước kế tiếp:',
     'LBL_LEAD_SOURCE' => 'Nguồn đầu mối:',
     'LBL_SALES_STAGE' => 'Giai đoạn bán hàng:',

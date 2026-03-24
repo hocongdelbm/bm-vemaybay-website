@@ -153,7 +153,6 @@ $js_groupings = array(
     $sugar_grp_project = array(
         'include/javascript/jsclass_base.js'    => 'include/javascript/sugar_grp_project.js',
         'include/javascript/jsclass_async.js'   => 'include/javascript/sugar_grp_project.js',
-        'modules/Project/jsclass_scheduler.js'   => 'include/javascript/sugar_grp_project.js',
     ),
     $sugar_grp_project_template = array(
         'include/javascript/jsclass_base.js'    => 'include/javascript/sugar_grp_project_template.js',

@@ -84,9 +84,7 @@ $moduleList[] = 'ProspectLists';
 
 $moduleList[] = 'Documents';
 $moduleList[] = 'Cases';
-$moduleList[] = 'Project';
 $moduleList[] = 'Bugs';
-$moduleList[] = 'ResourceCalendar';
 $moduleList[] = 'AOBH_BusinessHours';
 
 $moduleList[] = 'Spots';
@@ -103,8 +101,6 @@ $beanList['Cases'] = 'aCase';
 $beanList['Bugs'] = 'Bug';
 $beanList['ProspectLists'] = 'ProspectList';
 $beanList['Prospects'] = 'Prospect';
-$beanList['Project'] = 'Project';
-$beanList['ProjectTask'] = 'ProjectTask';
 $beanList['Campaigns'] = 'Campaign';
 $beanList['EmailMarketing'] = 'EmailMarketing';
 $beanList['CampaignLog'] = 'CampaignLog';
@@ -172,8 +168,6 @@ $beanFiles['aCase'] = 'modules/Cases/Case.php';
 $beanFiles['Bug'] = 'modules/Bugs/Bug.php';
 $beanFiles['Group'] = 'modules/Groups/Group.php';
 $beanFiles['CampaignLog'] = 'modules/CampaignLog/CampaignLog.php';
-$beanFiles['Project'] = 'modules/Project/Project.php';
-$beanFiles['ProjectTask'] = 'modules/ProjectTask/ProjectTask.php';
 $beanFiles['Campaign'] = 'modules/Campaigns/Campaign.php';
 $beanFiles['ProspectList'] = 'modules/ProspectLists/ProspectList.php';
 $beanFiles['Prospect'] = 'modules/Prospects/Prospect.php';
@@ -278,10 +272,8 @@ $modInvisList = [
     'ACLActions',
     'ACLRoles',
     'DocumentRevisions',
-    'ProjectTask',
     'ModuleBuilder',
     'Alert',
-    'ResourceCalendar',
     'AOBH_BusinessHours',
 ];
 

@@ -1692,7 +1692,6 @@ function get_workflow_admin_modules_for_user($user)
     $workflow_mod_list['Calls'] = 'Calls';
     $workflow_mod_list['Meetings'] = 'Meetings';
     $workflow_mod_list['Notes'] = 'Notes';
-    $workflow_mod_list['ProjectTask'] = 'Project Tasks';
     $workflow_mod_list['Leads'] = 'Leads';
     $workflow_mod_list['Opportunities'] = 'Opportunities';
     // End of list
@@ -3168,11 +3167,6 @@ function parse_list_modules(&$listArray)
         if (array_key_exists($optionName, $modListHeader)) {
             $returnArray[$optionName] = $optionVal;
         }
-
-        // special case for projects
-        if (array_key_exists('Project', $modListHeader)) {
-            $returnArray['ProjectTask'] = $listArray['ProjectTask'];
-        }
     }
     $acldenied = ACLController::disabledModuleList($listArray, false);
     foreach ($acldenied as $denied) {
@@ -3957,10 +3951,6 @@ function convert_module_to_singular($module_array)
 
         if ($value == 'Cases') {
             $module_array[$key] = 'Case';
-        }
-        if ($key == 'projecttask') {
-            $module_array['ProjectTask'] = 'Project Task';
-            unset($module_array[$key]);
         }
     }
 

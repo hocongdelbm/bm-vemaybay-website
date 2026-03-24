@@ -75,8 +75,6 @@ function ajaxBannedModules()
         'Campaigns',
         'Documents',
         'DocumentRevisions',
-        'Project',
-        'ProjectTask',
         'EmailMarketing',
         'CampaignLog',
         'CampaignTrackers',

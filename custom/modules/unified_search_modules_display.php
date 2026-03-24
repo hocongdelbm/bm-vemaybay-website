@@ -137,14 +137,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'Project' => 
-  array (
-    'visible' => false,
-  ),
-  'ProjectTask' => 
-  array (
-    'visible' => false,
-  ),
   'ProspectLists' => 
   array (
     'visible' => false,

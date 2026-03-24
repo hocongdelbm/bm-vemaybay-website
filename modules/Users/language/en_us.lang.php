@@ -302,9 +302,7 @@ $mod_strings = array(
     'LBL_TEST_SETTINGS' => 'Test Settings',
     'LBL_TEST_SUCCESSFUL' => 'Connection completed successfully.',
     'LBL_TOGGLE_ADV' => 'Show Advanced',
-// END INBOUND EMAIL STRINGS
     'LBL_LDAP_EXTENSION_ERROR' => 'LDAP Error: Extensions not loaded',
-// PROJECT RESOURCES STRINGS
     'LBL_RESOURCE_NAME' => 'Name',
     'LBL_SMTP_SERVER_HELP' => 'This SMTP Mail Server can be used for outgoing mail. Provide a username and password for your email account in order to use the mail server.',
     'LBL_MISSING_DEFAULT_OUTBOUND_SMTP_SETTINGS' => 'The administrator has not yet configured the default outbound account. Unable to send test email.',
@@ -430,8 +428,6 @@ $mod_strings = array(
     'LBL_EMAILS_LEADS_REL' => 'Emails:Leads',
     'LBL_EMAILS_OPPORTUNITIES_REL' => 'Emails:Opportunities',
     'LBL_EMAILS_NOTES_REL' => 'Emails:Notes',
-    'LBL_EMAILS_PROJECT_REL' => 'Emails:Project',
-    'LBL_EMAILS_PROJECT_TASK_REL' => 'Emails:ProjectTask',
     'LBL_EMAILS_PROSPECT_REL' => 'Emails:Prospect',
     'LBL_EMAILS_CONTRACTS_REL' => 'Emails:Contract',
     'LBL_EMAILS_TASKS_REL' => 'Emails:Tasks',
@@ -452,8 +448,6 @@ $mod_strings = array(
     'LBL_NOT_SENT' => 'Send Error',
     'LBL_NOTES_SUBPANEL_TITLE' => 'Attachments',
     'LBL_OPPORTUNITY_SUBPANEL_TITLE' => 'Opportunities',
-    'LBL_PROJECT_SUBPANEL_TITLE' => 'Projects',
-    'LBL_PROJECT_TASK_SUBPANEL_TITLE' => 'Project Tasks',
     'LBL_RAW' => 'Raw Email',
     'LBL_SAVE_AS_DRAFT_BUTTON_TITLE' => 'Save Draft',
     'LBL_SEND_ANYWAYS' => 'This email has no subject. Send/save anyway?',

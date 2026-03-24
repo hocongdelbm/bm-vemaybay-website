@@ -48,9 +48,6 @@ $viewdefs[$module_name]['EditView'] = array(
 
             array(
                 array(
-                    'name' => 'account',
-                    'label' => 'LBL_ACCOUNT',
-                    'customCode' => '{$TAIKHOAN}',
                 ),
                 array(
                     'name' => 'sort',

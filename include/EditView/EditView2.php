@@ -1113,7 +1113,6 @@ EOQ;
 
     /**
      * Allow Subviews to overwrite this method to show custom titles.
-     * Examples: Projects & Project Templates.
      * params: $showTitle: boolean for backwards compatibility.
      */
     public function showTitle($showTitle = false)

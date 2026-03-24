@@ -10,7 +10,6 @@ $app_list_strings = array(
     'language_pack_name' => 'US English',
     'moduleList' => array(
         'Home' => 'Home',
-        'ResourceCalendar' => 'Resource Calendar',
         'Contacts' => 'Contacts',
         'Accounts' => 'Accounts',
         'Alerts' => 'Alerts',
@@ -34,8 +33,6 @@ $app_list_strings = array(
         'TimePeriods' => 'Time Periods',
         'ContractTypes' => 'Contract Types',
         'Schedulers' => 'Schedulers',
-        'Project' => 'Projects',
-        'ProjectTask' => 'Project Tasks',
         'Campaigns' => 'Campaigns',
         'CampaignLog' => 'Campaign Log',
         'Documents' => 'Documents',
@@ -92,8 +89,6 @@ $app_list_strings = array(
         'Feeds' => 'RSS',
         'iFrames' => 'My Sites',
         'TimePeriods' => 'Time Period',
-        'Project' => 'Project',
-        'ProjectTask' => 'Project Task',
         'Prospects' => 'Target',
         'Campaigns' => 'Campaign',
         'Documents' => 'Document',
@@ -345,42 +340,6 @@ $app_list_strings = array(
         'Yahoo!' => 'Yahoo!',
         'AOL' => 'AOL',
     ),
-    'project_task_priority_options' => array(
-        'High' => 'High',
-        'Medium' => 'Medium',
-        'Low' => 'Low',
-    ),
-    'project_task_priority_default' => 'Medium',
-
-    'project_task_status_options' => array(
-        'Not Started' => 'Not Started',
-        'In Progress' => 'In Progress',
-        'Completed' => 'Completed',
-        'Pending Input' => 'Pending Input',
-        'Deferred' => 'Deferred',
-    ),
-    'project_task_utilization_options' => array(
-        '0' => 'none',
-        '25' => '25',
-        '50' => '50',
-        '75' => '75',
-        '100' => '100',
-    ),
-
-    'project_status_dom' => array(
-        'Draft' => 'Draft',
-        'In Review' => 'In Review',
-        'Underway' => 'Underway',
-        'On_Hold' => 'On Hold',
-        'Completed' => 'Completed',
-    ),
-    'project_status_default' => 'Draft',
-
-    'project_duration_units_dom' => array(
-        'Days' => 'Days',
-        'Hours' => 'Hours',
-    ),
-
     'activity_status_type_dom' => array(
         '' => '--None--',
         'active' => 'Active',
@@ -397,15 +356,9 @@ $app_list_strings = array(
         'Cases' => 'Case',
         'Leads' => 'Lead',
         'Contacts' => 'Contact', // cn (11/22/2005) added to support Emails
-
         'Bugs' => 'Bug',
-        'Project' => 'Project',
-
         'Prospects' => 'Target',
-        'ProjectTask' => 'Project Task',
-
         'Tasks' => 'Task',
-
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
         'AOS_Quotes' => 'Quote',
@@ -422,8 +375,6 @@ $app_list_strings = array(
         'Emails' => 'Email',
 
         'Bugs' => 'Bug',
-        'Project' => 'Project',
-        'ProjectTask' => 'Project Task',
         'Prospects' => 'Target',
         'Cases' => 'Case',
         'Leads' => 'Lead',
@@ -446,10 +397,6 @@ $app_list_strings = array(
         'Bugs' => 'Bug',
         'Cases' => 'Case',
         'Leads' => 'Lead',
-
-        'Project' => 'Project',
-        'ProjectTask' => 'Project Task',
-
         'Prospects' => 'Target',
 
         'AOS_Contracts' => 'Contract',
@@ -558,7 +505,6 @@ $app_list_strings = array(
         'Notes' => 'Notes',
         'Opportunities' => 'Opportunities',
         'Outlook Plugin' => 'Outlook Plugin',
-        'Projects' => 'Projects',
         'Quotes' => 'Quotes',
         'Releases' => 'Releases',
         'RSS' => 'RSS',
@@ -930,18 +876,6 @@ $app_list_strings = array(
         2 => 'Filter',
         3 => 'Default selected filter',
         4 => 'Only filter',
-    ),
-
-    'projects_priority_options' => array(
-        'high' => 'High',
-        'medium' => 'Medium',
-        'low' => 'Low',
-    ),
-
-    'projects_status_options' => array(
-        'notstarted' => 'Not Started',
-        'inprogress' => 'In Progress',
-        'completed' => 'Completed',
     ),
     // strings to pass to Flash charts
     'chart_strings' => array(
@@ -1589,8 +1523,6 @@ $app_strings = array(
 
     'LBL_PROSPECTS' => 'Prospects',
     'LBL_PRODUCTS' => 'Products',
-    'LBL_PROJECT_TASKS' => 'Project Tasks',
-    'LBL_PROJECTS' => 'Projects',
     'LBL_QUOTES' => 'Quotes',
 
     'LBL_RELATED' => 'Related',
@@ -1692,13 +1624,11 @@ $app_strings = array(
     'LBL_SCENARIO_MARKETING' => 'Marketing',
     'LBL_SCENARIO_FINANCE' => 'Finance',
     'LBL_SCENARIO_SERVICE' => 'Service',
-    'LBL_SCENARIO_PROJECT' => 'Project Management',
 
     'LBL_SCENARIO_SALES_DESCRIPTION' => 'This scenario facilitates the management of sales items',
     'LBL_SCENARIO_MAKETING_DESCRIPTION' => 'This scenario facilitates the management of marketing items',
     'LBL_SCENARIO_FINANCE_DESCRIPTION' => 'This scenario facilitates the management of finance related items',
     'LBL_SCENARIO_SERVICE_DESCRIPTION' => 'This scenario facilitates the management of service related items',
-    'LBL_SCENARIO_PROJECT_DESCRIPTION' => 'This scenario facilitates the management of project related items',
 
     'LBL_SYNC' => 'Sync',
     'LBL_TABGROUP_ALL' => 'All',
@@ -2119,12 +2049,6 @@ $app_strings = array(
 
 $app_list_strings['moduleList']['Library'] = 'Library';
 $app_list_strings['moduleList']['EmailAddresses'] = 'Email Address';
-$app_list_strings['project_priority_default'] = 'Medium';
-$app_list_strings['project_priority_options'] = array(
-    'High' => 'High',
-    'Medium' => 'Medium',
-    'Low' => 'Low',
-);
 
 //GDPR lawful basis options
 $app_list_strings['lawful_basis_dom'] = array(
@@ -3163,15 +3087,12 @@ $app_list_strings['aow_run_when_list']['On_Save'] = 'Only On Save';
 $app_list_strings['aow_run_when_list']['In_Scheduler'] = 'Only In The Scheduler';
 
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates'] = 'Projects - Templates';
-$app_list_strings['moduleList']['AM_TaskTemplates'] = 'Project Task Templates';
 $app_list_strings['relationship_type_list']['FS'] = 'Finish to Start';
 $app_list_strings['relationship_type_list']['SS'] = 'Start to Start';
 $app_list_strings['duration_unit_dom']['Days'] = 'Days';
 $app_list_strings['duration_unit_dom']['Hours'] = 'Hours';
 $app_strings['LBL_GANTT_BUTTON_LABEL'] = 'View Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL'] = 'View Detail';
-$app_strings['LBL_CREATE_PROJECT'] = 'Create Project';
 
 //gmaps
 $app_strings['LBL_MAP'] = 'Map';
@@ -3197,8 +3118,6 @@ $app_list_strings['map_module_type_list']['Cases'] = 'Cases';
 $app_list_strings['map_module_type_list']['Leads'] = 'Leads';
 $app_list_strings['map_module_type_list']['Meetings'] = 'Meetings';
 $app_list_strings['map_module_type_list']['Opportunities'] = 'Opportunities';
-$app_list_strings['map_module_type_list']['Project'] = 'Projects';
-$app_list_strings['map_module_type_list']['Prospects'] = 'Targets';
 
 $app_list_strings['map_relate_type_list']['Accounts'] = 'Account';
 $app_list_strings['map_relate_type_list']['Contacts'] = 'Contact';
@@ -3206,8 +3125,6 @@ $app_list_strings['map_relate_type_list']['Cases'] = 'Case';
 $app_list_strings['map_relate_type_list']['Leads'] = 'Lead';
 $app_list_strings['map_relate_type_list']['Meetings'] = 'Meeting';
 $app_list_strings['map_relate_type_list']['Opportunities'] = 'Opportunity';
-$app_list_strings['map_relate_type_list']['Project'] = 'Project';
-$app_list_strings['map_relate_type_list']['Prospects'] = 'Target';
 
 $app_list_strings['marker_image_list']['accident'] = 'Accident';
 $app_list_strings['marker_image_list']['administration'] = 'Administration';

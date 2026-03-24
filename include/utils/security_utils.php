@@ -63,7 +63,6 @@ $modules_exempt_from_availability_check['Prospects']='Prospects';
 $modules_exempt_from_availability_check['ProspectLists']='ProspectLists';
 $modules_exempt_from_availability_check['EmailMarketing']='EmailMarketing';
 $modules_exempt_from_availability_check['EmailMan']='EmailMan';
-$modules_exempt_from_availability_check['ProjectTask']='ProjectTask';
 $modules_exempt_from_availability_check['Users']='Users';
 $modules_exempt_from_availability_check['Teams']='Teams';
 $modules_exempt_from_availability_check['SchedulersJobs']='SchedulersJobs';

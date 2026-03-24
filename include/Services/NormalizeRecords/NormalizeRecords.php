@@ -627,7 +627,6 @@ class NormalizeRecords extends BatchJob
             'DocumentRevisions',
             'ModuleBuilder',
             'Alert',
-            'ResourceCalendar',
             'ACL',
             'Configurator',
             'UserPreferences',

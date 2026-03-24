@@ -11,7 +11,6 @@ $app_list_strings = array(
     'language_pack_name' => 'Tiếng Việt (Vietnamese) - vi_VN',
     'moduleList' => array(
         'Home' => 'Trang chủ',
-        'ResourceCalendar' => 'Quản lý lịch',
         'Contacts' => 'Liên hệ',
         'Accounts' => 'Tài khoản',
         'Alerts' => 'Cảnh báo',
@@ -35,8 +34,6 @@ $app_list_strings = array(
         'TimePeriods' => 'Khoảng thời gian',
         'ContractTypes' => 'Kiểu hợp đồng',
         'Schedulers' => 'Lịch trình',
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Dự án những phần việc',
         'Campaigns' => 'Chiến dịch',
         'CampaignLog' => 'Ghi lại chiến dịch',
         'Documents' => 'Tài liệu',
@@ -92,8 +89,6 @@ $app_list_strings = array(
         'Feeds' => 'RSS',
         'iFrames' => 'Trang của tôi',
         'TimePeriods' => 'Khoảng thời gian',
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Công việc dự án',
         'Prospects' => 'Mục tiêu',
         'Campaigns' => 'Chiến dịch kinh doanh',
         'Documents' => 'Tài liệu',
@@ -384,42 +379,6 @@ $app_list_strings = array(
         'Yahoo!' => 'Yahoo!',
         'AOL' => 'AOL',
     ),
-    'project_task_priority_options' => array(
-        'High' => 'Cao',
-        'Medium' => 'Trung bình',
-        'Low' => 'Thấp',
-    ),
-    'project_task_priority_default' => 'Trung bình',
-
-    'project_task_status_options' => array(
-        'Not Started' => 'Chưa bắt đầu',
-        'In Progress' => 'Đang tiến hành',
-        'Completed' => 'Hoàn thành',
-        'Pending Input' => 'Đang chờ xử lý đầu vào',
-        'Deferred' => 'Hoãn lại',
-    ),
-    'project_task_utilization_options' => array(
-        '0' => 'không có',
-        '25' => '25',
-        '50' => '50',
-        '75' => '75',
-        '100' => '100',
-    ),
-
-    'project_status_dom' => array(
-        'Draft' => 'Bản nháp',
-        'In Review' => 'Đang xem xét',
-        'Underway' => 'Tiến hành',
-        'On_Hold' => 'Chờ đợi',
-        'Completed' => 'Hoàn thành',
-    ),
-    'project_status_default' => 'Bản nháp',
-
-    'project_duration_units_dom' => array(
-        'Days' => 'Ngày',
-        'Hours' => 'Giờ',
-    ),
-
     'activity_status_type_dom' => array(
         '' => '--Không--',
         'active' => 'Đang hoạt động',
@@ -438,10 +397,7 @@ $app_list_strings = array(
         'Contacts' => 'Liên hệ', // cn (11/22/2005) added to support Emails
 
         'Bugs' => 'Phát sinh',
-        'Project' => 'Dự án',
-
         'Prospects' => 'Mục tiêu',
-        'ProjectTask' => 'Công việc dự án',
 
         'Tasks' => 'Công việc',
 
@@ -461,8 +417,6 @@ $app_list_strings = array(
         'Emails' => 'Email',
 
         'Bugs' => 'Phát sinh',
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Công việc dự án',
         'Prospects' => 'Mục tiêu',
         'Cases' => 'Kịch bản',
         'Leads' => 'Đầu mối',
@@ -485,9 +439,6 @@ $app_list_strings = array(
         'Bugs' => 'Phát sinh',
         'Cases' => 'Kịch bản',
         'Leads' => 'Đầu mối',
-
-        'Project' => 'Dự án',
-        'ProjectTask' => 'Công việc dự án',
 
         'Prospects' => 'Mục tiêu',
 
@@ -599,7 +550,6 @@ $app_list_strings = array(
         'Notes' => 'Ghi chú',
         'Opportunities' => 'Cơ hội',
         'Outlook Plugin' => 'Outlook plugin',
-        'Projects' => 'Dự án',
         'Quotes' => 'Báo giá',
         'Releases' => 'Phát hành',
         'RSS' => 'Tin',
@@ -971,18 +921,6 @@ $app_list_strings = array(
         2 => 'Bộ lọc',
         3 => 'Bộ lọc được chọn mặc định',
         4 => 'Chỉ lọc',
-    ),
-
-    'projects_priority_options' => array(
-        'high' => 'Cao',
-        'medium' => 'Trung bình',
-        'low' => 'Thấp',
-    ),
-
-    'projects_status_options' => array(
-        'notstarted' => 'Chưa bắt đầu',
-        'inprogress' => 'Đang tiến hành',
-        'completed' => 'Hoàn thành',
     ),
     // strings to pass to Flash charts
     'chart_strings' => array(
@@ -1628,8 +1566,6 @@ $app_strings = array(
 
     'LBL_PROSPECTS' => 'Triển vọng',
     'LBL_PRODUCTS' => 'Sản phẩm',
-    'LBL_PROJECT_TASKS' => 'Dự án những phần việc',
-    'LBL_PROJECTS' => 'Dự án',
     'LBL_QUOTES' => 'Báo giá',
 
     'LBL_RELATED' => 'Liên quan',
@@ -1732,13 +1668,11 @@ $app_strings = array(
     'LBL_SCENARIO_MARKETING' => 'Tiếp thị',
     'LBL_SCENARIO_FINANCE' => 'Tài chính',
     'LBL_SCENARIO_SERVICE' => 'Dịch vụ',
-    'LBL_SCENARIO_PROJECT' => 'Quản lý dự án',
 
     'LBL_SCENARIO_SALES_DESCRIPTION' => 'Kịch bản này tạo thuận lợi cho việc quản lý các mặt hàng kinh doanh',
     'LBL_SCENARIO_MAKETING_DESCRIPTION' => 'Kịch bản này tạo điều kiện cho việc quản lý các mặt hàng tiếp thị',
     'LBL_SCENARIO_FINANCE_DESCRIPTION' => 'Kịch bản này tạo thuận lợi cho việc quản lý các mặt hàng liên quan đến tài chính',
     'LBL_SCENARIO_SERVICE_DESCRIPTION' => 'Kịch bản này tạo điều kiện cho việc quản lý các mặt hàng liên quan đến dịch vụ',
-    'LBL_SCENARIO_PROJECT_DESCRIPTION' => 'Kịch bản này tạo thuận lợi cho việc quản lý các hạng mục liên quan đến dự án',
 
     'LBL_SYNC' => 'Đồng phòng ban',
     'LBL_TABGROUP_ALL' => 'Tất cả',
@@ -2182,12 +2116,6 @@ $app_strings = array(
 
 $app_list_strings['moduleList']['Library'] = 'Thư viện';
 $app_list_strings['moduleList']['EmailAddresses'] = 'Địa chỉ Email ';
-$app_list_strings['project_priority_default'] = 'Trung bình';
-$app_list_strings['project_priority_options'] = array(
-    'High' => 'Cao',
-    'Medium' => 'Trung bình',
-    'Low' => 'Thấp',
-);
 
 //GDPR lawful basis options
 $app_list_strings['lawful_basis_dom'] = array(
@@ -3232,7 +3160,6 @@ $app_list_strings['duration_unit_dom']['Days'] = 'Ngày';
 $app_list_strings['duration_unit_dom']['Hours'] = 'Giờ';
 $app_strings['LBL_GANTT_BUTTON_LABEL'] = 'Xem biểu đồ Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL'] = 'Xem chi tiết';
-$app_strings['LBL_CREATE_PROJECT'] = 'Tạo dự án';
 
 //gmaps
 $app_strings['LBL_MAP'] = 'Bản đồ';
@@ -3258,8 +3185,6 @@ $app_list_strings['map_module_type_list']['Cases'] = 'Kịch bản';
 $app_list_strings['map_module_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_module_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_module_type_list']['Opportunities'] = 'Cơ hội';
-$app_list_strings['map_module_type_list']['Project'] = 'Chủ đề';
-$app_list_strings['map_module_type_list']['Prospects'] = 'Đối tượng';
 
 $app_list_strings['map_relate_type_list']['Accounts'] = 'Tài khoản';
 $app_list_strings['map_relate_type_list']['Contacts'] = 'Liên hệ';
@@ -3267,8 +3192,6 @@ $app_list_strings['map_relate_type_list']['Cases'] = 'Kịch bản';
 $app_list_strings['map_relate_type_list']['Leads'] = 'Đầu mối';
 $app_list_strings['map_relate_type_list']['Meetings'] = 'Hội họp';
 $app_list_strings['map_relate_type_list']['Opportunities'] = 'Cơ hội';
-$app_list_strings['map_relate_type_list']['Project'] = 'Dự án';
-$app_list_strings['map_relate_type_list']['Prospects'] = 'Mục tiêu';
 
 $app_list_strings['marker_image_list']['accident'] = 'Tai nạn';
 $app_list_strings['marker_image_list']['administration'] = 'Quản trị viên';
