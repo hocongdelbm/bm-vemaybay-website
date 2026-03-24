@@ -214,14 +214,6 @@ $admin_option_defs['Emails']['mass_Email_config'] = [
     'email-settings'
 ];
 
-$admin_option_defs['Campaigns']['campaignconfig'] = [
-    'EmailCampaigns',
-    'LBL_CAMPAIGN_CONFIG_TITLE',
-    'LBL_CAMPAIGN_CONFIG_DESC',
-    './index.php?module=EmailMan&action=campaignconfig',
-    'campaign-email-settings'
-];
-
 $admin_option_defs['Emails']['mailboxes'] = [
     'EmailInbound',
     'LBL_MANAGE_MAILBOX',
@@ -250,14 +242,6 @@ $admin_option_defs['Emails']['external_oauth_providers'] = [
     'index.php?module=ExternalOAuthProvider&action=index',
     'oauth2'
 ];
-$admin_option_defs['Campaigns']['mass_Email'] = [
-    'EmailQueue',
-    'LBL_MASS_EMAIL_MANAGER_TITLE',
-    'LBL_MASS_EMAIL_MANAGER_DESC',
-    './index.php?module=EmailMan&action=index',
-    'email-queue'
-];
-
 
 $admin_group_header[] = ['LBL_EMAIL_TITLE', '', false, $admin_option_defs, 'LBL_EMAIL_DESC'];
 

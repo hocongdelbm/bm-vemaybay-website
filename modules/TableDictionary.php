@@ -65,11 +65,8 @@ include("metadata/meetings_leadsMetaData.php");
 include("metadata/opportunities_contactsMetaData.php");
 include("metadata/user_feedsMetaData.php");
 include("metadata/users_passwordLinkMetaData.php");
-include("metadata/prospect_list_campaignsMetaData.php");
-include("metadata/prospect_lists_prospectsMetaData.php");
 include("metadata/roles_modulesMetaData.php");
 include("metadata/roles_usersMetaData.php");
-//include("metadata/project_relationMetaData.php");
 include("metadata/outboundEmailMetaData.php");
 include("metadata/addressBookMetaData.php");
 include("metadata/project_bugsMetaData.php");
@@ -78,8 +75,6 @@ include("metadata/project_productsMetaData.php");
 include("metadata/projects_accountsMetaData.php");
 include("metadata/projects_contactsMetaData.php");
 include("metadata/projects_opportunitiesMetaData.php");
-
-
 
 //ACL RELATIONSHIPS
 include("metadata/acl_roles_actionsMetaData.php");

@@ -617,8 +617,6 @@ class NormalizeRecords extends BatchJob
             'EmailText',
             'Schedulers',
             'Schedulers_jobs',
-            'CampaignTrackers',
-            'CampaignLog',
             'EmailMan',
             'Groups',
             'InboundEmail',

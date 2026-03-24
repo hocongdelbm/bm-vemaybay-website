@@ -19,8 +19,6 @@ return [
             AOW_Action::class => 'AOW_Actions',
             AOW_Condition::class => 'AOW_Conditions',
             Call::class => 'Calls',
-            Campaign::class => 'Campaigns',
-            CampaignTracker::class => 'CampaignTrackers',
             aCase::class => 'Cases',
             'Case' => 'Cases',
             ConnectorRecord::class => 'Connector',

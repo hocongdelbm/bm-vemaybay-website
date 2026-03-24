@@ -24,7 +24,6 @@ $GLOBALS['tabStructure'] = array(
             "Accounts",
             "Contacts",
             "Leads",
-            "Campaigns",
             "Prospects",
             "ProspectLists",
         )

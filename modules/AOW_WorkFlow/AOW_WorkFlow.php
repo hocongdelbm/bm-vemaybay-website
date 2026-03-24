@@ -343,19 +343,11 @@ class AOW_WorkFlow extends Basic
                 switch ($this->flow_run_on) {
 
                     case'New_Records':
-                        if ($module->table_name === 'campaign_log') {
-                            $query['where'][] = $module->table_name . '.' . 'activity_date' . ' > ' . "'" . $this->activity_date . "'";
-                        } else {
-                            $query['where'][] = $module->table_name . '.' . 'date_entered' . ' > ' . "'" . $this->date_entered . "'";
-                        }
+                        $query['where'][] = $module->table_name . '.' . 'date_entered' . ' > ' . "'" . $this->date_entered . "'";
                         break;
 
                     case'Modified_Records':
-                        if ($module->table_name === 'campaign_log') {
-                            $query['where'][] = $module->table_name . '.' . 'date_modified' . ' > ' . "'" . $this->activity_date . "'" . ' AND ' . $module->table_name . '.' . 'activity_date' . ' <> ' . $module->table_name . '.' . 'date_modified';
-                        } else {
-                            $query['where'][] = $module->table_name . '.' . 'date_modified' . ' > ' . "'" . $this->date_entered . "'" . ' AND ' . $module->table_name . '.' . 'date_entered' . ' <> ' . $module->table_name . '.' . 'date_modified';
-                        }
+                        $query['where'][] = $module->table_name . '.' . 'date_modified' . ' > ' . "'" . $this->date_entered . "'" . ' AND ' . $module->table_name . '.' . 'date_entered' . ' <> ' . $module->table_name . '.' . 'date_modified';
                         break;
 
                 }

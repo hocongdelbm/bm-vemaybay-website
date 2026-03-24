@@ -2577,10 +2577,6 @@ button.list-group-item-danger.active:focus {
      content: ""
 }
 
-.suitepicon-admin-campaign-email-settings:before {
-     content: ""
-}
-
 .suitepicon-admin-configure-module-menu-filters:before {
      content: ""
 }
@@ -2833,15 +2829,6 @@ button.list-group-item-danger.active:focus {
 
 .suitepicon-module-calls:before {
      content: ""
-}
-
-.suitepicon-module-campaigns:before,
-.suitepicon-module-campaignlog:before {
-     content: ""
-}
-
-.suitepicon-module-campaigntrackers:before {
-     content: ""
 }
 
 .suitepicon-module-cases:before {

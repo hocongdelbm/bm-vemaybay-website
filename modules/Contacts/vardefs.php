@@ -321,54 +321,6 @@ $dictionary['Contact'] = array(
             'duplicate_merge' => 'enabled'
         ),
 
-        'campaign_id' => array(
-            'name' => 'campaign_id',
-            'comment' => 'Campaign that generated lead',
-            'vname' => 'LBL_CAMPAIGN_ID',
-            'rname' => 'id',
-            'id_name' => 'campaign_id',
-            'type' => 'id',
-            // 'dbType' => 'char',
-            'table' => 'campaigns',
-            'isnull' => 'true',
-            'module' => 'Campaigns',
-            // 'reportable'=>false,
-            'massupdate' => false,
-            'duplicate_merge' => 'disabled',
-        ),
-        'campaign_name' => array(
-            'name' => 'campaign_name',
-            'rname' => 'name',
-            'vname' => 'LBL_CAMPAIGN',
-            'type' => 'relate',
-            'link' => 'campaign_contacts',
-            'isnull' => 'true',
-            'reportable' => false,
-            'source' => 'non-db',
-            'table' => 'campaigns',
-            'id_name' => 'campaign_id',
-            'module' => 'Campaigns',
-            'duplicate_merge' => 'disabled',
-            'comment' => 'The first campaign name for Contact (Meta-data only)',
-        ),
-        'campaigns' => array(
-            'name' => 'campaigns',
-            'type' => 'link',
-            'relationship' => 'contact_campaign_log',
-            'module' => 'CampaignLog',
-            'bean_name' => 'CampaignLog',
-            'source' => 'non-db',
-            'vname' => 'LBL_CAMPAIGNLOG',
-        ),
-
-        'campaign_contacts' => array(
-            'name' => 'campaign_contacts',
-            'type' => 'link',
-            'vname' => 'LBL_CAMPAIGN_CONTACT',
-            'relationship' => 'campaign_contacts',
-            'source' => 'non-db',
-        ),
-
         'c_accept_status_fields' => array(
             'name' => 'c_accept_status_fields',
             'rname' => 'id',
@@ -805,17 +757,6 @@ $dictionary['Contact'] = array(
             'rhs_table' => 'contacts',
             'rhs_key' => 'created_by',
             'relationship_type' => 'one-to-many'
-        ),
-        'contact_campaign_log' => array(
-            'lhs_module' => 'Contacts',
-            'lhs_table' => 'contacts',
-            'lhs_key' => 'id',
-            'rhs_module' => 'CampaignLog',
-            'rhs_table' => 'campaign_log',
-            'rhs_key' => 'target_id',
-            'relationship_type' => 'one-to-many',
-            'relationship_role_column' => 'target_type',
-            'relationship_role_column_value' => 'Contacts'
         ),
         'contact_aos_quotes' => array(
             'lhs_module' => 'Contacts',

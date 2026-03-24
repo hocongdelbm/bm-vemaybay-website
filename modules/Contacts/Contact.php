@@ -83,7 +83,6 @@ class Contact extends Person implements EmailInterface
     public $portal_password;
     public $primary_address_street_2;
     public $primary_address_street_3;
-    public $campaign_id;
     public $sync_contact;
     public $full_name; // l10n localized name
     public $invalid_email;
@@ -434,15 +433,6 @@ class Contact extends Person implements EmailInterface
 
         if (!empty($this->portal_active) && $this->portal_active == 1) {
             $this->portal_active = true;
-        }
-        // Set campaign name if there is a campaign id
-        if (!empty($this->campaign_id)) {
-            $camp = BeanFactory::newBean('Campaigns');
-            $where = "campaigns.id='{$this->campaign_id}'";
-            $campaign_list = $camp->get_full_list("campaigns.name", $where, true);
-            if (!empty($campaign_list) && !empty($campaign_list[0]->name)) {
-                $this->campaign_name = $campaign_list[0]->name;
-            }
         }
     }
 

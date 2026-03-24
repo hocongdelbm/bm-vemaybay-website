@@ -63,7 +63,6 @@ $mod_strings = array(
     'LBL_CURRENCY' => 'Currency:',
     'LBL_DATE_CLOSED' => 'Expected Close Date:',
     'LBL_TYPE' => 'Type:',
-    'LBL_CAMPAIGN' => 'Campaign:',
     'LBL_LEADS_SUBPANEL_TITLE' => 'Leads',
     'LBL_NEXT_STEP' => 'Next Step:',
     'LBL_LEAD_SOURCE' => 'Lead Source:',

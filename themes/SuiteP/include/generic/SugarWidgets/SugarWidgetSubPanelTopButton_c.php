@@ -118,14 +118,9 @@ class SugarWidgetSubPanelTopButton_c extends SugarWidget
         }
 
         $formValues['return_module'] = $currentModule;
-
-        if ($currentModule == 'Campaigns') {
-            $formValues['return_action'] = "DetailView";
-        } else {
-            $formValues['return_action'] = $defines['action'];
-            if ($formValues['return_action'] == 'SubPanelViewer') {
-                $formValues['return_action'] = 'DetailView';
-            }
+        $formValues['return_action'] = $defines['action'];
+        if ($formValues['return_action'] == 'SubPanelViewer') {
+            $formValues['return_action'] = 'DetailView';
         }
 
         $formValues['return_id'] = $defines['focus']->id;

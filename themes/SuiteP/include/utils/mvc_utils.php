@@ -72,12 +72,9 @@ function ajaxBannedModules()
     $bannedModules = array(
         'Calendar',
         'Emails',
-        'Campaigns',
         'Documents',
         'DocumentRevisions',
         'EmailMarketing',
-        'CampaignLog',
-        'CampaignTrackers',
         'Releases',
         'Groups',
         'EmailMan',

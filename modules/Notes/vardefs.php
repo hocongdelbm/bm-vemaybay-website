@@ -298,15 +298,6 @@ $dictionary['Note'] = array(
       'source' => 'non-db',
     ],
 
-    'campaign_id' =>
-    [
-      'name' => 'campaign_id',
-      'vname' => 'LBL_CAMPAIGN_ID',
-      'type' => 'id',
-      'reportable' => false,
-      'source' => 'non-db',
-    ],
-
     'acase_id' =>
     [
       'name' => 'acase_id',
@@ -401,15 +392,6 @@ $dictionary['Note'] = array(
       'relationship' => 'bug_notes',
       'source' => 'non-db',
       'vname' => 'LBL_BUGS',
-    ],
-
-    'campaigns' =>
-    [
-      'name' => 'campaigns',
-      'type' => 'link',
-      'relationship' => 'campaign_notes',
-      'source' => 'non-db',
-      'vname' => 'LBL_CAMPAIGNS',
     ],
 
     'aos_contracts' =>

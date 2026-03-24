@@ -121,10 +121,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'Campaigns' => 
-  array (
-    'visible' => false,
-  ),
   'FP_Event_Locations' => 
   array (
     'visible' => false,

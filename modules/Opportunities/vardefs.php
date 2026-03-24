@@ -98,44 +98,6 @@ $dictionary['Opportunity'] = array('table' => 'opportunities', 'audited' => true
                 'source' => 'non-db',
                 'audited' => true,
             ),
-        'campaign_id' =>
-            array(
-                'name' => 'campaign_id',
-                'comment' => 'Campaign that generated lead',
-                'vname' => 'LBL_CAMPAIGN_ID',
-                'rname' => 'id',
-                'type' => 'id',
-                'dbType' => 'id',
-                'table' => 'campaigns',
-                'isnull' => 'true',
-                'module' => 'Campaigns',
-                //'dbType' => 'char',
-                'reportable' => false,
-                'massupdate' => false,
-                'duplicate_merge' => 'disabled',
-            ),
-        'campaign_name' =>
-            array(
-                'name' => 'campaign_name',
-                'rname' => 'name',
-                'id_name' => 'campaign_id',
-                'vname' => 'LBL_CAMPAIGN',
-                'type' => 'relate',
-                'link' => 'campaign_opportunities',
-                'isnull' => 'true',
-                'table' => 'campaigns',
-                'module' => 'Campaigns',
-                'source' => 'non-db',
-                'additionalFields' => array('id' => 'campaign_id')
-            ),
-        'campaign_opportunities' =>
-            array(
-                'name' => 'campaign_opportunities',
-                'type' => 'link',
-                'vname' => 'LBL_CAMPAIGN_OPPORTUNITY',
-                'relationship' => 'campaign_opportunities',
-                'source' => 'non-db',
-            ),
         'lead_source' =>
             array(
                 'name' => 'lead_source',
@@ -150,9 +112,7 @@ $dictionary['Opportunity'] = array('table' => 'opportunities', 'audited' => true
             array(
                 'name' => 'amount',
                 'vname' => 'LBL_AMOUNT',
-                //'function'=>array('vname'=>'getCurrencyType'),
                 'type' => 'currency',
-//    'disable_num_format' => true,
                 'dbType' => 'double',
                 'comment' => 'Unconverted amount of the opportunity',
                 'importable' => 'required',
@@ -352,28 +312,6 @@ $dictionary['Opportunity'] = array('table' => 'opportunities', 'audited' => true
                 'vname' => 'LBL_LEADS',
             ),
 
-        'campaigns' => array(
-            'name' => 'campaigns',
-            'type' => 'link',
-            'relationship' => 'opportunities_campaign',
-            'module' => 'CampaignLog',
-            'bean_name' => 'CampaignLog',
-            'source' => 'non-db',
-            'vname' => 'LBL_CAMPAIGNS',
-            'reportable' => false
-        ),
-
-        'campaign_link' => array(
-            'name' => 'campaign_link',
-            'type' => 'link',
-            'relationship' => 'opportunities_campaign',
-            'vname' => 'LBL_CAMPAIGNS',
-            'link_type' => 'one',
-            'module' => 'Campaigns',
-            'bean_name' => 'Campaign',
-            'source' => 'non-db',
-            'reportable' => false
-        ),
         'currencies' =>
             array(
                 'name' => 'currencies',
@@ -461,10 +399,6 @@ $dictionary['Opportunity'] = array('table' => 'opportunities', 'audited' => true
     , 'opportunities_created_by' =>
             array('lhs_module' => 'Users', 'lhs_table' => 'users', 'lhs_key' => 'id',
                 'rhs_module' => 'Opportunities', 'rhs_table' => 'opportunities', 'rhs_key' => 'created_by',
-                'relationship_type' => 'one-to-many'),
-        'opportunities_campaign' =>
-            array('lhs_module' => 'Campaigns', 'lhs_table' => 'campaigns', 'lhs_key' => 'id',
-                'rhs_module' => 'Opportunities', 'rhs_table' => 'opportunities', 'rhs_key' => 'campaign_id',
                 'relationship_type' => 'one-to-many'),
         'opportunity_aos_quotes' =>
             array(
