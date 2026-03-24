@@ -2416,7 +2416,7 @@ function resetRewardPoints() {
 
 		$updatesql = "UPDATE contacts SET points = 0 WHERE points > 0";
 		if($db->query($updatesql)) {
-			NotificationService::sendMessage("✅ <b>Hệ thống đã reset điểm tích lũy của liên hệ hằng năm</b>", "", ['threadKey' => 'system']);
+			NotificationService::sendMessage("⚙️ <b>Hệ thống đã reset điểm tích lũy của liên hệ hằng năm</b>", "", ['threadKey' => 'system']);
 		}
 		else {
 			NotificationService::sendErrorMessage("Reset điểm tích lũy của liên hệ hằng năm chưa thành công", "", ['threadKey' => 'logs']);
@@ -2426,29 +2426,5 @@ function resetRewardPoints() {
 		$m = "Cronjob ".__FUNCTION__."() failed";
 		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
 		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
-	}
-}
-
-/**
- * Xem đánh giá chất lượng gửi ZBS
- */
-function reviewQualitySendingZBS() {
-	require_once "custom/include/helpers/api/APIZaloOA.php";
-
-	$app_id = "1450532072851803077"; // App id to use ZBS
-	$zaloOA = new APIZaloOA($app_id, $oa_id);
-	$json = $zaloOA->get_quality_template_message_by_phone();
-	$arr = json_decode($json, true);
-	if(isset($arr['error']) && $arr['error'] == 0) {
-		$oaCurrentQuality = $arr['data']['oaCurrentQuality'] ?? '';
-		$oa7dayQuality = $arr['data']['oa7dayQuality'] ?? '';
-
-		if(!empty($oaCurrentQuality)) {
-			
-		}
-
-		if(!empty($oa7dayQuality)) {
-			
-		}
 	}
 }

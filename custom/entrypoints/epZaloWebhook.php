@@ -365,8 +365,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     exit();
                 }
             }
+            else if($event == 'change_template_quality') {
+                $template_id = $data['template_id'] ?? '';
+                $quality = strtoupper($data['quality'] ?? '');
+                $template_name = $zaloOA->get_template_name($template_id);
+                $arr_map_quality = [
+                    'HIGH' => 'Mức độ chất lượng tốt',
+                    'MEDIUM' => 'Mức độ chất lượng trung bình',
+                    'LOW' => 'Mức độ chất lượng kém',
+                    'UNDEFINED' => 'Mức độ chất lượng chưa được xác định',
+                ];
+
+                $message = "<b>Thông báo từ Zalo về chất lượng gửi tin ZBS</b>";
+                $message .= "\nMẫu tin: $template_name ($template_id)";
+                $message .= "\nChất lượng: " . ($arr_map_quality[$quality] ?? '');
+                NotificationService::sendMessage($message, '', ['threadKey' => 'system']);
+
+                echo json_encode(["error" => 0, "message" => "Done"]);
+                exit();
+            }
             else if($event == 'update_user_info') {
-                header("HTTP/1.1 200 OK");
+                echo json_encode(["error" => 0, "message" => "Nothing"]);
                 exit();
             }
             else {
