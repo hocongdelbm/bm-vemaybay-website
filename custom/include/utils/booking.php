@@ -869,32 +869,27 @@ function saveRevenueBooking($booking_id)
 /**
  * Tính toán doanh thu
  */
-function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
-{
+function calculateRevenueOfDate($from_date, $to_date, $condition_arr = []) {
     global $db, $current_user;
 
-    // Check permission
-    // chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
-    $sql_manager = '
-        SELECT COUNT(id) 
+    // Chỉ kế toán trưởng hoặc admin hệ thống mới được xem hết, còn lại xem của mình
+    $sql_manager = "SELECT COUNT(id) 
         FROM acl_roles_users 
-        WHERE 
-            user_id = "' . $current_user->id . '"
+        WHERE user_id = '{$current_user->id}'
             AND role_id IN (
-                "' . $GLOBALS['app_list_strings']['roles_users']['QUANLY'] . '",
-                "' . $GLOBALS['app_list_strings']['roles_users']['KETOAN'] . '"
+                '{$GLOBALS['app_list_strings']['roles_users']['QUANLY']}',
+                '{$GLOBALS['app_list_strings']['roles_users']['KETOAN']}'
             )
-            AND deleted = 0';
+            AND deleted = 0";
     $is_manager = $db->getOne($sql_manager);
 
     $sql_role = "";
     if (!$is_manager && !is_admin($current_user)) {
-        $sql_role .= " AND bk.assigned_user_id = '" . $current_user->id . "' ";
+        $sql_role .= " AND bk.assigned_user_id = '{$current_user->id}' ";
     }
 
-    $sql_having = '';
-
     // Tìm theo tình trạng phiếu thu của booking: chưa thu / chưa thu đủ
+    $sql_having = '';
     if (isset($condition_arr['payment_stt'])) {
         if ((int)$condition_arr['payment_stt'] === 1) {
             // Chưa thu
@@ -956,7 +951,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
                         AND pc2.deleted = 0
                 ), 0)
             ) AS total_points_amount
-            , (SUM(IFNULL(bkd.total_bought_price,0)) 
+            , (SUM(IFNULL(bkd.total_bought_price,0))
             +
             IFNULL((
                 SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
@@ -1006,7 +1001,7 @@ function calculateRevenueOfDate($from_date, $to_date, $condition_arr = array())
         $sql_having";
 
     if (empty($condition_arr['payment_stt'])) {
-        $sql .= " UNION
+        $sql .= "UNION
             SELECT 
                 p.id AS parent_id
                 , p.booking_id AS booking_id
