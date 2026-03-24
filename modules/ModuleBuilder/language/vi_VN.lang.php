@@ -343,8 +343,6 @@ Bạn có thể sắp xếp lại các mô-đun bằng cách kéo các hàng c�
     'LBL_BASIC_SEARCH' => 'Lọc nhanh',
     'LBL_CURRENT_LAYOUT' => 'Bố cục',
     'LBL_CURRENCY' => 'Tiền tệ',
-    'LBL_DASHLET' => 'SuiteCRM Dashlet',
-    'LBL_DASHLETLISTVIEW' => 'Danh sách Dashlet SuiteCRM',
     'LBL_POPUP' => 'Xem Popup',
     'LBL_POPUPLISTVIEW' => 'Xem danh sách trên popup',
     'LBL_POPUPSEARCH' => 'Tìm kiếm trên popup',

@@ -337,7 +337,6 @@ function get_sugar_config_defaults(): array
         'disable_export' => false,
         'disable_persistent_connections' => return_session_value_or_default('disable_persistent_connections', false),
         'default_module_favicon' => false,
-        'dashlet_auto_refresh_min' => 30,
         'stack_trace_errors' => false,
         'developerMode' => false,
         'stackTrace' => false,

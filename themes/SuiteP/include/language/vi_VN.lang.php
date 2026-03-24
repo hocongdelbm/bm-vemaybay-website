@@ -946,22 +946,6 @@ $app_list_strings = array(
         '_blank' => 'Cửa sổ Mới',
         '_self' => 'Cùng cửa sổ',
     ),
-    'dashlet_auto_refresh_options' => array(
-        '-1' => 'Không tự làm tươi',
-        '30' => 'Mỗi 30 giây',
-        '60' => 'Mỗi 1 phút',
-        '180' => 'Mỗi 3 phút',
-        '300' => 'Mỗi 5 phút',
-        '600' => 'Mỗi 10 phút',
-    ),
-    'dashlet_auto_refresh_options_admin' => array(
-        '-1' => 'Không bao giờ',
-        '30' => 'Mỗi 30 giây',
-        '60' => 'Mỗi 1 phút',
-        '180' => 'Mỗi 3 phút',
-        '300' => 'Mỗi 5 phút',
-        '600' => 'Mỗi 10 phút',
-    ),
     'date_range_search_dom' => array(
         '=' => 'Tương đương',
         'not_equal' => 'Không phải trên',

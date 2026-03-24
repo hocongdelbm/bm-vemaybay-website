@@ -119,14 +119,6 @@ $sugar_config = array(
       1 => 'root',
     ),
   ),
-  'dashlet_auto_refresh_min' => '-1',
-  'dashlet_display_row_options' =>
-  array(
-    0 => '1',
-    1 => '3',
-    2 => '5',
-    3 => '10',
-  ),
   'date_formats' =>
   array(
     'Y-m-d' => '2010-12-23',

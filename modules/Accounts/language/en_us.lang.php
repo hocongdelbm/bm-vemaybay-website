@@ -10,10 +10,6 @@ $mod_strings = array(
     'db_billing_address_city' => 'LBL_LIST_CITY',
     // END DON'T CONVERT
     'LBL_DOCUMENTS_SUBPANEL_TITLE' => 'Documents',
-    // Dashlet Categories
-    'LBL_CHARTS' => 'Charts',
-    'LBL_DEFAULT' => 'Views',
-    // END Dashlet Categories
 
     'ERR_DELETE_RECORD' => 'You must specify a record number in order to delete the account.',
     'LBL_ACCOUNT_INFORMATION' => 'OVERVIEW', //No need to be translated in all caps. Translation used just in menu action items when using the SuiteP template
