@@ -17,24 +17,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $data = json_decode($response, true);
 
     $timestamp  = $data['timestamp'];
-    $app_id     = $data['app_id'] ?? $sugar_config['zalo_config']['app_id_default'] ?? '';
+    $app_id     = $_REQUEST['appId'] ?? '';
+    if(empty($app_id)) $app_id = $sugar_config['zalo_config']['app_id_default'] ?? '';
 
     if(!empty($app_id)) {
         $zaloApp = new EC_Zalo_Apps();
         $zaloApp->retrieve($app_id);
     }
 
-    if(!empty($zaloApp->oa_id)) {
-        $zaloOA = new EC_Zalo();
-        $zaloOA->retrieve($zaloApp->oa_id);
-    }
-
-    $mac   = "mac=".hash('sha256', $app_id.$response.$timestamp.$zaloOA->secret_key);
+    $mac   = "mac=".hash('sha256', $app_id.$response.$timestamp.$zaloApp->oa_secret_key);
     $h_mac = $headers['X-Zevent-Signature'] ?? '';
    
     if($mac === $h_mac) {
         global $db;
-        $zaloOA = new APIZaloOA($zaloApp->id, $zaloOA->id);
+        $zaloOA = new APIZaloOA($zaloApp->id, $zaloApp->oa_id);
         $event = $data['event_name'] ?? '';
 
         try {
@@ -189,8 +185,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     // Do something with user quota 'welcome_msg'
                                 }
                                 else if((int)($timestamp / 1000) - strtotime($zaloUserInfo['user_last_interaction_date']) > 48*3600) {
-                                    $beanZaloOA = new EC_Zalo();
-                                    $zaloOAInfo = $beanZaloOA->get_info_oa($sender_id);
+                                    $zaloOAInfo = EC_Zalo_Helper::get_info_oa($sender_id);
 
                                     $quota_oa = $zaloOAInfo["quota"];
                                     $isUpdate = false;

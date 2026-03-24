@@ -2435,7 +2435,7 @@ function resetRewardPoints() {
 function reviewQualitySendingZBS() {
 	require_once "custom/include/helpers/api/APIZaloOA.php";
 
-	$app_id = "1450532072851803077";
+	$app_id = "1450532072851803077"; // App id to use ZBS
 	$zaloOA = new APIZaloOA($app_id, $oa_id);
 	$json = $zaloOA->get_quality_template_message_by_phone();
 	$arr = json_decode($json, true);
