@@ -480,7 +480,6 @@ function get_sugar_config_defaults(): array
         'admin_access_control' => false,
         'use_common_ml_dir' => false,
         'common_ml_dir' => '',
-        'vcal_time' => '2',
         'calendar' => [
             'default_view' => 'week',
             'show_calls_by_default' => true,

@@ -450,7 +450,6 @@ $sugar_config = array(
   'use_common_ml_dir' => false,
   'use_php_code_json' => true,
   'use_real_names' => false,
-  'vcal_time' => '0',
   'verify_client_ip' => false,
   'valid_image_ext' =>
   array(

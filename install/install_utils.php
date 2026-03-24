@@ -586,9 +586,6 @@ function getSugarConfigLanguageArray($langZip)
     return $ret;
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////////
 ////    FROM performSetup.php
 
 function getInstallDbInstance()
@@ -2011,9 +2008,6 @@ if (!function_exists('validate_manifest')) {
     function validate_manifest($manifest)
     {
         // takes a manifest.php manifest array and validates contents
-        global $subdirs;
-        global $sugar_version;
-        global $sugar_flavor;
         global $mod_strings;
 
         if (!isset($manifest['type'])) {

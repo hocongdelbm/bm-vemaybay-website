@@ -94,7 +94,6 @@ function ajaxBannedModules()
         'Import_1',
         'Import_2',
         'Versions',
-        'vCals',
         'CustomFields',
         'Roles',
         'Audit',

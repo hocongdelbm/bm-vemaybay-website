@@ -709,16 +709,10 @@ class Meeting extends SugarBean
 
         $path = SugarConfig::getInstance()->get('upload_dir', 'upload/') . $this->id;
 
-        require_once("modules/vCals/vCal.php");
-        $content = vCal::get_ical_event($this, $GLOBALS['current_user']);
-
         if (is_dir($path)) {
             LoggerManager::getLogger()->warn('file_put_contents(' . $path . '): failed to open stream: Is a directory ');
-        } else {
-            if (file_put_contents($path, $content)) {
-                $notify_mail->AddAttachment($path, 'meeting.ics', 'base64', 'text/calendar');
-            }
-        }
+        } 
+        
         return $notify_mail;
     }
 
