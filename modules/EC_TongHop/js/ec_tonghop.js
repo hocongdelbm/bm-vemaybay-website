@@ -11,6 +11,7 @@ $(document).ready(function () {
     let currentDate = '';
     let geoMapInstance = null;
     let geoMapPendingData = null;
+    let isHeatmapLoaded = false;
 
     // ── Init ────────────────────────────────────────────────
     init();
@@ -28,7 +29,14 @@ $(document).ready(function () {
         $('#ec_site_select').on('change', function () {
             currentSiteKey = $(this).val();
             currentDate = ''; // reset date selection
+            isHeatmapLoaded = false; // reset heatmap state
+            $('#ec_heatmap_tbody').html('<tr><td colspan="5" style="text-align:center; padding: 40px; color:#94a3b8;">Đang làm mới dữ liệu...</td></tr>');
             loadDashboard(currentSiteKey);
+
+            // Nếu người dùng đang đứng xem tab heatmap thì tự động nạp luôn phiên mới
+            if ($('.uat-tab[data-tab="heatmap"]').hasClass('active')) {
+                loadHeatmapData();
+            }
         });
 
         // Date selector
@@ -348,21 +356,51 @@ $(document).ready(function () {
                         backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#e2e8f0'],
                         borderWidth: 3,
                         borderColor: '#fff',
-                        hoverOffset: 8
+                        hoverOffset: 12
                     }]
                 },
                 options: {
-                    cutout: '66%',
+                    cutout: '72%',
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: { size: 14, weight: '700' },
+                            bodyFont: { size: 13 },
+                            displayColors: true,
+                            boxPadding: 6,
                             callbacks: {
                                 label: ctx => ` ${ctx.label}: ${fmt(ctx.raw)} (${((ctx.raw / totalSessions) * 100).toFixed(1)}%)`
                             }
                         }
                     },
                     animation: { duration: 700 }
-                }
+                },
+                plugins: [{
+                    id: 'centerText',
+                    afterDatasetsDraw: (chart) => {
+                        const { ctx, width, height } = chart;
+                        ctx.save();
+
+                        // Main number
+                        ctx.font = '800 22px Inter, system-ui, sans-serif';
+                        ctx.fillStyle = '#1e293b';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(fmt(totalSessions), width / 2, height / 2 - 5);
+
+                        // Label "TOTAL"
+                        ctx.font = '600 10px Inter, system-ui, sans-serif';
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.fillText('TOTAL', width / 2, height / 2 + 15);
+
+                        ctx.restore();
+                    }
+                }]
             });
         }
 
@@ -810,20 +848,44 @@ $(document).ready(function () {
 
     function renderElementTable(tbodySelector, items) {
         const $tbody = $(tbodySelector);
+        const $table = $tbody.closest('table');
         $tbody.empty();
+        $table.next('.uat-simple-toggle-btn').remove(); // Clear previous button
 
         if (!items || items.length === 0) {
-            $tbody.html('<tr><td colspan="2" class="uat-empty-cell">Chưa có dữ liệu.</td></tr>');
+            $tbody.html('<tr><td colspan="3" class="uat-empty-cell">Chưa có dữ liệu.</td></tr>');
             return;
         }
 
-        items.slice(0, 15).forEach(function (item) {
+        const DISPLAY_LIMIT = 5;
+        items.forEach(function (item, i) {
+            const isHidden = i >= DISPLAY_LIMIT;
+            const rank = i + 1;
+            const rankColor = rank === 1 ? '#f59e0b' : rank === 2 ? '#64748b' : rank === 3 ? '#b45309' : '#94a3b8';
+            const rankBg = rank === 1 ? '#fef3c7' : rank === 2 ? '#f1f5f9' : rank === 3 ? '#fffbeb' : '#f8fafc';
+
             $tbody.append(`
-                <tr>
-                    <td><div class="uat-table-truncate" title="${escH(item.label)}">${escH(item.label)}</div></td>
-                    <td style="text-align:right"><strong>${fmt(item.event_count)}</strong></td>
+                <tr class="uat-simple-row" data-idx="${i}" style="${isHidden ? 'display:none;' : ''}">
+                    <td>
+                        <div class="uat-table-truncate" style="font-weight:500; color:#334155;" title="${escH(item.label)}">
+                            ${escH(item.label)}
+                        </div>
+                    </td>
+                    <td style="text-align:right; color:#10b981; font-weight:700;">${fmt(item.event_count)}</td>
+                    <td style="text-align:right; width:45px;">
+                        <span style="font-size:10px; font-weight:700; background:${rankBg}; color:${rankColor}; padding:2px 6px; border-radius:10px;">#${rank}</span>
+                    </td>
                 </tr>`);
         });
+
+        if (items.length > DISPLAY_LIMIT) {
+            const hidden = items.length - DISPLAY_LIMIT;
+            const _SVG_DOWN = '<svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>';
+            const $btn = $(`<button class="uat-simple-toggle-btn" data-expanded="0" style="width:100%; padding:9px 0; background:#f8fafc; border:none; border-top:1px solid #e2e8f0; font-size:12px; font-weight:600; color:#10b981; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:background 0.2s;">
+                ${_SVG_DOWN} Xem thêm ${hidden} mục
+            </button>`);
+            $table.after($btn);
+        }
     }
 
     // ── Render: Suspicious ──────────────────────────────────
@@ -973,12 +1035,12 @@ $(document).ready(function () {
     function renderBots(data) {
         if (!data) data = {};
 
-        renderBotList('#ec_safe_bots_list', data.safe || [], '✅', '#ec_safe_bot_count');
-        renderBotList('#ec_sus_bots_list', data.suspicious || [], '⚠️', '#ec_sus_bot_count');
-        renderBotList('#ec_danger_bots_list', data.danger || [], '🚨', '#ec_danger_bot_count');
+        renderBotList('#ec_safe_bots_list', data.safe || [], '#ec_safe_bot_count');
+        renderBotList('#ec_sus_bots_list', data.suspicious || [], '#ec_sus_bot_count');
+        renderBotList('#ec_danger_bots_list', data.danger || [], '#ec_danger_bot_count');
     }
 
-    function renderBotList(selector, items, icon, countSelector) {
+    function renderBotList(selector, items, countSelector) {
         const $el = $(selector);
         $el.empty();
         $(countSelector).text(items.length);
@@ -991,7 +1053,6 @@ $(document).ready(function () {
         items.forEach(function (bot) {
             $el.append(`
                 <div class="uat-bot-item">
-                    <span class="bot-icon">${icon}</span>
                     <span>${escH(bot)}</span>
                 </div>`);
         });
@@ -1018,9 +1079,114 @@ $(document).ready(function () {
         if (!dateStr) return '—';
         try {
             const dt = new Date(dateStr.replace(' ', 'T'));
-            return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
         } catch (e) {
             return dateStr;
         }
+    }
+
+    // ── Heatmap Feature ─────────────────────────────────────────
+    $('.uat-tab[data-tab="heatmap"]').on('click', function () {
+        if (!isHeatmapLoaded && currentSiteKey) {
+            loadHeatmapData();
+        }
+    });
+
+    $(document).on('input', '#ec_heatmap_search', function () {
+        const query = $(this).val().toLowerCase();
+        $('#ec_heatmap_tbody tr').each(function () {
+            const hasData = $(this).find('td').length > 1; // skip empty/loading rows
+            if (!hasData) return;
+            const text = $(this).text().toLowerCase();
+            $(this).toggle(text.includes(query));
+        });
+    });
+
+    function loadHeatmapData() {
+        if (!currentSiteKey) return;
+        const $tbody = $('#ec_heatmap_tbody');
+        $tbody.html('<tr><td colspan="5" style="text-align:center; padding: 60px; color:#94a3b8;"><div class="uat-loading-spinner" style="border-top-color:#f72585; width:30px; height:30px; margin: 0 auto;"></div></td></tr>');
+
+        apiGet('/heatmap').done(function (res) {
+            isHeatmapLoaded = true;
+            renderHeatmapUI(res.pages || [], res.view_token);
+            $('#ec_heatmap_count').text(res.total || 0);
+        }).fail(function () {
+            $tbody.html('<tr><td colspan="5" style="color:#ef4444; padding:20px; text-align:center; background:#fee2e2;">Lỗi tải dữ liệu heatmap từ API.</td></tr>');
+        });
+    }
+
+    function renderHeatmapUI(pages, viewToken) {
+        const $tbody = $('#ec_heatmap_tbody');
+        $tbody.empty();
+
+        if (!pages || pages.length === 0) {
+            $tbody.html(`
+                <tr>
+                    <td colspan="5" style="text-align:center; padding:60px 20px;">
+                        <h3 style="margin:0; color:#94a3b8;">Chưa có dữ liệu heatmap</h3>
+                        <p style="margin-top:5px; font-size:13px; color:#64748b;">Dữ liệu sẽ xuất hiện tự động khi có thao tác người dùng.</p>
+                    </td>
+                </tr>
+            `);
+            return;
+        }
+
+        pages.forEach(function (p) {
+            const url = p.url || '';
+            let relativePath = url.replace(/^(?:\/\/|[^/]+)*\//, '/');
+            if (!relativePath) relativePath = '/';
+            let viewUrl = url + (url.indexOf('?') > -1 ? '&' : '?') + 'uat_heatmap=1';
+            if (viewToken) viewUrl += '&uat_token=' + viewToken;
+            const timeAgo = formatDate(p.last_click);
+
+            const html = `
+                <tr>
+                    <td data-label="Target Page">
+                        <div class="uat-page-identity" style="display:flex; flex-direction:column; gap:4px;">
+                            <a href="${escH(viewUrl)}" target="_blank" class="uat-page-link" style="color:#f72585; font-weight:600; text-decoration:none;">
+                                ${escH(relativePath)}
+                            </a>
+                            <div class="uat-full-url" style="font-size:11px; color:#94a3b8; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                ${escH(url)}
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Total Engagement">
+                        <span class="badge badge-blue uat-engagement-badge" style="background:#eff6ff; color:#3b82f6; padding:6px 12px; border-radius:12px; font-weight:bold; font-size:12px;">
+                            ${fmt(p.click_count)} clicks
+                        </span>
+                    </td>
+                    <td data-label="Device Affinity">
+                        <div class="uat-device-split" style="width:140px;">
+                            <div class="uat-device-stats" style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px; font-weight:600;">
+                                <span title="Desktop: ${p.desktop_clicks} clicks" style="color:#3b82f6; display:flex; align-items:center; gap:4px;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                    ${p.desktop_pct}%
+                                </span>
+                                <span title="Mobile: ${p.mobile_clicks} clicks" style="color:#f72585; display:flex; align-items:center; gap:4px;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                                    ${p.mobile_pct}%
+                                </span>
+                            </div>
+                            <div class="uat-multi-progress" style="display:flex; height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden;">
+                                <div style="width:${p.desktop_pct}%; background:#3b82f6;"></div>
+                                <div style="width:${p.mobile_pct}%; background:#f72585;"></div>
+                                <div style="width:${100 - p.desktop_pct - p.mobile_pct}%; background:#cbd5e1;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Last Interaction">
+                        <span style="font-size:12px; color:#64748b;">${timeAgo}</span>
+                    </td>
+                    <td data-label="Actions" class="text-right">
+                        <a href="${escH(viewUrl)}" target="_blank" class="uat-btn uat-btn-sm" style="display:inline-block; padding: 6px 16px; font-size: 12px; background: #f72585; color:white; font-weight:600; border-radius: 6px; box-shadow: 0 2px 4px rgba(247, 37, 133, 0.3); text-decoration:none; transition:0.2s;">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            `;
+            $tbody.append(html);
+        });
     }
 });

@@ -1,6 +1,6 @@
 ﻿<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" />
-<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=2.0.0">
+<link type="text/css" rel="stylesheet" href="modules/EC_TongHop/css/ec_tonghop.css?v=2.0.4">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/js/jsvectormap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
@@ -53,35 +53,38 @@
         <!-- TABS -->
         <div class="uat-tabs" id="ec_tabs">
             <div class="uat-tab active" data-tab="overview">
-                Overview
+                Tổng quan
             </div>
             <div class="uat-tab" data-tab="areas">
-                Area Analytics
+                Phân tích khu vực
             </div>
             <div class="uat-tab" data-tab="flights">
-                Flight Analytics
+                Phân tích chuyến bay
             </div>
             <div class="uat-tab" data-tab="elements">
-                Top Elements
+                Tổng hợp hành vi
             </div>
             <div class="uat-tab" data-tab="suspicious">
-                Suspicious IPs <span class="badge badge-red" id="ec_susp_count">0</span>
+                IP đáng ngờ <span class="badge badge-red" id="ec_susp_count">0</span>
             </div>
             <div class="uat-tab" data-tab="scraping">
-                Scraping Analysis <span class="badge badge-red" id="ec_scraping_count">0</span>
+                Nghi vấn quét giá <span class="badge badge-red" id="ec_scraping_count">0</span>
             </div>
             <div class="uat-tab" data-tab="bots">
-                Bot Analysis
+                Phân tích Bot
+            </div>
+            <div class="uat-tab" data-tab="heatmap" style="color: #f72585;">
+                Heatmap
             </div>
         </div>
     </div> <!-- END STICKY ZONE -->
     <!-- LOADING OVERLAY -->
-        <div id="ec_global_loading" class="uat-global-loading" style="display:none;">
-            <div class="uat-loading-wrapper">
-                <div class="uat-loading-spinner"></div>
-                <span>Đang tải dữ liệu...</span>
-            </div>
+    <div id="ec_global_loading" class="uat-global-loading" style="display:none;">
+        <div class="uat-loading-wrapper">
+            <div class="uat-loading-spinner"></div>
+            <span>Đang tải dữ liệu...</span>
         </div>
+    </div>
     <!-- TAB: OVERVIEW -->
     <div id="uat-tab-overview" class="uat-tab-content active">
         <!-- Lifetime Summary Cards -->
@@ -343,60 +346,66 @@
         <p class="uat-tab-des">Các tương tác người dùng thực hiện trên trang</p>
         <div class="uat-grid-row" style="margin-top: 20px;">
             <div class="uat-col-4">
-                <div class="uat-card">
-                    <div class="uat-card-title">TOP INTERACTION CLICKS</div>
-                    <div class="uat-card-des">Cấu trúc các phần tử được click nhiều nhất</div>
-                    <div class="uat-card-divider"></div>
+                <div class="uat-card" style="padding:0; overflow:hidden;">
+                    <div style="padding:24px 24px 12px 24px;">
+                        <div class="uat-card-title">TOP INTERACTION CLICKS</div>
+                        <div class="uat-card-des">Cấu trúc các phần tử được click nhiều nhất</div>
+                    </div>
                     <table class="uat-table">
                         <thead>
                             <tr>
-                                <th>TOP GIÁ TRỊ NGƯỜI DÙNG CLICK VÀO</th>
-                                <th style="text-align:right">CLICKS</th>
+                                <th>VALUE</th>
+                                <th style="text-align:right">SESS</th>
+                                <th style="text-align:right; width:45px;">#</th>
                             </tr>
                         </thead>
                         <tbody id="ec_clicks_tbody">
                             <tr>
-                                <td colspan="2" class="uat-empty-cell">Đang tải...</td>
+                                <td colspan="3" class="uat-empty-cell">Đang tải...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="uat-col-4">
-                <div class="uat-card">
-                    <div class="uat-card-title">TOP INTERACTION TYPING</div>
-                    <div class="uat-card-des">Các ô nhập liệu được tương tác nhiều nhất</div>
-                    <div class="uat-card-divider"></div>
+                <div class="uat-card" style="padding:0; overflow:hidden;">
+                    <div style="padding:24px 24px 12px 24px;">
+                        <div class="uat-card-title">TOP INTERACTION TYPING</div>
+                        <div class="uat-card-des">Các ô nhập liệu được tương tác nhiều nhất</div>
+                    </div>
                     <table class="uat-table">
                         <thead>
                             <tr>
-                                <th style="width:160px;">INPUT VALUE</th>
-                                <th style="text-align:right">INTERACT</th>
+                                <th>VALUE</th>
+                                <th style="text-align:right">SESS</th>
+                                <th style="text-align:right; width:45px;">#</th>
                             </tr>
                         </thead>
                         <tbody id="ec_typing_tbody">
                             <tr>
-                                <td colspan="2" class="uat-empty-cell">Đang tải...</td>
+                                <td colspan="3" class="uat-empty-cell">Đang tải...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
             <div class="uat-col-4">
-                <div class="uat-card">
-                    <div class="uat-card-title">TOP INTERACTION SCROLLED</div>
-                    <div class="uat-card-des">Lưu lượng độ sâu người dùng cuộn tới</div>
-                    <div class="uat-card-divider"></div>
+                <div class="uat-card" style="padding:0; overflow:hidden;">
+                    <div style="padding:24px 24px 12px 24px;">
+                        <div class="uat-card-title">TOP INTERACTION SCROLLED</div>
+                        <div class="uat-card-des">Lưu lượng độ sâu người dùng cuộn tới</div>
+                    </div>
                     <table class="uat-table">
                         <thead>
                             <tr>
-                                <th style="width:160px;">SCROLL TARGET</th>
-                                <th style="text-align:right">COUNT</th>
+                                <th>VALUE</th>
+                                <th style="text-align:right">SESS</th>
+                                <th style="text-align:right; width:45px;">#</th>
                             </tr>
                         </thead>
                         <tbody id="ec_scroll_tbody">
                             <tr>
-                                <td colspan="2" class="uat-empty-cell">Đang tải...</td>
+                                <td colspan="3" class="uat-empty-cell">Đang tải...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -422,12 +431,6 @@
                     <div class="uat-card-divider"></div>
                     <div style="position:relative; width:190px; height:190px; margin: 12px auto 0;">
                         <canvas id="ec_area_donut" width="190" height="190"></canvas>
-                        <div
-                            style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none;">
-                            <div style="font-size:20px; font-weight:800; color:#334155;" id="ec_area_total_sessions">
-                                &#8212;</div>
-                            <div style="font-size:10px; color:#94a3b8; font-weight:500; margin-top:2px;">TOTAL</div>
-                        </div>
                     </div>
                     <div
                         style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; justify-content:center; font-size:12px; font-weight:600; color:#475569;">
@@ -444,7 +447,7 @@
             </div>
             <!-- Stats + Compare -->
             <div class="uat-col-8">
-                <div class="uat-grid-row" style="margin-bottom:16px;">
+                <div class="uat-grid-row" style="margin-bottom:24px;">
                     <div class="uat-col-4">
                         <div class="uat-card" style="border-top:4px solid #3b82f6; height:100%;">
                             <div class="uat-card-title" style="color:#3b82f6;">Miền Bắc</div>
@@ -497,7 +500,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="uat-card">
+                <div class="uat-card" style="height:auto; margin-bottom:24px;">
                     <div class="uat-card-title">So sánh Top Routes theo Miền</div>
                     <div class="uat-card-des">Top 4 route phổ biến nhất của từng khu vực - progress bar tương đối trong
                         miền</div>
@@ -508,7 +511,7 @@
         </div>
 
         <!-- Full Route Tables -->
-        <div class="uat-grid-row" style="margin-top:8px;">
+        <div class="uat-grid-row" style="margin-top:24px;">
             <div class="uat-col-4">
                 <div class="uat-card" style="padding:0; overflow:hidden;">
                     <div style="padding:20px 20px 0 20px;">
@@ -813,6 +816,53 @@
         </div>
     </div><!-- END TAB BOTS -->
 
+    <!-- TAB: HEATMAP -->
+    <div id="uat-tab-heatmap" class="uat-tab-content">
+        <div class="uat-header-info" style="margin-bottom: 24px;">
+            <h1 style="font-size: 24px; color: #1e293b; margin: 0 0 8px 0;">Heatmap Analytics</h1>
+            <p class="description" style="color: #64748b; margin: 0; font-size: 14px;">
+                Visualize user interactions with 3-tier precision rendering.
+                Click <strong>View Heatmap</strong> to see an overlay intensity on any recorded page.
+            </p>
+        </div>
+
+        <div class="uat-card" style="border-top: 4px solid #f72585;">
+            <div class="uat-card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    Recorded Map Pages <span class="badge badge-blue" id="ec_heatmap_count">0</span>
+                    <small style="color:#94a3b8; font-weight:normal; margin-left:8px; font-size:12px;">Top 50 results
+                        (All time)</small>
+                </div>
+                <div class="uat-tab-header-search">
+                    <input type="text" id="ec_heatmap_search" class="uat-search-input" placeholder="Tìm kiếm trang..."
+                        autocomplete="off"
+                        style="width: 200px; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px;">
+                </div>
+            </div>
+
+            <div class="uat-table-container">
+                <table class="uat-table uat-table-stackable uat-heatmap-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width:40%">Target Page</th>
+                            <th>Total Engagement</th>
+                            <th>Device Affinity</th>
+                            <th>Last Interaction</th>
+                            <th style="width:120px" class="text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ec_heatmap_tbody">
+                        <tr>
+                            <td colspan="5"
+                                style="text-align:center; padding: 60px 20px; color:#94a3b8; font-style:italic;">Đang
+                                tải dữ liệu Heatmap...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div><!-- END TAB HEATMAP -->
+
 </div><!-- END uat-wrap -->
 
-<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.0.0"></script>
+<script type="text/javascript" src="modules/EC_TongHop/js/ec_tonghop.js?v=2.0.8"></script>
