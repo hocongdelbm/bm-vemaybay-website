@@ -7,7 +7,7 @@ if (!defined('sugarEntry') || !sugarEntry) {
 //the left value is the key stored in the db and the right value is ie display value
 //to translate, only modify the right value in each key/value pair
 $app_list_strings = array(
-//e.g. auf Deutsch 'Contacts'=>'Contakten',
+    //e.g. auf Deutsch 'Contacts'=>'Contakten',
     'language_pack_name' => 'Tiếng Việt (Vietnamese) - vi_VN',
     'moduleList' => array(
         'Home' => 'Trang chủ',
@@ -187,7 +187,7 @@ $app_list_strings = array(
         'load-more' => 'Load More'
     ],
     //Note:  do not translate opportunity_relationship_type_default_key
-//       it is the key for the default opportunity_relationship_type_dom value
+    //       it is the key for the default opportunity_relationship_type_dom value
     'opportunity_relationship_type_default_key' => 'Primary Decision Maker',
     'opportunity_relationship_type_dom' => array(
         '' => '',
@@ -201,7 +201,7 @@ $app_list_strings = array(
         'Other' => 'Khác',
     ),
     //Note:  do not translate case_relationship_type_default_key
-//       it is the key for the default case_relationship_type_dom value
+    //       it is the key for the default case_relationship_type_dom value
     'case_relationship_type_default_key' => 'Primary Contact',
     'case_relationship_type_dom' => array(
         '' => '',
@@ -227,18 +227,18 @@ $app_list_strings = array(
         'Closed Lost' => 'Kết thúc thất bại',
     ),
     'sales_probability_dom' => // keys must be the same as sales_stage_dom
-        array(
-            'Prospecting' => '10',
-            'Qualification' => '20',
-            'Needs Analysis' => '25',
-            'Value Proposition' => '30',
-            'Id. Decision Makers' => '40',
-            'Perception Analysis' => '50',
-            'Proposal/Price Quote' => '65',
-            'Negotiation/Review' => '80',
-            'Closed Won' => '100',
-            'Closed Lost' => '0',
-        ),
+    array(
+        'Prospecting' => '10',
+        'Qualification' => '20',
+        'Needs Analysis' => '25',
+        'Value Proposition' => '30',
+        'Id. Decision Makers' => '40',
+        'Perception Analysis' => '50',
+        'Proposal/Price Quote' => '65',
+        'Negotiation/Review' => '80',
+        'Closed Won' => '100',
+        'Closed Lost' => '0',
+    ),
     'activity_dom' => array(
         'Call' => 'Cuộc gọi',
         'Meeting' => 'Hội họp',
@@ -823,7 +823,7 @@ $app_list_strings = array(
     ),
 
 
-//prospect list type dom
+    //prospect list type dom
     'prospect_list_type_dom' => array(
         'default' => 'Mặc định',
         'seed' => 'Hạt giống',
@@ -844,26 +844,6 @@ $app_list_strings = array(
         'inactive' => 'Không hoạt động',
     ),
 
-    'campainglog_activity_type_dom' => array(
-        '' => '',
-        'targeted' => 'Tin nhắn đã gửi/đã cố gắng',
-        'send error' => 'Tin nhắn bị trả về, khác',
-        'invalid email' => 'Tin nhắn bị trả về, không hợp lệ',
-        'link' => 'Bấm vào thông qua liên kết',
-        'viewed' => 'Xem tin nhắn',
-        'removed' => 'Từ chối nhận',
-        'lead' => 'Đầu mối đã tạo',
-        'contact' => 'Liên hệ đã được tạo',
-        'blocked' => 'Bị đàn áp bởi địa chỉ hoặc tên miền',
-        'Survey' => 'Survey answered',
-    ),
-
-    'campainglog_target_type_dom' => array(
-        'Contacts' => 'Liên hệ',
-        'Users' => 'Người dùng',
-        'Leads' => 'Đầu mối',
-        'Accounts' => 'Khách hàng',
-    ),
     'merge_operators_dom' => array(
         'like' => 'Có chứa',
         'exact' => 'Chính xác',
@@ -2764,18 +2744,18 @@ $app_list_strings['token_status'] = array(
     3 => 'Không hợp lệ',
 );
 
-$app_list_strings ['emailTemplates_type_list'] = array(
+$app_list_strings['emailTemplates_type_list'] = array(
     '' => '',
     'email' => 'Email',
     'event' => 'Sự kiện',
 );
 
-$app_list_strings ['emailTemplates_type_list_campaigns'] = array(
+$app_list_strings['emailTemplates_type_list_campaigns'] = array(
     '' => '',
     'campaign' => 'Chiến dịch kinh doanh',
 );
 
-$app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
+$app_list_strings['emailTemplates_type_list_no_workflow'] = array(
     '' => '',
     'campaign' => 'Chiến dịch kinh doanh',
     'email' => 'Email',
@@ -3431,30 +3411,6 @@ $app_list_strings['pdf_page_size_dom']['Letter'] = 'Letter';
 $app_list_strings['pdf_page_size_dom']['Legal'] = 'Pháp lý';
 $app_list_strings['pdf_orientation_dom']['Portrait'] = 'Chiều dọc';
 $app_list_strings['pdf_orientation_dom']['Landscape'] = 'Chiều ngang';
-
-
-$app_list_strings['moduleList']['SurveyResponses'] = 'Phản hồi khảo sát';
-$app_list_strings['moduleList']['Surveys'] = 'Khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestions'] = 'Câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionOptions'] = 'Tùy chọn câu hỏi khảo sát';
-$app_list_strings['survey_status_list']['Draft'] = 'Bản nháp';
-$app_list_strings['survey_status_list']['Public'] = 'Công khai';
-$app_list_strings['survey_status_list']['Closed'] = 'Đã đóng';
-$app_list_strings['surveys_question_type']['Text'] = 'Văn bản';
-$app_list_strings['surveys_question_type']['Textbox'] = 'Ô văn bản';
-$app_list_strings['surveys_question_type']['Checkbox'] = 'Ô đánh dấu';
-$app_list_strings['surveys_question_type']['Radio'] = 'Radio';
-$app_list_strings['surveys_question_type']['Dropdown'] = 'Trình đơn thả xuống';
-$app_list_strings['surveys_question_type']['Multiselect'] = 'Chọn nhiều';
-$app_list_strings['surveys_question_type']['Matrix'] = 'Ma trận';
-$app_list_strings['surveys_question_type']['DateTime'] = 'DateTime';
-$app_list_strings['surveys_question_type']['Date'] = 'Ngày giờ';
-$app_list_strings['surveys_question_type']['Scale'] = 'Tỷ lệ';
-$app_list_strings['surveys_question_type']['Rating'] = 'Xếp hạng';
-$app_list_strings['surveys_matrix_options'][0] = 'Hài lòng';
-$app_list_strings['surveys_matrix_options'][1] = 'Hài lòng hay không hài lòng';
-$app_list_strings['surveys_matrix_options'][2] = 'Không hài lòng';
 
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_NOT_SENT'] = 'Đang chờ xác nhận chọn tham gia, xác nhận chọn tham gia không được gửi';
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_FAILED'] = 'Email xác nhận sử dụng đang gửi bị lỗi';

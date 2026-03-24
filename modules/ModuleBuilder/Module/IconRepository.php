@@ -17,8 +17,6 @@ class IconRepository
         AOR_Scheduled_Reports::class => 'aor-reports',
         'EmailTemplates' => 'emails',
         'Employees' => 'users',
-        'SurveyQuestionResponses' =>  'survey-responses',
-        'SurveyResponses' => 'survey-responses',
     ];
 
     /**

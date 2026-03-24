@@ -504,28 +504,6 @@ $app_list_strings = array(
         'Upgrade' => 'Nâng cấp',
         'Users' => 'Người dùng',
     ),
-    /*Added entries 'Queued' and 'Sending' for 4.0 release..*/
-    'campaign_status_dom' => array(
-        '' => '',
-        'Planning' => 'Lập kế hoạch',
-        'Active' => 'Đang hoạt động',
-        'Inactive' => 'Không hoạt động',
-        'Complete' => 'Hoàn tất',
-        //'In Queue' => 'In Queue',
-        //'Sending' => 'Sending',
-    ),
-    'campaign_type_dom' => array(
-        '' => '',
-        'Telesales' => 'Người bán hàng qua điện thoại',
-        'Mail' => 'Thư',
-        'Email' => 'Email',
-        'Print' => 'In',
-        'Web' => 'Web',
-        'Radio' => 'Radio',
-        'Television' => 'Ti vi',
-        'NewsLetter' => 'Bản tin',
-        'Survey' => 'Khảo sát',
-    ),
 
     'newsletter_frequency_dom' => array(
         '' => '',
@@ -3377,30 +3355,6 @@ $app_list_strings['aow_condition_type_list']['SecurityGroup'] = 'Trong nhóm an 
 $app_list_strings['aow_condition_type_list']['currentUser'] = 'Current Logged in User';
 $app_list_strings['aow_condition_type_list']['Date'] = 'Ngày giờ';
 $app_list_strings['aow_condition_type_list']['Multi'] = 'Một trong';
-
-
-$app_list_strings['moduleList']['SurveyResponses'] = 'Phản hồi khảo sát';
-$app_list_strings['moduleList']['Surveys'] = 'Khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestions'] = 'Câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionOptions'] = 'Tùy chọn câu hỏi khảo sát';
-$app_list_strings['survey_status_list']['Draft'] = 'Dự thảo';
-$app_list_strings['survey_status_list']['Public'] = 'Công khai';
-$app_list_strings['survey_status_list']['Closed'] = 'Đã đóng';
-$app_list_strings['surveys_question_type']['Text'] = 'Văn bản';
-$app_list_strings['surveys_question_type']['Textbox'] = 'Ô văn bản';
-$app_list_strings['surveys_question_type']['Checkbox'] = 'Ô đánh dấu';
-$app_list_strings['surveys_question_type']['Radio'] = 'Radio';
-$app_list_strings['surveys_question_type']['Dropdown'] = 'Trình đơn thả xuống';
-$app_list_strings['surveys_question_type']['Multiselect'] = 'Chọn nhiều';
-$app_list_strings['surveys_question_type']['Matrix'] = 'Ma trận';
-$app_list_strings['surveys_question_type']['DateTime'] = 'DateTime';
-$app_list_strings['surveys_question_type']['Date'] = 'Ngày giờ';
-$app_list_strings['surveys_question_type']['Scale'] = 'Tỷ lệ';
-$app_list_strings['surveys_question_type']['Rating'] = 'Xếp hạng';
-$app_list_strings['surveys_matrix_options'][0] = 'Hài lòng';
-$app_list_strings['surveys_matrix_options'][1] = 'Hài lòng hay không hài lòng';
-$app_list_strings['surveys_matrix_options'][2] = 'Không hài lòng';
 
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_NOT_SENT'] = 'Đang chờ xác nhận chọn tham gia, xác nhận chọn tham gia không được gửi';
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_FAILED'] = 'Email xác nhận sử dụng đang gửi bị lỗi';

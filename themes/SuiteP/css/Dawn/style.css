@@ -3013,18 +3013,6 @@ button.list-group-item-danger.active:focus {
      content: ""
 }
 
-.suitepicon-module-survey-responses:before {
-     content: ""
-}
-
-.suitepicon-module-surveys:before,
-.suitepicon-module-surveyquestionoptions:before,
-.suitepicon-module-surveyquestionresponses:before,
-.suitepicon-module-surveyresponses:before,
-.suitepicon-module-surveyquestions:before {
-     content: ""
-}
-
 .suitepicon-module-targets:before {
      content: ""
 }

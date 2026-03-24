@@ -129,26 +129,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'SurveyQuestionOptions' => 
-  array (
-    'visible' => false,
-  ),
-  'SurveyQuestionResponses' => 
-  array (
-    'visible' => false,
-  ),
-  'SurveyQuestions' => 
-  array (
-    'visible' => false,
-  ),
-  'SurveyResponses' => 
-  array (
-    'visible' => false,
-  ),
-  'Surveys' => 
-  array (
-    'visible' => false,
-  ),
   'Tasks' => 
   array (
     'visible' => false,
