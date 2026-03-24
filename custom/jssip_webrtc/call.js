@@ -1006,44 +1006,6 @@ $(document).ready(function () {
     $(document).on('click', '.voiceip-viewbooking', function () {
         $("#popup-inforbooking").toggle("slide");
     });
-
-    // GỌI TỰ ĐỘNG
-    $(document).on('click', '.voiceip-autocall', function () {
-        let phone = $(this).attr('phone');
-
-        if (phone.length > 0 && phone != SIP_USER && phone.length < 12) {
-            $.ajax({
-                url: "index.php?entryPoint=entryPointCallContact",
-                data: {
-                    type: "autocall",
-                    phone: phone,
-                },
-                type: "POST",
-                cache: false,
-                beforeSend: function () {
-                    $('.container-waiting').show();
-                },
-                success: function (response) {
-                    $('.container-waiting').hide();
-
-                    let data = JSON.parse(response);
-                    if (parseInt(data.error) === 0 && parseInt(data.response.code) === 200) {
-                        showModalNotify('success', 'Gọi tự động thành công. Cuộc gọi đang chạy...');
-                    } else {
-                        showModalNotify('error', data.response.message);
-                    }
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    $('.container-waiting').hide();
-                    console.error(XMLHttpRequest);
-                    console.error("Status: " + textStatus);
-                    console.error("Error: " + errorThrown);
-                }
-            });
-        } else {
-            showModalNotify('error', 'Số điện thoại không hợp lệ!');
-        }
-    });
 });
 
 // CALL LOG ===============================
@@ -1064,7 +1026,6 @@ function saveCallLog() {
 
         }
     });
-    // console.warn(fullLog);
     callLog = [];
 }
 

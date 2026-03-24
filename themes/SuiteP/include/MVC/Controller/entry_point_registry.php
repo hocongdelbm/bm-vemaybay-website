@@ -10,7 +10,6 @@ $entry_point_registry = array(
     'export_dataset' => array('file' => 'export_dataset.php', 'auth' => true),
     'Changenewpassword' => array('file' => 'modules/Users/Changenewpassword.php', 'auth' => false),
     'GeneratePassword' => array('file' => 'modules/Users/GeneratePassword.php', 'auth' => false),
-    'vCard' => array('file' => 'vCard.php', 'auth' => true),
     'pdf' => array('file' => 'pdf.php', 'auth' => true),
     'minify' => array('file' => 'jssource/minify.php', 'auth' => true),
     'json_server' => array('file' => 'json_server.php', 'auth' => true),

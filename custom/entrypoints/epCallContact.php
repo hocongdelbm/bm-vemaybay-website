@@ -893,14 +893,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
         exit();
     }
-    else if ((string)$type === 'autocall') {
-        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
-        if(!empty($phone)){
-            $phone_list = explode(",", $phone);
-            echo send_callee_autocall($phone_list);
-        }
-        exit();
-    }
     else if ((string)$type === 'get_infor_phone') {
         $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
         if(!empty($phone)){

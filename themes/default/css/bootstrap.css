@@ -5505,44 +5505,11 @@ tr:hover .actions {
   top: 8px;
   font-weight: normal;
 }
-/* vcard */
-.vcard {
-  display: inline-block;
-}
-.vcard span {
-  margin-left: 70px;
-}
 .block span.add-on {
   margin-left: 0 !important;
 }
 .span2 .input-prepend input {
   width: inherit;
-}
-.vcard span {
-  display: block;
-}
-.block span.label {
-  width: 20px;
-  height: 30px;
-  margin: -6px 10px 0 -10px;
-}
-.vcard span.tel,
-.vcard span.url,
-.vcard span.email,
-.vcard span.address {
-  width: 42px;
-  padding: 0 4px;
-  margin: 0 20px 0 0;
-  font-weight: 400;
-  float: left;
-}
-.vcard span.label,
-.block span.label {
-  font-weight: 400;
-  float: left;
-}
-.vcard p {
-  margin-bottom: 8px;
 }
 date {
   font-size: 90%;
@@ -6161,10 +6128,6 @@ color: @red;
 }
 .content .btn-toolbar {
   margin: 0 0 8px !important;
-}
-.content .vcard2 {
-  z-index: 0;
-  position: relative;
 }
 #moduleActivity .avatar {
   margin: 0;

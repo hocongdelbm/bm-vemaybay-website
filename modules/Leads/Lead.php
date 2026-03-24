@@ -104,7 +104,6 @@ class Lead extends Person implements EmailInterface
     public $opportunity_id;
     public $opportunity_name;
     public $opportunity_amount;
-    //used for vcard export only
     public $birthdate;
     public $status;
     public $status_description;

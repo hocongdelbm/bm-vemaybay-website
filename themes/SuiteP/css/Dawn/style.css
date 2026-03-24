@@ -2318,11 +2318,6 @@ button.list-group-item-danger.active:focus {
      content: ""
 }
 
-.suitepicon-action-create-contact-vcard:before,
-.suitepicon-action-create-lead-vcard:before {
-     content: ""
-}
-
 .suitepicon-action-create-group-user:before {
      content: ""
 }
@@ -2510,11 +2505,6 @@ button.list-group-item-danger.active:focus {
 .suitepicon-action-user:before {
      content: ""
 }
-
-.suitepicon-action-vcard:before {
-     content: ""
-}
-
 .suitepicon-action-view-create-email-templates:before {
      content: ""
 }
@@ -8267,24 +8257,6 @@ ul.clickMenu>li>span.searchAppliedAlert {
      width: 28px
 }
 
-.vcard {
-     font-size: inherit;
-     border: none;
-     color: var(--text-color)
-}
-
-.vcard .suitepicon,
-.vcard .button-toggle-expanded span,
-.button-toggle-expanded .vcard span,
-.vcard .button-toggle-collapsed span,
-.button-toggle-collapsed .vcard span,
-.vcard .panel-heading a.collapsed,
-.panel-heading .vcard a.collapsed,
-.vcard .panel-heading a,
-.panel-heading .vcard a {
-     font-size: 18px
-}
-
 .nav-tabs>li.tab-inline-pagination {
      float: right;
      line-height: 10px
@@ -8617,19 +8589,6 @@ table.subpanel-table .pagination .SugarActionMenu li.single a:hover,
 table.subpanel-table .pagination .action_buttons .button:hover {
      background-color: #778591;
      color: #BFCAD3
-}
-
-
-.import-vcard {
-     background-color: var(--white-color);
-     padding: 16px;
-     border-radius: 4px
-}
-
-.import-vcard #vcard_file,
-.import-vcard .button {
-     margin-top: 10px;
-     margin-bottom: 10px
 }
 
 .aclAll {
@@ -9373,17 +9332,6 @@ table#lineItems tr td table tfoot tr td span {
      #lineItems .service_total_price {
           width: 80px
      }
-}
-
-#btn_vCardButton {
-     background: none;
-     margin: 0
-}
-
-#btn_vCardButton,
-#btn_vCardButton img {
-     width: auto;
-     height: 14px
 }
 
 .hr {

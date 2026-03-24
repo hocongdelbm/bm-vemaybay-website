@@ -149,8 +149,6 @@ $mod_strings = [
     'LBL_CHECKEXPIRATIONDATEVOUCHER' => 'Kiểm tra hạn sử dụng của voucher',
     // REPORT PROFIT
     'LBL_SAVEREPORTWEEKLY' => 'Lưu thông tin doanh số vào cuối ngày.',
-    // AUTOCALL
-    'LBL_UPDATELOGAUTOCALL' => 'Cập nhật log cuộc gọi tự động',
     'LBL_SENDAUTOCHEAPPRICEMESSAGEZALO' => 'Gửi tin tự động về giá vé rẻ qua ZBS template Zalo',
     'LBL_MAINTAINZALOCHAT' => 'Tự động gửi tin tư vấn Zalo để duy trì tương tác',
 

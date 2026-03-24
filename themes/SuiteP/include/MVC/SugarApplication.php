@@ -476,7 +476,7 @@ class SugarApplication
      * @var array
      */
     private $globalModifyActions = array(
-        'massupdate', 'import', 'importvcardsave', 'inlinefieldsave',
+        'massupdate', 'import', 'inlinefieldsave',
         'wlsave', 'quicksave'
     );
 
