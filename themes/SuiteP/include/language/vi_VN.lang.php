@@ -3032,8 +3032,6 @@ $app_list_strings['aow_run_when_list']['On_Save'] = 'Chỉ lưu trữ';
 $app_list_strings['aow_run_when_list']['In_Scheduler'] = 'Chỉ có ở trình lập lịch biểu';
 
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates'] = 'Dự án - mẫu';
-$app_list_strings['moduleList']['AM_TaskTemplates'] = 'Dự án công việc mẫu';
 $app_list_strings['relationship_type_list']['FS'] = 'Kết thúc để bắt đầu';
 $app_list_strings['relationship_type_list']['SS'] = 'Bắt đầu để bắt đầu';
 $app_list_strings['duration_unit_dom']['Days'] = 'Ngày';

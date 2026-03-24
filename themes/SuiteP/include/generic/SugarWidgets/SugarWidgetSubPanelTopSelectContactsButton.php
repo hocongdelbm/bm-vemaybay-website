@@ -66,11 +66,7 @@ class SugarWidgetSubPanelTopSelectContactsButton extends SugarWidgetSubPanelTopS
             $this->module_name = $subpanel_name;
         }
 
-        if ($subpanel_name == 'AM_ProjectTemplates') {
-            $link_field_name = 'am_projecttemplates_contacts_1';
-        } else {
-            $link_field_name = $subpanel_definition->get_data_source_name(true);
-        }
+        $link_field_name = $subpanel_definition->get_data_source_name(true);
 
         $popup_mode='Single';
         if (isset($widget_data['mode'])) {

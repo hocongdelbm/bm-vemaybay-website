@@ -153,8 +153,6 @@ $app_list_strings['map_unit_type_list']['mi']         = 'Dặm';
 $app_list_strings['map_unit_type_list']['km']         = 'Cây số';
 
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates']  = 'Dự án - mẫu';
-$app_list_strings['moduleList']['AM_TaskTemplates']     = 'Dự án công việc mẫu';
 $app_list_strings['relationship_type_list']['FS']       = 'Kết thúc để bắt đầu';
 $app_list_strings['relationship_type_list']['SS']       = 'Bắt đầu để bắt đầu';
 $app_list_strings['duration_unit_dom']['Days']          = 'Ngày';

@@ -163,17 +163,7 @@ class json_config
         } else {
             if ($module == 'Calls') {
                 $users = $focus->get_call_users();
-            } else {
-                if ($module == 'Project') {
-                    $focus->load_relationships('users');
-                    $users=$focus->get_linked_beans('project_users_1', 'User');
-                } else {
-                    if ($module == 'AM_ProjectTemplates') {
-                        $focus->load_relationships('users');
-                        $users=$focus->get_linked_beans('am_projecttemplates_users_1', 'User');
-                    }
-                }
-            }
+            } 
         }
         
         
@@ -192,30 +182,19 @@ class json_config
         $module_arr['contacts_arr'] = array();
 
         $focus->load_relationships('contacts');
-
-        if ($module == 'Project') {
-            $contacts=$focus->get_linked_beans('project_contacts_1', 'Contact');
-        } else {
-            if ($module == 'AM_ProjectTemplates') {
-                $contacts=$focus->get_linked_beans('am_projecttemplates_contacts_1', 'Contact');
-            } else {
-                $contacts=$focus->get_linked_beans('contacts', 'Contact');
-            }
-        }
+        $contacts=$focus->get_linked_beans('contacts', 'Contact');
 
         foreach ($contacts as $contact) {
             array_push($module_arr['users_arr'], $this->populateBean($contact));
         }
 
         $module_arr['leads_arr'] = array();
-
-        if ($module != 'Project' && $module != 'AM_ProjectTemplates') {
-            $focus->load_relationships('leads');
-            $leads=$focus->get_linked_beans('leads', 'Lead');
-            foreach ($leads as $lead) {
-                array_push($module_arr['users_arr'], $this->populateBean($lead));
-            }
+        $focus->load_relationships('leads');
+        $leads=$focus->get_linked_beans('leads', 'Lead');
+        foreach ($leads as $lead) {
+            array_push($module_arr['users_arr'], $this->populateBean($lead));
         }
+        
         return $module_arr;
     }
 

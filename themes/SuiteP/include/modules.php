@@ -301,14 +301,6 @@ $beanFiles['OAuthToken'] = 'modules/OAuthTokens/OAuthToken.php';
 $modules_exempt_from_availability_check['OAuthTokens'] = 'OAuthTokens';
 $modInvisList[] = 'OAuthTokens';
 
-$beanList['AM_ProjectTemplates'] = 'AM_ProjectTemplates';
-$beanFiles['AM_ProjectTemplates'] = 'modules/AM_ProjectTemplates/AM_ProjectTemplates.php';
-$moduleList[] = 'AM_ProjectTemplates';
-$beanList['AM_TaskTemplates'] = 'AM_TaskTemplates';
-$beanFiles['AM_TaskTemplates'] = 'modules/AM_TaskTemplates/AM_TaskTemplates.php';
-$modules_exempt_from_availability_check['AM_TaskTemplates'] = 'AM_TaskTemplates';
-$report_include_modules['AM_TaskTemplates'] = 'AM_TaskTemplates';
-$modInvisList[] = 'AM_TaskTemplates';
 $beanList['Favorites'] = 'Favorites';
 $beanFiles['Favorites'] = 'modules/Favorites/Favorites.php';
 

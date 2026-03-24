@@ -793,42 +793,6 @@ $dictionary['User'] = array(
             'source' => 'non-db',
             'side' => 'left',
         ),
-        'project_resource' =>
-        array(
-            'name' => 'project_resource',
-            'type' => 'link',
-            'relationship' => 'projects_users_resources',
-            'source' => 'non-db',
-            'vname' => 'LBL_PROJECTS',
-        ),
-        'project_users_1' =>
-        array(
-            'name' => 'project_users_1',
-            'type' => 'link',
-            'relationship' => 'project_users_1',
-            'source' => 'non-db',
-            'module' => 'Project',
-            'bean_name' => 'Project',
-            'vname' => 'LBL_PROJECT_USERS_1_FROM_PROJECT_TITLE',
-        ),
-        'am_projecttemplates_resources' =>
-        array(
-            'name' => 'am_projecttemplates_resources',
-            'type' => 'link',
-            'relationship' => 'am_projecttemplates_users_resources',
-            'source' => 'non-db',
-            'vname' => 'LBL_PROJECTS',
-        ),
-        'am_projecttemplates_users_1' =>
-        array(
-            'name' => 'am_projecttemplates_users_1',
-            'type' => 'link',
-            'relationship' => 'am_projecttemplates_users_1',
-            'source' => 'non-db',
-            'module' => 'AM_ProjectTemplates',
-            'bean_name' => 'AM_ProjectTemplates',
-            'vname' => 'LBL_PROJECT_USERS_1_FROM_PROJECT_TITLE',
-        ),
         'SecurityGroups' =>
         array(
             'name' => 'SecurityGroups',

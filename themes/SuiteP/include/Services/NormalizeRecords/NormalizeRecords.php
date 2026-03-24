@@ -637,7 +637,6 @@ class NormalizeRecords extends BatchJob
             'EAPM',
             'OAuthKeys',
             'OAuthTokens',
-            'AM_TaskTemplates',
             'Reminders',
             'Reminders_Invitees',
             'AOD_IndexEvent',

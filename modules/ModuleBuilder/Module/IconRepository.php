@@ -18,8 +18,6 @@ class IconRepository
         'EmailTemplates' => 'emails',
         'Employees' => 'users',
         jjwg_Address_Cache::class => 'jjwg-markers',
-        'ProjectTask' => 'am-tasktemplates',
-        AM_ProjectTemplates::class => 'am-tasktemplates',
         'SurveyQuestionResponses' =>  'survey-responses',
         'SurveyResponses' => 'survey-responses',
         'Prospects' => 'targets'

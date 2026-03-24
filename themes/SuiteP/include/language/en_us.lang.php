@@ -3088,8 +3088,6 @@ $app_list_strings['aow_run_when_list']['On_Save'] = 'Only On Save';
 $app_list_strings['aow_run_when_list']['In_Scheduler'] = 'Only In The Scheduler';
 
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates'] = 'Projects - Templates';
-$app_list_strings['moduleList']['AM_TaskTemplates'] = 'Project Task Templates';
 $app_list_strings['relationship_type_list']['FS'] = 'Finish to Start';
 $app_list_strings['relationship_type_list']['SS'] = 'Start to Start';
 $app_list_strings['duration_unit_dom']['Days'] = 'Days';
