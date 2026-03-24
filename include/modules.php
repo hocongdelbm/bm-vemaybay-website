@@ -85,7 +85,6 @@ $moduleList[] = 'ProspectLists';
 $moduleList[] = 'Documents';
 $moduleList[] = 'Cases';
 $moduleList[] = 'Bugs';
-$moduleList[] = 'AOBH_BusinessHours';
 
 $moduleList[] = 'Spots';
 
@@ -153,7 +152,6 @@ $beanList['Relationships'] = 'Relationship';
 $beanList['Employees'] = 'Employee';
 
 $beanList['Spots'] = 'Spots';
-$beanList['AOBH_BusinessHours'] = 'AOBH_BusinessHours';
 
 // this list defines all of the files that contain the SugarBean class definitions from $beanList
 // to create a new module's bean class, add the file definition here
@@ -220,7 +218,6 @@ $beanFiles['EmailText'] = 'modules/EmailText/EmailText.php';
 $beanFiles['Configurator'] = 'modules/Configurator/Configurator.php';
 
 $beanFiles['Spots'] = 'modules/Spots/Spots.php';
-$beanFiles['AOBH_BusinessHours'] = 'modules/AOBH_BusinessHours/AOBH_BusinessHours.php';
 
 
 // added these lists for security settings for tabs
@@ -274,7 +271,6 @@ $modInvisList = [
     'DocumentRevisions',
     'ModuleBuilder',
     'Alert',
-    'AOBH_BusinessHours',
 ];
 
 $adminOnlyList = [

@@ -53,10 +53,6 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'AOBH_BusinessHours' => 
-  array (
-    'visible' => false,
-  ),
   'AOD_Index' => 
   array (
     'visible' => false,

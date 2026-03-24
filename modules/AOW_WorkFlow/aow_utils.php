@@ -712,10 +712,6 @@ function getDateField($module, $aow_field, $view, $value = null, $field_option =
 
     $value = json_decode(html_entity_decode_utf8($value), true);
 
-    if (!file_exists('modules/AOBH_BusinessHours/AOBH_BusinessHours.php')) {
-        unset($app_list_strings['aow_date_type_list']['business_hours']);
-    }
-
     $field = '';
 
     if ($view == 'EditView') {

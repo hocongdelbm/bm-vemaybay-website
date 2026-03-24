@@ -503,24 +503,6 @@ class AOW_WorkFlow extends Basic
 
                     if ($params[1] != 'now') {
                         switch ($params[3]) {
-                            case 'business_hours':
-                                if (file_exists('modules/AOBH_BusinessHours/AOBH_BusinessHours.php') && $params[0] == 'now') {
-                                    require_once('modules/AOBH_BusinessHours/AOBH_BusinessHours.php');
-
-                                    $businessHours = BeanFactory::newBean('AOBH_BusinessHours');
-
-                                    $amount = $params[2];
-
-                                    if ($params[1] != "plus") {
-                                        $amount = 0-$amount;
-                                    }
-                                    $value = $businessHours->addBusinessHours($amount);
-                                    $value = "'".$timedate->asDb($value)."'";
-                                    break;
-                                }
-                                //No business hours module found - fall through.
-                                $params[3] = 'hour';
-                                // no break
                             default:
                                 if ($sugar_config['dbconfig']['db_type'] == 'mssql') {
                                     $value = "DATEADD(".$params[3].",  ".$app_list_strings['aow_date_operator'][$params[1]]." $params[2], $value)";
@@ -759,24 +741,6 @@ class AOW_WorkFlow extends Basic
 
                         if ($params[1] != 'now') {
                             switch ($params[3]) {
-                                case 'business_hours':
-                                    if (file_exists('modules/AOBH_BusinessHours/AOBH_BusinessHours.php')) {
-                                        require_once('modules/AOBH_BusinessHours/AOBH_BusinessHours.php');
-
-                                        $businessHours = BeanFactory::newBean('AOBH_BusinessHours');
-
-                                        $amount = $params[2];
-                                        if ($params[1] != "plus") {
-                                            $amount = 0-$amount;
-                                        }
-
-                                        $value = $businessHours->addBusinessHours($amount, $timedate->fromDb($value));
-                                        $value = strtotime($timedate->asDbType($value, $dateType));
-                                        break;
-                                    }
-                                    //No business hours module found - fall through.
-                                    $params[3] = 'hours';
-                                    // no break
                                 default:
                                     $value = strtotime($value.' '.$app_list_strings['aow_date_operator'][$params[1]]." $params[2] ".$params[3]);
                                     if ($dateType == 'date') {

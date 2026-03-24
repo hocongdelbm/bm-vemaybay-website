@@ -1651,19 +1651,6 @@ class AOR_Report extends Basic
 
                             if ($params[1] !== 'now') {
                                 switch ($params[3]) {
-                                    case 'business_hours';
-                                        if ($params[0] === 'now') {
-                                            $businessHours = BeanFactory::getBean('AOBH_BusinessHours');
-                                            $amount = $params[2];
-
-                                            if ($params[1] !== 'plus') {
-                                                $amount = 0 - $amount;
-                                            }
-                                            $value = $businessHours->addBusinessHours($amount);
-                                            $value = "'" . $timedate->asDb($value) . "'";
-                                            break;
-                                        }
-                                        $params[3] = 'hour';
                                     default:
                                         if ($sugar_config['dbconfig']['db_type'] === 'mssql') {
                                             $value = "DATEADD(" . $params[3] . ",  " . $app_list_strings['aor_date_operator'][$params[1]] . " $params[2], $value)";

@@ -150,13 +150,7 @@ $admin_option_defs['Administration']['feed_settings'] = [
     './index.php?module=SugarFeed&action=AdminSettings',
     'activity-streams'
 ];
-$admin_option_defs['Administration']['business_hours'] = [
-    'AOBH_BusinessHours',
-    'LBL_BUSINESS_HOURS',
-    'LBL_AOP_BUSINESS_HOURS_DESC',
-    './index.php?module=Administration&action=BusinessHours',
-    'aobh-businesshours'
-];
+
 $admin_option_defs['Administration']['aop'] = [
     'AOP',
     'LBL_AOP_SETTINGS',
