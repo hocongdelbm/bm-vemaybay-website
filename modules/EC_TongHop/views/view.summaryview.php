@@ -1,35 +1,77 @@
 <?php
-if(!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry)
+    die('Not A Valid Entry Point');
 require_once("include/Sugar_Smarty.php");
-class Viewsummaryview extends SugarView {
-    
+
+class Viewsummaryview extends SugarView
+{
+    /**
+     * Cấu hình các website cần theo dõi.
+     *
+     * Mỗi domain cần:
+     *  - label       : Tên hiển thị
+     *  - api_base    : URL gốc của REST API (wp-json/uat/v1)
+     *  - username    : WordPress username (admin)
+     *  - app_password: WordPress Application Password
+     *                  (Tạo tại: WP Admin → Users → Profile → Application Passwords)
+     *
+     * Authentication: WordPress Application Password (Basic Auth)
+     * Header: Authorization: Basic base64(username:app_password)
+     */
     public static $domain_list = [
-        'domain1' => 'https://timchuyenbay.vn/analytics',
-        'domain2' => 'https://timchuyenbay.com/analytics',
-        'domain3' => 'https://vietjet.net/analytics',
-        'domain4' => 'https://timchuyenbay.com/analytics',
+        'timchuyenbay_vn' => [
+            'label' => 'timchuyenbay.vn',
+            'api_base' => 'https://timchuyenbay.vn/wp-json/uat/v1',
+            'username' => 'datlnt', // ← WordPress username
+            'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG', // ← Application Password
+        ],
+        'timchuyenbay_com' => [
+            'label' => 'timchuyenbay.com',
+            'api_base' => 'https://timchuyenbay.com/wp-json/uat/v1',
+            'username' => 'datlnt',
+            'app_password' => 'hVr3$43qSskCAg@U7Xq@PJYG',
+        ],
+        'vietjet_net' => [
+            'label' => 'vietjet.net',
+            'api_base' => 'https://vietjet.net/wp-json/uat/v1',
+            'username' => 'datlnt',
+            'app_password' => 'Y3rcC1Uo*!&9JcRjO&',
+        ],
     ];
 
-    public function __construct() {
+    public function __construct()
+    {
     }
-    function display(){
+
+    function display()
+    {
         $smarty = new Sugar_Smarty();
-        $from_date_value = date('Y-m-d 00:00:00');
-        $to_date_value = date('Y-m-d 23:59:59');
-        $new_domain_list = [];
-        foreach (Viewsummaryview::$domain_list as $key => $domain) {
-            $domain_name = $this->getDomainFromURL($domain);
-            $new_domain_list[$domain_name] = $domain;
+
+        // Build JS config: label + api_base + pre-encoded auth token
+        $select_options = [];
+        $domain_config = [];
+
+        foreach (self::$domain_list as $key => $info) {
+            $select_options[$key] = $info['label'];
+
+            // Encode credentials server-side → không lộ plain-text password trong HTML
+            $raw_token = base64_encode($info['username'] . ':' . $info['app_password']);
+
+            $domain_config[$key] = [
+                'label' => $info['label'],
+                'api_base' => $info['api_base'],
+                'token' => $raw_token, // Authorization: Basic {token}
+            ];
         }
-        $smarty->assign('NEW_DOMAIN_LIST', $new_domain_list);
-        $smarty->assign('DOMAIN_LIST', $this->domain_list);
-        $smarty->assign('FROM_DATE_VALUE', $from_date_value);
-        $smarty->assign('TO_DATE_VALUE', $to_date_value);
+
+        $smarty->assign('SELECT_OPTIONS', $select_options);
+        $smarty->assign('DOMAIN_CONFIG_JSON', json_encode($domain_config));
         $smarty->display('modules/EC_TongHop/tpls/view_summary_view.tpl');
     }
 
-    function getDomainFromURL($url){
+    function getDomainFromURL($url)
+    {
         $parseUrl = parse_url($url);
-        return $parseUrl['host']?? null;
+        return $parseUrl['host'] ?? null;
     }
 }
