@@ -17,8 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $data = json_decode($response, true);
 
     $timestamp  = $data['timestamp'];
-    $app_id     = $_REQUEST['appId'] ?? '';
-    if(empty($app_id)) $app_id = $sugar_config['zalo_config']['app_id_default'] ?? '';
+    $app_id     = $data['app_id'] ?? $sugar_config['zalo_config']['app_id_default'] ?? '';
 
     if(!empty($app_id)) {
         $zaloApp = new EC_Zalo_Apps();
