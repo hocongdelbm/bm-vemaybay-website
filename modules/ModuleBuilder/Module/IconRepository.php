@@ -17,7 +17,6 @@ class IconRepository
         AOR_Scheduled_Reports::class => 'aor-reports',
         'EmailTemplates' => 'emails',
         'Employees' => 'users',
-        jjwg_Address_Cache::class => 'jjwg-markers',
         'SurveyQuestionResponses' =>  'survey-responses',
         'SurveyResponses' => 'survey-responses',
         'Prospects' => 'targets'

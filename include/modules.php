@@ -470,19 +470,6 @@ $modules_exempt_from_availability_check['AOW_Conditions'] = 'AOW_Conditions';
 $report_include_modules['AOW_Conditions'] = 'AOW_Conditions';
 $modInvisList[] = 'AOW_Conditions';
 
-$beanList['jjwg_Maps'] = 'jjwg_Maps';
-$beanFiles['jjwg_Maps'] = 'modules/jjwg_Maps/jjwg_Maps.php';
-$moduleList[] = 'jjwg_Maps';
-$beanList['jjwg_Markers'] = 'jjwg_Markers';
-$beanFiles['jjwg_Markers'] = 'modules/jjwg_Markers/jjwg_Markers.php';
-$moduleList[] = 'jjwg_Markers';
-$beanList['jjwg_Areas'] = 'jjwg_Areas';
-$beanFiles['jjwg_Areas'] = 'modules/jjwg_Areas/jjwg_Areas.php';
-$moduleList[] = 'jjwg_Areas';
-$beanList['jjwg_Address_Cache'] = 'jjwg_Address_Cache';
-$beanFiles['jjwg_Address_Cache'] = 'modules/jjwg_Address_Cache/jjwg_Address_Cache.php';
-$moduleList[] = 'jjwg_Address_Cache';
-
 $beanList['Calls_Reschedule'] = 'Calls_Reschedule';
 $beanFiles['Calls_Reschedule'] = 'modules/Calls_Reschedule/Calls_Reschedule.php';
 $modules_exempt_from_availability_check['Calls_Reschedule'] = 'Calls_Reschedule';

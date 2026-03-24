@@ -138,20 +138,6 @@ $app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
 $app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
 
 
-//gmaps
-$app_strings['LBL_MAP']                               = 'Bản đồ';
-$app_strings['LBL_JJWG_MAPS_LNG']                     = 'Kinh độ';
-$app_strings['LBL_JJWG_MAPS_LAT']                     = 'Vĩ độ';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS']          = 'Trạng thái Mã địa lý';
-$app_strings['LBL_JJWG_MAPS_ADDRESS']                 = 'Địa chỉ';
-$app_list_strings['moduleList']['jjwg_Maps']          = 'Các bản đồ';
-$app_list_strings['moduleList']['jjwg_Markers']       = 'Bản đồ - đánh dấu';
-$app_list_strings['moduleList']['jjwg_Areas']         = 'Bản đồ - khu vực';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Bản đồ - địa chỉ bộ nhớ Cache';
-$app_list_strings['moduleList']['jjwp_Partners']      = 'Đối tác JJWP';
-$app_list_strings['map_unit_type_list']['mi']         = 'Dặm';
-$app_list_strings['map_unit_type_list']['km']         = 'Cây số';
-
 //gant
 $app_list_strings['relationship_type_list']['FS']       = 'Kết thúc để bắt đầu';
 $app_list_strings['relationship_type_list']['SS']       = 'Bắt đầu để bắt đầu';

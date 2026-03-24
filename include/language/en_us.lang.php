@@ -3094,21 +3094,6 @@ $app_list_strings['duration_unit_dom']['Hours'] = 'Hours';
 $app_strings['LBL_GANTT_BUTTON_LABEL'] = 'View Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL'] = 'View Detail';
 
-//gmaps
-$app_strings['LBL_MAP'] = 'Map';
-
-$app_strings['LBL_JJWG_MAPS_LNG'] = 'Longitude';
-$app_strings['LBL_JJWG_MAPS_LAT'] = 'Latitude';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS'] = 'Geocode Status';
-$app_strings['LBL_JJWG_MAPS_ADDRESS'] = 'Address';
-
-$app_list_strings['moduleList']['jjwg_Maps'] = 'Maps';
-$app_list_strings['moduleList']['jjwg_Markers'] = 'Maps - Markers';
-$app_list_strings['moduleList']['jjwg_Areas'] = 'Maps - Areas';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Maps - Address Cache';
-
-$app_list_strings['moduleList']['jjwp_Partners'] = 'JJWP Partners';
-
 $app_list_strings['map_unit_type_list']['mi'] = 'Miles';
 $app_list_strings['map_unit_type_list']['km'] = 'Kilometers';
 

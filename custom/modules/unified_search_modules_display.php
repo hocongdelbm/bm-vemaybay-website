@@ -165,20 +165,4 @@ $unified_search_modules_display = array (
   array (
     'visible' => false,
   ),
-  'jjwg_Address_Cache' => 
-  array (
-    'visible' => false,
-  ),
-  'jjwg_Areas' => 
-  array (
-    'visible' => false,
-  ),
-  'jjwg_Maps' => 
-  array (
-    'visible' => false,
-  ),
-  'jjwg_Markers' => 
-  array (
-    'visible' => false,
-  ),
 );

@@ -778,17 +778,6 @@ $mod_strings = array(
     'LBL_GOOGLE_SUITE_ADMIN_HEADER' => 'Google Suite',
     'LBL_GOOGLE_SUITE_ADMIN_DESC' => 'Quản lý tích hợp với Google Suite.',
 
-    'LBL_JJWG_MAPS_ADMIN_CONFIG_TITLE' => 'Cài đặt bản đồ của Google',
-    'LBL_JJWG_MAPS_ADMIN_CONFIG_DESC' => 'Cài đặt cấu hình để điều chỉnh của Bản đồ Google',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_TITLE' => 'Geocoded đếm',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_DESC' => 'Cho thấy số lượng các đối tượng của mô-đun geocoded, được nhóm lại theo geocoding phản ứng.',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_TITLE' => 'Mã địa lý địa chỉ',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_DESC' => 'Mã hóa địa lý đối tượng của bạn. Quá trình này có thể mất vài phút!',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_TITLE' => 'Kiểm tra mã địa lý',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_DESC' => 'Chạy một thử nghiệm đơn geocoding với màn hình hiển thị chi tiết kết quả.',
-    'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_TITLE' => 'Địa chỉ bộ nhớ Cache',
-    'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_DESC' => 'Cung cấp quyền truy cập cho thông tin Address Cache. Đây chỉ là bộ nhớ đệm.',
-
     // Google Calendar
     'LBL_GOOGLE_AUTH_TITLE' => 'Google Sync Settings',
     'LBL_GOOGLE_CALENDAR_SETTINGS_TITLE' => 'Cài đặt Google Calendar',

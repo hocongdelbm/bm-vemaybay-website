@@ -3159,21 +3159,6 @@ $app_list_strings['duration_unit_dom']['Hours'] = 'Giờ';
 $app_strings['LBL_GANTT_BUTTON_LABEL'] = 'Xem biểu đồ Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL'] = 'Xem chi tiết';
 
-//gmaps
-$app_strings['LBL_MAP'] = 'Bản đồ';
-
-$app_strings['LBL_JJWG_MAPS_LNG'] = 'Kinh độ';
-$app_strings['LBL_JJWG_MAPS_LAT'] = 'Vĩ độ';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS'] = 'Trạng thái Mã địa lý';
-$app_strings['LBL_JJWG_MAPS_ADDRESS'] = 'Địa chỉ';
-
-$app_list_strings['moduleList']['jjwg_Maps'] = 'Các bản đồ';
-$app_list_strings['moduleList']['jjwg_Markers'] = 'Bản đồ - đánh dấu';
-$app_list_strings['moduleList']['jjwg_Areas'] = 'Bản đồ - khu vực';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Bản đồ - địa chỉ bộ nhớ Cache';
-
-$app_list_strings['moduleList']['jjwp_Partners'] = 'Đối tác JJWP';
-
 $app_list_strings['map_unit_type_list']['mi'] = 'Dặm';
 $app_list_strings['map_unit_type_list']['km'] = 'Cây số';
 

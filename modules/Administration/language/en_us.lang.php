@@ -745,17 +745,6 @@ $mod_strings = array(
     'LBL_GOOGLE_SUITE_ADMIN_HEADER' => 'Google Suite',
     'LBL_GOOGLE_SUITE_ADMIN_DESC' => 'Manage your Google Suite Integration.',
 
-    'LBL_JJWG_MAPS_ADMIN_CONFIG_TITLE' => 'Google Maps Settings',
-    'LBL_JJWG_MAPS_ADMIN_CONFIG_DESC' => 'Configuration settings to adjust your Google Maps',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_TITLE' => 'Geocoded Counts',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_DESC' => 'Shows the number of module objects geocoded, grouped by geocoding response',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_TITLE' => 'Geocode Addresses',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_DESC' => 'Geocode your object addreses. This process may take a few minutes!',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_TITLE' => 'Geocoding Test',
-    'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_DESC' => 'Run a single geocoding test with detailed display results.',
-    'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_TITLE' => 'Address Cache',
-    'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_DESC' => 'Provides access to Address Cache information. This is only cache.',
-
     // Google Calendar
     'LBL_GOOGLE_AUTH_TITLE' => 'Google Sync Settings',
     'LBL_GOOGLE_CALENDAR_SETTINGS_TITLE' => 'Google Calendar Settings',

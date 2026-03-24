@@ -2819,11 +2819,6 @@ button.list-group-item-danger.active:focus {
      content: ""
 }
 
-.suitepicon-module-areas-maps:before,
-.suitepicon-module-jjwg-areas:before {
-     content: ""
-}
-
 .suitepicon-module-basic:before {
      content: ""
 }
@@ -2934,14 +2929,6 @@ button.list-group-item-danger.active:focus {
 
 .suitepicon-module-issue:before {
      content: ""
-}
-
-.suitepicon-module-jjwg-maps:before {
-     content: ""
-}
-
-.suitepicon-module-jjwg-markers:before {
-     content: ""
 }
 
 .suitepicon-module-labels:before {
