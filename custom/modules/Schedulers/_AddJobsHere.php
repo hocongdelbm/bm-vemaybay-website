@@ -2416,7 +2416,7 @@ function resetRewardPoints() {
 
 		$updatesql = "UPDATE contacts SET points = 0 WHERE points > 0";
 		if($db->query($updatesql)) {
-			NotificationService::sendMessage("✅ <b>Hệ thống đã reset điểm tích lũy của liên hệ hằng năm</b>", "", ['threadKey' => 'system']);
+			NotificationService::sendMessage("⚙️ <b>Hệ thống đã reset điểm tích lũy của liên hệ hằng năm</b>", "", ['threadKey' => 'system']);
 		}
 		else {
 			NotificationService::sendErrorMessage("Reset điểm tích lũy của liên hệ hằng năm chưa thành công", "", ['threadKey' => 'logs']);

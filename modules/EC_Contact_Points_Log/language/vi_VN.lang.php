@@ -46,4 +46,5 @@ $mod_strings = array (
   'LBL_DOWN' => 'Điểm giảm',
   'LBL_CURRENT_POINT' => 'Điểm còn lại',
   'LNK_DASHBOARD' => 'Thống kê',
+  'LBL_NAME_LISTVIEW' => 'Nguồn',
 );

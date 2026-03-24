@@ -24,17 +24,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $zaloApp->retrieve($app_id);
     }
 
-    if(!empty($zaloApp->oa_id)) {
-        $zaloOA = new EC_Zalo();
-        $zaloOA->retrieve($zaloApp->oa_id);
-    }
-
-    $mac   = "mac=".hash('sha256', $app_id.$response.$timestamp.$zaloOA->secret_key);
+    $mac   = "mac=".hash('sha256', $app_id.$response.$timestamp.$zaloApp->oa_secret_key);
     $h_mac = $headers['X-Zevent-Signature'] ?? '';
    
     if($mac === $h_mac) {
         global $db;
-        $zaloOA = new APIZaloOA($zaloApp->id, $zaloOA->id);
+        $zaloOA = new APIZaloOA($zaloApp->id, $zaloApp->oa_id);
         $event = $data['event_name'] ?? '';
 
         try {
@@ -189,8 +184,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     // Do something with user quota 'welcome_msg'
                                 }
                                 else if((int)($timestamp / 1000) - strtotime($zaloUserInfo['user_last_interaction_date']) > 48*3600) {
-                                    $beanZaloOA = new EC_Zalo();
-                                    $zaloOAInfo = $beanZaloOA->get_info_oa($sender_id);
+                                    $zaloOAInfo = EC_Zalo_Helper::get_info_oa($sender_id);
 
                                     $quota_oa = $zaloOAInfo["quota"];
                                     $isUpdate = false;
@@ -371,8 +365,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     exit();
                 }
             }
+            else if($event == 'change_template_quality') {
+                $template_id = $data['template_id'] ?? '';
+                $quality = strtoupper($data['quality'] ?? '');
+                $template_name = $zaloOA->get_template_name($template_id);
+                $arr_map_quality = [
+                    'HIGH' => 'Mức độ chất lượng tốt',
+                    'MEDIUM' => 'Mức độ chất lượng trung bình',
+                    'LOW' => 'Mức độ chất lượng kém',
+                    'UNDEFINED' => 'Mức độ chất lượng chưa được xác định',
+                ];
+
+                $message = "<b>Thông báo từ Zalo về chất lượng gửi tin ZBS</b>";
+                $message .= "\nMẫu tin: $template_name ($template_id)";
+                $message .= "\nChất lượng: " . ($arr_map_quality[$quality] ?? '');
+                NotificationService::sendMessage($message, '', ['threadKey' => 'system']);
+
+                echo json_encode(["error" => 0, "message" => "Done"]);
+                exit();
+            }
             else if($event == 'update_user_info') {
-                header("HTTP/1.1 200 OK");
+                echo json_encode(["error" => 0, "message" => "Nothing"]);
                 exit();
             }
             else {

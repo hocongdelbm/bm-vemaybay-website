@@ -7,7 +7,7 @@ $module_name = 'EC_Contact_Points_Log';
 $listViewDefs[$module_name] = array(
     'NAME' => array(
         'width' => '32',
-        'label' => 'LBL_NAME',
+        'label' => 'LBL_NAME_LISTVIEW',
         'default' => true,
         'link' => true
     ),

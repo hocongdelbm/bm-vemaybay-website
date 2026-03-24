@@ -29,6 +29,7 @@ class EC_Zalo_Apps extends Basic {
     public $oa_id;
     public $oa_name;
     public $secret_key;
+    public $oa_secret_key;
     public $code_verifier;
     public $code_challenge;
 	
