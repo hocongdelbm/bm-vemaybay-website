@@ -176,7 +176,8 @@
     <thead>
         <tr>
             <th rowspan="2" width="5%">STT</th>
-            <th rowspan="2"width="12%">Giờ xuất vé</th>
+            <!-- <th rowspan="2"width="12%">Giờ xuất vé</th> -->
+            <th rowspan="2"width="12%">Ngày xuất vé</th>
             <th rowspan="2" width="12%">Booking</th>
             <th rowspan="2" width="8%">Hãng</th>
             <th colspan="3" class="p-0">
