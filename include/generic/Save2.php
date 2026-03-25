@@ -2,44 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 
 
@@ -58,15 +21,15 @@ ARGS:
 
 require_once('include/formbase.php');
 
-$refreshsubpanel=true;
+$refreshsubpanel = true;
 if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
     save_from_report(
         $_REQUEST['subpanel_id'] //report_id
-                     ,
+        ,
         $_REQUEST['record'] //parent_id
-                     ,
+        ,
         $_REQUEST['module'] //module_name
-                     ,
+        ,
         $_REQUEST['subpanel_field_name'] //link attribute name
     );
 } else {
@@ -74,9 +37,9 @@ if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
         $GLOBALS['log']->debug(print_r($_REQUEST, true));
         if (!empty($_REQUEST['prospect_list_id']) and !empty($_REQUEST['prospect_ids'])) {
             add_prospects_to_prospect_list(
-            $_REQUEST['prospect_list_id'],
-            $_REQUEST['prospect_ids']
-        );
+                $_REQUEST['prospect_list_id'],
+                $_REQUEST['prospect_ids']
+            );
         } else {
             $parent = BeanFactory::getBean($_REQUEST['module'], $_REQUEST['record']);
             add_to_prospect_list(
@@ -84,14 +47,14 @@ if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
                 $_REQUEST['parent_module'],
                 $_REQUEST['parent_type'],
                 $_REQUEST['subpanel_id'],
-            $_REQUEST['child_id'],
+                $_REQUEST['child_id'],
                 $_REQUEST['link_attribute'],
                 $_REQUEST['link_type'],
                 $parent
             );
         }
 
-        $refreshsubpanel=false;
+        $refreshsubpanel = false;
     } else {
         if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'addcampaignlog') {
             //if param is set to "addcampaignlog", then we need to create a campaign log entry
@@ -113,10 +76,10 @@ if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
                 foreach ($campaign_ids as $id) {
                     create_campaign_log_entry($id, $focus, $focus->module_dir, $focus, $focus->id);
                 }
-                $refreshsubpanel=true;
+                $refreshsubpanel = true;
             }
         } else {
-            global $beanFiles,$beanList;
+            global $beanFiles, $beanList;
             $bean_name = $beanList[$_REQUEST['module']];
             require_once($beanFiles[$bean_name]);
             $focus = new $bean_name();
@@ -138,24 +101,24 @@ if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
                 $where_clauses = '';
                 require_once('include/SearchForm/SearchForm2.php');
 
-                if (file_exists('custom/modules/'.$module.'/metadata/metafiles.php')) {
-                    require('custom/modules/'.$module.'/metadata/metafiles.php');
-                } elseif (file_exists('modules/'.$module.'/metadata/metafiles.php')) {
-                    require('modules/'.$module.'/metadata/metafiles.php');
+                if (file_exists('custom/modules/' . $module . '/metadata/metafiles.php')) {
+                    require('custom/modules/' . $module . '/metadata/metafiles.php');
+                } elseif (file_exists('modules/' . $module . '/metadata/metafiles.php')) {
+                    require('modules/' . $module . '/metadata/metafiles.php');
                 }
 
-                if (file_exists('custom/modules/'.$module.'/metadata/searchdefs.php')) {
-                    require_once('custom/modules/'.$module.'/metadata/searchdefs.php');
+                if (file_exists('custom/modules/' . $module . '/metadata/searchdefs.php')) {
+                    require_once('custom/modules/' . $module . '/metadata/searchdefs.php');
                 } elseif (!empty($metafiles[$module]['searchdefs'])) {
                     require_once($metafiles[$module]['searchdefs']);
-                } elseif (file_exists('modules/'.$module.'/metadata/searchdefs.php')) {
-                    require_once('modules/'.$module.'/metadata/searchdefs.php');
+                } elseif (file_exists('modules/' . $module . '/metadata/searchdefs.php')) {
+                    require_once('modules/' . $module . '/metadata/searchdefs.php');
                 }
 
                 if (!empty($metafiles[$module]['searchfields'])) {
                     require_once($metafiles[$module]['searchfields']);
-                } elseif (file_exists('modules/'.$module.'/metadata/SearchFields.php')) {
-                    require_once('modules/'.$module.'/metadata/SearchFields.php');
+                } elseif (file_exists('modules/' . $module . '/metadata/SearchFields.php')) {
+                    require_once('modules/' . $module . '/metadata/SearchFields.php');
                 }
                 if (!empty($searchdefs) && !empty($searchFields)) {
                     $searchForm = new SearchForm($seed, $module);
@@ -163,10 +126,10 @@ if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
                     $searchForm->populateFromArray($current_query_by_page_array, 'advanced');
                     $where_clauses_arr = $searchForm->generateSearchWhere(true, $module);
                     if (count($where_clauses_arr) > 0) {
-                        $where_clauses = '('. implode(' ) AND ( ', $where_clauses_arr) . ')';
+                        $where_clauses = '(' . implode(' ) AND ( ', $where_clauses_arr) . ')';
                     }
                 }
-        
+
                 $query = $seed->create_new_list_query($order_by, $where_clauses);
                 $result = DBManagerFactory::getInstance()->query($query, true);
                 $uids = array();
@@ -189,10 +152,10 @@ if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
                 //find request paramters with with prefix of REL_ATTRIBUTE_
                 //convert them into an array of name value pairs add pass them as
                 //parameters to the add metod.
-                $add_values =array();
-                foreach ($_REQUEST as $key=>$value) {
+                $add_values = array();
+                foreach ($_REQUEST as $key => $value) {
                     if (strpos($key, "REL_ATTRIBUTE_") !== false) {
-                        $add_values[substr($key, 14)]=$value;
+                        $add_values[substr($key, 14)] = $value;
                     }
                 }
                 $relName = $_REQUEST['subpanel_field_name'];
@@ -206,10 +169,10 @@ if (isset($_REQUEST['return_type'])  && $_REQUEST['return_type'] == 'report') {
 
 if ($refreshsubpanel) {
     //refresh contents of the sub-panel.
-    $GLOBALS['log']->debug("Location: index.php?sugar_body_only=1&module=".$_REQUEST['module']."&subpanel=".$_REQUEST['subpanel_module_name']."&action=SubPanelViewer&inline=1&record=".$_REQUEST['record']);
+    $GLOBALS['log']->debug("Location: index.php?sugar_body_only=1&module=" . $_REQUEST['module'] . "&subpanel=" . $_REQUEST['subpanel_module_name'] . "&action=SubPanelViewer&inline=1&record=" . $_REQUEST['record']);
     if (empty($_REQUEST['refresh_page']) || $_REQUEST['refresh_page'] != 1) {
-        $inline = isset($_REQUEST['inline'])?$_REQUEST['inline']: $inline;
-        header("Location: index.php?sugar_body_only=1&module=".$_REQUEST['module']."&subpanel=".$_REQUEST['subpanel_module_name']."&action=SubPanelViewer&inline=$inline&record=".$_REQUEST['record']);
+        $inline = isset($_REQUEST['inline']) ? $_REQUEST['inline'] : $inline;
+        header("Location: index.php?sugar_body_only=1&module=" . $_REQUEST['module'] . "&subpanel=" . $_REQUEST['subpanel_module_name'] . "&action=SubPanelViewer&inline=$inline&record=" . $_REQUEST['record']);
     }
     exit;
 }

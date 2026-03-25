@@ -71,7 +71,6 @@ $beanList['Import_1'] = 'ImportMap';
 $beanList['Import_2'] = 'UsersLastImport';
 $beanList['Versions'] = 'Version';
 $beanList['Administration'] = 'Administration';
-$beanList['vCals'] = 'vCal';
 $beanList['CustomFields'] = 'CustomFields';
 $beanList['Alerts'] = 'Alert';
 
@@ -129,7 +128,6 @@ $beanFiles['ImportMap'] = 'modules/Import/maps/ImportMap.php';
 $beanFiles['UsersLastImport'] = 'modules/Import/UsersLastImport.php';
 $beanFiles['Administration'] = 'modules/Administration/Administration.php';
 $beanFiles['UpgradeHistory'] = 'modules/Administration/UpgradeHistory.php';
-$beanFiles['vCal'] = 'modules/vCals/vCal.php';
 $beanFiles['Alert'] = 'modules/Alerts/Alert.php';
 
 $beanFiles['Role'] = 'modules/Roles/Role.php';

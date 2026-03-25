@@ -156,12 +156,10 @@ $mod_strings = array(
     'LBL_CONFIG_AJAX_DESC' => 'Enable or disable the use of the AJAX UI for specific modules.',
     'LBL_LOGGER_MAX_LOGS' => 'Maximum number of logs (before rolling)',
     'LBL_LOGGER_FILENAME_SUFFIX' => 'Append after filename',
-    'LBL_VCAL_PERIOD' => 'vCal Updates Time Period:',
     'LBL_IMPORT_MAX_RECORDS' => 'Import - Maximum Number of Rows:',
     'LBL_IMPORT_MAX_RECORDS_HELP' => 'Specify how many rows are allowed within import files.<br>If the number of rows in an import file exceeds this number, the user will be alerted.<br>If no number is entered, an unlimited number of rows are allowed.',
-    'vCAL_HELP' => 'Use this setting to determine the number of months in advance of the current date that Free/Busy information for calls and meetings is published.<BR>To turn Free/Busy publishing off, enter "0". The minimum is 1 month; the maximum is 12 months.',
 
-// Wizard
+    // Wizard
     //Wizard Scenarios
     'LBL_WIZARD_SCENARIOS' => 'Your Scenarios',
     'LBL_WIZARD_SCENARIOS_EMPTY_LIST' => 'No scenarios have been configured',

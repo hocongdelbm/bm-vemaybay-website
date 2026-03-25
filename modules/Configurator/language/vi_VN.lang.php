@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  * SugarCRM Community Edition is a customer relationship management program developed by
@@ -194,10 +195,8 @@ $mod_strings = array(
     'LBL_CONFIG_AJAX_DESC' => 'Bật hoặc vô hiệu hóa việc sử dụng AJAX UI cho mô-đun cụ thể.',
     'LBL_LOGGER_MAX_LOGS' => 'Số lượng dòng tối đa của logs (trước khi cuộn)',
     'LBL_LOGGER_FILENAME_SUFFIX' => 'Gắn tiếp sau tên tập tin',
-    'LBL_VCAL_PERIOD' => 'thời gian cập nhật vCal:',
     'LBL_IMPORT_MAX_RECORDS' => 'Nhập khẩu - Số dòng tối đa:',
     'LBL_IMPORT_MAX_RECORDS_HELP' => 'Xác định số dòng được cho phép trong tập tin nhập khẩu.<br>Nếu số lượng dòng trong một tập tin nhập khẩu vượt quá số này, người dùng sẽ được cảnh báo.<br>Nếu để trống, không giới hạn số lượng dòng được phép nhập.',
-    'vCAL_HELP' => 'Sử dụng thiết đặt này để xác định số tháng trước ngày hiện tại mà trạng thái rảnh/bận cho các cuộc gọi và các cuộc gặp được phát hành.<BR>Để tắt phát hành trạng thái rảnh/bận, nhập "0". Tối thiểu là 1 tháng; tối đa là 12 tháng.',
     'LBL_PDFMODULE_NAME' => 'Cài đặt PDF',
     'SUITEPDF_BASIC_SETTINGS' => 'Những thuộc tính cho Tài liệu',
     'SUITEPDF_ADVANCED_SETTINGS' => 'Cài đặt nâng cao',
@@ -311,10 +310,10 @@ $mod_strings = array(
     'LBL_STATUS_FONT_SUCCESS' => 'Thành công: Các phông chữ đã được thêm vào SuiteCRM.',
     'LBL_STATUS_FONT_ERROR' => 'LỖI: Các phông chữ đã không được thêm. Xem vào nhật ký dưới đây.',
 
-// Font manager
+    // Font manager
     'ERR_PDF_NO_UPLOAD' => 'Lỗi trong quá trình tải lên phông chữ hoặc file số liệu.',
 
-// Wizard
+    // Wizard
     //Wizard Scenarios
     'LBL_WIZARD_SCENARIOS' => 'Kịch bản của bạn',
     'LBL_WIZARD_SCENARIOS_EMPTY_LIST' => 'Không có kịch bản đã được cấu hình',

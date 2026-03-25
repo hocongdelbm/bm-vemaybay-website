@@ -2,44 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 /**
  * SugarHtml is a static class that provides a collection of helper methods for creating HTML DOM elements.
@@ -62,7 +25,7 @@ class SugarHtml
     /**
      * @var integer the counter for generating automatic input field names.
      */
-    public static $count=0;
+    public static $count = 0;
 
     /**
      * @static
@@ -165,11 +128,11 @@ class SugarHtml
                     $container = $dom_tree['container'];
                     unset($dom_tree['container']);
                 }
-                $out .= self::HTML_TAG_BEGIN."{$tagName} ";
+                $out .= self::HTML_TAG_BEGIN . "{$tagName} ";
                 if (isset($dom_tree['smarty'])) {
                     $out .= self::createHtml(array(
-                    'smarty' => $dom_tree['smarty']
-                )).' ';
+                        'smarty' => $dom_tree['smarty']
+                    )) . ' ';
                     unset($dom_tree['smarty']);
                 }
                 $out .= self::createHtml($dom_tree);
@@ -201,7 +164,7 @@ class SugarHtml
                         if ($count++ > 0) {
                             $out .= ' ';
                         }
-                        $out .= (empty($value)) ? $attr : $attr.'="'.$value.'"';
+                        $out .= (empty($value)) ? $attr : $attr . '="' . $value . '"';
                     }
                 }
             }
@@ -214,7 +177,11 @@ class SugarHtml
     {
         $output = array();
         $input_types = array(
-            'submit', 'button', 'hidden', 'checkbox', 'input'
+            'submit',
+            'button',
+            'hidden',
+            'checkbox',
+            'input'
         );
 
         if (in_array($sugar_html['type'], $input_types)) {
@@ -264,7 +231,7 @@ class SugarHtml
             }
         } else {
             $tag = substr($code, 1, $start_pos - 1);
-            $closing_tag = '</'.$tag;
+            $closing_tag = '</' . $tag;
             $end_pos = strpos($code, $closing_tag, $start_pos + 1);
             $output['tag'] = $tag;
 
@@ -303,14 +270,14 @@ class SugarHtml
         $_str = ltrim(substr($code, $offset + 1));
 
         preg_match("/^[$\w]+/", $_str, $statement);
-        $_smarty_closing = self::SMARTY_TAG_BEGIN.'/'.$statement[0];
+        $_smarty_closing = self::SMARTY_TAG_BEGIN . '/' . $statement[0];
         $_left = strlen($statement[0]);
 
         $_right = strpos($code, $_smarty_closing, $offset);
         if ($_right === false) { //smarty closed itself
             $_right = strpos($code, self::SMARTY_TAG_END, $offset);
         } else {
-            preg_match_all('/\{( |)+'.substr($_str, 0, $_left).'/', substr($_str, 0, $_right), $matches);
+            preg_match_all('/\{( |)+' . substr($_str, 0, $_left) . '/', substr($_str, 0, $_right), $matches);
 
             $match_count = count($matches[0]);
             while ($match_count-- > 0) {
@@ -332,7 +299,9 @@ class SugarHtml
         );
         //Concatenate smarty variables
         $reserved_strings = array(
-            '$', 'ldelim', 'rdelim'
+            '$',
+            'ldelim',
+            'rdelim'
         );
         $reserved_functions = array(
             'literal' => false,
@@ -355,11 +324,11 @@ class SugarHtml
             }
             if ($is_literal || ($seq > 0 && $is_reserved)) {
                 if ($queue == 0) {
-                    $clauses[$queue] = self::SMARTY_TAG_BEGIN.$clauses[$seq].self::SMARTY_TAG_END;
+                    $clauses[$queue] = self::SMARTY_TAG_BEGIN . $clauses[$seq] . self::SMARTY_TAG_END;
                 } else {
-                    $clauses[--$queue] .= self::SMARTY_TAG_BEGIN.$clauses[$seq].self::SMARTY_TAG_END;
+                    $clauses[--$queue] .= self::SMARTY_TAG_BEGIN . $clauses[$seq] . self::SMARTY_TAG_END;
                 }
-                $is_literal = $is_literal && (substr(ltrim($clauses[$seq]), 0, strlen("/".$current_literal_string)) != "/".$current_literal_string);
+                $is_literal = $is_literal && (substr(ltrim($clauses[$seq]), 0, strlen("/" . $current_literal_string)) != "/" . $current_literal_string);
                 $current_literal_string = ($is_literal) ? $current_literal_string : '';
                 if ($seq < count($clauses) - 1) {
                     $clauses[$queue++] .= $clauses[++$seq];
@@ -379,7 +348,7 @@ class SugarHtml
                 $count++;
             }
             if ($count > 0) {
-                $clauses[--$queue] .= ($seq % 2 == 0) ? self::SMARTY_TAG_BEGIN.$clauses[$seq].self::SMARTY_TAG_END : $clauses[$seq];
+                $clauses[--$queue] .= ($seq % 2 == 0) ? self::SMARTY_TAG_BEGIN . $clauses[$seq] . self::SMARTY_TAG_END : $clauses[$seq];
                 if ($seq < count($clauses)) {
                     $clauses[$queue++] .= $clauses[++$seq];
                 }
@@ -400,11 +369,11 @@ class SugarHtml
                 if (self::SMARTY_TAG_BEGIN == substr($clause, 0, 1) && self::SMARTY_TAG_END == substr($clause, -1, 1)) {
                     $smarty_template['template'] .= $clause;
                 } else {
-                    $smarty_template['template'] .= '{'.$clause.'}';
+                    $smarty_template['template'] .= '{' . $clause . '}';
                 }
             } else {
                 if (!empty($clause)) {
-                    $key = '[CONTENT'.($seq++).']';
+                    $key = '[CONTENT' . ($seq++) . ']';
                     $smarty_template['template'] .= $key;
                     $params = array();
                     if ($is_attr) {
@@ -435,7 +404,7 @@ class SugarHtml
         $smarty_encoded = false;
         $cache = array();
         $code = rtrim($code);
-        for ($i = 0; $i < strlen($code) ; $i ++) {
+        for ($i = 0; $i < strlen($code); $i++) {
             $char = $code[$i];
             if (!$smarty_encoded && ($char == self::SINGLE_QUOTE || $char == self::DOUBLE_QUOTE)) {
                 if (empty($quote_type)) {
@@ -540,9 +509,9 @@ class SugarHtml
             if (is_numeric($attr) === false) {
                 $attr = trim($attr);
                 if ($value) {
-                    $options .= $attr.'="'.$value.'" ';
+                    $options .= $attr . '="' . $value . '" ';
                 } elseif (!empty($attr)) {
-                    $options .= $attr.' ';
+                    $options .= $attr . ' ';
                 }
             }
         }

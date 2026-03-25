@@ -2,44 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 
 /**
@@ -108,9 +71,7 @@ abstract class source
         $this->loadVardefs();
     }
 
-    public function init()
-    {
-    }
+    public function init() {}
 
     //////// CALLED FROM component.php ///////
     public function loadMapping()
@@ -240,7 +201,7 @@ abstract class source
 
         //If there are no required config fields specified, we will default them to all be required
         if (empty($this->_required_config_fields)) {
-            foreach ($this->_config['properties'] as $id=>$value) {
+            foreach ($this->_config['properties'] as $id => $value) {
                 $this->_required_config_fields[] = $id;
             }
         }
@@ -312,7 +273,7 @@ abstract class source
         return $this->_eapm;
     }
 
-    public function setProperties($properties=array())
+    public function setProperties($properties = array())
     {
         if (!empty($this->_config) && isset($this->_config['properties'])) {
             $this->_config['properties'] = $properties;
@@ -542,7 +503,7 @@ abstract class source
         if (!empty($property_name)) {
             $name = $property_name;
         }
-        $GLOBALS['log']->info($name. ': '.$log_data);
+        $GLOBALS['log']->info($name . ': ' . $log_data);
     }
 
     /**
@@ -554,7 +515,7 @@ abstract class source
      * @param $module String optional value of the module that the connector framework is attempting to map to
      * @return Array of key/value pair(s) of connector record; empty Array if no results are found
      */
-    abstract public function getItem($args=array(), $module=null);
+    abstract public function getItem($args = array(), $module = null);
 
 
     /**
@@ -566,7 +527,7 @@ abstract class source
      * @param $module String optional value of the module that the connector framework is attempting to map to
      * @return Array of key/value pair(s) of connector record; empty Array if no results are found
      */
-    abstract public function getList($args=array(), $module=null);
+    abstract public function getList($args = array(), $module = null);
 
     /**
      * Default destructor
@@ -575,9 +536,9 @@ abstract class source
     public function __destruct()
     {
         // Bug # 47233 - This desctructor was originally removed by bug # 44533.
-         // We have to add this destructor back in
-         // because there are customers who upgrade from 61x to 623
-         // who have the Jigsaw connector enabled, and the jigsaw connector
-         // makes a call to this destructor.
+        // We have to add this destructor back in
+        // because there are customers who upgrade from 61x to 623
+        // who have the Jigsaw connector enabled, and the jigsaw connector
+        // makes a call to this destructor.
     }
 }

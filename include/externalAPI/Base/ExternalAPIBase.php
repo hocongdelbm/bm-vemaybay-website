@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 
 require_once('include/externalAPI/Base/ExternalAPIPlugin.php');
@@ -104,7 +67,7 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
             return array('success' => false, 'errorMessage' => translate('LBL_ERR_NO_AUTHINFO', 'EAPM'));
         }
 
-        if ($this->eapmBean->validated==0) {
+        if ($this->eapmBean->validated == 0) {
             return array('success' => false, 'errorMessage' => translate('LBL_ERR_NO_AUTHINFO', 'EAPM'));
         }
 
@@ -131,7 +94,7 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
      */
     public function supports($method = '')
     {
-        return $method==$this->authMethod;
+        return $method == $this->authMethod;
     }
 
     protected function postData($url, $postfields, $headers)
@@ -139,22 +102,25 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        
+
         $proxy_config = SugarModule::get('Administration')->loadBean();
         $proxy_config->retrieveSettings('proxy');
-        
-        if (!empty($proxy_config) &&
+
+        if (
+            !empty($proxy_config) &&
             !empty($proxy_config->settings['proxy_on']) &&
-            $proxy_config->settings['proxy_on'] == 1) {
+            $proxy_config->settings['proxy_on'] == 1
+        ) {
             curl_setopt($ch, CURLOPT_PROXY, $proxy_config->settings['proxy_host']);
             curl_setopt($ch, CURLOPT_PROXYPORT, $proxy_config->settings['proxy_port']);
             if (!empty($proxy_settings['proxy_auth'])) {
                 curl_setopt($ch, CURLOPT_PROXYUSERPWD, $proxy_settings['proxy_username'] . ':' . $proxy_settings['proxy_password']);
             }
         }
-        
+
         if ((is_array($postfields) && count($postfields) == 0) ||
-             empty($postfields)) {
+            empty($postfields)
+        ) {
             curl_setopt($ch, CURLOPT_POST, false);
         } else {
             curl_setopt($ch, CURLOPT_POST, true);
@@ -163,11 +129,11 @@ abstract class ExternalAPIBase implements ExternalAPIPlugin
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
 
-        $GLOBALS['log']->debug("ExternalAPIBase->postData Where: ".$url);
-        $GLOBALS['log']->debug("Headers:\n".print_r($headers, true));
+        $GLOBALS['log']->debug("ExternalAPIBase->postData Where: " . $url);
+        $GLOBALS['log']->debug("Headers:\n" . print_r($headers, true));
         // $GLOBALS['log']->debug("Postfields:\n".print_r($postfields,true));
         $rawResponse = curl_exec($ch);
-        $GLOBALS['log']->debug("Got:\n".print_r($rawResponse, true));
+        $GLOBALS['log']->debug("Got:\n" . print_r($rawResponse, true));
 
         return $rawResponse;
     }
