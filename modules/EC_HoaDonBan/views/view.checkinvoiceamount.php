@@ -300,7 +300,7 @@ class Viewcheckinvoiceamount extends SugarView {
             $receipt_amount = format_number($row['receipt_amount']);
             $invoice_amount = format_number($row['invoice_amount']);
             $date_ticket_issue = date($this->userDateFormat, strtotime($row['date_ticket_issue']));
-            $ngayhoadon = date($this->userDateFormat, strtotime($row['ngayhoadon']));
+            $ngayhoadon = !empty($row['ngayhoadon']) ? date($this->userDateFormat, strtotime($row['ngayhoadon'])) : '';
 
             $tr_style = ($subtotal_amount != $receipt_amount || $subtotal_amount != $invoice_amount) ? "background:#ffebeb" : "";
 
