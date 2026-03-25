@@ -39,9 +39,15 @@ body {
 
 .searchForm .select2-container .select2-selection--single .select2-selection__rendered {
     font-size: 0.90rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    /* height: 38px !important; */
+    /* padding-top: 0.5rem;
+    padding-bottom: 0.5rem; */
 }
+
+.select2-container .select2-selection--single {
+    height: 38px !important;
+}
+
 .select2-container--default .select2-selection--single .select2-selection__arrow b {
     display: none;
 }
@@ -105,6 +111,8 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .section-title {
@@ -125,10 +133,42 @@ body {
     padding: 4px 35px;
 }
 
+.section-meta {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cache-time-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eef4ff;
+    border: 1px solid #c7dafd;
+    color: #1f3f7a;
+    font-size: 0.9rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.cache-time-label {
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.cache-time-value {
+    font-weight: 700;
+}
+
 .countdown {
-    font-size: 1.5em;
+    font-size: 1.05rem;
     font-weight: bold;
     color: #dc2626; /* đỏ */
+    white-space: nowrap;
 }
 
 
@@ -278,6 +318,23 @@ body {
     padding: 50px;
     font-size: 1.2em;
     color: #667eea;
+}
+
+.no-flight-source {
+    width: 100%;
+    /* text-align: center; */
+    margin-top: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    /* color: #475569; */
+    color: rgb(11, 92, 211);
+}
+
+.no-flight-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* align-items: center; */
 }
 
 /* ======= Ô chọn ngày có biểu tượng lịch ======= */
@@ -466,6 +523,22 @@ body {
 
 
 @media (max-width: 768px) {
+    .section-header {
+        align-items: flex-start;
+    }
+
+    .btnFare-update-all {
+        width: auto;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .section-meta {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-start;
+    }
+
     .flight-item {
         flex-direction: column;
         gap: 15px;

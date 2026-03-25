@@ -171,7 +171,13 @@
             <div class="col d-flex align-items-end btnFare-update-all"> 
                 <button type="button" style="display: none;" class="btn btn-primary " id="btnFare_dep_all">Cập nhật hàng loạt</button>
             </div>
-            <div id="depCountdown" class="countdown text-danger"></div>
+            <div class="section-meta">
+                <div id="depCacheTime" class="cache-time-chip d-none">
+                    <span class="cache-time-label">Dữ liệu từ:</span>
+                    <span class="cache-time-value" id="depCacheTimeValue"></span>
+                </div>
+                <div id="depCountdown" class="countdown text-danger"></div>
+            </div>
         </div>
         <div class="flight-list" id="depFlightList">
             <div class="loading">Nhập thông tin và nhấn tìm kiếm để xem chuyến bay</div>
@@ -185,7 +191,13 @@
             <div class="col d-flex align-items-end btnFare-update-all">
                 <button type="button" style="display: none;" class="btn btn-primary " id="btnFare_ret_all">Cập nhật hàng loạt</button>
             </div>
-            <div id="retCountdown" class="countdown text-danger"></div>
+            <div class="section-meta">
+                <div id="retCacheTime" class="cache-time-chip d-none">
+                    <span class="cache-time-label">Dữ liệu từ:</span>
+                    <span class="cache-time-value" id="retCacheTimeValue"></span>
+                </div>
+                <div id="retCountdown" class="countdown text-danger"></div>
+            </div>
         </div>
         <div class="flight-list" id="retFlightList">
             <div class="loading">Nhập thông tin và nhấn tìm kiếm để xem chuyến bay</div>
@@ -356,4 +368,3 @@
         </div>
     </div>
 </div>
-
