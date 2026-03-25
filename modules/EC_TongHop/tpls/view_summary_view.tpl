@@ -166,6 +166,34 @@
             </div>
         </div>
 
+        <!-- Hourly Traffic Analytics -->
+        <div class="uat-grid-row">
+            <div class="uat-col-12">
+                <div class="uat-card" style="margin-bottom: 24px; border-top: 4px solid #8b5cf6;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="uat-card-title">Hourly Traffic Analytics</div>
+                            <div class="uat-card-des">Lưu lượng truy cập theo từng khung giờ trong ngày</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button id="ec_hourly_toggle_btn" class="uat-btn uat-btn-sm"
+                                style="background:#f8fafc; color:#334155; border:1px solid #e2e8f0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                                Đổi sang Bar Chart
+                            </button>
+                            <button id="ec_hourly_mode_btn" class="uat-btn uat-btn-sm"
+                                style="background:#d1fae5; color:#047857; border:1px solid #a7f3d0; padding:6px 12px; border-radius:6px; font-weight:600; cursor:pointer;">
+                                Xem dữ liệu Lịch sử
+                            </button>
+                        </div>
+                    </div>
+                    <div class="uat-card-divider"></div>
+                    <div style="position:relative; width:100%; height:300px;">
+                        <canvas id="ec_hourly_chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Geo Map + Top Pages -->
         <div class="uat-grid-row">
             <div class="uat-col-6">
@@ -280,7 +308,7 @@
                         <thead>
                             <tr>
                                 <th>Route</th>
-                                <th style="text-align:right">Sessions</th>
+                                <th style="text-align:right">Lượt</th>
                             </tr>
                         </thead>
                         <tbody id="ec_routes_tbody">
