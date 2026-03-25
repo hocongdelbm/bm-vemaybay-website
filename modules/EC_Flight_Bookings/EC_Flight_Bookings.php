@@ -150,7 +150,7 @@ class EC_Flight_Bookings extends Basic
 	// ─── Private helpers ──────────────────────────────────────────────
 	// ──────────────────────────────────────────────────────────────────
 	// ──────────────────────────────────────────────────────────────────
-	private function _initCurrentUser(): void
+	private function _initCurrentUser()
 	{
 		global $current_user;
 
@@ -168,7 +168,7 @@ class EC_Flight_Bookings extends Basic
 		return $isMassUpdate && !$isPrivileged;
 	}
 
-	private function _resolveBookingName(): void
+	private function _resolveBookingName()
 	{
 		global $current_user;
 
@@ -218,7 +218,7 @@ class EC_Flight_Bookings extends Basic
 		return (int)$count;
 	}
 
-	private function _validateAndUpdateBookingName(): void
+	private function _validateAndUpdateBookingName()
 	{
 		global $db;
 
@@ -253,7 +253,7 @@ class EC_Flight_Bookings extends Basic
 		));
 	}
 
-	private function _normalizePhone(): void
+	private function _normalizePhone()
 	{
 		global $app_list_strings;
 
@@ -269,7 +269,7 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	private function _normalizeContactFields(): void
+	private function _normalizeContactFields()
 	{
 		$this->contact_name = ucwords(strtolower(
 			myRemoveUnicodeChars(trim(stripslashes($this->contact_name ?? '')))
@@ -280,7 +280,7 @@ class EC_Flight_Bookings extends Basic
 		);
 	}
 
-	private function _normalizeLuggageFee(): void
+	private function _normalizeLuggageFee()
 	{
 		$postedFee = $_POST['luggage_fee'] ?? 0;
 		if ((int) $postedFee > 10) {
@@ -290,7 +290,7 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	private function _resolveAssignedUser(): void
+	private function _resolveAssignedUser()
 	{
 		global $current_user;
 
@@ -301,7 +301,7 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	private function _resolveDescription(): void
+	private function _resolveDescription()
 	{
 		if (
 			!empty($this->ghichuthangthua)
@@ -311,14 +311,14 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	private function _resolveIsPaid(): void
+	private function _resolveIsPaid()
 	{
 		if (isset($_POST['is_paid'])) {
 			$this->is_paid = $_POST['is_paid'];
 		}
 	}
 
-	private function _normalizeCity(): void
+	private function _normalizeCity()
 	{
 		global $app_list_strings;
 
@@ -339,12 +339,12 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	private function _postSave(string $recordId): void
+	private function _postSave(string $recordId)
 	{
 		global $current_user;
 
 		// Lưu thông tin hoá đơn
-		$this->saveInvoiceInf($_POST, $this->id);
+		$this->saveInvoiceInf($_POST, $recordId);
 
 		// MST là bắt buộc khi xuất hóa đơn
 		if (!empty($this->tax_code) && !empty($this->_isNewBooking)) {
@@ -388,7 +388,7 @@ class EC_Flight_Bookings extends Basic
 	/**
 	 * Thông báo yêu cầu xuất hoá đơn cho kế toán
 	 */
-	private function _sendInvoiceAlert(): void
+	private function _sendInvoiceAlert()
 	{
 		$invArr   = json_decode(str_replace('&quot;', '"', $this->shipping_address ?? '{}'), true);
 		$name     = $invArr['iv_account_name'] ?? '';
@@ -417,7 +417,7 @@ class EC_Flight_Bookings extends Basic
 		$alert->autoCreateAlert($this->module_dir, $accountingUserIds, $alertData);
 	}
 
-	private function _handleDeliveryManProcess(): void
+	private function _handleDeliveryManProcess()
 	{
 		$deliveryManChanged = !empty($this->delivery_man_id) && $this->fetched_row['delivery_man_id'] !== $this->delivery_man_id;
 
@@ -448,7 +448,7 @@ class EC_Flight_Bookings extends Basic
 	 * ──────────────────────────────────────────────────────────────────
 	 * ──────────────────────────────────────────────────────────────────
 	 */
-	private function saveLineItineraries(): void
+	private function saveLineItineraries()
 	{
 		$rows = $_POST['iti_airline_code'] ?? [];
 
@@ -488,7 +488,7 @@ class EC_Flight_Bookings extends Basic
 		];
 	}
 
-	private function _saveItineraryRow(array $data): void
+	private function _saveItineraryRow(array $data)
 	{
 		$iti = BeanFactory::newBean('EC_Booking_Itineraries');
 
@@ -562,7 +562,7 @@ class EC_Flight_Bookings extends Basic
 	 * ──────────────────────────────────────────────────────────────────
 	 * ──────────────────────────────────────────────────────────────────
 	 */
-	private function saveLineDetails(): void
+	private function saveLineDetails()
 	{
 		global $app_list_strings;
 
@@ -668,7 +668,7 @@ class EC_Flight_Bookings extends Basic
 		return (float)$bkd->total_bought_price;
 	}
 
-	private function _updateTotalBoughtAmount(float $amount): void
+	private function _updateTotalBoughtAmount(float $amount)
 	{
 		$sql = sprintf(
 			'UPDATE ec_flight_bookings SET total_bought_amount = %f WHERE id = %s',
@@ -683,7 +683,7 @@ class EC_Flight_Bookings extends Basic
 	 * ──────────────────────────────────────────────────────────────────
 	 * ──────────────────────────────────────────────────────────────────
 	 */
-	private function saveLinePassengers(): void
+	private function saveLinePassengers()
 	{
 		global $current_user;
 
@@ -737,7 +737,7 @@ class EC_Flight_Bookings extends Basic
 		];
 	}
 
-	private function _savePassengerRow(array $data): void
+	private function _savePassengerRow(array $data)
 	{
 		$psg = BeanFactory::newBean('EC_Booking_Passengers');
 
@@ -817,7 +817,7 @@ class EC_Flight_Bookings extends Basic
 	 * Tách biệt hoàn toàn khỏi saveLinePassengers().
 	 * Chỉ xét passengers chưa bị deleted khi kiểm tra eticket.
 	 */
-	private function _updateTicketExportStatus(array $psgIds): void
+	private function _updateTicketExportStatus(array $psgIds)
 	{
 		$isAllowedUser  = isAllowedUser();
 		$isRoundTrip    = (int)$this->flight_type === 0;
@@ -890,7 +890,7 @@ class EC_Flight_Bookings extends Basic
 	 * ──────────────────────────────────────────────────────────────────
 	 * ──────────────────────────────────────────────────────────────────
 	 */
-	private function saveChangeFlightTime(): void
+	private function saveChangeFlightTime()
 	{
 		global $sugar_config;
 
@@ -910,7 +910,7 @@ class EC_Flight_Bookings extends Basic
 	 * Đảm bảo $_POST['booking_id'] khớp với $this->id
 	 * tránh thao tác lên booking của người khác
 	 */
-	private function _validateBookingOwnership(): void
+	private function _validateBookingOwnership()
 	{
 		if (!empty($_POST['booking_id']) && $_POST['booking_id'] !== $this->id) {
 			throw new RuntimeException('Booking ID mismatch — possible tampering.');
@@ -1010,7 +1010,7 @@ class EC_Flight_Bookings extends Basic
 		return $pass->id;
 	}
 
-	private function _updateExistingPassenger(EC_Booking_Passengers $pass, int $i, float $vat_rate): void
+	private function _updateExistingPassenger(EC_Booking_Passengers $pass, int $i, float $vat_rate)
 	{
 		$pass->birthday         = $_POST["pass_birthday{$i}"]         ?? '';
 		$pass->salutation       = $_POST['pass_salutation'][$i]       ?? '';
@@ -1031,7 +1031,7 @@ class EC_Flight_Bookings extends Basic
 	/**
 	 * Extract và tách riêng 2 luggage helpers để tránh lặp code
 	 */
-	private function _applyLuggageOutbound(EC_Booking_Passengers $pass, int $i, float $vat_rate, ?EC_Booking_Passengers $original = null): void
+	private function _applyLuggageOutbound(EC_Booking_Passengers $pass, int $i, float $vat_rate, ?EC_Booking_Passengers $original = null)
 	{
 		if (!isset($_POST['pass_luggage_ob'][$i])) return;
 
@@ -1045,7 +1045,7 @@ class EC_Flight_Bookings extends Basic
 		$pass->supplier_id           = trim($_POST['supplier_outbound'][$i] ?? '');
 	}
 
-	private function _applyLuggageInbound(EC_Booking_Passengers $pass, int $i, float $vat_rate, ?EC_Booking_Passengers $original = null): void
+	private function _applyLuggageInbound(EC_Booking_Passengers $pass, int $i, float $vat_rate, ?EC_Booking_Passengers $original = null)
 	{
 		if (!isset($_POST['pass_luggage_ib'][$i])) return;
 
@@ -1062,7 +1062,7 @@ class EC_Flight_Bookings extends Basic
 	/**
 	 * Cập nhật applied_passenger: thay old_id bằng new_id sau khi tạo mới
 	 */
-	private function _syncAppliedPassengers(array $passReplace): void
+	private function _syncAppliedPassengers(array $passReplace)
 	{
 		if (empty($_POST['applied_passenger']) || empty($passReplace)) return;
 
@@ -1074,7 +1074,7 @@ class EC_Flight_Bookings extends Basic
 		}
 	}
 
-	private function _processItineraryChanges(array $passReplace): void
+	private function _processItineraryChanges(array $passReplace)
 	{
 		$itiOrder = (int) $this->db->getOne(sprintf(
 			'SELECT MAX(IFNULL(sabre_logs, 0)) FROM ec_booking_itineraries WHERE deleted = 0 AND booking_id = %s',
@@ -1130,7 +1130,7 @@ class EC_Flight_Bookings extends Basic
 		return $validTime && $hasPassengers;
 	}
 
-	private function _saveItineraryForAllPassengers(int $direction, array $passReplace, int $itiOrder): void
+	private function _saveItineraryForAllPassengers(int $direction, array $passReplace, int $itiOrder)
 	{
 		$passIds = $_POST['pass_id'] ?? [];
 
@@ -1153,7 +1153,7 @@ class EC_Flight_Bookings extends Basic
 	 * Fix: dùng $this->db->quoted() thay vì nối chuỗi
 	 * Fix: kiểm tra strtotime() trước khi adjust timezone
 	 */
-	private function _reassignItineraryPassengers(int $direction, array $passReplace): void
+	private function _reassignItineraryPassengers(int $direction, array $passReplace)
 	{
 		foreach ($passReplace as $oldPassId => $newPassId) {
 			$row = $this->db->fetchByAssoc($this->db->query(sprintf(
@@ -1193,7 +1193,7 @@ class EC_Flight_Bookings extends Basic
 		return date('Y-m-d H:i:s', strtotime('-7 hours', $ts));
 	}
 
-	private function _updateExistingItineraries(): void
+	private function _updateExistingItineraries()
 	{
 		$passArr     = explode(',', $_POST['applied_pass']      ?? '');
 		$passNameArr = explode(',', $_POST['applied_pass_name'] ?? '');
@@ -1248,7 +1248,7 @@ class EC_Flight_Bookings extends Basic
 	 * @param string     $pass_id     ID hành khách
 	 * @param int        $iti_order   Số thứ tự thay đổi hành trình
 	 */
-	public function saveFlightItinerary($pass_name, $direction, $post_fields, $pass_id, $iti_order): void
+	public function saveFlightItinerary($pass_name, $direction, $post_fields, $pass_id, $iti_order)
 	{
 		$d = $direction;
 		$iti = BeanFactory::newBean('EC_Booking_Itineraries');
@@ -1304,54 +1304,10 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	// Lưu thông tin hoá đơn
-	// public function saveInvoiceInf($post_fields, $booking_id)
-	// {
-	// 	global $current_user;
-	// 	if ($current_user->user_name == 'hungnh') {
-	// 		pr($post_fields);
-	// 	}
-
-	// 	if (isset($post_fields['action']) && $post_fields['action'] == 'Save') {
-	// 		$invoice_inf = [
-	// 			'iv_account_name' => $post_fields['iv_account_name'] ?? '',
-	// 			'iv_email' => $post_fields['iv_email'] ?? '',
-	// 			'iv_identity_number' => $post_fields['iv_identity_number'] ?? '',
-	// 			'iv_payment_method' => $post_fields['iv_payment_method'] ?? '',
-	// 			'iv_bank_account' => $post_fields['iv_bank_account'] ?? '',
-	// 			'iv_name_banks' => $post_fields['iv_name_banks'] ?? ''
-	// 		];
-
-	// 		// $invoice_inf = [
-	// 		// 	'iv_account_name' => $post_fields['iv_account_name'],
-	// 		// 	'iv_email' => $post_fields['iv_email'],
-	// 		// 	'iv_identity_number' => $post_fields['iv_identity_number'],
-	// 		// 	'iv_payment_method' => $post_fields['iv_payment_method'],
-	// 		// 	'iv_bank_account' => $post_fields['iv_bank_account'],
-	// 		// 	'iv_name_banks' => $post_fields['iv_name_banks']
-	// 		// ];
-
-	// 		if ($current_user->user_name == 'hungnh') {
-	// 			pr($invoice_inf);
-	// 		}
-
-	// 		$shipping_address = $this->db->quote(json_encode($invoice_inf, JSON_UNESCAPED_UNICODE));
-	// 		$booking_id_safe = $this->db->quote($booking_id);
-
-	// 		$sql = "UPDATE ec_flight_bookings 
-	// 			SET shipping_address = '$shipping_address'
-	// 			WHERE id = '$booking_id_safe'";
-	// 		if (!$this->db->query($sql)) {
-	// 			$GLOBALS['log']->fatal("Failed to update shipping_address for booking $booking_id: " . $this->db->lastError() . " $sql");
-	// 		}
-	// 	}
-
-	// 	// if ($current_user->user_name == 'hungnh') {
-	// 	// 	die;
-	// 	// }
-	// }
-
 	public function saveInvoiceInf($post_fields, $booking_id)
 	{
+		global $current_user;
+
 		if (isset($post_fields['action']) && $post_fields['action'] == 'Save' && isset($post_fields['iv_account_name'])) {
 			$invoice_inf = [
 				'iv_account_name' => $post_fields['iv_account_name'],
@@ -1362,19 +1318,19 @@ class EC_Flight_Bookings extends Basic
 				'iv_name_banks' => $post_fields['iv_name_banks']
 			];
 
-			$shipping_address = $this->db->quote(json_encode($invoice_inf, JSON_UNESCAPED_UNICODE));
-			$booking_id_safe = $this->db->quote($booking_id);
+			// if ($current_user->user_name == 'hungnh') {
+			// 	pr($invoice_inf);
+			// }
 
-			$sql = "UPDATE ec_flight_bookings SET shipping_address = '$shipping_address' WHERE id = '$booking_id_safe'";
+			$sql = '
+				UPDATE ec_flight_bookings 
+				SET shipping_address = \'' . preg_replace('/\\\\u([0-9a-z]{4})/', '&#x$1;', json_encode($invoice_inf)) . '\'
+				WHERE id = "' . $booking_id . '" AND deleted = 0';
+			$result = $this->db->query($sql);
 
-			if (!$this->db->query($sql)) {
+			if (!$result) {
 				$GLOBALS['log']->fatal("Failed to update shipping_address for booking $booking_id: " . $this->db->lastError() . " $sql");
 			}
-			// $sql = '
-			// 	UPDATE ec_flight_bookings 
-			// 	SET shipping_address = \'' . preg_replace('/\\\\u([0-9a-z]{4})/', '&#x$1;', json_encode($invoice_inf)) . '\'
-			// 	WHERE id = "' . $booking_id . '"';
-			// $this->db->query($sql);
 		}
 	}
 
