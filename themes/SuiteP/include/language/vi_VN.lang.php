@@ -3199,19 +3199,6 @@ $app_list_strings['moduleList']['TemplateEditor'] = 'Bản mẫu phần biên t�
 $app_strings['LBL_CONFIRM_CANCEL_INLINE_EDITING'] = "Bạn đã nhấp vào từ các lĩnh vực mà bạn đã chỉnh sửa mà không lưu nó. Bấm ok nếu bạn đang hạnh phúc để mất của bạn thay đổi, hoặc hủy bỏ nếu bạn muốn tiếp tục chỉnh sửa";
 $app_strings['LBL_LOADING_ERROR_INLINE_EDITING'] = "Đã có lỗi trong khi tải các lĩnh vực. Phiên của bạn có thể đã hết thời gian. Xin vui lòng đăng nhập lại để sửa lỗi này";
 
-//SuiteSpots
-$app_list_strings['spots_areas'] = array(
-    'getSalesSpotsData' => 'Bán hàng',
-    'getAccountsSpotsData' => 'Tài khoản',
-    'getServiceSpotsData' => 'Dịch vụ',
-    'getMarketingSpotsData' => 'Marketing',
-    'getMarketingActivitySpotsData' => 'Hoạt động Marketing',
-    'getActivitiesSpotsData' => 'Các hoạt động',
-    'getQuotesSpotsData' => 'Báo giá'
-);
-
-$app_list_strings['moduleList']['Spots'] = 'Điểm';
-
 $app_list_strings['day_list']['Monday'] = 'Thứ Hai';
 $app_list_strings['day_list']['Tuesday'] = 'Thứ Ba';
 $app_list_strings['day_list']['Wednesday'] = 'Thứ Tư';
