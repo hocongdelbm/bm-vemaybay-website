@@ -223,6 +223,7 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 										"point" => (string)$point,
 										"total_point" => (string)$total_point
 									],
+									'auto' => 1
 								];
 								$sendResult = $entryOA->sendTemplateMessage($params);
 

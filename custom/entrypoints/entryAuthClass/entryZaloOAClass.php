@@ -455,7 +455,7 @@ class entryZaloOAClass extends entryClass {
                 if($type != 'cheap-flight') {
                     $fullname   = trim("{$this->currentUser->last_name} {$this->currentUser->first_name}");
                     $message    = "<b>$fullname</b> gửi mẫu tin $template_name đến Zalo <b>$phoneNumber</b>";
-                    if($type == 'after-call-sale' && $auto) $message = "<b>⚙️Auto:</b> $message";
+                    if($auto) $message = "<b>⚙️Auto:</b> $message";
                     if(!empty($parentId) && $parentType == 'EC_Flight_Bookings') {
                         $bklink = "https://".$zaloOA->get_domain()."/index.php?module={$parentType}&action=DetailView&record={$parentId}";
                         $message .= " - <a href='{$bklink}'>Booking</a>";
