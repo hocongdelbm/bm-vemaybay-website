@@ -2,44 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 define('CONNECTOR_DISPLAY_CONFIG_FILE', 'custom/modules/Connectors/metadata/display_config.php');
 require_once('include/connectors/ConnectorFactory.php');
@@ -82,7 +45,7 @@ class ConnectorUtils
     public static function getConnector(
         $id,
         $refresh = false
-        ) {
+    ) {
         $s = self::getConnectors($refresh);
         return !empty($s[$id]) ? $s[$id] : null;
     }
@@ -113,7 +76,7 @@ class ConnectorUtils
      */
     public static function getSearchDefs(
         $refresh = false
-        ) {
+    ) {
         if ($refresh || !file_exists('custom/modules/Connectors/metadata/searchdefs.php')) {
             require('modules/Connectors/metadata/searchdefs.php');
 
@@ -142,12 +105,12 @@ class ConnectorUtils
      */
     public static function getViewDefs(
         $filter_sources = array()
-        ) {
+    ) {
         //Go through all connectors and get their mapping keys and merge them across each module
         $connectors = self::getConnectors();
         $modules_sources = self::getDisplayConfig();
         $view_defs = array();
-        foreach ($connectors as $id=>$ds) {
+        foreach ($connectors as $id => $ds) {
             if (!empty($filter_sources) && !isset($filter_sources[$id])) {
                 continue;
             }
@@ -161,7 +124,7 @@ class ConnectorUtils
             }
 
             if (!empty($mapping['beans'])) {
-                foreach ($mapping['beans'] as $module=>$map) {
+                foreach ($mapping['beans'] as $module => $map) {
                     if (!empty($modules_sources[$module][$id])) {
                         if (!empty($view_defs['Connector']['MergeView'][$module])) {
                             $view_defs['Connector']['MergeView'][$module] = array_merge($view_defs['Connector']['MergeView'][$module], array_flip($map));
@@ -174,7 +137,7 @@ class ConnectorUtils
         }
 
         if (!empty($view_defs['Connector']['MergeView'])) {
-            foreach ($view_defs['Connector']['MergeView'] as $module=>$map) {
+            foreach ($view_defs['Connector']['MergeView'] as $module => $map) {
                 $view_defs['Connector']['MergeView'][$module] = array_keys($view_defs['Connector']['MergeView'][$module]);
             }
         }
@@ -194,14 +157,14 @@ class ConnectorUtils
      */
     public static function getMergeViewDefs(
         $refresh = false
-        ) {
+    ) {
         if ($refresh || !file_exists('custom/modules/Connectors/metadata/mergeviewdefs.php')) {
 
             //Go through all connectors and get their mapping keys and merge them across each module
             $connectors = self::getConnectors($refresh);
             $modules_sources = self::getDisplayConfig();
             $view_defs = array();
-            foreach ($connectors as $id=>$ds) {
+            foreach ($connectors as $id => $ds) {
                 if (file_exists('custom/' . $ds['directory'] . '/mapping.php')) {
                     require('custom/' . $ds['directory'] . '/mapping.php');
                 } else {
@@ -211,7 +174,7 @@ class ConnectorUtils
                 }
 
                 if (!empty($mapping['beans'])) {
-                    foreach ($mapping['beans'] as $module=>$map) {
+                    foreach ($mapping['beans'] as $module => $map) {
                         if (!empty($modules_sources[$module][$id])) {
                             if (!empty($view_defs['Connector']['MergeView'][$module])) {
                                 $view_defs['Connector']['MergeView'][$module] = array_merge($view_defs['Connector']['MergeView'][$module], array_flip($map));
@@ -224,7 +187,7 @@ class ConnectorUtils
             }
 
             if (!empty($view_defs['Connector']['MergeView'])) {
-                foreach ($view_defs['Connector']['MergeView'] as $module=>$map) {
+                foreach ($view_defs['Connector']['MergeView'] as $module => $map) {
                     $view_defs['Connector']['MergeView'][$module] = array_keys($view_defs['Connector']['MergeView'][$module]);
                 }
             }
@@ -254,7 +217,7 @@ class ConnectorUtils
      */
     public static function getConnectors(
         $refresh = false
-        ) {
+    ) {
         if (inDeveloperMode()) {
             $refresh = true;
         }
@@ -340,11 +303,11 @@ class ConnectorUtils
      */
     private static function getSources(
         $directory = 'modules/Connectors/connectors/sources'
-        ) {
+    ) {
         if (file_exists($directory)) {
             $files = array();
             $files = findAllFiles($directory, $files, false, 'config\.php');
-            $start = strrpos($directory, '/') == strlen($directory)-1 ? strlen($directory) : strlen($directory) + 1;
+            $start = strrpos($directory, '/') == strlen($directory) - 1 ? strlen($directory) : strlen($directory) + 1;
             $sources = array();
             $sources_ordering = array();
             foreach ($files as $file) {
@@ -358,16 +321,16 @@ class ConnectorUtils
                 $order = isset($config['order']) ? $config['order'] : 99; //default to end using 99 if no order set
 
                 $instance = ConnectorFactory::getInstance($source['id']);
-                $source['eapm'] = empty($config['eapm'])?false:$config['eapm'];
+                $source['eapm'] = empty($config['eapm']) ? false : $config['eapm'];
                 $mapping = $instance->getMapping();
                 $modules = array();
                 if (!empty($mapping['beans'])) {
-                    foreach ($mapping['beans'] as $module=>$mapping_entry) {
-                        $modules[]=$module;
+                    foreach ($mapping['beans'] as $module => $mapping_entry) {
+                        $modules[] = $module;
                     }
                 }
                 $source['modules'] = $modules;
-                $sources_ordering[$source['id']] = array('order'=>$order, 'source'=>$source);
+                $sources_ordering[$source['id']] = array('order' => $order, 'source' => $source);
             }
 
             usort($sources_ordering, 'sources_sort_function');
@@ -386,7 +349,7 @@ class ConnectorUtils
      */
     public static function getDisplayConfig(
         $refresh = false
-        ) {
+    ) {
         if (!file_exists(CONNECTOR_DISPLAY_CONFIG_FILE) || $refresh) {
             $sources = self::getConnectors();
             $modules_sources = array();
@@ -416,7 +379,7 @@ class ConnectorUtils
      */
     public static function getModuleConnectors(
         $module
-        ) {
+    ) {
         $modules_sources = self::getDisplayConfig();
         if (!empty($modules_sources) && !empty($modules_sources[$module])) {
             $sources = array();
@@ -437,7 +400,7 @@ class ConnectorUtils
      */
     public static function isModuleEnabled(
         $module
-        ) {
+    ) {
         $modules_sources = self::getDisplayConfig();
         return !empty($modules_sources) && !empty($modules_sources[$module]) ? true : false;
     }
@@ -451,9 +414,9 @@ class ConnectorUtils
      */
     public static function isSourceEnabled(
         $source
-        ) {
+    ) {
         $modules_sources = self::getDisplayConfig();
-        foreach ($modules_sources as $module=>$mapping) {
+        foreach ($modules_sources as $module => $mapping) {
             foreach ($mapping as $s) {
                 if ($s == $source) {
                     return true;
@@ -471,7 +434,7 @@ class ConnectorUtils
      */
     public static function cleanMetaDataFile(
         $module
-        ) {
+    ) {
         $metadata_file = file_exists("custom/modules/{$module}/metadata/detailviewdefs.php") ? "custom/modules/{$module}/metadata/detailviewdefs.php" : "modules/{$module}/metadata/detailviewdefs.php";
         require($metadata_file);
 
@@ -513,7 +476,7 @@ class ConnectorUtils
 
             $GLOBALS['log']->debug(var_export($modules_sources, true));
             if (!empty($modules_sources)) {
-                foreach ($modules_sources as $module=>$mapping) {
+                foreach ($modules_sources as $module => $mapping) {
                     $metadata_file = file_exists("custom/modules/{$module}/metadata/detailviewdefs.php") ? "custom/modules/{$module}/metadata/detailviewdefs.php" : "modules/{$module}/metadata/detailviewdefs.php";
 
 
@@ -546,7 +509,7 @@ class ConnectorUtils
 
                         //Now we have to decide which field to put it on... use the first one for now
                         if (!empty($shown_formatters)) {
-                            foreach ($shown_formatters as $id=>$formatter) {
+                            foreach ($shown_formatters as $id => $formatter) {
                                 $added_field = false;
                                 $formatter_mapping = $formatter->getSourceMapping();
 
@@ -605,19 +568,19 @@ class ConnectorUtils
     public static function removeHoverField(
         &$viewdefs,
         $module
-        ) {
+    ) {
         require_once('include/SugarFields/Parsers/MetaParser.php');
         $metaParser = new MetaParser();
         if (!$metaParser->hasMultiplePanels($viewdefs[$module]['DetailView']['panels'])) {
             $keys = array_keys($viewdefs[$module]['DetailView']['panels']);
             if (!empty($keys) && count($keys) != 1) {
-                $viewdefs[$module]['DetailView']['panels'] = array('default'=>$viewdefs[$module]['DetailView']['panels']);
+                $viewdefs[$module]['DetailView']['panels'] = array('default' => $viewdefs[$module]['DetailView']['panels']);
             }
         }
 
-        foreach ($viewdefs[$module]['DetailView']['panels'] as $panel_id=>$panel) {
-            foreach ($panel as $row_id=>$row) {
-                foreach ($row as $field_id=>$field) {
+        foreach ($viewdefs[$module]['DetailView']['panels'] as $panel_id => $panel) {
+            foreach ($panel as $row_id => $row) {
+                foreach ($row as $field_id => $field) {
                     if (is_array($field) && !empty($field['displayParams']['enableConnectors'])) {
                         unset($field['displayParams']['enableConnectors']);
                         unset($field['displayParams']['module']);
@@ -635,20 +598,20 @@ class ConnectorUtils
         $module,
         $hover_field,
         $source_id
-        ) {
+    ) {
         //Check for metadata files that aren't correctly created
         require_once('include/SugarFields/Parsers/MetaParser.php');
         $metaParser = new MetaParser();
         if (!$metaParser->hasMultiplePanels($viewdefs[$module]['DetailView']['panels'])) {
             $keys = array_keys($viewdefs[$module]['DetailView']['panels']);
             if (!empty($keys) && count($keys) != 1) {
-                $viewdefs[$module]['DetailView']['panels'] = array('default'=>$viewdefs[$module]['DetailView']['panels']);
+                $viewdefs[$module]['DetailView']['panels'] = array('default' => $viewdefs[$module]['DetailView']['panels']);
             }
         }
 
-        foreach ($viewdefs[$module]['DetailView']['panels'] as $panel_id=>$panel) {
-            foreach ($panel as $row_id=>$row) {
-                foreach ($row as $field_id=>$field) {
+        foreach ($viewdefs[$module]['DetailView']['panels'] as $panel_id => $panel) {
+            foreach ($panel as $row_id => $row) {
+                foreach ($row as $field_id => $field) {
                     $name = is_array($field) ? $field['name'] : $field;
                     if ($name == $hover_field) {
                         if (is_array($field)) {
@@ -661,11 +624,11 @@ class ConnectorUtils
                                 }
                                 $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id]['displayParams'] = $newDisplayParam;
                             } else {
-                                $field['displayParams'] = array('enableConnectors'=>true, 'module'=>$module, 'connectors' => array(0 => $source_id));
+                                $field['displayParams'] = array('enableConnectors' => true, 'module' => $module, 'connectors' => array(0 => $source_id));
                                 $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id] = $field;
                             }
                         } else {
-                            $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id] = array('name'=>$field, 'displayParams'=>array('enableConnectors'=>true, 'module'=>$module, 'connectors' => array(0 => $source_id)));
+                            $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id] = array('name' => $field, 'displayParams' => array('enableConnectors' => true, 'module' => $module, 'connectors' => array(0 => $source_id)));
                         }
                         return true;
                     }
@@ -687,10 +650,10 @@ class ConnectorUtils
         &$viewdefs,
         $module,
         $source_id
-        ) {
-        foreach ($viewdefs[$module]['DetailView']['panels'] as $panel_id=>$panel) {
-            foreach ($panel as $row_id=>$row) {
-                foreach ($row as $field_id=>$field) {
+    ) {
+        foreach ($viewdefs[$module]['DetailView']['panels'] as $panel_id => $panel) {
+            foreach ($panel as $row_id => $row) {
+                foreach ($row as $field_id => $field) {
                     if (is_array($field)) {
                         if (!empty($viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id]['displayParams'])) {
                             $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id]['displayParams']['enableConnectors'] = true;
@@ -699,17 +662,17 @@ class ConnectorUtils
                                 $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id]['displayParams']['connectors'][] = $source_id;
                             }
                         } else {
-                            $field['displayParams'] = array('enableConnectors'=>true, 'module'=>$module, 'connectors' => array(0 => $source_id));
+                            $field['displayParams'] = array('enableConnectors' => true, 'module' => $module, 'connectors' => array(0 => $source_id));
                             $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id] = $field;
                         }
                     } else {
-                        $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id] = array('name'=>$field, 'displayParams'=>array('enableConnectors'=>true, 'module'=>$module, 'connectors' => array(0 => $source_id)));
+                        $viewdefs[$module]['DetailView']['panels'][$panel_id][$row_id][$field_id] = array('name' => $field, 'displayParams' => array('enableConnectors' => true, 'module' => $module, 'connectors' => array(0 => $source_id)));
                     }
                     return true;
                 } //foreach
             } //foreach
         } //foreach
-      return false;
+        return false;
     }
 
 
@@ -724,7 +687,7 @@ class ConnectorUtils
     public static function getConnectorButtonScript(
         $displayParams,
         $smarty
-        ) {
+    ) {
         $module = $displayParams['module'];
         $modules_sources = self::getDisplayConfig();
         $code = '';
@@ -758,7 +721,7 @@ class ConnectorUtils
     public static function getConnectorStrings(
         $source_id,
         $language = ''
-        ) {
+    ) {
         $lang = empty($language) ? $GLOBALS['current_language'] : $language;
         $lang .= '.lang.php';
         $dir = str_replace('_', '/', $source_id);
@@ -777,18 +740,18 @@ class ConnectorUtils
     }
 
     /**
-    * setConnectorStrings
-    * This method outputs the language Strings for a given connector instance
-    *
-    * @param String $source_id String value of the connector id to write language strings for (e.g., ext_soap_marketo)
-    * @param String $connector_strings array value of the connector_strings
-    * @param String $language optional String value for the language to use (defaults to $GLOBALS['current_language'])
-    */
+     * setConnectorStrings
+     * This method outputs the language Strings for a given connector instance
+     *
+     * @param String $source_id String value of the connector id to write language strings for (e.g., ext_soap_marketo)
+     * @param String $connector_strings array value of the connector_strings
+     * @param String $language optional String value for the language to use (defaults to $GLOBALS['current_language'])
+     */
     public static function setConnectorStrings(
         $source_id,
         $connector_strings,
         $language = ''
-        ) {
+    ) {
         $lang = empty($language) ? $GLOBALS['current_language'] : $language;
         $lang .= '.lang.php';
         $dir = str_replace('_', '/', $source_id);
@@ -810,7 +773,7 @@ class ConnectorUtils
      */
     public static function installSource(
         $source
-        ) {
+    ) {
         if (empty($source)) {
             return false;
         }
@@ -822,8 +785,8 @@ class ConnectorUtils
         //Update the display_config.php file to show this new source
         $modules_sources = array();
         require(CONNECTOR_DISPLAY_CONFIG_FILE);
-        foreach ($modules_sources as $module=>$mapping) {
-            foreach ($mapping as $id=>$src) {
+        foreach ($modules_sources as $module => $mapping) {
+            foreach ($mapping as $id => $src) {
                 if ($src == $source) {
                     unset($modules_sources[$module][$id]);
                     break;
@@ -852,7 +815,7 @@ class ConnectorUtils
      */
     public static function uninstallSource(
         $source
-        ) {
+    ) {
         if (empty($source)) {
             return false;
         }
@@ -863,8 +826,8 @@ class ConnectorUtils
         //Update the display_config.php file to remove this source
         $modules_sources = array();
         require(CONNECTOR_DISPLAY_CONFIG_FILE);
-        foreach ($modules_sources as $module=>$mapping) {
-            foreach ($mapping as $id=>$src) {
+        foreach ($modules_sources as $module => $mapping) {
+            foreach ($mapping as $id => $src) {
                 if ($src == $source) {
                     unset($modules_sources[$module][$id]);
                 }
@@ -899,7 +862,7 @@ class ConnectorUtils
      */
     private static function hasWizardSourceEnabledForModule(
         $module = ''
-        ) {
+    ) {
         if (file_exists(CONNECTOR_DISPLAY_CONFIG_FILE)) {
             require_once('include/connectors/sources/SourceFactory.php');
             require(CONNECTOR_DISPLAY_CONFIG_FILE);

@@ -85,6 +85,8 @@
 		$('#basic_search_link').one("click", function () {
 			SUGAR.searchForm.searchFormSelect('{/literal}{$module}{literal}|basic_search', '{/literal}{$module}{literal}|advanced_search');
 		});
+
+        $('#search_form select').select2();
 	});
 	{/literal}
 </script>

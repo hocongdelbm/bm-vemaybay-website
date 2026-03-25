@@ -37,8 +37,6 @@ $moduleList[] = 'Documents';
 $moduleList[] = 'Cases';
 $moduleList[] = 'Bugs';
 
-$moduleList[] = 'Spots';
-
 // this list defines all of the module names and bean names in the app
 // to create a new module's bean class, add the bean definition here
 $beanList = [];
@@ -73,7 +71,6 @@ $beanList['Import_1'] = 'ImportMap';
 $beanList['Import_2'] = 'UsersLastImport';
 $beanList['Versions'] = 'Version';
 $beanList['Administration'] = 'Administration';
-$beanList['vCals'] = 'vCal';
 $beanList['CustomFields'] = 'CustomFields';
 $beanList['Alerts'] = 'Alert';
 
@@ -95,8 +92,6 @@ $beanList['EmailAddresses'] = 'EmailAddress';
 $beanList['EmailText'] = 'EmailText';
 $beanList['Relationships'] = 'Relationship';
 $beanList['Employees'] = 'Employee';
-
-$beanList['Spots'] = 'Spots';
 
 // this list defines all of the files that contain the SugarBean class definitions from $beanList
 // to create a new module's bean class, add the file definition here
@@ -133,7 +128,6 @@ $beanFiles['ImportMap'] = 'modules/Import/maps/ImportMap.php';
 $beanFiles['UsersLastImport'] = 'modules/Import/UsersLastImport.php';
 $beanFiles['Administration'] = 'modules/Administration/Administration.php';
 $beanFiles['UpgradeHistory'] = 'modules/Administration/UpgradeHistory.php';
-$beanFiles['vCal'] = 'modules/vCals/vCal.php';
 $beanFiles['Alert'] = 'modules/Alerts/Alert.php';
 
 $beanFiles['Role'] = 'modules/Roles/Role.php';
@@ -155,9 +149,6 @@ $beanFiles['EmailAddress'] = 'modules/EmailAddresses/EmailAddress.php';
 $beanFiles['EmailText'] = 'modules/EmailText/EmailText.php';
 
 $beanFiles['Configurator'] = 'modules/Configurator/Configurator.php';
-
-$beanFiles['Spots'] = 'modules/Spots/Spots.php';
-
 
 // added these lists for security settings for tabs
 $modInvisList = [

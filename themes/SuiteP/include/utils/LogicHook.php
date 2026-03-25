@@ -2,45 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
 
 /**
  * Predefined logic hooks
@@ -70,9 +31,7 @@ class LogicHook
 {
     public $bean = null;
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
 
 
@@ -114,15 +73,15 @@ class LogicHook
         if (is_dir($extpath)) {
             $dir = dir($extpath);
             while ($entry = $dir->read()) {
-                if ($entry != '.' && $entry != '..' && strtolower(substr($entry, -4)) == ".php" && is_file($extpath.'/'.$entry)) {
+                if ($entry != '.' && $entry != '..' && strtolower(substr($entry, -4)) == ".php" && is_file($extpath . '/' . $entry)) {
                     unset($hook_array);
-                    include($extpath.'/'.$entry);
+                    include($extpath . '/' . $entry);
                     if (!empty($hook_array)) {
                         foreach ($hook_array as $type => $hookg) {
                             foreach ($hookg as $index => $hook) {
                                 $this->hookscan[$type][] = $hook;
-                                $idx = count($this->hookscan[$type])-1;
-                                $this->hook_map[$type][$idx] = array("file" => $extpath.'/'.$entry, "index" => $index);
+                                $idx = count($this->hookscan[$type]) - 1;
+                                $this->hook_map[$type][$idx] = array("file" => $extpath . '/' . $entry, "index" => $index);
                             }
                         }
                     }
@@ -148,7 +107,7 @@ class LogicHook
         }
         if (file_exists("$custom/logic_hooks.php")) {
             if (isset($GLOBALS['log'])) {
-                $GLOBALS['log']->debug('Including module specific hook file for '.$custom);
+                $GLOBALS['log']->debug('Including module specific hook file for ' . $custom);
             }
             include("$custom/logic_hooks.php");
         }
@@ -157,7 +116,7 @@ class LogicHook
         }
         if (file_exists("$custom/Ext/LogicHooks/logichooks.ext.php")) {
             if (isset($GLOBALS['log'])) {
-                $GLOBALS['log']->debug('Including Ext hook file for '.$custom);
+                $GLOBALS['log']->debug('Including Ext hook file for ' . $custom);
             }
             include("$custom/Ext/LogicHooks/logichooks.ext.php");
         }
@@ -232,7 +191,7 @@ class LogicHook
                 $hook_details = $hook_array[$event][$hook_index];
                 if (!file_exists($hook_details[2])) {
                     if (isset($GLOBALS['log'])) {
-                        $GLOBALS['log']->error('Unable to load custom logic file: '.$hook_details[2]);
+                        $GLOBALS['log']->error('Unable to load custom logic file: ' . $hook_details[2]);
                     }
                     continue;
                 }
@@ -244,7 +203,7 @@ class LogicHook
                 //TODO Make a factory for these classes.  Cache instances accross uses
                 if ($hook_class == $hook_function) {
                     if (isset($GLOBALS['log'])) {
-                        $GLOBALS['log']->debug('Creating new instance of hook class '.$hook_class.' with parameters');
+                        $GLOBALS['log']->debug('Creating new instance of hook class ' . $hook_class . ' with parameters');
                     }
                     if (!is_null($this->bean)) {
                         $class = new $hook_class($this->bean, $event, $arguments);
@@ -253,7 +212,7 @@ class LogicHook
                     }
                 } else {
                     if (isset($GLOBALS['log'])) {
-                        $GLOBALS['log']->debug('Creating new instance of hook class '.$hook_class.' without parameters');
+                        $GLOBALS['log']->debug('Creating new instance of hook class ' . $hook_class . ' without parameters');
                     }
                     $class = new $hook_class();
                     if (!is_null($this->bean)) {

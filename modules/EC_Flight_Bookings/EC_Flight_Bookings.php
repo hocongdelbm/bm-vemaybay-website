@@ -138,7 +138,7 @@ class EC_Flight_Bookings extends Basic
 		// After save
 		$this->_postSave($recordId);
 
-		// return $recordId;
+		return $recordId;
 	}
 
 	public function save2($check_notify = FALSE)
@@ -340,8 +340,6 @@ class EC_Flight_Bookings extends Basic
 
 	private function _postSave(string $recordId)
 	{
-		global $current_user;
-
 		// Lưu thông tin hoá đơn
 		$this->saveInvoiceInf($_POST, $recordId);
 
@@ -816,71 +814,68 @@ class EC_Flight_Bookings extends Basic
 	 * Tách biệt hoàn toàn khỏi saveLinePassengers().
 	 * Chỉ xét passengers chưa bị deleted khi kiểm tra eticket.
 	 */
-	private function _updateTicketExportStatus(array $psgIds)
+	private function _updateTicketExportStatus(array $psgIds): void
 	{
-		$isAllowedUser  = isAllowedUser();
-		$isRoundTrip    = (int)$this->flight_type === 0;
+		$booking = new EC_Flight_Bookings();
+		$booking->retrieve($this->id);
 
-		// Dùng $this thay vì retrieve() lại — tránh query DB thừa
-		$outboundExported = $outboundFull = false;
-		$inboundExported  = $inboundFull  = false;
-		$outboundFull     = $inboundFull  = true;
+		$isAllowedUser = isAllowedUser();
+		$isRoundTrip   = (int)$booking->flight_type === 0;
+
+		$outboundExported = false;
+		$outboundFull     = true;
+		$inboundExported  = false;
+		$inboundFull      = true;
 
 		foreach (array_keys($psgIds) as $i) {
-			// Bỏ qua passenger đã bị xóa khi tính trạng thái vé
-			if ((int) ($_POST['psg_deleted'][$i] ?? 0) === 1) continue;
+			if ((int)($_POST['psg_deleted'][$i] ?? 0) === 1) continue;
 
 			$eticketOut = $_POST['psg_eticket_outbound'][$i] ?? '';
 			if (!empty($eticketOut)) $outboundExported = true;
-			else                     $outboundFull     = false;
+			else $outboundFull     = false;
 
 			if ($isRoundTrip) {
 				$eticketIn = $_POST['psg_eticket_inbound'][$i] ?? '';
 				if (!empty($eticketIn)) $inboundExported = true;
-				else                    $inboundFull     = false;
+				else $inboundFull     = false;
 			}
 		}
 
-		// One-way: inbound luôn không áp dụng
 		if (!$isRoundTrip) {
 			$inboundExported = false;
 			$inboundFull     = false;
 		}
 
-		// Cập nhật outbound
-		$this->is_ticket_exported = $outboundExported;
+		$booking->is_ticket_exported = $outboundExported;
 		if ($outboundExported) {
-			if (empty($this->date_ticket_issue)) {
-				$this->date_ticket_issue = date('Y-m-d');
+			if (empty($booking->date_ticket_issue)) {
+				$booking->date_ticket_issue = date('Y-m-d');
 			}
 			if ($isAllowedUser && !empty($_POST['date_ticket_issue'])) {
-				$this->date_ticket_issue = $_POST['date_ticket_issue'];
+				$booking->date_ticket_issue = $_POST['date_ticket_issue'];
 			}
 		} else {
-			$this->date_ticket_issue = '';
+			$booking->date_ticket_issue = '';
 		}
 
-		// Cập nhật inbound
-		$this->is_ticket_inbound_exported = $inboundExported;
+		$booking->is_ticket_inbound_exported = $inboundExported;
 		if ($inboundExported) {
-			if (empty($this->date_ticket_inbound_issue)) {
-				$this->date_ticket_inbound_issue = date('Y-m-d');
+			if (empty($booking->date_ticket_inbound_issue)) {
+				$booking->date_ticket_inbound_issue = date('Y-m-d');
 			}
 			if ($isAllowedUser && !empty($_POST['date_ticket_inbound_issue'])) {
-				$this->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
+				$booking->date_ticket_inbound_issue = $_POST['date_ticket_inbound_issue'];
 			}
 		} else {
-			$this->date_ticket_inbound_issue = '';
+			$booking->date_ticket_inbound_issue = '';
 		}
 
-		// Chuyển sang trạng thái "Xuất vé" nếu đủ điều kiện
 		$isFullyExported = $isRoundTrip ? ($outboundFull && $inboundFull) : $outboundFull;
-
 		if ($isFullyExported) {
-			$this->booking_status = 7;
+			$booking->booking_status = 7;
 		}
 
-		$this->save2();
+		$booking->save2();
 	}
 
 	/**
@@ -1303,48 +1298,9 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	// Lưu thông tin hoá đơn
-	// public function saveInvoiceInf($post_fields, $booking_id)
-	// {
-	// 	global $current_user;
-
-	// 	if (isset($post_fields['action']) && $post_fields['action'] == 'Save') {
-	// 		if (isset($post_fields['iv_account_name'])) {
-	// 			$invoice_inf = [
-	// 				'iv_account_name' => $post_fields['iv_account_name'],
-	// 				'iv_email' => $post_fields['iv_email'],
-	// 				'iv_identity_number' => $post_fields['iv_identity_number'],
-	// 				'iv_payment_method' => $post_fields['iv_payment_method'],
-	// 				'iv_bank_account' => $post_fields['iv_bank_account'],
-	// 				'iv_name_banks' => $post_fields['iv_name_banks']
-	// 			];
-
-	// 			$json = json_encode($invoice_inf, JSON_UNESCAPED_UNICODE);
-	// 			$sql = '
-	// 				UPDATE ec_flight_bookings 
-	// 				SET shipping_address = "' . $this->db->quote($json) . '"
-	// 				WHERE id = "' . $this->db->quote($booking_id) . '" AND deleted = 0';
-
-	// 			$result = $this->db->query($sql);
-
-	// 			if (!$result) {
-	// 				$GLOBALS['log']->fatal("Failed to update shipping_address for booking $booking_id: " . $this->db->lastError() . " $sql");
-	// 			}
-	// 		}
-	// 	}
-	// }
 	public function saveInvoiceInf($post_fields, $booking_id)
 	{
-		global $current_user;
-
-		if ($current_user->user_name == 'hungnh') {
-			pr($post_fields);
-		}
-
-		if (
-			!isset($post_fields['action']) ||
-			$post_fields['action'] !== 'Save' ||
-			!isset($post_fields['iv_account_name'])
-		) {
+		if (!isset($post_fields['action']) || $post_fields['action'] !== 'Save' || !isset($post_fields['iv_account_name'])) {
 			return;
 		}
 
@@ -1358,10 +1314,6 @@ class EC_Flight_Bookings extends Basic
 		];
 
 		$json = json_encode($invoice_inf, JSON_UNESCAPED_UNICODE);
-		if ($current_user->user_name == 'hungnh') {
-			pr($json);
-		}
-
 		$sql = "UPDATE ec_flight_bookings SET shipping_address = '" . $this->db->quote($json) . "' WHERE id = '" . $this->db->quote($booking_id) . "' AND deleted = 0";
 
 		$result = $this->db->query($sql);
@@ -1370,15 +1322,7 @@ class EC_Flight_Bookings extends Basic
 			$GLOBALS['log']->fatal(
 				"Failed to update shipping_address for booking {$booking_id}: " . $this->db->lastError() . " | SQL: $sql"
 			);
-		} else {
-			if ($current_user->user_name == 'hungnh') {
-				pr($sql);
-			}
 		}
-
-		// if ($current_user->user_name == 'hungnh') {
-		// 	die;
-		// }
 
 		return true;
 	}

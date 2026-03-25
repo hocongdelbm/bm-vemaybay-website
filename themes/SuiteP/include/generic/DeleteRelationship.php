@@ -76,17 +76,6 @@ if ($bean_name === 'Campaign' and $linked_field === 'prospectlists') {
     $focus->db->query($query);
 }
 
-if ($bean_name === "Meeting") {
-    $focus->retrieve($record);
-    $user = BeanFactory::newBean('Users');
-    $user->retrieve($linked_id);
-    if (!empty($user->id)) {  //make sure that record exists. we may have a contact on our hands.
-
-        if ($focus->update_vcal) {
-            vCal::cache_sugar_vcal($user);
-        }
-    }
-}
 if ($bean_name === "User" && $linked_field === 'eapm') {
     $eapm = BeanFactory::newBean('EAPM');
     $eapm->mark_deleted($linked_id);

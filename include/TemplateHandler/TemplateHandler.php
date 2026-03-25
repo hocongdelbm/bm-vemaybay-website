@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 class TemplateHandler
 {
@@ -191,7 +154,8 @@ class TemplateHandler
                             continue;
                         }
 
-                        if (is_array($entry) &&
+                        if (
+                            is_array($entry) &&
                             isset($entry['name']) &&
                             isset($entry['displayParams']['required']) &&
                             $entry['displayParams']['required']
@@ -219,7 +183,8 @@ class TemplateHandler
                 }
 
                 foreach ($nameList as $x) {
-                    if (isset($defs[$x]) &&
+                    if (
+                        isset($defs[$x]) &&
                         isset($defs[$x]['type']) &&
                         !isset($defs[$x]['required'])
                     ) {
@@ -259,13 +224,15 @@ class TemplateHandler
             //4) have id_name in vardef entry
             //5) not already been added to Array
             foreach ($sugarBean->field_name_map as $name => $def) {
-                if ($def['type'] === 'relate' &&
+                if (
+                    $def['type'] === 'relate' &&
                     isset($defs2[$name]) &&
                     (!isset($defs2[$name]['validateDependency']) || $defs2[$name]['validateDependency'] === true) &&
                     isset($def['id_name']) &&
                     !in_array($name, $validatedFields)
                 ) {
-                    if (isset($mod_strings[$def['vname']])
+                    if (
+                        isset($mod_strings[$def['vname']])
                         || isset($app_strings[$def['vname']])
                         || translate($def['vname'], $sugarBean->module_dir) != $def['vname']
                     ) {
@@ -308,7 +275,7 @@ class TemplateHandler
                     $contents .= '{/literal}';
                 }
             }
-        }//if
+        } //if
 
         //Remove all the copyright comments
         $contents = preg_replace('/\{\*[^\}]*?\*\}/', '', $contents);
@@ -531,7 +498,8 @@ class TemplateHandler
                 $field = $defs[$f['name']];
                 if ($view === 'ConvertLead') {
                     $field['name'] = $module . $field['name'];
-                    if (isset($field['module']) &&
+                    if (
+                        isset($field['module']) &&
                         isset($field['id_name']) &&
                         substr($field['id_name'], -4) === '_ida'
                     ) {
@@ -551,12 +519,14 @@ class TemplateHandler
                 $name = $qsd->form_name . '_' . $field['name'];
 
 
-                if ($field['type'] === 'relate' && isset($field['module']) && (preg_match(
-                    '/_name$|_c$/si',
-                    $name
-                ) || !empty($field['quicksearch']))
+                if (
+                    $field['type'] === 'relate' && isset($field['module']) && (preg_match(
+                        '/_name$|_c$/si',
+                        $name
+                    ) || !empty($field['quicksearch']))
                 ) {
-                    if (!preg_match('/_c$/si', $name)
+                    if (
+                        !preg_match('/_c$/si', $name)
                         && (!isset($field['id_name']) || !preg_match('/_c$/si', $field['id_name']))
                         && preg_match('/^(Campaigns|Teams|Users|Contacts|Accounts)$/si', $field['module'], $matches)
                     ) {
@@ -572,7 +542,7 @@ class TemplateHandler
                             if ($matches[0] === 'Users') {
                                 if ($field['name'] === 'reports_to_name') {
                                     $sqs_objects[$name] = $qsd->getQSUser('reports_to_name', 'reports_to_id');
-                                // Bug #52994 : QuickSearch for a 1-M User relationship changes assigned to user
+                                    // Bug #52994 : QuickSearch for a 1-M User relationship changes assigned to user
                                 } elseif ($field['name'] === 'assigned_user_name') {
                                     $sqs_objects[$name] = $qsd->getQSUser('assigned_user_name', 'assigned_user_id');
                                 } else {

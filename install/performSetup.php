@@ -440,7 +440,6 @@ $enabled_tabs[] = 'AOS_Quotes';
 $enabled_tabs[] = 'Calendar';
 $enabled_tabs[] = 'Documents';
 $enabled_tabs[] = 'Emails';
-$enabled_tabs[] = 'Spots';
 $enabled_tabs[] = 'Campaigns';
 $enabled_tabs[] = 'Calls';
 $enabled_tabs[] = 'Meetings';

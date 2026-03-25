@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -186,10 +149,10 @@ class SugarFolder
         $this->db = DBManagerFactory::getInstance();
 
         $this->core = "SELECT f.id, f.name, f.has_child, f.is_group, f.is_dynamic, f.dynamic_query," .
-        " f.folder_type, f.created_by, f.deleted FROM folders f ";
-        $this->coreSubscribed = "SELECT f.id, f.name, f.has_child, f.is_group, f.is_dynamic,".
-        " f.dynamic_query, f.folder_type, f.created_by, f.deleted FROM folders f LEFT JOIN folders_subscriptions".
-        " fs ON f.id = fs.folder_id ";
+            " f.folder_type, f.created_by, f.deleted FROM folders f ";
+        $this->coreSubscribed = "SELECT f.id, f.name, f.has_child, f.is_group, f.is_dynamic," .
+            " f.dynamic_query, f.folder_type, f.created_by, f.deleted FROM folders f LEFT JOIN folders_subscriptions" .
+            " fs ON f.id = fs.folder_id ";
         $this->coreWhere = "WHERE f.deleted != 1 ";
         $this->coreWhereSubscribed = "WHERE f.deleted != 1 AND fs.assigned_user_id = ";
         $this->coreOrderBy = " ORDER BY f.is_dynamic, f.is_group, f.name ASC ";
@@ -226,9 +189,9 @@ class SugarFolder
     public function deleteEmailFromFolder($id)
     {
         $query = "DELETE FROM folders_rel " .
-             "WHERE polymorphic_module = 'Emails' " .
-             "AND polymorphic_id = " . $this->db->quoted($id) . " " .
-             "AND folder_id = " . $this->db->quoted($this->id);
+            "WHERE polymorphic_module = 'Emails' " .
+            "AND polymorphic_id = " . $this->db->quoted($id) . " " .
+            "AND folder_id = " . $this->db->quoted($this->id);
 
         return $this->db->query($query);
     }
@@ -261,8 +224,8 @@ class SugarFolder
     public function move($fromFolder, $toFolder, $beanId)
     {
         $query = "UPDATE folders_rel SET folder_id = " . $this->db->quoted($toFolder) . " " .
-             "WHERE folder_id = " . $this->db->quoted($fromFolder) . " " .
-             "AND polymorphic_id = " . $this->db->quoted($beanId) . " AND deleted = 0";
+            "WHERE folder_id = " . $this->db->quoted($fromFolder) . " " .
+            "AND polymorphic_id = " . $this->db->quoted($beanId) . " AND deleted = 0";
 
         return $this->db->query($query);
     }
@@ -281,8 +244,8 @@ class SugarFolder
         $guid = create_guid();
 
         $query = "INSERT INTO folders_rel (id, folder_id, polymorphic_module, polymorphic_id, deleted) " .
-              "VALUES(" . $this->db->quoted($guid) . ", " . $this->db->quoted($toFolder) .
-              ", " . $this->db->quoted($module) . ", " . $this->db->quoted($beanId) . ", 0)";
+            "VALUES(" . $this->db->quoted($guid) . ", " . $this->db->quoted($toFolder) .
+            ", " . $this->db->quoted($module) . ", " . $this->db->quoted($beanId) . ", 0)";
 
         return $this->db->query($query);
     }
@@ -495,8 +458,8 @@ class SugarFolder
             $ret = " AND emails.status NOT IN ('archived') AND emails.type NOT IN ('archived')";
         }
 
-        $query = "SELECT emails.id, emails.name, emails.date_sent_received, emails.status, emails.type, emails.flagged,".
-            " emails.reply_to_status, emails_text.from_addr, emails_text.to_addrs, ".
+        $query = "SELECT emails.id, emails.name, emails.date_sent_received, emails.status, emails.type, emails.flagged," .
+            " emails.reply_to_status, emails_text.from_addr, emails_text.to_addrs, " .
             "'Emails' polymorphic_module FROM emails" .
             " JOIN emails_text on emails.id = emails_text.email_id WHERE (type = " . $this->db->quoted($type) . " OR status = " . $this->db->quoted($status) . ")" .
             " AND assigned_user_id = " . $this->db->quoted($this->currentUser->id) . " AND emails.deleted = 0";
@@ -533,8 +496,8 @@ class SugarFolder
             );
         } else {
             // get items and iterate through them
-            $query = "SELECT emails.id , emails.name, emails.date_sent_received, emails.status, emails.type, emails.flagged,".
-                " emails.reply_to_status, emails_text.from_addr, emails_text.to_addrs,".
+            $query = "SELECT emails.id , emails.name, emails.date_sent_received, emails.status, emails.type, emails.flagged," .
+                " emails.reply_to_status, emails_text.from_addr, emails_text.to_addrs," .
                 " 'Emails' polymorphic_module FROM emails JOIN folders_rel ON emails.id = folders_rel.polymorphic_id" .
                 " JOIN emails_text on emails.id = emails_text.email_id
                   WHERE folders_rel.folder_id = " . $this->db->quoted($folderId) . " AND folders_rel.deleted = 0 AND emails.deleted = 0";
@@ -698,15 +661,15 @@ class SugarFolder
         If so, return false
         */
 
-        $q = "SELECT id FROM folders_rel WHERE".
-            " folder_id = ".$this->db->quoted($this->id).
-            " AND polymorphic_module = ".$this->db->quoted($bean->module_dir).
-            " AND polymorphic_id = ".$this->db->quoted($bean->id).
+        $q = "SELECT id FROM folders_rel WHERE" .
+            " folder_id = " . $this->db->quoted($this->id) .
+            " AND polymorphic_module = " . $this->db->quoted($bean->module_dir) .
+            " AND polymorphic_id = " . $this->db->quoted($bean->id) .
             " AND deleted = 0";
 
         $result = $this->db->fetchByAssoc($this->db->query($q));
 
-        if($result) {
+        if ($result) {
             $GLOBALS['log']->debug("*** FOLDERS: addBean() is trying to create an already existing relationship");
             return false;
         }
@@ -759,7 +722,8 @@ class SugarFolder
         $found = array();
 
         while ($a = $this->db->fetchByAssoc($res)) {
-            if (!empty($a['folder_type']) &&
+            if (
+                !empty($a['folder_type']) &&
                 $a['folder_type'] !== $myArchiveTypeString
             ) {
                 if (!isset($found[$a['id']])) {
@@ -779,8 +743,8 @@ class SugarFolder
 
         if (empty($found)) {
             LoggerManager::getLogger()->error(
-                ' SugarFolder::retrieveFoldersForProcessing() Cannot Retrieve Folders - '.
-                'Please check the users inbound email settings.'
+                ' SugarFolder::retrieveFoldersForProcessing() Cannot Retrieve Folders - ' .
+                    'Please check the users inbound email settings.'
             );
         }
 
@@ -1028,7 +992,7 @@ class SugarFolder
         $selectedFolders = [];
 
         foreach ($folders as $folder) {
-            if ($this->isToDisplay($folder['id'] ?? '', $settingsFolders)){
+            if ($this->isToDisplay($folder['id'] ?? '', $settingsFolders)) {
                 $selectedFolders[] = $folder;
             }
         }
@@ -1169,8 +1133,8 @@ class SugarFolder
 
         $folderNode->set_property(
             'click',
-            "SUGAR.email2.listView.populateListFrameSugarFolder(".
-            "YAHOO.namespace('frameFolders').selectednode, '{$a['id']}', 'false');"
+            "SUGAR.email2.listView.populateListFrameSugarFolder(" .
+                "YAHOO.namespace('frameFolders').selectednode, '{$a['id']}', 'false');"
         );
 
         $folderNode->set_property('ieId', 'folder');
@@ -1239,10 +1203,10 @@ class SugarFolder
             return false;
         }
 
-        $q = "SELECT COUNT(*) c FROM folders_rel WHERE polymorphic_module = 'Emails' ".
+        $q = "SELECT COUNT(*) c FROM folders_rel WHERE polymorphic_module = 'Emails' " .
             "AND polymorphic_id = " . $this->db->quoted($id) . " AND folder_id = " . $this->db->quoted($this->id);
 
-        $checkEmailQuery = "SELECT count(*) c FROM folders_rel WHERE polymorphic_module = 'Emails' ".
+        $checkEmailQuery = "SELECT count(*) c FROM folders_rel WHERE polymorphic_module = 'Emails' " .
             "AND folder_id = " . $this->db->quoted($id) . " AND deleted = 0";
 
         $resultSet = $this->db->query($checkEmailQuery);
@@ -1301,18 +1265,18 @@ class SugarFolder
             }
 
             $query = "INSERT INTO folders (id, name, folder_type, parent_folder, has_child, is_group, " .
-                 "is_dynamic, dynamic_query, assign_to_id, created_by, modified_by, deleted) VALUES (" .
-                    $this->db->quoted($this->id) . ", " .
-                    $this->db->quoted($this->name) . ", " .
-                    $this->db->quoted($this->folder_type) . ", " .
-                    $this->db->quoted($this->parent_folder) . ", " .
-                    $this->db->quoted($this->has_child) . ", " .
-                    $this->db->quoted($this->is_group) . ", " .
-                    $this->db->quoted($this->is_dynamic) . ", " .
-                    $this->db->quoted($this->dynamic_query) . ", " .
-                    $this->db->quoted($this->assign_to_id) . ", " .
-                    $this->db->quoted($this->currentUser->id) . ", " .
-                    $this->db->quoted($this->currentUser->id) . ", 0)";
+                "is_dynamic, dynamic_query, assign_to_id, created_by, modified_by, deleted) VALUES (" .
+                $this->db->quoted($this->id) . ", " .
+                $this->db->quoted($this->name) . ", " .
+                $this->db->quoted($this->folder_type) . ", " .
+                $this->db->quoted($this->parent_folder) . ", " .
+                $this->db->quoted($this->has_child) . ", " .
+                $this->db->quoted($this->is_group) . ", " .
+                $this->db->quoted($this->is_dynamic) . ", " .
+                $this->db->quoted($this->dynamic_query) . ", " .
+                $this->db->quoted($this->assign_to_id) . ", " .
+                $this->db->quoted($this->currentUser->id) . ", " .
+                $this->db->quoted($this->currentUser->id) . ", 0)";
 
             if ($addSubscriptions) {
                 // create default subscription
@@ -1441,11 +1405,11 @@ class SugarFolder
     }
 
     /**
-    * Retrieves and populates object
-    *
-    * @param string    $id  ID of folder
-    * @return boolean       True on success
-    */
+     * Retrieves and populates object
+     *
+     * @param string    $id  ID of folder
+     * @return boolean       True on success
+     */
     public function retrieve($id)
     {
         $query = "SELECT * FROM folders WHERE id = " . $this->db->quoted($id) . " AND deleted = 0";
@@ -1471,7 +1435,8 @@ class SugarFolder
      * Get first display folder
      * @return mixed|null
      */
-    public function getFirstDisplayFolders(): ?array {
+    public function getFirstDisplayFolders(): ?array
+    {
         global $current_user;
 
         $settingsFolders = $this->getFoldersForSettings($current_user);
@@ -1503,14 +1468,15 @@ class SugarFolder
      * @param array|null $folders
      * @return bool
      */
-    public function isToDisplay(?string $folderId, array $folders = null): bool {
+    public function isToDisplay(?string $folderId, array $folders = null): bool
+    {
         global $current_user;
 
-        if (empty($folderId)){
+        if (empty($folderId)) {
             return false;
         }
 
-        if ($folders === null){
+        if ($folders === null) {
             $folders = $this->getFoldersForSettings($current_user);
         }
 

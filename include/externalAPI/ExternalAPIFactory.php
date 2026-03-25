@@ -2,44 +2,7 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 
 require_once('include/connectors/utils/ConnectorUtils.php');
@@ -65,8 +28,10 @@ class ExternalAPIFactory
                 if (ConnectorUtils::eapmEnabled($data['connector'])) {
                     if (isset($data['authMethod']) && $data['authMethod'] == 'oauth') {
                         $connector = SourceFactory::getSource($data['connector'], false);
-                        if (!empty($connector) && $connector->propertyExists('oauth_consumer_key')
-                            && $connector->isRequiredConfigFieldsSet()) {
+                        if (
+                            !empty($connector) && $connector->propertyExists('oauth_consumer_key')
+                            && $connector->isRequiredConfigFieldsSet()
+                        ) {
                             $filteredList[$name] = $data;
                         }
                     } elseif (isset($data['authMethod']) && $data['authMethod'] == 'oauth2') {
@@ -91,7 +56,7 @@ class ExternalAPIFactory
      * @param bool $ignoreDisabled Should we ignore disabled status?
      * @return array
      */
-    public static function loadFullAPIList($forceRebuild=false, $ignoreDisabled = false)
+    public static function loadFullAPIList($forceRebuild = false, $ignoreDisabled = false)
     {
         if (inDeveloperMode()) {
             static $beenHereBefore = false;
@@ -100,39 +65,39 @@ class ExternalAPIFactory
                 $beenHereBefore = true;
             }
         }
-        $cached=sugar_cached('include/externalAPI.cache.php');
+        $cached = sugar_cached('include/externalAPI.cache.php');
         if (!$forceRebuild && file_exists($cached)) {
             // Already have a cache file built, no need to rebuild
             require $cached;
 
-            return $ignoreDisabled?$fullAPIList:self::filterAPIList($fullAPIList);
+            return $ignoreDisabled ? $fullAPIList : self::filterAPIList($fullAPIList);
         }
 
         $apiFullList = array();
         $meetingPasswordList = array();
         $needUrlList = array();
 
-        $baseDirList = array('include/externalAPI/','custom/include/externalAPI/');
+        $baseDirList = array('include/externalAPI/', 'custom/include/externalAPI/');
         foreach ($baseDirList as $baseDir) {
-            $dirList = glob($baseDir.'*', GLOB_ONLYDIR);
+            $dirList = glob($baseDir . '*', GLOB_ONLYDIR);
             foreach ($dirList as $dir) {
-                if ($dir == $baseDir.'.' || $dir == $baseDir.'..' || $dir == $baseDir.'Base') {
+                if ($dir == $baseDir . '.' || $dir == $baseDir . '..' || $dir == $baseDir . 'Base') {
                     continue;
                 }
 
                 $apiName = str_replace($baseDir, '', $dir);
-                if (file_exists($dir.'/ExtAPI'.$apiName.'.php')) {
-                    $apiFullList[$apiName]['className'] = 'ExtAPI'.$apiName;
-                    $apiFullList[$apiName]['file'] = $dir.'/'.$apiFullList[$apiName]['className'].'.php';
+                if (file_exists($dir . '/ExtAPI' . $apiName . '.php')) {
+                    $apiFullList[$apiName]['className'] = 'ExtAPI' . $apiName;
+                    $apiFullList[$apiName]['file'] = $dir . '/' . $apiFullList[$apiName]['className'] . '.php';
                 }
-                if (file_exists($dir.'/ExtAPI'.$apiName.'_cstm.php')) {
-                    $apiFullList[$apiName]['className'] = 'ExtAPI'.$apiName.'_cstm';
-                    $apiFullList[$apiName]['file_cstm'] = $dir.'/'.$apiFullList[$apiName]['className'].'.php';
+                if (file_exists($dir . '/ExtAPI' . $apiName . '_cstm.php')) {
+                    $apiFullList[$apiName]['className'] = 'ExtAPI' . $apiName . '_cstm';
+                    $apiFullList[$apiName]['file_cstm'] = $dir . '/' . $apiFullList[$apiName]['className'] . '.php';
                 }
             }
         }
 
-        $optionList = array('supportedModules','useAuth','requireAuth','supportMeetingPassword','docSearch', 'authMethod', 'oauthFixed','needsUrl','canInvite','sendsInvites','sharingOptions','connector', 'oauthParams','restrictUploadsByExtension');
+        $optionList = array('supportedModules', 'useAuth', 'requireAuth', 'supportMeetingPassword', 'docSearch', 'authMethod', 'oauthFixed', 'needsUrl', 'canInvite', 'sendsInvites', 'sharingOptions', 'connector', 'oauthParams', 'restrictUploadsByExtension');
         foreach ($apiFullList as $apiName => $apiOpts) {
             require_once($apiOpts['file']);
             if (!empty($apiOpts['file_cstm'])) {
@@ -155,12 +120,12 @@ class ExternalAPIFactory
         create_cache_directory('/include/');
         $cached_tmp = sugar_cached('include/externalAPI.cache-tmp.php');
         $fd = fopen($cached_tmp, 'wb');
-        fwrite($fd, "<"."?php\n//This file is auto generated by ".basename(__FILE__)."\n\$fullAPIList = ".var_export($apiFullList, true).";\n\n");
+        fwrite($fd, "<" . "?php\n//This file is auto generated by " . basename(__FILE__) . "\n\$fullAPIList = " . var_export($apiFullList, true) . ";\n\n");
         fclose($fd);
         rename($cached_tmp, $cached);
 
         $fd = fopen(sugar_cached('include/externalAPI.cache-tmp.js'), 'wb');
-        fwrite($fd, "//This file is auto generated by ".basename(__FILE__)."\nSUGAR.eapm = ".json_encode($apiFullList).";\n\n");
+        fwrite($fd, "//This file is auto generated by " . basename(__FILE__) . "\nSUGAR.eapm = " . json_encode($apiFullList) . ";\n\n");
         fclose($fd);
         rename(sugar_cached('include/externalAPI.cache-tmp.js'), sugar_cached('include/externalAPI.cache.js'));
 
@@ -176,19 +141,19 @@ class ExternalAPIFactory
             }
         }
 
-        return $ignoreDisabled?$apiFullList:self::filterAPIList($apiFullList);
+        return $ignoreDisabled ? $apiFullList : self::filterAPIList($apiFullList);
     }
 
     /**
-    * Clear API cache file
-    */
+     * Clear API cache file
+     */
     public static function clearCache()
     {
-        $cached=sugar_cached('include/externalAPI.cache.php');
+        $cached = sugar_cached('include/externalAPI.cache.php');
         if (file_exists($cached)) {
             unlink($cached);
         }
-        $cached=sugar_cached('include/externalAPI.cache.js');
+        $cached = sugar_cached('include/externalAPI.cache.js');
         if (file_exists($cached)) {
             unlink($cached);
         }
@@ -201,7 +166,7 @@ class ExternalAPIFactory
      * @param bool $apiName Ignore authentication requirements (optional)
      * @return ExternalAPIBase API plugin
      */
-    public static function loadAPI($apiName, $ignoreAuth=false)
+    public static function loadAPI($apiName, $ignoreAuth = false)
     {
         $apiList = self::loadFullAPIList();
         if (! isset($apiList[$apiName])) {
@@ -249,7 +214,7 @@ class ExternalAPIFactory
 
         if ($module == '' && $ignoreAuth == true) {
             // Simplest case, return everything.
-            return($apiList);
+            return ($apiList);
         }
 
         $apiFinalList = array();
@@ -294,7 +259,7 @@ class ExternalAPIFactory
         }
 
         foreach ($apiList as $apiName => $ignore) {
-            $appStringTranslKey = 'eapm_list_' .strtolower($moduleName);
+            $appStringTranslKey = 'eapm_list_' . strtolower($moduleName);
             if (isset($app_list_strings[$appStringTranslKey]) && !empty($app_list_strings[$appStringTranslKey][$apiName])) {
                 $apiDropdown[$apiName] = $app_list_strings[$appStringTranslKey][$apiName];
             } else {
