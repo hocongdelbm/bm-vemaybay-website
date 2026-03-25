@@ -87,20 +87,7 @@ $mod_strings = array(
     'LBL_THIS_MONTH' => 'This Month',
     'LBL_THIS_YEAR' => 'This Year',
 
-    'LBL_MODULES' => 'Modules',
-    'LBL_CHARTS' => 'Charts',
-    'LBL_TOOLS' => 'Tools',
-    'LBL_WEB' => 'Web',
     'LBL_SEARCH_RESULTS' => 'Search Result',
-
-    // Dashlet Categories
-    'dashlet_categories_dom' => array(
-        'Module Views' => 'Module Views',
-        'Portal' => 'Portal',
-        'Charts' => 'Charts',
-        'Tools' => 'Tools',
-        'Miscellaneous' => 'Miscellaneous'
-    ),
     'LBL_ADDING_DASHLET' => 'Adding SuiteCRM Dashlet...',
     'LBL_ADDED_DASHLET' => 'SuiteCRM Dashlet Added',
     'LBL_REMOVE_DASHLET_CONFIRM' => 'Are you sure you want to remove this SuiteCRM Dashlet?',
@@ -122,10 +109,6 @@ $mod_strings = array(
 
     'LBL_SEARCH' => 'Search',
     'LBL_CLEAR' => 'Clear',
-
-    'LBL_BASIC_CHARTS' => 'Basic Charts',
-
-    'LBL_DASHLET_SEARCH' => 'Find SuiteCRM Dashlet',
 
 //ABOUT page
     'LBL_VERSION' => 'Version',
