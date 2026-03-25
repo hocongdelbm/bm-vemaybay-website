@@ -37,8 +37,6 @@ $moduleList[] = 'Documents';
 $moduleList[] = 'Cases';
 $moduleList[] = 'Bugs';
 
-$moduleList[] = 'Spots';
-
 // this list defines all of the module names and bean names in the app
 // to create a new module's bean class, add the bean definition here
 $beanList = [];
@@ -95,8 +93,6 @@ $beanList['EmailAddresses'] = 'EmailAddress';
 $beanList['EmailText'] = 'EmailText';
 $beanList['Relationships'] = 'Relationship';
 $beanList['Employees'] = 'Employee';
-
-$beanList['Spots'] = 'Spots';
 
 // this list defines all of the files that contain the SugarBean class definitions from $beanList
 // to create a new module's bean class, add the file definition here
@@ -155,9 +151,6 @@ $beanFiles['EmailAddress'] = 'modules/EmailAddresses/EmailAddress.php';
 $beanFiles['EmailText'] = 'modules/EmailText/EmailText.php';
 
 $beanFiles['Configurator'] = 'modules/Configurator/Configurator.php';
-
-$beanFiles['Spots'] = 'modules/Spots/Spots.php';
-
 
 // added these lists for security settings for tabs
 $modInvisList = [
