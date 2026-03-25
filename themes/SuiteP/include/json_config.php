@@ -2,53 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-/*********************************************************************************
-
- * Description:  This class is used to include the json server config inline. Previous method
- * of using <script src=json_server.php></script> causes multiple server hits per page load
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 
 global $app_strings, $json;
 $json = getJSONobj();
@@ -77,11 +30,11 @@ class json_config
     {
         global $json, $sugar_config;
 
-        $str = "\nvar ". $this->global_registry_var_name." = new Object();\n";
-        $str .= "\n".$this->global_registry_var_name.".config = {\"site_url\":\"".getJavascriptSiteURL()."\"};\n";
+        $str = "\nvar " . $this->global_registry_var_name . " = new Object();\n";
+        $str .= "\n" . $this->global_registry_var_name . ".config = {\"site_url\":\"" . getJavascriptSiteURL() . "\"};\n";
 
-        $str .= $this->global_registry_var_name.".meta = new Object();\n";
-        $str .= $this->global_registry_var_name.".meta.modules = new Object();\n";
+        $str .= $this->global_registry_var_name . ".meta = new Object();\n";
+        $str .= $this->global_registry_var_name . ".meta.modules = new Object();\n";
 
         /*
         $modules_arr = array('Meetings','Calls');
@@ -124,7 +77,7 @@ class json_config
         $user_arr['fields']['email'] = $current_user->email1;
         $user_arr['fields']['gmt_offset'] = $timedate->getUserUTCOffset();
         $user_arr['fields']['date_time_format'] = $current_user->getUserDateTimePreferences();
-        $str = "\n".$this->global_registry_var_name.".current_user = ".$json->encode($user_arr).";\n";
+        $str = "\n" . $this->global_registry_var_name . ".current_user = " . $json->encode($user_arr) . ";\n";
         return $str;
     }
 
@@ -135,12 +88,12 @@ class json_config
             return '';
         } else {
             if (empty($record)) {
-                return "\n".$this->global_registry_var_name.'["focus"] = {"module":"'.$module.'",users_arr:[],fields:{"id":"-1"}}'."\n";
+                return "\n" . $this->global_registry_var_name . '["focus"] = {"module":"' . $module . '",users_arr:[],fields:{"id":"-1"}}' . "\n";
             }
         }
 
         $module_arr = $this->meeting_retrieve($module, $record);
-        return "\n".$this->global_registry_var_name."['focus'] = ". $json->encode($module_arr).";\n";
+        return "\n" . $this->global_registry_var_name . "['focus'] = " . $json->encode($module_arr) . ";\n";
     }
 
     /*	multiple project module related changes added by haris raheem*/
@@ -163,10 +116,10 @@ class json_config
         } else {
             if ($module == 'Calls') {
                 $users = $focus->get_call_users();
-            } 
+            }
         }
-        
-        
+
+
         $module_arr['users_arr'] = array();
 
         foreach ($users as $user) {
@@ -182,7 +135,7 @@ class json_config
         $module_arr['contacts_arr'] = array();
 
         $focus->load_relationships('contacts');
-        $contacts=$focus->get_linked_beans('contacts', 'Contact');
+        $contacts = $focus->get_linked_beans('contacts', 'Contact');
 
         foreach ($contacts as $contact) {
             array_push($module_arr['users_arr'], $this->populateBean($contact));
@@ -198,13 +151,13 @@ class json_config
         $mod_list_strings = return_mod_list_strings_language($current_language, $currentModule);
 
         global $json;
-        $str = "\n".$this->global_registry_var_name."['calendar_strings'] =  {\"dom_cal_month_long\":". $json->encode($mod_list_strings['dom_cal_month_long']).",\"dom_cal_weekdays_long\":". $json->encode($mod_list_strings['dom_cal_weekdays_long'])."}\n";
+        $str = "\n" . $this->global_registry_var_name . "['calendar_strings'] =  {\"dom_cal_month_long\":" . $json->encode($mod_list_strings['dom_cal_month_long']) . ",\"dom_cal_weekdays_long\":" . $json->encode($mod_list_strings['dom_cal_weekdays_long']) . "}\n";
         if (empty($module)) {
             $module = 'Home';
         }
         $currentModule = $module;
         $mod_strings = return_module_language($current_language, $currentModule);
-        return  $str . "\n".$this->global_registry_var_name."['meeting_strings'] =  ". $json->encode($mod_strings)."\n";
+        return  $str . "\n" . $this->global_registry_var_name . "['meeting_strings'] =  " . $json->encode($mod_strings) . "\n";
     }
 
     // HAS MEETING SPECIFIC CODE:
@@ -213,7 +166,7 @@ class json_config
         require_once('include/utils/db_utils.php');
         $all_fields = $focus->column_fields;
         // MEETING SPECIFIC
-        $all_fields = array_merge($all_fields, array('required','accept_status','name')); // need name field for contacts and users
+        $all_fields = array_merge($all_fields, array('required', 'accept_status', 'name')); // need name field for contacts and users
         $all_fields = $this->listFilter($focus->module_dir, $all_fields);
         //$all_fields = array_merge($focus->column_fields,$focus->additional_column_fields);
 

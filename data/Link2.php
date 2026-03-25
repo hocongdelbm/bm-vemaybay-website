@@ -3,54 +3,6 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/*
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-/*********************************************************************************
- * Description:  Represents a relationship from a single bean's perspective.
- * Does not actively do work but is used by SugarBean to manipulate relationships.
- * Work is deferred to the relationship classes.
- *
- * Portions created by SugarCRM are Copyright (C) SugarCRM, Inc.
- * All Rights Reserved.
- * Contributor(s): ______________________________________..
- ********************************************************************************/
 require_once 'data/Relationships/RelationshipFactory.php';
 
 /**
@@ -85,8 +37,10 @@ class Link2
     {
         $this->focus = $bean;
         //Try to load the link vardef from the beans field defs. Otherwise start searching
-        if (empty($bean->field_defs) || empty($bean->field_defs[$linkName])
-            || empty($bean->field_defs[$linkName]['relationship'])) {
+        if (
+            empty($bean->field_defs) || empty($bean->field_defs[$linkName])
+            || empty($bean->field_defs[$linkName]['relationship'])
+        ) {
             if (empty($linkDef)) {
                 //Assume $linkName is really relationship_name, and find the link name with the vardef manager
                 $this->def = VardefManager::getLinkFieldForRelationship(
@@ -181,7 +135,7 @@ class Link2
      *                      rhs_value: The value to search for.
      *                      limit: The maximum number of rows
      *                      deleted: If deleted is set to 1, only deleted records related
- *                          to the current record will be returned.
+     *                          to the current record will be returned.
      *                      Example:
      *                      'where' => array(
      *                      'lhs_field' => 'source',
@@ -271,8 +225,8 @@ class Link2
     }
 
     /**
-    * @return Array of related fields
-    */
+     * @return Array of related fields
+     */
     public function getRelatedFields()
     {
         return $this->relationship_fields;
@@ -314,7 +268,8 @@ class Link2
             LoggerManager::getLogger()->error('Focus Module Name is not set for Link2 get side.');
         }
 
-        if ($this->relationship->getLHSLink() == $this->name &&
+        if (
+            $this->relationship->getLHSLink() == $this->name &&
             ($this->relationship->getLHSModule() == (isset($this->focus->module_name) ? $this->focus->module_name : null))
         ) {
             return REL_LHS;
@@ -332,7 +287,8 @@ class Link2
             $focusModuleName = $this->focus->module_name;
         }
 
-        if ($rhsLink == $this->name &&
+        if (
+            $rhsLink == $this->name &&
             ($rhsModule == $focusModuleName)
         ) {
             return REL_RHS;
@@ -351,11 +307,15 @@ class Link2
             }
         } elseif (!empty($this->def['id_name'])) {
             //Next try using the id_name and relationship join keys
-            if (isset($this->relationship->def['join_key_lhs'])
-                && $this->def['id_name'] == $this->relationship->def['join_key_lhs']) {
+            if (
+                isset($this->relationship->def['join_key_lhs'])
+                && $this->def['id_name'] == $this->relationship->def['join_key_lhs']
+            ) {
                 return REL_RHS;
-            } elseif (isset($this->relationship->def['join_key_rhs'])
-                && $this->def['id_name'] == $this->relationship->def['join_key_rhs']) {
+            } elseif (
+                isset($this->relationship->def['join_key_rhs'])
+                && $this->def['id_name'] == $this->relationship->def['join_key_rhs']
+            ) {
                 return REL_LHS;
             }
         }
@@ -582,7 +542,7 @@ class Link2
                 $keyBean = $this->getRelatedBean($keyBean);
                 if (!($keyBean instanceof SugarBean)) {
                     $GLOBALS['log']->error('Unable to load related bean by id');
-//                    Note these beans as failed and continue
+                    //                    Note these beans as failed and continue
                     $failures[] = $key;
                     continue;
                 }

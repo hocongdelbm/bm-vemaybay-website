@@ -1,43 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
@@ -139,7 +100,7 @@ class M2MRelationship extends SugarRelationship
     {
         $lhsLinkName = $this->lhsLink;
         $rhsLinkName = $this->rhsLink;
-        
+
         /* BEGIN - SECURITY GROUPS */
         //Need to hijack this as security groups will not contain a link on the module side
         //due to the way the module works. Plus it would remove the relative ease of adding custom module support
@@ -263,11 +224,11 @@ class M2MRelationship extends SugarRelationship
             $GLOBALS['log']->fatal("RHS is not a SugarBean object");
             return false;
         }
-        
+
         /* BEGIN - SECURITY GROUPS */
         //Need to hijack this as security groups will not contain a link on the module side
         //due to the way the module works. Plus it would remove the relative ease of adding custom module support
-        
+
         if (get_class($lhs) == 'SecurityGroup' || get_class($rhs) == 'SecurityGroup') {
             $dataToRemove = array(
                 $this->def['join_key_lhs'] => $lhs->id,
@@ -292,7 +253,7 @@ class M2MRelationship extends SugarRelationship
             }
 
             $this->removeRow($dataToRemove);
-            
+
             if (empty($_SESSION['disable_workflow']) || $_SESSION['disable_workflow'] != "Yes") {
                 if (get_class($lhs) != 'SecurityGroup' && $lhs->$lhsLinkName instanceof Link2) {
                     $lhs->$lhsLinkName->load();
@@ -328,9 +289,9 @@ class M2MRelationship extends SugarRelationship
             }
 
             $dataToRemove = array(
-            $this->def['join_key_lhs'] => $lhs->id,
-            $this->def['join_key_rhs'] => $rhs->id
-        );
+                $this->def['join_key_lhs'] => $lhs->id,
+                $this->def['join_key_rhs'] => $rhs->id
+            );
 
             $this->removeRow($dataToRemove);
 
@@ -479,7 +440,7 @@ class M2MRelationship extends SugarRelationship
         if (empty($params['return_as_array'])) {
             $query = "SELECT $targetKey id $SelectIncludedMiddleTableFields FROM $from WHERE $where AND $rel_table.deleted=$deleted";
             if (!empty($order_by)) {
-                $query .= ' ORDER BY '.$order_by;
+                $query .= ' ORDER BY ' . $order_by;
             }
             //Limit is not compatible with return_as_array
             if (!empty($params['limit']) && $params['limit'] > 0) {
@@ -514,17 +475,17 @@ class M2MRelationship extends SugarRelationship
         $targetTable = $linkIsLHS ? $this->def['rhs_table'] : $this->def['lhs_table'];
         $targetTableWithAlias = $targetTable;
         $targetKey = $linkIsLHS ? $this->def['rhs_key'] : $this->def['lhs_key'];
-        $join_type= isset($params['join_type']) ? $params['join_type'] : ' INNER JOIN ';
+        $join_type = isset($params['join_type']) ? $params['join_type'] : ' INNER JOIN ';
 
         $join = '';
 
         //Set up any table aliases required
         if (!empty($params['join_table_link_alias'])) {
-            $joinTableWithAlias = $joinTable . " ". $params['join_table_link_alias'];
+            $joinTableWithAlias = $joinTable . " " . $params['join_table_link_alias'];
             $joinTable = $params['join_table_link_alias'];
         }
         if (! empty($params['join_table_alias'])) {
-            $targetTableWithAlias = $targetTable . " ". $params['join_table_alias'];
+            $targetTableWithAlias = $targetTable . " " . $params['join_table_alias'];
             $targetTable = $params['join_table_alias'];
         }
 
@@ -535,10 +496,10 @@ class M2MRelationship extends SugarRelationship
 
         //First join the relationship table
         $join .= "$join_type $joinTableWithAlias ON $join1 AND $joinTable.deleted=0\n"
-        //Next add any role filters
-               . $this->getRoleWhere($joinTable) . "\n"
-        //Then finally join the related module's table
-               . "$join_type $targetTableWithAlias ON $join2 AND $targetTable.deleted=0\n";
+            //Next add any role filters
+            . $this->getRoleWhere($joinTable) . "\n"
+            //Then finally join the related module's table
+            . "$join_type $targetTableWithAlias ON $join2 AND $targetTable.deleted=0\n";
 
         if ($return_array) {
             return array(
@@ -564,21 +525,20 @@ class M2MRelationship extends SugarRelationship
     public function getSubpanelQuery($link, $params = array(), $return_array = false)
     {
         $targetIsLHS = $link->getSide() == REL_RHS;
-        $startingTable = $targetIsLHS ? $this->def['lhs_table'] : $this->def['rhs_table'];
-        ;
+        $startingTable = $targetIsLHS ? $this->def['lhs_table'] : $this->def['rhs_table'];;
         $startingKey = $targetIsLHS ? $this->def['lhs_key'] : $this->def['rhs_key'];
         $startingJoinKey = $targetIsLHS ? $this->def['join_key_lhs'] : $this->def['join_key_rhs'];
         $joinTable = $this->getRelationshipTable();
         $joinTableWithAlias = $joinTable;
         $joinKey = $targetIsLHS ? $this->def['join_key_rhs'] : $this->def['join_key_lhs'];
         $targetKey = $targetIsLHS ? $this->def['rhs_key'] : $this->def['lhs_key'];
-        $join_type= isset($params['join_type']) ? $params['join_type'] : ' INNER JOIN ';
+        $join_type = isset($params['join_type']) ? $params['join_type'] : ' INNER JOIN ';
 
         $query = '';
 
         //Set up any table aliases required
         if (!empty($params['join_table_link_alias'])) {
-            $joinTableWithAlias = $joinTable . " ". $params['join_table_link_alias'];
+            $joinTableWithAlias = $joinTable . " " . $params['join_table_link_alias'];
             $joinTable = $params['join_table_link_alias'];
         }
 
@@ -589,8 +549,8 @@ class M2MRelationship extends SugarRelationship
 
         //First join the relationship table
         $query .= "$join_type $joinTableWithAlias ON $where AND $joinTable.deleted=0\n"
-        //Next add any role filters
-               . $this->getRoleWhere($joinTable, $ignoreRole) . "\n";
+            //Next add any role filters
+            . $this->getRoleWhere($joinTable, $ignoreRole) . "\n";
 
         if (!empty($params['return_as_array'])) {
             $return_array = true;
@@ -612,14 +572,14 @@ class M2MRelationship extends SugarRelationship
     {
         $ret = "";
         if (!empty($this->relationship_role_column) && !$this->ignore_role_filter) {
-            $ret .= " AND ".$this->getRelationshipTable().'.'.$this->relationship_role_column;
+            $ret .= " AND " . $this->getRelationshipTable() . '.' . $this->relationship_role_column;
             //role column value.
             if (empty($this->relationship_role_column_value)) {
-                $ret.=' IS NULL';
+                $ret .= ' IS NULL';
             } else {
-                $ret.= "='".$this->relationship_role_column_value."'";
+                $ret .= "='" . $this->relationship_role_column_value . "'";
             }
-            $ret.= "\n";
+            $ret .= "\n";
         }
         return $ret;
     }
