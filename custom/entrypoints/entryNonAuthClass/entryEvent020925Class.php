@@ -26,6 +26,8 @@ class entryEvent020925Class extends entryClass {
         $this->spinPrizesStorage = "$this->directoryData/list_spin_prizes.json";
         $this->userStorage = "$this->directoryData/users";
         $this->botToken = $sugar_config['telegram']['event020925']['bot_token'] ?? '';
+        $this->testBot  = $sugar_config['telegram']['test']['bot_token'] ?? '';
+        $this->testChatId   = $sugar_config['telegram']['test']['chat_id'] ?? '';
         $this->chatId   = $sugar_config['telegram']['event020925']['chat_id'] ?? '';
         $this->threadId = $sugar_config['telegram']['event020925']['thread_id_lucky_spin'] ?? '';
         $this->threadId2 = $sugar_config['telegram']['event020925']['thread_id_noti'] ?? '';
