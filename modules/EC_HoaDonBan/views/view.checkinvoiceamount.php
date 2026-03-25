@@ -21,18 +21,23 @@ class Viewcheckinvoiceamount extends SugarView {
     }
 
     public function display() {
-        global $current_user;
-
         if (ACLController::checkAccess('EC_HoaDonBan', 'view', true)) {
             $this->smarty = new Sugar_Smarty();
             $this->populateContent();
             $this->smarty->display("modules/{$this->bean->object_name}/tpls/view.checkinvoiceamount.tpl");
+            $this->loadScripts();
         }
         else {
             header("Location: index.php?module={$this->bean->object_name}&action=Error&error_string=" . urlencode("Bạn không được quyền truy cập vào mục này"));
             exit();
         }
     }
+
+    protected function loadScripts() {
+        echo <<<HTML
+            <script src="modules/{$this->bean->module_dir}/js/view.checkinvoiceamount.js?v=1.0"></script>
+        HTML;
+    } 
 
     /**
      * Populate content
@@ -104,15 +109,15 @@ class Viewcheckinvoiceamount extends SugarView {
 
         // Payment status
         $payment_status_arr = [
-            '0' => 'Tất cả',
-            '1' => 'Chưa thu',
-            '2' => 'Chưa thu đủ',
-            '3' => 'BK telesale',
-            '4' => 'BK CTV',
-            '5' => 'BK tham khảo',
+            0 => 'Tất cả',
+            1 => 'Chưa thu',
+            2 => 'Chưa thu đủ',
+            3 => 'BK telesale',
+            4 => 'BK CTV',
+            5 => 'BK tham khảo',
         ];
-        $payment_stt = $_REQUEST['payment_status'] ?? '';
-        $this->smarty->assign('PAYMENT_STT_OPTS', get_select_options_with_id($payment_status_arr, (int)$payment_stt));
+        $payment_stt = (int)($_REQUEST['payment_stt'] ?? 0);
+        $this->smarty->assign('PAYMENT_STT_OPTS', get_select_options_with_id($payment_status_arr, $payment_stt));
 
         // Customer source
         $customer_source_arr = ['' => 'Tất cả'] + $app_list_strings['booking_customer_source_list'];
@@ -230,8 +235,8 @@ class Viewcheckinvoiceamount extends SugarView {
                     SELECT IF(bk.flight_type = '0', SUM(IFNULL(px.luggage_purchase, 0)) +  SUM(IFNULL(px.luggage_purchase_inbound, 0)), SUM(IF(px.luggage_price>0, IFNULL(px.luggage_purchase,0), 0)))
                     FROM ec_booking_passengers px
                     WHERE px.booking_id = bk.id 
-                    AND px.deleted = 0 
-                    AND (px.add_type IS NULL OR px.add_type = '')
+                        AND px.deleted = 0 
+                        AND (px.add_type IS NULL OR px.add_type = '')
                 ),0)) AS total_bought_price
                 , bk.flight_type
                 , bk.ticket_type
@@ -239,8 +244,7 @@ class Viewcheckinvoiceamount extends SugarView {
                 , IFNULL((
                     SELECT SUM(IFNULL(r.amount_converted,0))
                     FROM ec_receipt_voucher r
-                    WHERE 
-                        r.booking_id = bk.id
+                    WHERE r.booking_id = bk.id
                         AND r.rv_status='1'
                         AND r.loai_thu='1'
                         AND r.deleted=0
@@ -252,13 +256,13 @@ class Viewcheckinvoiceamount extends SugarView {
                 ,(
                     SELECT DATE_ADD(date_entered, INTERVAL 7 HOUR)
                     FROM ec_working_process
-                    WHERE deleted = 0 AND paid = 1
-                    AND parent_id = bk.id
+                    WHERE deleted = 0 AND paid = 1 AND parent_id = bk.id
                 ) AS paid_time
                 , bk.is_telesale as is_telesale
                 , bk.is_ctv as is_ctv
                 , bk.is_reference as is_reference
-                , SUM(cthd.dongia * cthd.soluong) + SUM(cthd.tienthue) + SUM(cthd.phithuho * cthd.soluong) AS invoice_amount
+                , hdb.tongthanhtoan AS invoice_amount
+                , hdb.name AS chungtuhoadon
                 , hdb.ngayhoadon
                 , hdb.sohoadon
             FROM ec_booking_details bkd 
@@ -287,56 +291,83 @@ class Viewcheckinvoiceamount extends SugarView {
         if(empty($main_query)) return;
         
         $i = 1;
+        $total_qty = $total_subtotal_amount = $total_receipt_amount = $total_invoice_amount = 0;
         $tr = '';
 
         $res = $this->bean->db->query($main_query);
         while ($row = $this->bean->db->fetchByAssoc($res)) {
-            $total_qty = format_number($row['total_quantity']);
             $subtotal_amount = format_number($row['subtotal_amount']);
             $receipt_amount = format_number($row['receipt_amount']);
             $invoice_amount = format_number($row['invoice_amount']);
+            $date_ticket_issue = date($this->userDateFormat, strtotime($row['date_ticket_issue']));
+            $ngayhoadon = date($this->userDateFormat, strtotime($row['ngayhoadon']));
+
+            $tr_style = ($subtotal_amount != $receipt_amount || $subtotal_amount != $invoice_amount) ? "background:#ffebeb" : "";
 
             $tr .= <<<HTML
-                <tr>
+                <tr style="$tr_style">
                     <td class="text-center hide-mobile">$i</td>
-                    <td class="date_ticket_issue">{$row['date_ticket_issue']}</td>
+                    <td class="date_ticket_issue">$date_ticket_issue</td>
                     <td class="booking">
                         <a href="index.php?module={$row['parent_type']}&action=DetailView&record={$row['parent_id']}" target="_blank" title="Xem chi tiết">
                             {$row['parent_name']}
                         </a>
                     </td>
-                    <td class="text-center total_quantity">$total_qty</td>
+                    <td class="text-center ticket_quantity">{$row['total_quantity']}</td>
                     <td class="text-end">$subtotal_amount</td>
                     <td class="text-end">
                         <a href="index.php?action=index&module=EC_Receipt_Voucher&query=true&clear_query=true&searchFormTab=basic_search&booking_name_basic={$row['parent_name']}" target="_blank" title="Xem chi tiết phiếu thu">
                             $receipt_amount
                         </a>
                     </td>
-                    <td class="text-end">$invoice_amount</td>
-                    <td class="text-center">{$row['ngayhoadon']}</td>
-                    <td class="text-end">{$row['sohoadon']}</td>
+                    <td class="text-end invoice_amount">
+                        <a href="index.php?action=index&module=EC_HoaDonBan&action=ListView&query=true&clear_query=true&searchFormTab=basic_search&name_basic={$row['chungtuhoadon']}" target="_blank" title="Xem chi tiết hóa đơn">
+                            <b>$invoice_amount</b>
+                        </a>
+                    </td>
+                    <td class="text-center ngay_hoa_don">$ngayhoadon</td>
+                    <td class="text-end so_hoa_don">{$row['sohoadon']}</td>
                 </tr>
             HTML;
+
+            $total_qty += $row['total_quantity'] ?? 0;
+            $total_subtotal_amount += $row['subtotal_amount'] ?? 0;
+            $total_receipt_amount += $row['receipt_amount'] ?? 0;
+            $total_invoice_amount += $row['invoice_amount'] ?? 0;
             
             $i++;
         }
 
+        $total_subtotal_amount = format_number($total_subtotal_amount);
+        $total_receipt_amount = format_number($total_receipt_amount);
+        $total_invoice_amount = format_number($total_invoice_amount);
+
         return <<<HTML
             <table id="main_table" class="table table-hover mt-3">
-                <thead>
+                <thead style="font-size:0.85rem;">
                     <tr>
-                        <th class="text-center hide-mobile">STT</th>
-                        <th>Ngày xuất vé</th>
-                        <th>Booking</th>
-                        <th class="text-center">Vé</th>
+                        <th width="6%" class="text-center hide-mobile">STT</th>
+                        <th width="10%">Ngày xuất vé</th>
+                        <th width="10%">Booking</th>
+                        <th width="6%" class="text-center">Vé</th>
                         <th class="text-end">Doanh thu</th>
                         <th class="text-end">Phiếu thu</th>
                         <th class="text-end">Tiền HĐ</th>
-                        <th class="text-center">Ngày HĐ</th>
-                        <th class="text-end">Số HĐ</th>
+                        <th width="10%" class="text-center">Ngày HĐ</th>
+                        <th width="8%" class="text-end">Số HĐ</th>
                     </tr>
                 </thead>
                 <tbody>$tr</tbody>
+                <tbody>
+                    <tr>
+                        <th colspan="3"></th>
+                        <th class="text-center color-red">$total_qty</th>
+                        <th class="text-end color-red">$total_subtotal_amount</th>
+                        <th class="text-end color-red">$total_receipt_amount</th>
+                        <th class="text-end color-red">$total_invoice_amount</th>
+                        <th colspan="2"></th>
+                    </tr>
+                </tbody>
             </table>
         HTML;
     }
