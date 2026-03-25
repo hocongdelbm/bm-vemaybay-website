@@ -131,11 +131,6 @@
                 </div>
                 {/if}
             </div>
-            <div class="help d-none">
-                {if $DISPLAY_SEARCH_HELP}
-                    <img border='0' src='{sugar_getimagepath file="help-dashlet.gif"}' class="help-search">
-                {/if}
-            </div>
         </div>
     {/if}
 </div>

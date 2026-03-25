@@ -3,54 +3,12 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
 require_once("include/templates/Template.php");
 
 class TemplateDragDropChooser extends Template
 {
     public $args;
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
 
 
@@ -64,7 +22,7 @@ class TemplateDragDropChooser extends Template
     public function display()
     {
 
-  /*   valid entries for expected arguments array are as follow:
+        /*   valid entries for expected arguments array are as follow:
    *   args['left_header'] = value of left table header
    *   args['mid_header'] = value of middle table header
    *   args['right_header'] = value of right table header
@@ -92,7 +50,8 @@ class TemplateDragDropChooser extends Template
         } elseif ($this->args['gridcount'] == 'two') {
             $this->args['gridcount'] = 1;
         } elseif (
-            $this->args['gridcount'] == 'three') {
+            $this->args['gridcount'] == 'three'
+        ) {
             $this->args['gridcount'] = 2;
         }
 
@@ -107,14 +66,14 @@ class TemplateDragDropChooser extends Template
         $left_div_name = $this->args['left_div_name'];
 
         //if count is set to 1, then we are displaying two columns, set the 2 column variables
-        if ($this->args['gridcount']==1) {
+        if ($this->args['gridcount'] == 1) {
             $this->args['right_data'][] = array(' ', ' ');
             $data1_enc = $json->encode($this->args['right_data']);
             $right_div_name = $this->args['right_div_name'];
         }
 
         //if count is set to 2, then we are displaying three columns, set the 3 column variables
-        if ($this->args['gridcount']==2) {
+        if ($this->args['gridcount'] == 2) {
             $this->args['mid_data'][] = array(' ', ' ');
             $data1_enc = $json->encode($this->args['mid_data']);
             $mid_div_name = $this->args['mid_div_name'];
@@ -129,12 +88,12 @@ class TemplateDragDropChooser extends Template
         $html_str .=   "<tr><td width='180px' class='tabDetailViewDF'><div id='$left_div_name' class='ygrid-mso' style='width:180px;height:270px;overflow:hidden;'> </div></td>";
         $html_str_arr['left'] = "<tr><td width='180px' class='tabDetailViewDF'><div id='$left_div_name' class='ygrid-mso' style='width:180px;height:270px;overflow:hidden;'> </div></td>";
         //set the middle column only if we are displaying 3 columns
-        if ($this->args['gridcount']==2) {
+        if ($this->args['gridcount'] == 2) {
             $html_str .=   "<td width='180px' class='tabDetailViewDF'><div id='$mid_div_name' class='ygrid-mso' style='width:180px;height:270px;overflow:hidden;'> </div></td>";
             $html_str_arr['middle'] = "<td width='180px' class='tabDetailViewDF'><div id='$mid_div_name' class='ygrid-mso' style='width:180px;height:270px;overflow:hidden;'> </div></td>";
         }
         //set the right column if we are not in 1 column only mode
-        if ($this->args['gridcount']>0) {
+        if ($this->args['gridcount'] > 0) {
             $html_str .=   "<td width='180px' class='tabDetailViewDF'><div id='$right_div_name' class='ygrid-mso' style='width:180px;height:270px;overflow:hidden;'> </div></td>";
             $html_str_arr['right'] = "<td width='180px' class='tabDetailViewDF'><div id='$right_div_name' class='ygrid-mso' style='width:180px;height:270px;overflow:hidden;'> </div></td>";
         }
@@ -145,22 +104,22 @@ class TemplateDragDropChooser extends Template
         $j_str = "<script> ";
         $j_str .= $this->args['classname'] . ".rows0 = {$data0_enc};\n";
         $j_str .= $this->args['classname'] . ".hdr0 = '{$this->args['left_header']}';\n";
-        if ($this->args['gridcount']==1) {
+        if ($this->args['gridcount'] == 1) {
             $j_str .= $this->args['classname'] . ".rows1 = {$data1_enc};\n";
             $j_str .= $this->args['classname'] . ".hdr1 = '{$this->args['right_header']}';\n";
         }
-        if ($this->args['gridcount']==2) {
+        if ($this->args['gridcount'] == 2) {
             $j_str .= $this->args['classname'] . ".rows1 = {$data1_enc}; \n";
             $j_str .= $this->args['classname'] . ".rows2 = {$data2_enc}; \n";
             $j_str .= $this->args['classname'] . ".hdr1 = '{$this->args['mid_header']}'; \n";
             $j_str .= $this->args['classname'] . ".hdr2 = '{$this->args['right_header']}'; \n";
         }
-        $divs_str = "'".$left_div_name ."'";
-        if ($this->args['gridcount']==2) {
-            $divs_str .= ", '".$mid_div_name."'";
+        $divs_str = "'" . $left_div_name . "'";
+        if ($this->args['gridcount'] == 2) {
+            $divs_str .= ", '" . $mid_div_name . "'";
         }
-        if ($this->args['gridcount']>0) {
-            $divs_str .= ", '".$right_div_name."'";
+        if ($this->args['gridcount'] > 0) {
+            $divs_str .= ", '" . $right_div_name . "'";
         }
 
         $j_str .= $this->args['classname'] . ".divs = [$divs_str]; ";
@@ -194,7 +153,8 @@ class TemplateDragDropChooser extends Template
         } elseif ($this->args['gridcount'] == 'two') {
             $this->args['gridcount'] = 1;
         } elseif (
-            $this->args['gridcount'] == 'three') {
+            $this->args['gridcount'] == 'three'
+        ) {
             $this->args['gridcount'] = 2;
         }
 
@@ -234,7 +194,7 @@ class TemplateDragDropChooser extends Template
             * This invokes the grid objects
             */
 
-            " . $this->args['classname'] . " =  {" ;
+            " . $this->args['classname'] . " =  {";
         $j_str .=   "
             rows0 : [],
             rows1 : [],
@@ -259,7 +219,7 @@ class TemplateDragDropChooser extends Template
             init : function(){
             ";
         $count = 0;
-        while ($count<$this->args['gridcount']+1) {
+        while ($count < $this->args['gridcount'] + 1) {
             // bug50219 Set up default strings for sortable grids
             $sortParams = "sortable: false";
             // set strings to sortable if it is SUGAR_GRID_grid0
@@ -283,9 +243,9 @@ class TemplateDragDropChooser extends Template
             $j_str .= "
                 {$this->args['classname']}_sugar_grid$count = {$this->args['classname']}_grid$count;";
 
-            $count = $count+1;
+            $count = $count + 1;
         }
-        $j_str.="
+        $j_str .= "
             }
         };
 

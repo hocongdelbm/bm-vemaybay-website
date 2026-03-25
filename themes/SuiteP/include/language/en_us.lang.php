@@ -1,44 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2019 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
-
-
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
@@ -50,7 +10,6 @@ $app_list_strings = array(
     'language_pack_name' => 'US English',
     'moduleList' => array(
         'Home' => 'Home',
-        'ResourceCalendar' => 'Resource Calendar',
         'Contacts' => 'Contacts',
         'Accounts' => 'Accounts',
         'Alerts' => 'Alerts',
@@ -65,7 +24,6 @@ $app_list_strings = array(
         'Meetings' => 'Meetings',
         'Tasks' => 'Tasks',
         'Calendar' => 'Calendar',
-        'Leads' => 'Leads',
         'Currencies' => 'Currencies',
         'Activities' => 'Activities',
         'Bugs' => 'Bugs',
@@ -74,13 +32,8 @@ $app_list_strings = array(
         'TimePeriods' => 'Time Periods',
         'ContractTypes' => 'Contract Types',
         'Schedulers' => 'Schedulers',
-        'Project' => 'Projects',
-        'ProjectTask' => 'Project Tasks',
-        'Campaigns' => 'Campaigns',
-        'CampaignLog' => 'Campaign Log',
         'Documents' => 'Documents',
         'DocumentRevisions' => 'Document Revisions',
-        'Connectors' => 'Connectors',
         'Roles' => 'Roles',
         'Notifications' => 'Notifications',
         'Sync' => 'Sync',
@@ -90,7 +43,6 @@ $app_list_strings = array(
         'ACLRoles' => 'Roles',
         'InboundEmail' => 'Inbound Email',
         'Releases' => 'Releases',
-        'Prospects' => 'Targets',
         'Queues' => 'Queues',
         'EmailMarketing' => 'Email Marketing',
         'EmailTemplates' => 'Email - Templates',
@@ -102,7 +54,6 @@ $app_list_strings = array(
         'TrackerQueries' => 'Tracker Queries',
         'FAQ' => 'FAQ',
         'Newsletters' => 'Newsletters',
-        'SugarFeed' => 'SuiteCRM Feed',
         'SugarFavorites' => 'SuiteCRM Favorites',
 
         'OAuthKeys' => 'OAuth Consumer Keys',
@@ -125,17 +76,12 @@ $app_list_strings = array(
         'Meetings' => 'Meeting',
         'Tasks' => 'Task',
         'Calendar' => 'Calendar',
-        'Leads' => 'Lead',
         'Activities' => 'Activity',
         'Bugs' => 'Bug',
         'KBDocuments' => 'KBDocument',
         'Feeds' => 'RSS',
         'iFrames' => 'My Sites',
         'TimePeriods' => 'Time Period',
-        'Project' => 'Project',
-        'ProjectTask' => 'Project Task',
-        'Prospects' => 'Target',
-        'Campaigns' => 'Campaign',
         'Documents' => 'Document',
         'Sync' => 'Sync',
         'Users' => 'User',
@@ -212,7 +158,6 @@ $app_list_strings = array(
         'Web Site' => 'Web Site',
         'Word of mouth' => 'Word of mouth',
         'Email' => 'Email',
-        'Campaign' => 'Campaign',
         'Other' => 'Other',
     ),
     'opportunity_type_dom' => array(
@@ -386,42 +331,6 @@ $app_list_strings = array(
         'Yahoo!' => 'Yahoo!',
         'AOL' => 'AOL',
     ),
-    'project_task_priority_options' => array(
-        'High' => 'High',
-        'Medium' => 'Medium',
-        'Low' => 'Low',
-    ),
-    'project_task_priority_default' => 'Medium',
-
-    'project_task_status_options' => array(
-        'Not Started' => 'Not Started',
-        'In Progress' => 'In Progress',
-        'Completed' => 'Completed',
-        'Pending Input' => 'Pending Input',
-        'Deferred' => 'Deferred',
-    ),
-    'project_task_utilization_options' => array(
-        '0' => 'none',
-        '25' => '25',
-        '50' => '50',
-        '75' => '75',
-        '100' => '100',
-    ),
-
-    'project_status_dom' => array(
-        'Draft' => 'Draft',
-        'In Review' => 'In Review',
-        'Underway' => 'Underway',
-        'On_Hold' => 'On Hold',
-        'Completed' => 'Completed',
-    ),
-    'project_status_default' => 'Draft',
-
-    'project_duration_units_dom' => array(
-        'Days' => 'Days',
-        'Hours' => 'Hours',
-    ),
-
     'activity_status_type_dom' => array(
         '' => '--None--',
         'active' => 'Active',
@@ -436,42 +345,25 @@ $app_list_strings = array(
         'Accounts' => 'Account',
         'Opportunities' => 'Opportunity',
         'Cases' => 'Case',
-        'Leads' => 'Lead',
         'Contacts' => 'Contact', // cn (11/22/2005) added to support Emails
-
         'Bugs' => 'Bug',
-        'Project' => 'Project',
-
-        'Prospects' => 'Target',
-        'ProjectTask' => 'Project Task',
-
         'Tasks' => 'Task',
-
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
         'AOS_Quotes' => 'Quote',
         'AOS_Products' => 'Product',
-
     ),
 
     'record_type_display_notes' => array(
         'Accounts' => 'Account',
         'Contacts' => 'Contact',
         'Opportunities' => 'Opportunity',
-        'Campaigns' => 'Campaign',
         'Tasks' => 'Task',
         'Emails' => 'Email',
-
         'Bugs' => 'Bug',
-        'Project' => 'Project',
-        'ProjectTask' => 'Project Task',
-        'Prospects' => 'Target',
         'Cases' => 'Case',
-        'Leads' => 'Lead',
-
         'Meetings' => 'Meeting',
         'Calls' => 'Call',
-
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
         'AOS_Quotes' => 'Quote',
@@ -483,21 +375,12 @@ $app_list_strings = array(
         'Contacts' => 'Contact',
         'Tasks' => 'Task',
         'Opportunities' => 'Opportunity',
-
         'Bugs' => 'Bug',
         'Cases' => 'Case',
-        'Leads' => 'Lead',
-
-        'Project' => 'Project',
-        'ProjectTask' => 'Project Task',
-
-        'Prospects' => 'Target',
-
         'AOS_Contracts' => 'Contract',
         'AOS_Invoices' => 'Invoice',
         'AOS_Quotes' => 'Quote',
         'AOS_Products' => 'Product',
-
     ),
     'parent_line_items' => array(
         'AOS_Quotes' => 'Quotes',
@@ -583,7 +466,6 @@ $app_list_strings = array(
         'Bugs' => 'Bugs',
         'Calendar' => 'Calendar',
         'Calls' => 'Calls',
-        'Campaigns' => 'Campaigns',
         'Cases' => 'Cases',
         'Contacts' => 'Contacts',
         'Currencies' => 'Currencies',
@@ -594,12 +476,10 @@ $app_list_strings = array(
         'Forecasts' => 'Forecasts',
         'Help' => 'Help',
         'Home' => 'Home',
-        'Leads' => 'Leads',
         'Meetings' => 'Meetings',
         'Notes' => 'Notes',
         'Opportunities' => 'Opportunities',
         'Outlook Plugin' => 'Outlook Plugin',
-        'Projects' => 'Projects',
         'Quotes' => 'Quotes',
         'Releases' => 'Releases',
         'RSS' => 'RSS',
@@ -607,29 +487,6 @@ $app_list_strings = array(
         'Upgrade' => 'Upgrade',
         'Users' => 'Users',
     ),
-    /*Added entries 'Queued' and 'Sending' for 4.0 release..*/
-    'campaign_status_dom' => array(
-        '' => '',
-        'Planning' => 'Planning',
-        'Active' => 'Active',
-        'Inactive' => 'Inactive',
-        'Complete' => 'Complete',
-        //'In Queue' => 'In Queue',
-        //'Sending' => 'Sending',
-    ),
-    'campaign_type_dom' => array(
-        '' => '',
-        'Telesales' => 'Telesales',
-        'Mail' => 'Mail',
-        'Email' => 'Email',
-        'Print' => 'Print',
-        'Web' => 'Web',
-        'Radio' => 'Radio',
-        'Television' => 'Television',
-        'NewsLetter' => 'Newsletter',
-        'Survey' => 'Survey',
-    ),
-
     'newsletter_frequency_dom' => array(
         '' => '',
         'Weekly' => 'Weekly',
@@ -738,7 +595,6 @@ $app_list_strings = array(
         'archived' => 'Archived',
         'draft' => 'Draft',
         'inbound' => 'Inbound',
-        'campaign' => 'Campaign',
     ),
     'dom_email_status' => array(
         'archived' => 'Archived',
@@ -928,27 +784,6 @@ $app_list_strings = array(
         'inactive' => 'Inactive',
     ),
 
-    'campainglog_activity_type_dom' => array(
-        '' => '',
-        'targeted' => 'Message Sent/Attempted',
-        'send error' => 'Bounced Messages,Other',
-        'invalid email' => 'Bounced Messages,Invalid Email',
-        'link' => 'Click-thru Link',
-        'viewed' => 'Viewed Message',
-        'removed' => 'Opted Out',
-        'lead' => 'Leads Created',
-        'contact' => 'Contacts Created',
-        'blocked' => 'Suppressed by address or domain',
-        'Survey' => 'Survey answered',
-    ),
-
-    'campainglog_target_type_dom' => array(
-        'Contacts' => 'Contacts',
-        'Users' => 'Users',
-        'Prospects' => 'Targets',
-        'Leads' => 'Leads',
-        'Accounts' => 'Accounts',
-    ),
     'merge_operators_dom' => array(
         'like' => 'Contains',
         'exact' => 'Exactly',
@@ -969,17 +804,6 @@ $app_list_strings = array(
         4 => 'Only filter',
     ),
 
-    'projects_priority_options' => array(
-        'high' => 'High',
-        'medium' => 'Medium',
-        'low' => 'Low',
-    ),
-
-    'projects_status_options' => array(
-        'notstarted' => 'Not Started',
-        'inprogress' => 'In Progress',
-        'completed' => 'Completed',
-    ),
     // strings to pass to Flash charts
     'chart_strings' => array(
         'expandlegend' => 'Expand Legend',
@@ -1023,22 +847,6 @@ $app_list_strings = array(
     'link_target_dom' => array(
         '_blank' => 'New Window',
         '_self' => 'Same Window',
-    ),
-    'dashlet_auto_refresh_options' => array(
-        '-1' => 'Do not auto-refresh',
-        '30' => 'Every 30 seconds',
-        '60' => 'Every 1 minute',
-        '180' => 'Every 3 minutes',
-        '300' => 'Every 5 minutes',
-        '600' => 'Every 10 minutes',
-    ),
-    'dashlet_auto_refresh_options_admin' => array(
-        '-1' => 'Never',
-        '30' => 'Every 30 seconds',
-        '60' => 'Every 1 minute',
-        '180' => 'Every 3 minutes',
-        '300' => 'Every 5 minutes',
-        '600' => 'Every 10 minutes',
     ),
     'date_range_search_dom' => array(
         '=' => 'Equals',
@@ -1095,14 +903,12 @@ $app_strings = array(
     'LBL_HIDE_SHOW' => 'Hide/Show' /*for 508 compliance fix*/,
     'LBL_DELETE_INLINE' => 'Delete' /*for 508 compliance fix*/,
     'LBL_ID_FF_CLEAR' => 'Clear' /*for 508 compliance fix*/,
-    'LBL_ID_FF_VCARD' => 'vCard' /*for 508 compliance fix*/,
     'LBL_ID_FF_REMOVE' => 'Remove' /*for 508 compliance fix*/,
     'LBL_ID_FF_REMOVE_EMAIL' => 'Remove Email Address' /*for 508 compliance fix*/,
     'LBL_ID_FF_OPT_OUT' => 'Opt Out',
     'LBL_ID_FF_INVALID' => 'Make Invalid',
     'LBL_ADD' => 'Add' /*for 508 compliance fix*/,
     'LBL_COMPANY_LOGO' => 'Company logo' /*for 508 compliance fix*/,
-    'LBL_CONNECTORS_POPUPS' => 'Connectors Popups',
     'LBL_CLOSEINLINE' => 'Close',
     'LBL_VIEWINLINE' => 'View',
     'LBL_INFOINLINE' => 'Info',
@@ -1325,7 +1131,6 @@ $app_strings = array(
 
     'LBL_EMAIL_QC_BUGS' => 'Bug',
     'LBL_EMAIL_QC_CASES' => 'Case',
-    'LBL_EMAIL_QC_LEADS' => 'Lead',
     'LBL_EMAIL_QC_CONTACTS' => 'Contact',
     'LBL_EMAIL_QC_TASKS' => 'Task',
     'LBL_EMAIL_QC_OPPORTUNITIES' => 'Opportunity',
@@ -1497,7 +1302,6 @@ $app_strings = array(
     'LBL_BUGS' => 'Bugs',
     'LBL_BY' => 'by',
     'LBL_CALLS' => 'Calls',
-    'LBL_CAMPAIGNS_SEND_QUEUED' => 'Send Queued Campaign Emails',
     'LBL_SUBMIT_BUTTON_LABEL' => 'Submit',
     'LBL_CASE' => 'Case',
     'LBL_CASES' => 'Cases',
@@ -1542,14 +1346,6 @@ $app_strings = array(
     'LBL_DONE_BUTTON_LABEL' => 'Done',
     'LBL_DONE_BUTTON_TITLE' => 'Done',
     'LBL_FAVORITES' => 'Favorites',
-    'LBL_VCARD' => 'vCard',
-    'LBL_EMPTY_VCARD' => 'Please select a vCard file',
-    'LBL_EMPTY_REQUIRED_VCARD' => 'vCard does not have all the required fields for this module. Please refer to suitecrm.log for details.',
-    'LBL_VCARD_ERROR_FILESIZE' => 'The uploaded file exceeds the 30000 bytes size limit which was specified in the HTML form.',
-    'LBL_VCARD_ERROR_DEFAULT' => 'There was an error uploading the vCard file. Please refer to suitecrm.log for details.',
-    'LBL_IMPORT_VCARD' => 'Import vCard:',
-    'LBL_IMPORT_VCARD_BUTTON_LABEL' => 'Import vCard',
-    'LBL_IMPORT_VCARD_BUTTON_TITLE' => 'Import vCard',
     'LBL_VIEW_BUTTON' => 'View',
     'LBL_EMAIL_PDF_BUTTON_LABEL' => 'Email as PDF',
     'LBL_EMAIL_PDF_BUTTON_TITLE' => 'Email as PDF',
@@ -1564,14 +1360,7 @@ $app_strings = array(
     'LBL_IMPORT' => 'Import',
     'LBL_IMPORT_STARTED' => 'Import Started: ',
     'LBL_LAST_VIEWED' => 'Recently Viewed',
-    'LBL_LEADS' => 'Leads',
     'LBL_LESS' => 'less',
-    'LBL_CAMPAIGN' => 'Campaign:',
-    'LBL_CAMPAIGNS' => 'Campaigns',
-    'LBL_CAMPAIGNLOG' => 'CampaignLog',
-    'LBL_CAMPAIGN_CONTACT' => 'Campaigns',
-    'LBL_CAMPAIGN_ID' => 'campaign_id',
-    'LBL_CAMPAIGN_NONE' => 'None',
     'LBL_THEME' => 'Theme:',
     'LBL_FOUND_IN_RELEASE' => 'Found In Release',
     'LBL_FIXED_IN_RELEASE' => 'Fixed In Release',
@@ -1640,10 +1429,7 @@ $app_strings = array(
     'LBL_PRIMARY_ADDRESS_STREET' => 'Primary Address Street:',
     'LBL_PRIMARY_ADDRESS' => 'Primary Address:',
 
-    'LBL_PROSPECTS' => 'Prospects',
     'LBL_PRODUCTS' => 'Products',
-    'LBL_PROJECT_TASKS' => 'Project Tasks',
-    'LBL_PROJECTS' => 'Projects',
     'LBL_QUOTES' => 'Quotes',
 
     'LBL_RELATED' => 'Related',
@@ -1745,13 +1531,11 @@ $app_strings = array(
     'LBL_SCENARIO_MARKETING' => 'Marketing',
     'LBL_SCENARIO_FINANCE' => 'Finance',
     'LBL_SCENARIO_SERVICE' => 'Service',
-    'LBL_SCENARIO_PROJECT' => 'Project Management',
 
     'LBL_SCENARIO_SALES_DESCRIPTION' => 'This scenario facilitates the management of sales items',
     'LBL_SCENARIO_MAKETING_DESCRIPTION' => 'This scenario facilitates the management of marketing items',
     'LBL_SCENARIO_FINANCE_DESCRIPTION' => 'This scenario facilitates the management of finance related items',
     'LBL_SCENARIO_SERVICE_DESCRIPTION' => 'This scenario facilitates the management of service related items',
-    'LBL_SCENARIO_PROJECT_DESCRIPTION' => 'This scenario facilitates the management of project related items',
 
     'LBL_SYNC' => 'Sync',
     'LBL_TABGROUP_ALL' => 'All',
@@ -1915,34 +1699,6 @@ $app_strings = array(
     'LBL_ALT_ADDRESS' => 'Other Address:',
     'ERR_SMARTY_UNEQUAL_RELATED_FIELD_PARAMETERS' => 'Error: There are an unequal number of arguments for the \'key\' and \'copy\' elements in the displayParams array.',
 
-    /* MySugar Framework (for Home and Dashboard) */
-    'LBL_DASHLET_CONFIGURE_GENERAL' => 'General',
-    'LBL_DASHLET_CONFIGURE_FILTERS' => 'Filters',
-    'LBL_DASHLET_CONFIGURE_MY_ITEMS_ONLY' => 'Only My Items',
-    'LBL_DASHLET_CONFIGURE_TITLE' => 'Title',
-    'LBL_DASHLET_CONFIGURE_DISPLAY_ROWS' => 'Display Rows',
-
-    // MySugar status strings
-    'LBL_MAX_DASHLETS_REACHED' => 'You have reached the maximum number of SuiteCRM Dashlets your administrator has set. Please remove a SuiteCRM Dashlet to add more.',
-    'LBL_ADDING_DASHLET' => 'Adding SuiteCRM Dashlet...',
-    'LBL_ADDED_DASHLET' => 'SuiteCRM Dashlet Added',
-    'LBL_REMOVE_DASHLET_CONFIRM' => 'Are you sure you want to remove this SuiteCRM Dashlet?',
-    'LBL_REMOVING_DASHLET' => 'Removing SuiteCRM Dashlet...',
-    'LBL_REMOVED_DASHLET' => 'SuiteCRM Dashlet Removed',
-
-    // MySugar Menu Options
-
-    'LBL_LOADING_PAGE' => 'Loading page, please wait...',
-
-    'LBL_RELOAD_PAGE' => 'Please <a href="javascript: window.location.reload()">reload the window</a> to use this SuiteCRM Dashlet.',
-    'LBL_ADD_DASHLETS' => 'Add Dashlets',
-    'LBL_CLOSE_DASHLETS' => 'Close',
-    'LBL_OPTIONS' => 'Options',
-    'LBL_1_COLUMN' => '1 Column',
-    'LBL_2_COLUMN' => '2 Column',
-    'LBL_3_COLUMN' => '3 Column',
-    'LBL_PAGE_NAME' => 'Page Name',
-
     'LBL_SEARCH_RESULTS' => 'Search Results',
     'LBL_SEARCH_MODULES' => 'Modules',
     'LBL_SEARCH_TOOLS' => 'Tools',
@@ -2035,7 +1791,6 @@ $app_strings = array(
     'LBL_MINUTES' => 'Minutes',
     'LBL_MERIDIEM' => 'Meridiem',
     'LBL_DATE' => 'Date',
-    'LBL_DASHLET_CONFIGURE_AUTOREFRESH' => 'Auto-Refresh',
 
     'LBL_DURATION_DAY' => 'day',
     'LBL_DURATION_HOUR' => 'hour',
@@ -2196,7 +1951,7 @@ $app_strings = array(
     'LBL_SUITE_DESC3' => 'SuiteCRM is a trademark of SalesAgility Ltd. All other company and product names may be trademarks of the respective companies with which they are associated.',
     'LBL_GENERATE_PASSWORD_BUTTON_TITLE' => 'Reset Password',
     'LBL_SEND_CONFIRM_OPT_IN_EMAIL' => 'Send Confirm Opt In Email',
-    'LBL_CONFIRM_OPT_IN_ONLY_FOR_PERSON' => 'Confirm Opt In Email sending only for Accounts/Contacts/Leads/Prospects',
+    'LBL_CONFIRM_OPT_IN_ONLY_FOR_PERSON' => 'Confirm Opt In Email sending only for Accounts/Contacts',
     'LBL_CONFIRM_OPT_IN_IS_DISABLED' => 'Confirm Opt In Email sending is disabled, enable Confirm Opt In option in Email Settings or contact your Administrator.',
     'LBL_CONTACT_HAS_NO_PRIMARY_EMAIL' => 'Confirm Opt In Email sending is not possible because the Contact has not Primary Email Address',
     'LBL_CONFIRM_EMAIL_SENDING_FAILED' => 'Confirm Opt In Email sending failed',
@@ -2205,12 +1960,6 @@ $app_strings = array(
 
 $app_list_strings['moduleList']['Library'] = 'Library';
 $app_list_strings['moduleList']['EmailAddresses'] = 'Email Address';
-$app_list_strings['project_priority_default'] = 'Medium';
-$app_list_strings['project_priority_options'] = array(
-    'High' => 'High',
-    'Medium' => 'Medium',
-    'Low' => 'Low',
-);
 
 //GDPR lawful basis options
 $app_list_strings['lawful_basis_dom'] = array(
@@ -2909,7 +2658,6 @@ $app_list_strings['token_status'] = array(
 
 $app_list_strings ['emailTemplates_type_list'] = array(
     '' => '',
-    'campaign' => 'Campaign',
     'email' => 'Email',
     'event' => 'Event',
 );
@@ -2921,7 +2669,6 @@ $app_list_strings ['emailTemplates_type_list_campaigns'] = array(
 
 $app_list_strings ['emailTemplates_type_list_no_workflow'] = array(
     '' => '',
-    'campaign' => 'Campaign',
     'email' => 'Email',
     'event' => 'Event',
     'system' => 'System',
@@ -2936,18 +2683,6 @@ $app_list_strings['aok_status_list']['In_Review'] = 'In Review';
 //$app_list_strings['aok_status_list']['Published'] = 'Published';
 $app_list_strings['aok_status_list']['published_private'] = 'Private';
 $app_list_strings['aok_status_list']['published_public'] = 'Public';
-
-$app_list_strings['moduleList']['FP_events'] = 'Events';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Locations';
-
-//events
-$app_list_strings['fp_event_invite_status_dom']['Invited'] = 'Invited';
-$app_list_strings['fp_event_invite_status_dom']['Not Invited'] = 'Not Invited';
-$app_list_strings['fp_event_invite_status_dom']['Attended'] = 'Attended';
-$app_list_strings['fp_event_invite_status_dom']['Not Attended'] = 'Not Attended';
-$app_list_strings['fp_event_status_dom']['Accepted'] = 'Accepted';
-$app_list_strings['fp_event_status_dom']['Declined'] = 'Declined';
-$app_list_strings['fp_event_status_dom']['No Response'] = 'No Response';
 
 $app_strings['LBL_STATUS_EVENT'] = 'Invite Status';
 $app_strings['LBL_ACCEPT_STATUS'] = 'Accept Status';
@@ -2994,84 +2729,6 @@ $app_list_strings['dom_email_distribution_for_auto_create'] = array(
     'random' => 'Random',
 );
 
-//aor
-$app_list_strings['moduleList']['AOR_Reports'] = 'Reports';
-$app_list_strings['moduleList']['AOR_Conditions'] = 'Report Conditions';
-$app_list_strings['moduleList']['AOR_Charts'] = 'Report Charts';
-$app_list_strings['moduleList']['AOR_Fields'] = 'Report Fields';
-$app_list_strings['moduleList']['AOR_Scheduled_Reports'] = 'Scheduled Reports';
-$app_list_strings['aor_operator_list']['Equal_To'] = 'Equal To';
-$app_list_strings['aor_operator_list']['Not_Equal_To'] = 'Not Equal To';
-$app_list_strings['aor_operator_list']['Greater_Than'] = 'Greater Than';
-$app_list_strings['aor_operator_list']['Less_Than'] = 'Less Than';
-$app_list_strings['aor_operator_list']['Greater_Than_or_Equal_To'] = 'Greater Than or Equal To';
-$app_list_strings['aor_operator_list']['Less_Than_or_Equal_To'] = 'Less Than or Equal To';
-$app_list_strings['aor_operator_list']['Contains'] = 'Contains';
-$app_list_strings['aor_operator_list']['Starts_With'] = 'Starts With';
-$app_list_strings['aor_operator_list']['Ends_With'] = 'Ends With';
-$app_list_strings['aor_format_options'][''] = '';
-$app_list_strings['aor_format_options']['Y-m-d'] = 'Y-m-d';
-$app_list_strings['aor_format_options']['m-d-Y'] = 'm-d-Y';
-$app_list_strings['aor_format_options']['d-m-Y'] = 'd-m-Y';
-$app_list_strings['aor_format_options']['Y/m/d'] = 'Y/m/d';
-$app_list_strings['aor_format_options']['m/d/Y'] = 'm/d/Y';
-$app_list_strings['aor_format_options']['d/m/Y'] = 'd/m/Y';
-$app_list_strings['aor_format_options']['Y.m.d'] = 'Y.m.d';
-$app_list_strings['aor_format_options']['m.d.Y'] = 'm.d.Y';
-$app_list_strings['aor_format_options']['d.m.Y'] = 'd.m.Y';
-$app_list_strings['aor_format_options']['Ymd'] = 'Ymd';
-$app_list_strings['aor_format_options']['Y-m'] = 'Y-m';
-$app_list_strings['aor_format_options']['Y'] = 'Y';
-$app_list_strings['aor_condition_operator_list']['And'] = 'And';
-$app_list_strings['aor_condition_operator_list']['OR'] = 'OR';
-$app_list_strings['aor_condition_type_list']['Value'] = 'Value';
-$app_list_strings['aor_condition_type_list']['Field'] = 'Field';
-$app_list_strings['aor_condition_type_list']['Date'] = 'Date';
-$app_list_strings['aor_condition_type_list']['Multi'] = 'One of';
-$app_list_strings['aor_condition_type_list']['Period'] = 'Period';
-$app_list_strings['aor_condition_type_list']['CurrentUserID'] = 'Current User';
-$app_list_strings['aor_date_type_list'][''] = '';
-$app_list_strings['aor_date_type_list']['minute'] = 'Minutes';
-$app_list_strings['aor_date_type_list']['hour'] = 'Hours';
-$app_list_strings['aor_date_type_list']['day'] = 'Days';
-$app_list_strings['aor_date_type_list']['week'] = 'Weeks';
-$app_list_strings['aor_date_type_list']['month'] = 'Months';
-$app_list_strings['aor_date_type_list']['business_hours'] = 'Business Hours';
-$app_list_strings['aor_date_options']['now'] = 'Now';
-$app_list_strings['aor_date_options']['field'] = 'This Field';
-$app_list_strings['aor_date_operator']['now'] = '';
-$app_list_strings['aor_date_operator']['plus'] = '+';
-$app_list_strings['aor_date_operator']['minus'] = '-';
-$app_list_strings['aor_sort_operator'][''] = '';
-$app_list_strings['aor_sort_operator']['ASC'] = 'Ascending';
-$app_list_strings['aor_sort_operator']['DESC'] = 'Descending';
-$app_list_strings['aor_function_list'][''] = '';
-$app_list_strings['aor_function_list']['COUNT'] = 'Count';
-$app_list_strings['aor_function_list']['MIN'] = 'Minimum';
-$app_list_strings['aor_function_list']['MAX'] = 'Maximum';
-$app_list_strings['aor_function_list']['SUM'] = 'Sum';
-$app_list_strings['aor_function_list']['AVG'] = 'Average';
-$app_list_strings['aor_total_options'][''] = '';
-$app_list_strings['aor_total_options']['COUNT'] = 'Count';
-$app_list_strings['aor_total_options']['SUM'] = 'Sum';
-$app_list_strings['aor_total_options']['AVG'] = 'Average';
-$app_list_strings['aor_chart_types']['bar'] = 'Bar chart';
-$app_list_strings['aor_chart_types']['line'] = 'Line chart';
-$app_list_strings['aor_chart_types']['pie'] = 'Pie chart';
-$app_list_strings['aor_chart_types']['radar'] = 'Radar chart';
-$app_list_strings['aor_chart_types']['stacked_bar'] = 'Stacked bar';
-$app_list_strings['aor_chart_types']['grouped_bar'] = 'Grouped bar';
-$app_list_strings['aor_scheduled_report_schedule_types']['monthly'] = 'Monthly';
-$app_list_strings['aor_scheduled_report_schedule_types']['weekly'] = 'Weekly';
-$app_list_strings['aor_scheduled_report_schedule_types']['daily'] = 'Daily';
-$app_list_strings['aor_scheduled_reports_status_dom']['active'] = 'Active';
-$app_list_strings['aor_scheduled_reports_status_dom']['inactive'] = 'Inactive';
-$app_list_strings['aor_email_type_list']['Email Address'] = 'Email';
-$app_list_strings['aor_email_type_list']['Specify User'] = 'User';
-$app_list_strings['aor_email_type_list']['Users'] = 'Users';
-$app_list_strings['aor_assign_options']['all'] = 'ALL Users';
-$app_list_strings['aor_assign_options']['role'] = 'ALL Users in Role';
-$app_list_strings['aor_assign_options']['security_group'] = 'ALL Users in Security Group';
 $app_list_strings['date_time_period_list']['today'] = 'Today';
 $app_list_strings['date_time_period_list']['yesterday'] = 'Yesterday';
 $app_list_strings['date_time_period_list']['this_week'] = 'This Week';
@@ -3169,7 +2826,6 @@ $app_list_strings['pdf_template_type_dom']['AOS_Invoices'] = 'Invoices';
 $app_list_strings['pdf_template_type_dom']['AOS_Contracts'] = 'Contracts';
 $app_list_strings['pdf_template_type_dom']['Accounts'] = 'Accounts';
 $app_list_strings['pdf_template_type_dom']['Contacts'] = 'Contacts';
-$app_list_strings['pdf_template_type_dom']['Leads'] = 'Leads';
 $app_list_strings['pdf_template_sample_dom'][''] = '';
 $app_list_strings['contract_status_list']['Not Started'] = 'Not Started';
 $app_list_strings['contract_status_list']['In Progress'] = 'In Progress';
@@ -3249,30 +2905,12 @@ $app_list_strings['aow_run_when_list']['On_Save'] = 'Only On Save';
 $app_list_strings['aow_run_when_list']['In_Scheduler'] = 'Only In The Scheduler';
 
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates'] = 'Projects - Templates';
-$app_list_strings['moduleList']['AM_TaskTemplates'] = 'Project Task Templates';
 $app_list_strings['relationship_type_list']['FS'] = 'Finish to Start';
 $app_list_strings['relationship_type_list']['SS'] = 'Start to Start';
 $app_list_strings['duration_unit_dom']['Days'] = 'Days';
 $app_list_strings['duration_unit_dom']['Hours'] = 'Hours';
 $app_strings['LBL_GANTT_BUTTON_LABEL'] = 'View Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL'] = 'View Detail';
-$app_strings['LBL_CREATE_PROJECT'] = 'Create Project';
-
-//gmaps
-$app_strings['LBL_MAP'] = 'Map';
-
-$app_strings['LBL_JJWG_MAPS_LNG'] = 'Longitude';
-$app_strings['LBL_JJWG_MAPS_LAT'] = 'Latitude';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS'] = 'Geocode Status';
-$app_strings['LBL_JJWG_MAPS_ADDRESS'] = 'Address';
-
-$app_list_strings['moduleList']['jjwg_Maps'] = 'Maps';
-$app_list_strings['moduleList']['jjwg_Markers'] = 'Maps - Markers';
-$app_list_strings['moduleList']['jjwg_Areas'] = 'Maps - Areas';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Maps - Address Cache';
-
-$app_list_strings['moduleList']['jjwp_Partners'] = 'JJWP Partners';
 
 $app_list_strings['map_unit_type_list']['mi'] = 'Miles';
 $app_list_strings['map_unit_type_list']['km'] = 'Kilometers';
@@ -3280,20 +2918,14 @@ $app_list_strings['map_unit_type_list']['km'] = 'Kilometers';
 $app_list_strings['map_module_type_list']['Accounts'] = 'Accounts';
 $app_list_strings['map_module_type_list']['Contacts'] = 'Contacts';
 $app_list_strings['map_module_type_list']['Cases'] = 'Cases';
-$app_list_strings['map_module_type_list']['Leads'] = 'Leads';
 $app_list_strings['map_module_type_list']['Meetings'] = 'Meetings';
 $app_list_strings['map_module_type_list']['Opportunities'] = 'Opportunities';
-$app_list_strings['map_module_type_list']['Project'] = 'Projects';
-$app_list_strings['map_module_type_list']['Prospects'] = 'Targets';
 
 $app_list_strings['map_relate_type_list']['Accounts'] = 'Account';
 $app_list_strings['map_relate_type_list']['Contacts'] = 'Contact';
 $app_list_strings['map_relate_type_list']['Cases'] = 'Case';
-$app_list_strings['map_relate_type_list']['Leads'] = 'Lead';
 $app_list_strings['map_relate_type_list']['Meetings'] = 'Meeting';
 $app_list_strings['map_relate_type_list']['Opportunities'] = 'Opportunity';
-$app_list_strings['map_relate_type_list']['Project'] = 'Project';
-$app_list_strings['map_relate_type_list']['Prospects'] = 'Target';
 
 $app_list_strings['marker_image_list']['accident'] = 'Accident';
 $app_list_strings['marker_image_list']['administration'] = 'Administration';
@@ -3587,45 +3219,6 @@ $app_list_strings['moduleList']['TemplateEditor'] = 'Template Part Editor';
 $app_strings['LBL_CONFIRM_CANCEL_INLINE_EDITING'] = "You have clicked away from the field you were editing without saving it. Click ok if you're happy to lose your change, or cancel if you would like to continue editing";
 $app_strings['LBL_LOADING_ERROR_INLINE_EDITING'] = "There was an error loading the field. Your session may have timed out. Please log in again to fix this";
 
-//SuiteSpots
-$app_list_strings['spots_areas'] = array(
-    'getSalesSpotsData' => 'Sales',
-    'getAccountsSpotsData' => 'Accounts',
-    'getLeadsSpotsData' => 'Leads',
-    'getServiceSpotsData' => 'Service',
-    'getMarketingSpotsData' => 'Marketing',
-    'getMarketingActivitySpotsData' => 'Marketing Activity',
-    'getActivitiesSpotsData' => 'Activities',
-    'getQuotesSpotsData' => 'Quotes'
-);
-
-$app_list_strings['moduleList']['Spots'] = 'Spots';
-
-$app_list_strings['moduleList']['AOBH_BusinessHours'] = 'Business Hours';
-$app_list_strings['business_hours_list']['0'] = '12am';
-$app_list_strings['business_hours_list']['1'] = '1am';
-$app_list_strings['business_hours_list']['2'] = '2am';
-$app_list_strings['business_hours_list']['3'] = '3am';
-$app_list_strings['business_hours_list']['4'] = '4am';
-$app_list_strings['business_hours_list']['5'] = '5am';
-$app_list_strings['business_hours_list']['6'] = '6am';
-$app_list_strings['business_hours_list']['7'] = '7am';
-$app_list_strings['business_hours_list']['8'] = '8am';
-$app_list_strings['business_hours_list']['9'] = '9am';
-$app_list_strings['business_hours_list']['10'] = '10am';
-$app_list_strings['business_hours_list']['11'] = '11am';
-$app_list_strings['business_hours_list']['12'] = '12pm';
-$app_list_strings['business_hours_list']['13'] = '1pm';
-$app_list_strings['business_hours_list']['14'] = '2pm';
-$app_list_strings['business_hours_list']['15'] = '3pm';
-$app_list_strings['business_hours_list']['16'] = '4pm';
-$app_list_strings['business_hours_list']['17'] = '5pm';
-$app_list_strings['business_hours_list']['18'] = '6pm';
-$app_list_strings['business_hours_list']['19'] = '7pm';
-$app_list_strings['business_hours_list']['20'] = '8pm';
-$app_list_strings['business_hours_list']['21'] = '9pm';
-$app_list_strings['business_hours_list']['22'] = '10pm';
-$app_list_strings['business_hours_list']['23'] = '11pm';
 $app_list_strings['day_list']['Monday'] = 'Monday';
 $app_list_strings['day_list']['Tuesday'] = 'Tuesday';
 $app_list_strings['day_list']['Wednesday'] = 'Wednesday';
@@ -3638,30 +3231,6 @@ $app_list_strings['pdf_page_size_dom']['Letter'] = 'Letter';
 $app_list_strings['pdf_page_size_dom']['Legal'] = 'Legal';
 $app_list_strings['pdf_orientation_dom']['Portrait'] = 'Portrait';
 $app_list_strings['pdf_orientation_dom']['Landscape'] = 'Landscape';
-
-
-$app_list_strings['moduleList']['SurveyResponses'] = 'Survey Responses';
-$app_list_strings['moduleList']['Surveys'] = 'Surveys';
-$app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Survey Question Responses';
-$app_list_strings['moduleList']['SurveyQuestions'] = 'Survey Questions';
-$app_list_strings['moduleList']['SurveyQuestionOptions'] = 'Survey Question Options';
-$app_list_strings['survey_status_list']['Draft'] = 'Draft';
-$app_list_strings['survey_status_list']['Public'] = 'Public';
-$app_list_strings['survey_status_list']['Closed'] = 'Closed';
-$app_list_strings['surveys_question_type']['Text'] = 'Text';
-$app_list_strings['surveys_question_type']['Textbox'] = 'Textbox';
-$app_list_strings['surveys_question_type']['Checkbox'] = 'Checkbox';
-$app_list_strings['surveys_question_type']['Radio'] = 'Radio';
-$app_list_strings['surveys_question_type']['Dropdown'] = 'Dropdown';
-$app_list_strings['surveys_question_type']['Multiselect'] = 'Multiselect';
-$app_list_strings['surveys_question_type']['Matrix'] = 'Matrix';
-$app_list_strings['surveys_question_type']['DateTime'] = 'DateTime';
-$app_list_strings['surveys_question_type']['Date'] = 'Date';
-$app_list_strings['surveys_question_type']['Scale'] = 'Scale';
-$app_list_strings['surveys_question_type']['Rating'] = 'Rating';
-$app_list_strings['surveys_matrix_options'][0] = 'Satisfied';
-$app_list_strings['surveys_matrix_options'][1] = 'Neither Satisfied nor Dissatisfied';
-$app_list_strings['surveys_matrix_options'][2] = 'Dissatisfied';
 
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_NOT_SENT'] = 'Pending Confirm opt in, Confirm opt in not sent';
 $app_strings['LBL_OPT_IN_PENDING_EMAIL_FAILED'] = 'Confirm opt in email sending failed';

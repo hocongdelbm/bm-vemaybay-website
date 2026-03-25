@@ -78,7 +78,6 @@ $mod_strings = array(
     'LBL_LIST_RELATED_TO' => 'Related to',
     'LBL_LIST_STATUS' => 'Status',
     'LBL_LIST_SUBJECT' => 'Subject',
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Leads',
     'LBL_LOCATION' => 'Location:',
     'LBL_MINSS_ABBREV' => 'm',
     'LBL_MODIFIED_BY' => 'Modified by',

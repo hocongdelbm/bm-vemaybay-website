@@ -37,6 +37,9 @@ class EC_HoaDonBanController extends SugarController
 			case "signedinvoice":
 				$this->action = "signedinvoice";
 				break;
+			case "checkinvoiceamount":
+				$this->action = "checkinvoiceamount";
+				break;
 			case "Delete":
 				$this->action = "Delete";
 				break;

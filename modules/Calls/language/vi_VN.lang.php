@@ -64,7 +64,6 @@ $mod_strings = array(
     'LNK_SELECT_ACCOUNT' => 'Chọn Khách hàng',
     'LNK_NEW_ACCOUNT' => 'Khách hàng mới',
     'LNK_NEW_OPPORTUNITY' => 'Cơ hội mới',
-    'LBL_LEADS_SUBPANEL_TITLE' => 'Đầu mối',
     'LBL_CONTACTS_SUBPANEL_TITLE' => 'Liên hệ',
     'LBL_USERS_SUBPANEL_TITLE' => 'Người dùng',
     'LBL_OUTLOOK_ID' => 'Outlook ID',

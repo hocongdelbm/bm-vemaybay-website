@@ -174,6 +174,7 @@ class Viewrecheckbk extends SugarView {
                     INNER JOIN users u ON u.id = p.assigned_user_id
                     WHERE p.parent_id = b.id AND p.deleted = 0 AND p.recheck > 0
                 ) AS recheck_inf
+                , b.date_ticket_issue as date_ticket_issue
             ' . $sql_recheck_cnt . '
             FROM ec_flight_bookings b 
             WHERE
@@ -216,10 +217,20 @@ class Viewrecheckbk extends SugarView {
             }
 
             $rw_span    = count($bk_airline);
+            // $html .= '
+            // <tr class="line' . $i . '">
+            //     <td class="text-center fw-bold" rowspan="' . $rw_span  . '">' . ($i + 1) . '</td>
+            //     <td class="text-center" rowspan="' . $rw_span  . '">' . date('d-m-Y', strtotime($bk_arr[$i]['expticket_time'])) . '    ' . date('H:i', strtotime($bk_arr[$i]['expticket_time'])) . '</td>
+            //     <td class="text-center" rowspan="' . $rw_span  . '"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $bk_arr[$i]['booking_id'] . '" target="_blank">' . $bk_arr[$i]['booking'] . '</a></td>
+            //     <td class="text-center"><span class="label_badge badge '.$color_airline.'">'.$bk_airline[0].'</span></td>
+            //     <td class="recheck_col p-0" rowspan="' . $rw_span  . '" colspan="3">
+            //         ' . $this->genRecheck($bk_arr[$i]['recheck_inf']) . '
+            //     </td>
+            // </tr>';
             $html .= '
             <tr class="line' . $i . '">
                 <td class="text-center fw-bold" rowspan="' . $rw_span  . '">' . ($i + 1) . '</td>
-                <td class="text-center" rowspan="' . $rw_span  . '">' . date('d-m-Y', strtotime($bk_arr[$i]['expticket_time'])) . '    ' . date('H:i', strtotime($bk_arr[$i]['expticket_time'])) . '</td>
+                <td class="text-center" rowspan="' . $rw_span  . '">' . date('d-m-Y', strtotime($bk_arr[$i]['date_ticket_issue'])) . '</td>
                 <td class="text-center" rowspan="' . $rw_span  . '"><a href="index.php?module=EC_Flight_Bookings&action=DetailView&record=' . $bk_arr[$i]['booking_id'] . '" target="_blank">' . $bk_arr[$i]['booking'] . '</a></td>
                 <td class="text-center"><span class="label_badge badge '.$color_airline.'">'.$bk_airline[0].'</span></td>
                 <td class="recheck_col p-0" rowspan="' . $rw_span  . '" colspan="3">

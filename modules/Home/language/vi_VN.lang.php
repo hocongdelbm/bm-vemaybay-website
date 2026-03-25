@@ -34,10 +34,6 @@ $mod_strings = array(
     'LBL_NO_RESULTS' => '<h2>Không tìm thấy kết quả. Xin vui lòng tìm kiếm lại.</h2><br>',
     'LBL_NO_RESULTS_TIPS' => '<h3>Mẹo tìm kiếm:</h3><ul><li>Đảm bảo bạn có các danh mục phù hợp được chọn ở trên.</li><li>Mở rộng các tiêu chí tìm kiếm của bạn.</li><li>Nếu bạn vẫn không thể tìm thấy bất kỳ kết quả nào hãy thử tùy chọn tìm kiếm nâng cao.</li></ul>',
 
-    'LBL_ADD_DASHLETS' => 'Thêm SuiteCRM Dashlets',
-    'LBL_WEBSITE_TITLE' => 'Trang web',
-    'LBL_RSS_TITLE' => 'Tin mới',
-    'LBL_CLOSE_DASHLETS' => 'Đóng',
     'LBL_OPTIONS' => 'Tùy chọn',
     // dashlet search fields
     'LBL_TODAY' => 'Xem Lịch',
@@ -54,35 +50,8 @@ $mod_strings = array(
     'LBL_NEXT_30_DAYS' => '30 ngày tới',
     'LBL_THIS_MONTH' => 'Tháng này',
     'LBL_THIS_YEAR' => 'Năm nay',
-
-    'LBL_MODULES' => 'Mô-đun',
-    'LBL_CHARTS' => 'Biểu đồ',
-    'LBL_TOOLS' => 'Công cụ',
-    'LBL_WEB' => 'Web',
-    'LBL_SEARCH_RESULTS' => 'Kết quả tìm kiếm',
-
-    // Dashlet Categories
-    'dashlet_categories_dom' => array(
-        'Module Views' => 'Xem Module',
-        'Portal' => 'Cổng thông tin',
-        'Charts' => 'Biểu đồ',
-        'Tools' => 'Công cụ',
-        'Miscellaneous' => 'Linh tinh'
-    ),
-    'LBL_ADDING_DASHLET' => 'Thêm SuiteCRM Dashlet...',
-    'LBL_ADDED_DASHLET' => 'SuiteCRM Dashlet thêm',
-    'LBL_REMOVE_DASHLET_CONFIRM' => 'Bạn có chắc bạn muốn loại bỏ này SuiteCRM Dashlet?',
     'LBL_REMOVING_DASHLET' => 'Loại bỏ các SuiteCRM Dashlet...',
     'LBL_REMOVED_DASHLET' => 'SuiteCRM Dashlet removed',
-    'LBL_DASHLET_CONFIGURE_GENERAL' => 'Tổng quan',
-    'LBL_DASHLET_CONFIGURE_FILTERS' => 'Sàng lọc',
-    'LBL_DASHLET_CONFIGURE_MY_ITEMS_ONLY' => 'Chỉ mẫu của tôi',
-    'LBL_DASHLET_CONFIGURE_TITLE' => 'Tiêu đề',
-    'LBL_DASHLET_CONFIGURE_DISPLAY_ROWS' => 'Các dòng hiển thị',
-
-    'LBL_DASHLET_DELETE' => 'Xóa SuiteCRM Dashlet',
-    'LBL_DASHLET_REFRESH' => 'Làm mới SuiteCRM Dashlet',
-    'LBL_DASHLET_EDIT' => 'Chỉnh sửa SuiteCRM Dashlet',
 
     // Default out-of-box names for tabs
     'LBL_HOME_PAGE_1_NAME' => 'My CRM',
@@ -91,11 +60,6 @@ $mod_strings = array(
     'LBL_SEARCH' => 'Tìm',
     'LBL_CLEAR' => 'Xóa',
 
-    'LBL_BASIC_CHARTS' => 'Biểu đồ cơ bản',
-
-    'LBL_DASHLET_SEARCH' => 'Tìm SuiteCRM Dashlet',
-
-//ABOUT page
     'LBL_VERSION' => 'Phiên bản',
     'LBL_BUILD' => 'Đóng gói',
 

@@ -4181,60 +4181,12 @@ function merge_config_si_settings($write_to_upgrade_log=false, $config_location=
 function upgrade_connectors()
 {
     require_once('include/connectors/utils/ConnectorUtils.php');
-    remove_linkedin_config();
 
     if (!ConnectorUtils::updateMetaDataFiles()) {
         $GLOBALS['log']->fatal('Cannot update metadata files for connectors');
     }
 
-    //Delete the custom connectors.php file if it exists so that it may be properly rebuilt
-    if (file_exists('custom/modules/Connectors/metadata/connectors.php')) {
-        unlink('custom/modules/Connectors/metadata/connectors.php');
-    }
-
     remove_linkedin_connector();
-}
-
-/**
- * remove_linkedin_config
- *
- * This function removes linkedin config from custom/modules/Connectors/metadata/display_config.php, linkedin connector is removed in 6.5.16
- *
- */
-function remove_linkedin_config()
-{
-    $display_file = 'custom/modules/Connectors/metadata/display_config.php';
-
-    if (file_exists($display_file)) {
-        require($display_file);
-
-        if (!empty($modules_sources)) {
-            foreach ($modules_sources as $module => $config) {
-                if (isset($config['ext_rest_linkedin'])) {
-                    unset($modules_sources[$module]['ext_rest_linkedin']);
-                }
-            }
-            if (!write_array_to_file('modules_sources', $modules_sources, $display_file)) {
-                //Log error
-                $GLOBALS['log']->fatal("Cannot write \$modules_sources to " . $display_file);
-            }
-        }
-    }
-
-    $search_file = 'custom/modules/Connectors/metadata/searchdefs.php';
-
-    if (file_exists($search_file)) {
-        require($search_file);
-
-        if (isset($searchdefs['ext_rest_linkedin'])) {
-            unset($searchdefs['ext_rest_linkedin']);
-
-            if (!write_array_to_file('searchdefs', $searchdefs, $search_file)) {
-                //Log error
-                $GLOBALS['log']->fatal("Cannot write \$searchdefs to " . $search_file);
-            }
-        }
-    }
 }
 
 /**

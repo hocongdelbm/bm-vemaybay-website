@@ -1,42 +1,4 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -224,7 +186,7 @@ class EditView
         $metadataFileName = 'editviewdefs'
     ) {
         $this->th = $this->getTemplateHandler();
-        $this->th->ss =& $this->ss;
+        $this->th->ss = &$this->ss;
         $this->tpl = get_custom_file_if_exists($tpl);
         $this->module = $module;
         $this->focus = $focus;
@@ -248,7 +210,8 @@ class EditView
             include($this->metadataFile);
         } else {
             //If file doesn't exist we create a best guess
-            if (!file_exists("modules/$this->module/metadata/$metadataFileName.php")
+            if (
+                !file_exists("modules/$this->module/metadata/$metadataFileName.php")
                 && file_exists("modules/$this->module/EditView.html")
             ) {
                 require_once('include/SugarFields/Parsers/EditViewMetaParser.php');
@@ -437,8 +400,8 @@ class EditView
 
                         $panel[$row][$col]['field']['tabindex'] =
                             (isset($p[$row][$col]['tabindex']) && is_numeric($p[$row][$col]['tabindex']))
-                                ? $p[$row][$col]['tabindex']
-                                : '0';
+                            ? $p[$row][$col]['tabindex']
+                            : '0';
 
                         if ($columnsInRows < $maxColumns) {
                             if ($col == $columnsInRows - 1) {
@@ -481,7 +444,8 @@ class EditView
     {
         $addFiller = true;
         foreach ($panel as $row) {
-            if (count($row) == $this->defs['templateMeta']['maxColumns']
+            if (
+                count($row) == $this->defs['templateMeta']['maxColumns']
                 || 1 == count($panel)
             ) {
                 $addFiller = false;
@@ -715,14 +679,16 @@ class EditView
                  * Only do if this fieldDef does not already have a value; if it does it will have been explicitly set,
                  * and that should overrule this less specific mechanism
                  */
-                if (isset($this->returnModule) && isset($this->returnName)
+                if (
+                    isset($this->returnModule) && isset($this->returnName)
                     && empty($this->focus->id) && empty($this->fieldDefs['name']['value'])
                 ) {
                     if (($this->focus->field_defs[$name]['type'] === 'relate')
                         && isset($this->focus->field_defs[$name]['module'])
                         && $this->focus->field_defs[$name]['module'] === $this->returnModule
                     ) {
-                        if (isset($this->fieldDefs[$name]['id_name'])
+                        if (
+                            isset($this->fieldDefs[$name]['id_name'])
                             && !empty($this->returnRelationship)
                             && isset($this->focus->field_defs[$this->fieldDefs[$name]['id_name']]['relationship'])
                             && ($this->returnRelationship == $this->focus->field_defs[$this->fieldDefs[$name]['id_name']]['relationship'])
@@ -936,21 +902,23 @@ class EditView
         /* BEGIN - SECURITY GROUPS */
         //if popup select add panel if user is a member of multiple groups to metadataFile
         global $sugar_config;
-        if(isset($sugar_config['securitysuite_popup_select']) && $sugar_config['securitysuite_popup_select'] == true
-            && (empty($this->focus->fetched_row['id']) || ($_REQUEST['isDuplicate'] ?? false) === true) && $this->focus->module_dir != "Users" && $this->focus->module_dir != "SugarFeed") {
+        if (
+            isset($sugar_config['securitysuite_popup_select']) && $sugar_config['securitysuite_popup_select'] == true
+            && (empty($this->focus->fetched_row['id']) || ($_REQUEST['isDuplicate'] ?? false) === true) && $this->focus->module_dir != "Users"
+        ) {
 
             //there are cases such as uploading an attachment to an email template where the request module may
             //not be the same as the current bean module. If that happens we can just skip it
             //however...let quickcreate through
-            if($this->view != 'QuickCreate' && (empty($_REQUEST['module']) || $_REQUEST['module'] != $this->focus->module_dir)) return $str;
+            if ($this->view != 'QuickCreate' && (empty($_REQUEST['module']) || $_REQUEST['module'] != $this->focus->module_dir)) return $str;
 
             require_once('modules/SecurityGroups/SecurityGroup.php');
             $security_modules = SecurityGroup::getSecurityModules();
-            if(in_array($this->focus->module_dir,array_keys($security_modules))) {
+            if (in_array($this->focus->module_dir, array_keys($security_modules))) {
                 global $current_user;
 
                 $group_count = SecurityGroup::getMembershipCount($current_user->id);
-                if($group_count > 1) {
+                if ($group_count > 1) {
 
                     //https://www.sugaroutfitters.com/support/securitysuite/2313
                     //if there is a parent then use the groups on that record as the default selected
@@ -959,8 +927,8 @@ class EditView
 
                     $groups = SecurityGroup::getUserSecurityGroups($current_user->id);
                     $group_options = '';
-                    foreach($groups as $group) {
-                        $group_options .= '<option value="'.$group['id'].'" label="'.$group['name'].'" '.(empty($group['noninheritable'])?'selected="selected"':'').'>'.$group['name'].'</option>';
+                    foreach ($groups as $group) {
+                        $group_options .= '<option value="' . $group['id'] . '" label="' . $group['name'] . '" ' . (empty($group['noninheritable']) ? 'selected="selected"' : '') . '>' . $group['name'] . '</option>';
                     }
                     //multilingual support
                     global $current_language;
@@ -1076,7 +1044,8 @@ EOQ;
                 $timeHourKey = 'time_hour_' . $key;
                 $timeMinuteKey = 'time_minute_' . $key;
 
-                if (isset($request[$timeHourKey])
+                if (
+                    isset($request[$timeHourKey])
                     && isset($request[$timeMinuteKey])
                 ) {
                     $d .= sprintf(
@@ -1113,7 +1082,6 @@ EOQ;
 
     /**
      * Allow Subviews to overwrite this method to show custom titles.
-     * Examples: Projects & Project Templates.
      * params: $showTitle: boolean for backwards compatibility.
      */
     public function showTitle($showTitle = false)

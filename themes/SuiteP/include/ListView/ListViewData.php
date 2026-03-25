@@ -451,9 +451,7 @@ class ListViewData
             $totalCount  = $this->getTotalCount($main_query);
         }
         SugarVCR::recordIDs($this->seed->module_dir, array_keys($idIndex), $offset, $totalCount);
-        $module_names = array(
-            'Prospects' => 'Targets'
-        );
+        $module_names = array();
         $endOffset = (floor(($totalCount - 1) / $limit)) * $limit;
         $pageData['ordering'] = $order;
         $pageData['ordering']['sortOrder'] = $this->getReverseSortOrder($pageData['ordering']['sortOrder']);

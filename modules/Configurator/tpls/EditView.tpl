@@ -53,9 +53,8 @@
 				</td>
 			</tr>
 			<tr>
-				<td  scope="row" nowrap>{$MOD.MAX_DASHLETS}: </td>
+				<td  scope="row" nowrap></td>
 				<td>
-					<input type='text' class="box-input" size='4' name='max_dashlets_homepage' value='{$config.max_dashlets_homepage}'>
 				</td>
 				<td  scope="row" nowrap>{$MOD.LBL_USE_REAL_NAMES}: &nbsp;{sugar_help text=$MOD.LBL_USE_REAL_NAMES_DESC}</td>
 				{if !empty($config.use_real_names)}
@@ -301,9 +300,8 @@
 			<td ><input type='hidden' name='developerMode' value='false'><input name='developerMode'  type="checkbox" value='true' {$developerModeChecked}></td>
 		</tr>
 		<tr>
-			<td scope="row">{$MOD.LBL_VCAL_PERIOD} {sugar_help text=$MOD.vCAL_HELP}</td>
+			<td scope="row"></td>
 			<td >
-				<input type='text' class="box-input" size='4' name='vcal_time' value='{$config.vcal_time}'>
 			</td>
 		   <td scope="row">{$MOD.LBL_IMPORT_MAX_RECORDS} {sugar_help text=$MOD.LBL_IMPORT_MAX_RECORDS_HELP}</td>
 			<td >

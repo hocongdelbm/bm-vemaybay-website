@@ -1,4 +1,3 @@
-{{* Add the preForm code if it is defined (used for vcards) *}}
 {{if $preForm}}
 {{$preForm}}
 {{/if}}

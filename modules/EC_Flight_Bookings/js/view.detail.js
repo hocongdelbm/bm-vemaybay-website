@@ -458,16 +458,25 @@ $(document).ready(function () {
 	});
 
 	$(document).on('click', '#btnChonNgonNgu', function () {
-		let what_form = '#' + $('#what_form').val();
-		let lang = $('input:radio[name="ngonngu"]:checked').val();
-		let khuhoi = $('#khuhoi').is(':checked') ? 1 : 0;
-		let wayflight = $(`${what_form} input:hidden[name="direction"]`).val();
+		let what_form 	= '#' + $('#what_form').val();
+		let lang 		= $('input:radio[name="ngonngu"]:checked').val();
+		let khuhoi 		= $('#khuhoi').is(':checked') ? 1 : 0;
+		let new_version = $('#new_version').is(':checked') ? 1 : 0;
+		let wayflight 	= $(`${what_form} input:hidden[name="direction"]`).val(); // 0:dep 1:ret
 		let checkedPassIds = $("input[name='passenger_list_print_eticket[]']:checked").map(function () {
 			return $(this).val();
 		}).get();
 		let listPassengers = encodeURIComponent(checkedPassIds.join(','));
 
-		$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&khuhoi=${khuhoi}&wayflight=${wayflight}&listPassengers=${listPassengers}`);
+		let currentAction = $(what_form).find('input[name="action"]').val();
+		if(new_version) {
+			if(!currentAction.includes("new")) $(what_form).find('input[name="action"]').val(`${currentAction}new`);
+			$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&isRoundTrip=${khuhoi}&listPassengers=${listPassengers}`);
+		}
+		else {
+			$(what_form).find('input[name="action"]').val(currentAction.replace("new", ""));
+			$(what_form).attr('action', $(what_form).attr('action') + `&lang=${lang}&khuhoi=${khuhoi}&wayflight=${wayflight}&listPassengers=${listPassengers}`);
+		}
 		$(what_form).submit();
 	});
 
@@ -1105,9 +1114,7 @@ $(document).ready(function () {
 	});
 	// End change flight time
 
-
 	$(document).on("focus", ".allow-number-only", function () {
-		var cal_date_format = $('#cal_date_format').val();
 		var dec_seperator = $('#dec_seperator').val();
 		var grp_seperator = $('#grp_seperator').val();
 		var sig_digits = $('#sig_digits').val();
@@ -1115,14 +1122,9 @@ $(document).ready(function () {
 	});
 
 	$(document).on("change", "#receipt_type", function () {
-		var type = $("#receipt_type").val();
-		if (type == 'cash') {
-			$("#com_location_id").show();
-			$("#tknganhang_id").hide();
-		} else {
-			$("#tknganhang_id").show();
-			$("#com_location_id").hide();
-		}
+		const isCash = $(this).val() === "cash";
+		$("#com_location_id").toggle(isCash);
+		$("#tknganhang_id").toggle(!isCash);
 	});
 
 	$(".input_hour, .input_minute").on('keydown', function (event) {

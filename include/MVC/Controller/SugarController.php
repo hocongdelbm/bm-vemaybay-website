@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
@@ -179,7 +142,7 @@ class SugarController
      * process the action. If this is set we will default to the noaccess view.
      *@var bool
      */
-    public $hasAccess ;
+    public $hasAccess;
 
     /**
      * Map case sensitive filenames to action.  This is used for linux/unix systems
@@ -436,9 +399,7 @@ class SugarController
      * Meant to be overridden by a subclass and allows for specific functionality to be
      * injected prior to the process() method being called.
      */
-    public function preProcess()
-    {
-    }
+    public function preProcess() {}
 
     /**
      * if we have a function to support the action use it otherwise use the default action
@@ -757,14 +718,15 @@ class SugarController
     protected function action_massupdate()
     {
         if (!empty($_REQUEST['massupdate']) && $_REQUEST['massupdate'] == 'true' && (!empty($_REQUEST['uid']) || !empty($_REQUEST['entire']))) {
-            if (!empty($_REQUEST['Delete']) && $_REQUEST['Delete'] == 'true' && !$this->bean->ACLAccess('delete')
+            if (
+                !empty($_REQUEST['Delete']) && $_REQUEST['Delete'] == 'true' && !$this->bean->ACLAccess('delete')
                 || (empty($_REQUEST['Delete']) || $_REQUEST['Delete'] != 'true') && !$this->bean->ACLAccess('save')
             ) {
                 ACLController::displayNoAccess(true);
                 sugar_cleanup(true);
             }
 
-            set_time_limit(0);//I'm wondering if we will set it never goes timeout here.
+            set_time_limit(0); //I'm wondering if we will set it never goes timeout here.
             // until we have more efficient way of handling MU, we have to disable the limit
             DBManagerFactory::getInstance()->setQueryLimit(0);
             require_once("include/MassUpdate.php");
@@ -776,7 +738,7 @@ class SugarController
                 $mass->generateSearchWhere($_REQUEST['module'], $_REQUEST['current_query_by_page']);
             }
             $mass->handleMassUpdate();
-            $storeQuery = new StoreQuery();//restore the current search. to solve bug 24722 for multi tabs massupdate.
+            $storeQuery = new StoreQuery(); //restore the current search. to solve bug 24722 for multi tabs massupdate.
             $temp_req = array(
                 'current_query_by_page' => $_REQUEST['current_query_by_page'],
                 'return_module' => $_REQUEST['return_module'],
@@ -792,12 +754,12 @@ class SugarController
             }
             $_REQUEST = array();
             $_REQUEST = json_decode(html_entity_decode($temp_req['current_query_by_page']), true);
-            unset($_REQUEST[$seed->module_dir . '2_' . strtoupper($seed->object_name) . '_offset']);//after massupdate, the page should redirect to no offset page
+            unset($_REQUEST[$seed->module_dir . '2_' . strtoupper($seed->object_name) . '_offset']); //after massupdate, the page should redirect to no offset page
             $storeQuery->saveFromRequest($_REQUEST['module']);
             $_REQUEST = array(
                 'return_module' => $temp_req['return_module'],
                 'return_action' => $temp_req['return_action']
-            );//for post_massupdate, to go back to original page.
+            ); //for post_massupdate, to go back to original page.
         } else {
             sugar_die("You must massupdate at least one record");
         }
@@ -815,7 +777,7 @@ class SugarController
             $_REQUEST['return_action'] :
             $GLOBALS['sugar_config']['default_action'];
         $url = "index.php?module=" . $return_module . "&action=" . $return_action;
-        if ($return_module == 'Emails') {//specificly for My Achieves
+        if ($return_module == 'Emails') { //specificly for My Achieves
             if (!empty($this->req_for_email['type']) && !empty($this->req_for_email['ie_assigned_user_id'])) {
                 $url = $url . "&type=" . $this->req_for_email['type'] . "&assigned_user_id=" . $this->req_for_email['ie_assigned_user_id'];
             }
@@ -845,64 +807,6 @@ class SugarController
     protected function action_default()
     {
         $this->view = 'classic';
-    }
-
-    /**
-     * this method id used within a Dashlet when performing an ajax call
-     */
-    protected function action_callmethoddashlet()
-    {
-        if (!empty($_REQUEST['id'])) {
-            $id = $_REQUEST['id'];
-            $requestedMethod = $_REQUEST['method'];
-            $dashletDefs = $GLOBALS['current_user']->getPreference('dashlets', 'Home'); // load user's dashlets config
-            if (!empty($dashletDefs[$id])) {
-                require_once($dashletDefs[$id]['fileLocation']);
-
-                $dashlet = new $dashletDefs[$id]['className'](
-                    $id,
-                    (isset($dashletDefs[$id]['options']) ? $dashletDefs[$id]['options'] : array())
-                );
-
-                if (method_exists($dashlet, $requestedMethod) || method_exists($dashlet, '__call')) {
-                    echo $dashlet->$requestedMethod();
-                } else {
-                    echo 'no method';
-                }
-            }
-        }
-    }
-
-    /**
-     * this method is used within a Dashlet when the options configuration is posted
-     */
-    protected function action_configuredashlet()
-    {
-        global $current_user, $mod_strings;
-
-        if (!empty($_REQUEST['id'])) {
-            $id = $_REQUEST['id'];
-            $dashletDefs = $current_user->getPreference('dashlets', $_REQUEST['module']); // load user's dashlets config
-            require_once($dashletDefs[$id]['fileLocation']);
-
-            $dashlet = new $dashletDefs[$id]['className'](
-                $id,
-                (isset($dashletDefs[$id]['options']) ? $dashletDefs[$id]['options'] : array())
-            );
-            if (!empty($_REQUEST['configure']) && $_REQUEST['configure']) { // save settings
-                $dashletDefs[$id]['options'] = $dashlet->saveOptions($_REQUEST);
-                $current_user->setPreference('dashlets', $dashletDefs, 0, $_REQUEST['module']);
-            } else { // display options
-                $json = getJSONobj();
-
-                return 'result = ' . $json->encode((array(
-                        'header' => $dashlet->title . ' : ' . $mod_strings['LBL_OPTIONS'],
-                        'body' => $dashlet->displayOptions()
-                    )));
-            }
-        } else {
-            return '0';
-        }
     }
 
     /**
@@ -968,10 +872,11 @@ class SugarController
                 $GLOBALS['admin_access_control_links'] = $this->file_access_control_map['modules'][$module]['links'];
             }
 
-            if (!empty($this->file_access_control_map['modules'][$module]['actions']) && (in_array(
-                $action,
-                $this->file_access_control_map['modules'][$module]['actions']
-            ) || !empty($this->file_access_control_map['modules'][$module]['actions'][$action]))
+            if (
+                !empty($this->file_access_control_map['modules'][$module]['actions']) && (in_array(
+                    $action,
+                    $this->file_access_control_map['modules'][$module]['actions']
+                ) || !empty($this->file_access_control_map['modules'][$module]['actions'][$action]))
             ) {
                 //check params
                 if (!empty($this->file_access_control_map['modules'][$module]['actions'][$action]['params'])) {
@@ -1031,7 +936,8 @@ class SugarController
     {
         $this->loadMapping('entry_point_registry');
 
-        if (isset($this->entry_point_registry[$entryPoint]['auth'])
+        if (
+            isset($this->entry_point_registry[$entryPoint]['auth'])
             && !$this->entry_point_registry[$entryPoint]['auth']
         ) {
             return false;

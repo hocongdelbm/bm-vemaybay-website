@@ -2,44 +2,6 @@
 if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
 
 require_once('include/Sugarpdf/sugarpdf_default.php');
 if (file_exists('custom/include/Sugarpdf/sugarpdf_default.php')) {
@@ -47,7 +9,7 @@ if (file_exists('custom/include/Sugarpdf/sugarpdf_default.php')) {
 }
 // set alternative config file
 if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
-    
+
     /*
      *  Installation path of TCPDF
      */
@@ -61,8 +23,8 @@ if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
      */
     define("K_PATH_CUSTOM_FONTS", $sugarpdf_default["K_PATH_CUSTOM_FONTS"]);
     /**
-    * path for PDF fonts
-    */
+     * path for PDF fonts
+     */
     define("K_PATH_FONTS", $sugarpdf_default["K_PATH_FONTS"]);
     /**
      * cache directory for temporary files (full path)
@@ -111,12 +73,12 @@ if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
      */
     defineFromConfig("PDF_AUTHOR", $sugarpdf_default["PDF_AUTHOR"]);
     /**
-    * header title
-    */
+     * header title
+     */
     defineFromConfig("PDF_HEADER_TITLE", $sugarpdf_default["PDF_HEADER_TITLE"]);
     /**
-    * header description string
-    */
+     * header description string
+     */
     defineFromConfig("PDF_HEADER_STRING", $sugarpdf_default["PDF_HEADER_STRING"]);
     /**
      * image logo for the default Header
@@ -134,47 +96,47 @@ if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
      * header logo image width [mm]
      */
     defineFromConfig("PDF_SMALL_HEADER_LOGO_WIDTH", $sugarpdf_default["PDF_SMALL_HEADER_LOGO_WIDTH"]);
-    
+
     /**
      *  document unit of measure [pt=point, mm=millimeter, cm=centimeter, in=inch]
      */
     defineFromConfig('PDF_UNIT', $sugarpdf_default["PDF_UNIT"]);
-    
+
     /**
      * header margin
      */
     defineFromUserPreference('PDF_MARGIN_HEADER', $sugarpdf_default["PDF_MARGIN_HEADER"]);
-    
+
     /**
      * footer margin
      */
     defineFromUserPreference('PDF_MARGIN_FOOTER', $sugarpdf_default["PDF_MARGIN_FOOTER"]);
-    
+
     /**
      * top margin
      */
     defineFromUserPreference('PDF_MARGIN_TOP', $sugarpdf_default["PDF_MARGIN_TOP"]);
-    
+
     /**
      * bottom margin
      */
     defineFromUserPreference('PDF_MARGIN_BOTTOM', $sugarpdf_default["PDF_MARGIN_BOTTOM"]);
-    
+
     /**
      * left margin
      */
     defineFromUserPreference('PDF_MARGIN_LEFT', $sugarpdf_default["PDF_MARGIN_LEFT"]);
-    
+
     /**
      * right margin
      */
     defineFromUserPreference('PDF_MARGIN_RIGHT', $sugarpdf_default["PDF_MARGIN_RIGHT"]);
-    
+
     /**
      * main font name
      */
     defineFromUserPreference('PDF_FONT_NAME_MAIN', $sugarpdf_default["PDF_FONT_NAME_MAIN"]);
-    
+
     /**
      * main font size
      */
@@ -183,32 +145,32 @@ if (!defined('K_TCPDF_EXTERNAL_CONFIG')) {
      * data font name
      */
     defineFromUserPreference('PDF_FONT_NAME_DATA', $sugarpdf_default["PDF_FONT_NAME_DATA"]);
-    
+
     /**
      * data font size
      */
     defineFromUserPreference('PDF_FONT_SIZE_DATA', $sugarpdf_default["PDF_FONT_SIZE_DATA"]);
-    
+
     /**
      * Ratio used to scale the images
      */
     defineFromConfig('PDF_IMAGE_SCALE_RATIO', $sugarpdf_default["PDF_IMAGE_SCALE_RATIO"]);
-    
+
     /**
      * magnification factor for titles
      */
     defineFromConfig('HEAD_MAGNIFICATION', $sugarpdf_default["HEAD_MAGNIFICATION"]);
-    
+
     /**
      * height of cell repect font height
      */
     defineFromConfig('K_CELL_HEIGHT_RATIO', $sugarpdf_default["K_CELL_HEIGHT_RATIO"]);
-    
+
     /**
      * title magnification respect main font size
      */
     defineFromConfig('K_TITLE_MAGNIFICATION', $sugarpdf_default["K_TITLE_MAGNIFICATION"]);
-    
+
     /**
      * reduction factor for small font
      */
@@ -304,8 +266,8 @@ function defineFromConfig($value, $default)
     require_once("modules/Administration/Administration.php");
     $focus = BeanFactory::newBean('Administration');
     $focus->retrieveSettings();
-    if (isset($focus->settings["sugarpdf_".$lowerValue])) {
-        define($value, $focus->settings["sugarpdf_".$lowerValue]);
+    if (isset($focus->settings["sugarpdf_" . $lowerValue])) {
+        define($value, $focus->settings["sugarpdf_" . $lowerValue]);
     } else {
         define($value, $default);
     }
@@ -327,9 +289,9 @@ function defineFromUserPreference($value, $default)
     global $focus_user, $current_user;
     $lowerValue = strtolower($value);
     if (defined('SUGARPDF_USE_FOCUS')) {
-        $pref = $focus_user->getPreference("sugarpdf_".$lowerValue);
+        $pref = $focus_user->getPreference("sugarpdf_" . $lowerValue);
     } else {
-        $pref = $current_user->getPreference("sugarpdf_".$lowerValue);
+        $pref = $current_user->getPreference("sugarpdf_" . $lowerValue);
     }
     if (strpos($value, "PDF_FONT_NAME_") !== false) {
         require_once('include/Sugarpdf/FontManager.php');

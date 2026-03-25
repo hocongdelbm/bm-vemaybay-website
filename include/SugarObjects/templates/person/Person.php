@@ -1,42 +1,5 @@
 <?php
-/**
- *
- * SugarCRM Community Edition is a customer relationship management program developed by
- * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
- *
- * SuiteCRM is an extension to SugarCRM Community Edition developed by SalesAgility Ltd.
- * Copyright (C) 2011 - 2018 SalesAgility Ltd.
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License version 3 as published by the
- * Free Software Foundation with the addition of the following permission added
- * to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED WORK
- * IN WHICH THE COPYRIGHT IS OWNED BY SUGARCRM, SUGARCRM DISCLAIMS THE WARRANTY
- * OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
- * details.
- *
- * You should have received a copy of the GNU Affero General Public License along with
- * this program; if not, see http://www.gnu.org/licenses or write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
- * 02110-1301 USA.
- *
- * You can contact SugarCRM, Inc. headquarters at 10050 North Wolfe Road,
- * SW2-130, Cupertino, CA 95014, USA. or at email address contact@sugarcrm.com.
- *
- * The interactive user interfaces in modified source and object code versions
- * of this program must display Appropriate Legal Notices, as required under
- * Section 5 of the GNU Affero General Public License version 3.
- *
- * In accordance with Section 7(b) of the GNU Affero General Public License version 3,
- * these Appropriate Legal Notices must retain the display of the "Powered by
- * SugarCRM" logo and "Supercharged by SuiteCRM" logo. If the display of the logos is not
- * reasonably feasible for technical reasons, the Appropriate Legal Notices must
- * display the words "Powered by SugarCRM" and "Supercharged by SuiteCRM".
- */
+
 
 require_once 'include/SugarObjects/templates/basic/Basic.php';
 
@@ -132,7 +95,8 @@ class Person extends Basic
         $lastName = $this->last_name;
 
         // salutation has at least read access
-        if (isset($this->field_defs['salutation']['options']) &&
+        if (
+            isset($this->field_defs['salutation']['options']) &&
             isset($app_list_strings[$this->field_defs['salutation']['options']]) &&
             isset($app_list_strings[$this->field_defs['salutation']['options']][$this->salutation])
         ) {
@@ -174,7 +138,7 @@ class Person extends Basic
         $this->add_address_streets('primary_address_street');
         $this->add_address_streets('alt_address_street');
         $ori_in_workflow = empty($this->in_workflow) ? false : true;
-	$this->emailAddress->handleLegacySave($this);
+        $this->emailAddress->handleLegacySave($this);
 
         if (empty($this->id)) {
             $this->id = create_guid();
@@ -207,7 +171,7 @@ class Person extends Basic
             );
         }
 
-	parent::save($check_notify);
+        parent::save($check_notify);
         return $this->id;
     }
 
@@ -291,8 +255,8 @@ class Person extends Basic
 					$table.*,
 					email_addresses.email_address email_address,
 					'' email_addresses_non_primary, " .
-                 // email_addresses_non_primary needed for get_field_order_mapping()
-                 'users.user_name as assigned_user_name ';
+            // email_addresses_non_primary needed for get_field_order_mapping()
+            'users.user_name as assigned_user_name ';
         if ($custom_join) {
             $query .= $custom_join['select'];
         }
@@ -304,8 +268,8 @@ class Person extends Basic
 
         //Join email address table too.
         $query .= " LEFT JOIN email_addr_bean_rel on $table.id = email_addr_bean_rel.bean_id and email_addr_bean_rel.bean_module = '" .
-                  $this->module_dir .
-                  "' and email_addr_bean_rel.deleted = 0 and email_addr_bean_rel.primary_address = 1";
+            $this->module_dir .
+            "' and email_addr_bean_rel.deleted = 0 and email_addr_bean_rel.primary_address = 1";
         $query .= ' LEFT JOIN email_addresses on email_addresses.id = email_addr_bean_rel.email_address_id ';
 
         if ($custom_join) {
@@ -337,7 +301,7 @@ class Person extends Basic
      */
     public function setLawfulBasis($basis, $source)
     {
-        global $app_list_strings,$timedate;
+        global $app_list_strings, $timedate;
         /**
          * This function will update the lawful basis, source and date of the change.
          * Will take the parameters of email id and possible the module?
@@ -360,7 +324,7 @@ class Person extends Basic
         }
 
         //Set lawful basis, lawful basis source and date reviewed
-        $this->lawful_basis = '^'.$basis.'^';
+        $this->lawful_basis = '^' . $basis . '^';
         $this->lawful_basis_source = $source;
         $date = TimeDate::getInstance()->nowDb();
         $date_test = $timedate->to_display_date($date, false);

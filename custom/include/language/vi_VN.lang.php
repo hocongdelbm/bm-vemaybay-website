@@ -2,21 +2,14 @@
 $app_list_strings['moduleList']['Home']                   = 'Trang chủ';
 $app_list_strings['moduleList']['Dashboard']              = 'Biểu đồ';
 $app_list_strings['moduleList']['Calendar']               = 'Lịch công tác';
-$app_list_strings['moduleList']['ResourceCalendar']       = 'Quản lý lịch';
 $app_list_strings['moduleList']['Contacts']               = 'Liên hệ';
 $app_list_strings['moduleList']['Emails']                 = 'Email';
 $app_list_strings['moduleList']['EmailMarketing']         = 'Email tiếp thị';
 $app_list_strings['moduleList']['Calls']                  = 'Cuộc gọi';
 $app_list_strings['moduleList']['Calls_Reschedule']       = 'Lịch gọi';
 $app_list_strings['moduleList']['Alerts']                 = 'Thông báo';
-$app_list_strings['moduleList']['Leads']                  = 'Đầu mối';
 $app_list_strings['moduleList']['TemplateSectionLine']    = 'Bản mẫu phần dòng';
-$app_list_strings['moduleList']['Surveys']                = 'Khảo sát';
 $app_list_strings['moduleList']['Schedulers']             = 'Lịch biểu';
-$app_list_strings['moduleList']['SurveyResponses']        = 'Phản hồi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestions']        = 'Câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionOptions']  = 'Tùy chọn câu hỏi khảo sát';
 $app_list_strings['moduleList']['OAuth2Clients']          = 'OAuth2Clients';
 $app_list_strings['moduleList']['OAuthKeys']              = 'OAuthKeys';
 $app_list_strings['moduleList']['Bugs']                   = 'Lỗi';
@@ -32,15 +25,9 @@ $app_list_strings['moduleList']['Newsletters']            = 'Bản tin';
 $app_list_strings['moduleList']['Library']                = 'Thư viện';
 $app_list_strings['moduleList']['TrackerPerfs']           = 'TrackerPerfs';
 $app_list_strings['moduleList']['Queues']                 = 'Hàng đợi';
-$app_list_strings['moduleList']['Prospects']              = 'Tiềm năng';
-$app_list_strings['moduleList']['ProspectLists']          = 'D/s Tiềm năng';
 $app_list_strings['moduleList']['Tasks']                  = 'Công việc';
 $app_list_strings['moduleList']['Meetings']               = 'Hội họp';
 $app_list_strings['moduleList']['Currencies']             = 'Tiền tệ';
-$app_list_strings['moduleList']['Project']                = 'Dự án';
-$app_list_strings['moduleList']['ProjectTask']            = 'Công việc Dự án';
-$app_list_strings['moduleList']['Campaigns']              = 'Chiến dịch';
-$app_list_strings['moduleList']['CampaignLog']            = 'Nhật ký Chiến dịch';
 $app_list_strings['moduleList']['Documents']              = 'Tài liệu';
 $app_list_strings['moduleList']['Activities']             = 'Hoạt động';
 $app_list_strings['moduleList']['Cases']                  = 'Tình huống';
@@ -51,12 +38,10 @@ $app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
 $app_list_strings['moduleList']['Notes']                  = 'Ghi chú';
 $app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
 $app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
-$app_list_strings['moduleList']['EC_Request_Flight']      = 'Yêu cầu';
 $app_list_strings['moduleList']['EC_Debts']               = 'Công nợ';
 $app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
 $app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
-$app_list_strings['moduleList']['EC_TaiKhoan']            = 'Tài khoản kế toán';
 $app_list_strings['moduleList']['EC_ChiTietTaiKhoan']     = 'Nhập số dư ban đầu';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
@@ -87,12 +72,7 @@ $app_list_strings['moduleList']['EC_Location']            = 'Địa điểm';
 $app_list_strings['moduleList']['EC_LoginAudit']          = 'Login Audit';
 $app_list_strings['moduleList']['EC_Contact_Points_Log']  = 'Quá trình tích điểm';
 $app_list_strings['moduleList']['EC_Zalo_Contacts']       = 'Liên hệ Zalo';
-// AOR
-$app_list_strings['moduleList']['AOR_Reports'] = 'Báo cáo';
-$app_list_strings['moduleList']['AOR_Conditions'] = 'Báo cáo điều kiện';
-$app_list_strings['moduleList']['AOR_Charts'] = 'Biểu đồ báo cáo';
-$app_list_strings['moduleList']['AOR_Fields'] = 'Báo cáo lĩnh vực';
-$app_list_strings['moduleList']['AOR_Scheduled_Reports'] = 'Theo lịch trình báo cáo';
+
 // AOW PR 5775
 $app_list_strings['moduleList']['AOW_WorkFlow'] = 'Quy trình công việc';
 $app_list_strings['moduleList']['AOW_Conditions'] = 'Quy trình làm việc điều kiện';
@@ -116,8 +96,7 @@ $app_list_strings['moduleList']['AOP_Case_Updates'] = 'Cập nhật trường h�
 // knowledge base
 $app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
 $app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
+
 // ExternalOauth
 $app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
 $app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
@@ -125,8 +104,6 @@ $app_list_strings['moduleList']['EAPM'] = 'External Account Password Management'
 
 $app_strings['LBL_LOGIN_AS'] = "Login as ";
 $app_strings['LBL_LOGOUT_AS'] = "Logout as ";
-
-
 
 $app_list_strings['receipt_type_list']['cash']            = 'Tiền mặt';
 $app_list_strings['receipt_type_list']['credit_transfer'] = 'Chuyển khoản';
@@ -143,30 +120,13 @@ $app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
 $app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
 
 
-//gmaps
-$app_strings['LBL_MAP']                               = 'Bản đồ';
-$app_strings['LBL_JJWG_MAPS_LNG']                     = 'Kinh độ';
-$app_strings['LBL_JJWG_MAPS_LAT']                     = 'Vĩ độ';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS']          = 'Trạng thái Mã địa lý';
-$app_strings['LBL_JJWG_MAPS_ADDRESS']                 = 'Địa chỉ';
-$app_list_strings['moduleList']['jjwg_Maps']          = 'Các bản đồ';
-$app_list_strings['moduleList']['jjwg_Markers']       = 'Bản đồ - đánh dấu';
-$app_list_strings['moduleList']['jjwg_Areas']         = 'Bản đồ - khu vực';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Bản đồ - địa chỉ bộ nhớ Cache';
-$app_list_strings['moduleList']['jjwp_Partners']      = 'Đối tác JJWP';
-$app_list_strings['map_unit_type_list']['mi']         = 'Dặm';
-$app_list_strings['map_unit_type_list']['km']         = 'Cây số';
-
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates']  = 'Dự án - mẫu';
-$app_list_strings['moduleList']['AM_TaskTemplates']     = 'Dự án công việc mẫu';
 $app_list_strings['relationship_type_list']['FS']       = 'Kết thúc để bắt đầu';
 $app_list_strings['relationship_type_list']['SS']       = 'Bắt đầu để bắt đầu';
 $app_list_strings['duration_unit_dom']['Days']          = 'Ngày';
 $app_list_strings['duration_unit_dom']['Hours']         = 'Giờ';
 $app_strings['LBL_GANTT_BUTTON_LABEL']                  = 'Xem biểu đồ Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL']                 = 'Xem chi tiết';
-$app_strings['LBL_CREATE_PROJECT']                      = 'Tạo dự án';
 
 $GLOBALS['app_list_strings']['lead_source_dom'] = array(
   '' => '',
@@ -180,7 +140,6 @@ $GLOBALS['app_list_strings']['lead_source_dom'] = array(
   'Employee' => 'Nhân viên',
   'Partner' => 'Đối tác',
   'Public Relations' => 'Quan hệ cộng đồng',
-  'Campaign' => 'Chiến dịch kinh doanh',
   'Word of mouth' => 'Truyền miệng',
   'Conference' => 'Hội nghị',
   'Trade Show' => 'Hội chợ triển lãm',

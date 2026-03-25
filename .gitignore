@@ -48,3 +48,4 @@ vendor
 
 # Ignore local system
 .vscode
+.DS_Store

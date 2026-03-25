@@ -158,13 +158,6 @@ SugarRest.getLeadsQuery = function(){
 	return q;
 }
 
-SugarRest.getFeeds = function(){
-	var data = [SugarRest.session, 'SugarFeed', "", '', 0, ['id', 'name', 'description', 'link_url', 'link_type', 'created_by', 'date_entered', 'related_id', 'related_module'], [], 500, 0];
-	SugarRest.call('get_entry_list', data, SugarRest.test);
-
-}
-
-
 SugarRest.getLeads = function(){
 	q = SugarRest.getLeadsQuery();
 	 var myCallback = function() {

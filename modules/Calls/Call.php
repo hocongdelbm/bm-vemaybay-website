@@ -115,7 +115,8 @@ class Call extends SugarBean
         }
     }
 
-    public function save2($check_notify = false) { 
+    public function save2($check_notify = false)
+    {
         return parent::save();
     }
 
@@ -170,7 +171,9 @@ class Call extends SugarBean
             $sql_date = date('Y-m-d', strtotime(date('d-m-Y H:i:s')));
 
             $total_row = $this->db->getOne("SELECT COUNT(id) + 1 FROM calls WHERE DATE(DATE_ADD(date_entered, INTERVAL 7 HOUR)) = '" . $sql_date . "'");
-            $this->name = 'CALL-' . $date . '-' . $total_row;
+            $number = sprintf('%02d', $total_row); // 01, 02, ..., 10
+
+            $this->name = 'CALL-' . $date . '-' . $number;
 
             $is_tele = 1;
         }
@@ -247,19 +250,6 @@ class Call extends SugarBean
                     break;
             }
         }
-
-        // if ($this->update_vcal) {
-        //     vCal::cache_sugar_vcal($current_user);
-        // }
-
-        // if (isset($_REQUEST['reminders_data']) && !self::$remindersInSaving) {
-        //     self::$remindersInSaving = true;
-        //     $reminderData = json_encode(
-        //         $this->removeUnInvitedFromReminders(json_decode(html_entity_decode($_REQUEST['reminders_data']), true))
-        //     );
-        //     Reminder::saveRemindersDataJson('Calls', $return_id, $reminderData);
-        //     self::$remindersInSaving = false;
-        // }
 
         // Nhỡ, đến => tele
         $user_list = get_user_array(true, '', '', true);
@@ -340,8 +330,7 @@ class Call extends SugarBean
                         $chatId = $sugar_config['telegram']['cty']['chat_id'] ?? '';
                         Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
                     }
-                }
-                catch (Throwable $th) {
+                } catch (Throwable $th) {
                     $GLOBALS['log']->fatal("Send info call failed {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
                 }
             }
@@ -822,11 +811,6 @@ class Call extends SugarBean
             $relate_values = array('user_id' => $user->id, 'call_id' => $this->id);
             $data_values = array('accept_status' => $status);
             $this->set_relationship($this->rel_users_table, $relate_values, true, true, $data_values);
-            global $current_user;
-
-            if ($this->update_vcal) {
-                vCal::cache_sugar_vcal($user);
-            }
         } elseif ($user->object_name == 'Contact') {
             $relate_values = array('contact_id' => $user->id, 'call_id' => $this->id);
             $data_values = array('accept_status' => $status);
@@ -1380,9 +1364,10 @@ class Call extends SugarBean
      * Cuộc gọi đi, đến loại Telesale
      * Cuộc gọi trước booking đã tạo trong vòng 3 tháng
      */
-    public function getTelesaleCalls($phone, $bk_date_entered) {
-        if(empty($phone) || empty($bk_date_entered)) return false;
-        
+    public function getTelesaleCalls($phone, $bk_date_entered)
+    {
+        if (empty($phone) || empty($bk_date_entered)) return false;
+
         $sql_check = "SELECT id
                         FROM calls
                         WHERE direction IN ('outbound', 'inbound')

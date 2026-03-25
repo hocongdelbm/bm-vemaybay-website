@@ -238,32 +238,6 @@ $dictionary['Account'] = array(
             'source' => 'non-db',
             'vname' => 'LBL_PROJECTS',
         ),
-        'leads' => array(
-            'name' => 'leads',
-            'type' => 'link',
-            'relationship' => 'account_leads',
-            'module' => 'Leads',
-            'bean_name' => 'Lead',
-            'source' => 'non-db',
-            'vname' => 'LBL_LEADS',
-        ),
-        'campaigns' => array(
-            'name' => 'campaigns',
-            'type' => 'link',
-            'relationship' => 'account_campaign_log',
-            'module' => 'CampaignLog',
-            'bean_name' => 'CampaignLog',
-            'source' => 'non-db',
-            'vname' => 'LBL_CAMPAIGNLOG',
-            'studio' => array('formula' => false),
-        ),
-        'campaign_accounts' => array(
-            'name' => 'campaign_accounts',
-            'type' => 'link',
-            'vname' => 'LBL_CAMPAIGNS',
-            'relationship' => 'campaign_accounts',
-            'source' => 'non-db',
-        ),
         'created_by_link' => array(
             'name' => 'created_by_link',
             'type' => 'link',
@@ -498,15 +472,6 @@ $dictionary['Account'] = array(
             'relationship_type' => 'one-to-many',
             'relationship_role_column' => 'parent_type',
             'relationship_role_column_value' => 'Accounts'
-        ),
-        'account_leads' => array(
-            'lhs_module' => 'Accounts',
-            'lhs_table' => 'accounts',
-            'lhs_key' => 'id',
-            'rhs_module' => 'Leads',
-            'rhs_table' => 'leads',
-            'rhs_key' => 'account_id',
-            'relationship_type' => 'one-to-many'
         ),
         'accounts_assigned_user' => array(
             'lhs_module' => 'Users',

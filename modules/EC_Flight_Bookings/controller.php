@@ -106,6 +106,8 @@ class EC_Flight_BookingsController extends SugarController
             $this->action = "printeticketnew";
         if ($this->return_action == "sendeticket")
             $this->action = "sendeticket";
+        if ($this->return_action == "sendeticketnew")
+            $this->action = "sendeticketnew";
         if ($this->return_action == "employeereport")
             $this->action = "employeereport";
         if ($this->return_action == "monthlyreport")

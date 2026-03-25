@@ -233,13 +233,13 @@ $searchdefs[$module_name] = array(
                 'name' => 'customer_source',
             ),
 
-            // 'ip_address' => array(
-            //     'type' => 'varchar',
-            //     'label' => 'LBL_IP_ADDRESS',
-            //     'width' => '10%',
-            //     'default' => true,
-            //     'name' => 'ip_address',
-            // ),
+            'ip_address' => array(
+                'type' => 'varchar',
+                'label' => 'LBL_IP_ADDRESS',
+                'width' => '10%',
+                'default' => true,
+                'name' => 'ip_address',
+            ),
             'is_telesale' => array(
                 'type' => 'bool',
                 'label' => 'LBL_IS_TELESALE',
