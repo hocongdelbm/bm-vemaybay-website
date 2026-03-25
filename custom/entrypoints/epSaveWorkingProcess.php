@@ -227,20 +227,23 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 								$sendResult = $entryOA->sendTemplateMessage($params);
 
 								if (isset($sendResult['status']) && $sendResult['status'] == 1) {
-									$content = "<b>⭐️ TIN NHẮN TÍCH ĐIỂM</b>";
-									$content .= "\nĐã gửi tin nhắn tích điểm đến khách hàng qua <b>ZNS</b>";
+									$content = "⭐️ Đã gửi tin Zalo tích <b>+$point</b> điểm đến khách hàng";
 									$content .= "\nBooking: <b>$record_name</b>";
 									$content .= "\nSĐT: <b>$con_phone</b>";
-									$content .= "\nĐiểm cộng thêm: <b>$point điểm</b>";
 									$content .= "\nTổng tích lũy: <b>$total_point điểm</b>";
 									NotificationService::sendMessage($content, '', ['threadKey' => 'system']);
-								} else {
-									$content = "Failed to send point-accumulation ZBS message";
+								}
+								else {
+									$content = "Gửi tin Zalo tích điểm đến khách hàng chưa thành công";
+									$content .= "\nĐiểm <b>+$point</b>, tổng <b>$total_point</b>";
 									$content .= "\nBooking: <b>$record_name</b>";
-									$content .= "\nPhone: <b>$con_phone</b>";
-									$content .= "\nExtra points: <b>$point</b>";
-									$content .= "\nTotal points: <b>$total_point</b>";
-									$content .= "\n<pre>" . json_encode($sendResult) . "</pre>";
+									$content .= "\nSĐT: <b>$con_phone</b>";
+									if(isset($sendResult['message'])) {
+										$content .= "\nNguyên nhân: <b>{$sendResult['message']} ({$sendResult['error']})</b>";
+									}
+									else{
+										$content .= "\n<pre>" . json_encode($sendResult, JSON_UNESCAPED_UNICODE) . "</pre>";
+									}
 									NotificationService::sendWarningMessage($content, '', ['threadKey' => 'logs']);
 								}
 							}
@@ -274,14 +277,8 @@ if (!empty($_SESSION['authenticated_user_id'])) {
 				$m .= " - <b>$c</b>";
 			}
 
-			if ($channel == 'Mattermost') {
-			} else {
-				$botToken = $sugar_config['telegram']['bot_token'] ?? '';
-				$chatId   = $sugar_config['telegram']['thongbao']['chat_id'];
-				Telegram::sendMessage($m, $botToken, $chatId);
-			}
+			NotificationService::sendMessage($m, 'thongbao');
 		}
-
 		exit();
 	}
 }
