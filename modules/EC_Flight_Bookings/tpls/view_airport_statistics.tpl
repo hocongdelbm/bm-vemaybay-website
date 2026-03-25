@@ -255,7 +255,7 @@
                         <tbody>
                             {$DATA}
                         </tbody>
-                        <footer>
+                        <tfoot>
                             <tr>
                                 <td colspan="10">
                                     <div class="modal fade" id="mainLineModal" tabindex="-1" aria-labelledby="mainLineModalLabel" aria-hidden="true">
@@ -271,7 +271,7 @@
                                     </div>
                                 </td>
                             </tr>
-                        </footer>
+                        </tfoot>
                     </table>
                 </div>
             </div>

@@ -3,8 +3,12 @@ if (!defined('sugarEntry') || !sugarEntry) {
     die('Not A Valid Entry Point');
 }
 
-class ContactsViewDetail extends ViewDetail
-{
+class ContactsViewDetail extends ViewDetail {
+    /**
+     * @var Contact $bean
+     */
+    public $bean;
+
     /**
      * @see SugarView::display()
      *
@@ -29,6 +33,9 @@ class ContactsViewDetail extends ViewDetail
         require_once('modules/AOS_PDF_Templates/formLetter.php');
         formLetter::DVPopupHtml('Contacts');
 
+        /**
+         * @var Administration $admin
+         */
         $admin = BeanFactory::newBean('Administration');
         $admin->retrieveSettings();
         if (isset($admin->settings['portal_on']) && $admin->settings['portal_on']) {
@@ -247,7 +254,6 @@ class ContactsViewDetail extends ViewDetail
     }
 
     private function populateLineZalo() {
-        $zaloContact = new EC_Zalo_Contacts();
         $tbody = "";
 
         $sql = "SELECT id
@@ -270,8 +276,8 @@ class ContactsViewDetail extends ViewDetail
             $is_follower_html = $row['is_follower'] ? '<span class="text-primary">Đã quan tâm</span>' : '<span>Chưa quan tâm</span>';
             $last_interaction = !empty($row['last_interaction']) ? date('d-m-Y H:i', strtotime($row['last_interaction'])) : '';
 
-            $is_call = $zaloContact->check_zalo_contact_action_by_data('call', $row['last_interaction'], $row['is_follower']);
-            $is_send_consultation = $zaloContact->check_zalo_contact_action_by_data('send_consultation', $row['last_interaction'], $row['is_follower']);
+            $is_call = EC_Zalo_Contacts_Helper::check_zalo_contact_action_by_data('call', $row['last_interaction'], $row['is_follower']);
+            $is_send_consultation = EC_Zalo_Contacts_Helper::check_zalo_contact_action_by_data('send_consultation', $row['last_interaction'], $row['is_follower']);
 
             $action_html = '';
             if($is_call) $action_html .= "<h6><span class='badge rounded-pill bg-primary'>Có thể gọi</span></h6>";

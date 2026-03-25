@@ -356,6 +356,7 @@ class SugarView
         $ss->assign("MODULE_NAME", $this->module);
         $ss->assign("langHeader", get_language_header());
         $ss->assign("BROWSER_TITLE", $this->getBrowserTitle());
+        $ss->assign("JS_VERSION", time());
 
         // AGENT STATUS - HAIHUGN
         if (isset($current_user->agent_status) && !empty($current_user->agent_status)) {
@@ -798,7 +799,7 @@ class SugarView
         $file
     ) {
         global $sugar_config, $theme, $current_user, $sugar_version, $sugar_flavor, $mod_strings, $app_strings, $app_list_strings, $action;
-        global $gridline, $request_string, $modListHeader, $dashletData, $authController, $locale, $currentModule, $import_bean_map, $image_path, $license;
+        global $gridline, $request_string, $modListHeader, $authController, $locale, $currentModule, $import_bean_map, $image_path, $license;
         global $user_unique_key, $server_unique_key, $barChartColors, $modules_exempt_from_availability_check, $dictionary, $current_language, $beanList, $beanFiles, $sugar_build, $sugar_codename;
         global $timedate, $login_error; // cn: bug 13855 - timedate not available to classic views.
         if (!empty($this->module)) {
@@ -1248,6 +1249,42 @@ EOHTML;
                                             <label for="is_compare_price">So sánh giá</label>
                                         </div>
                                     </div>
+
+                                    <div class="voiceip-more my-2 rounded text-nowrap">
+                                        <style>
+                                            .form-switch .form-check-input::before {display:none;}
+                                            #zbsFields {transition:all 0.3s ease;}
+                                        </style>
+                                        <div class="form-check form-switch" style="width:fit-content">
+                                            <input type="checkbox" name="voiceip-is-send-zbs-after-call" id="switchCheckSendZBS" class="form-check-input" role="switch" />
+                                            <label id="labelSwitchCheckSendZBS" class="form-check-label" for="switchCheckSendZBS" style="line-height:1.8">Gửi CSKH Zalo</label>
+                                        </div>
+                                        <div class="flex-between p-2 mx-2 d-none" id="zbsFields" style="background:#eef0fb;border-radius:3px;">
+                                            <div class="d-flex flex-column">
+                                                <label class="text-start" for="ZBSAfterCallDataCode">Mã hành trình<span style="color:red">*</span></label>
+                                                <input type="text" name="voiceip-zbs-after-call-data-code" id="ZBSAfterCallDataCode" class="box-input" placeholder="SGN-HAN" minlength="4" maxlength="10" size="10" style="border:none; border-radius:0; border-bottom:1px solid #c6c8d2;background:transparent;"/>
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <label class="text-start" for="ZBSAfterCallDataDatetime">Ngày giờ bay<span style="color:red">*</span></label>
+                                                <input type="text" name="voiceip-zbs-after-call-data-datetime" id="ZBSAfterCallDataDatetime" class="box-input" placeholder="dd/mm/yyyy" minlength="10" maxlength="20" size="14" style="border:none; border-radius:0; border-bottom:1px solid #c6c8d2;background:transparent;"/>
+                                            </div>
+                                        </div>
+                                        <script>
+                                            document.addEventListener("DOMContentLoaded", function () {
+                                                const checkbox = document.getElementById("switchCheckSendZBS");
+                                                const zbsFields = document.getElementById("zbsFields");
+                                                const checkboxLabel = document.getElementById("labelSwitchCheckSendZBS");
+                                                if (!checkbox || !zbsFields) return;
+                                                function toggleZBS() {
+                                                    checkboxLabel.style.color = checkbox.checked ? "#2c44e9" : "inherit";
+                                                    zbsFields.classList.toggle("d-none", !checkbox.checked);
+                                                }
+                                                checkbox.addEventListener("change", toggleZBS);
+                                                toggleZBS();
+                                            });
+                                        </script>
+                                    </div>
+                                
                                     <div class="text-start voiceip-more text-nowrap">
                                         <p id="notes-uncomfortable" class="text-danger fw-semibold"></p>
                                     </div>
@@ -1663,7 +1700,7 @@ EOHTML;
     ) {
         global $sugar_version, $sugar_flavor, $server_unique_key, $current_language, $action;
 
-        $theTitle = "<div class='moduleTitle moduleTitle-sugarview__in-includes'>\n";
+        $theTitle = "<div class='moduleTitle moduleTitle-sugarview__in-includes d-flex align-items-center justify-content-between'>\n";
 
         $module = preg_replace("/ /", "", $this->module);
 
@@ -1686,52 +1723,12 @@ EOHTML;
             }
         }
 
-        // if (!empty($paramString)) {
-        //     $theTitle .= "<h2 class='module-title-text'> $paramString </h2>";
-
-        //     if ($this->type == "detail") {
-        //         $theTitle .= "<div class='favorite' record_id='" .
-        //             $this->bean->id .
-        //             "' module='" .
-        //             $this->bean->module_dir .
-        //             "'><div class='favorite_icon_outline'>" .
-        //             "<span class='suitepicon suitepicon-favorite-star-outline'></span></div>
-        //                                             <div class='favorite_icon_fill' 'title=\"' . translate('LBL_DASHLET_EDIT', 'Home') . '\" border=\"0\"  align=\"absmiddle\"'>" .
-
-        //             "<span class='suitepicon suitepicon-favorite-star'></span></div></div>";
-        //     }
-        // }
         if (!empty($paramString)) {
             $theTitle .= "<h2 class='module-title-text'> $paramString </h2>";
         }
 
-        // bug 56131 - restore conditional so that link doesn't appear where it shouldn't
-        if ($show_help || $this->type == 'list') {
-            $theTitle .= "<span class='utils'>";
-            // $createImageURL = SugarThemeRegistry::current()->getImageURL('create-record.gif');
-            $createImageURL = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
-                            </svg>';
-            if ($this->type == 'list') {
-                $theTitle .= '<a href="#" class="btn btn-success showsearch"><span class=" glyphicon glyphicon-search" aria-hidden="true"></span></a>';
-            }
-            $url = ajaxLink("index.php?module=$module&action=EditView&return_module=$module&return_action=DetailView");
-            if ($show_help) {
-                $theTitle .= <<<EOHTML
-&nbsp;
-<a id="create_image" href="{$url}" class="utilsLink">
-$createImageURL
-<a id="create_link" href="{$url}" class="utilsLink">
-{$GLOBALS['app_strings']['LNK_CREATE']}
-</a>
-EOHTML;
-            }
-            $theTitle .= "</span>";
-        }
-
-        // Custom icon filter - listview
-        if ($this->action == "ListView") {
-            $theTitle .= '<svg id="filter_report" width="32" height="32" fill="currentColor" class="bi bi-filter d-xxl-none d-xl-none d-lg-none d-block" viewBox="0 0 16 16"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path></svg>';
+        if (strpos($this->type, 'list') !== false) {
+            $theTitle .= '<div id="filter_report" class="flex-start cursor-pointer"><span class="filter_report small fw-semibold">Bộ lọc</span><svg width="32" height="32" fill="currentColor" class="bi bi-filter" viewBox="0 0 16 16"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"></path></svg></div>';
         }
 
         $theTitle .= "</div>\n";

@@ -269,9 +269,6 @@ final class FieldMetadata
         ) && $this->charsetnr == 63;
     }
 
-    /**
-     * @see https://dev.mysql.com/doc/connectors/en/apis-php-mysqli.constants.html
-     */
     private function getTypeMap(): array
     {
         // Issue #16043 - client API mysqlnd seem not to have MYSQLI_TYPE_JSON defined

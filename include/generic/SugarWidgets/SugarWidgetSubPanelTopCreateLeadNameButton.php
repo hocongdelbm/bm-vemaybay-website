@@ -13,10 +13,8 @@ class SugarWidgetSubPanelTopCreateLeadNameButton extends SugarWidgetSubPanelTopB
     public function display($defines, $additionalFormFields = null, $nonbutton = false)
     {
         global $app_strings;
-        global $currentModule;
 
         $title = $app_strings['LBL_NEW_BUTTON_TITLE'];
-        //$accesskey = $app_strings['LBL_NEW_BUTTON_KEY'];
         $value = $app_strings['LBL_NEW_BUTTON_LABEL'];
         $this->module = 'Leads';
         if (ACLController::moduleSupportsACL($defines['module'])  && !ACLController::checkAccess($defines['module'], 'edit', true)) {

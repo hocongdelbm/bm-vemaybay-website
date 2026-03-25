@@ -3,7 +3,6 @@
 // ============================================================
 // AMIS Kế toán - Callback Endpoint
 // ============================================================
-
 header('Content-Type: application/json');
 
 // ============================================================
@@ -11,10 +10,17 @@ header('Content-Type: application/json');
 // ============================================================
 $rawBody = file_get_contents('php://input');
 $payload = json_decode($rawBody, true);
+$ip      = get_ip_address_from_client();
 
 if ((string)$_SERVER['REQUEST_METHOD'] !== 'POST') {
-    logInfo("Method Not Allowed AMIS: " . $_SERVER['REQUEST_METHOD']);
-    logInfo("Log not POST: ", $payload);
+    $requestContext = [
+        'method'       => $_SERVER['REQUEST_METHOD'],
+        'ip'           => $ip,
+        'URL' => $_SERVER['REQUEST_URI'] ?? '',
+        'user_agent'   => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        'body'         => $payload ?? $rawBody, 
+    ];
+    logInfo("Method Not Allowed AMIS", $requestContext);
 
     http_response_code(405);
     echo json_encode(['success' => false, 'error_message' => 'Method Not Allowed']);
@@ -43,14 +49,14 @@ $dataToVerify      = $payload['data'] ?? '';
 
 // MISA ký data bằng HMAC-SHA256 với key là app_id
 $expectedSignature = hash_hmac('sha256', $dataToVerify, APP_ID);
-// if (!hash_equals($expectedSignature, $receivedSignature)) {
-//     $payload['APP_ID_CONFIG'] = $APP_ID;
-//     logError($payload);
+if (!hash_equals($expectedSignature, $receivedSignature)) {
+    $payload['APP_ID_CONFIG'] = $APP_ID;
+    logError($payload);
 
-//     http_response_code(401);
-//     echo json_encode(['success' => false, 'error_message' => 'Invalid signature']);
-//     exit;
-// }
+    http_response_code(401);
+    echo json_encode(['success' => false, 'error_message' => 'Invalid signature']);
+    exit;
+}
 
 // ============================================================
 // 3. Kiểm tra kết quả xử lý từ AMIS
@@ -68,9 +74,11 @@ $data = json_decode($rawData, true);
 // ============================================================
 // 4. Xử lý theo data_type
 // data_type phổ biến:
-//   1  = Kết quả tạo/đồng bộ danh mục
-//   6  = Kết quả đồng bộ chứng từ (phiếu xuất kho, hóa đơn...)
-//   Xem đầy đủ tại: Danh sách các loại kết quả trả về
+    // 1: Hàm cất
+    // 2: Hàm xóa
+    // 3: Hàm sửa
+    // 6: Đồng bộ phiếu xuất kho
+    // 7: Hàm sinh danh mục
 // ============================================================
 
 if ($success) {

@@ -285,10 +285,6 @@
             </div>
 
             {{include file=$footerTpl}}
-            <script type="text/javascript" src="include/InlineEditing/inlineEditing.js"></script>
-
-            <!-- OFF -->
-            <!-- <script type="text/javascript" src="modules/Favorites/favorites.js"></script> -->
 
             {literal}
 

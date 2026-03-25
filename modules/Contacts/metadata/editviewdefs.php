@@ -103,24 +103,6 @@ $viewdefs['Contacts'] = array(
 					),
 				),
 			),
-			
-			// 'LBL_PANEL_ADVANCED' => array(
-			// 	array(
-			// 		array(
-			// 			'name' => 'lead_source',
-			// 			'comment' => 'How did the contact come about',
-			// 			'label' => 'LBL_LEAD_SOURCE',
-			// 		),
-			// 	),
-
-			// 	array(
-			// 		array(
-			// 			'name' => 'report_to_name',
-			// 			'label' => 'LBL_REPORTS_TO',
-			// 		),
-			// 		'campaign_name',
-			// 	),
-			// ),
 		),
 	),
 );

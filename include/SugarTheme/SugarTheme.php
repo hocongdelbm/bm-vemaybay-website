@@ -656,10 +656,7 @@ class SugarTheme
         $styleJS = $this->getJSURL('style.js');
 
         // bootstrap bundle in include
-        // <script src="themes/SuiteP/libs/js/bootstrap.bundle.min.js"></script>
         return <<<EOHTML
-            <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-            <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script> -->
             <script src="themes/SuiteP/libs/js/bootstrap.bundle.min.js"></script>
             <script type="text/javascript" src="$styleJS"></script>
             <script type="text/javascript" src="themes/SuiteP/js/notify.js"></script>

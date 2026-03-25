@@ -55,12 +55,16 @@ class EC_Flight_Bookings extends Basic
 	public $shipping_address;
 	public $agent_id;
 	public $agent_name;
+	public $subtotal_amount;
 	public $total_bought_amount;
 	public $total_bought_price;
 	public $invoice_require;
 	public $date_ticket_issue;
 	public $date_ticket_inbound_issue;
 	public $nganluong_info;
+	public $nganluong_code;
+	public $nganluong_datepaid;
+
 	public $ghichuthangthua;
 	public $delivery_man_id;
 	public $delivery_man;
@@ -71,6 +75,8 @@ class EC_Flight_Bookings extends Basic
 	public $account_name;
 	public $discount_percent;
 
+	public $is_agent;
+	public $customer_source;
 	public $is_prior;
 	public $is_reference;
 	public $is_ctv;
@@ -335,6 +341,8 @@ class EC_Flight_Bookings extends Basic
 
 	private function _postSave(string $recordId): void
 	{
+		global $current_user;
+
 		// Lưu thông tin hoá đơn
 		$this->saveInvoiceInf($_POST, $this->id);
 
@@ -677,6 +685,8 @@ class EC_Flight_Bookings extends Basic
 	 */
 	private function saveLinePassengers(): void
 	{
+		global $current_user;
+
 		$rows = $_POST['psg_id'] ?? [];
 
 		foreach (array_keys($rows) as $i) {
@@ -1294,25 +1304,77 @@ class EC_Flight_Bookings extends Basic
 	}
 
 	// Lưu thông tin hoá đơn
+	// public function saveInvoiceInf($post_fields, $booking_id)
+	// {
+	// 	global $current_user;
+	// 	if ($current_user->user_name == 'hungnh') {
+	// 		pr($post_fields);
+	// 	}
+
+	// 	if (isset($post_fields['action']) && $post_fields['action'] == 'Save') {
+	// 		$invoice_inf = [
+	// 			'iv_account_name' => $post_fields['iv_account_name'] ?? '',
+	// 			'iv_email' => $post_fields['iv_email'] ?? '',
+	// 			'iv_identity_number' => $post_fields['iv_identity_number'] ?? '',
+	// 			'iv_payment_method' => $post_fields['iv_payment_method'] ?? '',
+	// 			'iv_bank_account' => $post_fields['iv_bank_account'] ?? '',
+	// 			'iv_name_banks' => $post_fields['iv_name_banks'] ?? ''
+	// 		];
+
+	// 		// $invoice_inf = [
+	// 		// 	'iv_account_name' => $post_fields['iv_account_name'],
+	// 		// 	'iv_email' => $post_fields['iv_email'],
+	// 		// 	'iv_identity_number' => $post_fields['iv_identity_number'],
+	// 		// 	'iv_payment_method' => $post_fields['iv_payment_method'],
+	// 		// 	'iv_bank_account' => $post_fields['iv_bank_account'],
+	// 		// 	'iv_name_banks' => $post_fields['iv_name_banks']
+	// 		// ];
+
+	// 		if ($current_user->user_name == 'hungnh') {
+	// 			pr($invoice_inf);
+	// 		}
+
+	// 		$shipping_address = $this->db->quote(json_encode($invoice_inf, JSON_UNESCAPED_UNICODE));
+	// 		$booking_id_safe = $this->db->quote($booking_id);
+
+	// 		$sql = "UPDATE ec_flight_bookings 
+	// 			SET shipping_address = '$shipping_address'
+	// 			WHERE id = '$booking_id_safe'";
+	// 		if (!$this->db->query($sql)) {
+	// 			$GLOBALS['log']->fatal("Failed to update shipping_address for booking $booking_id: " . $this->db->lastError() . " $sql");
+	// 		}
+	// 	}
+
+	// 	// if ($current_user->user_name == 'hungnh') {
+	// 	// 	die;
+	// 	// }
+	// }
+
 	public function saveInvoiceInf($post_fields, $booking_id)
 	{
-		if (isset($post_fields['action']) && $post_fields['action'] == 'Save') {
-			if (isset($post_fields['iv_account_name'])) {
-				$invoice_inf = [
-					'iv_account_name' => $post_fields['iv_account_name'],
-					'iv_email' => $post_fields['iv_email'],
-					'iv_identity_number' => $post_fields['iv_identity_number'],
-					'iv_payment_method' => $post_fields['iv_payment_method'],
-					'iv_bank_account' => $post_fields['iv_bank_account'],
-					'iv_name_banks' => $post_fields['iv_name_banks']
-				];
+		if (isset($post_fields['action']) && $post_fields['action'] == 'Save' && isset($post_fields['iv_account_name'])) {
+			$invoice_inf = [
+				'iv_account_name' => $post_fields['iv_account_name'],
+				'iv_email' => $post_fields['iv_email'],
+				'iv_identity_number' => $post_fields['iv_identity_number'],
+				'iv_payment_method' => $post_fields['iv_payment_method'],
+				'iv_bank_account' => $post_fields['iv_bank_account'],
+				'iv_name_banks' => $post_fields['iv_name_banks']
+			];
 
-				$sql = '
-					UPDATE ec_flight_bookings 
-					SET shipping_address = \'' . preg_replace('/\\\\u([0-9a-z]{4})/', '&#x$1;', json_encode($invoice_inf)) . '\'
-					WHERE id = "' . $booking_id . '"';
-				$this->db->query($sql);
+			$shipping_address = $this->db->quote(json_encode($invoice_inf, JSON_UNESCAPED_UNICODE));
+			$booking_id_safe = $this->db->quote($booking_id);
+
+			$sql = "UPDATE ec_flight_bookings SET shipping_address = '$shipping_address' WHERE id = '$booking_id_safe'";
+
+			if (!$this->db->query($sql)) {
+				$GLOBALS['log']->fatal("Failed to update shipping_address for booking $booking_id: " . $this->db->lastError() . " $sql");
 			}
+			// $sql = '
+			// 	UPDATE ec_flight_bookings 
+			// 	SET shipping_address = \'' . preg_replace('/\\\\u([0-9a-z]{4})/', '&#x$1;', json_encode($invoice_inf)) . '\'
+			// 	WHERE id = "' . $booking_id . '"';
+			// $this->db->query($sql);
 		}
 	}
 
@@ -1404,15 +1466,14 @@ class EC_Flight_Bookings extends Basic
 	 * 
 	 * @param array $passInfo Information of a specific passenger
 	 * @param int $orderNumber
-	 * @param string $returnType HTML, JSON
 	 * 
 	 * @return string HTML
 	 */
-	public function generatePassengerBaggageInfo($passInfo, $orderNumber = 0, $returnType = 'HTML')
+	public function generatePassengerBaggageInfo($passInfo, $orderNumber = 0)
 	{
 		$date_entered = $passInfo['date_entered'] ?? date('Y-m-d');
 		$created_by   = $passInfo['createdBy'] ?? '';
-		// $bookingName  = $passInfo['bookingName'] ?? '';
+
 		$airlineCodeOutbound = $passInfo['airlineCodeOutbound'] ?? '';
 		$ticketClassOutbound = $passInfo['ticketClassOutbound'] ?? '';
 		$airlineCodeInbound = $passInfo['airlineCodeInbound'] ?? '';
@@ -1469,13 +1530,13 @@ class EC_Flight_Bookings extends Basic
 			}
 
 			return '<tr class="psg-line luggage" ' . (empty($rowBagHTML) ? 'style="display:none;"' : '') . '>
-				<td data-label="Hành lý ký gửi" class="text-center align-middle">
-					<svg fill="#000000" width="24px" height="24px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 290.626 290.626" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <g> <path d="M126.563,70.313H98.438v-56.25C98.438,6.309,92.128,0,84.375,0H56.25c-7.753,0-14.063,6.309-14.063,14.063v56.25H14.063 C6.309,70.313,0,76.622,0,84.375v168.75c0,5.297,2.977,9.862,7.312,12.258c-1.645,2.559-2.625,5.578-2.625,8.836 c0,9.047,7.359,16.406,16.406,16.406S37.5,283.266,37.5,274.219c0-2.527-0.623-4.894-1.645-7.031h68.916 c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V84.375C140.625,76.622,134.316,70.313,126.563,70.313z M51.563,14.063c0-2.588,2.099-4.688,4.687-4.688h28.125c2.588,0,4.688,2.1,4.688,4.688v4.688h-37.5V14.063z M51.563,28.125h37.5 v42.188h-37.5V28.125z M9.375,84.375c0-2.588,2.1-4.687,4.688-4.687h4.688V93.75H9.375V84.375z M9.374,253.125v-9.375h0.001 h9.375v14.063h-4.688C11.474,257.813,9.374,255.713,9.374,253.125z M21.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031s7.031,3.154,7.031,7.031S24.97,281.25,21.094,281.25z M119.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031s7.031,3.155,7.031,7.031 C126.562,278.095,123.408,281.25,119.531,281.25z M131.25,253.125c0,2.587-2.1,4.688-4.687,4.688h-4.688V243.75h9.375V253.125z M131.25,234.375h-9.375c-5.17,0-9.375,4.205-9.375,9.375v14.063H28.125V243.75c0-5.17-4.205-9.375-9.375-9.375H9.375v-131.25 h9.375c5.17,0,9.375-4.205,9.375-9.375V79.688h14.063h56.25H112.5V93.75c0,5.17,4.205,9.375,9.375,9.375h9.375V234.375z M131.25,93.75h-9.375V79.688h4.688c2.587,0,4.687,2.099,4.687,4.687V93.75z"></path> <rect x="23.438" y="112.5" width="9.375" height="112.5"></rect> <rect x="46.875" y="112.5" width="9.375" height="112.5"></rect> <rect x="107.813" y="112.5" width="9.375" height="112.5"></rect> <rect x="84.375" y="112.5" width="9.375" height="112.5"></rect> <path d="M276.563,112.5h-112.5c-7.753,0-14.063,6.309-14.063,14.063v126.563c0,5.297,2.977,9.862,7.313,12.258 c-1.645,2.559-2.625,5.578-2.625,8.836c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-2.527-0.623-4.894-1.645-7.031h68.916c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406 s16.406-7.359,16.406-16.406c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V126.563 C290.625,118.809,284.316,112.5,276.563,112.5z M171.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.154,7.031,7.031S174.97,281.25,171.094,281.25z M269.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.155,7.031,7.031 C276.562,278.095,273.408,281.25,269.531,281.25z M281.248,253.125c0.002,2.587-2.098,4.688-4.685,4.688h-112.5 c-2.587,0-4.688-2.1-4.688-4.688v-95.784l8.067-4.842c7.838-4.702,16.814-7.186,25.955-7.186h39.164l-2.63,7.894 c-0.82,2.456,0.506,5.114,2.962,5.93c0.492,0.159,0.994,0.239,1.481,0.239c1.964,0,3.792-1.242,4.444-3.206l3.619-10.856h2.62 l3.619,10.856c0.656,1.964,2.484,3.206,4.448,3.206c0.488,0,0.989-0.08,1.481-0.244c2.452-0.816,3.783-3.469,2.962-5.93 l-2.4-7.195c6.342,1.012,12.469,3.164,18.014,6.492l8.067,4.842V253.125z M281.251,146.405l-3.239-1.945 c-8.798-5.273-18.802-8.166-29.034-8.466c-0.145-0.019-0.281-0.009-0.427-0.014c-0.441-0.005-0.881-0.042-1.322-0.042h-53.831 c-10.842,0-21.483,2.948-30.778,8.522l-3.244,1.945v-19.842c-0.001-2.588,2.099-4.688,4.687-4.688h112.5 c2.587,0,4.688,2.1,4.688,4.688V146.405z"></path> <path d="M164.063,107.813h112.5c7.753,0,14.063-6.309,14.039-14.531l-3.97-39.698c-0.534-5.334-2.025-10.467-4.416-15.263 c-7.364-14.723-22.055-23.911-38.466-24.202v-0.056C243.75,6.309,237.441,0,229.688,0h-18.75 c-7.753,0-14.063,6.309-14.063,14.063v0.056c-16.411,0.291-31.102,9.483-38.466,24.206c-2.395,4.791-3.881,9.928-4.416,15.263 L150,93.75C150,101.503,156.309,107.813,164.063,107.813z M210.938,9.375h18.75c2.587,0,4.688,2.1,4.688,4.688H206.25 C206.25,11.475,208.35,9.375,210.938,9.375z M163.322,54.52c0.422-4.195,1.589-8.236,3.473-12.005 c5.887-11.766,17.714-19.078,30.872-19.078h45.291c13.158,0,24.984,7.313,30.872,19.078c1.884,3.769,3.052,7.809,3.473,12.005 l3.947,39.23c0,2.588-2.1,4.688-4.688,4.688h-112.5c-2.587,0-4.688-2.1-4.711-4.219L163.322,54.52z"></path> <path d="M239.064,51.563h-0.001c0,2.592,2.095,4.688,4.688,4.688c2.593,0,4.688-2.095,4.688-4.688v-9.375h9.375v-9.375h-75v9.375 h56.25V51.563z"></path> </g> </g> </g> </g></svg>
-				</td>
-				<td colspan="10" class="text-start align-middle flex-wrap">
-					' . $rowBagHTML . '
-				</td>
-			</tr>';
+						<td data-label="Hành lý ký gửi" class="text-center align-middle">
+							<svg fill="#000000" width="24px" height="24px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 290.626 290.626" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g> <g> <path d="M126.563,70.313H98.438v-56.25C98.438,6.309,92.128,0,84.375,0H56.25c-7.753,0-14.063,6.309-14.063,14.063v56.25H14.063 C6.309,70.313,0,76.622,0,84.375v168.75c0,5.297,2.977,9.862,7.312,12.258c-1.645,2.559-2.625,5.578-2.625,8.836 c0,9.047,7.359,16.406,16.406,16.406S37.5,283.266,37.5,274.219c0-2.527-0.623-4.894-1.645-7.031h68.916 c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V84.375C140.625,76.622,134.316,70.313,126.563,70.313z M51.563,14.063c0-2.588,2.099-4.688,4.687-4.688h28.125c2.588,0,4.688,2.1,4.688,4.688v4.688h-37.5V14.063z M51.563,28.125h37.5 v42.188h-37.5V28.125z M9.375,84.375c0-2.588,2.1-4.687,4.688-4.687h4.688V93.75H9.375V84.375z M9.374,253.125v-9.375h0.001 h9.375v14.063h-4.688C11.474,257.813,9.374,255.713,9.374,253.125z M21.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031s7.031,3.154,7.031,7.031S24.97,281.25,21.094,281.25z M119.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031s7.031,3.155,7.031,7.031 C126.562,278.095,123.408,281.25,119.531,281.25z M131.25,253.125c0,2.587-2.1,4.688-4.687,4.688h-4.688V243.75h9.375V253.125z M131.25,234.375h-9.375c-5.17,0-9.375,4.205-9.375,9.375v14.063H28.125V243.75c0-5.17-4.205-9.375-9.375-9.375H9.375v-131.25 h9.375c5.17,0,9.375-4.205,9.375-9.375V79.688h14.063h56.25H112.5V93.75c0,5.17,4.205,9.375,9.375,9.375h9.375V234.375z M131.25,93.75h-9.375V79.688h4.688c2.587,0,4.687,2.099,4.687,4.687V93.75z"></path> <rect x="23.438" y="112.5" width="9.375" height="112.5"></rect> <rect x="46.875" y="112.5" width="9.375" height="112.5"></rect> <rect x="107.813" y="112.5" width="9.375" height="112.5"></rect> <rect x="84.375" y="112.5" width="9.375" height="112.5"></rect> <path d="M276.563,112.5h-112.5c-7.753,0-14.063,6.309-14.063,14.063v126.563c0,5.297,2.977,9.862,7.313,12.258 c-1.645,2.559-2.625,5.578-2.625,8.836c0,9.047,7.359,16.406,16.406,16.406s16.406-7.359,16.406-16.406 c0-2.527-0.623-4.894-1.645-7.031h68.916c-1.022,2.138-1.645,4.505-1.645,7.031c0,9.047,7.359,16.406,16.406,16.406 s16.406-7.359,16.406-16.406c0-3.258-0.98-6.277-2.625-8.836c4.336-2.395,7.313-6.961,7.313-12.258V126.563 C290.625,118.809,284.316,112.5,276.563,112.5z M171.094,281.25c-3.876,0-7.031-3.155-7.031-7.031 c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.154,7.031,7.031S174.97,281.25,171.094,281.25z M269.531,281.25 c-3.877,0-7.031-3.155-7.031-7.031c0-3.876,3.155-7.031,7.031-7.031c3.876,0,7.031,3.155,7.031,7.031 C276.562,278.095,273.408,281.25,269.531,281.25z M281.248,253.125c0.002,2.587-2.098,4.688-4.685,4.688h-112.5 c-2.587,0-4.688-2.1-4.688-4.688v-95.784l8.067-4.842c7.838-4.702,16.814-7.186,25.955-7.186h39.164l-2.63,7.894 c-0.82,2.456,0.506,5.114,2.962,5.93c0.492,0.159,0.994,0.239,1.481,0.239c1.964,0,3.792-1.242,4.444-3.206l3.619-10.856h2.62 l3.619,10.856c0.656,1.964,2.484,3.206,4.448,3.206c0.488,0,0.989-0.08,1.481-0.244c2.452-0.816,3.783-3.469,2.962-5.93 l-2.4-7.195c6.342,1.012,12.469,3.164,18.014,6.492l8.067,4.842V253.125z M281.251,146.405l-3.239-1.945 c-8.798-5.273-18.802-8.166-29.034-8.466c-0.145-0.019-0.281-0.009-0.427-0.014c-0.441-0.005-0.881-0.042-1.322-0.042h-53.831 c-10.842,0-21.483,2.948-30.778,8.522l-3.244,1.945v-19.842c-0.001-2.588,2.099-4.688,4.687-4.688h112.5 c2.587,0,4.688,2.1,4.688,4.688V146.405z"></path> <path d="M164.063,107.813h112.5c7.753,0,14.063-6.309,14.039-14.531l-3.97-39.698c-0.534-5.334-2.025-10.467-4.416-15.263 c-7.364-14.723-22.055-23.911-38.466-24.202v-0.056C243.75,6.309,237.441,0,229.688,0h-18.75 c-7.753,0-14.063,6.309-14.063,14.063v0.056c-16.411,0.291-31.102,9.483-38.466,24.206c-2.395,4.791-3.881,9.928-4.416,15.263 L150,93.75C150,101.503,156.309,107.813,164.063,107.813z M210.938,9.375h18.75c2.587,0,4.688,2.1,4.688,4.688H206.25 C206.25,11.475,208.35,9.375,210.938,9.375z M163.322,54.52c0.422-4.195,1.589-8.236,3.473-12.005 c5.887-11.766,17.714-19.078,30.872-19.078h45.291c13.158,0,24.984,7.313,30.872,19.078c1.884,3.769,3.052,7.809,3.473,12.005 l3.947,39.23c0,2.588-2.1,4.688-4.688,4.688h-112.5c-2.587,0-4.688-2.1-4.711-4.219L163.322,54.52z"></path> <path d="M239.064,51.563h-0.001c0,2.592,2.095,4.688,4.688,4.688c2.593,0,4.688-2.095,4.688-4.688v-9.375h9.375v-9.375h-75v9.375 h56.25V51.563z"></path> </g> </g> </g> </g></svg>
+						</td>
+						<td colspan="10" class="text-start align-middle flex-wrap">
+							' . $rowBagHTML . '
+						</td>
+					</tr>';
 		} else {
 			$luggage_price = '';
 
@@ -1502,15 +1563,15 @@ class EC_Flight_Bookings extends Basic
 
 				$eluggage_outbound = '';
 				if (strlen($passInfo['eluggage_outbound']) > 0) {
-					$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center" class="eluggage_outbound">
-						(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($passInfo['eluggage_outbound']) . '</strong>)
-						<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $orderNumber . '" value="' . strtoupper($passInfo['eluggage_outbound']) . '"  />
-					</span>';
+					$eluggage_outbound .= '<span data-label="Số vé HL đi" class="text-center eluggage_outbound">
+											(<span class="color-primary fst-italic fw-semibold">Số vé HL lượt đi</span>: <strong>' . strtoupper($passInfo['eluggage_outbound']) . '</strong>)
+											<input type="hidden" name="eluggage_outbound[]" id="eluggage_outbound' . $orderNumber . '" value="' . strtoupper($passInfo['eluggage_outbound']) . '"  />
+										</span>';
 				}
 				$luggage_price .= '<div class="luggage__outbound">
-					<span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($passInfo['luggage_purchase']) . ' - Nhà cung cấp: ' . $passInfo['supplier'] . $lug_purchase_inf . ')
-					' . $eluggage_outbound . '
-				</div>';
+										<span class="color-primary fst-italic fw-semibold">Lượt đi</span>: ' . $bag_out2 . ' (Giá mua (VAT): ' . format_number($passInfo['luggage_purchase']) . ' - Nhà cung cấp: ' . $passInfo['supplier'] . $lug_purchase_inf . ')
+										' . $eluggage_outbound . '
+									</div>';
 			}
 
 			/***** Hành lý chiều về *****/
@@ -1551,9 +1612,9 @@ class EC_Flight_Bookings extends Basic
 			}
 
 			return '<tr class="psg-line luggage" ' . (trim($luggage_price) == '' ? 'style="display:none;"' : '') . '>
-				<td data-label="Hành lý ký gửi" class="text-center bg-yellow align-middle">&nbsp;</td>
-				<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
-			</tr>';
+						<td data-label="Hành lý ký gửi" class="text-center bg-yellow align-middle">&nbsp;</td>
+						<td colspan="10" class="text-start align-middle fst-italic flex-wrap">' . $luggage_price . '</td>
+					</tr>';
 		}
 	}
 

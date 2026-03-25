@@ -129,15 +129,10 @@ class EmailTemplate extends SugarBean
 
         $contact = BeanFactory::newBean('Contacts');
         $account = BeanFactory::newBean('Accounts');
-        $lead = BeanFactory::newBean('Leads');
-        $prospect = BeanFactory::newBean('Prospects');
-
 
         $loopControl = array(
             'Contacts' => array(
                 'Contacts' => $contact,
-                'Leads' => $lead,
-                'Prospects' => $prospect,
             ),
             'Accounts' => array(
                 'Accounts' => $account,
@@ -201,16 +196,10 @@ class EmailTemplate extends SugarBean
 
         $contact = BeanFactory::newBean('Contacts');
         $account = BeanFactory::newBean('Accounts');
-        $lead = BeanFactory::newBean('Leads');
-        $prospect = BeanFactory::newBean('Prospects');
-        $event = BeanFactory::newBean('FP_events');
-
 
         $loopControl = array(
             'Contacts' => array(
                 'Contacts' => $contact,
-                'Leads' => $lead,
-                'Prospects' => $prospect,
             ),
             'Accounts' => array(
                 'Accounts' => $account,
@@ -218,16 +207,12 @@ class EmailTemplate extends SugarBean
             'Users' => array(
                 'Users' => $current_user,
             ),
-            'Events' => array(
-                'Events' => $event,
-            ),
         );
 
         $prefixes = array(
             'Contacts' => 'contact_',
             'Accounts' => 'account_',
             'Users' => 'contact_user_',
-            'Events' => 'event_',
         );
 
         $collection = array();
@@ -308,9 +293,7 @@ class EmailTemplate extends SugarBean
         $this->fill_in_additional_parent_fields();
     }
 
-    public function fill_in_additional_parent_fields()
-    {
-    }
+    public function fill_in_additional_parent_fields() {}
 
     //function all string that match the pattern {.} , also catches the list of found strings.
     //the cache will get refreshed when the template bean instance changes.
@@ -555,27 +538,7 @@ class EmailTemplate extends SugarBean
         // cn: bug 9277 - create a replace array with empty strings to blank-out invalid vars
         $acct = BeanFactory::newBean('Accounts');
         $contact = BeanFactory::newBean('Contacts');
-        $lead = BeanFactory::newBean('Leads');
-        $prospect = BeanFactory::newBean('Prospects');
 
-        foreach ($lead->field_defs as $field_def) {
-            if (($field_def['type'] == 'relate' && empty($field_def['custom_type'])) || $field_def['type'] == 'assigned_user_name') {
-                continue;
-            }
-            $repl_arr = EmailTemplate::add_replacement($repl_arr, $field_def, array(
-                'contact_' . $field_def['name'] => '',
-                'contact_account_' . $field_def['name'] => '',
-            ));
-        }
-        foreach ($prospect->field_defs as $field_def) {
-            if (($field_def['type'] == 'relate' && empty($field_def['custom_type'])) || $field_def['type'] == 'assigned_user_name') {
-                continue;
-            }
-            $repl_arr = EmailTemplate::add_replacement($repl_arr, $field_def, array(
-                'contact_' . $field_def['name'] => '',
-                'contact_account_' . $field_def['name'] => '',
-            ));
-        }
         foreach ($contact->field_defs as $field_def) {
             if (($field_def['type'] == 'relate' && empty($field_def['custom_type'])) || $field_def['type'] == 'assigned_user_name') {
                 continue;
@@ -799,10 +762,6 @@ class EmailTemplate extends SugarBean
                 $focus = BeanFactory::getBean($bean_name, $bean_id);
             }
 
-            if ($bean_name == 'Leads' || $bean_name == 'Prospects') {
-                $bean_name = 'Contacts';
-            }
-
             if (isset($this) && isset($this->module_dir) && $this->module_dir == 'EmailTemplates') {
                 $string = $this->parse_template_bean($string, $bean_name, $focus);
             } else {
@@ -920,7 +879,7 @@ class EmailTemplate extends SugarBean
             $fileExtension = end($splits);
 
             $toFile = $match[2] . '.' . $fileExtension;
-            if (is_string($toFile) && !has_valid_image_extension('repair-entrypoint-images-fileext', $toFile)){
+            if (is_string($toFile) && !has_valid_image_extension('repair-entrypoint-images-fileext', $toFile)) {
                 $log->error("repairEntryPointImages | file with invalid extension '$toFile'");
                 return;
             }

@@ -3094,8 +3094,6 @@ class SugarBean
      * to fire the hook.  Each entry in the top level array should be defined on a single line to make it
      * easier to automatically replace this file.  There should be no contents of this file that are not replaceable.
      *
-     * $hook_array['before_save'][] = Array(1, 'test type', 'custom/modules/Leads/test12.php', 'TestClass',
-     * 'lead_before_save_1');
      * This sample line creates a before_save hook.  The hooks are processed in the order in which they
      * are added to the array.  The second dimension is an array of:
      *        processing index (for sorting before exporting the array)

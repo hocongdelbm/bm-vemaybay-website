@@ -1,6 +1,5 @@
 <script type="text/javascript" src="cache/include/javascript/sugar_grp_yui_widgets.js"></script>
 
-<link rel="stylesheet" type="text/css" href="{sugar_getjspath file='modules/Connectors/tpls/tabs.css'}"/>
 <style>.yui-dt-scrollable .yui-dt-bd {ldelim}overflow-x: hidden;{rdelim}</style>
 
 <table width="100%" border="0" cellspacing="0" cellpadding="0">

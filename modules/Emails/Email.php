@@ -353,9 +353,7 @@ class Email extends Basic
     public $relationshipMap = array(
         'Contacts' => 'emails_contacts_rel',
         'Accounts' => 'emails_accounts_rel',
-        'Leads' => 'emails_leads_rel',
         'Users' => 'emails_users_rel',
-        'Prospects' => 'emails_prospects_rel',
     );
 
     /**
@@ -992,7 +990,7 @@ class Email extends Basic
 
             if (isset($request['parent_type']) && !empty($request['parent_type']) &&
                 isset($request['parent_id']) && !empty($request['parent_id']) &&
-                in_array($request['parent_type'], ['Accounts', 'Cases', 'Contacts', 'Leads', 'Users', 'Prospects'])) {
+                in_array($request['parent_type'], ['Accounts', 'Cases', 'Contacts', 'Users'])) {
                 if (isset($beanList[$request['parent_type']]) && !empty($beanList[$request['parent_type']])) {
                     $className = $beanList[$request['parent_type']];
                     if (isset($beanFiles[$className]) && !empty($beanFiles[$className])) {
@@ -3593,17 +3591,6 @@ class Email extends Basic
                         ".gif",
                         $mod_strings['LBL_CREATE_CASES']
                     ) . $mod_strings['LBL_CREATE_CASE'] . '</a>';
-                    break;
-
-                case 'sales':
-                    $email_fields['CREATE_RELATED'] = '<a href="index.php?module=Leads&action=EditView&inbound_email_id=' . $this->id . '" >' . SugarThemeRegistry::current()->getImage(
-                        'CreateLeads',
-                        'border="0"',
-                        null,
-                        null,
-                        ".gif",
-                        $mod_strings['LBL_CREATE_LEADS']
-                    ) . $mod_strings['LBL_CREATE_LEAD'] . '</a>';
                     break;
 
                 case 'contact':

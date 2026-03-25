@@ -57,7 +57,7 @@ class populateSeedData
     public $monitorIds = 500;
     public $user = 1;
     public $userDemoData;
-    public $modules = array('Accounts', 'Calls', 'Contacts', 'Leads', 'Meetings', 'Notes', 'Opportunities', 'Users');
+    public $modules = array('Accounts', 'Calls', 'Contacts', 'Meetings', 'Notes', 'Opportunities', 'Users');
     public $actions = array('authenticate', 'detailview', 'editview', 'index', 'save', 'settimezone');
     public $db;
     public $beanIdMap = array();

@@ -11,7 +11,6 @@ $GLOBALS['tabStructure'] = array(
             "Accounts",
             "Contacts",
             "Opportunities",
-            "Leads",
             "Contracts",
             "Quotes",
             "Forecasts",
@@ -23,10 +22,6 @@ $GLOBALS['tabStructure'] = array(
             "Home",
             "Accounts",
             "Contacts",
-            "Leads",
-            "Campaigns",
-            "Prospects",
-            "ProspectLists",
         )
     ),
     "LBL_TABGROUP_SUPPORT" => array(
@@ -57,7 +52,6 @@ $GLOBALS['tabStructure'] = array(
             "Home",
             "Emails",
             "Documents",
-            "Project",
         )
     ),
 );

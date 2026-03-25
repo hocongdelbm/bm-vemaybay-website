@@ -157,7 +157,7 @@ class Person extends Basic
         }
 
         $this->name = $full_name;
-        $this->full_name = $full_name; //used by campaigns
+        $this->full_name = $full_name;
     }
 
     /**

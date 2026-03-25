@@ -181,10 +181,6 @@ function aop_parse_template($string, $bean_arr)
     foreach ($bean_arr as $bean_name => $bean_id) {
         $focus = BeanFactory::getBean($bean_name, $bean_id);
 
-        if ($bean_name === 'Leads' || $bean_name === 'Prospects') {
-            $bean_name = 'Contacts';
-        }
-
         foreach ($focus->field_defs as $key => $field_def) {
             if (array_key_exists($field_def['type'], $typeMap)) {
                 $focus->field_defs[$key]['type'] = $typeMap[$field_def['type']];

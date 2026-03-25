@@ -6,6 +6,7 @@
     padding: 15px 20px;
 }
 
+<<<<<<< HEAD
 .report .title {
     text-align: center;
 }
@@ -13,6 +14,8 @@
     text-align: left;
 }
 
+=======
+>>>>>>> main
 .report .search {
     padding: 15px 0;
 }
@@ -23,9 +26,14 @@
     justify-content: center;
     margin-top: 15px;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 .wrap-choose-date .label {
     padding: 0 5px;
 }
+
 .wrap-choose-date .input-date {
     width: 200px;
 }
@@ -33,7 +41,10 @@
 .table-cost tr .td-name {
     font-weight: 600;
 }
+<<<<<<< HEAD
 
 .table-cost tfoot .total-cost {
     color: red;
 }
+=======
+>>>>>>> main

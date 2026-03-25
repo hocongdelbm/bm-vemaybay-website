@@ -43,11 +43,6 @@ YAHOO.util.Connect.asyncRequest('POST', 'index.php', callback, "module=Meetings&
 				</div>
 			</th>
 		{/if}
-		{if $favorites}
-		<th scope='col'>
-				&nbsp;
-		</th>
-		{/if}
 		{if !empty($quickViewLinks)}
 		<th scope='col' width='1%' style="padding: 0px;">&nbsp;</th>
 		{/if}
@@ -112,9 +107,6 @@ YAHOO.util.Connect.asyncRequest('POST', 'index.php', callback, "module=Meetings&
                     <input onclick='sListView.check_item(this, document.MassUpdate)' type='checkbox' class='checkbox' name='mass[]' value='{$rowData.ID}'>		 
 			 {/if}
 			</td>
-			{/if}
-			{if $favorites}
-				<td>{$rowData.star}</td>
 			{/if}
 			{if !empty($quickViewLinks)}
 

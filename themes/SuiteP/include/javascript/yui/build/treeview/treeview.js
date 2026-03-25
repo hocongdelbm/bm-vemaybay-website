@@ -3661,9 +3661,6 @@ YAHOO.extend(YAHOO.widget.DateNode, YAHOO.widget.TextNode, {
         var ed = TV.editorData,
             node = ed.node,
             close = true;
-        // http://yuilibrary.com/projects/yui2/ticket/2528946
-        // _closeEditor might now be called at any time, even when there is no label editor open
-        // so we need to ensure there is one.
         if (!node || !ed.active) { return; }
         if (save) {
             close = ed.node.saveEditorValue(ed) !== false;

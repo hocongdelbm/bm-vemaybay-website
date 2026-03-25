@@ -74,6 +74,13 @@ $admin_option_defs['Administration']['configphp_settings'] = [
     './index.php?module=Configurator&action=EditView',
     'system-settings'
 ];
+$admin_option_defs['Administration']['configmore_settings'] = [
+    'Password',
+    'LBL_MANAGE_CONFIG_TITLE',
+    'LBL_MANAGE_CONFIG',
+    './index.php?module=Administration&action=MoreSettings',
+    'system-settings'
+];
 // $admin_option_defs['Administration']['currencies_management'] = [
 //     'Currencies',
 //     'LBL_MANAGE_CURRENCIES',
@@ -136,20 +143,6 @@ $admin_group_header[] = ['LBL_ADMINISTRATION_HOME_TITLE', '', false, $admin_opti
 
 //Module Settings
 $admin_option_defs = [];
-$admin_option_defs['Administration']['feed_settings'] = [
-    'icon_SugarFeed',
-    'LBL_SUITEFEED_SETTINGS',
-    'LBL_SUITEFEED_SETTINGS_DESC',
-    './index.php?module=SugarFeed&action=AdminSettings',
-    'activity-streams'
-];
-$admin_option_defs['Administration']['business_hours'] = [
-    'AOBH_BusinessHours',
-    'LBL_BUSINESS_HOURS',
-    'LBL_AOP_BUSINESS_HOURS_DESC',
-    './index.php?module=Administration&action=BusinessHours',
-    'aobh-businesshours'
-];
 $admin_option_defs['Administration']['aop'] = [
     'AOP',
     'LBL_AOP_SETTINGS',
@@ -164,13 +157,6 @@ $admin_option_defs['Administration']['configure_group_tabs'] = [
     './index.php?action=wizard&module=Studio&wizard=StudioWizard&option=ConfigureGroupTabs',
     'configure-module-menu-filters'
 ];
-// $admin_option_defs['Administration']['connector_settings'] = [
-//     'icon_Connectors',
-//     'LBL_CONNECTOR_SETTINGS',
-//     'LBL_CONNECTOR_SETTINGS_DESC',
-//     './index.php?module=Connectors&action=ConnectorSettings',
-//     'connectors'
-// ];
 // $admin_option_defs['Administration']['configure_tabs'] = [
 //     'ConfigureTabs',
 //     'LBL_CONFIGURE_TABS_AND_SUBPANELS',
@@ -213,14 +199,6 @@ $admin_option_defs['Emails']['mass_Email_config'] = [
     'email-settings'
 ];
 
-$admin_option_defs['Campaigns']['campaignconfig'] = [
-    'EmailCampaigns',
-    'LBL_CAMPAIGN_CONFIG_TITLE',
-    'LBL_CAMPAIGN_CONFIG_DESC',
-    './index.php?module=EmailMan&action=campaignconfig',
-    'campaign-email-settings'
-];
-
 $admin_option_defs['Emails']['mailboxes'] = [
     'EmailInbound',
     'LBL_MANAGE_MAILBOX',
@@ -249,14 +227,6 @@ $admin_option_defs['Emails']['external_oauth_providers'] = [
     'index.php?module=ExternalOAuthProvider&action=index',
     'oauth2'
 ];
-$admin_option_defs['Campaigns']['mass_Email'] = [
-    'EmailQueue',
-    'LBL_MASS_EMAIL_MANAGER_TITLE',
-    'LBL_MASS_EMAIL_MANAGER_DESC',
-    './index.php?module=EmailMan&action=index',
-    'email-queue'
-];
-
 
 $admin_group_header[] = ['LBL_EMAIL_TITLE', '', false, $admin_option_defs, 'LBL_EMAIL_DESC'];
 
@@ -371,41 +341,6 @@ $admin_group_header[] = ['LBL_STUDIO_TITLE', '', false, $admin_option_defs, 'LBL
 //     'LBL_GOOGLE_CALENDAR_SETTINGS_DESC',
 //     './index.php?module=Administration&action=GoogleCalendarSettings',
 //     'system-settings'
-// ];
-// $admin_option_defs['jjwg_Maps']['config'] = [
-//     'Administration',
-//     'LBL_JJWG_MAPS_ADMIN_CONFIG_TITLE',
-//     'LBL_JJWG_MAPS_ADMIN_CONFIG_DESC',
-//     './index.php?module=jjwg_Maps&action=config',
-//     'google-maps-settings'
-// ];
-// $admin_option_defs['jjwg_Maps']['geocoded_counts'] = [
-//     'Geocoded_Counts',
-//     'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_TITLE',
-//     'LBL_JJWG_MAPS_ADMIN_GEOCODED_COUNTS_DESC',
-//     './index.php?module=jjwg_Maps&action=geocoded_counts',
-//     'geocoded-counts'
-// ];
-// $admin_option_defs['jjwg_Maps']['geocoding_test'] = [
-//     'GeocodingTests',
-//     'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_TITLE',
-//     'LBL_JJWG_MAPS_ADMIN_GEOCODING_TEST_DESC',
-//     './index.php?module=jjwg_Maps&action=geocoding_test',
-//     'geocoding-test'
-// ];
-// $admin_option_defs['jjwg_Maps']['geocode_addresses'] = [
-//     'GeocodeAddresses',
-//     'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_TITLE',
-//     'LBL_JJWG_MAPS_ADMIN_GEOCODE_ADDRESSES_DESC',
-//     './index.php?module=jjwg_Maps&action=geocode_addresses',
-//     'geocode-addresses'
-// ];
-// $admin_option_defs['jjwg_Maps']['address_cache'] = [
-//     'Address_Cache',
-//     'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_TITLE',
-//     'LBL_JJWG_MAPS_ADMIN_ADDRESS_CACHE_DESC',
-//     './index.php?module=jjwg_Address_Cache&action=index',
-//     'address-cache'
 // ];
 
 // $admin_group_header[] = [

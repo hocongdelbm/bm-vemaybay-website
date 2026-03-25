@@ -1549,7 +1549,6 @@ class SugarEmailAddress extends SugarBean
         $prefillDataArr = array();
         if (!empty($id)) {
             $prefillDataArr = $this->getAddressesByGUID($id, $module);
-            //When coming from convert leads, sometimes module is Contacts while the id is for a lead.
             if (empty($prefillDataArr) && $module == "Contacts") {
                 $prefillDataArr = $this->getAddressesByGUID($id, "Leads");
             }
@@ -2023,7 +2022,7 @@ class SugarEmailAddress extends SugarBean
     }
 
     /**
-     * It returns a ViewDefs for Confirm Opt In action link on DetailViews, specially for Accounts/Contacts/Leads/Prospects
+     * It returns a ViewDefs for Confirm Opt In action link on DetailViews, specially for Accounts/Contacts
      *
      * @param string $module module name
      * @param string $returnModule optional, using module name if null

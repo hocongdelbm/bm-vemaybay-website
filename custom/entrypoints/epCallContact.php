@@ -1,4 +1,7 @@
 <?php
+
+use PhpParser\Node\Stmt\Catch_;
+
 if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
     $type = isset($_POST['type']) ? $_POST['type'] : "";
 
@@ -75,12 +78,7 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         // Kiểm tra tương tác Zalo
-        $data['is_call_zalo'] = false;
-        try {
-            $zaloContact = new EC_Zalo_Contacts();
-            $data['is_call_zalo'] = !empty($data['zalo_id']) ? $zaloContact->check_zalo_contact_action('call', $data['zalo_id']) : false;
-        }
-        catch(Throwable $th) {}
+        $data['is_call_zalo'] = !empty($data['zalo_id']) ? EC_Zalo_Contacts_Helper::check_zalo_contact_action('call', $data['zalo_id']) : false;
 
         /**********  3. Get booking info of contact via phone **********/
         $phone_lh = (isset($data['phone']) && !empty($data['phone'])) ? $data['phone'] : $phone;
@@ -111,9 +109,13 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             $journey_id     = isset($_POST['journey_id']) ? global_test_input($_POST['journey_id']) : "";
             $call_status    = (!empty($note) && !empty($call_reason)) ? 'done' : 'new';
 
-            $is_uncomfortable     = isset($_POST['is_uncomfortable']) ? $_POST['is_uncomfortable'] : false;
-            $is_ctv     = isset($_POST['is_ctv']) ? $_POST['is_ctv'] : false;
-            $is_compare_price     = isset($_POST['is_compare_price']) ? $_POST['is_compare_price'] : false;
+            $is_uncomfortable   = isset($_POST['is_uncomfortable']) ? $_POST['is_uncomfortable'] : false;
+            $is_ctv             = isset($_POST['is_ctv']) ? $_POST['is_ctv'] : false;
+            $is_compare_price   = isset($_POST['is_compare_price']) ? $_POST['is_compare_price'] : false;
+
+            $is_send_zbs_after_call = (int)($_POST['is_send_zbs_after_cal'] ?? 0);
+            $data_zbs_after_call_code = global_test_input($_POST['data_zbs_after_call_code'] ?? '');
+            $data_zbs_after_call_datetime = global_test_input($_POST['data_zbs_after_call_datetime'] ?? '');
 
             // Validate
             if (empty($call_id) || empty($note)) {
@@ -156,29 +158,12 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             
                     $contact_id = $found_ids[0]; 
                     if (count($found_ids) > 1) {
-                        if($this->notificationChannel == 'Mattermost') {
-                            $cont = "**Có nhiều hơn 1 liên hệ trùng thông tin**";
-                            $cont .= "\nSố điện thoại: **$phone**";
-                            $cont .= "\nZaloID: **$zalo_id**";
-                            $cont .= "\n*From epCallContact update_call()*";
-                            $metadata = [
-                                "priority" => [
-                                    "priority" => "important",
-                                ]
-                            ];
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_zalo_oa'] ?? '', $cont, [], $metadata);
-                        }
-                        else {
-                            $cont = "<b>[WARNING]</b> Có nhiều hơn 1 liên hệ trùng thông tin";
-                            $cont .= "\nSĐT: <b>$phone</b>";
-                            $cont .= "\nZalo ID: <b>$zalo_id</b>";
-                            $cont .= "\n<i>From epCallContact update_call()</i>";
-                            $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                            Telegram::sendMessage($cont, $botToken, $chatId, $threadId);
-                        }
+                        $cont = "Có nhiều hơn 1 liên hệ trùng thông tin";
+                        $cont .= "\nSĐT: <b>$phone</b>";
+                        $cont .= "\nZalo ID: <b>$zalo_id</b>";
+                        $cont .= "\n<i>From epCallContact update_call()</i>";
+                        $cont .= "\n<pre>" . json_encode($_POST, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "</pre>";
+                        NotificationService::sendWarningMessage($cont, '', ['threadKey' => 'system']);
                     }
                 }
             }
@@ -230,13 +215,10 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             }
 
             // Map contact and zalo
-            try {
-                if(!empty($zalo_id) && is_string($con->id)) {
-                    $zaloContact = new EC_Zalo_Contacts();
-                    $zaloContact->map_contact_zalo($con->id, $zalo_id);
-                }
+            if(!empty($zalo_id) && is_string($con->id)) {
+                $zaloContact = new EC_Zalo_Contacts();
+                EC_Zalo_Contacts_Helper::map_contact_zalo($con->id, $zalo_id);
             }
-            catch(Throwable $th) {}
 
             // CHECK CALL_ID ĐÃ CÓ TRONG DB HAY CHƯA
             $currentDate = date('Y-m-d H:i:s', strtotime('+7 hour'));
@@ -428,6 +410,87 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     } 
                 }
+            }
+
+            /**********  3. Send ZBS message (after-call-sale)  **********/
+            try {
+                $zbs_template_message_params = [];
+                if($is_send_zbs_after_call) {
+                    if(!empty($data_zbs_after_call_code) && !empty($data_zbs_after_call_datetime)) {
+                        if(!empty($phone)) {
+                            $zbs_template_message_params = [
+                                "phoneNumber" => $phone,
+                                "type" => "after-call-sale",
+                                "parentId" => $booking_id,
+                                "parentType" => !empty($booking_id) ? "EC_Flight_Bookings" : "",
+                                "templateData" => [
+                                    "full_name" => "quý khách",
+                                    "flight_no" => $data_zbs_after_call_code,
+                                    "datetime" => $data_zbs_after_call_datetime,
+                                ],
+                            ];
+                        }
+                        else if(!empty($zalo_id)) {
+                            $zalo_info = EC_Zalo_Contacts_Helper::get_zalo_user_info($zalo_id, '', true);
+                            if(isset($zalo_info['shared_info']['phone']) && !empty($zalo_info['shared_info']['phone'])) {
+                                $zbs_template_message_params = [
+                                    "phoneNumber" => $zalo_info['shared_info']['phone'],
+                                    "type" => "after-call-sale",
+                                    "parentId" => $booking_id,
+                                    "parentType" => !empty($booking_id) ? "EC_Flight_Bookings" : "",
+                                    "templateData" => [
+                                        "full_name" => "quý khách",
+                                        "flight_no" => $data_zbs_after_call_code,
+                                        "datetime" => $data_zbs_after_call_datetime,
+                                    ],
+                                ];
+                            }
+                        }
+                    }
+                }
+                else if(!empty($booking_id)) {
+                    /**
+                     * @var EC_Flight_Bookings $booking
+                     */
+                    $booking = new EC_Flight_Bookings();
+                    $booking->retrieve($booking_id);
+                    if(!empty($booking->id) && strtoupper(trim($booking->contact_name)) == 'THAM KHAO' && $booking->total_amount == 0) {
+                        $sqlItineraries = "SELECT departure AS dep_code, arrival AS des_code, departure_date
+                            FROM ec_booking_itineraries 
+                            WHERE booking_id = '{$booking_id}'
+                                AND direction = '0'
+                                AND deleted = 0";
+                        $resItineraries = $db->query($sqlItineraries);
+                        $rowItineraries = $db->fetchByAssoc($resItineraries);
+                            
+                        $dep_code = $rowItineraries['dep_code'] ?? '';
+                        $des_code = $rowItineraries['des_code'] ?? '';
+                        $departure_date = $rowItineraries['departure_date'] ?? '';
+
+                        if(!empty($dep_code) && !empty($des_code) && !empty($departure_date) && strtotime($departure_date) !== false) {
+                            $zbs_template_message_params = [
+                                "phoneNumber" => !empty($phone) ? $phone : $booking->phone,
+                                "type" => "after-call-sale",
+                                "parentId" => $booking_id,
+                                "parentType" => "EC_Flight_Bookings",
+                                "templateData" => [
+                                    "full_name" => "quý khách",
+                                    "flight_no" => "{$dep_code}-{$des_code}",
+                                    "datetime" => date('d/m/Y', strtotime($departure_date)),
+                                ],
+                                "auto" => 1
+                            ];
+                        }
+                    }
+                }
+                if(is_array($zbs_template_message_params) && !empty($zbs_template_message_params)) {
+                    $entry = new entryFactory();
+                    $entryOA = $entry->create('entryZaloOAClass');
+                    $entryOA->sendTemplateMessage($zbs_template_message_params);
+                }
+            }
+            catch(Throwable $th) {
+                $GLOBALS['log']->fatal("Error happen when sending ZBS message (after-call-sale): {$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}");
             }
             
             echo json_encode(["status" => 1, "message" => "Success"]);
@@ -827,14 +890,6 @@ if ((string)$_SERVER["REQUEST_METHOD"] === "POST") {
             echo $html_call_summary.$html;
         } else {
             echo 'Chưa có cuộc gọi CSKH nào!';
-        }
-        exit();
-    }
-    else if ((string)$type === 'autocall') {
-        $phone = isset($_POST['phone']) ? global_test_input(str_replace(" ", "", $_POST['phone'])) : "";
-        if(!empty($phone)){
-            $phone_list = explode(",", $phone);
-            echo send_callee_autocall($phone_list);
         }
         exit();
     }

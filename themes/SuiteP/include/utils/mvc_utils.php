@@ -72,14 +72,9 @@ function ajaxBannedModules()
     $bannedModules = array(
         'Calendar',
         'Emails',
-        'Campaigns',
         'Documents',
         'DocumentRevisions',
-        'Project',
-        'ProjectTask',
         'EmailMarketing',
-        'CampaignLog',
-        'CampaignTrackers',
         'Releases',
         'Groups',
         'EmailMan',
@@ -93,7 +88,6 @@ function ajaxBannedModules()
         'Users',
         'Currencies',
         'Trackers',
-        'Connectors',
         'Import_1',
         'Import_2',
         'Versions',
@@ -110,7 +104,6 @@ function ajaxBannedModules()
         'Employees',
         'Import',
         'OAuthKeys',
-        'Surveys',
     );
 
     if (!empty($GLOBALS['sugar_config']['addAjaxBannedModules'])) {

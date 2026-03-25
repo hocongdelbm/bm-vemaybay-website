@@ -1,65 +1,65 @@
-$(document).ready(function() {
-	var dec_seperator 	= $('#dec_seperator').val();
-	var grp_seperator 	= $('#grp_seperator').val();
-	var sig_digits 	= $('#sig_digits').val();
+$(document).ready(function () {
+	var dec_seperator = $('#dec_seperator').val();
+	var grp_seperator = $('#grp_seperator').val();
+	var sig_digits = $('#sig_digits').val();
 
-	$('.allow-number-only').number( true, sig_digits, dec_seperator, grp_seperator);
+	$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
 
 	changeInvoiceType();
 	$('#sohoadon').attr('maxlength', 8);
-	
+
 	// không cho nhấn phím enter trên form
-	$('input:text').bind("keypress", function(e) {
+	$('input:text').bind("keypress", function (e) {
 		if (e.keyCode == 13) return false;
 	});
-	
+
 	// thay thế phím TAB bằng ENTER
 	var $inputs = $('input:text');
-	$inputs.on('keypress', function(e){
-		if(e.which === 13){
+	$inputs.on('keypress', function (e) {
+		if (e.which === 13) {
 			var ind = $inputs.index(this);
 			$inputs.eq(ind + 1).focus();
 			$inputs.eq(ind + 1).select();
 		}
 	});
-	
-	$('input:text, textarea').on('click', function(){
-		$(this).select();	
+
+	$('input:text, textarea').on('click', function () {
+		$(this).select();
 	});
-	
+
 	// Xử lý sự kiện nhất nút thêm dòng
-	$('#btnAddRow').click(function(){
-		var ln 	= parseInt($('#row_count').val());
+	$('#btnAddRow').click(function () {
+		var ln = parseInt($('#row_count').val());
 		$('#last-row').before(insertRow(ln, $("#loaihoadon").val()));
 		$('#ct_sanpham' + ln).focus(); //vô nghĩa
-		$('.allow-number-only').number( true, sig_digits, dec_seperator, grp_seperator );
+		$('.allow-number-only').number(true, sig_digits, dec_seperator, grp_seperator);
 		calculateLineTotal(ln);
 
 		ln++;
 		$('#row_count').val(ln);
 		$('#lbl_row_count').text(parseInt($('#lbl_row_count').text()) + 1);
-		
+
 		// không cho nhấn phím enter trên form
-		$('input:text').bind("keypress", function(e) {
+		$('input:text').bind("keypress", function (e) {
 			if (e.keyCode == 13) return false;
 		});
-		
+
 		// thay thế phím TAB bằng phím ENTER
 		var $inputs = $('input:text');
-		$inputs.on('keypress', function(e){
-			if(e.which === 13){
+		$inputs.on('keypress', function (e) {
+			if (e.which === 13) {
 				var ind = $inputs.index(this);
-        		$inputs.eq(ind + 1).focus();
+				$inputs.eq(ind + 1).focus();
 				$inputs.eq(ind + 1).select();
 			}
 		});
 	});
 
-	$(document).on('change', 'select[name="ct_code[]"]', function() {
+	$(document).on('change', 'select[name="ct_code[]"]', function () {
 		const index = $('select[name="ct_code[]"]').index(this);
 		const value = $(this).val();
 
-		if(value == 'PHL' || value == 'PD' || value == 'PMG') {
+		if (value == 'PHL' || value == 'PD' || value == 'PMG') {
 			$(`input[name="ct_receipt_voucher[]"]`).eq(index).attr('type', 'text');
 		}
 		else {
@@ -67,76 +67,76 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#loaihoadon").change(function() {
+	$("#loaihoadon").change(function () {
 		$("#first-row").parent().children().not("#first-row").not("#last-row").remove();
 		changeInvoiceType();
 	});
 
-	$("#company_unit").change(function() {
+	$("#company_unit").change(function () {
 		let status_invoice = $('#tinhtrang').val();
 
-		if($(this).val() == 'MHV' && status_invoice == 2){
+		if ($(this).val() == 'MHV' && status_invoice == 2) {
 			$('#sohoadon').attr('readonly', 'readonly');
-		} else{
+		} else {
 			$('#sohoadon').removeAttr('readonly');
 		}
 	});
 
 	$.widget('custom.autocomplete', $.ui.autocomplete, {
 		options: {
-		    open: function (event, ui) {
-			   // Hack to prevent a 'menufocus' error when doing sequential searches using only the keyboard
-			   $('.ui-autocomplete .ui-menu-item:first').trigger('mouseover');
-		    },
-		    focus: function (event, ui) {
-			   event.preventDefault();
-		    }
+			open: function (event, ui) {
+				// Hack to prevent a 'menufocus' error when doing sequential searches using only the keyboard
+				$('.ui-autocomplete .ui-menu-item:first').trigger('mouseover');
+			},
+			focus: function (event, ui) {
+				event.preventDefault();
+			}
 		},
 		_create: function () {
-		    this._super();
-		    // Using a table makes the autocomplete forget how to menu.
-		    // With this we can skip the header row and navigate again via keyboard.
-		    this.widget().menu("option", "items", ".ui-menu-item");
+			this._super();
+			// Using a table makes the autocomplete forget how to menu.
+			// With this we can skip the header row and navigate again via keyboard.
+			this.widget().menu("option", "items", ".ui-menu-item");
 		},
 		_renderMenu: function (ul, items) {
-		    var self = this;
-		    var $table = $('<table class="table-autocomplete table-autocomplete__hoadonban table-details__booking">'),
-			   $thead = $('<thead>'),
-			   $headerRow = $('<tr>'),
-			   $tbody = $('<tbody>');
-	 
-		    $.each(self.options.columns, function (index, columnMapping) {
-			   $('<th class="text-center" style="width:'+columnMapping.width+';">').html(columnMapping.name).appendTo($headerRow);
-		    });
-	 
-		    $thead.append($headerRow);
-		    $table.append($thead);
-		    $table.append($tbody);
-	 
-		    ul.html($table);
-	 
-		    $.each(items, function (index, item) {
-			   self._renderItemData(ul, ul.find("table tbody"), item);
-		    });
+			var self = this;
+			var $table = $('<table class="table-autocomplete table-autocomplete__hoadonban table-details__booking">'),
+				$thead = $('<thead>'),
+				$headerRow = $('<tr>'),
+				$tbody = $('<tbody>');
+
+			$.each(self.options.columns, function (index, columnMapping) {
+				$('<th class="text-center" style="width:' + columnMapping.width + ';">').html(columnMapping.name).appendTo($headerRow);
+			});
+
+			$thead.append($headerRow);
+			$table.append($thead);
+			$table.append($tbody);
+
+			ul.html($table);
+
+			$.each(items, function (index, item) {
+				self._renderItemData(ul, ul.find("table tbody"), item);
+			});
 		},
 		_renderItemData: function (ul, table, item) {
-		    return this._renderItem(table, item).data("ui-autocomplete-item", item);
+			return this._renderItem(table, item).data("ui-autocomplete-item", item);
 		},
 		_renderItem: function (table, item) {
-		    var self = this;
-		    var $tr = $('<tr class="ui-menu-item" role="presentation">');
-	 
-		    $.each(self.options.columns, function (index, columnMapping) {
-			   var cellContent = !item[columnMapping.valueField] ? '' : item[columnMapping.valueField];
-			   $('<td class="text-center">').html(cellContent).appendTo($tr);
-		    });
-	 
-		    return $tr.appendTo(table);
+			var self = this;
+			var $tr = $('<tr class="ui-menu-item" role="presentation">');
+
+			$.each(self.options.columns, function (index, columnMapping) {
+				var cellContent = !item[columnMapping.valueField] ? '' : item[columnMapping.valueField];
+				$('<td class="text-center">').html(cellContent).appendTo($tr);
+			});
+
+			return $tr.appendTo(table);
 		}
 	});
-	
+
 	// Tìm số vé
-	$(document).on('keydown.autocomplete','input.ac_ticket_number', function(){
+	$(document).on('keydown.autocomplete', 'input.ac_ticket_number', function () {
 		$(this).autocomplete({
 			showHeader: true,
 			columns: [
@@ -183,8 +183,8 @@ $(document).ready(function() {
 			],
 			source: "index.php?entryPoint=entryPointEC_HoaDonBan&for=getInputInvoice",
 			minLength: 6,
-			select: function(event, ui) {
-				if(ui.item.id.length == 0) {
+			select: function (event, ui) {
+				if (ui.item.id.length == 0) {
 					$('#ct_ticket_number' + ln).val(""); // Số vé
 					$('#ct_ticket_code' + ln).val(""); // Code vé
 					return;
@@ -196,17 +196,17 @@ $(document).ready(function() {
 				$(`#ct_booking${ln}`).val(ui.item.booking); // Booking name
 				$(`#ct_ticket_number${ln}`).val(ui.item.label); // Số vé
 				$(`#ct_ticket_code${ln}`).val(ui.item.ticket_code); // Code vé
- 				$(`#ct_qty${ln}`).val(ui.item.qty); // Số lượng
+				$(`#ct_qty${ln}`).val(ui.item.qty); // Số lượng
 				$(`#ct_qty${ln}`).attr('max_qty', ui.item.max_qty);
 				$(`#ct_purchase_price${ln}`).val(ui.item.total); // Giá mua
 				$(`#ct_authorized${ln}`).val(ui.item.authorized_fee); // Thu hộ
 				calculateLineTotal(ln);
 			}
 		});
-    });
+	});
 
 	// Tìm code vé
-	$(document).on('keydown.autocomplete','input.ac_ticket_code', function(){
+	$(document).on('keydown.autocomplete', 'input.ac_ticket_code', function () {
 		$(this).autocomplete({
 			showHeader: true,
 			columns: [
@@ -249,7 +249,7 @@ $(document).ready(function() {
 			source: "index.php?entryPoint=entryPointEC_HoaDonBan&for=getInputInvoice",
 			minLength: 6,
 			select: function (event, ui) {
-				if(ui.item.id.length == 0) {
+				if (ui.item.id.length == 0) {
 					$('#ct_ticket_number' + ln).val(""); // Số vé
 					$('#ct_ticket_code' + ln).val(""); // Code vé
 					return;
@@ -261,7 +261,7 @@ $(document).ready(function() {
 				$(`#ct_booking${ln}`).val(ui.item.booking); // Booking name
 				$(`#ct_ticket_number${ln}`).val(ui.item.label); // Số vé
 				$(`#ct_ticket_code${ln}`).val(ui.item.ticket_code); // Code vé
- 				$(`#ct_qty${ln}`).val(ui.item.qty); // Số lượng
+				$(`#ct_qty${ln}`).val(ui.item.qty); // Số lượng
 				$(`#ct_qty${ln}`).attr('max_qty', ui.item.max_qty);
 				$(`#ct_purchase_price${ln}`).val(ui.item.total); // Giá mua
 				$(`#ct_authorized${ln}`).val(ui.item.authorized_fee); // Thu hộ
@@ -271,7 +271,7 @@ $(document).ready(function() {
 	});
 
 	// Tìm booking
-	$(document).on('keydown.autocomplete','input.ac_booking', function(){
+	$(document).on('keydown.autocomplete', 'input.ac_booking', function () {
 		var fld = $(this).attr('fld');
 
 		$(this).autocomplete({
@@ -294,7 +294,7 @@ $(document).ready(function() {
 	});
 
 	// Tìm tên công ty
-	$(document).on('keydown.autocomplete','input#tencongty', function(){
+	$(document).on('keydown.autocomplete', 'input#tencongty', function () {
 		$(this).autocomplete({
 			// These next two options are what this plugin adds to the autocomplete widget.
 			showHeader: true,
@@ -324,12 +324,12 @@ $(document).ready(function() {
 			}
 		});
 	});
-	
+
 	// Kiểm tra MST
-	$('#icon-search-masothue').click(function() {
+	$('#icon-search-masothue').click(function () {
 		let mst = $('#masothue').val();
 
-		if(mst.length > 9) {
+		if (mst.length > 9) {
 			$('.container-waiting').show();
 			$.ajax({
 				url: "index.php?entryPoint=entryPointEC_HoaDonBan&for=getConpanyInfo",
@@ -345,14 +345,14 @@ $(document).ready(function() {
 						$('.wrap-masothue .mst-active').hide();
 						$('.wrap-masothue .mst-alert').show();
 					}
-					else if(info.success == true || info.status.indexOf("Đang hoạt động") != -1 || info.status.indexOf("đang hoạt động") != -1) {
+					else if (info.success == true || info.status.indexOf("Đang hoạt động") != -1 || info.status.indexOf("đang hoạt động") != -1) {
 						$('.wrap-masothue .mst-active').show();
 						$('.wrap-masothue .mst-alert').hide();
 
 						// Kiểm tra tên công ty
 						let tencongty = $('input#tencongty').val();
-						if(tencongty.length == 0) $('input#tencongty').val(info.name);
-						else if(tencongty != info.name) {
+						if (tencongty.length == 0) $('input#tencongty').val(info.name);
+						else if (tencongty != info.name) {
 							$('input#tencongty').css("border-color", "red");
 							$('.correct-value-tencongty').remove();
 							$('div.edit-view-field[field="tencongty"]').append(`<i class="correct-value-tencongty" style="color:red">${info.name}</i>`);
@@ -364,8 +364,8 @@ $(document).ready(function() {
 
 						// Kiểm tra địa chỉ
 						let diachi = $('textarea#diachi').val();
-						if(diachi.length == 0) $('textarea#diachi').val(info.address);
-						else if(diachi != info.address) {
+						if (diachi.length == 0) $('textarea#diachi').val(info.address);
+						else if (diachi != info.address) {
 							$('textarea#diachi').css("border-color", "red");
 							$('.correct-value-diachi').remove();
 							$('div.edit-view-field[field="diachi"]').append(`<i class="correct-value-diachi" style="color:red">${info.address}</i>`);
@@ -378,12 +378,12 @@ $(document).ready(function() {
 					else {
 						$('.wrap-masothue .mst-active').hide();
 						$('.wrap-masothue .mst-alert').show();
-					}				
+					}
 				},
-				error: function(XMLHttpRequest, textStatus, errorThrown) {
+				error: function (XMLHttpRequest, textStatus, errorThrown) {
 					$('.container-waiting').hide();
 
-					let text_modal_error = 'ERROR ('+errorThrown+'): Vui lòng liên hệ bộ phận IT.';
+					let text_modal_error = 'ERROR (' + errorThrown + '): Vui lòng liên hệ bộ phận IT.';
 					showModalNotify(0, text_modal_error)
 
 					console.error(XMLHttpRequest);
@@ -398,14 +398,14 @@ $(document).ready(function() {
 	$('#EditView input[value="Lưu"], #EditView input[value="Save"]').click(function (e) {
 		e.preventDefault(); // Don't remove it
 
-		if($('#company_unit').val() == ''){
+		if ($('#company_unit').val() == '') {
 			showToastWarning('warning', 'Vui lòng lựa chọn đơn vị hóa đơn!');
 			preventSubmit();
 			return false;
 		}
-		
+
 		let masothue = $('#masothue').val().trim();
-		if(masothue.length > 0 && (masothue.length != 10 && masothue.length != 14 || (masothue.length == 14 && masothue[10] !== '-'))) {
+		if (masothue.length > 0 && (masothue.length != 10 && masothue.length != 14 || (masothue.length == 14 && masothue[10] !== '-'))) {
 			showToastWarning('Mã số thuế không hợp lệ!');
 			preventSubmit();
 			return false;
@@ -413,12 +413,12 @@ $(document).ready(function() {
 
 		// Kiểm tra chi tiết hoá đơn đủ thông tin booking, số vé
 		if ($("#loaihoadon").val() == "0") {
-			if($(".ac_ticket_number").length == 0) {
+			if ($(".ac_ticket_number").length == 0) {
 				showToastWarning('Vui lòng nhập chi tiết hóa đơn');
 				preventSubmit();
 				return false;
 			}
-			
+
 			// Check list items
 			var ticket_num_str = '';
 			$(".ac_ticket_number").each(function (ind) {
@@ -446,8 +446,8 @@ $(document).ready(function() {
 						let type_code = $(`#ct_code${i}`).val();
 
 						// Các loại không check số vé, booking
-						if(type_code == 'PK') continue;
-						
+						if (type_code == 'PK') continue;
+
 						$(`#ct_ticket_number${i}, #ct_booking${i}, #ct_qty${i}`).removeClass("ln_error");
 						$(`#err_ticket_number${i}, #err_booking${i}, #err_qty${i}`).remove();
 
@@ -455,7 +455,7 @@ $(document).ready(function() {
 							$(`#ct_ticket_number${i}`).addClass("ln_error");
 							$(`#ct_ticket_number${i}`).parent().parent().append(`<div id="err_ticket_number${i}" class="err_text">Số vé không được trống<div>`);
 							check = false;
-						} 
+						}
 						else if (arr[i].value == '0' && $(`#ct_ticket_number_id${i}`).val().length == 0) {
 							$(`#ct_ticket_number${i}`).addClass("ln_error");
 							$(`#ct_ticket_number${i}`).parent().parent().append(`<div id="err_ticket_number${i}" class="err_text">Số vé chưa hợp lệ<div>`);
@@ -490,7 +490,7 @@ $(document).ready(function() {
 						}
 					}
 
-					if(check) $('#EditView').submit();
+					if (check) $('#EditView').submit();
 					else {
 						$('.container-waiting').hide();
 						preventSubmit();
@@ -498,14 +498,14 @@ $(document).ready(function() {
 					}
 				}
 			});
-		} 
+		}
 		else {
 			$('#EditView').submit();
 		}
 	});
 });
 
-function markRowDeleted(ln){
+function markRowDeleted(ln) {
 	$('#ct_line_' + ln).hide();
 	$('#ct_deleted' + ln).val(1);
 	$('#lbl_row_count').text(parseInt($('#lbl_row_count').text()) - 1);
@@ -515,8 +515,8 @@ function markRowDeleted(ln){
 
 function insertRow(ln, invoice_type) {
 	// Lấy thông tin booking của dòng trước
-	var booking_bef 	= ($("#ct_booking" + (ln - 1)).val() || '');
-	var booking_id_bef 	= ($("#ct_booking_id" + (ln - 1)).val() || '');
+	var booking_bef = ($("#ct_booking" + (ln - 1)).val() || '');
+	var booking_id_bef = ($("#ct_booking_id" + (ln - 1)).val() || '');
 
 	var html = `<tr id="ct_line_${ln}">`;
 	if (invoice_type == 0) {
@@ -551,7 +551,7 @@ function insertRow(ln, invoice_type) {
 		html += `<td class="text-center">
 			<input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" value="1" type="text" name="ct_qty[]" id="ct_qty${ln}" size="5" maxlength="20" />
 		</td>`;
-		
+
 		// Giá mua
 		html += `<td class="text-end">
 			<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_purchase_price[]" id="ct_purchase_price${ln}" />
@@ -576,7 +576,7 @@ function insertRow(ln, invoice_type) {
 		html += `<td>
 			<input class="allow-number-only text-end" onblur="calculateLineTotal(${ln})" value="0" type="text" name="ct_service[]" id="ct_service${ln}" />
 		</td>`;
-		
+
 		// Thuế suất (%)
 		html += `<td>
 			<select name="ct_percent_vat[]" id="ct_percent_vat${ln}" onchange="calculateLineTotal(${ln})">
@@ -597,12 +597,12 @@ function insertRow(ln, invoice_type) {
 		html += `<td>
 			<input class="allow-number-only text-end" onblur="calculateChangeVAT(${ln})" value="0" type="text" name="ct_vat[]" id="ct_vat${ln}" />
 		</td>`;
-		
+
 		// Thành tiền
 		html += `<td>
 			<input class="allow-number-only text-end" value="0" type="text" name="ct_total[]" id="ct_total${ln}" readonly />
 		</td>`;
-		
+
 		html += `<td class="text-center">
 			<button title="Xóa" class="button-remove-in-edit" type="button" onclick="markRowDeleted(${ln})" >
 				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#333"><path d="M5 20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8h2V6h-4V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H3v2h2zM9 4h6v2H9zM8 8h9v12H7V8z"></path><path d="M9 10h2v8H9zm4 0h2v8h-2z"></path></svg>
@@ -611,7 +611,7 @@ function insertRow(ln, invoice_type) {
 			<input type="hidden" name="ct_detail_id[]" id="ct_detail_id${ln}" value="" />
 		</td>`;
 	}
-	else if(invoice_type == 1) {
+	else if (invoice_type == 1) {
 		html += `<td><input class="text-start" ln="${ln}" type="text" name="ct_name[]" id="ct_name${ln}" maxlength="255" size="30" autocomplete="off" /></td>`;
 
 		html += `<td><input class="allow-number-only text-center" onblur="calculateLineTotal(${ln})" value="1" type="text" name="ct_qty[]" id="ct_qty${ln}" size="5" maxlength="20" /></td>`;
@@ -632,31 +632,31 @@ function insertRow(ln, invoice_type) {
 				<input type="hidden" name="ct_detail_id[]" id="ct_detail_id${ln}" value="" />
 			</td>`;
 	}
-	
+
 	html += `</tr>`;
 	return html;
 }
 
 function calculateLineTotal(ln) {
-	let soluong  = unformatNumber($(`#ct_qty${ln}`).val());
-	let giamua 	 = unformatNumber($(`#ct_purchase_price${ln}`).val());
-	let dichvu   = unformatNumber($(`#ct_service${ln}`).val());
+	let soluong = unformatNumber($(`#ct_qty${ln}`).val());
+	let giamua = unformatNumber($(`#ct_purchase_price${ln}`).val());
+	let dichvu = unformatNumber($(`#ct_service${ln}`).val());
 	let thuesuat = unformatNumber($(`#ct_percent_vat${ln}`).val());
-	let thuho 	 = unformatNumber($(`#ct_authorized${ln}`).val());
+	let thuho = unformatNumber($(`#ct_authorized${ln}`).val());
 	// let dongia 	= unformatNumber($(`#ct_price${ln}`).val());
 	// let thue 	= unformatNumber($(`#ct_vat${ln}`).val());
 
 	let divide = 1;
 	let multiply = 0;
-	if(thuesuat == '0.08') {
+	if (thuesuat == '0.08') {
 		divide = 1.08;
 		multiply = 0.08;
 	}
-	else if(thuesuat == '0.1') {
+	else if (thuesuat == '0.1') {
 		divide = 1.1;
 		multiply = 0.1;
 	}
-	
+
 	let dongia = Math.round((giamua + dichvu - thuho) / divide);
 	let thue = Math.round(dongia * multiply);
 	let thanhtien = (dongia + thue + thuho) * soluong;
@@ -684,35 +684,35 @@ function calculateLineTotal(ln) {
 
 function calculateChangeVAT(ln) {
 	let soluong = unformatNumber($(`#ct_qty${ln}`).val());
-	let thue 	= unformatNumber($(`#ct_vat${ln}`).val());
-	let dongia 	= unformatNumber($(`#ct_price${ln}`).val());
-	let thuho 	= unformatNumber($(`#ct_authorized${ln}`).val());
+	let thue = unformatNumber($(`#ct_vat${ln}`).val());
+	let dongia = unformatNumber($(`#ct_price${ln}`).val());
+	let thuho = unformatNumber($(`#ct_authorized${ln}`).val());
 	let thanhtien = (dongia + thuho) * soluong + thue;
 	$('#ct_total' + ln).val(thanhtien);
 
 	calculateTotal();
 }
 
-function calculateTotal(){
-	let arr 		= document.getElementsByName('ct_deleted[]');
-	let soluong 	= document.getElementsByName('ct_qty[]');
-	let giamua  	= document.getElementsByName('ct_purchase_price[]');
-	let thuho 		= document.getElementsByName('ct_authorized[]');
-	let dichvu 		= document.getElementsByName('ct_service[]');
-	let dongia 		= document.getElementsByName('ct_price[]');
-	let thue 		= document.getElementsByName('ct_vat[]');
-	let thanhtien 	= document.getElementsByName('ct_total[]');
+function calculateTotal() {
+	let arr = document.getElementsByName('ct_deleted[]');
+	let soluong = document.getElementsByName('ct_qty[]');
+	let giamua = document.getElementsByName('ct_purchase_price[]');
+	let thuho = document.getElementsByName('ct_authorized[]');
+	let dichvu = document.getElementsByName('ct_service[]');
+	let dongia = document.getElementsByName('ct_price[]');
+	let thue = document.getElementsByName('ct_vat[]');
+	let thanhtien = document.getElementsByName('ct_total[]');
 	let tongsl = tonggiamua = tongthuho = tongdichvu = tongdongia = tongthue = tongtien = 0;
-		
-	for(var i = 0; i < arr.length; i++){
-		if(arr[i].value == '0') {
-			tongsl 		+= unformatNumber(soluong[i].value);
-			tonggiamua  += unformatNumber(giamua[i].value) * unformatNumber(soluong[i].value);
-			tongthuho 	+= unformatNumber(thuho[i].value) * unformatNumber(soluong[i].value);
-			tongdichvu 	+= unformatNumber(dichvu[i].value) * unformatNumber(soluong[i].value);
-			tongdongia 	+= unformatNumber(dongia[i].value) * unformatNumber(soluong[i].value);
-			tongthue 	+= unformatNumber(thue[i].value);
-			tongtien 	+= unformatNumber(thanhtien[i].value);
+
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i].value == '0') {
+			tongsl += unformatNumber(soluong[i].value);
+			tonggiamua += unformatNumber(giamua[i].value) * unformatNumber(soluong[i].value);
+			tongthuho += unformatNumber(thuho[i].value) * unformatNumber(soluong[i].value);
+			tongdichvu += unformatNumber(dichvu[i].value) * unformatNumber(soluong[i].value);
+			tongdongia += unformatNumber(dongia[i].value) * unformatNumber(soluong[i].value);
+			tongthue += unformatNumber(thue[i].value);
+			tongtien += unformatNumber(thanhtien[i].value);
 		}
 	}
 
@@ -749,7 +749,7 @@ function openTicketNumberPopup(ln) {
 
 function changeInvoiceType() {
 	var invoice_type = $("#loaihoadon").val();
-	if(invoice_type == 0) {
+	if (invoice_type == 0) {
 		$("#last-row").children().eq(0).attr("colspan", 3);
 		$("#first-row").html(`
 			<th width="6%" align="left">Mã hàng</th> 

@@ -89,6 +89,18 @@ $dictionary['EC_Zalo_Apps'] = array(
             'audited'    => 1,
             'massupdate' => 0,
         ),
+
+        'oa_secret_key' => array(
+            'name'       => 'oa_secret_key',
+            'vname'      => 'LBL_OA_SECRET_KEY',
+            'type'       => 'varchar',
+            'len'        => 32,
+            'default'    => '',
+            'importable' => 0,
+            'audited'    => 1,
+            'massupdate' => 0,
+            'required' => 1,
+        ),
     ),
     'relationships' => array(),
     'optimistic_locking' => true,

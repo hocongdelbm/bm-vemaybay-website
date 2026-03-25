@@ -13,7 +13,7 @@ class AssignGroups
         //only process if action is Save (meaning a user has triggered this event and not the portal or automated process)
         if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'Save'
         && isset($sugar_config['securitysuite_popup_select']) && $sugar_config['securitysuite_popup_select'] == true
-        && empty($bean->fetched_row['id']) && $bean->module_dir != "Users" && $bean->module_dir != "SugarFeed") {
+        && empty($bean->fetched_row['id']) && $bean->module_dir != "Users") {
             //Upload an attachment to an Email Template and save. If user with multi groups - popup select option
             //it will redirect to notes instead of EmailTemplate and relationship will fail...check below to avoid
             if (!empty($_REQUEST['module']) && $_REQUEST['module'] != $bean->module_dir) {

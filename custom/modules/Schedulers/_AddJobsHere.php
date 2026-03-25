@@ -21,8 +21,9 @@ $job_strings[] = 'checkStatusOnlineUser'; // Kiểm tra user còn online hay kh�
 $job_strings[] = 'reAssignBooking'; // lặp lại việc giao booking nếu gặp booking chưa được giao
 $job_strings[] = 'calculateCashFlow'; // Tính toán dòng tiền trong 3 ngày trước
 $job_strings[] = 'checkExpirationDateVoucher'; // Kiểm tra HSD của voucher
-$job_strings[] = 'updateLogAutocall'; // Cập nhật log cho cuôc gọi tự động
-$job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Gửi tin tự động về giá vé rẻ qua ZBS template Zalo
+$job_strings[] = 'sendAutoCheapPriceMessageZalo'; // Tự động gửi tin về giá vé rẻ qua ZBS template Zalo
+$job_strings[] = 'maintainZaloChat'; // Tự động gửi tin tư vấn Zalo để duy trì tương tác
+$job_strings[] = 'resetRewardPoints'; // Reset lại điểm tích lũy của liên hệ qua booking hằng năm
 $job_strings[] = 'saveRevenueBookingJob'; // Cập nhật doanh số booking vào table ec_revenue
 $job_strings[] = 'notifyCheckinJourney'; // Thông báo hành trình cần checkin
 
@@ -97,14 +98,9 @@ function notifyCheckinJourney()
 					Telegram::sendMessageData(json_encode($messageData), $botToken, $chatId);
 				}
 			} catch (Throwable $th) {
-				$message = "<b>[ERROR] Send info Checkin Failed</b>";
+				$message = "Send info checkin failed";
 				$message .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-
-				if ($notification_channel == 'TELEGRAM') {
-					$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-					$chatId     = $sugar_config['telegram']['checkin']['chat_id'] ?? '';
-					Telegram::sendMessage($message, $botToken, $chatId);
-				}
+				NotificationService::sendErrorMessage($message, 'checkin');
 			}
 		}
 	}
@@ -136,11 +132,6 @@ function saveRevenueBookingJob()
 	}
 
 	return true;
-}
-
-function updateLogAutocall()
-{
-	return update_log_autocall();
 }
 
 function checkExpirationDateVoucher()
@@ -1794,10 +1785,8 @@ function checkBookingHandle()
 		// 	$GLOBALS['log']->error('Telegram sent message failed.');
 		// }
 
-		global $sugar_config;
 		$message = 'User này đã bị Off vì quá 2 phút không xử lý booking ' . implode(", ", $booking_off) . ' được giao: ' . implode(", ", $user_off_arr);
-		// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-		$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
+		NotificationService::sendWarningMessage($message, 'cty');
 
 		if (!$res || !isset($res['id']) || is_null($res['id'])) {
 			$GLOBALS['log']->error('Telegram sent message failed.');
@@ -1825,10 +1814,8 @@ function checkBookingHandle()
 			// 	$GLOBALS['log']->error('Telegram sent message failed.');
 			// }
 
-			global $sugar_config;
 			$message = 'Booking ' . $reassign_bk['booking_name'] . " được giao lại cho $user->last_name $user->first_name";
-			// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-			$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
+			NotificationService::sendMessage($message, 'cty');
 			if (!$res || !isset($res['id']) || is_null($res['id'])) {
 				$GLOBALS['log']->error('Telegram sent message failed.');
 			}
@@ -1919,8 +1906,7 @@ function reAssignBooking()
 				// }
 
 				$message = 'Thông tin giao lại: ' . implode("\n", $reassign_bk);
-				// $res = Mattermost::sendMessage($sugar_config['mattermost']['channel_id_cty'] ?? '', $message);
-				$res = Telegram::sendMessage($message, $sugar_config['telegram']['cty']['bot_token'] ?? '', $sugar_config['telegram']['cty']['chat_id'] ?? '');
+				NotificationService::sendMessage($message, 'cty');
 				if (!$res || !isset($res['id']) || is_null($res['id'])) {
 					$GLOBALS['log']->error('Telegram sent message failed.');
 				}
@@ -1949,7 +1935,7 @@ function sendAutoCheapPriceMessageZalo() {
 		$vietnameseTime 	= ($utcTimestamp + 7*3600) * 1000;
 		$date 				= date('Y-m-d', $utcTimestamp);
 		$yesterday 			= date('Y-m-d', strtotime('-1 day', $utcTimestamp));
-		$dayBeforeYesterday = date('Y-m-d', strtotime('-2 day', $utcTimestamp));
+		$fromDateQuery 		= date('Y-m-d', strtotime('-3 day', $utcTimestamp));
 
 		// Init entry
 		$entry = new entryFactory();
@@ -1970,7 +1956,7 @@ function sendAutoCheapPriceMessageZalo() {
 				,iti.arrival AS des_code
 				,iti.departure_date
 				,(
-					SELECT GROUP_CONCAT(CONCAT(zm.date_entered, ',', zm.timestamp) SEPARATOR ';')
+					SELECT GROUP_CONCAT(CONCAT(zm.date_entered, '|', zm.timestamp, '|', zm.data) SEPARATOR ';')
 					FROM ec_zalo_messages zm
 					WHERE zm.to_id = bk.phone
 						AND zm.type = 'zbs'
@@ -1983,7 +1969,8 @@ function sendAutoCheapPriceMessageZalo() {
 				LEFT JOIN ec_booking_itineraries iti ON iti.booking_id = bk.id AND iti.direction = '0' AND iti.deleted = 0
 			WHERE UPPER(bk.contact_name) = 'THAM KHAO'
 				AND bk.total_amount = 0
-				AND bk.date_entered BETWEEN '$dayBeforeYesterday 17:00:00' AND '$yesterday 16:59:59'
+				AND bk.date_entered BETWEEN '$fromDateQuery 17:00:00' AND '$yesterday 16:59:59'
+				AND bk.phone IS NOT NULL AND bk.phone != ''
 				AND bk.booking_status NOT IN ('1', '3', '4', '7', '8')
 				AND bk.deleted = 0
 				AND NOT EXISTS (
@@ -2006,22 +1993,20 @@ function sendAutoCheapPriceMessageZalo() {
 						AND zm.deleted = 0
 				)";
 
-		// Cache vars
-		$listFlightSearch = [];
-		$listSentFailedPhone = [];
-		$listSentPhone = [];
+
+		$listFlightSearch = []; // Cache vars
+		$sentMap = [];
 			
 		$res = $db->query($sql);
 		while ($row = $db->fetchByAssoc($res)) {
 			$phone = $row['phone'] ?? '';
 			$list_message = !empty($row['list_message']) ? explode(';', $row['list_message']) : [];
 
-			if(empty($phone) || in_array($phone, $listSentPhone) || in_array($phone, $listSentFailedPhone)) continue;
-			if(count($list_message) >= 2) continue;
+			if(empty($phone) || isset($sentMap[$phone]) || count($list_message) >= 2) continue;
 
 			$is_send = true;
 			if(count($list_message) > 0) {
-				$first_element_message = explode(',', $list_message[0]);
+				$first_element_message = explode('|', $list_message[0]);
 				$first_element_message_datetime  = $first_element_message[0];
 				// $first_element_message_timestamp = $first_element_message[1];
 
@@ -2047,8 +2032,14 @@ function sendAutoCheapPriceMessageZalo() {
 
 				if (empty($departure_date) || empty($dep_code) || empty($des_code) || empty($booking_name)) continue;
 
-				$departure_month = date('m', strtotime($departure_date));
-				$departure_year = date('Y', strtotime($departure_date));
+				$departure_timestamp = strtotime($departure_date);
+				$departure_day = date('d', $departure_timestamp);
+				// If departure day is greater than 20, then set departure month to next month
+				if((int)$departure_day > 20) {
+					$departure_timestamp = strtotime('+1 month', $departure_timestamp);
+				}
+				$departure_month = date('m', $departure_timestamp);
+				$departure_year  = date('Y', $departure_timestamp);
 				
 				$depInfo = Flight::getAirport($dep_code);
 				$desInfo = Flight::getAirport($des_code);
@@ -2072,6 +2063,7 @@ function sendAutoCheapPriceMessageZalo() {
 
 				if(is_array($priceData) && !empty($priceData)) {
 					$minPrice = min(array_column($priceData, 'price'));
+					
 					$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
 					if (count($cheapestDays) > 1) {
 						$input = DateTime::createFromFormat('Y-m-d', $departure_date);
@@ -2101,7 +2093,21 @@ function sendAutoCheapPriceMessageZalo() {
 						return str_pad($day, 2, '0', STR_PAD_LEFT) . '/' . str_pad($month, 2, '0', STR_PAD_LEFT);
 					}, $cheapestDays));
 
-					if($minPrice > 0 && !empty($listDate)) {
+					// Check if the latest message is the same price, then discount 10-20k
+					$message_latest = $list_message[0] ?? [];
+					if(!empty($message_latest)) {
+						$data_latest = explode('|', $message_latest);
+						$data_latest = json_decode(html_entity_decode($data_latest[2] ?? ''), true) ?? [];
+						if(isset($data_latest['ticket_price']) && (int)$data_latest['ticket_price'] == $minPrice && $minPrice > 0) {
+							$values = [9000, 10000, 12000, 16000, 18000, 20000];
+							$minPrice -= $values[array_rand($values)]; // Discount 10-20k
+							if($minPrice <= 0) $minPrice = abs($minPrice);
+						}
+					}
+
+					if($minPrice == 0) $minPrice = 8000;
+
+					if(!empty($listDate)) {
 						$params = [
 							"phoneNumber" => $phone,
 							"type" => "cheap-flight",
@@ -2117,48 +2123,302 @@ function sendAutoCheapPriceMessageZalo() {
 						];
 						$sendResult = $entryOA->sendTemplateMessage($params);
 			
-						if (isset($sendResult['status']) && $sendResult['status'] == 1) $listSentPhone[] = $phone;
-						else $listSentFailedPhone[] = $phone;
-
-						$GLOBALS['log']->fatal("Check sent auto message Zalo ZBS (cheap-price): " .
-							json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
-						);
+						if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$phone] = true;
+						else {
+							$sentMap[$phone] = false;
+							$GLOBALS['log']->fatal("Send auto message Zalo ZBS (cheap-price) failed: " .
+								json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+							);
+						}
 					}
 				}
 			}
 		}
 			
 		// Send info to notification channel
-		if(count($listSentPhone) > 0) {
-			$message = "[INFO] 📲 Đã gửi tin CSKH Zalo (Booking tham khảo) cho " . count($listSentPhone) . " số";
-			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+		$countSent = count(array_filter($sentMap));
+		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+		if($countSent > 0) {
+			$countTotal = $countSent + $countFailed;
+			$m = "<b>⚙️Auto:</b> Đã gửi tin CSKH Zalo (Booking tham khảo) cho <b>{$countSent}</b>/{$countTotal} số";
+			NotificationService::sendMessage($m, "zalo");
 		}
 		else {
-			$message = "[INFO] Please check suitecrm log";
-			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-			$threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+			$m = "Please check suitecrm log <code>_AddJobsHere.php -> ".__FUNCTION__."()</code>";
+			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
 	}
 	catch(Throwable $th) {
-		$exceptionMessage = "{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
-		if($sugar_config['notification_channel'] == 'Mattermost') {
-			$message = Mattermost::$line_separation;
-			$message .= Mattermost::markdownHeading("[ERROR] Auto send ZBS cheap price failed");
-			$message .= "\n$exceptionMessage\n";
-			Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs']  ?? '', $message);
+		$m = "Cronjob ".__FUNCTION__."() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
+	}
+}
+
+/**
+ * Tự động gửi tin tư vấn Zalo để duy trì tương tác
+ */
+function maintainZaloChat() {
+	global $db, $timedate, $sugar_config;
+
+	try {
+		$domain = $sugar_config['host_name'] ?? $_SERVER['SERVER_NAME'];
+
+		$utcDate = $timedate->nowDb(); // Guarantee timezone is UTC
+		$utc_timestamp = strtotime($utcDate);
+		$vn_timestamp = $utc_timestamp + 7*3600;
+
+		$within24 = date('Y-m-d H:i:s', strtotime('-24 hour', $utc_timestamp));
+		$within48 = date('Y-m-d H:i:s', strtotime('-48 hour', $utc_timestamp));
+		$within6days = date('Y-m-d H:i:s', strtotime('-6 days', $utc_timestamp));
+		$within7days = date('Y-m-d H:i:s', strtotime('-7 days', $utc_timestamp));
+		$six_hours_in_seconds = 6*3600;
+		$twelve_hours_in_seconds = 12*3600;
+
+		// Data to get cheap price
+		$departure_timestamp = $vn_timestamp;
+		$departure_day = date('d', $departure_timestamp);
+		// If departure day is greater than 15, then set departure month to next month
+		if((int)$departure_day > 15) {
+			$departure_timestamp = strtotime('+1 month', $departure_timestamp);
+		}
+		$departure_month = date('m', $departure_timestamp);
+		$departure_year  = date('Y', $departure_timestamp);
+
+		$template_text = "🔥 Giá rẻ tháng $departure_month\n\n";
+		$template_text .= "Nhằm đồng hành cùng Quý khách trong hành trình nghỉ dưỡng sắp tới, chúng tôi xin cập nhật bảng giá vé ưu đãi mới nhất cho mùa du lịch năm nay.\nVới mạng lưới đường bay đa dạng và khung giờ linh hoạt, đây là cơ hội tuyệt vời để Quý khách tận hưởng kỳ nghỉ bên gia đình với chi phí tiết kiệm nhất.";
+
+		$listImages = [
+			"HAN" => "https://$domain/themes/SuiteP/images/zalo_messages/cheap-flights-tcb-han.jpg",
+			"DAD" => "https://$domain/themes/SuiteP/images/zalo_messages/cheap-flights-tcb-dad.jpg",
+		];
+
+		// Init entry
+		$entry = new entryFactory();
+		$entryOA = $entry->create('entryZaloOAClass');
+		$entryFS = $entry->create('entryFareSystemClass');
+		
+		/**
+		 * Lấy zalo user tương tác từ 24-48 giờ trước
+		 * Gửi thông tin giá rẻ của các hành trình phổ biến (SGN-HAN, SGN-DAD, SGN-PQC)
+		 */
+		$sql = 
+			"SELECT zc.zalo_id
+				,zc.oa_id
+				,zc.id AS user_external_id
+				,zc.contact_id
+				,c.phone_mobile AS phone_number
+				,zc.name AS display_name
+				,zc.alias AS user_alias
+				,zc.last_interaction
+				,zc.is_follower
+				,zc.tags
+				,province_city
+				,zc.status
+				,(
+					SELECT CONCAT(zm.type, '|', zm.timestamp)
+					FROM ec_zalo_messages zm
+					WHERE (zm.to_id = zc.zalo_id OR zm.to_id = c.phone_mobile)
+						AND zm.src = 0
+						AND zm.deleted = 0
+					ORDER BY zm.timestamp DESC
+					LIMIT 1
+				) AS latest_message
+				,(
+					SELECT CONCAT(bk.name, '|', bk.date_entered)
+					FROM ec_flight_bookings bk
+					WHERE bk.phone = c.phone_mobile
+						AND bk.booking_status NOT IN ('3', '7', '8')
+						AND bk.deleted = 0
+					ORDER BY bk.date_entered DESC
+					LIMIT 1
+				) AS latest_completed_booking
+			FROM ec_zalo_contacts zc
+				LEFT JOIN contacts c on c.id = zc.contact_id AND c.deleted = 0
+			WHERE (zc.last_interaction BETWEEN '$within48' AND '$within24'
+					OR zc.last_interaction BETWEEN '$within7days' AND '$within6days')
+				AND zc.deleted = 0";
+
+		$sentMap = [];
+
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			$last_interaction_timestamp = !is_null($row['last_interaction']) && !empty($row['last_interaction']) ? strtotime($row['last_interaction']) : 0;
+			$latest_message = !is_null($row['latest_message']) && !empty($row['latest_message']) ? explode('|', $row['latest_message']) : [];
+			$latest_completed_booking = !is_null($row['latest_completed_booking']) && !empty($row['latest_completed_booking']) ? explode('|', $row['latest_completed_booking']) : [];
+
+			$is_send = true;
+			// Chỉ gửi nếu user chưa chốt đơn trong 12h từ tương tác cuối
+			if(!empty($latest_completed_booking)) {
+				if(abs($last_interaction_timestamp - strtotime($latest_completed_booking[1])) < $twelve_hours_in_seconds) $is_send = false;
+			}
+			// Chỉ gửi nếu OA chưa có tương tác trong 6h gần nhất
+			if(!empty($latest_message)) {
+				$latest_message_timestamp = (int)(($latest_message[1] ?? 0) / 1000);
+				if($latest_message_timestamp > 0 && $vn_timestamp - $latest_message_timestamp < $six_hours_in_seconds) $is_send = false;
+			}
+
+			if($is_send) {
+				if(!isset($sentMap[$row['zalo_id']])) {
+					// Get cheap price (cache)
+					$dep_code = 'SGN';
+					$des_code = ['HAN', 'DAD', 'PQC'];
+					$des_code = $des_code[array_rand($des_code)];
+					
+					$depInfo = Flight::getAirport($dep_code);
+					$desInfo = Flight::getAirport($des_code);
+					$cacheKey = "$dep_code-$des_code-$departure_year-$departure_month";
+					if(!isset($listFlightSearch[$cacheKey]) || empty($listFlightSearch[$cacheKey])) {
+						$temp = $entryFS->getMinPriceInMonth([
+							"depCode" => $dep_code,
+							"desCode" => $des_code,
+							"month" => $departure_month,
+							"year" => $departure_year,
+						]);
+						$priceData = json_decode($temp, true);
+						$priceData = $priceData['data']['prices'] ?? [];
+						$listFlightSearch[$cacheKey] = $priceData;
+					}
+					else {
+						$priceData = $listFlightSearch[$cacheKey];
+					}
+
+					if(is_array($priceData) && !empty($priceData)) {
+						$minPrice = min(array_column($priceData, 'price'));
+						
+						$cheapestDays = array_values(array_filter($priceData, fn($item) => $item['price'] === $minPrice));
+						if (count($cheapestDays) > 1) {
+							$input = DateTime::createFromFormat('Y-m-d', date('Y-m-d', $vn_timestamp));
+
+							if ($input !== false) {
+								usort($cheapestDays, function ($a, $b) use ($input) {
+									$partsA = explode('-', $a['date']); // ['14', '3']
+									$partsB = explode('-', $b['date']); // ['15', '3']
+
+									$dateA = DateTime::createFromFormat('d-n', $a['date']); // 'n' = month without leading zero
+									$dateB = DateTime::createFromFormat('d-n', $b['date']);
+
+									if ($dateA === false || $dateB === false) return 0;
+
+									$dateA->setDate((int)$input->format('Y'), (int)$partsA[1], (int)$partsA[0]);
+									$dateB->setDate((int)$input->format('Y'), (int)$partsB[1], (int)$partsB[0]);
+
+									return abs($input->diff($dateA)->days) <=> abs($input->diff($dateB)->days);
+								});
+							}
+
+							$cheapestDays = array_slice(array_values($cheapestDays), 0, 7);
+						}
+
+						$listDate = implode(', ', array_map(function ($item) {
+							[$day, $month] = explode('-', $item['date']);
+							return str_pad($day, 2, '0', STR_PAD_LEFT) . '/' . str_pad($month, 2, '0', STR_PAD_LEFT);
+						}, $cheapestDays));
+
+						if($minPrice > 0 && !empty($listDate)) {
+							$text = $template_text;
+							$text .= "\n";
+							$text .= "\n✈️ {$depInfo['CityName']} đi {$desInfo['CityName']}";
+							$text .= "\n💰 Giá vé " . number_format($minPrice, 0, ',', '.') . " VNĐ";
+							$text .= "\n🗓 Ngày đi: " . $listDate;
+							$text .= "\n🌐 Đặt vé tại timchuyenbay.com hoặc để lại lời nhắn để được tư vấn trực tiếp miễn phí";
+							$text .= "\n\nChúc quý khách ngày mới tràn đầy năng lượng!";
+
+							$image_url = $listImages[$des_code] ?? '';
+							if(!empty($image_url)) {
+								$params = [
+									'zalo_id' => $row['zalo_id'],
+									'oa_id' => $row['oa_id'],
+									'type' => 'image',
+									'url' => $image_url,
+									'text' => $text,
+								];
+							}
+							else {
+								$params = [
+									'zalo_id' => $row['zalo_id'],
+									'oa_id' => $row['oa_id'],
+									'type' => 'text',
+									'text' => $text,
+								];
+							}
+
+							$sendResult = $entryOA->sendMessage($params);
+			
+							if (isset($sendResult['status']) && $sendResult['status'] == 1) $sentMap[$row['zalo_id']] = true;
+							else {
+								$sentMap[$row['zalo_id']] = false;
+								$GLOBALS['log']->fatal("Send message to maintain zalo chat failed: " .
+									json_encode(['req' => $params, 'res' => $sendResult], JSON_UNESCAPED_UNICODE)
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Send info to notification channel
+		$countSent = count(array_filter($sentMap));
+		$countFailed = count(array_filter($sentMap, fn($v) => !$v));
+		if($countSent > 0) {
+			$countTotal = $countSent + $countFailed;
+			$m = "<b>⚙️Auto:</b> Đã gửi tin tư vấn giá rẻ duy trì tương tác Zalo cho <b>{$countSent}</b>/{$countTotal} người dùng";
+			NotificationService::sendMessage($m, "zalo");
 		}
 		else {
-			$message = "<b>[ERROR] Auto send ZBS cheap price failed</b>";
-			$message .= "\n$exceptionMessage";
-			$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-			$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-			$threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-			Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+			$m = "Please check suitecrm log <code>_AddJobsHere.php -> ".__FUNCTION__."()</code>";
+			NotificationService::sendWarningMessage($m, "", ['threadKey' => 'logs']);
 		}
+	}
+	catch(Throwable $th) {
+		$m = "Cronjob ".__FUNCTION__."() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
+	}
+}
+
+/**
+ * Reset lại điểm tích lũy của liên hệ qua booking hằng năm
+ */
+function resetRewardPoints() {
+	global $db;
+
+	$sql = "SELECT c.id
+		,c.phone_mobile AS phone_number
+		,c.points
+		FROM contacts c
+		WHERE c.points > 0 AND c.deleted = 0";
+
+	try {
+		$res = $db->query($sql);
+		while ($row = $db->fetchByAssoc($res)) {
+			// Record point log
+			$point_log = new EC_Contact_Points_Log();
+			$point_log->id = '';
+			$point_log->name = 'Hệ thống reset điểm';
+			$point_log->description = 'Đặt lại điểm hằng năm';
+			$point_log->contact_id = $row['id'];
+			$point_log->contact_phone = $row['phone_number'];
+			$point_log->up = 0;
+			$point_log->down = $row['points'];
+			$point_log->current_point = 0;
+			$point_log->parent_type = '';
+			$point_log->parent_id = '';
+			$point_log->save();
+		}
+
+		$updatesql = "UPDATE contacts SET points = 0 WHERE points > 0";
+		if($db->query($updatesql)) {
+			NotificationService::sendMessage("⚙️ <b>Hệ thống đã reset điểm tích lũy của liên hệ hằng năm</b>", "", ['threadKey' => 'system']);
+		}
+		else {
+			NotificationService::sendErrorMessage("Reset điểm tích lũy của liên hệ hằng năm chưa thành công", "", ['threadKey' => 'logs']);
+		}
+	}
+	catch(Throwable $th) {
+		$m = "Cronjob ".__FUNCTION__."() failed";
+		$m .= "\n{$th->getMessage()} on line {$th->getLine()} in {$th->getFile()}";
+		NotificationService::sendErrorMessage($m, "", ['threadKey' => 'logs']);
 	}
 }

@@ -114,7 +114,6 @@ array(
         4 =>
         array(
           0 => 'next_step',
-          1 => 'campaign_name',
         ),
         5 =>
         array(

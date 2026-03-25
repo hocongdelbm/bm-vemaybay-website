@@ -24,17 +24,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $zaloApp->retrieve($app_id);
     }
 
-    if(!empty($zaloApp->oa_id)) {
-        $zaloOA = new EC_Zalo();
-        $zaloOA->retrieve($zaloApp->oa_id);
-    }
-
-    $mac   = "mac=".hash('sha256', $app_id.$response.$timestamp.$zaloOA->secret_key);
+    $mac   = "mac=".hash('sha256', $app_id.$response.$timestamp.$zaloApp->oa_secret_key);
     $h_mac = $headers['X-Zevent-Signature'] ?? '';
    
     if($mac === $h_mac) {
         global $db;
-        $zaloOA = new APIZaloOA($zaloApp->id, $zaloOA->id);
+        $zaloOA = new APIZaloOA($zaloApp->id, $zaloApp->oa_id);
         $event = $data['event_name'] ?? '';
 
         try {
@@ -65,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $msg_id         = $data['message']['msg_id'] ?? '';
                     $quote_id       = $data['message']['quote_msg_id'] ?? '';
                     $msg            = $data['message']['text'] ?? '';
-                    $msg_type       = $zalomes->map_sub_type($event);
+                    $msg_type       = EC_Zalo_Messages_Helper::map_sub_type($event);
 
                     // Handle attachments
                     $url = $thumbnail = $description = '';
@@ -157,13 +152,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     // Update quota, last interaction
                     try {
                         $quota_user = $quota_oa = [];
-                        $last_interaction = date("$dateFormat $timeFormat", (int)($timestamp / 1000) - 7*3600);
-                        $date_modified = date("$dateFormat $timeFormat", time() - 7*3600);
-                        $zaloContact = new EC_Zalo_Contacts();
+                        // Database format
+                        $last_interaction = date($datetimeDbFormat, (int)($timestamp / 1000) - 7*3600);
+                        $date_modified = date($datetimeDbFormat, time() - 7*3600);
 
                         // Send from user to OA
                         if($zalomes->src == 1) {
-                            $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_id);
+                            $zaloUserInfo = EC_Zalo_Contacts_Helper::get_zalo_user_info($sender_id, $recipient_id);
 
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 $sqlUpdate = "UPDATE ec_zalo_contacts 
@@ -179,7 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         // Quota oa (Only update when not send by API)
                         else if($zalomes->src == 0 && !empty($admin_id)) {
                             // Get user quota info
-                            $zaloUserInfo = $zaloContact->get_zalo_user_info($recipient_id, $sender_id);
+                            $zaloUserInfo = EC_Zalo_Contacts_Helper::get_zalo_user_info($recipient_id, $sender_id);
 
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 if(!isset($zaloUserInfo['user_last_interaction_date']) 
@@ -189,8 +184,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     // Do something with user quota 'welcome_msg'
                                 }
                                 else if((int)($timestamp / 1000) - strtotime($zaloUserInfo['user_last_interaction_date']) > 48*3600) {
-                                    $beanZaloOA = new EC_Zalo();
-                                    $zaloOAInfo = $beanZaloOA->get_info_oa($sender_id);
+                                    $zaloOAInfo = EC_Zalo_Helper::get_info_oa($sender_id);
 
                                     $quota_oa = $zaloOAInfo["quota"];
                                     $isUpdate = false;
@@ -215,20 +209,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                     catch(Exception $e) {
-                        if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
-                            $message = Mattermost::$line_separation;
-                            $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                            Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-                        }
-                        else {
-                            $message = "<b>[WARNING]</b> Webhook Zalo";
-                            $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
-                            $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                            $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                            $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                            Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                        }
+                        $m = "Webhook Zalo";
+                        $m .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
+                        if(isset($response) && !empty($response)) $m .= "\n<pre>$response</pre>";
+                        NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
                     }
                     
                     // Send data to chat
@@ -256,28 +240,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         'quota_user'            => $quota_user
                     ];
                     if($zalomes->quote_message_id && !empty($zalomes->quote_message_id)) {
-                        $zaloMessage = new EC_Zalo_Messages();
-                        $data_chat['quote_data'] = $zaloMessage->get_quote_message_data($zalomes->quote_message_id);
+                        $data_chat['quote_data'] = EC_Zalo_Messages_Helper::get_quote_message_data($zalomes->quote_message_id);
                     }
                     $client = new Client("wss://".$_SERVER['SERVER_NAME']."/chatz/");
                     $client->send(json_encode($data_chat));
                     $client->close();
                 }
                 catch(Exception $e) {
-                    if(isset($sugar_config['notification_channel']) && $sugar_config['notification_channel'] == 'Mattermost') {
-                        $message = Mattermost::$line_separation;
-                        $message .= Mattermost::markdownHeading("[WARNING] Webhook Zalo");
-                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n\n$response";
-                        Mattermost::sendMessage($sugar_config['mattermost']['channel_id_logs'] ?? '', $message);
-                    }
-                    else {
-                        $message = "<b>[WARNING]</b> Webhook Zalo";
-                        $message .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}\n<pre>$response</pre>";
-                        $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                        $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                        $threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-                        Telegram::sendMessage($message, $botToken, $chatId, $threadId);
-                    }
+                    $m = "Webhook Zalo";
+                    $m .= "\n{$e->getMessage()} on line {$e->getLine()} in {$e->getFile()}";
+                    if(isset($response) && !empty($response)) $m .= "\n<pre>$response</pre>";
+                    NotificationService::sendErrorMessage($m, "default", ['threadKey' => 'logs']);
                 }
                 finally {
                     header("HTTP/1.1 200 OK");
@@ -320,17 +293,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         if(empty($zalo_contact_id)) {
                             $user_info = json_decode($zaloOA->get_user($zalo_user_id), true);
                             if(isset($user_info['error']) && $user_info['error'] == 0) {
-                                $zaloContact = new EC_Zalo_Contacts();
-                                $zaloContact->custom_save($user_info['data'], $zaloOA->get_oa_id(), 'Liên hệ tạo qua widget tương tác');
+                                EC_Zalo_Contacts_Helper::custom_save($user_info['data'], $zaloOA->get_oa_id(), 'Liên hệ tạo qua widget tương tác');
                             }
                         }
                         elseif(empty($contact_id_by_zalo) && !empty($contact_id_by_phone)) {
                             if($db->query("UPDATE ec_zalo_contacts SET contact_id = '{$contact_id_by_phone}' WHERE id = '{$zalo_contact_id}' AND deleted = 0")) {
-                                $message    = "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id";
-                                $botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-                                $chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-                                $threadId   = $sugar_config['telegram']['thread_id_system_noti'] ?? '';
-                                Telegram::sendMessage($message, $botToken, $chatId, $threadId);
+                                NotificationService::sendErrorMessage(
+                                    "⚙️ Hệ thống đã map SĐT $input_phone với Zalo Id $zalo_user_id",
+                                    "",
+                                    ['threadKey' => 'system']
+                                );
                             }
                         }
                     }
@@ -350,8 +322,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     if(!empty($zalo_user_id)) {
                         if($follower == 1) {
                             // Get user info
-                            $zaloContact = new EC_Zalo_Contacts();
-                            $zaloUserInfo = $zaloContact->get_zalo_user_info($sender_id, $recipient_i);
+                            $zaloUserInfo = EC_Zalo_Contacts_Helper::get_zalo_user_info($sender_id, $recipient_id);
 
                             if(is_array($zaloUserInfo) && !empty($zaloUserInfo) && isset($zaloUserInfo['user_id'])) {
                                 $db->query(
@@ -394,8 +365,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     exit();
                 }
             }
+            else if($event == 'change_template_quality') {
+                $template_id = $data['template_id'] ?? '';
+                $quality = strtoupper($data['quality'] ?? '');
+                $template_name = $zaloOA->get_template_name($template_id);
+                $arr_map_quality = [
+                    'HIGH' => 'Mức độ chất lượng tốt',
+                    'MEDIUM' => 'Mức độ chất lượng trung bình',
+                    'LOW' => 'Mức độ chất lượng kém',
+                    'UNDEFINED' => 'Mức độ chất lượng chưa được xác định',
+                ];
+
+                $message = "<b>Thông báo từ Zalo về chất lượng gửi tin ZBS</b>";
+                $message .= "\nMẫu tin: $template_name ($template_id)";
+                $message .= "\nChất lượng: " . ($arr_map_quality[$quality] ?? '');
+                NotificationService::sendMessage($message, '', ['threadKey' => 'system']);
+
+                echo json_encode(["error" => 0, "message" => "Done"]);
+                exit();
+            }
             else if($event == 'update_user_info') {
-                header("HTTP/1.1 200 OK");
+                echo json_encode(["error" => 0, "message" => "Nothing"]);
                 exit();
             }
             else {

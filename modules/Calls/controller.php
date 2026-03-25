@@ -19,9 +19,6 @@ class CallsController extends SugarController
                case "statistics":
                     $this->action = "statistics";
                     break;
-               case "statistics_autocall":
-                    $this->action = "statistics_autocall";
-                    break;
                case "summary":
                     $this->action = "summary";
                     break;
@@ -58,8 +55,6 @@ class CallsController extends SugarController
                $this->action = "ListView";
           if ($this->return_action == "statistics")
                $this->action = "statistics";
-          if ($this->return_action == "statistics_autocall")
-               $this->action = "statistics_autocall";
           if ($this->return_action == "summary")
                $this->action = "summary";
           if ($this->return_action == "manage")

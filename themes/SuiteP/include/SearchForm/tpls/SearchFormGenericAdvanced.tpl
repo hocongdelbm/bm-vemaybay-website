@@ -19,7 +19,7 @@
 
 <ul class="nav nav-tabs-advanced admin_tabs-list" id="myTab" role="tablist">
     {if !$searchFormInPopup}
-    <li class="admin_tabs-item" role="presentation">
+    <li class="admin_tabs-item d-none" role="presentation">
         <a id="basic_search_link" href="javascript:void(0)" accesskey="{$APP.LBL_ADV_SEARCH_LNK_KEY}">{$APP.LNK_BASIC_FILTER}</a>
     </li>
     {/if}
@@ -131,11 +131,6 @@
                 </div>
                 {/if}
             </div>
-            <div class="help d-none">
-                {if $DISPLAY_SEARCH_HELP}
-                    <img border='0' src='{sugar_getimagepath file="help-dashlet.gif"}' class="help-search">
-                {/if}
-            </div>
         </div>
     {/if}
 </div>
@@ -160,6 +155,8 @@
             //alert( "This will be displayed only once." );
             SUGAR.searchForm.searchFormSelect('{/literal}{$module}{literal}|basic_search', '{/literal}{$module}{literal}|advanced_search');
         });
+
+        $('#search_form select').select2();
     });
     {/literal}
 </script>

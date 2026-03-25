@@ -86,7 +86,6 @@ $mod_strings = array(
     'LBL_ASSISTANT' => 'Trợ lý',
     'LBL_ASSISTANT_PHONE' => 'Điện thoại trợ lý',
     'LBL_WORK_PHONE' => 'Điện thoại công việc',
-    'LNK_IMPORT_VCARD' => 'Tạo từ vCard',
     'LBL_ANY_EMAIL' => 'Thư điện tử bất kỳ',
     'LBL_EMAIL_NON_PRIMARY' => 'Không phải E-mail chính',
     'LBL_PHOTO' => 'Hình ảnh',

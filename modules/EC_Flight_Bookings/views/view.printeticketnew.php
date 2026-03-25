@@ -16,6 +16,7 @@ class Viewprinteticketnew extends SugarView
 	public $itineraryIds;
 	public $allPassengers;
 	public $allItineraries;
+	public $isPrintTicketMode = true;
 	private $bookingBean = null;
 
 	function display()
@@ -26,6 +27,7 @@ class Viewprinteticketnew extends SugarView
 		$this->bookingId = $_REQUEST['booking_id'] ?? '';
 		$this->bookingName = $_REQUEST['booking'] ?? '';
 		$this->ticketType = $_REQUEST['ticket_type'] ?? '1';
+		$this->isPrintTicketMode = true;
 
 		// Parse comma-separated IDs from GET params ("All" = select all)
 		$this->passengerIds = [];
@@ -98,6 +100,7 @@ class Viewprinteticketnew extends SugarView
 
 		// Assign data to template
 		$this->sugarSmarty->assign('PASSENGER_GROUPS', $passengerGroups);
+		$this->sugarSmarty->assign('IS_PRINT_TICKET_MODE', (bool)$this->isPrintTicketMode);
 		$this->sugarSmarty->assign('IS_ROUND_TRIP', $this->isRoundTrip);
 		$this->sugarSmarty->assign('LANG', $this->lang);
 		$this->sugarSmarty->assign('BOOKING_NUMBER', $this->bookingName);
@@ -131,7 +134,9 @@ class Viewprinteticketnew extends SugarView
 		// Build ID filter (skip if all passengers requested)
 		$idFilter = '';
 		if (!$this->allPassengers) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->passengerIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->passengerIds)) . "'";
 			$idFilter = "AND p.id IN($idList)";
 		}
 
@@ -304,12 +309,14 @@ class Viewprinteticketnew extends SugarView
 		// Determine which directions are selected based on itineraryIds
 		$selectedDir = 0;
 		if (!$this->isRoundTrip && !$this->allItineraries && !empty($this->itineraryIds)) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->itineraryIds)) . "'";
 			$bookingId = $db->quote($this->bookingId);
 			$sqlDir = "SELECT DISTINCT direction FROM ec_booking_itineraries WHERE id IN ($idList) AND booking_id = '$bookingId'";
 			$resDir = $db->query($sqlDir);
 			$dirs = [];
-			while($rDir = $db->fetchByAssoc($resDir)) {
+			while ($rDir = $db->fetchByAssoc($resDir)) {
 				$dirs[] = (int)$rDir['direction'];
 			}
 			if (count($dirs) === 1 && $dirs[0] === 1) {
@@ -348,7 +355,7 @@ class Viewprinteticketnew extends SugarView
 					$pnr = $pnrDisplay;
 					if (!empty($pnrDisplay2)) $pnr .= " ($outbound_label) / $pnrDisplay2 ($inbound_label)";
 				}
-				
+
 				// Hide passenger if they have KHONG BAY on BOTH legs in round-trip view
 				$ob_kb = (str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnrDisplay, 'UTF-8')) === 'KHONG BAY');
 				$ib_kb = (str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnrDisplay2, 'UTF-8')) === 'KHONG BAY');
@@ -361,7 +368,7 @@ class Viewprinteticketnew extends SugarView
 				} else {
 					$pnr = strtoupper(!empty($pnrOut) ? $pnrOut : $eticketOut);
 				}
-				
+
 				// Hide passenger if they have KHONG BAY on this specific leg
 				$pnr_check = str_replace(['Ô', 'Õ', 'Ỏ', 'Ó', 'Ọ'], 'O', mb_strtoupper($pnr, 'UTF-8'));
 				if ($pnr_check === 'KHONG BAY') {
@@ -472,7 +479,7 @@ class Viewprinteticketnew extends SugarView
 				// Outbound
 				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
 				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
-				
+
 				if ($hasNewFormatOut && class_exists('Baggage')) {
 					// Use new format parser
 					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
@@ -500,7 +507,7 @@ class Viewprinteticketnew extends SugarView
 				// Inbound
 				$luggage_idx_in = $row['luggage_index_inbound'] ?? '';
 				$hasNewFormatIn = preg_match('/[x_T]/i', $luggage_idx_in);
-				
+
 				if ($hasNewFormatIn && class_exists('Baggage')) {
 					// Use new format parser
 					$bagIn = Baggage::renderAvailableBaggage($luggage_idx_in, $lang);
@@ -530,7 +537,7 @@ class Viewprinteticketnew extends SugarView
 			} elseif (function_exists('generateLuggage') && !$khuhoi) {
 				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
 				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
-				
+
 				if ($hasNewFormatOut && class_exists('Baggage')) {
 					// Use new format parser
 					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
@@ -593,99 +600,116 @@ class Viewprinteticketnew extends SugarView
 		}
 
 		// 2) Parse purchase text to separate hand baggage vs checked baggage
+		$processPurchaseText = function ($rawText, &$handRef, &$bagRef) {
+			$lines = explode("\n", $rawText);
+			foreach ($lines as $line) {
+				$line = trim($line);
+				if (empty($line)) continue;
+				$posPrice = stripos($line, 'Giá bán');
+				if ($posPrice !== false) $line = substr($line, 0, $posPrice);
+				$posOldPrice = stripos($line, 'Giá:');
+				if ($posOldPrice !== false) $line = substr($line, 0, $posOldPrice);
+				$pos = strpos($line, '(');
+				if ($pos !== false) $line = substr($line, 0, $pos);
+				$cleanLine = trim($line, " \t\n\r\0\x0B-:");
+				// remove 'hành lý' string to clean up '20kg hành lý' into '20kg'
+				$cleanLine = str_ireplace('hành lý', '', $cleanLine);
+				$cleanLine = trim($cleanLine);
+
+				if (empty($cleanLine)) continue;
+
+				if (stripos($cleanLine, 'xách tay') !== false || stripos($cleanLine, 'xach tay') !== false || stripos($cleanLine, 'carry') !== false) {
+					$val = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $cleanLine);
+					$val = trim($val);
+					// Only use purchase text carry-on if DB hasn't provided it (like '1x7')
+					if (empty($handRef)) {
+						$handRef = $val;
+					}
+				} else {
+					$val = trim($cleanLine);
+					if (empty($bagRef)) {
+						$bagRef = $val;
+					} else {
+						// Avoid concatenating exact duplicates
+						if (stripos($bagRef, $val) === false && stripos($val, $bagRef) === false) {
+							$bagRef .= ' + ' . $val;
+						}
+					}
+				}
+			}
+		};
+
 		$purchOutRaw = trim($row['luggage_purchase_text'] ?? '');
 		$purchInRaw = trim($row['luggage_purchase_text_inbound'] ?? '');
-		$purchOut = $this->cleanPurchaseText($purchOutRaw);
-		$purchIn = $this->cleanPurchaseText($purchInRaw);
 
-		// Detect hand baggage: contains "xách tay" or "carry" (case-insensitive)
-		$isHandOut = !empty($result['hand_baggage_outbound']) || (!empty($purchOut) && (stripos($purchOut, 'xách tay') !== false || stripos($purchOut, 'xach tay') !== false || stripos($purchOut, 'carry') !== false));
-		$isHandIn = !empty($result['hand_baggage_inbound']) || (!empty($purchIn) && (stripos($purchIn, 'xách tay') !== false || stripos($purchIn, 'xach tay') !== false || stripos($purchIn, 'carry') !== false));
-
-		if ($isHandOut && empty($result['hand_baggage_outbound']) && !empty($purchOut)) {
-			// Strip "xách tay"/"carry-on" text since template already prefixes with label
-			$cleanHand = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $purchOut);
-			$result['hand_baggage_outbound'] = trim($cleanHand);
-		} elseif (!$isHandOut && !empty($purchOut)) {
-			$result['baggage_outbound'] = $purchOut;
-		}
-
-		if ($isHandIn && empty($result['hand_baggage_inbound']) && !empty($purchIn)) {
-			$cleanHand = preg_replace('/\s*(xách tay|xach tay|carry[- ]?on)\s*/iu', ' ', $purchIn);
-			$result['hand_baggage_inbound'] = trim($cleanHand);
-		} elseif (!$isHandIn && !empty($purchIn)) {
-			$result['baggage_inbound'] = $purchIn;
-		}
+		$processPurchaseText($purchOutRaw, $result['hand_baggage_outbound'], $result['baggage_outbound']);
+		$processPurchaseText($purchInRaw, $result['hand_baggage_inbound'], $result['baggage_inbound']);
 
 		// Available checked baggage from luggage_index
 		if ($this->bookingBean->isUseNewBaggage($dateEntered, $this->bookingBean->created_by)) {
 			$availOut = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_outbound'] ?? '', $lang) : '';
 			$availIn  = class_exists('Baggage') ? Baggage::renderAvailableBaggage($row['luggage_index_inbound']  ?? '', $lang) : '';
 
-			// If purchase text was NOT hand baggage, combine with available baggage
-			// Skip if hand baggage was already detected from purchase text (same physical baggage)
-			if (!$isHandOut) {
-				if (!empty($availOut) && !empty($result['baggage_outbound'])) {
-					// Both available + purchased checked: combine via parsePackage
-					$avaiParts = Baggage::parsePackage($availOut);
-					$purchParts = Baggage::parsePackage($result['baggage_outbound']);
-					if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
-						&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
-						$result['baggage_outbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
-					} else {
-						$result['baggage_outbound'] = $availOut . ' + ' . $result['baggage_outbound'];
-					}
-				} elseif (!empty($availOut) && empty($result['baggage_outbound'])) {
-					$result['baggage_outbound'] = $availOut;
+			// Combine available baggage with parsed purchase text checked baggage
+			if (!empty($availOut) && !empty($result['baggage_outbound'])) {
+				// Both available + purchased checked: combine via parsePackage
+				$avaiParts = Baggage::parsePackage($availOut);
+				$purchParts = Baggage::parsePackage($result['baggage_outbound']);
+				if (
+					$avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
+					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0
+				) {
+					$result['baggage_outbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
+				} else {
+					$result['baggage_outbound'] = $availOut . ' + ' . $result['baggage_outbound'];
 				}
+			} elseif (!empty($availOut) && empty($result['baggage_outbound'])) {
+				$result['baggage_outbound'] = $availOut;
 			}
 
-			if (!$isHandIn) {
-				if (!empty($availIn) && !empty($result['baggage_inbound'])) {
-					$avaiParts = Baggage::parsePackage($availIn);
-					$purchParts = Baggage::parsePackage($result['baggage_inbound']);
-					if ($avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
-						&& $avaiParts['package'] > 0 && $purchParts['package'] > 0) {
-						$result['baggage_inbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
-					} else {
-						$result['baggage_inbound'] = $availIn . ' + ' . $result['baggage_inbound'];
-					}
-				} elseif (!empty($availIn) && empty($result['baggage_inbound'])) {
-					$result['baggage_inbound'] = $availIn;
+			if (!empty($availIn) && !empty($result['baggage_inbound'])) {
+				$avaiParts = Baggage::parsePackage($availIn);
+				$purchParts = Baggage::parsePackage($result['baggage_inbound']);
+				if (
+					$avaiParts['weight'] === $purchParts['weight'] && !is_null($avaiParts['weight'])
+					&& $avaiParts['package'] > 0 && $purchParts['package'] > 0
+				) {
+					$result['baggage_inbound'] = ($avaiParts['package'] + $purchParts['package']) . ($lang == 'en' ? ' packages' : ' kiện') . ' x ' . $avaiParts['weight'] . 'kg';
+				} else {
+					$result['baggage_inbound'] = $availIn . ' + ' . $result['baggage_inbound'];
 				}
+			} elseif (!empty($availIn) && empty($result['baggage_inbound'])) {
+				$result['baggage_inbound'] = $availIn;
 			}
 		} else {
 			// Old baggage format: use generateLuggage for index-based baggage
-			// Skip direction if hand baggage was already detected from purchase text (same physical baggage)
 			if (function_exists('generateLuggage')) {
-				if (!$isHandOut) {
-					$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
-					$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
+				$luggage_idx_out = $row['luggage_index_outbound'] ?? '';
+				$hasNewFormatOut = preg_match('/[x_T]/i', $luggage_idx_out);
 
-					if ($hasNewFormatOut && class_exists('Baggage')) {
-						$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
-						if (!empty($bagOut)) {
-							if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = $bagOut;
-							else $result['baggage_outbound'] .= ' + ' . $bagOut;
-						}
-					} else {
-						$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
-						$luggagePriceOut = $row['luggage_price'] ?? 0;
-						if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
-						$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
-						if (!empty($bag_out2)) {
-							preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
-							$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
-							if ($bag_weight_out > 0) {
-								$cleaned = $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
-								if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = trim($cleaned);
-								else $result['baggage_outbound'] .= ' + ' . trim($cleaned);
-							}
+				if ($hasNewFormatOut && class_exists('Baggage')) {
+					$bagOut = Baggage::renderAvailableBaggage($luggage_idx_out, $lang);
+					if (!empty($bagOut)) {
+						if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = $bagOut;
+						else $result['baggage_outbound'] .= ' + ' . $bagOut;
+					}
+				} else {
+					$bag_out = generateLuggage($dateEntered, $row['aircode_outbound'] ?? '', $row['ticket_class_outbound'] ?? '', $row['type'] ?? '', $luggage_idx_out);
+					$luggagePriceOut = $row['luggage_price'] ?? 0;
+					if (!empty($luggage_idx_out) && is_numeric($luggage_idx_out)) $luggagePriceOut = $luggage_idx_out;
+					$bag_out2 = $bag_out[(int)$luggagePriceOut] ?? '';
+					if (!empty($bag_out2)) {
+						preg_match('/(\d+)kg/isU', $bag_out2, $ob_output);
+						$bag_weight_out = isset($ob_output[1]) ? (int)$ob_output[1] : 0;
+						if ($bag_weight_out > 0) {
+							$cleaned = $lang == 'en' ? 'Extra ' . $bag_weight_out . 'kg' : substr_replace($bag_out2, '', strpos($bag_out2, '(') - 1);
+							if (empty($result['baggage_outbound'])) $result['baggage_outbound'] = trim($cleaned);
+							else $result['baggage_outbound'] .= ' + ' . trim($cleaned);
 						}
 					}
 				}
 
-				if ($khuhoi && !$isHandIn) {
+				if ($khuhoi) {
 					$luggage_idx_in = $row['luggage_index_inbound'] ?? '';
 					$hasNewFormatIn = preg_match('/[x_T]/i', $luggage_idx_in);
 
@@ -768,7 +792,9 @@ class Viewprinteticketnew extends SugarView
 		// Build ID filter (skip if all itineraries requested)
 		$idFilter = '';
 		if (!$this->allItineraries) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->itineraryIds)) . "'";
 			$idFilter = "AND i.id IN($idList)";
 		}
 
@@ -834,7 +860,7 @@ class Viewprinteticketnew extends SugarView
 			// Get airport names
 			$depAirport = Flight::getAirport($depCode);
 			$arrAirport = Flight::getAirport($arrCode);
-			
+
 			$airlineInfo = function_exists('myGetAirlineInfo2') ? myGetAirlineInfo2($airlineCode, 'CODE') : ['data' => [['name' => $airlineCode]]];
 			$airlineName = (!empty($airlineInfo['data'][0]['name'])) ? $airlineInfo['data'][0]['name'] : $airlineCode;
 
@@ -844,15 +870,15 @@ class Viewprinteticketnew extends SugarView
 
 			$depCityName = (!empty($depInfo['data'][0]['name'])) ? $depInfo['data'][0]['name'] : ($depAirport['CityName'] ?? $depCode);
 			$arrCityName = (!empty($arrInfo['data'][0]['name'])) ? $arrInfo['data'][0]['name'] : ($arrAirport['CityName'] ?? $arrCode);
-			
+
 			$depAirportName = $depAirport['AirPortName'] ?? '';
 			$arrAirportName = $arrAirport['AirPortName'] ?? '';
 
 			$results[] = [
 				'id' => $row['id'],
 				'direction' => (int)($row['direction'] ?? 0),
-				'direction_label' => ((int)$row['direction'] === 0) 
-					? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi') 
+				'direction_label' => ((int)$row['direction'] === 0)
+					? ($this->lang == 'en' ? 'Outbound' : 'Lượt đi')
 					: ($this->lang == 'en' ? 'Inbound' : 'Lượt về'),
 				'airline_code' => $airlineCode,
 				'airline' => $airlineName,
@@ -869,6 +895,14 @@ class Viewprinteticketnew extends SugarView
 				'arr_date' => date('d/m/Y', strtotime($row['arrival_date'])),
 				'arr_time' => date('H:i', strtotime($row['arrival_date'])),
 			];
+		}
+
+		$uniqueDirections = array_unique(array_column($results, 'direction'));
+		if (count($uniqueDirections) === 1) { //nếu 1 chiều đi thì đổi label thành "Hành trình" hoặc "Journey"
+			foreach ($results as &$item) {
+				$item['direction_label'] = ($this->lang == 'en') ? 'Journey' : 'Hành trình';
+			}
+			unset($item);
 		}
 
 		return $results;
@@ -907,7 +941,9 @@ class Viewprinteticketnew extends SugarView
 		// Build ID filter (skip if all itineraries requested)
 		$idFilter = '';
 		if (!$this->allItineraries) {
-			$idList = "'" . implode("','", array_map(function($id) { return preg_replace('/[^a-zA-Z0-9\-]/', '', $id); }, $this->itineraryIds)) . "'";
+			$idList = "'" . implode("','", array_map(function ($id) {
+				return preg_replace('/[^a-zA-Z0-9\-]/', '', $id);
+			}, $this->itineraryIds)) . "'";
 			$idFilter = "AND i.id IN($idList)";
 		}
 

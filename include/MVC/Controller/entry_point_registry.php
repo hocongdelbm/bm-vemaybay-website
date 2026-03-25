@@ -10,21 +10,14 @@ $entry_point_registry = array(
     'export_dataset'                        => array('file' => 'export_dataset.php', 'auth' => true),
     'Changenewpassword'                     => array('file' => 'modules/Users/Changenewpassword.php', 'auth' => false),
     'GeneratePassword'                      => array('file' => 'modules/Users/GeneratePassword.php', 'auth' => false),
-    'vCard'                                 => array('file' => 'vCard.php', 'auth' => true),
     'pdf'                                   => array('file' => 'pdf.php', 'auth' => true),
     'minify'                                => array('file' => 'jssource/minify.php', 'auth' => true),
     'json_server'                           => array('file' => 'json_server.php', 'auth' => true),
     'get_url'                               => array('file' => 'get_url.php', 'auth' => true),
     'HandleAjaxCall'                        => array('file' => 'HandleAjaxCall.php', 'auth' => true),
     'TreeData'                              => array('file' => 'TreeData.php', 'auth' => true),
-    'image'                                 => array('file' => 'modules/Campaigns/image.php', 'auth' => false),
-    'campaign_trackerv2'                    => array('file' => 'modules/Campaigns/Tracker.php', 'auth' => false),
-    'WebToLeadCapture'                      => array('file' => 'modules/Campaigns/WebToLeadCapture.php', 'auth' => false),
-    'WebToPersonCapture'                    => array('file' => 'modules/Campaigns/WebToPersonCapture.php', 'auth' => false),
-    'removeme'                              => array('file' => 'modules/Campaigns/RemoveMe.php', 'auth' => false),
     'ConfirmOptIn'                          => array('file' => 'include/entryPointConfirmOptInConnector.php', 'auth' => false),
     'acceptDecline'                         => array('file' => 'modules/Contacts/AcceptDecline.php', 'auth' => false),
-    'leadCapture'                           => array('file' => 'modules/Leads/Capture.php', 'auth' => false),
     'process_queue'                         => array('file' => 'process_queue.php', 'auth' => true),
     'zipatcher'                             => array('file' => 'zipatcher.php', 'auth' => true),
     'mm_get_doc'                            => array('file' => 'modules/MailMerge/get_doc.php', 'auth' => true),
@@ -37,7 +30,6 @@ $entry_point_registry = array(
     'SAML2Metadata'                         => array('file' => 'modules/Users/authentication/SAML2Authenticate/SAML2Metadata.php', 'auth' => false),
     'jslang'                                => array('file' => 'include/language/getJSLanguage.php', 'auth' => true),
     'deleteAttachment'                      => array('file' => 'include/SugarFields/Fields/Image/deleteAttachment.php', 'auth' => true),
-    'responseEntryPoint'                    => array('file' => 'modules/FP_events/responseEntryPoint.php', 'auth' => false),
     'formLetter'                            => array('file' => 'modules/AOS_PDF_Templates/formLetterPdf.php' , 'auth' => true),
     'generatePdf'                           => array('file' => 'modules/AOS_PDF_Templates/generatePdf.php' , 'auth' => true),
     'Reschedule'                            => array('file' => 'modules/Calls_Reschedule/Reschedule_popup.php' , 'auth' => true),
@@ -52,12 +44,7 @@ $entry_point_registry = array(
     
     'emailTemplateData'                     => array('file' => 'modules/EmailTemplates/EmailTemplateData.php', 'auth' => true),
     'emailMarketingData'                    => array('file' => 'modules/EmailMarketing/Save.php', 'auth' => true),
-    'campaignTrackerSave'                   => array('file' => 'modules/CampaignTrackers/Save.php', 'auth' => true),
     'emailMarketingList'                    => array('file' => 'modules/EmailMarketing/List.php', 'auth' => true),
-    'setCampaignMarketingAndTemplate'       => array('file' => 'modules/Campaigns/WizardCampaignSave.php', 'auth' => true),
-    'survey'                                => array('file' => 'modules/Surveys/Entry/Survey.php', 'auth' => false),
-    'surveySubmit'                          => array('file' => 'modules/Surveys/Entry/SurveySubmit.php', 'auth' => false),
-    'surveyThanks'                          => array('file' => 'modules/Surveys/Entry/Thanks.php', 'auth' => false),
     'sendConfirmOptInEmail'                 => array('file' => 'include/entryPointConfirmOptInConnector.php', 'auth' => true),
     'saveGoogleApiKey'                      => array('file' => 'modules/Users/entryPointSaveGoogleApiKey.php', 'auth' => true),
     'setImapTestSettings'                   => array('file' => 'include/Imap/ImapTestSettingsEntry.php', 'auth' => true),
@@ -74,7 +61,6 @@ $entry_point_registry = array(
 	// 'entryPointAutoBook'        => ['file' => 'custom/entrypoints/epAutoBook.php', 'auth' => true],
 	'entryPointSaveNote'        => ['file' => 'custom/entrypoints/epSaveNote.php', 'auth' => true],
     'entryPointCallContact'     => ['file' => 'custom/entrypoints/epCallContact.php', 'auth' => true],
-    'entryPointWinInvoice'      => ['file' => 'custom/entrypoints/epWinInvoice.php', 'auth' => true],
     'entryPointSMS'             => ['file' => 'custom/entrypoints/epSMS.php', 'auth' => true],
     'entryPointSaveResultSMS'   => ['file' => 'custom/entrypoints/epSaveResultSMS.php', 'auth' => false],
     'entrypointZaloOA'              => array('file' => 'custom/entrypoints/epZaloOA.php', 'auth' => true),
@@ -118,9 +104,6 @@ $entry_point_registry = array(
     // DASHBOARD - HOME
     'entryPointOverviewDashBoard'           => array('file' => 'custom/entrypoints/epOverviewDashboard.php', 'auth' => true),
     
-    // AUTOCALL
-    'entryPointAutoCall'           => array('file' => 'custom/entrypoints/epAutoCall.php', 'auth' => false),
-
     // CUSTOM BY DATLNT
     'entryPointSummarySite' => ['file' => 'custom/entrypoints/ep_Summary_sites.php', 'auth' => true],
 

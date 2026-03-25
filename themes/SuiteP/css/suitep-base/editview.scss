@@ -1,22 +1,5 @@
 /**** Edit view ***/
 
-/*Import VCard*/
-.import-vcard {
-  background-color: $main-alternate-bg;
-  padding: 16px;
-  border-radius: $border-radius-base;
-
-  #vcard_file {
-    margin-top: 10px;
-    margin-buttom: 10px;
-  }
-
-  .button {
-    margin-top: 10px;
-    margin-buttom: 10px;
-  }
-}
-
 div#searchResults {
   padding-bottom: 50px;
   overflow-y: auto;
@@ -3179,18 +3162,6 @@ table#lineItems tr td table tfoot tr td span {
   margin-top: 1px;
   margin-bottom: 1px;
 }
-
-#btn_vCardButton {
-  background: none;
-  margin: 0;
-}
-
-#btn_vCardButton,
-#btn_vCardButton img {
-  width: auto;
-  height: 14px;
-}
-
 
 .hr {
   background: $main-alternate-bg;

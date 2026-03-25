@@ -3,7 +3,8 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
 require_once('include/MVC/View/views/view.edit.php');
 require_once('custom/entrypoints/entryAuthClass/entryFareSystemClass.php');
 
-class EC_Flight_BookingsViewEdit extends ViewEdit {
+class EC_Flight_BookingsViewEdit extends ViewEdit
+{
 	/**
 	 * @var EC_Flight_Bookings
 	 */
@@ -20,7 +21,8 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 		parent::__construct();
 	}
 
-	function display() {
+	function display()
+	{
 		global $current_user;
 
 		$status_arr = ['1', '6', '2', '3']; // allow edit
@@ -97,7 +99,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 			</script>';
 		}
 
-		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.6"></script>';
+		$js .= '<script src="modules/EC_Flight_Bookings/js/view.edit.js?v=1.8"></script>';
 		echo $js;
 	}
 
@@ -246,12 +248,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 		if (isManagerUser($current_user->id)) {
 			$user = new User;
 			$user->retrieve($this->bean->assigned_user_id);
-			// $assigned_user = '
-			// 	<input type="text" name="assigned_user_name" class="sqsEnabled yui-ac-input" id="assigned_user_name" value="' . $user->user_name . '" autocomplete="off">
-			// 	<input type="hidden" name="assigned_user_id" id="assigned_user_id" value="' . $this->bean->assigned_user_id . '">
-			// 	<input type="button" class="btn btn-primary" name="btn_assigned_user_name" id="btn_assigned_user_name"  title="Chọn [Alt+T]" accesskey="T" class="button" value="Chọn" onclick="open_popup(&quot;Users&quot;, 600, 400, &quot;&quot;, true, false, {&quot;call_back_function&quot;:&quot;set_return&quot;,&quot;form_name&quot;:&quot;EditView&quot;,&quot;field_to_name_array&quot;:{&quot;id&quot;:&quot;assigned_user_id&quot;,&quot;user_name&quot;:&quot;assigned_user_name&quot;}}, &quot;single&quot;, true);">
-			// 	<input type="button" class="btn btn-outline-danger" name="btn_clr_assigned_user_name" id="btn_clr_assigned_user_name" tabindex="112" title="Xóa trắng [Alt+C]" accesskey="C" class="button" onclick="this.form.assigned_user_name.value = \'\'; this.form.assigned_user_id.value = \'\';" value="Xóa">
-			// ';
 			$assigned_user = '
 				<input type="text" name="assigned_user_name" class="sqsEnabled yui-ac-input" id="assigned_user_name" value="' . $user->user_name . '" autocomplete="off">
 				<input type="hidden" name="assigned_user_id" id="assigned_user_id" value="' . $this->bean->assigned_user_id . '">
@@ -859,8 +855,10 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 	/**
 	 * Render passengers info as HTML
 	 */
-	public function populateLinePassengers() {
+	public function populateLinePassengers()
+	{
 		global $app_list_strings, $timedate, $current_user;
+
 		$date_format = $timedate->get_date_format();
 		$sql_supplier = " AND account_type = 'Supplier' AND is_stop_tracking = 0 ";
 
@@ -901,6 +899,10 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 				AND p.deleted = 0
 			ORDER BY p.type, p.date_entered";
 
+		// if($current_user->user_name == 'hungnh'){
+		// 	pr($sql);
+		// }
+
 		$res = $this->bean->db->query($sql);
 		$row_count = $this->bean->db->countRows($res);
 		$row_count = !empty($row_count) ? $row_count : 0;
@@ -924,7 +926,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 		$i = 0;
 		while ($row = $this->bean->db->fetchByAssoc($res)) {
-			$passenger_id = isset($_POST['isDuplicate']) && $_POST['isDuplicate'] == 'true' ? '' : $row['id'];
+			$passenger_id = isset($_POST['isDuplicate']) && (string)$_POST['isDuplicate'] === 'true' ? '' : $row['id'];
 
 			##### Line 1 (Thông tin hành khách) #####
 			$html .= '<tr id="psg_line_' . $i . '" class="psg_line">';
@@ -963,7 +965,7 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 
 			// CCCD/Passport
 			$id_number_value = trim($row['passport_number'] ?? '');
-			if(empty($id_number_value)) $id_number_value = trim($row['cic'] ?? '');
+			if (empty($id_number_value)) $id_number_value = trim($row['cic'] ?? '');
 			$html .= '<td data-label="CCCD/Passport">
 				<input type="text" name="psg_id_number[]"
 					id="psg_id_number' . $i . '"
@@ -1128,7 +1130,6 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 				Số dòng = <label id="lbl_psg_row_count">' . $row_count . '</label>
 				<input type="hidden" name="psg_row_count" id="psg_row_count" value="' . $row_count . '" />
 				<input type="hidden" id="booking_status" value="' . $this->bean->booking_status . '" >
-				<!-- Store baggage options as JSON for JavaScript -->
 				<input type="hidden" id="baggage_options_outbound" value="' . htmlspecialchars(json_encode($this->bean->generateBaggageOptions($this->bean->airline)), ENT_QUOTES, 'UTF-8') . '" />
 				<input type="hidden" id="baggage_options_inbound" value="' . htmlspecialchars(json_encode($this->bean->generateBaggageOptions($this->bean->airline_inbound)), ENT_QUOTES, 'UTF-8') . '" />
 			</td>
@@ -1140,14 +1141,20 @@ class EC_Flight_BookingsViewEdit extends ViewEdit {
 	// Bổ sung phần thông tin hoá đơn
 	function populateInvoiceFields()
 	{
+		global $current_user;
+
 		$invoice_arr = json_decode(str_replace("&quot;", "\"", $this->bean->shipping_address), 1);
 		$iv_payment_method = array('' => '', 'Tiền mặt' => 'Tiền mặt', 'Chuyển khoản' => 'Chuyển khoản', 'Tiền mặt hoặc Chuyển khoản' => 'Tiền mặt hoặc Chuyển khoản');
+
+		// if ($current_user->user_name == 'hungnh') {
+		// 	pr($invoice_arr);
+		// }
 
 		if (!is_null($invoice_arr) && !empty($invoice_arr)) {
 			$this->ss->assign('CUS_IV_ACCOUNT_NAME', '<input type="text" id="iv_account_name" name="iv_account_name" size="30" value="' . $invoice_arr['iv_account_name'] . '" />');
 			$this->ss->assign('CUS_IV_EMAIL', '<input type="text" id="iv_email" name="iv_email" size="30" value="' . $invoice_arr['iv_email'] . '" />');
 			$this->ss->assign('CUS_IV_IDENTITY_NUMBER', '<input type="text" id="iv_identity_number" name="iv_identity_number" size="12" value="' . ($invoice_arr['iv_identity_number'] ?? '') . '" />');
-			$this->ss->assign('CUS_IV_PAYMENT_METHOD', '<select name="iv_payment_method" class="w-100">' . get_select_options_with_id($iv_payment_method, mb_convert_encoding($invoice_arr['iv_payment_method'], 'UTF-8', 'HTML-ENTITIES')) . '</select>');
+			$this->ss->assign('CUS_IV_PAYMENT_METHOD', '<select name="iv_payment_method" class="w-100">' . get_select_options_with_id($iv_payment_method, $invoice_arr['iv_payment_method']) . '</select>');
 			$this->ss->assign('CUS_IV_BANK_ACCOUNT', '<input type="text" name="iv_bank_account" size="30" value="' . $invoice_arr['iv_bank_account'] . '" />');
 			$this->ss->assign('CUS_IV_NAME_BANK', '<input type="text" name="iv_name_banks" size="30" value="' . $invoice_arr['iv_name_banks'] . '" />');
 		} else {

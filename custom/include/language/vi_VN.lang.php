@@ -2,21 +2,14 @@
 $app_list_strings['moduleList']['Home']                   = 'Trang chủ';
 $app_list_strings['moduleList']['Dashboard']              = 'Biểu đồ';
 $app_list_strings['moduleList']['Calendar']               = 'Lịch công tác';
-$app_list_strings['moduleList']['ResourceCalendar']       = 'Quản lý lịch';
 $app_list_strings['moduleList']['Contacts']               = 'Liên hệ';
 $app_list_strings['moduleList']['Emails']                 = 'Email';
 $app_list_strings['moduleList']['EmailMarketing']         = 'Email tiếp thị';
 $app_list_strings['moduleList']['Calls']                  = 'Cuộc gọi';
 $app_list_strings['moduleList']['Calls_Reschedule']       = 'Lịch gọi';
 $app_list_strings['moduleList']['Alerts']                 = 'Thông báo';
-$app_list_strings['moduleList']['Leads']                  = 'Đầu mối';
 $app_list_strings['moduleList']['TemplateSectionLine']    = 'Bản mẫu phần dòng';
-$app_list_strings['moduleList']['Surveys']                = 'Khảo sát';
 $app_list_strings['moduleList']['Schedulers']             = 'Lịch biểu';
-$app_list_strings['moduleList']['SurveyResponses']        = 'Phản hồi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionResponses'] = 'Trả lời câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestions']        = 'Câu hỏi khảo sát';
-$app_list_strings['moduleList']['SurveyQuestionOptions']  = 'Tùy chọn câu hỏi khảo sát';
 $app_list_strings['moduleList']['OAuth2Clients']          = 'OAuth2Clients';
 $app_list_strings['moduleList']['OAuthKeys']              = 'OAuthKeys';
 $app_list_strings['moduleList']['Bugs']                   = 'Lỗi';
@@ -32,15 +25,9 @@ $app_list_strings['moduleList']['Newsletters']            = 'Bản tin';
 $app_list_strings['moduleList']['Library']                = 'Thư viện';
 $app_list_strings['moduleList']['TrackerPerfs']           = 'TrackerPerfs';
 $app_list_strings['moduleList']['Queues']                 = 'Hàng đợi';
-$app_list_strings['moduleList']['Prospects']              = 'Tiềm năng';
-$app_list_strings['moduleList']['ProspectLists']          = 'D/s Tiềm năng';
 $app_list_strings['moduleList']['Tasks']                  = 'Công việc';
 $app_list_strings['moduleList']['Meetings']               = 'Hội họp';
 $app_list_strings['moduleList']['Currencies']             = 'Tiền tệ';
-$app_list_strings['moduleList']['Project']                = 'Dự án';
-$app_list_strings['moduleList']['ProjectTask']            = 'Công việc Dự án';
-$app_list_strings['moduleList']['Campaigns']              = 'Chiến dịch';
-$app_list_strings['moduleList']['CampaignLog']            = 'Nhật ký Chiến dịch';
 $app_list_strings['moduleList']['Documents']              = 'Tài liệu';
 $app_list_strings['moduleList']['Activities']             = 'Hoạt động';
 $app_list_strings['moduleList']['Cases']                  = 'Tình huống';
@@ -51,12 +38,10 @@ $app_list_strings['moduleList']['EC_Receipt_Voucher']     = 'Phiếu thu';
 $app_list_strings['moduleList']['Notes']                  = 'Ghi chú';
 $app_list_strings['moduleList']['EC_Payment_Voucher']     = 'Phiếu chi';
 $app_list_strings['moduleList']['EC_Payment_Types']       = 'Loại chi';
-$app_list_strings['moduleList']['EC_Request_Flight']      = 'Yêu cầu';
 $app_list_strings['moduleList']['EC_Debts']               = 'Công nợ';
 $app_list_strings['moduleList']['EC_SMS_Logs']            = 'Tin nhắn (cũ)';
 $app_list_strings['moduleList']['EC_Messages']            = 'Tin nhắn';
 $app_list_strings['moduleList']['Accounts']               = 'Tài khoản';
-$app_list_strings['moduleList']['EC_TaiKhoan']            = 'Tài khoản kế toán';
 $app_list_strings['moduleList']['EC_ChiTietTaiKhoan']     = 'Nhập số dư ban đầu';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
 $app_list_strings['moduleList']['EC_HoaDonBan']           = 'Hóa đơn';
@@ -87,12 +72,7 @@ $app_list_strings['moduleList']['EC_Location']            = 'Địa điểm';
 $app_list_strings['moduleList']['EC_LoginAudit']          = 'Login Audit';
 $app_list_strings['moduleList']['EC_Contact_Points_Log']  = 'Quá trình tích điểm';
 $app_list_strings['moduleList']['EC_Zalo_Contacts']       = 'Liên hệ Zalo';
-// AOR
-$app_list_strings['moduleList']['AOR_Reports'] = 'Báo cáo';
-$app_list_strings['moduleList']['AOR_Conditions'] = 'Báo cáo điều kiện';
-$app_list_strings['moduleList']['AOR_Charts'] = 'Biểu đồ báo cáo';
-$app_list_strings['moduleList']['AOR_Fields'] = 'Báo cáo lĩnh vực';
-$app_list_strings['moduleList']['AOR_Scheduled_Reports'] = 'Theo lịch trình báo cáo';
+
 // AOW PR 5775
 $app_list_strings['moduleList']['AOW_WorkFlow'] = 'Quy trình công việc';
 $app_list_strings['moduleList']['AOW_Conditions'] = 'Quy trình làm việc điều kiện';
@@ -116,8 +96,7 @@ $app_list_strings['moduleList']['AOP_Case_Updates'] = 'Cập nhật trường h�
 // knowledge base
 $app_list_strings['moduleList']['AOK_KnowledgeBase'] = 'Trung tâm hỗ trợ'; // Shows in the ALL menu entries
 $app_list_strings['moduleList']['AOK_Knowledge_Base_Categories'] = 'Danh mục hỗ trợ'; // Shows in the ALL menu entries
-$app_list_strings['moduleList']['FP_events'] = 'Sự kiện';
-$app_list_strings['moduleList']['FP_Event_Locations'] = 'Vị trí';
+
 // ExternalOauth
 $app_list_strings['moduleList']['ExternalOAuthProvider'] = 'External OAuth Provider';
 $app_list_strings['moduleList']['ExternalOAuthConnection'] = 'External OAuth Connection';
@@ -125,8 +104,6 @@ $app_list_strings['moduleList']['EAPM'] = 'External Account Password Management'
 
 $app_strings['LBL_LOGIN_AS'] = "Login as ";
 $app_strings['LBL_LOGOUT_AS'] = "Logout as ";
-
-
 
 $app_list_strings['receipt_type_list']['cash']            = 'Tiền mặt';
 $app_list_strings['receipt_type_list']['credit_transfer'] = 'Chuyển khoản';
@@ -143,30 +120,13 @@ $app_strings['LBL_GROUPTAB2_1529488412']  = 'Kế toán';
 $app_strings['LBL_GROUPTAB3_1607995668']  = 'HCNS';
 
 
-//gmaps
-$app_strings['LBL_MAP']                               = 'Bản đồ';
-$app_strings['LBL_JJWG_MAPS_LNG']                     = 'Kinh độ';
-$app_strings['LBL_JJWG_MAPS_LAT']                     = 'Vĩ độ';
-$app_strings['LBL_JJWG_MAPS_GEOCODE_STATUS']          = 'Trạng thái Mã địa lý';
-$app_strings['LBL_JJWG_MAPS_ADDRESS']                 = 'Địa chỉ';
-$app_list_strings['moduleList']['jjwg_Maps']          = 'Các bản đồ';
-$app_list_strings['moduleList']['jjwg_Markers']       = 'Bản đồ - đánh dấu';
-$app_list_strings['moduleList']['jjwg_Areas']         = 'Bản đồ - khu vực';
-$app_list_strings['moduleList']['jjwg_Address_Cache'] = 'Bản đồ - địa chỉ bộ nhớ Cache';
-$app_list_strings['moduleList']['jjwp_Partners']      = 'Đối tác JJWP';
-$app_list_strings['map_unit_type_list']['mi']         = 'Dặm';
-$app_list_strings['map_unit_type_list']['km']         = 'Cây số';
-
 //gant
-$app_list_strings['moduleList']['AM_ProjectTemplates']  = 'Dự án - mẫu';
-$app_list_strings['moduleList']['AM_TaskTemplates']     = 'Dự án công việc mẫu';
 $app_list_strings['relationship_type_list']['FS']       = 'Kết thúc để bắt đầu';
 $app_list_strings['relationship_type_list']['SS']       = 'Bắt đầu để bắt đầu';
 $app_list_strings['duration_unit_dom']['Days']          = 'Ngày';
 $app_list_strings['duration_unit_dom']['Hours']         = 'Giờ';
 $app_strings['LBL_GANTT_BUTTON_LABEL']                  = 'Xem biểu đồ Gantt';
 $app_strings['LBL_DETAIL_BUTTON_LABEL']                 = 'Xem chi tiết';
-$app_strings['LBL_CREATE_PROJECT']                      = 'Tạo dự án';
 
 $GLOBALS['app_list_strings']['lead_source_dom'] = array(
   '' => '',
@@ -180,7 +140,6 @@ $GLOBALS['app_list_strings']['lead_source_dom'] = array(
   'Employee' => 'Nhân viên',
   'Partner' => 'Đối tác',
   'Public Relations' => 'Quan hệ cộng đồng',
-  'Campaign' => 'Chiến dịch kinh doanh',
   'Word of mouth' => 'Truyền miệng',
   'Conference' => 'Hội nghị',
   'Trade Show' => 'Hội chợ triển lãm',
@@ -328,7 +287,7 @@ $GLOBALS['app_list_strings']['debt_type_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['aircode_list'] = array(
-  ''    => 'Tất cả',
+  ''    => '',
   'VJA' => 'Vietjet Air (VJA)',
   'VNA' => 'Vietnam Airlines (VNA)',
   'VNP' => 'Pacific Airlines (VNP)',
@@ -384,6 +343,7 @@ $GLOBALS['app_list_strings']['invoice_mahang_list'] = array(
 
 $GLOBALS['app_list_strings']['invoice_percent_vat_list'] = array(
   '0'   => '0%',
+  '0.05' => '5%',
   '0.08' => '8%',
   '0.1' => '10%',
   '-1'  => 'KCT',
@@ -451,7 +411,7 @@ $GLOBALS['app_list_strings']['message_type_list'] = [
   'sms' => 'Gửi SMS',
   'sms_campaign_static' => 'Gửi chiến dịch SMS',
   'sms_campaign_dynamic' => 'Gửi chiến dịch SMS (Tùy biến)',
-  'zalo_zns' => 'Gửi ZNS',
+  'zalo_zns' => 'Gửi ZBS',
   'zalo_promotion' => 'Gửi khuyến mãi Zalo',
   'zalo_broadcast' => 'Gửi Broadcast Zalo',
 ];
@@ -1972,9 +1932,9 @@ $GLOBALS['app_list_strings']['supplier_invoice_list'] = array(
 );
 
 $GLOBALS['app_list_strings']['company_unit_invoice_list'] = array(
+  '' => '',
   'MHV' => 'Minh Hồng Võ',
   'TRAVELPASS' => 'Travelpass',
-  '' => '',
   // 'EMPTY' => 'Trống',
 );
 
@@ -1988,7 +1948,6 @@ $GLOBALS['app_list_strings']['online_stt_list'] = array(
   1 => 'Online',
   2 => 'Busy',
 );
-
 
 /*==================== MODULE CALLS ====================*/
 $GLOBALS['app_list_strings']['calls_direction_list'] = array(
@@ -2494,58 +2453,58 @@ $app_list_strings['outbound_phone_status_list'] = array(
 );
 
 $app_list_strings['document_category_dom'] = array(
-    '' => '',
-    'Contracts' => 'Hợp đồng',
-    'Internal Documents' => 'Tài liệu nội bộ',
-    'Reports' => 'Báo cáo',
-    'Plans & Strategies' => 'Kế hoạch & Chiến lược',
-    'Training Materials' => 'Tài liệu đào tạo',
-    'Accounting Documents' => 'Chứng từ kế toán',
-    'Legal Documents' => 'Tài liệu pháp lý',
-    'HR Files' => 'Hồ sơ nhân sự',
-    'Marketing' => 'Marketing',
-    'Knowledge Base' => 'Trung tâm hỗ trợ',
-    'Sales' => 'Bán hàng',
-    'Technical Documents' => 'Tài liệu kỹ thuật',
-    'Other' => 'Khác',
+  '' => '',
+  'Contracts' => 'Hợp đồng',
+  'Internal Documents' => 'Tài liệu nội bộ',
+  'Reports' => 'Báo cáo',
+  'Plans & Strategies' => 'Kế hoạch & Chiến lược',
+  'Training Materials' => 'Tài liệu đào tạo',
+  'Accounting Documents' => 'Chứng từ kế toán',
+  'Legal Documents' => 'Tài liệu pháp lý',
+  'HR Files' => 'Hồ sơ nhân sự',
+  'Marketing' => 'Marketing',
+  'Knowledge Base' => 'Trung tâm hỗ trợ',
+  'Sales' => 'Bán hàng',
+  'Technical Documents' => 'Tài liệu kỹ thuật',
+  'Other' => 'Khác',
 );
 
 $app_list_strings['document_subcategory_dom'] = array(
-    '' => '',
-    'Marketing Collateral' => 'Tư liệu tiếp thị',
-    'Product Brochures' => 'Tài liệu giới thiệu sản phẩm',
-    'FAQ' => 'Câu hỏi thường gặp',
-    'Contracts - NDA' => 'Hợp đồng - NDA',
-    'Contracts - Service' => 'Hợp đồng - Dịch vụ',
-    'Contracts - Sales' => 'Hợp đồng - Bán hàng',
-    'Training - Guidelines' => 'Đào tạo - Hướng dẫn',
-    'Training - Onboarding' => 'Đào tạo - Nhập môn',
-    'Reports - Financial' => 'Báo cáo - Tài chính',
-    'Reports - Sales' => 'Báo cáo - Bán hàng',
-    'HR - Policies' => 'Nhân sự - Chính sách',
-    'HR - Employee Records' => 'Nhân sự - Hồ sơ nhân viên',
-    'Legal - Compliance' => 'Pháp lý - Tuân thủ',
-    'Legal - Agreements' => 'Pháp lý - Thỏa thuận',
-    'Technical - Manuals' => 'Kỹ thuật - Hướng dẫn sử dụng',
-    'Technical - Specifications' => 'Kỹ thuật - Thông số kỹ thuật',
-    'Other' => 'Khác',
+  '' => '',
+  'Marketing Collateral' => 'Tư liệu tiếp thị',
+  'Product Brochures' => 'Tài liệu giới thiệu sản phẩm',
+  'FAQ' => 'Câu hỏi thường gặp',
+  'Contracts - NDA' => 'Hợp đồng - NDA',
+  'Contracts - Service' => 'Hợp đồng - Dịch vụ',
+  'Contracts - Sales' => 'Hợp đồng - Bán hàng',
+  'Training - Guidelines' => 'Đào tạo - Hướng dẫn',
+  'Training - Onboarding' => 'Đào tạo - Nhập môn',
+  'Reports - Financial' => 'Báo cáo - Tài chính',
+  'Reports - Sales' => 'Báo cáo - Bán hàng',
+  'HR - Policies' => 'Nhân sự - Chính sách',
+  'HR - Employee Records' => 'Nhân sự - Hồ sơ nhân viên',
+  'Legal - Compliance' => 'Pháp lý - Tuân thủ',
+  'Legal - Agreements' => 'Pháp lý - Thỏa thuận',
+  'Technical - Manuals' => 'Kỹ thuật - Hướng dẫn sử dụng',
+  'Technical - Specifications' => 'Kỹ thuật - Thông số kỹ thuật',
+  'Other' => 'Khác',
 );
 
 $app_list_strings['document_template_type_dom'] = array(
-    '' => '',
-    'license' => 'Thỏa thuận cấp phép',
-    'contract' => 'Hợp đồng',
-    'proposal' => 'Đề xuất',
-    'invoice' => 'Hóa đơn',
-    'report' => 'Báo cáo',
-    'policy' => 'Chính sách',
-    'manual' => 'Hướng dẫn sử dụng',
-    'training' => 'Tài liệu đào tạo',
-    'guideline' => 'Hướng dẫn quy trình',
-    'compliance' => 'Tài liệu tuân thủ',
-    'marketing' => 'Tài liệu tiếp thị',
-    'brochure' => 'Tài liệu giới thiệu',
-    'other' => 'Khác',
+  '' => '',
+  'license' => 'Thỏa thuận cấp phép',
+  'contract' => 'Hợp đồng',
+  'proposal' => 'Đề xuất',
+  'invoice' => 'Hóa đơn',
+  'report' => 'Báo cáo',
+  'policy' => 'Chính sách',
+  'manual' => 'Hướng dẫn sử dụng',
+  'training' => 'Tài liệu đào tạo',
+  'guideline' => 'Hướng dẫn quy trình',
+  'compliance' => 'Tài liệu tuân thủ',
+  'marketing' => 'Tài liệu tiếp thị',
+  'brochure' => 'Tài liệu giới thiệu',
+  'other' => 'Khác',
 );
 
 
@@ -2567,4 +2526,37 @@ $app_list_strings['booking_checkin_status_list'] = [
   0    => '',
   1  => 'Cần checkin',
   2  => 'Đã checkin',
+];
+
+// Danh sách TK Công nợ
+$app_list_strings['debit_account_list'] = [
+  '131'  => '131 - Phải thu của khách hàng',
+  '1361' => '1361 - Vốn kinh doanh ở đơn vị trực thuộc',
+  '1368' => '1368 - Phải thu nội bộ khác',
+  '1388' => '1388 - Phải thu khác',
+  '3361' => '3361 - Phải trả nội bộ về vốn kinh doanh',
+  '3368' => '3368 - Phải trả nội bộ khác',
+  '3388' => '3388 - Phải trả, phải nộp khác',
+  '6421' => '6421 - Chi phí bán hàng',
+];
+
+// Danh sách TK doanh thu - TK có
+$app_list_strings['credit_account_list'] = [
+  '1388' => '1388 - Phải thu khác',
+  '3339' => '3339 - Phí, lệ phí và các khoản phải nộp khác',
+  '3387' => '3387 - Doanh thu chưa thực hiện',
+  '5111' => '5111 - Doanh thu bán hàng hóa',
+  '5112' => '5112 - Doanh thu bán thành phẩm',
+  '5113' => '5113 - Doanh thu cung cấp dịch vụ',
+  '5118' => '5118 - Doanh thu khác',
+  '711'  => '711 - Thu nhập khác',
+];
+
+$app_list_strings['product_code_list'] = [
+  'VMB_QN' => 'VMB_QN',
+  'VMB_QT' => 'VMB_QT',
+  'PD' => 'PD',
+  'PHL' => 'PHL',
+  'PMG' => 'PMG',
+  'PK' => 'PK',
 ];

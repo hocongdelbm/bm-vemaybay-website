@@ -1,6 +1,7 @@
 <?php
 
-class EC_HoaDonBan extends Basic {
+class EC_HoaDonBan extends Basic
+{
 	public $new_schema 	= true;
 	public $module_dir 	= 'EC_HoaDonBan';
 	public $object_name = 'EC_HoaDonBan';
@@ -58,7 +59,8 @@ class EC_HoaDonBan extends Basic {
 	public $email;
 	public $represent_booking;
 
-	public function bean_implements($interface) {
+	public function bean_implements($interface)
+	{
 		switch ($interface) {
 			case 'ACL':
 				return true;
@@ -67,20 +69,20 @@ class EC_HoaDonBan extends Basic {
 		return false;
 	}
 
-	public function save($check_notify = FALSE) {
-		if(empty($this->name)) $this->name = $this->renderName($this->countVoucher());
+	public function save($check_notify = FALSE)
+	{
+		if (empty($this->name)) $this->name = $this->renderName($this->countVoucher());
 
-		if(!isset($_POST['kyhieuhd']) || empty($_POST['kyhieuhd'])) $this->kyhieuhd = $this->genInvSerial();
+		if (!isset($_POST['kyhieuhd']) || empty($_POST['kyhieuhd'])) $this->kyhieuhd = $this->genInvSerial();
 		else $this->kyhieuhd = trim($_POST['kyhieuhd']);
-		
+
 		$this->masothue = $this->checkTaxCode($this->masothue) ? $this->masothue : '';
 
 		$identity_number = trim($_POST['identity_number'] ?? '');
-		if(!empty($identity_number)) {
-			if(strlen($identity_number) == 12) $this->citizen_id = $identity_number;
-			elseif(strlen($identity_number) > 6) $this->passport_number = $identity_number;
-		}
-		else {
+		if (!empty($identity_number)) {
+			if (strlen($identity_number) == 12) $this->citizen_id = $identity_number;
+			elseif (strlen($identity_number) > 6) $this->passport_number = $identity_number;
+		} else {
 			$this->citizen_id = '';
 			$this->passport_number = '';
 		}
@@ -89,19 +91,20 @@ class EC_HoaDonBan extends Basic {
 
 		if (
 			($this->loaihoadon == '0'
-			&& isset($_POST['ct_ticket_number_id']) && !empty($_POST['ct_ticket_number_id'])
-			&& isset($_POST['ct_ticket_number']) && !empty($_POST['ct_ticket_number'])
-			)	
-			|| 
+				&& isset($_POST['ct_ticket_number_id']) && !empty($_POST['ct_ticket_number_id'])
+				&& isset($_POST['ct_ticket_number']) && !empty($_POST['ct_ticket_number'])
+			)
+			||
 			($this->loaihoadon == '1' && !empty($_POST['ct_name']))
 		) {
 			$this->saveListItems();
 		}
 	}
 
-	public function save2($check_notify = FALSE) {
-        return parent::save($check_notify);
-    }
+	public function save2($check_notify = FALSE)
+	{
+		return parent::save($check_notify);
+	}
 
 	/**
 	 * Render name for output invoice
@@ -109,7 +112,8 @@ class EC_HoaDonBan extends Basic {
 	 * @param string $countStr
 	 * @return string
 	 */
-	private function renderName($countStr) {
+	private function renderName($countStr)
+	{
 		return "HD-" . date('ymd') . "-{$countStr}";
 	}
 
@@ -118,17 +122,19 @@ class EC_HoaDonBan extends Basic {
 	 * 
 	 * @return string The next quantity
 	 */
-	public function countVoucher() {
+	public function countVoucher()
+	{
 		$sql = 'SELECT COUNT(id)
 			FROM ec_hoadonban 
 			WHERE DATE_FORMAT(DATE_ADD(date_entered, INTERVAL 7 HOUR), "%Y-%m-%d") = "' . date('Y-m-d') . '"';
 		return str_pad(($this->db->getOne($sql) + 1), 3, 0, STR_PAD_LEFT);
 	}
 
-	public function saveListItems() {
+	public function saveListItems()
+	{
 		$row_count = count($_POST['ct_detail_id'] ?? []);
 
-		if($row_count > 0) {
+		if ($row_count > 0) {
 			$beanInInv = new EC_Input_Invoices();
 			for ($i = 0; $i < $row_count; $i++) {
 				$cthd = new EC_ChiTietHoaDon();
@@ -140,8 +146,8 @@ class EC_HoaDonBan extends Basic {
 				$cthd->thuesuat 	= unformat_number($_POST['ct_percent_vat'][$i]);
 				$cthd->tienthue 	= unformat_number($_POST['ct_vat'][$i]);
 				$cthd->phithuho 	= unformat_number($_POST['ct_authorized'][$i]);
-				$cthd->phisanbay 	= unformat_number($_POST['ct_airport_fee'][$i]); 
-				$cthd->phikhac 		= unformat_number($_POST['ct_other_fee'][$i]); 
+				$cthd->phisanbay 	= unformat_number($_POST['ct_airport_fee'][$i]);
+				$cthd->phikhac 		= unformat_number($_POST['ct_other_fee'][$i]);
 				$cthd->phidv 		= unformat_number($_POST['ct_service'][$i]);
 				$cthd->thanhtien 	= unformat_number($_POST['ct_total'][$i]);
 				$cthd->parent_id 	= $this->id;
@@ -152,30 +158,28 @@ class EC_HoaDonBan extends Basic {
 				if ($this->loaihoadon == '0') { // HĐ GTGT
 					$cthd->name = trim(stripslashes($_POST['ct_ticket_number'][$i]));
 
-					if($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
+					if ($cthd->mahang == 'PHL' || $cthd->mahang == 'PD') {
 						// Lưu thông tin phiếu thu
 						$receipt_voucher_name = trim($_POST['ct_receipt_voucher'][$i] ?? '');
 						$receipt_voucher_id = '';
-						if(!empty($receipt_voucher_name)) {
+						if (!empty($receipt_voucher_name)) {
 							$receipt_voucher_id = $this->db->getOne("SELECT id FROM ec_receipt_voucher WHERE name='$receipt_voucher_name' AND deleted=0 ORDER BY date_entered DESC LIMIT 1");
 						}
 						$cthd->receipt_voucher_id = $receipt_voucher_id;
-					}
-					else if($cthd->mahang == 'PK') {
+					} else if ($cthd->mahang == 'PK') {
 						$cthd->name = 'PK';
 					}
 
 					$cthd->ticket_number_id = $_POST['ct_ticket_number_id'][$i] ?? '';
 					$cthd->booking_id = $_POST['ct_booking_id'][$i] ?? '';
 					$cthd->booking = $_POST['ct_booking'][$i] ?? '';
-				}
-				else if ($this->loaihoadon == '1') { // HĐ DV
+				} else if ($this->loaihoadon == '1') { // HĐ DV
 					$cthd->name = trim(stripslashes($_POST['ct_name'][$i]));
 				}
 
 				if ($cthd->deleted == 1) $cthd->mark_deleted($cthd->id);
 				else if (!empty($cthd->name)) $cthd->save();
-				
+
 				if (!empty($cthd->ticket_number_id)) {
 					$beanInInv->updateInventoryStatus($cthd->ticket_number_id);
 				}
@@ -189,12 +193,13 @@ class EC_HoaDonBan extends Basic {
 	 * @param string $customerType (1:Personal ; 0:Company)
 	 * @return string
 	 */
-	public function genInvSerial($customerType = null) {
-		if(is_null($customerType)) $customerType = (string)($this->loaikh);
+	public function genInvSerial($customerType = null)
+	{
+		if (is_null($customerType)) $customerType = (string)($this->loaikh);
 
 		$y = date('y');
-		if($customerType === '0') return "C{$y}THV";
-		elseif($customerType === '1') return "C{$y}MHV";
+		if ($customerType === '0') return "C{$y}THV";
+		elseif ($customerType === '1') return "C{$y}MHV";
 		return '';
 	}
 
@@ -206,14 +211,15 @@ class EC_HoaDonBan extends Basic {
 	 * @return bool
 	 * @author Duc Pham
 	 */
-	public function createAuto($bookingId, $additionalSecond = 0) {
-		if(!is_string($bookingId) || empty($bookingId)) return false;
+	public function createAuto($bookingId, $additionalSecond = 0)
+	{
+		if (!is_string($bookingId) || empty($bookingId)) return false;
 
 		// Get list available tickets
 		$beanInInv = new EC_Input_Invoices();
 		$listAvailableTickets = $beanInInv->getListAvailableTickets($bookingId);
 
-		if(empty($listAvailableTickets)) return false;
+		if (empty($listAvailableTickets)) return false;
 
 		// Get list booking tickets
 		$beanBooking = new EC_Flight_Bookings();
@@ -251,12 +257,14 @@ class EC_HoaDonBan extends Basic {
 					unset($bookingInfo['shipping_address']);
 
 					$loaikh = '1';
-					if(isset($bookingInfo['iv_company_name']) && !empty($bookingInfo['iv_company_name'])
-						&& isset($bookingInfo['iv_tax_code']) && !empty($bookingInfo['iv_tax_code'])) $loaikh = '0';
+					if (
+						isset($bookingInfo['iv_company_name']) && !empty($bookingInfo['iv_company_name'])
+						&& isset($bookingInfo['iv_tax_code']) && !empty($bookingInfo['iv_tax_code'])
+					) $loaikh = '0';
 
 					$citizen_id = $passport_number = '';
-					if(strlen($bookingInfo['iv_identity_number']) == 12) $citizen_id = $bookingInfo['iv_identity_number'];
-					elseif(!empty($bookingInfo['iv_identity_number'])) $passport_number = $bookingInfo['iv_identity_number'];
+					if (strlen($bookingInfo['iv_identity_number']) == 12) $citizen_id = $bookingInfo['iv_identity_number'];
+					elseif (!empty($bookingInfo['iv_identity_number'])) $passport_number = $bookingInfo['iv_identity_number'];
 
 					$outInv = new EC_HoaDonBan();
 					$outInv->update_date_entered = true;
@@ -284,16 +292,16 @@ class EC_HoaDonBan extends Basic {
 					$outInv->tinhtrang		= 0;
 					$outInv->is_signed		= 0;
 					$outInv->description 	= "Hóa đơn tạo tự động";
-					$outInv->date_entered 	= date('Y-m-d H:i:s', time() + $additionalSecond - 7*3600);
+					$outInv->date_entered 	= date('Y-m-d H:i:s', time() + $additionalSecond - 7 * 3600);
 					$parentId = $outInv->save2();
 
 					// Check here
-					if(!$parentId || !is_string($parentId)) continue;
+					if (!$parentId || !is_string($parentId)) continue;
 
 					$totalBaggagePrice = 0; // Baggage purchase price in booking
-					foreach($listValue as $tknum => $arr) {
+					foreach ($listValue as $tknum => $arr) {
 						foreach ($arr as $bookingtk) {
-							if($bookingtk['type'] == 'baggage') {
+							if ($bookingtk['type'] == 'baggage') {
 								$totalBaggagePrice += $bookingtk['purchasePrice'] ?? 0;
 							}
 						}
@@ -302,11 +310,11 @@ class EC_HoaDonBan extends Basic {
 					$isIssueBaggage = false;
 					$totalQtyTicket = [];
 					$totalQtyAllTicket = 0;
-					foreach($listAvailableTickets as $tk) {
-						if(array_search($tk['ticket_number'], $listBookingTicketNumber) !== false) {
-							if($tk['ticket_type'] == 'baggage') $isIssueBaggage = true;
+					foreach ($listAvailableTickets as $tk) {
+						if (array_search($tk['ticket_number'], $listBookingTicketNumber) !== false) {
+							if ($tk['ticket_type'] == 'baggage') $isIssueBaggage = true;
 
-							if(isset($totalQtyTicket[$tk['ticket_type']])) $totalQtyTicket[$tk['ticket_type']] += $tk['qty'] ?? 1;
+							if (isset($totalQtyTicket[$tk['ticket_type']])) $totalQtyTicket[$tk['ticket_type']] += $tk['qty'] ?? 1;
 							else $totalQtyTicket[$tk['ticket_type']] = $tk['qty'] ?? 1;
 
 							$totalQtyAllTicket += $tk['qty'] ?? 1;
@@ -315,9 +323,9 @@ class EC_HoaDonBan extends Basic {
 
 					$totalFlightServiceFee = $totalBaggageServiceFee = 0;
 					$totalServiceFee = 0;
-					if($times < 1) {
+					if ($times < 1) {
 						// Tickets and baggage are issued separately
-						if($isIssueBaggage) {
+						if ($isIssueBaggage) {
 							$totalFlightServiceFee  = $bookingInfo['total_amount'] - $bookingInfo['total_bought_amount'] - $bookingInfo['luggage_fee'];
 							$totalBaggageServiceFee = $bookingInfo['luggage_fee'] - $totalBaggagePrice;
 						}
@@ -325,8 +333,7 @@ class EC_HoaDonBan extends Basic {
 						else {
 							$totalFlightServiceFee = $bookingInfo['total_amount'] - $bookingInfo['total_bought_amount'] - $totalBaggagePrice;
 						}
-					}
-					else {
+					} else {
 						// Get total service fee by difference between purchase price and selling price in receipt vouchers
 						$totalServiceFee = $this->db->getOne("SELECT SUM(IFNULL(amount, 0)) - SUM(IFNULL(bought_amount, 0) + IFNULL(bought_amount2, 0) + IFNULL(bought_amount3, 0))
 							FROM ec_receipt_voucher rv
@@ -341,32 +348,29 @@ class EC_HoaDonBan extends Basic {
 					$listDoneTickets = [];
 					$serviceFeeInter = 0; // Service fee for international ticket will be added up and insert to the new row
 					foreach ($listAvailableTickets as $tkid => $tk) {
-						if(array_search($tk['ticket_number'], $listBookingTicketNumber) === false) continue;
+						if (array_search($tk['ticket_number'], $listBookingTicketNumber) === false) continue;
 
 						$code = $this->getCodeDetail($tk['ticket_type'], $tk['itinerary']); // Item code
 
 						$serviceFee = 0;
-						if($tk['ticket_type'] == 'flight') {
+						if ($tk['ticket_type'] == 'flight') {
 							$avgFlightServiceFee = $totalFlightServiceFee / $totalQtyTicket[$tk['ticket_type']];
 							$serviceFee = $code == 'VMB_QT' ? 0 : $avgFlightServiceFee;
 							$serviceFeeInter += $code == 'VMB_QT' ? $avgFlightServiceFee : 0;
-						}
-						elseif($tk['ticket_type'] == 'ticketing_fee') {
+						} elseif ($tk['ticket_type'] == 'ticketing_fee') {
 							$serviceFee = $totalFlightServiceFee;
-						}
-						elseif($tk['ticket_type'] == 'baggage' && $times < 1) {
+						} elseif ($tk['ticket_type'] == 'baggage' && $times < 1) {
 							$avgBaggageServiceFee = $totalBaggageServiceFee / $totalQtyTicket[$tk['ticket_type']];
 							$serviceFee = $avgBaggageServiceFee;
-						}
-						else {
+						} else {
 							$avgServiceFee = $totalServiceFee / $totalQtyAllTicket;
 							$serviceFee = $avgServiceFee;
 						}
 
 						$taxRate = $tk['vat_per'];
 						$divide = 1;
-						if($taxRate == 0.08) $divide = 1.08;
-						else if($taxRate == 0.1) $divide = 1.1;
+						if ($taxRate == 0.08) $divide = 1.08;
+						else if ($taxRate == 0.1) $divide = 1.1;
 
 						$cthd = new EC_ChiTietHoaDon();
 						$cthd->id 			= '';
@@ -388,25 +392,25 @@ class EC_HoaDonBan extends Basic {
 						$cthd->parent_type 	= 'EC_HoaDonBan';
 						$cthd->order_by_no 	= $i;
 						$cthd->ticket_number_id = $tkid;
-						if($cthd->mahang == 'PK') $cthd->name = 'PK';
-						if($cthd->save()) {
+						if ($cthd->mahang == 'PK') $cthd->name = 'PK';
+						if ($cthd->save()) {
 							array_push($listDoneTickets, $tkid);
 							$beanInInv->updateInventoryStatus($tkid);
 
 							$tongsl += $tk['qty'];
 							$tongthanhtoan += $cthd->thanhtien;
 						}
-						
+
 						$i++;
 					}
 					$listAvailableTickets = array_diff_key($listAvailableTickets, array_flip($listDoneTickets));
 
 					// Quốc tế tách riêng dòng phí DV
-					if($serviceFeeInter > 0) {
+					if ($serviceFeeInter > 0) {
 						$svTaxRate = 0.08;
 						$svDivide = 1;
-						if($svTaxRate == 0.08) $svDivide = 1.08;
-						else if($svTaxRate == 0.1) $svDivide = 1.1;
+						if ($svTaxRate == 0.08) $svDivide = 1.08;
+						else if ($svTaxRate == 0.1) $svDivide = 1.1;
 
 						$cthd2 = new EC_ChiTietHoaDon();
 						$cthd2->id 			= '';
@@ -434,8 +438,8 @@ class EC_HoaDonBan extends Basic {
 						$tongthanhtoan += $cthd2->thanhtien;
 					}
 
-					if($i * $tongsl * $tongthanhtoan != 0) {
-						$dateModified = date('Y-m-d H:i:s', time() - 7*3600 + $additionalSecond);
+					if ($i * $tongsl * $tongthanhtoan != 0) {
+						$dateModified = date('Y-m-d H:i:s', time() - 7 * 3600 + $additionalSecond);
 						$sqlUpdate = "UPDATE ec_hoadonban
 							SET tongsl = {$tongsl}
 								,tongthanhtoan = {$tongthanhtoan}
@@ -444,15 +448,8 @@ class EC_HoaDonBan extends Basic {
 						$this->db->query($sqlUpdate);
 					}
 					sleep(1);
-				}
-				catch(Exception $e) {
-					global $sugar_config;
-					$botToken   = $sugar_config['telegram']['bot_token'] ?? '';
-					$chatId     = $sugar_config['telegram']['chat_id'] ?? '';
-					$threadId   = $sugar_config['telegram']['thread_id_logs'] ?? '';
-					$m = "<b>[ERROR] Exception when create auto output invoice</b>";
-					$m .= "\n{$e->getMessage()} on line {$e->getLine()} with booking id $bookingId";
-					Telegram::sendMessage($m, $botToken, $chatId, $threadId);
+				} catch (Exception $e) {
+					$GLOBALS['log']->fatal("Exception when creating auto output invoice with booking id $bookingId {$e->getMessage()} on line {$e->getLine()}");
 					return false;
 				}
 			}
@@ -466,8 +463,9 @@ class EC_HoaDonBan extends Basic {
 	 * @param string $tax_code
 	 * @return bool
 	 */
-	public function checkTaxCode($tax_code) {
-		if(strlen($tax_code) == 10 || (strlen($tax_code) == 14 && $tax_code[10] === '-')) return true;
+	public function checkTaxCode($tax_code)
+	{
+		if (strlen($tax_code) == 10 || (strlen($tax_code) == 14 && $tax_code[10] === '-')) return true;
 		return false;
 	}
 
@@ -479,14 +477,15 @@ class EC_HoaDonBan extends Basic {
 	 * 
 	 * @return string
 	 */
-	private function getCodeDetail($ticket_type, $itinerary = '') {
+	private function getCodeDetail($ticket_type, $itinerary = '')
+	{
 		$ticket_type = strtolower($ticket_type);
 		switch ($ticket_type) {
 			case 'flight':
 				$isInter = false;
 				$arr = explode("-", $itinerary);
-				foreach($arr as $code) {
-					if(!isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code])) {
+				foreach ($arr as $code) {
+					if (!isset($GLOBALS['app_list_strings']['domestic_airport_list'][$code])) {
 						$isInter = true;
 						break;
 					}

@@ -401,18 +401,18 @@ $(document).ready(function () {
                     </ul>`;
             }
         }
-        else if (this.value == 'after-call-sale') {
-            let data = {};
-            if(direction == '1') data = journeys[journey_id_dep];
-            else if(direction == '0') data = journeys[journey_id_ret];
+        // else if (this.value == 'after-call-sale') {
+        //     let data = {};
+        //     if(direction == '1') data = journeys[journey_id_dep];
+        //     else if(direction == '0') data = journeys[journey_id_ret];
 
-            html = `
-                <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />
-                <p>Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${zaloContact}" maxlength="30" style="width:250px" />,</p>
-                <p style="font-weight:400">Cảm ơn <span id="full_name_copy">${zaloContact}</span> đã sử dụng dịch vụ của Tìm Chuyến Bay.</p>
-                <p style="font-weight:400">Mã hành trình <input type="text" name="zalo_field_flight_no" id="zalo_field_flight_no" class="zalo_field" value="${data?.flightno ?? ''}" style="width:80px" />, ngày giờ bay <input type="text" name="zalo_field_datetime" id="zalo_field_datetime" class="zalo_field" value="${data?.datetime ?? ''}" style="width:160px" />.</p>
-                <p style="font-weight:400">Quý khách nhấn nút quan tâm để cấp nhật thông tin đặt vé mới nhất mỗi ngày.</p>`;
-        }
+        //     html = `
+        //         <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />
+        //         <p>Xin chào <input type="text" name="zalo_field_full_name" id="zalo_field_full_name" class="zalo_field" value="${zaloContact}" maxlength="30" style="width:250px" />,</p>
+        //         <p style="font-weight:400">Cảm ơn <span id="full_name_copy">${zaloContact}</span> đã sử dụng dịch vụ của Tìm Chuyến Bay.</p>
+        //         <p style="font-weight:400">Mã hành trình <input type="text" name="zalo_field_flight_no" id="zalo_field_flight_no" class="zalo_field" value="${data?.flightno ?? ''}" style="width:80px" />, ngày giờ bay <input type="text" name="zalo_field_datetime" id="zalo_field_datetime" class="zalo_field" value="${data?.datetime ?? ''}" style="width:160px" />.</p>
+        //         <p style="font-weight:400">Quý khách nhấn nút quan tâm để cấp nhật thông tin đặt vé mới nhất mỗi ngày.</p>`;
+        // }
         else if (this.value == 'delay') {
             html = `
                 <input type="hidden" name="zalo_zns_type" id="zalo_zns_type" value="${this.value}" />

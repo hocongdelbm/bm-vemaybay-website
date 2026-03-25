@@ -34,10 +34,6 @@ $mod_strings = array(
     'LBL_NO_RESULTS' => '<h2>Không tìm thấy kết quả. Xin vui lòng tìm kiếm lại.</h2><br>',
     'LBL_NO_RESULTS_TIPS' => '<h3>Mẹo tìm kiếm:</h3><ul><li>Đảm bảo bạn có các danh mục phù hợp được chọn ở trên.</li><li>Mở rộng các tiêu chí tìm kiếm của bạn.</li><li>Nếu bạn vẫn không thể tìm thấy bất kỳ kết quả nào hãy thử tùy chọn tìm kiếm nâng cao.</li></ul>',
 
-    'LBL_ADD_DASHLETS' => 'Thêm SuiteCRM Dashlets',
-    'LBL_WEBSITE_TITLE' => 'Trang web',
-    'LBL_RSS_TITLE' => 'Tin mới',
-    'LBL_CLOSE_DASHLETS' => 'Đóng',
     'LBL_OPTIONS' => 'Tùy chọn',
     // dashlet search fields
     'LBL_TODAY' => 'Xem Lịch',
@@ -109,7 +105,7 @@ $mod_strings = array(
     'LBL_DASHLET_SUITE_NEWS' => 'Tin tức SuiteCRM',
     'LBL_DASHLET_DISCOVER_SUITE' => 'Khám phá SuiteCRM',
     'LBL_BASIC_SEARCH' => 'Lọc nhanh' /*for 508 compliance fix*/,
-    'LBL_ADVANCED_SEARCH' => 'Bộ lọc nâng cao' /*for 508 compliance fix*/,
+    'LBL_ADVANCED_SEARCH' => 'Bộ lọc' /*for 508 compliance fix*/,
     'LBL_TOUR_HOME' => 'Biểu tượng trang chủ',
     'LBL_TOUR_HOME_DESCRIPTION' => 'Nhanh chóng quay về trang tổng quan của trang chủ trong một cú nhấp chuột.',
     'LBL_TOUR_MODULES' => 'Mô-đun',
