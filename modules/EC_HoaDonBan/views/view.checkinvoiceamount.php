@@ -267,8 +267,8 @@ class Viewcheckinvoiceamount extends SugarView {
                 , hdb.sohoadon
             FROM ec_booking_details bkd 
                 LEFT JOIN ec_flight_bookings bk ON bkd.booking_id = bk.id AND bk.deleted = 0
-                INNER JOIN ec_chitiethoadon cthd ON cthd.booking_id = bk.id AND cthd.deleted = 0 AND cthd.parent_id != ''
-                INNER JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
+                LEFT JOIN ec_chitiethoadon cthd ON cthd.booking_id = bk.id AND cthd.deleted = 0 AND cthd.parent_id != ''
+                LEFT JOIN ec_hoadonban hdb ON hdb.id = cthd.parent_id AND hdb.deleted = 0
             WHERE bk.booking_status IN ('3', '7', '8')
                 AND bk.date_ticket_issue $operator_between_range_date
                 $where_bk_fields
